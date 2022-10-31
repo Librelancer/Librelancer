@@ -10,6 +10,7 @@ using System.Numerics;
 using Castle.DynamicProxy.Tokens;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
+using LibreLancer.Media;
 using LibreLancer.Net;
 using LibreLancer.Physics;
 using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
@@ -152,7 +153,6 @@ World Time: {12:F2}
             player.World = world;
             world.AddObject(player);
             player.Register(world.Physics);
-            Game.Sound.PlayMusic(sys.MusicSpace, 0);
             cur_arrow = Game.ResourceManager.GetCursor("arrow");
             cur_cross = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
@@ -540,8 +540,10 @@ World Time: {12:F2}
 			return false;
 		}
 
-
+        
         public bool ShowHud = true;
+        //Set to true when the mission system selected music on launch
+        public bool RtcMusic = false;
 
         public override void Update(double delta)
 		{
@@ -579,8 +581,13 @@ World Time: {12:F2}
             if (frameCount < 2)
             {
                 frameCount++;
-                if(frameCount == 2)
+                if (frameCount == 2)
+                {
                     session.BeginUpdateProcess();
+                    if (!RtcMusic) {
+                        Game.Sound.PlayMusic(sys.MusicSpace, 0);
+                    }
+                }
             }
             else
             {

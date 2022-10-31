@@ -719,7 +719,10 @@ namespace LibreLancer
                music.Equals("none", StringComparison.OrdinalIgnoreCase))
                 Game.Sound.StopMusic(fade);
             else
+            {
+                gp.RtcMusic = true;
                 Game.Sound.PlayMusic(music, fade);
+            }
         });
 
         void RunDialog(NetDlgLine[] lines, int index = 0)
