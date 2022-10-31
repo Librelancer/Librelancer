@@ -16,7 +16,7 @@ namespace LibreLancer
 
         private int renIndex = 0;
 
-        private List<AttachedEffect> spawned = new List<AttachedEffect>();
+        private List<ParticleEffectRenderer> spawned = new List<ParticleEffectRenderer>();
         
         void Spawn(SpawnedEffect effect)
         {
@@ -27,17 +27,10 @@ namespace LibreLancer
             foreach (var fxhp in effect.Hardpoints)
             {
                 var hp = Parent.GetHardpoint(fxhp);
-                var fxobj = new AttachedEffect(hp,
-                    new ParticleEffectRenderer(pfx) {Index = renIndex++});
-                Parent.ExtraRenderers.Add(fxobj.Effect);
+                var fxobj = new ParticleEffectRenderer(pfx) {Index = renIndex++, Attachment = hp};
+                Parent.ExtraRenderers.Add(fxobj);
                 spawned.Add(fxobj);
             }
-        }
-
-        public override void Update(double time)
-        {
-            foreach(var fx in spawned)
-                fx.Update(Parent, time, 0);
         }
 
         public void UpdateEffects(SpawnedEffect[] fx)

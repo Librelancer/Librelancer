@@ -12,7 +12,7 @@ namespace LibreLancer
 {
 	public class CEngineComponent : SEngineComponent
 	{
-        List<AttachedEffect> fireFx = new List<AttachedEffect>();
+        List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
         private AttachedSound rumble;
         private AttachedSound character;
         private AttachedSound cruiseLoop;
@@ -28,7 +28,7 @@ namespace LibreLancer
             set {
                 foreach(var fx in fireFx)
                 {
-                    fx.Effect.Active = value;
+                    fx.Active = value;
                 }
                 _active = value;
             }
@@ -136,9 +136,9 @@ namespace LibreLancer
                 cruiseEnd.Velocity = vel;
                 cruiseEnd.Update();
             }
-            
+
             for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Update(Ship, time, Speed);
+                fireFx[i].SParam = Speed;
         }
 		public override void Register(Physics.PhysicsWorld physics)
         {
@@ -162,16 +162,16 @@ namespace LibreLancer
                         hp.Name.StartsWith("hpengine", StringComparison.OrdinalIgnoreCase))
                     {
                         if(trailFx != null)
-                            fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(trailFx)));
-                        if(flameFx != null)
-                            fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(flameFx) { Index = 1 }));
+                            fireFx.Add(new ParticleEffectRenderer(trailFx) { Attachment = hp });
+                        if (flameFx != null)
+                            fireFx.Add(new ParticleEffectRenderer(flameFx) { Index = 1, Attachment = hp });
                     }
                 }
 
                 for (int i = 0; i < fireFx.Count; i++)
                 {
-                    Parent.ExtraRenderers.Add(fireFx[i].Effect);
-                    fireFx[i].Effect.Active = Active;
+                    Parent.ExtraRenderers.Add(fireFx[i]);
+                    fireFx[i].Active = Active;
                 }
             }
 
@@ -220,7 +220,7 @@ namespace LibreLancer
 		public override void Unregister(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)
-                Parent.ExtraRenderers.Remove(fireFx[i].Effect);
+                Parent.ExtraRenderers.Remove(fireFx[i]);
             rumble?.Kill();
             character?.Kill();
             cruiseLoop?.Kill();

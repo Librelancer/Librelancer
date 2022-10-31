@@ -430,9 +430,12 @@ namespace LibreLancer
 
         public void RenderUpdate(double time)
         {
-            RenderComponent?.Update(time, Vector3.Transform(Vector3.Zero, WorldTransform), WorldTransform);
+            var myPos = Vector3.Transform(Vector3.Zero, WorldTransform);
+            RenderComponent?.Update(time, myPos, WorldTransform);
             for (int i = 0; i < Children.Count; i++)
                 Children[i].RenderUpdate(time);
+            foreach(var child in ExtraRenderers)
+                child.Update(time, myPos, WorldTransform);
         }
         
         public void Register(PhysicsWorld physics)

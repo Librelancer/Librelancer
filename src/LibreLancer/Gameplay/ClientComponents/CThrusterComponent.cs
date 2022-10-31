@@ -10,13 +10,15 @@ namespace LibreLancer
 {
 	public class CThrusterComponent : ThrusterComponent
 	{
-        List<AttachedEffect> fireFx = new List<AttachedEffect>();
+        List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
 		public CThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent, equip) { }
 
 		public override void Update(double time)
 		{
-			for (int i = 0; i < fireFx.Count; i++)
-				fireFx[i].Update(Parent, time, Enabled ? 1 : 0);
+            for (int i = 0; i < fireFx.Count; i++)
+            {
+                fireFx[i].Active = Enabled;
+            }
 		}
 		public override void Register(Physics.PhysicsWorld physics)
         {
@@ -28,17 +30,17 @@ namespace LibreLancer
                 foreach (var hp in Parent.GetHardpoints()
                              .Where(x => x.Name.Equals(Equip.HpParticles, StringComparison.OrdinalIgnoreCase)))
                 {
-                    fireFx.Add(new AttachedEffect(hp, new ParticleEffectRenderer(pfx)));
+                    fireFx.Add(new ParticleEffectRenderer(pfx) { Attachment = hp, Active = false, SParam = 1 });
                 }
             }
 
             for (int i = 0; i < fireFx.Count; i++)
-                Parent.ExtraRenderers.Add(fireFx[i].Effect);
-		}
+                Parent.ExtraRenderers.Add(fireFx[i]);
+        }
 		public override void Unregister(Physics.PhysicsWorld physics)
-		{
-			for (int i = 0; i < fireFx.Count; i++)
-                Parent.ExtraRenderers.Remove(fireFx[i].Effect);
-		}
+        {
+            for (int i = 0; i < fireFx.Count; i++)
+                Parent.ExtraRenderers.Remove(fireFx[i]);
+        }
     }
 }

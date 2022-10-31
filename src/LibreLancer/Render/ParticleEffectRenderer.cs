@@ -16,6 +16,8 @@ namespace LibreLancer
 		ParticleEffectInstance fx;
         public bool Finished = false;
         public int Index; //needed to fix fuses spawning multiple fx on top of each-other
+        public Hardpoint Attachment;
+        
 		public ParticleEffectRenderer(ParticleEffect effect)
 		{
             if (effect == null) return;
@@ -47,6 +49,10 @@ namespace LibreLancer
 		public override void Update(double time, Vector3 position, Matrix4x4 transform)
 		{
             if (fx == null) return;
+            if (Attachment != null) {
+                transform = Attachment.Transform * transform;
+                position = Vector3.Transform(Vector3.Zero, transform);
+            }
 			pos = position;
             dist = Vector3.DistanceSquared(position, cameraPos);
 			if (Active && dist < CULL)

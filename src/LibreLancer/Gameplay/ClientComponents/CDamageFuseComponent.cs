@@ -19,7 +19,7 @@ namespace LibreLancer
             private bool ran = false;
             private Queue<FuseAction> actions;
             private double T = 0;
-            private List<AttachedEffect> effects = new List<AttachedEffect>();
+            private List<ParticleEffectRenderer> effects = new List<ParticleEffectRenderer>();
             private int renIndex = 0;
 
             public DamageFuseRunner(FuseResources fuse, float threshold)
@@ -31,8 +31,6 @@ namespace LibreLancer
             
             public void Update(float health, double time, GameObject parent)
             {
-                foreach(var fx in effects)
-                    fx.Update(parent, time, 0);
                 if (health > threshold)
                 {
                     T = 0;
@@ -40,7 +38,7 @@ namespace LibreLancer
                     if (ran)
                     {
                         foreach (var child in effects) {
-                            parent.ExtraRenderers.Remove(child.Effect);
+                            parent.ExtraRenderers.Remove(child);
                         }
                         effects.Clear();
                         actions = new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT));
@@ -66,9 +64,8 @@ namespace LibreLancer
                             foreach (var fxhp in fxact.Hardpoints)
                             {
                                 var hp = parent.GetHardpoint(fxhp);
-                                var fxobj = new AttachedEffect(hp,
-                                    new ParticleEffectRenderer(pfx) {Index = renIndex++});
-                                parent.ExtraRenderers.Add(fxobj.Effect);
+                                var fxobj = new ParticleEffectRenderer(pfx) {Index = renIndex++, Attachment = hp};
+                                parent.ExtraRenderers.Add(fxobj);
                                 effects.Add(fxobj);
                             }
                         }
