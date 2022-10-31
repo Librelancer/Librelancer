@@ -207,7 +207,7 @@ World Time: {12:F2}
             Contact GetContact(GameObject obj)
             {
                 var distance = Vector3.Distance(playerPos, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
-                var name = obj.Name.GetName(game.Game.GameData);
+                var name = obj.Name.GetName(game.Game.GameData, playerPos);
                 if (obj.Kind == GameObjectKind.Ship &&
                     obj.TryGetComponent<CFactionComponent>(out var fac))
                 {
@@ -274,7 +274,7 @@ World Time: {12:F2}
                 playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
                 Contacts = game.world.Objects.Where(x => x != game.player &&
                                                          (x.Kind == GameObjectKind.Ship || x.Kind == GameObjectKind.Solar) &&
-                                                         !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData)))
+                                                         !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData, Vector3.Zero)))
                     .Where(contactFilter)
                     .Select(GetContact)
                     .OrderBy(x => x.distance).ToArray();
@@ -404,11 +404,11 @@ World Time: {12:F2}
                 return null;
             }
 
-            public string CurrentInfoString() => g.selected?.Name?.GetName(g.Game.GameData);
+            public string CurrentInfoString() => g.selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
 
             public string SelectionName()
             {
-                return g.selected?.Name?.GetName(g.Game.GameData) ?? "NULL";
+                return g.selected?.Name?.GetName(g.Game.GameData, g.player.PhysicsComponent.Body.Position) ?? "NULL";
             }
 
             public TargetShipWireframe SelectionWireframe() => g.selected != null ? g.targetWireframe : null;
@@ -1035,7 +1035,7 @@ World Time: {12:F2}
                     if (selected.Name == null)
                         sel_obj = "unknown object";
                     else
-                        sel_obj = selected.Name?.GetName(Game.GameData) ?? "unknown object";
+                        sel_obj = selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
                 }
                 var text = string.Format(DEMO_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,

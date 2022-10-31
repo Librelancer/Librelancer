@@ -856,9 +856,49 @@ namespace LibreLancer
                         sys.LightSources.Add(lt);
                     }
                 }
+
+                var objDict = new Dictionary<string, LibreLancer.Data.Universe.SystemObject>(StringComparer.OrdinalIgnoreCase);
                 foreach (var obj in inisys.Objects)
                 {
-                    sys.Objects.Add(GetSystemObject(obj));
+                    var o = GetSystemObject(obj);
+                    objDict[o.Nickname] = obj;
+                    sys.Objects.Add(o);
+                }
+                //fill tradelane names left
+                foreach (var obj in inisys.Objects.Where(x => x.NextRing != null && x.TradelaneSpaceName != 0))
+                {
+                    var spaceName = obj.TradelaneSpaceName;
+                    var oNext = obj;
+                    int i = 0;
+                    while (oNext.NextRing != null &&
+                           objDict.TryGetValue(oNext.NextRing, out oNext))
+                    {
+                        var go = sys.Objects.FirstOrDefault(x =>
+                            x.Nickname.Equals(oNext.Nickname, StringComparison.OrdinalIgnoreCase));
+                        go.IdsRight = spaceName;
+                        if (i++ > 5000) {
+                            FLLog.Warning("System", $"Loop detected in tradelane {oNext.Nickname}");
+                            break; //Infinite loop
+                        }
+                    }
+                }
+                //fill tradelane names right
+                foreach (var obj in inisys.Objects.Where(x => x.PrevRing != null && x.TradelaneSpaceName != 0))
+                {
+                    var spaceName = obj.TradelaneSpaceName;
+                    var oNext = obj;
+                    int i = 0;
+                    while (oNext.PrevRing != null &&
+                           objDict.TryGetValue(oNext.PrevRing, out oNext))
+                    {
+                        var go = sys.Objects.FirstOrDefault(x =>
+                            x.Nickname.Equals(oNext.Nickname, StringComparison.OrdinalIgnoreCase));
+                        go.IdsLeft = spaceName;
+                        if (i++ > 5000) {
+                            FLLog.Warning("System", $"Loop detected in tradelane {oNext.Nickname}");
+                            break; //Infinite loop
+                        }
+                    }
                 }
                 if (inisys.Zones != null)
                     foreach (var zne in inisys.Zones)
@@ -1585,6 +1625,12 @@ namespace LibreLancer
                     Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
             }
             obj.Archetype = archetypes[o.Archetype];
+            if (o.NextRing != null && o.TradelaneSpaceName != 0) {
+                obj.IdsLeft = o.TradelaneSpaceName;
+            }
+            else if (o.PrevRing != null && o.TradelaneSpaceName != 0) {
+                obj.IdsRight = o.TradelaneSpaceName;
+            }
             if (obj.Archetype.Type == Data.Solar.ArchetypeType.sun)
             {
                 if (o.Star != null) //Not sure what to do if there's no star?

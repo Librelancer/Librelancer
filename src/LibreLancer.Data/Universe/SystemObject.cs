@@ -73,8 +73,8 @@ namespace LibreLancer.Data.Universe
         [Entry("next_ring")] 
         public string NextRing;
 
-        [Entry("tradelane_space_name", Multiline = true)]
-		public List<int> TradelaneSpaceName = new List<int>();
+        [Entry("tradelane_space_name")] 
+        public int TradelaneSpaceName;
 
         [Entry("parent")] 
         public string Parent;

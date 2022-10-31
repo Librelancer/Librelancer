@@ -26,6 +26,39 @@ namespace LibreLancer
         Solar
     }
 
+    public class TradelaneName : ObjectName
+    {
+        private GameObject Parent;
+        public TradelaneName(GameObject parent, params int[] ids)
+        {
+            Parent = parent;
+            this._Ids = ids;
+        }
+
+        private string leftRight = "";
+        private string rightLeft = "";
+        public override string GetName(GameDataManager gameData, Vector3 other)
+        {
+            var heading = other - Parent.PhysicsComponent.Body.Position;
+            var fwd = Parent.PhysicsComponent.Body.Transform.GetForward();
+            var dot = Vector3.Dot(heading, fwd);
+            if (string.IsNullOrEmpty(leftRight) ||
+                string.IsNullOrEmpty(rightLeft))
+            {
+                leftRight = $"{gameData.GetString(_Ids[0])}->{gameData.GetString(_Ids[1])}";
+                rightLeft = $"{gameData.GetString(_Ids[1])}->{gameData.GetString(_Ids[0])}";
+            }
+            if (dot > 0)
+            {
+                return leftRight;
+            }
+            else
+            {
+                return rightLeft;
+            }
+        }
+    }
+
     public class ObjectName
     {
         internal string _NameString = null;
@@ -44,7 +77,7 @@ namespace LibreLancer
             this._NameString = str;
         }
         
-        public string GetName(GameDataManager gameData)
+        public virtual string GetName(GameDataManager gameData, Vector3 other)
         {
             if (dirty)
             {

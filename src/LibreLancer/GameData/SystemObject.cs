@@ -24,6 +24,9 @@ namespace LibreLancer.GameData
 		public DockAction Dock;
         public Faction Faction;
         public int Visit;
+
+        public int IdsLeft;
+        public int IdsRight;
         
         public SystemObject ()
 		{
