@@ -109,6 +109,9 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_SetNNObj:
                         yield return new Act_SetNNObj(a);
                         break;
+                    case TriggerActions.Act_MarkObj:
+                        yield return new Act_MarkObj(a);
+                        break;
                     default:
                         break;
                 }

@@ -114,10 +114,23 @@ class hud : hud_Designer
         this.UpdateManeuverState()
 		local e = this.Elements;
         e.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
-		e.contactlistview.SetData(Game.GetContactList());
+		this.ContactList = Game.GetContactList();
+		e.contactlistview.SetData(this.ContactList);
+		this.HudFilters = {
+			important = e.filter_important,
+			ship = e.filter_ship,
+			station = e.filter_station,
+			loot = e.filter_loot,
+			all = e.filter_all
+		};
+		e.filter_important.OnClick(() => this.FilterSelected("important"));
+		e.filter_ship.OnClick(() => this.FilterSelected("ship"));
+		e.filter_station.OnClick(() => this.FilterSelected("station"));
+		e.filter_loot.OnClick(() => this.FilterSelected("loot"));
+		e.filter_all.OnClick(() => this.FilterSelected("all"));
+		this.ContactList.SetFilter("important");
 	    e.chat.Chat = Game.GetChats()
 		e.nnobj.Visible = false;
-		
 		
 		e.showwireframe.OnClick(() => {
 			e.showwireframe.Selected = true;
@@ -145,6 +158,14 @@ class hud : hud_Designer
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
     }
+
+	FilterSelected(filter)
+	{
+		for(k, v in pairs(this.HudFilters)) {
+			v.Selected = filter == k
+		}
+		this.ContactList.SetFilter(filter)
+	}
     
 	ObjectiveUpdate(nnids)
 	{
@@ -233,6 +254,7 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
+
 
 
 

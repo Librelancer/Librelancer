@@ -18,14 +18,33 @@ namespace LibreLancer
         object _msnLock = new object();
 
         public MissionScript Script;
-        public MissionRuntime(MissionIni msn, Player player)
+        public MissionRuntime(MissionIni msn, Player player, uint triggerSave)
         {
             Script = new MissionScript(msn);
             this.msn = msn;
             this.Player = player;
-            foreach (var t in Script.InitTriggers)
+            bool doInit = true;
+            if (triggerSave != 0)
             {
-                ActivateTrigger(t);
+                foreach (var t in Script.AvailableTriggers)
+                {
+                    if (FLHash.CreateID(t.Key) == triggerSave)
+                    {
+                        FLLog.Debug("Mission", $"Loading from trigger {t.Key}");
+                        ActivateTrigger(t.Key);
+                        doInit = false;
+                        break;
+                    }
+                }
+                if (doInit) FLLog.Error("Save", $"Unable to find trigger {triggerSave}");
+            }
+            if (doInit)
+            {
+                FLLog.Debug("Mission", "Loading init triggers");
+                foreach (var t in Script.InitTriggers)
+                {
+                    ActivateTrigger(t);
+                }
             }
             UpdateUiTriggers();
         }
@@ -91,6 +110,8 @@ namespace LibreLancer
                 bool inside = data.Entry[0].ToString() == "inside";
                 var objA = Player.World.GameWorld.GetObject(data.Entry[1].ToString());
                 var objB = Player.World.GameWorld.GetObject(data.Entry[2].ToString());
+                if (objA == null || objB == null) return false;
+                
                 var d = data.Entry[3].ToSingle();
                 d *= d;
                 bool satisfy;
@@ -226,6 +247,11 @@ namespace LibreLancer
         
         static bool IdEquals(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
+
+        public void PlayerLaunch()
+        {
+            ProcessCondition(TriggerConditions.Cnd_PlayerLaunch, TruePredicate);
+        }
 
         void ProjectileHit(GameObject victim, GameObject attacker)
         {

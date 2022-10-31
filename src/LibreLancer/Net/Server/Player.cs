@@ -283,6 +283,8 @@ namespace LibreLancer
                 {
                     rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
+                    msnRuntime?.PlayerLaunch();
+                    msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
                 });
             });
@@ -619,7 +621,8 @@ namespace LibreLancer
             if (Game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
             if (missionNum != 0 && (missionNum - 1) < Game.GameData.Ini.Missions.Count)
             {
-                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this);
+                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this, 
+                    (uint)(sg.TriggerSave?.Trigger ?? 0));
                 msnRuntime.Update(0.0);
             }
         }
@@ -1037,6 +1040,8 @@ namespace LibreLancer
                 {
                     rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
+                    msnRuntime?.PlayerLaunch();
+                    msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
                 });
             });
@@ -1083,6 +1088,8 @@ namespace LibreLancer
                 {
                     rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
+                    msnRuntime?.PlayerLaunch();
+                    msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
                 });
             });

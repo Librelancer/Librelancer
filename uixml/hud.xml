@@ -1,7 +1,4 @@
 <Scene ScriptFile="hud.lua">
-	<!--<Panel Anchor="Center" Width="640" Height="480">
-		<ImageFile Path="DATA/freelancer_21.jpg" Fill="true" />
-	</Panel>-->
     <Scene id="hudcontrols">
 	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
 		<Panel.Background>
@@ -15,6 +12,11 @@
 		<Button id="showcontactlist" X="126.5" Y="2" Style="hud_contactlist" Selected="true">
 		</Button>
 		<Scene id="contactlist">
+			<Button id="filter_important" style="hud_contactimportant" X="34" Y="33" Selected="true"/>
+			<Button id="filter_ship" style="hud_contactship" X="55" Y="33"/>
+			<Button id="filter_station" style="hud_contactstation" X="76" Y="33"/>
+			<Button id="filter_loot" style="hud_contactloot" X="97" Y="33"/>
+			<Button id="filter_all" style="hud_contactall" X="118" Y="32"/>
 			<ContactList id="contactlistview" X="14" Y="48" Width="142" Height="90" FriendlyColor="color_friendly" HostileColor="color_hostile" NeutralColor="color_neutral" TextSize="8" Font="$Normal" DisplayRowCount="8" HoverColor="text_hover" SelectedColor="yellow">
 			</ContactList>
 		</Scene>
@@ -122,6 +124,7 @@
     <ChatDisplay Anchor="BottomLeft" Y="150" Height="250" Width="510" X="10" id="chat"></ChatDisplay>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
+
 
 
 

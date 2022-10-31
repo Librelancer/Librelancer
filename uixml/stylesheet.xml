@@ -111,6 +111,95 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Selected>
 	</ButtonStyle>
+	<ButtonStyle Width="16" Height="16" Name="hud_contactall">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactall" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactall" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactall" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	
+	<ButtonStyle Width="15" Height="15" Name="hud_contactloot">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactloot" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactloot" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactloot" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	
+	<ButtonStyle Width="16" Height="16" Name="hud_contactstation">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactstation" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactstation" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactstation" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	
+	<ButtonStyle Width="15" Height="14" Name="hud_contactship">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactship" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactship" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactship" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	
+	<ButtonStyle Width="15" Height="15" Name="hud_contactimportant">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactimportant" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactimportant" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_contactimportant" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
 	
 	<!-- Neuronet buttons -->
 	<ButtonStyle Width="21" Height="21" Name="nn_info">
@@ -571,3 +660,4 @@
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
 </Stylesheet>
+

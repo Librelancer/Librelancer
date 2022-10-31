@@ -39,6 +39,11 @@ namespace LibreLancer
         {
             World.EnqueueAction(() =>
             {
+                if (!missionNPCs.TryGetValue(nickname, out var npc))
+                {
+                    FLLog.Error("Mission", $"Could not find spawned npc {npc}");
+                    return;
+                }
                 act(missionNPCs[nickname]);
             });
         }

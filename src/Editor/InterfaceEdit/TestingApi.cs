@@ -159,6 +159,11 @@ namespace InterfaceEdit
         public string Get(int index) => contacts[index];
 
         public RepAttitude GetAttitude(int index) => RepAttitude.Friendly;
+
+        public void SetFilter(string filter)
+        {
+            //no-op
+        }
     }
 
 

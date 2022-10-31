@@ -73,7 +73,6 @@ namespace LibreLancer.Media
                         crossFadeTime += (float)elapsed.TotalSeconds;
                         if (crossFadeTime >= crossFadeDuration) {
                             crossFadeTime = crossFadeDuration = 0;
-                            UpdateGain();
                             oldSound.Dispose();
                             oldSound = null;
                             FLLog.Debug("Music", "Fade complete");

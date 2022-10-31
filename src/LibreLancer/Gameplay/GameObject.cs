@@ -70,6 +70,18 @@ namespace LibreLancer
                 return "(NULL)";
         }
     }
+
+    [Flags]
+    public enum GameObjectFlags
+    {
+        Exists = 1 << 0,
+        Important = 1 << 1,
+        Neutral = 1 << 2,
+        Friendly = 1 << 3,
+        Hostile = 1 << 4,
+        Reputations = Neutral | Friendly | Hostile,
+    }
+    
     
 	public class GameObject
 	{
@@ -98,7 +110,7 @@ namespace LibreLancer
             }
         }
 
-        public bool Exists = true;
+        public GameObjectFlags Flags;
         public ShipFormation Formation = null;
         public static object ClientPlayerTag = new object();
         public GameObjectKind Kind = GameObjectKind.None;
@@ -424,8 +436,8 @@ namespace LibreLancer
         }
         
         public void Register(PhysicsWorld physics)
-		{
-            Exists = true;
+        {
+            Flags |= GameObjectFlags.Exists;
 			foreach (var child in Children)
 				child.Register(physics);
 			foreach (var component in Components)
@@ -461,8 +473,8 @@ namespace LibreLancer
         public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();
 
 		public void Unregister(PhysicsWorld physics)
-		{
-            Exists = false;
+        {
+            Flags &= ~GameObjectFlags.Exists;
             foreach (var component in Components)
                 component.Unregister(physics);
 			foreach (var child in Children)

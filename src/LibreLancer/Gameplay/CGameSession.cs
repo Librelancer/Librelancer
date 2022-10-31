@@ -712,6 +712,18 @@ namespace LibreLancer
                 }
             });
         }
+
+        void IClientPlayer.MarkImportant(int id)
+        {
+            RunSync(() =>
+            {
+                if (!objects.TryGetValue(id, out var o))
+                {
+                    FLLog.Warning("Client", $"Could not find obj {id} to mark as important");
+                }
+                o.Flags |= GameObjectFlags.Important;
+            });
+        }
         
         void IClientPlayer.PlayMusic(string music, float fade) => audioActions.Enqueue(() =>
         {
@@ -863,6 +875,19 @@ namespace LibreLancer
                 obj.PhysicsComponent.Body.Activate();
                 obj.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));
                 SmoothError(obj, oldPos, oldQuat);
+            }
+
+            obj.Flags &= ~(GameObjectFlags.Reputations);
+            switch (update.RepToPlayer) {
+                case RepAttitude.Friendly: 
+                    obj.Flags |= GameObjectFlags.Friendly;
+                    break;
+                case RepAttitude.Hostile:
+                    obj.Flags |= GameObjectFlags.Hostile;
+                    break;
+                case RepAttitude.Neutral:
+                    obj.Flags |= GameObjectFlags.Neutral;
+                    break;
             }
         }
 

@@ -263,6 +263,10 @@
           "channel": "1"
         },
         {
+          "name": "MarkImportant",
+          "args": [ { "name":  "objId", "type":  "int" }]
+        },
+        {
           "name": "ReceiveChatMessage",
           "args": [ { "name":  "category", "type":  "ChatCategory" }, { "name":  "player", "type":  "string" },{ "name":  "message", "type":  "string" }]
         },

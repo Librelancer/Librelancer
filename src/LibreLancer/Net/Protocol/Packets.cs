@@ -330,7 +330,7 @@ namespace LibreLancer
         public CruiseThrustState CruiseThrust; //4-5
         public bool Tradelane; //6
         public bool EngineKill; //7
-        public bool DockingLights; //8
+        public RepAttitude RepToPlayer; //8-9
         //0 = 0%, 1 = 100%, 2 = float
         public uint Shield;
         public bool Hull;
@@ -353,10 +353,9 @@ namespace LibreLancer
             message.PutBool(HasPosition);
             message.PutBool(Tradelane);
             message.PutBool(EngineKill);
-            message.PutBool(DockingLights);
             message.PutBool(Hull);
-            message.PutBool(LinearVelocity != Vector3.Zero);
-            message.PutBool(AngularVelocity != Vector3.Zero);
+            message.PutUInt((uint)RepToPlayer, 2);
+            message.PutBool(LinearVelocity != Vector3.Zero || AngularVelocity != Vector3.Zero);
             message.PutBool(Guns != null && Guns.Length > 0);
             message.PutBool(PartHealth != null && PartHealth.Length > 0);
             message.PutUInt((uint)CruiseThrust, 2);
@@ -378,10 +377,10 @@ namespace LibreLancer
                 message.PutVector3(Position);
                 message.PutQuaternion(Orientation);
             }
-            if(LinearVelocity != Vector3.Zero)
+            if (LinearVelocity != Vector3.Zero || AngularVelocity != Vector3.Zero) {
                 message.PutRangedVector3(LinearVelocity, -32768, 32767, 24);
-            if(AngularVelocity != Vector3.Zero)
                 message.PutRangedVector3(AngularVelocity, -16384, 16383, 24);
+            }
             if (Throttle != 1 && Throttle != 0) {
                 message.PutByte((byte)(Math.Abs(Throttle) * 255f));
             }
@@ -403,7 +402,7 @@ namespace LibreLancer
             p.HasPosition = message.GetBool();
             p.Tradelane = message.GetBool();
             p.EngineKill = message.GetBool();
-            p.DockingLights = message.GetBool();
+            p.RepToPlayer = (RepAttitude) message.GetUInt(2);
             p.Hull = message.GetBool();
             bool readLinear = message.GetBool();
             bool readAngular = message.GetBool();

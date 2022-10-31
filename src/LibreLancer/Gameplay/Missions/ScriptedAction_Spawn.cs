@@ -27,6 +27,39 @@ namespace LibreLancer.Gameplay.Missions
         }
     }
 
+    public class Act_MarkObj : ScriptedAction
+    {
+        public string Object;
+        public int Value;
+
+        public Act_MarkObj(MissionAction act) : base(act)
+        {
+            Object = act.Entry[0].ToString();
+            Value = act.Entry[1].ToInt32();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            if (Value != 1)
+            {
+                FLLog.Warning("Mission", $"MarkObj val {Value} not implemented");
+                return;
+            }
+            if (script.Ships.TryGetValue(Object, out var ship))
+            {
+                runtime.Player.World.NPCs.NpcDoAction(Object, (o) =>
+                {
+                    o.Flags |= GameObjectFlags.Important;
+                    runtime.Player.RemoteClient.MarkImportant(o.NetID);
+                });
+            }
+            else
+            {
+                FLLog.Warning("Mission", $"Ship not found for MarkObj {Object}");
+            }
+        }
+    }
+
     public abstract class ShipSpawnBase : ScriptedAction
     {
         protected ShipSpawnBase(MissionAction act) : base(act) { }
@@ -49,7 +82,12 @@ namespace LibreLancer.Gameplay.Missions
             AiState state = null;
             if (!string.IsNullOrEmpty(objList))
             {
-                state = script.ObjLists[objList].Construct();
+                if (script.ObjLists.TryGetValue(objList, out var ol)) {
+                    state = ol.Construct();
+                }
+                else {
+                    FLLog.Warning("Mission", $"Missing object list {objList}");
+                }
             }
             
             runtime.Player.WorldAction(() =>

@@ -123,7 +123,7 @@ namespace LibreLancer
             Vector3 targetPoint = Vector3.Zero;
 			float radius = -1;
 			float maxSpeed = 1f;
-            if(_targetObject != null && !_targetObject.Exists)
+            if(_targetObject != null && !_targetObject.Flags.HasFlag(GameObjectFlags.Exists))
             {
                 //We're trying to get to an object that has been blown up
                 ResetDockState();

@@ -3,18 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Diagnostics;
-using System.Dynamic;
 using System.Linq;
 using System.Numerics;
-using Castle.DynamicProxy.Tokens;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
-using LibreLancer.Media;
-using LibreLancer.Net;
 using LibreLancer.Physics;
-using Microsoft.EntityFrameworkCore.Sqlite.Query.Internal;
-using SharpDX.DirectWrite;
 
 namespace LibreLancer
 {
@@ -191,6 +184,12 @@ World Time: {12:F2}
             private Contact[] Contacts = Array.Empty<Contact>();
             private SpaceGameplay game;
             private Vector3 playerPos;
+            private Func<GameObject, bool> contactFilter;
+
+            public ContactList()
+            {
+                contactFilter = AllFilter;
+            }
 
             string GetDistanceString(float distance)
             {
@@ -204,6 +203,7 @@ World Time: {12:F2}
                     return "FAR";
             }
             
+            
             Contact GetContact(GameObject obj)
             {
                 var distance = Vector3.Distance(playerPos, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
@@ -215,13 +215,68 @@ World Time: {12:F2}
                 }
                 return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
             }
+
+
+            bool AllFilter(GameObject o) => true;
+            bool ShipFilter(GameObject o) => o.Kind == GameObjectKind.Ship;
+            bool StationFilter(GameObject o) => o.Kind == GameObjectKind.Solar;
+
+            bool LootFilter(GameObject o) => false;
+
+            bool ImportantFilter(GameObject o)
+            {
+                return game.selected == o ||
+                       (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
+                       GetRep(o) == RepAttitude.Hostile;
+            }
+            
+            public void SetFilter(string filter)
+            {
+                contactFilter = AllFilter;
+                switch (filter)
+                {
+                    case "important":
+                        contactFilter = ImportantFilter;
+                        break;
+                    case "ship":
+                        contactFilter = ShipFilter;
+                        break;
+                    case "station":
+                        contactFilter = StationFilter;
+                        break;
+                    case "loot":
+                        contactFilter = LootFilter;
+                        break;
+                    case "all":
+                        break;
+                    default:
+                        FLLog.Warning("Ui", $"Unknown contact list filter {filter}, defaulting to all");
+                        break;
+                }
+            }
+
+            RepAttitude GetRep(GameObject obj)
+            {
+                if ((obj.Flags & GameObjectFlags.Friendly) == GameObjectFlags.Friendly) return RepAttitude.Friendly;
+                if ((obj.Flags & GameObjectFlags.Neutral) == GameObjectFlags.Neutral) return RepAttitude.Neutral;
+                if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile) return RepAttitude.Hostile;
+                if (obj.SystemObject != null)
+                {
+                    var rep = game.session.PlayerReputations.GetReputation(obj.SystemObject.Faction);
+                    if (rep < -0.4) return RepAttitude.Hostile;
+                    if (rep > 0.4) return RepAttitude.Friendly;
+                }
+                return RepAttitude.Neutral;
+            }
             
             public void UpdateList()
             {
                 playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
                 Contacts = game.world.Objects.Where(x => x != game.player &&
                                                          (x.Kind == GameObjectKind.Ship || x.Kind == GameObjectKind.Solar) &&
-                                                         !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData))).Select(GetContact)
+                                                         !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData)))
+                    .Where(contactFilter)
+                    .Select(GetContact)
                     .OrderBy(x => x.distance).ToArray();
             }
 
@@ -245,16 +300,10 @@ World Time: {12:F2}
             {
                 return Contacts[index].display;
             }
-
+            
             public RepAttitude GetAttitude(int index)
             {
-                if (Contacts[index].obj.SystemObject != null)
-                {
-                    var rep = game.session.PlayerReputations.GetReputation(Contacts[index].obj.SystemObject.Faction);
-                    if (rep < -0.4) return RepAttitude.Hostile;
-                    if (rep > 0.4) return RepAttitude.Friendly;
-                }
-                return RepAttitude.Neutral;
+                return GetRep(Contacts[index].obj);
             }
         }
 
@@ -603,7 +652,7 @@ World Time: {12:F2}
                     ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
                 }
             }
-            if (selected != null && !selected.Exists) selected = null; //Object has been blown up/despawned
+            if (selected != null && !selected.Flags.HasFlag(GameObjectFlags.Exists)) selected = null; //Object has been blown up/despawned
 		}
 
 		bool thrust = false;

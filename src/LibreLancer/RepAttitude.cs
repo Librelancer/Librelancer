@@ -2,7 +2,8 @@ namespace LibreLancer;
 
 public enum RepAttitude
 {
-    Friendly,
+    None,
     Neutral,
+    Friendly,
     Hostile
 }

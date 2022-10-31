@@ -450,7 +450,15 @@ namespace LibreLancer
 
                     if (obj.TryGetComponent<SEngineComponent>(out var eng))
                         update.Throttle = eng.Speed;
-                    
+                    if (obj.TryGetComponent<SNPCComponent>(out var npc))
+                    {
+                        if (npc.HostileNPCs.Contains(player.Value)) {
+                            update.RepToPlayer = RepAttitude.Hostile;
+                        }
+                        else {
+                            update.RepToPlayer = RepAttitude.Neutral;
+                        }
+                    }
                     if(obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))
                     {
                         switch (objPhysics.EngineState)

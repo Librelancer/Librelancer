@@ -21,6 +21,9 @@ namespace LibreLancer.Data.Save
         [Section("storyinfo")]
         public StoryInfo StoryInfo;
 
+        [Section("TriggerSave")] 
+        public TriggerSave TriggerSave;
+
         [Section("time")]
         public SaveTime Time;
 
