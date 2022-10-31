@@ -168,7 +168,7 @@ namespace LibreLancer
                 currentState.Exiting();
                 currentState.Unregister();
             }
-			Audio.Music.Stop ();
+			Audio.Music.Stop (0);
 			Audio.Dispose ();
 			Screenshots.Stop();
 		}

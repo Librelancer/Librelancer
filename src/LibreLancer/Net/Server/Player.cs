@@ -993,9 +993,9 @@ namespace LibreLancer
             rpcClient.PlaySound(sound);
         }
 
-        public void PlayMusic(string music)
+        public void PlayMusic(string music, float fade)
         {
-            rpcClient.PlayMusic(music);
+            rpcClient.PlayMusic(music, fade);
         }
 
         public void PlayDialog(NetDlgLine[] dialog)

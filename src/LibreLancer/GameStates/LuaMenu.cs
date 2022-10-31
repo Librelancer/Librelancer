@@ -39,7 +39,7 @@ namespace LibreLancer
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
-            g.Sound.PlayMusic(intro.Music);
+            g.Sound.PlayMusic(intro.Music, 0);
             g.Keyboard.KeyDown += UiKeyDown;
             g.Keyboard.TextInput += UiTextInput;
 #if DEBUG
@@ -389,7 +389,7 @@ namespace LibreLancer
             scene.Dispose();
             scene.BeginScene(intro.Scripts);
             scene.Update(1 / 60.0); //Do all the setup events - smoother entrance
-            Game.Sound.PlayMusic(intro.Music);
+            Game.Sound.PlayMusic(intro.Music, 0);
         }
         
         void Keyboard_KeyDown(KeyEventArgs e)

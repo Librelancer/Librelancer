@@ -269,17 +269,20 @@ namespace LibreLancer.Missions
     public class Act_PlayMusic : ScriptedAction
     {
         public string Music;
+        public float Fade;
 
         public Act_PlayMusic(MissionAction act) : base(act)
         {
             if(act.Entry.Count > 3) //4th entry seems to = specific music. First 3 maybe change ambient?
                 Music = act.Entry[3].ToString();
+            if (act.Entry.Count > 4)
+                Fade = act.Entry[4].ToSingle();
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             if(Music != null)
-                runtime.Player.PlayMusic(Music);
+                runtime.Player.PlayMusic(Music, Fade);
         }
     }
 

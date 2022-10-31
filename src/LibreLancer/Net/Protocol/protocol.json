@@ -229,7 +229,7 @@
         },
         {
           "name": "PlayMusic",
-          "args": [{"name": "music", "type":  "string" }]
+          "args": [{"name": "music", "type":  "string" }, { "name": "fade", "type": "float" }]
         },
         {
           "name": "DestroyPart",

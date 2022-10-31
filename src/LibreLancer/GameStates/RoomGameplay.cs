@@ -501,7 +501,7 @@ namespace LibreLancer
 			}
 			else
 			{
-				Game.Sound.PlayMusic(currentRoom.Music, currentRoom.MusicOneShot);
+				Game.Sound.PlayMusic(currentRoom.Music, 0, currentRoom.MusicOneShot);
 			}
 
             if (session.PlayerShip != null)

@@ -127,9 +127,13 @@ namespace LibreLancer
                         if (t.Conditions[i].Type == TriggerConditions.Cnd_Timer &&
                             t.ActiveTime >= t.Conditions[i].Entry[0].ToSingle())
                         {
+                            FLLog.Debug("Mission", $"Satisfied - {t.Trigger.Nickname}: {t.Conditions[i].Entry}");
                             t.Conditions.RemoveAt(i);
-                        } else if (CheckPerTickCond(t.Conditions[i].Type, t.Conditions[i], (float)elapsed))
+                        } else if (CheckPerTickCond(t.Conditions[i].Type, t.Conditions[i], (float) elapsed))
+                        {
+                            FLLog.Debug("Mission", $"Satisfied - {t.Trigger.Nickname}: {t.Conditions[i].Entry}");
                             t.Conditions.RemoveAt(i);
+                        }
                     }
                 }
                 CheckMissionScript();
@@ -188,6 +192,7 @@ namespace LibreLancer
                     {
                         if (tr.Conditions[i].Type == cond && action(tr.Conditions[i]))
                         {
+                            FLLog.Debug("Mission", $"Satisfied - {tr.Trigger.Nickname}: {tr.Conditions[i].Entry}");
                             tr.Conditions.RemoveAt(i);
                             uiUpdate = true;
                         }
@@ -195,24 +200,7 @@ namespace LibreLancer
                 }
             }
         }
-        
-        void ProcessCondition(TriggerConditions cond, Func<MissionCondition, ScriptedTrigger, bool> action)
-        {
-            lock (_msnLock)
-            {
-                foreach (var tr in activeTriggers) {
-                    for (int i = tr.Conditions.Count - 1; i >= 0; i--)
-                    {
-                        if (tr.Conditions[i].Type == cond && action(tr.Conditions[i], tr.Trigger))
-                        {
-                            tr.Conditions.RemoveAt(i);
-                            uiUpdate = true;
-                        }
-                    }
-                }
-            }
-        }
-        
+
         static Func<MissionCondition, bool> TruePredicate = (c) => true;
 
         private bool uiUpdate = false;

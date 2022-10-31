@@ -713,13 +713,13 @@ namespace LibreLancer
             });
         }
         
-        void IClientPlayer.PlayMusic(string music) => audioActions.Enqueue(() =>
+        void IClientPlayer.PlayMusic(string music, float fade) => audioActions.Enqueue(() =>
         {
             if(string.IsNullOrWhiteSpace(music) ||
                music.Equals("none", StringComparison.OrdinalIgnoreCase))
-                Game.Sound.StopMusic();
+                Game.Sound.StopMusic(fade);
             else
-                Game.Sound.PlayMusic(music);
+                Game.Sound.PlayMusic(music, fade);
         });
 
         void RunDialog(NetDlgLine[] lines, int index = 0)

@@ -152,7 +152,7 @@ World Time: {12:F2}
             player.World = world;
             world.AddObject(player);
             player.Register(world.Physics);
-            Game.Sound.PlayMusic(sys.MusicSpace);
+            Game.Sound.PlayMusic(sys.MusicSpace, 0);
             cur_arrow = Game.ResourceManager.GetCursor("arrow");
             cur_cross = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +15,16 @@ namespace LibreLancer.Media
     public class MusicPlayer
     {
         StreamingSource sound;
+        StreamingSource oldSound;
+        
         float _volume = 1.0f;
-        private float attenuation = 0;
+        private float currentAttenuation = 0;
+        private float oldAttenuation = 0;
+
+        private float crossFadeTime = 0;
+        private float crossFadeDuration = 0;
+        
+        
 
         public float Volume
         {
@@ -23,8 +32,6 @@ namespace LibreLancer.Media
             set
             {
                 _volume = value;
-                if (sound != null)
-                    UpdateGain();
             }
         }
 
@@ -33,12 +40,19 @@ namespace LibreLancer.Media
         internal Queue<uint> Buffers = new Queue<uint>();
         private uint[] sources;
 
+        private int sourceIdx = 0;
+        uint GetSource()
+        {
+            if (sourceIdx >= sources.Length) sourceIdx = 0;
+            return sources[sourceIdx++];
+        }
+
         internal MusicPlayer(params uint[] sources)
         {
             this.sources = sources;
             for(int i = 0; i < 24; i++)
                 Buffers.Enqueue(Al.GenBuffer());
-            Timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+            Timer = new PeriodicTimer(TimeSpan.FromMilliseconds(16));
             Task = Task.Run(MusicLoop);
         }
 
@@ -46,12 +60,39 @@ namespace LibreLancer.Media
 
         async void MusicLoop()
         {
+            var sw = Stopwatch.StartNew();
+            var ts = sw.Elapsed;
             do
             {
                 while (actions.TryDequeue(out var a)) a();
+                var elapsed = sw.Elapsed - ts;
+                ts = sw.Elapsed;
+                if (oldSound != null)
+                {
+                    if (oldSound.Update()) {
+                        crossFadeTime += (float)elapsed.TotalSeconds;
+                        if (crossFadeTime >= crossFadeDuration) {
+                            crossFadeTime = crossFadeDuration = 0;
+                            UpdateGain();
+                            oldSound.Dispose();
+                            oldSound = null;
+                            FLLog.Debug("Music", "Fade complete");
+                        }
+                        else if (crossFadeDuration > 0) {
+                            oldSound.Gain = GetGain(1 - (crossFadeTime / crossFadeDuration), oldAttenuation);
+                        }
+                    }
+                    else
+                    {
+                        oldSound.Dispose();
+                        oldSound = null;
+                    }
+                }
                 if (sound != null)
                 {
+                    UpdateGain();
                     if (!sound.Update()) {
+                        sound.Dispose();
                         sound = null;
                         State = PlayState.Stopped;
                     }
@@ -59,39 +100,79 @@ namespace LibreLancer.Media
             } while (await Timer.WaitForNextTickAsync());
         }
 
-        public void Play(string filename, float attenuation = 0, bool loop = false)
+        public void Play(string filename, float crossFade, float attenuation = 0, bool loop = false)
         {
             State = PlayState.Playing;
             actions.Enqueue(() =>
             {
-                if (sound != null)
+                if (oldSound != null)
                 {
-                    sound.Dispose();
-                    sound = null;
+                    oldSound.Dispose();
+                    oldSound = null;
+                }
+                if (crossFade <= 0)
+                {
+                    FLLog.Debug("Music", "Play() no fade");
+                    if (sound != null)
+                    {
+                        sound.Dispose();
+                        sound = null;
+                    }
+                }
+                else
+                {
+                    crossFadeDuration = crossFade;
+                    crossFadeTime = 0;
+                    oldSound = sound;
+                    oldAttenuation = currentAttenuation;
                 }
                 var stream = File.OpenRead(filename);
                 var data = SoundLoader.Open(stream);
-                sound = new StreamingSource(this, data, sources[0], filename);
-                this.attenuation = attenuation;
+                sound = new StreamingSource(this, data, GetSource(), filename);
+                currentAttenuation = attenuation;
                 UpdateGain();
                 sound.Begin(loop);
             });
         }
 
+        float GetGain(float amount, float attenuation)
+        {
+            return ALUtils.LinearToAlGain(amount * _volume) * ALUtils.DbToAlGain(attenuation);
+        }
+        
         void UpdateGain()
         {
-            sound.Gain = ALUtils.LinearToAlGain(_volume) * ALUtils.DbToAlGain(attenuation);
+            if (crossFadeDuration > 0) {
+                sound.Gain = GetGain(crossFadeTime / crossFadeDuration, currentAttenuation);
+            }
+            else {
+                sound.Gain = GetGain(1, currentAttenuation);
+            }
         }
 
-        public void Stop()
+        public void Stop(float fadeOut)
         {
             State = PlayState.Stopped;
             actions.Enqueue(() =>
             {
+                oldSound?.Dispose();
+                oldSound = null;
                 if (sound != null)
                 {
-                    sound.Dispose();
-                    sound = null;
+                    if (fadeOut > 0)
+                    {
+                        oldSound = sound;
+                        oldAttenuation = currentAttenuation;
+                        sound = null;
+                        crossFadeDuration = fadeOut;
+                        crossFadeTime = 0;
+                    }
+                    else
+                    {
+                        FLLog.Debug("Music", "Stop() no fade");
+                        sound.Dispose();
+                        sound = null;
+                    }
                 }
             });
 

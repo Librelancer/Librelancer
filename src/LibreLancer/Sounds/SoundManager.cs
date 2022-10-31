@@ -198,13 +198,13 @@ namespace LibreLancer
                 });
             });
         }
-        public void PlayMusic(string name, bool oneshot = false)
+        public void PlayMusic(string name, float fadeTime, bool oneshot = false)
         {
             var entry = data.GetAudioEntry(name);
             var path = data.GetAudioPath(name);
             if (File.Exists(path))
             {
-                audio.Music.Play(path, entry.Attenuation, !oneshot);
+                audio.Music.Play(path, fadeTime, entry.Attenuation, !oneshot);
             }
             else
             {
@@ -212,9 +212,9 @@ namespace LibreLancer
             }
         }
         
-        public void StopMusic()
+        public void StopMusic(float fadeOut = 0)
 		{
-			audio.Music.Stop();
+			audio.Music.Stop(fadeOut);
 		}
 	}
     class LoadedSound : IDisposable
