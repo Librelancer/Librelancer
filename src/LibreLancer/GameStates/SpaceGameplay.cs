@@ -544,6 +544,7 @@ World Time: {12:F2}
         public bool ShowHud = true;
         //Set to true when the mission system selected music on launch
         public bool RtcMusic = false;
+        private bool musicTriggered = false;
 
         public override void Update(double delta)
 		{
@@ -569,8 +570,14 @@ World Time: {12:F2}
             steering.Tick = (int) Game.CurrentTick;
             world.Update(paused ? 0 : delta);
             if (session.Update()) return;
-            if(updateStartDelay == 0)
+            if (updateStartDelay == 0) {
                 session.GameplayUpdate(this, delta);
+                if (!musicTriggered)
+                {
+                    if (!RtcMusic) Game.Sound.PlayMusic(sys.MusicSpace, 0);
+                    musicTriggered = true;
+                }
+            }
             UpdateCamera(delta);
             if (Thn != null && Thn.Running)
             {
@@ -581,12 +588,8 @@ World Time: {12:F2}
             if (frameCount < 2)
             {
                 frameCount++;
-                if (frameCount == 2)
-                {
+                if (frameCount == 2) {
                     session.BeginUpdateProcess();
-                    if (!RtcMusic) {
-                        Game.Sound.PlayMusic(sys.MusicSpace, 0);
-                    }
                 }
             }
             else
