@@ -864,11 +864,14 @@ namespace LibreLancer
                     objDict[o.Nickname] = obj;
                     sys.Objects.Add(o);
                 }
-                //fill tradelane names left
+                //fill tradelane names right
                 foreach (var obj in inisys.Objects.Where(x => x.NextRing != null && x.TradelaneSpaceName != 0))
                 {
                     var spaceName = obj.TradelaneSpaceName;
                     var oNext = obj;
+                    var start = sys.Objects.FirstOrDefault(x =>
+                        x.Nickname.Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase));
+                    if (start != null) start.IdsRight = spaceName;
                     int i = 0;
                     while (oNext.NextRing != null &&
                            objDict.TryGetValue(oNext.NextRing, out oNext))
@@ -882,11 +885,14 @@ namespace LibreLancer
                         }
                     }
                 }
-                //fill tradelane names right
+                //fill tradelane names left
                 foreach (var obj in inisys.Objects.Where(x => x.PrevRing != null && x.TradelaneSpaceName != 0))
                 {
                     var spaceName = obj.TradelaneSpaceName;
                     var oNext = obj;
+                    var start = sys.Objects.FirstOrDefault(x =>
+                        x.Nickname.Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase));
+                    if (start != null) start.IdsLeft = spaceName;
                     int i = 0;
                     while (oNext.PrevRing != null &&
                            objDict.TryGetValue(oNext.PrevRing, out oNext))
