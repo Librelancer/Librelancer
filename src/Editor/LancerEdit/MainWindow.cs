@@ -14,6 +14,7 @@ using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
+using LibreLancer.Data.Pilots;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace LancerEdit
@@ -58,6 +59,9 @@ namespace LancerEdit
         );
         FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
             new FileFilter("Freelancer.ini","freelancer.ini")
+        );
+        private FileDialogFilters StateGraphFilter = new FileDialogFilters(
+            new FileFilter("State Graph Db", "db")
         );
         FileDialogFilters ImageFilter = new FileDialogFilters(
             new FileFilter("Images", "bmp", "png", "tga", "dds", "jpg", "jpeg")
@@ -377,6 +381,13 @@ namespace LancerEdit
                     string input;
                     if((input = FileDialog.Open(FreelancerIniFilter)) != null) {
                         AddTab(new InfocardBrowserTab(input, this));
+                    }
+                }
+                if (ImGui.MenuItem("State Graph"))
+                {
+                    string input;
+                    if ((input = FileDialog.Open(StateGraphFilter)) != null) {
+                        AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input)));
                     }
                 }
                 if (ImGui.MenuItem("Projectile Viewer"))

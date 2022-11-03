@@ -64,7 +64,7 @@ namespace LibreLancer
             if (!manager.World.Server.GameData.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null, resolved, null, position, Quaternion.Identity);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null, "FIGHTER", resolved, null, position, Quaternion.Identity);
             return new NPCWattleInstance(obj, this);
         }
     }

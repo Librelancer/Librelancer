@@ -69,9 +69,10 @@ namespace LibreLancer.Data
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
         public PilotsIni Pilots;
+        public StateGraphDb StateGraphDb;
         public KeymapIni Keymap;
         public KeyListIni KeyList;
-        
+
         public string DataVersion;
         public bool Loaded = false;
 
@@ -346,6 +347,10 @@ namespace LibreLancer.Data
             {
                 Empathy = new EmpathyIni();
                 Empathy.AddFile(Freelancer.DataPath + "missions\\empathy.ini", VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                StateGraphDb = new StateGraphDb(Freelancer.DataPath + "AI\\state_graph.db", VFS);
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.AI;
+using LibreLancer.Data.Pilots;
 using LibreLancer.Data.Solar;
 
 namespace LibreLancer
@@ -58,7 +59,7 @@ namespace LibreLancer
 
         }
         
-        public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
+        public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, string stateGraph, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Items = new List<NetShipCargo>();
@@ -81,7 +82,9 @@ namespace LibreLancer
                     equipped.Hardpoint, e);
                 netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
-            var npcComponent = new SNPCComponent(obj, this) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.GetFaction(affiliation)};
+            var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
+            World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
+            var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.GetFaction(affiliation)};
             npcComponent.SetPilot(pilot);
             obj.Components.Add(npcComponent);            
             obj.Components.Add(new AutopilotComponent(obj));

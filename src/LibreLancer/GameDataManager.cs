@@ -1468,6 +1468,7 @@ namespace LibreLancer
                 ship.Nickname = orig.Nickname;
                 ship.NameIds = orig.IdsName;
                 ship.Infocard = orig.IdsInfo;
+                ship.ShipType = orig.Type;
                 ship.CRC = FLHash.CreateID(ship.Nickname);
                 foreach (var fuse in orig.Fuses)
                 {

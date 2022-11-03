@@ -21,16 +21,26 @@ namespace LibreLancer
         public Faction Faction;
         
         private GameData.Pilot Pilot;
-        
-        
+        private StateGraph _stateGraph;
+
+        public float GetStateValue(StateGraphEntry row, StateGraphEntry column, float defaultVal = 0.0f)
+        {
+            if (_stateGraph == null) return defaultVal;
+            if ((int) row >= _stateGraph.Data.Count) return defaultVal;
+            var tableRow = _stateGraph.Data[(int) row];
+            if ((int) column >= tableRow.Length) return defaultVal;
+            return tableRow[(int) column];
+        }
+
         public void OnProjectileHit(GameObject attacker)
         {
             ProjectileHitHook?.Invoke(Parent, attacker);
         }
 
-        public SNPCComponent(GameObject parent, NPCManager manager) : base(parent)
+        public SNPCComponent(GameObject parent, NPCManager manager, StateGraph stateGraph) : base(parent)
         {
             this.manager = manager;
+            _stateGraph = stateGraph;
         }
 
         public void StartTradelane()
