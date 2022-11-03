@@ -10,9 +10,9 @@ namespace LibreLancer.ImUI
     public unsafe class ListClipper : IDisposable
     {
         ImGuiListClipper *clipper;
-        public ListClipper(int itemsCount, float itemsHeight = -1)
+        public ListClipper()
         {
-            clipper = ImGuiNative.ImGuiListClipper_ImGuiListClipper(itemsCount, itemsHeight);
+            clipper = ImGuiNative.ImGuiListClipper_ImGuiListClipper();
         }
 
         public void Begin(int itemsCount, float itemsHeight = -1)

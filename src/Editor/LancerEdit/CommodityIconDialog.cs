@@ -76,7 +76,7 @@ namespace LancerEdit
             bool pOpen = true;
             if (ImGui.BeginPopupModal("New Icon", ref pOpen, ImGuiWindowFlags.NoResize))
             {
-                var w = ImGui.GetWindowContentRegionWidth();
+                var w = ImGui.GetContentRegionAvail().X;
                 ImGui.Dummy(new Vector2(w / 2 - 64 - 4, 1));
                 ImGui.SameLine();
                 bool dds = (loadType == TexLoadType.DDS);

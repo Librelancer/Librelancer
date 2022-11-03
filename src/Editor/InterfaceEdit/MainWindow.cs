@@ -327,7 +327,7 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoBringToFrontOnFocus |
                 ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.NoResize);
-            var szX = Math.Max((int) ImGui.GetWindowContentRegionWidth(), 32);
+            var szX = Math.Max((int) ImGui.GetContentRegionAvail().X, 32);
             var szY = Math.Max((int) ImGui.GetWindowHeight() - (int)(20 * ImGuiHelper.Scale), 32);
             if (rtX != szX || rtY != szY)
             {

@@ -50,8 +50,8 @@ namespace LancerEdit
             stringsIds = manager.StringIds.ToArray();
             infocardsIds = manager.InfocardIds.ToArray();
             txt = new TextBuffer(8192);
-            stringClipper = new ListClipper(stringsIds.Length);
-            infocardClipper = new ListClipper(infocardsIds.Length);
+            stringClipper = new ListClipper();
+            infocardClipper = new ListClipper();
             Title = "Infocard Browser";
             display = new InfocardControl(win, blankInfocard, 100); 
         }

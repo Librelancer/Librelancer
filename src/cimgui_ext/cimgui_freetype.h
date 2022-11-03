@@ -12,8 +12,8 @@ extern "C" {
 #else
 #define IGEXPORT
 #endif
+IGEXPORT void igFtLoad();
 IGEXPORT void igMapGlyph(int glyph, int actual);
-IGEXPORT bool igBuildFontAtlas(void* atlas);
 #ifdef __cplusplus
 }
 #endif

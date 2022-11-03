@@ -250,7 +250,7 @@ namespace LancerEdit
             HardpointEditor();
             PartEditor();
             foreach (var t in openTabs) if (t) { doTabs = true; break; }
-            var contentw = ImGui.GetWindowContentRegionWidth();
+            var contentw = ImGui.GetContentRegionAvail().X;
             if (doTabs)
             {
                 ImGui.Columns(2, "##panels", true);

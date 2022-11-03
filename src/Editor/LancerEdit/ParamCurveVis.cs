@@ -101,7 +101,7 @@ namespace LancerEdit
 
             if (ImGui.BeginTabItem("Graph"))
             {
-                var gWidth = ImGui.GetWindowContentRegionWidth() - 40;
+                var gWidth = ImGui.GetContentRegionAvail().X - 40;
                 var gHeight = ImGui.GetWindowHeight() - 60;
                 ImGui.PlotLines("##graph", ref values[0], values.Length, 0, "", scaleMin, scaleMax, new Vector2(gWidth, gHeight));
                 ImGui.EndTabItem();

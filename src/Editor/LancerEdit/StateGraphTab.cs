@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.AI;
 using LibreLancer.Data.Pilots;
 using LibreLancer.ImUI;
@@ -17,31 +18,50 @@ public class StateGraphTab : EditorTab
     {
         Title = filename;
         graphs = stateGraphDb.Tables.Values.ToList();
-        graphNames = graphs.Select(x => x.Description.ToString()).ToArray();
+        graphNames = graphs.Select(x => $"{x.Description.Name} ({x.Description.Type})").ToArray();
+        
     }
-    
+
+    private int lastHoveredX = -1;
+    private int lastHoveredY = -1;
     public override void Draw()
     {
         ImGui.Combo("State Graph", ref selectedIndex, graphNames, graphNames.Length);
-        ImGui.Columns((int)StateGraphEntry._Count + 1);
-        ImGui.NextColumn();
-        for (int i = 0; i < (int)StateGraphEntry._Count; i++)
-        {
-            ImGui.Text(((StateGraphEntry)i).ToString());
-            ImGui.NextColumn();
-        }
         var tab = graphs[selectedIndex];
-        for (int y = 0; y < tab.Data.Count; y++)
+        int hoveredX = -1, hoveredY = -1;
+        if (ImGui.BeginTable("stategraphTable", (int) StateGraphEntry._Count + 1,
+                ImGuiTableFlags.Resizable | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp))
         {
-            ImGui.Text(((StateGraphEntry)y).ToString());
-            ImGui.NextColumn();
-            ImGui.PushFont(ImGuiHelper.SystemMonospace);
-            for (int x = 0; x < (int) StateGraphEntry._Count; x++) {
-                ImGui.Text(tab.Data[y][x].ToString("F2"));
-                ImGui.NextColumn();
+            ImGui.TableHeadersRow();
+            for (int i = 0; i < (int)StateGraphEntry._Count; i++)
+            {
+                ImGui.TableSetColumnIndex(i + 1);
+                if(lastHoveredX == i)
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (uint)Color4.CornflowerBlue.ToAbgr());
+                ImGui.Text(((StateGraphEntry)i).ToString());
             }
-            ImGui.PopFont();
+            for (int y = 0; y < tab.Data.Count; y++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                ImGui.TableHeader(((StateGraphEntry)y).ToString());
+                if(lastHoveredY == y)                         
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (uint)Color4.CornflowerBlue.ToAbgr());
+                ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                for (int x = 0; x < (int) StateGraphEntry._Count; x++)
+                {
+                    ImGui.TableSetColumnIndex(x + 1);
+                    ImGui.Selectable(tab.Data[y][x].ToString("F2"));
+                    if (ImGui.IsItemHovered()) {
+                        hoveredX = x;
+                        hoveredY = y;
+                    }
+                }
+                ImGui.PopFont();
+            }
+            ImGui.EndTable();
         }
-        ImGui.Columns(1);
+        lastHoveredX = hoveredX;
+        lastHoveredY = hoveredY;
     }
 }

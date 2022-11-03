@@ -9,15 +9,13 @@
 
 static bool functionsLoaded = false;
 extern "C" {
-IGEXPORT bool igBuildFontAtlas(void* atlas)
+IGEXPORT void igFtLoad()
 {
 	if(!functionsLoaded) {
 		igLoadFreetype();
 		functionsLoaded = true;
 	}
-	return ImGuiFreeType::BuildFontAtlas((ImFontAtlas*)atlas);
 }
-
 
 IGEXPORT void igMapGlyph(int glyph, int actual)
 {

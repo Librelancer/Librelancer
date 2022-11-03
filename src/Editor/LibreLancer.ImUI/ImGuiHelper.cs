@@ -105,7 +105,8 @@ namespace LibreLancer.ImUI
         public static float Scale { get; private set; } = 1;
 
 		public unsafe ImGuiHelper(Game game, float scale)
-        {
+        { 
+            ImGuiExt.igFtLoad();
             Scale = scale;
 			this.game = game;
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
@@ -116,6 +117,7 @@ namespace LibreLancer.ImUI
             SetKeyMappings();
             var io = ImGui.GetIO();
             io.WantSaveIniSettings = false;
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             io.NativePtr->IniFilename = (byte*)0; //disable ini!!
             var fontConfigA = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
             var fontConfigB = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
@@ -202,8 +204,8 @@ namespace LibreLancer.ImUI
             {
                 SystemMonospace = io.Fonts.AddFontFromMemoryTTF((IntPtr) mmPtr, monospace.Length, (int)(16 * Scale), fontConfigC);
             }
-            
-            ImGuiExt.BuildFontAtlas((IntPtr)io.Fonts.NativePtr);
+
+            io.Fonts.Build();
             byte* fontBytes;
             int fontWidth, fontHeight;
             io.Fonts.GetTexDataAsRGBA32(out fontBytes, out fontWidth, out fontHeight);
@@ -444,7 +446,7 @@ namespace LibreLancer.ImUI
 				ushort* idx_buffer = (ushort*)cmd_list.IdxBuffer.Data;
 				var vtxCount = cmd_list.VtxBuffer.Size;
 				var idxCount = cmd_list.IdxBuffer.Size;
-				if (vboSize < vtxCount || iboSize < idxCount)
+                if (vboSize < vtxCount || iboSize < idxCount)
 				{
 					if (vbo != null) vbo.Dispose();
 					if (ibo != null) ibo.Dispose();
@@ -481,7 +483,10 @@ namespace LibreLancer.ImUI
                         rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
                         continue;
                     }
-					//TODO: Do something with pcmd->UserCallback ??
+
+                    if (pcmd.ElemCount == 0)
+                        continue;
+                    //TODO: Do something with pcmd->UserCallback ??
 					var tid = pcmd.TextureId.ToInt32();
 					Texture2D tex;
 					if (tid == FONT_TEXTURE_ID)
@@ -492,7 +497,7 @@ namespace LibreLancer.ImUI
 							lastShader = textShader;
 						}
 						fontTexture.BindTo(0);
-					}
+                    }
 					else if (textures.TryGetValue(tid, out tex))
 					{
 						if (lastShader != colorShader)
@@ -507,7 +512,6 @@ namespace LibreLancer.ImUI
 						dot.BindTo(0);
 					}
 
-                    var displayPos = draw_data.DisplayPos;
                     rstate.ScissorEnabled = true;
                     rstate.ScissorRectangle = new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
                         (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),

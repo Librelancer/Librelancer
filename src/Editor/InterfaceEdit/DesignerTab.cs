@@ -136,7 +136,7 @@ namespace InterfaceEdit
         private bool lastDown = false;
         void DoViewport(double delta)
         {
-            var szX = (int)ImGui.GetWindowContentRegionWidth();
+            var szX = (int)ImGui.GetContentRegionAvail().X;
             var szY = (int) ImGui.GetWindowHeight();
             if (rtX != szX || rtY != szY)
             {

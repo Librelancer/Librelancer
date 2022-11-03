@@ -11,8 +11,8 @@ namespace LibreLancer.ImUI
 {
     public unsafe class ImGuiExt
     {
-        [DllImport("cimgui", EntryPoint = "igBuildFontAtlas", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void BuildFontAtlas(IntPtr atlas);
+        [DllImport("cimgui", CallingConvention =  CallingConvention.Cdecl)]
+        internal static extern void igFtLoad();
 
         [DllImport("cimgui", EntryPoint = "igExtSplitterV", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool SplitterV(float thickness, ref float size1, ref float size2, float min_size1, float min_size2, float splitter_long_axis_size);
@@ -98,7 +98,7 @@ namespace LibreLancer.ImUI
             var drawlist = ImGui.GetForegroundDrawList();
             drawlist.AddRectFilled(new Vector2(displaySize.X - textSize.X - 9, 2),
                 new Vector2(displaySize.X, textSize.Y + 9),
-                GetUint(background), 2, ImDrawCornerFlags.All);
+                GetUint(background), 2, ImDrawFlags.RoundCornersAll);
             drawlist.AddText(new Vector2(displaySize.X - textSize.X - 3, 2),
                 GetUint(foreground), text);
         }

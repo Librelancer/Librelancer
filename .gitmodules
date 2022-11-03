@@ -12,10 +12,10 @@
 	url = https://github.com/CallumDev/lidgren-network-gen3
 [submodule "extern/ImGui.NET"]
 	path = extern/ImGui.NET
-	url = https://github.com/Librelancer/ImGui.NET
+	url = https://github.com/mellinoe/ImGui.NET
 [submodule "extern/cimgui"]
 	path = extern/cimgui
-	url = https://github.com/Extrawurst/cimgui
+	url = https://github.com/cimgui/cimgui
 [submodule "extern/bullet3"]
 	path = extern/bullet3
 	url = https://github.com/bulletphysics/bullet3

@@ -533,7 +533,7 @@ namespace LancerEdit
 			{
                 ((EditorTab)tab).DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - (25 * ImGuiHelper.Scale)), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - (22 * ImGuiHelper.Scale)), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
             bool childopened = true;
             ImGui.Begin("tabwindow", ref childopened,
@@ -573,7 +573,7 @@ namespace LancerEdit
             ImGui.End();
             Make3dbDlg.Draw();
 			//Status bar
-			ImGui.SetNextWindowSize(new Vector2(size.X, 25f * ImGuiHelper.Scale), ImGuiCond.Always);
+			ImGui.SetNextWindowSize(new Vector2(size.X, 22f * ImGuiHelper.Scale), ImGuiCond.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
 			bool sbopened = true;
 			ImGui.Begin("statusbar", ref sbopened, 
