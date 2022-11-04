@@ -136,7 +136,7 @@ namespace LibreLancer
             if(!running) throw new InvalidOperationException();
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
-            loginUrl = null;
+            loginServer = null;
             while (client == null || !client.IsRunning) Thread.Sleep(0);
             client.Statistics?.Reset();
             client.Connect(endPoint, dw);
@@ -219,14 +219,14 @@ namespace LibreLancer
         Stopwatch sw;
         List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
 
-        private string loginUrl;
+        private AuthInfo loginServer;
         private IPEndPoint loginEndpoint;
         public void Login(string username, string password)
         {
-            if (!running || string.IsNullOrEmpty(loginUrl)) throw new InvalidOperationException();
+            if (!running || loginServer == null) throw new InvalidOperationException();
             Task.Run(async () =>
             {
-                var token = await http.Login(loginUrl, username, password);
+                var token = await http.Login(loginServer, username, password);
                 if (token != null) {
                     ConnectInternal(loginEndpoint, token);
                 }
@@ -373,9 +373,9 @@ namespace LibreLancer
                     var url = reason.Substring(14);
                     Task.Run(async () =>
                     {
-                        if (await http.LoginServerInfo(url))
+                        loginServer = await http.LoginServerInfo(url);
+                        if (loginServer != null)
                         {
-                            loginUrl = url;
                             mainThread.QueueUIThread(() => AuthenticationRequired?.Invoke(false));
                         }
                         else

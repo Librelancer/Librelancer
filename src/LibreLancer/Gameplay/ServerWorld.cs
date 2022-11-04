@@ -361,6 +361,7 @@ namespace LibreLancer
             //pause
             if (paused) return true;
             //Update
+            NPCs.FrameStart();
             GameWorld.Update(delta);
             //projectiles
             if (GameWorld.Projectiles.HasQueued)

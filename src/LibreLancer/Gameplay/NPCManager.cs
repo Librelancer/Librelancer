@@ -28,7 +28,14 @@ namespace LibreLancer
             });
             return source.Task;
         }
+
+        public int AttackingPlayer = 0;
         
+        public void FrameStart()
+        {
+            AttackingPlayer = 0;
+        }
+
         public void Despawn(GameObject obj)
         {
             World.RemoveNPC(obj);

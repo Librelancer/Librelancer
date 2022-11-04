@@ -23,6 +23,8 @@ namespace LibreLancer
         private GameData.Pilot Pilot;
         private StateGraph _stateGraph;
 
+        private Random random = new Random();
+
         public float GetStateValue(StateGraphEntry row, StateGraphEntry column, float defaultVal = 0.0f)
         {
             if (_stateGraph == null) return defaultVal;
@@ -117,22 +119,24 @@ namespace LibreLancer
 
         int GetHostileWeight(GameObject obj)
         {
+            if (obj.Nickname.Equals("player", StringComparison.OrdinalIgnoreCase) &&
+                manager.AttackingPlayer > 2)
+                return -100;
             if (attackPref.TryGetValue(obj.Kind, out var weight))
                 return weight;
             return 0;
         }
 
         private double fireTimer;
-        
-        public override void Update(double time)
+
+        GameObject GetHostileAndFire(double time)
         {
-            CurrentState?.Update(Parent, this, time);
             //Get hostile
             GameObject shootAt = null;
             int shootAtWeight = -1000;
             var myPos = Parent.WorldTransform.Translation;
             foreach (var other in Parent.GetWorld().SpatialLookup
-                .GetNearbyObjects(Parent, myPos, 5000))
+                         .GetNearbyObjects(Parent, myPos, 5000))
             {
                 if (Vector3.Distance(other.WorldTransform.Translation, myPos) < 5000 &&
                     HostileNPCs.Contains(other))
@@ -145,17 +149,13 @@ namespace LibreLancer
                     }
                 }
             }
-            //Fly towards hostile if needed
-            if (CurrentState == null && shootAt != null){
-                var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
-                if (dist > 150 && Parent.TryGetComponent<AutopilotComponent>(out var ap))
-                {
-                    ap.GotoObject(shootAt, false, 1, 150);
-                }
-            }
+
             //Shoot at hostile
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
+                if (shootAt.Nickname.Equals("player", StringComparison.OrdinalIgnoreCase))
+                    manager.AttackingPlayer++;
+
                 var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
                 var range = weapons.GetMaxRange() * 0.95f;
                 if (dist < range)
@@ -181,6 +181,53 @@ namespace LibreLancer
             {
                 fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
             }
+
+            return shootAt;
+        }
+
+        private StateGraphEntry currentState = StateGraphEntry.NULL;
+
+        void Transition(params StateGraphEntry[] possible) {
+            foreach (var e in possible) {
+                if (random.NextSingle() < GetStateValue(currentState, e)) {
+                    currentState = e;
+                    timeInState = 0;
+                    break;
+                }
+            }
+        }
+
+        private double timeInState = 0;
+        
+        public override void Update(double time)
+        {
+            CurrentState?.Update(Parent, this, time);
+
+            var shootAt = GetHostileAndFire(time);
+            if (CurrentState != null || shootAt == null) {
+                currentState = StateGraphEntry.NULL;
+                timeInState = 0;
+                return;
+            }
+
+            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+            Parent.TryGetComponent<ShipPhysicsComponent>(out var si);
+            timeInState += time;
+            
+            switch (currentState) {
+                case StateGraphEntry.NULL:
+                    si.EnginePower = 0;
+                    si.CruiseEnabled = false;
+                    si.Steering = Vector3.Zero;
+                    ap.Cancel();
+                    break;
+                case StateGraphEntry.Buzz:
+                case StateGraphEntry.Face:
+                case StateGraphEntry.Trail:
+                    ap.GotoObject(shootAt, false, 1, 150);
+                    break;
+            }
+            Transition(StateGraphEntry.Face, StateGraphEntry.Trail, StateGraphEntry.Buzz);
         }
 
         public void DockWith(GameObject tgt)

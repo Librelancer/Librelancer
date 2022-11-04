@@ -200,7 +200,7 @@ namespace LibreLancer
             control.InThrottle = targetPower;
         }
 
-        bool TurnTowards(double time, Vector3 targetPoint)
+        public bool TurnTowards(double time, Vector3 targetPoint)
         {
             //Orientation
             var dt = time;
