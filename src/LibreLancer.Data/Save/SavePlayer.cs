@@ -111,6 +111,8 @@ namespace LibreLancer.Data.Save
         [Entry("pos")] public Vector3 Position;
         [Entry("rotate")] public Vector3 Rotate;
 
+        [Entry("location")] public int Location;
+        
         public int ShipArchetypeCrc;
         public string ShipArchetype;
 

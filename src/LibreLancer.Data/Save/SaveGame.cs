@@ -33,6 +33,9 @@ namespace LibreLancer.Data.Save
         [Section("locked_gates")]
         public LockedGates LockedGates;
 
+        [Section("nnobjective")] 
+        public List<SavedObjective> Objectives = new List<SavedObjective>();
+
         public static SaveGame FromString(string name, string str)
         {
             var sg = new SaveGame();

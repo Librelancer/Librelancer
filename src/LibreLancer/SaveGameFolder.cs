@@ -98,7 +98,7 @@ namespace LibreLancer
                 {
                     sg = SaveGame.FromFile(f);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     FLLog.Error("Save", $"Can't load save game `{f}`");
                     continue;

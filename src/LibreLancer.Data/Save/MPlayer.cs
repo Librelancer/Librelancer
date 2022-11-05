@@ -7,6 +7,20 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Save
 {
+    public record SaveItemCount(int Item, int Count)
+    {
+        public static bool FromEntry(Entry e, out SaveItemCount count)
+        {
+            if (e.Count != 2)
+            {
+                count = null;
+                FLLog.Warning("Ini", $"Invalid save line: {e} in {e.File}:{e.Line}");
+                return false;
+            }
+            count = new SaveItemCount(e[0].ToInt32(), e[1].ToInt32());
+            return true;
+        }
+    }
     public class MPlayer : ICustomEntryHandler
     {
         [Entry("can_dock")]
@@ -21,12 +35,27 @@ namespace LibreLancer.Data.Save
         public List<int> SysVisited = new List<int>();
         [Entry("base_visited", Multiline = true)] 
         public List<int> BaseVisited = new List<int>();
+        [Entry("holes_visited", Multiline = true)]
+        public List<int> HolesVisited = new List<int>();
         [Entry("locked_gate", Multiline = true)]
         public List<int> LockedGates = new List<int>();
+
+        public List<SaveItemCount> ShipTypeKilled = new List<SaveItemCount>();
+        public List<SaveItemCount> RmCompleted = new List<SaveItemCount>();
 
         private static readonly CustomEntry[] _custom = new CustomEntry[]
         {
             new("vnpc", CustomEntry.Ignore),
+            new ("ship_type_killed", (h, e) =>
+            {
+                if(SaveItemCount.FromEntry(e, out var count))
+                    ((MPlayer)h).ShipTypeKilled.Add(count);
+            }),
+            new ("rm_completed", (h, e) =>
+            {
+                if(SaveItemCount.FromEntry(e, out var count))
+                    ((MPlayer)h).RmCompleted.Add(count);
+            })
         };
 
         IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
