@@ -4,7 +4,9 @@
     
 using System;
 using System.Collections.Generic;
+using System.Text;
 using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Save
 {
     public record SaveItemCount(int Item, int Count)
@@ -21,7 +23,7 @@ namespace LibreLancer.Data.Save
             return true;
         }
     }
-    public class MPlayer : ICustomEntryHandler
+    public class MPlayer : ICustomEntryHandler, IWriteSection
     {
         [Entry("can_dock")]
         public int CanDock;
@@ -59,5 +61,38 @@ namespace LibreLancer.Data.Save
         };
 
         IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+
+
+        public void WriteTo(StringBuilder builder)
+        {
+            builder.AppendLine("[mPlayer]");
+            foreach (var gate in LockedGates)
+                builder.AppendEntry("locked_gate", (uint) gate);
+            builder.AppendEntry("can_dock", CanDock);
+            builder.AppendEntry("can_tl", CanTl);
+            foreach (var s in ShipTypeKilled)
+            {
+                builder.Append("ship_type_killed = ")
+                    .Append((uint) s.Item)
+                    .Append(", ")
+                    .AppendLine(s.Count.ToString());
+            }
+            foreach (var r in RmCompleted)
+            {
+                builder.Append("rm_completed = ")
+                    .Append((uint) r.Item)
+                    .Append(", ")
+                    .AppendLine(r.Count.ToString());
+            }
+            builder.AppendEntry("total_cash_earned", TotalCashEarned);
+            builder.AppendEntry("total_time_played", TotalTimePlayed);
+            foreach (var s in SysVisited)
+                builder.AppendEntry("sys_visited", (uint) s);
+            foreach (var b in BaseVisited)
+                builder.AppendEntry("base_visited", (uint) b);
+            foreach (var h in HolesVisited)
+                builder.AppendEntry("holes_visited", (uint) h);
+            builder.AppendLine();
+        }
     }
 }

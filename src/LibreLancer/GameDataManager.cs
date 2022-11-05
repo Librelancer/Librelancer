@@ -1345,6 +1345,11 @@ namespace LibreLancer
 
             return n;
         }
+
+        public GameData.Ship GetShip(uint crc)
+        {
+            return shipHashes[crc];
+        }
         public GameData.Ship GetShip(int crc)
         {
             return shipHashes[(uint)crc];

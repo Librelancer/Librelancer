@@ -8,6 +8,7 @@ namespace LibreLancer.Ini
 	{
 		bool ToBoolean();
 		int ToInt32();
+        bool TryToInt32(out int result);
         long ToInt64();
         float ToSingle(string propertyName = null);
 		StringKeyValue ToKeyValue();

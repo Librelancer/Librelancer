@@ -14,15 +14,15 @@ namespace LibreLancer.Data.Save
 {
     public class PlayerEquipment
     {
-        public uint EquipHash;
-        public string EquipName;
+        public HashValue Item;
         public string Hardpoint;
         public float Unknown = 1; //Either health or count, not sure
         public PlayerEquipment() { }
         public PlayerEquipment(Entry e)
         {
             var s = e[0].ToString();
-            if (!uint.TryParse(s, out EquipHash)) EquipName = s;
+            if (!uint.TryParse(s, out uint hash)) Item = new HashValue(s);
+            else Item = hash;
             if (e.Count < 2) return;
             //Extra
             Hardpoint = e[1].ToString();
@@ -31,7 +31,7 @@ namespace LibreLancer.Data.Save
 
         public string ToString(string ename)
         {
-            return $"{ename} = {(EquipHash != 0 ? EquipHash.ToString() : EquipName)}, {Hardpoint}, {Unknown}";
+            return $"{ename} = {(uint)Item}, {Hardpoint}, {Unknown}";
         }
 
         public override string ToString() => ToString("equip");
@@ -40,8 +40,7 @@ namespace LibreLancer.Data.Save
     public class PlayerCargo
     {
         //hash, count, percentage_health, UNK, mission_cargo
-        public uint CargoHash;
-        public string CargoName;
+        public HashValue Item;
         public float PercentageHealth = 1;
         public int Count;
         public bool IsMissionCargo;
@@ -50,7 +49,8 @@ namespace LibreLancer.Data.Save
         public PlayerCargo(Entry e)
         {
             var s = e[0].ToString();
-            if (!uint.TryParse(s, out CargoHash)) CargoName = s;
+            if (!uint.TryParse(s, out uint hash)) Item = new HashValue(s);
+            else Item = hash;
             Count = e[1].ToInt32();
             if (e.Count > 2)
                 PercentageHealth = e[2].ToSingle();
@@ -62,14 +62,14 @@ namespace LibreLancer.Data.Save
         {
             string hStr = "";
             if (PercentageHealth < 1) hStr = PercentageHealth.ToString(CultureInfo.InvariantCulture);
-            return $"{ename} = {(CargoHash != 0 ? CargoHash.ToString() : CargoName)}, {Count}, {hStr}, , {(IsMissionCargo ? 1 : 0)}";
+            return $"{ename} = {(uint)Item}, {Count}, {hStr}, , {(IsMissionCargo ? 1 : 0)}";
         }
 
         public override string ToString() => ToString("cargo");
     }
 
 
-    public class SavePlayer : ICustomEntryHandler
+    public class SavePlayer : ICustomEntryHandler, IWriteSection
     {
         
         
@@ -97,14 +97,14 @@ namespace LibreLancer.Data.Save
         [Entry("voice")] public string Voice;
         [Entry("costume")] public string Costume;
         [Entry("com_costume")] public string ComCostume;
-        [Entry("com_body")] public int ComBody;
-        [Entry("com_head")] public int ComHead;
-        [Entry("com_lefthand")] public int ComLeftHand;
-        [Entry("com_righthand")] public int ComRightHand;
-        [Entry("body")] public int Body;
-        [Entry("head")] public int Head;
-        [Entry("lefthand")] public int LeftHand;
-        [Entry("righthand")] public int RightHand;
+        [Entry("com_body")] public HashValue ComBody;
+        [Entry("com_head")] public HashValue ComHead;
+        [Entry("com_lefthand")] public HashValue ComLeftHand;
+        [Entry("com_righthand")] public HashValue ComRightHand;
+        [Entry("body")] public HashValue Body;
+        [Entry("head")] public HashValue Head;
+        [Entry("lefthand")] public HashValue LeftHand;
+        [Entry("righthand")] public HashValue RightHand;
 
         [Entry("system")] public string System;
         [Entry("base")] public string Base;
@@ -112,9 +112,8 @@ namespace LibreLancer.Data.Save
         [Entry("rotate")] public Vector3 Rotate;
 
         [Entry("location")] public int Location;
-        
-        public int ShipArchetypeCrc;
-        public string ShipArchetype;
+
+        [Entry("ship_archetype")] public HashValue ShipArchetype;
 
         //HandleEntry(equip)
         public List<PlayerEquipment> Equip = new List<PlayerEquipment>();
@@ -134,7 +133,6 @@ namespace LibreLancer.Data.Save
             new("name", (h,e) =>((SavePlayer)h).HandleName(e)),
             new("equip", (h, e) => ((SavePlayer)h).Equip.Add(new PlayerEquipment(e))),
             new("cargo", (h, e) => ((SavePlayer)h).Cargo.Add(new PlayerCargo(e))),
-            new ("ship_archetype", (h, e) => ((SavePlayer)h).HandleShipArchetype(e))
         };
         IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
         
@@ -173,12 +171,6 @@ namespace LibreLancer.Data.Save
             return builder.ToString();
         }
 
-        void HandleShipArchetype(Entry e)
-        {
-            ShipArchetypeCrc = e[0].ToInt32();
-            if(ShipArchetypeCrc == -1)
-                ShipArchetype = e[0].ToString();
-        }
         static IEnumerable<string> SplitInGroups(string original, int size)
         {
             var p = 0;
@@ -190,6 +182,62 @@ namespace LibreLancer.Data.Save
             }
             var s = original.Substring(p);
             if (!string.IsNullOrWhiteSpace(s) && !string.IsNullOrEmpty(s)) yield return s;
+        }
+
+        public void WriteTo(StringBuilder builder)
+        {
+            builder.AppendLine("[Player]");
+            if (DescripStrid != 0)
+                builder.AppendEntry("descrip_strid", DescripStrid);
+            if (!string.IsNullOrWhiteSpace(Description))
+                builder.AppendEntry("description", EncodeName(Description));
+            builder.AppendLine();
+            //Timestamp
+            var fileTime = TimeStamp?.ToFileTime();
+            builder.Append("tstamp = ");
+            builder.Append((fileTime >> 32).ToString());
+            builder.Append(", ");
+            builder.AppendLine((fileTime & 0xFFFFFFFF).ToString());
+            //
+            if (!string.IsNullOrWhiteSpace(Name))
+                builder.AppendEntry("name", EncodeName(Name));
+            builder.AppendEntry("rank", Rank);
+            foreach (var h in House) {
+                builder.AppendEntry("house", h.Reputation, h.Group);
+            }
+
+            builder.AppendEntry("money", Money);
+            builder.AppendEntry("num_kills", NumKills);
+            builder.AppendEntry("num_misn_successes", NumMissionSuccesses);
+            builder.AppendEntry("num_misn_failures", NumMissionFailures);
+            builder.AppendLine();
+            builder.AppendEntry("voice", Voice);
+            builder.AppendEntry("com_body", ComBody);
+            builder.AppendEntry("com_head", ComHead);
+            builder.AppendEntry("com_lefthand", ComLeftHand);
+            builder.AppendEntry("com_righthand", ComRightHand);
+            builder.AppendEntry("body", Body);
+            builder.AppendEntry("head", Head);
+            builder.AppendEntry("lefthand", LeftHand);
+            builder.AppendEntry("righthand", RightHand);
+            builder.AppendLine();
+            builder.AppendEntry("system", System);
+            builder.AppendEntry("base", Base);
+            if (string.IsNullOrWhiteSpace(Base))
+            {
+                builder.AppendEntry("pos", Position);
+                builder.AppendEntry("rot", Rotate);
+            }
+            builder.AppendEntry("location", (uint)Location, false);
+            builder.AppendEntry("ship_archetype", ShipArchetype, false);
+            builder.AppendLine();
+            foreach (var e in Equip)
+                builder.AppendLine(e.ToString());
+            foreach (var c in Cargo)
+                builder.AppendLine(c.ToString());
+            builder.AppendLine();
+            builder.AppendEntry("interface", Interface);
+            builder.AppendLine();
         }
     }
 }

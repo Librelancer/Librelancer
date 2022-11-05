@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using LibreLancer.Data.Save;
 using LibreLancer.Database;
 using LibreLancer.GameData;
@@ -91,16 +92,15 @@ namespace LibreLancer
             {
                 pkgStr.AppendLine(new PlayerEquipment()
                 {
-                    EquipName = x.Nickname,
+                    Item = new HashValue(x.Nickname),
                     Hardpoint = x.Hardpoint ?? ""
                 }.ToString());
             }
-
             foreach (var x in loadout.Cargo)
             {
                 pkgStr.AppendLine(new PlayerCargo()
                 {
-                    CargoName = x.Nickname,
+                    Item = new HashValue(x.Nickname),
                     Count = x.Count
                 }.ToString());
             }

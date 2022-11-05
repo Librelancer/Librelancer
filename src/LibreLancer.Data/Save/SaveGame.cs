@@ -22,7 +22,7 @@ namespace LibreLancer.Data.Save
         public StoryInfo StoryInfo;
 
         [Section("TriggerSave")] 
-        public TriggerSave TriggerSave;
+        public List<TriggerSave> TriggerSave = new List<TriggerSave>();
 
         [Section("time")]
         public SaveTime Time;
@@ -35,6 +35,19 @@ namespace LibreLancer.Data.Save
 
         [Section("nnobjective")] 
         public List<SavedObjective> Objectives = new List<SavedObjective>();
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            Player?.WriteTo(builder);
+            MPlayer?.WriteTo(builder);
+            foreach(var ts in TriggerSave) ts.WriteTo(builder);
+            StoryInfo?.WriteTo(builder);
+            Time?.WriteTo(builder);
+            foreach(var g in Groups) g.WriteTo(builder);
+            LockedGates?.WriteTo(builder);
+            return builder.ToString();
+        }
 
         public static SaveGame FromString(string name, string str)
         {

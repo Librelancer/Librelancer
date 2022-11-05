@@ -3,10 +3,11 @@
 // LICENSE, which is part of this source code package
     
 using System;
+using System.Text;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Save
 {
-    public class StoryInfo
+    public class StoryInfo : IWriteSection
     {
         [Entry("ship_bought")]
         public bool ShipBought;
@@ -18,5 +19,16 @@ namespace LibreLancer.Data.Save
         public float DeltaWorth;
         [Entry("debug")]
         public int Debug;
+
+        public void WriteTo(StringBuilder builder)
+        {
+            builder.AppendLine("[StoryInfo]")
+                .AppendEntry("ship_bought", ShipBought)
+                .AppendEntry("Mission", Mission)
+                .AppendEntry("MissionNum", MissionNum)
+                .AppendEntry("delta_worth", DeltaWorth)
+                .AppendEntry("debug", Debug)
+                .AppendLine();
+        }
     }
 }

@@ -25,6 +25,12 @@ namespace LibreLancer.Ini
 			throw new NotImplementedException();
 		}
 
+        public bool TryToInt32(out int value)
+        {
+            value = 0;
+            return false;
+        }
+
         public long ToInt64()
         {
             throw new NotImplementedException();

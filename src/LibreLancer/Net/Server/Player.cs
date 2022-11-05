@@ -219,20 +219,13 @@ namespace LibreLancer
             System = sg.Player.System;
             Character = new NetCharacter();
             Character.UpdateCredits(sg.Player.Money);
-            string ps;
-            if (sg.Player.ShipArchetype != null)
-                ps = sg.Player.ShipArchetype;
-            else
-                ps = Game.GameData.GetShip(sg.Player.ShipArchetypeCrc).Nickname;
-            Character.Ship = Game.GameData.GetShip(ps);
+            Character.Ship = Game.GameData.GetShip(sg.Player.ShipArchetype);
             Character.Items = new List<NetCargo>();
             foreach (var eq in sg.Player.Equip)
             {
                 var hp = eq.Hardpoint;
                 if (string.IsNullOrEmpty(hp)) hp = "internal";
-                Equipment equip;
-                if (eq.EquipName != null) equip = Game.GameData.GetEquipment(eq.EquipName);
-                else equip = Game.GameData.GetEquipment(eq.EquipHash);
+                Equipment equip = Game.GameData.GetEquipment(eq.Item);
                 if (equip != null)
                 {
                     Character.Items.Add(new NetCargo()
@@ -243,9 +236,7 @@ namespace LibreLancer
             }
             foreach (var cg in sg.Player.Cargo)
             {
-                Equipment equip;
-                if (cg.CargoName != null) equip = Game.GameData.GetEquipment(cg.CargoName);
-                else equip = Game.GameData.GetEquipment(cg.CargoHash);
+                Equipment equip = Game.GameData.GetEquipment(cg.Item);
                 if (equip != null)
                 {
                     Character.Items.Add(new NetCargo()
@@ -622,7 +613,7 @@ namespace LibreLancer
             if (missionNum != 0 && (missionNum - 1) < Game.GameData.Ini.Missions.Count)
             {
                 msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this, 
-                    (uint)(sg.TriggerSave?.Trigger ?? 0));
+                    sg.TriggerSave.Select(x => (uint)x.Trigger).ToArray());
                 msnRuntime.Update(0.0);
             }
         }
@@ -855,24 +846,32 @@ namespace LibreLancer
                     db.Costume = sg.Player.Costume;
                     db.ComCostume = sg.Player.ComCostume;
                     db.Money = sg.Player.Money;
-                    db.Ship = sg.Player.ShipArchetype;
+                    db.Ship = Game.GameData.GetShip(sg.Player.ShipArchetype).Nickname;
                     db.Items = new List<CargoItem>();
                     foreach (var eq in sg.Player.Equip)
                     {
-                        db.Items.Add(new CargoItem()
+                        var item = Game.GameData.GetEquipment(eq.Item);
+                        if (item != null)
                         {
-                            ItemName = eq.EquipName,
-                            Hardpoint = string.IsNullOrEmpty(eq.Hardpoint) ? "internal" : eq.Hardpoint,
-                            ItemCount = 1
-                        });
+                            db.Items.Add(new CargoItem()
+                            {
+                                ItemName = item.Nickname,
+                                Hardpoint = string.IsNullOrEmpty(eq.Hardpoint) ? "internal" : eq.Hardpoint,
+                                ItemCount = 1
+                            });
+                        }
                     }
                     foreach (var cg in sg.Player.Cargo)
                     {
-                        db.Items.Add(new CargoItem()
+                        var item = Game.GameData.GetEquipment(cg.Item);
+                        if (item != null)
                         {
-                            ItemName = cg.CargoName,
-                            ItemCount = cg.Count
-                        });
+                            db.Items.Add(new CargoItem()
+                            {
+                                ItemName = item.Nickname,
+                                ItemCount = cg.Count
+                            });
+                        }
                     }
                     foreach (var rep in RepFromSave(sg))
                     {

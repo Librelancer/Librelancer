@@ -35,6 +35,12 @@ namespace LibreLancer.Ini
 			return value != 0;
 		}
 
+        public bool TryToInt32(out int result)
+        {
+            result = value;
+            return true;
+        }
+
 		public int ToInt32()
 		{
 			return value;

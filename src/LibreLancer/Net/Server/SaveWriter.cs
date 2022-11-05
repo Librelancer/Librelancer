@@ -4,6 +4,7 @@
 using System;
 using System.Numerics;
 using System.Text;
+using LibreLancer.Data;
 using LibreLancer.Data.Save;
 using Microsoft.Win32;
 
@@ -13,50 +14,45 @@ namespace LibreLancer
     {
         public static string WriteSave(NetCharacter ch, string description, int ids, DateTime? timeStamp)
         {
-            var builder = new StringBuilder();
-            builder.AppendLine("[Player]");
-            if (timeStamp != null)
-            {
-                var fileTime = timeStamp?.ToFileTime();
-                builder.Append("tstamp = ");
-                builder.Append((fileTime >> 32).ToString());
-                builder.Append(", ");
-                builder.AppendLine((fileTime & 0xFFFFFFFF).ToString());
-            }
+            var sg = new SaveGame();
+            sg.Player = new SavePlayer();
+            sg.Player.TimeStamp = timeStamp;
             if (description != null)
-                builder.Append("description = ").AppendLine(SavePlayer.EncodeName(description));
+                sg.Player.Description = description;
             else
-                builder.Append("descrip_strid = ").AppendLine(ids.ToString());
-            if(!string.IsNullOrWhiteSpace(ch.Name))
-                builder.Append("name = ").AppendLine(SavePlayer.EncodeName(ch.Name));
-            if (!string.IsNullOrWhiteSpace(ch.Base))
-                builder.Append("base = ").AppendLine(ch.Base);
-            if (!string.IsNullOrWhiteSpace(ch.System))
-                builder.Append("system = ").AppendLine(ch.System);
-            builder.Append("pos = ").AppendLine(Vector3(ch.Position));
-            builder.Append("money = ").AppendLine(ch.Credits.ToString());
+                sg.Player.DescripStrid = ids;
+            sg.Player.Name = ch.Name;
+            sg.Player.Base = ch.Base;
+            sg.Player.System = ch.System;
+            sg.Player.Position = ch.Position;
+            sg.Player.Money = ch.Credits;
             if (ch.Ship != null)
-                builder.Append("ship_archetype = ").AppendLine(ch.Ship.Nickname);
-            foreach (var item in ch.Items)
-            {
+                sg.Player.ShipArchetype = new HashValue(ch.Ship.Nickname);
+            foreach (var item in ch.Items) {
                 if (!string.IsNullOrEmpty(item.Hardpoint))
                 {
-                    var hp = item.Hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase)
-                        ? ""
-                        : item.Hardpoint;
-                    builder.Append("equip = ").Append(item.Equipment.Nickname).Append(",")
-                        .Append(hp).Append(",").AppendLine("1");
+                    sg.Player.Equip.Add(new PlayerEquipment()
+                    {
+                        Item = new HashValue(item.Equipment.CRC),
+                        Hardpoint = item.Hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase)
+                            ? ""
+                            : item.Hardpoint
+                    });
                 }
-                else {
-                    builder.Append("cargo = ");
-                    builder.AppendLine($"{item.Equipment.Nickname}, {item.Count}, , , 0");
+                else
+                {
+                    sg.Player.Cargo.Add(new PlayerCargo() {
+                        Item = new HashValue(item.Equipment.CRC),
+                        Count = item.Count
+                    });
                 }
             }
-            foreach (var rep in ch.Reputation.Reputations)
-            {
-                builder.AppendLine($"house = {Float(rep.Value)}, {rep.Key.Nickname}");
+            foreach (var rep in ch.Reputation.Reputations) {
+                sg.Player.House.Add(new SaveRep() { Group = rep.Key.Nickname, Reputation = rep.Value });
             }
-            return builder.ToString();
+            sg.Player.Interface = 3; //Unknown, matching vanilla
+            
+            return sg.ToString();
         }
 
         static string Float(float f) => f.ToString("0.#########");

@@ -19,6 +19,12 @@ namespace LibreLancer.Ini
 			throw new InvalidCastException ();
 		}
 
+        public bool TryToInt32(out int result)
+        {
+            result = 0;
+            return false;
+        }
+
 		public int ToInt32 ()
 		{
 			throw new InvalidCastException ();

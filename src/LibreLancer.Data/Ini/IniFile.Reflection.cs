@@ -286,6 +286,18 @@ namespace LibreLancer.Ini
                     if (field.Attr.Presence && e.Count < 1) { /* Allow for blank strings (hack)*/}
                     else if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToString());
                 }
+                else if (ftype == typeof(HashValue))
+                {
+                    if (ComponentCheck(1, s, e))
+                    {
+                        HashValue value;
+                        if (e[0].TryToInt32(out int hash))
+                            value = hash;
+                        else
+                            value = new HashValue(e[0].ToString());
+                        field.Field.SetValue(obj, value);
+                    }
+                }
                 else if (ftype == typeof(float))
                 {
                     if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToSingle(e.Name));

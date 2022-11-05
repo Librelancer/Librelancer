@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Save
 {
-    public class SaveGroup : ICustomEntryHandler
+    public class SaveGroup : ICustomEntryHandler, IWriteSection
     {
         [Entry("nickname")]
         public string Nickname;
@@ -20,5 +21,15 @@ namespace LibreLancer.Data.Save
         };
 
         IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        public void WriteTo(StringBuilder builder)
+        {
+            builder.AppendLine("[Group]")
+                .AppendEntry("nickname", Nickname);
+            foreach (var rep in Rep)
+            {
+                builder.AppendEntry("rep", rep.Reputation, rep.Group);
+            }
+            builder.AppendLine();
+        }
     }
 }

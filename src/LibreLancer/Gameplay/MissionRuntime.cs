@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.Missions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace LibreLancer
 {
@@ -18,25 +19,30 @@ namespace LibreLancer
         object _msnLock = new object();
 
         public MissionScript Script;
-        public MissionRuntime(MissionIni msn, Player player, uint triggerSave)
+        public MissionRuntime(MissionIni msn, Player player, uint[] triggerSave)
         {
             Script = new MissionScript(msn);
             this.msn = msn;
             this.Player = player;
             bool doInit = true;
-            if (triggerSave != 0)
+            if (triggerSave != null && triggerSave.Length > 0)
             {
-                foreach (var t in Script.AvailableTriggers)
+                foreach (var tr in triggerSave)
                 {
-                    if (FLHash.CreateID(t.Key) == triggerSave)
+                    bool found = false;
+                    foreach (var t in Script.AvailableTriggers)
                     {
-                        FLLog.Debug("Mission", $"Loading from trigger {t.Key}");
-                        ActivateTrigger(t.Key);
-                        doInit = false;
-                        break;
+                        if (FLHash.CreateID(t.Key) == tr)
+                        {
+                            FLLog.Debug("Mission", $"Loading from trigger {t.Key}");
+                            ActivateTrigger(t.Key);
+                            doInit = false;
+                            found = true;
+                            break;
+                        }
                     }
+                    if (!found) FLLog.Error("Save", $"Unable to find trigger {triggerSave}");
                 }
-                if (doInit) FLLog.Error("Save", $"Unable to find trigger {triggerSave}");
             }
             if (doInit)
             {

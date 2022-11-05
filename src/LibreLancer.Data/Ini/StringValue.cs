@@ -49,6 +49,19 @@ namespace LibreLancer.Ini
 			else return !string.IsNullOrEmpty(value);
 		}
 
+        public bool TryToInt32(out int result)
+        {
+            if (int.TryParse(value, out result)) 
+                return true;
+            if (uint.TryParse(value, out var result2))
+            {
+                result = unchecked((int) result2);
+                return true;
+            }
+            result = 0;
+            return false;
+        }
+
 		public int ToInt32()
 		{
 			int result;
