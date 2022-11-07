@@ -50,7 +50,6 @@ World Time: {12:F2}
 		Cursor cur_cross;
 		Cursor cur_reticle;
 		Cursor current_cur;
-		InputManager input;
 		CGameSession session;
         bool loading = true;
         LoadingScreen loader;
@@ -154,9 +153,6 @@ World Time: {12:F2}
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
             Game.Mouse.MouseDown += Mouse_MouseDown;
             Game.Mouse.MouseUp += Mouse_MouseUp;
-            input = new InputManager(Game, Game.InputMap);
-            input.ActionUp += Input_ActionUp;
-            input.ActionDown += InputOnActionDown;
             player.World = world;
             world.MessageBroadcasted += World_MessageBroadcasted;
             Game.Sound.ResetListenerVelocity();
@@ -166,9 +162,10 @@ World Time: {12:F2}
             updateStartDelay = 3;
         }
 
-        private void InputOnActionDown(InputAction obj)
+        protected override void OnActionDown(InputAction obj)
         {
             if(obj == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();
+            if(obj == InputAction.USER_FULLSCREEN) Game.ToggleFullScreen();
             if(!ui.KeyboardGrabbed && obj == InputAction.USER_CHAT)
                ui.ChatboxEvent();
         }
@@ -325,7 +322,7 @@ World Time: {12:F2}
                 var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
                 table.OnCaptureInput += (k) =>
                 {
-                    g.input.KeyCapture = k;
+                    g.Input.KeyCapture = k;
                 };
                 return table;
             }
@@ -520,12 +517,11 @@ World Time: {12:F2}
 			}
 		}
 
-        public override void Unregister()
+        protected override void OnUnload()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= Mouse_MouseDown;
-			input?.Dispose();
 			sysrender?.Dispose();
             world?.Dispose();
 		}
@@ -687,8 +683,8 @@ World Time: {12:F2}
 
 		bool mouseFlight = false;
 
-		void Input_ActionUp(InputAction action)
-		{
+        protected override void OnActionUp(InputAction action)
+        {
 			if (ui.KeyboardGrabbed || paused) return;
 			switch (action)
 			{
@@ -750,31 +746,36 @@ World Time: {12:F2}
                 return;
             }
             if (paused) return;
-            input.Update();
+            Input.Update();
 
+            if (!ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
+            {
+                shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle + (Game.Mouse.Wheel / 3f), 0, 1);
+            }
+            
 			if (!ui.KeyboardGrabbed)
             {
-				if (input.IsActionDown(InputAction.USER_INC_THROTTLE))
+				if (Input.IsActionDown(InputAction.USER_INC_THROTTLE))
 				{
                     shipInput.Throttle += (float)(delta);
 					shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
 
-				else if (input.IsActionDown(InputAction.USER_DEC_THROTTLE))
+				else if (Input.IsActionDown(InputAction.USER_DEC_THROTTLE))
 				{
                     shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
-                steering.Thrust = input.IsActionDown(InputAction.USER_AFTERBURN);
+                steering.Thrust = Input.IsActionDown(InputAction.USER_AFTERBURN);
             }
 
 			StrafeControls strafe = StrafeControls.None;
             if (!ui.KeyboardGrabbed)
 			{
-				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_LEFT)) strafe |= StrafeControls.Left;
-				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_RIGHT)) strafe |= StrafeControls.Right;
-				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Up;
-				if (input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_DOWN)) strafe |= StrafeControls.Down;
+				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_LEFT)) strafe |= StrafeControls.Left;
+				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_RIGHT)) strafe |= StrafeControls.Right;
+				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Up;
+				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_DOWN)) strafe |= StrafeControls.Down;
             }
 
 			var pc = player.PhysicsComponent;
@@ -830,7 +831,7 @@ World Time: {12:F2}
             }
 
            
-            if (input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
+            if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
                 weapons.FireAll();
             if (world.Projectiles.HasQueued)
             {

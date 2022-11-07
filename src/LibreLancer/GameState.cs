@@ -9,16 +9,52 @@ namespace LibreLancer
 	public abstract class GameState
 	{
 		protected FreelancerGame Game;
+        protected InputManager Input;
+        
 		public GameState (FreelancerGame game)
 		{
 			Game = game;
-		}
-		public abstract void Update(double delta);
+            Input = new InputManager(game, Game.InputMap);
+            Input.ActionDown += InputOnActionDown;
+            Input.ActionUp += InputOnActionUp;
+        }
+
+        private void InputOnActionUp(InputAction action)
+        {
+            OnActionUp(action);
+        }
+
+        private void InputOnActionDown(InputAction action)
+        {
+            if(action == InputAction.USER_SCREEN_SHOT) 
+                Game.Screenshots.TakeScreenshot();
+            else if(action == InputAction.USER_FULLSCREEN) 
+                Game.ToggleFullScreen();
+            else
+                OnActionDown(action);
+        }
+
+        protected virtual void OnActionUp(InputAction action)
+        {
+        }
+
+        protected virtual void OnActionDown(InputAction action)
+        {
+        }
+
+        public abstract void Update(double delta);
 		public abstract void Draw(double delta);
         public virtual void OnResize()
         {
         }
-		public virtual void Unregister()
+
+        public void Unload()
+        {
+            Input.Dispose();
+            OnUnload();
+        }
+        
+		protected virtual void OnUnload()
 		{
 		}
         public virtual void Exiting()

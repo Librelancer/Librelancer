@@ -64,7 +64,7 @@ namespace LibreLancer
 		{
             Audio.ReleaseAllSfx();
 			if (currentState != null)
-				currentState.Unregister();
+				currentState.Unload();
 			currentState = state;
 		}
 
@@ -166,7 +166,7 @@ namespace LibreLancer
             if (currentState != null)
             {
                 currentState.Exiting();
-                currentState.Unregister();
+                currentState.Unload();
             }
 			Audio.Music.Stop (0);
 			Audio.Dispose ();

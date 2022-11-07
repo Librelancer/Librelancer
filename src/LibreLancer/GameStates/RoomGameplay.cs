@@ -48,7 +48,6 @@ namespace LibreLancer
         private StoryCutsceneIni currentCutscene;
         private ScriptState currentState = ScriptState.None;
         private Infocard roomInfocard;
-        private InputManager input;
         enum ScriptState
         {
             None,
@@ -103,23 +102,20 @@ namespace LibreLancer
             session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjectiveIds;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
-            input = new InputManager(Game, Game.InputMap);
-            input.ActionDown += Input_Action;
             //Set up THN
             SwitchToRoom(room == null && session.PlayerShip != null);
             FadeIn(0.8, 1.7);
         }
 
-        private void Input_Action(InputAction action)
+        protected override void OnActionDown(InputAction action)
         {
-            if(action == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();
             if (ui.KeyboardGrabbed) return;
             switch (action)
             {
                 case InputAction.USER_CHAT:
                     ui.ChatboxEvent();
                     break;
-            }
+            }        
         }
 
         private void MouseOnMouseDown(MouseEventArgs e)
@@ -183,7 +179,7 @@ namespace LibreLancer
                 var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
                 table.OnCaptureInput += (k) =>
                 {
-                    g.input.KeyCapture = k;
+                    g.Input.KeyCapture = k;
                 };
                 return table;
             }
@@ -317,12 +313,11 @@ namespace LibreLancer
                 g.session.OnChat(category, text);
             }
         }
-		public override void Unregister()
+		protected override void OnUnload()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
 			Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= MouseOnMouseDown;
-            input.Dispose();
 			scene.Dispose();
 		}
 
@@ -443,7 +438,7 @@ namespace LibreLancer
 
 		void Keyboard_KeyDown(KeyEventArgs e)
         {
-            if (KeyCaptureContext.Capturing(input.KeyCapture)) return;
+            if (KeyCaptureContext.Capturing(Input.KeyCapture)) return;
 			if (ui.KeyboardGrabbed)
 			{
 				ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);

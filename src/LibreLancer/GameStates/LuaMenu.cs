@@ -21,11 +21,9 @@ namespace LibreLancer
         Cutscene scene;
         Cursor cur;
         MenuAPI api;
-        private InputManager input;
         
         public LuaMenu(FreelancerGame g) : base(g)
         {
-            
             api = new MenuAPI(this);
             ui = Game.Ui;
             ui.GameApi = api;
@@ -55,14 +53,8 @@ namespace LibreLancer
                 g.LoadTimer = null;
             }
             FadeIn(0.1, 0.3);
-            input = new InputManager(Game, Game.InputMap);
-            input.ActionDown += Input_Action;
         }
 
-        private void Input_Action(InputAction obj)
-        {
-            if(obj == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();
-        }
 
         private void Mouse_MouseUp(MouseEventArgs e)
         {
@@ -417,9 +409,8 @@ namespace LibreLancer
             api.StopNetworking(); //Disconnect
         }
 
-        public override void Unregister()
+        protected override void OnUnload()
         {
-            input.Dispose();
             ui.Dispose();
             scene.Dispose();
             Game.Keyboard.KeyDown -= UiKeyDown;
