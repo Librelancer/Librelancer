@@ -15,6 +15,7 @@ namespace LibreLancer
         public float AutopilotThrottle = 0;
         public float BankLimit = 35f;
         public bool MouseFlight = false;
+        public bool Reverse = false;
 
         public int Rolling;
 
@@ -29,6 +30,7 @@ namespace LibreLancer
             if (Camera == null) return;
             if (steering == null) return;
             steering.InThrottle = AutopilotThrottle > 0 ? AutopilotThrottle : Throttle;
+            if (Reverse) steering.InThrottle = -1;
             if (MouseFlight)
             {
                 //Calculate turning direction

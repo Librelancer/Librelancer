@@ -100,6 +100,9 @@ namespace LibreLancer
             if (engine == null) return;
             if (power == null) return;
             //Drag = -linearDrag * Velocity
+            if (EnginePower <= 0) {
+                EnginePower = MathHelper.Clamp(EnginePower, -engine.Engine.Def.ReverseFraction, 1);
+            }
             var drag = -engine.Engine.Def.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
             if (EngineState == EngineStates.CruiseCharging) {
                 EnginePower = 1f;
@@ -152,7 +155,7 @@ namespace LibreLancer
             }
             else
             {
-                engine.Speed = EnginePower * 0.9f;
+                engine.Speed = Math.Clamp(EnginePower * 0.9f, 0, 1);
             }
 
             Vector3 strafe = Vector3.Zero;

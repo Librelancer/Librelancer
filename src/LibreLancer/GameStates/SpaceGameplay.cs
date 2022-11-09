@@ -752,6 +752,8 @@ World Time: {12:F2}
             {
                 shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle + (Game.Mouse.Wheel / 3f), 0, 1);
             }
+
+            shipInput.Reverse = false;
             
 			if (!ui.KeyboardGrabbed)
             {
@@ -767,6 +769,7 @@ World Time: {12:F2}
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
 				}
                 steering.Thrust = Input.IsActionDown(InputAction.USER_AFTERBURN);
+                shipInput.Reverse = Input.IsActionDown(InputAction.USER_MANEUVER_BRAKE_REVERSE);
             }
 
 			StrafeControls strafe = StrafeControls.None;
