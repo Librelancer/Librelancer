@@ -293,12 +293,7 @@ namespace LibreLancer.Interface
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
             public Vector3 Vector3(float x, float y, float z) => new Vector3(x, y, z);
 
-            public string StringFromID(int id)
-            {
-                var str = c.uiContext.Data.Infocards.GetStringResource(id);
-                if (str.EndsWith("%M")) return str.Substring(0, str.Length - 2).ToUpper();
-                else return str;
-            }
+            public string StringFromID(int id) => c.uiContext.Data.Infocards.GetStringResource(id);
             public Infocard GetInfocard(int id) =>
                 RDLParse.Parse(c.uiContext.Data.Infocards.GetXmlResource(id), c.uiContext.Data.Fonts);
             public string NumberToStringCS(double num, string fmt) => num.ToString(fmt);

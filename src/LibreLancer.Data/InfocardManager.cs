@@ -18,8 +18,12 @@ namespace LibreLancer.Data
 		{
 			int i = 0;
 			foreach (var file in res) {
-				foreach (var k in file.Strings.Keys) {
-					strings.Add (k + (i * 65536), file.Strings [k]);
+				foreach (var k in file.Strings.Keys)
+                {
+                    var str = file.Strings[k];
+                    //HACK: Figure out what to do with %M strings
+                    if (str.EndsWith("%M")) str = str.Substring(0, str.Length - 2);
+					strings.Add (k + (i * 65536), str);
 				}
 				foreach (var k in file.Infocards.Keys) {
 					infocards.Add (k + (i * 65536), file.Infocards [k]);
@@ -112,7 +116,7 @@ namespace LibreLancer.Data
 		{
             if (id == 0) return "";
 			if (strings.ContainsKey (id)) {
-				return strings [id];
+                return strings [id];
 			} else {
                 if (!missingStrings.Contains(id))
                 {
