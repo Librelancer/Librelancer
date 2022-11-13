@@ -436,11 +436,20 @@ namespace LibreLancer
                 for (int i = 0; i < StarSphereModels.Length; i++)
                 {
                     Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
-                    
                     if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
                     var lighting = Lighting.Empty;
                     if (StarSphereLightings != null) lighting = StarSphereLightings[i];
-                    StarSphereModels[i].DrawImmediate(rstate, resman, ssworld, ref lighting);
+                    //We frustum cull to save on fill rate for low end devices (pi)
+                    var mdl = StarSphereModels[i];
+                    for (int j = 0; j < mdl.AllParts.Length; j++)
+                    {
+                        if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null) continue;
+                        var p = mdl.AllParts[j];
+                        var w = p.LocalTransform * ssworld;
+                        var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
+                        if (camera.Frustum.Intersects(bsphere))
+                            p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims); ;
+                    }
                 }
                 if (camera is ThnCamera thn2 && !ZOverride) thn2.CameraZ();
                 if (nr != null)
