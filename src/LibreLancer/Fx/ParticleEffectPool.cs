@@ -14,19 +14,19 @@ namespace LibreLancer.Fx
     public unsafe class ParticleEffectPool : IDisposable
     {
         //Limits
-        const int MAX_PARTICLES = 40000;
+        private const int PARTICLE_BIT_COUNT = 1250;
+        const int MAX_PARTICLES = PARTICLE_BIT_COUNT * 32;
         private const int INITIAL_PARTICLES = 1000;
         //How many will render at once
         const int MAX_APP_NODES = 2048;
         const int MAX_BEAMS = 512;
         const int MAX_APP_PARTICLES = 5000;
 
+        public IdPool ParticleAllocator = new IdPool(PARTICLE_BIT_COUNT, false);
         public Particle[] Particles = new Particle[INITIAL_PARTICLES];
-        public Stack<int> FreeParticles = new Stack<int>();
 
         ElementBuffer ibo;
         VertexBuffer vbo;
-        //ParticleVertex[] vertices = new ParticleVertex[MAX_PARTICLES * 4];
         ParticleVertex* vertices;
         CommandBuffer cmd;
 
@@ -103,11 +103,6 @@ namespace LibreLancer.Fx
         public ParticleEffectPool(CommandBuffer commands)
         {
             cmd = commands;
-            //Free particles (is this efficient?)
-            for(int i = MAX_PARTICLES - 1; i >= 0; i--)
-            {
-                FreeParticles.Push(i);
-            }
             //Set up vertices
             vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES * 4, true);
             //Indices
@@ -130,57 +125,44 @@ namespace LibreLancer.Fx
             basicShader = Shaders.Particle.Get();
         }
 
-        int maxActive = 0;
         public void Update(double delta)
         {
-            maxActive = 0;
-            for (int i = 0; i < Particles.Length; i++)
+            foreach (var i in ParticleAllocator.GetAllocated())
             {
-                if (!Particles[i].Active)
-                    continue;
                 Particles[i].Position += Particles[i].Normal * (float)delta;
                 Particles[i].TimeAlive += (float)delta;
                 if (Particles[i].TimeAlive >= Particles[i].LifeSpan)
                 {
-                    Particles[i].Active = false;
                     Particles[i].Instance.ParticleCounts[Particles[i].Emitter.EmitterIndex]--;
                     Particles[i].Instance = null;
-                    FreeParticles.Push(i);
-                    continue;
+                    ParticleAllocator.Free(i);
                 }
-                maxActive = Math.Max(maxActive, i);
             }
         }
 
         public void KillAll(ParticleEffectInstance instance)
         {
-            for(int i = 0; i < Particles.Length; i++)
+            foreach (var i in ParticleAllocator.GetAllocated())
             {
-                if (!Particles[i].Active)
-                    continue;
                 if(Particles[i].Instance == instance)
                 {
-                    Particles[i].Active = false;
                     Particles[i].Instance.ParticleCounts[Particles[i].Emitter.EmitterIndex]--;
                     Particles[i].Instance = null;
-                    FreeParticles.Push(i);
+                    ParticleAllocator.Free(i);
                 }
             }
         }
 
         public int GetFreeParticle()
         {
-            if (FreeParticles.Count > 0)
+            if (ParticleAllocator.TryAllocate(out int a))
             {
-                var p = FreeParticles.Pop();
-                maxActive = Math.Max(p, maxActive);
-                if (maxActive >= Particles.Length) {
+                if (a >= Particles.Length) {
                     Array.Resize(ref Particles, Particles.Length * 2 > MAX_PARTICLES ? MAX_PARTICLES : Particles.Length * 2);
                 }
-                return p;
+                return a;
             }
-            else
-                return -1;
+            return -1;
         }
 
         struct BufferInfo
@@ -208,10 +190,8 @@ namespace LibreLancer.Fx
             int beamPtr = 0;
             fNo++;
             //Generate list of active nodes
-            for (int i = 0; i < maxActive; i++)
+            foreach(var i in ParticleAllocator.GetAllocated())
             {
-                if (!Particles[i].Active)
-                    continue;
                 var inst = Particles[i].Instance;
                 if(inst.Culled) continue;
                 inst.Pool = this; //HACK
@@ -249,10 +229,8 @@ namespace LibreLancer.Fx
             int maxVbo = (bufspace[countApp - 1].Start + bufspace[countApp - 1].Count) * 4;
             //Fill buffer
             vertices = (ParticleVertex*)vbo.BeginStreaming();
-            for (int i = 0; i < maxActive; i++)
+            foreach (var i in ParticleAllocator.GetAllocated())
             {
-                if (!Particles[i].Active)
-                    continue;
                 var inst = Particles[i].Instance;
                 if(inst.Culled) continue;
                 if (inst.NodeEnabled(Particles[i].Appearance))

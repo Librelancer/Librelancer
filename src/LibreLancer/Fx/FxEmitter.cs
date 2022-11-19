@@ -57,7 +57,6 @@ namespace LibreLancer.Fx
 		}
         protected void SpawnParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
 		{
-			instance.Pool.Particles[idx].Active = true;
             instance.Pool.Particles[idx].Instance = instance;
 			instance.Pool.Particles[idx].Emitter = reference;
 			instance.Pool.Particles[idx].Appearance = reference.Paired[0];

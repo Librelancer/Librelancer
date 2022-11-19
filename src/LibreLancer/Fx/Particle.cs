@@ -9,7 +9,6 @@ namespace LibreLancer.Fx
 {
 	public struct Particle
 	{
-		public bool Active;
 		public Vector3 Position;
 		public Vector3 Normal;
 		public float LifeSpan;
