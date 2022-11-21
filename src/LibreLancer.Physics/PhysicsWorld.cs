@@ -30,6 +30,10 @@ namespace LibreLancer.Physics
         
         private CollisionObject pointObj;
 
+        public delegate void CollideHandler(PhysicsObject objA, PhysicsObject objB);
+
+        public event CollideHandler OnCollision;
+
         public PhysicsWorld()
         {
             collisionConf = new DefaultCollisionConfiguration();
@@ -86,6 +90,38 @@ namespace LibreLancer.Physics
                 float.IsNaN(v.Y) ||
                 float.IsNaN(v.Z);
         }
+
+        class SphereTestCallback : ContactResultCallback
+        {
+            public List<PhysicsObject> Result = new List<PhysicsObject>();
+
+            public override float AddSingleResult(ManifoldPoint cp, CollisionObjectWrapper colObj0Wrap, int partId0, int index0,
+                CollisionObjectWrapper colObj1Wrap, int partId1, int index1)
+            {
+                if (colObj0Wrap.CollisionObject is RigidBody rb0)
+                {
+                    if (rb0.UserObject != null)
+                        Result.Add((PhysicsObject) rb0.UserObject);
+                }
+                else if (colObj1Wrap.CollisionObject is RigidBody rb1)
+                {
+                    if (rb1.UserObject != null)
+                        Result.Add((PhysicsObject) rb1.UserObject);
+                }
+                return 1f;
+            }
+        }
+        public List<PhysicsObject> SphereTest(Vector3 origin, float radius)
+        {
+            using var co = new CollisionObject();
+            using var sph = new SphereShape(radius);
+            using var cb = new SphereTestCallback();
+            co.CollisionShape = sph;
+            co.WorldTransform = BM.Matrix.Translation(origin.Cast());
+            btWorld.ContactTest(co, cb);
+            return cb.Result;
+        }
+
 
         public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist, out Vector3 contactPoint, out PhysicsObject didHit)
         {
@@ -154,6 +190,26 @@ namespace LibreLancer.Physics
             foreach (var obj in dynamicObjects) {
                 obj.UpdateProperties();
                 obj.RigidBody.Activate(true);
+            }
+            if (OnCollision != null)
+            {
+                int numManifolds = btDispatcher.NumManifolds;
+                for (int i = 0; i < numManifolds; i++)
+                {
+                    var contactManifold = btDispatcher.GetManifoldByIndexInternal(i);
+                    var numContacts = contactManifold.NumContacts;
+                    for (int j = 0; j < numContacts; j++)
+                    {
+                        var point = contactManifold.GetContactPoint(j);
+                        if (point.Distance < 0)
+                        {
+                            var body0 = contactManifold.Body0;
+                            var body1 = contactManifold.Body1;
+                            OnCollision(body0.UserObject as PhysicsObject, body1.UserObject as PhysicsObject);
+                            break;
+                        }
+                    }
+                }
             }
         }
 

@@ -89,10 +89,19 @@ namespace LibreLancer
                     equipped.Hardpoint, e);
                 netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
+            var cargo = new SNPCCargoComponent(obj);
+            foreach (var c in loadout.Cargo)
+            {
+                var e = World.Server.GameData.GetEquipment(c.Nickname);
+                if (e == null) continue;
+                cargo.Cargo.Add(new NPCCargo(e, c.Count));
+            }
+            obj.Components.Add(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
             var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.GetFaction(affiliation)};
             npcComponent.SetPilot(pilot);
+            obj.Components.Add(new SelectedTargetComponent(obj));
             obj.Components.Add(npcComponent);            
             obj.Components.Add(new AutopilotComponent(obj));
             obj.Components.Add(new ShipSteeringComponent(obj));

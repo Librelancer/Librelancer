@@ -13,6 +13,7 @@ using LibreLancer.Data.Missions;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
+using Microsoft.VisualBasic;
 
 namespace LibreLancer
 {
@@ -476,6 +477,57 @@ namespace LibreLancer
             });
         }
 
+        void IClientPlayer.SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation)
+        {
+            RunSync(() =>
+            {
+                var eq = Game.GameData.GetEquipment(equip);
+                if (eq is MissileEquip mn)
+                {
+                    var go = new GameObject(mn.ModelFile.LoadFile(Game.ResourceManager),
+                        Game.ResourceManager);
+                    go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+                                         Matrix4x4.CreateTranslation(position));
+                    go.NetID = id;
+                    go.Kind = GameObjectKind.Missile;
+                    go.PhysicsComponent.Mass = 1;
+                    go.World = gp.world;
+
+                    if (mn.Def.ConstEffect != null)
+                    {
+                       var fx = Game.GameData.GetEffect(mn.Def.ConstEffect)?
+                            .GetEffect(Game.ResourceManager);
+                       var ren = new ParticleEffectRenderer(fx) {Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
+                       go.ExtraRenderers.Add(ren);
+                    }
+                    go.Components.Add(new CMissileComponent(go, mn));
+                    go.Register(go.World.Physics);
+                    gp.world.AddObject(go);
+                    objects.Add(id, go);
+                }
+            });
+        }
+
+        void IClientPlayer.DestroyMissile(int id, bool explode)
+        {
+            RunSync(() =>
+            {
+                if (objects.TryGetValue(id, out var despawn))
+                {
+                    if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
+                        && ms.Missile?.ExplodeFx != null)
+                    {
+                        var pos = Vector3.Transform(Vector3.Zero, despawn.LocalTransform);
+                        gp.world.Renderer.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager), pos);
+                    }
+                    despawn.Unregister(gp.world.Physics);
+                    gp.world.RemoveObject(despawn);
+                    objects.Remove(id);
+                    FLLog.Debug("Client", $"Destroyed missile {id}");
+                }
+            });
+        }
+
         //Use only for Single Player
         //Works because the data is already loaded,
         //and this is really only waiting for the embedded server to start
@@ -526,6 +578,22 @@ namespace LibreLancer
                 if(gp == null && OnUpdatePlayerShip != null)
                     uiActions.Enqueue(OnUpdatePlayerShip);
             }
+        }
+
+        public void UpdateSlotCount(int slot, int count)
+        {
+            var cargo = Items.FirstOrDefault(x => x.ID == slot);
+            if (cargo != null)
+                cargo.Count = count;
+            if (OnUpdateInventory != null) uiActions.Enqueue(OnUpdateInventory);
+        }
+
+        public void DeleteSlot(int slot)
+        {
+            var cargo = Items.FirstOrDefault(x => x.ID == slot);
+            if (cargo != null)
+                Items.Remove(cargo);
+            if (OnUpdateInventory != null) uiActions.Enqueue(OnUpdateInventory);
         }
 
         public void EnqueueAction(Action a) => uiActions.Enqueue(a);
@@ -613,7 +681,6 @@ namespace LibreLancer
                 var go = new GameObject($"debris{id}", newmodel, Game.ResourceManager, part, mass, true);
                 go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                      Matrix4x4.CreateTranslation(position));
-                if (go.PhysicsComponent != null) go.PhysicsComponent.SetTransform = false;
                 go.World = gp.world;
                 go.Register(go.World.Physics);
                 go.NetID = id;
@@ -699,7 +766,6 @@ namespace LibreLancer
                         var go = new GameObject(arch, Game.ResourceManager, true);
                         go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(si.Orientation) *
                                              Matrix4x4.CreateTranslation(si.Position));
-                        if (go.PhysicsComponent != null) go.PhysicsComponent.SetTransform = false;
                         go.Nickname = $"$Solar{si.ID}";
                         go.World = gp.world;
                         go.Register(go.World.Physics);

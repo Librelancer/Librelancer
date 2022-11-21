@@ -81,10 +81,7 @@ namespace LibreLancer
             foreach(var o in ini.Objectives)
                 Set(Objectives, o.Nickname, o);
             foreach (var ol in ini.ObjLists)
-                Set(ObjLists, ol.Nickname, new ScriptAiCommands() {
-                    Nickname = ol.Nickname,
-                    Ini = ol
-                });
+                Set(ObjLists, ol.Nickname, new ScriptAiCommands(ol.Nickname, ol));
             foreach (var dlg in ini.Dialogs)
                 Set(Dialogs, dlg.Nickname, dlg);
             if (ini.ShipIni != null)
@@ -112,9 +109,19 @@ namespace LibreLancer
     {
         public string Nickname;
         public ObjList Ini;
-        public AiObjListState Construct() => ConvertObjList(Ini);
+
+        public AiObjListState AiState { get; private set; }
+
+        public ScriptAiCommands(string nickname, ObjList ini)
+        {
+            this.Nickname = nickname;
+            this.Ini = ini;
+            AiState = ConvertObjList(Ini);
+        }
+        
         static AiObjListState ConvertObjList(ObjList list)
         {
+            AiObjListState first = null;
             AiObjListState last = null;
             foreach (var l in list.Commands)
             {
@@ -224,11 +231,12 @@ namespace LibreLancer
 
                 if (cur != null)
                 {
+                    if (first == null) first = cur;
                     if (last != null) last.Next = cur;
                     last = cur;
                 }
             }
-            return last;
+            return first;
         }
     }
 

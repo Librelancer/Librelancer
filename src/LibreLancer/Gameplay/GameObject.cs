@@ -23,7 +23,8 @@ namespace LibreLancer
     {
         None,
         Ship,
-        Solar
+        Solar,
+        Missile
     }
 
     public class TradelaneName : ObjectName

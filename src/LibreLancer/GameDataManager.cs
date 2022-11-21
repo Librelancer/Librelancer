@@ -634,6 +634,55 @@ namespace LibreLancer
         {
             FLLog.Info("Game", "Initing " + fldata.Equipment.Equip.Count + " equipments");
             Dictionary<string, LightInheritHelper> lights = new Dictionary<string, LightInheritHelper>(StringComparer.OrdinalIgnoreCase);
+
+            void SetCommonFields(Equipment equip, Data.Equipment.AbstractEquipment val)
+            {
+                equip.Nickname = val.Nickname;
+                equip.CRC = FLHash.CreateID(equip.Nickname);
+                equip.HPChild = val.HPChild;
+                equip.LODRanges = val.LODRanges;
+                equip.IdsName = val.IdsName;
+                equip.IdsInfo = val.IdsInfo;
+            }
+            //Process munitions first
+            foreach (var mn in fldata.Equipment.Munitions)
+            {
+                Equipment equip;
+                if (!string.IsNullOrEmpty(mn.Motor))
+                {
+                    var mequip = new GameData.Items.MissileEquip()
+                    {
+                        Def = mn,
+                        ModelFile = ResolveDrawable(mn.MaterialLibrary, mn.DaArchetype),
+                        Motor = fldata.Equipment.Motors.FirstOrDefault(x => x.Nickname.Equals(mn.Motor, StringComparison.OrdinalIgnoreCase)),
+                        Explosion = fldata.Equipment.Explosions.FirstOrDefault(x =>  x.Nickname.Equals(mn.ExplosionArch, StringComparison.OrdinalIgnoreCase))
+                    };
+                    if (mequip.Explosion != null &&
+                       !string.IsNullOrEmpty(mequip.Explosion.Effect))
+                    {
+                        mequip.ExplodeFx = GetEffect(mequip.Explosion.Effect);
+                    }
+                    equip = mequip;
+                }
+                else
+                {
+                    var effect = fldata.Effects.FindEffect(mn.ConstEffect);
+                    string visbeam;
+                    if (effect == null) visbeam = "";
+                    else visbeam = effect.VisBeam ?? "";
+                    var mequip = new GameData.Items.MunitionEquip()
+                    {
+                        Def = mn,
+                        ConstEffect_Spear = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase)),
+                        ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase))
+                    };
+                    equip = mequip;
+                }
+                SetCommonFields(equip, mn);
+                equipments[equip.Nickname] = equip;
+                equipmentHashes[equip.CRC] = equip;
+            }
+            //Then all equipment
             foreach (var val in fldata.Equipment.Equip)
             {
                 GameData.Items.Equipment equip = null;
@@ -669,30 +718,34 @@ namespace LibreLancer
                 }
                 else if (val is Data.Equipment.Gun gn)
                 {
-                    var mn = fldata.Equipment.Munitions.FirstOrDefault((x) => x.Nickname.Equals(gn.ProjectileArchetype, StringComparison.OrdinalIgnoreCase));
-                    if (mn == null)
+                    equipments.TryGetValue(gn.ProjectileArchetype, out Equipment mnEquip);
+                    if (mnEquip is MunitionEquip mn)
+                    {
+                        var eqp = new GameData.Items.GunEquipment()
+                        {
+                            HpType = gn.HpGunType,
+                            Munition = mn,
+                            Def = gn
+                        };
+                        equip = eqp;
+                        equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
+                    }
+                    else if (mnEquip is MissileEquip me)
+                    {
+                        var eqp = new GameData.Items.MissileLauncherEquipment()
+                        {
+                            HpType = gn.HpGunType,
+                            Munition = me,
+                            Def = gn
+                        };
+                        equip = eqp;
+                        equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
+                    }
+                    else
                     {
                         FLLog.Error("Equipment", $"Munition {gn.ProjectileArchetype} not found (Gun {gn.Nickname})");
                         continue;
                     }
-                    var effect = fldata.Effects.FindEffect(mn.ConstEffect);
-                    string visbeam;
-                    if (effect == null) visbeam = "";
-                    else visbeam = effect.VisBeam ?? "";
-                    var mequip = new GameData.Items.MunitionEquip()
-                    {
-                        Def = mn,
-                        ConstEffect_Spear = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase)),
-                        ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase))
-                    };
-                    var eqp = new GameData.Items.GunEquipment()
-                    {
-                        HpType = gn.HpGunType,
-                        Munition = mequip,
-                        Def = gn
-                    };
-                    equip = eqp;
-                    equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
                 }
                 if (val is Data.Equipment.Thruster th)
                 {
@@ -738,12 +791,7 @@ namespace LibreLancer
                     equip = new GameData.Items.CommodityEquipment();
                 if(equip == null) 
                     continue;
-                equip.Nickname = val.Nickname;
-                equip.CRC = FLHash.CreateID(equip.Nickname);
-                equip.HPChild = val.HPChild;
-                equip.LODRanges = val.LODRanges;
-                equip.IdsName = val.IdsName;
-                equip.IdsInfo = val.IdsInfo;
+                SetCommonFields(equip, val);
                 equipments[equip.Nickname] = equip;
                 equipmentHashes[equip.CRC] = equip;
             }

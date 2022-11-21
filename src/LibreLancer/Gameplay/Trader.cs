@@ -27,6 +27,7 @@ namespace LibreLancer
         static bool WeaponFilter(Equipment equip)
         {
             return equip is GunEquipment ||
+                   equip is MissileLauncherEquipment ||
                    equip is CountermeasureEquipment;
         }
 
@@ -38,7 +39,7 @@ namespace LibreLancer
 
         static bool AmmoFilter(Equipment equip)
         {
-            return false;
+            return equip is MissileEquip;
         }
 
         static bool InternalFilter(Equipment equip)

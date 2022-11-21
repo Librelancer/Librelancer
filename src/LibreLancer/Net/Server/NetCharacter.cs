@@ -204,6 +204,7 @@ namespace LibreLancer
             else if(slot.DbItem != null)
             {
                 slot.DbItem.ItemCount = slot.Count;
+                TryApply();
             }
         }
 

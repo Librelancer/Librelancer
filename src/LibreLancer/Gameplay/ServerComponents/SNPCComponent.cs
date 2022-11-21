@@ -69,6 +69,7 @@ namespace LibreLancer
 
         public void SetState(AiState state)
         {
+            FLLog.Debug("NPC", "");
             this.CurrentState = state;
             state?.OnStart(Parent, this);
         }
@@ -128,6 +129,7 @@ namespace LibreLancer
         }
 
         private double fireTimer;
+        private double missileTimer;
 
         GameObject GetHostileAndFire(double time)
         {
@@ -149,7 +151,7 @@ namespace LibreLancer
                     }
                 }
             }
-
+            Parent.GetComponent<SelectedTargetComponent>().Selected = shootAt;
             //Shoot at hostile
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
@@ -157,11 +159,26 @@ namespace LibreLancer
                     manager.AttackingPlayer++;
 
                 var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
-                var range = weapons.GetMaxRange() * 0.95f;
-                if (dist < range)
+
+                var gunRange = weapons.GetMaxRange() * 0.95f;
+                weapons.AimPoint = Vector3.Transform(Vector3.Zero, shootAt.WorldTransform);
+
+                var missileRange = Pilot?.Missile?.LaunchRange ?? gunRange;
+                //Fire Missiles
+                if ((Pilot?.Missile?.MissileLaunchAllowOutOfRange ?? false) ||
+                    dist <= missileRange)
+                {
+                    missileTimer -= time;
+                    if (missileTimer <= 0)
+                    {
+                        weapons.FireMissiles();
+                        missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
+                    }
+                }
+                //Fire guns
+                if (dist < gunRange)
                 {
                     fireTimer -= time;
-                    weapons.AimPoint = Vector3.Transform(Vector3.Zero, shootAt.WorldTransform);
                     if (fireTimer <= 0)
                     {
                         weapons.FireAll();
@@ -172,14 +189,15 @@ namespace LibreLancer
                     if (CurrentState == null && Parent.TryGetComponent<AutopilotComponent>(out var ap)) {
                         if (ap.CurrentBehaviour == AutopilotBehaviours.None)
                         {
-                            ap.GotoObject(shootAt, false, 1, range * 0.5f);
+                            ap.GotoObject(shootAt, false, 1, gunRange * 0.5f);
                         }
                     }
                 }
             }
             else
             {
-                fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
+                //fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
+                //missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
             }
 
             return shootAt;
@@ -204,6 +222,7 @@ namespace LibreLancer
             CurrentState?.Update(Parent, this, time);
 
             var shootAt = GetHostileAndFire(time);
+            
             if (CurrentState != null || shootAt == null) {
                 currentState = StateGraphEntry.NULL;
                 timeInState = 0;

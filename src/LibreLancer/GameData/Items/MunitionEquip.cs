@@ -1,7 +1,7 @@
 ﻿using System;
 namespace LibreLancer.GameData.Items
 {
-    public class MunitionEquip
+    public class MunitionEquip : Equipment
     {
         public Data.Equipment.Munition Def;
         //Fx Stuff

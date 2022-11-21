@@ -378,7 +378,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            var ol = script.ObjLists[List].Construct();
+            var ol = script.ObjLists[List].AiState;
             if (script.Ships.ContainsKey(Target)) {
                 runtime.Player.World.NPCs.NpcDoAction(Target,
                     (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });

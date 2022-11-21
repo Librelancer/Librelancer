@@ -82,8 +82,9 @@ namespace LibreLancer.Gameplay.Missions
             AiState state = null;
             if (!string.IsNullOrEmpty(objList))
             {
-                if (script.ObjLists.TryGetValue(objList, out var ol)) {
-                    state = ol.Construct();
+                if (script.ObjLists.TryGetValue(objList, out var ol))
+                {
+                    state = ol.AiState;
                 }
                 else {
                     FLLog.Warning("Mission", $"Missing object list {objList}");

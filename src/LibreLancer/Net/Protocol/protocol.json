@@ -76,6 +76,10 @@
           "args": [ { "name":  "projectiles", "type":  "ProjectileSpawn[]" }]
         },
         {
+          "name": "FireMissiles",
+          "args": [ { "name":  "missiles", "type": "MissileFireCmd[]" }]
+        },
+        {
           "name": "Unmount",
           "return": "bool",
           "args": [ { "name":  "hardpoint", "type":  "string" }]
@@ -174,6 +178,19 @@
           ]
         },
         {
+          "name": "UpdateSlotCount",
+          "args": [
+            { "name":  "slot", "type": "int" },
+            { "name":  "count", "type":  "int" }
+          ]
+        },
+        {
+          "name": "DeleteSlot",
+          "args": [
+            { "name":  "slot", "type":  "int" }
+          ]
+        },
+        {
           "name": "SpawnSolar",
           "args": [
             { "name":  "solars", "type":  "SolarInfo[]" }
@@ -193,6 +210,23 @@
             { "name":  "position", "type":  "Vector3" },
             { "name":  "orientation", "type":  "Quaternion" },
             { "name":  "mass", "type":  "float" }
+          ]
+        },
+        {
+          "name": "SpawnMissile",
+          "args": [
+            { "name":  "id", "type":  "int" },
+            { "name":  "playSound", "type":  "bool" },
+            { "name":  "equip", "type":  "uint" },
+            { "name":  "position", "type":  "Vector3" },
+            { "name":  "orientation", "type":  "Quaternion" }
+          ]
+        },
+        {
+          "name": "DestroyMissile",
+          "args": [
+            { "name":  "id", "type":  "int" },
+            { "name": "explode", "type":  "bool" }
           ]
         },
         {

@@ -17,7 +17,7 @@ namespace LibreLancer.GameData.Items
             var child = GameObject.WithModel(gn.ModelFile, type != EquipmentType.Server, res);
             if(type != EquipmentType.RemoteObject &&
                type != EquipmentType.Cutscene)
-                child.Components.Add(new WeaponComponent(child, gn));
+                child.Components.Add(new GunComponent(child, gn));
             if (snd != null)
             {
                 snd.LoadSound(gn.Munition.Def.OneShotSound);

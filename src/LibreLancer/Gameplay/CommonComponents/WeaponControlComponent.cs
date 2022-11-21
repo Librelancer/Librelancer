@@ -53,26 +53,38 @@ namespace LibreLancer
                 AnglePitch = x.Angles.Y
             }).ToArray();
         }
-        
 
         public float GetMaxRange()
         {
             float range = 0;
             foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
             {
-                var r = wp.Object.Munition.Def.Lifetime * wp.Object.Def.MuzzleVelocity;
+                var r = wp.MaxRange;
                 if (r > range) range = r;
             }
             return range;
         }
-        
-        
 
-        public void FireAll()
+        bool CanFireWeapons()
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
                 (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
-                return;
+                return false;
+            return true;
+        }
+
+        public void FireMissiles()
+        {
+            if (!CanFireWeapons()) return;
+            foreach (var wp in Parent.GetChildComponents<MissileLauncherComponent>())
+            {
+                wp.Fire(AimPoint);
+            }
+        }
+        
+        public void FireAll()
+        {
+            if (!CanFireWeapons()) return;
             foreach(var wp in Parent.GetChildComponents<WeaponComponent>())
             {
                 wp.Fire(AimPoint);
@@ -83,9 +95,8 @@ namespace LibreLancer
         {
             foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
             {
-                yield return new UiEquippedWeapon(true, wp.Object.IdsName);
+                yield return new UiEquippedWeapon(true, wp.IdsName);
             }
         }
-
     }
 }

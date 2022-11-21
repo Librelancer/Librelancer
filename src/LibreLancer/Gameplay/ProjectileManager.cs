@@ -92,7 +92,33 @@ namespace LibreLancer
         }
 
         private List<ProjectileSpawn> queued = new List<ProjectileSpawn>();
+        private List<MissileFireCmd> missiles = new List<MissileFireCmd>();
         public bool HasQueued => queued.Count > 0;
+        public bool HasMissilesQueued => missiles.Count > 0;
+
+        public MissileFireCmd[] GetMissileQueue()
+        {
+            var x = missiles.ToArray();
+            missiles.Clear();
+            return x;
+        }
+
+        public void QueueMissile(string hardpoint, GameObject target)
+        {
+            if (target == null)
+            {
+                missiles.Add(new MissileFireCmd() { Hardpoint = hardpoint });
+            }
+            else
+            {
+                missiles.Add(new MissileFireCmd()
+                {
+                    Hardpoint = hardpoint,
+                    TargetIsCrc = target.NetID == 0,
+                    Target = target.NetID == 0 ? (int) target.NicknameCRC : target.NetID
+                });
+            }
+        }
 
         public ProjectileSpawn[] GetQueue()
         {
@@ -109,6 +135,28 @@ namespace LibreLancer
         }
 
         private Dictionary<ulong, SoundInstance> _instances = new Dictionary<ulong, SoundInstance>();
+
+        public void PlayProjectileSound(GameObject owner, string soundName, Vector3 position, string hardpoint)
+        {
+            SoundManager snd;
+            if (!string.IsNullOrWhiteSpace(soundName) &&
+                world.Renderer != null && (snd = world.Renderer.Game.GetService<SoundManager>()) != null)
+            {
+                ulong soundID = ((ulong) owner.Unique << 32) | (ulong)CrcTool.HardpointCrc(hardpoint);
+                if (!_instances.TryGetValue(soundID, out var inst))
+                {
+                    inst = snd.GetInstance(soundName, 0, -1, -1, position);
+                    _instances[soundID] = inst;
+                }
+
+                if (inst != null) inst.Priority = -2;
+                inst?.Set3D();
+                inst?.SetPosition(position);
+                inst?.Stop();
+                inst?.Play();
+            }
+        }
+        
         public void SpawnProjectile(GameObject owner, string hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
             if (projectilePtr == 16383) projectilePtr = 0;
@@ -121,22 +169,7 @@ namespace LibreLancer
                 Start = position,
                 Normal = heading * projectile.Velocity
             };
-            SoundManager snd;
-            if (world.Renderer != null && (snd = world.Renderer.Game.GetService<SoundManager>()) != null)
-            {
-                ulong soundID = ((ulong) owner.Unique << 32) | (ulong)CrcTool.HardpointCrc(hardpoint);
-                if (!_instances.TryGetValue(soundID, out var inst))
-                {
-                    inst = snd.GetInstance(projectile.Munition.Def.OneShotSound, 0, -1, -1, position);
-                    _instances[soundID] = inst;
-                }
-
-                if (inst != null) inst.Priority = -2;
-                inst?.Set3D();
-                inst?.SetPosition(position);
-                inst?.Stop();
-                inst?.Play();
-            }
+            PlayProjectileSound(owner, projectile.Munition.Def.OneShotSound, position, hardpoint);
             if (world.Renderer != null && projectile.TravelEffect != null) {
                 Projectiles[projectilePtr].Effect = new ParticleEffectInstance(projectile.TravelEffect);
             }

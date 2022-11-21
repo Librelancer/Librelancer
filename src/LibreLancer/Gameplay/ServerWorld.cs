@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using LibreLancer.GameData.Items;
 using LibreLancer.Net;
+using LibreLancer.Physics;
 
 namespace LibreLancer
 {
@@ -21,19 +22,9 @@ namespace LibreLancer
         public GameServer Server;
         public GameData.StarSystem System;
         public NPCManager NPCs;
-        private int mId = -1;
         object _idLock = new object();
 
-        
-        int GenerateID()
-        {
-            lock (_idLock)
-            {
-                var retVal = mId--;
-                if (mId < int.MinValue + 2) mId = -1;
-                return retVal;
-            }
-        }
+        private NetIDGenerator idGen = new NetIDGenerator();
 
         public bool Paused => paused;
         
@@ -56,7 +47,58 @@ namespace LibreLancer
             GameWorld = new GameWorld(null);
             GameWorld.Server = this;
             GameWorld.LoadSystem(system, server.Resources, true);
+            GameWorld.Physics.OnCollision += PhysicsOnCollision;
             NPCs = new NPCManager(this);
+        }
+
+        private void PhysicsOnCollision(PhysicsObject obja, PhysicsObject objb)
+        {
+            if (obja.Tag is GameObject g1 && 
+                objb.Tag is GameObject g2)
+            {
+                if (g1.Kind == GameObjectKind.Missile)
+                {
+                    var msl = g1.GetComponent<SMissileComponent>();
+                    if (msl?.Target == g2) {
+                        ExplodeMissile(g1);
+                    }
+                }
+                else if (g2.Kind == GameObjectKind.Missile)
+                {
+                    var msl = g2.GetComponent<SMissileComponent>();
+                    if (msl?.Target == g1) {
+                        ExplodeMissile(g2);
+                    }
+                }
+            }
+        }
+
+        public void ExplodeMissile(GameObject obj)
+        {
+            var missile = obj.GetComponent<SMissileComponent>();
+            var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
+            
+            obj.Unregister(GameWorld.Physics);
+            GameWorld.RemoveObject(obj);
+            updatingObjects.Remove(obj);
+            idGen.Free(obj.NetID);
+            foreach (var p in Players) 
+                p.Key.RemoteClient.DestroyMissile(obj.NetID, true);
+            if (missile.Missile.Explosion != null)
+            {
+                foreach (var other in GameWorld.Physics.SphereTest(pos, missile.Missile.Explosion.Radius))
+                {
+                    if (other.Tag is GameObject g &&
+                        g.TryGetComponent<SHealthComponent>(out var health))
+                    {
+                        health.Damage(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage);
+                        if(missile.Owner != null && 
+                           g.TryGetComponent<SNPCComponent>(out var npc))
+                            npc.OnProjectileHit(missile.Owner);
+                    }
+                }
+            }
+            
         }
 
         public int PlayerCount;
@@ -104,7 +146,7 @@ namespace LibreLancer
         public void ProjectileHit(GameObject obj, GameObject owner, MunitionEquip munition)
         {
             if (obj.TryGetComponent<SHealthComponent>(out var health)) {
-                health.Damage(munition.Def.HullDamage);
+                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage);
             }
             if (obj.TryGetComponent<SNPCComponent>(out var npc)) {
                 npc.OnProjectileHit(owner);
@@ -138,6 +180,30 @@ namespace LibreLancer
             actions.Enqueue(a);
         }
 
+        public void FireMissile(Matrix4x4 transform, MissileEquip missile, float muzzleVelocity, GameObject owner, GameObject target)
+        {
+            actions.Enqueue(() =>
+            {
+                var go = new GameObject(missile.ModelFile.LoadFile(Server.Resources), Server.Resources, false, true);
+                go.SetLocalTransform(transform);
+                go.Kind = GameObjectKind.Missile;
+                go.NetID = idGen.Allocate();
+                go.World = GameWorld;
+                go.PhysicsComponent.Mass = 1;
+                go.Components.Add(new SMissileComponent(go, missile)
+                {
+                    Target = target, Owner = owner,
+                    Speed = owner.PhysicsComponent.Body.LinearVelocity.Length() + muzzleVelocity
+                });
+                go.Register(GameWorld.Physics);
+                GameWorld.AddObject(go);
+                updatingObjects.Add(go);
+                foreach (var p in Players) {
+                    p.Key.RemoteClient.SpawnMissile(go.NetID, p.Value != owner, missile.CRC, Vector3.Transform(Vector3.Zero, transform), transform.ExtractRotation());
+                }
+            });
+        }
+
         public void FireProjectiles(ProjectileSpawn[] projectiles, Player owner)
         {
             actions.Enqueue(() =>
@@ -153,6 +219,36 @@ namespace LibreLancer
                 {
                     var pdata = GameWorld.Projectiles.GetData(Server.GameData.GetEquipment(p.Gun) as GunEquipment);
                     GameWorld.Projectiles.SpawnProjectile(Players[owner], p.Hardpoint, pdata, p.Start, p.Heading);
+                }
+            });
+        }
+
+        GameObject GetObject(bool crc, int id)
+        {
+            if (id == 0) return null;
+            if (crc)
+            {
+                return GameWorld.GetObject((uint)id);
+            }
+            else
+            {
+                return GameWorld.GetFromNetID(id);
+            }
+        }
+
+        public void FireMissiles(MissileFireCmd[] missiles, Player owner)
+        {
+            actions.Enqueue(() =>
+            {
+                var go = Players[owner];
+                foreach (var m in missiles)
+                {
+                    var x = go.Children.FirstOrDefault(
+                        c => m.Hardpoint.Equals(c.Attachment?.Name, StringComparison.OrdinalIgnoreCase));
+                    if (x?.TryGetComponent<MissileLauncherComponent>(out var ml) ?? false)
+                    {
+                        ml.Fire(Vector3.Zero, GetObject(m.TargetIsCrc, m.Target));
+                    }
                 }
             });
         }
@@ -216,6 +312,8 @@ namespace LibreLancer
                 obj.Unregister(GameWorld.Physics);
                 GameWorld.RemoveObject(obj);
                 spawnedNPCs.Remove(obj);
+                updatingObjects.Remove(obj);
+                idGen.Free(obj.NetID);
                 foreach (var p in Players) p.Key.Despawn(obj.NetID);
             });
         }
@@ -240,7 +338,7 @@ namespace LibreLancer
                 var arch = Server.GameData.GetSolarArchetype(archetype);
                 var gameobj = new GameObject(arch, Server.Resources, false);
                 gameobj.ArchetypeName = archetype;
-                gameobj.NetID = GenerateID();
+                gameobj.NetID = idGen.Allocate();
                 gameobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                           Matrix4x4.CreateTranslation(position));
                 gameobj.Nickname = nickname;
@@ -277,7 +375,7 @@ namespace LibreLancer
                     MaterialAnims = mdl.MaterialAnims,
                     Path = mdl.Path,
                 };
-                var id = GenerateID();
+                var id = idGen.Allocate();
                 var go = new GameObject($"debris{id}", newmodel, Server.Resources, part, mass, false);
                 go.NetID = id;
                 go.SetLocalTransform(transform);
@@ -295,7 +393,7 @@ namespace LibreLancer
 
         public void OnNPCSpawn(GameObject obj)
         {
-            obj.NetID = GenerateID();
+            obj.NetID = idGen.Allocate();
             obj.World = GameWorld;
             obj.Register(GameWorld.Physics);
             GameWorld.AddObject(obj);

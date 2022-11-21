@@ -1,18 +1,20 @@
 
+using System.Linq;
 using System.Numerics;
+using LibreLancer.GameData.Items;
 
 namespace LibreLancer
 {
     /*
      * Component that handles a remote player controlling this GameObject
-     * Stores a reference to the Player class, and buffers inputs
-     *
+     * Stores a reference to the Player class, buffers input
+     * and keeps track of cargo
      *
      * Notes:
      *   - When the buffer underflows (extended latency spike), the buffer is expanded and a hard
      *   resync of the tick numbers occurs, this causes a large resimulation on the client.
      */
-    public class SPlayerComponent : GameComponent
+    public class SPlayerComponent : AbstractCargoComponent
     {
         struct ReceivedInputs
         {
@@ -206,6 +208,20 @@ namespace LibreLancer
                     SequenceApplied = sequence;
                 }
             }
+        }
+
+        public override bool TryConsume(Equipment item)
+        {
+            var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment == item);
+            if (slot != null) {
+                if(slot.Count <= 1)
+                    Player.RemoteClient.DeleteSlot(slot.ID);
+                else
+                    Player.RemoteClient.UpdateSlotCount(slot.ID, slot.Count - 1);
+                Player.Character.RemoveCargo(slot, 1);
+                return true;
+            }
+            return false;
         }
     }
 }

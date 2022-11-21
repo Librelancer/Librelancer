@@ -134,6 +134,11 @@ namespace LibreLancer
             World?.FireProjectiles(projectiles, this);
         }
 
+        void IServerPlayer.FireMissiles(MissileFireCmd[] missiles)
+        {
+            World?.FireMissiles(missiles, this);
+        }
+
         string FirstAvailableHardpoint(string hptype)
         {
             if(string.IsNullOrWhiteSpace(hptype)) return null;

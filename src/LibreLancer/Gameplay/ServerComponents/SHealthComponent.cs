@@ -19,14 +19,16 @@ namespace LibreLancer
         public SHealthComponent(GameObject parent) : base(parent) { }
 
         private bool isKilled = false;
-
-        public void Damage(float amount)
+        
+        public void Damage(float hullDamage, float energyDamage)
         {
+            if (energyDamage <= 0) energyDamage = hullDamage / 2.0f;
+            
             var shield = Parent.GetChildComponents<SShieldComponent>().FirstOrDefault();
-            if (shield == null || !shield.Damage(amount))
+            if (shield == null || !shield.Damage(energyDamage))
             {
                 if (InfiniteHealth) return;
-                CurrentHealth -= amount;
+                CurrentHealth -= hullDamage;
                 if (Invulnerable && CurrentHealth < (MaxHealth * 0.09f)) {
                     CurrentHealth = MaxHealth * 0.09f;
                 }
