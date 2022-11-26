@@ -4,9 +4,10 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
-namespace LibreLancer
+using LibreLancer.Vertices;
+
+namespace LibreLancer.Render.Materials
 {
 	public class NomadMaterial : RenderMaterial
 	{

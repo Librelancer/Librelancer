@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;

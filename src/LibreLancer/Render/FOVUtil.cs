@@ -3,7 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
     public class FOVUtil
     {

@@ -4,8 +4,8 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.GameData;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
 	public static class RenderHelpers
 	{

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.GameData.Archetypes;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public class SunRenderer : ObjectRenderer
 	{

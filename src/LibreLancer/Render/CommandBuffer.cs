@@ -3,13 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
 using System.Collections.Generic;
+using System.Numerics;
 using LibreLancer.Utf.Cmp;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	public delegate void ShaderAction(Shader shdr, RenderContext res, ref RenderCommand cmd);
 	public class CommandBuffer

@@ -1,7 +1,7 @@
 using System.Numerics;
 using LibreLancer.Data.Cameras;
 
-namespace LibreLancer;
+namespace LibreLancer.Render.Cameras;
 
 public class TurretViewCamera : ICamera
 {

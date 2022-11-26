@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Interface;
 using LibreLancer.Media;
+using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
 
 namespace LibreLancer
 {

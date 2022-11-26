@@ -5,6 +5,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Utf.Dfm

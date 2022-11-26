@@ -4,6 +4,8 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Render;
+
 namespace LibreLancer.GameData.Items
 {
 	public class LightEquipment : Equipment

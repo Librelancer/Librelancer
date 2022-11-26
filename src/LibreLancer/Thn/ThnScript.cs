@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Thorn;
 using LibreLancer.Thn;
 namespace LibreLancer

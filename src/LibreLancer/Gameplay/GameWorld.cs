@@ -7,6 +7,8 @@ using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.GameData;
 using LibreLancer.Physics;
+using LibreLancer.Render;
+
 namespace LibreLancer
 {
     public class GameWorld : IDisposable

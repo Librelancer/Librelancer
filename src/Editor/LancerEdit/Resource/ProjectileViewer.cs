@@ -14,6 +14,8 @@ using LibreLancer.ImUI;
 using ImGuiNET;
 using LibreLancer.Data.Universe;
 using LibreLancer.Fx;
+using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
 
 namespace LancerEdit
 {

@@ -15,6 +15,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
 using LibreLancer.Data.Pilots;
+using LibreLancer.Render;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace LancerEdit

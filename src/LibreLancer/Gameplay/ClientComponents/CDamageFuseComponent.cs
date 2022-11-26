@@ -7,6 +7,7 @@ using System.Linq;
 using LibreLancer.Data.Fuses;
 using LibreLancer.GameData;
 using LibreLancer.Physics;
+using LibreLancer.Render;
 
 namespace LibreLancer
 {

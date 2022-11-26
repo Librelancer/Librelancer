@@ -2,13 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Numerics;
 using LibreLancer.Shaders;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
+using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render.Materials
 {
 	public class IllumDetailMapMaterial : RenderMaterial
 	{

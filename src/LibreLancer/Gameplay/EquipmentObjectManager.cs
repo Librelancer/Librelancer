@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.GameData.Items;
+using LibreLancer.Render;
 using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer

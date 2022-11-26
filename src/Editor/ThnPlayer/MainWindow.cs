@@ -13,6 +13,7 @@ using LibreLancer.ImUI;
 using ImGuiNET;
 using LibreLancer.Interface;
 using LibreLancer.Media;
+using LibreLancer.Render;
 
 namespace ThnPlayer
 {

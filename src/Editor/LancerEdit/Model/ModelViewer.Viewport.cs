@@ -13,6 +13,9 @@ using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 using LibreLancer.Physics.Sur;
+using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
+using LibreLancer.Render.Materials;
 
 namespace LancerEdit
 {

@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Ini;
+using LibreLancer.Render;
 using LibreLancer.Thn;
 using LibreLancer.Utf.Dfm;
 

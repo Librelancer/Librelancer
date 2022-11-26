@@ -5,7 +5,8 @@
 using System;
 using System.Numerics;
 using LibreLancer.GameData.Items;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
     public class LightEquipRenderer : ObjectRenderer
     {

@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public class BoneInstance
     {

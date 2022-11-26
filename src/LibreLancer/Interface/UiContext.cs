@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
+using LibreLancer.Render;
 
 namespace LibreLancer.Interface
 {

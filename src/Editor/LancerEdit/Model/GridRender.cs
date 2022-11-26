@@ -4,6 +4,7 @@
 
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Render;
 using LibreLancer.Vertices;
 
 namespace LancerEdit

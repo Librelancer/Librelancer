@@ -4,12 +4,8 @@
 
 using System;
 using System.Numerics;
-using System.Collections.Generic;
-using LibreLancer.Utf.Cmp;
-using LibreLancer.Utf.Mat;
-using DfmFile = LibreLancer.Utf.Dfm.DfmFile;
-using LibreLancer.GameData;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
 	public class ModelRenderer : ObjectRenderer
 	{

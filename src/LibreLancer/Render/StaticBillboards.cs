@@ -3,12 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Numerics;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct VertexBillboardColor2 : IVertexType

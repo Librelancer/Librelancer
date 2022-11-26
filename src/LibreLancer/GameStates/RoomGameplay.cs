@@ -14,6 +14,7 @@ using LibreLancer.Data.Missions;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Net;
+using LibreLancer.Render;
 
 namespace LibreLancer
 {

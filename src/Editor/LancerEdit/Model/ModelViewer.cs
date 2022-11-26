@@ -15,6 +15,8 @@ using LibreLancer.Utf;
 using Anm = LibreLancer.Utf.Anm;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
+using LibreLancer.Render;
+
 namespace LancerEdit
 {
     public partial class ModelViewer : EditorTab

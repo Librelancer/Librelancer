@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using LibreLancer.GameData;
 using System.Numerics;
-using LibreLancer.Utf.Cmp;
 using LibreLancer.Fx;
+using LibreLancer.GameData;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	//Responsible for rendering the GameWorld.
 	public class SystemRenderer : IDisposable

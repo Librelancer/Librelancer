@@ -2,12 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Numerics;
 using LibreLancer.Shaders;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
-namespace LibreLancer
+using LibreLancer.Vertices;
+
+namespace LibreLancer.Render.Materials
 {
 	public class DetailMap2Dm1Msk2PassMaterial : RenderMaterial
 	{

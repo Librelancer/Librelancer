@@ -1,5 +1,6 @@
 using LibreLancer.GameData.Items;
 using LibreLancer.Physics;
+using LibreLancer.Render;
 
 namespace LibreLancer;
 

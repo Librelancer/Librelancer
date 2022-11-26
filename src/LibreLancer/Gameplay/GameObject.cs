@@ -15,6 +15,7 @@ using LibreLancer.Physics;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.Net;
+using LibreLancer.Render;
 using Archs = LibreLancer.GameData.Archetypes;
 
 namespace LibreLancer

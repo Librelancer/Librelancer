@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.GameData;
 using System.Numerics;
+using LibreLancer.GameData;
+using LibreLancer.Render.Materials;
 using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	public class NebulaRenderer
 	{

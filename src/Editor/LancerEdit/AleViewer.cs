@@ -11,6 +11,9 @@ using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
 using LibreLancer.Utf.Mat;
 using ImGuiNET;
+using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
+
 namespace LancerEdit
 {
     public partial class AleViewer : EditorTab

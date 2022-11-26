@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using LibreLancer.GameData;
 using LibreLancer.Interface;
+using LibreLancer.Render;
 using LiteNetLib;
 using WattleScript.Interpreter;
 

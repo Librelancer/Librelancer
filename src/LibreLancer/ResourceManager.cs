@@ -12,6 +12,7 @@ using LibreLancer.Utf.Dfm;
 using LibreLancer.Vertices;
 using LibreLancer.Primitives;
 using LibreLancer.Fx;
+using LibreLancer.Render;
 
 namespace LibreLancer
 {

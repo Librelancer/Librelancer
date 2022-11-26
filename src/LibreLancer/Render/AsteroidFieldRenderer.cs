@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.GameData;
@@ -13,7 +12,7 @@ using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public class AsteroidFieldRenderer : IDisposable
     {

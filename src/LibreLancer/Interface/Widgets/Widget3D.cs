@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Render.Cameras;
 
 namespace LibreLancer.Interface
 {

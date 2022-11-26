@@ -4,9 +4,10 @@
 
 using System;
 using LibreLancer.Shaders;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
-namespace LibreLancer
+using LibreLancer.Vertices;
+
+namespace LibreLancer.Render.Materials
 {
 	public class NebulaMaterial : RenderMaterial
 	{

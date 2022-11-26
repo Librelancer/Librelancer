@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Thorn;
 
 namespace LibreLancer.Thn

@@ -8,6 +8,8 @@ using System.Numerics;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Physics;
+using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
 
 namespace LibreLancer
 {

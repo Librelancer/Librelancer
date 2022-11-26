@@ -3,11 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Runtime.InteropServices;
 using System.Numerics;
 using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	public unsafe class NebulaVertices
 	{

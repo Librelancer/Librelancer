@@ -4,6 +4,8 @@
 
 using System;
 using LibreLancer.Fx;
+using LibreLancer.Render;
+
 namespace LibreLancer.GameData.Items
 {
 	public class EffectEquipment : Equipment

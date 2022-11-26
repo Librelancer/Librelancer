@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
+using LibreLancer.Render;
+
 namespace LibreLancer
 {
 	public class CEngineComponent : SEngineComponent

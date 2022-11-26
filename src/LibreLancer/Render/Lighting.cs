@@ -2,11 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
 	public struct Lighting
 	{

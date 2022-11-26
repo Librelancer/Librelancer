@@ -5,6 +5,7 @@
 using System.Numerics;
 using LibreLancer;
 using LibreLancer.Primitives;
+using LibreLancer.Render.Cameras;
 using LibreLancer.Shaders;
 
 namespace LancerEdit

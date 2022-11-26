@@ -6,7 +6,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public unsafe class WorldMatrixBuffer : IDisposable
     {

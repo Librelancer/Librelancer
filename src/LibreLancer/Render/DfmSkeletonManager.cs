@@ -9,7 +9,7 @@ using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public class DfmSkeletonManager
     {

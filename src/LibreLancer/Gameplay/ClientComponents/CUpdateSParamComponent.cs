@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.GameData.Items;
 using LibreLancer.Fx;
+using LibreLancer.Render;
+
 namespace LibreLancer
 {
     public class CUpdateSParamComponent : GameComponent

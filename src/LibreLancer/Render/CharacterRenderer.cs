@@ -2,13 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Numerics;
-using System.Collections.Generic;
-using System.Linq;
-using LibreLancer.Utf.Anm;
-using LibreLancer.Utf.Dfm;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
 	public class CharacterRenderer : ObjectRenderer
     {

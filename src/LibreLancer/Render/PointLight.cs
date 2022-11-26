@@ -2,10 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
 	//PointLight struct used by shaders (Features430 only)
 	[StructLayout(LayoutKind.Sequential)]

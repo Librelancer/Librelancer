@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
+using LibreLancer.Render;
 
 namespace LibreLancer
 {

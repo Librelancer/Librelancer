@@ -4,12 +4,12 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Utf.Dfm;
-using LibreLancer.Vertices;
-using LibreLancer.Utf.Mat;
 using LibreLancer.Shaders;
+using LibreLancer.Utf.Dfm;
+using LibreLancer.Utf.Mat;
+using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render.Materials
 {
 	public class BasicMaterial : RenderMaterial
 	{

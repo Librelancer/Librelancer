@@ -11,6 +11,8 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
 using ImGuiNET;
+using LibreLancer.Render;
+
 namespace SystemViewer
 {
     public class MainWindow : Game

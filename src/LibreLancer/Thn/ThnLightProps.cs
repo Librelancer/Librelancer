@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Render;
+
 namespace LibreLancer
 {
 	public class ThnLightProps

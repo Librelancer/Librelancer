@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-
-using LibreLancer.Utf.Dfm;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Dfm;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public class DfmSkinning
     {

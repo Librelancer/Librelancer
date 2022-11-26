@@ -15,6 +15,7 @@ using ImGuiNET;
 using LibreLancer.Data;
 using LibreLancer.Dialogs;
 using LibreLancer.Interface;
+using LibreLancer.Render;
 
 namespace InterfaceEdit
 {

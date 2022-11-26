@@ -13,6 +13,7 @@ using LibreLancer.Data.Missions;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
+using LibreLancer.Render;
 using Microsoft.VisualBasic;
 
 namespace LibreLancer

@@ -6,7 +6,7 @@ using System;
 using System.Numerics;
 using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	public class PolylineRender : IDisposable
 	{
@@ -91,7 +91,7 @@ namespace LibreLancer
 			vbo.SetData(vertices, vertexCount);
 			vertexCount = 0;
 		}
-		static void Setup(Shader shdr, RenderContext res, ref LibreLancer.RenderCommand cmd)
+		static void Setup(Shader shdr, RenderContext res, ref RenderCommand cmd)
 		{
 			shader.SetViewProjection(cmd.UserData.Camera);
 			cmd.UserData.Texture.BindTo(0);

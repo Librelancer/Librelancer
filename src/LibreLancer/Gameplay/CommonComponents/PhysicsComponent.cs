@@ -5,6 +5,8 @@
 using System;
 using System.Numerics;
 using LibreLancer.Physics;
+using LibreLancer.Render;
+
 namespace LibreLancer
 {
     public class PhysicsComponent : GameComponent

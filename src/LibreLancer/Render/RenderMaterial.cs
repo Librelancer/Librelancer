@@ -5,12 +5,12 @@
 using System;
 using System.Numerics;
 using System.Threading;
-using LibreLancer.Vertices;
-using LibreLancer.Utf.Mat;
-using LibreLancer.Utf.Cmp;
 using LibreLancer.Shaders;
+using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Mat;
+using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	public abstract class RenderMaterial
     {

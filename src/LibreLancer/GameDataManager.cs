@@ -19,6 +19,7 @@ using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
+using LibreLancer.Render;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
 using FileSystem = LibreLancer.Data.FileSystem;

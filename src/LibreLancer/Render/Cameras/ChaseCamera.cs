@@ -6,7 +6,7 @@ using System;
 using System.Numerics;
 using LibreLancer.Data.Cameras;
 
-namespace LibreLancer
+namespace LibreLancer.Render.Cameras
 {
     //Based on camera rigs from https://github.com/brihernandez/FreelancerFlightExample
     public class ChaseCamera : ICamera

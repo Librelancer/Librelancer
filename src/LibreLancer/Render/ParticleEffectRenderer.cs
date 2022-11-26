@@ -2,11 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Numerics;
 using LibreLancer.Fx;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
 	public class ParticleEffectRenderer : ObjectRenderer
 	{

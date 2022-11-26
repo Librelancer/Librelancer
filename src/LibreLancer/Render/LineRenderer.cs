@@ -5,7 +5,8 @@
 using System;
 using System.Numerics;
 using LibreLancer.Vertices;
-namespace LibreLancer
+
+namespace LibreLancer.Render
 {
 	public class LineRenderer :  IDisposable, Physics.IDebugRenderer
 	{

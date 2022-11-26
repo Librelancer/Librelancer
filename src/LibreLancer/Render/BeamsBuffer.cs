@@ -4,10 +4,10 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Vertices;
 using LibreLancer.Data.Effects;
+using LibreLancer.Vertices;
 
-namespace LibreLancer
+namespace LibreLancer.Render
 {
     public unsafe class BeamsBuffer : IDisposable
     {

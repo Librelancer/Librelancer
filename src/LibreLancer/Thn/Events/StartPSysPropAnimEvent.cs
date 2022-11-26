@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Render;
 using LibreLancer.Thorn;
 
 namespace LibreLancer.Thn

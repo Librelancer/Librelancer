@@ -5,6 +5,8 @@
 using System;
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Render;
+using LibreLancer.Render.Materials;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 namespace LancerEdit
