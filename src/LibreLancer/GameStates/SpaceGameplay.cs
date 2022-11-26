@@ -839,6 +839,14 @@ World Time: {12:F2}
            
             if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
                 weapons.FireAll();
+            if(Input.IsActionDown(InputAction.USER_LAUNCH_MISSILES))
+                weapons.FireMissiles();
+            for (int i = 0; i < 10; i++)
+            {
+                if (Input.IsActionDown(InputAction.USER_FIRE_WEAPON1 + i))
+                    weapons.FireIndex(i);
+            }
+            
             if (world.Projectiles.HasQueued)
             {
                 session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());

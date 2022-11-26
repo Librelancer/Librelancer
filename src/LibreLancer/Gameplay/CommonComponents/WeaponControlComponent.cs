@@ -73,6 +73,14 @@ namespace LibreLancer
             return true;
         }
 
+        public void FireIndex(int index)
+        {
+            if (!CanFireWeapons()) return;
+            var wp = Parent.GetChildComponents<WeaponComponent>()
+                .Skip(index).FirstOrDefault();
+            wp?.Fire(AimPoint);
+        }
+
         public void FireMissiles()
         {
             if (!CanFireWeapons()) return;
