@@ -25,7 +25,7 @@ namespace BuildLL
         
         static readonly string[] sdkProjects = {
             "src/lancer/lancer.csproj",
-            "src/Server/Server.csproj",
+            "src/LLServer/LLServer.csproj",
             "src/thorn2lua/thorn2lua.csproj",
             "src/Editor/InterfaceEdit/InterfaceEdit.csproj",
             "src/Editor/LancerEdit/LancerEdit.csproj",
@@ -38,7 +38,7 @@ namespace BuildLL
         static readonly string[] engineProjects = {
             "src/lancer/lancer.csproj",
             "src/Launcher/Launcher.csproj",
-            "src/Server/Server.csproj"
+            "src/LLServer/LLServer.csproj"
         };
 
         static void Clean(string rid)

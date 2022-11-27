@@ -12,7 +12,7 @@ using LibreLancer.Net;
 using LibreLancer.Server;
 using Microsoft.EntityFrameworkCore;
 
-namespace Server
+namespace LLServer
 {
 	public class Config
 	{

@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Media", "src\Li
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Thorn", "src\LibreLancer.Thorn\LibreLancer.Thorn.csproj", "{D1EC308E-F0C7-4A2D-9464-B4C7EAE0E167}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "src\Server\Server.csproj", "{FDC20255-07A5-4F6B-9B32-151D8D053A11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLServer", "src\LLServer\LLServer.csproj", "{FDC20255-07A5-4F6B-9B32-151D8D053A11}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Launcher", "src\Launcher\Launcher.csproj", "{3D82C20A-F844-40CC-86B2-0F9FA66854FF}"
 EndProject

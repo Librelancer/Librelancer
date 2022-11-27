@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server;
 using LiteNetLib;
+using LiteNetLib.Utils;
 
 namespace LibreLancer.Net
 {

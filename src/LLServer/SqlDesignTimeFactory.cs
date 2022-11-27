@@ -7,7 +7,7 @@ using LibreLancer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Server
+namespace LLServer
 {
     public class SqlDesignTimeFactory : IDesignTimeDbContextFactory<LibreLancerContext>
     {
