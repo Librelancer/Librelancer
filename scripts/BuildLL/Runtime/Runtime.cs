@@ -200,7 +200,7 @@ namespace BuildLL
             Console.Error.WriteLine(e);
             if (WebHook.UseWebhook)
             {
-                var message = "Build failed ({RuntimeInformation.OSDescription}).";
+                var message = $"Build failed ({RuntimeInformation.OSDescription}).";
                 if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
                     message += $" #{jobNumber}.";
                 message += "\n```\n";

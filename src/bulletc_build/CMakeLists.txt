@@ -6,15 +6,8 @@ IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
-FIND_PATH(BULLET_INCLUDE_DIR NAMES btBulletCollisionCommon.h
-    PATHS
-    ${PROJECT_SOURCE_DIR}/../../extern/bullet3/src/
-    ENV CPATH
-    /usr/include
-    /usr/local/include
-    /opt/local/include
-    NO_DEFAULT_PATH
-)
+SET(BULLET_INCLUDE_DIR  ${PROJECT_SOURCE_DIR}/../../extern/bullet3/src/)
+
 
 set(BUILD_EXTRAS OFF CACHE BOOL "")
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "")
@@ -30,9 +23,9 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ADD_SUBDIRECTORY("${BULLET_INCLUDE_DIR}/.." "${CMAKE_CURRENT_BINARY_DIR}/bullet")
 
 INCLUDE_DIRECTORIES(${BULLET_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Extras/HACD/)
-INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletWorldImporter/)
-INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletXmlWorldImporter/)
+#INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Extras/HACD/)
+#INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletWorldImporter/)
+#INCLUDE_DIRECTORIES(${BULLET_PHYSICS_SOURCE_DIR}/Extras/Serialize/BulletXmlWorldImporter/)
 
 IF(${CMAKE_GENERATOR} MATCHES "Unix Makefiles")
     SET(BULLETC_LIB bulletc)
@@ -78,7 +71,6 @@ IF(MSVC)
 ENDIF(MSVC)
 
 ADD_LIBRARY(${BULLETC_LIB} SHARED
-    ${CSRCDIR}/../dllmain.cpp
     ${CSRCDIR}/conversion.h
     ${CSRCDIR}/main.h
     ${CSRCDIR}/collections.cpp
@@ -105,12 +97,12 @@ ADD_LIBRARY(${BULLETC_LIB} SHARED
     ${CSRCDIR}/btBroadphaseInterface_wrap.h
     ${CSRCDIR}/btBroadphaseProxy_wrap.cpp
     ${CSRCDIR}/btBroadphaseProxy_wrap.h
-    ${CSRCDIR}/btBulletFile_wrap.cpp
-    ${CSRCDIR}/btBulletFile_wrap.h
-    ${CSRCDIR}/btBulletWorldImporter_wrap.cpp
-    ${CSRCDIR}/btBulletWorldImporter_wrap.h
-    ${CSRCDIR}/btBulletXmlWorldImporter_wrap.cpp
-    ${CSRCDIR}/btBulletXmlWorldImporter_wrap.h
+    #${CSRCDIR}/btBulletFile_wrap.cpp
+    #${CSRCDIR}/btBulletFile_wrap.h
+    #${CSRCDIR}/btBulletWorldImporter_wrap.cpp
+    #${CSRCDIR}/btBulletWorldImporter_wrap.h
+    #${CSRCDIR}/btBulletXmlWorldImporter_wrap.cpp
+    #${CSRCDIR}/btBulletXmlWorldImporter_wrap.h
     ${CSRCDIR}/btBvhTriangleMeshShape_wrap.cpp
     ${CSRCDIR}/btBvhTriangleMeshShape_wrap.h
     ${CSRCDIR}/btCapsuleShape_wrap.cpp
@@ -197,8 +189,8 @@ ADD_LIBRARY(${BULLETC_LIB} SHARED
     ${CSRCDIR}/btDefaultCollisionConfiguration_wrap.h
     ${CSRCDIR}/btDefaultMotionState_wrap.cpp
     ${CSRCDIR}/btDefaultMotionState_wrap.h
-    ${CSRCDIR}/btDefaultSoftBodySolver_wrap.cpp
-    ${CSRCDIR}/btDefaultSoftBodySolver_wrap.h
+    #${CSRCDIR}/btDefaultSoftBodySolver_wrap.cpp
+    #${CSRCDIR}/btDefaultSoftBodySolver_wrap.h
     ${CSRCDIR}/btDiscreteCollisionDetectorInterface_wrap.cpp
     ${CSRCDIR}/btDiscreteCollisionDetectorInterface_wrap.h
     ${CSRCDIR}/btDiscreteDynamicsWorld_wrap.cpp
@@ -249,8 +241,8 @@ ADD_LIBRARY(${BULLETC_LIB} SHARED
     ${CSRCDIR}/btHingeConstraint_wrap.h
     ${CSRCDIR}/btIDebugDraw_wrap.cpp
     ${CSRCDIR}/btIDebugDraw_wrap.h
-    ${CSRCDIR}/btKinematicCharacterController_wrap.cpp
-    ${CSRCDIR}/btKinematicCharacterController_wrap.h
+    #${CSRCDIR}/btKinematicCharacterController_wrap.cpp
+    #${CSRCDIR}/btKinematicCharacterController_wrap.h
     ${CSRCDIR}/btLemkeSolver_wrap.cpp
     ${CSRCDIR}/btLemkeSolver_wrap.h
     ${CSRCDIR}/btManifoldPoint_wrap.cpp
@@ -331,22 +323,22 @@ ADD_LIBRARY(${BULLETC_LIB} SHARED
     ${CSRCDIR}/btSimulationIslandManager_wrap.h
     ${CSRCDIR}/btSliderConstraint_wrap.cpp
     ${CSRCDIR}/btSliderConstraint_wrap.h
-    ${CSRCDIR}/btSoftBody_wrap.cpp
-    ${CSRCDIR}/btSoftBody_wrap.h
-    ${CSRCDIR}/btSoftBodyConcaveCollisionAlgorithm_wrap.cpp
-    ${CSRCDIR}/btSoftBodyConcaveCollisionAlgorithm_wrap.h
-    ${CSRCDIR}/btSoftBodyHelpers_wrap.cpp
-    ${CSRCDIR}/btSoftBodyHelpers_wrap.h
-    ${CSRCDIR}/btSoftBodyRigidBodyCollisionConfiguration_wrap.cpp
-    ${CSRCDIR}/btSoftBodyRigidBodyCollisionConfiguration_wrap.h
-    ${CSRCDIR}/btSoftBodySolvers_wrap.cpp
-    ${CSRCDIR}/btSoftBodySolvers_wrap.h
-    ${CSRCDIR}/btSoftRigidCollisionAlgorithm_wrap.cpp
-    ${CSRCDIR}/btSoftRigidCollisionAlgorithm_wrap.h
-    ${CSRCDIR}/btSoftRigidDynamicsWorld_wrap.cpp
-    ${CSRCDIR}/btSoftRigidDynamicsWorld_wrap.h
-    ${CSRCDIR}/btSoftSoftCollisionAlgorithm_wrap.cpp
-    ${CSRCDIR}/btSoftSoftCollisionAlgorithm_wrap.h
+    #${CSRCDIR}/btSoftBody_wrap.cpp
+    #${CSRCDIR}/btSoftBody_wrap.h
+    #${CSRCDIR}/btSoftBodyConcaveCollisionAlgorithm_wrap.cpp
+    #${CSRCDIR}/btSoftBodyConcaveCollisionAlgorithm_wrap.h
+    #${CSRCDIR}/btSoftBodyHelpers_wrap.cpp
+    #${CSRCDIR}/btSoftBodyHelpers_wrap.h
+    #${CSRCDIR}/btSoftBodyRigidBodyCollisionConfiguration_wrap.cpp
+    #${CSRCDIR}/btSoftBodyRigidBodyCollisionConfiguration_wrap.h
+    #${CSRCDIR}/btSoftBodySolvers_wrap.cpp
+    #${CSRCDIR}/btSoftBodySolvers_wrap.h
+    #${CSRCDIR}/btSoftRigidCollisionAlgorithm_wrap.cpp
+    #${CSRCDIR}/btSoftRigidCollisionAlgorithm_wrap.h
+    #${CSRCDIR}/btSoftRigidDynamicsWorld_wrap.cpp
+    #${CSRCDIR}/btSoftRigidDynamicsWorld_wrap.h
+    #${CSRCDIR}/btSoftSoftCollisionAlgorithm_wrap.cpp
+    #${CSRCDIR}/btSoftSoftCollisionAlgorithm_wrap.h
     ${CSRCDIR}/btSparseSdf3_wrap.cpp
     ${CSRCDIR}/btSparseSdf3_wrap.h
     ${CSRCDIR}/btSphereBoxCollisionAlgorithm_wrap.cpp
@@ -391,16 +383,16 @@ ADD_LIBRARY(${BULLETC_LIB} SHARED
     ${CSRCDIR}/btUnionFind_wrap.h
     ${CSRCDIR}/btUniversalConstraint_wrap.cpp
     ${CSRCDIR}/btUniversalConstraint_wrap.h
-    ${CSRCDIR}/btVehicleRaycaster_wrap.cpp
-    ${CSRCDIR}/btVehicleRaycaster_wrap.h
+    #${CSRCDIR}/btVehicleRaycaster_wrap.cpp
+    #${CSRCDIR}/btVehicleRaycaster_wrap.h
     ${CSRCDIR}/btVoronoiSimplexSolver_wrap.cpp
     ${CSRCDIR}/btVoronoiSimplexSolver_wrap.h
-    ${CSRCDIR}/btWheelInfo_wrap.cpp
-    ${CSRCDIR}/btWheelInfo_wrap.h
-    ${CSRCDIR}/btWorldImporter_wrap.cpp
-    ${CSRCDIR}/btWorldImporter_wrap.h
-    ${CSRCDIR}/hacdHACD_wrap.cpp
-    ${CSRCDIR}/hacdHACD_wrap.h
+    #${CSRCDIR}/btWheelInfo_wrap.cpp
+    #${CSRCDIR}/btWheelInfo_wrap.h
+    #${CSRCDIR}/btWorldImporter_wrap.cpp
+    #${CSRCDIR}/btWorldImporter_wrap.h
+    #${CSRCDIR}/hacdHACD_wrap.cpp
+    #${CSRCDIR}/hacdHACD_wrap.h
 )
 
-TARGET_LINK_LIBRARIES(${BULLETC_LIB} BulletCollision BulletDynamics LinearMath BulletSoftBody)
+TARGET_LINK_LIBRARIES(${BULLETC_LIB} BulletCollision BulletDynamics LinearMath)
