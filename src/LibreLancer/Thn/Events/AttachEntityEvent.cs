@@ -5,8 +5,9 @@
 using System;
 using System.Numerics;
 using LibreLancer.Thorn;
+using LibreLancer.World;
 
-namespace LibreLancer.Thn
+namespace LibreLancer.Thn.Events
 {
     public class AttachEntityEvent : ThnEvent
     {

@@ -1,4 +1,4 @@
-namespace LibreLancer;
+namespace LibreLancer.Input;
 
 static class VKMap
 {

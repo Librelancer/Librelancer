@@ -5,7 +5,7 @@
 using System;
 using LibreLancer.Thorn;
 
-namespace LibreLancer.Thn
+namespace LibreLancer.Thn.Events
 {
     public class StartCameraPropAnimEvent : ThnEvent
     {

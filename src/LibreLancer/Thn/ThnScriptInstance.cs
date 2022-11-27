@@ -3,14 +3,17 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Numerics;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using System.Numerics;
+using LibreLancer.Client.Components;
 using LibreLancer.Render;
-using LibreLancer.Thn;
+using LibreLancer.Sounds;
+using LibreLancer.Thn.Events;
 using LibreLancer.Utf.Dfm;
+using LibreLancer.World;
+using LibreLancer.World.Components;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
     public abstract class ThnEventProcessor
     {

@@ -5,7 +5,7 @@
 using System;
 using System.Numerics;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
 	public class ThnCameraTransform
 	{

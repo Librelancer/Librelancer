@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.GameData;
+using LibreLancer.GameData.World;
 using LibreLancer.Render.Materials;
 using LibreLancer.Vertices;
 

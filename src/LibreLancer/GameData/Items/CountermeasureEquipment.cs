@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer.Data.Equipment;
+using LibreLancer.Sounds;
+using LibreLancer.World;
 
 namespace LibreLancer.GameData.Items
 {

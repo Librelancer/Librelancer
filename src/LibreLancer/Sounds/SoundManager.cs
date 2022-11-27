@@ -5,14 +5,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Data.Audio;
 using LibreLancer.Media;
 using LibreLancer.Utf.Audio;
-namespace LibreLancer
+
+namespace LibreLancer.Sounds
 {
 	public class SoundManager
 	{

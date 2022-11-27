@@ -5,11 +5,19 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Client;
+using LibreLancer.Client.Components;
+using LibreLancer.GameData.World;
 using LibreLancer.Infocards;
+using LibreLancer.Input;
 using LibreLancer.Interface;
+using LibreLancer.Net;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Thn;
+using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer
 {
@@ -29,7 +37,7 @@ Mouse Flight: {11}
 World Time: {12:F2}
 ";
 		private const float ROTATION_SPEED = 1f;
-		GameData.StarSystem sys;
+		StarSystem sys;
 		public GameWorld world;
         public FreelancerGame FlGame => Game;
 		

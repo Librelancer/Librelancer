@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Net;
+using LibreLancer.Server;
 using Microsoft.EntityFrameworkCore;
 
 namespace Server

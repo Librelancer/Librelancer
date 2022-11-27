@@ -2,11 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Numerics;
 using LibreLancer.Render;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
 	public class ThnCamera : ICamera
 	{

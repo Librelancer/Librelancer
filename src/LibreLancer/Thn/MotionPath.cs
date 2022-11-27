@@ -2,11 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 // Thanks to @Varon for his unity Catmull-Rom interpolation + explanations
+
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Thorn;
-namespace LibreLancer
+
+namespace LibreLancer.Thn
 {
     /// <summary>
     /// Constant speed path using Catmull-Rom interpolation between points

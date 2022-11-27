@@ -3,7 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Client.Components;
 using LibreLancer.Fx;
+using LibreLancer.Sounds;
+using LibreLancer.World;
+using LibreLancer.World.Components;
+
 namespace LibreLancer.GameData.Items
 {
 	public class ThrusterEquipment : Equipment

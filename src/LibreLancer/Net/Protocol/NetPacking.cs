@@ -3,11 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Diagnostics;
-using System.Numerics;
-using System.Text;
 
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 {
 	public static partial class NetPacking
 	{

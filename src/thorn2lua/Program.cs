@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Thn;
 using LibreLancer.Thorn;
 
 namespace thorn2lua

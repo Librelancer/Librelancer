@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Collections.Generic;
 using LiteNetLib.Utils;
 
-namespace LibreLancer.Net;
+namespace LibreLancer.Net.Protocol;
 
 public class NetHpidReader
 {

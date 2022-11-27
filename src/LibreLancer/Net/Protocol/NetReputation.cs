@@ -1,7 +1,4 @@
-using LiteNetLib;
-using LiteNetLib.Utils;
-
-namespace LibreLancer.Net
+namespace LibreLancer.Net.Protocol
 {
     public struct NetReputation
     {

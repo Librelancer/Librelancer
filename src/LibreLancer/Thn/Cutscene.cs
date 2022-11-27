@@ -3,12 +3,15 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Collections.Generic;
+using LibreLancer.Client.Components;
 using LibreLancer.Render;
+using LibreLancer.Sounds;
+using LibreLancer.World;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
     public class ThnObject
     {

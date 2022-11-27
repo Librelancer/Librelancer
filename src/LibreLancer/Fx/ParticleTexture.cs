@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Fx

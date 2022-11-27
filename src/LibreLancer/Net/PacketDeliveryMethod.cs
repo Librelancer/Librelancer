@@ -3,7 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using LiteNetLib;
-namespace LibreLancer
+
+namespace LibreLancer.Net
 {
     public enum PacketDeliveryMethod
     {

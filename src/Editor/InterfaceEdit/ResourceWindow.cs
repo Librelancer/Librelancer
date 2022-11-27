@@ -8,8 +8,9 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Interface;
-using ImGuiNET;
 using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
+using ImGuiNET;
 
 namespace InterfaceEdit
 {

@@ -8,13 +8,20 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Linq;
 using ImGuiNET;
+using LibreLancer.Client;
+using LibreLancer.Client.Components;
 using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
+using LibreLancer.GameData.World;
 using LibreLancer.Infocards;
+using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
+using LibreLancer.Thn;
+using LibreLancer.World;
 
 namespace LibreLancer
 {

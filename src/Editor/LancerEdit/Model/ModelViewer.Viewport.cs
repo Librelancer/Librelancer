@@ -16,6 +16,7 @@ using LibreLancer.Physics.Sur;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Thn;
 
 namespace LancerEdit
 {

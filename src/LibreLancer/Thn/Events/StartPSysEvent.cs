@@ -2,10 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Client.Components;
 using LibreLancer.Render;
 using LibreLancer.Thorn;
 
-namespace LibreLancer.Thn
+namespace LibreLancer.Thn.Events
 {
     public class StartPSysEvent : ThnEvent
     {

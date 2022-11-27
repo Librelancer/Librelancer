@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Thn;
+
 namespace LibreLancer.GameData
 {
 	public class IntroScene

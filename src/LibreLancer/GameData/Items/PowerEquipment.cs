@@ -4,6 +4,9 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using LibreLancer.Sounds;
+using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.GameData.Items
 {

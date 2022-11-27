@@ -14,6 +14,8 @@ using ImGuiNET;
 using LibreLancer.Interface;
 using LibreLancer.Media;
 using LibreLancer.Render;
+using LibreLancer.Sounds;
+using LibreLancer.Thn;
 
 namespace ThnPlayer
 {

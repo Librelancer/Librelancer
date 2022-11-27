@@ -4,7 +4,8 @@
 
 using System;
 using System.Net;
-namespace LibreLancer
+
+namespace LibreLancer.Net
 {
 	public class LocalServerInfo
 	{

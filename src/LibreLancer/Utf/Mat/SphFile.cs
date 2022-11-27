@@ -9,6 +9,7 @@ using System.Numerics;
 using LibreLancer.Utf.Vms;
 
 using LibreLancer.Primitives;
+using LibreLancer.World;
 
 namespace LibreLancer.Utf.Mat
 {

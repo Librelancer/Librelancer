@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using LibreLancer.Data;
 
-namespace LibreLancer;
+namespace LibreLancer.Input;
 
 /// <summary>
 /// Struct for containing a mouse button or keyboard combination

@@ -11,11 +11,11 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using LiteNetLib;
 using LiteNetLib.Utils;
 
-namespace LibreLancer
+namespace LibreLancer.Net
 {
     public class GameNetClient : IPacketConnection
     {

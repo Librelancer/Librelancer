@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-namespace LibreLancer
+using LibreLancer.Client.Components;
+using LibreLancer.World;
+
+namespace LibreLancer.Thn
 {
     public class ThnScriptContext
     {

@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.AI;
 using LibreLancer.Data.Pilots;
 using LibreLancer.ImUI;
+using LibreLancer.Server.Ai;
 
 namespace LancerEdit;
 

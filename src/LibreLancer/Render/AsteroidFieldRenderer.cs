@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.GameData;
+using LibreLancer.GameData.World;
 using LibreLancer.Primitives;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;

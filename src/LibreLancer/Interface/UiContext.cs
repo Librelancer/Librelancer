@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using LibreLancer.Data;
 using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
 
 namespace LibreLancer.Interface
 {

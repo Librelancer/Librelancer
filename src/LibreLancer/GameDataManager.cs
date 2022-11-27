@@ -5,12 +5,9 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Goods;
@@ -19,10 +16,14 @@ using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
+using LibreLancer.GameData.World;
 using LibreLancer.Render;
+using LibreLancer.Thn;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
+using DockSphere = LibreLancer.GameData.World.DockSphere;
 using FileSystem = LibreLancer.Data.FileSystem;
+using Spine = LibreLancer.GameData.World.Spine;
 
 namespace LibreLancer
 {
@@ -93,7 +94,7 @@ namespace LibreLancer
             return fldata.RichFonts.Fonts;
         }
         public bool BaseExists(string id) => bases.ContainsKey(id);
-        public GameData.Base GetBase(string id)
+        public Base GetBase(string id)
         {
             return bases[id];
         }
@@ -134,14 +135,14 @@ namespace LibreLancer
         IEnumerable<Data.Universe.Base> InitBases()
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");
-            bases = new Dictionary<string, GameData.Base>(fldata.Universe.Bases.Count, StringComparer.OrdinalIgnoreCase);
+            bases = new Dictionary<string, Base>(fldata.Universe.Bases.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var inibase in fldata.Universe.Bases)
             {
                 if (inibase.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
                     yield return inibase;
                 Data.MBase mbase;
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
-                var b = new GameData.Base();
+                var b = new Base();
                 b.Nickname = inibase.Nickname;
                 b.IdsName = inibase.IdsName;
                 //inibase.
@@ -154,7 +155,7 @@ namespace LibreLancer
                 b.TerrainDyna2 = inibase.TerrainDyna2;
                 foreach (var room in inibase.Rooms)
                 {
-                    var nr = new GameData.BaseRoom();
+                    var nr = new BaseRoom();
                     nr.Music = room.Music;
                     nr.MusicOneShot = room.MusicOneShot;
                     nr.ThnPaths = new List<string>();
@@ -174,9 +175,9 @@ namespace LibreLancer
                          if (room.GoodscartScript != null)
                              nr.GoodscartScript = ResolveDataPath(room.GoodscartScript);
                      };
-                    nr.Hotspots = new List<GameData.BaseHotspot>();
+                    nr.Hotspots = new List<BaseHotspot>();
                     foreach (var hp in room.Hotspots)
-                        nr.Hotspots.Add(new GameData.BaseHotspot()
+                        nr.Hotspots.Add(new BaseHotspot()
                         {
                             Name = hp.Name,
                             Behavior = hp.Behavior,
@@ -187,7 +188,7 @@ namespace LibreLancer
                     nr.Nickname = room.Nickname;
                     if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
                     nr.Camera = room.Camera;
-                    nr.Npcs = new List<GameData.BaseNpc>();
+                    nr.Npcs = new List<BaseNpc>();
                     if (mbase == null) continue;
                     var mroom = mbase.FindRoom(room.Nickname);
                     if (mroom != null)
@@ -299,7 +300,7 @@ namespace LibreLancer
             FLLog.Info("Game", "Initing " + fldata.Markets.BaseGoods.Count + " shops");
             foreach (var m in fldata.Markets.BaseGoods)
             {
-                GameData.Base b;
+                Base b;
                 if(!bases.TryGetValue(m.Base, out b))
                 {
                     //This is allowed by demo at least
@@ -329,7 +330,7 @@ namespace LibreLancer
             }
             fldata.Markets = null; //Free memory
         }
-        Dictionary<string, GameData.Base> bases;
+        Dictionary<string, Base> bases;
         Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
         private Dictionary<uint, GameData.Market.ShipPackage> shipPackageByCRC = new Dictionary<uint, ShipPackage>();
 
@@ -827,9 +828,9 @@ namespace LibreLancer
             }
             return q;
         }
-        Dictionary<string, GameData.StarSystem> systems = new Dictionary<string, GameData.StarSystem>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, StarSystem> systems = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
 
-        public IEnumerable<GameData.StarSystem> AllSystems => systems.Values;
+        public IEnumerable<StarSystem> AllSystems => systems.Values;
         
 
         void InitSystems()
@@ -842,7 +843,7 @@ namespace LibreLancer
             {
                 if (inisys.MultiUniverse) continue; //Skip multiuniverse for now
                 FLLog.Info("System", inisys.Nickname);
-                var sys = new GameData.StarSystem();
+                var sys = new StarSystem();
                 sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
                 sys.AmbientColor = inisys.AmbientColor;
                 sys.Name = GetString(inisys.IdsName);
@@ -958,7 +959,7 @@ namespace LibreLancer
                 if (inisys.Zones != null)
                     foreach (var zne in inisys.Zones)
                     {
-                        var z = new GameData.Zone();
+                        var z = new Zone();
                         z.Nickname = zne.Nickname;
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
                         z.PropertyFlags = (ZonePropFlags) (zne.PropertyFlags ?? 0);
@@ -991,32 +992,32 @@ namespace LibreLancer
                         switch (zne.Shape.Value)
                         {
                             case Data.Universe.ZoneShape.ELLIPSOID:
-                                z.Shape = new GameData.ZoneEllipsoid(z,
+                                z.Shape = new ZoneEllipsoid(z,
                                     zne.Size.Value.X,
                                     zne.Size.Value.Y,
                                     zne.Size.Value.Z
                                 );
                                 break;
                             case Data.Universe.ZoneShape.SPHERE:
-                                z.Shape = new GameData.ZoneSphere(z,
+                                z.Shape = new ZoneSphere(z,
                                     (zne.Size ?? Vector3.One).X //bug
                                 );
                                 break;
                             case Data.Universe.ZoneShape.BOX:
-                                z.Shape = new GameData.ZoneBox(z,
+                                z.Shape = new ZoneBox(z,
                                     zne.Size.Value.X,
                                     zne.Size.Value.Y,
                                     zne.Size.Value.Z
                                 );
                                 break;
                             case Data.Universe.ZoneShape.CYLINDER:
-                                z.Shape = new GameData.ZoneCylinder(z,
+                                z.Shape = new ZoneCylinder(z,
                                     zne.Size.Value.X,
                                     zne.Size.Value.Y
                                 );
                                 break;
                             case Data.Universe.ZoneShape.RING:
-                                z.Shape = new GameData.ZoneRing(z,
+                                z.Shape = new ZoneRing(z,
                                     zne.Size.Value.X,
                                     zne.Size.Value.Y,
                                     zne.Size.Value.Z
@@ -1059,7 +1060,7 @@ namespace LibreLancer
                 systems.Add(sys.Nickname, sys);
             }
         }
-        public IEnumerator<object> LoadSystemResources(GameData.StarSystem sys)
+        public IEnumerator<object> LoadSystemResources(StarSystem sys)
         {
             if (fldata.Stars != null)
             {
@@ -1092,9 +1093,9 @@ namespace LibreLancer
                 a++;
             }
         }
-        public GameData.StarSystem GetSystem(string id) => systems[id];
+        public StarSystem GetSystem(string id) => systems[id];
 
-        public void LoadAllSystem(GameData.StarSystem system)
+        public void LoadAllSystem(StarSystem system)
         {
             var iterator = LoadSystemResources(system);
             while (iterator.MoveNext()) { }
@@ -1125,9 +1126,9 @@ namespace LibreLancer
             }
         }
 
-        GameData.AsteroidField GetAsteroidField(GameData.StarSystem sys, Data.Universe.AsteroidField ast)
+        AsteroidField GetAsteroidField(StarSystem sys, Data.Universe.AsteroidField ast)
         {
-            var a = new GameData.AsteroidField();
+            var a = new AsteroidField();
             if (!sys.ZoneDict.ContainsKey(ast.ZoneName))
             {
                 FLLog.Error("System", $"{sys.Nickname}: {ast.ZoneName} zone missing in Asteroid ref");
@@ -1153,7 +1154,7 @@ namespace LibreLancer
             }
             if (ast.Band != null)
             {
-                a.Band = new GameData.AsteroidBand();
+                a.Band = new AsteroidBand();
                 a.Band.RenderParts = ast.Band.RenderParts.Value;
                 a.Band.Height = ast.Band.Height.Value;
                 a.Band.Shape = panels.Shapes[ast.Band.Shape].TextureName;
@@ -1163,19 +1164,19 @@ namespace LibreLancer
                 a.Band.TextureAspect = ast.Band.TextureAspect ?? 1f;
                 a.Band.OffsetDistance = ast.Band.OffsetDist ?? 0f;
             }
-            a.Cube = new List<GameData.StaticAsteroid>();
+            a.Cube = new List<StaticAsteroid>();
             if (ast.Field != null)
             {
-                a.CubeRotation = new GameData.AsteroidCubeRotation();
-                a.CubeRotation.AxisX = ast.Cube_RotationX ?? GameData.AsteroidCubeRotation.Default_AxisX;
-                a.CubeRotation.AxisY = ast.Cube_RotationY ?? GameData.AsteroidCubeRotation.Default_AxisY;
-                a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? GameData.AsteroidCubeRotation.Default_AxisZ;
+                a.CubeRotation = new AsteroidCubeRotation();
+                a.CubeRotation.AxisX = ast.Cube_RotationX ?? AsteroidCubeRotation.Default_AxisX;
+                a.CubeRotation.AxisY = ast.Cube_RotationY ?? AsteroidCubeRotation.Default_AxisY;
+                a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? AsteroidCubeRotation.Default_AxisZ;
                 a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
                 a.SetFillDist(ast.Field.FillDist.Value);
                 a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
                 foreach (var c in ast.Cube)
                 {
-                    var sta = new GameData.StaticAsteroid()
+                    var sta = new StaticAsteroid()
                     {
                         Rotation = c.Rotation,
                         Position = c.Position,
@@ -1191,7 +1192,7 @@ namespace LibreLancer
                     a.Cube.Add(sta);
                 }
             }
-            a.ExclusionZones = new List<GameData.ExclusionZone>();
+            a.ExclusionZones = new List<ExclusionZone>();
             if (ast.ExclusionZones != null)
             {
                 foreach (var excz in ast.ExclusionZones)
@@ -1203,7 +1204,7 @@ namespace LibreLancer
                         continue;
                     }
 
-                    var e = new GameData.ExclusionZone();
+                    var e = new ExclusionZone();
                     e.Zone = zone;
                     //e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
@@ -1248,9 +1249,9 @@ namespace LibreLancer
             }
             return a;
         }
-        public GameData.Nebula GetNebula(GameData.StarSystem sys, Data.Universe.Nebula nbl)
+        public Nebula GetNebula(StarSystem sys, Data.Universe.Nebula nbl)
         {
-            var n = new GameData.Nebula();
+            var n = new Nebula();
             n.Zone = sys.ZoneDict[nbl.ZoneName];
             var panels = new Data.Universe.TexturePanels();
             foreach(var f in nbl.TexturePanels.Files)
@@ -1282,7 +1283,7 @@ namespace LibreLancer
             {
                 var clds = nbl.Clouds[0];
                 n.HasInteriorClouds = true;
-                GameData.CloudShape[] shapes = new GameData.CloudShape[clds.PuffShape.Count];
+                CloudShape[] shapes = new CloudShape[clds.PuffShape.Count];
                 for (int i = 0; i < shapes.Length; i++)
                 {
                     var name = clds.PuffShape[i];
@@ -1298,7 +1299,7 @@ namespace LibreLancer
                         shapes[i].Dimensions = panels.Shapes[name].Dimensions;
                     }
                 }
-                n.InteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
+                n.InteriorCloudShapes = new WeightedRandomCollection<CloudShape>(
                     shapes,
                     clds.PuffWeights
                 );
@@ -1314,7 +1315,7 @@ namespace LibreLancer
             if (nbl.Exterior != null && nbl.Exterior.Shape != null)
             {
                 n.HasExteriorBits = true;
-                GameData.CloudShape[] shapes = new GameData.CloudShape[nbl.Exterior.Shape.Count];
+                CloudShape[] shapes = new CloudShape[nbl.Exterior.Shape.Count];
                 for (int i = 0; i < shapes.Length; i++)
                 {
                     var name = nbl.Exterior.Shape[i];
@@ -1330,7 +1331,7 @@ namespace LibreLancer
                         shapes[i].Dimensions = panels.Shapes[name].Dimensions;
                     }
                 }
-                n.ExteriorCloudShapes = new WeightedRandomCollection<GameData.CloudShape>(
+                n.ExteriorCloudShapes = new WeightedRandomCollection<CloudShape>(
                     shapes,
                     nbl.Exterior.ShapeWeights
                 );
@@ -1342,7 +1343,7 @@ namespace LibreLancer
             }
             if (nbl.ExclusionZones != null)
             {
-                n.ExclusionZones = new List<GameData.ExclusionZone>();
+                n.ExclusionZones = new List<ExclusionZone>();
                 foreach (var excz in nbl.ExclusionZones)
                 {
                     
@@ -1352,7 +1353,7 @@ namespace LibreLancer
                         FLLog.Error("System", "Exclusion zone " + excz.ZoneName + " zone does not exist in " + sys.Nickname);
                         continue;
                     }
-                    var e = new GameData.ExclusionZone();
+                    var e = new ExclusionZone();
                     e.Zone = zone;
                     e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
@@ -1571,7 +1572,7 @@ namespace LibreLancer
                 obj.SolarRadius = arch.SolarRadius ?? 0;
                 foreach (var dockSphere in arch.DockingSpheres)
                 {
-                    obj.DockSpheres.Add(new GameData.DockSphere()
+                    obj.DockSpheres.Add(new DockSphere()
                     {
                         Name = dockSphere.Name,
                         Hardpoint = dockSphere.Hardpoint,
@@ -1586,13 +1587,13 @@ namespace LibreLancer
                 }
                 if (arch.Type == Data.Solar.ArchetypeType.tradelane_ring)
                 {
-                    obj.DockSpheres.Add(new GameData.DockSphere()
+                    obj.DockSpheres.Add(new DockSphere()
                     {
                         Name = "tradelane",
                         Hardpoint = "HpRightLane",
                         Radius = 30
                     });
-                    obj.DockSpheres.Add(new GameData.DockSphere()
+                    obj.DockSpheres.Add(new DockSphere()
                     {
                         Name = "tradelane",
                         Hardpoint = "HpLeftLane",
@@ -1659,9 +1660,9 @@ namespace LibreLancer
             return _solarLoadouts.TryGetValue(name, out l);
         }
         
-        public GameData.SystemObject GetSystemObject(Data.Universe.SystemObject o)
+        public SystemObject GetSystemObject(Data.Universe.SystemObject o)
         {
-            var obj = new GameData.SystemObject();
+            var obj = new SystemObject();
             obj.Nickname = o.Nickname;
             obj.Faction = GetFaction(o.Reputation);
             obj.Visit = o.Visit ?? 0;
@@ -1725,9 +1726,9 @@ namespace LibreLancer
                         {
                             sun.SpinesSprite = spines.Shape;
                             sun.SpinesScale = spines.RadiusScale;
-                            sun.Spines = new List<GameData.Spine>(spines.Items.Count);
+                            sun.Spines = new List<Spine>(spines.Items.Count);
                             foreach (var sp in spines.Items)
-                                sun.Spines.Add(new GameData.Spine(sp.LengthScale, sp.WidthScale, sp.InnerColor, sp.OuterColor, sp.Alpha));
+                                sun.Spines.Add(new Spine(sp.LengthScale, sp.WidthScale, sp.InnerColor, sp.OuterColor, sp.Alpha));
                         }
                         else
                             FLLog.Error("Stararch", "Could not find spines " + star.Spines);
@@ -1773,7 +1774,7 @@ namespace LibreLancer
             return eq;
         }
 
-        void ProcessLoadout(Data.Solar.Loadout ld, GameData.SystemObject obj)
+        void ProcessLoadout(Data.Solar.Loadout ld, SystemObject obj)
         {
             foreach (var eq in ld.Equip)
             {

@@ -2,11 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using LiteNetLib;
-using LiteNetLib.Utils;
-
-namespace LibreLancer.Net
+namespace LibreLancer.Net.Protocol
 {
     public struct SoldGood
     {

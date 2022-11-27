@@ -3,6 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Client.Components;
+using LibreLancer.Server.Components;
+using LibreLancer.Sounds;
+using LibreLancer.World;
+
 namespace LibreLancer.GameData.Items
 {
 	public class EngineEquipment : Equipment

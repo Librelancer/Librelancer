@@ -2,11 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using LiteNetLib;
-using LiteNetLib.Utils;
 using WattleScript.Interpreter;
 
-namespace LibreLancer.Net
+namespace LibreLancer.Net.Protocol
 {
     [WattleScriptUserData]
     public class NewsArticle

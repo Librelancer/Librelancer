@@ -1,3 +1,7 @@
+using LibreLancer.Client.Components;
+using LibreLancer.Sounds;
+using LibreLancer.World;
+
 namespace LibreLancer.GameData.Items;
 
 public class TradelaneEquipment : Equipment

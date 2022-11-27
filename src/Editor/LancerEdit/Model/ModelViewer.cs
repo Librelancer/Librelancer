@@ -15,7 +15,9 @@ using LibreLancer.Utf;
 using Anm = LibreLancer.Utf.Anm;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
+using LibreLancer.Client.Components;
 using LibreLancer.Render;
+using LibreLancer.World;
 
 namespace LancerEdit
 {

@@ -11,7 +11,9 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
 using ImGuiNET;
+using LibreLancer.GameData.World;
 using LibreLancer.Render;
+using LibreLancer.World;
 
 namespace SystemViewer
 {
@@ -28,7 +30,7 @@ namespace SystemViewer
         ImGuiHelper guiHelper;
         GameWorld world;
         DebugCamera camera;
-        LibreLancer.GameData.StarSystem curSystem;
+        StarSystem curSystem;
         private SystemMap systemMap = new SystemMap();
         FontManager fontMan;
         bool vSync = true;

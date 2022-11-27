@@ -1,4 +1,4 @@
-namespace LibreLancer;
+namespace LibreLancer.Net;
 
 public enum ChatCategory
 {

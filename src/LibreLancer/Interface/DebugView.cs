@@ -6,6 +6,8 @@ using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer.ImUI;
+using LibreLancer.Missions;
+
 namespace LibreLancer.Interface
 {
     public class DebugView

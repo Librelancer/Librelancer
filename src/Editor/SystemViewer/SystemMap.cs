@@ -8,6 +8,7 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Interface;
 using LibreLancer.GameData;
+using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
 namespace SystemViewer

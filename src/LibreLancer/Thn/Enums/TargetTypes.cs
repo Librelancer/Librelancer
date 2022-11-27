@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
 	public enum TargetTypes
 	{

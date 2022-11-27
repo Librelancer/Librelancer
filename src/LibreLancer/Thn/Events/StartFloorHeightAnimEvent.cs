@@ -4,7 +4,7 @@
 
 using LibreLancer.Thorn;
 
-namespace LibreLancer.Thn
+namespace LibreLancer.Thn.Events
 {
     public class StartFloorHeightAnimEvent : ThnEvent
     {

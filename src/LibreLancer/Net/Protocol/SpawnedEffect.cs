@@ -2,11 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using LibreLancer.Net;
-using LiteNetLib;
-using LiteNetLib.Utils;
-
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 {
     public class SpawnedEffect
     {

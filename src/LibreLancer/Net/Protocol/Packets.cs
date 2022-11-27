@@ -5,15 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.IO.Compression;
 using System.Numerics;
-using LibreLancer.Net;
-using LiteNetLib;
-using LiteNetLib.Utils;
+using LibreLancer.World.Components;
 
-
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 {
     public interface IPacket
     {

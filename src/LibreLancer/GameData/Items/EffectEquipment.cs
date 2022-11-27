@@ -3,8 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Client.Components;
 using LibreLancer.Fx;
 using LibreLancer.Render;
+using LibreLancer.Sounds;
+using LibreLancer.World;
 
 namespace LibreLancer.GameData.Items
 {

@@ -4,11 +4,10 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Numerics;
 using LibreLancer.Thorn;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
     public class ThnTypes
     {

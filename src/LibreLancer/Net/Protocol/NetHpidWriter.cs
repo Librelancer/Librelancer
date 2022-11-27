@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace LibreLancer.Net;
+namespace LibreLancer.Net.Protocol;
 
 public class NetHpidWriter
 {

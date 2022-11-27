@@ -1,4 +1,4 @@
-namespace LibreLancer.Net;
+namespace LibreLancer.Net.Protocol;
 
 public struct MissileFireCmd
 {

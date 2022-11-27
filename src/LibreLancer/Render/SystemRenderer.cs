@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Fx;
 using LibreLancer.GameData;
+using LibreLancer.GameData.World;
+using LibreLancer.Thn;
+using LibreLancer.World;
 
 namespace LibreLancer.Render
 {

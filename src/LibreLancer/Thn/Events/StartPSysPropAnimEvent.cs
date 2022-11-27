@@ -5,7 +5,7 @@
 using LibreLancer.Render;
 using LibreLancer.Thorn;
 
-namespace LibreLancer.Thn
+namespace LibreLancer.Thn.Events
 {
     public class StartPSysPropAnimEvent : ThnEvent
     {

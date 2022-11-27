@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Infocards;
 using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using WattleScript.Interpreter;
 
 namespace InterfaceEdit

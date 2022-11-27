@@ -4,7 +4,7 @@
 
 using System;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
 	[Flags]
 	public enum AttachFlags

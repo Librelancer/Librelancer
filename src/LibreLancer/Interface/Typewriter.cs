@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Sounds;
 
 namespace LibreLancer.Interface
 {

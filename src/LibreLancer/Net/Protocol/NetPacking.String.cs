@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 {
     public static partial class NetPacking
     {

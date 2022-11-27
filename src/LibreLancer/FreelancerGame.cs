@@ -8,10 +8,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Media;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Sounds;
 
 namespace LibreLancer
 {

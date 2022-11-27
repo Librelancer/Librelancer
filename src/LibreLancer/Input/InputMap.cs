@@ -6,7 +6,7 @@ using System.Text;
 using LibreLancer.Data.Interface;
 using LibreLancer.Ini;
 
-namespace LibreLancer;
+namespace LibreLancer.Input;
 
 public class InputMap : IniFile
 {

@@ -1,5 +1,6 @@
 using System;
 using LibreLancer.Data;
+using LibreLancer.Input;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface;

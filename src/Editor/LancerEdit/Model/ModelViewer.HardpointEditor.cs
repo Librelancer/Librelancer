@@ -11,6 +11,8 @@ using LibreLancer;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf;
 using LibreLancer.ImUI;
+using LibreLancer.World;
+
 namespace LancerEdit
 {
     public partial class ModelViewer

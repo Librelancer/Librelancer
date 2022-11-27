@@ -2,11 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Collections.Generic;
 using LibreLancer.Interface;
 
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 {
     [WattleScript.Interpreter.WattleScriptUserData]
 	public class CharacterSelectInfo : ITableData

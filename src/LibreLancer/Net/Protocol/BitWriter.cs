@@ -1,10 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Numerics;
-using LibreLancer.Net;
-using LiteNetLib.Utils;
+using System.Runtime.InteropServices;
 
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 { 
     public class BitWriter
     {

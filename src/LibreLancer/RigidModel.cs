@@ -11,6 +11,7 @@ using LibreLancer.Utf;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.World;
 
 namespace LibreLancer
 {

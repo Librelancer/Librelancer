@@ -3,10 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
-using LiteNetLib;
-using LiteNetLib.Utils;
 
-namespace LibreLancer.Net
+namespace LibreLancer.Net.Protocol
 {
     public struct ProjectileSpawn
     {

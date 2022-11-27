@@ -2,10 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Collections.Generic;
-
-namespace LibreLancer
+namespace LibreLancer.Input
 {
     //All vanilla + JFLP actions here
     public enum InputAction

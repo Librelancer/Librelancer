@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Text;
 using LibreLancer.Thorn;
 
-namespace LibreLancer
+namespace LibreLancer.Thn
 {
     public static class ThnDecompile
     {

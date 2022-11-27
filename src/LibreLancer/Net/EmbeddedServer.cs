@@ -4,9 +4,10 @@
 
 using System;
 using System.IO;
-using LiteNetLib;
+using LibreLancer.Net.Protocol;
+using LibreLancer.Server;
 
-namespace LibreLancer
+namespace LibreLancer.Net
 {
     public class EmbeddedServer : IPacketConnection
     {

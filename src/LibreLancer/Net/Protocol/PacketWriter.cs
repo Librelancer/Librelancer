@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
-using System.Net;
 using System.Text;
+using LibreLancer.World;
 using LiteNetLib.Utils;
 
-namespace LibreLancer.Net;
+namespace LibreLancer.Net.Protocol;
 
 public class PacketWriter
 {

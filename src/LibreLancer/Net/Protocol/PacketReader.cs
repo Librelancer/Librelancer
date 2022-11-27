@@ -1,9 +1,10 @@
 using System;
 using System.Numerics;
 using System.Text;
+using LibreLancer.World;
 using LiteNetLib.Utils;
 
-namespace LibreLancer.Net;
+namespace LibreLancer.Net.Protocol;
 
 public struct PacketReader
 {

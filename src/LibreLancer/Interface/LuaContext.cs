@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using LibreLancer.Infocards;
+using LibreLancer.Net;
 using WattleScript.Interpreter;
 using WattleScript.Interpreter.Interop.BasicDescriptors;
 using WattleScript.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;

@@ -4,6 +4,7 @@
 
 using System.Numerics;
 using LibreLancer.Fx;
+using LibreLancer.World;
 
 namespace LibreLancer.Render
 {

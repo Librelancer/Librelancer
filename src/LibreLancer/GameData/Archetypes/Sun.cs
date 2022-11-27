@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Solar;
+using Spine = LibreLancer.GameData.World.Spine;
 
 namespace LibreLancer.GameData.Archetypes
 {

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.World;
 
 namespace LancerEdit
 {

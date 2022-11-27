@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using LibreLancer.Render;
+using LibreLancer.Thn.Events;
 using LibreLancer.Thorn;
-using LibreLancer.Thn;
-namespace LibreLancer
+
+namespace LibreLancer.Thn
 {
 	public class ThnScript
 	{

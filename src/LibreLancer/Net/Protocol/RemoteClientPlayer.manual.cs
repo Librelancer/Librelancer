@@ -3,10 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Threading.Tasks;
+using LibreLancer.Server;
 
-
-namespace LibreLancer.Net
+namespace LibreLancer.Net.Protocol
 {
     public partial class RemoteClientPlayer : IClientPlayer
     {
@@ -21,7 +20,7 @@ namespace LibreLancer.Net
             srv.Client.SendPacket(packet, PacketDeliveryMethod.ReliableOrdered + channel);
         }
 
-        private NetResponseHandler ResponseHandler => srv.ResponseHandler;
+        private Protocol.NetResponseHandler ResponseHandler => srv.ResponseHandler;
 
     }
 }

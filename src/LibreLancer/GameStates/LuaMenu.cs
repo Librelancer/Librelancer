@@ -6,9 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using LibreLancer.Client;
 using LibreLancer.GameData;
+using LibreLancer.Input;
 using LibreLancer.Interface;
+using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
+using LibreLancer.Thn;
 using LiteNetLib;
 using WattleScript.Interpreter;
 

@@ -2,6 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Client.Components;
+using LibreLancer.Server.Components;
+using LibreLancer.Sounds;
+using LibreLancer.World;
+
 namespace LibreLancer.GameData.Items
 {
     public class ShieldEquipment : Equipment

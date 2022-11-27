@@ -4,6 +4,7 @@
 
 using LibreLancer.GameData;
 using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface

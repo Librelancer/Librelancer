@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
+using LibreLancer.World;
 
 namespace LibreLancer.Utf.Cmp
 {

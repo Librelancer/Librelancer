@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Solar;
+using DockSphere = LibreLancer.GameData.World.DockSphere;
 
 namespace LibreLancer.GameData
 {

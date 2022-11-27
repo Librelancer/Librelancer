@@ -9,7 +9,7 @@ import base64
 from functools import partial
 from datetime import datetime,timezone
 
-print("Librelancer Protocol Generator 2022-06-21")
+print("Librelancer Protocol Generator 2022-11-27")
 
 # PacketReader methods
 typeMethods = {
@@ -159,7 +159,7 @@ writeline("using System.Threading.Tasks;")
 writeline("using LiteNetLib;")
 writeline("using LiteNetLib.Utils;")
 whitespace()
-writeline("namespace LibreLancer.Net")
+writeline("namespace LibreLancer.Net.Protocol")
 writeline("{")
 tabs += 1
 #
@@ -225,7 +225,7 @@ writeline("}")
 def Packet(mthd, classname):
   global tabs
   whitespace()
-  writeline("public class " + classname + " : IPacket");
+  writeline("class " + classname + " : IPacket");
   writeline("{")
   tabs += 1
   # Fields

@@ -2,14 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Collections.Generic;
-using LiteNetLib;
-using LiteNetLib.Utils;
 using LibreLancer.Data.NewCharDB;
-using LibreLancer.Net;
 
-namespace LibreLancer
+namespace LibreLancer.Net.Protocol
 {
     public class NewCharacterDBPacket : IPacket
     {
