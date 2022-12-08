@@ -363,6 +363,9 @@ namespace LibreLancer.Server
             return g.Price;
         }
 
+        float GetUsedVolume() => Character.Items.Select(x => x.Count * x.Equipment.Volume).Sum();
+        
+
         Task<bool> IServerPlayer.PurchaseGood(string item, int count)
         {
             if (BaseData == null) return Task.FromResult(false);
@@ -377,6 +380,11 @@ namespace LibreLancer.Server
                     Character.AddCargo(g.Good.Equipment, hp, 1);
                 }
                 else {
+                    if (GetUsedVolume() + count * g.Good.Equipment.Volume > Character.Ship.HoldSize)
+                    {
+                        FLLog.Error("Player", $"{Name} tried to overfill cargo hold");
+                        return Task.FromResult(false);
+                    }                    
                     Character.AddCargo(g.Good.Equipment, null, count);
                 }
                 Character.UpdateCredits(Character.Credits - cost);
@@ -545,6 +553,21 @@ namespace LibreLancer.Server
                 if (hp != "internal") {
                     usedHardpoints.Add(hp);
                 }
+            }
+
+            var newShip = Game.GameData.GetShip(resolved.Ship);
+            float volume = 0;
+            foreach (var item in Character.Items) {
+                counts.TryGetValue(item.ID, out var soldAmount);
+                volume += item.Equipment.Volume * (item.Count - soldAmount);
+            }
+            foreach (var item in included) {
+                if (item == null) continue;
+                volume += item.Equipment.Volume * item.Amount;
+            }
+            if (volume > newShip.HoldSize) {
+                FLLog.Error("Player", $"{Name} tried to overfill new ship hold");
+                return Task.FromResult(ShipPurchaseStatus.Fail);
             }
             
             Character.BeginTransaction();

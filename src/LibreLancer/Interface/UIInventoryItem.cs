@@ -15,6 +15,7 @@ namespace LibreLancer.Interface
         public int IdsName; //from item def
         public int IdsInfo;
         public double Price; //price per unit
+        public double Volume; //cargo volume per unit
         public string PriceRank;
         public string Hardpoint;
         public int IdsHardpoint;

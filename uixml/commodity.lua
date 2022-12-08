@@ -1,6 +1,19 @@
 require 'childwindow.lua'
 require 'goods.lua'
 
+local function get_max_amount(item)
+{
+	var maxAmount = math.floor(Game.GetCredits() / item.Price);
+	if(item.Volume > 0) {
+		var maxHold = Game.Trader.GetHoldSize() - Game.Trader.GetUsedHoldSpace();
+		if(maxHold < 0) maxHold = 0;
+		maxHold /= item.Volume;
+		return math.min(maxAmount, maxHold);
+	} else {
+		return maxAmount;
+	}
+}
+
 class commodity : commodity_Designer with ChildWindow
 {
 	commodity(kind)
@@ -174,6 +187,8 @@ class commodity : commodity_Designer with ChildWindow
 	{
 		if (state == "buy" && item.Price > Game.GetCredits())
 			this.set_buysell("error", STRID_INSUFFICIENT_CREDITS);
+		elseif (state == "buy" && item.Volume > 0 && Game.Trader.GetUsedHoldSpace() + item.Volume > Game.Trader.GetHoldSize())
+			this.set_buysell("error", STRID_INSUFFICIENT_SPACE);
 		elseif (item.Price == 0)
 			this.set_buysell("hidden");
 
@@ -189,8 +204,8 @@ class commodity : commodity_Designer with ChildWindow
 		preview.Enabled = false
 		x.Children.Add(preview)
 		e.quantitySlider.Min = 1
-		local max = math.floor(Game.GetCredits() / item.Price)
 		if(state == "sell") max = item.Count;
+		else max = get_max_amount(item);
 		if(!item.Combinable) max = 1;
 		e.quantitySlider.Visible = (max > 1)
 		e.quantitySlider.Max = max
@@ -199,3 +214,6 @@ class commodity : commodity_Designer with ChildWindow
 		e.unit_price.Text = StringFromID(STRID_CREDIT_SIGN) + NumberToStringCS(item.Price, "N0")
 	}
 }
+
+
+

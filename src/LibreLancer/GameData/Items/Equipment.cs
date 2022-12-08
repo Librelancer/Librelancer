@@ -19,6 +19,7 @@ namespace LibreLancer.GameData.Items
         public string HPChild;
         public ResolvedModel ModelFile;
         public ResolvedGood Good;
+        public float Volume;
     }
 }
 

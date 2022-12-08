@@ -44,6 +44,7 @@ namespace LibreLancer.Client
         public long Credits;
         public ulong ShipWorth;
 		public string PlayerShip;
+        public int CargoSize;
 		public List<string> PlayerComponents = new List<string>();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
@@ -408,6 +409,7 @@ namespace LibreLancer.Client
         {
             var sh = ld.ShipCRC == 0 ? null : Game.GameData.GetShip((int)ld.ShipCRC);
             PlayerShip = sh?.Nickname ?? null;
+            CargoSize = sh?.HoldSize ?? 0;
             
             Items = new List<NetCargo>(ld.Items.Count);
             if (sh != null)

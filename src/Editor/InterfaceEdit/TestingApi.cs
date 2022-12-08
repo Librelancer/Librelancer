@@ -407,7 +407,8 @@ namespace InterfaceEdit
                     MountIcon = true,
                     Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
                     IdsName = 263175,
-                    IdsInfo = 264175
+                    IdsInfo = 264175,
+                    Volume = 0,
                 },
                 new UIInventoryItem()
                 {
@@ -424,6 +425,7 @@ namespace InterfaceEdit
                     IdsInfo = 65908,
                     Combinable = true,
                     Count = 32,
+                    Volume = 1
                 },
                 new UIInventoryItem()
                 {
@@ -433,7 +435,8 @@ namespace InterfaceEdit
                     IdsName = 261627,
                     IdsInfo = 65908,
                     Combinable = true,
-                    Count = 1
+                    Count = 1,
+                    Volume = 1
                 },
                 new UIInventoryItem()
                 {
@@ -472,6 +475,7 @@ namespace InterfaceEdit
                     IdsInfo = 65908,
                     Combinable = true,
                     Count = 0,
+                    Volume = 1
                 },
                 new UIInventoryItem()
                 {
@@ -481,12 +485,17 @@ namespace InterfaceEdit
                     IdsName = 261627, //basic alloy
                     IdsInfo = 65885,
                     Combinable = true,
-                    Count = 0
+                    Count = 0,
+                    Volume = 1
                 }
             };
 
             public UIInventoryItem[] GetPlayerGoods(string filter) => pitems;
             public UIInventoryItem[] GetTraderGoods(string filter) => titems;
+
+            public float GetHoldSize() => 60;
+
+            public float GetUsedHoldSpace() => 30;
 
             public void Buy(string good, int count, Closure onSuccess)
             {
@@ -608,6 +617,8 @@ namespace InterfaceEdit
         {
             
         }
+        
+        public int GetHoldSize() => 60;
 
         public UIInventoryItem[] GetPlayerGoods(string filter) => TestingApi.TraderFake.pitems;
         public UIInventoryItem[] GetDealerGoods(string filter) => TestingApi.TraderFake.titems;

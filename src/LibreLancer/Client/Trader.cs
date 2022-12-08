@@ -156,6 +156,7 @@ namespace LibreLancer.Client
                     Combinable = g.Ini.Combinable,
                     IdsInfo = g.Equipment.IdsInfo,
                     IdsName = g.Equipment.IdsName,
+                    Volume = g.Equipment.Volume,
                     PriceRank = rank,
                     Price = price
                 });
@@ -208,10 +209,15 @@ namespace LibreLancer.Client
                 Price = price,
                 PriceRank = rank,
                 MountIcon = !string.IsNullOrEmpty(item.Equipment.HpType),
+                Volume = item.Equipment.Volume,
                 Combinable = item.Equipment.Good.Ini.Combinable,
                 CanMount = canMount
             };
         }
+
+        public float GetHoldSize() => session.CargoSize;
+
+        public float GetUsedHoldSpace() => session.Items.Select(x => x.Count * x.Equipment.Volume).Sum();
         
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
@@ -253,6 +259,7 @@ namespace LibreLancer.Client
                     ui.Icon = equip.Good.Ini.ItemIcon;
                     ui.IdsInfo = equip.IdsInfo;
                     ui.IdsName = equip.IdsName;
+                    ui.Volume = equip.Volume;
                     ui.Price = GetPrice(equip.Good);
                     ui.MountIcon = true;
                     ui.CanMount = true;

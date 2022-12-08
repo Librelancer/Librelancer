@@ -645,6 +645,7 @@ namespace LibreLancer
                 equip.LODRanges = val.LODRanges;
                 equip.IdsName = val.IdsName;
                 equip.IdsInfo = val.IdsInfo;
+                equip.Volume = val.Volume;
             }
             //Process munitions first
             foreach (var mn in fldata.Equipment.Munitions)
@@ -1508,6 +1509,7 @@ namespace LibreLancer
                 var ship = new GameData.Ship();
                 ship.ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName);
                 ship.LODRanges = orig.LodRanges;
+                ship.HoldSize = orig.HoldSize;
                 ship.Mass = orig.Mass;
                 ship.Class = orig.ShipClass;
                 ship.AngularDrag = orig.AngularDrag;
