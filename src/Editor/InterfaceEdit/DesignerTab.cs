@@ -22,6 +22,8 @@ namespace InterfaceEdit
         private UiContext context;
         private List<XmlObjectMap> objectMaps;
         private string savePath;
+
+        public override string Filename => savePath;
         public DesignerTab(string text, string path, MainWindow mainWindow)
         {
             this.mainWindow = mainWindow;

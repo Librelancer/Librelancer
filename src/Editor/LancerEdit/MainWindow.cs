@@ -9,6 +9,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
@@ -143,19 +144,19 @@ namespace LancerEdit
                 if (ActiveTab != null) Save();
             }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.D) {
-                if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.Deselect);
+                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.Deselect);
             }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.R) {
-                if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.ResetViewport);
+                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ResetViewport);
             }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.G) {
-                if (selected != null) ((EditorTab)selected).OnHotkey(Hotkeys.ToggleGrid);
+                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ToggleGrid);
             }
         }
 
 
 		bool openAbout = false;
-		public List<DockTab> tabs = new List<DockTab>();
+        public TabControl TabControl = new TabControl();
 		public List<MissingReference> MissingResources = new List<MissingReference>();
 		public List<uint> ReferencedMaterials = new List<uint>();
 		public List<string> ReferencedTextures = new List<string>();
@@ -173,7 +174,7 @@ namespace LancerEdit
 		protected override void Update(double elapsed)
         {
             if (!guiHelper.DoUpdate()) return;
-			foreach (var tab in tabs)
+			foreach (var tab in TabControl.Tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
             Audio.UpdateAsync().Wait();
@@ -191,7 +192,6 @@ namespace LancerEdit
                 guiHelper.ResetRenderTimer();
             }
         }
-        DockTab selected;
         TextBuffer errorText;
         bool showLog = false;
         float h1 = 200, h2 = 200;
@@ -394,24 +394,22 @@ namespace LancerEdit
                 if (ImGui.MenuItem("Projectile Viewer"))
                 {
                     if(ProjectileViewer.Create(this, out var pj))
-                        tabs.Add(pj);
+                        TabControl.Tabs.Add(pj);
                 }
 
                 if (ImGui.MenuItem("ParamCurve Visualiser"))
                 {
-                    tabs.Add(new ParamCurveVis());
+                    TabControl.Tabs.Add(new ParamCurveVis());
                 }
                 ImGui.EndMenu();
 			}
             if (ImGui.BeginMenu("Window"))
             {
-                if (ImGui.MenuItem("Close All Tabs", tabs.Count > 0))
+                if (ImGui.MenuItem("Close All Tabs", TabControl.Tabs.Count > 0))
                 {
                     Confirm("Are you sure you want to close all tabs?", () =>
                     {
-                        selected = null;
-                        foreach (var t in tabs) t.Dispose();
-                        tabs.Clear();
+                        TabControl.CloseAll();
                     });
                 }
                 ImGui.EndMenu();
@@ -530,9 +528,9 @@ namespace LancerEdit
 			MissingResources.Clear();
 			ReferencedMaterials.Clear();
 			ReferencedTextures.Clear();
-			foreach (var tab in tabs)
+			foreach (var tab in TabControl.Tabs.OfType<EditorTab>())
 			{
-                ((EditorTab)tab).DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
+                tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - (22 * ImGuiHelper.Scale)), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
@@ -543,20 +541,21 @@ namespace LancerEdit
                               ImGuiWindowFlags.NoBringToFrontOnFocus |
                               ImGuiWindowFlags.NoMove |
                               ImGuiWindowFlags.NoResize);
-            TabHandler.TabLabels(tabs, ref selected);
+            
+            TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();
             if (showLog)
             {
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
                 h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
-                if (tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
-                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.RenderTitle : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
+                if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
+                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.RenderTitle : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             } else
-                ImGui.BeginChild("###tabcontent" + (selected != null ? selected.RenderTitle : ""));
-            if (selected != null)
+                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.RenderTitle : ""));
+            if (TabControl.Selected != null)
             {
-                selected.Draw();
-                ((EditorTab)selected).SetActiveTab(this);
+                TabControl.Selected.Draw();
+                ((EditorTab)TabControl.Selected).SetActiveTab(this);
             }
             else
                 ActiveTab = null;
@@ -624,8 +623,8 @@ namespace LancerEdit
             lastFrame.BlitToScreen();
             foreach (var tab in toAdd)
             {
-                tabs.Add(tab);
-                selected = tab;
+                TabControl.Tabs.Add(tab);
+                TabControl.SetSelected(tab);
             }
             toAdd.Clear();
 		}

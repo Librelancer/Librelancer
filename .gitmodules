@@ -27,7 +27,7 @@
 	url = https://github.com/Librelancer/Collada141
 [submodule "extern/ImGuiColorTextEdit"]
 	path = extern/ImGuiColorTextEdit
-	url = https://github.com/BalazsJako/ImGuiColorTextEdit
+	url = https://github.com/DomRe/ImGuiColorTextEdit
 [submodule "extern/lua"]
 	path = extern/lua
 	url = https://github.com/lua/lua

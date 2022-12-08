@@ -47,8 +47,8 @@ namespace InterfaceEdit
             LineRenderer = new LineRenderer();
         }
 
-        List<DockTab> tabs = new List<DockTab>();
-        private DockTab selected = null;
+        private TabControl tabControl = new TabControl();
+      
         private ResourceWindow resourceEditor;
         private ProjectWindow projectWindow;
         public FontManager Fonts;
@@ -61,15 +61,33 @@ namespace InterfaceEdit
         {
             _playContext?.Event(ev);
         }
+
+        bool SwitchToTab(string path)
+        {
+            var tab = tabControl.Tabs.OfType<SaveableTab>().FirstOrDefault(x => x.Filename == path);
+            if (tab != null)
+            {
+                tabControl.SetSelected(tab);
+                return true;
+            }
+            return false;
+        }
+        
         public void OpenXml(string path)
         {
-            var tab = new DesignerTab(File.ReadAllText(path), path, this);
-            tabs.Add(tab);
+            if (!SwitchToTab(path))
+            {
+                var tab = new DesignerTab(File.ReadAllText(path), path, this);
+                tabControl.Tabs.Add(tab);
+            }
         }
 
         public void OpenLua(string path)
         {
-            tabs.Add(new ScriptEditor(path));
+            if (!SwitchToTab(path))
+            {
+                tabControl.Tabs.Add(new ScriptEditor(path));
+            }
         }
 
         void OpenGui(string path)
@@ -85,7 +103,7 @@ namespace InterfaceEdit
             resourceEditor.IsOpen = true;
             projectWindow = new ProjectWindow(Project.XmlFolder, this);
             projectWindow.IsOpen = true;
-            tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
+            tabControl.Tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
             TestApi._Infocard = Project.TestingInfocard;
         }
 
@@ -129,7 +147,7 @@ namespace InterfaceEdit
                     }
                 }
                 recentFiles.Menu();
-                if (!playing && selected is SaveableTab saveable)
+                if (!playing && tabControl.Selected is SaveableTab saveable)
                 {
                     if (Theme.IconMenuItem(Icons.Save, $"Save '{saveable.Title}'",  true))
                     {
@@ -304,10 +322,9 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoBringToFrontOnFocus |
                 ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.NoResize);
-            var prevSel = selected;
-            TabHandler.TabLabels(tabs, ref selected);
+            tabControl.TabLabels();
             ImGui.BeginChild("##tabcontent");
-            if (selected != null) selected.Draw();
+            if (tabControl.Selected != null) tabControl.Selected.Draw();
             ImGui.EndChild();
             ImGui.End();
             if(resourceEditor != null) resourceEditor.Draw();

@@ -12,6 +12,8 @@ namespace InterfaceEdit
         private string path;
         private ColorTextEdit textEditor;
 
+        public override string Filename => path;
+
         public ScriptEditor(string path)
         {
             this.path = path;

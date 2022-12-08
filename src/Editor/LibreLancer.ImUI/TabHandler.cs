@@ -13,37 +13,6 @@ namespace LibreLancer.ImUI
 {
     public unsafe class TabHandler
     {
-        public static void TabLabels(List<DockTab> tabs, ref DockTab selected)
-        {
-            if (tabs.Count > 0)
-            {
-                var flags = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.FittingPolicyScroll |
-                            ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
-                ImGui.BeginTabBar("##tabbar", flags);
-                for (int i = 0; i < tabs.Count; i++)
-                {
-                    bool isTabOpen = true;
-                    bool selectedThis = false;
-                    if (ImGui.BeginTabItem(tabs[i].RenderTitle, ref isTabOpen, ImGuiTabItemFlags.None))
-                    {
-                        selectedThis = true;
-                        ImGui.EndTabItem();
-                    }
-                    if (!isTabOpen)
-                    {
-                        if(selected == tabs[i]) selected = null;
-                        tabs[i].Dispose();
-                        tabs.RemoveAt(i);
-                    }
-                    else if (selectedThis)
-                        selected = tabs[i];
-                }
-
-                ImGui.EndTabBar();
-            }
-        }
-       
-
         public static bool VerticalTab(string text, bool v)
         {
             var font = ImGuiNative.igGetFont();

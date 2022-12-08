@@ -9,9 +9,7 @@ namespace InterfaceEdit
 {
     public abstract class SaveableTab : DockTab
     {
-        public virtual string Filename { get; }
-        public virtual void Save()
-        {
-        }
+        public abstract string Filename { get; }
+        public abstract void Save();
     }
 }

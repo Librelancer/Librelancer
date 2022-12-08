@@ -20,6 +20,9 @@ namespace InterfaceEdit
         private ColorTextEdit textEditor;
         private bool validXml = false;
         private string exceptionText = "Error: Nothing typed yet";
+
+        public override string Filename => path;
+
         public StylesheetEditor(string xmlFolder, UiXmlLoader xml, UiData context)
         {
             Title = "Stylesheet";

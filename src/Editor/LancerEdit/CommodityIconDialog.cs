@@ -119,7 +119,7 @@ namespace LancerEdit
                             }
                             win.QueueUIThread(() =>
                             {
-                                win.tabs.Add(new UtfTab(win, utf, $"{iconName}.3db", true));
+                                win.TabControl.Tabs.Add(new UtfTab(win, utf, $"{iconName}.3db", true));
                             });
                             win.FinishLoadingSpinner();
                         }).Start();
