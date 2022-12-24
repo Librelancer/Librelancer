@@ -88,7 +88,7 @@ function CallEvent(ev, ...)
     }
 }
 ";
-        public static InterfaceTextBundle Compile(string xmlFolder, UiXmlLoader xmlLoader, string outfolder = null)
+        public static InterfaceTextBundle Compile(string xmlFolder, UiXmlLoader xmlLoader, string outfolder = null, string bundleFile = null)
         {
             if(outfolder != null)
              Directory.CreateDirectory(outfolder);
@@ -138,7 +138,7 @@ function CallEvent(ev, ...)
             if (outfolder != null)
             {
                 File.WriteAllText(Path.Combine(outfolder, "uimain.lua"), mainlua.ToString());
-                File.WriteAllText(Path.Combine(outfolder, "interface.json"), bundle.ToJSON());
+                File.WriteAllText(bundleFile, bundle.ToJSON());
             }
             return bundle;
         }

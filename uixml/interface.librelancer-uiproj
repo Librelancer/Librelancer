@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ProjectXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <DataFolder>/home/cmcging/FLStuff/CleanVanilla</DataFolder>
-</ProjectXml>
+<InterfaceProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DataFolder>{vanilla}</DataFolder>
+  <OutputFilename>{projectfolder}/../src/LibreLancer/Interface/Default/interface.json</OutputFilename>
+</InterfaceProject>

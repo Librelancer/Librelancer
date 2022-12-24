@@ -60,6 +60,8 @@ namespace LibreLancer
             RegisterDllMap(typeof(Platform).Assembly);
 		}
 
+        public static string GetLocalConfigFolder() => RunningPlatform.GetLocalConfigFolder();
+
         
         public static bool IsDirCaseSensitive (string directory)
 		{

@@ -102,12 +102,14 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			e.tship_list.Children.Add(li)
 		}
 		local pship = Game.ShipDealer.PlayerShip()
-		e.pship_list.Children.Add(good_list_item({
-			Icon = pship.Icon,
-			IdsName = pship.IdsName,
-			IdsHardpoint = ShipClassNames[pship.ShipClass + 1],
-			Price = pship.Price
-		}, "ship", false))
+		if(pship) {
+			e.pship_list.Children.Add(good_list_item({
+				Icon = pship.Icon,
+				IdsName = pship.IdsName,
+				IdsHardpoint = ShipClassNames[pship.ShipClass + 1],
+				Price = pship.Price
+			}, "ship", false))
+		}
 		e.item_infocard.Infocard = nil
 	}
 

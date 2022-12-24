@@ -13,8 +13,9 @@ namespace LibreLancer.Platforms
 		{
 			return false;
 		}
-        
 
+        public string GetLocalConfigFolder() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        
         static bool GdiOpenFace(string face, out byte[] buffer)
         {
             int weight = GDI.FW_REGULAR;

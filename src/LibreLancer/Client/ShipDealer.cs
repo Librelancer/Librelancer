@@ -45,6 +45,7 @@ namespace LibreLancer.Client
 
         public UISoldShip PlayerShip()
         {
+            if (string.IsNullOrWhiteSpace(session.PlayerShip)) return null;
             return ShipInfo(session.Game.GameData.GetShip(session.PlayerShip));
         }
 

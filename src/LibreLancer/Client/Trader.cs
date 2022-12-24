@@ -226,47 +226,53 @@ namespace LibreLancer.Client
             List<UIInventoryItem> inventoryItems = new List<UIInventoryItem>();
             var filterfunc = GetFilter(filter);
             var myShip = session.Game.GameData.GetShip(session.PlayerShip);
-            foreach (var hardpoint in myShip.HardpointTypes)
+            if (myShip != null)
             {
-                var ui = new UIInventoryItem() {Hardpoint = hardpoint.Key};
-                var hptype = hardpoint.Value.OrderByDescending(x => x.Class).First();
-                switch (filter.ToLowerInvariant()) {
-                    case "commodity":
-                    case "ammo":
-                        continue;
-                    case "weapons":
-                        if (hptype.Category != HpCategory.Weapon) continue;
-                        break;
-                    case "internal":
-                        if (hptype.Category != HpCategory.Internal) continue;
-                        break;
-                    case "external":
-                        if (hptype.Category != HpCategory.External) continue;
-                        break;
-                }
-                ui.IdsHardpoint = hptype.IdsName;
-                ui.HpSortIndex = hptype.SortIndex;
-                ui.IdsHardpointDescription = hptype.IdsHpDescription;
-                var mounted = session.Items.FirstOrDefault(x =>
-                    hardpoint.Key.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
-                if (mounted != null)
+                foreach (var hardpoint in myShip.HardpointTypes)
                 {
-                    var equip = mounted.Equipment;
-                    if (equip == null || equip.Good == null) continue;
-                    ui.ID = mounted.ID;
-                    ui.Count = 1;
-                    ui.Good = equip.Good.Ini.Nickname;
-                    ui.Icon = equip.Good.Ini.ItemIcon;
-                    ui.IdsInfo = equip.IdsInfo;
-                    ui.IdsName = equip.IdsName;
-                    ui.Volume = equip.Volume;
-                    ui.Price = GetPrice(equip.Good);
-                    ui.MountIcon = true;
-                    ui.CanMount = true;
-                    if (equip is not CommodityEquipment)
-                        ui.Price = (ulong) (ui.Price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                    var ui = new UIInventoryItem() {Hardpoint = hardpoint.Key};
+                    var hptype = hardpoint.Value.OrderByDescending(x => x.Class).First();
+                    switch (filter.ToLowerInvariant())
+                    {
+                        case "commodity":
+                        case "ammo":
+                            continue;
+                        case "weapons":
+                            if (hptype.Category != HpCategory.Weapon) continue;
+                            break;
+                        case "internal":
+                            if (hptype.Category != HpCategory.Internal) continue;
+                            break;
+                        case "external":
+                            if (hptype.Category != HpCategory.External) continue;
+                            break;
+                    }
+
+                    ui.IdsHardpoint = hptype.IdsName;
+                    ui.HpSortIndex = hptype.SortIndex;
+                    ui.IdsHardpointDescription = hptype.IdsHpDescription;
+                    var mounted = session.Items.FirstOrDefault(x =>
+                        hardpoint.Key.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
+                    if (mounted != null)
+                    {
+                        var equip = mounted.Equipment;
+                        if (equip == null || equip.Good == null) continue;
+                        ui.ID = mounted.ID;
+                        ui.Count = 1;
+                        ui.Good = equip.Good.Ini.Nickname;
+                        ui.Icon = equip.Good.Ini.ItemIcon;
+                        ui.IdsInfo = equip.IdsInfo;
+                        ui.IdsName = equip.IdsName;
+                        ui.Volume = equip.Volume;
+                        ui.Price = GetPrice(equip.Good);
+                        ui.MountIcon = true;
+                        ui.CanMount = true;
+                        if (equip is not CommodityEquipment)
+                            ui.Price = (ulong) (ui.Price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                    }
+
+                    inventoryItems.Add(ui);
                 }
-                inventoryItems.Add(ui);
             }
             foreach (var item in session.Items)
             {

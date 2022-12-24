@@ -28,6 +28,19 @@ namespace InterfaceEdit
             recentFiles = new RecentFilesHandler(OpenGui);
         }
 
+        private bool openError = false;
+        private TextBuffer errorText;
+        public void ErrorDialog(string text)
+        {
+            errorText?.Dispose();
+            errorText = new TextBuffer();
+            errorText.SetText(text);
+            openError = true;
+        }
+
+        public Dictionary<string, string> Variables = new Dictionary<string, string>();
+        private DictionaryWindow variableEditor;
+
         protected override void Load()
         {
             Title = "InterfaceEdit";
@@ -45,6 +58,41 @@ namespace InterfaceEdit
             };
             CommandBuffer = new CommandBuffer();
             LineRenderer = new LineRenderer();
+            LoadVariables();
+            variableEditor = new DictionaryWindow("Variables", Variables);
+        }
+
+        protected override void Cleanup()
+        {
+            SaveVariables();
+        }
+
+        string VariableFilePath => Path.Combine(Platform.GetLocalConfigFolder(), "ll.interfaceedit.variables.json");
+        void LoadVariables()
+        {
+            try
+            {
+                if (File.Exists(VariableFilePath))
+                {
+                    Variables = JSON.Deserialize<Dictionary<string, string>>(File.ReadAllText(VariableFilePath));
+                }
+            }
+            catch
+            {
+                Variables = new Dictionary<string, string>();
+            }
+        }
+
+        void SaveVariables()
+        {
+            try
+            {
+                File.WriteAllText(VariableFilePath, JSON.Serialize(Variables));
+            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch 
+            {
+            }
         }
 
         private TabControl tabControl = new TabControl();
@@ -93,18 +141,25 @@ namespace InterfaceEdit
         void OpenGui(string path)
         {
             Project = new Project(this);
-            Project.Open(path);
-            Project.UiData.ResourceManager.LoadResourceFile(
+            if(Project.Open(path)) {
+                Project.UiData.ResourceManager.LoadResourceFile(
                 Project.UiData.DataResolve(@"ships\rheinland\rh_playerships.mat"));
-            Project.UiData.ResourceManager.LoadResourceFile(
+                Project.UiData.ResourceManager.LoadResourceFile(
                 Project.UiData.DataResolve(@"ships\liberty\li_playerships.mat"));
-            recentFiles.FileOpened(path);
-            resourceEditor = new ResourceWindow(this, Project.UiData);
-            resourceEditor.IsOpen = true;
-            projectWindow = new ProjectWindow(Project.XmlFolder, this);
-            projectWindow.IsOpen = true;
-            tabControl.Tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
-            TestApi._Infocard = Project.TestingInfocard;
+                recentFiles.FileOpened(path);
+                resourceEditor = new ResourceWindow(this, Project.UiData);
+                resourceEditor.IsOpen = true;
+                projectWindow = new ProjectWindow(Project.XmlFolder, this);
+                projectWindow.IsOpen = true;
+                tabControl.Tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
+                TestApi._Infocard = Project.TestingInfocard;
+            }
+            else
+            {
+                ErrorDialog($"Could not find data folder:\n{Project.FlFolder ?? "NULL"}\n"
+                + "Check your project file and editor variables");
+                Project = null;
+            }
         }
 
         private FileDialogFilters projectFilters =
@@ -210,6 +265,12 @@ namespace InterfaceEdit
                 ImGui.EndMenu();
             }
 
+            if (ImGui.BeginMenu("Options"))
+            {
+                ImGui.MenuItem("Variables", "", ref variableEditor.IsOpen);
+                ImGui.EndMenu();
+            }
+
             if (Project != null && !playing && ImGui.BeginMenu("Play"))
             {
                 foreach (var file in projectWindow.GetClasses())
@@ -268,7 +329,22 @@ namespace InterfaceEdit
                 ImGui.Text($"Mouse Wanted: {mouseWanted}");
             }
             ImGui.End();
+            variableEditor.Draw();
             recentFiles.DrawErrors();
+            if (openError)
+            {
+                ImGui.OpenPopup("Error");
+                openError = false;
+            }
+            bool pOpen = true;
+
+            if (ImGui.BeginPopupModal("Error", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Text("Error:");
+                errorText.InputTextMultiline("##etext", new Vector2(430, 200), ImGuiInputTextFlags.ReadOnly);
+                if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
             //Finish Render
             ImGui.PopFont();
             guiHelper.Render(RenderContext);
@@ -439,7 +515,7 @@ namespace InterfaceEdit
         {
             try
             {
-                Compiler.Compile(Project.XmlFolder, Project.XmlLoader, Path.Combine(Project.XmlFolder, "out"));
+                Compiler.Compile(Project.XmlFolder, Project.XmlLoader, Path.Combine(Project.XmlFolder, "out"), Project.OutputFilename);
             }
             catch (Exception e)
             {

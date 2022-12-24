@@ -185,7 +185,9 @@ class commodity : commodity_Designer with ChildWindow
 
 	set_preview(item,state)
 	{
-		if (state == "buy" && item.Price > Game.GetCredits())
+		if(state == "buy" && !Game.HasShip())
+			this.set_buysell("error", STRID_NO_SHIP);
+		elseif (state == "buy" && item.Price > Game.GetCredits())
 			this.set_buysell("error", STRID_INSUFFICIENT_CREDITS);
 		elseif (state == "buy" && item.Volume > 0 && Game.Trader.GetUsedHoldSpace() + item.Volume > Game.Trader.GetHoldSize())
 			this.set_buysell("error", STRID_INSUFFICIENT_SPACE);

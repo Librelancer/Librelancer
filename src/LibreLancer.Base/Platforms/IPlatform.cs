@@ -7,7 +7,8 @@ using System;
 namespace LibreLancer.Platforms
 {
 	interface IPlatform
-	{
+    {
+        string GetLocalConfigFolder();
 		bool IsDirCaseSensitive(string directory);
         void AddTtfFile(string path);
         byte[] GetMonospaceBytes();

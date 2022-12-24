@@ -13,8 +13,18 @@ namespace InterfaceEdit
     {
         public UiData UiData;
         public UiXmlLoader XmlLoader;
-        public string XmlFolder;
-        public string FlFolder;
+
+        public ProjectConfiguration Configuration { get; set; }
+        public string XmlFolder { get; private set; }
+        public string FlFolder => ProjectVariable.Substitute(Configuration.DataFolder, ProjectVariables());
+
+        public string OutputFilename => ProjectVariable.Substitute(
+            Configuration.OutputFilename,
+            ProjectVariables(),
+            Path.Combine(XmlFolder, "out", "interface.json")
+        );
+            
+
         public string ProjectFile;
 
         public Infocard TestingInfocard;
@@ -24,8 +34,18 @@ namespace InterfaceEdit
             this.window = window;
         }
 
+        IDictionary<string, string> ProjectVariables()
+        {
+            var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var v in window.Variables)
+                variables[v.Key] = v.Value;
+            variables["ProjectFolder"] = XmlFolder;
+            return variables;
+        }
+
         public string ResolvedDataDir { get; private set; }
-        
+
+
         void Load()
         {
             UiData.FlDirectory = FlFolder;
@@ -90,39 +110,29 @@ namespace InterfaceEdit
             TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
         }
 
-        public void Open(string projectpath)
+        public bool Open(string projectpath)
         {
             UiData = new UiData();
             XmlFolder = Path.GetDirectoryName(projectpath);
             ProjectFile = projectpath;
-            using (var reader = new StreamReader(File.OpenRead(projectpath)))
-            {
-                var x = (ProjectXml) _xml.Deserialize(reader);
-                FlFolder = x.DataFolder;
-            }
+            Configuration = ProjectConfiguration.Read(projectpath);
+            if (!Directory.Exists(FlFolder))
+                return false;
             Load();
+            return true;
         }
         
         public void Create(string folder, string projectpath)
         {
             UiData = new UiData();
             UiData.NavmapIcons = new NavmapIcons();
-            FlFolder = folder;
             XmlFolder = Path.GetDirectoryName(projectpath);
             WriteBlankFiles();
             ProjectFile = projectpath;
-
-            using (var writer = new StreamWriter(File.Create(projectpath)))
-            {
-                _xml.Serialize(writer, new ProjectXml() { DataFolder = folder });
-            }
+            Configuration = new ProjectConfiguration();
+            Configuration.DataFolder = folder;
+            Configuration.Write(projectpath);
             Load();
-        }
-        
-        static XmlSerializer _xml = new XmlSerializer(typeof(ProjectXml));
-        public class ProjectXml
-        {
-            public string DataFolder;
         }
         
         public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), UiData.Resources.ToXml());

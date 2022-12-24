@@ -175,6 +175,8 @@ namespace LibreLancer
                 Trader = new Trader(g.session);
                 ShipDealer = new ShipDealer(g.session);
             }
+
+            public bool HasShip() => !string.IsNullOrWhiteSpace(g.session.PlayerShip);
             
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
@@ -296,22 +298,20 @@ namespace LibreLancer
 
                 foreach (var hp in g.currentRoom.Hotspots)
                 {
-                    if(g.session.PlayerShip != null) {
-                        if (!string.IsNullOrEmpty(hp.VirtualRoom) &&
-                            !hp.VirtualRoom.Equals(g.virtualRoom, StringComparison.OrdinalIgnoreCase))
-                            continue;
-                        switch (hp.Name.ToUpperInvariant())
-                        {
-                            case "IDS_HOTSPOT_COMMODITYTRADER":
-                                actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
-                                break;
-                            case "IDS_HOTSPOT_SHIPDEALER":
-                                actions.Add(new NavbarButtonInfo("ShipDealer", hp.Name));
-                                break;
-                            case "IDS_HOTSPOT_EQUIPMENTDEALER":
-                                actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name));
-                                break;
-                        }
+                    if (!string.IsNullOrEmpty(hp.VirtualRoom) &&
+                        !hp.VirtualRoom.Equals(g.virtualRoom, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    switch (hp.Name.ToUpperInvariant()) 
+                    {
+                        case "IDS_HOTSPOT_COMMODITYTRADER":
+                            actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
+                            break;
+                        case "IDS_HOTSPOT_SHIPDEALER":
+                            actions.Add(new NavbarButtonInfo("ShipDealer", hp.Name));
+                            break;
+                        case "IDS_HOTSPOT_EQUIPMENTDEALER":
+                            actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name)); 
+                            break;
                     }
                 }
                 return actions.ToArray();

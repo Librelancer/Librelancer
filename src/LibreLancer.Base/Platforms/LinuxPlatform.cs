@@ -20,7 +20,22 @@ namespace LibreLancer.Platforms
             fcconfig.SetCurrent();
 		}
 
-		public bool IsDirCaseSensitive (string directory)
+        public string GetLocalConfigFolder()
+        {
+            string osConfigDir = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            if (String.IsNullOrEmpty(osConfigDir))
+            {
+                osConfigDir = Environment.GetEnvironmentVariable("HOME");
+                if (String.IsNullOrEmpty(osConfigDir))
+                {
+                    return Environment.CurrentDirectory;
+                }
+                osConfigDir += "/.config/";
+            }
+            return osConfigDir;
+        }
+
+        public bool IsDirCaseSensitive (string directory)
 		{
 			return true;
 		}

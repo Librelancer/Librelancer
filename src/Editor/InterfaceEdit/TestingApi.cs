@@ -390,6 +390,8 @@ namespace InterfaceEdit
             return dict;
         }
 
+        public bool HasShip() => true;
+
         public float GetPlayerHealth() => 0.75f;
         public float GetPlayerShield() => 0.8f;
 

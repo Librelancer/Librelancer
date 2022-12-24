@@ -96,23 +96,7 @@ namespace LancerEdit
 
         static void SetConfigPath()
         {
-            if (Platform.RunningOS == OS.Windows)
-                configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "lanceredit.ini");
-            else
-            {
-                string osConfigDir = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-                if (String.IsNullOrEmpty(osConfigDir))
-                {
-                    osConfigDir = Environment.GetEnvironmentVariable("HOME");
-                    if (String.IsNullOrEmpty(osConfigDir))
-                    {
-                        configPath = "lanceredit.ini";
-                        return;
-                    }
-                    osConfigDir += "/.config/";
-                }
-                configPath = Path.Combine(osConfigDir, "lanceredit.ini");
-            }
+            configPath = Path.Combine(Platform.GetLocalConfigFolder(), "lanceredit.ini");
         }
     }
 }
