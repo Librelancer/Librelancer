@@ -509,7 +509,7 @@ namespace LibreLancer
 
             if (session.PlayerShip != null)
             {
-                var shp = Game.GameData.GetShip(session.PlayerShip);
+                var shp = Game.GameData.Ships.Get(session.PlayerShip);
                 playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager); 
                 playerShip.PhysicsComponent = null;
                 CreatePlayerEquipment();
@@ -709,7 +709,7 @@ namespace LibreLancer
             scene.BeginScene(Scripts(sceneScripts, new[] { sc }));
             string[] ships = Array.Empty<string>();
             if (session.Ships != null) {
-                ships = session.Ships.Select(x => Game.GameData.GetShip(x.ShipCRC).Nickname).ToArray();
+                ships = session.Ships.Select(x => Game.GameData.Ships.Get(x.ShipCRC).Nickname).ToArray();
             }
             for(int i = 0; (i < ships.Length && i < currentRoom.ForSaleShipPlacements.Count); i++)
             {
@@ -719,7 +719,7 @@ namespace LibreLancer
                     FLLog.Error("Base", "Couldn't display " + ships[i] + " on " + currentRoom.ForSaleShipPlacements[i]);
                     continue;
                 }
-                var toSellShip = Game.GameData.GetShip(ships[i]);
+                var toSellShip = Game.GameData.Ships.Get(ships[i]);
                 //Set up object
                 var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager) { Parent = marker.Object };
                 obj.PhysicsComponent = null;

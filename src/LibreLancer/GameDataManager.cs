@@ -261,7 +261,7 @@ namespace LibreLancer
                         break;
                     case Data.Goods.GoodCategory.Equipment:
                     case Data.Goods.GoodCategory.Commodity:
-                        if (equipments.TryGetValue(g.Nickname, out var equip))
+                        if (Equipment.TryGetValue(g.Nickname, out var equip))
                         {
                             var good = new ResolvedGood() {Equipment = equip, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname) };
                             equip.Good = good;
@@ -280,7 +280,7 @@ namespace LibreLancer
                 sp.CRC = FLHash.CreateID(sp.Nickname);
                 sp.BasePrice = hull.Price;
                 foreach (var addon in g.Addons) {
-                    if (equipments.TryGetValue(addon.Equipment, out var equip))
+                    if (Equipment.TryGetValue(addon.Equipment, out var equip))
                     {
                         sp.Addons.Add(new PackageAddon()
                         {
@@ -339,15 +339,6 @@ namespace LibreLancer
         {
             shipPackageByCRC.TryGetValue(crc, out var pkg);
             return pkg;
-        }
-
-        private List<Task> asyncTasks = new List<Task>();
-        void AsyncAction(Action a) =>  asyncTasks.Add(Task.Run(a));
-
-        void WaitTasks()
-        {
-            Task.WaitAll(asyncTasks.ToArray());
-            asyncTasks = new List<Task>();
         }
 
         void InitFactions()
@@ -442,17 +433,13 @@ namespace LibreLancer
                 ui.QueueUIThread(() => glResource.Preload());
             }
             if(onIniLoaded != null) ui.QueueUIThread(onIniLoaded);
-            AsyncAction(() =>
-            {
-                FLLog.Info("Game", "Loading Character Animations");
-                GetCharacterAnimations();
-            });
-            
-            AsyncAction(InitPilots);
-            FLLog.Info("Game", "Initing Tables");
-            AsyncAction(InitShips);
-            var introbases = InitBases().ToArray();
-            AsyncAction(() =>
+            var tasks = new LoadingTasks();
+            tasks.Begin(() => GetCharacterAnimations());
+            tasks.Begin(InitPilots);
+            var ships = tasks.Begin(InitShips);
+            List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
+            var baseTask = tasks.Begin(() => introbases.AddRange(InitBases()));
+            tasks.Begin(() =>
             {
                 FLLog.Info("Game", "Loading intro scenes");
                 IntroScenes = new List<GameData.IntroScene>();
@@ -475,17 +462,14 @@ namespace LibreLancer
                         }
                     }
                 }
-            });
-            InitFactions();
-            InitArchetypes();
-            InitEquipment();
-            InitGoods();
-            InitMarkets();
-            InitSystems();
-            
-           
-            FLLog.Info("Game", "Waiting on threads");
-            WaitTasks();
+            }, baseTask);
+            var factionsTask = tasks.Begin(InitFactions);
+            var archetypesTask = tasks.Begin(InitArchetypes);
+            var equipmentTask = tasks.Begin(InitEquipment);
+            var goodsTask = tasks.Begin(InitGoods, equipmentTask);
+            tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
+            tasks.Begin(() => InitSystems(tasks), baseTask, archetypesTask, equipmentTask, ships, factionsTask);
+            tasks.WaitAll();
             fldata.Universe = null; //Free universe ini!
             GC.Collect(); //We produced a crapload of garbage
         }
@@ -630,8 +614,7 @@ namespace LibreLancer
         public IEnumerable<string> ListSystems() => systems.Keys;
         public IEnumerable<string> ListBases() => bases.Keys;
 
-        Dictionary<string, GameData.Items.Equipment> equipments = new Dictionary<string, GameData.Items.Equipment>(StringComparer.OrdinalIgnoreCase);
-        Dictionary<uint, GameData.Items.Equipment> equipmentHashes = new Dictionary<uint, GameData.Items.Equipment>();
+        public GameItemCollection<Equipment> Equipment = new GameItemCollection<Equipment>();
         void InitEquipment()
         {
             FLLog.Info("Game", "Initing " + fldata.Equipment.Equip.Count + " equipments");
@@ -682,8 +665,7 @@ namespace LibreLancer
                     equip = mequip;
                 }
                 SetCommonFields(equip, mn);
-                equipments[equip.Nickname] = equip;
-                equipmentHashes[equip.CRC] = equip;
+                Equipment.Add(equip);
             }
             //Then all equipment
             foreach (var val in fldata.Equipment.Equip)
@@ -721,7 +703,7 @@ namespace LibreLancer
                 }
                 else if (val is Data.Equipment.Gun gn)
                 {
-                    equipments.TryGetValue(gn.ProjectileArchetype, out Equipment mnEquip);
+                    Equipment.TryGetValue(gn.ProjectileArchetype, out Equipment mnEquip);
                     if (mnEquip is MunitionEquip mn)
                     {
                         var eqp = new GameData.Items.GunEquipment()
@@ -795,8 +777,7 @@ namespace LibreLancer
                 if(equip == null) 
                     continue;
                 SetCommonFields(equip, val);
-                equipments[equip.Nickname] = equip;
-                equipmentHashes[equip.CRC] = equip;
+                Equipment.Add(equip);
             }
             //Resolve light inheritance
             foreach (var lt in lights.Values)
@@ -812,8 +793,7 @@ namespace LibreLancer
                 var eq = GetLight(lt);
                 eq.Nickname = lt.Nickname;
                 eq.CRC = FLHash.CreateID(eq.Nickname);
-                equipments[eq.Nickname] = eq;
-                equipmentHashes[eq.CRC] = eq;
+                Equipment.Add(eq);
             }
             fldata.Equipment = null; //Free memory
         }
@@ -834,7 +814,7 @@ namespace LibreLancer
         public IEnumerable<StarSystem> AllSystems => systems.Values;
         
 
-        void InitSystems()
+        void InitSystems(LoadingTasks tasks)
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Systems.Count + " systems");
             _solarLoadouts = new Dictionary<string, Loadout>(StringComparer.OrdinalIgnoreCase);
@@ -1032,7 +1012,7 @@ namespace LibreLancer
                         sys.Zones.Add(z);
                         sys.ZoneDict[z.Nickname] = z;
                     }
-                AsyncAction(() =>
+                tasks.Begin(() =>
                 {
                     if (inisys.Asteroids != null)
                     {
@@ -1397,22 +1377,9 @@ namespace LibreLancer
             return n;
         }
 
-        public GameData.Ship GetShip(uint crc)
-        {
-            return shipHashes[crc];
-        }
-        public GameData.Ship GetShip(int crc)
-        {
-            return shipHashes[(uint)crc];
-        }
-        public GameData.Ship GetShip(string nickname)
-        {
-            return ships[nickname];
-        }
+        public GameItemCollection<Ship> Ships = new GameItemCollection<Ship>();
 
-        Dictionary<string, GameData.Ship> ships = new Dictionary<string, GameData.Ship>(StringComparer.OrdinalIgnoreCase);
         Dictionary<string, GameData.Archetype> archetypes = new Dictionary<string, GameData.Archetype>(StringComparer.OrdinalIgnoreCase);
-        Dictionary<uint, GameData.Ship> shipHashes = new Dictionary<uint, GameData.Ship>();
         ResolvedModel ResolveDrawable(IEnumerable<string> libs, string file)
         {
             var mdl = new ResolvedModel() {
@@ -1555,8 +1522,7 @@ namespace LibreLancer
                         possible.Add(tgt);
                     }
                 }
-                ships.Add(ship.Nickname, ship);
-                shipHashes.Add(ship.CRC, ship);
+                Ships.Add(ship);
             }
             fldata.Ships = null; //free memory
         }
@@ -1762,25 +1728,11 @@ namespace LibreLancer
         //Used to spawn objects within mission scripts
         public GameData.Archetype GetSolarArchetype(string id) => archetypes[id];
 
-        public GameData.Items.Equipment GetEquipment(string id)
-        {
-            GameData.Items.Equipment eq;
-            equipments.TryGetValue(id, out eq); //Should throw error, but we don't parse all equipment yet
-            return eq;
-        }
-
-        public GameData.Items.Equipment GetEquipment(uint crc)
-        {
-            GameData.Items.Equipment eq;
-            equipmentHashes.TryGetValue(crc, out eq);
-            return eq;
-        }
-
         void ProcessLoadout(Data.Solar.Loadout ld, SystemObject obj)
         {
             foreach (var eq in ld.Equip)
             {
-                GameData.Items.Equipment equip = GetEquipment(eq.Nickname);
+                GameData.Items.Equipment equip = Equipment.Get(eq.Nickname);
                 //if (equip is GameData.Items.GunEquipment) continue;
                 if (equip != null)
                 {

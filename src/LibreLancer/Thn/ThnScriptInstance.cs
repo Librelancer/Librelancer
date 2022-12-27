@@ -119,7 +119,7 @@ namespace LibreLancer.Thn
                             case "ship":
                             case "spaceship":
                                 getHpMount = true;
-                                var sh = gameData.GetShip(template);
+                                var sh = gameData.Ships.Get(template);
                                 drawable = sh.ModelFile.LoadFile(resman);
                                 break;
                             case "prop":
@@ -132,7 +132,7 @@ namespace LibreLancer.Thn
                                 drawable = gameData.GetCart(template);
                                 break;
                             case "equipment":
-                                var eq = gameData.GetEquipment(template);
+                                var eq = gameData.Equipment.Get(template);
                                 drawable = eq?.ModelFile.LoadFile(resman);
                                 break;
                             case "asteroid":

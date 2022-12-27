@@ -105,12 +105,12 @@ namespace LibreLancer.Server
             nc.Base = db.Character.Base;
             nc.System = db.Character.System;
             nc.Position = new Vector3(db.Character.X, db.Character.Y, db.Character.Z);
-            nc.Ship = game.GameData.GetShip(db.Character.Ship);
+            nc.Ship = game.GameData.Ships.Get(db.Character.Ship);
             nc.Credits = db.Character.Money;
             nc.Items = new List<NetCargo>();
             foreach (var cargo in db.Character.Items)
             {
-                var resolved = game.GameData.GetEquipment(cargo.ItemName);
+                var resolved = game.GameData.Equipment.Get(cargo.ItemName);
                 if (resolved == null) continue;
                 nc.Items.Add(new NetCargo()
                 {

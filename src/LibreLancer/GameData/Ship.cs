@@ -9,16 +9,14 @@ using LibreLancer.Data.Equipment;
 
 namespace LibreLancer.GameData
 {
-	public class Ship
+	public class Ship : IdentifiableItem
 	{
-        public string Nickname;
         public string ShipType;
         public int Class;
         public int HoldSize;
         public float[] LODRanges;
         public int NameIds;
         public int Infocard;
-        public uint CRC;
 		public ResolvedModel ModelFile;
 		public Vector3 SteeringTorque;
 		public Vector3 AngularDrag;

@@ -96,7 +96,7 @@ World Time: {12:F2}
         void FinishLoad()
         {
             Game.Saves.Selected = -1;
-            var shp = Game.GameData.GetShip(session.PlayerShip);
+            var shp = Game.GameData.Ships.Get(session.PlayerShip);
             //Set up player object + camera
             player = new GameObject(shp, Game.ResourceManager, true, true);
             control = new ShipPhysicsComponent(player) {Ship = shp};

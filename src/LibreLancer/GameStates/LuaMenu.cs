@@ -205,7 +205,7 @@ namespace LibreLancer
 
             void ResolveNicknames(SelectableCharacter c)
             {
-                c.Ship = state.Game.GameData.GetString(state.Game.GameData.GetShip(c.Ship).NameIds);
+                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Ships.Get(c.Ship).NameIds);
                 c.Location = state.Game.GameData.GetSystem(c.Location).Name;
             }
             internal void _Update()
@@ -233,7 +233,7 @@ namespace LibreLancer
                             {
                                 var package = ncdb.Packages.First(x =>
                                     x.Nickname.Equals(ncdb.Factions[i].Package, StringComparison.OrdinalIgnoreCase));
-                                var ship = state.Game.GameData.GetShip(package.Ship);
+                                var ship = state.Game.GameData.Ships.Get(package.Ship);
                                 ship.ModelFile.LoadFile(state.Game.ResourceManager);
                                 var loc = state.Game.GameData.GetString(state.Game.GameData.GetBase(ncdb.Factions[i].Base).IdsName);
                                 newCharacters[i] = new UiNewCharacter()

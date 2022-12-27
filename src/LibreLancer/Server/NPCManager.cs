@@ -73,7 +73,7 @@ namespace LibreLancer.Server
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Items = new List<NetShipCargo>();
-            var ship = World.Server.GameData.GetShip(loadout.Archetype);
+            var ship = World.Server.GameData.Ships.Get(loadout.Archetype);
             netLoadout.ShipCRC = ship.CRC;
             var obj = new GameObject(ship, World.Server.Resources, false, true);
             obj.Name = name;
@@ -86,7 +86,7 @@ namespace LibreLancer.Server
             });
             foreach (var equipped in loadout.Equip)
             {
-                var e = World.Server.GameData.GetEquipment(equipped.Nickname);
+                var e = World.Server.GameData.Equipment.Get(equipped.Nickname);
                 if (e == null) continue;
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,
                     equipped.Hardpoint, e);
@@ -95,7 +95,7 @@ namespace LibreLancer.Server
             var cargo = new SNPCCargoComponent(obj);
             foreach (var c in loadout.Cargo)
             {
-                var e = World.Server.GameData.GetEquipment(c.Nickname);
+                var e = World.Server.GameData.Equipment.Get(c.Nickname);
                 if (e == null) continue;
                 cargo.Cargo.Add(new NPCCargo(e, c.Count));
             }

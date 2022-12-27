@@ -407,7 +407,7 @@ namespace LibreLancer.Client
 
         void SetSelfLoadout(NetShipLoadout ld)
         {
-            var sh = ld.ShipCRC == 0 ? null : Game.GameData.GetShip((int)ld.ShipCRC);
+            var sh = ld.ShipCRC == 0 ? null : Game.GameData.Ships.Get(ld.ShipCRC);
             PlayerShip = sh?.Nickname ?? null;
             CargoSize = sh?.HoldSize ?? 0;
             
@@ -416,7 +416,7 @@ namespace LibreLancer.Client
             {
                 foreach (var cg in ld.Items)
                 {
-                    var equip = Game.GameData.GetEquipment(cg.EquipCRC);
+                    var equip = Game.GameData.Equipment.Get(cg.EquipCRC);
                     Items.Add(new NetCargo(cg.ID)
                     {
                         Equipment = equip,
@@ -445,7 +445,7 @@ namespace LibreLancer.Client
             {
                 foreach (var p in projectiles)
                 {
-                    var x = Game.GameData.GetEquipment(p.Gun) as GunEquipment;
+                    var x = Game.GameData.Equipment.Get(p.Gun) as GunEquipment;
                     var projdata = gp.world.Projectiles.GetData(x);
                     gp.world.Projectiles.SpawnProjectile(objects[p.Owner], p.Hardpoint, projdata, p.Start, p.Heading);
                 }
@@ -492,7 +492,7 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var eq = Game.GameData.GetEquipment(equip);
+                var eq = Game.GameData.Equipment.Get(equip);
                 if (eq is MissileEquip mn)
                 {
                     var go = new GameObject(mn.ModelFile.LoadFile(Game.ResourceManager),
@@ -613,7 +613,7 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var shp = Game.GameData.GetShip((int) loadout.ShipCRC);
+                var shp = Game.GameData.Ships.Get((int) loadout.ShipCRC);
                 var newobj = new GameObject(shp, Game.ResourceManager, true, true) {
                     World = gp.world
                 };
@@ -628,7 +628,7 @@ namespace LibreLancer.Client
                     newobj.Components.Add(new CFactionComponent(newobj, fac));
                 foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
-                    var equip = Game.GameData.GetEquipment(eq.EquipCRC);
+                    var equip = Game.GameData.Equipment.Get(eq.EquipCRC);
                     if (equip == null) continue;
                     EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, Game.Sound, EquipmentType.LocalPlayer, eq.Hardpoint, equip);
                 }
@@ -673,7 +673,7 @@ namespace LibreLancer.Client
                 RigidModel mdl;
                 if (kind == GameObjectKind.Ship)
                 {
-                    var ship = Game.GameData.GetShip(archetype);
+                    var ship = Game.GameData.Ships.Get(archetype);
                     mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
                 }
                 else

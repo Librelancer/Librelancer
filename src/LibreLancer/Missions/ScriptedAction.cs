@@ -234,11 +234,11 @@ namespace LibreLancer.Missions
                 var p = runtime.Player;
                 if (p.Game.GameData.TryGetLoadout(Loadout, out var loadout))
                 {
-                    p.Character.Ship = p.Game.GameData.GetShip(Ship);
+                    p.Character.Ship = p.Game.GameData.Ships.Get(Ship);
                     p.Character.Items = new List<NetCargo>();
                     foreach (var equip in loadout.Equip)
                     {
-                        var e = p.Game.GameData.GetEquipment(equip.Nickname);
+                        var e = p.Game.GameData.Equipment.Get(equip.Nickname);
                         if (e == null) continue;
                         p.Character.Items.Add(new NetCargo()
                         {

@@ -228,13 +228,13 @@ namespace LibreLancer.Server
             System = sg.Player.System;
             Character = new NetCharacter();
             Character.UpdateCredits(sg.Player.Money);
-            Character.Ship = Game.GameData.GetShip(sg.Player.ShipArchetype);
+            Character.Ship = Game.GameData.Ships.Get(sg.Player.ShipArchetype);
             Character.Items = new List<NetCargo>();
             foreach (var eq in sg.Player.Equip)
             {
                 var hp = eq.Hardpoint;
                 if (string.IsNullOrEmpty(hp)) hp = "internal";
-                Equipment equip = Game.GameData.GetEquipment(eq.Item);
+                Equipment equip = Game.GameData.Equipment.Get(eq.Item);
                 if (equip != null)
                 {
                     Character.Items.Add(new NetCargo()
@@ -245,7 +245,7 @@ namespace LibreLancer.Server
             }
             foreach (var cg in sg.Player.Cargo)
             {
-                Equipment equip = Game.GameData.GetEquipment(cg.Item);
+                Equipment equip = Game.GameData.Equipment.Get(cg.Item);
                 if (equip != null)
                 {
                     Character.Items.Add(new NetCargo()
@@ -555,7 +555,7 @@ namespace LibreLancer.Server
                 }
             }
 
-            var newShip = Game.GameData.GetShip(resolved.Ship);
+            var newShip = Game.GameData.Ships.Get(resolved.Ship);
             float volume = 0;
             foreach (var item in Character.Items) {
                 counts.TryGetValue(item.ID, out var soldAmount);
@@ -587,7 +587,7 @@ namespace LibreLancer.Server
             foreach(var item in toRemove)
                 Character.RemoveCargo(item, item.Count);
             //Set Ship
-            Character.SetShip(Game.GameData.GetShip(resolved.Ship));
+            Character.SetShip(Game.GameData.Ships.Get(resolved.Ship));
             //Install new cargo and mount
             foreach (var item in mountedPlayer)
             {
@@ -878,11 +878,11 @@ namespace LibreLancer.Server
                     db.Costume = sg.Player.Costume;
                     db.ComCostume = sg.Player.ComCostume;
                     db.Money = sg.Player.Money;
-                    db.Ship = Game.GameData.GetShip(sg.Player.ShipArchetype).Nickname;
+                    db.Ship = Game.GameData.Ships.Get(sg.Player.ShipArchetype).Nickname;
                     db.Items = new List<CargoItem>();
                     foreach (var eq in sg.Player.Equip)
                     {
-                        var item = Game.GameData.GetEquipment(eq.Item);
+                        var item = Game.GameData.Equipment.Get(eq.Item);
                         if (item != null)
                         {
                             db.Items.Add(new CargoItem()
@@ -895,7 +895,7 @@ namespace LibreLancer.Server
                     }
                     foreach (var cg in sg.Player.Cargo)
                     {
-                        var item = Game.GameData.GetEquipment(cg.Item);
+                        var item = Game.GameData.Equipment.Get(cg.Item);
                         if (item != null)
                         {
                             db.Items.Add(new CargoItem()

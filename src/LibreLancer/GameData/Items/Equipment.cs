@@ -5,16 +5,14 @@
 using System;
 namespace LibreLancer.GameData.Items
 {
-	public class Equipment
+	public class Equipment : IdentifiableItem
 	{
 		public Equipment()
 		{
 		}
-        public string Nickname;
         public string HpType;
         public int IdsName;
         public int IdsInfo;
-        public uint CRC;
         public float[] LODRanges;
         public string HPChild;
         public ResolvedModel ModelFile;

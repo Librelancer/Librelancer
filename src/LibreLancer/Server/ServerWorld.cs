@@ -222,7 +222,7 @@ namespace LibreLancer.Server
                 }
                 foreach (var p in projectiles)
                 {
-                    var pdata = GameWorld.Projectiles.GetData(Server.GameData.GetEquipment(p.Gun) as GunEquipment);
+                    var pdata = GameWorld.Projectiles.GetData(Server.GameData.Equipment.Get(p.Gun) as GunEquipment);
                     GameWorld.Projectiles.SpawnProjectile(Players[owner], p.Hardpoint, pdata, p.Start, p.Heading);
                 }
             });
@@ -364,7 +364,7 @@ namespace LibreLancer.Server
                 RigidModel mdl;
                 if (kind == GameObjectKind.Ship)
                 {
-                    var ship = Server.GameData.GetShip(archetype);
+                    var ship = Server.GameData.Ships.Get(archetype);
                     mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false);
                 }
                 else

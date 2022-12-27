@@ -179,7 +179,7 @@ namespace LibreLancer.Client
         bool CanMount(string hpType)
         {
             if(string.IsNullOrWhiteSpace(hpType)) return false;
-            var myShip = session.Game.GameData.GetShip(session.PlayerShip);
+            var myShip = session.Game.GameData.Ships.Get(session.PlayerShip);
             if (!myShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
                 return false;
             foreach (var hp in possible)
@@ -225,7 +225,7 @@ namespace LibreLancer.Client
             
             List<UIInventoryItem> inventoryItems = new List<UIInventoryItem>();
             var filterfunc = GetFilter(filter);
-            var myShip = session.Game.GameData.GetShip(session.PlayerShip);
+            var myShip = session.Game.GameData.Ships.Get(session.PlayerShip);
             if (myShip != null)
             {
                 foreach (var hardpoint in myShip.HardpointTypes)

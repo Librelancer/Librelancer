@@ -46,14 +46,14 @@ namespace LibreLancer.Client
         public UISoldShip PlayerShip()
         {
             if (string.IsNullOrWhiteSpace(session.PlayerShip)) return null;
-            return ShipInfo(session.Game.GameData.GetShip(session.PlayerShip));
+            return ShipInfo(session.Game.GameData.Ships.Get(session.PlayerShip));
         }
 
         public UISoldShip[] SoldShips()
         {
             return session.Ships.Select(x =>
             {
-                var ship = session.Game.GameData.GetShip(x.ShipCRC);
+                var ship = session.Game.GameData.Ships.Get(x.ShipCRC);
                 var sold = ShipInfo(ship);
                 sold.Server = x;
                 sold.Price = x.PackagePrice;
@@ -365,7 +365,7 @@ namespace LibreLancer.Client
                 for (int i = 0; i < task.Result.Included.Length; i++)
                 {
                     var item = task.Result.Included[i];
-                    var eq = session.Game.GameData.GetEquipment(item.EquipCRC);
+                    var eq = session.Game.GameData.Equipment.Get(item.EquipCRC);
                     playerItems.Add(new ShipTradeItem()
                     {
                         Show = eq.Good != null,
