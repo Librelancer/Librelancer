@@ -53,8 +53,6 @@ namespace LibreLancer.ImUI
 			{
                 if (kdialog)
                     return KDialogOpen(filters);
-                else if (parentWindow != IntPtr.Zero)
-                    return Gtk2.GtkOpen(parentWindow, filters);
                 else
                     return Gtk3.GtkOpen(filters);
 			}
@@ -75,8 +73,6 @@ namespace LibreLancer.ImUI
             } else if (Platform.RunningOS == OS.Linux) {
                 if (kdialog)
                     return KDialogChooseFolder();
-                else if (parentWindow != IntPtr.Zero)
-                    return Gtk2.GtkFolder(parentWindow);
                 else
                     return Gtk3.GtkFolder();
             } else {
@@ -97,8 +93,6 @@ namespace LibreLancer.ImUI
 			{
                 if (kdialog)
                     return KDialogSave(filters);
-                else if (parentWindow != IntPtr.Zero)
-                    return Gtk2.GtkSave(parentWindow, filters);
                 else
                     return Gtk3.GtkSave(filters);
 			}
