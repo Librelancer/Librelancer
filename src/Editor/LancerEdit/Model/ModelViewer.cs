@@ -18,6 +18,7 @@ using ImGuiNET;
 using LibreLancer.Client.Components;
 using LibreLancer.Render;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LancerEdit
 {

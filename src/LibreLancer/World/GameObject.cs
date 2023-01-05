@@ -399,7 +399,7 @@ namespace LibreLancer.World
             }
 		}
 
-        public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp, double timeOffset)
+        public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
         {
             foreach (var k in equipment.Keys)
                 EquipmentObjectManager.InstantiateEquipment(this, Resources, null, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, k, equipment[k]);
@@ -413,9 +413,7 @@ namespace LibreLancer.World
 				} 
                 else
                     EquipmentObjectManager.InstantiateEquipment(this, Resources, null, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, "internal", eq);
-
-			}
-            AnimationComponent?.WarpTime(timeOffset); //Looping animations sync up to server vaguely
+            }
         }
 
 

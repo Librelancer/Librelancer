@@ -202,7 +202,7 @@ namespace LibreLancer.Thn
                     World.Dispose();
                 }
                 Renderer = new SystemRenderer(camera, gameData, game.GetService<GameResourceManager>(), game);
-                World = new GameWorld(Renderer, false);
+                World = new GameWorld(Renderer, null, false);
             }
             if (scriptContext.SetScript != null && resetObjects)
             {

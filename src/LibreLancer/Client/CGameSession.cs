@@ -653,7 +653,7 @@ namespace LibreLancer.Client
             SceneChangeRequired();
         }
 
-        void IClientPlayer.StartAnimation(bool systemObject, int id, string anim)
+        void IClientPlayer.UpdateAnimations(bool systemObject, int id, NetCmpAnimation[] animations)
         {
             RunSync(() =>
             {
@@ -662,7 +662,7 @@ namespace LibreLancer.Client
                     obj = gp.world.GetObject((uint) id);
                 else
                     obj = objects[id];
-                obj?.AnimationComponent?.StartAnimation(anim, false);
+                obj?.AnimationComponent?.UpdateAnimations(animations);
             });
         }
 

@@ -330,7 +330,7 @@ C# Memory Usage: {5}
                     world.Renderer.Dispose();
                     world.Dispose();
                     var renderer = new SystemRenderer(camera, GameData, Resources, this);
-                    world = new GameWorld(renderer);
+                    world = new GameWorld(renderer, null);
                 }
                 camera.UpdateProjection();
                 camera.Free = false;
@@ -370,7 +370,7 @@ C# Memory Usage: {5}
             camera.Zoom = 5000;
             camera.UpdateProjection();
             var renderer = new SystemRenderer(camera, GameData, Resources, this);
-            world = new GameWorld(renderer);
+            world = new GameWorld(renderer, null);
             systems = GameData.ListSystems().OrderBy(x => x).ToArray();
             Resources.ClearTextures();
             string navPrettyMap;

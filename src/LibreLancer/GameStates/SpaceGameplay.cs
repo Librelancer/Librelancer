@@ -153,8 +153,8 @@ World Time: {12:F2}
             
             sysrender = new SystemRenderer(_chaseCamera, Game.GameData, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
-            world = new GameWorld(sysrender);
-            world.LoadSystem(sys, Game.ResourceManager, false, session.WorldTime);
+            world = new GameWorld(sysrender, () => session.WorldTime);
+            world.LoadSystem(sys, Game.ResourceManager, false);
             session.WorldReady();
             player.World = world;
             world.AddObject(player);

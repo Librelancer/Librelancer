@@ -158,11 +158,11 @@
           ]
         },
         {
-          "name": "StartAnimation",
+          "name": "UpdateAnimations",
           "args": [
             { "name":  "systemObject", "type":  "bool" },
             { "name":  "id", "type":  "int" },
-            { "name":  "anim", "type":  "string" }
+            { "name":  "animations", "type":  "NetCmpAnimation[]" }
           ]
         },
         {

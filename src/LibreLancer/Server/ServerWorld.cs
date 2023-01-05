@@ -49,7 +49,7 @@ namespace LibreLancer.Server
         {
             Server = server;
             System = system;
-            GameWorld = new GameWorld(null);
+            GameWorld = new GameWorld(null, () => server.TotalTime);
             GameWorld.Server = this;
             GameWorld.LoadSystem(system, server.Resources, true);
             GameWorld.Physics.OnCollision += PhysicsOnCollision;
@@ -119,6 +119,8 @@ namespace LibreLancer.Server
             player.SendSolars(SpawnedSolars);
             foreach(var npc in spawnedNPCs)
                 SpawnShip(npc, player);
+            foreach(var o in withAnimations)
+                UpdateAnimations(o, player);
             var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
             foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server, item.Hardpoint, item.Equipment);
@@ -273,34 +275,44 @@ namespace LibreLancer.Server
                 p.Key.RemoteClient.TradelaneDeactivate(obj.NicknameCRC, left);
             }
         }
-        
-        public void StartAnimation(GameObject obj, string script)
+
+        void UpdateAnimations(GameObject obj, Player player)
         {
             int id = 0;
             bool sysObj = false;
-            if (!string.IsNullOrEmpty(obj.Nickname))
-            {
+            if (!string.IsNullOrEmpty(obj.Nickname)) {
                 id = (int) obj.NicknameCRC;
                 sysObj = true;
             }
-            else
-            {
+            else {
                 id = obj.NetID;
             }
+            player.RemoteClient.UpdateAnimations(sysObj, id, obj.AnimationComponent.Serialize().ToArray());
+        }
 
+        private List<GameObject> withAnimations = new List<GameObject>();
+        
+        public void StartAnimation(GameObject obj)
+        {
+            if(!withAnimations.Contains(obj))
+                withAnimations.Add(obj);
             foreach (var p in Players)
-            {
-                p.Key.RemoteClient.StartAnimation(sysObj, id, script);
-            }
+                UpdateAnimations(obj, p.Key);
+        }
+        
+        void RemoveObjectInternal(GameObject obj)
+        {
+            obj.Unregister(GameWorld.Physics);
+            GameWorld.RemoveObject(obj);
+            withAnimations.Remove(obj);
+            updatingObjects.Remove(obj);
         }
 
         public void RemovePlayer(Player player)
         {
             actions.Enqueue(() =>
             {
-                Players[player].Unregister(GameWorld.Physics);
-                GameWorld.RemoveObject(Players[player]);
-                updatingObjects.Remove(Players[player]);
+                RemoveObjectInternal(Players[player]);
                 Players.Remove(player);
                 foreach(var p in Players)
                 {
@@ -314,10 +326,8 @@ namespace LibreLancer.Server
         {
             actions.Enqueue(() =>
             {
-                obj.Unregister(GameWorld.Physics);
-                GameWorld.RemoveObject(obj);
+                RemoveObjectInternal(obj);
                 spawnedNPCs.Remove(obj);
-                updatingObjects.Remove(obj);
                 idGen.Free(obj.NetID);
                 foreach (var p in Players) p.Key.Despawn(obj.NetID);
             });

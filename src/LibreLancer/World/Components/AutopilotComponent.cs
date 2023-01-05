@@ -78,7 +78,6 @@ namespace LibreLancer.World.Components
             _targetObject = null;
             CurrentBehaviour = AutopilotBehaviours.None;
         }
-        
 
         public void StartDock(GameObject target)
         {
@@ -92,7 +91,7 @@ namespace LibreLancer.World.Components
                     tlDockHP = hpend.Name;
                 }
             }
-
+            _maxThrottle = 1;
             CurrentBehaviour = AutopilotBehaviours.Dock;
             CanCruise = true;
             gotoRange = 40;

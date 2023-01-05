@@ -22,6 +22,7 @@ using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
 using LibreLancer.Thn;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer
 {

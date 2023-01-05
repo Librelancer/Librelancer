@@ -30,10 +30,13 @@ namespace LibreLancer.World
 
         public SpatialLookup SpatialLookup = new SpatialLookup();
 
-		public GameWorld(SystemRenderer render, bool initPhys = true)
+        private Func<double> timeSource;
+
+		public GameWorld(SystemRenderer render, Func<double> timeSource, bool initPhys = true)
 		{
             if(initPhys)
             Physics = new PhysicsWorld();
+            this.timeSource = timeSource;
             if (render != null)
             {
                 Renderer = render;
@@ -47,7 +50,7 @@ namespace LibreLancer.World
             Projectiles = new ProjectileManager(this);
 		}
 
-        public void LoadSystem(StarSystem sys, ResourceManager res, bool server, double timeOffset = 0)
+        public void LoadSystem(StarSystem sys, ResourceManager res, bool server)
 		{
             foreach (var g in objects)
                 g.Unregister(Physics);
@@ -67,7 +70,7 @@ namespace LibreLancer.World
                 g.Nickname = obj.Nickname;
                 g.SystemObject = obj;
                 g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));
-                g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint, timeOffset);
+                g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
                 g.World = this;
                 g.CollisionGroups = obj.Archetype.CollisionGroups;
                 if (g.RenderComponent != null)
@@ -83,10 +86,9 @@ namespace LibreLancer.World
                     {
                         if (server)
                         {
-                            g.Components.Add(new SDockableComponent(g)
+                            g.Components.Add(new SDockableComponent(g, obj.Archetype.DockSpheres.ToArray())
                             {
                                 Action = obj.Dock,
-                                DockSpheres = obj.Archetype.DockSpheres.ToArray()
                             });
                         }
                         g.Components.Add(new CDockComponent(g)
@@ -134,6 +136,8 @@ namespace LibreLancer.World
         public void AddObject(GameObject obj)
         {
             objects.Add(obj);
+            if(timeSource != null)
+                obj.AnimationComponent?.SetTimeSource(timeSource);
             if(obj.NetID != 0)
                 netIDLookup.Add(obj.NetID, obj);
             SpatialLookup.AddObject(obj, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
