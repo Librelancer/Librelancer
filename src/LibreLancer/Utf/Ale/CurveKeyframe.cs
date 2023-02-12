@@ -10,8 +10,8 @@ namespace LibreLancer
 	{
 		public float Time;
 		public float Value;
-		public float InTangent;
-		public float OutTangent;
+		public float Start;
+		public float End;
 		public CurveKeyframe ()
 		{
 		}

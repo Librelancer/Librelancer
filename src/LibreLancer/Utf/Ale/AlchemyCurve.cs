@@ -61,13 +61,36 @@ namespace LibreLancer.Utf.Ale
                 if (time >= a.Time && time <= b.Time)
                 {
                     if(Math.Abs(a.Time - b.Time) < float.Epsilon) return b.Value;
-                    return Easing.Ease(EasingTypes.Linear, time, a.Time, b.Time, a.Value, b.Value);
+                    return ValueAt(a, b, time);
                 }
             }
-            //This should be an error at some stage, but the implementation is broken.
             return Keyframes[Keyframes.Count - 1].Value;
-			//throw new Exception("Malformed AlchemyCurve");
 		}
+
+        static float Linear(float t, float a, float b) =>
+            a * (1 - t) + b * t;
+
+        static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)
+        {
+            var dt = b.Time - a.Time;
+            var t0 = (t - a.Time) / dt;
+            var ax = a.Value;
+            var bx = b.Value;
+
+            var a0 = ax + a.Start * (dt * .5f);
+            var b0 = bx - b.End * (dt * .5f);
+            
+            var a1 = Linear(t0, ax, a0);
+            var b1 = Linear(t0, a0, bx);
+
+            var a2 = Linear(t0, ax, b0);
+            var b2 = Linear(t0, b0, bx);
+
+            var a3 = Linear(t0, a1, a2);
+            var b3 = Linear(t0, b1, b2);
+
+            return Linear(t0, a3, b3);
+        }
 	}
 }
 
