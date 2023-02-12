@@ -6,15 +6,12 @@ using System;
 
 namespace LibreLancer
 {
-	public class CurveKeyframe
+	public struct CurveKeyframe
 	{
 		public float Time;
 		public float Value;
 		public float Start;
 		public float End;
-		public CurveKeyframe ()
-		{
-		}
-	}
+    }
 }
 

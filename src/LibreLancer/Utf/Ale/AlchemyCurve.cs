@@ -67,29 +67,28 @@ namespace LibreLancer.Utf.Ale
             return Keyframes[Keyframes.Count - 1].Value;
 		}
 
-        static float Linear(float t, float a, float b) =>
-            a * (1 - t) + b * t;
-
         static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)
         {
             var dt = b.Time - a.Time;
+            var dt2 = dt * 0.5f;
+            
             var t0 = (t - a.Time) / dt;
             var ax = a.Value;
             var bx = b.Value;
 
-            var a0 = ax + a.Start * (dt * .5f);
-            var b0 = bx - b.End * (dt * .5f);
+            var a0 = MathF.FusedMultiplyAdd(a.Start, dt2, ax);
+            var b0 = MathF.FusedMultiplyAdd(-b.End, dt2, bx);
             
-            var a1 = Linear(t0, ax, a0);
-            var b1 = Linear(t0, a0, bx);
+            var a1 = MathHelper.Lerp( ax, a0, t0);
+            var b1 = MathHelper.Lerp( a0, bx, t0);
 
-            var a2 = Linear(t0, ax, b0);
-            var b2 = Linear(t0, b0, bx);
+            var a2 = MathHelper.Lerp( ax, b0, t0);
+            var b2 = MathHelper.Lerp( b0, bx, t0);
 
-            var a3 = Linear(t0, a1, a2);
-            var b3 = Linear(t0, b1, b2);
+            var a3 = MathHelper.Lerp( a1, a2, t0);
+            var b3 = MathHelper.Lerp( b1, b2, t0);
 
-            return Linear(t0, a3, b3);
+            return MathHelper.Lerp( a3, b3, t0);
         }
 	}
 }

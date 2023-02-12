@@ -331,10 +331,8 @@ namespace LibreLancer
 
 		#endregion
 
-		public static float Lerp(float value1, float value2, float amount)
-		{
-			return value1 + (value2 - value1) * amount;
-		}
+        public static float Lerp(float value1, float value2, float amount)
+            => MathF.FusedMultiplyAdd(amount, value2 - value1, value1);
 
         public static bool IsPowerOfTwo(int x)
         {
