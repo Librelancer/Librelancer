@@ -30,8 +30,8 @@ namespace LibreLancer.Utf.Ale
 						l.Add (new CurveKeyframe () {
 							Time = reader.ReadSingle(),
 							Value = reader.ReadSingle(),
-							Start = reader.ReadSingle(),
-							End = reader.ReadSingle()
+                            End = reader.ReadSingle(),
+                            Start = reader.ReadSingle(),
 						});
 					}
 					cpkf.Keyframes = l;
