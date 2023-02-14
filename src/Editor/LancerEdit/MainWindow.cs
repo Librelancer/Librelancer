@@ -384,20 +384,20 @@ namespace LancerEdit
                         AddTab(new InfocardBrowserTab(input, this));
                     }
                 }
-                if (ImGui.MenuItem("State Graph"))
+                if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
                     string input;
                     if ((input = FileDialog.Open(StateGraphFilter)) != null) {
                         AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input)));
                     }
                 }
-                if (ImGui.MenuItem("Projectile Viewer"))
+                if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", true))
                 {
                     if(ProjectileViewer.Create(this, out var pj))
                         TabControl.Tabs.Add(pj);
                 }
 
-                if (ImGui.MenuItem("ParamCurve Visualiser"))
+                if (Theme.IconMenuItem(Icons.BezierCurve, "ParamCurve Visualiser", true))
                 {
                     TabControl.Tabs.Add(new ParamCurveVis());
                 }

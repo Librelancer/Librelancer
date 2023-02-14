@@ -9,10 +9,12 @@ public static class Icons
     //Unicode char
     public const char BulletEmpty = '\u25CB'; //NOT included in GetChars(), made from empty-bullet.ttf
     //Icons straight from font
+    public const char BezierCurve = '\uf55b';
     public const char Book = '\uf02d';
     public const char BookOpen = '\uf518';
     public const char Info = '\uf129';
     public const char File = '\uf15b';
+    public const char Fire = '\uf06d';
     public const char Export = '\uf56e';
     public const char Import = '\uf56f';
     public const char Open = '\uf07c';
@@ -36,6 +38,7 @@ public static class Icons
     public const char Eraser = '\uf12d';
     public const char StreetView = '\uf21d';
     public const char Star = '\uf005';
+    public const char Table = '\uf0ce';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -105,10 +108,12 @@ public static class Icons
     
     public static IEnumerable<char> GetChars()
     {
+        yield return BezierCurve;
         yield return Book;
         yield return BookOpen;
         yield return Info;
         yield return File;
+        yield return Fire;
         yield return Export;
         yield return Import;
         yield return Open;
@@ -132,6 +137,7 @@ public static class Icons
         yield return Paste;
         yield return Eraser;
         yield return Star;
+        yield return Table;
 
         yield return Image;
         yield return Lightbulb;

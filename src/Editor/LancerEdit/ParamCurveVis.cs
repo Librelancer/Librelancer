@@ -66,10 +66,10 @@ namespace LancerEdit
         };
         public override void Draw()
         {
-            ImGui.Combo("Type", ref typeIndex, typeNames, typeNames.Length);
-            ImGui.BeginTabBar("##tabs");
             int idx = typeIndex;
+            ImGui.Combo("Type", ref typeIndex, typeNames, typeNames.Length);
             if(idx != typeIndex) RecreateCurve();
+            ImGui.BeginTabBar("##tabs");
             if (ImGui.BeginTabItem("Points"))
             {
                 ImGui.InputFloat4("Point", ref p);
