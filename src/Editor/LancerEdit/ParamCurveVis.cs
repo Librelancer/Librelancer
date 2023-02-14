@@ -66,13 +66,12 @@ namespace LancerEdit
         };
         public override void Draw()
         {
+            ImGui.Combo("Type", ref typeIndex, typeNames, typeNames.Length);
             ImGui.BeginTabBar("##tabs");
             int idx = typeIndex;
-            ImGui.Combo("Type", ref typeIndex, typeNames, typeNames.Length);
             if(idx != typeIndex) RecreateCurve();
             if (ImGui.BeginTabItem("Points"))
             {
-                
                 ImGui.InputFloat4("Point", ref p);
                 if (ImGui.Button("Add"))
                 {
@@ -87,7 +86,7 @@ namespace LancerEdit
                     points.Clear();
                     RecreateCurve();
                 }
-                var height = ImGui.GetWindowHeight() - 110;
+                var height = ImGui.GetWindowHeight() - (95 * ImGuiHelper.Scale);
                 ImGui.BeginChild("##points", new Vector2(-1, height), true);
                 int ik = 0;
                 foreach (var p in points)
@@ -102,8 +101,8 @@ namespace LancerEdit
 
             if (ImGui.BeginTabItem("Graph"))
             {
-                var gWidth = ImGui.GetContentRegionAvail().X - 40;
-                var gHeight = ImGui.GetWindowHeight() - 60;
+                var gWidth = ImGui.GetContentRegionAvail().X - (32 * ImGuiHelper.Scale);
+                var gHeight = ImGui.GetWindowHeight() - (48 * ImGuiHelper.Scale);
                 ImGui.PlotLines("##graph", ref values[0], values.Length, 0, "", scaleMin, scaleMax, new Vector2(gWidth, gHeight));
                 ImGui.EndTabItem();
             }

@@ -29,6 +29,7 @@ namespace LancerEdit
         private DfmSkeletonManager skel;
 
         float gizmoScale;
+        float normalLength = 1;
         const float RADIUS_ONE = 21.916825f;
         void SetupViewport()
         {
@@ -356,6 +357,7 @@ namespace LancerEdit
                 buffer.DrawOpaque(rstate);
                 rstate.Wireframe = false;
             }
+            if (drawNormals) DrawNormals(cam);
             if (drawVMeshWire) DrawWires();
             if (doBounds) DrawBounds();
             //Draw VMeshWire (if used)
@@ -416,6 +418,24 @@ namespace LancerEdit
                 }
             }
         }
+        
+        void DrawNormals(ICamera cam)
+        {
+            var matrix = GetModelMatrix();
+            for (int i = 0; i < vmsModel.AllParts.Length; i++)
+            {
+                var part = vmsModel.AllParts[i];
+                if (part.Mesh == null) continue;
+                if (!part.Active) continue;
+                var mat = NormalLines.GetMaterial(_window.Resources, normalLength * 0.1f * vmsModel.GetRadius());
+                mat.Update(cam);
+                var lvl = GetLevel(part.Mesh.Switch2);
+                part.Mesh.DrawImmediate(lvl, _window.Resources, _window.RenderContext, part.LocalTransform * matrix,
+                    ref Lighting.Empty,
+                    null, mat);
+            }
+        }
+
 
         Vector3[] GetBoxMesh(BoundingBox box)
         {
@@ -561,7 +581,7 @@ namespace LancerEdit
                 else
                 {
                     if(useDistance)
-                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, _window.Resources, matrix, ref lighting);
+                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, _window.Resources, matrix, ref Lighting.Empty);
                     else
                         vmsModel.DrawBuffer(level, buffer, _window.Resources, matrix, ref Lighting.Empty, mat);
                 }

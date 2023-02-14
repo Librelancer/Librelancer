@@ -1,0 +1,120 @@
+using System;
+using LibreLancer;
+using LibreLancer.Render;
+using LibreLancer.Utf.Mat;
+using LibreLancer.Vertices;
+
+namespace LancerEdit;
+
+public class NormalLines : RenderMaterial
+{
+    private const string VERTEX = @"
+in vec3 vertex_position;
+in vec3 vertex_normal;
+
+uniform float Size;
+uniform mat4x4 World;
+uniform mat4x4 ViewProjection;
+
+out vec4 position1;
+out vec3 color1;
+out vec4 position2;
+out vec3 color2;
+
+void main() {
+    position1 = (ViewProjection * World) * vec4(vertex_position, 1.);
+    color1 = abs(clamp(vertex_normal, vec3(-1.), vec3(0.)));
+    position2 = (ViewProjection * World) * vec4(vertex_position + Size * vertex_normal, 1.);
+    color2 = clamp(vertex_normal, vec3(0.), vec3(1.));
+}
+";
+    private const string GEOMETRY = @"
+layout (triangles) in;
+layout (line_strip, max_vertices = 6) out;
+
+in vec4 position1[];
+in vec4 position2[];
+in vec3 color1[];
+in vec3 color2[];
+
+out vec3 vertex_color;
+
+void main() {
+    gl_Position = position1[0];
+    vertex_color = color1[0];
+    EmitVertex();
+    gl_Position = position2[0];
+    vertex_color = color2[0];
+    EmitVertex();
+    EndPrimitive();
+
+    gl_Position = position1[1];
+    vertex_color = color1[1];
+    EmitVertex();
+    gl_Position = position2[1];
+    vertex_color = color2[1];
+    EmitVertex();
+    EndPrimitive();
+
+    gl_Position = position1[2];
+    vertex_color = color1[2];
+    EmitVertex();
+    gl_Position = position2[2];
+    vertex_color = color2[2];
+    EmitVertex();
+    EndPrimitive();
+}
+";
+
+    private const string FRAGMENT = @"
+in vec3 vertex_color;
+out vec4 outColor;
+void main() {
+    outColor = vec4(vertex_color, 1.);
+}
+";
+
+    private static Shader shader;
+    private static int worldLoc;
+    private static int vpLoc;
+    private static int sizeLoc;
+    
+    static void InitShader()
+    {
+        if (shader == null)
+        {
+            string prelude = "";
+            if (RenderContext.GLES)
+                prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n";
+            else
+                prelude = "#version 150\n";
+            shader = new Shader(prelude + VERTEX, prelude + FRAGMENT, prelude + GEOMETRY);
+            worldLoc = shader.GetLocation("World");
+            vpLoc = shader.GetLocation("ViewProjection");
+            sizeLoc = shader.GetLocation("Size");
+        }
+    }
+    
+    public NormalLines() => InitShader();
+
+    public float Size { get; set; } = 2;
+    
+    public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+    {
+        shader.SetMatrix(worldLoc, (IntPtr) World.Source);
+        var vp = Camera.ViewProjection;
+        shader.SetMatrix(vpLoc, ref vp);
+        shader.SetFloat(sizeLoc, Size);
+        shader.UseProgram();    
+    }
+
+    public override bool IsTransparent => false;
+    
+    public override void ApplyDepthPrepass(RenderContext rstate) { }
+
+    public static Material GetMaterial(ResourceManager res, float size) 
+        => new(res, new NormalLines()
+        {
+            Size = size,
+        });
+}

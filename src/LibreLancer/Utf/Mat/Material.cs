@@ -195,6 +195,14 @@ namespace LibreLancer.Utf.Mat
 			isBasic = true;
 		}
 
+        public Material(ResourceManager res, RenderMaterial render)
+        {
+            textureLibrary = res;
+            type = "CUSTOM";
+            Name = "CUSTOM";
+            _rmat = render;
+        }
+
 		public static Material FromNode(IntermediateNode node, ILibFile textureLibrary)
 		{
 			if (node == null)

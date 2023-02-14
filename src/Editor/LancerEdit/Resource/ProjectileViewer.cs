@@ -99,7 +99,6 @@ namespace LancerEdit
                         x.Nickname.Equals(constEffect.VisBeam, StringComparison.OrdinalIgnoreCase));
                     beam = effects.BeamSpears.FirstOrDefault(x =>
                         x.Nickname.Equals(constEffect.VisBeam, StringComparison.OrdinalIgnoreCase));
-                    viewport.ResetControls();
                 }
             }
             ImGui.EndChild();

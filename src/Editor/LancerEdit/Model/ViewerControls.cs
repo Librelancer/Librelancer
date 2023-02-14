@@ -29,6 +29,50 @@ namespace LancerEdit
             Tag = tag;
         }
     }
+
+    public class CheckboxToolbar : IDisposable
+    {
+        private bool isOverflow = false;
+        private bool isOverflowOpen = false;
+
+        private CheckboxToolbar() { }
+
+        public static CheckboxToolbar Begin(string id, bool sameLine) {
+            ImGui.PushID(id);
+            if(!sameLine) ImGui.Dummy(Vector2.Zero);
+            return new CheckboxToolbar();
+        }
+
+        public void Item(string name, ref bool isSelected) {
+            if (isOverflow) {
+                if (isOverflowOpen) ImGui.MenuItem(name, "", ref isSelected);
+                return;
+            }
+            ImGui.SameLine();
+            var textSize = ImGui.CalcTextSize(name);
+            var cpos = ImGuiNative.igGetCursorPosX();
+            var currentWidth = ImGui.GetWindowWidth();
+            if (cpos + textSize.X + (50 * ImGuiHelper.Scale) > currentWidth) {
+                isOverflow = true;
+                if(ImGui.Button(">")) ImGui.OpenPopup("#overflow");
+                isOverflowOpen = ImGui.BeginPopup("#overflow");
+                if (isOverflowOpen) ImGui.MenuItem(name, "", ref isSelected);
+            }
+            else
+            {
+                ImGui.Checkbox(name, ref isSelected);
+            }
+        }
+        
+        public void Dispose()
+        {
+            if (isOverflow && isOverflowOpen)
+            {
+                ImGui.EndPopup();
+            }
+            ImGui.PopID();
+        }
+    }
     public static class ViewerControls
     {
         public static bool GradientButton(string id, Color4 colA, Color4 colB, Vector2 size, bool gradient)
@@ -41,7 +85,7 @@ namespace LancerEdit
             ImGui.PopID();
             return retval;
         }
-
+        
         public static void DropdownButton(string id, ref int selected, IReadOnlyList<DropdownOption> options)
         {
             ImGui.PushID(id);

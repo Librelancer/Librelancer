@@ -53,6 +53,7 @@ namespace LancerEdit
         };
         bool doBackground = true;
         bool doWireframe = false;
+        bool drawNormals = false;
         private bool doBounds = false;
         bool drawVMeshWire = false;
 
@@ -276,7 +277,16 @@ namespace LancerEdit
             ImGui.BeginChild("##main");
             ViewerControls.DropdownButton("View Mode", ref viewMode, viewModes);
             ImGui.SameLine();
-            ImGui.Checkbox("Background", ref doBackground);
+            using (var ct = CheckboxToolbar.Begin("#controls", true)) {
+                ct.Item("Background", ref doBackground);
+                if (!(drawable is SphFile))
+                    ct.Item("Grid", ref showGrid);
+                if(hasVWire)
+                    ct.Item("VMeshWire",  ref drawVMeshWire);
+                ct.Item("Bounds", ref doBounds);
+                ct.Item("Normals", ref drawNormals);
+            }
+            /*ImGui.Checkbox("Background", ref doBackground);
             ImGui.SameLine();
             if (!(drawable is SphFile)) //Grid too small for planets lol
             {
@@ -291,6 +301,8 @@ namespace LancerEdit
             ImGui.Checkbox("Wireframe", ref doWireframe);
             ImGui.SameLine();
             ImGui.Checkbox("Bounds", ref doBounds);
+            ImGui.SameLine();
+            ImGui.Checkbox("Normals", ref drawNormals);*/
             DoViewport();
             //
             var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
@@ -322,6 +334,18 @@ namespace LancerEdit
                 ImGui.PopItemWidth();
             }
             ImGui.EndChild();
+
+            if (drawNormals)
+            {
+                ImGui.SetNextWindowPos(new Vector2(_window.Width - 135 * ImGuiHelper.Scale, _window.Height - 135 * ImGuiHelper.Scale));
+                ImGui.Begin("viewButtons#" + Unique, ImGuiWindowFlags.AlwaysAutoResize |
+                                                     ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove);
+                ImGui.Text("Normal Scale");
+                ImGui.PushItemWidth(90 * ImGuiHelper.Scale);
+                ImGui.SliderFloat("##normalScale", ref normalLength, 0.25f, 3f);
+                ImGui.PopItemWidth();
+                ImGui.End();
+            }
 
             if(_window.Config.ViewButtons)
             {
