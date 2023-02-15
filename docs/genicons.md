@@ -5,5 +5,4 @@ To generate a .3db icon, choose **Tools→Generate Icon**, then select your imag
 ![](assets/newicondlg.png)
 
 - **Compress** - Tick to compress the icon in DXT, *not recommended*
-- **Type** - Select `Commodity` for commodity icons, or `Ship` for ship icons.
 - **Icon Name** - Sets the base name for the icon texture and material nodes.
