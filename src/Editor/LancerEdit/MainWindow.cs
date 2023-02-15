@@ -39,6 +39,8 @@ namespace LancerEdit
         bool openError = false;
         bool finishLoading = false;
 
+        public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
+
         FileDialogFilters UtfFilters = new FileDialogFilters(
             new FileFilter("All Utf Files","utf","cmp","3db","dfm","vms","sph","mat","txm","ale","anm"),
             new FileFilter("Utf Files","utf"),
@@ -572,6 +574,11 @@ namespace LancerEdit
             }
             ImGui.End();
             Make3dbDlg.Draw();
+            for (int i = TextWindows.Count - 1; i >= 0; i--) {
+                if (!TextWindows[i].Draw()) {
+                    TextWindows.RemoveAt(i);
+                }
+            }
 			//Status bar
 			ImGui.SetNextWindowSize(new Vector2(size.X, 22f * ImGuiHelper.Scale), ImGuiCond.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);

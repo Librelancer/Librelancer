@@ -16,13 +16,12 @@
 if(Arguments.Length < 3) {
     Console.Error.WriteLine("usage: img2icon TYPE output-directory/ file.png ...");
     Console.Error.WriteLine("Types: ");
-    Console.Error.WriteLine("ship\t\tship_dxt");
-	Console.Error.WriteLine("commodity\tcommodity_dxt");
+    Console.Error.WriteLine("tga");
+    Console.Error.WRiteLine("dxt");
 	return;
 }
 
-var iconType = Arguments[0].StartsWith("ship", StringComparison.OrdinalIgnoreCase) ? IconType.Ship : IconType.Commodity;
-bool compressed = Arguments[0].EndsWith("_dxt", StringComparison.OrdinalIgnoreCase);
+bool compressed = Arguments[0].Contains("dxt", StringComparison.OrdinalIgnoreCase);
 var directory = Arguments[1];
 
 Directory.CreateDirectory(directory);
@@ -33,9 +32,9 @@ for(int i = 2; i < Arguments.Length; i++) {
     var outfile = Path.Combine(directory, Path.ChangeExtension(Path.GetFileName(file),".3db"));
     EditableUtf utf;
     if(compressed) {
-        utf = UiIconGenerator.CompressedFromFile(iconType, Path.GetFileName(file), file, false);
+        utf = UiIconGenerator.CompressedFromFile(Path.GetFileName(file), file, false);
     } else {
-        utf = UiIconGenerator.UncompressedFromFile(iconType, Path.GetFileName(file), file, false);
+        utf = UiIconGenerator.UncompressedFromFile(Path.GetFileName(file), file, false);
     }
     string err = null;
     if(!utf.Save(outfile, 0, ref err)) {

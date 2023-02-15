@@ -149,7 +149,7 @@ namespace LancerEdit
             var utf = new EditableUtf();
             //Vanity
             var expv = new LUtfNode() { Name = "Exporter Version", Parent = utf.Root };
-            expv.Data = System.Text.Encoding.UTF8.GetBytes("LancerEdit " + Platform.GetInformationalVersion<ImportModelTab>());
+            expv.StringData = "LancerEdit " + Platform.GetInformationalVersion<ImportModelTab>();
             utf.Root.Children.Add(expv);
             //Apply Material names
             foreach(var mdl in output) {
@@ -225,13 +225,13 @@ namespace LancerEdit
             {
                 Name = "File Name",
                 Parent = node,
-                Data = Encoding.ASCII.GetBytes(filename)
+                StringData = filename
             });
             node.Children.Add(new LUtfNode()
             {
                 Name = "Object Name",
                 Parent = node,
-                Data = Encoding.ASCII.GetBytes(objname)
+                StringData = objname,
             });
             node.Children.Add(new LUtfNode()
             {
@@ -254,10 +254,10 @@ namespace LancerEdit
         {
             var matnode = new LUtfNode() { Name = mat.Name, Parent = parent };
             matnode.Children = new List<LUtfNode>();
-            matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, Data = Encoding.ASCII.GetBytes("DcDt") });
+            matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = "DcDt" });
             var arr = new float[] {mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z};
             matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
-            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, Data = Encoding.ASCII.GetBytes(mat.Name + ".dds") });
+            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = mat.Name + ".dds" });
             matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
             return matnode;
         }

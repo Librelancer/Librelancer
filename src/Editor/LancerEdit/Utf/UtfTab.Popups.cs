@@ -81,8 +81,14 @@ namespace LancerEdit
                 ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
                             new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
-                ImGui.Combo("Format", ref compressOption, texOptions, texOptions.Length);
-                ImGui.Combo("Mipmaps", ref mipmapOption, mipmapOptions, mipmapOptions.Length);
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Format");
+                ImGui.SameLine();
+                ImGui.Combo("##format", ref compressOption, texOptions, texOptions.Length);
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Mipmaps");
+                ImGui.SameLine();
+                ImGui.Combo("##mipmaps", ref mipmapOption, mipmapOptions, mipmapOptions.Length);
                 ImGui.Checkbox("Flip Vertically", ref texFlip);
                 ImGui.Checkbox("High Quality (slow)", ref compressSlow);
                 if (ImGui.Button("Import"))

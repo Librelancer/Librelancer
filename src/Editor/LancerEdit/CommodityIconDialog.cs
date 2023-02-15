@@ -57,20 +57,13 @@ namespace LancerEdit
             this.tmp = tmp;
         }
 
-        private static readonly string[] TYPES = {
-            "Commodity", "Ship"
-        };
-        private static readonly IconType[] TYPE_Values = {
-            IconType.Commodity, IconType.Ship
-        };
-
         private int selType = 0;
         public void Draw()
         {
             if (doOpen)
             {
                 ImGui.OpenPopup("New Icon");
-                ImGui.SetNextWindowSize(new Vector2(275,288), ImGuiCond.FirstUseEver);
+                ImGui.SetNextWindowSize(new Vector2(275,260) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
                 doOpen = false;
             }
             bool pOpen = true;
@@ -88,7 +81,6 @@ namespace LancerEdit
                     ImGui.Text("Input file is .dds");
                 } else
                     ImGui.Checkbox("Compress", ref compress);
-                ImGui.Combo("Type", ref selType, TYPES, TYPES.Length);
                 ImGui.InputText("Icon Name", ref iconName, 128);
                 if(error)
                     ImGui.TextColored(Color4.Red, "Icon name must not be empty");
@@ -109,13 +101,13 @@ namespace LancerEdit
                                 var node = new LUtfNode() { Children = new List<LUtfNode>()};
                                 node.Children.Add(new LUtfNode()
                                     {Name = "MIPS", Parent = node, Data = File.ReadAllBytes(texFilename)});
-                                utf = UiIconGenerator.Generate(TYPE_Values[selType], iconName, node, teximportprev.Format == SurfaceFormat.Dxt5);
+                                utf = UiIconGenerator.Generate(iconName, node, teximportprev.Format == SurfaceFormat.Dxt5);
                             }
                             else
                             {
                                 utf = compress
-                                    ? UiIconGenerator.CompressedFromFile(TYPE_Values[selType], iconName, texFilename, loadType == TexLoadType.Alpha)
-                                    : UiIconGenerator.UncompressedFromFile(TYPE_Values[selType], iconName, texFilename, loadType == TexLoadType.Alpha);
+                                    ? UiIconGenerator.CompressedFromFile( iconName, texFilename, loadType == TexLoadType.Alpha)
+                                    : UiIconGenerator.UncompressedFromFile(iconName, texFilename, loadType == TexLoadType.Alpha);
                             }
                             win.QueueUIThread(() =>
                             {

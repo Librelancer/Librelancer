@@ -503,45 +503,48 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Export Data"))
                 {
-                    if(selectedNode.Name.ToLowerInvariant() == "vmeshdata")
-                        ImGui.OpenPopup("exportactions");
-                    else
-                    {
-                        string path;
-                        if ((path = FileDialog.Save()) != null)
-                        {
-                            File.WriteAllBytes(path, selectedNode.Data);
-                        }
+                    string path;
+                    if ((path = FileDialog.Save()) != null) 
+                    { 
+                        File.WriteAllBytes(path, selectedNode.Data);
                     }
                 }
-                if(ImGui.BeginPopup("exportactions"))
+                if (selectedNode.Name.ToLowerInvariant() == "vmeshdata" &&
+                    ImGui.Button("View VMeshData"))
                 {
-                    if(ImGui.MenuItem("Raw"))
+                    LibreLancer.Utf.Vms.VMeshData dat = null;
+                    try
                     {
-                        string path;
-                        if ((path = FileDialog.Save()) != null)
-                        {
-                            File.WriteAllBytes(path, selectedNode.Data);
-                        }
+                        dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data), new EmptyLib(), "");
                     }
-                    if(ImGui.MenuItem("VMeshData"))
+                    catch (Exception ex)
                     {
-                        string path;
-                        if ((path = FileDialog.Save()) != null)
-                        {
-                            LibreLancer.Utf.Vms.VMeshData dat = null;
-                            try
-                            {
-                                dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data), new EmptyLib(), "");
-                            }
-                            catch (Exception ex)
-                            {
-                                ErrorPopup(string.Format("Not a valid VMeshData node\n{0}\n{1}", ex.Message, ex.StackTrace));
-                            }
-                            if (dat != null) DumpObject.DumpVmeshData(path, dat);
-                        }
+                        ErrorPopup(string.Format("Not a valid VMeshData node\n{0}\n{1}", ex.Message, ex.StackTrace));
                     }
-                    ImGui.EndPopup();
+
+                    if (dat != null)
+                    {
+                        main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshData(dat), selectedNode.Name + ".txt"));
+                    }   
+                }
+                
+                if (selectedNode.Name.ToLowerInvariant() == "vmeshref" &&
+                    ImGui.Button("View VMeshRef"))
+                {
+                    LibreLancer.Utf.Cmp.VMeshRef dat = null;
+                    try
+                    {
+                        dat = new LibreLancer.Utf.Cmp.VMeshRef(new ArraySegment<byte>(selectedNode.Data), new EmptyLib());
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorPopup(string.Format("Not a valid VMeshRef node\n{0}\n{1}", ex.Message, ex.StackTrace));
+                    }
+
+                    if (dat != null)
+                    {
+                        main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshRef(dat), selectedNode.Name + ".txt"));
+                    }   
                 }
             }
             else

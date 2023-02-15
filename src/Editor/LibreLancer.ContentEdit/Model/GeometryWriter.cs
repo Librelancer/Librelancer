@@ -89,7 +89,7 @@ namespace LibreLancer.ContentEdit
                     max += dc.BaseVertex;
                     writer.Write((ushort)max);
                     writer.Write((ushort)dc.IndexCount); //NumRefVertices
-                    writer.Write((ushort)0); //Padding
+                    writer.Write((ushort)0xCC); //Padding
                     //validation
                     startTri += dc.IndexCount;
                 }

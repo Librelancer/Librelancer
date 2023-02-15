@@ -16,8 +16,8 @@ namespace LibreLancer.ImUI
 		public IntPtr Pointer;
 		public ImGuiInputTextCallback Callback;
         public TextBuffer(int sz = 2048)
-		{
-            if ((sz % 8) != 0) throw new Exception("Must be multiple of 8");
+        {
+            sz = (sz + 7) & ~7;
             Size = sz;
 			Pointer = Marshal.AllocHGlobal(sz);
 			Clear();

@@ -497,7 +497,21 @@ namespace LibreLancer.ContentEdit
 		public byte[] Data;
         internal byte[] CompressedData;
         internal bool Write = true;
-
+        
+        public string StringData
+        {
+            get
+            {
+                if (Data != null)
+                    return Encoding.ASCII.GetString(Data).TrimEnd('\0');
+                return null;
+            }
+            set
+            {
+                Data = Encoding.ASCII.GetBytes(value + "\0");
+            }
+        }
+        
 		public IEnumerable<LUtfNode> IterateAll()
 		{
 			yield return this;

@@ -12,53 +12,40 @@ using SimpleMesh;
 
 namespace LibreLancer.ContentEdit
 {
-    public enum IconType
-    {
-        Commodity,
-        Ship
-    }
     public static class UiIconGenerator
     {
-        private static Vertex[] vertices_commodity = {
-            new Vertex(new Vector3(-0.030086353f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(0.040959664f, -0.03651117f,-7.872152E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(0.040959664f, 0.031633444f,-7.82092E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vertex(new Vector3(-0.030086353f, 0.031633433f,-7.82092E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
-        };
-        private static ushort[] indices_commodity = {
-            0, 1, 2, 0, 2, 3
-        };
-        
+
         private static Vertex[] vertices_ship = {
-            new Vertex(new Vector3(0.035523012f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(0.035523012f, 0.034072332f,-1.1195198E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vertex(new Vector3(-0.035523023f, -0.03407232f,-1.1246429E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(-0.035523023f, 0.034072317f,-1.1195196E-07f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
         };
 
         private static ushort[] indices_ship = {
             0, 1, 2, 1, 3, 2
         };
 
-        public static EditableUtf UncompressedFromFile(IconType type, string iconName, string filename, bool alpha)
+        public static EditableUtf UncompressedFromFile(string iconName, string filename, bool alpha)
         {
             var texNode = new LUtfNode() { Children = new List<LUtfNode>()};
-            texNode.Children.Add(new LUtfNode() { Name = "MIP0", Data = TextureImport.TGANoMipmap(filename, true)});
-            return Generate(type, iconName, texNode, alpha);
+            texNode.Children.Add(new LUtfNode() { Name = "MIP0", Data = TextureImport.TGANoMipmap(filename, true), Parent = texNode});
+            return Generate(iconName, texNode, alpha);
         }
 
-        public static EditableUtf CompressedFromFile(IconType type, string iconName, string filename, bool alpha)
+        public static EditableUtf CompressedFromFile(string iconName, string filename, bool alpha)
         {
             var ddsNode = new LUtfNode() {Children = new List<LUtfNode>()};
             ddsNode.Children.Add(new LUtfNode()
             {
                 Name = "MIPS",
-                Data = TextureImport.CreateDDS(filename, alpha ? DDSFormat.DXT5 : DDSFormat.DXT1, MipmapMethod.None, true, true)
+                Data = TextureImport.CreateDDS(filename, DDSFormat.DXT5, MipmapMethod.Lanczos4, true, true),
+                Parent = ddsNode,
             });
-            return Generate(type, iconName, ddsNode, alpha);
+            return Generate(iconName, ddsNode, alpha);
         }
         
-        public static EditableUtf Generate(IconType type, string iconName, LUtfNode textureNode, bool alpha)
+        public static EditableUtf Generate(string iconName, LUtfNode textureNode, bool alpha)
         {
             var modelFile = new EditableUtf();
             var unique = IdSalt.New();
@@ -67,14 +54,17 @@ namespace LibreLancer.ContentEdit
             string meshName = $"data.icon.{iconName}.lod0-{unique}.vms";
             //VMeshLibrary
             var geom = new Geometry();
-            geom.Vertices = type == IconType.Commodity ? vertices_commodity : vertices_ship;
-            geom.Indices = new Indices() {Indices16 = (type == IconType.Commodity ? indices_commodity : indices_ship)};
+            geom.Vertices = vertices_ship;
+            geom.Indices = new Indices { Indices16 = indices_ship };
             geom.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Texture1;
             geom.Groups = new TriangleGroup[]
             {
                 new TriangleGroup() { BaseVertex =  0, StartIndex = 0, Material = new SimpleMesh.Material() { Name = materialName }, IndexCount = 6 }
             };
-            geom.CalculateBounds();
+            geom.Min = new Vector3(-0.03552301f, -0.03407239f, -0.00000009f);
+            geom.Max = new Vector3(0.035523f, 0.03407223f, 0.00000009f);
+            geom.Center = new Vector3(0.00066627f, -0.00288963f, -0.00000009f);
+            geom.Radius = 0.05172854f;
             var vmsLib = new LUtfNode() {Name = "VMeshLibrary", Parent = modelFile.Root, Children = new List<LUtfNode>()};
             modelFile.Root.Children.Add(vmsLib);
             var vmsName = new LUtfNode() {Name = meshName, Parent = vmsLib, Children = new List<LUtfNode>()};
@@ -119,13 +109,13 @@ namespace LibreLancer.ContentEdit
             {
                 Name = "Type",
                 Parent = material,
-                Data = Encoding.ASCII.GetBytes(alpha ? "DcDtOcOt" : "DcDt")
+                StringData = alpha ? "DcDtOcOt" : "DcDt"
             });
             material.Children.Add(new LUtfNode()
             {
                 Name = "Dt_name",
                 Parent = material,
-                Data = Encoding.ASCII.GetBytes(textureName)
+                StringData = textureName
             });
             material.Children.Add(new LUtfNode()
             {
