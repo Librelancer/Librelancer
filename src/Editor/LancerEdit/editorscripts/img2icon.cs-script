@@ -17,7 +17,7 @@ if(Arguments.Length < 3) {
     Console.Error.WriteLine("usage: img2icon TYPE output-directory/ file.png ...");
     Console.Error.WriteLine("Types: ");
     Console.Error.WriteLine("tga");
-    Console.Error.WRiteLine("dxt");
+    Console.Error.WriteLine("dxt");
 	return;
 }
 
