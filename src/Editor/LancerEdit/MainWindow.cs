@@ -486,7 +486,7 @@ namespace LancerEdit
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
                 ImGui.Image((IntPtr) logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
                 CenterText(Version);
-				CenterText("Callum McGing 2018-2022");
+				CenterText("Callum McGing 2018-2023");
                 ImGui.Separator();
                 var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
                 ImGui.Dummy(Vector2.One);
