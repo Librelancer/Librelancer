@@ -277,14 +277,14 @@ namespace LancerEdit
             ImGui.BeginChild("##main");
             ViewerControls.DropdownButton("View Mode", ref viewMode, viewModes);
             ImGui.SameLine();
-            using (var ct = CheckboxToolbar.Begin("#controls", true)) {
-                ct.Item("Background", ref doBackground);
+            using (var ct = Toolbar.Begin("#controls", true)) {
+                ct.CheckItem("Background", ref doBackground);
                 if (!(drawable is SphFile))
-                    ct.Item("Grid", ref showGrid);
+                    ct.CheckItem("Grid", ref showGrid);
                 if(hasVWire)
-                    ct.Item("VMeshWire",  ref drawVMeshWire);
-                ct.Item("Bounds", ref doBounds);
-                ct.Item("Normals", ref drawNormals);
+                    ct.CheckItem("VMeshWire",  ref drawVMeshWire);
+                ct.CheckItem("Bounds", ref doBounds);
+                ct.CheckItem("Normals", ref drawNormals);
             }
             /*ImGui.Checkbox("Background", ref doBackground);
             ImGui.SameLine();

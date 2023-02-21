@@ -134,11 +134,11 @@ namespace LancerEdit
             //Action Bar
             ImGui.EndChild();
             ImGui.Separator();
-            if (ImGui.Button("Actions"))
-                ImGui.OpenPopup("actions");
-            if (ImGui.BeginPopup("actions"))
+            //if (ImGui.Button("Actions"))
+                //ImGui.OpenPopup("actions");
+            using (var tb = Toolbar.Begin("##actions", false))
             {
-                if (ImGui.MenuItem("View Model"))
+                if (tb.ButtonItem("View Model"))
                 {
                     IDrawable drawable = null;
                     ModelNodes hpn = new ModelNodes();
@@ -170,7 +170,7 @@ namespace LancerEdit
                         main.AddTab(new ModelViewer(DocumentName, drawable, main, this,hpn));
                     }
                 }
-                if(ImGui.MenuItem("Export Collada"))
+                if(tb.ButtonItem("Export Collada"))
                 {
                     LibreLancer.Utf.Cmp.ModelFile model = null;
                     LibreLancer.Utf.Cmp.CmpFile cmp = null;
@@ -214,7 +214,7 @@ namespace LancerEdit
                        
                     }
                 }
-                if (ImGui.MenuItem("View Ale"))
+                if (tb.ButtonItem("View Ale"))
                 {
                     AleFile ale = null;
                     try
@@ -230,7 +230,7 @@ namespace LancerEdit
                         main.AddTab(new AleViewer(Title, ale, main));
                 }
 
-                if (ImGui.MenuItem("Resolve Audio Hashes"))
+                if (tb.ButtonItem("Resolve Audio Hashes"))
                 {
                     var folder = FileDialog.ChooseFolder();
                     if (folder != null)
@@ -250,14 +250,13 @@ namespace LancerEdit
                         }
                     }
                 }
-                ImGui.EndPopup();
+                if(tb.ButtonItem("Reload Resources"))
+                {
+                    main.Resources.RemoveResourcesForId(Unique.ToString());
+                    main.Resources.AddResources(Utf.Export(), Unique.ToString());
+                }
             }
-            ImGui.SameLine();
-            if(ImGui.Button("Reload Resources"))
-            {
-                main.Resources.RemoveResourcesForId(Unique.ToString());
-                main.Resources.AddResources(Utf.Export(), Unique.ToString());
-            }
+           
             Popups();
         }
        
