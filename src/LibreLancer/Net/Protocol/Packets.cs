@@ -348,8 +348,8 @@ namespace LibreLancer.Net.Protocol
             message.PutBool(HasPosition);
             message.PutBool(Tradelane);
             message.PutBool(EngineKill);
-            message.PutBool(Hull);
             message.PutUInt((uint)RepToPlayer, 2);
+            message.PutBool(Hull);
             message.PutBool(LinearVelocity != Vector3.Zero || AngularVelocity != Vector3.Zero);
             message.PutBool(Guns != null && Guns.Length > 0);
             message.PutBool(PartHealth != null && PartHealth.Length > 0);
@@ -399,8 +399,7 @@ namespace LibreLancer.Net.Protocol
             p.EngineKill = message.GetBool();
             p.RepToPlayer = (RepAttitude) message.GetUInt(2);
             p.Hull = message.GetBool();
-            bool readLinear = message.GetBool();
-            bool readAngular = message.GetBool();
+            bool readVelocity = message.GetBool();
             bool readGuns = message.GetBool();
             bool readParts = message.GetBool();
             p.CruiseThrust = (CruiseThrustState) message.GetUInt(2);
@@ -412,8 +411,11 @@ namespace LibreLancer.Net.Protocol
                 p.Position = message.GetVector3();
                 p.Orientation = message.GetQuaternion();
             }
-            if (readLinear) p.LinearVelocity = message.GetRangedVector3(-32768, 32767, 24);
-            if (readAngular) p.AngularVelocity = message.GetRangedVector3(-16384, 16383, 24);
+            if (readVelocity)
+            {
+                p.LinearVelocity = message.GetRangedVector3(-32768, 32767, 24);
+                p.AngularVelocity = message.GetRangedVector3(-16384, 16383, 24);
+            }
             switch (throttle)
             {
                 case 0:
