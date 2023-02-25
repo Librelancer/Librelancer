@@ -30,15 +30,16 @@ namespace Launcher
             FileDialog.RegisterParent(this);
             freelancerFolder = new TextBuffer(512);
             config = GameConfig.Create();
-            if (config.FreelancerPath == "")
+            if (string.IsNullOrEmpty(config.FreelancerPath))
             {
                 if (Platform.RunningOS == OS.Windows)
                 {
                     var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
-                    const string flPathRegistry = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-
+                    string flPathRegistry = IntPtr.Size == 8 
+                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
+                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
                     var actualPath = (string) Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-                    freelancerFolder.SetText(actualPath);
+                    if(!string.IsNullOrEmpty(actualPath)) freelancerFolder.SetText(actualPath);
                 }
             }
             else
