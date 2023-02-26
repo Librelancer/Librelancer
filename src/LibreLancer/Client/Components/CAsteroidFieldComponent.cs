@@ -17,11 +17,10 @@ namespace LibreLancer.Client.Components
 	public class CAsteroidFieldComponent : GameComponent
 	{
 		public AsteroidField Field;
-        SurCollider shape;
-		public CAsteroidFieldComponent(AsteroidField field, GameObject parent) : base(parent)
+        ConvexMeshCollider shape;
+		public CAsteroidFieldComponent(AsteroidField field, ResourceManager res, GameObject parent) : base(parent)
 		{
 			Field = field;
-            //var shapes = new List<CompoundSurShape.TransformedShape>();
             Dictionary<string, int> indexes = new Dictionary<string, int>();
 			foreach (var asteroid in Field.Cube)
             {
@@ -32,11 +31,11 @@ namespace LibreLancer.Client.Components
                     if(!indexes.TryGetValue(path, out idx)) {
                         if(shape == null)
                         {
-                            shape = new SurCollider(path);
+                            shape = new ConvexMeshCollider(res.GetSur(path));
                             idx = 0;
                             indexes.Add(path, 0);
                         } else {
-                            idx = shape.LoadSur(path);
+                            idx = shape.AddMeshProvider(res.GetSur(path));
                             indexes.Add(path, idx);
                         }
                     }

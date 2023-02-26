@@ -6,34 +6,16 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using BulletSharp;
 using BM = BulletSharp.Math;
-using LibreLancer.Physics.Sur;
 
 namespace LibreLancer.Physics
 {
-    public class SurCollider : Collider
+    public class ConvexMeshCollider : Collider
     {
         /* Sur Caching */
-        static Dictionary<string, SurFile> cachedsurs = new Dictionary<string, SurFile>();
-        static SurFile GetSur(string path)
-        {
-            lock (cachedsurs) //avoid race condition
-            {
-                var real = Path.GetFullPath(path);
-                SurFile sur;
-                if (!cachedsurs.TryGetValue(real, out sur))
-                {
-                    using (var stream = File.OpenRead(real))
-                    {
-                        sur = new SurFile(stream);
-                    }
-
-                    cachedsurs.Add(real, sur);
-                }
-                return sur;
-            }
-        }
+       
 
         internal override CollisionShape BtShape {
             get {
@@ -42,21 +24,46 @@ namespace LibreLancer.Physics
         }
 
         CompoundShape btCompound;
-        List<SurFile> surs = new List<SurFile>();
-        public SurCollider(string path)
+        List<IConvexMeshProvider> surs = new List<IConvexMeshProvider>();
+        public ConvexMeshCollider(IConvexMeshProvider mesh)
         {
-            surs.Add(GetSur(path));
+            surs.Add(mesh);
             btCompound = new CompoundShape();
         }
 
         List<CollisionPart> children = new List<CollisionPart>();
 
+        private Dictionary<(uint meshId, int surIdx), ConvexTriangleMeshShape[]> shapes =
+            new Dictionary<(uint meshId, int surIdx), ConvexTriangleMeshShape[]>();
+
+        unsafe ConvexTriangleMeshShape[] GetShape(uint meshId, int suridx)
+        {
+            var sur = surs[suridx];
+            if (!sur.HasShape(meshId)) return null;
+            if (!shapes.TryGetValue((meshId, suridx), out var hull))
+            {
+                var source = sur.GetMesh(meshId);
+                hull = new ConvexTriangleMeshShape[source.Length];
+                for (int i = 0; i < source.Length; i++)
+                {
+                    var vertices = new BM.Vector3[source[i].Vertices.Length];
+                    fixed (Vector3* sptr = source[i].Vertices)
+                    fixed(BM.Vector3* bptr = vertices)
+                    {
+                        Buffer.MemoryCopy(sptr, bptr, vertices.Length * sizeof(float) * 3, vertices.Length * sizeof(float) * 3);
+                    }
+                    hull[i] = new ConvexTriangleMeshShape(new TriangleIndexVertexArray(source[i].Indices, vertices));
+                }
+                shapes[(meshId, suridx)] = hull;
+            }
+            return hull;
+        }
+
         int currentIndex = 0;
         public void AddPart(uint meshId, Matrix4x4 localTransform, object tag, int suridx = 0)
         {
-            var sur = surs[suridx];
-            if (!sur.HasShape(meshId)) return;
-            var hulls = sur.GetShape(meshId);
+            var hulls = GetShape(meshId, suridx);
+            if (hulls == null) return;
             var pt = new CollisionPart() { Tag = tag, Index = currentIndex, Count = hulls.Length };
             var tr = localTransform.Cast();
             foreach(var h in hulls) {
@@ -66,9 +73,9 @@ namespace LibreLancer.Physics
             children.Add(pt);
         }
 
-        public int LoadSur(string path)
+        public int AddMeshProvider(IConvexMeshProvider mesh)
         {
-            surs.Add(GetSur(path));
+            surs.Add(mesh);
             return surs.Count - 1;
         }
         public void UpdatePart(object tag, Matrix4x4 localTransform)
@@ -130,5 +137,4 @@ namespace LibreLancer.Physics
             public Matrix4x4 CurrentTransform;
         }
     }
-
 }

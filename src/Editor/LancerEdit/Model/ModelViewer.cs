@@ -17,6 +17,7 @@ using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 using LibreLancer.Client.Components;
 using LibreLancer.Render;
+using LibreLancer.Sur;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
@@ -746,18 +747,23 @@ namespace LancerEdit
                 {
                     var file = FileDialog.Open(SurFilters);
                     surname = System.IO.Path.GetFileName(file);
-                    LibreLancer.Physics.Sur.SurFile sur;
+                    SurFile sur;
+                    #if !DEBUG
                     try
                     {
+                    #endif
                         using (var f = System.IO.File.OpenRead(file))
                         {
-                            sur = new LibreLancer.Physics.Sur.SurFile(f);
+                            sur = SurFile.Read(f);
                         }
+                    #if !DEBUG
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        FLLog.Error("Sur", e.Message + "\n" + e.StackTrace);
                         sur = null;
                     }
+                    #endif
                     if (sur != null) ProcessSur(sur);
                 }
                 if(surs != null)

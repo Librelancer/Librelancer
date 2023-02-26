@@ -12,10 +12,10 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
-using LibreLancer.Physics.Sur;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Sur;
 using LibreLancer.Thn;
 
 namespace LancerEdit
@@ -105,7 +105,7 @@ namespace LancerEdit
             public VertexBuffer Vertices;
             public ElementBuffer Elements;
             public List<SurDrawCall> Draws = new List<SurDrawCall>();
-            public Part Part;
+            public RigidModelPart Part;
             public bool Hardpoint;
 
             public List<VertexPositionColor> BuildVertices = new List<VertexPositionColor>();
@@ -122,7 +122,7 @@ namespace LancerEdit
         Color4 surPart = new Color4(1, 0, 0, 0.4f);
         Color4 surHardpoint = new Color4(128, 0, 128, 80);
         Color4 surShield = new Color4(100, 149, 237, 32);
-        void ProcessSur(LibreLancer.Physics.Sur.SurFile surfile)
+        void ProcessSur(SurFile surfile)
         {
             if(surs != null) {
                 foreach(var mdl in surs)
@@ -134,15 +134,23 @@ namespace LancerEdit
             surs = new List<SurModel>();
             if((drawable is ModelFile))
             {
-                surs.Add(GetSurModel(surfile.GetMesh(0,false), null, surPart));
+                /*surs.Add(GetSurModel(surfile.GetMesh(0,false), null, surPart));
                 foreach(var hpid in surfile.HardpointIds)
                 {
                     surs.Add(GetSurModel(surfile.GetMesh(hpid, true), null, surHardpoint));
-                }
+                }*/
+                surs.Add(GetSurModel(surfile.GetMesh(0), null, surPart));
             }
             else
             {
-                Dictionary<Part, SurPart> surParts;
+                foreach (var kv in vmsModel.Parts)
+                {
+                    var crc = CrcTool.FLModelCrc(kv.Key);
+                    if (!surfile.HasShape(crc))
+                        continue;
+                    surs.Add(GetSurModel(surfile.GetMesh(crc), kv.Value, surPart));
+                }
+                /*Dictionary<Part, SurPart> surParts;
                 var surHierarchy = ((CmpFile) drawable).ToSurHierarchy(out surParts);
                 surfile.FillMeshHierarchy(surHierarchy);
                 foreach (var kv in surParts)
@@ -167,10 +175,10 @@ namespace LancerEdit
                     mdl.Vertices.SetElementBuffer(mdl.Elements);
                     mdl.BuildIndices = null;
                     surs.Add(mdl);
-                }
+                }*/
             }
         }
-        void AddVertices(SurModel mdl, LibreLancer.Physics.Sur.ConvexMesh mesh)
+        void AddVertices(SurModel mdl, LibreLancer.Physics.ConvexMesh mesh)
         {
             var baseVertex = mdl.BuildVertices.Count;
             var index = mdl.BuildIndices.Count;
@@ -178,7 +186,7 @@ namespace LancerEdit
             mdl.BuildIndices.AddRange(mesh.Indices.Select(x => (short)x));
             mdl.Draws.Add(new SurDrawCall() { BaseVertex = baseVertex, Start = index, Count = mesh.Indices.Length / 3 });
         }
-        SurModel GetSurModel(LibreLancer.Physics.Sur.ConvexMesh[] meshes, Part part, Color4 color)
+        SurModel GetSurModel(LibreLancer.Physics.ConvexMesh[] meshes, RigidModelPart part, Color4 color)
         {
             var mdl = new SurModel() { Part = part };
             if (color != surPart) mdl.Hardpoint = true;
@@ -201,21 +209,25 @@ namespace LancerEdit
         {
             var mat = wireframeMaterial3db.Render;
             var world = GetModelMatrix();
-            var whandle = new WorldMatrixHandle()
-            {
-                ID = (ulong)Environment.TickCount,
-                Source = &world,
-            };
+           
             rstate.Cull = false;
             rstate.DepthWrite = false;
             var bm = ((BasicMaterial)mat);
             bm.Oc = 1;
             bm.OcEnabled = true;
             rstate.PolygonOffset = new Vector2(1, 1);
+            var x = (ulong) Environment.TickCount << 8;
             foreach(var mdl in surs) {
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
                 mat.Camera = cam;
+                var transform =  world * mdl.Part.LocalTransform;
+                var whandle = new WorldMatrixHandle()
+                {
+                    ID = x,
+                    Source = &transform,
+                };
+                x++;
                 mat.World = whandle;
                 mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
                 foreach (var dc in mdl.Draws)

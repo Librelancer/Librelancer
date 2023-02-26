@@ -13,12 +13,15 @@ using LibreLancer.Vertices;
 using LibreLancer.Primitives;
 using LibreLancer.Fx;
 using LibreLancer.Render;
+using LibreLancer.Sur;
 
 namespace LibreLancer
 {
     //TODO: Allow for disposing and all that Jazz
     public abstract class ResourceManager : ILibFile
     {
+        Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
+
         public abstract void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index) where T : struct;
         public abstract QuadSphere GetQuadSphere(int slices);
         public abstract OpenCylinder GetOpenCylinder(int slices);
@@ -41,12 +44,25 @@ namespace LibreLancer
 
         public abstract bool TryGetShape(string name, out TextureShape shape);
         public abstract bool TryGetFrameAnimation(string name, out TexFrameAnimation anim);
+
+        public SurFile GetSur(string filename)
+        {
+            SurFile sur;
+            if (!surs.TryGetValue(filename, out sur))
+            {
+                using (var stream = File.OpenRead(filename))
+                {
+                    sur = SurFile.Read(stream);
+                }
+                surs.Add(filename, sur);
+            }
+            return sur;
+        }
     }
 
     public class ServerResourceManager : ResourceManager
     {
         Dictionary<string, IDrawable> drawables = new Dictionary<string, IDrawable>(StringComparer.OrdinalIgnoreCase);
-
         public override Dictionary<string, Texture> TextureDictionary => throw new InvalidOperationException();
         public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => throw new InvalidOperationException();

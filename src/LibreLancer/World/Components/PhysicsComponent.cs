@@ -5,6 +5,7 @@
 using System.Numerics;
 using LibreLancer.Physics;
 using LibreLancer.Render;
+using LibreLancer.Sur;
 
 namespace LibreLancer.World.Components
 {
@@ -13,10 +14,10 @@ namespace LibreLancer.World.Components
         public PhysicsObject Body;
         public float Mass; //0 mass means it can't move
         public Vector3? Inertia = null;
-        public string SurPath;
+        public SurFile Sur;
         public float SphereRadius = -1;
         Collider collider;
-        SurCollider sur;
+        ConvexMeshCollider _convexMesh;
         public uint PlainCrc = 0;
         PhysicsWorld pworld;
 
@@ -31,7 +32,7 @@ namespace LibreLancer.World.Components
         public void ChildDebris(GameObject parent, RigidModelPart part, float mass, Vector3 initialforce)
         {
             var cp = new PhysicsComponent(parent) { 
-                SurPath = this.SurPath,
+                Sur = this.Sur,
                 Mass = mass,
                 PlainCrc = CrcTool.FLModelCrc(part.Name),
             };
@@ -46,7 +47,7 @@ namespace LibreLancer.World.Components
         bool partRemoved = false;
         public void DisablePart(RigidModelPart part)
         {
-            sur.RemovePart(part);
+            _convexMesh.RemovePart(part);
             partRemoved = true;
         }
 
@@ -55,7 +56,7 @@ namespace LibreLancer.World.Components
             if (Body == null) return;
             if(partRemoved)
             {
-                sur.FinishUpdatePart();
+                _convexMesh.FinishUpdatePart();
                 partRemoved = true;
             }
             if (Body.Active && SetTransform)
@@ -83,21 +84,21 @@ namespace LibreLancer.World.Components
             if (pworld == physics) return;
             pworld = physics;
             Collider cld = null;
-            if(SurPath == null) { //sphere
+            if(Sur == null) { //sphere
                 cld = new SphereCollider(SphereRadius);
             } else {
                 var mr = (ModelRenderer)Parent.RenderComponent;
-                sur = new SurCollider(SurPath);
-                cld = sur;
+                _convexMesh = new ConvexMeshCollider(Sur);
+                cld = _convexMesh;
                 if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
-                    sur.AddPart(PlainCrc, Matrix4x4.Identity, null);
+                    _convexMesh.AddPart(PlainCrc, Matrix4x4.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
                         var crc = CrcTool.FLModelCrc(part.Name);
                         if (part.Construct == null)
-                            sur.AddPart(crc, Matrix4x4.Identity, part);
+                            _convexMesh.AddPart(crc, Matrix4x4.Identity, part);
                         else
-                            sur.AddPart(crc, part.LocalTransform, part);
+                            _convexMesh.AddPart(crc, part.LocalTransform, part);
                     }
                 }
             }
@@ -116,9 +117,9 @@ namespace LibreLancer.World.Components
             if (Body == null) return;
             foreach(var part in Parent.RigidModel.AllParts) {
                 if (part.Construct != null)
-                    sur.UpdatePart(part, part.LocalTransform);
+                    _convexMesh.UpdatePart(part, part.LocalTransform);
             }
-            sur.FinishUpdatePart();
+            _convexMesh.FinishUpdatePart();
         }
         public override void Unregister(PhysicsWorld physics)
         {

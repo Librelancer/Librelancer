@@ -294,7 +294,7 @@ namespace LibreLancer.World
             {
                 PhysicsComponent = new PhysicsComponent(this)
                 {
-                    SurPath = path,
+                    Sur = res.GetSur(path),
                     Mass = mass,
                     PlainCrc = plainCrc
                 };
@@ -376,7 +376,7 @@ namespace LibreLancer.World
 				var path = Path.ChangeExtension(RigidModel.Path, "sur");
                 name = Path.GetFileNameWithoutExtension(RigidModel.Path);
                 if (File.Exists(path))
-                    phys = new PhysicsComponent(this) { SurPath = path };
+                    phys = new PhysicsComponent(this) { Sur = res.GetSur(path) };
                 else if (havePhys)
                 {
                     FLLog.Error("Sur", $"Could not load sur file {path}");

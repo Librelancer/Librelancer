@@ -10,7 +10,6 @@ using System.Linq;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Physics.Sur;
 
 namespace LibreLancer.Utf.Cmp
 {
@@ -222,25 +221,6 @@ namespace LibreLancer.Utf.Cmp
             mdl.Animation = Animation;
             mdl.UpdateTransform();
             return mdl;
-        }
-        
-        public SurPart ToSurHierarchy(out Dictionary<Part, SurPart> surParts)
-        {
-            surParts = new Dictionary<Part, SurPart>();
-            foreach (var part in Parts)  {
-                var sp = new SurPart() {Children = new List<SurPart>(), Hash = CrcTool.FLModelCrc(part.ObjectName)};
-                surParts.Add(part, sp);
-            }
-            foreach (var part in Parts)
-            {
-                if (part.Construct != null)
-                {
-                    var p = Parts.FirstOrDefault((x) =>
-                        x.ObjectName.Equals(part.Construct.ParentName, StringComparison.OrdinalIgnoreCase));
-                    if (p != null) surParts[p].Children.Add(surParts[part]);
-                }
-            }
-            return surParts[GetRootPart()];
         }
 
         public void ClearResources()

@@ -115,7 +115,7 @@ namespace LibreLancer.World
                 var g = new GameObject();
                 g.Resources = res;
                 g.World = this;
-                g.Components.Add(new CAsteroidFieldComponent(field, g));
+                g.Components.Add(new CAsteroidFieldComponent(field, res, g));
                 AddObject(g);
                 g.Register(Physics);
             }

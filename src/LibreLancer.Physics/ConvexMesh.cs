@@ -3,12 +3,11 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Numerics;
-namespace LibreLancer.Physics.Sur
+namespace LibreLancer.Physics
 {
     public class ConvexMesh
     {
         public Vector3[] Vertices;
         public int[] Indices;
-        public uint ParentCrc;
     }
 }
