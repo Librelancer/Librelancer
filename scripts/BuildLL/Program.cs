@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using static Bullseye.Targets;
 using static BuildLL.Runtime;
 
@@ -52,7 +53,7 @@ namespace BuildLL
 
        static  List<string> publishedProjects = new List<string>();
 
-        static void FullBuild(string rid, bool sdk)
+        static async Task FullBuild(string rid, bool sdk)
         {
             var projs = sdk ? sdkProjects : engineProjects;
             var objDir = "./obj/projs-";
@@ -66,7 +67,7 @@ namespace BuildLL
                     publishedProjects.Add(rid + ":" + proj);
                 }
             }
-            CustomPublish.Merge(objDir + rid, binDir + rid, rid,
+            await CustomPublish.Merge(objDir + rid, binDir + rid, rid,
                 projs.Select(x => Path.GetFileNameWithoutExtension(x)).ToArray());
             CopyFile("Credits.txt", outdir);
             if (IsWindows) {
@@ -193,16 +194,21 @@ namespace BuildLL
 
             Target("Restore", () =>
             {
-                Dotnet.Restore("LibreLancer.sln");
+                if(IsWindows) {
+                    Dotnet.Restore("LibreLancer.sln", "win7-x86");
+                    Dotnet.Restore("LibreLancer.sln", "win7-x64");
+                } else {
+                    Dotnet.Restore("LibreLancer.sln", GetLinuxRid());
+                }
             });
             
-            Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives", "Restore"), () =>
+            Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives", "Restore"), async () =>
             {
                 if(IsWindows) {
-                    FullBuild("win7-x86", false);
-                    FullBuild("win7-x64", false);
+                    await FullBuild("win7-x86", false);
+                    await FullBuild("win7-x64", false);
                 } else
-                    FullBuild(GetLinuxRid(), false);
+                    await FullBuild(GetLinuxRid(), false);
             });
             Target("BuildDocumentation", DependsOn("GenerateVersion"), () =>
             {
@@ -217,13 +223,13 @@ namespace BuildLL
                 }
 
             });
-            Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "Restore"), () =>
+            Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "Restore"), async () =>
             {
                 if(IsWindows) {
-                    FullBuild("win7-x86", true);
-                    FullBuild("win7-x64", true);
+                    await FullBuild("win7-x86", true);
+                    await FullBuild("win7-x64", true);
                 } else
-                    FullBuild(GetLinuxRid(), true);
+                    await FullBuild(GetLinuxRid(), true);
             });
 
             static void TarDirectory(string file, string dir)

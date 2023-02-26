@@ -16,13 +16,13 @@ namespace BuildLL
         {
             return CPUCount > 0 ? $"-maxcpucount:{CPUCount}" : "";
         }
-        public static void Restore(string project)
+        public static void Restore(string project, string runtime)
         {
-            RunCommand("dotnet", $"restore {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"restore {M()} -r {runtime} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
         public static void Build(string project)
         {
-            RunCommand("dotnet", $"build {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"build {M()} --no-restore /nr:false {P(project)}");
         }
         public static void Clean(string project)
         {
@@ -38,7 +38,7 @@ namespace BuildLL
         public static void Publish(string project, DotnetPublishSettings settings = null)
         {
             var argbuilder = new StringBuilder();
-            argbuilder.Append($"publish {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false");
+            argbuilder.Append($"publish {M()} --no-restore /nr:false");
             if (!string.IsNullOrWhiteSpace(settings?.Configuration))
                 argbuilder.Append(" -c ").Append(settings.Configuration);
             if (!string.IsNullOrWhiteSpace(settings?.OutputDirectory))

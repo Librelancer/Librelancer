@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
+using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static BuildLL.Runtime;
@@ -12,13 +14,13 @@ namespace BuildLL
 {
     public static class CustomPublish
     {
-        static string CalculateMD5(string filename)
+        static async Task<string> CalculateMD5(string filename)
         {
             using (var md5 = MD5.Create())
             {
                 using (var stream = File.OpenRead(filename))
                 {
-                    var hash = md5.ComputeHash(stream);
+                    var hash = await md5.ComputeHashAsync(stream);
                     return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
                 }
             }
@@ -35,7 +37,7 @@ namespace BuildLL
             }
         }
 
-        public static void Merge(string sourceDir, string outputDir, string rid, string[] directories)
+        public static async Task Merge(string sourceDir, string outputDir, string rid, string[] directories)
         {
             var splitRID = rid.Split('-');
             var win32 = splitRID[0].ToLowerInvariant() == "win7";
@@ -48,16 +50,21 @@ namespace BuildLL
             {
                 if (!directories.Contains(Path.GetFileNameWithoutExtension(dir))) continue;
                 Console.WriteLine($"Validating {dir}");
-                foreach(var file in Directory.GetFiles(dir,"*", SearchOption.AllDirectories)) {
-                    var fname = file.Substring(dir.Length);
-                    var md5 = CalculateMD5(file);
-                    if(hashes.TryGetValue(fname, out string oldmd5)) {
-                        if(oldmd5 != md5) {
-                            Console.Error.WriteLine($"{fname} MD5 mismatch");
+                List<Task<(string File, string Hash)>> calculatedHashes = new List<Task<(string File, string Hash)>>();
+                foreach(var file in Directory.GetFiles(dir,"*", SearchOption.AllDirectories))
+                {
+                    calculatedHashes.Add(Task.Run(async () => (file.Substring(dir.Length), await CalculateMD5(file))));
+                }
+                await Task.WhenAll(calculatedHashes);
+                foreach (var result in calculatedHashes.Select(x => x.Result))
+                {
+                    if(hashes.TryGetValue(result.File, out string oldmd5)) {
+                        if(oldmd5 != result.Hash) {
+                            Console.Error.WriteLine($"{result.File} MD5 mismatch");
                             valid = false;
                         }
                     } else
-                        hashes[fname] = md5;
+                        hashes[result.File] = result.Hash;
                 }
             }
 
