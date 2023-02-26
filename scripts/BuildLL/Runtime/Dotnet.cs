@@ -16,14 +16,11 @@ namespace BuildLL
         {
             return CPUCount > 0 ? $"-maxcpucount:{CPUCount}" : "";
         }
-        public static void Restore(string project, string runtime)
+        public static void Restore(string project, string rid)
         {
-            RunCommand("dotnet", $"restore {M()} -r {runtime} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"restore {M()} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
-        public static void Build(string project)
-        {
-            RunCommand("dotnet", $"build {M()} --no-restore /nr:false {P(project)}");
-        }
+        
         public static void Clean(string project)
         {
             RunCommand("dotnet", $"clean {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");

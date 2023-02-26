@@ -55,6 +55,7 @@ namespace BuildLL
 
         static async Task FullBuild(string rid, bool sdk)
         {
+            Dotnet.Restore("LibreLancer.sln", rid);
             var projs = sdk ? sdkProjects : engineProjects;
             var objDir = "./obj/projs-";
             var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
@@ -191,18 +192,9 @@ namespace BuildLL
                 else
                     Clean(GetLinuxRid());
             });
-
-            Target("Restore", () =>
-            {
-                if(IsWindows) {
-                    Dotnet.Restore("LibreLancer.sln", "win7-x86");
-                    Dotnet.Restore("LibreLancer.sln", "win7-x64");
-                } else {
-                    Dotnet.Restore("LibreLancer.sln", GetLinuxRid());
-                }
-            });
             
-            Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives", "Restore"), async () =>
+            
+            Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives"), async () =>
             {
                 if(IsWindows) {
                     await FullBuild("win7-x86", false);
@@ -223,7 +215,7 @@ namespace BuildLL
                 }
 
             });
-            Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "Restore"), async () =>
+            Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives"), async () =>
             {
                 if(IsWindows) {
                     await FullBuild("win7-x86", true);
