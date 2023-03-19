@@ -41,6 +41,9 @@
     <EmbeddedResource Include="reactor_128.png" />
     <None Remove="reactor_64.png" />
     <EmbeddedResource Include="reactor_64.png" />
+    <None Update="editorscripts\thorn2lua.cs-script">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

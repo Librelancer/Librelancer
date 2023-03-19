@@ -72,6 +72,15 @@ namespace LancerEdit
                             if(!string.IsNullOrEmpty(result)) InputText.SetText(result);
                         }
                         break;
+                    case ScriptArgumentType.SaveFile:
+                        InputText.InputText(Argument.Name, ImGuiInputTextFlags.None, 100);
+                        ImGui.SameLine();
+                        if (ImGui.Button(".."))
+                        {
+                            var result = FileDialog.Save();
+                            if(!string.IsNullOrEmpty(result)) InputText.SetText(result);
+                        }
+                        break;
                     case ScriptArgumentType.FileArray:
                         ImGui.Text(Argument.Name);
                         ImGui.Separator();

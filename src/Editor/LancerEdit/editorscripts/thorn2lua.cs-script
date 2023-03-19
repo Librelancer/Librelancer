@@ -1,0 +1,20 @@
+// [Script]
+// name = Decompile .thn file
+// [Argument]
+// name = Input File
+// type = file
+// [Argument]
+// name = Output File
+// type = savefile
+
+using LibreLancer.Thn;
+
+ScriptUsage("input.thn [output.txt]");
+
+var args = ParseArguments(1);
+AssertFileExists(args[0]);
+
+if (args.Length == 1)
+    Console.WriteLine(ThnDecompile.Decompile(args[0]));
+else
+    File.WriteAllText(args[1], ThnDecompile.Decompile(args[0]));

@@ -27,7 +27,6 @@ namespace BuildLL
         static readonly string[] sdkProjects = {
             "src/lancer/lancer.csproj",
             "src/LLServer/LLServer.csproj",
-            "src/thorn2lua/thorn2lua.csproj",
             "src/Editor/InterfaceEdit/InterfaceEdit.csproj",
             "src/Editor/LancerEdit/LancerEdit.csproj",
             "src/Editor/SystemViewer/SystemViewer.csproj",

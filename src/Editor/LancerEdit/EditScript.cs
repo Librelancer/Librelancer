@@ -15,6 +15,7 @@ namespace LancerEdit
     {
         String,
         File,
+        SaveFile,
         Folder,
         Boolean,
         Integer,
