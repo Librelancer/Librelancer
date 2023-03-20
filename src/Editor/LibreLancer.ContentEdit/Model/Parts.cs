@@ -8,9 +8,9 @@ using System.Text;
 using System.IO;
 using LibreLancer;
 using LibreLancer.Utf;
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
-    class SphereConstructor : PartNodeConstructor
+    public class SphereConstructor : PartNodeConstructor
     {
         public void Add(SphereConstruct con)
         {
@@ -27,7 +27,7 @@ namespace LancerEdit
             writer.Write(con.Max3);
         }
     }
-    class PrisConstructor : PartNodeConstructor
+    public class PrisConstructor : PartNodeConstructor
     {
         public void Add(PrisConstruct con)
         {
@@ -43,7 +43,7 @@ namespace LancerEdit
             writer.Write(con.Max);
         }
     }
-    class RevConstructor : PartNodeConstructor
+    public class RevConstructor : PartNodeConstructor
     {
         public void Add(RevConstruct con)
         {
@@ -59,7 +59,7 @@ namespace LancerEdit
             writer.Write(con.Max);
         }
     }
-    class FixConstructor : PartNodeConstructor 
+    public class FixConstructor : PartNodeConstructor 
     { 
         public void Add(string parentName, string objectName, Matrix4x4 transform)
         {
@@ -75,7 +75,7 @@ namespace LancerEdit
         }
     }
 
-    abstract class PartNodeConstructor
+    public abstract class PartNodeConstructor
     {
         MemoryStream stream = new MemoryStream();
         protected BinaryWriter writer;

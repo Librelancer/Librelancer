@@ -3,14 +3,14 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LancerEdit
+namespace LibreLancer.ContentEdit
 {
     public static class DefaultTexture
     {
         public static readonly byte[] Data;
         static DefaultTexture()
         {
-            using(var stream = typeof(DefaultTexture).Assembly.GetManifestResourceStream("LancerEdit.defaulttexture.dds")) {
+            using(var stream = typeof(DefaultTexture).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.defaulttexture.dds")) {
                 Data = new byte[(int)stream.Length];
                 stream.Read(Data, 0, (int)stream.Length);
             }

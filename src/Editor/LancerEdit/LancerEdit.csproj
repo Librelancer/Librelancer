@@ -32,7 +32,6 @@
 
   <ItemGroup>
     <None Remove="defaulttexture.dds" />
-    <EmbeddedResource Include="defaulttexture.dds" />
     <None Remove="grid.dds" />
     <None Update="editorscripts\img2icon.cs-script">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

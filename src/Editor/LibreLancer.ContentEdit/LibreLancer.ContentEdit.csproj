@@ -20,4 +20,8 @@
       <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="defaulttexture.dds" />
+    </ItemGroup>
+
 </Project>
