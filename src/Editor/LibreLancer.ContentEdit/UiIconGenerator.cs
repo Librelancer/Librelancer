@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using LibreLancer.ContentEdit.Model;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
 using SimpleMesh;
@@ -16,10 +17,10 @@ namespace LibreLancer.ContentEdit
     {
 
         private static Vertex[] vertices_ship = {
-            new Vertex(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vertex(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
+            new Vertex(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
+            new Vertex(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
         };
 
         private static ushort[] indices_ship = {

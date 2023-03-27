@@ -36,9 +36,12 @@ for(int i = 2; i < Arguments.Length; i++) {
     } else {
         utf = UiIconGenerator.UncompressedFromFile(Path.GetFileName(file), file, false);
     }
-    string err = null;
-    if(!utf.Save(outfile, 0, ref err)) {
-        Console.Error.WriteLine("Error writing utf: {err}");
+
+    var utfSave = utf.Save(outfile, 0);
+    PrintMessages(utfSave);
+        
+    if(utfSave.IsError) {
+        Console.WriteLine($"Error writing 'outfile'.");
         continue;
     }
 }

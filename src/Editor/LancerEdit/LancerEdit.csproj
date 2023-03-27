@@ -32,7 +32,6 @@
 
   <ItemGroup>
     <None Remove="defaulttexture.dds" />
-    <EmbeddedResource Include="defaulttexture.dds" />
     <None Remove="grid.dds" />
     <None Update="editorscripts\img2icon.cs-script">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -41,6 +40,12 @@
     <EmbeddedResource Include="reactor_128.png" />
     <None Remove="reactor_64.png" />
     <EmbeddedResource Include="reactor_64.png" />
+    <None Update="editorscripts\thorn2lua.cs-script">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="editorscripts\importmodel.cs-script">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

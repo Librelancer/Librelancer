@@ -8,7 +8,7 @@ using System.Text;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 
-namespace LancerEdit
+namespace LibreLancer.ContentEdit.Model
 {
     public class DumpObject
     {

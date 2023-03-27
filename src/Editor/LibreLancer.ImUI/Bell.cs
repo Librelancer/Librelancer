@@ -5,66 +5,25 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using LibreLancer.Media;
 
 namespace LibreLancer.ImUI
 {
     public class Bell
     {
-        [DllImport("libcanberra.so.0")]
-        static extern int ca_context_create(ref IntPtr ctx);
-
-        [DllImport("libcanberra.so.0")]
-        static extern int ca_context_play_full(IntPtr c, uint id, IntPtr p, IntPtr cb, IntPtr userdata);
-
-        delegate void ca_finish_callback_t(IntPtr c, uint id, int error_code, IntPtr userdata);
-
-        [DllImport("libcanberra.so.0")]
-        static extern int ca_proplist_create(ref IntPtr p);
-
-        [DllImport("libcanberra.so.0")]
-        static extern int ca_proplist_destroy(IntPtr p);
-
-        [DllImport("libcanberra.so.0")]
-        static extern int ca_context_destroy(IntPtr p);
-
-        [DllImport("libcanberra.so.0")]
-        static extern int ca_proplist_sets(IntPtr p, [MarshalAs(UnmanagedType.LPStr)] string key,
-            [MarshalAs(UnmanagedType.LPStr)] string value);
-
-        private const string CA_PROP_EVENT_ID = "event.id";
-        private const string CA_PROP_EVENT_DESCRIPTION = "event.description";
-
-        private static bool tryCanberra = true;
-
-        private static DateTime lastPlay = DateTime.UnixEpoch;
-        static void PlayCanberra()
+        private static AudioManager audio;
+        public static void Init(AudioManager am)
         {
-            if (!tryCanberra) return;
-            new Thread(() =>
-            {
-                try
-                {
-                    IntPtr ctx = IntPtr.Zero;
-                    ca_context_create(ref ctx);
-                    IntPtr proplist = IntPtr.Zero;
-                    ca_proplist_create(ref proplist);
-                    ca_proplist_sets(proplist, CA_PROP_EVENT_ID, "bell-window-system");
-                    ca_proplist_sets(proplist, CA_PROP_EVENT_DESCRIPTION, "Bell event");
-                    var waitHandle = new AutoResetEvent(false);
-                    ca_finish_callback_t finished = (ptr, id, code, userdata) => waitHandle.Set();
-                    var finishedPtr = Marshal.GetFunctionPointerForDelegate(finished);
-                    ca_context_play_full(ctx, 0, proplist, finishedPtr, IntPtr.Zero);
-                    ca_proplist_destroy(proplist);
-                    waitHandle.WaitOne();
-                    waitHandle.Dispose();
-                    ca_context_destroy(ctx);
-                }
-                catch (Exception)
-                {
-                    tryCanberra = false;
-                }
-            }).Start();
+            audio = am;
         }
+        
+        static void PlayGeneric()
+        {
+            if (audio == null) return;
+            audio.PlayStream(typeof(Bell).Assembly.GetManifestResourceStream("LibreLancer.ImUI.bell.ogg"));
+        }
+        
+        private static DateTime lastPlay = DateTime.UnixEpoch;
 
         [DllImport("winmm.dll", SetLastError=true)]
         static extern bool PlaySound(string pszSound, IntPtr hmod, uint fdwSound);
@@ -81,9 +40,9 @@ namespace LibreLancer.ImUI
                 {
                     PlaySound("Asterisk", IntPtr.Zero, SND_ASYNC);
                 }
-                else if (Platform.RunningOS == OS.Linux)
+                else 
                 {
-                    PlayCanberra();
+                    PlayGeneric();
                 }
             }
         }

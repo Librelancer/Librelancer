@@ -12,6 +12,8 @@ namespace LibreLancer.Utf
     {
         public override Matrix4x4 LocalTransform { get { return internalGetTransform(Rotation * Matrix4x4.CreateTranslation(Origin)); } }
 
+        public LooseConstruct() { }
+
         public LooseConstruct(BinaryReader reader)
             : base(reader)
         {

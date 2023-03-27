@@ -77,6 +77,14 @@ namespace LibreLancer
             A = a;
         }
 
+        public Color4(Vector4 vector)
+        {
+            R = vector.X;
+            G = vector.Y;
+            B = vector.Z;
+            A = vector.W;
+        }
+
         /// <summary>
         /// Constructs a new Color4 structure from the specified components.
         /// </summary>

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -12,12 +13,91 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
+using Mono.Options;
 
 namespace lleditscript
 {
     public class Globals //Must be public or compiler error in script
     {
         public string[] Arguments;
+
+        public Globals(string[] args, string scriptName)
+        {
+            this.Arguments = args;
+            this.scriptName = scriptName;
+        }
+
+        private string scriptName;
+        private string usage = "";
+        
+        public void ScriptUsage(string usage)
+        {
+            this.usage = usage;
+        }
+
+        private OptionSet os = new OptionSet();        
+        
+        public void PrintMessages<T>(EditResult<T> result)
+        {
+            foreach(var m in result.Messages)
+                Console.WriteLine($"{m.Kind}: {m.Message}");
+        }
+
+        public void FlagOption(string prototype, string description, Action<bool> action)
+        {
+            os.Add(prototype, description, action);
+        }
+
+        public void StringOption(string prototype, string description, Action<string> action)
+        {
+            os.Add(prototype, description, action);
+        }
+
+        void PrintUsage()
+        {
+            if (!string.IsNullOrEmpty(usage))
+                Console.WriteLine($"Usage: lleditscript {scriptName} {usage}");
+            else {
+                Console.WriteLine($"Usage: lleditscript {scriptName} [options] [arguments]");
+            }
+            os.WriteOptionDescriptions(Console.Out);
+        }
+
+        public string[] ParseArguments(int minArguments = 0)
+        {
+            List<string> extra;
+            try
+            {
+                extra = os.Parse(Arguments);
+                if (extra.Count < minArguments) {
+                    PrintUsage();
+                    Environment.Exit(0);
+                }
+                return extra.ToArray();
+            }
+            catch (OptionException e) {
+                Console.Write ($"lleditscript {scriptName}: ");
+                Console.WriteLine (e.Message);
+                Environment.Exit(1);
+                return Array.Empty<string>();
+            }
+        }
+
+        public void AssertFileExists(string filename)
+        {
+            if (!File.Exists(filename))
+            {
+                Console.Error.WriteLine($"Could not find file '{filename}'");
+                Environment.Exit(2);
+            }
+        }
+
+        public void AssertFilesExist(IEnumerable<string> filenames)
+        {
+            foreach (var f in filenames)
+                AssertFileExists(f);
+        }
+        
     }
     
     class Program
@@ -29,23 +109,67 @@ namespace lleditscript
             "System.IO",
             "System.Numerics",
             "LibreLancer.ContentEdit",
+            "LibreLancer.ContentEdit.Model",
             "LibreLancer"
         };
+
+        static string AssemblyEditorScriptPath()
+        {
+            return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "editorscripts");
+        }
+        
+        static string ModuleEditorScriptPath()
+        {
+            using var processModule = Process.GetCurrentProcess().MainModule;
+            var basePath = Path.GetDirectoryName(processModule?.FileName);
+            return Path.Combine(basePath, "editorscripts");
+        }
+
+        static string SearchFile(params string[] files) =>
+            files.FirstOrDefault(File.Exists, files[^1]);
+
+
         static int Main(string[] args)
         {
-            if (args.Length < 1)
+            bool argsStdin = false;
+            bool modulePath = false;
+            int argStart;
+            
+            for (argStart = 0; argStart < args.Length; argStart++)
             {
-                Console.Error.WriteLine("Usage: lleditscript script.cs [arguments]");
+                var a = args[argStart];
+                if (a == "--args-stdin") {
+                    argsStdin = true;
+                }
+                else if (a == "-m") {
+                    modulePath = true;
+                } 
+                else if (a == "--") {
+                    argStart++;
+                    break;
+                }
+                else {
+                    break;
+                }
+            }
+            
+            if (args.Length <= argStart)
+            {
+                Console.Error.WriteLine("Usage: lleditscript [--args-stdin] [-m] script.cs [arguments]");
                 return 0;
             }
 
-            bool argsStdin = false;
-            var filePath = args[0];
-
-            if (args[0] == "--args-stdin")
+            var filePath = args[argStart];
+            if (modulePath)
             {
-                argsStdin = true;
-                filePath = args[1];
+                filePath = SearchFile(
+                    Path.Combine(AssemblyEditorScriptPath(), filePath),
+                    Path.Combine(AssemblyEditorScriptPath(), filePath) + ".cs-script",
+                    Path.Combine(ModuleEditorScriptPath(), filePath),
+                    Path.Combine(ModuleEditorScriptPath(), filePath) + ".cs-script",
+                    filePath,
+                    filePath + ".cs-script"
+                );
             }
 
             string[] scriptArguments;
@@ -60,13 +184,13 @@ namespace lleditscript
                 scriptArguments = input_args.ToArray();
             } else
             {
-                scriptArguments = args.Skip(1).ToArray();
+                scriptArguments = args.Skip(argStart + 1).ToArray();
             }
             
             string scriptText = null;
             if (!File.Exists(filePath))
             {
-                Console.Error.WriteLine("Script file '{0}' not found", filePath);
+                Console.Error.WriteLine("Script file {1}'{0}' not found", filePath, modulePath ? "(or module) " : "");
                 return 2;
             }
             scriptText = File.ReadAllText(filePath);
@@ -75,7 +199,7 @@ namespace lleditscript
             {
                 scriptText = "#line 1\n" + scriptText.Substring(scriptText.IndexOf('\n'));
             }
-            
+
             try
             {
                 var opts = ScriptOptions.Default.WithReferences(
@@ -83,7 +207,8 @@ namespace lleditscript
                     typeof(FreelancerGame).Assembly, typeof(string).Assembly,
                     typeof(EditableUtf).Assembly, typeof(Game).Assembly)
                     .WithImports(Namespaces).WithAllowUnsafe(true).WithFilePath(filePath);
-                var globals = new Globals {Arguments = scriptArguments};
+                var globals = new Globals(scriptArguments, 
+                    modulePath ? $"-m {args[argStart]}" : args[argStart]);
                 var script = CSharpScript.Create(scriptText, opts, typeof(Globals));
                 var tk = script.RunAsync(globals);
                 tk.Wait();

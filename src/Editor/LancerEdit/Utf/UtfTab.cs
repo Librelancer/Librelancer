@@ -13,6 +13,9 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Ale;
 using LibreLancer.ContentEdit;
+using LibreLancer.ContentEdit.Model;
+using LibreLancer.Utf.Cmp;
+
 
 namespace LancerEdit
 {
@@ -83,6 +86,7 @@ namespace LancerEdit
             var path = "/" + string.Join("/", strings);
             return path;
         }
+        
 
         public override void Draw()
         {
@@ -170,50 +174,7 @@ namespace LancerEdit
                         main.AddTab(new ModelViewer(DocumentName, drawable, main, this,hpn));
                     }
                 }
-                if(tb.ButtonItem("Export Collada"))
-                {
-                    LibreLancer.Utf.Cmp.ModelFile model = null;
-                    LibreLancer.Utf.Cmp.CmpFile cmp = null;
-                    try
-                    {
-                        var drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
-                        model = (drawable as LibreLancer.Utf.Cmp.ModelFile);
-                        cmp = (drawable as LibreLancer.Utf.Cmp.CmpFile);
-                    }
-                    catch (Exception) { ErrorPopup("Could not open as model"); model = null; }
-                    if (model != null)
-                    {
-
-                        var output = FileDialog.Save();
-                        if(output != null) {
-                            model.Path = DocumentName;
-                            try
-                            {
-                                ColladaExport.ExportCollada(model, main.Resources, output);
-                            }
-                            catch (Exception ex)
-                            {
-                                ErrorPopup("Error\n" + ex.Message + "\n" + ex.StackTrace);
-                            }
-                        }
-                    }
-                    if(cmp != null)
-                    {
-                        var output = FileDialog.Save();
-                        if(output != null) {
-                            cmp.Path = DocumentName;
-                            try
-                            {
-                                ColladaExport.ExportCollada(cmp, main.Resources, output);
-                            }
-                            catch (Exception ex)
-                            {
-                                ErrorPopup("Error\n" + ex.Message + "\n" + ex.StackTrace);
-                            }
-                        }
-                       
-                    }
-                }
+                
                 if (tb.ButtonItem("View Ale"))
                 {
                     AleFile ale = null;

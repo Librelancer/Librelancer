@@ -4,12 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using ImGuiNET;
+using Microsoft.VisualBasic;
+
 namespace LibreLancer.ImUI
 {
     public class PopupManager
     {
         List<PopupContext> popups = new List<PopupContext>();
+        private List<MessageBoxData> messageBoxes = new List<MessageBoxData>();
+        
         class PopupContext
         {
             public bool DoOpen = false;
@@ -18,6 +23,17 @@ namespace LibreLancer.ImUI
             public string Title;
             public ImGuiWindowFlags Flags;
         }
+
+        private int unique = 0;
+
+        class MessageBoxData
+        {
+            public bool DoOpen = true;
+            public string Title;
+            public string Text;
+            public bool Multiline;
+        }
+        
         public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0)
         {
             popups.Add(new PopupContext() { Title = title, DrawAction = action, Flags = flags, Data = new PopupData() });
@@ -33,6 +49,16 @@ namespace LibreLancer.ImUI
                 }
             }
         }
+
+        public void MessageBox(string title, string message, bool selectable = true)
+        {
+            var msg = new MessageBoxData();
+            msg.Title = ImGuiExt.IDWithExtra(title, "msgbox" + unique++);
+            msg.Text = message;
+            msg.Multiline = selectable;
+            messageBoxes.Add(msg);
+        }
+        
         public void Run()
         {
             foreach(var p in popups) {
@@ -54,6 +80,37 @@ namespace LibreLancer.ImUI
                     else
                         p.Data.DoFocus = false;
                     ImGui.EndPopup();
+                }
+            }
+            for (int i = 0; i < messageBoxes.Count; i++)
+            {
+                var p = messageBoxes[i];
+                if (p.DoOpen) {
+                    ImGui.OpenPopup(p.Title);
+                    p.DoOpen = false;
+                }
+                bool open = true;
+                if (ImGui.BeginPopupModal(p.Title, ref open, ImGuiWindowFlags.AlwaysAutoResize))
+                {
+                    if (p.Multiline)
+                    {
+                        ImGui.InputTextMultiline(
+                            "##label",
+                            ref p.Text,
+                            UInt32.MaxValue,
+                            new Vector2(350,150) * ImGuiHelper.Scale,
+                            ImGuiInputTextFlags.ReadOnly
+                        );
+                    }
+                    else {
+                        ImGui.Text(p.Text);
+                    }
+                    if (ImGui.Button("Ok")) open = false;
+                    ImGui.EndPopup();
+                }
+                if (!open) {
+                    messageBoxes.RemoveAt(i);
+                    i--;
                 }
             }
         }

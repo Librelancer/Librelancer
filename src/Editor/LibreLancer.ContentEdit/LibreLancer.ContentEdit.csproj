@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+    <ImportGroup>
+        <Import Project="../../CommonVersion.props" />
+    </ImportGroup>
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
@@ -18,6 +20,10 @@
       <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
       <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
       <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="defaulttexture.dds" />
     </ItemGroup>
 
 </Project>
