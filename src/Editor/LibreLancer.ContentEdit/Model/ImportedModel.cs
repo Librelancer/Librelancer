@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.World;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
@@ -67,8 +68,8 @@ public class ImportedModel
             hp = new RevoluteHardpointDefinition(node.Name) {
                 Orientation = orientation,
                 Position = position,
-                Min = min,
-                Max = max,
+                Min = MathHelper.DegreesToRadians(min),
+                Max = MathHelper.DegreesToRadians(max),
                 Axis = axis,
             };
         }
@@ -523,6 +524,12 @@ public class ImportedModel
                         (int) GeometryWriter.FVF(mdl.LODs[0].Geometry)))
             });
             node3db.Children.Add(part);
+        }
+
+        if (mdl.Hardpoints.Count > 0)
+        {
+            var hp = new ModelHpNode() {Node = node3db};
+            hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x, null)).ToList());
         }
     }
 }
