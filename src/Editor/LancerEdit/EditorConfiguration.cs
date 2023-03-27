@@ -47,7 +47,7 @@ namespace LancerEdit
         public string LastExportPath
         {
             get => lastExportPath != null ? Encoding.UTF8.GetString(Convert.FromBase64String(lastExportPath)) : null;
-            set => lastExportPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+            set => lastExportPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).TrimEnd('=');
         }
 
         [Entry("ui_scale")] public float UiScale = 1f;
