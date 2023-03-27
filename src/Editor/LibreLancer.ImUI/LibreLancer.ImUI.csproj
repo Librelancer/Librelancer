@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="icons.png" />
-    <EmbeddedResource Include="icons.png" />
-    <None Remove="icons.txt" />
-    <EmbeddedResource Include="icons.txt" />
     <None Remove="checkerboard.png" />
     <EmbeddedResource Include="checkerboard.png" />
     <None Remove="Roboto-Medium.ttf" />
