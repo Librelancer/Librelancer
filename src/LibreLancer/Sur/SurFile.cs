@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using LibreLancer.Physics;
 
 namespace LibreLancer.Sur
@@ -69,12 +70,15 @@ namespace LibreLancer.Sur
             return sur;
         }
 
-        public void Write(BinaryWriter writer)
+        public void Save(Stream stream, bool leaveOpen = true)
         {
-            writer.Write(SUR_MAGIC);
-            writer.Write(SUR_VERSION);
-            foreach (var s in Surfaces)
-                s.Write(writer);
+            using (var writer = new BinaryWriter(stream, Encoding.ASCII, leaveOpen))
+            {
+                writer.Write(SUR_MAGIC);
+                writer.Write(SUR_VERSION);
+                foreach (var s in Surfaces)
+                    s.Write(writer);
+            }
         }
     }
 }

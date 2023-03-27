@@ -8,7 +8,7 @@ using System.Text;
 using System.IO;
 using LibreLancer;
 using LibreLancer.Utf;
-namespace LibreLancer.ContentEdit
+namespace LibreLancer.ContentEdit.Model
 {
     public class SphereConstructor : PartNodeConstructor
     {

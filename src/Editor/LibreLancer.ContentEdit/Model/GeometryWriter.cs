@@ -7,7 +7,7 @@ using System.IO;
 using SimpleMesh;
 using LibreLancer.Utf.Vms;
 
-namespace LibreLancer.ContentEdit 
+namespace LibreLancer.ContentEdit.Model
 {
 
     public class GeometryWriter 
@@ -107,15 +107,16 @@ namespace LibreLancer.ContentEdit
                     if ((fvf & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
                         writer.Write(((Color4)v.Diffuse).ToAbgr());
                     }
-                    //Librelancer stores texture coordinates flipped internally
+                    //Librelancer flips DX to OpenGL on load,
+                    //write as DX
                     if((fvf & D3DFVF.TEX2) == D3DFVF.TEX2) {
                         writer.Write(v.Texture1.X);
-                        writer.Write(1 - v.Texture1.Y);
+                        writer.Write(v.Texture1.Y);
                         writer.Write(v.Texture2.X);
-                        writer.Write(1 - v.Texture2.Y);
+                        writer.Write(v.Texture2.Y);
                     } else if ((fvf & D3DFVF.TEX1) == D3DFVF.TEX1) {
                         writer.Write(v.Texture1.X);
-                        writer.Write(1 - v.Texture1.Y);
+                        writer.Write(v.Texture1.Y);
                     }
                 }
                 return stream.ToArray();

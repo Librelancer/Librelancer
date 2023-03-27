@@ -6,12 +6,14 @@ using System;
 using System.Numerics;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 using LibreLancer;
 using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
+using LibreLancer.Data;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
@@ -122,8 +124,10 @@ namespace LancerEdit
         Color4 surPart = new Color4(1, 0, 0, 0.4f);
         Color4 surHardpoint = new Color4(128, 0, 128, 80);
         Color4 surShield = new Color4(100, 149, 237, 32);
+        private static int jk = 0;
         void ProcessSur(SurFile surfile)
         {
+            File.WriteAllText("/home/cmcging/Desktop/sur" + jk++, JSON.Serialize(surfile));
             if(surs != null) {
                 foreach(var mdl in surs)
                 {
@@ -221,7 +225,7 @@ namespace LancerEdit
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
                 mat.Camera = cam;
-                var transform =  world * mdl.Part.LocalTransform;
+                var transform =  world * ((mdl.Part?.LocalTransform) ?? Matrix4x4.Identity);
                 var whandle = new WorldMatrixHandle()
                 {
                     ID = x,

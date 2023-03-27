@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.ContentEdit.Model;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 

@@ -21,17 +21,13 @@ namespace LibreLancer.Sur
             var point = reader.ReadUInt16();
             var x = reader.ReadUInt16();
             var flag = (x >> 15);
-            var index = (x & 0x3FFF);
-            if ((x & 0x4000) != 0)
-                index |= ~0x3FFF;
-            index = longCount + index;
-            var shared = index - index / 4;
+            var edgeOffset = longCount + ((x & 0x4000) != 0 ? (x & 0x3FFF) | ~0x3FFF : x & 0x3FFF);
+            var shared = edgeOffset - edgeOffset / 4;
             longCount++;
             return (point, flag, shared);
         }
-        
 
-		public static SurfaceFace Read(BinaryReader reader, ref int longCount)
+        public static SurfaceFace Read(BinaryReader reader, ref int longCount)
         {
             var f = new SurfaceFace();
             
@@ -49,10 +45,10 @@ namespace LibreLancer.Sur
 
         void WriteSide(int p, int f, int s, ref int edgeCount, BinaryWriter writer)
         {
-            writer.Write((ushort)p);
-            var shared = s - 1 - edgeCount + (s - 1) / 3 - edgeCount / 3;
+            var shared = s - edgeCount + s / 3 - edgeCount / 3;
             shared &= 0x7FFF;
             if (f != 0) shared |= 0x8000;
+            writer.Write((ushort)p);
             writer.Write((ushort)shared);
             edgeCount++;
         }

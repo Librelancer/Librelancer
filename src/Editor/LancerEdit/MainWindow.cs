@@ -40,36 +40,7 @@ namespace LancerEdit
         bool finishLoading = false;
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
-
-        FileDialogFilters UtfFilters = new FileDialogFilters(
-            new FileFilter("All Utf Files","utf","cmp","3db","dfm","vms","sph","mat","txm","ale","anm"),
-            new FileFilter("Utf Files","utf"),
-            new FileFilter("Anm Files","anm"),
-            new FileFilter("Cmp Files","cmp"),
-            new FileFilter("3db Files","3db"),
-            new FileFilter("Dfm Files","dfm"),
-            new FileFilter("Vms Files","vms"),
-            new FileFilter("Sph Files","sph"),
-            new FileFilter("Mat Files","mat"),
-            new FileFilter("Txm Files","txm"),
-            new FileFilter("Ale Files","ale")
-        );
-        FileDialogFilters ImportModelFilters = new FileDialogFilters(
-            new FileFilter("Model Files","dae","gltf","glb","obj"),
-            new FileFilter("Collada Files", "dae"),
-            new FileFilter("glTF Files", "gltf"),
-            new FileFilter("glTF Binary Files", "glb"),
-            new FileFilter("Wavefront Obj Files", "obj")
-        );
-        FileDialogFilters FreelancerIniFilter = new FileDialogFilters(
-            new FileFilter("Freelancer.ini","freelancer.ini")
-        );
-        private FileDialogFilters StateGraphFilter = new FileDialogFilters(
-            new FileFilter("State Graph Db", "db")
-        );
-        FileDialogFilters ImageFilter = new FileDialogFilters(
-            new FileFilter("Images", "bmp", "png", "tga", "dds", "jpg", "jpeg")
-        );
+        
         public EditorConfiguration Config;
         OptionsWindow options;
         public MainWindow() : base(800,600,false)
@@ -94,6 +65,7 @@ namespace LancerEdit
                 }
             };
             Config = EditorConfiguration.Load();
+            Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
         }
@@ -106,6 +78,7 @@ namespace LancerEdit
             guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
+            Bell.Init(Audio);
             FileDialog.RegisterParent(this);
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this);
@@ -194,7 +167,9 @@ namespace LancerEdit
                 guiHelper.ResetRenderTimer();
             }
         }
-        TextBuffer errorText;
+
+        private PopupManager popups = new PopupManager();
+
         bool showLog = false;
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
@@ -259,6 +234,7 @@ namespace LancerEdit
                 try
                 {
                     var sc = new EditScript(file);
+                    if (string.IsNullOrEmpty(sc.Info?.Name)) continue;
                     if(sc.Validate()) Scripts.Add(sc);
                     else FLLog.Error("Scripts", $"Failed to Validate {file}");
                 }
@@ -280,7 +256,8 @@ namespace LancerEdit
             //Don't process all the imgui stuff when it isn't needed
             if (!loadingSpinnerActive && !guiHelper.DoRender(elapsed))
             {
-                if (lastFrame != null) lastFrame.BlitToScreen();
+                if(Width !=0 && Height != 0 && lastFrame != null)
+                    lastFrame.BlitToScreen();
                 WaitForEvent(); //Yield like a regular GUI program
                 return;
             }
@@ -302,7 +279,7 @@ namespace LancerEdit
 				}
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
 				{
-                    var f = FileDialog.Open(UtfFilters);
+                    var f = FileDialog.Open(FileDialogFilters.UtfFilters);
                     OpenFile(f);
 				}
 
@@ -348,7 +325,7 @@ namespace LancerEdit
                 if(Theme.IconMenuItem(Icons.FileImport, "Import Model",true))
                 {
                     string input;
-                    if((input = FileDialog.Open(ImportModelFilters)) != null)
+                    if((input = FileDialog.Open(FileDialogFilters.ImportModelFilters)) != null)
                     {
                         StartLoadingSpinner();
                         new Thread(() =>
@@ -358,11 +335,6 @@ namespace LancerEdit
                             {
                                 using var stream = File.OpenRead(input);
                                 model = SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
-                                foreach (var x in model.Geometries)
-                                {
-                                    if (x.Vertices.Length >= 65534) throw new Exception("Too many vertices");
-                                    if (x.Indices.Length >= 65534) throw new Exception("Too many indices");
-                                }
                                 EnsureUIThread(() => FinishImporterLoad(model, System.IO.Path.GetFileName(input)));
                             }
                             catch (Exception ex)
@@ -375,21 +347,21 @@ namespace LancerEdit
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
                     string input;
-                    if ((input = FileDialog.Open(ImageFilter)) != null) {
+                    if ((input = FileDialog.Open(FileDialogFilters.ImageFilter)) != null) {
                         Make3dbDlg.Open(input);
                     }
                 }
                 if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",true))
                 {
                     string input;
-                    if((input = FileDialog.Open(FreelancerIniFilter)) != null) {
+                    if((input = FileDialog.Open(FileDialogFilters.FreelancerIniFilter)) != null) {
                         AddTab(new InfocardBrowserTab(input, this));
                     }
                 }
                 if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
                     string input;
-                    if ((input = FileDialog.Open(StateGraphFilter)) != null) {
+                    if ((input = FileDialog.Open(FileDialogFilters.StateGraphFilter)) != null) {
                         AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input)));
                     }
                 }
@@ -454,11 +426,6 @@ namespace LancerEdit
 				ImGui.OpenPopup("About");
 				openAbout = false;
 			}
-            if (openError)
-            {
-                ImGui.OpenPopup("Error");
-                openError = false;
-            }
 
             if (openLoading)
             {
@@ -472,13 +439,7 @@ namespace LancerEdit
             }
             bool pOpen = true;
 
-            if (ImGui.BeginPopupModal("Error", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Error:");
-                errorText.InputTextMultiline("##etext", new Vector2(430, 200), ImGuiInputTextFlags.ReadOnly);
-                if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
+            popups.Run();
             recentFiles.DrawErrors();
             pOpen = true;
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
@@ -615,19 +576,23 @@ namespace LancerEdit
                                    Color4.Red);
             }
             ImGui.PopFont();
-            if (lastFrame == null ||
-                lastFrame.Width != Width ||
-                lastFrame.Height != Height)
+            if (Width != 0 && Height != 0)
             {
-                if (lastFrame != null) lastFrame.Dispose();
-                lastFrame = new RenderTarget2D(Width, Height);
+                if (lastFrame == null ||
+                    lastFrame.Width != Width ||
+                    lastFrame.Height != Height)
+                {
+                    if (lastFrame != null) lastFrame.Dispose();
+                    lastFrame = new RenderTarget2D(Width, Height);
+                }
+
+                RenderContext.RenderTarget = lastFrame;
+                RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+                RenderContext.ClearAll();
+                guiHelper.Render(RenderContext);
+                RenderContext.RenderTarget = null;
+                lastFrame.BlitToScreen();
             }
-            RenderContext.RenderTarget = lastFrame;
-            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderContext.ClearAll();
-			guiHelper.Render(RenderContext);
-            RenderContext.RenderTarget = null;
-            lastFrame.BlitToScreen();
             foreach (var tab in toAdd)
             {
                 TabControl.Tabs.Add(tab);
@@ -643,13 +608,7 @@ namespace LancerEdit
             {
                 if (!string.IsNullOrEmpty(at.FilePath))
                 {
-                    string errText = "";
-                    if (!at.Utf.Save(at.FilePath, 0, ref errText))
-                    {
-                        openError = true;
-                        if (errorText == null) errorText = new TextBuffer();
-                        errorText.SetText(errText);
-                    }
+                    ResultMessages(at.Utf.Save(at.FilePath, 0));
                 }
                 else
                     RunSaveDialog(at);
@@ -676,17 +635,12 @@ namespace LancerEdit
 
         void RunSaveDialog(UtfTab at)
         {
-            var f = FileDialog.Save(UtfFilters);
+            var f = FileDialog.Save(FileDialogFilters.UtfFilters);
             if (f != null)
             {
-                string errText = "";
-                if (!at.Utf.Save(f, 0, ref errText))
-                {
-                    openError = true;
-                    if (errorText == null) errorText = new TextBuffer();
-                    errorText.SetText(errText);
-                }
-                else
+                var result = at.Utf.Save(f, 0);
+                ResultMessages(result);
+                if (result.IsSuccess)
                 {
                     at.DocumentName = System.IO.Path.GetFileName(f);
                     at.UpdateTitle();
@@ -726,13 +680,26 @@ namespace LancerEdit
             ErrorDialog("Import Error:\n" + ex.Message + "\n" + ex.StackTrace);
         }
 
-        public void ErrorDialog(string text)
+        public void ResultMessages<T>(EditResult<T> result)
         {
-            errorText?.Dispose();
-            errorText = new TextBuffer();
-            errorText.SetText(text);
-            openError = true;
+            if (result.Messages.Count == 0) return;
+            string text;
+            if (result.Messages.Count == 1)
+            {
+                text = result.Messages[0].Message;
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (var msg in result.Messages)
+                    sb.Append(msg.Kind).Append(": ").AppendLine(msg.Message);
+                text = sb.ToString();
+            }
+            popups.MessageBox(result.IsError ? "Error" : "Warning", text);
         }
+
+        public void ErrorDialog(string text) =>  popups.MessageBox("Error", text);
+        
         protected override void OnDrop(string file)
         {
             if (DetectFileType.Detect(file) == FileType.Utf)

@@ -474,7 +474,6 @@ namespace LibreLancer.ImUI
 				}
 				vbo.SetData(vbuffer, cmd_list.VtxBuffer.Size);
 				ibo.SetData(ibuffer, cmd_list.IdxBuffer.Size);
-				int startIndex = 0;
 				for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
 				{
                     var pcmd = cmd_list.CmdBuffer[cmd_i];
@@ -516,9 +515,8 @@ namespace LibreLancer.ImUI
                     rstate.ScissorRectangle = new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
                         (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
                         (int) (pcmd.ClipRect.W - pcmd.ClipRect.Y));
-                    vbo.Draw(PrimitiveTypes.TriangleList, 0, startIndex, (int)pcmd.ElemCount / 3);
+                    vbo.Draw(PrimitiveTypes.TriangleList, 0, (int)pcmd.IdxOffset, (int)pcmd.ElemCount / 3);
                     rstate.ScissorEnabled = false;
-					startIndex += (int)pcmd.ElemCount;
 				}
 			}
 		}

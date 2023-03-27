@@ -19,8 +19,7 @@ namespace LibreLancer.Sur
         public Vector3 Unknown;
         public float Radius;
         public uint Crc;
-		//FL-OS comment: some sort of multiplier for the radius
-		public byte Scale; //TODO: Surface - What is this?
+		public float Scale; //Scale of sphere without hardpoints
 		public List<SurfacePoint> Points = new List<SurfacePoint>();
         public List<uint> HardpointIds = new List<uint>();
 
@@ -186,7 +185,8 @@ namespace LibreLancer.Sur
             writer.Write(Inertia.Y);
             writer.Write(Inertia.Z);
             writer.Write(Radius);
-            writer.Write((endOffset - startOffset) << 8 | Scale);
+            var scaleByte = (byte) (Scale * 0xFA);
+            writer.Write((endOffset - startOffset) << 8 | scaleByte);
             writer.Write(nodesStartOffset - startOffset);
             writer.Write(Unknown.X);
             writer.Write(Unknown.Y);
@@ -206,7 +206,7 @@ namespace LibreLancer.Sur
             Center = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             Inertia = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             Radius = reader.ReadSingle();
-            Scale = reader.ReadByte();
+            Scale = (float)reader.ReadByte() / 0xFA;
             var bitsEnd = (int)reader.ReadUInt24();
             var bitsStart = (int)reader.ReadUInt32();
             //Unknown Vector3

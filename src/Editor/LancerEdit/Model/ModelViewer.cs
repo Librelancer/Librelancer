@@ -16,6 +16,7 @@ using Anm = LibreLancer.Utf.Anm;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 using LibreLancer.Client.Components;
+using LibreLancer.ContentEdit.Model;
 using LibreLancer.Render;
 using LibreLancer.Sur;
 using LibreLancer.World;
@@ -75,10 +76,6 @@ namespace LancerEdit
             Color4.Cyan,
             Color4.Orange
         };
-
-        FileDialogFilters SurFilters = new FileDialogFilters(
-           new FileFilter("Sur Files", "sur")
-        );
 
         Material wireframeMaterial3db;
         Material normalsDebugMaterial;
@@ -214,7 +211,7 @@ namespace LancerEdit
         }
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
-        bool[] openTabs = new bool[] { false, false, false, false };
+        bool[] openTabs = new bool[] { false, false, false, false, false };
         void TabButton(string name, int idx)
         {
             if (TabHandler.VerticalTab($"{name}", openTabs[idx]))
@@ -238,6 +235,8 @@ namespace LancerEdit
             if (drawable is DF.DfmFile)
                 TabButton("Skeleton", 2);
             TabButton("Render", 3);
+            if(drawable is CmpFile || drawable is ModelFile) 
+                TabButton("Export", 4);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
         }
@@ -271,6 +270,7 @@ namespace LancerEdit
                 if (openTabs[1]) AnimationPanel();
                 if (openTabs[2]) SkeletonPanel();
                 if (openTabs[3]) RenderPanel();
+                if (openTabs[4]) ExportPanel();
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
@@ -475,7 +475,7 @@ namespace LancerEdit
                 if (Theme.BeginIconMenu(Icons.Exchange, "Change To")) {
                     var cmp = (CmpFile)drawable;
                     if(!(con.Construct is FixConstruct) && Theme.IconMenuItem(Icons.Cube_LightYellow, "Fix",true)) {
-                        var fix = new FixConstruct(cmp.Constructs)
+                        var fix = new FixConstruct()
                         {
                             ParentName = con.Construct.ParentName,
                             ChildName = con.Construct.ChildName,
@@ -738,34 +738,37 @@ namespace LancerEdit
         string surname;
         bool surShowHull = true;
         bool surShowHps = true;
+        SurFile surFile = null;
+
+        void OpenSur()
+        {
+            var file = FileDialog.Open(FileDialogFilters.SurFilters);
+            surname = System.IO.Path.GetFileName(file);
+#if !DEBUG
+            try
+            {
+#endif
+                using (var f = System.IO.File.OpenRead(file))
+                {
+                    surFile = SurFile.Read(f);
+                }
+#if !DEBUG
+            }
+            catch (Exception e)
+            {
+                FLLog.Error("Sur", e.Message + "\n" + e.StackTrace);
+                surFile = null;
+            }
+#endif
+            if (surFile != null) ProcessSur(surFile);
+        }
         void HierarchyPanel()
         {
             if(!(drawable is DF.DfmFile) && !(drawable is SphFile))
             {
                 //Sur
-                if(ImGui.Button("Open Sur"))
-                {
-                    var file = FileDialog.Open(SurFilters);
-                    surname = System.IO.Path.GetFileName(file);
-                    SurFile sur;
-                    #if !DEBUG
-                    try
-                    {
-                    #endif
-                        using (var f = System.IO.File.OpenRead(file))
-                        {
-                            sur = SurFile.Read(f);
-                        }
-                    #if !DEBUG
-                    }
-                    catch (Exception e)
-                    {
-                        FLLog.Error("Sur", e.Message + "\n" + e.StackTrace);
-                        sur = null;
-                    }
-                    #endif
-                    if (sur != null) ProcessSur(sur);
-                }
+                if (ImGui.Button("Open Sur"))
+                    OpenSur();
                 if(surs != null)
                 {
                     ImGui.Separator();
@@ -956,6 +959,46 @@ namespace LancerEdit
                 }
             }
         }
+
+        private ModelExporterSettings exportSettings = new ModelExporterSettings();
+        
+        void Export(SimpleMesh.ModelSaveFormat fmt, FileDialogFilters filters)
+        {
+            var output = drawable != null ? FileDialog.Save(filters) : null;
+            if (output != null)
+            {
+                SimpleMesh.Model exported = null;
+                if (drawable is ModelFile mdl) {
+                    exported = ModelExporter.Export(mdl, surFile, exportSettings, _window.Resources);
+                } else if (drawable is CmpFile cmp) {
+                    exported = ModelExporter.Export(cmp, surFile, exportSettings, _window.Resources);
+                }
+                if (exported != null)
+                {
+                    using (var os = File.Create(output))
+                    {
+                        exported.SaveTo(os, fmt);
+                    }
+                }
+            }
+        }
+        void ExportPanel()
+        {
+            ImGui.Checkbox("Include Hardpoints", ref exportSettings.IncludeHardpoints);
+            ImGui.Checkbox("Include LODs", ref exportSettings.IncludeLods);
+            if (surFile == null) {
+                ImGui.TextDisabled("Sur file not loaded");
+                if(ImGui.Button("Open Sur")) OpenSur();
+            }
+            else {
+                ImGui.Checkbox("Include Hulls", ref exportSettings.IncludeHulls);
+            }
+            if (ImGui.Button("Export GLTF 2.0"))
+                Export(SimpleMesh.ModelSaveFormat.GLTF2, FileDialogFilters.GltfFilter);
+            if (ImGui.Button("Export Collada"))
+                Export(SimpleMesh.ModelSaveFormat.Collada, FileDialogFilters.ColladaFilter);
+        }
+        
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
         {
             ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);

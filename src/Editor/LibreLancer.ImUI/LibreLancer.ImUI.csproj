@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
+    <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +39,8 @@
     <EmbeddedResource Include="fa-solid-900.ttf" />
     <None Remove="empty-bullet.ttf" />
     <EmbeddedResource Include="empty-bullet.ttf" />
+    <None Remove="bell.ogg" />
+    <EmbeddedResource Include="bell.ogg" />
   </ItemGroup>
 
 </Project>

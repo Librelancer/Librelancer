@@ -43,6 +43,9 @@
     <None Update="editorscripts\thorn2lua.cs-script">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="editorscripts\importmodel.cs-script">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

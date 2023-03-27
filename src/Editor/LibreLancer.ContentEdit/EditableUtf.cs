@@ -129,20 +129,20 @@ namespace LibreLancer.ContentEdit
         }
 		//Write the nodes out to a file
 
-        public bool Save(string filename, int version, ref string error)
+        public EditResult<bool> Save(string filename, int version)
         {
             foreach (var node in Root.IterateAll())
             {
                 if(node.Children == null && node.Data == null)
                 {
-                    error = string.Format("{0} is empty. Can't write UTF",GetUtfPath(node));
-                    return false;
+                    
+                    return EditResult<bool>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
                 }
             }
             if (version == 0)
-                return SaveV1(filename, ref error);
+                return SaveV1(filename);
             else
-                return SaveV2(filename, ref error);
+                return SaveV2(filename);
         }
 
         static byte[] CompressDeflate(byte[] input)
@@ -157,7 +157,7 @@ namespace LibreLancer.ContentEdit
             }
         }
         
-        bool SaveV2(string filename, ref string error)
+        EditResult<bool> SaveV2(string filename)
         {
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
             Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
@@ -271,7 +271,7 @@ namespace LibreLancer.ContentEdit
                     }
                 }
             }
-            return true;
+            return true.AsResult();
         }
 
         static void WriteNodeV2(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff,
@@ -329,7 +329,7 @@ namespace LibreLancer.ContentEdit
                 }
             }
         }
-        bool SaveV1(string filename, ref string error)
+        EditResult<bool> SaveV1(string filename)
 		{
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
 			Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
@@ -436,7 +436,7 @@ namespace LibreLancer.ContentEdit
 					}
 				}
 			}
-            return true;
+            return true.AsResult();
 		}
 		void WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, bool last)
 		{

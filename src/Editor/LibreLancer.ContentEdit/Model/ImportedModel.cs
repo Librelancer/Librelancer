@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Utf;
+using LibreLancer.Utf.Cmp;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
@@ -10,39 +12,182 @@ public class ImportedModel
 {
     public string Name;
     public ImportedModelNode Root;
-    
-    public static EditorResult<ImportedModel> FromSimpleMesh(string name, SimpleMesh.Model input)
+    public Dictionary<string, ImageData> Images;
+
+    public static EditResult<ImportedModel> FromSimpleMesh(string name, SimpleMesh.Model input)
     {
         Dictionary<string, ModelNode[]> autodetect = new Dictionary<string,ModelNode[]>(StringComparer.InvariantCultureIgnoreCase);
         foreach (var obj in input.Roots)
             GetLods(obj, autodetect);
         List<ImportedModelNode> nodes = new List<ImportedModelNode>();
         foreach(var obj in input.Roots) {
-            AutodetectTree(obj, nodes, autodetect);
+            AutodetectTree(obj, nodes, null, autodetect);
         }
         if (nodes.Count > 1) {
-            return EditorResult<ImportedModel>.FromMessages(EditorMessage.Error("More than one root model"));
+            return EditResult<ImportedModel>.Error("More than one root model");
         }
         if (nodes.Count == 0) {
-            return EditorResult<ImportedModel>.FromMessages(EditorMessage.Error("Could not find root model"));
+            return EditResult<ImportedModel>.Error("Could not find root model");
         }
-        
-        return new EditorResult<ImportedModel>(new ImportedModel() {Name = name, Root = nodes[0]});
+
+        var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
+        m.Root.Construct = null;
+        return new EditResult<ImportedModel>(m);
     }
-    
-    static void AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, Dictionary<string,ModelNode[]> autodetect)
+
+    static bool IsHull(ModelNode node)
     {
+        return node.Properties.ContainsKey("hull") ||
+               node.Name.EndsWith("$hull");
+    }
+
+    static bool GetHardpoint(ModelNode node, out HardpointDefinition hp)
+    {
+        hp = null;
+        PropertyValue pv;
+        if (!node.Properties.TryGetValue("hardpoint", out pv) || !pv.AsBoolean())
+            return false;
+        var orientation = Matrix4x4.CreateFromQuaternion(node.Transform.ExtractRotation());
+        var position = Vector3.Transform(Vector3.Zero, node.Transform);
+        if (node.Properties.TryGetValue("hptype", out pv) && pv.AsString(out var hptype) &&
+            hptype.Equals("rev", StringComparison.OrdinalIgnoreCase))
+        {
+            Vector3 axis;
+            float min;
+            float max;
+            if (!node.Properties.TryGetValue("axis", out pv) || !pv.AsVector3(out axis))
+                axis = Vector3.UnitY;
+            if (!node.Properties.TryGetValue("min", out pv) || !pv.AsSingle(out min))
+                min = -45f;
+            if (!node.Properties.TryGetValue("max", out pv) || !pv.AsSingle(out max))
+                max = 45f;
+            if (min > max) {
+                (min, max) = (max, min);
+            }
+            hp = new RevoluteHardpointDefinition(node.Name) {
+                Orientation = orientation,
+                Position = position,
+                Min = min,
+                Max = max,
+                Axis = axis,
+            };
+        }
+        else
+        {
+            hp = new FixedHardpointDefinition(node.Name) {Orientation = orientation, Position = position};
+        }
+        return true;
+    }
+
+    static AbstractConstruct GetConstruct(ModelNode node, string childName, string parentName)
+    {
+        var rot = Matrix4x4.CreateFromQuaternion(node.Transform.ExtractRotation());
+        var origin = Vector3.Transform(Vector3.Zero, node.Transform);
+        if (!node.Properties.TryGetValue("construct", out var construct) ||
+            !construct.AsString(out var contype))
+        {
+            return new FixConstruct() {Rotation = rot, Origin = origin, ParentName = parentName, ChildName = childName};
+        }
+        PropertyValue pv;
+        Vector3 axis;
+        Vector3 offset = Vector3.Zero;
+        float min;
+        float max;
+        switch (contype.ToLowerInvariant())
+        {
+            case "rev":
+            {
+               
+                if(node.Properties.TryGetValue("offset", out pv))  pv.AsVector3(out offset);
+                if (!node.Properties.TryGetValue("axis_rotation", out pv) || !pv.AsVector3(out axis))
+                    axis = Vector3.UnitY;
+                if (!node.Properties.TryGetValue("min", out pv) || !pv.AsSingle(out min))
+                    min = -90f;
+                if (!node.Properties.TryGetValue("max", out pv) || !pv.AsSingle(out max))
+                    max = 90f;
+                if (min > max) {
+                    (min, max) = (max, min);
+                }
+                return new RevConstruct()
+                {
+                    Rotation = rot, Origin = origin,
+                    Min = MathHelper.DegreesToRadians(min),
+                    Max = MathHelper.DegreesToRadians(max),
+                    AxisRotation = axis,
+                    Offset = offset,
+                    ParentName = parentName,
+                    ChildName = node.Name,
+                };
+            }
+            case "pris":
+            {
+                if(node.Properties.TryGetValue("offset", out pv))  pv.AsVector3(out offset);
+                if (!node.Properties.TryGetValue("axis_translation", out pv) || !pv.AsVector3(out axis))
+                    axis = Vector3.UnitY;
+                if (!node.Properties.TryGetValue("min", out pv) || !pv.AsSingle(out min))
+                    min = 0;
+                if (!node.Properties.TryGetValue("max", out pv) || !pv.AsSingle(out max))
+                    max = 1;
+                if (min > max) {
+                    (min, max) = (max, min);
+                }
+                return new PrisConstruct()
+                {
+                    Rotation = rot, Origin = origin,
+                    Min = min,
+                    Max = max,
+                    AxisTranslation = axis,
+                    Offset = offset,
+                    ParentName = parentName,
+                    ChildName = childName
+                };
+            }
+            case "sphere":
+                if(node.Properties.TryGetValue("offset", out pv))  pv.AsVector3(out offset);
+                if (!node.Properties.TryGetValue("min", out pv) || !pv.AsVector3(out var minaxis))
+                    minaxis = new Vector3(-MathF.PI);
+                if (!node.Properties.TryGetValue("max", out pv) || !pv.AsVector3(out var maxaxis))
+                    maxaxis = new Vector3(MathF.PI);
+                return new SphereConstruct()
+                {
+                    Rotation = rot, Origin = origin,
+                    Offset = offset,
+                    Min1 = minaxis.X, Min2 = minaxis.Y, Min3 = minaxis.Z,
+                    Max1 = maxaxis.X, Max2 = maxaxis.Y, Max3 = maxaxis.Z,
+                    ParentName = parentName,
+                    ChildName = childName
+                };
+            case "fix":
+            default:
+                return new FixConstruct() {Rotation = rot, Origin = origin, ParentName = parentName, ChildName = childName};
+        }
+    }
+
+
+    static void AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, string parentName, Dictionary<string,ModelNode[]> autodetect)
+    {
+        //Skip detected lods & hulls
         var num = LodNumber(obj, out _);
         if (num != 0) return;
+        if (IsHull(obj)) return;
+        //Build tree
         var mdl = new ImportedModelNode();
         mdl.Name = obj.Name;
-        if (obj.Name.EndsWith("_lod0", StringComparison.InvariantCultureIgnoreCase))
+        if (obj.Name.EndsWith("$lod0", StringComparison.InvariantCultureIgnoreCase))
             mdl.Name = obj.Name.Remove(obj.Name.Length - 5, 5);
+        mdl.Construct = GetConstruct(obj, mdl.Name, parentName);
+        mdl.Construct?.Reset();
         var geometry = autodetect[mdl.Name];
         foreach (var g in geometry)
             if (g != null) mdl.LODs.Add(g);
         foreach(var child in obj.Children) {
-            AutodetectTree(child, mdl.Children, autodetect);
+            
+            if(IsHull(child))
+                mdl.Hulls.Add(child);
+            else if (GetHardpoint(child, out var hp))
+                mdl.Hardpoints.Add(hp);
+            else
+                AutodetectTree(child, mdl.Children, mdl.Name, autodetect);
         }
         parent.Add(mdl);
     }
@@ -69,15 +214,15 @@ public class ImportedModel
         return true;
     }
     
-    //Autodetected LOD: object with geometry + suffix _lod[0-9]
+    //Autodetected LOD: object with geometry + suffix $lod[0-9]
     static int LodNumber(ModelNode obj, out string name)
     {
         name = obj.Name;
         if (obj.Geometry == null) return -1;
         if (obj.Name.Length < 6) return 0;
         if (!char.IsDigit(obj.Name, obj.Name.Length - 1)) return 0;
-        if (!CheckSuffix("_lodX", obj.Name, 4)) return 0;
-        name = obj.Name.Substring(0, obj.Name.Length - "_lodX".Length);
+        if (!CheckSuffix("$lodX", obj.Name, 4)) return 0;
+        name = obj.Name.Substring(0, obj.Name.Length - "$lodX".Length);
         return int.Parse(obj.Name[obj.Name.Length - 1] + "");
     }
 
@@ -100,8 +245,8 @@ public class ImportedModel
                 return false;
         return true;
     }
-    
-    public EditorResult<EditableUtf> CreateModel(ModelImporterSettings settings)
+
+    public EditResult<EditableUtf> CreateModel(ModelImporterSettings settings)
     {
         var utf = new EditableUtf();
         //Vanity
@@ -110,14 +255,14 @@ public class ImportedModel
         utf.Root.Children.Add(expv);
 
         if (string.IsNullOrWhiteSpace(Name))
-            return EditorResult<EditableUtf>.FromMessages(EditorMessage.Error("Model name cannot be empty"));
+            return EditResult<EditableUtf>.Error("Model name cannot be empty");
         
         if (Root == null)
-            return EditorResult<EditableUtf>.FromMessages(EditorMessage.Error("Model must have a root node"));
+            return EditResult<EditableUtf>.Error("Model must have a root node");
         if(Root.LODs.Count == 0)
-            return EditorResult<EditableUtf>.FromMessages(EditorMessage.Error("Model root must have a mesh"));
+            return EditResult<EditableUtf>.Error("Model root must have a mesh");
         if (!VerifyMaterials(Root))
-            return EditorResult<EditableUtf>.FromMessages(EditorMessage.Error("Material name cannot be empty"));
+            return EditResult<EditableUtf>.Error("Material name cannot be empty");
         if (Root.Children.Count == 0)
             Export3DB(Name, utf.Root, Root);
         else
@@ -129,16 +274,26 @@ public class ImportedModel
             utf.Root.Children.Add(cmpnd);
             ExportModels(Name, utf.Root, suffix, vmslib, Root);
             int cmpndIndex = 1;
-            FixConstructor fix = new FixConstructor();
+            var consBuilder = new ConsBuilder();
             cmpnd.Children.Add(CmpndNode(cmpnd, "Root", Root.Name + suffix, "Root", 0));
             foreach (var child in Root.Children)
             {
-                ProcessConstruct("Root", child, cmpnd, fix, suffix, ref cmpndIndex);
+                ProcessConstruct(child, cmpnd, consBuilder, suffix, ref cmpndIndex);
             }
 
             var cons = new LUtfNode() {Name = "Cons", Parent = cmpnd, Children = new List<LUtfNode>()};
-            var trs = new LUtfNode() {Name = "Fix", Parent = cons, Data = fix.GetData()};
-            cons.Children.Add(trs);
+            if (consBuilder.Fix != null) {
+                cons.Children.Add(new LUtfNode() { Name = "Fix", Parent = cons, Data = consBuilder.Fix.GetData()});
+            }
+            if (consBuilder.Rev != null) {
+                cons.Children.Add(new LUtfNode() { Name = "Rev", Parent = cons, Data = consBuilder.Rev.GetData()});
+            }
+            if (consBuilder.Pris != null) {
+                cons.Children.Add(new LUtfNode() { Name = "Pris", Parent = cons, Data = consBuilder.Pris.GetData()});
+            }
+            if (consBuilder.Sphere != null) {
+                cons.Children.Add(new LUtfNode() { Name = "Sphere", Parent = cons, Data = consBuilder.Sphere.GetData()});
+            }
             cmpnd.Children.Add(cons);
         }
 
@@ -153,13 +308,32 @@ public class ImportedModel
                 mats.Children.Add(DefaultMaterialNode(mats,mat,i++));
             var txms = new LUtfNode() { Name = "texture library", Parent = utf.Root };
             txms.Children = new List<LUtfNode>();
+            HashSet<string> createdTextures = new HashSet<string>();
             foreach (var mat in materials)
-                txms.Children.Add(DefaultTextureNode(txms,mat.Name));
+            {
+                if (mat.DiffuseTexture != null)
+                {
+                    if (createdTextures.Contains(mat.DiffuseTexture)) continue;
+                    createdTextures.Add(mat.DiffuseTexture);
+                    if (Images != null && Images.TryGetValue(mat.DiffuseTexture, out var img))
+                    {
+                        txms.Children.Add(ImportTextureNode(txms, mat.DiffuseTexture, img.Data));
+                    }
+                    else
+                    {
+                        txms.Children.Add(DefaultTextureNode(txms, mat.DiffuseTexture));
+                    }
+                }
+                else {
+                    txms.Children.Add(DefaultTextureNode(txms, mat.Name));
+                }
+            }
+
             utf.Root.Children.Add(mats);
             utf.Root.Children.Add(txms);
         }
-        
-        return new EditorResult<EditableUtf>(utf);
+
+        return utf.AsResult();
     }
     
     static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i)
@@ -169,10 +343,20 @@ public class ImportedModel
         matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = "DcDt" });
         var arr = new float[] {mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z};
         matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
-        matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = mat.Name + ".dds" });
+        string textureName = (mat.DiffuseTexture ?? mat.Name) + ".dds";
+        matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = textureName });
         matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
         return matnode;
     }
+    
+    static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data)
+    {
+        var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
+        texnode.Children = new List<LUtfNode>();
+        texnode.Children.Add(TextureImport.ImportAsMIPSNode(data, texnode));
+        return texnode;
+    }
+    
     static LUtfNode DefaultTextureNode(LUtfNode parent, string name)
     {
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
@@ -201,21 +385,39 @@ public class ImportedModel
             IterateMaterials(materials, child);
     }
 
-    void ProcessConstruct(string parentName, ImportedModelNode mdl, LUtfNode cmpnd, FixConstructor fix, string suffix,
+    class ConsBuilder
+    {
+        public FixConstructor Fix;
+        public RevConstructor Rev;
+        public PrisConstructor Pris;
+        public SphereConstructor Sphere;
+    }
+
+    void ProcessConstruct(ImportedModelNode mdl, LUtfNode cmpnd, ConsBuilder cons, string suffix,
         ref int index)
     {
         cmpnd.Children.Add(CmpndNode(cmpnd, "PART_" + mdl.Name, mdl.Name + suffix, mdl.Name, index++));
-        if (mdl.Transform == true)
+        switch (mdl.Construct)
         {
-            fix.Add(parentName, mdl.Name, mdl.Def.Transform);
+            case FixConstruct fix:
+                cons.Fix ??= new FixConstructor();
+                cons.Fix.Add(fix);
+                break;
+            case RevConstruct rev:
+                cons.Rev ??= new RevConstructor();
+                cons.Rev.Add(rev);
+                break;
+            case PrisConstruct pris:
+                cons.Pris ??= new PrisConstructor();
+                cons.Pris.Add(pris);
+                break;
+            case SphereConstruct sphere:
+                cons.Sphere ??= new SphereConstructor();
+                cons.Sphere.Add(sphere);
+                break;
         }
-        else
-        {
-            fix.Add(parentName, mdl.Name, Matrix4x4.Identity);
-        }
-
         foreach (var child in mdl.Children)
-            ProcessConstruct(mdl.Name, child, cmpnd, fix, suffix, ref index);
+            ProcessConstruct(child, cmpnd, cons, suffix, ref index);
     }
 
     LUtfNode CmpndNode(LUtfNode cmpnd, string name, string filename, string objname, int index)

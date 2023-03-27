@@ -28,6 +28,7 @@ namespace LibreLancer.Sur
             int longCount = 0;
             for (int i = 0; i < faceCount; i++) {
                 h.Faces.Add(SurfaceFace.Read(reader, ref longCount));
+                longCount++;
             }
             return h;
         }
@@ -40,11 +41,12 @@ namespace LibreLancer.Sur
             writer.Write((ushort)Faces.Count);
             writer.Write(Unknown);
             int edgeCount = 0;
-            foreach(var f in Faces)
+            foreach (var f in Faces) {
                 f.Write(writer, ref edgeCount);
+            }
         }
 
-        public override string ToString() => $"Hull ({Type} ID: 0x{HullId:X})";
+        public override string ToString() => Type == 5 ? $"Wrap Hull" : $"Hull ({Type} ID: 0x{HullId:X})";
     }
 }
 

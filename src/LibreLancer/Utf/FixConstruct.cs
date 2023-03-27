@@ -15,7 +15,7 @@ namespace LibreLancer.Utf
 		Matrix4x4 fixtransform;
         public override Matrix4x4 LocalTransform { get { return internalGetTransform(fixtransform); } }
 
-        public FixConstruct(ConstructCollection constructs) : base()
+        public FixConstruct() : base()
         {
 
         }

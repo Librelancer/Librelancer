@@ -158,6 +158,24 @@ namespace LibreLancer.ContentEdit
             }
             return nodes;
         }
+
+        public static LUtfNode ImportAsMIPSNode(ReadOnlySpan<byte> input, LUtfNode parent)
+        {
+            var data = new byte[input.Length];
+            input.CopyTo(data);
+            using (var ms = new MemoryStream(data))
+            {
+                if (DDS.StreamIsDDS(ms))
+                    return new LUtfNode() {Name = "MIPS", Data = data, Parent = parent};
+                else
+                {
+                    var raw =  Generic.BytesFromStream(ms, false);
+                    data =  Crunch.CompressDDS(raw.Data, raw.Width, raw.Height, CrnglueFormat.DXT5, CrnglueMipmaps.LANCZOS4, false);
+                    return new LUtfNode() {Name = "MIPS", Data = data, Parent = parent };
+                }
+            }
+        }
+        
         public static byte[] CreateDDS(string input, DDSFormat format, MipmapMethod mipm, bool slow, bool flip)
         {
             var raw = ReadFile(input, flip);

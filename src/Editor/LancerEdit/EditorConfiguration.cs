@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Ini;
@@ -40,6 +41,14 @@ namespace LancerEdit
         public Color4 GridColor = Color4.CornflowerBlue;
         [Entry("default_camera_mode")]
         public int DefaultCameraMode = 0;
+        [Entry("last_export_path")] 
+        internal string lastExportPath;
+
+        public string LastExportPath
+        {
+            get => lastExportPath != null ? Encoding.UTF8.GetString(Convert.FromBase64String(lastExportPath)) : null;
+            set => lastExportPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+        }
 
         [Entry("ui_scale")] public float UiScale = 1f;
         static string FormatColor(Color4 c)
@@ -62,6 +71,8 @@ namespace LancerEdit
                 writer.WriteLine($"grid_color = {FormatColor(GridColor)}");
                 writer.WriteLine($"default_camera_mode = {DefaultCameraMode}");
                 writer.WriteLine(Invariant($"ui_scale = {UiScale:F4}"));
+                if(lastExportPath != null)
+                    writer.Write($"last_export_path = {lastExportPath}");
             }
         }
 

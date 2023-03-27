@@ -12,4 +12,6 @@ public struct Point3
         B = b;
         C = c;
     }
+
+    public override string ToString() => $"({A}, {B}, {C})";
 }

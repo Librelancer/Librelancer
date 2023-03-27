@@ -43,10 +43,6 @@ namespace LancerEdit
 
         public bool Validate()
         {
-            if (string.IsNullOrEmpty(Info?.Name)) {
-                FLLog.Error("Scripts", $"`{Filename}` does not have a script name");
-                return false;
-            }
             foreach (var arg in Arguments) {
                 if (arg.Type == ScriptArgumentType.Dropdown && arg.Options.Count == 0)
                 {

@@ -7,14 +7,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
 using LibreLancer.Shaders;
+using LibreLancer.Sur;
 using LibreLancer.Vertices;
 using SimpleMesh;
 using Material = LibreLancer.Utf.Mat.Material;
@@ -23,9 +26,6 @@ namespace LancerEdit;
 
 public class ImportModelTab : EditorTab
 {
-    private string _errorText;
-
-    private bool _openError;
     private int curTab;
     private Model editModel;
 
@@ -52,6 +52,12 @@ public class ImportModelTab : EditorTab
 
     private Material wireframeMaterial3db;
 
+    private string outputPath;
+
+    private bool generateSur = true;
+    private bool canGenerateSur = false;
+
+    private bool importTextures = true;
 
     public ImportModelTab(Model model, string fname, MainWindow win)
     {
@@ -59,6 +65,7 @@ public class ImportModelTab : EditorTab
         Title = string.Format("Model Importer ({0})", fname);
         modelNameDefault = Path.GetFileNameWithoutExtension(fname);
         this.win = win;
+        outputPath = win.Config.LastExportPath;
         modelViewport = new Viewport3D(win);
         modelViewport.MarginH = 60;
         wireframeMaterial3db = new Material(win.Resources);
@@ -99,12 +106,6 @@ public class ImportModelTab : EditorTab
     {
         editModel = model.Clone();
     }
-    
-    private void ErrorPopup(string text)
-    {
-        _openError = true;
-        _errorText = text;
-    }
 
     private void DrawFLNodesPanel()
     {
@@ -112,28 +113,53 @@ public class ImportModelTab : EditorTab
         ImGui.SameLine(ImGui.GetWindowWidth() - 60);
         if (ImGui.Button("Finish"))
         {
-            var result = output.CreateModel(new ModelImporterSettings
+            win.StartLoadingSpinner();
+            Task.Run(() =>
             {
-                GenerateMaterials = generateMaterials
-            });
-            if (result.IsSuccess)
-                win.AddTab(new UtfTab(win, result.Result, "Untitled", true));
-            else
-                ErrorPopup(string.Join('\n', result.Messages.Select(x => x.Message)));
-        }
+                var result = output.CreateModel(new ModelImporterSettings
+                {
+                    GenerateMaterials = generateMaterials,
+                    ImportTextures = importTextures,
+                });
+                win.QueueUIThread(() =>
+                {
+                    win.ResultMessages(result);
+                    EditResult<SurFile> sur = null;
+                    if (SurfaceBuilder.HasHulls(output))
+                    {
+                        sur = SurfaceBuilder.CreateSur(output);
+                    }
 
+                    if (sur != null) win.ResultMessages(sur);
+                    if (result.IsSuccess &&
+                        ((sur?.IsSuccess) ?? true))
+                    {
+                        var ext = output.Root.Children.Count > 0 ? ".cmp" : ".3db";
+                        var modelPath = Path.Combine(outputPath, output.Name + ext);
+                        var saved = result.Data.Save(modelPath, 0);
+                        win.ResultMessages(saved);
+                        if (saved.IsSuccess)
+                        {
+                            win.AddTab(new UtfTab(win, result.Data, output.Name + ext)
+                                {FilePath = modelPath});
+                            if (sur != null)
+                            {
+                                using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
+                                {
+                                    sur.Data.Save(surOut);
+                                }
+                            }
+                            win.Config.LastExportPath = outputPath;
+                        }
+                    }
+                    win.FinishLoadingSpinner();
+                });
+            });
+
+        }
         ImGui.BeginChild("##fl");
         FLPane();
         ImGui.EndChild();
-        if (_openError) ImGui.OpenPopup("Error");
-        if (ImGui.BeginPopupModal("Error"))
-        {
-            ImGui.Text(_errorText);
-            if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            ImGui.EndPopup();
-        }
-
-        _openError = false;
     }
 
     private void FLPane()
@@ -165,6 +191,20 @@ public class ImportModelTab : EditorTab
                 ImGui.SameLine();
                 ImGui.InputText("##mdlname", ref output.Name, 1000);
                 ImGui.Checkbox("Generate Materials", ref generateMaterials);
+                ImGui.BeginDisabled(model.Images == null || model.Images.Count == 0);
+                ImGui.Checkbox("Import Textures", ref importTextures);
+                ImGui.EndDisabled();
+                ImGui.BeginDisabled(!canGenerateSur);
+                ImGui.Checkbox("Generate Sur", ref generateSur);
+                ImGui.EndDisabled();
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Output Path:");
+                ImGui.SameLine();
+                ImGui.InputText("##mdlpath", ref outputPath, 1000);
+                ImGui.SameLine();
+                if (ImGui.Button("..")) {
+                    outputPath = FileDialog.ChooseFolder() ?? outputPath;
+                }
                 break;
             case 1: //MATERIALS
                 MatNameEdit();
@@ -314,12 +354,7 @@ public class ImportModelTab : EditorTab
         modelViewport.ResetControls();
     }
 
-    private Matrix4x4 SanitizeMatrix(Matrix4x4 input)
-    {
-        var origin = input.Translation;
-        var rotate = Matrix4x4.CreateFromQuaternion(input.ExtractRotation());
-        return rotate * Matrix4x4.CreateTranslation(origin);
-    }
+   
 
     private PreviewModel BuildPreviewNode(ImportedModelNode n, Matrix4x4 parent, ref float radius, int lodIndex)
     {
@@ -333,7 +368,7 @@ public class ImportModelTab : EditorTab
         else
             return null;
         pm.Drawcalls = g.Groups;
-        if (n.Transform) pm.Transform = SanitizeMatrix(n.Def.Transform);
+        pm.Transform = n.Transform;
         var d = Vector3.Transform(Vector3.Zero, pm.Transform * parent).Length();
         var r = g.Radius;
         if (d + r > radius) radius = d + r;
@@ -386,19 +421,20 @@ public class ImportModelTab : EditorTab
     private void Import()
     {
         var o = ImportedModel.FromSimpleMesh(Path.GetFileNameWithoutExtension(modelNameDefault), editModel.Clone());
+        win.ResultMessages(o);
         if (o.IsError)
         {
-            ErrorPopup(string.Join('\n', o.Messages.Select(x => x.Message)));
             output = new ImportedModel {Name = Path.GetFileNameWithoutExtension(modelNameDefault)};
             DisposePreview();
         }
         else
         {
-            output = o.Result;
+            output = o.Data;
             tabNo = 1;
             BuildPreview();
             allMaterials = new ();
             FindMaterials(output.Root);
+            canGenerateSur = SurfaceBuilder.HasHulls(output);
         }
     }
 
@@ -407,10 +443,13 @@ public class ImportModelTab : EditorTab
         ImGui.BeginGroup();
         if (TabHandler.VerticalTab("Input Nodes", tabNo == 0))
             tabNo = 0;
-        if (TabHandler.VerticalTab("Output Nodes", tabNo == 1))
-            tabNo = 1;
-        if (preview != null && TabHandler.VerticalTab("Preview", tabNo == 2))
-            tabNo = 2;
+        if (preview != null)
+        {
+            if (TabHandler.VerticalTab("Output Nodes", tabNo == 1))
+                tabNo = 1;
+            if (TabHandler.VerticalTab("Preview", tabNo == 2))
+                tabNo = 2;
+        }
         ImGui.EndGroup();
         ImGui.SameLine();
         ImGui.BeginChild("##importwin");

@@ -1,0 +1,50 @@
+using SimpleMesh;
+
+ScriptUsage(@"input(.gltf|.glb|.dae|.obj) output
+- Output will be .3db/.cmp + .sur pair");
+
+var args = ParseArguments(2);
+AssertFileExists(args[0]);
+
+EditResult<Model> LoadModel(string filename)
+{
+    using var stream = File.OpenRead(filename);
+    var model = EditResult<Model>.TryCatch(() => SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds());
+    PrintMessages(model);
+    if(model.IsError) return model;
+    foreach (var x in model.Data.Geometries)
+    {
+        if (x.Vertices.Length >= 65534) return EditResult<Model>.Error("Too many vertices");
+        if (x.Indices.Length >= 65534) return EditResult<Model>.Error("Too many vertices");
+    }
+    return model;
+}
+
+string modelName = Path.GetFilenameWithoutExtension(args[0]);
+
+var input = LoadModel(args[0]);
+PrintMessages(input);
+if(input.IsError)
+    return;
+
+var imported = ImportedModel.FromSimpleMesh(modelName, input.Data);
+PrintMessages(imported);
+if(imported.IsError)
+    return;
+    
+bool is3db = importedModel.Data.Root.Children.Count == 0;
+string extension = is3db ? ".3db" : ".cmp";
+
+var utf = importedModel.Data.CreateModel(new ModelImporterSettings());
+PrintMessages(utf);
+if(utf.IsError)
+    return;
+
+var utfSave = utf.Data.Save(args[1] + extension, 0);
+PrintMessages(utfSave);
+    
+if(utfSave.IsError) {
+    Console.WriteLine($"Error writing '{args[1]}{extension}'.");
+} else {
+    Console.WriteLine($"Created '{args[1]}{extension}'.");
+}

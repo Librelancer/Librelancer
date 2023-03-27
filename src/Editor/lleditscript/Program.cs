@@ -37,6 +37,11 @@ namespace lleditscript
 
         private OptionSet os = new OptionSet();        
         
+        public void PrintMessages<T>(EditResult<T> result)
+        {
+            foreach(var m in result.Messages)
+                Console.WriteLine($"{m.Kind}: {m.Message}");
+        }
 
         public void FlagOption(string prototype, string description, Action<bool> action)
         {
@@ -104,6 +109,7 @@ namespace lleditscript
             "System.IO",
             "System.Numerics",
             "LibreLancer.ContentEdit",
+            "LibreLancer.ContentEdit.Model",
             "LibreLancer"
         };
 
