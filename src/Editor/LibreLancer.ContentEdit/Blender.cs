@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace LibreLancer.ContentEdit;
 
@@ -69,6 +70,8 @@ public class Blender
         return Shell.GetString(blenderPath, "--version")
                 .StartsWith("Blender");
     }
+
+    static string EscapeCode(string s) => JsonValue.Create(s).ToJsonString();
     
     public static EditResult<SimpleMesh.Model> LoadBlenderFile(string file, string blenderPath = null)
     {
@@ -96,7 +99,11 @@ public class Blender
             name = blenderPath;
             args = $"\"{{file}}\" --background --python \"{tmppython}\"";
         }
-        File.WriteAllText(tmppython, $"import bpy\nbpy.ops.export_scene.gltf(filepath='{tmpfile}', export_format='GLTF_EMBEDDED', export_extras=True)");
+
+        var exportCode =
+            @$"import bpy
+            bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLTF_EMBEDDED', export_extras=True)";
+        File.WriteAllText(tmppython, exportCode);
         var p = Process.Start(name, args);
         p.WaitForExit();
         tmpfile += ".gltf";
