@@ -4,12 +4,15 @@
 
 using System;
 using System.IO;
+using LibreLancer.ContentEdit;
+
 namespace LancerEdit
 {
 	enum FileType
 	{
 		Utf,
-		Ini
+		Blender,
+        Other,
 	}
 	class DetectFileType
 	{
@@ -20,8 +23,10 @@ namespace LancerEdit
 				var str = System.Text.Encoding.ASCII.GetString(reader.ReadBytes(4));
 				if (str == "UTF " && reader.ReadInt32() == 257) return FileType.Utf;
                 if (str == "XUTF" && reader.ReadByte() == 1) return FileType.Utf;
-				return FileType.Ini;
 			}
-		}
+            if (Blender.FileIsBlender(filename))
+                return FileType.Blender;
+            return FileType.Other;
+        }
 	}
 }

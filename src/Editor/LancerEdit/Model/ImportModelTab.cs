@@ -107,56 +107,83 @@ public class ImportModelTab : EditorTab
         editModel = model.Clone();
     }
 
+
+    void FinishClicked()
+    {
+        string confirm = "";
+        var ext = output.Root.Children.Count > 0 ? ".cmp" : ".3db";
+        var modelPath = Path.Combine(outputPath, output.Name + ext);
+        var surPath = Path.Combine(outputPath, output.Name + ".sur");
+        if (File.Exists(modelPath))
+        {
+            confirm += $"{modelPath} will be overwritten.\n";
+        }
+        if (SurfaceBuilder.HasHulls(output) &&
+            File.Exists(surPath))
+        {
+            confirm += $"{surPath} will be overwritten.\n";
+        }
+        if (confirm != "") {
+            win.Confirm(confirm + "\nContinue import?", FinishImport);
+        }
+        else {
+            FinishImport();
+        }
+    }
+    
+    
+    void FinishImport()
+    {
+        
+        win.StartLoadingSpinner();
+        Task.Run(() =>
+        {
+            var result = output.CreateModel(new ModelImporterSettings
+            {
+                GenerateMaterials = generateMaterials,
+                ImportTextures = importTextures,
+            });
+            win.QueueUIThread(() =>
+            {
+                win.ResultMessages(result);
+                EditResult<SurFile> sur = null;
+                if (SurfaceBuilder.HasHulls(output))
+                {
+                    sur = SurfaceBuilder.CreateSur(output);
+                }
+                var ext = output.Root.Children.Count > 0 ? ".cmp" : ".3db";
+                var modelPath = Path.Combine(outputPath, output.Name + ext);
+                if (sur != null) win.ResultMessages(sur);
+                if (result.IsSuccess &&
+                    ((sur?.IsSuccess) ?? true))
+                {
+                    var saved = result.Data.Save(modelPath, 0);
+                    win.ResultMessages(saved);
+                    if (saved.IsSuccess)
+                    {
+                        win.AddTab(new UtfTab(win, result.Data, output.Name + ext)
+                            {FilePath = modelPath});
+                        if (sur != null)
+                        {
+                            using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
+                            {
+                                sur.Data.Save(surOut);
+                            }
+                        }
+                        win.Config.LastExportPath = outputPath;
+                    }
+                }
+                win.FinishLoadingSpinner();
+            });
+        });
+    }
+    
     private void DrawFLNodesPanel()
     {
         ImGui.Text("Tree");
         ImGui.SameLine(ImGui.GetWindowWidth() - 60);
         if (ImGui.Button("Finish"))
-        {
-            win.StartLoadingSpinner();
-            Task.Run(() =>
-            {
-                var result = output.CreateModel(new ModelImporterSettings
-                {
-                    GenerateMaterials = generateMaterials,
-                    ImportTextures = importTextures,
-                });
-                win.QueueUIThread(() =>
-                {
-                    win.ResultMessages(result);
-                    EditResult<SurFile> sur = null;
-                    if (SurfaceBuilder.HasHulls(output))
-                    {
-                        sur = SurfaceBuilder.CreateSur(output);
-                    }
-
-                    if (sur != null) win.ResultMessages(sur);
-                    if (result.IsSuccess &&
-                        ((sur?.IsSuccess) ?? true))
-                    {
-                        var ext = output.Root.Children.Count > 0 ? ".cmp" : ".3db";
-                        var modelPath = Path.Combine(outputPath, output.Name + ext);
-                        var saved = result.Data.Save(modelPath, 0);
-                        win.ResultMessages(saved);
-                        if (saved.IsSuccess)
-                        {
-                            win.AddTab(new UtfTab(win, result.Data, output.Name + ext)
-                                {FilePath = modelPath});
-                            if (sur != null)
-                            {
-                                using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
-                                {
-                                    sur.Data.Save(surOut);
-                                }
-                            }
-                            win.Config.LastExportPath = outputPath;
-                        }
-                    }
-                    win.FinishLoadingSpinner();
-                });
-            });
-
-        }
+            FinishClicked();
         ImGui.BeginChild("##fl");
         FLPane();
         ImGui.EndChild();
@@ -316,6 +343,9 @@ public class ImportModelTab : EditorTab
         ImGui.Combo("LOD", ref previewLod, lods, lods.Length);
         ImGui.SameLine();
         ImGui.Checkbox("Lit", ref lit);
+        ImGui.SameLine(ImGui.GetWindowWidth() - 60);
+        if (ImGui.Button("Finish"))
+            FinishClicked();
         modelViewport.Begin();
         var lookAtCam = new LookAtCamera();
         var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *

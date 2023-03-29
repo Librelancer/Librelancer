@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
@@ -18,6 +19,7 @@ using ImGuiNET;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Render;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using SharpDX.MediaFoundation;
 
 namespace LancerEdit
 {
@@ -157,14 +159,24 @@ namespace LancerEdit
         public string[] InitOpenFile;
         public void OpenFile(string f)
         {
-            if (f != null && System.IO.File.Exists(f) && DetectFileType.Detect(f) == FileType.Utf)
+            if (f != null && File.Exists(f))
             {
-                var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
-                recentFiles.FileOpened(f);
-                t.FilePath = f;
-                ActiveTab = t;
-                AddTab(t);
-                guiHelper.ResetRenderTimer();
+                switch (DetectFileType.Detect(f))
+                {
+                    case FileType.Utf:
+                        var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
+                        recentFiles.FileOpened(f);
+                        t.FilePath = f;
+                        ActiveTab = t;
+                        AddTab(t);
+                        guiHelper.ResetRenderTimer();
+                        break;
+                    case FileType.Blender:
+                    case FileType.Other:
+                        TryImportModel(f);
+                        break;
+                }
+               
             }
         }
 
@@ -250,6 +262,32 @@ namespace LancerEdit
         {
             activeScripts.Add(new ScriptRunner(sc, this));
         }
+
+        void TryImportModel(string filename)
+        {
+            StartLoadingSpinner();
+            Task.Run(() =>
+            {
+                EditResult<SimpleMesh.Model> model = null;
+                if (Blender.FileIsBlender(filename))
+                {
+                    model = Blender.LoadBlenderFile(filename, Config.BlenderPath);
+                }
+                else
+                {
+                    using var stream = File.OpenRead(filename);
+                    model = EditResult<SimpleMesh.Model>.TryCatch(() =>
+                        SimpleMesh.Model.FromStream(stream));
+                }
+
+                EnsureUIThread(() => ResultMessages(model));
+                if (model.IsSuccess)
+                {
+                    model.Data.AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
+                    EnsureUIThread(() => FinishImporterLoad(model.Data, Path.GetFileName(filename)));
+                }
+            });
+        }
         
 		protected override void Draw(double elapsed)
         {
@@ -329,31 +367,7 @@ namespace LancerEdit
                         ? FileDialogFilters.ImportModelFilters
                         : FileDialogFilters.ImportModelFiltersNoBlender;
                     if((input = FileDialog.Open(filters)) != null)
-                    {
-                        StartLoadingSpinner();
-                        new Thread(() =>
-                        {
-                            EditResult<SimpleMesh.Model> model = null;
-                            if (Blender.FileIsBlender(input))
-                            {
-                                model = Blender.LoadBlenderFile(input, Config.BlenderPath);
-                            }
-                            else
-                            {
-                                using var stream = File.OpenRead(input);
-                                model = EditResult<SimpleMesh.Model>.TryCatch(() =>
-                                    SimpleMesh.Model.FromStream(stream));
-                            }
-
-                            EnsureUIThread(() => ResultMessages(model));
-                            if (model.IsSuccess)
-                            {
-                                model.Data.AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
-                                EnsureUIThread(() => FinishImporterLoad(model.Data, Path.GetFileName(input)));
-                            }
-                           
-                        }).Start();
-                    }
+                        TryImportModel(input);
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
@@ -665,7 +679,7 @@ namespace LancerEdit
         bool doConfirm = false;
         Action confirmAction;
 
-        void Confirm(string text, Action action)
+        public void Confirm(string text, Action action)
         {
             doConfirm = true;
             confirmAction = action;
@@ -684,11 +698,6 @@ namespace LancerEdit
         {
            FinishLoadingSpinner();
             AddTab(new ImportModelTab(model, tabName, this));
-        }
-        void ImporterError(Exception ex)          
-        {
-            FinishLoadingSpinner();
-            ErrorDialog("Import Error:\n" + ex.Message + "\n" + ex.StackTrace);
         }
 
         public void ResultMessages<T>(EditResult<T> result)
@@ -711,15 +720,8 @@ namespace LancerEdit
 
         public void ErrorDialog(string text) =>  popups.MessageBox("Error", text);
         
-        protected override void OnDrop(string file)
-        {
-            if (DetectFileType.Detect(file) == FileType.Utf)
-            {
-                var t = new UtfTab(this, new EditableUtf(file), System.IO.Path.GetFileName(file));
-                ActiveTab = t;
-                AddTab(t);
-            }
-        }
+        protected override void OnDrop(string file) => OpenFile(file);
+        
         protected override void Cleanup()
 		{
 			Audio.Dispose();
