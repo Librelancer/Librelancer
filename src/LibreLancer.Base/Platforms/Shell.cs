@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LibreLancer
 {
-    static class Shell
+    public static class Shell
     {
         public static bool HasCommand(string cmd)
         {
@@ -36,6 +36,18 @@ namespace LibreLancer
             {
                 FLLog.Warning("Shell", $"Error running {cmd} {args}");
                 return "";
+            }
+        }
+        
+        public static void OpenCommand(string path)
+        {
+            if(Platform.RunningOS == OS.Windows)
+            {
+                Process.Start(new ProcessStartInfo(path) {UseShellExecute = true});
+            } else if (Platform.RunningOS == OS.Mac) {
+                Process.Start("open", string.Format("\"{0}\"", path));
+            } else if (Platform.RunningOS == OS.Linux) {
+                Process.Start("xdg-open", string.Format("\"{0}\"", path));
             }
         }
     }

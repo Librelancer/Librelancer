@@ -31,12 +31,21 @@ namespace LibreLancer.ImUI
             new FileFilter("Ale Files","ale")
         );
         
-        public static readonly  FileDialogFilters ImportModelFilters = new FileDialogFilters(
+        public static readonly  FileDialogFilters ImportModelFiltersNoBlender = new FileDialogFilters(
             new FileFilter("Model Files","dae","gltf","glb","obj"),
             new FileFilter("Collada Files", "dae"),
             new FileFilter("glTF 2.0 Files", "gltf"),
             new FileFilter("glTF 2.0 Binary Files", "glb"),
             new FileFilter("Wavefront Obj Files", "obj")
+        );
+        
+        public static readonly  FileDialogFilters ImportModelFilters = new FileDialogFilters(
+            new FileFilter("Model Files","dae","gltf","glb","obj", "blend"),
+            new FileFilter("Collada Files", "dae"),
+            new FileFilter("glTF 2.0 Files", "gltf"),
+            new FileFilter("glTF 2.0 Binary Files", "glb"),
+            new FileFilter("Wavefront Obj Files", "obj"),
+            new FileFilter("Blender Files", "blend")
         );
 
         public static readonly FileDialogFilters GltfFilter = new FileDialogFilters(

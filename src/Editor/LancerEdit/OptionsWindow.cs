@@ -1,6 +1,7 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
+
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -15,12 +16,14 @@ namespace LancerEdit
         private EditorConfiguration config;
         private RenderContext rstate;
         private ImGuiHelper guiHelper;
-        static readonly string[] defaultFilters = {
+
+        static readonly string[] defaultFilters =
+        {
             "Linear", "Bilinear", "Trilinear"
         };
-        
+
         int[] msaaLevels;
-        string[] msaaStrings = { "None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA" };
+        string[] msaaStrings = {"None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA"};
         int cMsaa = 0;
         string[] filters;
         int[] anisotropyLevels;
@@ -32,13 +35,13 @@ namespace LancerEdit
             new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
             new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough)
         };
-        
+
         public OptionsWindow(MainWindow win)
         {
             config = win.Config;
             rstate = win.RenderContext;
             guiHelper = win.guiHelper;
-            
+
             var texturefilters = new List<string>(defaultFilters);
             if (win.RenderContext.MaxAnisotropy > 0)
             {
@@ -48,13 +51,15 @@ namespace LancerEdit
                     texturefilters.Add(string.Format("Anisotropic {0}x", lvl));
                 }
             }
-            var msaa = new List<int> { 0 };
+
+            var msaa = new List<int> {0};
             int a = 2;
             while (a <= win.RenderContext.MaxSamples)
             {
                 msaa.Add(a);
                 a *= 2;
             }
+
             msaaLevels = msaa.ToArray();
             switch (config.MSAA)
             {
@@ -74,11 +79,12 @@ namespace LancerEdit
                     cMsaa = 5;
                     break;
             }
+
             filters = texturefilters.ToArray();
             cFilter = config.TextureFilter;
             SetTexFilter();
         }
-        
+
         void SetTexFilter()
         {
             switch (cFilter)
@@ -98,7 +104,7 @@ namespace LancerEdit
                     break;
             }
         }
-        
+
         public void Show()
         {
             windowOpen = true;
@@ -107,94 +113,147 @@ namespace LancerEdit
         Vector3 editCol;
         Vector3 editCol2;
         private bool editGrad;
+
+        void EditorTab()
+        {
+            ViewerControls.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Default Camera");
+            var pastC = cFilter;
+            ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
+            if (cFilter != pastC)
+            {
+                SetTexFilter();
+                config.TextureFilter = cFilter;
+            }
+
+            ImGui.Combo("Antialiasing", ref cMsaa, msaaStrings, Math.Min(msaaLevels.Length, msaaStrings.Length));
+            config.MSAA = msaaLevels[cMsaa];
+            ImGui.Checkbox("View Buttons", ref config.ViewButtons);
+            ImGui.Checkbox("Pause When Unfocused", ref config.PauseWhenUnfocused);
+            if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2,
+                    new Vector2(22 * ImGuiHelper.Scale), config.BackgroundGradient))
+            {
+                ImGui.OpenPopup("Viewport Background");
+                editCol = new Vector3(config.Background.R, config.Background.G, config.Background.B);
+                editCol2 = new Vector3(config.Background2.R, config.Background2.G, config.Background2.B);
+                editGrad = config.BackgroundGradient;
+            }
+
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Viewport Background");
+            bool wOpen = true;
+            if (ImGui.BeginPopupModal("Viewport Background", ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.Checkbox("Gradient", ref editGrad);
+
+                ImGui.ColorPicker3(editGrad ? "Top###a" : "###a", ref editCol);
+                if (editGrad)
+                {
+                    ImGui.SameLine();
+                    ImGui.ColorPicker3("Bottom###b", ref editCol2);
+                }
+
+                if (ImGui.Button("OK"))
+                {
+                    config.Background = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
+                    config.Background2 = new Color4(editCol2.X, editCol2.Y, editCol2.Z, 1);
+                    config.BackgroundGradient = editGrad;
+                    ImGui.CloseCurrentPopup();
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Default"))
+                {
+                    var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
+                    editCol = new Vector3(def.R, def.G, def.B);
+                    editGrad = false;
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
+
+            if (ImGui.ColorButton("Grid Color", config.GridColor, ImGuiColorEditFlags.NoAlpha,
+                    new Vector2(22 * ImGuiHelper.Scale)))
+            {
+                ImGui.OpenPopup("Grid Color");
+                editCol = new Vector3(config.GridColor.R, config.GridColor.G, config.GridColor.B);
+            }
+
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Grid Color");
+            if (ImGui.BeginPopupModal("Grid Color", ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.ColorPicker3("###a", ref editCol);
+                if (ImGui.Button("OK"))
+                {
+                    config.GridColor = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
+                    ImGui.CloseCurrentPopup();
+                }
+
+                ImGui.SameLine();
+                if (ImGui.Button("Default"))
+                {
+                    var def = Color4.CornflowerBlue;
+                    editCol = new Vector3(def.R, def.G, def.B);
+                    editGrad = false;
+                }
+
+                ImGui.EndPopup();
+            }
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Ui Scale (Requires Restart)");
+            ImGui.SameLine();
+            ImGui.SliderFloat("##uiscale", ref config.UiScale, 1, 2.5f);
+            guiHelper.PauseWhenUnfocused = config.PauseWhenUnfocused;
+        }
+
+        void BlenderTab()
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Blender Path: ");
+            ImGui.SameLine();
+            string p = config.BlenderPath ?? "";
+            ImGui.InputText("##blenderpath", ref p, 1024);
+            if (p != config.BlenderPath)
+                config.BlenderPath = p;
+            ImGui.SameLine();
+            if (ImGui.Button(".."))
+            {
+                p = FileDialog.Open();
+                if (p != null) config.BlenderPath = p;
+            }
+            ImGui.TextDisabled("Leave blank to autodetect Blender");
+        }
+
         public void Draw()
         {
             if (windowOpen)
             {
                 ImGui.Begin("Options", ref windowOpen, ImGuiWindowFlags.AlwaysAutoResize);
-                ViewerControls.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
-                ImGui.SameLine();
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("Default Camera");
-                var pastC = cFilter;
-                ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
-                if(cFilter != pastC) {
-                    SetTexFilter();
-                    config.TextureFilter = cFilter;
-                }
-                ImGui.Combo("Antialiasing", ref cMsaa, msaaStrings, Math.Min(msaaLevels.Length, msaaStrings.Length));
-                config.MSAA = msaaLevels[cMsaa];
-                ImGui.Checkbox("View Buttons", ref config.ViewButtons);
-                ImGui.Checkbox("Pause When Unfocused", ref config.PauseWhenUnfocused);
-                if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2, new Vector2(22 * ImGuiHelper.Scale), config.BackgroundGradient))
+                if (ImGui.BeginTabBar("##tabs", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton))
                 {
-                    ImGui.OpenPopup("Viewport Background");
-                    editCol = new Vector3(config.Background.R, config.Background.G, config.Background.B);
-                    editCol2 = new Vector3(config.Background2.R, config.Background2.G, config.Background2.B);
-                    editGrad = config.BackgroundGradient;
+                    if (ImGui.BeginTabItem("Editor"))
+                    {
+                        EditorTab();
+                        ImGui.EndTabItem();
+                    }
+
+                    if (ImGui.BeginTabItem("Blender"))
+                    {
+                        BlenderTab();
+                        ImGui.EndTabItem();
+                    }
+
+                    ImGui.EndTabBar();
                 }
-                ImGui.SameLine();
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("Viewport Background");
-                bool wOpen = true;
-                if (ImGui.BeginPopupModal("Viewport Background", ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
-                {
-                    ImGui.Checkbox("Gradient", ref editGrad);
-                
-                    ImGui.ColorPicker3(editGrad ? "Top###a" : "###a", ref editCol);
-                    if (editGrad)
-                    {
-                        ImGui.SameLine();
-                        ImGui.ColorPicker3("Bottom###b", ref editCol2);
-                    }
-                    if (ImGui.Button("OK"))
-                    {
-                        config.Background = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
-                        config.Background2 = new Color4(editCol2.X, editCol2.Y, editCol2.Z, 1);
-                        config.BackgroundGradient = editGrad;
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Default"))
-                    {
-                        var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-                        editCol = new Vector3(def.R, def.G, def.B);
-                        editGrad = false;
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
-                    ImGui.EndPopup();
-                }
-                if(ImGui.ColorButton("Grid Color", config.GridColor, ImGuiColorEditFlags.NoAlpha, new Vector2(22 * ImGuiHelper.Scale)))
-                {
-                    ImGui.OpenPopup("Grid Color");
-                    editCol = new Vector3(config.GridColor.R, config.GridColor.G, config.GridColor.B);
-                }
-                ImGui.SameLine();
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("Grid Color");
-                if (ImGui.BeginPopupModal("Grid Color", ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
-                {
-                    ImGui.ColorPicker3("###a", ref editCol);
-                    if (ImGui.Button("OK"))
-                    {
-                        config.GridColor = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.SameLine();
-                    if (ImGui.Button("Default"))
-                    {
-                        var def = Color4.CornflowerBlue;
-                        editCol = new Vector3(def.R, def.G, def.B);
-                        editGrad = false;
-                    }
-                    ImGui.EndPopup();
-                }
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("Ui Scale (Requires Restart)");
-                ImGui.SameLine();
-                ImGui.SliderFloat("##uiscale", ref config.UiScale, 1, 2.5f);
-                guiHelper.PauseWhenUnfocused = config.PauseWhenUnfocused;
+
                 ImGui.End();
             }
         }

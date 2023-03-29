@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using LibreLancer;
@@ -42,12 +43,20 @@ namespace LancerEdit
         [Entry("default_camera_mode")]
         public int DefaultCameraMode = 0;
         [Entry("last_export_path")] 
-        internal string lastExportPath;
+        private string lastExportPath;
+        [Entry("blender_path")] 
+        private string blenderPath;
 
         public string LastExportPath
         {
-            get => lastExportPath != null ? Encoding.UTF8.GetString(Convert.FromBase64String(lastExportPath)) : null;
-            set => lastExportPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).TrimEnd('=');
+            get => !string.IsNullOrWhiteSpace(lastExportPath) ? Encoding.UTF8.GetString(Convert.FromBase64String(lastExportPath.Replace('_', '='))) : "";
+            set => lastExportPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).Replace('=','_');
+        }
+        
+        public string BlenderPath
+        {
+            get => !string.IsNullOrWhiteSpace(blenderPath) ? Encoding.UTF8.GetString(Convert.FromBase64String(blenderPath.Replace('_', '='))) : "";
+            set => blenderPath = Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).Replace('=','_');
         }
 
         [Entry("ui_scale")] public float UiScale = 1f;
@@ -71,8 +80,10 @@ namespace LancerEdit
                 writer.WriteLine($"grid_color = {FormatColor(GridColor)}");
                 writer.WriteLine($"default_camera_mode = {DefaultCameraMode}");
                 writer.WriteLine(Invariant($"ui_scale = {UiScale:F4}"));
-                if(lastExportPath != null)
-                    writer.Write($"last_export_path = {lastExportPath}");
+                if(!string.IsNullOrWhiteSpace(lastExportPath))
+                    writer.WriteLine($"last_export_path = {lastExportPath}");
+                if(!string.IsNullOrWhiteSpace(blenderPath))
+                    writer.WriteLine($"blender_path = {blenderPath}");
             }
         }
 

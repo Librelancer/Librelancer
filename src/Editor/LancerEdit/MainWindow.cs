@@ -325,22 +325,33 @@ namespace LancerEdit
                 if(Theme.IconMenuItem(Icons.FileImport, "Import Model",true))
                 {
                     string input;
-                    if((input = FileDialog.Open(FileDialogFilters.ImportModelFilters)) != null)
+                    var filters = Blender.BlenderPathValid(Config.BlenderPath)
+                        ? FileDialogFilters.ImportModelFilters
+                        : FileDialogFilters.ImportModelFiltersNoBlender;
+                    if((input = FileDialog.Open(filters)) != null)
                     {
                         StartLoadingSpinner();
                         new Thread(() =>
                         {
-                            SimpleMesh.Model model = null;
-                            try
+                            EditResult<SimpleMesh.Model> model = null;
+                            if (Blender.FileIsBlender(input))
+                            {
+                                model = Blender.LoadBlenderFile(input, Config.BlenderPath);
+                            }
+                            else
                             {
                                 using var stream = File.OpenRead(input);
-                                model = SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
-                                EnsureUIThread(() => FinishImporterLoad(model, System.IO.Path.GetFileName(input)));
+                                model = EditResult<SimpleMesh.Model>.TryCatch(() =>
+                                    SimpleMesh.Model.FromStream(stream));
                             }
-                            catch (Exception ex)
+
+                            EnsureUIThread(() => ResultMessages(model));
+                            if (model.IsSuccess)
                             {
-                                EnsureUIThread(() => ImporterError(ex));
+                                model.Data.AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
+                                EnsureUIThread(() => FinishImporterLoad(model.Data, Path.GetFileName(input)));
                             }
+                           
                         }).Start();
                     }
                 }
