@@ -97,7 +97,7 @@ public class Blender
         else
         {
             name = blenderPath;
-            args = $"\"{{file}}\" --background --python \"{tmppython}\"";
+            args = $"\"{file}\" --background --python \"{tmppython}\"";
         }
 
         var exportCode =
