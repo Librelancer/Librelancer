@@ -257,18 +257,17 @@ public class ImportedModel
 
         if (string.IsNullOrWhiteSpace(Name))
             return EditResult<EditableUtf>.Error("Model name cannot be empty");
-        
         if (Root == null)
             return EditResult<EditableUtf>.Error("Model must have a root node");
         if(Root.LODs.Count == 0)
             return EditResult<EditableUtf>.Error("Model root must have a mesh");
         if (!VerifyMaterials(Root))
             return EditResult<EditableUtf>.Error("Material name cannot be empty");
-        if (Root.Children.Count == 0)
+        if (Root.Children.Count == 0 && !settings.ForceCompound)
             Export3DB(Name, utf.Root, Root);
         else
         {
-            var suffix = (new Random().Next()) + ".3db";
+            var suffix = $".{IdSalt.New()}.3db";
             var vmslib = new LUtfNode() {Name = "VMeshLibrary", Parent = utf.Root, Children = new List<LUtfNode>()};
             utf.Root.Children.Add(vmslib);
             var cmpnd = new LUtfNode() {Name = "Cmpnd", Parent = utf.Root, Children = new List<LUtfNode>()};
@@ -295,7 +294,8 @@ public class ImportedModel
             if (consBuilder.Sphere != null) {
                 cons.Children.Add(new LUtfNode() { Name = "Sphere", Parent = cons, Data = consBuilder.Sphere.GetData()});
             }
-            cmpnd.Children.Add(cons);
+            if(cons.Children.Count > 0)
+                cmpnd.Children.Add(cons);
         }
 
         if (settings.GenerateMaterials)
@@ -316,7 +316,7 @@ public class ImportedModel
                 {
                     if (createdTextures.Contains(mat.DiffuseTexture)) continue;
                     createdTextures.Add(mat.DiffuseTexture);
-                    if (Images != null && Images.TryGetValue(mat.DiffuseTexture, out var img))
+                    if (settings.ImportTextures && Images != null && Images.TryGetValue(mat.DiffuseTexture, out var img))
                     {
                         txms.Children.Add(ImportTextureNode(txms, mat.DiffuseTexture, img.Data));
                     }

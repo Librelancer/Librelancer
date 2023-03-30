@@ -107,11 +107,11 @@ public static class SurfaceBuilder
         return false;
     }
 
-    public static EditResult<SurFile> CreateSur(ImportedModel model)
+    public static EditResult<SurFile> CreateSur(ImportedModel model, bool forceCompound = false)
     {
         List<EditMessage> warnings = new List<EditMessage>();
         var parts = new List<SurfacePart>();
-        CreateSurfacePart(model.Root, parts, (h,c,m) => { }, model.Root.Children.Count == 0, warnings);
+        CreateSurfacePart(model.Root, parts, (h,c,m) => { }, !forceCompound && model.Root.Children.Count == 0, warnings);
         if (parts.Count == 0) {
             return EditResult<SurFile>.Error("No valid hulls", warnings);
         }

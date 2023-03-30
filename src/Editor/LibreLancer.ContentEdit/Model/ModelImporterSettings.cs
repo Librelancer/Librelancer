@@ -4,4 +4,5 @@ public class ModelImporterSettings
 {
     public bool GenerateMaterials = true;
     public bool ImportTextures = true;
+    public bool ForceCompound = false;
 }

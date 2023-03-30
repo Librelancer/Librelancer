@@ -33,6 +33,7 @@ public class ImportModelTab : EditorTab
 
     private long fR;
     private bool generateMaterials = true;
+    private bool forceCompound = false;
 
     private Lighting lighting;
     private string[] lods;
@@ -111,7 +112,7 @@ public class ImportModelTab : EditorTab
     void FinishClicked()
     {
         string confirm = "";
-        var ext = output.Root.Children.Count > 0 ? ".cmp" : ".3db";
+        var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
         var modelPath = Path.Combine(outputPath, output.Name + ext);
         var surPath = Path.Combine(outputPath, output.Name + ".sur");
         if (File.Exists(modelPath))
@@ -142,6 +143,7 @@ public class ImportModelTab : EditorTab
             {
                 GenerateMaterials = generateMaterials,
                 ImportTextures = importTextures,
+                ForceCompound = forceCompound
             });
             win.QueueUIThread(() =>
             {
@@ -149,9 +151,9 @@ public class ImportModelTab : EditorTab
                 EditResult<SurFile> sur = null;
                 if (SurfaceBuilder.HasHulls(output))
                 {
-                    sur = SurfaceBuilder.CreateSur(output);
+                    sur = SurfaceBuilder.CreateSur(output, forceCompound);
                 }
-                var ext = output.Root.Children.Count > 0 ? ".cmp" : ".3db";
+                var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
                 var modelPath = Path.Combine(outputPath, output.Name + ext);
                 if (sur != null) win.ResultMessages(sur);
                 if (result.IsSuccess &&
@@ -161,8 +163,6 @@ public class ImportModelTab : EditorTab
                     win.ResultMessages(saved);
                     if (saved.IsSuccess)
                     {
-                        win.AddTab(new UtfTab(win, result.Data, output.Name + ext)
-                            {FilePath = modelPath});
                         if (sur != null)
                         {
                             using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
@@ -171,6 +171,7 @@ public class ImportModelTab : EditorTab
                             }
                         }
                         win.Config.LastExportPath = outputPath;
+                        win.OpenFile(modelPath);
                     }
                 }
                 win.FinishLoadingSpinner();
@@ -218,6 +219,10 @@ public class ImportModelTab : EditorTab
                 ImGui.SameLine();
                 ImGui.InputText("##mdlname", ref output.Name, 1000);
                 ImGui.Checkbox("Generate Materials", ref generateMaterials);
+                ImGui.SameLine();
+                ImGui.BeginDisabled(output.Root.Children.Count > 0);
+                ImGui.Checkbox("Force Compound", ref forceCompound);
+                ImGui.EndDisabled();
                 ImGui.BeginDisabled(model.Images == null || model.Images.Count == 0);
                 ImGui.Checkbox("Import Textures", ref importTextures);
                 ImGui.EndDisabled();

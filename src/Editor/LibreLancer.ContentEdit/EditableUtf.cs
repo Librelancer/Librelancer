@@ -395,7 +395,9 @@ namespace LibreLancer.ContentEdit
                 byte[] nodeBlock;
                 using(var mem = new MemoryStream())
                 {
-                    WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataOffsets, true);
+                    var res = WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataOffsets, true);
+                    if (res.IsError)
+                        return res;
                     nodeBlock = mem.ToArray();
                 }
 
@@ -438,7 +440,7 @@ namespace LibreLancer.ContentEdit
 			}
             return true.AsResult();
 		}
-		void WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, bool last)
+		EditResult<bool> WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, bool last)
 		{
 			if (node.Data != null)
 			{
@@ -458,9 +460,13 @@ namespace LibreLancer.ContentEdit
                 writer.Write(-2037297339);
                 writer.Write(-2037297339);
                 writer.Write(-2037297339);
-				return;
+				return true.AsResult();
 			}
 
+            if(node.Children == null ||
+               node.Children.Count == 0)
+                return EditResult<bool>.Error("Cannot save empty node " + node.Name);
+            
 			long startPos = writer.BaseStream.Position;
 			writer.Write((int)0); //peerOffset
 			writer.Write(strOff[node.Name]);
@@ -476,8 +482,10 @@ namespace LibreLancer.ContentEdit
             //There should be 3 more DWORDS here but we can safely not write them for FL
 			for (int i = 0; i < node.Children.Count; i++)
 			{
-				WriteNode(node.Children[i], writer, strOff, datOff, i == (node.Children.Count - 1));
-			}
+				var res = WriteNode(node.Children[i], writer, strOff, datOff, i == (node.Children.Count - 1));
+                if (res.IsError)
+                    return res;
+            }
 			if (!last) //if there's siblings
 			{
 				var endPos = writer.BaseStream.Position;
@@ -485,7 +493,8 @@ namespace LibreLancer.ContentEdit
 				writer.Write((int)endPos);
 				writer.BaseStream.Seek(endPos, SeekOrigin.Begin);
 			}
-		}
+            return true.AsResult();
+        }
 	}
 
 	public class LUtfNode
