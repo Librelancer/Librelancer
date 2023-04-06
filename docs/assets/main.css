@@ -15,3 +15,8 @@ th, td { padding: .5em; }
 dl { font-size: .95rem; }
 dt { font-weight: normal; font-style: italic; color: rgb(255, 243, 186); margin: 1em; }
 dd { font-size: .85rem; }
+#toc { border: 1px solid #aaa; display: table; font-size: 95%; padding: 20px; width: auto; float: right; }
+.toc_title { font-weight: 700; text-align: center; }
+#toc li, #toc ul, #toc ul li { list-style: outside none none !important; display: block; padding: 0; }
+
+
