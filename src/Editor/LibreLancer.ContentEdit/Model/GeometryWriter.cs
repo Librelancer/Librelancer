@@ -58,7 +58,7 @@ namespace LibreLancer.ContentEdit.Model
                 fvf |= D3DFVF.TEX1;
             return fvf;
         }
-        public static byte[] VMeshData(Geometry g)
+        public static byte[] VMeshData(Geometry g, D3DFVF? overrideFVF = null)
         {
             using (var stream = new MemoryStream())
             {
@@ -67,7 +67,7 @@ namespace LibreLancer.ContentEdit.Model
                 writer.Write((uint)0x04); //SurfaceType
                 writer.Write((ushort)(g.Groups.Length)); //MeshCount
                 writer.Write((ushort)(g.Indices.Length)); //IndexCount
-                D3DFVF fvf = FVF(g);
+                D3DFVF fvf = overrideFVF ?? FVF(g);
                 writer.Write((ushort)fvf); //FVF
                 writer.Write((ushort)g.Vertices.Length); //VertexCount
 

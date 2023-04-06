@@ -225,10 +225,7 @@ namespace LancerEdit
                 config.BlenderPath = p;
             ImGui.SameLine();
             if (ImGui.Button(".."))
-            {
-                p = FileDialog.Open();
-                if (p != null) config.BlenderPath = p;
-            }
+                FileDialog.Open(path => config.BlenderPath = path);
             ImGui.TextDisabled("Leave blank to autodetect Blender");
         }
 

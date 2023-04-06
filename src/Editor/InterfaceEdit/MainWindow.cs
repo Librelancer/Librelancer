@@ -180,26 +180,20 @@ namespace InterfaceEdit
             {
                 if (Theme.IconMenuItem(Icons.File, "New", true))
                 {
-                    string folder;
-                    string outpath;
-                    if ((folder = FileDialog.ChooseFolder()) != null)
+                    FileDialog.ChooseFolder(folder =>
                     {
-                        if ((outpath = FileDialog.Save(projectFilters)) != null)
+                        FileDialog.Save(outpath =>
                         {
                             var proj = new Project(this);
                             proj.Create(folder, outpath);
                             OpenGui(outpath);
-                        }
-                    }
+                        });
+                    });
                 }
 
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
                 {
-                    string f;
-                    if ((f = FileDialog.Open(projectFilters)) != null)
-                    {
-                        OpenGui(f);
-                    }
+                    FileDialog.Open(OpenGui, projectFilters);
                 }
                 recentFiles.Menu();
                 if (!playing && tabControl.Selected is SaveableTab saveable)

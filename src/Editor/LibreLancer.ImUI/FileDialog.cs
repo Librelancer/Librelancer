@@ -7,6 +7,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
+using ImGuiNET;
+
 namespace LibreLancer.ImUI
 {
     public class FileDialogFilters
@@ -95,22 +98,28 @@ namespace LibreLancer.ImUI
             }
         }
 
-        public static string Open(FileDialogFilters filters = null)
+        public static void Open(Action<string> onOpen, FileDialogFilters filters = null)
 		{
 			if (Platform.RunningOS == OS.Windows)
 			{
                 if (Win32.Win32OpenDialog(Win32.ConvertFilters(filters), null, out string result))
-                    return result;
-                else
-                    return null;
-			}
+                    onOpen(result);
+            }
 			else if (Platform.RunningOS == OS.Linux)
-			{
-                if (kdialog)
-                    return KDialogOpen(filters);
-                else
-                    return Gtk3.GtkOpen(filters);
-			}
+            {
+                ImGuiHelper.DialogOpen = true;
+                Task.Run(() =>
+                {
+                    string r = null;
+                    if (kdialog)
+                        r = KDialogOpen(filters);
+                    else
+                        r = Gtk3.GtkOpen(filters);
+                    ImGuiHelper.UiThread.QueueUIThread(() => ImGuiHelper.DialogOpen = false);
+                    if (r != null)
+                        ImGuiHelper.UiThread.QueueUIThread(() => onOpen(r));
+                });
+            }
 			else
 			{
 				//Mac
@@ -118,38 +127,50 @@ namespace LibreLancer.ImUI
 			}
 		}
 
-        public static string ChooseFolder()
+        public static void ChooseFolder(Action<string> onOpen)
         {
-            if(Platform.RunningOS == OS.Windows) {
+            if(Platform.RunningOS == OS.Windows)
+            {
                 if (Win32.Win32PickFolder(null, out string result))
-                    return result;
-                else
-                    return null;
+                    onOpen(result);
             } else if (Platform.RunningOS == OS.Linux) {
-                if (kdialog)
-                    return KDialogChooseFolder();
-                else
-                    return Gtk3.GtkFolder();
+                ImGuiHelper.DialogOpen = true;
+                Task.Run(() =>
+                {
+                    string r = null;
+                    if (kdialog)
+                        r = KDialogChooseFolder();
+                    else
+                        r = Gtk3.GtkFolder();
+                    ImGuiHelper.UiThread.QueueUIThread(() => ImGuiHelper.DialogOpen = false);
+                    if (r != null)
+                        ImGuiHelper.UiThread.QueueUIThread(() => onOpen(r));
+                });
             } else {
                 //Mac
                 throw new NotImplementedException();
             }
         }
-        public static string Save(FileDialogFilters filters = null)
+        public static void Save(Action<string> onSave, FileDialogFilters filters = null)
 		{
 			if (Platform.RunningOS == OS.Windows)
-			{
+            {
                 if (Win32.Win32SaveDialog(Win32.ConvertFilters(filters), null, out string result))
-                    return result;
-                else
-                    return null;
-			}
+                    onSave(result);
+            }
 			else if (Platform.RunningOS == OS.Linux)
 			{
-                if (kdialog)
-                    return KDialogSave(filters);
-                else
-                    return Gtk3.GtkSave(filters);
+                Task.Run(() =>
+                {
+                    string r = null;
+                    if (kdialog)
+                        r = KDialogSave(filters);
+                    else
+                        r = Gtk3.GtkSave(filters);
+                    ImGuiHelper.UiThread.QueueUIThread(() => ImGuiHelper.DialogOpen = false);
+                    if (r != null)
+                        ImGuiHelper.UiThread.QueueUIThread(() => onSave(r));
+                });
 			}
 			else
 			{

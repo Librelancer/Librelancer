@@ -6,6 +6,7 @@ using LibreLancer.Physics;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
@@ -20,6 +21,7 @@ public static class ModelExporter
         foreach (var p in cmp.Parts)
             if (p.Construct == null)
             {
+                p.Model?.VMeshWire.Initialize(cmp);
                 rootModel = new ExportModelNode
                 {
                     Model = p.Model,
@@ -39,6 +41,7 @@ public static class ModelExporter
             foreach (var mdl in parentModels)
                 if (part.Construct.ParentName == mdl.Name)
                 {
+                    part.Model.VMeshWire?.Initialize(cmp);
                     var child = new ExportModelNode
                     {
                         Construct = part.Construct,
@@ -64,6 +67,7 @@ public static class ModelExporter
     
     public static SimpleMesh.Model Export(ModelFile mdl, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
     {
+        mdl.VMeshWire?.Initialize(mdl);
         var exportNode = new ExportModelNode()
         {
             Name = "Root",
@@ -168,6 +172,16 @@ public static class ModelExporter
                 sm.Children.Add(surnode);
             }
         }
+
+        if (node.Model.VMeshWire != null)
+        {
+            var meshNode = new ModelNode
+            {
+                Geometry = GeometryFromVMeshWire(node.Name, node.Model.VMeshWire, res, dest.Materials),
+                Name = node.Name + ".vmeshwire"
+            };
+            sm.Children.Add(meshNode);
+        }
         foreach (var n in node.Children)
         {
             sm.Children.Add(ProcessNode(n, dest, settings, res, sur, is3db));
@@ -247,7 +261,44 @@ public static class ModelExporter
         geo.Attributes = VertexAttributes.Position;
         return geo;
     }
-    
+
+    static Geometry GeometryFromVMeshWire(string name, VMeshWire wire, ResourceManager resources,
+        Dictionary<string, Material> materials)
+    {
+        var geo = new Geometry();
+        geo.Name = name + "." + ".wire.mesh";
+        geo.Attributes = VertexAttributes.Position;
+        List<Vertex> verts = new List<Vertex>();
+        List<int> hashes = new List<int>();
+        List<uint> indices = new List<uint>();
+        foreach (var pos in wire.Lines)
+        {
+            var vert = new Vertex() {Position = pos};
+            var hash = HashVert(ref vert);
+            int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
+            if (newIndex == -1)
+            {
+                newIndex = verts.Count;
+                verts.Add(vert);
+                hashes.Add(hash);
+            }
+            indices.Add((uint)newIndex);
+        }
+        geo.Vertices = verts.ToArray();
+        geo.Indices = Indices.FromBuffer(indices.ToArray());
+        geo.Groups = new TriangleGroup[] {
+            new TriangleGroup()
+            {
+                BaseVertex =  0, 
+                StartIndex = 0,
+                IndexCount = indices.Count,
+                Material = GetMaterial(0, resources, materials)
+            }
+        };
+        geo.Kind = GeometryKind.Lines;
+        return geo;
+    }
+
     // Get just the referenced geometry from the VMeshData
     static Geometry GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, ResourceManager resources)
     {

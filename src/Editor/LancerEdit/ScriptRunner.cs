@@ -59,8 +59,7 @@ namespace LancerEdit
                         ImGui.SameLine();
                         if (ImGui.Button(".."))
                         {
-                            var result = FileDialog.ChooseFolder();
-                            if(!string.IsNullOrEmpty(result)) InputText.SetText(result);
+                            FileDialog.ChooseFolder(InputText.SetText);
                         }
                         break;
                     case ScriptArgumentType.File:
@@ -68,8 +67,7 @@ namespace LancerEdit
                         ImGui.SameLine();
                         if (ImGui.Button(".."))
                         {
-                            var result = FileDialog.Open();
-                            if(!string.IsNullOrEmpty(result)) InputText.SetText(result);
+                            FileDialog.Open(InputText.SetText);
                         }
                         break;
                     case ScriptArgumentType.SaveFile:
@@ -77,8 +75,7 @@ namespace LancerEdit
                         ImGui.SameLine();
                         if (ImGui.Button(".."))
                         {
-                            var result = FileDialog.Save();
-                            if(!string.IsNullOrEmpty(result)) InputText.SetText(result);
+                            FileDialog.Save(InputText.SetText);
                         }
                         break;
                     case ScriptArgumentType.FileArray:
@@ -109,8 +106,7 @@ namespace LancerEdit
                         ImGui.Separator();
                         if (ImGui.Button("Add File"))
                         {
-                            var result = FileDialog.Open();
-                            if(!string.IsNullOrEmpty(result)) StringArray.Add(result);
+                            FileDialog.Open(StringArray.Add);
                         }
                        
                         break;

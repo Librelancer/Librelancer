@@ -21,17 +21,14 @@ namespace LancerEdit
 {
     public class ProjectileViewer : EditorTab
     {
-        public static bool Create(MainWindow mw, out ProjectileViewer viewer)
+        public static void Create(MainWindow mw)
         {
-            viewer = null;
-            string folder;
-            if ((folder = FileDialog.ChooseFolder()) != null)
+            FileDialog.ChooseFolder(folder =>
             {
-                if (!GameConfig.CheckFLDirectory(folder)) return false;
-                viewer = new ProjectileViewer(mw, folder);
-                return true;
-            }
-            return false;
+                if (!GameConfig.CheckFLDirectory(folder)) return;
+                var viewer = new ProjectileViewer(mw, folder);
+                mw.TabControl.Tabs.Add(viewer);
+            });
         }
 
         private int cameraMode = 0;

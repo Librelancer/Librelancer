@@ -162,23 +162,19 @@ namespace ThnPlayer
             ImGui.BeginMainMenuBar();
             if(ImGui.BeginMenu("File")) {
                 if(Theme.IconMenuItem(Icons.Open, "Load Game Data",true)) {
-                    var folder = FileDialog.ChooseFolder();
-                    if(folder != null) {
+                    FileDialog.ChooseFolder(folder =>
+                    {
                         if(GameConfig.CheckFLDirectory(folder)) {
                             openLoad = true;
                             LoadData(folder);
                         } else {
                             //Error dialog
                         }
-                    }
+                    });
                 }
                 if (Theme.IconMenuItem(Icons.Open, "Open Thn", GameData != null))
                 {
-                    var file = FileDialog.Open();
-                    if (file != null)
-                    {
-                        Open(file);
-                    }
+                    FileDialog.Open(x => Open(x));
                 }
                 
                 if (GameData != null) recents.Menu();
@@ -227,11 +223,7 @@ namespace ThnPlayer
                 isMultipleOpen = true;
                 if (ImGui.Button("+"))
                 {
-                    var file = FileDialog.Open();
-                    if (file != null)
-                    {
-                        openFiles.Add(file);
-                    }
+                    FileDialog.Open(file => openFiles.Add(file));
                 }
                 ImGui.BeginChild("##files", new Vector2(200, 200), true, ImGuiWindowFlags.HorizontalScrollbar);
                 int j = 0;

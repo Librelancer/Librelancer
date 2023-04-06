@@ -193,8 +193,7 @@ namespace LancerEdit
 
                 if (tb.ButtonItem("Resolve Audio Hashes"))
                 {
-                    var folder = FileDialog.ChooseFolder();
-                    if (folder != null)
+                    FileDialog.ChooseFolder(folder =>
                     {
                         var idtable = new IDTable(folder);
                         foreach (var n in Utf.Root.IterateAll())
@@ -202,14 +201,16 @@ namespace LancerEdit
                             if (n.Name.StartsWith("0x"))
                             {
                                 uint v;
-                                if (uint.TryParse(n.Name.Substring(2),NumberStyles.HexNumber, CultureInfo.InvariantCulture , out v))
+                                if (uint.TryParse(n.Name.Substring(2), NumberStyles.HexNumber,
+                                        CultureInfo.InvariantCulture, out v))
                                 {
                                     idtable.UtfNicknameTable.TryGetValue(v, out n.ResolvedName);
                                 }
-                            } else
+                            }
+                            else
                                 n.ResolvedName = null;
                         }
-                    }
+                    });
                 }
                 if(tb.ButtonItem("Reload Resources"))
                 {
@@ -253,19 +254,15 @@ namespace LancerEdit
                         {
                             Confirm("Importing data will delete this node's children. Continue?", () =>
                             {
-                                string path;
-                                if ((path = FileDialog.Open()) != null)
+                                FileDialog.Open(path =>
                                 {
                                     selectedNode.Children = null;
                                     selectedNode.Data = File.ReadAllBytes(path);
-                                }
+                                });
                             });
                         }
                         if (ImGui.MenuItem("Texture"))
-                            Confirm("Importing data will delete this node's children. Continue?", () =>
-                            {
-                                ImportTexture();
-                            });
+                            Confirm("Importing data will delete this node's children. Continue?", ImportTexture);
                         ImGui.EndPopup();
                     }
 
@@ -451,11 +448,7 @@ namespace LancerEdit
                 {
                     if (ImGui.MenuItem("File"))
                     {
-                        string path;
-                        if ((path = FileDialog.Open()) != null)
-                        {
-                            selectedNode.Data = File.ReadAllBytes(path);
-                        }
+                        FileDialog.Open(path => selectedNode.Data = File.ReadAllBytes(path));
                     }
                     if (ImGui.MenuItem("Texture"))
                         ImportTexture();
@@ -463,11 +456,7 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Export Data"))
                 {
-                    string path;
-                    if ((path = FileDialog.Save()) != null) 
-                    { 
-                        File.WriteAllBytes(path, selectedNode.Data);
-                    }
+                    FileDialog.Save(path =>  File.WriteAllBytes(path, selectedNode.Data));
                 }
                 if (selectedNode.Name.ToLowerInvariant() == "vmeshdata" &&
                     ImGui.Button("View VMeshData"))
@@ -521,11 +510,7 @@ namespace LancerEdit
                 if(ImGui.BeginPopup("importactions"))
                 {
                     if(ImGui.MenuItem("File")) {
-                        string path;
-                        if ((path = FileDialog.Open()) != null)
-                        {
-                            selectedNode.Data = File.ReadAllBytes(path);
-                        }
+                        FileDialog.Open(path => selectedNode.Data = File.ReadAllBytes(path));
                     }
                     if(ImGui.MenuItem("Texture"))
                         ImportTexture();
@@ -544,8 +529,7 @@ namespace LancerEdit
 
         void ImportTexture()
         {
-            string path;
-            if ((path = FileDialog.Open()) != null)
+            FileDialog.Open(path =>
             {
                 var src = TextureImport.OpenFile(path);
                 if (src.Type == TexLoadType.ErrorLoad ||
@@ -553,7 +537,7 @@ namespace LancerEdit
                     src.Type == TexLoadType.ErrorNonPowerOfTwo)
                 {
                     main.ErrorDialog(TextureImport.LoadErrorString(src.Type, path));
-                } 
+                }
                 else if (src.Type == TexLoadType.DDS)
                 {
                     src.Texture.Dispose();
@@ -567,7 +551,7 @@ namespace LancerEdit
                     teximportid = ImGuiHelper.RegisterTexture(teximportprev);
                     popups.OpenPopup("Texture Import");
                 }
-            }
+            });
         }
 
         LUtfNode pasteInto;

@@ -96,11 +96,7 @@ namespace Launcher
             ImGui.SameLine();
             if (ImGui.Button("..."))
             {
-                string newFolder;
-                if ((newFolder = FileDialog.ChooseFolder()) != null)
-                {
-                    freelancerFolder.SetText(newFolder);
-                }
+                FileDialog.ChooseFolder(freelancerFolder.SetText);
             }
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Resolution: ");

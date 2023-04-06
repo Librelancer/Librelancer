@@ -742,8 +742,9 @@ namespace LancerEdit
 
         void OpenSur()
         {
-            var file = FileDialog.Open(FileDialogFilters.SurFilters);
-            surname = System.IO.Path.GetFileName(file);
+            FileDialog.Open((file) =>
+            {
+                surname = System.IO.Path.GetFileName(file);
 #if !DEBUG
             try
             {
@@ -760,7 +761,8 @@ namespace LancerEdit
                 surFile = null;
             }
 #endif
-            if (surFile != null) ProcessSur(surFile);
+                if (surFile != null) ProcessSur(surFile);
+            }, FileDialogFilters.SurFilters);
         }
         void HierarchyPanel()
         {
@@ -895,9 +897,7 @@ namespace LancerEdit
         {
             ImGui.Checkbox("Draw Skeleton", ref drawSkeleton);
             if(ImGui.Button("Open Anm")) {
-                var file = FileDialog.Open();
-                if (file == null) return;
-                anmFile = new Anm.AnmFile(file);
+                FileDialog.Open((file) => anmFile = new Anm.AnmFile(file));
             }
             if(anmFile != null)
             {
@@ -940,9 +940,7 @@ namespace LancerEdit
                 }
                 else
                 {
-                    string output;
-                    if((output = FileDialog.Save(pngFilters)) != null)
-                        RenderImage(output);
+                    FileDialog.Save(RenderImage, pngFilters);
                 }
             }
 
@@ -964,8 +962,8 @@ namespace LancerEdit
         
         void Export(SimpleMesh.ModelSaveFormat fmt, FileDialogFilters filters)
         {
-            var output = drawable != null ? FileDialog.Save(filters) : null;
-            if (output != null)
+            if (drawable == null) return;
+            FileDialog.Save(output =>
             {
                 SimpleMesh.Model exported = null;
                 if (drawable is ModelFile mdl) {
@@ -975,12 +973,10 @@ namespace LancerEdit
                 }
                 if (exported != null)
                 {
-                    using (var os = File.Create(output))
-                    {
-                        exported.SaveTo(os, fmt);
-                    }
+                    using var os = File.Create(output);
+                    exported.SaveTo(os, fmt);
                 }
-            }
+            }, filters);
         }
         void ExportPanel()
         {

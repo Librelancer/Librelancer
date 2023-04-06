@@ -220,22 +220,23 @@ public class ImportModelTab : EditorTab
                 ImGui.InputText("##mdlname", ref output.Name, 1000);
                 ImGui.Checkbox("Generate Materials", ref generateMaterials);
                 ImGui.SameLine();
-                ImGui.BeginDisabled(output.Root.Children.Count > 0);
-                ImGui.Checkbox("Force Compound", ref forceCompound);
-                ImGui.EndDisabled();
-                ImGui.BeginDisabled(model.Images == null || model.Images.Count == 0);
-                ImGui.Checkbox("Import Textures", ref importTextures);
-                ImGui.EndDisabled();
-                ImGui.BeginDisabled(!canGenerateSur);
-                ImGui.Checkbox("Generate Sur", ref generateSur);
-                ImGui.EndDisabled();
+                ImGui.Checkbox("Starsphere Mode", ref forceCompound);
+                ImGuiExt.Checkbox(
+                    "Import Textures", 
+                    ref importTextures, 
+                    model.Images != null && model.Images.Count > 0,
+                    "Model contains no textures to import");
+                ImGuiExt.Checkbox("Generate Sur", 
+                    ref generateSur, 
+                    canGenerateSur, 
+                    "Model has no collision hulls");
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Output Path:");
                 ImGui.SameLine();
                 ImGui.InputText("##mdlpath", ref outputPath, 1000);
                 ImGui.SameLine();
                 if (ImGui.Button("..")) {
-                    outputPath = FileDialog.ChooseFolder() ?? outputPath;
+                    FileDialog.ChooseFolder(path => outputPath = path);
                 }
                 break;
             case 1: //MATERIALS

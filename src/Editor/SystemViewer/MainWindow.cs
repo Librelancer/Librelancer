@@ -166,16 +166,20 @@ C# Memory Usage: {5}
             //Main Menu
             ImGui.BeginMainMenuBar();
             if(ImGui.BeginMenu("File")) {
-                if(Theme.IconMenuItem(Icons.Open, "Open",true)) {
-                    var folder = FileDialog.ChooseFolder();
-                    if(folder != null) {
-                        if(GameConfig.CheckFLDirectory(folder)) {
+                if(Theme.IconMenuItem(Icons.Open, "Open",true))
+                {
+                    FileDialog.ChooseFolder(folder =>
+                    {
+                        if (GameConfig.CheckFLDirectory(folder))
+                        {
                             openLoad = true;
                             LoadData(folder);
-                        } else {
+                        }
+                        else
+                        {
                             //Error dialog
                         }
-                    }
+                    });
                 }
                 if(Theme.IconMenuItem(Icons.Quit, "Quit", true)) {
                     Exit();

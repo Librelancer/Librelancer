@@ -75,20 +75,23 @@ namespace LibreLancer.ImUI
         /// <param name="enabled">If set to <c>true</c> enabled.</param>
         public static bool Button(string text, bool enabled)
         {
-            if (!enabled)
+           ImGui.BeginDisabled(!enabled);
+           var r = ImGui.Button(text);
+           ImGui.EndDisabled();
+           return r;
+        }
+
+        public static void Checkbox(string label, ref bool v, bool enabled, string disableReason)
+        {
+            ImGui.BeginDisabled(!enabled);
+            ImGui.Checkbox(label, ref v);
+            ImGui.EndDisabled();
+            if (!enabled && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             {
-                var style = ImGui.GetStyle();
-                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, style.Colors[(int)ImGuiCol.Button]);
-                ImGui.PushStyleColor(ImGuiCol.ButtonActive, style.Colors[(int)ImGuiCol.Button]);
-                ImGui.PushStyleColor(ImGuiCol.Text, style.Colors[(int)ImGuiCol.TextDisabled]);
-                ImGui.Button(text);
-                ImGui.PopStyleColor();
-                ImGui.PopStyleColor();
-                ImGui.PopStyleColor();
-                return false;
+                ImGui.BeginTooltip();
+                ImGui.Text(disableReason);
+                ImGui.EndTooltip();
             }
-            else
-                return ImGui.Button(text);
         }
 
         public static unsafe void ToastText(string text, Color4 background, Color4 foreground)

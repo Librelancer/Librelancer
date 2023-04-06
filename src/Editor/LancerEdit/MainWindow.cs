@@ -317,9 +317,8 @@ namespace LancerEdit
 				}
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
 				{
-                    var f = FileDialog.Open(FileDialogFilters.UtfFilters);
-                    OpenFile(f);
-				}
+                    FileDialog.Open(OpenFile, FileDialogFilters.UtfFilters);
+                }
 
                 recentFiles.Menu();
 				if (ActiveTab == null)
@@ -362,38 +361,29 @@ namespace LancerEdit
 				}
                 if(Theme.IconMenuItem(Icons.FileImport, "Import Model",true))
                 {
-                    string input;
                     var filters = Blender.BlenderPathValid(Config.BlenderPath)
                         ? FileDialogFilters.ImportModelFilters
                         : FileDialogFilters.ImportModelFiltersNoBlender;
-                    if((input = FileDialog.Open(filters)) != null)
-                        TryImportModel(input);
+                    FileDialog.Open(TryImportModel, filters);
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
-                    string input;
-                    if ((input = FileDialog.Open(FileDialogFilters.ImageFilter)) != null) {
-                        Make3dbDlg.Open(input);
-                    }
+                    FileDialog.Open(input => Make3dbDlg.Open(input), FileDialogFilters.ImageFilter);
                 }
                 if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",true))
                 {
-                    string input;
-                    if((input = FileDialog.Open(FileDialogFilters.FreelancerIniFilter)) != null) {
-                        AddTab(new InfocardBrowserTab(input, this));
-                    }
+                    FileDialog.Open(x => AddTab(new InfocardBrowserTab(x, this)), FileDialogFilters.FreelancerIniFilter);
                 }
                 if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
-                    string input;
-                    if ((input = FileDialog.Open(FileDialogFilters.StateGraphFilter)) != null) {
-                        AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input)));
-                    }
+                    FileDialog.Open(
+                        input => AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input))),
+                        FileDialogFilters.StateGraphFilter
+                        );
                 }
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", true))
                 {
-                    if(ProjectileViewer.Create(this, out var pj))
-                        TabControl.Tabs.Add(pj);
+                    ProjectileViewer.Create(this);
                 }
 
                 if (Theme.IconMenuItem(Icons.BezierCurve, "ParamCurve Visualiser", true))
@@ -660,8 +650,7 @@ namespace LancerEdit
 
         void RunSaveDialog(UtfTab at)
         {
-            var f = FileDialog.Save(FileDialogFilters.UtfFilters);
-            if (f != null)
+            FileDialog.Save(f =>
             {
                 var result = at.Utf.Save(f, 0);
                 ResultMessages(result);
@@ -671,7 +660,7 @@ namespace LancerEdit
                     at.UpdateTitle();
                     at.FilePath = f;
                 }
-            }
+            }, FileDialogFilters.UtfFilters);
         }
          
 

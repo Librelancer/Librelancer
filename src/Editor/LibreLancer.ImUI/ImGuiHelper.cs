@@ -104,6 +104,10 @@ namespace LibreLancer.ImUI
 
         public static float Scale { get; private set; } = 1;
 
+        public static bool DialogOpen = false;
+
+        public static IUIThread UiThread => instance.game;
+
 		public unsafe ImGuiHelper(Game game, float scale)
         { 
             ImGuiExt.igFtLoad();
@@ -379,6 +383,16 @@ namespace LibreLancer.ImUI
         List<RenderTarget2D> toFree = new List<RenderTarget2D>();
 		public void Render(RenderContext rstate)
 		{
+            if (DialogOpen)
+            {
+                bool open = true;
+                ImGui.OpenPopup("##blockwindow");
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.1f);
+                ImGui.BeginPopupModal("##blockwindow", ref open, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
+                ImGui.Dummy(new Vector2(game.Width, game.Height));
+                ImGui.EndPopup();
+                ImGui.PopStyleVar();
+            }
 			ImGui.Render();
             RenderImDrawData(ImGui.GetDrawData(), rstate);
             foreach (var tex in toFree) {

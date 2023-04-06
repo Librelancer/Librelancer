@@ -55,7 +55,7 @@ namespace LibreLancer.Utf.Cmp
             }
         }
 
-        const int HEADER_SIZE = 16;
+        public const int HEADER_SIZE = 16;
         unsafe void ReadWireData(ArraySegment<byte> data)
         {
             if (data.Count < HEADER_SIZE)

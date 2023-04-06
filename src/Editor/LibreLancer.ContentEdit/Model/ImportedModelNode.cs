@@ -12,6 +12,7 @@ public class ImportedModelNode
 
     public List<ModelNode> LODs = new List<ModelNode>();
     public List<ModelNode> Hulls = new List<ModelNode>();
+    public ModelNode Wire;
     public List<HardpointDefinition> Hardpoints = new List<HardpointDefinition>();
     public List<ImportedModelNode> Children = new List<ImportedModelNode>();
 

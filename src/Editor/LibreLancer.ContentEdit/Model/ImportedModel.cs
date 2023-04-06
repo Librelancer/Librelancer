@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Vms;
 using LibreLancer.World;
 using SimpleMesh;
 
@@ -19,10 +21,16 @@ public class ImportedModel
     {
         Dictionary<string, ModelNode[]> autodetect = new Dictionary<string,ModelNode[]>(StringComparer.InvariantCultureIgnoreCase);
         foreach (var obj in input.Roots)
-            GetLods(obj, autodetect);
+        {
+            var res = GetLods(obj, autodetect);
+            if (res.IsError) 
+                return new EditResult<ImportedModel>(null, res.Messages);
+        }
         List<ImportedModelNode> nodes = new List<ImportedModelNode>();
         foreach(var obj in input.Roots) {
-            AutodetectTree(obj, nodes, null, autodetect);
+            var res = AutodetectTree(obj, nodes, null, autodetect);
+            if (res.IsError)
+                return new EditResult<ImportedModel>(null, res.Messages);
         }
         if (nodes.Count > 1) {
             return EditResult<ImportedModel>.Error("More than one root model");
@@ -30,7 +38,8 @@ public class ImportedModel
         if (nodes.Count == 0) {
             return EditResult<ImportedModel>.Error("Could not find root model");
         }
-
+        if(nodes[0].Def.Geometry?.Kind == GeometryKind.Lines)
+            return EditResult<ImportedModel>.Error("Root mesh cannot be wireframe");
         var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
         m.Root.Construct = null;
         return new EditResult<ImportedModel>(m);
@@ -164,13 +173,15 @@ public class ImportedModel
         }
     }
 
+    static bool IsWire(ModelNode mn) => mn.Geometry != null && mn.Geometry.Kind == GeometryKind.Lines;
 
-    static void AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, string parentName, Dictionary<string,ModelNode[]> autodetect)
+
+    static EditResult<bool> AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, string parentName, Dictionary<string,ModelNode[]> autodetect)
     {
         //Skip detected lods & hulls
         var num = LodNumber(obj, out _);
-        if (num != 0) return;
-        if (IsHull(obj)) return;
+        if (num != 0) return true.AsResult();
+        if (IsHull(obj)) return true.AsResult();
         //Build tree
         var mdl = new ImportedModelNode();
         mdl.Name = obj.Name;
@@ -185,14 +196,21 @@ public class ImportedModel
             
             if(IsHull(child))
                 mdl.Hulls.Add(child);
+            else if (IsWire(child))
+            {
+                if (mdl.Wire != null)
+                    return EditResult<bool>.Error($"Node {obj.Name} has more than one wireframe child");
+                mdl.Wire = child;
+            }
             else if (GetHardpoint(child, out var hp))
                 mdl.Hardpoints.Add(hp);
             else
                 AutodetectTree(child, mdl.Children, mdl.Name, autodetect);
         }
         parent.Add(mdl);
+        return true.AsResult();
     }
-    static void GetLods(ModelNode obj, Dictionary<string,ModelNode[]> autodetect)
+    static EditResult<bool> GetLods(ModelNode obj, Dictionary<string,ModelNode[]> autodetect)
     {
         string objn;
         var num = LodNumber(obj, out objn);
@@ -205,7 +223,11 @@ public class ImportedModel
             lods[num] = obj;
         }
         foreach (var child in obj.Children)
-            GetLods(child, autodetect);
+        {
+            var res = GetLods(child, autodetect);
+            if (res.IsError) return res;
+        }
+        return true.AsResult();
     }
     
     static bool CheckSuffix(string postfixfmt, string src, int count)
@@ -220,6 +242,7 @@ public class ImportedModel
     {
         name = obj.Name;
         if (obj.Geometry == null) return -1;
+        if (obj.Geometry.Kind == GeometryKind.Lines) return -1;
         if (obj.Name.Length < 6) return 0;
         if (!char.IsDigit(obj.Name, obj.Name.Length - 1)) return 0;
         if (!CheckSuffix("$lodX", obj.Name, 4)) return 0;
@@ -455,6 +478,44 @@ public class ImportedModel
             ExportModels(mdlName, root, suffix, vms, child);
     }
 
+    static ushort[] GetIndicesForWire(Geometry lod, Geometry vmeshwire)
+    {
+        ushort[] newIndices = new ushort[vmeshwire.Indices.Length];
+        for (int i = 0; i < vmeshwire.Indices.Length; i++)
+        {
+            var pos = vmeshwire.Vertices[vmeshwire.Indices.Indices16[i]].Position;
+            int j;
+            for (j = 0; j < lod.Vertices.Length; j++)
+            {
+                if (Vector3.Distance(lod.Vertices[j].Position, pos) < 0.01f)
+                    break;
+            }
+            if (j == lod.Vertices.Length)
+                return null;
+            newIndices[i] = (ushort)j;
+        }
+        return newIndices;
+    }
+
+    static LUtfNode GetVMeshWireNode(LUtfNode parentNode, uint crc, ushort[] indices)
+    {
+        var vertexOffset = indices.Min();
+        var max = indices.Max();
+        using var ms = new MemoryStream();
+        var writer = new BinaryWriter(ms);
+        writer.Write(VMeshWire.HEADER_SIZE);
+        writer.Write(crc);
+        writer.Write(vertexOffset); 
+        writer.Write((ushort)(max - vertexOffset)); //vertex count
+        writer.Write((ushort)(indices.Length)); //index count
+        writer.Write(max); //max vertex
+        foreach(var i in indices)
+            writer.Write((ushort)(i - vertexOffset));
+        var wireNode = new LUtfNode{Name = "VMeshWire", Parent = parentNode, Children = new List<LUtfNode>()};
+        wireNode.Children.Add(new LUtfNode() { Name = "VWireData", Parent = wireNode, Data = ms.ToArray()});
+        return wireNode;
+    }
+
     static void Export3DB(string mdlName, LUtfNode node3db, ImportedModelNode mdl, LUtfNode vmeshlibrary = null)
     {
         var vms = vmeshlibrary ?? new LUtfNode()
@@ -463,8 +524,7 @@ public class ImportedModel
         {
             var n = new LUtfNode()
             {
-                Name = string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i,
-                    (int) GeometryWriter.FVF(mdl.LODs[i].Geometry)),
+                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(mdl.LODs[i].Geometry)}.vms",
                 Parent = vms
             };
             n.Children = new List<LUtfNode>();
@@ -472,7 +532,7 @@ public class ImportedModel
                 {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry)});
             vms.Children.Add(n);
         }
-
+        
         if (vmeshlibrary == null)
             node3db.Children.Add(vms);
         if (mdl.LODs.Count > 1)
@@ -530,6 +590,43 @@ public class ImportedModel
         {
             var hp = new ModelHpNode() {Node = node3db};
             hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x, null)).ToList());
+        }
+        
+        if (mdl.Wire != null)
+        {
+            ushort[] wireIndices = null;
+            Geometry wireLod = mdl.Wire.Geometry;
+            Geometry srcGeometry = null;
+            int i;
+            for (i = 0; i < mdl.LODs.Count; i++)
+            {
+                if ((wireIndices = GetIndicesForWire(mdl.LODs[i].Geometry, wireLod)) != null) {
+                    srcGeometry = mdl.LODs[i].Geometry;
+                    break;
+                }
+            }
+            if (wireIndices != null)
+            {
+                FLLog.Info("Import", $"{mdl.Name} VMeshWire created from existing VMeshData");
+                node3db.Children.Add(GetVMeshWireNode(node3db,
+                    CrcTool.FLModelCrc($"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(srcGeometry)}.vms"),
+                    wireIndices
+                    ));
+            }
+            else
+            {
+                FLLog.Info("Import", $"{mdl.Name} VMeshWire creating new VMeshData");
+                string nodeName = $"{mdlName}-{mdl.Name}.vmeshwire.pos.vms";
+                var n = new LUtfNode()
+                {
+                    Name = nodeName,
+                    Parent = vms
+                };
+                n.Children = new List<LUtfNode>();
+                n.Children.Add(new LUtfNode()
+                    {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(wireLod, D3DFVF.XYZ)});
+                node3db.Children.Add(GetVMeshWireNode(node3db, CrcTool.FLModelCrc(nodeName), wireLod.Indices.Indices16));
+            }
         }
     }
 }

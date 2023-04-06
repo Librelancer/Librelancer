@@ -33,10 +33,7 @@ public class TextDisplayWindow
         ImGui.Text(SuggestedFilename);
         if (ImGui.Button("Save"))
         {
-            string value;
-            if ((value = FileDialog.Save(TextFilter)) != null) {
-                File.WriteAllText(value, Text);
-            }
+            FileDialog.Save(x => File.WriteAllText(x, Text), TextFilter);
         }
         ImGui.PushItemWidth(-1);
         ImGui.PushFont(ImGuiHelper.SystemMonospace);
