@@ -116,25 +116,11 @@ namespace LibreLancer.Net.Protocol
         
         public Quaternion GetQuaternion(int precision = NetPacking.BITS_COMPONENT)
         {
-            var maxIndex = (int) GetUInt(2);
-            var a = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            var b = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            var c = GetRangedFloat(NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            var d = (float)Math.Sqrt(1f - (a * a + b * b + c * c));
-            #if DEBUG
-            if (float.IsNaN(a) || float.IsNaN(b) || float.IsNaN(c) || float.IsNaN(d))
-            {
-                throw new Exception("Degenerate quaternion. Check alignment?");
-            }
-            #endif
-            Quaternion q;
-            if (maxIndex == 0)
-                return new Quaternion(d, a, b, c);
-            if (maxIndex == 1)
-                return new Quaternion(a, d, b, c);
-            if (maxIndex == 2)
-                return new Quaternion(a, b, d, c);
-            return new Quaternion(a, b, c, d);
+            var maxIndex = GetUInt(2);
+            var a = GetUInt(precision);
+            var b = GetUInt(precision);
+            var c = GetUInt(precision);
+            return NetPacking.UnpackQuaternion(precision, maxIndex, a, b, c);
         }
         
         public uint GetUInt(int bits = 32)
@@ -146,11 +132,8 @@ namespace LibreLancer.Net.Protocol
             return retval;
         }
 
-        public float GetRangedFloat(float min, float max, int bits)
-        {
-            var u =  GetUInt(bits) / (float) ((1 << bits) - 1);
-            return (min + (u * (max - min)));
-        }
+        public float GetRangedFloat(float min, float max, int bits) =>
+            NetPacking.UnquantizeFloat(GetUInt(bits), min, max, bits);
 
         public Vector3 GetRangedVector3(float min, float max, int bits)
         {

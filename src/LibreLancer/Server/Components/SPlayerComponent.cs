@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.GameData.Items;
@@ -32,6 +33,10 @@ namespace LibreLancer.Server.Components
         }
         
         private CircularBuffer<ReceivedInputs> inputs = new (96);
+
+        private CircularBuffer<(uint t, PlayerAuthState p, ObjectUpdate[] u)> oldStates =
+            new CircularBuffer<(uint t, PlayerAuthState p, ObjectUpdate[] u)>(128);
+        public uint MostRecentAck = 0;
         public int SequenceApplied = 0;
 
         public Player Player { get; private set; }
@@ -46,8 +51,31 @@ namespace LibreLancer.Server.Components
             Player.Killed();
         }
 
+        public void GetAcknowledgedState(out uint ackTick, out PlayerAuthState authState, out ObjectUpdate[] updates)
+        {
+            ackTick = 0;
+            authState = new PlayerAuthState();
+            updates = Array.Empty<ObjectUpdate>();
+            if (MostRecentAck == 0) return;
+            for (int i = 0; i < oldStates.Count; i++) {
+                if (oldStates[i].t == MostRecentAck)
+                {
+                    ackTick = MostRecentAck;
+                    authState = oldStates[i].p;
+                    updates = oldStates[i].u;
+                    break;
+                }
+            }
+        }
+
+        public void EnqueueState(uint tick, PlayerAuthState auth, ObjectUpdate[] updates)
+        {
+            oldStates.Enqueue((tick, auth, updates));
+        }
+
         public void QueueInput(InputUpdatePacket input)
         {
+            MostRecentAck = input.AckTick;
             //We've lost some inputs along the way
             if (inputs.Count > 0 && inputs[^1].Sequence < input.Current.Sequence - 1)
             {

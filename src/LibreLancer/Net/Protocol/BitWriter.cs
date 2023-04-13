@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -45,16 +46,10 @@ namespace LibreLancer.Net.Protocol
             PutFloat(vec.X); PutFloat(vec.Y); PutFloat(vec.Z);
         }
 
-        static float WrapMinMax(float x, float min, float max)
-        {
-            var m = max - min;
-            var y = (x - min);
-            return min + (m + y % m) % m;
-        }
+       
         public void PutRadiansQuantized(float angle)
         {
-            var wrapped = WrapMinMax(angle, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX);
-            PutRangedFloat(angle, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
+            PutUInt(NetPacking.QuantizeAngle(angle, 16), 16);
         }
 
         public void PutVarInt32(int i)
@@ -137,54 +132,13 @@ namespace LibreLancer.Net.Protocol
 
         public void PutQuaternion(Quaternion q, int precision = NetPacking.BITS_COMPONENT)
         {
-            var maxIndex = 0;
-            var maxValue = float.MinValue;
-            var sign = 1f;
-            maxValue = Math.Abs(q.X);
-            sign = q.X < 0 ? -1 : 1;
-            if (Math.Abs(q.Y) > maxValue)
-            {
-                maxValue = Math.Abs(q.Y);
-                maxIndex = 1;
-                sign = q.Y < 0 ? -1 : 1;
-            }
-            if (Math.Abs(q.Z) > maxValue)
-            {
-                maxValue = Math.Abs(q.Z);
-                maxIndex = 2;
-                sign = q.Z < 0 ? -1 : 1;
-            }
-            if (Math.Abs(q.W) > maxValue)
-            {
-                maxIndex = 3;
-                sign = q.W < 0 ? -1 : 1;
-            }
-            PutUInt((uint)maxIndex, 2);
-            if (maxIndex == 0)
-            {
-                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            }
-            else if (maxIndex == 1)
-            {
-                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            }
-            else if (maxIndex == 2)
-            {
-                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.W * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            }
-            else
-            {
-                PutRangedFloat(q.X * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.Y * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-                PutRangedFloat(q.Z * sign, NetPacking.UNIT_MIN, NetPacking.UNIT_MAX, precision);
-            }
+            NetPacking.PackQuaternion(q, precision, out var max, out var a, out var b, out var c);
+            PutUInt(max, 2);
+            PutUInt(a, precision);
+            PutUInt(b, precision);
+            PutUInt(c, precision);
         }
+        
         public void PutBool(bool b)
         {
             CheckSize(bitOffset + 1);
@@ -198,9 +152,7 @@ namespace LibreLancer.Net.Protocol
         }
         public void PutRangedFloat(float f, float min, float max, int bits)
         {
-            var intMax = (1 << bits) - 1;
-            float unit = ((f - min) / (max - min));
-            PutUInt((uint)(intMax * unit), bits);
+            PutUInt(NetPacking.QuantizeFloat(f, min, max, bits), bits);
         }
 
         public void PutRangedVector3(Vector3 v, float min, float max, int bits)

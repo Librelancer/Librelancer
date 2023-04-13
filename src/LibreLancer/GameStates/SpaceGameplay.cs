@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
 using LibreLancer.GameData.World;
@@ -1010,7 +1011,7 @@ World Time: {12:F2}
 
 		//RigidBody debugDrawBody;
         private int waitObjectiveFrames = 120;
-		public override void Draw(double delta)
+		public override unsafe void Draw(double delta)
 		{
             RenderMaterial.VertexLighting = false;
             if (loading)
@@ -1070,8 +1071,20 @@ World Time: {12:F2}
                 var text = string.Format(DEMO_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
                     sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
-                ImGuiNET.ImGui.Text(text);
-                ImGuiNET.ImGui.Text($"input queue: {session.UpdateQueueCount}");
+                ImGui.Text(text);
+                ImGui.Text($"input queue: {session.UpdateQueueCount}");
+                if (session.Multiplayer)
+                {
+                    var floats = new float[session.UpdatePacketSizes.Count];
+                    for (int i = 0; i < session.UpdatePacketSizes.Count; i++)
+                        floats[i] = session.UpdatePacketSizes[i];
+                    fixed (float* f = floats)
+                    {
+                        ImGui.TextUnformatted($"last ack sent: {session.LastAck}");
+                        ImGui.TextUnformatted($"update packet size: {floats[floats.Length - 1]}");
+                        ImGui.PlotLines("update packet size", ref floats[0], floats.Length);
+                    }
+                }
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

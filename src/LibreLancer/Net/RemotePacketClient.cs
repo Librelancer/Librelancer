@@ -13,7 +13,7 @@ namespace LibreLancer.Net
     public class RemotePacketClient : IPacketClient
     {
         public NetPeer Client;
-        private NetHpidWriter hpids;
+        public NetHpidWriter Hpids;
         Queue<IPacket> reliableSend = new Queue<IPacket>();
         object reliableLock = new object();
         public void SendPacket(IPacket packet, PacketDeliveryMethod method, bool force = false)
@@ -28,7 +28,7 @@ namespace LibreLancer.Net
             }
             else
             {
-                var m = new PacketWriter(new NetDataWriter(), hpids);
+                var m = new PacketWriter(new NetDataWriter(), Hpids);
                 m.Put((byte)1);
                 Packets.Write(m, packet);
                 Client.Send(m, ch, mt);
@@ -47,7 +47,7 @@ namespace LibreLancer.Net
                 {
                     while (reliableSend.Count > 0)
                     {
-                        var dw = new PacketWriter(new NetDataWriter(), hpids);
+                        var dw = new PacketWriter(new NetDataWriter(), Hpids);
                         if(reliableSend.Count > 255)
                             dw.Put((byte)255);
                         else
@@ -80,7 +80,7 @@ namespace LibreLancer.Net
         public RemotePacketClient(NetPeer client, NetHpidWriter hpids)
         {
             Client = client;
-            this.hpids = hpids;
+            this.Hpids = hpids;
         }
     }
 }

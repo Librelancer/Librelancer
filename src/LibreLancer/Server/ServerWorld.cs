@@ -526,13 +526,14 @@ namespace LibreLancer.Server
 
             foreach (var player in Players)
             {
-                List<PackedShipUpdate> ps = new List<PackedShipUpdate>();
+                List<ObjectUpdate> ps = new List<ObjectUpdate>();
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
                 var phealth = phealthcomponent.CurrentHealth;
                 var pshieldComponent = player.Value.GetChildComponents<SShieldComponent>().FirstOrDefault();
                 float pshield = 0;
                 if (pshieldComponent != null)
                     pshield = pshieldComponent.Health / pshieldComponent.Equip.Def.MaxCapacity;
+                var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
                 foreach (var obj in toUpdate)
                 {
                     //Skip self
@@ -540,26 +541,28 @@ namespace LibreLancer.Server
                         pComp.Player == player.Key)
                         continue;
                     //Update object
-                    var update = new PackedShipUpdate();
+                    var update = new ObjectUpdate();
                     if (obj.SystemObject == null)
                     {
                         update.ID = obj.NetID;
                         update.IsCRC = false;
-                        update.HasPosition = true;
-                        var tr = obj.WorldTransform;
-                        update.Position = Vector3.Transform(Vector3.Zero, tr);
-                        update.Orientation = tr.ExtractRotation();
-                        if (obj.PhysicsComponent != null)
-                        {
-                            update.LinearVelocity = obj.PhysicsComponent.Body.LinearVelocity;
-                            update.AngularVelocity = MathHelper.ApplyEpsilon(obj.PhysicsComponent.Body.AngularVelocity);
-                        }
                     }
                     else
                     {
                         //Static Solar
                         update.ID = (int) obj.NicknameCRC;
                         update.IsCRC = true;
+                    }
+                    
+                    var tr = obj.WorldTransform;
+                    update.Position = Vector3.Transform(Vector3.Zero, tr);
+                    update.Orientation = tr.ExtractRotation();
+                    if (obj.PhysicsComponent != null)
+                    {
+                        update.SetVelocity(
+                            obj.PhysicsComponent.Body.LinearVelocity,
+                            obj.PhysicsComponent.Body.AngularVelocity
+                            );
                     }
 
                     if (obj.TryGetComponent<SEngineComponent>(out var eng))
@@ -590,23 +593,11 @@ namespace LibreLancer.Server
                     }
                     if (obj.TryGetComponent<SHealthComponent>(out var health))
                     {
-                        if (health.CurrentHealth < health.MaxHealth)
-                        {
-                            update.Hull = true;
-                            update.HullValue = health.CurrentHealth;
-                        }
+                        update.HullValue = health.CurrentHealth;
                         var sh = obj.GetChildComponents<SShieldComponent>().FirstOrDefault();
                         if (sh != null)
                         {
-                            var h = sh.Health / sh.Equip.Def.MaxCapacity;
-                            if (h <= 0)
-                                update.Shield = 0;
-                            else if (h >= 1)
-                                update.Shield = 1;
-                            else {
-                                update.Shield = 2;
-                                update.ShieldValue = h;
-                            }
+                            update.ShieldValue = sh.Health;
                         }
                     }
                     if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
@@ -617,6 +608,7 @@ namespace LibreLancer.Server
                 }
 
                 var phys = player.Value.GetComponent<ShipPhysicsComponent>();
+                var newUpdates = ps.ToArray();
                 var state = new PlayerAuthState
                 {
                     Health = phealth,
@@ -628,13 +620,26 @@ namespace LibreLancer.Server
                     CruiseAccelPct = phys.CruiseAccelPct,
                     CruiseChargePct = phys.ChargePercent
                 };
-                player.Key.SendUpdate(new ObjectUpdatePacket()
+                if (player.Key.SinglePlayer)
                 {
-                    Tick = (uint)tick,
-                    InputSequence = player.Value.GetComponent<SPlayerComponent>().SequenceApplied,
-                    PlayerState = state,
-                    Updates = ps.ToArray()
-                });
+                    player.Key.SendSPUpdate(new SPUpdatePacket()
+                    {
+                        Tick = (uint)tick,
+                        InputSequence = selfPlayer.SequenceApplied,
+                        PlayerState = state,
+                        Updates = newUpdates,
+                    });
+                }
+                else
+                {
+                    selfPlayer.GetAcknowledgedState(out var oldTick, out var oldState, out var oldUpdates);
+                    var packet = new PackedUpdatePacket();
+                    packet.Tick = (uint) tick;
+                    packet.OldTick = oldTick;
+                    packet.InputSequence = selfPlayer.SequenceApplied;
+                    selfPlayer.EnqueueState((uint)tick, state,  packet.SetUpdates(state, oldState, oldUpdates, newUpdates, player.Key.HpidWriter)); ;
+                    player.Key.SendMPUpdate(packet);
+                }
             }
         }
 

@@ -67,6 +67,8 @@ namespace LibreLancer.Client
         public bool Multiplayer => connection is GameNetClient;
         private bool paused = false;
 
+        public CircularBuffer<int> UpdatePacketSizes = new CircularBuffer<int>(200);
+
         public void Pause()
         {
             if (connection is EmbeddedServer es)
@@ -85,7 +87,7 @@ namespace LibreLancer.Client
             }
         }
 
-        private const string SAVE_ALPHABET = "01234567890abcdefghijklmnopqrstuvwxyz";
+        private const string SAVE_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
         static string Encode(long number)
         {
             if(number < 0)
@@ -163,6 +165,7 @@ namespace LibreLancer.Client
             }
             else
             {
+                LastAck = 0;
                 processUpdatePackets = false;
                 gp = new SpaceGameplay(Game, this);
                 Game.ChangeState(gp);
@@ -198,6 +201,9 @@ namespace LibreLancer.Client
         }
 
         private CircularBuffer<PlayerMoveState> moveState = new CircularBuffer<PlayerMoveState>(128);
+        private CircularBuffer<SPUpdatePacket> oldPackets = new CircularBuffer<SPUpdatePacket>(1000);
+        public uint LastAck = 0;
+        
         struct PlayerMoveState
         {
             public int Tick;
@@ -259,7 +265,7 @@ namespace LibreLancer.Client
                 });
 
                 //Store multiple updates for redundancy.
-                var ip = new InputUpdatePacket() {Current = FromMoveState(0)};
+                var ip = new InputUpdatePacket() {Current = FromMoveState(0), AckTick = LastAck};
                 if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
                 if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
                 if (moveState.Count > 3) ip.HistoryC = FromMoveState(3);
@@ -267,10 +273,12 @@ namespace LibreLancer.Client
 
                 if (processUpdatePackets)
                 {
-                    List<ObjectUpdatePacket> toUpdate = new List<ObjectUpdatePacket>();
-                    while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= updatePackets.Peek().Tick)
+                    List<SPUpdatePacket> toUpdate = new List<SPUpdatePacket>();
+                    while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= GetTick(updatePackets.Peek()))
                     {
-                        toUpdate.Add(updatePackets.Dequeue());
+                        var sp = GetUpdatePacket(updatePackets.Dequeue());
+                        if(sp != null)
+                            toUpdate.Add(sp);
                     }
                     //Only do resync on the last packet processed this frame
                     //Stops the resync spiral of death
@@ -279,6 +287,46 @@ namespace LibreLancer.Client
                     }
                 }
             }
+        }
+
+        SPUpdatePacket GetUpdatePacket(IPacket p)
+        {
+            if (p is SPUpdatePacket sp) return sp;
+            var mp = (PackedUpdatePacket) p;
+            var oldPlayerState = new PlayerAuthState();
+            var oldUpdates = Array.Empty<ObjectUpdate>();
+            if (mp.OldTick != 0)
+            {
+                int i;
+                for (i = 0; i < oldPackets.Count; i++) {
+                    if (oldPackets[i].Tick == mp.OldTick)
+                    {
+                        oldPlayerState = oldPackets[i].PlayerState;
+                        oldUpdates = oldPackets[i].Updates;
+                        break;
+                    }
+                }
+                if (i == oldPackets.Count) {
+                    FLLog.Error("Net", $"Unable to find old tick {mp.OldTick}, resetting ack");
+                    LastAck = 0;
+                    return null;
+                }
+            }
+            UpdatePacketSizes.Enqueue(mp.Updates.Length + 12);
+            var nsp = new SPUpdatePacket();
+            nsp.Tick = mp.Tick;
+            nsp.InputSequence = mp.InputSequence;
+            (nsp.PlayerState, nsp.Updates) =
+                mp.GetUpdates(oldPlayerState, oldUpdates, (connection as GameNetClient).HpidReader);
+            oldPackets.Enqueue(nsp);
+            LastAck = mp.Tick;
+            return nsp;
+        }
+
+        uint GetTick(IPacket p)
+        {
+            if (p is SPUpdatePacket sp) return sp.Tick;
+            return ((PackedUpdatePacket)p).Tick;
         }
 
         public DisplayFaction[] GetUIRelations()
@@ -307,7 +355,7 @@ namespace LibreLancer.Client
             moveState = new CircularBuffer<PlayerMoveState>(128);
         }
         
-        private Queue<ObjectUpdatePacket> updatePackets = new Queue<ObjectUpdatePacket>();
+        private Queue<IPacket> updatePackets = new Queue<IPacket>();
 
        
 
@@ -342,7 +390,7 @@ namespace LibreLancer.Client
             }
         }
         
-        void ProcessUpdate(ObjectUpdatePacket p, SpaceGameplay gp, bool resync)
+        void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
         { 
             foreach (var update in p.Updates)
                 UpdateObject(update, gp.world);
@@ -891,16 +939,17 @@ namespace LibreLancer.Client
             hcp.Wait();
             if (hcp.Result)
                 return;
-            if(!(pkt is ObjectUpdatePacket))
+            if(pkt is not SPUpdatePacket && pkt is not PackedUpdatePacket)
                 FLLog.Debug("Client", "Got packet of type " + pkt.GetType());
             switch(pkt)
             {
-                case ObjectUpdatePacket p:
+                case SPUpdatePacket:
+                case PackedUpdatePacket:
                     if (processUpdatePackets)
                     {
-                        updatePackets.Enqueue(p);
+                        updatePackets.Enqueue(pkt);
                     }
-                    else timeOffset = Game.TotalTime - (p.Tick / 1000.0);
+                    else timeOffset = Game.TotalTime - (GetTick(pkt) / 1000.0);
                     break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);
@@ -909,7 +958,7 @@ namespace LibreLancer.Client
             }
         }
 
-        void UpdateObject(PackedShipUpdate update, GameWorld world)
+        void UpdateObject(ObjectUpdate update, GameWorld world)
         {
             GameObject obj;
             if (update.IsCRC) {
@@ -920,7 +969,7 @@ namespace LibreLancer.Client
                     return;
             }
             //Component only present in multiplayer
-            if (update.HasPosition && obj.TryGetComponent<CEngineComponent>(out var eng))
+            if (obj.TryGetComponent<CEngineComponent>(out var eng))
             {
                 eng.Speed = update.Throttle;
                 foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
@@ -928,29 +977,24 @@ namespace LibreLancer.Client
             }
             if (obj.TryGetComponent<CHealthComponent>(out var health))
             {
-                if (update.Hull)
-                    health.CurrentHealth = update.HullValue;
-                else
-                    health.CurrentHealth = health.MaxHealth;
+                health.CurrentHealth = health.MaxHealth;
             }
             var sh = obj.GetChildComponents<CShieldComponent>().FirstOrDefault();
             if (sh != null) {
-                if (update.Shield == 0) sh.SetShieldPercent(0);
-                else if (update.Shield == 1) sh.SetShieldPercent(1);
-                else sh.SetShieldPercent(update.ShieldValue);
+                sh.SetShieldPercent(update.ShieldValue);
             }
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
             {
                 weapons.SetRotations(update.Guns);
             }
-            if (update.HasPosition)
+            if (obj.SystemObject == null)
             {
                 var oldPos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
                 var oldQuat = obj.LocalTransform.ExtractRotation();
-                obj.PhysicsComponent.Body.LinearVelocity = update.LinearVelocity;
-                obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity;
+                obj.PhysicsComponent.Body.LinearVelocity = update.LinearVelocity.Vector;
+                obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.Vector;
                 obj.PhysicsComponent.Body.Activate();
-                obj.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(update.Orientation) * Matrix4x4.CreateTranslation(update.Position));
+                obj.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(update.Orientation.Quaternion) * Matrix4x4.CreateTranslation(update.Position));
                 SmoothError(obj, oldPos, oldQuat);
             }
 

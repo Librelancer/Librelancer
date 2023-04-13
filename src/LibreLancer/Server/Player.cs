@@ -694,10 +694,15 @@ namespace LibreLancer.Server
             }
         }
 
-        public void SendUpdate(ObjectUpdatePacket update)
-        {
+        public bool SinglePlayer => Client is LocalPacketClient;
+        
+        public NetHpidWriter HpidWriter => (Client as RemotePacketClient)?.Hpids;
+
+        public void SendSPUpdate(SPUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
-        }
+
+        public void SendMPUpdate(PackedUpdatePacket update) =>
+            Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
         public void SpawnPlayer(Player p)
         {

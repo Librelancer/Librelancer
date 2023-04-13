@@ -237,14 +237,17 @@ namespace LibreLancer.Net
                 }
             });
         }
-        
+
+        private NetHpidReader hpidReader;
+
+        public NetHpidReader HpidReader => hpidReader;
 
         void NetworkThread()
         {
             sw = Stopwatch.StartNew();
             http = new HttpClient();
             var listener = new EventBasedNetListener();
-            NetHpidReader hpidReader = new NetHpidReader();
+            hpidReader = new NetHpidReader();
             client = new NetManager(listener)
             {
                 UnconnectedMessagesEnabled = true,
