@@ -1,5 +1,3 @@
-//#define DEBUG_PACKET_ALIGNMENT
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -158,14 +156,43 @@ public class PackedUpdatePacket : IPacket
 public struct GunOrient
 {
     public string Hardpoint;
-    public float AnglePitch;
-    public float AngleRot;
+    private uint pitch;
+    private uint rot;
+    public float AnglePitch
+    {
+        get => NetPacking.UnquantizeFloat(pitch, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
+        set => pitch = NetPacking.QuantizeAngle(value, 16);
+    }
+
+    public float AngleRot
+    {
+        get => NetPacking.UnquantizeFloat(rot, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
+        set => rot = NetPacking.QuantizeAngle(value, 16);
+    }
 
     public void ReadDelta(ref BitReader message, GunOrient src)
     {
         Hardpoint = message.GetBool() ? message.GetHpid() : src.Hardpoint;
-        AnglePitch = message.GetBool() ? message.GetRadiansQuantized() : src.AnglePitch;
-        AngleRot = message.GetBool() ? message.GetRadiansQuantized() : src.AngleRot;
+        if(message.GetBool())
+        {
+            pitch = message.GetBool() 
+                ? NetPacking.ApplyDelta(message.GetUInt(8), src.pitch, 8)
+                : message.GetUInt(16);
+        }
+        else
+        {
+            pitch = src.pitch;
+        }
+        if (message.GetBool())
+        {
+            rot = message.GetBool() 
+                ? NetPacking.ApplyDelta(message.GetUInt(8), src.rot, 8)
+                : message.GetUInt(16);
+        }
+        else
+        {
+            rot = src.rot;
+        }
     }
 
     public void WriteDelta(GunOrient src, ref BitWriter message)
@@ -179,27 +206,37 @@ public struct GunOrient
             message.PutBool(true);
             message.PutHpid(Hardpoint);
         }
-
-        if (NetPacking.QuantizeAngle(AnglePitch, 16) ==
-            NetPacking.QuantizeAngle(src.AnglePitch, 16))
+        if (pitch == src.pitch)
         {
             message.PutBool(false);
         }
         else
         {
             message.PutBool(true);
-            message.PutRadiansQuantized(AnglePitch);
+            if (NetPacking.TryDelta(pitch, src.pitch, 8, out var d)) {
+                message.PutBool(true);
+                message.PutUInt(d, 8);
+            }
+            else {
+                message.PutBool(false);
+                message.PutUInt(pitch, 16);
+            }
         }
-
-        if (NetPacking.QuantizeAngle(AngleRot, 16) ==
-            NetPacking.QuantizeAngle(src.AngleRot, 16))
+        if (rot == src.rot)
         {
             message.PutBool(false);
         }
         else
         {
             message.PutBool(true);
-            message.PutRadiansQuantized(AngleRot);
+            if (NetPacking.TryDelta(rot, src.rot, 8, out var d)) {
+                message.PutBool(true);
+                message.PutUInt(d, 8);
+            }
+            else {
+                message.PutBool(false);
+                message.PutUInt(rot, 16);
+            }
         }
     }
 }
@@ -218,7 +255,7 @@ public struct UpdateQuaternion
     public uint Component1;
     public uint Component2;
     public uint Component3;
-
+    
     public static implicit operator UpdateQuaternion(Quaternion q)
     {
         var uq = new UpdateQuaternion();
@@ -227,25 +264,19 @@ public struct UpdateQuaternion
     }
 
     private const int DELTA_BITS = 7;
-
-    private const int DELTA_OFFSET = 2 << (DELTA_BITS - 2);
-    private const int DELTA_MIN = -DELTA_OFFSET;
-    private const int DELTA_MAX = DELTA_OFFSET - 1;
-
+    
     public void WriteDelta(UpdateQuaternion src, ref BitWriter writer)
     {
-        var diffA = (int) Component1 - (int) src.Component1;
-        var diffB = (int) Component2 - (int) src.Component2;
-        var diffC = (int) Component3 - (int) src.Component3;
         if (Largest == src.Largest &&
-            diffA >= DELTA_MIN && diffA <= DELTA_MAX &&
-            diffB >= DELTA_MIN && diffB <= DELTA_MAX &&
-            diffC >= DELTA_MIN && diffC <= DELTA_MAX)
+            NetPacking.TryDelta(Component1, src.Component1, DELTA_BITS, out var deltaA) &&
+            NetPacking.TryDelta(Component2, src.Component2, DELTA_BITS, out var deltaB) &&
+            NetPacking.TryDelta(Component3, src.Component3, DELTA_BITS, out var deltaC)
+           )
         {
             writer.PutBool(true);
-            writer.PutUInt((uint) (diffA + DELTA_OFFSET), DELTA_BITS);
-            writer.PutUInt((uint) (diffB + DELTA_OFFSET), DELTA_BITS);
-            writer.PutUInt((uint) (diffC + DELTA_OFFSET), DELTA_BITS);
+            writer.PutUInt(deltaA, DELTA_BITS);
+            writer.PutUInt(deltaB, DELTA_BITS);
+            writer.PutUInt(deltaC, DELTA_BITS);
         }
         else
         {
@@ -261,26 +292,24 @@ public struct UpdateQuaternion
     {
         if (reader.GetBool())
         {
-            var diffA = (int) (reader.GetUInt(DELTA_BITS) - DELTA_OFFSET);
-            var diffB = (int) (reader.GetUInt(DELTA_BITS) - DELTA_OFFSET);
-            var diffC = (int) (reader.GetUInt(DELTA_BITS) - DELTA_OFFSET);
             return new UpdateQuaternion
             {
                 Largest = src.Largest,
-                Component1 = (uint) ((int) src.Component1 + diffA),
-                Component2 = (uint) ((int) src.Component2 + diffB),
-                Component3 = (uint) ((int) src.Component3 + diffC)
+                Component1 = NetPacking.ApplyDelta(reader.GetUInt(DELTA_BITS), src.Component1, DELTA_BITS),
+                Component2 = NetPacking.ApplyDelta(reader.GetUInt(DELTA_BITS), src.Component2, DELTA_BITS),
+                Component3 = NetPacking.ApplyDelta(reader.GetUInt(DELTA_BITS), src.Component3, DELTA_BITS),
             };
         }
-
-        var uq = new UpdateQuaternion
+        else
         {
-            Largest = reader.GetUInt(2),
-            Component1 = reader.GetUInt(10),
-            Component2 = reader.GetUInt(10),
-            Component3 = reader.GetUInt(10)
-        };
-        return uq;
+            return new UpdateQuaternion
+            {
+                Largest = reader.GetUInt(2),
+                Component1 = reader.GetUInt(10),
+                Component2 = reader.GetUInt(10),
+                Component3 = reader.GetUInt(10)
+            };
+        }
     }
 
     public Quaternion Quaternion =>
@@ -325,22 +354,15 @@ public struct UpdateVector
             writer.PutBool(false);
             return;
         }
-
         writer.PutBool(true);
-        var deltaOffset = 2 << (deltaBits - 2);
-        var deltaMin = -deltaOffset;
-        var deltaMax = deltaOffset - 1;
-        var diffA = (int) x - (int) src.x;
-        var diffB = (int) y - (int) src.y;
-        var diffC = (int) z - (int) src.z;
-        if (diffA >= deltaMin && diffA <= deltaMax &&
-            diffB >= deltaMin && diffB <= deltaMax &&
-            diffC >= deltaMin && diffC <= deltaMax)
+        if (NetPacking.TryDelta(x, src.x, deltaBits, out var deltaA) &&
+            NetPacking.TryDelta(y, src.y, deltaBits, out var deltaB) &&
+            NetPacking.TryDelta(z, src.z, deltaBits, out var deltaC))
         {
             writer.PutBool(true);
-            writer.PutUInt((uint) (diffA + deltaOffset), deltaBits);
-            writer.PutUInt((uint) (diffB + deltaOffset), deltaBits);
-            writer.PutUInt((uint) (diffC + deltaOffset), deltaBits);
+            writer.PutUInt(deltaA, deltaBits);
+            writer.PutUInt(deltaB, deltaBits);
+            writer.PutUInt(deltaC, deltaBits);
         }
         else
         {
@@ -355,18 +377,12 @@ public struct UpdateVector
     {
         if (!reader.GetBool())
             return src;
-        var deltaOffset = 2 << (deltaBits - 2);
-        uint x;
-        uint y;
-        uint z;
+        uint x, y, z;
         if (reader.GetBool())
         {
-            var diffX = (int) (reader.GetUInt(deltaBits) - deltaOffset);
-            var diffY = (int) (reader.GetUInt(deltaBits) - deltaOffset);
-            var diffZ = (int) (reader.GetUInt(deltaBits) - deltaOffset);
-            x = (uint) ((int) src.x + diffX);
-            y = (uint) ((int) src.y + diffY);
-            z = (uint) ((int) src.z + diffZ);
+            x = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.x, deltaBits);
+            y = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.y, deltaBits);
+            z = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.z, deltaBits);
         }
         else
         {
@@ -374,7 +390,6 @@ public struct UpdateVector
             y = reader.GetUInt(src.precision);
             z = reader.GetUInt(src.precision);
         }
-
         return src with {x = x, y = y, z = z};
     }
 }
@@ -389,7 +404,7 @@ public class ObjectUpdate
     public bool EngineKill;
     public GunOrient[] Guns;
 
-    public float HullValue;
+    public long HullValue;
 
     public int ID;
 
@@ -399,7 +414,7 @@ public class ObjectUpdate
     public UpdateQuaternion Orientation = Quaternion.Identity;
     public Vector3 Position;
     public RepAttitude RepToPlayer;
-    public float ShieldValue;
+    public long ShieldValue;
     public float Throttle;
     public bool Tradelane;
 
@@ -463,7 +478,10 @@ public class ObjectUpdate
         }
 
         //Orientation
-        if (NetPacking.ApproxEqual(Math.Abs(Quaternion.Dot(Orientation.Quaternion, src.Orientation.Quaternion)), 1.0f))
+        if (Orientation.Largest == src.Orientation.Largest &&
+            Orientation.Component1 == src.Orientation.Component1 &&
+            Orientation.Component2 == src.Orientation.Component2 &&
+            Orientation.Component3 == src.Orientation.Component3)
         {
             msg.PutBool(false);
         }
@@ -504,25 +522,25 @@ public class ObjectUpdate
         }
 
         //Hull
-        if (NetPacking.ApproxEqual(HullValue, src.HullValue))
+        if (HullValue == src.HullValue)
         {
             msg.PutBool(false);
         }
         else
         {
             msg.PutBool(true);
-            msg.PutFloat(HullValue);
+            msg.PutVarInt64(HullValue - src.HullValue);
         }
 
         //Shield
-        if (NetPacking.ApproxEqual(ShieldValue, src.ShieldValue))
+        if (ShieldValue == src.ShieldValue)
         {
             msg.PutBool(false);
         }
         else
         {
             msg.PutBool(true);
-            msg.PutFloat(ShieldValue);
+            msg.PutVarInt64(ShieldValue - src.ShieldValue);
         }
 
         //Guns
@@ -572,8 +590,8 @@ public class ObjectUpdate
         p.CruiseThrust = readFlags ? (CruiseThrustState) msg.GetUInt(2) : source.CruiseThrust;
         p.RepToPlayer = readFlags ? (RepAttitude) msg.GetUInt(2) : source.RepToPlayer;
         p.Throttle = msg.GetBool() ? msg.GetRangedFloat(-1, 1, 7) : source.Throttle;
-        p.HullValue = msg.GetBool() ? msg.GetFloat() : source.HullValue;
-        p.ShieldValue = msg.GetBool() ? msg.GetFloat() : source.ShieldValue;
+        p.HullValue = msg.GetBool() ? (source.HullValue + msg.GetVarInt64()) : source.HullValue;
+        p.ShieldValue = msg.GetBool() ? (source.ShieldValue + msg.GetVarInt64()) : source.ShieldValue;
         if (msg.GetBool()) //Has guns
         {
             var len = msg.GetBool() ? (int) msg.GetVarUInt32() : source.Guns.Length;

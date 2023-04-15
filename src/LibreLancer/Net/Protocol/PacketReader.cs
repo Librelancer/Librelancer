@@ -157,12 +157,9 @@ public struct PacketReader
     {
         return NetPacking.Zag64(GetVariableUInt64());
     }
-    
-    public int GetVariableInt32()
-    {
-        return NetPacking.Zag32(GetVariableUInt32());
-    }
-    
+
+    public int GetVariableInt32() => (int) GetVariableInt64();
+
     public unsafe Guid GetGuid()
     {
         Guid g = new Guid();

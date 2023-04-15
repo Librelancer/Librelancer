@@ -234,7 +234,6 @@ namespace LibreLancer.Net.Protocol
             pa.Orientation = reader.GetQuaternion(18);
             pa.LinearVelocity = reader.GetVector3();
             pa.AngularVelocity = reader.GetVector3();
-            
             pa.Health = reader.GetBool() ? reader.GetFloat() : src.Health;
             pa.Shield = reader.GetBool() ? reader.GetFloat() : src.Shield;
             pa.CruiseChargePct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseChargePct;

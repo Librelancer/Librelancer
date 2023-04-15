@@ -17,30 +17,36 @@ namespace LibreLancer.Client.Components
     }
     public class CShieldComponent : GameComponent
     {
-        public float ShieldPercent { get; private set; } = 1;
+        public float ShieldPercent => Health / equip.Def.MaxCapacity;
 
-        private ShieldEquipment equipment;
+        public float Health { get; private set; }
+
+        private ShieldEquipment equip;
+        
+        private float MinHealth => equip.Def.OfflineThreshold * equip.Def.MaxCapacity;
+
         
         public CShieldComponent(ShieldEquipment equip, GameObject parent) : base(parent)
         {
-            this.equipment = equip;
+            this.equip = equip;
+            
         }
 
-        public void SetShieldPercent(float value, Action<ShieldUpdate> callback = null)
+        public void SetShieldHealth(float value, Action<ShieldUpdate> callback = null)
         {
             //Notify important changes
-            if (ShieldPercent <= -1 && value > 0) {
+            if (Health <= -1 && value > 0) {
                 callback?.Invoke(ShieldUpdate.Online);
             }
-            else if (ShieldPercent <= 0 && value > 0) {
+            else if (value <= MinHealth && value > 0) {
                 callback?.Invoke(ShieldUpdate.Restored);
-            } else if (value <= -1 && ShieldPercent > 0) {
+            } else if (value <= -1 && Health > 0) {
                 callback?.Invoke(ShieldUpdate.Offline);
-            } else if (value <= 0 && ShieldPercent > 0) {
+            } else if (value <= 0 && Health > 0) {
                 callback?.Invoke(ShieldUpdate.Failed);
             }
             //Set value
-            ShieldPercent = value;
+            Health = value;
         }
     }
 }

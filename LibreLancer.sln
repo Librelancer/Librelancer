@@ -59,6 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WattleScript.Interpreter", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WattleScript.HardwireGen", "extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj", "{49D998AE-98EF-4786-9225-8A09CE6C96C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Tests", "src\LibreLancer.Tests\LibreLancer.Tests.csproj", "{770D3253-2628-45BB-B087-B3BC528FF03B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -369,6 +371,18 @@ Global
 		{49D998AE-98EF-4786-9225-8A09CE6C96C1}.Release|x64.Build.0 = Release|Any CPU
 		{49D998AE-98EF-4786-9225-8A09CE6C96C1}.Release|x86.ActiveCfg = Release|Any CPU
 		{49D998AE-98EF-4786-9225-8A09CE6C96C1}.Release|x86.Build.0 = Release|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Debug|x64.Build.0 = Debug|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Debug|x86.Build.0 = Debug|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Release|x64.ActiveCfg = Release|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Release|x64.Build.0 = Release|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Release|x86.ActiveCfg = Release|Any CPU
+		{770D3253-2628-45BB-B087-B3BC528FF03B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

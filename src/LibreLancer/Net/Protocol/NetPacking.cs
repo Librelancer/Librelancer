@@ -27,18 +27,6 @@ namespace LibreLancer.Net.Protocol
             return (-(value & 0x01)) ^ ((value >> 1) & ~Int64Msb);
         }
 
-        public static uint Zig32(int value)
-        {
-            return (uint)((value << 1) ^ (value >> 31));
-        }
-        
-        public static int Zag32(uint ziggedValue)
-        {
-            const int Int32Msb = 1 << 31;
-            int value = (int)ziggedValue;
-            return (-(value & 0x01)) ^ ((value >> 1) & ~Int32Msb);
-        }
-        
         public static uint QuantizeFloat(float f, float min, float max, int bits)
         {
             var intMax = (1 << bits) - 1;
@@ -50,6 +38,27 @@ namespace LibreLancer.Net.Protocol
         {
             var u =  i / (float) ((1 << bits) - 1);
             return (min + (u * (max - min)));
+        }
+
+        public static uint ApplyDelta(uint d, uint src, int deltaBits)
+        {
+            var deltaOffset = 2 << (deltaBits - 2);
+            var diff = ((int) d) - deltaOffset;
+            return (uint) ((int) src + diff);
+        }
+
+        public static bool TryDelta(uint a, uint src, int deltaBits, out uint delta)
+        {
+            var deltaOffset = 2 << (deltaBits - 2);
+            var deltaMin = -deltaOffset;
+            var deltaMax = deltaOffset - 1;
+            var diff = (int) a - (int) src;
+            if (diff >= deltaMin && diff <= deltaMax) {
+                delta = (uint) (diff + deltaOffset);
+                return true;
+            }
+            delta = 0;
+            return false;
         }
 
         public static Quaternion UnpackQuaternion(int precision, uint max, uint a, uint b, uint c)
@@ -64,7 +73,6 @@ namespace LibreLancer.Net.Protocol
                 throw new Exception("Degenerate quaternion. Check alignment?");
             }
 #endif
-            Quaternion q;
             if (max == 0)
                 return new Quaternion(d, fa, fb, fc);
             if (max == 1)
@@ -77,9 +85,8 @@ namespace LibreLancer.Net.Protocol
         public static void PackQuaternion(Quaternion q, int precision, out uint maxIndex, out uint a, out uint b, out uint c)
         {
             maxIndex = 0;
-            var maxValue = float.MinValue;
+            var maxValue = Math.Abs(q.X);
             var sign = 1f;
-            maxValue = Math.Abs(q.X);
             sign = q.X < 0 ? -1 : 1;
             if (Math.Abs(q.Y) > maxValue)
             {

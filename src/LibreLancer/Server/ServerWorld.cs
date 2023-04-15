@@ -532,7 +532,7 @@ namespace LibreLancer.Server
                 var pshieldComponent = player.Value.GetChildComponents<SShieldComponent>().FirstOrDefault();
                 float pshield = 0;
                 if (pshieldComponent != null)
-                    pshield = pshieldComponent.Health / pshieldComponent.Equip.Def.MaxCapacity;
+                    pshield = pshieldComponent.Health;
                 var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
                 foreach (var obj in toUpdate)
                 {
@@ -593,11 +593,11 @@ namespace LibreLancer.Server
                     }
                     if (obj.TryGetComponent<SHealthComponent>(out var health))
                     {
-                        update.HullValue = health.CurrentHealth;
+                        update.HullValue = (long)health.CurrentHealth;
                         var sh = obj.GetChildComponents<SShieldComponent>().FirstOrDefault();
                         if (sh != null)
                         {
-                            update.ShieldValue = sh.Health;
+                            update.ShieldValue = (long)sh.Health;
                         }
                     }
                     if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
@@ -637,7 +637,7 @@ namespace LibreLancer.Server
                     packet.Tick = (uint) tick;
                     packet.OldTick = oldTick;
                     packet.InputSequence = selfPlayer.SequenceApplied;
-                    selfPlayer.EnqueueState((uint)tick, state,  packet.SetUpdates(state, oldState, oldUpdates, newUpdates, player.Key.HpidWriter)); ;
+                    selfPlayer.EnqueueState((uint)tick, state,  packet.SetUpdates(state, oldState, oldUpdates, newUpdates, player.Key.HpidWriter));
                     player.Key.SendMPUpdate(packet);
                 }
             }

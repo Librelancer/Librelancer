@@ -400,7 +400,7 @@ namespace LibreLancer.Client
             {
                 hp.CurrentHealth = state.Health;
                 var sh = gp.player.GetChildComponents<CShieldComponent>().FirstOrDefault();
-                sh?.SetShieldPercent(state.Shield);
+                sh?.SetShieldHealth(state.Shield);
             }
             if(gp?.player != null && resync)
             {
@@ -977,11 +977,11 @@ namespace LibreLancer.Client
             }
             if (obj.TryGetComponent<CHealthComponent>(out var health))
             {
-                health.CurrentHealth = health.MaxHealth;
+                health.CurrentHealth = update.HullValue;
             }
             var sh = obj.GetChildComponents<CShieldComponent>().FirstOrDefault();
             if (sh != null) {
-                sh.SetShieldPercent(update.ShieldValue);
+                sh.SetShieldHealth(update.ShieldValue);
             }
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
             {

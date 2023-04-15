@@ -140,12 +140,12 @@ public class PacketWriter
     {
         PutVariableUInt64(NetPacking.Zig64(value));
     }
-    
+
     public void PutVariableInt32(int value)
     {
-        PutVariableUInt32(NetPacking.Zig32(value));
+        PutVariableInt64(value);
     }
-    
+
     public void PutVariableUInt32(uint u)
     {
         PutVariableUInt64(u);
