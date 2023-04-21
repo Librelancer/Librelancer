@@ -124,10 +124,27 @@ namespace BuildLL
             }
             Target("BuildShaders", () =>
             {
-                string glv = "";
-                if(glslangValidatorPath != null) glv = $"-g \"{glslangValidatorPath}\"";
-                var args =  $"-b -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {glv} {GetFileArgs("./shaders/","*.glsl")}";
-                
+                Directory.CreateDirectory("shaders/natives/bin");
+                if (IsWindows) {
+                    CMake.Run("shaders/natives", new CMakeSettings() {
+                        OutputPath = "shaders/natives/bin",
+                        Generator = "Visual Studio 17 2022",
+                        Platform = "x64",
+                        BuildType = "MinSizeRel"
+                    });
+                    MSBuild.Run("./shaders/natives/bin/shadercompiler.sln", "/m /p:Configuration=MinSizeRel", VSVersion.VS2022, MSBuildPlatform.x86);
+                } else {
+                    CMake.Run("shaders/natives", new CMakeSettings()
+                    {
+                        OutputPath = "shaders/natives/bin",
+                        Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
+                        BuildType = "MinSizeRel"
+                    });
+                    string pl = "";
+                    if (parallel > 0) pl = "-j" + parallel;
+                    RunCommand("make", pl, "shaders/natives/bin");
+                }
+                var args =  $"-b -g GLExtensions.Features430 -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
                 Dotnet.Run("./shaders/ShaderProcessor/ShaderProcessor.csproj", args);
             });
             

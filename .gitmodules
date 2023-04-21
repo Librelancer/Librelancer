@@ -53,3 +53,9 @@
 [submodule "extern/wattlescript"]
 	path = extern/wattlescript
 	url = https://github.com/WattleScript/wattlescript
+[submodule "extern/glslang"]
+	path = extern/glslang
+	url = https://github.com/KhronosGroup/glslang
+[submodule "extern/SPIRV-Cross"]
+	path = extern/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross

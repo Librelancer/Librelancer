@@ -100,7 +100,6 @@ public class ImportModelTab : EditorTab
         lighting.NumberOfTilesX = -1;
         CloneModel();
         Import();
-        Basic_PositionNormalColorTexture.Compile();
     }
 
     private void CloneModel()

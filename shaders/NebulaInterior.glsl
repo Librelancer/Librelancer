@@ -1,4 +1,3 @@
-@lazy
 @fragment
 uniform sampler2D Texture;
 uniform vec4 Tint;

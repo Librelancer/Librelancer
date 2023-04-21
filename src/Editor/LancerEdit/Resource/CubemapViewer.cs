@@ -21,7 +21,6 @@ namespace LancerEdit
         public CubemapViewer(string title, TextureCube texture, MainWindow mw)
         {
             Title = title;
-            EnvMapTest.Compile();
             shader = EnvMapTest.Get();
             tex = texture;
             sphere = new QuadSphere(32);

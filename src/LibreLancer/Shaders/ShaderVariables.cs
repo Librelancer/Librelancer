@@ -341,15 +341,15 @@ namespace LibreLancer.Shaders
             FLLog.Debug("Shader", text);
         }
 
-        public static ShaderVariables Compile(string vertex, string fragment, string insert)
+        public static ShaderVariables Compile(string vertex, string fragment)
         {
             string prelude;
             if (GLExtensions.Features430)
-                prelude = "#version 430\n#define FEATURES430\n" + insert;
+                prelude = "#version 430\n#define FEATURES430\n";
             else if (RenderContext.GLES)
-                prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n"  + insert;
+                prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n";
             else
-                prelude = "#version 150\n" + insert;
+                prelude = "#version 150\n";
             return new ShaderVariables(new Shader(prelude + vertex, prelude + fragment));
         }
 	}

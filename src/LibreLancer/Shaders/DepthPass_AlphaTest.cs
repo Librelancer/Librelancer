@@ -13,40 +13,19 @@ namespace LibreLancer.Shaders
     
     public class DepthPass_AlphaTest
     {
-        private static byte[] vertex_bytes = new byte[220] {
-27, 178, 1, 0, 140, 212, 70, 117, 136, 91, 202, 17, 154, 52, 123, 216, 159, 249, 93, 73, 23, 191, 212, 164, 45, 207, 13, 162, 229, 14,
-44, 224, 244, 73, 95, 173, 219, 146, 214, 75, 37, 45, 205, 194, 128, 210, 196, 210, 48, 160, 40, 192, 204, 93, 63, 74, 225, 97, 182, 205,
-105, 73, 62, 194, 131, 113, 229, 160, 238, 244, 234, 209, 184, 219, 206, 171, 20, 64, 232, 131, 46, 62, 241, 181, 156, 251, 124, 45, 111, 143,
-229, 103, 44, 33, 97, 167, 242, 160, 90, 63, 111, 75, 183, 226, 252, 124, 68, 211, 64, 161, 249, 249, 124, 91, 216, 61, 86, 119, 156, 62,
-130, 79, 215, 15, 79, 195, 128, 137, 182, 94, 6, 83, 2, 22, 40, 149, 224, 133, 226, 116, 200, 79, 31, 225, 19, 248, 6, 229, 166, 226,
-15, 97, 59, 185, 156, 239, 140, 169, 168, 74, 212, 44, 22, 149, 90, 158, 41, 136, 158, 6, 93, 203, 81, 67, 200, 250, 48, 62, 19, 113,
-113, 53, 244, 1, 73, 100, 140, 110, 167, 64, 68, 1, 191, 90, 31, 234, 131, 12, 214, 199, 228, 72, 205, 63, 131, 210, 123, 215, 162, 73,
-21, 236, 151, 255, 150, 55, 100, 225, 112, 0
-};
-        private static byte[] fragment_bytes = new byte[166] {
-27, 230, 0, 96, 140, 195, 56, 134, 60, 196, 141, 50, 60, 51, 104, 93, 125, 75, 154, 51, 154, 249, 234, 239, 42, 183, 66, 66, 218, 94,
-203, 221, 252, 65, 30, 31, 136, 127, 255, 107, 171, 146, 168, 93, 150, 52, 47, 145, 20, 211, 183, 155, 253, 68, 121, 19, 92, 105, 203, 115,
-171, 204, 14, 19, 151, 139, 164, 26, 138, 113, 181, 94, 214, 73, 94, 44, 8, 147, 243, 133, 69, 206, 207, 7, 94, 199, 189, 11, 45, 235,
-102, 203, 179, 147, 143, 236, 241, 56, 126, 132, 207, 183, 131, 111, 80, 54, 172, 251, 102, 231, 200, 31, 75, 3, 30, 215, 183, 66, 62, 68,
-201, 73, 53, 61, 20, 8, 128, 107, 63, 111, 71, 49, 229, 85, 171, 139, 228, 169, 137, 28, 232, 91, 248, 176, 116, 83, 194, 159, 212, 169,
-196, 246, 118, 248, 122, 75, 66, 217, 17, 208, 116, 69, 235, 161, 13, 25
-};
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
-        private static int GetIndex(ShaderFeatures features)
-        {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(0)));
-            return 0;
-        }
         public static ShaderVariables Get(ShaderFeatures features)
         {
-            return variants[GetIndex(features)];
+            AllShaders.Compile();
+            return variants[0];
         }
         public static ShaderVariables Get()
         {
+            AllShaders.Compile();
             return variants[0];
         }
-        public static void Compile()
+        internal static void Compile(string sourceBundle)
         {
             if (iscompiled)
             {
@@ -54,12 +33,9 @@ namespace LibreLancer.Shaders
             }
             iscompiled = true;
             ShaderVariables.Log("Compiling DepthPass_AlphaTest");
-            string vertsrc;
-            string fragsrc;
-            vertsrc = ShCompHelper.FromArray(vertex_bytes);
-            fragsrc = ShCompHelper.FromArray(fragment_bytes);
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(vertsrc, fragsrc, "");
+            // No GL4 variants detected
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(241973, 469), sourceBundle.Substring(242442, 289));
         }
     }
 }

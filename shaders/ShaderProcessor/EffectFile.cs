@@ -8,194 +8,192 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ShaderProcessor
-{
-    public class EffectFile
-    {
-        public string Name;
-        public string VertexSource;
-        public string FragmentSource;
-        public string[] Features;
-        public bool Lazy = false;
-        
-        private const string RInclude = @"^\s*@\s*include\s*\(([^\)]*)\)\s*";
-        private static readonly Regex IncludeRegex = new Regex(RInclude,
-            RegexOptions.ECMAScript | RegexOptions.Compiled | RegexOptions.Multiline);
-        
-        static string ProcessIncludes(string fname, string src, string directory)
-        {
-            var m = IncludeRegex.Match(src);
-            string newsrc = src;
-            while (m.Success)
-            {
-                var infile = Path.Combine(directory, m.Groups[1].Value);
-                if (!File.Exists(infile))
-                {
-                    Console.Error.WriteLine($"{fname}: Could not find include '{infile}'");
-                    return null;
-                }
-                var newdir = Path.GetDirectoryName(infile);
-                var inc = ProcessIncludes(Path.GetFileName(infile), File.ReadAllText(infile), newdir);
-                newsrc = newsrc.Remove(m.Index, m.Length).Insert(m.Index, inc);
-                m = IncludeRegex.Match(newsrc);
-            }
-            return newsrc;
-        }
+namespace ShaderProcessor;
 
-        static string SaneName(string name)
+public class EffectFile
+{
+    private const string RInclude = @"^\s*@\s*include\s*\(([^\)]*)\)\s*";
+
+    private static readonly Regex IncludeRegex = new(RInclude,
+        RegexOptions.ECMAScript | RegexOptions.Compiled | RegexOptions.Multiline);
+
+    public string[] Features;
+    public string FragmentSource;
+    public string Name;
+    public string VertexSource;
+
+    private static string ProcessIncludes(string fname, string src, string directory)
+    {
+        var m = IncludeRegex.Match(src);
+        var newsrc = src;
+        while (m.Success)
         {
-            name = name.Trim();
-            var builder = new StringBuilder();
-            if (char.IsDigit(name[0])) builder.Append("_");
-            for (int i = 0; i < name.Length; i++)
+            var infile = Path.Combine(directory, m.Groups[1].Value);
+            if (!File.Exists(infile))
             {
-                if (char.IsWhiteSpace(name[i]))
-                    builder.Append("_");
-                else if (char.IsSymbol(name[i]))
-                    builder.Append("_");
-                else
-                    builder.Append(name[i]);
-            }
-            return builder.ToString();
-        }
-        
-        public static EffectFile Read(string filename)
-        {
-            filename = Path.GetFullPath(filename);
-            var txt = File.ReadAllText(filename);
-            txt = ProcessIncludes(Path.GetFileName(filename), txt, Path.GetDirectoryName(filename));
-            if (txt == null)
-            {
+                Console.Error.WriteLine($"{fname}: Could not find include '{infile}'");
                 return null;
             }
-            var effectFile = new EffectFile();
-            List<string> features = new List<string>();
-            using (var reader = new StringReader(txt))
+
+            var newdir = Path.GetDirectoryName(infile);
+            var inc = ProcessIncludes(Path.GetFileName(infile), File.ReadAllText(infile), newdir);
+            newsrc = newsrc.Remove(m.Index, m.Length).Insert(m.Index, inc);
+            m = IncludeRegex.Match(newsrc);
+        }
+
+        return newsrc;
+    }
+
+    private static string SaneName(string name)
+    {
+        name = name.Trim();
+        var builder = new StringBuilder();
+        if (char.IsDigit(name[0])) builder.Append("_");
+        for (var i = 0; i < name.Length; i++)
+            if (char.IsWhiteSpace(name[i]))
+                builder.Append("_");
+            else if (char.IsSymbol(name[i]))
+                builder.Append("_");
+            else
+                builder.Append(name[i]);
+        return builder.ToString();
+    }
+
+    public static EffectFile Read(string filename)
+    {
+        filename = Path.GetFullPath(filename);
+        var txt = File.ReadAllText(filename);
+        txt = ProcessIncludes(Path.GetFileName(filename), txt, Path.GetDirectoryName(filename));
+        if (txt == null) return null;
+        var effectFile = new EffectFile();
+        var features = new List<string>();
+        using (var reader = new StringReader(txt))
+        {
+            var inMultilineComment = false;
+            StringBuilder currentBlock = null;
+            string currentBlockName = null;
+            var blockIsFragment = false;
+            var lineNumber = 1;
+            string ln;
+            while ((ln = reader.ReadLine()) != null)
             {
-                bool inMultilineComment = false;
-                StringBuilder currentBlock = null;
-                string currentBlockName = null;
-                bool blockIsFragment = false;
-                int lineNumber = 1;
-                string ln;
-                while ((ln = reader.ReadLine()) != null)
+                var mlEnd = -1;
+                if (!inMultilineComment)
                 {
-                    int mlEnd = -1;
-                    if (!inMultilineComment)
-                    {
-                        var mlStart = ln.IndexOf("/*", StringComparison.Ordinal);
-                        if (mlStart != -1)
-                        {
-                            mlEnd = ln.IndexOf("*/", StringComparison.Ordinal);
-                            if (mlEnd == -1) inMultilineComment = true;
-                        }
-                    }
-                    else
+                    var mlStart = ln.IndexOf("/*", StringComparison.Ordinal);
+                    if (mlStart != -1)
                     {
                         mlEnd = ln.IndexOf("*/", StringComparison.Ordinal);
-                        if (mlEnd != -1) inMultilineComment = false;
+                        if (mlEnd == -1) inMultilineComment = true;
                     }
-                    var idx = ln.IndexOf('@');
-                    if (idx != -1 && !inMultilineComment && mlEnd < 0)
-                    {
-                        bool valid = true;
-                        for (int i = 0; i < idx; i++)
+                }
+                else
+                {
+                    mlEnd = ln.IndexOf("*/", StringComparison.Ordinal);
+                    if (mlEnd != -1) inMultilineComment = false;
+                }
+
+                var idx = ln.IndexOf('@');
+                if (idx != -1 && !inMultilineComment && mlEnd < 0)
+                {
+                    var valid = true;
+                    for (var i = 0; i < idx; i++)
+                        if (!char.IsWhiteSpace(ln[i]))
                         {
-                            if (!char.IsWhiteSpace(ln[i]))
-                            {
-                                valid = false;
-                                break;
-                            }
+                            valid = false;
+                            break;
                         }
-                        if (valid)
+
+                    if (valid)
+                    {
+                        var directive = ln.Substring(idx + 1).Trim();
+                        directive = directive.Replace("\t", " ");
+                        var vals = directive.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (vals.Length > 0)
                         {
-                            var directive = ln.Substring(idx + 1).Trim();
-                            directive = directive.Replace("\t", " ");
-                            var vals = directive.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                            if (vals.Length > 0)
+                            switch (vals[0].ToLowerInvariant())
                             {
-                                switch (vals[0].ToLowerInvariant())
-                                {
-                                    case "name":
-                                    case "vertex":
-                                    case "fragment":
-                                    case "feature":
-                                    case "lazy":
-                                        if (currentBlock != null)
-                                        {
-                                            if (blockIsFragment) effectFile.FragmentSource = currentBlock.ToString();
-                                            else effectFile.VertexSource = currentBlock.ToString();
-                                        }
-                                        currentBlock = null;
-                                        break;
-                                }
-                                switch (vals[0].ToLowerInvariant())
-                                {
-                                    case "name":
-                                        effectFile.Name = directive.Substring(directive.IndexOf("name") + 4).Trim();
-                                        break;
-                                    case "vertex":
-                                        if (effectFile.VertexSource != null)
-                                        {
-                                            Console.Error.WriteLine($"Duplicate vertex block at {lineNumber}");
-                                            return null;
-                                        }
-                                        currentBlock = new StringBuilder();
-                                        blockIsFragment = false;
-                                        break;
-                                    case "fragment":
-                                        if (effectFile.FragmentSource != null)
-                                        {
-                                            Console.Error.WriteLine($"Duplicate fragment block at {lineNumber}");
-                                            return null;
-                                        }
-                                        currentBlock = new StringBuilder();
-                                        blockIsFragment = true;
-                                        break;
-                                    case "feature":
-                                        features.Add(vals[1]);
-                                        break;
-                                    case "lazy":
-                                        effectFile.Lazy = true;
-                                        break;
-                                    default:
-                                        Console.Error.WriteLine($"Invalid directive {ln} at {lineNumber}");
-                                        break;
-                                }
+                                case "name":
+                                case "vertex":
+                                case "fragment":
+                                case "feature":
+                                case "lazy":
+                                    if (currentBlock != null)
+                                    {
+                                        if (blockIsFragment) effectFile.FragmentSource = currentBlock.ToString();
+                                        else effectFile.VertexSource = currentBlock.ToString();
+                                    }
+
+                                    currentBlock = null;
+                                    break;
                             }
 
+                            switch (vals[0].ToLowerInvariant())
+                            {
+                                case "name":
+                                    effectFile.Name = directive.Substring(directive.IndexOf("name") + 4).Trim();
+                                    break;
+                                case "vertex":
+                                    if (effectFile.VertexSource != null)
+                                    {
+                                        Console.Error.WriteLine($"Duplicate vertex block at {lineNumber}");
+                                        return null;
+                                    }
+
+                                    currentBlock = new StringBuilder();
+                                    blockIsFragment = false;
+                                    break;
+                                case "fragment":
+                                    if (effectFile.FragmentSource != null)
+                                    {
+                                        Console.Error.WriteLine($"Duplicate fragment block at {lineNumber}");
+                                        return null;
+                                    }
+
+                                    currentBlock = new StringBuilder();
+                                    blockIsFragment = true;
+                                    break;
+                                case "feature":
+                                    features.Add(vals[1]);
+                                    break;
+                                default:
+                                    Console.Error.WriteLine($"Invalid directive {ln} at {lineNumber}");
+                                    break;
+                            }
                         }
                     }
-                    else
-                    {
-                        if (currentBlock != null)
-                        {
-                            currentBlock.AppendLine(ln);
-                        }
-                    }
-                    lineNumber++;
                 }
-                if (currentBlock != null)
+                else
                 {
-                    if (blockIsFragment) effectFile.FragmentSource = currentBlock.ToString();
-                    else effectFile.VertexSource = currentBlock.ToString();
+                    if (currentBlock != null) currentBlock.AppendLine(ln);
                 }
+
+                lineNumber++;
             }
-            if (string.IsNullOrWhiteSpace(effectFile.Name))
-                effectFile.Name = Path.GetFileNameWithoutExtension(filename);
-            effectFile.Name = SaneName(effectFile.Name);
-            effectFile.Features = features.ToArray();
-            if (effectFile.VertexSource == null)
+
+            if (currentBlock != null)
             {
-                Console.Error.WriteLine("Vertex source not specified");
-                return null;
+                if (blockIsFragment) effectFile.FragmentSource = currentBlock.ToString();
+                else effectFile.VertexSource = currentBlock.ToString();
             }
-            if (effectFile.FragmentSource == null)
-            {
-                Console.Error.WriteLine("Fragment source not specified");
-                return null;
-            }
-            return effectFile;
         }
+
+        if (string.IsNullOrWhiteSpace(effectFile.Name))
+            effectFile.Name = Path.GetFileNameWithoutExtension(filename);
+        effectFile.Name = SaneName(effectFile.Name);
+        effectFile.Features = features.ToArray();
+        if (effectFile.VertexSource == null)
+        {
+            Console.Error.WriteLine("Vertex source not specified");
+            return null;
+        }
+
+        if (effectFile.FragmentSource == null)
+        {
+            Console.Error.WriteLine("Fragment source not specified");
+            return null;
+        }
+
+        return effectFile;
     }
 }

@@ -222,21 +222,21 @@ vec4 light(vec4 ac, vec4 ec, vec4 dc, vec4 tex, vec3 position, vec4 view_positio
 
     ivec2 location = ivec2(gl_FragCoord.xy);
     ivec2 tileID = location / ivec2(16, 16);
-    uint index = tileID.y * NumberOfTilesX + tileID.x;
-    uint offset = index * MAX_NUM_LIGHTS_PER_TILE;
-    for (uint i = 0; i < MAX_NUM_LIGHTS_PER_TILE && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
-        uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
+    int index = tileID.y * NumberOfTilesX + tileID.x;
+    int offset = index * MAX_NUM_LIGHTS_PER_TILE;
+    for (int i = 0; i < MAX_NUM_LIGHTS_PER_TILE && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
+        int lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
         PointLight light = lightBuffer.data[lightIndex];
         float attenuation;
         vec3 surfaceToLight = normalize(light.position.xyz - position);
         float distanceToLight = length(light.position.xyz - position);
-        if(light.position.w == 1) {
+        if(light.position.w == 1.) {
             vec4 curve = light.attenuation;
             attenuation = 1.0 / (curve.x + curve.y * distanceToLight + curve.z * (distanceToLight * distanceToLight));
         } else {
             attenuation = fquadratic(distanceToLight / max(light.colorRange.w,1.), light.attenuation.xyz);
         }
-        if(distanceToLight >  light.colorRange.w) attenuation = 0;
+        if(distanceToLight >  light.colorRange.w) attenuation = 0.;
         float diffuseCoefficient = max(dot(n, surfaceToLight), 0.0);
         vec3 diffuse = diffuseCoefficient * dc.rgb * light.colorRange.xyz;
         color += attenuation * diffuse;

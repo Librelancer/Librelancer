@@ -1,5 +1,4 @@
 @include (includes/sprite.inc)
-@lazy
 @vertex
 in vec3 vertex_position;
 in vec3 vertex_dimensions;

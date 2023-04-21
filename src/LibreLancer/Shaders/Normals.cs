@@ -13,40 +13,19 @@ namespace LibreLancer.Shaders
     
     public class Normals
     {
-        private static byte[] vertex_bytes = new byte[267] {
-27, 27, 2, 0, 20, 74, 107, 129, 158, 115, 126, 153, 174, 4, 182, 80, 21, 166, 110, 162, 254, 18, 122, 181, 181, 240, 233, 69, 139, 198,
-196, 23, 12, 168, 11, 104, 107, 14, 189, 77, 252, 61, 186, 204, 221, 146, 142, 34, 40, 166, 232, 115, 227, 16, 199, 193, 118, 63, 56, 179,
-187, 113, 167, 15, 153, 124, 22, 254, 59, 67, 186, 131, 151, 44, 230, 240, 146, 111, 15, 249, 195, 114, 20, 107, 149, 82, 62, 81, 35, 114,
-159, 15, 198, 164, 168, 252, 170, 98, 243, 143, 252, 39, 127, 245, 48, 181, 198, 131, 172, 122, 24, 87, 179, 72, 34, 143, 48, 106, 46, 248,
-199, 77, 255, 212, 136, 86, 4, 30, 133, 31, 132, 35, 244, 39, 230, 37, 139, 121, 92, 220, 59, 26, 8, 11, 75, 136, 234, 116, 17, 56,
-101, 41, 236, 207, 123, 28, 153, 100, 58, 82, 35, 70, 181, 216, 53, 30, 66, 3, 23, 247, 46, 96, 58, 60, 184, 138, 153, 49, 75, 114,
-229, 55, 11, 3, 211, 145, 72, 242, 243, 253, 213, 0, 32, 149, 202, 21, 243, 77, 150, 178, 65, 209, 80, 106, 83, 81, 14, 75, 158, 218,
-73, 25, 225, 206, 43, 239, 204, 216, 129, 251, 211, 70, 35, 210, 107, 201, 15, 98, 88, 250, 87, 26, 48, 109, 137, 109, 52, 96, 235, 159,
-176, 63, 62, 238, 96, 51, 156, 73, 198, 211, 241, 116, 36, 254, 112, 206, 118, 54, 89, 137, 227, 254, 180, 35, 51, 148, 39
-};
-        private static byte[] fragment_bytes = new byte[150] {
-27, 150, 0, 64, 44, 11, 120, 67, 250, 148, 79, 96, 129, 125, 59, 109, 21, 33, 166, 141, 199, 106, 223, 46, 170, 161, 138, 122, 196, 237,
-173, 142, 217, 142, 55, 161, 199, 117, 151, 53, 27, 13, 134, 89, 30, 116, 131, 36, 138, 170, 99, 122, 140, 236, 52, 210, 20, 27, 158, 82,
-0, 129, 13, 56, 210, 52, 25, 100, 164, 1, 111, 162, 35, 39, 41, 58, 185, 249, 69, 15, 36, 181, 178, 128, 194, 131, 134, 18, 121, 132,
-185, 201, 48, 20, 42, 12, 95, 208, 205, 98, 136, 39, 180, 219, 163, 49, 197, 137, 153, 118, 18, 232, 139, 115, 41, 250, 206, 106, 50, 91,
-17, 45, 242, 182, 225, 3, 237, 77, 13, 209, 71, 22, 10, 89, 251, 165, 4, 168, 20, 241, 252, 87, 12, 135, 138, 249, 175, 102, 55, 0
-};
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
-        private static int GetIndex(ShaderFeatures features)
-        {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(0)));
-            return 0;
-        }
         public static ShaderVariables Get(ShaderFeatures features)
         {
-            return variants[GetIndex(features)];
+            AllShaders.Compile();
+            return variants[0];
         }
         public static ShaderVariables Get()
         {
+            AllShaders.Compile();
             return variants[0];
         }
-        public static void Compile()
+        internal static void Compile(string sourceBundle)
         {
             if (iscompiled)
             {
@@ -54,12 +33,9 @@ namespace LibreLancer.Shaders
             }
             iscompiled = true;
             ShaderVariables.Log("Compiling Normals");
-            string vertsrc;
-            string fragsrc;
-            vertsrc = ShCompHelper.FromArray(vertex_bytes);
-            fragsrc = ShCompHelper.FromArray(fragment_bytes);
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(vertsrc, fragsrc, "");
+            // No GL4 variants detected
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(330076, 561), sourceBundle.Substring(330637, 189));
         }
     }
 }

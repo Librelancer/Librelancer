@@ -13,43 +13,19 @@ namespace LibreLancer.Shaders
     
     public class Particle
     {
-        private static byte[] vertex_bytes = new byte[281] {
-27, 216, 2, 32, 140, 196, 56, 38, 114, 17, 113, 198, 82, 142, 32, 165, 105, 52, 167, 63, 163, 34, 75, 228, 126, 128, 194, 140, 93, 129,
-96, 87, 183, 184, 31, 64, 206, 164, 255, 165, 230, 188, 44, 176, 155, 197, 139, 110, 150, 178, 56, 11, 236, 167, 188, 65, 119, 17, 215, 236,
-74, 240, 226, 16, 159, 251, 227, 117, 255, 217, 207, 206, 183, 163, 34, 120, 126, 64, 167, 43, 76, 161, 111, 98, 10, 187, 33, 92, 108, 12,
-92, 6, 199, 240, 0, 94, 109, 202, 224, 167, 27, 155, 77, 183, 108, 190, 180, 140, 78, 221, 48, 199, 97, 24, 187, 80, 159, 250, 122, 28,
-122, 245, 67, 223, 31, 6, 172, 91, 233, 149, 32, 215, 69, 55, 150, 238, 96, 65, 250, 102, 216, 225, 42, 103, 155, 79, 21, 145, 18, 179,
-254, 170, 242, 7, 79, 127, 2, 0, 85, 189, 92, 20, 6, 39, 171, 225, 109, 104, 167, 70, 139, 9, 122, 236, 209, 99, 130, 69, 98, 173,
-108, 60, 67, 42, 249, 164, 126, 221, 219, 226, 83, 141, 77, 47, 66, 16, 190, 29, 200, 232, 33, 108, 62, 22, 7, 137, 177, 247, 95, 18,
-17, 254, 102, 83, 247, 216, 75, 169, 57, 38, 28, 94, 68, 0, 43, 171, 133, 71, 130, 143, 205, 150, 174, 92, 160, 113, 97, 7, 39, 241,
-246, 2, 108, 95, 111, 190, 197, 53, 117, 47, 65, 231, 217, 97, 233, 142, 84, 110, 225, 138, 159, 21, 199, 222, 125, 89, 70, 176, 87, 12,
-75, 0, 82, 46, 98, 175, 142, 44, 99, 55, 34
-};
-        private static byte[] fragment_bytes = new byte[138] {
-27, 193, 0, 0, 140, 212, 70, 117, 72, 126, 139, 145, 133, 117, 229, 91, 73, 139, 39, 53, 8, 95, 33, 218, 236, 192, 2, 133, 43, 106,
-81, 216, 90, 214, 214, 146, 23, 125, 215, 135, 215, 27, 230, 16, 110, 107, 37, 137, 88, 27, 255, 24, 182, 78, 84, 4, 101, 63, 238, 98,
-199, 15, 90, 56, 108, 79, 75, 148, 224, 53, 146, 41, 188, 221, 100, 31, 31, 203, 143, 168, 193, 246, 132, 175, 229, 92, 198, 209, 242, 6,
-214, 120, 24, 25, 169, 227, 157, 15, 231, 91, 228, 249, 249, 208, 14, 111, 211, 181, 227, 156, 163, 5, 37, 179, 67, 193, 31, 8, 134, 163,
-81, 101, 31, 207, 219, 146, 172, 118, 177, 82, 20, 210, 0, 179, 177, 94, 1, 8
-};
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
-        private static int GetIndex(ShaderFeatures features)
-        {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(0)));
-            return 0;
-        }
         public static ShaderVariables Get(ShaderFeatures features)
         {
-            Compile();
-            return variants[GetIndex(features)];
+            AllShaders.Compile();
+            return variants[0];
         }
         public static ShaderVariables Get()
         {
-            Compile();
+            AllShaders.Compile();
             return variants[0];
         }
-        public static void Compile()
+        internal static void Compile(string sourceBundle)
         {
             if (iscompiled)
             {
@@ -57,12 +33,9 @@ namespace LibreLancer.Shaders
             }
             iscompiled = true;
             ShaderVariables.Log("Compiling Particle");
-            string vertsrc;
-            string fragsrc;
-            vertsrc = ShCompHelper.FromArray(vertex_bytes);
-            fragsrc = ShCompHelper.FromArray(fragment_bytes);
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(vertsrc, fragsrc, "");
+            // No GL4 variants detected
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(330826, 714), sourceBundle.Substring(241747, 226));
         }
     }
 }
