@@ -1,51 +1,53 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <ImportGroup>
-    <Import Project="../../CommonVersion.props" />
-  </ImportGroup>
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
-  </PropertyGroup>
+    <ImportGroup>
+        <Import Project="../../CommonVersion.props" />
+    </ImportGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
-    <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
-    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
-    <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
-    <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
-    <ProjectReference Include="..\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />
-    <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
-  </ItemGroup>
-    
-  
-  <ItemGroup>
-    <Folder Include="Properties" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
+        <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
+        <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
+        <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
+        <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
+        <ProjectReference Include="..\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />
+        <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="defaulttexture.dds" />
-    <None Remove="grid.dds" />
-    <None Update="editorscripts\img2icon.cs-script">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Remove="reactor_128.png" />
-    <EmbeddedResource Include="reactor_128.png" />
-    <None Remove="reactor_64.png" />
-    <EmbeddedResource Include="reactor_64.png" />
-    <None Update="editorscripts\thorn2lua.cs-script">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="editorscripts\importmodel.cs-script">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
+
+    <ItemGroup>
+        <Folder Include="Properties" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="defaulttexture.dds" />
+        <None Remove="grid.dds" />
+        <None Update="editorscripts\img2icon.cs-script">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Remove="reactor_128.png" />
+        <EmbeddedResource Include="reactor_128.png" />
+        <None Remove="reactor_64.png" />
+        <EmbeddedResource Include="reactor_64.png" />
+        <None Update="editorscripts\thorn2lua.cs-script">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="editorscripts\importmodel.cs-script">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Remove="splash.png" />
+        <EmbeddedResource Include="splash.png" />
+    </ItemGroup>
+    <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

@@ -101,7 +101,7 @@ namespace LibreLancer.Thn
                 if (Cutscene.Substitutions != null &&
                     Cutscene.Substitutions.TryGetValue(kv.Value.Template, out replacement))
                     template = replacement;
-                var resman = Cutscene.Game.GetService<ResourceManager>();
+                var resman = Cutscene.ResourceManager;
                 var gameData = Cutscene.GameData;
                 if (spawnObjects && kv.Value.Type == EntityTypes.Compound)
                 {
@@ -155,7 +155,7 @@ namespace LibreLancer.Thn
                     }
                     else
                     {
-                        obj.Object = new GameObject(drawable, Cutscene.Game.GetService<ResourceManager>(), true, false);
+                        obj.Object = new GameObject(drawable, Cutscene.ResourceManager, true, false);
                         obj.Object.Name = new ObjectName(kv.Value.Name);
                         obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)
@@ -258,7 +258,7 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Sound)
                 {
-                    obj.Sound = new ThnSound(kv.Value.Template, Cutscene.Game.GetService<SoundManager>(), kv.Value.AudioProps, obj);
+                    obj.Sound = new ThnSound(kv.Value.Template, Cutscene.SoundManager, kv.Value.AudioProps, obj);
                     obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.SoundSpatial) == ThnObjectFlags.SoundSpatial;
                 }
                 if (obj.Object != null)

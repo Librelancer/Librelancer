@@ -415,14 +415,22 @@ namespace LibreLancer
             lastTime = current;
             return diff;
         }
+
+        protected virtual bool UseSplash => false;
         
+        protected virtual Texture2D GetSplash()
+        {
+            return null;
+        }
+
         public void Run()
         {
             //Try to set DPI Awareness on Win32
             if (Platform.RunningOS == OS.Windows)
             {
                 try {
-                    SetProcessDPIAware(); }
+                    SetProcessDPIAware(); 
+                }
                 catch {
                 }
             }
@@ -441,8 +449,10 @@ namespace LibreLancer
             //Set GL states
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window
+
+            var hiddenFlag = UseSplash ? SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN :  0;
             var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
-                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI;
+                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | hiddenFlag;
             if (fullscreen)
                 flags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
             var sdlWin = SDL.SDL_CreateWindow(
@@ -504,7 +514,35 @@ namespace LibreLancer
                 }
             }
             FLLog.Info("GL", $"Dpi Scale: {DpiScale:F4}");
-            Load();
+            Texture2D splashTexture;
+            if (UseSplash && (splashTexture = GetSplash()) != null)
+            {
+                var win2 = SDL.SDL_CreateWindow(
+                    "Librelancer",
+                    SDL.SDL_WINDOWPOS_CENTERED,
+                    SDL.SDL_WINDOWPOS_CENTERED,
+                    750, 250, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
+                              SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                              SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS |
+                              SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+                SDL.SDL_GL_MakeCurrent(win2, glcontext);
+                RenderContext.ClearColor = Color4.Black;
+                SDL.SDL_GL_GetDrawableSize(win2, out  var rw, out  var rh);
+                RenderContext.ReplaceViewport(0,0, rw, rh);
+                RenderContext.ClearAll();
+                RenderContext.Renderer2D.DrawImageStretched(splashTexture, new Rectangle(0,0,rw,rh), Color4.White, true);
+                RenderContext.EndFrame();
+                SDL.SDL_GL_SwapWindow(win2);
+                Load();
+                splashTexture.Dispose();
+                SDL.SDL_GL_MakeCurrent(sdlWin, glcontext);
+                SDL.SDL_DestroyWindow(win2);
+            }
+            else
+            {
+                Load();
+            }
+            SDL.SDL_ShowWindow(sdlWin);
             //kill the value we set so it doesn't crash child processes
             if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null); 
             //Start game

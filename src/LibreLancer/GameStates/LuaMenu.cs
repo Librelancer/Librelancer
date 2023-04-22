@@ -38,7 +38,7 @@ namespace LibreLancer
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();
-            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.RenderContext.CurrentViewport, Game);
+            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
             scene.BeginScene(intro.Scripts);
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
@@ -363,7 +363,7 @@ namespace LibreLancer
         public override void Draw(double delta) 
         {
             RenderMaterial.VertexLighting = true;
-            scene.Draw(delta);
+            scene.Draw(delta, Game.Width, Game.Height);
             ui.RenderWidget(delta);
             DoFade(delta);
             cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);

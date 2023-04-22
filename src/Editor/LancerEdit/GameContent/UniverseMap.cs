@@ -7,7 +7,7 @@ using System.Numerics;
 using LibreLancer;
 using ImGuiNET;
 
-namespace SystemViewer
+namespace LancerEdit
 {
     public class UniverseMap
     {

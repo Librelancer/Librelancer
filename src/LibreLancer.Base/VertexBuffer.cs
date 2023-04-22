@@ -16,6 +16,7 @@ namespace LibreLancer
     {
 		public static int TotalDrawcalls = 0;
         public static int TotalBuffers = 0;
+        private bool isDisposed = false;
         public int VertexCount { get; private set; }
         uint VBO;
 		uint VAO;
@@ -111,6 +112,7 @@ namespace LibreLancer
         private IntPtr buffer;
         public IntPtr BeginStreaming()
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
             return buffer;
         }
@@ -131,7 +133,8 @@ namespace LibreLancer
         }
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
-			RenderContext.Instance.Apply ();
+            if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
+            RenderContext.Instance.Apply ();
 			DrawInternal(primitiveType, primitiveCount);
 		}
 
@@ -156,7 +159,8 @@ namespace LibreLancer
             TotalDrawcalls++;
         }
 		public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
-		{
+        {
+            if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
 			RenderContext.Instance.Apply();
 			GLBind.VertexArray(VAO);
 			if (HasElements)
@@ -197,6 +201,8 @@ namespace LibreLancer
 		}
         public void Dispose()
         {
+            if (isDisposed) return;
+            isDisposed = true;
             TotalBuffers--;
             if(streaming)
                 Marshal.FreeHGlobal(buffer);

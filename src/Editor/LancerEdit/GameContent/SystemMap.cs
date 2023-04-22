@@ -11,33 +11,33 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
-namespace SystemViewer
+namespace LancerEdit
 {
     public class SystemMap
     {
         private UiContext ctx;
         private Navmap navmap;
         private MainWindow win;
-        public void CreateContext(MainWindow window)
+        public void CreateContext(GameDataContext context, MainWindow win)
         {
             var uidata = new UiData();
-            uidata.FileSystem = window.GameData.VFS;
-            uidata.DataPath = window.GameData.Ini.Freelancer.DataPath;
-            if (window.GameData.Ini.Navmap != null)
-                uidata.NavmapIcons = new IniNavmapIcons(window.GameData.Ini.Navmap);
+            uidata.FileSystem = context.GameData.VFS;
+            uidata.DataPath = context.GameData.Ini.Freelancer.DataPath;
+            if (context.GameData.Ini.Navmap != null)
+                uidata.NavmapIcons = new IniNavmapIcons(context.GameData.Ini.Navmap);
             else
                 uidata.NavmapIcons = new NavmapIcons();
-            uidata.Fonts = window.GetService<FontManager>();
-            uidata.ResourceManager = window.Resources;
+            uidata.Fonts = context.Fonts;
+            uidata.ResourceManager = context.Resources;
             ctx = new UiContext(uidata);
-            ctx.RenderContext = window.RenderContext;
+            ctx.RenderContext = win.RenderContext;
             navmap = new Navmap();
             navmap.Width = 480;
             navmap.Height = 480;
             navmap.LetterMargin = true;
             navmap.MapBorder = true;
             ctx.SetWidget(navmap);
-            this.win = window;
+            this.win = win;
         }
 
         public void SetObjects(StarSystem sys)

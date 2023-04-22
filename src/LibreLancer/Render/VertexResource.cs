@@ -8,11 +8,13 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {
-    public class VertexResource<T> where T : struct
+    public class VertexResource<T> : IDisposable where T : struct
     {
         List<VertexResourceBuffer<T>> buffers = new List<VertexResourceBuffer<T>>();
+        private bool isDisposed = false;
         public void Allocate(T[] vertices, ushort[] indices, out VertexBuffer vbo, out int startIndex, out int baseVertex, out IndexResourceHandle index)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(VertexResource<T>));
             foreach(var buf in buffers) {
                 if(buf.Allocate(vertices,indices, out startIndex, out baseVertex, out index)) {
                     vbo = buf.Buffer;
@@ -25,6 +27,13 @@ namespace LibreLancer.Render
             vbo = buffers[buffers.Count - 1].Buffer;
         }
 
+        public void Dispose()
+        {
+            if (isDisposed) return;
+            foreach(var b in buffers)
+                b.Dispose();
+            isDisposed = true;
+        }
     }
 
     public class IndexResourceHandle

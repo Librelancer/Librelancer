@@ -18,6 +18,7 @@ using LibreLancer.Media;
 using ImGuiNET;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Render;
+using LibreLancer.Shaders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using SharpDX.MediaFoundation;
 
@@ -28,12 +29,15 @@ namespace LancerEdit
 		public ImGuiHelper guiHelper;
 		public AudioManager Audio;
 		public GameResourceManager Resources;
+        public Billboards Billboards;
+        public NebulaVertices Nebulae;
 		public PolylineRender Polyline;
 		public LineRenderer LineRenderer;
 		public CommandBuffer Commands; //This is a huge object - only have one
 		public MaterialMap MaterialMap;
         public RichTextEngine RichText;
         public FontManager Fonts;
+        public GameDataContext OpenDataContext;
         public string Version;
         TextBuffer logBuffer;
         StringBuilder logText = new StringBuilder();
@@ -60,11 +64,12 @@ namespace LancerEdit
                     logText.Remove(0, logText.Length - 16384);
                 }
                 logBuffer.SetText(logText.ToString());
-                if (severity == LogSeverity.Error)
+                //Suppressed while most game content logs errors
+                /*if (severity == LogSeverity.Error)
                 {
                     errorTimer = 9;
                     Bell.Play();
-                }
+                }*/
             };
             Config = EditorConfiguration.Load();
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
@@ -73,8 +78,20 @@ namespace LancerEdit
         }
         double errorTimer = 0;
         private int logoTexture;
-		protected override void Load()
+
+        protected override bool UseSplash => true;
+
+        protected override Texture2D GetSplash()
         {
+            using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.splash.png"))
+            {
+                return (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+            }
+        }
+
+        protected override void Load()
+        {
+            AllShaders.Compile();
             DefaultMaterialMap.Init();
 			Title = "LancerEdit";
             guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
@@ -87,7 +104,7 @@ namespace LancerEdit
 			Commands = new CommandBuffer();
 			Polyline = new PolylineRender(Commands);
 			LineRenderer = new LineRenderer();
-            RenderContext.PushViewport(0, 0, 800, 600);
+            RenderContext.ReplaceViewport(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
             //TODO: Icon-setting code very messy
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png"))
@@ -108,6 +125,11 @@ namespace LancerEdit
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
+            Billboards = new Billboards();
+            Services.Add(Billboards);
+            Nebulae = new NebulaVertices();
+            Services.Add(Nebulae);
+            Services.Add(new GameConfig());
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();
         }
@@ -128,6 +150,9 @@ namespace LancerEdit
             }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.G) {
                 if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ToggleGrid);
+            }
+            if (e.Key == Keys.F6) {
+                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ChangeSystem);
             }
         }
 
@@ -288,7 +313,36 @@ namespace LancerEdit
                 }
             });
         }
-        
+
+        void OpenGameData()
+        {
+            FileDialog.ChooseFolder(folder =>
+            {
+                if (!GameConfig.CheckFLDirectory(folder))
+                    ErrorDialog("Selected directory is not a valid Freelancer folder");
+                else
+                {
+                    if (OpenDataContext != null)
+                    {
+                        var toClose = TabControl.Tabs.OfType<GameContentTab>().ToArray();
+                        foreach (var t in toClose)
+                        {
+                           TabControl.CloseTab(t);
+                        }
+                        OpenDataContext.Dispose();
+                        OpenDataContext = null;
+                    }
+                    var c = new GameDataContext();
+                    StartLoadingSpinner();
+                    c.Load(this, folder, () =>
+                    {
+                        OpenDataContext = c;
+                        FinishLoadingSpinner();
+                    });                
+                }
+            });
+        }
+      
 		protected override void Draw(double elapsed)
         {
             //Don't process all the imgui stuff when it isn't needed
@@ -348,6 +402,27 @@ namespace LancerEdit
                 Theme.IconMenuToggle(Icons.Log, "Log", ref showLog, true);
                 ImGui.EndMenu();
             }
+
+            if (ImGui.BeginMenu("Data"))
+            {
+                if (Theme.IconMenuItem(Icons.Info, "Load Data", true))
+                {
+                    var dataTabCount = TabControl.Tabs.OfType<GameContentTab>().Count();
+                    if (dataTabCount > 0)
+                        Confirm($"Opening another directory will close {dataTabCount} tab(s). Continue?", OpenGameData);
+                    else
+                        OpenGameData();
+                }
+                if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",OpenDataContext != null))
+                    AddTab(new InfocardBrowserTab(OpenDataContext, this));
+                if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
+                    AddTab(new ProjectileViewerTab(this, OpenDataContext));
+                if (Theme.IconMenuItem(Icons.Globe, "System Viewer", OpenDataContext != null))
+                    AddTab(new SystemViewerTab(OpenDataContext, this));
+                if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
+                    AddTab(new ThnPlayerTab(OpenDataContext, this));
+                ImGui.EndMenu();
+            }
 			if (ImGui.BeginMenu("Tools"))
 			{
                 if(Theme.IconMenuItem(Icons.Cog, "Options",true))
@@ -370,20 +445,12 @@ namespace LancerEdit
                 {
                     FileDialog.Open(input => Make3dbDlg.Open(input), FileDialogFilters.ImageFilter);
                 }
-                if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",true))
-                {
-                    FileDialog.Open(x => AddTab(new InfocardBrowserTab(x, this)), FileDialogFilters.FreelancerIniFilter);
-                }
                 if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
                     FileDialog.Open(
                         input => AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input))),
                         FileDialogFilters.StateGraphFilter
                         );
-                }
-                if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", true))
-                {
-                    ProjectileViewer.Create(this);
                 }
 
                 if (Theme.IconMenuItem(Icons.BezierCurve, "ParamCurve Visualiser", true))
@@ -574,16 +641,18 @@ namespace LancerEdit
 			string activename = ActiveTab == null ? "None" : ActiveTab.DocumentName;
 			string utfpath = ActiveTab == null ? "None" : ActiveTab.GetUtfPath();
             #if DEBUG
-            const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}";
+            const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}{5}";
             #else
-            const string statusFormat = "{1} Materials | {2} Textures | Active: {3} - {4}";
+            const string statusFormat = "{1} Materials | {2} Textures | Active: {3} - {4}{5}";
             #endif
+            string openFolder = OpenDataContext != null ? $" | Open: {OpenDataContext.Folder}" : "";
 			ImGui.Text(string.Format(statusFormat,
 									 (int)Math.Round(frequency),
 									 Resources.MaterialDictionary.Count,
 									 Resources.TextureDictionary.Count,
 									 activename,
-									 utfpath));
+									 utfpath,
+                                     openFolder));
 			ImGui.End();
             if(errorTimer > 0) {
                 ImGuiExt.ToastText("An error has occurred\nCheck the log for details",

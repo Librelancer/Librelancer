@@ -152,7 +152,7 @@ World Time: {12:F2}
 
             activeCamera = _chaseCamera;
             
-            sysrender = new SystemRenderer(_chaseCamera, Game.GameData, Game.ResourceManager, Game);
+            sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender, () => session.WorldTime);
             world.LoadSystem(sys, Game.ResourceManager, false);
@@ -1031,7 +1031,7 @@ World Time: {12:F2}
             if (updateStartDelay > 0) updateStartDelay--;
             if (waitObjectiveFrames > 0) waitObjectiveFrames--;
             world.RenderUpdate(delta);
-            sysrender.Draw();
+            sysrender.Draw(Game.Width, Game.Height);
 
             sysrender.DebugRenderer.StartFrame(activeCamera, Game.RenderContext);
             sysrender.DebugRenderer.Render();

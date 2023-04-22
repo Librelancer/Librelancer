@@ -1,9 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace LibreLancer;
 
-public class GameItemCollection<T> where T : IdentifiableItem
+public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
 {
     private Dictionary<string, T> nicknameCollection = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
     private Dictionary<uint, T> crcCollection = new Dictionary<uint, T>();
@@ -36,4 +37,8 @@ public class GameItemCollection<T> where T : IdentifiableItem
         nicknameCollection[item.Nickname] = item;
         crcCollection[item.CRC] = item;
     }
+
+    public IEnumerator<T> GetEnumerator() => nicknameCollection.Values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) nicknameCollection.Values).GetEnumerator();
 }

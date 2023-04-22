@@ -96,7 +96,7 @@ namespace LibreLancer
 
         public override void LoadResourceFile(string filename) { }
     }
-    public class GameResourceManager : ResourceManager
+    public class GameResourceManager : ResourceManager, IDisposable
 	{
 		public Game Game;
 
@@ -131,6 +131,7 @@ namespace LibreLancer
         public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
         {
             if (!Game.IsUiThread()) throw new InvalidOperationException();
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             vbo = null;
             index = null;
             startIndex = baseVertex = -1;
@@ -278,6 +279,7 @@ namespace LibreLancer
 
 		public override Texture FindTexture (string name)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             if (name == null) return null;
 			if (name == NullTextureName)
 				return NullTexture;
@@ -300,7 +302,8 @@ namespace LibreLancer
 
 		public override Material FindMaterial (uint materialId)
 		{
-			Material m = null;
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
+            Material m = null;
 			materials.TryGetValue (materialId, out m);
 			return m;
 		}
@@ -309,6 +312,7 @@ namespace LibreLancer
 
         public override VMeshData FindMesh (uint vMeshLibId)
 		{
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             VMeshData vms;
             meshes.TryGetValue(vMeshLibId, out vms);
             if (vms == null) FLLog.Warning("ResourceManager", "Mesh " + vMeshLibId + " not found");
@@ -317,7 +321,8 @@ namespace LibreLancer
 
 		public void AddResources(Utf.IntermediateNode node, string id)
 		{
-			MatFile mat;
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
+            MatFile mat;
 			TxmFile txm;
 			VmsFile vms;
 			Utf.UtfLoader.LoadResourceNode(node, this, out mat, out txm, out vms);
@@ -328,7 +333,8 @@ namespace LibreLancer
 
 		public void RemoveResourcesForId(string id)
 		{
-			List<string> removeTex = new List<string>();
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
+            List<string> removeTex = new List<string>();
 			foreach (var tex in textures)
 			{
 				if (texturefiles[tex.Key] == id)
@@ -354,6 +360,7 @@ namespace LibreLancer
 
         public override Fx.ParticleLibrary GetParticleLibrary(string filename)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             Fx.ParticleLibrary lib;
             if (!particlelibs.TryGetValue(filename, out lib))
             {
@@ -367,6 +374,7 @@ namespace LibreLancer
 
         public override void LoadResourceFile(string filename)
 		{
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             var fn = filename.ToLowerInvariant();
             if (!loadedResFiles.Contains(fn))
             {
@@ -432,7 +440,8 @@ namespace LibreLancer
 			}
 		}
 		public override IDrawable GetDrawable(string filename)
-		{
+        {
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
 			IDrawable drawable;
 			if (!drawables.TryGetValue(filename, out drawable))
 			{
@@ -474,5 +483,30 @@ namespace LibreLancer
 			}
 			return drawable;
 		}
+
+        private bool isDisposed = false;
+
+        public void Dispose()
+        {
+            if (isDisposed) return;
+            isDisposed = true;
+            //Textures
+            foreach (var v in textures.Values) {
+                if(v != null)
+                    v.Dispose();
+            }
+            NullTexture.Dispose();
+            WhiteTexture.Dispose();
+            GreyTexture.Dispose();
+            //Vertex buffers
+            posResource.Dispose();
+            posColorResource.Dispose();
+            posColorTextureResource.Dispose();
+            posNormalResource.Dispose();
+            posNormalTextureResource.Dispose();
+            posNormalColorTextureResource.Dispose();
+            posNormalTextureTwoResource.Dispose();
+            posNormalDiffuseTextureTwoResource.Dispose();
+        }
 	}
 }

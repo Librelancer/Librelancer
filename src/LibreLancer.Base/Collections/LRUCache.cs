@@ -115,6 +115,8 @@ namespace LibreLancer
             return value;
         }
 
+        public IEnumerable<Value> AllValues => loadedValues.Values;
+
         class LruPtr
         {
             public LruPtr Next;

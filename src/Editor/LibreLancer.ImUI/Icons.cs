@@ -25,6 +25,7 @@ public static class Icons
     public const char Cog = '\uf013';
     public const char FileImport = '\uf56f';
     public const char Palette = '\uf53f';
+    public const char Play = '\uf04b';
     public const char SprayCan = '\uf5bd';
     public const char Exchange = '\uf362';
     public const char Edit = '\uf044';
@@ -123,6 +124,7 @@ public static class Icons
         yield return Cog;
         yield return FileImport;
         yield return Palette;
+        yield return Play;
         yield return SprayCan;
         yield return Log;
         yield return Exchange;

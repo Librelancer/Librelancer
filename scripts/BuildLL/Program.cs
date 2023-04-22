@@ -29,8 +29,6 @@ namespace BuildLL
             "src/LLServer/LLServer.csproj",
             "src/Editor/InterfaceEdit/InterfaceEdit.csproj",
             "src/Editor/LancerEdit/LancerEdit.csproj",
-            "src/Editor/SystemViewer/SystemViewer.csproj",
-            "src/Editor/ThnPlayer/ThnPlayer.csproj",
             "src/Editor/lleditscript/lleditscript.csproj",
             "src/Launcher/Launcher.csproj"
         };

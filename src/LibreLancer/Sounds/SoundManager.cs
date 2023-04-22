@@ -14,11 +14,12 @@ using LibreLancer.Utf.Audio;
 
 namespace LibreLancer.Sounds
 {
-	public class SoundManager
+	public class SoundManager : IDisposable
 	{
 		GameDataManager data;
 		AudioManager audio;
-
+        private bool isDisposed = false;
+        
         private LRUCache<string, LoadedSound> soundCache;
      
 
@@ -39,6 +40,16 @@ namespace LibreLancer.Sounds
             this.ui = ui;
         }
 
+        public void Dispose()
+        {
+            if (isDisposed) return;
+            isDisposed = true;
+            foreach (var l in soundCache.AllValues)
+            {
+                l.Dispose();
+            }
+        }
+
         public void SetGameData(GameDataManager data)
         {
             this.data = data;
@@ -49,6 +60,7 @@ namespace LibreLancer.Sounds
         bool resetListener = false;
         public void ResetListenerVelocity()
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             resetListener = true;
         }
 
@@ -56,6 +68,7 @@ namespace LibreLancer.Sounds
         private Vector3 lastPosVel = Vector3.Zero;
         public void UpdateListener(double delta, Vector3 position, Vector3 forward, Vector3 up)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             if (resetListener)
             {
                 audio.SetListenerVelocity(Vector3.Zero);
@@ -84,6 +97,7 @@ namespace LibreLancer.Sounds
 
         public void LoadSound(string name)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             if (string.IsNullOrWhiteSpace(name)) return;
             soundCache.Get(name);
         }
@@ -129,6 +143,7 @@ namespace LibreLancer.Sounds
         }
         public void PlayOneShot(string name)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             var snd = GetSound(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return;
@@ -140,6 +155,7 @@ namespace LibreLancer.Sounds
         public SoundInstance GetInstance(string name, float attenuation = 0, float mind = -1,
             float maxd = -1, Vector3? pos = null)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             var snd = GetSound(name);
             soundCache.UsedValue(snd);
             if (snd.Data == null) return null;
@@ -178,6 +194,7 @@ namespace LibreLancer.Sounds
         private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new LazyConcurrentDictionary<string, VoiceUtf>();
         public void PlayVoiceLine(string voice, uint hash, Action onEnd)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             Task.Run(() =>
             {
                 var path = data.GetVoicePath(voice);
@@ -200,6 +217,7 @@ namespace LibreLancer.Sounds
         }
         public void PlayMusic(string name, float fadeTime, bool oneshot = false)
         {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             var entry = data.GetAudioEntry(name);
             var path = data.GetAudioPath(name);
             if (File.Exists(path))
@@ -214,7 +232,8 @@ namespace LibreLancer.Sounds
         
         public void StopMusic(float fadeOut = 0)
 		{
-			audio.Music.Stop(fadeOut);
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
+            audio.Music.Stop(fadeOut);
 		}
 	}
     class LoadedSound : IDisposable

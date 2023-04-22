@@ -19,7 +19,6 @@ namespace LibreLancer.Render
         Game game;
         NebulaVertices nverts;
         Renderer2D render2D;
-        ResourceManager resman;
         Billboards billboards;
 		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
         SystemRenderer sysr;
@@ -29,7 +28,6 @@ namespace LibreLancer.Render
 			game = g;
             nverts = g.GetService<NebulaVertices>();
             render2D = g.RenderContext.Renderer2D;
-            resman = g.GetService<ResourceManager>();
             billboards = g.GetService<Billboards>();
             this.sysr = sysr;
 			rand = new Random();
@@ -261,8 +259,8 @@ namespace LibreLancer.Render
 				return;
             if (ex.ShellModel == null)
             {
-                var file = (IRigidModelFile) ex.Shell.LoadFile(resman);
-                file.Initialize(resman);
+                var file = (IRigidModelFile) ex.Shell.LoadFile(sysr.ResourceManager);
+                file.Initialize(sysr.ResourceManager);
                 ex.ShellModel = file.CreateRigidModel(true);
             }
 			Vector3 sz = Vector3.Zero;
@@ -283,7 +281,7 @@ namespace LibreLancer.Render
             {
                 foreach (var dc in pt.Mesh.Levels[0])
                 {
-                    var mat = dc.GetMaterial(resman)?.Render;
+                    var mat = dc.GetMaterial(sysr.ResourceManager)?.Render;
                     if (mat is BasicMaterial basic)
                     {
                         basic.Oc = alpha;
@@ -293,8 +291,8 @@ namespace LibreLancer.Render
                     }
                 }
             }
-            ex.ShellModel.Update(sysr.Camera, 0.0, resman);
-            ex.ShellModel.DrawBuffer(0, buffer, resman, world, ref Lighting.Empty);
+            ex.ShellModel.Update(sysr.Camera, 0.0, sysr.ResourceManager);
+            ex.ShellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
         }
         static Shaders.ShaderVariables _puffringsh;
 		static int _ptex0;
@@ -385,11 +383,11 @@ namespace LibreLancer.Render
                 if (p.Texture == null)
                 {
                     lastTex = null;
-                    tex = resman.NullTexture;
+                    tex = sysr.ResourceManager.NullTexture;
                 }
                 else if (lastTex != p.Texture)
                 {
-                    tex = (Texture2D)resman.FindTexture(p.Texture);
+                    tex = (Texture2D)sysr.ResourceManager.FindTexture(p.Texture);
                     lastTex = p.Texture;
                 }
                 buffer.AddCommand(sh, puffSetup, puffCleanup, buffer.WorldBuffer.Identity,
@@ -489,7 +487,7 @@ namespace LibreLancer.Render
 						c *= Nebula.CloudLightningColor;
 					}
 					billboards.Draw(
-						(Texture2D)resman.FindTexture(shape.Texture),
+						(Texture2D)sysr.ResourceManager.FindTexture(shape.Texture),
 						puffsinterior[i].Position,
 						new Vector2(Nebula.InteriorCloudRadius),
 						c,
@@ -560,7 +558,7 @@ namespace LibreLancer.Render
             if (sysr.Camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
                 return;
 
-			var tex = (Texture2D)resman.FindTexture(Nebula.ExteriorFill);
+			var tex = (Texture2D)sysr.ResourceManager.FindTexture(Nebula.ExteriorFill);
 			//X axis
 			{
 				var tl = new VertexPositionTexture(

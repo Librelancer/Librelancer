@@ -99,11 +99,12 @@ namespace LibreLancer.Thn
         public GameObject PlayerShip => scriptContext.PlayerShip;
         public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
         //Public properties
-        public Game Game => game;
+        public GameResourceManager ResourceManager => resourceManager;
         public ICamera CameraHandle => camera;
         public Dictionary<string, string> Substitutions => scriptContext.Substitutions;
         public GameObject MainObject => scriptContext.MainObject;
         public GameDataManager GameData => gameData;
+        public SoundManager SoundManager => soundManager;
         public bool Running => running;
 
         //Private variables
@@ -115,6 +116,8 @@ namespace LibreLancer.Thn
         List<Tuple<IDrawable, ThnObject>> layers = new List<Tuple<IDrawable, ThnObject>>();
         ThnDisplayText text;
         private GameDataManager gameData;
+        private GameResourceManager resourceManager;
+        private SoundManager soundManager;
         bool hasScene = false;
         private bool running = false;
 
@@ -147,16 +150,20 @@ namespace LibreLancer.Thn
             World = gameplay.world;
             spawnObjects = false;
             camera = new ThnCamera(gameplay.FlGame.RenderContext.CurrentViewport);
+            resourceManager = gameplay.FlGame.ResourceManager;
+            soundManager = gameplay.FlGame.Sound;
             scriptContext = context;
         }
 
         private ThnScriptContext scriptContext;
         List<ThnScriptInstance> instances = new List<ThnScriptInstance>();
-        public Cutscene(ThnScriptContext context, GameDataManager gameData, Rectangle viewport, Game game)
+        public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources, SoundManager sound, Rectangle viewport, Game game)
         {
             scriptContext = context;
-            this.game = game;
+            this.soundManager = sound;
             this.gameData = gameData;
+            this.resourceManager = resources;
+            this.game = game;
 			camera = new ThnCamera(viewport);
         }
 
@@ -201,7 +208,7 @@ namespace LibreLancer.Thn
                     Renderer.Dispose();
                     World.Dispose();
                 }
-                Renderer = new SystemRenderer(camera, gameData, game.GetService<GameResourceManager>(), game);
+                Renderer = new SystemRenderer(camera, resourceManager, game);
                 World = new GameWorld(Renderer, null, false);
             }
             if (scriptContext.SetScript != null && resetObjects)
@@ -300,13 +307,12 @@ namespace LibreLancer.Thn
         
         public void _Update(double delta)
         {
-            var sound = game.GetService<SoundManager>();
             if (Running)
             {
                 var pos = camera.Transform.Position;
                 var forward = Vector3.TransformNormal(-Vector3.UnitZ, camera.Transform.Orientation);
                 var up = Vector3.TransformNormal(Vector3.UnitY, camera.Transform.Orientation);
-                sound.UpdateListener(delta, pos, forward, up);
+                soundManager.UpdateListener(delta, pos, forward, up);
             }
 			currentTime += delta;
             foreach (var obj in sceneObjects.Values) obj.UpdateIfMain();
@@ -314,8 +320,8 @@ namespace LibreLancer.Thn
             {
                 if (currentTime > text.Start)
                 {
-                    game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
-                    text = null;
+                    //game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
+                    //text = null;
                 }
             }
             //
@@ -330,12 +336,12 @@ namespace LibreLancer.Thn
 			    World.Update(delta);
 		}
 
-		public void Draw(double delta)
+		public void Draw(double delta, int renderWidth, int renderHeight)
         {
             UpdateStarsphere();
             if(Renderer != null)
                 World.RenderUpdate(delta);
-			Renderer.Draw();
+			Renderer.Draw(renderWidth, renderHeight);
         }
 
         public ThnObject GetObject(string name)
@@ -351,8 +357,7 @@ namespace LibreLancer.Thn
             var cam = GetObject(name);
             camera.Object = cam;
 			camera.Transform = cam.Camera;
-            var sound = game.GetService<SoundManager>();
-            sound.ResetListenerVelocity();
+            soundManager.ResetListenerVelocity();
         }
         public void Dispose()
 		{

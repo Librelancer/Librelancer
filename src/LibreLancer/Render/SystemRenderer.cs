@@ -50,7 +50,6 @@ namespace LibreLancer.Render
         public ParticleEffectPool FxPool;
         public BeamsBuffer Beams;
         public StaticBillboards StaticBillboards = new StaticBillboards();
-		ResourceManager cache;
 		RenderContext rstate;
 		Game game;
 		Texture2D dot;
@@ -92,7 +91,7 @@ namespace LibreLancer.Render
             }
         }
 
-        public SystemRenderer(ICamera camera, GameDataManager data, GameResourceManager rescache, Game game)
+        public SystemRenderer(ICamera camera, GameResourceManager resources, Game game)
         {
             this.camera = camera;
             AsteroidFields = new List<AsteroidFieldRenderer>();
@@ -100,14 +99,13 @@ namespace LibreLancer.Render
             StarSphereModels = new RigidModel[0];
             Polyline = new PolylineRender(commands);
             FxPool = new ParticleEffectPool(commands);
-            cache = rescache;
-            rstate = rescache.Game.RenderContext;
+            rstate = resources.Game.RenderContext;
             this.game = game;
             gconfig = game.GetService<GameConfig>();
             billboards = game.GetService<Billboards>();
-            resman = game.GetService<ResourceManager>();
+            resman = resources;
             nebulae = game.GetService<NebulaVertices>();
-            dot = (Texture2D)rescache.FindTexture(ResourceManager.WhiteTextureName);
+            dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new LineRenderer();
             Beams = new BeamsBuffer();
             if (GLExtensions.Features430)
@@ -264,20 +262,21 @@ namespace LibreLancer.Render
         }
 
         public bool ZOverride = false; // Stop Thn Camera from changing Z
-		public unsafe void Draw()
+		public unsafe void Draw(int renderWidth, int renderHeight)
 		{
-            if (Game.Width == 0 || Game.Height == 0) 
+            if (renderWidth == 0 || renderHeight == 0) 
                 //Don't render on Width/Height = 0
                 return;
+            RenderTarget restoreTarget = rstate.RenderTarget;
 			if (gconfig.Settings.MSAA > 0)
 			{
-				if (_mwidth != Game.Width || _mheight != Game.Height)
+				if (_mwidth != renderWidth || _mheight != renderHeight)
 				{
 					_mwidth = Game.Width;
 					_mheight = Game.Height;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(Game.Width, Game.Height, gconfig.Settings.MSAA);
+					msaa = new MultisampleTarget(renderWidth, renderHeight, gconfig.Settings.MSAA);
 				}
                 rstate.RenderTarget = msaa;
 			}
@@ -415,7 +414,7 @@ namespace LibreLancer.Render
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
             Beams.End();
             FxPool.Draw(camera, Polyline, resman, DebugRenderer);
-			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(cache, SystemLighting, commands, nr);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, commands, nr);
 			nebulae.NewFrame();
 			if (nr == null)
 			{
@@ -483,8 +482,11 @@ namespace LibreLancer.Render
 			DebugRenderer.Render();
 			if (gconfig.Settings.MSAA > 0)
 			{
-				msaa.BlitToScreen();
-                rstate.RenderTarget = null;
+                if(restoreTarget == null)
+				    msaa.BlitToScreen();
+                else
+                    msaa.BlitToRenderTarget(restoreTarget as RenderTarget2D);
+                rstate.RenderTarget = restoreTarget;
 			}
             rstate.DepthEnabled = true;
 		}

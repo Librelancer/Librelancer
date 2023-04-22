@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ImGuiNET;
 
@@ -21,6 +22,14 @@ public class TabControl
             t.Dispose();
         Tabs.Clear();
         Selected = null;
+    }
+
+    public void CloseTab(DockTab t)
+    {
+        if (!Tabs.Contains(t)) throw new InvalidOperationException();
+        t.Dispose();
+        if (Selected == t) Selected = null;
+        Tabs.Remove(t);
     }
 
     public void TabLabels()
