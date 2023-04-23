@@ -274,7 +274,7 @@ World Time: {12:F2}
                 if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile) return RepAttitude.Hostile;
                 if (obj.SystemObject != null)
                 {
-                    var rep = game.session.PlayerReputations.GetReputation(obj.SystemObject.Faction);
+                    var rep = game.session.PlayerReputations.GetReputation(obj.SystemObject.Reputation);
                     if (rep < -0.4) return RepAttitude.Hostile;
                     if (rep > 0.4) return RepAttitude.Friendly;
                 }
@@ -450,7 +450,7 @@ World Time: {12:F2}
             {
                 if (g.selection.Selected.SystemObject != null)
                 {
-                    var rep = g.session.PlayerReputations.GetReputation(g.selection.Selected.SystemObject.Faction);
+                    var rep = g.session.PlayerReputations.GetReputation(g.selection.Selected.SystemObject.Reputation);
                     if (rep < -0.4) return "hostile";
                     if (rep > 0.4) return "friendly";
                 }

@@ -8,9 +8,11 @@ namespace LibreLancer.GameData
     {
         public string[] LibraryFiles;
         public string ModelFile;
+        public string SourcePath;
 
         public IDrawable LoadFile(ResourceManager res)
         {
+            if (ModelFile == null) return null;
             if (LibraryFiles != null)
             {
                 foreach (var f in LibraryFiles)

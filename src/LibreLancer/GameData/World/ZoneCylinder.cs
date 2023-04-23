@@ -3,7 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Drawing;
 using System.Numerics;
+using System.Text;
+using LibreLancer.Data;
 
 namespace LibreLancer.GameData.World
 {
@@ -62,6 +65,14 @@ namespace LibreLancer.GameData.World
 		{
 			throw new NotImplementedException ();
 		}
+        
+        public override string Serialize()
+        {
+            return new StringBuilder()
+                .AppendEntry("shape", "CYLINDER")
+                .AppendEntry("size", new Vector2(Radius, Height))
+                .ToString();
+        }
 	}
 }
 

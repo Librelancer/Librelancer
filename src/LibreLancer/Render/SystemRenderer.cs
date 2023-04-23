@@ -132,16 +132,18 @@ namespace LibreLancer.Render
 			starSystem = system;
 
 			List<RigidModel> starSphereRenderData = new List<RigidModel>();
-			if (system.StarsBasic != null)
-				starSphereRenderData.Add((system.StarsBasic as IRigidModelFile).CreateRigidModel(true));
+            void AddModel(ResolvedModel mdl)
+            {
+                if (mdl == null) return;
+                var loaded = (mdl.LoadFile(resman) as IRigidModelFile);
+                if (loaded == null) return;
+                starSphereRenderData.Add(loaded.CreateRigidModel(true));
+            }
+            AddModel(system.StarsBasic);
+            AddModel(system.StarsComplex);
+            AddModel(system.StarsNebula);
 
-            if (system.StarsComplex != null)
-                starSphereRenderData.Add((system.StarsComplex as IRigidModelFile).CreateRigidModel(true));
-
-            if (system.StarsNebula != null)
-                starSphereRenderData.Add((system.StarsNebula as IRigidModelFile).CreateRigidModel(true));
-
-			StarSphereModels = starSphereRenderData.ToArray();
+            StarSphereModels = starSphereRenderData.ToArray();
 
 			AsteroidFields = new List<AsteroidFieldRenderer>();
 			if (system.AsteroidFields != null)
@@ -164,7 +166,7 @@ namespace LibreLancer.Render
 			SystemLighting = new SystemLighting();
 			SystemLighting.Ambient = system.AmbientColor;
 			foreach (var lt in system.LightSources)
-				SystemLighting.Lights.Add(new DynamicLight() { Light = lt });
+				SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
 		}
 
 		public void Update(double elapsed)

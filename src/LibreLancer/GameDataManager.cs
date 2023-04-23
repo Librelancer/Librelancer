@@ -7,7 +7,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Threading.Tasks;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Goods;
@@ -435,7 +434,7 @@ namespace LibreLancer
             if(onIniLoaded != null) ui.QueueUIThread(onIniLoaded);
             var tasks = new LoadingTasks();
             tasks.Begin(() => GetCharacterAnimations());
-            tasks.Begin(InitPilots);
+            var pilotTask = tasks.Begin(InitPilots);
             var ships = tasks.Begin(InitShips);
             List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
             var baseTask = tasks.Begin(() => introbases.AddRange(InitBases()));
@@ -464,11 +463,20 @@ namespace LibreLancer
                 }
             }, baseTask);
             var factionsTask = tasks.Begin(InitFactions);
-            var archetypesTask = tasks.Begin(InitArchetypes);
             var equipmentTask = tasks.Begin(InitEquipment);
             var goodsTask = tasks.Begin(InitGoods, equipmentTask);
+            var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
+            var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
-            tasks.Begin(() => InitSystems(tasks), baseTask, archetypesTask, equipmentTask, ships, factionsTask);
+            tasks.Begin(() => InitSystems(tasks), 
+                baseTask, 
+                archetypesTask, 
+                equipmentTask, 
+                ships, 
+                factionsTask, 
+                loadoutsTask,
+                pilotTask
+                );
             tasks.WaitAll();
             fldata.Universe = null; //Free universe ini!
             GC.Collect(); //We produced a crapload of garbage
@@ -812,19 +820,40 @@ namespace LibreLancer
         Dictionary<string, StarSystem> systems = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
 
         public IEnumerable<StarSystem> AllSystems => systems.Values;
-        
+
+        void InitLoadouts()
+        {
+            _loadouts = new Dictionary<string, ObjectLoadout>(StringComparer.OrdinalIgnoreCase);
+            foreach (var l in fldata.Loadouts.Loadouts)
+            {
+                var ld = new ObjectLoadout() { Nickname = l.Nickname, Archetype = l.Archetype };
+                foreach (var eq in l.Equip)
+                {
+                    GameData.Items.Equipment equip = Equipment.Get(eq.Nickname);
+                    if (equip != null)
+                    {
+                        ld.Items.Add(new LoadoutItem(eq.Hardpoint, equip));
+                    }
+                }
+                foreach (var c in l.Cargo)
+                {
+                    GameData.Items.Equipment equip = Equipment.Get(c.Nickname);
+                    if(equip != null)
+                        ld.Cargo.Add(new BasicCargo(equip, c.Count));
+                }
+                _loadouts[l.Nickname] = ld;
+            }
+        }
 
         void InitSystems(LoadingTasks tasks)
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Systems.Count + " systems");
-            _solarLoadouts = new Dictionary<string, Loadout>(StringComparer.OrdinalIgnoreCase);
-            foreach (var l in fldata.Loadouts.Loadouts)
-                _solarLoadouts[l.Nickname] = l;
             foreach (var inisys in fldata.Universe.Systems)
             {
                 if (inisys.MultiUniverse) continue; //Skip multiuniverse for now
                 FLLog.Info("System", inisys.Nickname);
                 var sys = new StarSystem();
+                sys.LocalFaction = GetFaction(inisys.LocalFaction);
                 sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
                 sys.AmbientColor = inisys.AmbientColor;
                 sys.Name = GetString(inisys.IdsName);
@@ -832,32 +861,27 @@ namespace LibreLancer
                 sys.Nickname = inisys.Nickname;
                 sys.BackgroundColor = inisys.SpaceColor;
                 sys.MusicSpace = inisys.MusicSpace;
+                sys.MusicBattle = inisys.MusicBattle;
+                sys.MusicDanger = inisys.MusicDanger;
+                sys.Spacedust = inisys.Spacedust;
+                sys.SpacedustMaxParticles = inisys.SpacedustMaxParticles;
                 sys.FarClip = inisys.SpaceFarClip ?? 20000f;
                 sys.NavMapScale = inisys.NavMapScale;
-                sys.StarspheresAction = () =>
+                foreach (var ec in inisys.EncounterParameters)
                 {
-                    if (inisys.BackgroundBasicStarsPath != null)
+                    sys.EncounterParameters.Add(new EncounterParameters()
                     {
-                        try
-                        {
-                            sys.StarsBasic = resource.GetDrawable(ResolveDataPath(inisys.BackgroundBasicStarsPath));
-                        }
-                        catch (Exception)
-                        {
-                            sys.StarsBasic = null;
-                            FLLog.Error("System", "Failed to load starsphere " + inisys.BackgroundBasicStarsPath);
-                        }
-                    }
-                    if (inisys.BackgroundComplexStarsPath != null)
-                    {
-                        sys.StarsComplex = resource.GetDrawable(ResolveDataPath(inisys.BackgroundComplexStarsPath));
-                    }
+                        Nickname = ec.Nickname,
+                        SourceFile = ec.Filename
+                    });
+                }
 
-                    if (inisys.BackgroundNebulaePath != null)
-                    {
-                        sys.StarsNebula = resource.GetDrawable(ResolveDataPath(inisys.BackgroundNebulaePath));
-                    }
-                };
+                if (inisys.TexturePanels != null)
+                    sys.TexturePanelsFiles.AddRange(inisys.TexturePanels.Files);
+
+                sys.StarsBasic = ResolveDrawable(inisys.BackgroundBasicStarsPath);
+                sys.StarsComplex = ResolveDrawable(inisys.BackgroundComplexStarsPath);
+                sys.StarsNebula = ResolveDrawable(inisys.BackgroundNebulaePath);
                 if (inisys.LightSources != null)
                 {
                     foreach (var src in inisys.LightSources)
@@ -884,7 +908,7 @@ namespace LibreLancer
                             lt.Kind = LightKind.PointAttenCurve;
                             lt.Attenuation = GetQuadratic(src.AttenCurve);
                         }
-                        sys.LightSources.Add(lt);
+                        sys.LightSources.Add(new LightSource() {Light = lt, AttenuationCurveName = src.AttenCurve, Nickname = src.Nickname});
                     }
                 }
 
@@ -943,11 +967,31 @@ namespace LibreLancer
                         var z = new Zone();
                         z.Nickname = zne.Nickname;
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
-                        z.PropertyFlags = (ZonePropFlags) (zne.PropertyFlags ?? 0);
+                        z.PropertyFlags = (ZonePropFlags) zne.PropertyFlags;
                         z.PropertyFogColor = zne.PropertyFogColor ?? Color4.White;
                         z.VisitFlags = zne.Visit ?? 0;
                         z.Position = zne.Pos ?? Vector3.Zero;
                         z.Sort = zne.Sort ?? 0;
+                        //
+                        z.Music = zne.Music;
+                        z.Spacedust = zne.Spacedust;
+                        z.SpacedustMaxParticles = zne.SpacedustMaxParticles;
+                        z.Interference = zne.Interference;
+                        z.PowerModifier = zne.PowerModifier;
+                        z.DragModifier = zne.DragModifier;
+                        z.Comment = zne.Comment;
+                        z.LaneId = zne.LaneId;
+                        z.TradelaneAttack = zne.TradelaneAttack;
+                        z.TradelaneDown = zne.TradelaneDown;
+                        z.Damage = zne.Damage;
+                        z.Toughness = zne.Toughness;
+                        z.Density = zne.Density;
+                        z.PopulationAdditive = zne.PopulationAdditive;
+                        z.MissionEligible = zne.MissionEligible;
+                        z.MaxBattleSize = zne.MaxBattleSize;
+                        z.ReliefTime = zne.ReliefTime;
+                        z.RepopTime = zne.RepopTime;
+                        //
                         if(zne.Pos == null) FLLog.Warning("Zone", $"Zone {zne.Nickname} in {inisys.Nickname} has no position");
                         if (zne.Rotate != null)
                         {
@@ -1049,7 +1093,9 @@ namespace LibreLancer
                     resource.LoadResourceFile(ResolveDataPath(txmfile));
             }
             yield return null;
-            sys.LoadStarspheres();
+            sys.StarsBasic.LoadFile(resource);
+            sys.StarsComplex.LoadFile(resource);
+            sys.StarsNebula.LoadFile(resource);
             yield return null;
             long a = 0;
             if (glResource != null)
@@ -1115,6 +1161,7 @@ namespace LibreLancer
                 FLLog.Error("System", $"{sys.Nickname}: {ast.ZoneName} zone missing in Asteroid ref");
                 return null;
             }
+            a.SourceFile = ast.IniFile;
             a.Zone = sys.ZoneDict[ast.ZoneName];
             var panels = new Data.Universe.TexturePanels();
             if (ast.TexturePanels != null)
@@ -1126,11 +1173,7 @@ namespace LibreLancer
                     panels.TextureShapes.AddRange(pf.TextureShapes);
                     foreach (var sh in pf.Shapes)
                         panels.Shapes[sh.Key] = sh.Value;
-                    if (!sys.TexturePanelFiles.Contains(pnlref.ID))
-                    {
-                        sys.TexturePanelFiles.Add(pnlref.ID);
-                        sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
-                    }
+                    sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
                 }
             }
             if (ast.Band != null)
@@ -1233,6 +1276,7 @@ namespace LibreLancer
         public Nebula GetNebula(StarSystem sys, Data.Universe.Nebula nbl)
         {
             var n = new Nebula();
+            n.SourceFile = nbl.IniFile;
             n.Zone = sys.ZoneDict[nbl.ZoneName];
             var panels = new Data.Universe.TexturePanels();
             foreach(var f in nbl.TexturePanels.Files)
@@ -1242,11 +1286,7 @@ namespace LibreLancer
                 panels.TextureShapes.AddRange(pf.TextureShapes);
                 foreach (var sh in pf.Shapes)
                     panels.Shapes[sh.Key] = sh.Value;
-                if (!sys.TexturePanelFiles.Contains(pnlref.ID))
-                {
-                    sys.TexturePanelFiles.Add(pnlref.ID);
-                    sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
-                }
+                sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
             }
             n.ExteriorFill = nbl.Exterior.FillShape;
             n.ExteriorColor = nbl.Exterior.Color ?? Color4.White;
@@ -1380,32 +1420,23 @@ namespace LibreLancer
         public GameItemCollection<Ship> Ships = new GameItemCollection<Ship>();
 
         Dictionary<string, GameData.Archetype> archetypes = new Dictionary<string, GameData.Archetype>(StringComparer.OrdinalIgnoreCase);
+        
+        ResolvedModel ResolveDrawable(string file) => ResolveDrawable((IEnumerable<string>) null, file);
+
+        ResolvedModel ResolveDrawable(string libs, string file) => ResolveDrawable(new[] {libs}, file);
         ResolvedModel ResolveDrawable(IEnumerable<string> libs, string file)
         {
+            if (string.IsNullOrWhiteSpace(file)) return null;
             var mdl = new ResolvedModel() {
-                ModelFile = TryResolveData(file)
+                ModelFile = TryResolveData(file),
+                SourcePath = file,
             };
-            if (mdl.ModelFile == null) return null;
             if (libs != null)
-            {
                 mdl.LibraryFiles = libs.Select(x => TryResolveData(x)).Where(x => x != null).ToArray();
-            }
             return mdl;
         }
 
-        ResolvedModel ResolveDrawable(string libs, string file)
-        {
-            var mdl = new ResolvedModel() {
-                ModelFile = TryResolveData(file)
-            };
-            if (mdl.ModelFile == null) return null;
-            if (!string.IsNullOrEmpty(libs))
-            {
-                mdl.LibraryFiles = new[] {TryResolveData(libs)};
-                if (mdl.LibraryFiles[0] == null) mdl.LibraryFiles = new string[0];
-            }
-            return mdl;
-        }
+      
 
         void FillBlock<T>(string nick, string blockId, List<T> source, ref T dest) where T : Data.Pilots.PilotBlock
         {
@@ -1502,7 +1533,6 @@ namespace LibreLancer
                         Threshold = fuse.Threshold
                     });
                 }
-
                 foreach (var hp in orig.HardpointTypes)
                 {
                     if (!fldata.HpTypes.Types.TryGetValue(hp.Type, out var typedef)) {
@@ -1535,7 +1565,7 @@ namespace LibreLancer
                 var arch = ax.Value;
                 var obj = new GameData.Archetype();
                 obj.Type = arch.Type;
-                obj.LoadoutName = arch.LoadoutName;
+                obj.Loadout = GetLoadout(arch.LoadoutName);
                 obj.NavmapIcon = arch.ShapeName;
                 obj.SolarRadius = arch.SolarRadius ?? 0;
                 foreach (var dockSphere in arch.DockingSpheres)
@@ -1572,7 +1602,7 @@ namespace LibreLancer
                 {
                     obj.CollisionGroups = arch.CollisionGroups.ToArray();
                 }
-                obj.ArchetypeName = arch.GetType().Name;
+                obj.Nickname = arch.Nickname;
                 obj.LODRanges = arch.LODRanges;
                 obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
                 archetypes.Add(ax.Key, obj);
@@ -1616,29 +1646,41 @@ namespace LibreLancer
             return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Rooms[room]));
         }
 
-        Dictionary<string, Data.Solar.Loadout> _solarLoadouts = new Dictionary<string, Data.Solar.Loadout>(StringComparer.OrdinalIgnoreCase);
-        Loadout GetLoadout(string key)
+        Dictionary<string, ObjectLoadout> _loadouts = new Dictionary<string, ObjectLoadout>(StringComparer.OrdinalIgnoreCase);
+        ObjectLoadout GetLoadout(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return null;
-            _solarLoadouts.TryGetValue(key, out var ld);
+            _loadouts.TryGetValue(key, out var ld);
             return ld;
         }
-        public bool TryGetLoadout(string name, out Loadout l)
+        public bool TryGetLoadout(string name, out ObjectLoadout l)
         {
-            return _solarLoadouts.TryGetValue(name, out l);
+            if (string.IsNullOrWhiteSpace(name)) {
+                l = null;
+                return false;
+            }
+            return _loadouts.TryGetValue(name, out l);
         }
         
         public SystemObject GetSystemObject(Data.Universe.SystemObject o)
         {
             var obj = new SystemObject();
             obj.Nickname = o.Nickname;
-            obj.Faction = GetFaction(o.Reputation);
+            obj.Reputation = GetFaction(o.Reputation);
             obj.Visit = o.Visit ?? 0;
-            obj.DisplayName = GetString(o.IdsName);
+            obj.IdsName = o.IdsName;
             obj.Position = o.Pos.Value;
             obj.Spin = o.Spin ?? Vector3.Zero;
             obj.IdsInfo = o.IdsInfo.ToArray();
             obj.Base = o.Base;
+            obj.Faction = GetFaction(o.Faction);
+            obj.Pilot = GetPilot(o.Pilot);
+            obj.Behavior = o.Behavior;
+            obj.BurnColor = o.BurnColor;
+            obj.AmbientColor = o.AmbientColor;
+            obj.AtmosphereRange = o.AtmosphereRange ?? 0;
+            obj.MsgIdPrefix = o.MsgIdPrefix;
+            obj.DifficultyLevel = o.DifficultyLevel ?? 0;
             if (o.DockWith != null)
             {
                 obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };
@@ -1655,6 +1697,7 @@ namespace LibreLancer
                     Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
             }
             obj.Archetype = archetypes[o.Archetype];
+            obj.TradelaneSpaceName = o.TradelaneSpaceName;
             if (o.NextRing != null && o.TradelaneSpaceName != 0) {
                 obj.IdsLeft = o.TradelaneSpaceName;
             }
@@ -1717,10 +1760,7 @@ namespace LibreLancer
                 }
             }
 
-            var ld = GetLoadout(o.Loadout);
-            var archld = GetLoadout(obj.Archetype.LoadoutName);
-            if (ld != null) ProcessLoadout(ld, obj);
-            if (archld != null) ProcessLoadout(archld, obj);
+            obj.Loadout = GetLoadout(o.Loadout);
             return obj;
         }
 
@@ -1728,23 +1768,7 @@ namespace LibreLancer
         //Used to spawn objects within mission scripts
         public GameData.Archetype GetSolarArchetype(string id) => archetypes[id];
 
-        void ProcessLoadout(Data.Solar.Loadout ld, SystemObject obj)
-        {
-            foreach (var eq in ld.Equip)
-            {
-                GameData.Items.Equipment equip = Equipment.Get(eq.Nickname);
-                //if (equip is GameData.Items.GunEquipment) continue;
-                if (equip != null)
-                {
-                    if (string.IsNullOrEmpty(eq.Hardpoint))
-                        obj.LoadoutNoHardpoint.Add(equip);
-                    else
-                    {
-                        if (!obj.Loadout.ContainsKey(eq.Hardpoint)) obj.Loadout.Add(eq.Hardpoint, equip);
-                    }
-                }
-            }
-        }
+      
 
         private Dictionary<string, FuseResources> fuses =
             new Dictionary<string, FuseResources>(StringComparer.OrdinalIgnoreCase);

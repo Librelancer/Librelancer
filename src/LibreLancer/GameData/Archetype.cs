@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Solar;
+using LibreLancer.GameData.World;
 using DockSphere = LibreLancer.GameData.World.DockSphere;
 
 namespace LibreLancer.GameData
@@ -13,9 +14,9 @@ namespace LibreLancer.GameData
     {
         public ResolvedModel ModelFile;
         //HACK: remove later
-        public string ArchetypeName;
+        public string Nickname;
         public string NavmapIcon;
-        public string LoadoutName;
+        public ObjectLoadout Loadout;
         public Data.Solar.ArchetypeType Type;
         public List<DockSphere> DockSpheres = new List<DockSphere>();
         public float[] LODRanges;

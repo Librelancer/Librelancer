@@ -66,11 +66,14 @@ namespace LibreLancer.World
                 if (obj.IdsLeft != 0 && obj.IdsRight != 0)
                     g.Name = new TradelaneName(g, obj.IdsLeft, obj.IdsRight);
                 else
-                    g.Name = new ObjectName(obj.DisplayName);
+                    g.Name = new ObjectName(obj.IdsName);
                 g.Nickname = obj.Nickname;
                 g.SystemObject = obj;
                 g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));
-                g.SetLoadout(obj.Loadout, obj.LoadoutNoHardpoint);
+                if(obj.Loadout != null)
+                    g.SetLoadout(obj.Loadout);
+                else if (obj.Archetype?.Loadout != null)
+                    g.SetLoadout(obj.Archetype.Loadout);
                 g.World = this;
                 g.CollisionGroups = obj.Archetype.CollisionGroups;
                 if (g.RenderComponent != null)

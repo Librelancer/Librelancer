@@ -23,6 +23,7 @@ namespace LancerEdit
             var uidata = new UiData();
             uidata.FileSystem = context.GameData.VFS;
             uidata.DataPath = context.GameData.Ini.Freelancer.DataPath;
+            uidata.Infocards = context.GameData.Ini.Infocards;
             if (context.GameData.Ini.Navmap != null)
                 uidata.NavmapIcons = new IniNavmapIcons(context.GameData.Ini.Navmap);
             else

@@ -1,25 +1,15 @@
 using System.Collections.Generic;
+using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
 namespace LibreLancer.Server.Components;
 
-public struct NPCCargo
-{
-    public Equipment Item;
-    public int Count;
-
-    public NPCCargo(Equipment item, int count)
-    {
-        Item = item;
-        Count = count;
-    }
-}
 
 public class SNPCCargoComponent : AbstractCargoComponent
 {
-    public List<NPCCargo> Cargo = new List<NPCCargo>();
+    public List<BasicCargo> Cargo = new List<BasicCargo>();
 
     public SNPCCargoComponent(GameObject parent) : base(parent) { }
 
@@ -35,7 +25,7 @@ public class SNPCCargoComponent : AbstractCargoComponent
                 }
                 else
                 {
-                    Cargo[i] = new NPCCargo(Cargo[i].Item, Cargo[i].Count - 1);
+                    Cargo[i] = new BasicCargo(Cargo[i].Item, Cargo[i].Count - 1);
                     return true;
                 }
             }

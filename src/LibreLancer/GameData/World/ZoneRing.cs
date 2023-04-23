@@ -4,6 +4,8 @@
 
 using System;
 using System.Numerics;
+using System.Text;
+using LibreLancer.Data;
 
 namespace LibreLancer.GameData.World
 {
@@ -64,6 +66,14 @@ namespace LibreLancer.GameData.World
 		{
 			throw new NotImplementedException();
 		}
+        
+        public override string Serialize()
+        {
+            return new StringBuilder()
+                .AppendEntry("shape", "RING")
+                .AppendEntry("size", new Vector3(OuterRadius, InnerRadius, Height))
+                .ToString();
+        }
 	}
 }
 

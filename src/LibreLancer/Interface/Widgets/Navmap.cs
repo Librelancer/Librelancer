@@ -89,7 +89,7 @@ namespace LibreLancer.Interface
                 UiRenderable renderable = null;
                 renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype.NavmapIcon);
 
-                string nm = obj.DisplayName;
+                string nm = ctx.Data.Infocards.GetStringResource(obj.IdsName);
                 if (obj.Archetype.Type != ArchetypeType.planet &&
                     obj.Archetype.Type != ArchetypeType.station &&
                     obj.Archetype.Type != ArchetypeType.jump_gate &&

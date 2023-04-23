@@ -9,7 +9,8 @@ using LibreLancer.Render;
 namespace LibreLancer.GameData.World
 {
 	public class AsteroidField
-	{
+    {
+        public string SourceFile;
 		public Zone Zone;
 		public AsteroidBand Band;
 		public AsteroidCubeRotation CubeRotation;

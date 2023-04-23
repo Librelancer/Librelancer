@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Data.Solar;
+using LibreLancer.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
@@ -69,7 +70,7 @@ namespace LibreLancer.Server
 
         }
         
-        public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, string stateGraph, Loadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
+        public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, string stateGraph, ObjectLoadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Items = new List<NetShipCargo>();
@@ -84,21 +85,14 @@ namespace LibreLancer.Server
                 CurrentHealth = ship.Hitpoints,
                 MaxHealth = ship.Hitpoints
             });
-            foreach (var equipped in loadout.Equip)
+            foreach (var equipped in loadout.Items)
             {
-                var e = World.Server.GameData.Equipment.Get(equipped.Nickname);
-                if (e == null) continue;
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,
-                    equipped.Hardpoint, e);
-                netLoadout.Items.Add(new NetShipCargo(0, e.CRC, equipped.Hardpoint ?? "internal", 255, 1));
+                    equipped.Hardpoint, equipped.Equipment);
+                netLoadout.Items.Add(new NetShipCargo(0, equipped.Equipment.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
             var cargo = new SNPCCargoComponent(obj);
-            foreach (var c in loadout.Cargo)
-            {
-                var e = World.Server.GameData.Equipment.Get(c.Nickname);
-                if (e == null) continue;
-                cargo.Cargo.Add(new NPCCargo(e, c.Count));
-            }
+            cargo.Cargo.AddRange(loadout.Cargo);
             obj.Components.Add(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);

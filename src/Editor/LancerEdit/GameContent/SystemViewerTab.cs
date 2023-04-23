@@ -187,6 +187,11 @@ public class SystemViewerTab : GameContentTab
         ImGui.SameLine();
         if (ImGuiExt.ToggleButton("Infocard", infocardOpen)) infocardOpen = !infocardOpen;
         ImGui.SameLine();
+        if (ImGui.Button("To Text"))
+        {
+            win.TextWindows.Add(new TextDisplayWindow(curSystem.Serialize(), $"{curSystem.Nickname}.ini"));
+        }
+        ImGui.SameLine();
         if (ImGui.Button("Change System (F6)")) doChangeSystem = true;
         ImGui.SameLine();
         ImGui.TextUnformatted($"Current System: {curSystem.Name} ({curSystem.Nickname})");

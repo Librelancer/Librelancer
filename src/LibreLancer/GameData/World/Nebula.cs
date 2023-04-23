@@ -9,7 +9,8 @@ using System.Numerics;
 namespace LibreLancer.GameData.World
 {
 	public class Nebula
-	{
+    {
+        public string SourceFile;
 		public Zone Zone;
 		//Exterior
 		public string ExteriorFill;

@@ -18,10 +18,10 @@ namespace LibreLancer.Data.Universe
         public string[] AttackIds;
         
         [Entry("tradelane_attack")] 
-        public int? TradelaneAttack;
+        public int TradelaneAttack;
         
         [Entry("property_flags")] 
-        public int? PropertyFlags;
+        public int PropertyFlags;
 
         [Entry("property_fog_color")] 
         public Color4? PropertyFogColor;
@@ -36,28 +36,28 @@ namespace LibreLancer.Data.Universe
         public string Spacedust;
 
         [Entry("spacedust_maxparticles")] 
-        public int? SpacedustMaxParticles;
+        public int SpacedustMaxParticles;
 
         [Entry("interference")] 
-        public float? Interference;
+        public float Interference;
 
         [Entry("powermodifier")] 
-        public float? PowerModifier;
+        public float PowerModifier;
 
         [Entry("dragmodifier")] 
-        public float? DragModifier;
+        public float DragModifier;
 
         [Entry("comment")] 
         public string[] Comment;
 
         [Entry("lane_id")] 
-        public int? LaneId;
+        public int LaneId;
 
         [Entry("tradelane_down")] 
-        public int? TradelaneDown;
+        public int TradelaneDown;
 
         [Entry("damage")]
-        public float? Damage;
+        public float Damage;
 
         [Entry("mission_type")]
         public List<string[]> MissionType = new List<string[]>();
@@ -69,28 +69,28 @@ namespace LibreLancer.Data.Universe
         public string VignetteType;
 
         [Entry("toughness")] 
-        public int? Toughness;
+        public int Toughness;
 
         [Entry("density")] 
-        public int? Density;
+        public int Density;
 
         [Entry("population_additive")] 
-        public bool? PopulationAdditive;
+        public bool PopulationAdditive;
 
         [Entry("zone_creation_distance")] 
         public string ZoneCreationDistance;
 
         [Entry("repop_time")] 
-        public int? RepopTime;
+        public int RepopTime;
         
         [Entry("max_battle_size")] 
-        public int? MaxBattleSize;
+        public int MaxBattleSize;
         
         [Entry("pop_type")]
         public string[] PopType;
 
         [Entry("relief_time")] 
-        public int? ReliefTime;
+        public int ReliefTime;
         
         [Entry("path_label")]
         public string[] PathLabel;
@@ -99,7 +99,7 @@ namespace LibreLancer.Data.Universe
         public string[] Usage;
 
         [Entry("mission_eligible")] 
-        public bool? MissionEligible;
+        public bool MissionEligible;
 
         
 		//public Dictionary<string, int> FactionWeight { get; private set; }

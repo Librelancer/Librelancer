@@ -399,20 +399,21 @@ namespace LibreLancer.World
             }
 		}
 
-        public void SetLoadout(Dictionary<string, Equipment> equipment, List<Equipment> nohp)
+        public void SetLoadout(ObjectLoadout loadout)
         {
-            foreach (var k in equipment.Keys)
-                EquipmentObjectManager.InstantiateEquipment(this, Resources, null, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, k, equipment[k]);
-            foreach (var eq in nohp)
-			{
-				if (eq is AnimationEquipment)
-				{
-					var anm = (AnimationEquipment)eq;
-					if(anm.Animation != null)
-						AnimationComponent?.StartAnimation(anm.Animation);
-				} 
+            foreach (var item in loadout.Items)
+            {
+                if (item.Equipment is AnimationEquipment anm)
+                {
+                    if(anm.Animation != null)
+                        AnimationComponent?.StartAnimation(anm.Animation);
+                }
                 else
-                    EquipmentObjectManager.InstantiateEquipment(this, Resources, null, (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server, "internal", eq);
+                {
+                    EquipmentObjectManager.InstantiateEquipment(this, Resources, null,
+                        (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server,
+                        item.Hardpoint ?? "internal", item.Equipment);
+                }
             }
         }
 
