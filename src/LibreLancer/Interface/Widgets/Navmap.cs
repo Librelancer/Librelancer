@@ -84,7 +84,7 @@ namespace LibreLancer.Interface
                         }
                     }
                 }
-                if((obj.Visit & 128) == 128) continue;
+                if((obj.Visit & VisitFlags.Hidden) == VisitFlags.Hidden) continue;
                 if ((obj.Archetype.SolarRadius <= 0)) continue;
                 UiRenderable renderable = null;
                 renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype.NavmapIcon);

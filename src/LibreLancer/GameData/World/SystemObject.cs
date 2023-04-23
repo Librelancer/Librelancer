@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using LibreLancer.Data;
+using LibreLancer.GameData.Archetypes;
 using LibreLancer.GameData.Items;
 
 namespace LibreLancer.GameData.World
@@ -23,7 +24,7 @@ namespace LibreLancer.GameData.World
         public ObjectLoadout Loadout;
 		public DockAction Dock;
         public Faction Reputation;
-        public int Visit;
+        public VisitFlags Visit;
 
         public int TradelaneSpaceName;
         public int IdsLeft;
@@ -38,6 +39,7 @@ namespace LibreLancer.GameData.World
         public string MsgIdPrefix;
         public Color4? BurnColor;
         public Color4? AmbientColor;
+        public string Parent;
         
         public SystemObject ()
 		{
@@ -60,7 +62,7 @@ namespace LibreLancer.GameData.World
             }
             if (AmbientColor != null)
                 sb.AppendEntry("ambient_color", AmbientColor.Value);
-            sb.AppendEntry("Archetype", Archetype?.Nickname);
+            sb.AppendEntry(Archetype is Sun ? "star" : "Archetype", Archetype?.Nickname);
             sb.AppendEntry("msg_id_prefix", MsgIdPrefix);
             foreach (var i in IdsInfo)
                 sb.AppendEntry("ids_info", i);
@@ -94,12 +96,13 @@ namespace LibreLancer.GameData.World
             
             sb.AppendEntry("behavior", Behavior);
             sb.AppendEntry("faction", Faction?.Nickname);
-            sb.AppendEntry("difficulty_level", DifficultyLevel);
+            sb.AppendEntry("difficulty_level", DifficultyLevel, false);
             sb.AppendEntry("loadout", Loadout?.Nickname);
             sb.AppendEntry("pilot", Pilot?.Nickname);
             sb.AppendEntry("reputation", Reputation?.Nickname);
             sb.AppendEntry("tradelane_space_name", TradelaneSpaceName, false);
-            sb.AppendEntry("visit", Visit);
+            sb.AppendEntry("parent", Parent);
+            sb.AppendEntry("visit", (int)Visit, false);
             return sb.ToString();
         }
         

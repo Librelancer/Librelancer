@@ -1667,9 +1667,10 @@ namespace LibreLancer
             var obj = new SystemObject();
             obj.Nickname = o.Nickname;
             obj.Reputation = GetFaction(o.Reputation);
-            obj.Visit = o.Visit ?? 0;
+            obj.Visit = (VisitFlags) (o.Visit ?? 0);
             obj.IdsName = o.IdsName;
-            obj.Position = o.Pos.Value;
+            obj.Position = o.Pos ?? Vector3.Zero;
+            obj.Parent = o.Parent;
             obj.Spin = o.Spin ?? Vector3.Zero;
             obj.IdsInfo = o.IdsInfo.ToArray();
             obj.Base = o.Base;
@@ -1681,6 +1682,7 @@ namespace LibreLancer
             obj.AtmosphereRange = o.AtmosphereRange ?? 0;
             obj.MsgIdPrefix = o.MsgIdPrefix;
             obj.DifficultyLevel = o.DifficultyLevel ?? 0;
+            obj.Parent = o.Parent;
             if (o.DockWith != null)
             {
                 obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };
@@ -1709,6 +1711,7 @@ namespace LibreLancer
                 if (o.Star != null) //Not sure what to do if there's no star?
                 {
                     var sun = new GameData.Archetypes.Sun();
+                    sun.Nickname = o.Star;
                     sun.Type = ArchetypeType.sun;
                     sun.NavmapIcon = obj.Archetype.NavmapIcon;
                     sun.SolarRadius = obj.Archetype.SolarRadius;
