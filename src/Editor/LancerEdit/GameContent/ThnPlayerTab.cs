@@ -72,17 +72,19 @@ public class ThnPlayerTab : GameContentTab
             openFiles = new List<string>();
             ImGui.OpenPopup("Open Multiple##" + Unique);
         }
-        if (decompiled != null) {
-            ImGui.SameLine();
-            if(ImGuiExt.ToggleButton("Decompiled", decompiledOpen)) decompiledOpen = !decompiledOpen;
-        }
+        ImGui.SameLine();
+        if(ImGuiExt.ToggleButton("Decompiled", decompiledOpen, decompiled != null)) 
+            decompiledOpen = !decompiledOpen;
         ImGui.SameLine();
         if(ImGuiExt.Button("Reload", cutscene != null)) 
             Reload();
-        
         viewport.Begin();
-        cutscene?.UpdateViewport(new Rectangle(0,0, viewport.RenderWidth, viewport.RenderHeight));
-        cutscene?.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
+        if (cutscene != null)
+        {
+            ImGuiHelper.AnimatingElement();
+            cutscene.UpdateViewport(new Rectangle(0,0, viewport.RenderWidth, viewport.RenderHeight));
+            cutscene.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
+        }
         viewport.End();
         
         bool popupopen = true;
@@ -102,6 +104,8 @@ public class ThnPlayerTab : GameContentTab
                 ImGui.CloseCurrentPopup();
                 Open(openFiles.ToArray());
             }
+            ImGuiHelper.FileModal();
+            ImGui.EndPopup();
         }
         DrawDecompiled();
     }

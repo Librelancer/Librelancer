@@ -57,14 +57,16 @@ namespace LibreLancer.ImUI
             }
             return ret != 0;
         }
-        public static bool ToggleButton(string text, bool v)
+        public static bool ToggleButton(string text, bool v, bool enabled = true)
         {
+            ImGui.BeginDisabled(!enabled);
             if (v) {
                 var style = ImGui.GetStyle();
                 ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
             }
             var retval = ImGui.Button(text);
             if(v) ImGui.PopStyleColor();
+            ImGui.EndDisabled();
             return retval;
         }
 

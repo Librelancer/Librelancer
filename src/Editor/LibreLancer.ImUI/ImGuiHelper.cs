@@ -380,19 +380,30 @@ namespace LibreLancer.ImUI
             ImGui.GetWindowDrawList().AddCallback((IntPtr) 1, (IntPtr) BlendMode.Normal);
         }
 
-        List<RenderTarget2D> toFree = new List<RenderTarget2D>();
-		public void Render(RenderContext rstate)
-		{
-            if (DialogOpen)
+        
+        // Draw over the the top to block input while a file dialog is showing
+        // Needed as a separate method as stacked modals require you to call within the parent modal
+        private static bool _modalDrawn = false;
+        public static void FileModal()
+        {
+            if (!_modalDrawn && DialogOpen)
             {
                 bool open = true;
                 ImGui.OpenPopup("##blockwindow");
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.1f);
                 ImGui.BeginPopupModal("##blockwindow", ref open, ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize);
-                ImGui.Dummy(new Vector2(game.Width, game.Height));
+                ImGui.Dummy(new Vector2(instance.game.Width, instance.game.Height));
                 ImGui.EndPopup();
                 ImGui.PopStyleVar();
             }
+            _modalDrawn = true;
+        }
+
+        List<RenderTarget2D> toFree = new List<RenderTarget2D>();
+		public void Render(RenderContext rstate)
+		{
+            FileModal();
+            _modalDrawn = false;
 			ImGui.Render();
             RenderImDrawData(ImGui.GetDrawData(), rstate);
             foreach (var tex in toFree) {
