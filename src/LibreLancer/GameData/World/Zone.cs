@@ -4,23 +4,24 @@
 
 using System;
 using System.Numerics;
-using System.Text;
-using LibreLancer.Data;
+using LibreLancer.Data.Universe;
 
 namespace LibreLancer.GameData.World
 {
 	public class Zone
 	{
 		public string Nickname;
+        public int IdsName;
+        public int[] IdsInfo = Array.Empty<int>();
 		public Vector3 Position;
 		public Matrix4x4 RotationMatrix;
 		public Vector3 RotationAngles;
 		public ZoneShape Shape;
 		public float EdgeFraction;
         public ZonePropFlags PropertyFlags;
-        public Color4 PropertyFogColor;
+        public Color4? PropertyFogColor;
         public float Sort;
-        public int VisitFlags;
+        public VisitFlags VisitFlags;
         
         //Properties not yet used in game, but copied from ini for round trip support
         public string Music;
@@ -36,63 +37,25 @@ namespace LibreLancer.GameData.World
         public float Damage;
         public int Toughness;
         public int Density;
-        public bool PopulationAdditive;
+        public bool? PopulationAdditive;
         public bool MissionEligible;
         public int MaxBattleSize;
         public int ReliefTime;
         public int RepopTime;
-
+        
+        //Encounter parameters
+        public string[] AttackIds;
+        public string[] MissionType;
+        public string[] PathLabel;
+        public string[] Usage;
+        public string VignetteType;
+        public Encounter[] Encounters;
+        public DensityRestriction[] DensityRestrictions;
         
 		public Zone ()
 		{
 		}
-
-        public string Serialize()
-        {
-            var sb = new StringBuilder();
-            sb.AppendSection("Zone");
-            sb.AppendEntry("nickname", Nickname);
-            if(Comment != null)
-                foreach(var c in Comment)
-                    sb.AppendEntry("comment", c);
-            sb.AppendEntry("pos", Position);
-            var rot = RotationMatrix.GetEulerDegrees();
-            var ln = rot.Length();
-            if(!float.IsNaN(ln) && ln > 0)
-                sb.AppendEntry("rotate", new Vector3(rot.Y, rot.X, rot.Z));
-            sb.Append(Shape.Serialize());
-            sb.AppendEntry("property_flags", (uint) PropertyFlags, false);
-            sb.AppendEntry("tradelane_attack", TradelaneAttack, false);
-            sb.AppendEntry("sort", Sort);
-            sb.AppendEntry("Music", Music);
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (EdgeFraction != 0.25f)
-                sb.AppendEntry("edge_fraction", EdgeFraction);
-            sb.AppendEntry("spacedust", Spacedust);
-            sb.AppendEntry("spacedust_maxparticles", SpacedustMaxParticles, false);
-            sb.AppendEntry("toughness", Toughness, false);
-            sb.AppendEntry("density", Density, false);
-            sb.AppendEntry("repop_time", RepopTime, false);
-            sb.AppendEntry("max_battle_size", MaxBattleSize, false);
-            //pop_type
-            sb.AppendEntry("relief_time", ReliefTime, false);
-            //path_label
-            //usage
-            if (MissionEligible)
-                sb.AppendLine("mission_eligible = true");
-            //density_restriction
-            //encounter
-            //faction
-            sb.AppendEntry("powermodifier", PowerModifier, false);
-            sb.AppendEntry("dragmodifier", DragModifier, false);
-            sb.AppendEntry("damage", Damage, false);
-            sb.AppendEntry("interference", Interference, false);
-            sb.AppendEntry("lane_id", LaneId, false);
-            sb.AppendEntry("tradelane_down", TradelaneDown, false);
-         
-            return sb.ToString();
-        }
-	}
+    }
 
     [Flags]
     public enum ZonePropFlags

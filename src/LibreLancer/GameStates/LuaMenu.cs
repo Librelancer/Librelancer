@@ -206,7 +206,7 @@ namespace LibreLancer
             void ResolveNicknames(SelectableCharacter c)
             {
                 c.Ship = state.Game.GameData.GetString(state.Game.GameData.Ships.Get(c.Ship).NameIds);
-                c.Location = state.Game.GameData.GetSystem(c.Location).Name;
+                c.Location = state.Game.GameData.GetString(state.Game.GameData.GetSystem(c.Location).IdsName);
             }
             internal void _Update()
             {

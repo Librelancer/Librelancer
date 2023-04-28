@@ -88,10 +88,12 @@ namespace LibreLancer.Data.Universe
         public TexturePanelsRef TexturePanels;
         [Section("zone")]
         public List<Zone> Zones = new List<Zone>();
-        [Section("field")] 
-        public Field Field;
-        [Section("asteroidbillboards")] 
-        public AsteroidBillboards AsteroidBillboards;
+        //[Section("field")] 
+        //public Field Field;
+        //[Section("asteroidbillboards")] 
+        //public AsteroidBillboards AsteroidBillboards;
+        
+        public string SourceFile { get; private set; }
 
 
         public StarSystem(UniverseIni universe, Section section, FreelancerData data)
@@ -107,19 +109,9 @@ namespace LibreLancer.Data.Universe
                 return;
             }
 
-            ParseAndFill(data.Freelancer.DataPath + "universe\\" + systemFile, data.Freelancer.DataPath, data.VFS);
-        }
+            SourceFile = systemFile;
 
-        public SystemObject FindObject(string nickname)
-        {
-            return (from SystemObject o in Objects where o.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select o).First<SystemObject>();
-        }
-        
-        public Zone FindZone(string nickname)
-        {
-            var res = (from Zone z in Zones where z.Nickname.Equals(nickname,StringComparison.OrdinalIgnoreCase) select z);
-            if (res.Count() == 0) return null;
-            return res.First();
+            ParseAndFill(data.Freelancer.DataPath + "universe\\" + systemFile, data.Freelancer.DataPath, data.VFS);
         }
     }
 }

@@ -4,40 +4,44 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data;
 using LibreLancer.Thn;
 
 namespace LibreLancer.GameData.World
 {
 	public class BaseRoom
 	{
+        //Populated from room ini
 		public string Nickname;
 		public string Camera;
-        public string SetScript;
-		public List<string> ThnPaths;
+        public ResolvedThn SetScript;
+		public List<ResolvedThn> ThnPaths;
 		public List<BaseHotspot> Hotspots;
         public List<string> ForSaleShipPlacements;
-		public List<BaseNpc> Npcs = new List<BaseNpc>();
 		public string Music;
         public bool MusicOneShot;
 		public string PlayerShipPlacement;
-        public string StartScript;
-        public string LandScript;
-        public string LaunchScript;
-        public string GoodscartScript;
-
+        public ResolvedThn StartScript;
+        public ResolvedThn LandScript;
+        public ResolvedThn LaunchScript;
+        public ResolvedThn GoodscartScript;
+        //Populated from mbases        
+        public int MaxCharacters;
+        public List<BaseFixedNpc> FixedNpcs = new List<BaseFixedNpc>();
+        
         public IEnumerable<ThnScript> OpenScene()
         {
-            foreach (var p in ThnPaths) yield return new ThnScript(p);
+            foreach (var p in ThnPaths) yield return new ThnScript(p.ResolvedPath);
         }
         public ThnScript OpenSet()
         {
             if(SetScript != null)
-                return new ThnScript(SetScript);
+                return new ThnScript(SetScript.ResolvedPath);
             return null;
         }
         public ThnScript OpenGoodscart()
         {
-            if (GoodscartScript != null) return new ThnScript(GoodscartScript);
+            if (GoodscartScript != null) return new ThnScript(GoodscartScript.ResolvedPath);
             return null;
         }
 
@@ -59,12 +63,12 @@ namespace LibreLancer.GameData.World
 		public string SetVirtualRoom;
         public string VirtualRoom;
 	}
-	public class BaseNpc
-	{
-		public string StandingPlace;
-		public string HeadMesh;
-		public string BodyMesh;
-		public string LeftHandMesh;
-		public string RightHandMesh;
-	}
+
+    public class BaseFixedNpc
+    {
+        public BaseNpc Npc;
+        public string Placement;
+        public ResolvedThn FidgetScript;
+        public string Action;
+    }
 }

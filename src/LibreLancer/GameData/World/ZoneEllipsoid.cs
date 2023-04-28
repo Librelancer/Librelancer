@@ -59,14 +59,6 @@ namespace LibreLancer.GameData.World
 			var z = Math.Sin (theta) * Math.Cos (phi);
 			return new Vector3 ((float)x, (float)y, (float)z) * Size;
 		}
-        
-        public override string Serialize()
-        {
-            return new StringBuilder()
-                .AppendEntry("shape", "ELLIPSOID")
-                .AppendEntry("size", Size)
-                .ToString();
-        }
-	}
+    }
 }
 

@@ -1068,8 +1068,9 @@ World Time: {12:F2}
                     else
                         sel_obj = selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
                 }
+                var systemName = Game.GameData.GetString(sys.IdsName);
                 var text = string.Format(DEMO_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
-                    sys.Nickname, sys.Name, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
+                    sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
                 ImGui.Text($"input queue: {session.UpdateQueueCount}");

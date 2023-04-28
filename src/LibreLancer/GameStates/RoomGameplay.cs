@@ -402,9 +402,9 @@ namespace LibreLancer
         private bool didLaunch = false;
         public void Launch()
         {
-            if (!string.IsNullOrEmpty(currentRoom.LaunchScript))
+            if (!string.IsNullOrEmpty(currentRoom.LaunchScript.ResolvedPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript), ScriptState.Launch);
+                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.ResolvedPath), ScriptState.Launch);
             }
             else
             {
@@ -538,12 +538,12 @@ namespace LibreLancer
             scene = new Cutscene(ctx, Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
             scene.ScriptFinished += SceneOnScriptFinished;
             sceneScripts = currentRoom.OpenScene().ToArray();
-            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript))
+            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript.ResolvedPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LandScript), ScriptState.Enter);
-            } else if (!string.IsNullOrEmpty(currentRoom.StartScript))
+                RoomDoSceneScript(new ThnScript(currentRoom.LandScript.ResolvedPath), ScriptState.Enter);
+            } else if (!string.IsNullOrEmpty(currentRoom.StartScript.ResolvedPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.StartScript), ScriptState.Enter);
+                RoomDoSceneScript(new ThnScript(currentRoom.StartScript.ResolvedPath), ScriptState.Enter);
             }
             else
             {

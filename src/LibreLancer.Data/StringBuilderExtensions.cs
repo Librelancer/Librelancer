@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -42,6 +43,12 @@ public static class StringBuilderExtensions
     {
         if (!writeIfZero && value == 0) return builder;
         return builder.Append(name).Append(" = ").AppendLine(value.ToString());
+    }
+
+    public static StringBuilder AppendEntry(this StringBuilder builder, string name, string[] entries)
+    {
+        if (entries == null || entries.Length == 0) return builder;
+        return builder.Append(name).Append(" = ").AppendLine(string.Join(", ", entries));
     }
 
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, bool value)

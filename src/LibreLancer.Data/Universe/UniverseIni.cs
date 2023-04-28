@@ -57,27 +57,5 @@ namespace LibreLancer.Data.Universe
             foreach(var s in systemSections)
                 Systems.Add(new StarSystem(this, s, freelancerIni));
         }
-
-		public Base FindBase(string nickname)
-		{
-			var n = nickname.ToLowerInvariant();
-			IEnumerable<Base> result = from Base b in Bases where b.Nickname.ToLowerInvariant() == n select b;
-			if (result.Count<Base>() == 1) return result.First<Base>();
-			else return null;
-		}
-
-		public StarSystem FindSystem(string nickname)
-		{
-			IEnumerable<StarSystem> result = from StarSystem s in Systems where s.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select s;
-			if (result.Count<StarSystem>() == 1) return result.First<StarSystem>();
-			else return null;
-		}
-
-		public StarSystem FindSystem(Vector2 pos)
-		{
-			IEnumerable<StarSystem> result = from StarSystem s in Systems where s.Pos == pos select s;
-			if (result.Count<StarSystem>() == 1) return result.First<StarSystem>();
-			else return null;
-		}
-	}
+    }
 }

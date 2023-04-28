@@ -34,7 +34,7 @@ namespace LibreLancer.GameData.World
         public Pilot Pilot;
         public Faction Faction;
         public int DifficultyLevel;
-        public string Behavior;
+        public string Behavior; //Unused? Always NOTHING in vanilla
         public float AtmosphereRange;
         public string MsgIdPrefix;
         public Color4? BurnColor;
@@ -44,68 +44,6 @@ namespace LibreLancer.GameData.World
         public SystemObject ()
 		{
 		}
-
-        public string Serialize()
-        {
-            var sb = new StringBuilder();
-            sb.AppendSection("Object")
-                .AppendEntry("nickname", Nickname)
-                .AppendEntry("ids_name", IdsName, false);
-            if (Position != Vector3.Zero)
-                sb.AppendEntry("pos", Position);
-            if (Rotation != null)
-            {
-                var rot = Rotation.Value.GetEulerDegrees();
-                var ln = rot.Length();
-                if(!float.IsNaN(ln) && ln > 0)
-                    sb.AppendEntry("rotate", new Vector3(rot.Y, rot.X, rot.Z));
-            }
-            if (AmbientColor != null)
-                sb.AppendEntry("ambient_color", AmbientColor.Value);
-            sb.AppendEntry(Archetype is Sun ? "star" : "Archetype", Archetype?.Nickname);
-            sb.AppendEntry("msg_id_prefix", MsgIdPrefix);
-            foreach (var i in IdsInfo)
-                sb.AppendEntry("ids_info", i);
-            if (Spin != Vector3.Zero)
-                sb.AppendEntry("spin", Spin);
-            sb.AppendEntry("atmosphere_range", AtmosphereRange, false);
-            if (BurnColor != null)
-                sb.AppendEntry("burn_color", BurnColor.Value);
-            sb.AppendEntry("base", Base);
-            if (Dock != null)
-            {
-                if (Dock.Kind == DockKinds.Base)
-                {
-                    sb.AppendEntry("dock_with", Dock.Target);
-                }
-                else if (Dock.Kind == DockKinds.Jump)
-                {
-                    sb.Append("goto = ")
-                        .Append(Dock.Target)
-                        .Append(", ")
-                        .Append(Dock.Exit)
-                        .Append(", ")
-                        .AppendLine(Dock.Tunnel);
-                }
-                else if (Dock.Kind == DockKinds.Tradelane)
-                {
-                    sb.AppendEntry("prev_ring", Dock.TargetLeft);
-                    sb.AppendEntry("next_ring", Dock.Target);
-                }
-            }
-            
-            sb.AppendEntry("behavior", Behavior);
-            sb.AppendEntry("faction", Faction?.Nickname);
-            sb.AppendEntry("difficulty_level", DifficultyLevel, false);
-            sb.AppendEntry("loadout", Loadout?.Nickname);
-            sb.AppendEntry("pilot", Pilot?.Nickname);
-            sb.AppendEntry("reputation", Reputation?.Nickname);
-            sb.AppendEntry("tradelane_space_name", TradelaneSpaceName, false);
-            sb.AppendEntry("parent", Parent);
-            sb.AppendEntry("visit", (int)Visit, false);
-            return sb.ToString();
-        }
-        
-	}
+    }
 }
 

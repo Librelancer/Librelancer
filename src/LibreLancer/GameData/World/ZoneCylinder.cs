@@ -65,14 +65,6 @@ namespace LibreLancer.GameData.World
 		{
 			throw new NotImplementedException ();
 		}
-        
-        public override string Serialize()
-        {
-            return new StringBuilder()
-                .AppendEntry("shape", "CYLINDER")
-                .AppendEntry("size", new Vector2(Radius, Height))
-                .ToString();
-        }
-	}
+    }
 }
 

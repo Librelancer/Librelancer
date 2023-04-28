@@ -25,6 +25,9 @@ namespace LibreLancer.Data.Universe
 		public string StartRoom { get; private set; }
 
 		public List<Room> Rooms { get; private set; }
+        
+        public string SourceFile { get; private set; }
+        
 		public Base(Section section, FreelancerData data) : base(data)
 		{
 			if (section == null) throw new ArgumentNullException("section");
@@ -100,9 +103,10 @@ namespace LibreLancer.Data.Universe
 			}
 
 			Rooms = new List<Room>();
-
+            
             if (data.VFS.FileExists(data.Freelancer.DataPath + file))
             {
+                SourceFile = file;
                 foreach (Section s in ParseFile(data.Freelancer.DataPath + file, data.VFS))
                 {
                     switch (s.Name.ToLowerInvariant())

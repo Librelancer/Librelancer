@@ -35,7 +35,7 @@ namespace LancerEdit
                 if (ImGui.Button($"x##{sys.Nickname}"))
                     retVal = sys.Nickname;
                 if(ImGui.IsItemHovered())
-                    ImGui.SetTooltip($"{sys.Name} ({sys.Nickname})");
+                    ImGui.SetTooltip($"{gameData.GetString(sys.IdsName)} ({sys.Nickname})");
             }
 
             return retVal;

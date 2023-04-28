@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
@@ -90,7 +91,7 @@ public class SystemViewerTab : GameContentTab
             renderer = new SystemRenderer(camera, gameData.Resources, win);
             world = new GameWorld(renderer, null);
             curSystem = gameData.GameData.GetSystem(systems[sysIndex]);
-            systemInfocard = gameData.GameData.GetInfocard(curSystem.Infocard, gameData.Fonts);
+            systemInfocard = gameData.GameData.GetInfocard(curSystem.IdsInfo, gameData.Fonts);
             if (icard != null) icard.SetInfocard(systemInfocard);
             gameData.GameData.LoadAllSystem(curSystem);
             world.LoadSystem(curSystem, gameData.Resources, false);
@@ -189,12 +190,13 @@ public class SystemViewerTab : GameContentTab
         ImGui.SameLine();
         if (ImGui.Button("To Text"))
         {
-            win.TextWindows.Add(new TextDisplayWindow(curSystem.Serialize(), $"{curSystem.Nickname}.ini"));
+            win.TextWindows.Add(new TextDisplayWindow(IniSerializer.SerializeStarSystem(curSystem), $"{curSystem.Nickname}.ini"));
         }
         ImGui.SameLine();
         if (ImGui.Button("Change System (F6)")) doChangeSystem = true;
         ImGui.SameLine();
-        ImGui.TextUnformatted($"Current System: {curSystem.Name} ({curSystem.Nickname})");
+        var curSysName = gameData.GameData.GetString(curSystem.IdsName);
+        ImGui.TextUnformatted($"Current System: {curSysName} ({curSystem.Nickname})");
         viewport.Begin();
         renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
         viewport.End();

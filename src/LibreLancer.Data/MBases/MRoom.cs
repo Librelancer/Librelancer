@@ -7,30 +7,20 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data
 {
-	public class MRoom
+	public class MRoom : ICustomEntryHandler
 	{
+        [Entry("nickname")]
 		public string Nickname;
+        [Entry("character_density")]
 		public int CharacterDensity;
 		public List<MRoomNpcRef> NPCs = new List<MRoomNpcRef>();
-		public MRoom(Section section)
-		{
-			foreach (var e in section)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-					case "nickname":
-						Nickname = e[0].ToString();
-						break;
-					case "character_density":
-						CharacterDensity = e[0].ToInt32();
-						break;
-					case "fixture":
-						NPCs.Add(new MRoomNpcRef(e));
-						break;
-				}
-			}
-		}
-	}
+
+        private static CustomEntry[] entries = new CustomEntry[] {
+            new("fixture", (m, e) => ((MRoom)m).NPCs.Add(new MRoomNpcRef(e)))
+        };
+
+        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => entries;
+    }
 	public class MRoomNpcRef
 	{
 		public string Npc;

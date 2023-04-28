@@ -115,7 +115,7 @@ namespace LibreLancer.Interface
             zones = new List<DrawZone>();
             foreach (var zone in sys.Zones)
             {
-                if ((zone.VisitFlags & 128) == 128) continue;
+                if ((zone.VisitFlags & VisitFlags.Hidden) == VisitFlags.Hidden) continue;
                 Vector2 xz = new Vector2(zone.Position.X, zone.Position.Z);
                 Vector2 dimensions;
                 float rotSign = -1;
@@ -166,12 +166,12 @@ namespace LibreLancer.Interface
                     Dimensions = dimensions,
                     Texture = tex,
                     Angle = angle,
-                    Tint = tint,
+                    Tint = tint ?? Color4.White,
                     Sort = zone.Sort
                 });
             }
             zones.Sort((x,y) => x.Sort.CompareTo(y.Sort));
-            systemName = sys.Name.ToUpper();
+            systemName = ctx.Data.Infocards.GetStringResource(sys.IdsName);
         }
 
         private static readonly string[] GRIDNUMBERS = {

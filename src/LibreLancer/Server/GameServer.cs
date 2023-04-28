@@ -144,7 +144,8 @@ namespace LibreLancer.Server
             worldRequests.Enqueue(() =>
             {
                 var world = new ServerWorld(system, this);
-                FLLog.Info("Server", "Spun up " + system.Nickname + " (" + system.Name + ")");
+                var sysName = this.GameData.GetString(system.IdsName);
+                FLLog.Info("Server", "Spun up " + system.Nickname + " (" + sysName + ")");
                 worlds.Add(system, world);
                 lock (availableWorlds)
                 {
@@ -230,7 +231,8 @@ namespace LibreLancer.Server
                             worlds[w].Finish();
                             availableWorlds.Remove(w);
                             worlds.Remove(w);
-                            FLLog.Info("Server", $"Shut down world {w.Nickname} ({w.Name})");
+                            var wName = GameData.GetString(w.IdsName);
+                            FLLog.Info("Server", $"Shut down world {w.Nickname} ({wName})");
                         }
                     }
                 }

@@ -41,10 +41,10 @@ namespace LibreLancer.Data.Universe
         [Entry("interference")] 
         public float Interference;
 
-        [Entry("powermodifier")] 
+        [Entry("power_modifier")] 
         public float PowerModifier;
 
-        [Entry("dragmodifier")] 
+        [Entry("drag_modifier")] 
         public float DragModifier;
 
         [Entry("comment")] 
@@ -59,8 +59,8 @@ namespace LibreLancer.Data.Universe
         [Entry("damage")]
         public float Damage;
 
-        [Entry("mission_type")]
-        public List<string[]> MissionType = new List<string[]>();
+        [Entry("mission_type")] 
+        public string[] MissionType;
 
         [Entry("sort")] 
         public float? Sort;
@@ -101,20 +101,26 @@ namespace LibreLancer.Data.Universe
         [Entry("mission_eligible")] 
         public bool MissionEligible;
 
-        
-		//public Dictionary<string, int> FactionWeight { get; private set; }
-		//public Dictionary<string, int> DensityRestriction { get; private set; }
-        
-		//public List<Encounter> Encounters { get; private set; }
+        public List<Encounter> Encounters { get; private set; } = new List<Encounter>();
+        public List<DensityRestriction> DensityRestrictions { get; private set; } = new List<DensityRestriction>();
 
         bool IEntryHandler.HandleEntry(Entry e)
         {
-            if (e.Name.Equals("encounter", StringComparison.OrdinalIgnoreCase) ||
-                e.Name.Equals("faction", StringComparison.OrdinalIgnoreCase) ||
-                e.Name.Equals("faction_weight", StringComparison.OrdinalIgnoreCase) ||
-                e.Name.Equals("density_restriction", StringComparison.OrdinalIgnoreCase))
-            {
+            if (e.Name.Equals("encounter", StringComparison.OrdinalIgnoreCase)) {
+                Encounters.Add(new Encounter(e));
                 return true;
+            }
+            if (e.Name.Equals("faction", StringComparison.OrdinalIgnoreCase)) {
+                if (Encounters.Count == 0) {
+                    FLLog.Warning("Ini", $"faction entry without matching encounter at {e.File}:{e.Line}");
+                }
+                else {
+                    Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle("chance")));
+                }
+                return true;
+            }
+            if (e.Name.Equals("density_restriction", StringComparison.OrdinalIgnoreCase)) {
+                DensityRestrictions.Add(new DensityRestriction(e[0].ToInt32(), e[1].ToString()));
             }
             return false;
         }

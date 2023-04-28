@@ -5,15 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using LibreLancer.Ini;
 namespace LibreLancer.Data
 {
-	public class MBase
+	public class MBase : IniFile
 	{
 		public string Nickname;
 		public string LocalFaction;
+        public int Diff;
+        public string MsgIdPrefix;
+        
+        public MVendor MVendor;
 		public List<MRoom> Rooms = new List<MRoom>();
 		public List<GfNpc> Npcs = new List<GfNpc>();
+        public List<BaseFaction> Factions = new List<BaseFaction>();
 		public MBase(IEnumerable<Section> sections)
 		{
 			foreach (var s in sections)
@@ -31,16 +37,33 @@ namespace LibreLancer.Data
 								case "local_faction":
 									LocalFaction = e[0].ToString();
 									break;
+                                case "diff":
+                                    Diff = e[0].ToInt32();
+                                    break;
+                                case "msg_id_prefix":
+                                    MsgIdPrefix = e[0].ToString();
+                                    break;
+                                default:
+                                    IniWarning.UnknownEntry(e, s);
+                                    break;
 							}
-							
-						}
+                        }
 						break;
+                    case "mvendor":
+                        MVendor = FromSection<MVendor>(s);
+                        break;
 					case "mroom":
-						Rooms.Add(new MRoom(s));
+                        Rooms.Add(FromSection<MRoom>(s));
 						break;
 					case "gf_npc":
-						Npcs.Add(new GfNpc(s));
+                        Npcs.Add(FromSection<GfNpc>(s));
 						break;
+                    case "basefaction":
+                        Factions.Add(FromSection<BaseFaction>(s));
+                        break;
+                    default:
+                        IniWarning.UnknownSection(s);
+                        break;
 				}
 			}
 		}

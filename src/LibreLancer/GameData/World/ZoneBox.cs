@@ -51,14 +51,6 @@ namespace LibreLancer.GameData.World
 		{
 			return new Vector3 (randfunc (), randfunc (), randfunc ()) * Size;
 		}
-
-        public override string Serialize()
-        {
-            return new StringBuilder()
-                .AppendEntry("shape", "BOX")
-                .AppendEntry("size", Size)
-                .ToString();
-        }
     }
 }
 

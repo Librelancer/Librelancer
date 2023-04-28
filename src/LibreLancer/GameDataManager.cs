@@ -131,7 +131,10 @@ namespace LibreLancer
             return Ini.SpecificNPCs.Npcs.FirstOrDefault(x => x.Nickname.Equals(npc, StringComparison.OrdinalIgnoreCase))
                 ?.BaseAppr;
         }
-        IEnumerable<Data.Universe.Base> InitBases()
+
+        ResolvedThn ResolveThn(string path) => new () { SourcePath = path, ResolvedPath = ResolveDataPath(path) };
+        
+        IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");
             bases = new Dictionary<string, Base>(fldata.Universe.Bases.Count, StringComparer.OrdinalIgnoreCase);
@@ -144,7 +147,8 @@ namespace LibreLancer
                 var b = new Base();
                 b.Nickname = inibase.Nickname;
                 b.IdsName = inibase.IdsName;
-                //inibase.
+                b.BaseRunBy = inibase.BGCSBaseRunBy;
+                b.AutosaveForbidden = inibase.AutosaveForbidden ?? false;
                 b.System = inibase.System;
                 b.TerrainTiny = inibase.TerrainTiny;
                 b.TerrainSml = inibase.TerrainSml;
@@ -152,28 +156,37 @@ namespace LibreLancer
                 b.TerrainLrg = inibase.TerrainLrg;
                 b.TerrainDyna1 = inibase.TerrainDyna1;
                 b.TerrainDyna2 = inibase.TerrainDyna2;
+                if (mbase != null)
+                {
+                    b.MsgIdPrefix = mbase.MsgIdPrefix;
+                    b.Diff = mbase.Diff;
+                    if (mbase.MVendor != null) {
+                        b.MinMissionOffers = (int)mbase.MVendor.NumOffers.X;
+                        b.MaxMissionOffers = (int)mbase.MVendor.NumOffers.Y;
+                    }
+                }
                 foreach (var room in inibase.Rooms)
                 {
                     var nr = new BaseRoom();
                     nr.Music = room.Music;
                     nr.MusicOneShot = room.MusicOneShot;
-                    nr.ThnPaths = new List<string>();
+                    nr.ThnPaths = new List<ResolvedThn>();
                     nr.PlayerShipPlacement = room.PlayerShipPlacement;
                     nr.ForSaleShipPlacements = room.ForShipSalePlacements;
-                    nr.InitAction = () =>
+                    tasks.Begin(() =>
                     {
-                        nr.SetScript = ResolveDataPath(room.SetScript);
+                        nr.SetScript = ResolveThn(room.SetScript);
                         foreach (var path in room.SceneScripts)
-                            nr.ThnPaths.Add(ResolveDataPath(path));
-                         if (room.LandingScript != null)
-                             nr.LandScript = ResolveDataPath(room.LandingScript);
-                         if (room.StartScript != null)
-                             nr.StartScript = ResolveDataPath(room.StartScript);
-                         if (room.LaunchingScript != null)
-                             nr.LaunchScript = ResolveDataPath(room.LaunchingScript);
-                         if (room.GoodscartScript != null)
-                             nr.GoodscartScript = ResolveDataPath(room.GoodscartScript);
-                     };
+                            nr.ThnPaths.Add(ResolveThn(path));
+                        if (room.LandingScript != null)
+                            nr.LandScript = ResolveThn(room.LandingScript);
+                        if (room.StartScript != null)
+                            nr.StartScript = ResolveThn(room.StartScript);
+                        if (room.LaunchingScript != null)
+                            nr.LaunchScript = ResolveThn(room.LaunchingScript);
+                        if (room.GoodscartScript != null)
+                            nr.GoodscartScript = ResolveThn(room.GoodscartScript);
+                    });
                     nr.Hotspots = new List<BaseHotspot>();
                     foreach (var hp in room.Hotspots)
                         nr.Hotspots.Add(new BaseHotspot()
@@ -187,7 +200,7 @@ namespace LibreLancer
                     nr.Nickname = room.Nickname;
                     if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
                     nr.Camera = room.Camera;
-                    nr.Npcs = new List<BaseNpc>();
+                    nr.FixedNpcs = new List<BaseFixedNpc>();
                     if (mbase == null) continue;
                     var mroom = mbase.FindRoom(room.Nickname);
                     if (mroom != null)
@@ -437,7 +450,7 @@ namespace LibreLancer
             var pilotTask = tasks.Begin(InitPilots);
             var ships = tasks.Begin(InitShips);
             List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
-            var baseTask = tasks.Begin(() => introbases.AddRange(InitBases()));
+            var baseTask = tasks.Begin(() => introbases.AddRange(InitBases(tasks)));
             tasks.Begin(() =>
             {
                 FLLog.Info("Game", "Loading intro scenes");
@@ -856,8 +869,8 @@ namespace LibreLancer
                 sys.LocalFaction = GetFaction(inisys.LocalFaction);
                 sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
                 sys.AmbientColor = inisys.AmbientColor;
-                sys.Name = GetString(inisys.IdsName);
-                sys.Infocard = inisys.IdsInfo;
+                sys.IdsName = inisys.IdsName;
+                sys.IdsInfo = inisys.IdsInfo;
                 sys.Nickname = inisys.Nickname;
                 sys.BackgroundColor = inisys.SpaceColor;
                 sys.MusicSpace = inisys.MusicSpace;
@@ -867,6 +880,7 @@ namespace LibreLancer
                 sys.SpacedustMaxParticles = inisys.SpacedustMaxParticles;
                 sys.FarClip = inisys.SpaceFarClip ?? 20000f;
                 sys.NavMapScale = inisys.NavMapScale;
+                sys.SourceFile = inisys.SourceFile;
                 foreach (var ec in inisys.EncounterParameters)
                 {
                     sys.EncounterParameters.Add(new EncounterParameters()
@@ -968,8 +982,8 @@ namespace LibreLancer
                         z.Nickname = zne.Nickname;
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
                         z.PropertyFlags = (ZonePropFlags) zne.PropertyFlags;
-                        z.PropertyFogColor = zne.PropertyFogColor ?? Color4.White;
-                        z.VisitFlags = zne.Visit ?? 0;
+                        z.PropertyFogColor = zne.PropertyFogColor;
+                        z.VisitFlags = (VisitFlags) (zne.Visit ?? 0);
                         z.Position = zne.Pos ?? Vector3.Zero;
                         z.Sort = zne.Sort ?? 0;
                         //
@@ -991,6 +1005,13 @@ namespace LibreLancer
                         z.MaxBattleSize = zne.MaxBattleSize;
                         z.ReliefTime = zne.ReliefTime;
                         z.RepopTime = zne.RepopTime;
+                        z.AttackIds = zne.AttackIds;
+                        z.MissionType = zne.MissionType;
+                        z.PathLabel = zne.PathLabel;
+                        z.Usage = zne.Usage;
+                        z.VignetteType = zne.VignetteType;
+                        z.Encounters = zne.Encounters.ToArray();
+                        z.DensityRestrictions = zne.DensityRestrictions.ToArray();
                         //
                         if(zne.Pos == null) FLLog.Warning("Zone", $"Zone {zne.Nickname} in {inisys.Nickname} has no position");
                         if (zne.Rotate != null)

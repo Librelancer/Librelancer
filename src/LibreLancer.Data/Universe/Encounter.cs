@@ -1,25 +1,30 @@
-﻿// MIT License - Copyright (c) Malte Rupprecht
+﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
+    public record FactionSpawn(string Faction, float Chance);
 	public class Encounter
-	{
-		public string EncounterType { get; set; }
-		public int Attr2 { get; set; }
-		public float Attr3 { get; set; }
-		public Dictionary<string, float> Factions { get; set; }
+    {
+        public string Archetype;
+        public int Difficulty;
+        public float Chance;
 
-		public Encounter(string attr1, int attr2, float attr3)
-		{
-			EncounterType = attr1; 
-			Attr2 = attr2; 
-			Attr3 = attr3;
+        public List<FactionSpawn> FactionSpawns = new List<FactionSpawn>();
 
-			Factions = new Dictionary<string, float>();
-		}
+		public Encounter() { }
+
+        public Encounter(Entry e)
+        {
+            Archetype = e[0].ToString();
+            if(e.Count > 1)
+                Difficulty = e[1].ToInt32();
+            if (e.Count > 2)
+                Chance = e[2].ToSingle("chance");
+        }
 	}
 }

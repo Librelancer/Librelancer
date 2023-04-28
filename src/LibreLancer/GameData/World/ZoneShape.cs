@@ -20,8 +20,6 @@ namespace LibreLancer.GameData.World
 		{
 			Zone = zn;
 		}
-
-        public abstract string Serialize();
     }
 }
 

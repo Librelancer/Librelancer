@@ -43,14 +43,6 @@ namespace LibreLancer.GameData.World
 			var z = Math.Sin (theta) * Math.Cos (phi);
 			return new Vector3 ((float)x, (float)y, (float)z) * Radius;
 		}
-
-        public override string Serialize()
-        {
-            return new StringBuilder()
-                .AppendEntry("shape", "SPHERE")
-                .AppendEntry("size", Radius)
-                .ToString();
-        }
-	}
+    }
 }
 

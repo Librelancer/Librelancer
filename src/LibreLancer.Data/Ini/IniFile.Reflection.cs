@@ -259,7 +259,8 @@ namespace LibreLancer.Ini
                         eh.HandleEntry(e);
                         handled = true;
                     }
-                    if (!handled) FLLog.Warning("Ini", "Unknown entry " + e.Name + FormatLine(e.File, e.Line, s.Name));
+                    if (!handled) 
+                        IniWarning.UnknownEntry(e,s);
                     continue;
                 }
 
@@ -269,7 +270,7 @@ namespace LibreLancer.Ini
                 {
                     if ((bitmask & (1ul << idx)) != 0)
                     {
-                        FLLog.Warning("Ini", "Duplicate of " + field.Attr.Name + FormatLine(e.File, e.Line, s.Name));
+                        IniWarning.DuplicateEntry(e, s);
                     }
                     bitmask |= 1ul << idx;
                 }
@@ -532,7 +533,7 @@ namespace LibreLancer.Ini
             var tgt = sections.GetSection(section.Name);
             if (tgt == null)
             {
-                FLLog.Warning("Ini", "Unknown section " + section.Name + FormatLine(section.File, section.Line));
+                IniWarning.UnknownSection(section);
                 return;
             }
             if (tgt.Field == null)
