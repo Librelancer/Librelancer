@@ -15,7 +15,7 @@ namespace LibreLancer.Render
         private uint currentIndex = 0;
         public void Reset()
         {
-            ticks = (uint)Environment.TickCount64;
+            ticks++;
             currentIndex = 2;
         }
         public WorldMatrixBuffer()
@@ -23,6 +23,7 @@ namespace LibreLancer.Render
             buffer = (Matrix4x4*)Marshal.AllocHGlobal(MaxMatrices * 64);
             buffer[0] = Matrix4x4.Identity;
             buffer[1] = Matrix4x4.Identity;
+            ticks = (uint)Environment.TickCount64;
             Reset();
             identity.Source = buffer;
             identity.ID = UInt64.MaxValue;
