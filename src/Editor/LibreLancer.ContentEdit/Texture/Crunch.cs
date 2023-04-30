@@ -84,7 +84,6 @@ namespace LibreLancer.ContentEdit
 
             var result = Copy(output, outputSize);
             CrnGlueFreeDDS(output);
-            Thread.Sleep(10000);
             return result;
         }
 
