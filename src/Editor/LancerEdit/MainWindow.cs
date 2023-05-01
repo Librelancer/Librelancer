@@ -308,8 +308,11 @@ namespace LancerEdit
                 EnsureUIThread(() => ResultMessages(model));
                 if (model.IsSuccess)
                 {
-                    model.Data.AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds();
-                    EnsureUIThread(() => FinishImporterLoad(model.Data, Path.GetFileName(filename)));
+                    var mdl = model.Data.AutoselectRoot(out _).ApplyScale();
+                    var x = Vector3.Transform(Vector3.Zero, mdl.Roots[0].Transform);
+                    bool modelWarning = x.Length() > 0.0001;
+                    mdl = mdl.ApplyRootTransforms(false).CalculateBounds();
+                    EnsureUIThread(() => FinishImporterLoad(mdl, modelWarning, Path.GetFileName(filename)));
                 }
             });
         }
@@ -752,12 +755,23 @@ namespace LancerEdit
             ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
             ImGui.Text(text);
         }
-        void FinishImporterLoad(SimpleMesh.Model model, string tabName)
+        void FinishImporterLoad(SimpleMesh.Model model, bool warnOffCenter, string tabName)
         {
            FinishLoadingSpinner();
-            AddTab(new ImportModelTab(model, tabName, this));
+           if (warnOffCenter)
+           {
+               Confirm("Model root is off-center, consider re-exporting.\n\nImport anyway?", () =>
+               {
+                   AddTab(new ImportModelTab(model, tabName, this));
+               });
+           }
+           else
+           {
+               AddTab(new ImportModelTab(model, tabName, this));
+           }
+            
         }
-
+        
         public void ResultMessages<T>(EditResult<T> result)
         {
             if (result.Messages.Count == 0) return;

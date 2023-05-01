@@ -9,7 +9,7 @@ AssertFileExists(args[0]);
 EditResult<Model> LoadModel(string filename)
 {
     using var stream = File.OpenRead(filename);
-    var model = EditResult<Model>.TryCatch(() => SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyRootTransforms(false).CalculateBounds());
+    var model = EditResult<Model>.TryCatch(() => SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyScale().ApplyRootTransforms(false).CalculateBounds());
     PrintMessages(model);
     if(model.IsError) return model;
     foreach (var x in model.Data.Geometries)

@@ -41,7 +41,10 @@ public class ImportedModel
         if(nodes[0].Def.Geometry?.Kind == GeometryKind.Lines)
             return EditResult<ImportedModel>.Error("Root mesh cannot be wireframe");
         var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
+        //Set up root
         m.Root.Construct = null;
+        foreach (var child in m.Root.Children)
+            child.Construct.ParentName = "Root";
         return new EditResult<ImportedModel>(m);
     }
 
