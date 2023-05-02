@@ -1114,9 +1114,9 @@ namespace LibreLancer
                     resource.LoadResourceFile(ResolveDataPath(txmfile));
             }
             yield return null;
-            sys.StarsBasic.LoadFile(resource);
-            sys.StarsComplex.LoadFile(resource);
-            sys.StarsNebula.LoadFile(resource);
+            sys.StarsBasic?.LoadFile(resource);
+            sys.StarsComplex?.LoadFile(resource);
+            sys.StarsNebula?.LoadFile(resource);
             yield return null;
             long a = 0;
             if (glResource != null)
