@@ -50,10 +50,6 @@ namespace LancerEdit
         {
             Title = DocumentName;
         }
-        public override void SetActiveTab(MainWindow win)
-        {
-            win.ActiveTab = this;
-        }
       
         ImGuiTreeNodeFlags tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
         TextBuffer text;

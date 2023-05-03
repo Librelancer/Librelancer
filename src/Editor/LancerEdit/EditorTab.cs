@@ -23,7 +23,6 @@ public abstract class EditorTab : DockTab
 
     public virtual void SetActiveTab(MainWindow win)
     {
-        win.ActiveTab = null;
     }
 
     public virtual void OnHotkey(Hotkeys hk)

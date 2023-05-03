@@ -195,10 +195,6 @@ namespace LancerEdit
             parent.DirtyCountPart++;
         }
 
-        public override void SetActiveTab(MainWindow win)
-        {
-            win.ActiveTab = parent;
-        }
         public override void Update(double elapsed)
         {
             if (animator != null)

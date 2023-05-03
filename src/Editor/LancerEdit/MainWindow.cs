@@ -140,7 +140,7 @@ namespace LancerEdit
             mods &= ~KeyModifiers.Numlock;
             mods &= ~KeyModifiers.Capslock;
             if ((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.S) {
-                if (ActiveTab != null) Save();
+                if (TabControl.Selected is UtfTab) Save();
             }
             if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.D) {
                 if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.Deselect);
@@ -165,7 +165,6 @@ namespace LancerEdit
 		public bool ClipboardCopy = true;
 		public LUtfNode Clipboard;
 		List<DockTab> toAdd = new List<DockTab>();
-		public UtfTab ActiveTab;
 		double frequency = 0;
 		int updateTime = 10;
         public CommodityIconDialog Make3dbDlg;
@@ -192,7 +191,6 @@ namespace LancerEdit
                         var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
                         recentFiles.FileOpened(f);
                         t.FilePath = f;
-                        ActiveTab = t;
                         AddTab(t);
                         guiHelper.ResetRenderTimer();
                         break;
@@ -369,7 +367,6 @@ namespace LancerEdit
 				if (Theme.IconMenuItem(Icons.File, "New", true))
 				{
 					var t = new UtfTab(this, new EditableUtf(), "Untitled");
-					ActiveTab = t;
                     AddTab(t);
 				}
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
@@ -378,14 +375,14 @@ namespace LancerEdit
                 }
 
                 recentFiles.Menu();
-				if (ActiveTab == null)
+				if (!(TabControl.Selected is UtfTab))
                 {
                     Theme.IconMenuItem(Icons.Save, "Save", false);
                     Theme.IconMenuItem(Icons.Save, "Save As", false);
                 }
 				else
 				{
-					if (Theme.IconMenuItem(Icons.Save, string.Format("Save '{0}'", ActiveTab.DocumentName), true))
+					if (Theme.IconMenuItem(Icons.Save, string.Format("Save '{0}'", TabControl.Selected.DocumentName), true))
                     {
                         Save();
                     }
@@ -605,8 +602,6 @@ namespace LancerEdit
                 TabControl.Selected.Draw();
                 ((EditorTab)TabControl.Selected).SetActiveTab(this);
             }
-            else
-                ActiveTab = null;
             ImGui.EndChild();
             if(showLog) {
                 ImGui.BeginChild("###log", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
@@ -641,12 +636,15 @@ namespace LancerEdit
 				frequency = RenderFrequency;
 			}
 			else { updateTime++; }
-			string activename = ActiveTab == null ? "None" : ActiveTab.DocumentName;
-			string utfpath = ActiveTab == null ? "None" : ActiveTab.GetUtfPath();
+			string activename = TabControl.Selected == null ? "None" : TabControl.Selected.DocumentName;
+			if (TabControl.Selected is UtfTab utftab)
+            {
+                activename += " - " + utftab.GetUtfPath();
+            }
             #if DEBUG
-            const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3} - {4}{5}";
+            const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3}{4}";
             #else
-            const string statusFormat = "{1} Materials | {2} Textures | Active: {3} - {4}{5}";
+            const string statusFormat = "{1} Materials | {2} Textures | Active: {3}{4}";
             #endif
             string openFolder = OpenDataContext != null ? $" | Open: {OpenDataContext.Folder}" : "";
 			ImGui.Text(string.Format(statusFormat,
@@ -654,7 +652,6 @@ namespace LancerEdit
 									 Resources.MaterialDictionary.Count,
 									 Resources.TextureDictionary.Count,
 									 activename,
-									 utfpath,
                                      openFolder));
 			ImGui.End();
             if(errorTimer > 0) {
@@ -690,7 +687,7 @@ namespace LancerEdit
         
         void Save()
         {
-            var at = ActiveTab;
+            var at = TabControl.Selected as UtfTab;
             Action save = () =>
             {
                 if (!string.IsNullOrEmpty(at.FilePath))
@@ -710,7 +707,7 @@ namespace LancerEdit
 
         void SaveAs()
         {
-            var at = ActiveTab;
+            var at = TabControl.Selected as UtfTab;
             Action save = () =>  RunSaveDialog(at);
             if (at.DirtyCountHp > 0 || at.DirtyCountPart > 0)
             {
