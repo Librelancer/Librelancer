@@ -16,10 +16,10 @@ public class GameDataContext : IDisposable
 
     public void Load(MainWindow win, string folder, Action onComplete)
     {
+        Folder = folder;
+        Resources = new GameResourceManager(win);
         Task.Run(() =>
         {
-            Folder = folder;
-            Resources = new GameResourceManager(win);
             GameData = new GameDataManager(folder, Resources);
             GameData.LoadData(win);
             FLLog.Info("Game", "Finished loading game data");
