@@ -57,12 +57,18 @@ namespace LibreLancer.Dll
         }
         
         const uint RT_RCDATA = 23;
+        const uint RT_VERSION = 16;
         const uint RT_STRING = 6;
+        const uint RT_MENU = 4;
+        const uint RT_DIALOG = 5;
         const uint IMAGE_RESOURCE_NAME_IS_STRING = 0x80000000;
         const uint IMAGE_RESOURCE_DATA_IS_DIRECTORY = 0x80000000;
 
         public Dictionary<int, string> Strings = new Dictionary<int, string>();
         public Dictionary<int, string> Infocards = new Dictionary<int, string>();
+        public List<BinaryResource> Dialogs = new List<BinaryResource>();
+        public List<BinaryResource> Menus = new List<BinaryResource>();
+        public VersionInfoResource VersionInfo;
         
         public ManagedDllProvider(Stream stream, string name)
         {
@@ -119,6 +125,24 @@ namespace LibreLancer.Dll
                                 }
                             }
                         }
+                    }
+                }
+                else if (table.Type == RT_VERSION)
+                {
+                    VersionInfo = new VersionInfoResource(table.Resources[0].Locales[0].Data.ToArray());
+                }
+                else if (table.Type == RT_DIALOG)
+                {
+                    foreach (var dlg in table.Resources)
+                    {
+                        Dialogs.Add(new BinaryResource(dlg.Name, dlg.Locales[0].Data.ToArray()));
+                    }
+                }
+                else if (table.Type == RT_MENU)
+                {
+                    foreach (var dlg in table.Resources)
+                    {
+                        Menus.Add(new BinaryResource(dlg.Name, dlg.Locales[0].Data.ToArray()));
                     }
                 }
             }

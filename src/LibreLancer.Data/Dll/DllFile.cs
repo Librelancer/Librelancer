@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Xml;
 using LibreLancer.Data;
@@ -36,16 +37,14 @@ namespace LibreLancer.Dll
             }
         }
 
-		public Dictionary<int,string> Strings {
-			get {
-				return provider.Strings;
-			}
-		}
+        public VersionInfoResource VersionInfo => provider.VersionInfo;
 
-		public Dictionary<int, string> Infocards {
-			get {
-				return provider.Infocards;
-			}
-		}
+        public Dictionary<int, string> Strings => provider.Strings;
+        public Dictionary<int, string> Infocards => provider.Infocards;
+
+        public List<BinaryResource> Dialogs => provider.Dialogs;
+        
+        public List<BinaryResource> Menus => provider.Menus;
+
     }
 }
