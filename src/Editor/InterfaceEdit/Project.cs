@@ -91,11 +91,8 @@ namespace InterfaceEdit
             {
                 window.TestApi.ManeuverData = null;
             }
-
-            if (flIni.JsonResources != null)
-                UiData.Infocards = new InfocardManager(flIni.JsonResources, UiData.FileSystem);
-            else if (flIni.Resources != null)
-                UiData.Infocards = new InfocardManager(flIni.Resources);
+            
+            UiData.Infocards = new InfocardManager(flIni.Resources);
             XmlLoader = new UiXmlLoader(UiData.Resources);
             try
             {

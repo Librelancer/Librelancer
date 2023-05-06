@@ -12,132 +12,70 @@ namespace LibreLancer.Data
 {
 	public class InfocardManager
 	{
-		Dictionary<int,string> strings = new Dictionary<int, string>();
-		Dictionary<int, string> infocards = new Dictionary<int, string>();
-		public InfocardManager (List<DllFile> res)
-		{
-			int i = 0;
-			foreach (var file in res) {
-				foreach (var k in file.Strings.Keys)
-                {
-                    var str = file.Strings[k];
-                    //HACK: Figure out what to do with %M strings
-                    if (str.EndsWith("%M")) str = str.Substring(0, str.Length - 2);
-					strings.Add (k + (i * 65536), str);
-				}
-				foreach (var k in file.Infocards.Keys) {
-					infocards.Add (k + (i * 65536), file.Infocards [k]);
-				}
-				i++;
-			}
-		}
-
-        class JsonContainer
+        public List<ResourceDll> Dlls;
+		public InfocardManager (List<ResourceDll> res)
         {
-            public string filetype;
-            public Dictionary<int, string> data;
+            Dlls = res ?? new List<ResourceDll>();
         }
 
-		public InfocardManager(List<string> jsonFiles, FileSystem vfs)
+        IEnumerable<KeyValuePair<int, string>> IterateStrings()
         {
-            strings = new Dictionary<int, string>();
-            infocards = new Dictionary<int, string>();
-            foreach (var f in jsonFiles)
-            {
-                using (var reader = new StreamReader(vfs.Open(f)))
-                {
-                    var file = JSON.Deserialize<JsonContainer>(reader.ReadToEnd());
-                    if(string.IsNullOrEmpty(file.filetype)) throw new Exception($"{f} is not a valid resource file");
-                    if(file.data == null) continue;
-                    if (file.filetype.Equals("strings", StringComparison.OrdinalIgnoreCase))
-                    {
-                        foreach (var kv in file.data)
-                        {
-                            try
-                            {
-                                strings.Add(kv.Key, kv.Value);
-                            }
-                            catch (ArgumentException)
-                            {
-                                throw new Exception($"{f} trying to add existing IDS {kv.Key}");
-                            }
-                        }
-                    } 
-                    else if (file.filetype.Equals("infocards", StringComparison.OrdinalIgnoreCase))
-                    {
-                        foreach (var kv in file.data)
-                        {
-                            try
-                            {
-                                infocards.Add(kv.Key, kv.Value);
-                            }
-                            catch (ArgumentException)
-                            {
-                                throw new Exception($"{f} trying to add existing IDS {kv.Key}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"Invalid filetype in {f} (expected strings or infocards)");
-                    }
+            for (int i = 0; i < Dlls.Count; i++) {
+                foreach (var str in Dlls[i].Strings.OrderBy(x => x.Key)) {
+                    yield return new KeyValuePair<int, string>(i * 65536 + str.Key, str.Value);
+                }
+            }
+        }
+        IEnumerable<KeyValuePair<int, string>> IterateXml()
+        {
+            for (int i = 0; i < Dlls.Count; i++) {
+                foreach (var info in Dlls[i].Infocards.OrderBy(x => x.Key)) {
+                    yield return new KeyValuePair<int, string>(i * 65536 + info.Key, info.Value);
                 }
             }
         }
 
-      
+        public IEnumerable<int> StringIds => IterateStrings().Select(x => x.Key);
+        public IEnumerable<int> InfocardIds => IterateXml().Select(x => x.Key);
 
-        public void ExportStrings(string filename)
+        public IEnumerable<KeyValuePair<int, string>> AllStrings => IterateStrings();
+        public IEnumerable<KeyValuePair<int, string>> AllXml => IterateXml();
+
+        protected HashSet<int> MissingStrings = new HashSet<int>();
+        protected HashSet<int> MissingXml = new HashSet<int>();
+        
+        public virtual string GetStringResource(int id)
 		{
-			using (var writer = new StreamWriter(filename))
+            if (id <= 0) return "";
+            var (x, y) = (id >> 16, id & 0xFFFF);
+            if (x < Dlls.Count && Dlls[x].Strings.TryGetValue(y, out var s))
             {
-                var obj = new JsonContainer() {filetype = "strings", data = strings};
-                writer.Write(JSON.Serialize(obj));
-            }
-		}
-
-		public void ExportInfocards(string filename)
-		{
-			using (var writer = new StreamWriter(filename))
-			{
-                var obj = new JsonContainer() {filetype = "infocards", data = infocards};
-                writer.Write(JSON.Serialize(obj));
-            }
-		}
-
-        public IEnumerable<int> StringIds => strings.Keys.OrderBy(x => x);
-        public IEnumerable<int> InfocardIds => infocards.Keys.OrderBy(x => x);
-
-        public IEnumerable<KeyValuePair<int, string>> AllStrings => strings;
-        public IEnumerable<KeyValuePair<int, string>> AllXml => infocards;
-
-        List<int> missingStrings = new List<int>();
-		public string GetStringResource(int id)
-		{
-            if (id == 0) return "";
-			if (strings.ContainsKey (id)) {
-                return strings [id];
-			} else {
-                if (!missingStrings.Contains(id))
+                return s;
+            } 
+            else {
+                if (!MissingStrings.Contains(id))
                 {
                     FLLog.Warning("Strings", "Not Found: " + id);
-                    missingStrings.Add(id);
+                    MissingStrings.Add(id);
                 }
 				return "";
 			}
 		}
 
-        List<int> missingXml = new List<int>();
-		public string GetXmlResource(int id)
+
+		public virtual string GetXmlResource(int id)
 		{
-            if (id == 0) return null;
-			if (infocards.ContainsKey (id)) {
-				return infocards [id];
-			} else {
-                if (!missingXml.Contains(id))
+            if (id <= 0) return null;
+            var (x, y) = (id >> 16, id & 0xFFFF);
+			if (x < Dlls.Count && Dlls[x].Infocards.TryGetValue(y, out var s))
+            {
+                return s;
+            } 
+            else {
+                if (!MissingXml.Contains(id))
                 {
                     FLLog.Warning("Infocards", "Not Found: " + id);
-                    missingXml.Add(id);
+                    MissingXml.Add(id);
                 }
 				return null;
 			}

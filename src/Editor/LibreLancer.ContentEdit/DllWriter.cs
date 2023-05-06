@@ -42,12 +42,12 @@ public static class DllWriter
     
     static uint DirOffset(uint value) => value | 0x80000000;
     
-    public static unsafe void Write(DllFile dll, Stream outfile)
+    public static unsafe void Write(ResourceDll resourceDll, Stream outfile)
     {
-        bool hasStrings = dll.Strings.Count > 0;
-        bool hasInfocards = dll.Infocards.Count > 0;
-        bool hasDialogs = dll.Dialogs.Count > 0;
-        bool hasMenus = dll.Menus.Count > 0;
+        bool hasStrings = resourceDll.Strings.Count > 0;
+        bool hasInfocards = resourceDll.Infocards.Count > 0;
+        bool hasDialogs = resourceDll.Dialogs.Count > 0;
+        bool hasMenus = resourceDll.Menus.Count > 0;
         
         using var mem = new MemoryStream();
         //Set up PE template
@@ -84,7 +84,7 @@ public static class DllWriter
         //version entry
         writer.Write(RT_VERSION);
         writer.Write(DirOffset((uint)(16 + typeCount * 8))); //offsetToData
-        var versionData = dll.VersionInfo?.Data ?? Convert.FromBase64String(VERSION_INFO);
+        var versionData = resourceDll.VersionInfo?.Data ?? Convert.FromBase64String(VERSION_INFO);
         //strings entry
         if (hasStrings) {
             writer.Write(RT_STRING);
@@ -128,13 +128,13 @@ public static class DllWriter
         //strings
         if (hasStrings)
         {
-            var maxKey = dll.Strings.Keys.Max();
+            var maxKey = resourceDll.Strings.Keys.Max();
             int maxBlocks = Align(maxKey + 1, 16) / 16;
             List<int> blocks = new List<int>();
             for (int i = 0; i < maxBlocks; i++) {
                 for (int j = 0; j < 16; j++) {
                     var idx = i * 16 + j;
-                    if (dll.Strings.TryGetValue(idx, out _)) {
+                    if (resourceDll.Strings.TryGetValue(idx, out _)) {
                         blocks.Add(i);
                         break;
                     }
@@ -171,7 +171,7 @@ public static class DllWriter
                 {
                     var idx = blockIdx * 16 + j;
                     
-                    if(dll.Strings.TryGetValue(idx, out var str) && !string.IsNullOrEmpty(str))
+                    if(resourceDll.Strings.TryGetValue(idx, out var str) && !string.IsNullOrEmpty(str))
                     {
                         var bytes = Encoding.Unicode.GetBytes(str);
                         if ((bytes.Length / 2) > ushort.MaxValue)
@@ -188,7 +188,7 @@ public static class DllWriter
         //infocards
         if (hasInfocards)
         {
-            var infocards = dll.Infocards.ToArray();
+            var infocards = resourceDll.Infocards.ToArray();
             int[] langDirectoryOffsets = new int[infocards.Length];
             PatchUint(infocardWriteOffset, DirOffset((uint) (mem.Position - 512)));
             //string directory: IMAGE_RESOURCE_DIRECTORY, size: 16
@@ -221,18 +221,18 @@ public static class DllWriter
         //dialogs
         if (hasDialogs)
         {
-            int[] langDirectoryOffsets = new int[dll.Dialogs.Count];
+            int[] langDirectoryOffsets = new int[resourceDll.Dialogs.Count];
             PatchUint(dialogsWriteOffset, DirOffset((uint) (mem.Position - 512)));
             //dialogs directory: IMAGE_RESOURCE_DIRECTORY, size: 16
-            ResourceDirectory(dll.Dialogs.Count);
+            ResourceDirectory(resourceDll.Dialogs.Count);
             //dialog directory entries
-            for (int i = 0; i < dll.Dialogs.Count; i++) {
-                writer.Write((uint) (dll.Dialogs[i].Name));
+            for (int i = 0; i < resourceDll.Dialogs.Count; i++) {
+                writer.Write((uint) (resourceDll.Dialogs[i].Name));
                 langDirectoryOffsets[i] = (int) mem.Position;
                 writer.Write((uint)0);
             }
             //write dialogs
-            for (int i = 0; i < dll.Dialogs.Count; i++) {
+            for (int i = 0; i < resourceDll.Dialogs.Count; i++) {
                 PatchUint(langDirectoryOffsets[i], DirOffset((uint) (mem.Position - 512)));
                 ResourceDirectory(1);
                 //infocard language data entry
@@ -240,27 +240,27 @@ public static class DllWriter
                 writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
                 //write data 
                 writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
-                writer.Write(dll.Dialogs[i].Data.Length);
+                writer.Write(resourceDll.Dialogs[i].Data.Length);
                 writer.Write((uint)0); //codepage
                 writer.Write((uint)0); //reserved
-                writer.Write(dll.Dialogs[i].Data);
+                writer.Write(resourceDll.Dialogs[i].Data);
             }
         }
         //menus
         if (hasMenus)
         {
-            int[] langDirectoryOffsets = new int[dll.Menus.Count];
+            int[] langDirectoryOffsets = new int[resourceDll.Menus.Count];
             PatchUint(menusWriteOffset, DirOffset((uint) (mem.Position - 512)));
             //menus directory: IMAGE_RESOURCE_DIRECTORY, size: 16
-            ResourceDirectory(dll.Menus.Count);
+            ResourceDirectory(resourceDll.Menus.Count);
             //menu directory entries
-            for (int i = 0; i < dll.Menus.Count; i++) {
-                writer.Write((uint) (dll.Menus[i].Name));
+            for (int i = 0; i < resourceDll.Menus.Count; i++) {
+                writer.Write((uint) (resourceDll.Menus[i].Name));
                 langDirectoryOffsets[i] = (int) mem.Position;
                 writer.Write((uint)0);
             }
             //write menus
-            for (int i = 0; i < dll.Menus.Count; i++) {
+            for (int i = 0; i < resourceDll.Menus.Count; i++) {
                 PatchUint(langDirectoryOffsets[i], DirOffset((uint) (mem.Position - 512)));
                 ResourceDirectory(1);
                 //infocard language data entry
@@ -268,10 +268,10 @@ public static class DllWriter
                 writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
                 //write data 
                 writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
-                writer.Write(dll.Menus[i].Data.Length);
+                writer.Write(resourceDll.Menus[i].Data.Length);
                 writer.Write((uint)0); //codepage
                 writer.Write((uint)0); //reserved
-                writer.Write(dll.Menus[i].Data);
+                writer.Write(resourceDll.Menus[i].Data);
             }
         }
         //Pad section to 512 byte alignment
@@ -279,7 +279,6 @@ public static class DllWriter
         var physAlignRsrc = Align(rsrcLength, 512);
         for(int i = rsrcLength; i < physAlignRsrc; i++)
             writer.Write(0);
-        var imageLength = mem.Position;
         //Patch Created PE file
         PatchUint(0xD0, (uint)Align(rsrcLength, 1024)); //initialized data size
         PatchUint(0x100, (uint)Align(RSRC_VIRTUAL_OFFSET +  rsrcLength, 1024)); //image size (highest address)

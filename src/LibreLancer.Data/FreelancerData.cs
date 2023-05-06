@@ -119,15 +119,8 @@ namespace LibreLancer.Data
                     //todo: fix this
                 }
             }
-            
-            if (Freelancer.JsonResources != null)
-            {
-                Infocards = new InfocardManager(Freelancer.JsonResources, VFS);
-            }
-            else
-            {
-                Infocards = new InfocardManager(Freelancer.Resources);
-            }
+
+            Infocards = new InfocardManager(Freelancer.Resources);
 
             List<Task> tasks = new List<Task>();
             tasks.Add(Task.Run(() =>
