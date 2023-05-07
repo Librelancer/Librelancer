@@ -18,7 +18,7 @@ namespace LibreLancer.Data
             Dlls = res ?? new List<ResourceDll>();
         }
 
-        IEnumerable<KeyValuePair<int, string>> IterateStrings()
+        protected virtual IEnumerable<KeyValuePair<int, string>> IterateStrings()
         {
             for (int i = 0; i < Dlls.Count; i++) {
                 foreach (var str in Dlls[i].Strings.OrderBy(x => x.Key)) {
@@ -26,7 +26,7 @@ namespace LibreLancer.Data
                 }
             }
         }
-        IEnumerable<KeyValuePair<int, string>> IterateXml()
+        protected virtual IEnumerable<KeyValuePair<int, string>> IterateXml()
         {
             for (int i = 0; i < Dlls.Count; i++) {
                 foreach (var info in Dlls[i].Infocards.OrderBy(x => x.Key)) {

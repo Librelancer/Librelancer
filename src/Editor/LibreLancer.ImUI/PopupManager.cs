@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using Microsoft.VisualBasic;
 
 namespace LibreLancer.ImUI
 {
@@ -14,7 +13,7 @@ namespace LibreLancer.ImUI
     {
         List<PopupContext> popups = new List<PopupContext>();
         private List<MessageBoxData> messageBoxes = new List<MessageBoxData>();
-        
+
         class PopupContext
         {
             public bool DoOpen = false;
@@ -33,11 +32,33 @@ namespace LibreLancer.ImUI
             public string Text;
             public bool Multiline;
         }
-        
+
+        public void AddPopup<T>(string title, Action<PopupData, T> action, ImGuiWindowFlags flags = 0)
+        {
+            popups.Add(
+                new PopupContext()
+                {
+                    Title = title,
+                    DrawAction = d => action(d, (T) d.Arguments),
+                    Flags = flags,
+                    Data = new PopupData()
+                }
+            );
+        }
+
         public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0)
         {
-            popups.Add(new PopupContext() { Title = title, DrawAction = action, Flags = flags, Data = new PopupData() });
+            popups.Add(
+                new PopupContext()
+                {
+                    Title = title,
+                    DrawAction = action,
+                    Flags = flags,
+                    Data = new PopupData()
+                }
+            );
         }
+
         public void OpenPopup(string title)
         {
             foreach (var p in popups)
@@ -45,6 +66,19 @@ namespace LibreLancer.ImUI
                 if (p.Title == title)
                 {
                     p.DoOpen = true;
+                    break;
+                }
+            }
+        }
+
+        public void OpenPopup<T>(string title, T args)
+        {
+            foreach (var p in popups)
+            {
+                if (p.Title == title)
+                {
+                    p.DoOpen = true;
+                    p.Data.Arguments = args;
                     break;
                 }
             }
@@ -58,22 +92,26 @@ namespace LibreLancer.ImUI
             msg.Multiline = selectable;
             messageBoxes.Add(msg);
         }
-        
+
         public void Run()
         {
-            foreach(var p in popups) {
-                if(p.DoOpen) {
+            foreach (var p in popups)
+            {
+                if (p.DoOpen)
+                {
                     p.Data.DoFocus = p.Data.First = true;
                     ImGui.OpenPopup(p.Title);
                     p.DoOpen = false;
                 }
+
                 bool open = true;
                 bool beginval;
                 if (!p.Data.NoClose)
                     beginval = ImGui.BeginPopupModal(p.Title, ref open, p.Flags);
                 else
                     beginval = ImGuiExt.BeginModalNoClose(p.Title, p.Flags);
-                if(beginval) {
+                if (beginval)
+                {
                     p.DrawAction(p.Data);
                     if (p.Data.First)
                         p.Data.First = false;
@@ -82,13 +120,16 @@ namespace LibreLancer.ImUI
                     ImGui.EndPopup();
                 }
             }
+
             for (int i = 0; i < messageBoxes.Count; i++)
             {
                 var p = messageBoxes[i];
-                if (p.DoOpen) {
+                if (p.DoOpen)
+                {
                     ImGui.OpenPopup(p.Title);
                     p.DoOpen = false;
                 }
+
                 bool open = true;
                 if (ImGui.BeginPopupModal(p.Title, ref open, ImGuiWindowFlags.AlwaysAutoResize))
                 {
@@ -98,27 +139,33 @@ namespace LibreLancer.ImUI
                             "##label",
                             ref p.Text,
                             UInt32.MaxValue,
-                            new Vector2(350,150) * ImGuiHelper.Scale,
+                            new Vector2(350, 150) * ImGuiHelper.Scale,
                             ImGuiInputTextFlags.ReadOnly
                         );
                     }
-                    else {
+                    else
+                    {
                         ImGui.Text(p.Text);
                     }
+
                     if (ImGui.Button("Ok")) open = false;
                     ImGui.EndPopup();
                 }
-                if (!open) {
+
+                if (!open)
+                {
                     messageBoxes.RemoveAt(i);
                     i--;
                 }
             }
         }
     }
+
     public class PopupData
     {
         public bool DoFocus;
         public bool First;
         public bool NoClose;
+        public object Arguments;
     }
 }

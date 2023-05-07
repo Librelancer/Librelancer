@@ -109,15 +109,14 @@ namespace LibreLancer.Infocards
             }
             catch (Exception)
             {
-                FLLog.Error("RDL", "Failed to parse infocard");
                 return new Infocard()
                 {
                     Nodes = new List<RichTextNode>()
                     {
-                        new RichTextTextNode() { Contents = "PARSE FAILED" },
+                        new RichTextTextNode() { FontName = "Arial", Color = Color4.Red, FontSize = 20, Contents = "PARSE FAILED" },
                         new RichTextParagraphNode(),
                         new RichTextParagraphNode(),
-                        new RichTextTextNode() { Contents = input }
+                        new RichTextTextNode() { FontName = "Arial", FontSize = 14, Contents = input }
                     }
                 };
             }

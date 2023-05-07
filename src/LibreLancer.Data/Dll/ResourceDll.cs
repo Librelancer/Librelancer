@@ -153,7 +153,7 @@ namespace LibreLancer.Dll
                         }
                     }
                 }
-                else if (table.Type == RT_VERSION)
+                else if (table.Type == RT_VERSION && table.Resources.Count > 0)
                 {
                     dll.VersionInfo = new VersionInfoResource(table.Resources[0].Locales[0].Data.ToArray());
                 }
