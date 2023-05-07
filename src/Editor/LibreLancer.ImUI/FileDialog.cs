@@ -74,6 +74,15 @@ namespace LibreLancer.ImUI
         public static readonly FileDialogFilters SurFilters = new FileDialogFilters(
             new FileFilter("Sur Files", "sur")
         );
+
+        public static readonly FileDialogFilters ThnFilters = new FileDialogFilters(
+            new FileFilter("Thorn Files", "thn")
+        );
+
+        public static FileDialogFilters operator +(FileDialogFilters left, FileDialogFilters right)
+        {
+            return new FileDialogFilters(left.Filters.Concat(right.Filters).ToArray());
+        }
     }
     public class FileFilter
     {

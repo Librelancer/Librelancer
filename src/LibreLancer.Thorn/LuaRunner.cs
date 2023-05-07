@@ -31,34 +31,11 @@ namespace LibreLancer.Thorn
                     return DoString(new StreamReader(stream).ReadToEnd());
                 }
 			}
-		}
-
-        [DllImport("thorncompiler")]
-        static extern bool thn_compile(
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string input,
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string name,
-            out IntPtr outputBuffer,
-            out int outputSize
-            );
-
-        [DllImport("thorncompiler")]
-        static extern IntPtr thn_geterror();
-
-        [DllImport("thorncompiler")]
-        static extern void thn_free(IntPtr buffer);
+		}       
 
 		public Dictionary<string, object> DoString(string str, string name = "[string]")
 		{
-            if (!thn_compile(str, name, out IntPtr buf, out int sz))
-            {
-                var err = thn_geterror();
-                var errstring = UnsafeHelpers.PtrToStringUTF8(err);
-                thn_free(err);
-                throw new Exception(errstring);
-            }
-            var compiled = new byte[sz];
-            Marshal.Copy(buf, compiled, 0, sz);
-            thn_free(buf);
+            var compiled = LuaCompiler.Compile(str, name);
             using (var stream = new MemoryStream(compiled))
             {
                 LuaPrototype p;
@@ -69,8 +46,7 @@ namespace LibreLancer.Thorn
                 runtime.Run();
                 return runtime.Globals;
             }
-        }
-        
+        }        
 	}
 }
 
