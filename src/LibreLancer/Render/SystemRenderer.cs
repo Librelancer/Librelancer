@@ -78,7 +78,7 @@ namespace LibreLancer.Render
             }
         }
 
-        GameConfig gconfig;
+        IRendererSettings settings;
         Billboards billboards;
         ResourceManager resman;
         NebulaVertices nebulae;
@@ -101,7 +101,7 @@ namespace LibreLancer.Render
             FxPool = new ParticleEffectPool(commands);
             rstate = resources.Game.RenderContext;
             this.game = game;
-            gconfig = game.GetService<GameConfig>();
+            settings = game.GetService<IRendererSettings>();
             billboards = game.GetService<Billboards>();
             resman = resources;
             nebulae = game.GetService<NebulaVertices>();
@@ -270,7 +270,7 @@ namespace LibreLancer.Render
                 //Don't render on Width/Height = 0
                 return;
             RenderTarget restoreTarget = rstate.RenderTarget;
-			if (gconfig.Settings.MSAA > 0)
+			if (settings.SelectedMSAA > 0)
 			{
 				if (_mwidth != renderWidth || _mheight != renderHeight)
 				{
@@ -278,11 +278,12 @@ namespace LibreLancer.Render
 					_mheight = Game.Height;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(renderWidth, renderHeight, gconfig.Settings.MSAA);
+					msaa = new MultisampleTarget(renderWidth, renderHeight, settings.SelectedMSAA);
 				}
                 rstate.RenderTarget = msaa;
 			}
-            rstate.AnisotropyLevel = gconfig.Settings.Anisotropy;
+            rstate.PreferredFilterLevel = settings.SelectedFiltering;
+            rstate.AnisotropyLevel = settings.SelectedAnisotropy;
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
 
 			bool transitioned = false;
@@ -381,7 +382,7 @@ namespace LibreLancer.Render
                 foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
                 rstate.RenderTarget = null;
-                if (gconfig.Settings.MSAA > 0) rstate.RenderTarget = msaa;
+                if (settings.SelectedMSAA > 0) rstate.RenderTarget = msaa;
 				//Run compute shader
 				pointLightBuffer.BindIndex(0);
 				transparentLightBuffer.BindIndex(1);
@@ -482,7 +483,7 @@ namespace LibreLancer.Render
             }
             debugPoints = new Vector3[0];
 			DebugRenderer.Render();
-			if (gconfig.Settings.MSAA > 0)
+			if (settings.SelectedMSAA > 0)
 			{
                 if(restoreTarget == null)
 				    msaa.BlitToScreen();

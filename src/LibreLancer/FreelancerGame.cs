@@ -134,6 +134,7 @@ namespace LibreLancer
             Services.Add(Nebulae);
             Services.Add(ResourceManager);
             Services.Add(Config);
+            Services.Add(Config.Settings);
             Services.Add(Fonts);
             Services.Add(GameData);
             Services.Add(Sound);

@@ -6,12 +6,13 @@ using System.Globalization;
 using System.IO;
 using System.Xml.Serialization;
 using LibreLancer.Ini;
+using LibreLancer.Render;
 using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
     [WattleScriptUserData]
-    public class GameSettings
+    public class GameSettings : IRendererSettings
     {
         [Entry("master_volume")]
         public float MasterVolume = 1.0f;
@@ -25,6 +26,11 @@ namespace LibreLancer
         public int Anisotropy = 0;
         [Entry("msaa")]
         public int MSAA = 0;
+
+        int IRendererSettings.SelectedAnisotropy => Anisotropy;
+        TextureFiltering IRendererSettings.SelectedFiltering =>
+            Anisotropy == 0 ? TextureFiltering.Trilinear : TextureFiltering.Anisotropic;
+        int IRendererSettings.SelectedMSAA => MSAA;
         
         public int[] AnisotropyLevels() => RenderContext.GetAnisotropyLevels();
         public int MaxMSAA() => RenderContext.MaxSamples;

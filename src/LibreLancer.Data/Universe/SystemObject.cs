@@ -59,7 +59,7 @@ namespace LibreLancer.Data.Universe
         public string DockWith;
 
         [Entry("voice")] 
-        public string voice;
+        public string Voice;
 
         [Entry("space_costume")] 
         public string[] SpaceCostume;

@@ -46,6 +46,7 @@ public class SystemViewerTab : GameContentTab
         this.gameData = gameData;
         
         viewport = new Viewport3D(mw);
+        viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, 4);
         viewport.ModelScale = 1000f;
         viewport.Mode = CameraModes.Walkthrough;

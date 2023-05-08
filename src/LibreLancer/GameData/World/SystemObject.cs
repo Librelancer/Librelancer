@@ -2,12 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
-using LibreLancer.Data;
-using LibreLancer.GameData.Archetypes;
-using LibreLancer.GameData.Items;
 
 namespace LibreLancer.GameData.World
 {
@@ -40,6 +35,8 @@ namespace LibreLancer.GameData.World
         public Color4? BurnColor;
         public Color4? AmbientColor;
         public string Parent;
+        public string Voice;
+        public string[] SpaceCostume;
         
         public SystemObject ()
 		{

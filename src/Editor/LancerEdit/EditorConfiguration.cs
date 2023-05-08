@@ -10,6 +10,7 @@ using System.Text;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Ini;
+using LibreLancer.Render;
 using static System.FormattableString;
 namespace LancerEdit
 {
@@ -22,7 +23,7 @@ namespace LancerEdit
     }
 
     [SelfSection("Config")]
-    public class EditorConfiguration : IniFile
+    public class EditorConfiguration : IniFile, IRendererSettings
     {
         [Entry("msaa")]
         public int MSAA;
@@ -46,6 +47,18 @@ namespace LancerEdit
         private string lastExportPath;
         [Entry("blender_path")] 
         private string blenderPath;
+
+        int IRendererSettings.SelectedAnisotropy => TextureFilter > 2 ? (int)Math.Pow(2, TextureFilter - 2) : 0;
+
+        TextureFiltering IRendererSettings.SelectedFiltering => TextureFilter switch
+        {
+            0  => TextureFiltering.Linear,
+            1 => TextureFiltering.Bilinear,
+            2 => TextureFiltering.Trilinear,
+            _ => TextureFiltering.Anisotropic
+        };
+
+        int IRendererSettings.SelectedMSAA => MSAA;
 
         public string LastExportPath
         {

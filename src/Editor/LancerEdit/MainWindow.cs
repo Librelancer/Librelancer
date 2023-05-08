@@ -129,7 +129,7 @@ namespace LancerEdit
             Services.Add(Billboards);
             Nebulae = new NebulaVertices();
             Services.Add(Nebulae);
-            Services.Add(new GameConfig());
+            Services.Add(Config);
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();
         }
@@ -356,6 +356,7 @@ namespace LancerEdit
                 WaitForEvent(); //Yield like a regular GUI program
                 return;
             }
+            //
             TimeStep = elapsed;
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);

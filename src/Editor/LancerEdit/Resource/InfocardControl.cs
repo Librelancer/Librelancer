@@ -72,7 +72,7 @@ namespace LancerEdit
         }
         public void Dispose()
         {
-            renderTarget.Dispose();
+            renderTarget?.Dispose();
         }
     }
 }

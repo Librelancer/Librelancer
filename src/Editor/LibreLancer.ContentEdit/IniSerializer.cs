@@ -245,6 +245,8 @@ public static class IniSerializer
         }
 
         sb.AppendEntry("behavior", obj.Behavior);
+        sb.AppendEntry("voice", obj.Voice);
+        sb.AppendEntry("space_costume", obj.SpaceCostume);
         sb.AppendEntry("faction", obj.Faction?.Nickname);
         sb.AppendEntry("difficulty_level", obj.DifficultyLevel, false);
         sb.AppendEntry("loadout", obj.Loadout?.Nickname);

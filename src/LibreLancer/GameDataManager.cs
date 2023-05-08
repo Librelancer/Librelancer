@@ -1704,6 +1704,8 @@ namespace LibreLancer
             obj.MsgIdPrefix = o.MsgIdPrefix;
             obj.DifficultyLevel = o.DifficultyLevel ?? 0;
             obj.Parent = o.Parent;
+            obj.Voice = o.Voice;
+            obj.SpaceCostume = o.SpaceCostume;
             if (o.DockWith != null)
             {
                 obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };

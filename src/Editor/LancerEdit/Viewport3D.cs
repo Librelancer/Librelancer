@@ -31,6 +31,8 @@ namespace LancerEdit
         public Vector3 CameraOffset = Vector3.Zero;
         public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         public CameraModes Mode = CameraModes.Arcball;
+        public bool EnableMSAA = true;
+        
         public int RenderWidth { get { return rw; }}
         public int RenderHeight { get { return rh; }}
         
@@ -71,7 +73,7 @@ namespace LancerEdit
                 rw = renderWidth;
                 rh = renderHeight;
             }
-            if (mw.Config.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.Config.MSAA)))
+            if (EnableMSAA && mw.Config.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.Config.MSAA)))
             {
                 if (msaa != null) msaa.Dispose();
                 msaa = new MultisampleTarget(rw, rh, mw.Config.MSAA);
@@ -84,7 +86,7 @@ namespace LancerEdit
                 msaa = null;
             }
             cc = rstate.ClearColor;
-            if (mw.Config.MSAA != 0)
+            if (EnableMSAA && mw.Config.MSAA != 0)
                 rstate.RenderTarget = msaa;
             else
                 rstate.RenderTarget = RenderTarget;
@@ -99,7 +101,7 @@ namespace LancerEdit
         {
             rstate.PopViewport();
             rstate.RenderTarget = null;
-            if (mw.Config.MSAA != 0)
+            if (EnableMSAA && mw.Config.MSAA != 0)
                 msaa.BlitToRenderTarget(RenderTarget);
             rstate.ClearColor = cc;
             rstate.DepthEnabled = false;
@@ -323,6 +325,7 @@ namespace LancerEdit
         }
         public void Dispose()
         {
+            msaa?.Dispose();
             if(RenderTarget != null) {
                 ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
                 RenderTarget.Dispose();
