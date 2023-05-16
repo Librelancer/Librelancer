@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using LibreLancer;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
@@ -17,6 +18,8 @@ public class ZoneRenderer
     private static int CylinderTris;
     private static VertexBuffer Sphere;
     private static int SphereTris;
+    private static VertexBuffer Ring;
+    private static int RingTris;
     
     static (VertexBuffer, int) LoadMesh(string name)
     {
@@ -41,18 +44,21 @@ public class ZoneRenderer
         (Cube, CubeTris) = LoadMesh("LancerEdit.DisplayMeshes.cube.obj");
         (Cylinder, CylinderTris) = LoadMesh("LancerEdit.DisplayMeshes.cylinder.obj");
         (Sphere, SphereTris) = LoadMesh("LancerEdit.DisplayMeshes.icosphere.obj");
+        (Ring, RingTris) = LoadMesh("LancerEdit.DisplayMeshes.ring.obj");
     }
 
     private static RenderContext rstate;
     private static Material material;
     private static WorldMatrixBuffer buf = new WorldMatrixBuffer();
     private static List<ZoneToDraw> draws = new List<ZoneToDraw>();
+    private static ICamera camera;
     struct ZoneToDraw
     {
         public WorldMatrixHandle W;
         public VertexBuffer VBO;
         public int Triangles;
         public Color4 Color;
+        public float Ring;
     }
     
     public static void Begin(RenderContext r, ResourceManager res, ICamera cam)
@@ -60,6 +66,7 @@ public class ZoneRenderer
         rstate = r;
         material = new Material(res);
         material.Update(cam);
+        camera = cam;
     }
 
     public static void DrawCube(
@@ -92,6 +99,29 @@ public class ZoneRenderer
         var b = buf.SubmitMatrix(ref w);
         draws.Add(new ZoneToDraw() {
             W = b, VBO = Cylinder, Triangles = CylinderTris, Color = color
+        });
+    }
+    
+    public static void DrawRing(
+        Vector3 position, 
+        float innerRadius,
+        float outerRadius,
+        float height,
+        Matrix4x4 rotation, 
+        Color4 color
+    )
+    {
+        if (innerRadius / outerRadius < float.Epsilon) {
+            DrawCylinder(position, outerRadius, height, rotation, color);
+            return;
+        }
+        var w = Matrix4x4.CreateScale(new Vector3(outerRadius, height, outerRadius)) *
+                rotation *
+                Matrix4x4.CreateTranslation(position);
+        var b = buf.SubmitMatrix(ref w);
+        draws.Add(new ZoneToDraw() {
+            W = b, VBO = Ring, Triangles = RingTris, Color = color,
+            Ring = innerRadius / outerRadius,
         });
     }
     
@@ -134,12 +164,26 @@ public class ZoneRenderer
         rstate.DepthWrite = false;
         foreach (var draw in draws)
         {
-            m.Dc = draw.Color;
-            m.Oc = draw.Color.A;
-            m.AlphaEnabled = true;
-            m.OcEnabled = true;
-            m.World = draw.W;
-            m.Use(rstate, new VertexPosition(), ref Lighting.Empty);
+            if (draw.Ring > 0)
+            {
+                //Shader to resize ring correctly
+                var r = new RingMaterial();
+                r.Dc = draw.Color;
+                r.World = draw.W;
+                r.Camera = camera;
+                r.RadiusRatio = draw.Ring;
+                r.Use(rstate, new VertexPosition(),ref Lighting.Empty);
+            }
+            else
+            {
+                m.Dc = draw.Color;
+                m.Oc = draw.Color.A;
+                m.AlphaEnabled = true;
+                m.OcEnabled = true;
+                m.World = draw.W;
+                m.Use(rstate, new VertexPosition(), ref Lighting.Empty);
+            }
+
             draw.VBO.Draw(PrimitiveTypes.TriangleList, 0, 0, draw.Triangles);
         }
         buf.Reset();

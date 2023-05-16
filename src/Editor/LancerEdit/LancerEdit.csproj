@@ -54,6 +54,8 @@
         <EmbeddedResource Include="DisplayMeshes\cylinder.obj" />
         <None Remove="DisplayMeshes\icosphere.obj" />
         <EmbeddedResource Include="DisplayMeshes\icosphere.obj" />
+        <None Remove="DisplayMeshes\ring.obj" />
+        <EmbeddedResource Include="DisplayMeshes\ring.obj" />
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

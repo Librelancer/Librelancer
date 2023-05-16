@@ -11,7 +11,7 @@ namespace LibreLancer.Shaders
 {
     using System;
     
-    public class SunRadial
+    public class Ring
     {
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
@@ -32,10 +32,10 @@ namespace LibreLancer.Shaders
                 return;
             }
             iscompiled = true;
-            ShaderVariables.Log("Compiling SunRadial");
+            ShaderVariables.Log("Compiling Ring");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(333426, 906), sourceBundle.Substring(334332, 464));
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(332724, 561), sourceBundle.Substring(333285, 141));
         }
     }
 }

@@ -198,6 +198,9 @@ public class SystemViewerTab : GameContentTab
                 case ZoneCylinder cyl:
                     ZoneRenderer.DrawCylinder(z.Position, cyl.Radius, cyl.Height, z.RotationMatrix, zoneColor);
                     break;
+                case ZoneRing ring:
+                    ZoneRenderer.DrawRing(z.Position, ring.InnerRadius, ring.OuterRadius, ring.Height, z.RotationMatrix, zoneColor);
+                    break;
                 case ZoneBox box:
                     ZoneRenderer.DrawCube(z.Position, box.Size, z.RotationMatrix, zoneColor);
                     break;
