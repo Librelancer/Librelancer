@@ -36,7 +36,11 @@ namespace LibreLancer.Render
 			set { LoadSystem(value); }
 		}
 		
-		//Global Renderer Options
+        //Editor Options
+        public bool DrawNebulae { get; set; } = true;
+        public bool DrawStarsphere { get; set; } = true;
+        
+        //Global Renderer Options
 		public float LODMultiplier = 1.3f;
 		public bool ExtraLights = false; //See comments in Draw() before enabling
 
@@ -288,7 +292,7 @@ namespace LibreLancer.Render
 
 			bool transitioned = false;
 			if (nr != null)
-				transitioned = nr.FogTransitioned();
+				transitioned = nr.FogTransitioned() && DrawNebulae;
 			rstate.DepthEnabled = true;
 			//Add Nebula light
 			if (GLExtensions.Features430 && ExtraLights)
@@ -419,19 +423,23 @@ namespace LibreLancer.Render
             FxPool.Draw(camera, Polyline, resman, DebugRenderer);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, commands, nr);
 			nebulae.NewFrame();
-			if (nr == null)
-			{
-				for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands);
-			}
-			else
-				nr.Draw(commands);
-			nebulae.SetData();
+            if (DrawNebulae)
+            {
+                if (nr == null)
+                {
+                    for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands);
+                }
+                else
+                    nr.Draw(commands);
+            }
+
+            nebulae.SetData();
 			billboards.End();
 			Polyline.FrameEnd();
 			//Opaque Pass
 			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);
-            if (!transitioned)
+            if ((!transitioned || !DrawNebulae) && DrawStarsphere)
             {
                 //Starsphere
                 rstate.DepthRange = new Vector2(1, 1);
@@ -455,7 +463,7 @@ namespace LibreLancer.Render
                     }
                 }
                 if (camera is ThnCamera thn2 && !ZOverride) thn2.CameraZ();
-                if (nr != null)
+                if (nr != null && DrawNebulae)
                 {
                     //rstate.DepthEnabled = false;
                     nr.RenderFogTransition();

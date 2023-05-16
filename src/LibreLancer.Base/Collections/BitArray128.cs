@@ -41,6 +41,9 @@ namespace LibreLancer
                 }
             }
         }
+
+        public bool Any() => a != 0 || b != 0;
+        
         public static bool operator ==(BitArray128 a, BitArray128 b)
         {
             return a.a == b.a && a.b == b.b;

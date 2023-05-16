@@ -48,6 +48,12 @@
         </None>
         <None Remove="splash.png" />
         <EmbeddedResource Include="splash.png" />
+        <None Remove="DisplayMeshes\cube.obj" />
+        <EmbeddedResource Include="DisplayMeshes\cube.obj" />
+        <None Remove="DisplayMeshes\cylinder.obj" />
+        <EmbeddedResource Include="DisplayMeshes\cylinder.obj" />
+        <None Remove="DisplayMeshes\icosphere.obj" />
+        <EmbeddedResource Include="DisplayMeshes\icosphere.obj" />
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

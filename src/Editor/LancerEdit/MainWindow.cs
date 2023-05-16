@@ -93,6 +93,7 @@ namespace LancerEdit
         {
             AllShaders.Compile();
             DefaultMaterialMap.Init();
+            ZoneRenderer.Load();
 			Title = "LancerEdit";
             guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;

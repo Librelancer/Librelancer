@@ -1017,13 +1017,10 @@ namespace LibreLancer
                         if (zne.Rotate != null)
                         {
                             var r = zne.Rotate.Value;
-
-                            var qx = Quaternion.CreateFromYawPitchRoll(
-                                MathHelper.DegreesToRadians(r.Y),
-                                MathHelper.DegreesToRadians(r.X),
-                                MathHelper.DegreesToRadians(r.Z)
-                            );
-                            z.RotationMatrix = Matrix4x4.CreateFromQuaternion(qx);
+                            z.RotationMatrix =
+                                Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(r.X)) *
+                                Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(r.Y)) *
+                                Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(r.Z));
                             z.RotationAngles = new Vector3(
                                 MathHelper.DegreesToRadians(r.X),
                                 MathHelper.DegreesToRadians(r.Y),

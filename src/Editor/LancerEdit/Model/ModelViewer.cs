@@ -210,18 +210,18 @@ namespace LancerEdit
         }
         Vector2 rotation = Vector2.Zero;
         bool firstTab = true;
-        bool[] openTabs = new bool[] { false, false, false, false, false };
+        BitArray128 openTabs;
         void TabButton(string name, int idx)
         {
             if (TabHandler.VerticalTab($"{name}", openTabs[idx]))
             {
                 if (!openTabs[idx])
                 {
-                    for (int i = 0; i < openTabs.Length; i++) openTabs[i] = false;
+                    openTabs = new BitArray128();
                     openTabs[idx] = true;
                 }
                 else
-                    openTabs[idx] = false;
+                    openTabs = new BitArray128();
             }
         }
         void TabButtons()
@@ -250,13 +250,11 @@ namespace LancerEdit
 
         public override void Draw()
         {
-            bool doTabs = false;
             popups.Run();
             HardpointEditor();
             PartEditor();
-            foreach (var t in openTabs) if (t) { doTabs = true; break; }
             var contentw = ImGui.GetContentRegionAvail().X;
-            if (doTabs)
+            if (openTabs.Any())
             {
                 ImGui.Columns(2, "##panels", true);
                 if (firstTab)

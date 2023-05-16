@@ -1455,6 +1455,11 @@ namespace LibreLancer
 
 		#endregion
 
+        public Color4 ChangeAlpha(float a)
+        {
+            return new Color4(this.Rgb, a);
+        }
+
 		public static Color4 operator +(Color4 left, Color4 right)
 		{
 			return new Color4(
