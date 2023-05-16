@@ -16,14 +16,11 @@ public enum Hotkeys
 }
 
 public abstract class EditorTab : DockTab
-{
+{ 
+    public ISaveStrategy SaveStrategy { get; set; } = new NoSaveStrategy();
+
     public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
     {
-    }
-
-    public virtual void SetActiveTab(MainWindow win)
-    {
-        win.ActiveTab = null;
     }
 
     public virtual void OnHotkey(Hotkeys hk)

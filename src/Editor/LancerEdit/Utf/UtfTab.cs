@@ -16,7 +16,6 @@ using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Utf.Cmp;
 
-
 namespace LancerEdit
 {
     public partial class UtfTab : EditorTab
@@ -44,17 +43,14 @@ namespace LancerEdit
                 main.Resources.AddResources(utf.Source, Unique.ToString());
                 utf.Source = null;
             }
+            SaveStrategy = new UtfSaveStrategy(main, this);
             RegisterPopups();
         }
         public void UpdateTitle()
         {
             Title = DocumentName;
         }
-        public override void SetActiveTab(MainWindow win)
-        {
-            win.ActiveTab = this;
-        }
-      
+     
         ImGuiTreeNodeFlags tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
         TextBuffer text;
 
