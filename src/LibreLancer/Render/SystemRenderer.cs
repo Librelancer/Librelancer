@@ -37,8 +37,8 @@ namespace LibreLancer.Render
 		}
 		
         //Editor Options
-        public bool DrawNebulae { get; set; } = true;
-        public bool DrawStarsphere { get; set; } = true;
+        public bool DrawNebulae = true;
+        public bool DrawStarsphere = true;
         
         //Global Renderer Options
 		public float LODMultiplier = 1.3f;

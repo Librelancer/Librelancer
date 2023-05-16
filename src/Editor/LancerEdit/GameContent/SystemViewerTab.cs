@@ -314,19 +314,6 @@ public class SystemViewerTab : GameContentTab
     public override void Draw()
     {
         ImGuiHelper.AnimatingElement();
-        if (ImGuiExt.ToggleButton("Maps", universeOpen)) universeOpen = !universeOpen;
-        ImGui.SameLine();
-        if (ImGuiExt.ToggleButton("Infocard", infocardOpen)) infocardOpen = !infocardOpen;
-        ImGui.SameLine();
-        if (ImGui.Button("To Text"))
-        {
-            win.TextWindows.Add(new TextDisplayWindow(IniSerializer.SerializeStarSystem(curSystem), $"{curSystem.Nickname}.ini"));
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Change System (F6)")) doChangeSystem = true;
-        ImGui.SameLine();
-        var curSysName = gameData.GameData.GetString(curSystem.IdsName);
-        ImGui.TextUnformatted($"Current System: {curSysName} ({curSystem.Nickname})");
         var contentw = ImGui.GetContentRegionAvail().X;
         if (openTabs.Any())
         {
@@ -342,9 +329,26 @@ public class SystemViewerTab : GameContentTab
             ImGui.NextColumn();
         }
         TabButtons();
+        ImGui.BeginChild("##main");
+        using (var tb = Toolbar.Begin("##toolbar", false))
+        {
+            var curSysName = gameData.GameData.GetString(curSystem.IdsName);
+            tb.TextItem($"Current System: {curSysName} ({curSystem.Nickname})");
+            tb.ToggleButtonItem("Maps", ref universeOpen);
+            tb.ToggleButtonItem("Infocard", ref infocardOpen);
+            if (tb.ButtonItem("Change System (F6)")) {
+                doChangeSystem = true;
+            }
+            tb.CheckItem("Nebulae", ref renderer.DrawNebulae);
+            tb.CheckItem("Starspheres", ref renderer.DrawStarsphere);
+            if (tb.ButtonItem("To Text")) {
+                win.TextWindows.Add(new TextDisplayWindow(IniSerializer.SerializeStarSystem(curSystem), $"{curSystem.Nickname}.ini"));
+            }
+        }
         viewport.Begin();
         renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
         viewport.End();
+        ImGui.EndChild();
         DrawMaps();
         DrawInfocard();
         if(doChangeSystem) {
