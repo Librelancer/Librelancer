@@ -106,6 +106,7 @@ namespace LancerEdit
             res = win.Resources;
             buffer = win.Commands;
             _window = win;
+            SaveStrategy = parent.SaveStrategy;
             if (drawable is CmpFile)
             {
                 //Setup Editor UI for constructs + hardpoints
@@ -195,10 +196,6 @@ namespace LancerEdit
             parent.DirtyCountPart++;
         }
 
-        public override void SetActiveTab(MainWindow win)
-        {
-            win.ActiveTab = parent;
-        }
         public override void Update(double elapsed)
         {
             if (animator != null)
