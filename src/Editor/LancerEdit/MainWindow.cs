@@ -187,7 +187,8 @@ namespace LancerEdit
         {
             if (f != null && File.Exists(f))
             {
-                switch (DetectFileType.Detect(f))
+                var detectedType = DetectFileType.Detect(f);
+                switch (detectedType)
                 {
                     case FileType.Utf:
                         var t = new UtfTab(this, new EditableUtf(f), Path.GetFileName(f));
@@ -197,7 +198,8 @@ namespace LancerEdit
                         guiHelper.ResetRenderTimer();
                         break;
                     case FileType.Thn:
-                        var lt = new ThornTab(this, f, Path.GetFileName(f));
+                    case FileType.Lua:
+                        var lt = new ThornTab(this, f, detectedType == FileType.Lua);
                         recentFiles.FileOpened(f);                        
                         AddTab(lt);
                         break;
@@ -345,6 +347,7 @@ namespace LancerEdit
                     c.Load(this, folder, () =>
                     {
                         OpenDataContext = c;
+                        Resources = c.Resources;
                         FinishLoadingSpinner();
                     });                
                 }

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Thorn
 {
-    public class LuaCompiler
+    public static class LuaCompiler
     {
         [DllImport("thorncompiler")]
         static extern bool thn_compile(

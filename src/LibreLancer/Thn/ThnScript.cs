@@ -100,32 +100,45 @@ namespace LibreLancer.Thn
 		public double Duration;
 		public Dictionary<string, ThnEntity> Entities = new Dictionary<string, ThnEntity>(StringComparer.OrdinalIgnoreCase);
 		public List<ThnEvent> Events = new List<ThnEvent>();
+
 		public ThnScript (string scriptfile)
 		{
 			var runner = new LuaRunner (ThnEnv);
-			var output = runner.DoFile (scriptfile);
-			Duration = (float)output["duration"];
-			var entities = (LuaTable)output["entities"];
-			for (int i = 0; i < entities.Capacity; i++)
-			{
-				var ent = (LuaTable)entities[i];
-				var e = GetEntity(ent);
-				if (Entities.ContainsKey(e.Name))
-				{
-					FLLog.Error("Thn", "Overwriting entity: \"" + e.Name + '"');
-					Entities[e.Name] = e;
-				} else
-					Entities.Add(e.Name, e);
-			}
-			var events = (LuaTable)output["events"];
-			for (int i = 0; i < events.Capacity; i++)
-			{
-				var ev = (LuaTable)events[i];
-				var e = GetEvent(ev);
-				Events.Add(e);
-			}
-			Events.Sort((x, y) => x.Time.CompareTo(y.Time));
+            Initialize(runner.DoFile(scriptfile));
 		}
+
+        public ThnScript(byte[] bytes)
+        {
+            var runner = new LuaRunner(ThnEnv);
+            Initialize(runner.DoBytes(bytes));
+        }
+
+        private void Initialize(IDictionary<string, object> output)
+        {
+            Duration = (float)output["duration"];
+            var entities = (LuaTable)output["entities"];
+            for (int i = 0; i < entities.Capacity; i++)
+            {
+                var ent = (LuaTable)entities[i];
+                var e = GetEntity(ent);
+                if (Entities.ContainsKey(e.Name))
+                {
+                    FLLog.Error("Thn", "Overwriting entity: \"" + e.Name + '"');
+                    Entities[e.Name] = e;
+                }
+                else
+                    Entities.Add(e.Name, e);
+            }
+            var events = (LuaTable)output["events"];
+            for (int i = 0; i < events.Capacity; i++)
+            {
+                var ev = (LuaTable)events[i];
+                var e = GetEvent(ev);
+                Events.Add(e);
+            }
+            Events.Sort((x, y) => x.Time.CompareTo(y.Time));
+        }
+
 		ThnEvent GetEvent(LuaTable table)
 		{
             var t = ThnTypes.Convert<EventTypes>(table[1]);

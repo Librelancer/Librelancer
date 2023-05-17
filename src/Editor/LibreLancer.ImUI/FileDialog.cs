@@ -76,7 +76,9 @@ namespace LibreLancer.ImUI
         );
 
         public static readonly FileDialogFilters ThnFilters = new FileDialogFilters(
-            new FileFilter("Thorn Files", "thn")
+            new FileFilter("Thorn Files", "thn", "lua"),
+            new FileFilter("Thn Files", "thn"),
+            new FileFilter("Lua Files", "lua")
         );
 
         public static FileDialogFilters operator +(FileDialogFilters left, FileDialogFilters right)
