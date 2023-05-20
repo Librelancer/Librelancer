@@ -181,28 +181,29 @@ public class SystemViewerTab : GameContentTab
 
     private void RenderZones()
     {
-        ZoneRenderer.Begin(win.RenderContext, gameData.Resources, camera);
+        ZoneRenderer.Begin(win.RenderContext, camera);
         foreach (var z in curSystem.Zones)
         {
             if (z.Nickname != hoveredZone && !renderZones.Contains(z.Nickname)) continue;
             var zoneColor = zoneColors[(int) zoneTypes.GetValueOrDefault(z.Nickname, ZoneDisplayKind.Normal)]
                 .ChangeAlpha(0.5f);
+            bool inZone = z.Shape.ContainsPoint(camera.Position);
             switch (z.Shape)
             {
                 case ZoneSphere sph:
-                    ZoneRenderer.DrawSphere(z.Position, sph.Radius, z.RotationMatrix, zoneColor);
+                    ZoneRenderer.DrawSphere(z.Position, sph.Radius, z.RotationMatrix, zoneColor, inZone);
                     break;
                 case ZoneEllipsoid epl:
-                    ZoneRenderer.DrawEllipsoid(z.Position, epl.Size, z.RotationMatrix, zoneColor);
+                    ZoneRenderer.DrawEllipsoid(z.Position, epl.Size, z.RotationMatrix, zoneColor, inZone);
                     break;
                 case ZoneCylinder cyl:
-                    ZoneRenderer.DrawCylinder(z.Position, cyl.Radius, cyl.Height, z.RotationMatrix, zoneColor);
+                    ZoneRenderer.DrawCylinder(z.Position, cyl.Radius, cyl.Height, z.RotationMatrix, zoneColor, inZone);
                     break;
                 case ZoneRing ring:
-                    ZoneRenderer.DrawRing(z.Position, ring.InnerRadius, ring.OuterRadius, ring.Height, z.RotationMatrix, zoneColor);
+                    ZoneRenderer.DrawRing(z.Position, ring.InnerRadius, ring.OuterRadius, ring.Height, z.RotationMatrix, zoneColor, inZone);
                     break;
                 case ZoneBox box:
-                    ZoneRenderer.DrawCube(z.Position, box.Size, z.RotationMatrix, zoneColor);
+                    ZoneRenderer.DrawCube(z.Position, box.Size, z.RotationMatrix, zoneColor, inZone);
                     break;
             }
         }

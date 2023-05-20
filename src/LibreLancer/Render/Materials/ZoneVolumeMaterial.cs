@@ -9,12 +9,12 @@ using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials
 {
-    public class RingMaterial : RenderMaterial
+    public class ZoneVolumeMaterial : RenderMaterial
     {
         public Color4 Dc = Color4.White;
         public float RadiusRatio;
         
-        public RingMaterial()
+        public ZoneVolumeMaterial()
         {
         }
         
@@ -37,7 +37,7 @@ namespace LibreLancer.Render.Materials
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
         {
             rstate.BlendMode = BlendMode.Normal;
-            var shader = Shaders.Ring.Get();
+            var shader = Shaders.ZoneVolume.Get();
             shader.SetWorld(World);
             shader.SetViewProjection(Camera);
             //Colors

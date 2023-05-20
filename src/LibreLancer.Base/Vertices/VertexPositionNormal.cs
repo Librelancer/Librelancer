@@ -22,6 +22,12 @@ namespace LibreLancer.Vertices
             this.Normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
         }
 
+        public VertexPositionNormal(Vector3 position, Vector3 normal)
+        {
+            this.Position = position;
+            this.Normal = normal;
+        }
+
 		public VertexDeclaration GetVertexDeclaration()
 		{
 			return new VertexDeclaration (

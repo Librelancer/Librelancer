@@ -49,13 +49,17 @@
         <None Remove="splash.png" />
         <EmbeddedResource Include="splash.png" />
         <None Remove="DisplayMeshes\cube.obj" />
-        <EmbeddedResource Include="DisplayMeshes\cube.obj" />
         <None Remove="DisplayMeshes\cylinder.obj" />
-        <EmbeddedResource Include="DisplayMeshes\cylinder.obj" />
         <None Remove="DisplayMeshes\icosphere.obj" />
-        <EmbeddedResource Include="DisplayMeshes\icosphere.obj" />
         <None Remove="DisplayMeshes\ring.obj" />
-        <EmbeddedResource Include="DisplayMeshes\ring.obj" />
+        <None Remove="DisplayMeshes\cube.glb" />
+        <EmbeddedResource Include="DisplayMeshes\cube.glb" />
+        <None Remove="DisplayMeshes\cylinder.glb" />
+        <EmbeddedResource Include="DisplayMeshes\cylinder.glb" />
+        <None Remove="DisplayMeshes\icosphere.glb" />
+        <EmbeddedResource Include="DisplayMeshes\icosphere.glb" />
+        <None Remove="DisplayMeshes\ring.glb" />
+        <EmbeddedResource Include="DisplayMeshes\ring.glb" />
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

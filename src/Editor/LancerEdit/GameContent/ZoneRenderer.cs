@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -5,8 +6,9 @@ using System.Runtime.CompilerServices;
 using LibreLancer;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
-using LibreLancer.Utf.Mat;
 using LibreLancer.Vertices;
+using SimpleMesh;
+using Material = LibreLancer.Utf.Mat.Material;
 
 namespace LancerEdit;
 
@@ -26,12 +28,14 @@ public class ZoneRenderer
         using (var stream = typeof(ZoneRenderer).Assembly.GetManifestResourceStream(name))
         {
             var msh = SimpleMesh.Model.FromStream(stream);
-            var vertices = msh.Roots[0].Geometry.Vertices.Select(x => new VertexPosition(x.Position)).ToArray();
+            if ((msh.Roots[0].Geometry.Attributes & VertexAttributes.Normal) == 0)
+                throw new Exception("Missing normals");
+            var vertices = msh.Roots[0].Geometry.Vertices.Select(x => new VertexPositionNormal(x.Position, x.Normal)).ToArray();
             var indices = msh.Roots[0].Geometry.Indices.Indices16;
 
             var elementBuf = new ElementBuffer(indices.Length);
             elementBuf.SetData(indices);
-            var vbo = new VertexBuffer(typeof(VertexPosition), vertices.Length);
+            var vbo = new VertexBuffer(typeof(VertexPositionNormal), vertices.Length);
             vbo.SetData(vertices);
             vbo.SetElementBuffer(elementBuf);
             return (vbo, indices.Length / 3);
@@ -41,10 +45,10 @@ public class ZoneRenderer
     public static void Load()
     {
         if (Cube != null) return;
-        (Cube, CubeTris) = LoadMesh("LancerEdit.DisplayMeshes.cube.obj");
-        (Cylinder, CylinderTris) = LoadMesh("LancerEdit.DisplayMeshes.cylinder.obj");
-        (Sphere, SphereTris) = LoadMesh("LancerEdit.DisplayMeshes.icosphere.obj");
-        (Ring, RingTris) = LoadMesh("LancerEdit.DisplayMeshes.ring.obj");
+        (Cube, CubeTris) = LoadMesh("LancerEdit.DisplayMeshes.cube.glb");
+        (Cylinder, CylinderTris) = LoadMesh("LancerEdit.DisplayMeshes.cylinder.glb");
+        (Sphere, SphereTris) = LoadMesh("LancerEdit.DisplayMeshes.icosphere.glb");
+        (Ring, RingTris) = LoadMesh("LancerEdit.DisplayMeshes.ring.glb");
     }
 
     private static RenderContext rstate;
@@ -59,13 +63,12 @@ public class ZoneRenderer
         public int Triangles;
         public Color4 Color;
         public float Ring;
+        public bool FlipNormals;
     }
     
-    public static void Begin(RenderContext r, ResourceManager res, ICamera cam)
+    public static void Begin(RenderContext r, ICamera cam)
     {
         rstate = r;
-        material = new Material(res);
-        material.Update(cam);
         camera = cam;
     }
 
@@ -73,15 +76,16 @@ public class ZoneRenderer
         Vector3 position, 
         Vector3 size, 
         Matrix4x4 rotation, 
-        Color4 color
-        )
+        Color4 color,
+        bool inZone)
     {
         var w = Matrix4x4.CreateScale(size) *
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
         draws.Add(new ZoneToDraw() {
-            W = b, VBO = Cube, Triangles = CubeTris, Color = color
+            W = b, VBO = Cube, Triangles = CubeTris, Color = color,
+            FlipNormals = inZone
         });
     }
     
@@ -90,15 +94,16 @@ public class ZoneRenderer
         float radius,
         float height,
         Matrix4x4 rotation, 
-        Color4 color
-    )
+        Color4 color,
+        bool inZone)
     {
         var w = Matrix4x4.CreateScale(new Vector3(radius, height, radius)) *
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
         draws.Add(new ZoneToDraw() {
-            W = b, VBO = Cylinder, Triangles = CylinderTris, Color = color
+            W = b, VBO = Cylinder, Triangles = CylinderTris, Color = color,
+            FlipNormals = inZone,
         });
     }
     
@@ -108,11 +113,11 @@ public class ZoneRenderer
         float outerRadius,
         float height,
         Matrix4x4 rotation, 
-        Color4 color
-    )
+        Color4 color,
+        bool inZone)
     {
         if (innerRadius / outerRadius < float.Epsilon) {
-            DrawCylinder(position, outerRadius, height, rotation, color);
+            DrawCylinder(position, outerRadius, height, rotation, color, inZone);
             return;
         }
         var w = Matrix4x4.CreateScale(new Vector3(outerRadius, height, outerRadius)) *
@@ -121,7 +126,7 @@ public class ZoneRenderer
         var b = buf.SubmitMatrix(ref w);
         draws.Add(new ZoneToDraw() {
             W = b, VBO = Ring, Triangles = RingTris, Color = color,
-            Ring = innerRadius / outerRadius,
+            Ring = innerRadius / outerRadius, FlipNormals = inZone,
         });
     }
     
@@ -129,15 +134,16 @@ public class ZoneRenderer
         Vector3 position, 
         float radius,
         Matrix4x4 rotation, 
-        Color4 color
-    )
+        Color4 color,
+        bool inZone)
     {
         var w = Matrix4x4.CreateScale(radius) *
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
         draws.Add(new ZoneToDraw() {
-            W = b, VBO = Sphere, Triangles = SphereTris, Color = color
+            W = b, VBO = Sphere, Triangles = SphereTris, Color = color,
+            FlipNormals = inZone
         });
     }
     
@@ -145,47 +151,35 @@ public class ZoneRenderer
         Vector3 position, 
         Vector3 size,
         Matrix4x4 rotation, 
-        Color4 color
-    )
+        Color4 color,
+        bool inZone)
     {
         var w = Matrix4x4.CreateScale(size) *
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
         draws.Add(new ZoneToDraw() {
-            W = b, VBO = Sphere, Triangles = SphereTris, Color = color
+            W = b, VBO = Sphere, Triangles = SphereTris, Color = color,
+            FlipNormals = inZone
         });
     }
 
     public static void Finish()
     {
-        var m = (BasicMaterial) material.Render;
-        rstate.Cull = false;
+        rstate.Cull = true;
         rstate.DepthWrite = false;
         foreach (var draw in draws)
         {
-            if (draw.Ring > 0)
-            {
-                //Shader to resize ring correctly
-                var r = new RingMaterial();
-                r.Dc = draw.Color;
-                r.World = draw.W;
-                r.Camera = camera;
-                r.RadiusRatio = draw.Ring;
-                r.Use(rstate, new VertexPosition(),ref Lighting.Empty);
-            }
-            else
-            {
-                m.Dc = draw.Color;
-                m.Oc = draw.Color.A;
-                m.AlphaEnabled = true;
-                m.OcEnabled = true;
-                m.World = draw.W;
-                m.Use(rstate, new VertexPosition(), ref Lighting.Empty);
-            }
-
+            var r = new ZoneVolumeMaterial();
+            r.Dc = draw.Color;
+            r.World = draw.W;
+            r.Camera = camera;
+            r.RadiusRatio = draw.Ring;
+            r.Use(rstate, new VertexPositionNormal(),ref Lighting.Empty);
+            rstate.CullFace = draw.FlipNormals ? CullFaces.Front : CullFaces.Back;
             draw.VBO.Draw(PrimitiveTypes.TriangleList, 0, 0, draw.Triangles);
         }
+        rstate.CullFace = CullFaces.Back;
         buf.Reset();
         draws = new List<ZoneToDraw>();
         rstate.Cull = true;

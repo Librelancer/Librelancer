@@ -11,7 +11,7 @@ namespace LibreLancer.Shaders
 {
     using System;
     
-    public class Ring
+    public class ZoneVolume
     {
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
@@ -32,10 +32,10 @@ namespace LibreLancer.Shaders
                 return;
             }
             iscompiled = true;
-            ShaderVariables.Log("Compiling Ring");
+            ShaderVariables.Log("Compiling ZoneVolume");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(332724, 561), sourceBundle.Substring(333285, 141));
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(334461, 874), sourceBundle.Substring(335335, 442));
         }
     }
 }
