@@ -127,7 +127,6 @@ namespace LancerEdit
         private static int jk = 0;
         void ProcessSur(SurFile surfile)
         {
-            File.WriteAllText("/home/cmcging/Desktop/sur" + jk++, JSON.Serialize(surfile));
             if(surs != null) {
                 foreach(var mdl in surs)
                 {

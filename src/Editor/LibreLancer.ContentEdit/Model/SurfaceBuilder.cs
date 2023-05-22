@@ -23,11 +23,6 @@ public static class SurfaceBuilder
             ms.Seek(0, SeekOrigin.Begin);
             var f2 = SurFile.Read(ms);
             var verifyDescription = DescribeSur(f2);
-            if (originalDescription != verifyDescription)
-            {
-                File.WriteAllText("/home/cmcging/tmp/1.txt", originalDescription);
-                File.WriteAllText("/home/cmcging/tmp/2.txt", verifyDescription);
-            }
             return originalDescription == verifyDescription;
         }
     }
