@@ -13,7 +13,7 @@ namespace LibreLancer
 		public event TextInputHandler TextInput;
 		public event KeyEventHandler KeyDown;
 		public event KeyEventHandler KeyUp;
-		Dictionary<Keys, bool> keysDown = new Dictionary<Keys, bool>();
+        private BitArray512 keysDown = new BitArray512();
 
 		internal Keyboard ()
 		{
@@ -29,27 +29,27 @@ namespace LibreLancer
 		{
 			if (KeyDown != null)
 				KeyDown (new KeyEventArgs (key, mod, isRepeat));
-			keysDown [key] = true;
+			keysDown [(int)key] = true;
 		}
 
 		internal void OnKeyUp (Keys key, KeyModifiers mod)
 		{
 			if (KeyUp != null)
 				KeyUp (new KeyEventArgs (key, mod, false));
-			keysDown [key] = false;
+			keysDown [(int)key] = false;
 		}
 
 		public bool IsKeyDown(Keys key)
-		{
-			return keysDown.ContainsKey (key) && keysDown [key];
+        {
+            return (int) key > 0 && (int) key < 512 && keysDown[(int)key];
 		}
 
 		public bool IsKeyUp (Keys key)
-		{
-			if (keysDown.ContainsKey (key))
-				return !keysDown [key];
-			return true;
-		}
-	}
+        {
+            return (int) key < 0 || (int) key > 511 || !keysDown[(int) key];
+        }
+
+        public bool AnyKeyDown() => keysDown.Any();
+    }
 }
 

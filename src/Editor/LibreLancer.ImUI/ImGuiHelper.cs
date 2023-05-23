@@ -301,7 +301,9 @@ namespace LibreLancer.ImUI
         public bool DoRender(double elapsed)
         {
             if (elapsed > 0.05) elapsed = 0;
-            if (game.EventsThisFrame || (animating && !(PauseWhenUnfocused && !game.Focused)))
+            if (game.EventsThisFrame || 
+                (animating && !(PauseWhenUnfocused && !game.Focused))
+                || game.Keyboard.AnyKeyDown())
                 renderTimer = RENDER_TIME;
             animating = false;
             renderTimer -= elapsed;
@@ -358,7 +360,7 @@ namespace LibreLancer.ImUI
 			ImGuiIOPtr io = ImGui.GetIO();
 			io.DisplaySize = new Vector2(game.Width, game.Height);
 			io.DisplayFramebufferScale = new Vector2(1, 1);
-			io.DeltaTime = (float)elapsed;
+			io.DeltaTime = elapsed > 1 ? 0 : (float)elapsed;
 			//Update input
 			io.MousePos = new Vector2(game.Mouse.X, game.Mouse.Y);
 			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);

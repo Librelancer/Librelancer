@@ -50,6 +50,8 @@ public class InfocardBrowserTab : GameContentTab
     private const string Popup_AddInfocard = "Add Infocard";
     private IdsSearch searchWindow;
 
+    private bool showDllList = false;
+
 
     public InfocardBrowserTab(GameDataContext gameData, MainWindow win)
     {
@@ -209,8 +211,18 @@ public class InfocardBrowserTab : GameContentTab
             ResetListContent();
         }
 
-
+        ImGui.SameLine();
+        if (ImGuiExt.ToggleButton("Dll List", showDllList)) showDllList = !showDllList;
         ImGui.Separator();
+        if (showDllList && ImGui.Begin("Dll List", ref showDllList)) 
+        {
+            ImGui.PushFont(ImGuiHelper.SystemMonospace);
+            for (int i = 0; i < manager.Dlls.Count; i++) {
+                ImGui.TextUnformatted($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(manager.Dlls[i].SavePath)}");
+            }
+            ImGui.PopFont();
+            ImGui.End();
+        }
         ImGui.Columns(2, "cols", true);
         //list
         ImGui.BeginChild("##list");
@@ -457,7 +469,7 @@ public class InfocardBrowserTab : GameContentTab
         }
         else
         {
-            ImGui.TextDisabled($"Dll: {Path.GetFileName(manager.Dlls[id >> 16].SavePath)}");
+            ImGui.TextDisabled($"Dll: {Path.GetFileName(manager.Dlls[state.NewIds >> 16].SavePath)}");
             canSave = true;
         }
         if (ImGuiExt.Button("Save", canSave))
