@@ -6,16 +6,14 @@ out vec3 out_normal;
 
 uniform mat4x4 World;
 uniform mat4x4 ViewProjection;
-uniform mat4x4 NormalMatrix;
 
 void main()
 {
 	vec4 pos = (ViewProjection * World) * vec4(vertex_position, 1.0);
 	gl_Position = pos;
-	vec3 transformed = (NormalMatrix * vec4(vertex_normal,0)).xyz;
     //output red when model doesn't really have normals
     float sum = vertex_normal.x + vertex_normal.y + vertex_normal.z;
-    out_normal = mix(transformed,vec3(1.,0,0),step(2.9, sum));
+    out_normal = mix(vertex_normal,vec3(1.,0,0),step(2.9, sum));
 }
 
 @fragment
@@ -25,5 +23,5 @@ in vec3 out_normal;
 void main()
 {
 	vec3 n = normalize(out_normal);
-	out_color = vec4(n.xyz, 1);
+	out_color = vec4(n * 0.5 + 0.5, 1);
 }
