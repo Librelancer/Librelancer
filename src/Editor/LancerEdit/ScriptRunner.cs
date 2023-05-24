@@ -20,7 +20,7 @@ namespace LancerEdit
         public class ScriptArgumentInstance
         {
             public EditScriptArgument Argument;
-            public TextBuffer InputText = new TextBuffer();
+            public string StringValue = "";
             public List<string> StringArray = new List<string>();
             public bool BooleanValue = false;
             public int IntegerValue = 0;
@@ -33,7 +33,7 @@ namespace LancerEdit
                     return Argument.Options[IntegerValue];
                 if (Argument.Type == ScriptArgumentType.FileArray)
                     return string.Join("\n", StringArray);
-                return InputText.GetText().Trim();
+                return StringValue.Trim();
             }
 
             public void Draw(int i)
@@ -48,34 +48,33 @@ namespace LancerEdit
                         ImGui.InputInt(Argument.Name, ref IntegerValue, 1);
                         break;
                     case ScriptArgumentType.String:
-                        InputText.InputText(Argument.Name, ImGuiInputTextFlags.None, 100);
                         break;
                     case ScriptArgumentType.Dropdown:
                         ImGui.Combo(Argument.Name, ref IntegerValue, Argument.Options.ToArray(),
                             Argument.Options.Count);
                         break;
                     case ScriptArgumentType.Folder:
-                        InputText.InputText(Argument.Name, ImGuiInputTextFlags.None, 100);
+                        ImGui.InputText(Argument.Name, ref StringValue, 2048, ImGuiInputTextFlags.None);
                         ImGui.SameLine();
                         if (ImGui.Button(".."))
                         {
-                            FileDialog.ChooseFolder(InputText.SetText);
+                            FileDialog.ChooseFolder(s => StringValue = s);
                         }
                         break;
                     case ScriptArgumentType.File:
-                        InputText.InputText(Argument.Name, ImGuiInputTextFlags.None, 100);
+                        ImGui.InputText(Argument.Name, ref StringValue, 2048, ImGuiInputTextFlags.None);
                         ImGui.SameLine();
                         if (ImGui.Button(".."))
                         {
-                            FileDialog.Open(InputText.SetText);
+                            FileDialog.Open(s => StringValue = s);
                         }
                         break;
                     case ScriptArgumentType.SaveFile:
-                        InputText.InputText(Argument.Name, ImGuiInputTextFlags.None, 100);
+                        ImGui.InputText(Argument.Name, ref StringValue, 2048, ImGuiInputTextFlags.None);
                         ImGui.SameLine();
                         if (ImGui.Button(".."))
                         {
-                            FileDialog.Save(InputText.SetText);
+                            FileDialog.Save(s => StringValue = s);
                         }
                         break;
                     case ScriptArgumentType.FileArray:
