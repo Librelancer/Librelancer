@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using LibreLancer.Data;
 using LibreLancer.Thorn;
 
 namespace LibreLancer.Thn
@@ -92,7 +93,10 @@ namespace LibreLancer.Thn
                         ProcessEntities((LuaTable)kv.Value);
                         break;
                 }
-                builder.AppendLine(string.Format("{0} = {1}", kv.Key, kv.Value));
+                if (kv.Value is float f)
+                    builder.AppendLine($"{kv.Key} = {f.ToStringInvariant()}");
+                else
+                    builder.AppendLine($"{kv.Key} = {kv.Value}");
             }
             return builder.ToString();
         }
