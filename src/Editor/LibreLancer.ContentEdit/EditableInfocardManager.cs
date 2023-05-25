@@ -104,6 +104,21 @@ public class EditableInfocardManager : InfocardManager
             removedInfocards.Add(id);
     }
 
+    public int NextFreeId(int start)
+    {
+        //We don't return 0
+        if (start <= 0 || start >= Dlls.Count * 65536) start = 1;
+        for (int i = start + 1; i < Dlls.Count * 65536; i++)
+        {
+            if (!StringExists(i) && !XmlExists(i)) return i;
+        }
+        for (int i = 1; i <= start; i++)
+        {
+            if (!StringExists(i) && !XmlExists(i)) return i;
+        }
+        return -1;
+    }
+
     public void SetStringResource(int id, string value)
     {
         if (id <= 0 || id > MaxIds)

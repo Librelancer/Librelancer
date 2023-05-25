@@ -448,7 +448,16 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.Text("New Id");
         ImGui.PushItemWidth(130 * ImGuiHelper.Scale);
         ImGui.InputInt("##newids", ref state.NewIds, 0, 0);
-        ImGui.PopItemWidth();        
+        ImGui.PopItemWidth();
+        ImGui.SameLine();
+        if (ImGui.Button("Next"))
+        {
+            var r = manager.NextFreeId(state.NewIds);
+            if (r == -1)
+                win.ErrorDialog("No id available. Add a new .dll file.");
+            else
+                state.NewIds = r;
+        }
         bool canSave = false;
         if (state.NewIds <= 0)
         {
