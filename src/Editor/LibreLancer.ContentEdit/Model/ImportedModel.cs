@@ -628,6 +628,7 @@ public class ImportedModel
                 n.Children = new List<LUtfNode>();
                 n.Children.Add(new LUtfNode()
                     {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(wireLod, D3DFVF.XYZ)});
+                vms.Children.Add(n);
                 node3db.Children.Add(GetVMeshWireNode(node3db, CrcTool.FLModelCrc(nodeName), wireLod.Indices.Indices16));
             }
         }

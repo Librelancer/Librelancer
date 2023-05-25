@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using BulletSharp.SoftBody;
+using LibreLancer.Data.Effects;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using SimpleMesh;
@@ -130,10 +131,16 @@ public static class SurfaceBuilder
             }
             var hull = CreateHull(h);
             if (hull.IsError) {
-                warnings.Add(EditMessage.Warning($"Quickhull failed: {hull}"));
-                continue;
+                warnings.Add(EditMessage.Warning($"Hull creation failed: {hull.AllMessages()}"));
             }
-            convexHulls.Add(hull.Data);
+            else
+            {
+                warnings.AddRange(hull.Messages);
+                if (hull.Data.FaceCount > 300) {
+                    warnings.Add(EditMessage.Warning($"Hull {h.Name} has > 300 triangles, this can cause issues with Freelancer"));
+                }
+                convexHulls.Add(hull.Data);
+            }
         }
         if (convexHulls.Count == 0) {
             warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
@@ -300,24 +307,13 @@ public static class SurfaceBuilder
         return EditResult<HullData>.TryCatch(() => new ConvexHullCalculator().GenerateHull(pos, false));
     }
 
+    
+
     static EditResult<HullData> CreateHull(ModelNode h)
     {
         if (h.Geometry.Indices.Indices32 != null)
-            return EditResult<HullData>.Error("Mesh is too complex");
-        /*var points = new List<Vector3>();
-        var ba = new DynamicBitArray();
-        if (g.Indices.Indices32 != null)
-            return EditResult<GeneratedHull>.Error("Mesh is too complex");
-        for (int i = 0; i < g.Indices.Length; i++)
-        {
-            var idx = g.Indices.Indices16[i];
-            if (!ba[idx]) {
-                points.Add(Vector3.Transform(g.Vertices[idx].Position, tr));
-                ba[idx] = true;
-            }
-        }
-        return EditResult<GeneratedHull>.TryCatch(() => new ConvexHullCalculator().GenerateHull(points, false));*/
-        
+            return EditResult<HullData>.Error($"Mesh {h.Name} is too complex");
+
         var verts = new List<Vector3>();
         var indices = new List<ushort>();
         foreach (var i in h.Geometry.Indices.Indices16)
@@ -325,15 +321,26 @@ public static class SurfaceBuilder
             verts.AddIfUnique(h.Geometry.Vertices[i].Position, out int index);
             indices.Add((ushort) index);
         }
-        return new EditResult<HullData>(new HullData()
+        var inputHull = new HullData()
         {
             Vertices = verts.ToArray(),
             Indices = indices.ToArray(),
             Source = h.Name,
-        });
+        };
+        return QuickhullAndVerify(inputHull, h.Name);
     }
-    
-    
+
+
+    static EditResult<HullData> QuickhullAndVerify(HullData h, string name)
+    {
+        var fromPos = CreateHullFromPositions(h.Vertices);
+        if (fromPos.IsError) return EditResult<HullData>.Error($"Creating convex hull for {name} failed");
+        return Math.Abs(fromPos.Data.GetVolume() - h.GetVolume()) > 2.0f
+            ? new EditResult<HullData>(fromPos.Data, new[] {EditMessage.Warning($"Source hull {name} may not be convex")})
+            : fromPos;
+    }
+
+
     static EditResult<SurfaceHull> ToSurfaceHull(HullData hullData, uint crc, byte type, int[] indices)
     {
         var surf = new SurfaceHull();

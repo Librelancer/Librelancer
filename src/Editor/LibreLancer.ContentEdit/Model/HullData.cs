@@ -61,6 +61,23 @@ class HullData
         return -1;
     }
 
+    public float GetVolume()
+    {
+        float vol = 0;
+        for (int i = 0; i < FaceCount; i++)
+        {
+            var f = GetFace(i);
+            vol += SignedTriVolume(Vertices[f.A],
+                Vertices[f.B],
+                Vertices[f.C]);
+        }
+        return vol;
+    }
+    
+    static float SignedTriVolume(Vector3 a, Vector3 b, Vector3 c)
+        => Vector3.Dot(a, Vector3.Cross(b, c)) / 6;
+
+    
 
     static float RayEpsilon = 1E-7f;
     static float BigEpsilon = 1E-5f;
