@@ -278,7 +278,9 @@ namespace LancerEdit
             LibreLancer.ImageLib.PNG.Save(output, imageWidth, imageHeight, data);
         }
 
-        long fR = 0;
+        private LookAtCamera lookAtCam = new LookAtCamera();
+        private ThnCamera tcam = new ThnCamera(new Rectangle(0, 0, 800, 600));
+
         void DrawGL(int renderWidth, int renderHeight, bool viewport, bool bkgG)
         {
             if (_window.Config.BackgroundGradient && bkgG)
@@ -289,20 +291,17 @@ namespace LancerEdit
             rstate.Cull = true;
             ICamera cam;
             //Draw Model
-            var lookAtCam = new LookAtCamera();
             var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *
                 Matrix4x4.CreateRotationY(modelViewport.CameraRotation.X);
             var dir = Vector3.Transform(-Vector3.UnitZ,rot);
             var to = modelViewport.CameraOffset + (dir * 10);
             if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
             lookAtCam.Update(renderWidth, renderHeight, modelViewport.CameraOffset, to, rot);
-            lookAtCam.FrameNumber = fR++;
-            ThnCamera tcam = null;
             float znear = 0;
             float zfar = 0;
             if(modelViewport.Mode == CameraModes.Cockpit) {
                 var vp = new Rectangle(0, 0, renderWidth, renderHeight);
-                tcam = new ThnCamera(vp);
+                tcam.SetViewport(vp);
                 tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
                 var tr = Matrix4x4.Identity;
                 if (!string.IsNullOrEmpty(cameraPart.Construct?.ParentName))
@@ -318,7 +317,7 @@ namespace LancerEdit
                 tcam.Transform.Znear = 0.001f;
                 tcam.Transform.Zfar = 1000;
                 tcam.Transform.FovH = MathHelper.RadiansToDegrees(cameraPart.Camera.Fovx);
-                tcam.frameNo = fR++;
+                tcam.frameNo++;
                 tcam.Update();
                 cam = tcam;
             }
@@ -352,7 +351,7 @@ namespace LancerEdit
                         rstate.ClearDepth();
                         tcam.Transform.Zfar = zfar;
                         tcam.Transform.Znear = znear;
-                        tcam.frameNo = fR++;
+                        tcam.frameNo++;
                         tcam.Update();
                     }
                     DrawSimple(cam, false);

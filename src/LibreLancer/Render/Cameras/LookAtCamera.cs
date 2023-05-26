@@ -28,6 +28,7 @@ namespace LibreLancer.Render.Cameras
             var up = Vector3.Transform(Vector3.UnitY, rot ?? Matrix4x4.Identity);
             view = Matrix4x4.CreateLookAt(from, to, up);
             vp = view * projection;
+            fn++;
         }
         public Matrix4x4 ViewProjection {
             get {
@@ -62,7 +63,7 @@ namespace LibreLancer.Render.Cameras
         long fn = 0;
         public long FrameNumber {
             get {
-                return fn++;
+                return fn;
             }
             set {
                 fn = value;

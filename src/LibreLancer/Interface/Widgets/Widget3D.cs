@@ -50,10 +50,10 @@ namespace LibreLancer.Interface
             }
         }
 
+        private LookAtCamera cam = new LookAtCamera();
         protected LookAtCamera GetCamera(float zoom, UiContext context, RectangleF rect)
         {
             var pxRect = context.PointsToPixels(rect);
-            var cam = new LookAtCamera();
             OrbitPan.Y = MathHelper.Clamp(OrbitPan.Y,-MathHelper.PiOver2 + 0.02f, MathHelper.PiOver2 - 0.02f);
             var mat = Matrix4x4.CreateFromYawPitchRoll(-OrbitPan.X, OrbitPan.Y, 0);
             var from = Vector3.Transform(new Vector3(0, 0, zoom), mat);
