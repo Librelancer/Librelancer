@@ -188,7 +188,8 @@ public static class DllWriter
         //infocards
         if (hasInfocards)
         {
-            var infocards = resourceDll.Infocards.ToArray();
+            //Infocards must be written in order of ID or they will not be loaded correctly
+            var infocards = resourceDll.Infocards.OrderBy(x => x.Key).ToArray();
             int[] langDirectoryOffsets = new int[infocards.Length];
             PatchUint(infocardWriteOffset, DirOffset((uint) (mem.Position - 512)));
             //string directory: IMAGE_RESOURCE_DIRECTORY, size: 16
