@@ -118,6 +118,12 @@ namespace LibreLancer.Dll
                         int count = res.Locales[0].Data.Count;
                         if (res.Locales[0].Data.Count > 2)
                         {
+                            if (res.Locales[0].Data.Count % 2 == 1 &&
+                                res.Locales[0].Data[^1] == 0)
+                            {
+                                //skip extra NULL byte
+                                count--;
+                            }
                             if (res.Locales[0].Data[0] == 0xFF && res.Locales[0].Data[1] == 0xFE)
                             {
                                 //skip BOM

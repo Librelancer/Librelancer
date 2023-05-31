@@ -123,11 +123,14 @@ namespace LibreLancer.Infocards
         }
         static Infocard ParseInternal(string input, FontManager fonts, int defaultFont)
 		{
+            var fn = fonts.GetInfocardFont(defaultFont); //default font
+
             if (input == null)
-                return new Infocard() { Nodes = new List<RichTextNode>() { new RichTextTextNode() { Contents = "IDS??" } } };
+                return new Infocard() { Nodes = new List<RichTextNode>() { new RichTextTextNode() { FontName = fn.FontName, FontSize = fn.FontSize, Contents = "IDS??" } } };
+            if (string.IsNullOrWhiteSpace(input))
+                return new Infocard() {Nodes = new List<RichTextNode>() { new RichTextTextNode() { FontName = fn.FontName, FontSize = fn.FontSize, Contents = "" }}};
             var nodes = new List<RichTextNode>();
 			var current = new RichTextTextNode();
-            var fn = fonts.GetInfocardFont(defaultFont); //default font
             current.FontName = fn.FontName;
             current.FontSize = fn.FontSize;
 			using (var reader = XmlReader.Create(new StringReader(input)))
@@ -181,18 +184,25 @@ namespace LibreLancer.Infocards
 			return new Infocard() { Nodes = nodes };
 		}
 
+        static uint ParseTRANumber(string num)
+        {
+            num = num.Trim();
+            if (num.StartsWith("-")) return (uint) int.Parse(num);
+            if (num.StartsWith("0x")) return uint.Parse(num.Substring(2), NumberStyles.HexNumber);
+            return uint.Parse(num);
+        }
 		static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node, FontManager fonts, int defaultFont)
 		{
 			uint data = 0;
 			uint mask = 0;
 			uint def = 0;
 			string temp;
-			if (attrs.TryGetValue("DATA", out temp))
-				data = (uint)int.Parse(temp);
+            if (attrs.TryGetValue("DATA", out temp))
+                data = ParseTRANumber(temp);
 			if (attrs.TryGetValue("MASK", out temp))
-				mask = (uint)int.Parse(temp);
+				mask = ParseTRANumber(temp);
 			if (attrs.TryGetValue("DEF", out temp))
-				def = (uint)int.Parse(temp);
+				def = ParseTRANumber(temp);
 			if (attrs.TryGetValue("COLOR", out temp))
 			{
 				mask |= TRA_color;
