@@ -23,9 +23,8 @@ namespace LibreLancer.Render.Materials
 
 		public float Oc = 1f;
 
-		public NomadMaterial()
-		{
-		}
+        public NomadMaterial(ILibFile library) : base(library) { }
+
         
 
 		public override void ApplyDepthPrepass(RenderContext rstate)
@@ -43,14 +42,12 @@ namespace LibreLancer.Render.Materials
 
         public override bool DisableCull => true;
 
-        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             var shader = Shaders.Nomad.Get();
 			shader.SetWorld(World);
-			shader.SetView(Camera);
-			shader.SetViewProjection(Camera);
-			//Colors
+            //Colors
 			shader.SetDc(Dc);
 			//Dt
 			shader.SetDtSampler(0);

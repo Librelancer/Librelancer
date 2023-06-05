@@ -23,7 +23,7 @@ namespace LibreLancer
             LevelCount = mipMap ? CalculateMipLevels(size, size) : 1;
 			
             //Bind the new TextureCube
-            BindTo(4);
+            BindForModify();
             //enable filtering
             GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
             GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -81,7 +81,7 @@ namespace LibreLancer
         {
             int target = face.ToGL();
             maxLevel = Math.Max(level, maxLevel);
-            BindTo(4);
+            BindForModify();
             if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 int w, h;
@@ -131,14 +131,18 @@ namespace LibreLancer
         public void SetFiltering(TextureFiltering filtering)
         {
             if (currentFiltering == filtering) return;
-            BindTo(4);
+            BindForModify();
             SetTargetFiltering(GL.GL_TEXTURE_CUBE_MAP, filtering);
         }
 
+        void BindForModify()
+            => GLBind.BindTextureForModify(GL.GL_TEXTURE_CUBE_MAP, ID);
         public override void BindTo(int unit)
         {
+            if(IsDisposed) throw new ObjectDisposedException("TextureCube");
+            if (unit == 4) throw new InvalidOperationException("Unit 4: Use BindForModify (private)");
             GLBind.BindTexture(unit, GL.GL_TEXTURE_CUBE_MAP, ID);
-            if(unit != 4 && LevelCount > 1 && maxLevel != currentLevels) {
+            if(LevelCount > 1 && maxLevel != currentLevels) {
                 currentLevels = maxLevel;
                 GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAX_LEVEL, maxLevel);
             }

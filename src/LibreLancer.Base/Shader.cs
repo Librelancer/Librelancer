@@ -69,6 +69,9 @@ namespace LibreLancer
 				Console.WriteLine (GL.GetProgramInfoLog (programID));
 				throw new Exception ("Program link failed");
 			}
+            
+            //Set Camera_Matrices
+            UniformBlockBinding("Camera_Matrices", 2);
         }
 
 		public ulong UserTag = 0;
@@ -196,7 +199,8 @@ namespace LibreLancer
                 block = GL.GetUniformBlockIndex(programID, uniformBlock);
                 uniformBlocks.Add(uniformBlock, block);
             }
-            GL.UniformBlockBinding(programID, (uint) block, (uint) index);
+            if(block != GL.GL_INVALID_INDEX)
+                GL.UniformBlockBinding(programID, (uint) block, (uint) index);
         }
         public void UseProgram()
         {

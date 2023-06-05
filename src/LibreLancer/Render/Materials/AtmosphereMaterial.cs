@@ -20,9 +20,12 @@ namespace LibreLancer.Render.Materials
 		public float Alpha;
 		public float Fade; //TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
 		public float Scale;
+        
+        public AtmosphereMaterial(ILibFile library) : base(library) { }
 
 
-		public override unsafe void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+
+		public override unsafe void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
@@ -32,16 +35,14 @@ namespace LibreLancer.Render.Materials
 			sh.SetOc(Alpha);
 			sh.SetTileRate(Fade);
             var w = Matrix4x4.CreateScale(Scale) * World.Source[0];
-			sh.SetView(Camera);
-			sh.SetViewProjection(Camera);
-			sh.SetDtSampler(0);
+            sh.SetDtSampler(0);
             if (GetTexture(0, DtSampler) == null)
                 sh.SetOc(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			var normalmat = w;
             Matrix4x4.Invert(normalmat, out normalmat);
             normalmat = Matrix4x4.Transpose(normalmat);
-			SetLights(sh, ref lights, Camera.FrameNumber);
+			SetLights(sh, ref lights, rstate.FrameNumber);
             sh.SetWorld(ref w, ref normalmat);
             sh.UseProgram ();
 		}

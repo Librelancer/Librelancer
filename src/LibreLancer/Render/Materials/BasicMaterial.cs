@@ -27,7 +27,7 @@ namespace LibreLancer.Render.Materials
 		public string EtSampler;
 		public SamplerFlags EtFlags;
 
-		public BasicMaterial(string type)
+		public BasicMaterial(string type, ILibFile library) : base(library)
 		{
 			Type = type;
 		}
@@ -51,13 +51,10 @@ namespace LibreLancer.Render.Materials
                 return Basic_PositionColor.Get(caps);
             throw new NotImplementedException(vertextype.GetType().Name);
 		}
-        ShaderVariables lastShader;
 
-        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
-			if (Camera == null)
-				return;
-			ShaderFeatures caps = ShaderFeatures.None;
+            ShaderFeatures caps = ShaderFeatures.None;
             if (VertexLighting) caps |= ShaderFeatures.VERTEX_LIGHTING;
             if (EtEnabled) caps |= ShaderFeatures.ET_ENABLED;
             if (Fade) caps |= ShaderFeatures.FADE_ENABLED;
@@ -72,11 +69,8 @@ namespace LibreLancer.Render.Materials
                 //in all places! (Check Li01 shipyards, Bw10 tradelanes)
             }
 			var shader = GetShader(vertextype, caps);
-            lastShader = shader;
 			shader.SetWorld(World);
-			shader.SetView(Camera);
-			shader.SetViewProjection(Camera);
-			//Dt
+            //Dt
 			shader.SetDtSampler(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			//Dc
@@ -123,7 +117,7 @@ namespace LibreLancer.Render.Materials
 				BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
 			}
 			//Set lights
-            SetLights(shader, ref lights, Camera.FrameNumber);
+            SetLights(shader, ref lights, rstate.FrameNumber);
             shader.UseProgram();
 		}
 
@@ -134,7 +128,6 @@ namespace LibreLancer.Render.Materials
 			var shader = DepthPass_AlphaTest.Get();
             BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			shader.SetWorld(World);
-			shader.SetViewProjection(Camera);
 			shader.UseProgram();
 		}
 

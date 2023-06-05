@@ -4,29 +4,32 @@
 
 using System;
 using LibreLancer.Vertices;
+using LibreLancer;
+using LibreLancer.Shaders;
+using LibreLancer.Render;
 
-namespace LibreLancer.Render.Materials
+namespace LancerEdit.Materials
 {
 	public class NormalDebugMaterial : RenderMaterial
 	{
-        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+
+        public NormalDebugMaterial(ILibFile library) : base(library) { }
+
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
-            Shaders.ShaderVariables sh;
+            ShaderVariables sh;
             //These things don't have normals
             if (vertextype is VertexPositionColorTexture ||
             vertextype is VertexPosition ||
                 vertextype is VertexPositionColor || vertextype is VertexPositionTexture)
             {
-                sh = Shaders.DepthPass_Normal.Get();
+                sh = DepthPass_Normal.Get();
             }
             else
             {
-                sh = Shaders.Normals.Get();
+                sh = Normals.Get();
             }
-			if (Camera == null)
-				return;
-			rstate.BlendMode = BlendMode.Opaque;
-			sh.SetViewProjection(Camera);
+            rstate.BlendMode = BlendMode.Opaque;
 			//Dt
             sh.SetWorld(World);
             sh.UseProgram();

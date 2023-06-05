@@ -1,11 +1,11 @@
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 
 out vec3 out_normal;
 
 uniform mat4x4 World;
-uniform mat4x4 ViewProjection;
 
 void main()
 {

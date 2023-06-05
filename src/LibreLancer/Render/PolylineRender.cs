@@ -3,38 +3,36 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Render.Materials;
 using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {
-	public class PolylineRender : IDisposable
+	public unsafe class PolylineRender : IDisposable
 	{
 		const int MAX_VERTICES = 32768;
 
-		VertexPositionColorTexture[] vertices = new VertexPositionColorTexture[MAX_VERTICES];
+        VertexPositionColorTexture* vertices;
 		VertexBuffer vbo;
-        private static Shaders.ShaderVariables shader;
-		CommandBuffer buffer;
+        CommandBuffer buffer;
+        private PolylineMaterial material;
 		public PolylineRender(CommandBuffer buffer)
-		{
-			if (shader == null)
-            {
-                shader = Shaders.Polyline.Get();
-				shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
-			}
+        {
+            material = new PolylineMaterial(null);
 			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_VERTICES, true);
 			this.buffer = buffer;
 		}
+        
+        public void StartFrame()
+        {
+            material.Parameters = new List<(Texture texture, BlendMode blendMode)>();
+            vertices = (VertexPositionColorTexture*)vbo.BeginStreaming();
+        }
 
 
-		ICamera camera;
-		public void SetCamera(ICamera cam)
-		{
-			camera = cam;
-		}
-
-		public void StartLine(Texture2D tex, BlendMode blend)
+        public void StartLine(Texture2D tex, BlendMode blend)
 		{
 			if (pointsCount != 0)
 				throw new Exception("Polyline bad state");
@@ -46,7 +44,9 @@ namespace LibreLancer.Render
 		int vertexCount = 0;
 		int pointsCount = 0;
 		public void AddPoint(Vector3 a, Vector3 b, Vector2 uv1, Vector2 uv2, Color4 color)
-		{
+        {
+            if (vertices == (VertexPositionColorTexture*) 0)
+                throw new InvalidOperationException();
 			vertices[vertexCount++] = new VertexPositionColorTexture(
 				a,
 				color,
@@ -69,42 +69,29 @@ namespace LibreLancer.Render
 			}
 
 			int startPos = vertexCount - (pointsCount * 2);
+            
 			buffer.AddCommand(
-				shader.Shader,
-				Setup,
-				Cleanup,
-				buffer.WorldBuffer.Identity,
-				new RenderUserData() { Texture = texture, Camera = camera, Float = (float)(int)blend },
+                material, null, buffer.WorldBuffer.Identity, Lighting.Empty,
 				vbo,
 				PrimitiveTypes.TriangleStrip,
+                -1,
 				startPos,
 				(pointsCount - 1) * 2,
-				true,
 				SortLayers.OBJECT,
-				z
+				z, null, 0, material.Parameters.Count
 			);
+            material.Parameters.Add((texture, blend));
 			pointsCount = 0;
 		}
 
-		public void FrameEnd()
+		public void EndFrame()
 		{
-			vbo.SetData(vertices, vertexCount);
-			vertexCount = 0;
+			vbo.EndStreaming(vertexCount);
+            vertices = (VertexPositionColorTexture*) 0;
+            vertexCount = 0;
 		}
-		static void Setup(Shader shdr, RenderContext res, ref RenderCommand cmd)
-		{
-			shader.SetViewProjection(cmd.UserData.Camera);
-			cmd.UserData.Texture.BindTo(0);
-			res.BlendMode = (BlendMode)(int)cmd.UserData.Float;
-			res.Cull = false;
-		}
-				
-		static void Cleanup(RenderContext rs)
-		{
-			rs.Cull = true;
-		}
-
-		public void Dispose()
+        
+        public void Dispose()
 		{
 			vbo.Dispose();
 		}

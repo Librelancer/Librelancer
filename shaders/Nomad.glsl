@@ -1,4 +1,5 @@
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
@@ -8,8 +9,6 @@ out vec3 N;
 out vec3 V;
 
 uniform mat4x4 World;
-uniform mat4x4 View;
-uniform mat4x4 ViewProjection;
 
 void main()
 {

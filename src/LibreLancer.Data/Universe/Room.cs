@@ -11,7 +11,7 @@ namespace LibreLancer.Data.Universe
 {
 	public class Room : IniFile
 	{
-		FreelancerData GameData;
+        public string FilePath { get; private set; }
 		public string Nickname { get; private set; }
 		public string Music { get; private set; }
         public bool MusicOneShot { get; private set; }
@@ -28,7 +28,6 @@ namespace LibreLancer.Data.Universe
         public string GoodscartScript { get; private set; }
         public Room(Section section, FreelancerData data)
 		{
-			GameData = data;
 			if (section == null) throw new ArgumentNullException("section");
 			string file = null;
 			SceneScripts = new List<string>();
@@ -51,6 +50,7 @@ namespace LibreLancer.Data.Universe
 				default: throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
 				}
 			}
+            FilePath = file;
             if (data.VFS.FileExists(data.Freelancer.DataPath + file))
             {
                 foreach (Section s in ParseFile(data.Freelancer.DataPath + file, data.VFS))

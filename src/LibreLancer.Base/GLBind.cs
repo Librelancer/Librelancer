@@ -32,14 +32,32 @@ namespace LibreLancer
         public static void BindTexture(int unit, int target, uint texture)
         {
             var uval = GL.GL_TEXTURE0 + unit;
+            if (textures[unit] != (int)texture)
+            {
+                if (uval != active_unit)
+                {
+                    GL.ActiveTexture(uval);
+                    active_unit = uval;
+                }
+                textures[unit] = (int)texture;
+                GL.BindTexture(target, texture);
+            }
+        }
+
+        public static void BindTextureForModify(int target, uint texture)
+        {
+            if (active_unit != -1 && textures[active_unit - GL.GL_TEXTURE0] == texture)
+                return;
+            
+            var uval = GL.GL_TEXTURE0 + 4;
             if (uval != active_unit)
             {
                 GL.ActiveTexture(uval);
                 active_unit = uval;
             }
-            if (textures[unit] != (int)texture)
+            if (textures[4] != (int)texture)
             {
-                textures[unit] = (int)texture;
+                textures[4] = (int)texture;
                 GL.BindTexture(target, texture);
             }
         }
@@ -57,11 +75,12 @@ namespace LibreLancer
         private static uint bound_ubo = 0;
         public static void UniformBuffer(uint ubo)
         {
-            if (bound_ubo != ubo)
+            /*if (bound_ubo != ubo)
             {
                 bound_ubo = ubo;
                 GL.BindBuffer(GL.GL_UNIFORM_BUFFER, ubo);
-            }
+            }*/
+            GL.BindBuffer(GL.GL_UNIFORM_BUFFER, ubo);
         }
 	}
 }

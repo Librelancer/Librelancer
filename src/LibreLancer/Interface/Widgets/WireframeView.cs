@@ -79,7 +79,8 @@ namespace LibreLancer.Interface
             else
                 zoom = -target.Model.GetRadius() * 2.05f;
             var cam = GetCamera(zoom, context, rect);
-            context.Lines.StartFrame(cam, context.RenderContext);
+            context.RenderContext.SetCamera(cam);
+            context.Lines.StartFrame(context.RenderContext);
             DrawWires(context);
             context.Lines.Render();
         }

@@ -81,9 +81,11 @@ namespace LibreLancer.Interface
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
             var cam = GetCamera(model.GetRadius() * 2f, context, rect);
+            context.RenderContext.SetCamera(cam);
+            context.CommandBuffer.Camera = cam;
             context.CommandBuffer.StartFrame(context.RenderContext);
             model.UpdateTransform();
-            model.Update(cam, context.GlobalTime, context.Data.ResourceManager);
+            model.Update(context.GlobalTime);
             model.DrawBuffer(0, context.CommandBuffer, context.Data.ResourceManager, Matrix4x4.Identity, ref lighting);
             context.CommandBuffer.DrawOpaque(context.RenderContext);
             context.RenderContext.DepthWrite = false;

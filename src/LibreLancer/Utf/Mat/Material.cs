@@ -362,7 +362,7 @@ namespace LibreLancer.Utf.Mat
 		{
 			if (isBasic)
 			{
-				var bm = new BasicMaterial(type);
+				var bm = new BasicMaterial(type, this.textureLibrary);
 				_rmat = bm;
 				//set up material
 				bm.Dc = Dc;
@@ -390,7 +390,7 @@ namespace LibreLancer.Utf.Mat
 				{
 					case "Nebula":
 					case "NebulaTwo":
-						var nb = new NebulaMaterial();
+						var nb = new NebulaMaterial(this.textureLibrary);
 						if (type == "NebulaTwo") nb.DoubleSided = true;
 						_rmat = nb;
 						nb.DtSampler = DtName;
@@ -398,7 +398,7 @@ namespace LibreLancer.Utf.Mat
 						nb.Library = textureLibrary;
 						break;
 					case "AtmosphereMaterial":
-						var am = new AtmosphereMaterial();
+						var am = new AtmosphereMaterial(this.textureLibrary);
 						_rmat = am;
 						am.Dc = Dc;
 						am.Ac = Ac;
@@ -410,7 +410,7 @@ namespace LibreLancer.Utf.Mat
 						am.Library = textureLibrary;
 						break;
 					case "Masked2DetailMapMaterial":
-						var m2 = new Masked2DetailMapMaterial();
+						var m2 = new Masked2DetailMapMaterial(this.textureLibrary);
 						_rmat = m2;
 						m2.Dc = Dc;
 						m2.Ac = Ac;
@@ -427,7 +427,7 @@ namespace LibreLancer.Utf.Mat
 						m2.Library = textureLibrary;
 						break;
 					case "IllumDetailMapMaterial":
-						var ilm = new IllumDetailMapMaterial();
+						var ilm = new IllumDetailMapMaterial(this.textureLibrary);
 						_rmat = ilm;
 						ilm.Dc = Dc;
 						ilm.Ac = Ac;
@@ -446,7 +446,7 @@ namespace LibreLancer.Utf.Mat
 						ilm.Library = textureLibrary;
 						break;
 					case "DetailMap2Dm1Msk2PassMaterial":
-						var dm2p = new DetailMap2Dm1Msk2PassMaterial();
+						var dm2p = new DetailMap2Dm1Msk2PassMaterial(this.textureLibrary);
 						_rmat = dm2p;
 						dm2p.Dc = Dc;
 						dm2p.Ac = Ac;
@@ -463,7 +463,7 @@ namespace LibreLancer.Utf.Mat
 						break;
 					case "NomadMaterialNoBendy":
 					case "NomadMaterial":
-						var nmd = new NomadMaterial();
+						var nmd = new NomadMaterial(this.textureLibrary);
 						_rmat = nmd;
 						nmd.Dc = Dc;
 						nmd.BtSampler = btName;
@@ -476,7 +476,7 @@ namespace LibreLancer.Utf.Mat
 						nmd.Library = textureLibrary;
 						break;
 					case "DetailMapMaterial":
-						var dm = new DetailMapMaterial();
+						var dm = new DetailMapMaterial(this.textureLibrary);
 						_rmat = dm;
 						dm.Dc = Dc;
 						dm.Ac = Ac;
@@ -489,21 +489,13 @@ namespace LibreLancer.Utf.Mat
 						dm.DtFlags = (SamplerFlags)DtFlags;
 						dm.Library = textureLibrary;
 						break;
-					case "NormalDebugMaterial":
-						_rmat = new NormalDebugMaterial();
-						break;
-					default:
+                    default:
 						throw new NotImplementedException();
 				}
 			}
 		}
-        public void Update(ICamera camera)
-		{
-            if (Render != null)
-                Render.Camera = camera;
-		}
 
-		public override string ToString()
+        public override string ToString()
 		{
 			return string.Format("[{0}: {1}]", type, Name);
 		}

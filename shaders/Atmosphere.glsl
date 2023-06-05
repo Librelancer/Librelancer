@@ -1,6 +1,7 @@
 @feature VERTEX_LIGHTING
 @vertex
 @include (includes/lighting.inc)
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
@@ -12,10 +13,7 @@ out vec3 world_position;
 out vec3 out_normal;
 
 uniform mat4x4 World;
-uniform mat4x4 View;
-uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
-uniform vec3 CameraPosition;
 
 void main()
 {
@@ -40,7 +38,6 @@ uniform float Oc;
 uniform float TileRate; // Fade
 uniform float Scale;
 uniform sampler2D DtSampler;
-uniform vec3 CameraPosition;
 
 in vec3 V;
 in vec3 N;

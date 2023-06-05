@@ -52,6 +52,8 @@ namespace LibreLancer.Interface
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
             var cam = GetCamera(3f, context, rect);
+            context.RenderContext.SetCamera(cam);
+            context.CommandBuffer.Camera = cam;
             context.CommandBuffer.StartFrame(context.RenderContext);
             Skeleton.GetTransforms(Matrix4x4.Identity, 
                 out var headTransform, 
@@ -61,24 +63,20 @@ namespace LibreLancer.Interface
             var lighting = Lighting.Empty;
             Skeleton.UploadBoneData(context.CommandBuffer.BonesBuffer);
             Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
-            Skeleton.Body.Update(cam, 0.0, 0.0);
             Skeleton.Body.DrawBuffer(context.CommandBuffer, Matrix4x4.Identity, ref lighting);
             if (Skeleton.Head != null)
             {
                 Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
-                Skeleton.Head.Update(cam, 0.0, 0.0);
                 Skeleton.Head.DrawBuffer(context.CommandBuffer, headTransform, ref lighting);
             }
             if (Skeleton.LeftHand != null)
             {
                 Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
-                Skeleton.LeftHand.Update(cam, 0.0, 0.0);
                 Skeleton.LeftHand.DrawBuffer(context.CommandBuffer, leftTransform, ref lighting);
             }
             if (Skeleton.RightHand != null)
             {
                 Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
-                Skeleton.RightHand.Update(cam, 0.0, 0.0);
                 Skeleton.RightHand.DrawBuffer(context.CommandBuffer, rightTransform, ref lighting);
             }
             context.CommandBuffer.DrawOpaque(context.RenderContext);

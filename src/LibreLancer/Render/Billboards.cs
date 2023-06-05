@@ -317,8 +317,6 @@ namespace LibreLancer.Render
             {
                 var v = camera.View;
                 var vp = camera.ViewProjection;
-                shaderBasic.SetView(ref v);
-                shaderBasic.SetViewProjection(ref vp);
                 _frameStart = false;
             }
 

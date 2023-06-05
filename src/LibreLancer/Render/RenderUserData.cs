@@ -6,7 +6,6 @@ namespace LibreLancer.Render
 {
 	public class RenderUserData
 	{
-		public ICamera Camera;
 		public Color4 Color;
 		public Texture Texture;
 		public float Float;

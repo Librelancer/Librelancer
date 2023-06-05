@@ -164,18 +164,17 @@ public class ZoneRenderer
         });
     }
 
-    public static void Finish()
+    public static void Finish(ResourceManager rs)
     {
         rstate.Cull = true;
         rstate.DepthWrite = false;
         foreach (var draw in draws)
         {
-            var r = new ZoneVolumeMaterial();
+            var r = new ZoneVolumeMaterial(rs);
             r.Dc = draw.Color;
             r.World = draw.W;
-            r.Camera = camera;
             r.RadiusRatio = draw.Ring;
-            r.Use(rstate, new VertexPositionNormal(),ref Lighting.Empty);
+            r.Use(rstate, new VertexPositionNormal(), ref Lighting.Empty, 0);
             rstate.CullFace = draw.FlipNormals ? CullFaces.Front : CullFaces.Back;
             draw.VBO.Draw(PrimitiveTypes.TriangleList, 0, 0, draw.Triangles);
         }

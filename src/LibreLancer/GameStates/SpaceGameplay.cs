@@ -1033,7 +1033,7 @@ World Time: {12:F2}
             world.RenderUpdate(delta);
             sysrender.Draw(Game.Width, Game.Height);
 
-            sysrender.DebugRenderer.StartFrame(activeCamera, Game.RenderContext);
+            sysrender.DebugRenderer.StartFrame(Game.RenderContext);
             sysrender.DebugRenderer.Render();
 
             if ((Thn == null || !Thn.Running) && ShowHud)

@@ -208,7 +208,7 @@ public class SystemViewerTab : GameContentTab
             }
         }
         hoveredZone = null;
-        ZoneRenderer.Finish();
+        ZoneRenderer.Finish(gameData.Resources);
     }
 
     public override void Update(double elapsed)

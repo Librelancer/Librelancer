@@ -48,9 +48,9 @@ namespace LancerEdit
         [Entry("blender_path")] 
         private string blenderPath;
 
-        int IRendererSettings.SelectedAnisotropy => TextureFilter > 2 ? (int)Math.Pow(2, TextureFilter - 2) : 0;
+        public int SelectedAnisotropy => TextureFilter > 2 ? (int)Math.Pow(2, TextureFilter - 2) : 0;
 
-        TextureFiltering IRendererSettings.SelectedFiltering => TextureFilter switch
+        public TextureFiltering SelectedFiltering => TextureFilter switch
         {
             0  => TextureFiltering.Linear,
             1 => TextureFiltering.Bilinear,
@@ -97,6 +97,20 @@ namespace LancerEdit
                     writer.WriteLine($"last_export_path = {lastExportPath}");
                 if(!string.IsNullOrWhiteSpace(blenderPath))
                     writer.WriteLine($"blender_path = {blenderPath}");
+            }
+        }
+
+        public void Validate(RenderContext context)
+        {
+            if (SelectedAnisotropy > context.MaxSamples)
+            {
+                FLLog.Info("Config", $"{SelectedAnisotropy}x anisotropy not supported, disabling.");
+                TextureFilter = 2;
+            }
+            if (MSAA > context.MaxSamples)
+            {
+                FLLog.Info("Config", $"{MSAA}x MSAA not supported, disabling.");
+                MSAA = 0;
             }
         }
 

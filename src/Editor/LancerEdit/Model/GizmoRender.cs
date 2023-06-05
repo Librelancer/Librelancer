@@ -133,12 +133,11 @@ namespace LancerEdit
         {
             rstate.DepthEnabled = true;
             lineBuffer.SetData(lines, vertexCountL);
-            gizmoMaterial.Update(cam);
             var r = (BasicMaterial)gizmoMaterial.Render;
             //Lines
             r.AlphaEnabled = false;
             rstate.Cull = false;
-            r.Use(rstate, lines[0], ref Lighting.Empty);
+            r.Use(rstate, lines[0], ref Lighting.Empty, 0);
             lineBuffer.Draw(PrimitiveTypes.LineList, vertexCountL / 2);
         }
 

@@ -115,7 +115,7 @@ namespace LibreLancer
 			rs = rstate;
             string glslVer = GL.GLES ? "300 es\nprecision mediump float;" : "140";
             imgShader = new Shader (vertex_source.Replace("{0}", glslVer), img_fragment_source.Replace("{0}", glslVer));
-			imgShader.SetInteger (imgShader.GetLocation("tex"), 4);
+			imgShader.SetInteger (imgShader.GetLocation("tex"), 7);
             blendLocation = imgShader.GetLocation("blend");
             circleLocation = imgShader.GetLocation("circle");
 			vbo = new VertexBuffer (typeof(Vertex2D), MAX_VERT, true);
@@ -785,7 +785,7 @@ namespace LibreLancer
                 rs.applied.DepthEnabled = false;
             }
             rs.SetBlendMode(currentMode);
-            currentTexture.BindTo (4);
+            currentTexture.BindTo (7);
             if(currentTexture.Format == SurfaceFormat.R8)
                 imgShader.SetFloat(blendLocation, 1f);
             else

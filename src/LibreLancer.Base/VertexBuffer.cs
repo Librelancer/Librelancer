@@ -97,6 +97,8 @@ namespace LibreLancer
 		public void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount)
 		{
             if (primitiveCount == 0) throw new InvalidOperationException("primitiveCount can't be 0");
+            if (!HasElements)
+                throw new InvalidOperationException("Cannot use drawElementsBaseVertex without element buffer");
             RenderContext.Instance.Apply ();
 			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 			GLBind.VertexArray (VAO);

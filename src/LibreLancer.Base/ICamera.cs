@@ -4,7 +4,7 @@
 
 using System.Numerics;
 
-namespace LibreLancer.Render
+namespace LibreLancer
 {
 	public interface ICamera
 	{
@@ -13,7 +13,6 @@ namespace LibreLancer.Render
 		Matrix4x4 View { get; }
 		Vector3 Position { get; }
 		BoundingFrustum Frustum { get; }
-        long FrameNumber { get; }
 	}
 }
 

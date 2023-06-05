@@ -1,4 +1,5 @@
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_dimensions;
 in vec4 vertex_color;
@@ -9,9 +10,6 @@ in vec2 vertex_texture1;
 out vec2 uv;
 out vec4 innercolor;
 out vec4 outercolor;
-
-uniform mat4 View;
-uniform mat4 ViewProjection;
 
 
 void main()
@@ -41,7 +39,7 @@ void main()
 }
 
 @fragment
-uniform sampler2D tex0;
+uniform sampler2D DtSampler;
 uniform vec4 FogColor;
 uniform float FogFactor;
 in vec2 uv;
@@ -51,7 +49,7 @@ out vec4 FragColor;
 
 void main(void)
 {
-	vec4 result = texture(tex0, uv) * innercolor;
+	vec4 result = texture(DtSampler, uv) * innercolor;
 	result.rgb = mix(result.rgb, outercolor.rgb, FogFactor);
 	FragColor = result;
 }

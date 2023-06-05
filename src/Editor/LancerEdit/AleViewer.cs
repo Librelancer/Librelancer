@@ -235,12 +235,12 @@ namespace LancerEdit
             if (aleViewport.Mode == CameraModes.Arcball)
                 to = Vector3.Zero;
             cam.Update(renderWidth, renderHeight, aleViewport.CameraOffset, to, rot);
+            rstate.SetCamera(cam);
             buffer.StartFrame(rstate);
-            polyline.SetCamera(cam);
-            debug.StartFrame(cam, rstate);
+            debug.StartFrame(rstate);
             instance.Draw(transform, sparam);
             pool.Draw(cam, polyline, res, debug);
-            polyline.FrameEnd();
+            polyline.EndFrame();
             buffer.DrawOpaque(rstate);
             rstate.DepthWrite = false;
             buffer.DrawTransparent(rstate);

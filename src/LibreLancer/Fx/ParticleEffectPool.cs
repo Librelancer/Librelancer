@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Fx;
 using LibreLancer.Render;
+using LibreLancer.Render.Materials;
 using LibreLancer.Vertices;
 
 namespace LibreLancer.Fx
@@ -31,7 +32,7 @@ namespace LibreLancer.Fx
         ParticleVertex* vertices;
         CommandBuffer cmd;
 
-        Shaders.ShaderVariables basicShader;
+        private ParticleMaterial basicMaterial = new ParticleMaterial(null);
 
         [StructLayout(LayoutKind.Sequential)]
         struct ParticleVertex : IVertexType
@@ -123,7 +124,6 @@ namespace LibreLancer.Fx
             }
             ibo.SetData(indices);
             vbo.SetElementBuffer(ibo);
-            basicShader = Shaders.Particle.Get();
         }
 
         public void Update(double delta)
@@ -243,12 +243,9 @@ namespace LibreLancer.Fx
                 }
             }
             vbo.EndStreaming(maxVbo);
-            //Set shader params early + upload data
-            var view = camera.View;
-            var vp = camera.ViewProjection;
-            basicShader.SetViewProjection(ref vp);
             //Draw buffers
             int basicCount = 0;
+            basicMaterial.Library = res;
             for (int i = 0; i < countApp; i++)
             {
                 //Get Variables
@@ -266,28 +263,24 @@ namespace LibreLancer.Fx
                         texture = perp.TextureHandler.Texture ?? res.WhiteTexture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
-                            basicShader.Shader,
-                            SetupShader,
-                            EnableCull,
-                            cmd.WorldBuffer.Identity,
-                            new RenderUserData() { Texture = texture, Float = (float)perp.BlendInfo },
-                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
-                            SortLayers.OBJECT, z, drawIdx
+                            basicMaterial, null,
+                            cmd.WorldBuffer.Identity, Lighting.Empty,
+                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount,
+                            SortLayers.OBJECT, z, null, drawIdx, basicMaterial.Parameters.Count
                         );
+                        basicMaterial.Parameters.Add((texture, perp.BlendInfo));
                         basicCount += primCount / 2;
                         break;
                     case FxRectAppearance rect:
                         texture = rect.TextureHandler.Texture ?? res.WhiteTexture;
                         if (texture == null) throw new InvalidOperationException("texture null");
                         cmd.AddCommand(
-                            basicShader.Shader,
-                            SetupShader,
-                            EnableCull,
-                            cmd.WorldBuffer.Identity,
-                            new RenderUserData() { Texture = texture, Float = (float)rect.BlendInfo },
-                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
-                            SortLayers.OBJECT, z, drawIdx
+                            basicMaterial, null,
+                            cmd.WorldBuffer.Identity, Lighting.Empty,
+                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount,
+                            SortLayers.OBJECT, z, null, drawIdx, basicMaterial.Parameters.Count
                         );
+                        basicMaterial.Parameters.Add((texture, rect.BlendInfo));
                         basicCount += primCount / 2;
                         break;
                     case FxOrientedAppearance orient:
@@ -295,14 +288,12 @@ namespace LibreLancer.Fx
                     case FxBasicAppearance basic:
                         texture = basic.TextureHandler.Texture ?? res.WhiteTexture;
                         cmd.AddCommand(
-                            basicShader.Shader,
-                            SetupShader,
-                            EnableCull,
-                            cmd.WorldBuffer.Identity,
-                            new RenderUserData() { Texture = texture, Float = (float)basic.BlendInfo },
-                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount, true,
-                            SortLayers.OBJECT, z, drawIdx
+                            basicMaterial, null,
+                            cmd.WorldBuffer.Identity, Lighting.Empty,
+                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount,
+                            SortLayers.OBJECT, z, null, drawIdx, basicMaterial.Parameters.Count
                         );
+                        basicMaterial.Parameters.Add((texture, basic.BlendInfo));
                         basicCount += primCount / 2;
                         break;
                     default:
@@ -317,17 +308,7 @@ namespace LibreLancer.Fx
                 beams[i].DrawBeams(polyline, debug, beams[i].DrawTransform, beams[i].DrawSParam);
             }
         }
-
-        static void SetupShader(Shader shdr, RenderContext res, ref RenderCommand cmd)
-        {
-            cmd.UserData.Texture.BindTo(0);
-            res.BlendMode = (BlendMode)cmd.UserData.Float;
-            res.Cull = false;
-        }
-        static void EnableCull(RenderContext rs)
-        {
-            rs.Cull = true;
-        }
+        
         int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a, int index)
         {
             if (instance.FrameNumber != fNo) {

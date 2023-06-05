@@ -22,7 +22,6 @@ namespace LibreLancer.Interface
         //Rendering
         public RenderContext RenderContext;
         public LineRenderer Lines;
-        public MatrixCamera MatrixCam = new MatrixCamera(Matrix4x4.Identity);
         //Data
         public UiData Data;
 

@@ -45,13 +45,13 @@ namespace LibreLancer.Shaders
             variants = new ShaderVariables[2];
             if (GLExtensions.Features430)
             {
-                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(16782, 1548), sourceBundle.Substring(18330, 6659));
-                variants[1] = ShaderVariables.Compile(sourceBundle.Substring(31386, 4476), sourceBundle.Substring(35862, 2603));
+                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(17154, 1622), sourceBundle.Substring(18776, 6630));
+                variants[1] = ShaderVariables.Compile(sourceBundle.Substring(31853, 4555), sourceBundle.Substring(36408, 2574));
             }
             else
             {
-                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(11521, 1207), sourceBundle.Substring(12728, 4054));
-                variants[1] = ShaderVariables.Compile(sourceBundle.Substring(24989, 4135), sourceBundle.Substring(29124, 2262));
+                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(11848, 1281), sourceBundle.Substring(13129, 4025));
+                variants[1] = ShaderVariables.Compile(sourceBundle.Substring(25406, 4214), sourceBundle.Substring(29620, 2233));
             }
         }
     }

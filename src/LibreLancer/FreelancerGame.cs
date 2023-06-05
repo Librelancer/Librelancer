@@ -28,7 +28,6 @@ namespace LibreLancer
         public Typewriter Typewriter;
 		public GameResourceManager ResourceManager;
 		public Billboards Billboards;
-		public NebulaVertices Nebulae;
 		public ScreenshotManager Screenshots;
         public SaveGameFolder Saves;
         public LineRenderer Lines;
@@ -87,7 +86,7 @@ namespace LibreLancer
 			MinimumWindowSize = new Point(640, 480);
 			SetVSync(Config.Settings.VSync);
             Config.Settings.RenderContext = RenderContext;
-			new IdentityCamera(this);
+            Config.Settings.Validate();
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			useintromovies = _cfg.IntroMovies;
             //Cache
@@ -125,13 +124,11 @@ namespace LibreLancer
             //
             Fonts = new FontManager();
 			Billboards = new Billboards ();
-			Nebulae = new NebulaVertices();
 			RenderContext.PushViewport(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
             Typewriter = new Typewriter(this);
             Lines = new LineRenderer();
             Services.Add(Billboards);
-            Services.Add(Nebulae);
             Services.Add(ResourceManager);
             Services.Add(Config);
             Services.Add(Config.Settings);

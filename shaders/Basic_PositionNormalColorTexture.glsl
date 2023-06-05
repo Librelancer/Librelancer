@@ -3,6 +3,7 @@
 
 @vertex
 @include(includes/lighting.inc)
+@include(includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec4 vertex_color;
@@ -15,8 +16,6 @@ out vec3 world_position;
 out vec4 view_position;
 
 uniform mat4x4 World;
-uniform mat4x4 View;
-uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
 uniform vec4 MaterialAnim;
 

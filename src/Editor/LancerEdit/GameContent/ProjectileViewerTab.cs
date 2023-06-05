@@ -52,7 +52,7 @@ public class ProjectileViewerTab : GameContentTab
         viewport.ModelScale = 10f;
         viewport.ResetControls();
         fxPool = new ParticleEffectPool(mw.Commands);
-        beams = new BeamsBuffer();
+        beams = new BeamsBuffer(context.Resources);
     }
 
     public override void Draw()

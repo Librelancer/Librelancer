@@ -13,14 +13,14 @@ void main()
 }
 
 @vertex
+@include(includes/camera.inc)
 in vec3 vertex_position;
 in vec2 vertex_texture1;
 
 out vec2 out_texcoord;
 
-uniform mat4x4 World;
-uniform mat4x4 ViewProjection;
 uniform vec4 MaterialAnim;
+uniform mat4 World;
 
 void main()
 {

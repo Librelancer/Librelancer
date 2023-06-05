@@ -30,7 +30,6 @@ namespace LancerEdit
 		public AudioManager Audio;
 		public GameResourceManager Resources;
         public Billboards Billboards;
-        public NebulaVertices Nebulae;
 		public PolylineRender Polyline;
 		public LineRenderer LineRenderer;
 		public CommandBuffer Commands; //This is a huge object - only have one
@@ -127,9 +126,8 @@ namespace LancerEdit
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
             Billboards = new Billboards();
+            Config.Validate(RenderContext);
             Services.Add(Billboards);
-            Nebulae = new NebulaVertices();
-            Services.Add(Nebulae);
             Services.Add(Config);
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();

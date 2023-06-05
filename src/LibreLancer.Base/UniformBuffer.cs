@@ -30,8 +30,6 @@ namespace LibreLancer
             if(align < 256 && 256 % align != 0)
                 gAlignment = 256; //Set larger alignment on debug for testing
             #endif
-            if(align < stride && lval != 0)
-                throw new Exception("Platform has incompatible alignment");
         }
         public int GetAlignedIndex(int input)
         {
@@ -40,7 +38,7 @@ namespace LibreLancer
             var aOffset = (offset + (gAlignment - 1)) & ~(gAlignment - 1);
             return aOffset / stride;
         }
-        public void SetData<T>(T[] array, int start = 0, int length = -1) where T : struct
+        public void SetData<T>(T[] array, int start = 0, int length = -1) where T : unmanaged
         {
             if (typeof(T) != storageType) throw new InvalidOperationException();
             var len = length < 0 ? array.Length : length;
@@ -48,6 +46,15 @@ namespace LibreLancer
             var handle = GCHandle.Alloc (array, GCHandleType.Pinned);
             GL.BufferSubData (GL.GL_UNIFORM_BUFFER, (IntPtr)(start * stride), (IntPtr)(len * stride), handle.AddrOfPinnedObject());
             handle.Free();
+        }
+
+        public unsafe void SetData<T>(ref T item, int index = 0) where T : unmanaged
+        {
+            if (typeof(T) != storageType) throw new InvalidOperationException();
+            GLBind.UniformBuffer(ID);
+            fixed (T* p = &item) {
+                GL.BufferSubData (GL.GL_UNIFORM_BUFFER, (IntPtr)(index * stride), (IntPtr)( stride), (IntPtr)p);
+            }
         }
 
         public void BindTo(int binding, int start = 0, int count = 0)

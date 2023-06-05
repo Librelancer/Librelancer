@@ -24,6 +24,7 @@ namespace LibreLancer.Render
         RenderContext rstate;
         public UniformBuffer BonesBuffer;
         public WorldMatrixBuffer WorldBuffer;
+        public ICamera Camera;
         public CommandBuffer()
         {
             //TODO: This needs to be managed a lot better, leaks memory right now
@@ -38,13 +39,27 @@ namespace LibreLancer.Render
             WorldBuffer.Reset();
             this.rstate = rstate;
 		}
-		public void AddCommand(RenderMaterial material, MaterialAnim anim, WorldMatrixHandle world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, int layer, float z = 0, DfmSkinning skinning = null)
+		public void AddCommand(
+            RenderMaterial material, 
+            MaterialAnim anim, 
+            WorldMatrixHandle world, 
+            Lighting lights, 
+            VertexBuffer buffer, 
+            PrimitiveTypes primitive, 
+            int baseVertex, 
+            int start, 
+            int count, 
+            int layer, 
+            float z = 0, 
+            DfmSkinning skinning = null, 
+            int offset = 0, 
+            int userData = 0)
 		{
 			if (material.IsTransparent)
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
 				{
-                    Key = RenderCommand.MakeKey(RenderType.Transparent, material.Key, layer, z, 0),
+                    Key = RenderCommand.MakeKey(RenderType.Transparent, material.Key, layer, z, offset),
 					Source = material,
 					MaterialAnim = anim,
 					Lights = lights,
@@ -52,9 +67,9 @@ namespace LibreLancer.Render
 					BaseVertex = baseVertex,
 					Start = start,
 					Count = count,
-					Primitive = primitive,
-					CmdType = RenderCmdType.Material,
-					World = world,
+                    Type = RenderCommand.MakeType(RenderCmdType.Material, primitive),
+                    World = world,
+                    Hash = userData,
                 };
 			}
 			else
@@ -70,115 +85,55 @@ namespace LibreLancer.Render
                 }
                 material.MaterialAnim = anim;
                 material.World = world;
-                material.Use(rstate, buffer.VertexType, ref lights);
+                material.Use(rstate, buffer.VertexType, ref lights, userData);
                 if (material.DoubleSided) {
                     rstate.Cull = false;
                 }
-                buffer.Draw(primitive, baseVertex, start, count);
+                if(baseVertex == -1)
+                    buffer.Draw(primitive, start, count);
+                else
+                    buffer.Draw(primitive, baseVertex, start, count);
                 if (material.DoubleSided) {
                     rstate.Cull = true;
                 }
             }
 		}
 		//TODO: Implement MaterialAnim for asteroids
-		public unsafe void AddCommandFade(RenderMaterial material, WorldMatrixHandle world, Lighting lights, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, int layer, Vector2 fadeParams, float z = 0)
+		public unsafe void AddCommandFade(
+            RenderMaterial material, 
+            WorldMatrixHandle world, 
+            Lighting lights, 
+            VertexBuffer buffer, 
+            PrimitiveTypes primitive, 
+            int start, 
+            int count, 
+            int layer, 
+            Vector2 fadeParams, 
+            float z = 0, 
+            int offset = 0)
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
 			{
-                Key = RenderCommand.MakeKey(RenderType.Transparent, material.Key, layer, z, 0),
+                Key = RenderCommand.MakeKey(RenderType.Transparent, material.Key, layer, z, offset),
 				Source = material,
 				MaterialAnim = null,
 				Lights = lights,
 				Buffer = buffer,
 				Start = start,
 				Count = count,
-				Primitive = primitive,
-				CmdType = RenderCmdType.MaterialFade,
-				BaseVertex = *(int*)(&fadeParams.X),
+                Type = RenderCommand.MakeType(RenderCmdType.MaterialFade, primitive),
+                BaseVertex = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
 				World = world,
             };
 		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderContext> cleanup, WorldMatrixHandle world, Lighting lt, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
-		{
-			if (transparent)
-			{
-				Transparents[transparentCommand++] = new RenderCommand()
-				{
-                    Key = RenderCommand.MakeKey(RenderType.Transparent, 0, layer, z, renIndex),
-					Source = shader,
-					ShaderSetup = setup,
-					World = world,
-					UserData = user,
-					Cleanup = cleanup,
-					Buffer = buffer,
-					Lights = lt,
-					Start = start,
-					Count = count,
-					Primitive = primitive,
-					CmdType = RenderCmdType.Shader,
-                };
-			}
-			else
-			{
-                throw new InvalidOperationException();
-			}
-		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderContext> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int baseVertex, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
-		{
-			if (transparent)
-			{
-				Transparents[transparentCommand++] = new RenderCommand()
-				{
-                    Key = RenderCommand.MakeKey(RenderType.Transparent, 0, layer, z, renIndex),
-					Source = shader,
-					ShaderSetup = setup,
-					World = world,
-					UserData = user,
-					Cleanup = cleanup,
-					Buffer = buffer,
-					Start = start,
-					Count = count,
-					Primitive = primitive,
-					CmdType = RenderCmdType.Shader,
-                };
-			}
-			else
-			{
-                throw new InvalidOperationException();
-			}
-		}
-		public void AddCommand(Shader shader, ShaderAction setup, Action<RenderContext> cleanup, WorldMatrixHandle world, RenderUserData user, VertexBuffer buffer, PrimitiveTypes primitive, int start, int count, bool transparent, int layer, float z = 0, int renIndex = 0)
-		{
-			if (transparent)
-			{
-				Transparents[transparentCommand++] = new RenderCommand()
-				{
-                    Key = RenderCommand.MakeKey(RenderType.Transparent, 0, layer, z, renIndex),
-					Source = shader,
-					ShaderSetup = setup,
-					World = world,
-					UserData = user,
-					Cleanup = cleanup,
-					Buffer = buffer,
-					Start = start,
-					Count = count,
-					Primitive = primitive,
-					CmdType = RenderCmdType.Shader,
-					BaseVertex = -1,
-                };
-			}
-			else
-			{
-                throw new InvalidOperationException();
-			}
-		}
-		public void AddCommand(Billboards billboards, int hash, int index, int sortLayer, float z)
+
+        public void AddCommand(Billboards billboards, int hash, int index, int sortLayer, float z)
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
 			{
                 Key = RenderCommand.MakeKey(RenderType.Transparent, 0, sortLayer, z, 0),
-				CmdType = RenderCmdType.Billboard,
+				Type = RenderCommand.MakeType(RenderCmdType.Billboard),
 				Source = billboards,
 				Hash = hash,
 				Index = index,
@@ -210,7 +165,7 @@ namespace LibreLancer.Render
 			{
 				cmdptr[i] = i;
 			}
-			Array.Sort<int>(cmdptr, 0, transparentCommand, new ZComparer(Transparents));
+			Array.Sort<int>(cmdptr, 0, transparentCommand, new KeyComparer(Transparents));
 			for (int i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
@@ -241,26 +196,15 @@ namespace LibreLancer.Render
 		}
 
 	}
-	class ZComparer : IComparer<int>
+	class KeyComparer : IComparer<int>
 	{
 		RenderCommand[] cmds;
-		public ZComparer(RenderCommand[] commands)
+		public KeyComparer(RenderCommand[] commands)
 		{
 			cmds = commands;
 		}
 		public int Compare(int x, int y)
 		{
-            /*if (cmds[x].CmdType == RenderCmdType.Billboard && 
-                cmds[y].CmdType == RenderCmdType.Billboard)
-            {
-                var b = (Billboards)cmds[x].Source;
-                //Batch additive billboards (lights)
-                if (b.GetBlendMode(cmds[x].Index) == BlendMode.Additive &&
-                    b.GetBlendMode(cmds[y].Index) == BlendMode.Additive)
-                {
-                    return b.GetTextureID(cmds[x].Index).CompareTo(b.GetTextureID(cmds[y].Index));
-                }
-            }*/
             return cmds[x].Key.CompareTo(cmds[y].Key);
 		}
 	}
@@ -268,7 +212,6 @@ namespace LibreLancer.Render
 	{
 		Material,
         MaterialFade,
-		Shader,
 		Billboard
 	}
 
@@ -302,29 +245,34 @@ namespace LibreLancer.Render
             }
         }
 
+        public static byte MakeType(RenderCmdType cmdType, PrimitiveTypes prims = PrimitiveTypes.Points)
+        {
+            return (byte) (((byte)cmdType << 4) | (byte) prims);
+        }
+        
+
         public ulong Key;
-		public PrimitiveTypes Primitive;
+		public byte Type;
 		public object Source;
         public WorldMatrixHandle World;
-		public RenderUserData UserData;
-		public ShaderAction ShaderSetup;
-		public object Cleanup;
 		public VertexBuffer Buffer;
 		public int BaseVertex;
-		public RenderCmdType CmdType;
 		public int Start;
 		public int Count;
         public Lighting Lights;
         public MaterialAnim MaterialAnim;
 		public int Hash;
 		public int Index;
+
+        public RenderCmdType CmdType => (RenderCmdType) (Type >> 4);
+        public PrimitiveTypes Primitive => (PrimitiveTypes) (Type & 0xF);
 		public override string ToString()
 		{
 			return string.Format("[Key: {0}]", Key);
 		}
 		public unsafe void Run(RenderContext context)
-		{
-			if (CmdType == RenderCmdType.Material || CmdType == RenderCmdType.MaterialFade)
+        {
+            if (CmdType == RenderCmdType.Material || CmdType == RenderCmdType.MaterialFade)
 			{
 				var Material = (RenderMaterial)Source;
 				if (Material == null)
@@ -340,26 +288,14 @@ namespace LibreLancer.Render
 					Material.FadeFar = *(float*)(&ff);
 				}
                 if (Material.DisableCull || Material.DoubleSided) context.Cull = false;
-				Material.Use(context, Buffer.VertexType, ref Lights);
+				Material.Use(context, Buffer.VertexType, ref Lights, Hash);
 				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else
-					Buffer.Draw(Primitive, Count);
+					Buffer.Draw(Primitive, Start, Count);
                 if (Material.DisableCull || Material.DoubleSided) context.Cull = true;
 			}
-			else if (CmdType == RenderCmdType.Shader)
-			{
-				var Shader = (Shader)Source;
-				ShaderSetup(Shader, context, ref this);
-				Shader.UseProgram();
-				if (BaseVertex != -1)
-					Buffer.Draw(Primitive, BaseVertex, Start, Count);
-				else
-					Buffer.Draw(Primitive, Start, Count);
-				if (Cleanup != null)
-					((Action<RenderContext>)Cleanup)(context);
-			}
-			else if (CmdType == RenderCmdType.Billboard)
+            else if (CmdType == RenderCmdType.Billboard)
 			{
 				var Billboards = (Billboards)Source;
 				Billboards.Render(Index, Hash, context);

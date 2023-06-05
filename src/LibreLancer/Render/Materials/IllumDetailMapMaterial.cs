@@ -23,16 +23,16 @@ namespace LibreLancer.Render.Materials
 		public int FlipU;
 		public int FlipV;
 
+        public IllumDetailMapMaterial(ILibFile library) : base(library) { }
 
-		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+
+		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
             var sh = Shaders.IllumDetailMapMaterial.Get(RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
-            sh.SetViewProjection(Camera);
 			sh.SetWorld(World);
-            sh.SetView(Camera);
 
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);
@@ -47,7 +47,7 @@ namespace LibreLancer.Render.Materials
 			BindTexture(rstate, 1, Dm0Sampler, 1, Dm0Flags);
 			sh.SetDm1Sampler(2);
 			BindTexture(rstate, 2, Dm1Sampler, 2, Dm1Flags);
-			SetLights(sh, ref lights, Camera.FrameNumber);
+			SetLights(sh, ref lights, rstate.FrameNumber);
             sh.UseProgram();
 		}
 
@@ -56,7 +56,6 @@ namespace LibreLancer.Render.Materials
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get();
 			sh.SetWorld(World);
-			sh.SetViewProjection(Camera);
 			sh.UseProgram();
 		}
 

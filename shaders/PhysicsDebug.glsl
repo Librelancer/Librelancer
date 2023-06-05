@@ -7,12 +7,11 @@ void main()
 }
 
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec4 vertex_color;
 
 out vec4 frag_vertexcolor;
-
-uniform mat4x4 ViewProjection;
 
 void main()
 {

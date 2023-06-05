@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Primitives;
+using LibreLancer.Render.Materials;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Vertices;
@@ -23,17 +24,12 @@ namespace LibreLancer.Render
         bool renderBand = false;
         Matrix4x4 bandTransform;
         OpenCylinder bandCylinder;
-        Matrix4x4 vp;
-        static Shaders.ShaderVariables bandShader;
-        static int _bsTexture;
-        static int _bsCameraPosition;
-        static int _bsColorShift;
-        static int _bsTextureAspect;
         Vector3 cameraPos;
         float lightingRadius;
         float renderDistSq;
         Random rand = new Random();
         SystemRenderer sys;
+        private AsteroidBandMaterial bandMaterial;
 
         public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
         {
@@ -63,7 +59,6 @@ namespace LibreLancer.Render
             rdist += field.FillDist;
             renderDistSq = rdist * rdist;
             cubes = new CalculatedCube[4000];
-            _asteroidsCalculation = CalculateAsteroidsTask;
             if (field.Cube.Count > 0)
             {
                 CreateBufferObject();
@@ -71,14 +66,10 @@ namespace LibreLancer.Render
             //Set up band
             if (field.Band == null)
                 return;
-            if (bandShader == null)
-            {
-                bandShader = Shaders.AsteroidBand.Get();
-                _bsTexture = bandShader.Shader.GetLocation("Texture");
-                _bsCameraPosition = bandShader.Shader.GetLocation("CameraPosition");
-                _bsColorShift = bandShader.Shader.GetLocation("ColorShift");
-                _bsTextureAspect = bandShader.Shader.GetLocation("TextureAspect");
-            }
+            bandMaterial = new AsteroidBandMaterial(sys.ResourceManager);
+            bandMaterial.Texture = field.Band.Shape;
+            bandMaterial.ColorShift = field.Band.ColorShift;
+            bandMaterial.TextureAspect = field.Band.TextureAspect;
             Vector3 sz;
             if (field.Zone.Shape is ZoneSphere)
                 sz = new Vector3(((ZoneSphere)field.Zone.Shape).Radius);
@@ -248,19 +239,18 @@ namespace LibreLancer.Render
             }
         }
 
-        ICamera _camera;
         private float lastFog = float.MaxValue;
+        private ICamera _camera;
         public void Update(ICamera camera)
         {
-            vp = camera.ViewProjection;
-            cameraPos = camera.Position;
             _camera = camera;
+            cameraPos = camera.Position;
             if (Vector3.DistanceSquared(cameraPos, field.Zone.Position) <= renderDistSq)
             {
                 if (field.Cube.Count > 0)
-                    asteroidsTask = Task.Run(_asteroidsCalculation);
+                    asteroidsTask = Task.Run(() => CalculateAsteroidsTask(camera.Position, camera.Frustum));
                 if (field.BillboardCount != -1)
-                    billboardTask = Task.Run(CalculateBillboards);
+                    billboardTask = Task.Run(() => CalculateBillboards(camera.Position, camera.Frustum));
             }
         }
 
@@ -305,15 +295,9 @@ namespace LibreLancer.Render
         private int billboardCount = 0;
         private Task billboardTask;
         private bool warnedTooManyBillboards = false;
-        void CalculateBillboards()
+        void CalculateBillboards(Vector3 position, BoundingFrustum frustum)
         {
-            Vector3 position;
-            BoundingFrustum frustum;
             billboardCount = 0;
-            lock (_camera) {
-                position = _camera.Position;
-                frustum = _camera.Frustum;
-            }
             
             var close = AsteroidFieldShared.GetCloseCube(cameraPos, field.FillDist * 2);
             var checkRad = field.FillDist + field.BillboardSize.Y;
@@ -370,20 +354,13 @@ namespace LibreLancer.Render
             public Matrix4x4 tr;
             public CalculatedCube(Vector3 p, Matrix4x4 r) { pos = p; tr = r; }
         }
-        Action _asteroidsCalculation;
         private Task asteroidsTask;
         int cubeCount = -1;
         CalculatedCube[] cubes;
 
-        void CalculateAsteroidsTask()
+        void CalculateAsteroidsTask(Vector3 position, BoundingFrustum frustum)
         {
             cubeCount = 0;
-            Vector3 position;
-            BoundingFrustum frustum;
-            lock (_camera) {
-                position = _camera.Position;
-                frustum = _camera.Frustum;
-            }
             var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
             int amountCubes = (int)Math.Floor((field.FillDist / field.CubeSize)) + 1;
             for (int x = -amountCubes; x <= amountCubes; x++) {
@@ -422,9 +399,6 @@ namespace LibreLancer.Render
         };
         public void Draw(ResourceManager res, SystemLighting lighting, CommandBuffer buffer, NebulaRenderer nr)
         {
-            //Null check
-            if (_camera == null)
-                return;
             //Asteroids!
             if (Vector3.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq)
             {
@@ -435,8 +409,6 @@ namespace LibreLancer.Render
                     if (cubeCount == -1)
                         return;
                     asteroidsTask.Wait();
-                    for (int i = 0; i < cubeDrawCalls.Count; i++)
-                        cubeDrawCalls[i].Material.Update(_camera);
                     var lt = RenderHelpers.ApplyLights(lighting, 0, cameraPos, field.FillDist, nr);
 
                     if (lt.FogMode == FogModes.Linear)
@@ -516,7 +488,6 @@ namespace LibreLancer.Render
             {
                 if (!_camera.Frustum.Intersects(new BoundingSphere(field.Zone.Position, lightingRadius)))
                     return;
-                var tex = (Texture2D)res.FindTexture(field.Band.Shape);
                 var bandHandle = buffer.WorldBuffer.SubmitMatrix(ref bandTransform);
                 for (int i = 0; i < SIDES; i++)
                 {
@@ -526,28 +497,8 @@ namespace LibreLancer.Render
                     var lt = RenderHelpers.ApplyLights(lighting, 0, p, lightingRadius, nr);
                     if (lt.FogMode != FogModes.Linear || Vector3.DistanceSquared(cameraPos, p) <= (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
                     {
-                        buffer.AddCommand(
-                            bandShader.Shader,
-                            bandShaderDelegate,
-                            bandShaderCleanup,
-                            bandHandle,
-                            lt,
-                            new RenderUserData()
-                            {
-                                Float = field.Band.TextureAspect,
-                                Color = field.Band.ColorShift,
-                                Camera = _camera,
-                                Texture = tex,
-                            },
-                            bandCylinder.VertexBuffer,
-                            PrimitiveTypes.TriangleList,
-                            0,
-                            i * 6,
-                            2,
-                            true,
-                            SortLayers.OBJECT,
-                            zcoord
-                        );
+                        buffer.AddCommand(bandMaterial, null, bandHandle, lt, bandCylinder.VertexBuffer,
+                            PrimitiveTypes.TriangleList, 0, i * 6, 2, SortLayers.OBJECT, zcoord);
                     }
                 }
             }
@@ -568,29 +519,5 @@ namespace LibreLancer.Render
             //Too close to the camera: invisible
             return 0;
         }
-        static ShaderAction bandShaderDelegate = BandShaderSetup;
-        private static int bkf = 0;
-        static void BandShaderSetup(Shader shader, RenderContext context, ref RenderCommand command)
-        {
-            bandShader.SetWorld(command.World);
-            var vp = command.UserData.Camera.ViewProjection;
-            bandShader.SetViewProjection(ref vp);
-            shader.SetInteger(_bsTexture, 0);
-            shader.SetVector3(_bsCameraPosition, command.UserData.Camera.Position);
-            shader.SetColor4(_bsColorShift, command.UserData.Color);
-            shader.SetFloat(_bsTextureAspect, command.UserData.Float);
-            RenderMaterial.SetLights(bandShader, ref command.Lights, bkf++);
-            command.UserData.Texture.BindTo(0);
-            shader.UseProgram();
-            context.BlendMode = BlendMode.Normal;
-            context.Cull = false;
-        }
-
-        static Action<RenderContext> bandShaderCleanup = BandShaderCleanup;
-        static void BandShaderCleanup(RenderContext context)
-        {
-            context.Cull = true;
-        }
     }
 }
-

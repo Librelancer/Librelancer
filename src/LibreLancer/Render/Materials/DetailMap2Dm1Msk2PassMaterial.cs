@@ -20,19 +20,16 @@ namespace LibreLancer.Render.Materials
 		public int FlipV;
 		public float TileRate;
 
-		public DetailMap2Dm1Msk2PassMaterial ()
-		{
-		}
-        public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+		public DetailMap2Dm1Msk2PassMaterial (ILibFile library) : base(library) { }
+        
+        public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
 			var sh = Shaders.DetailMap2Dm1Msk2PassMaterial.Get (RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetWorld (World);
-			sh.SetViewProjection (Camera);
-			sh.SetView (Camera);
-			sh.SetAc(Ac);
+            sh.SetAc(Ac);
 			sh.SetDc(Dc);
 			sh.SetTileRate(TileRate);
 			sh.SetFlipU(FlipU);
@@ -41,7 +38,7 @@ namespace LibreLancer.Render.Materials
 			BindTexture (rstate ,0, DtSampler, 0, DtFlags);
 			sh.SetDm1Sampler(1);
             BindTexture(rstate, 1, Dm1Sampler, 1, Dm1Flags, ResourceManager.GreyTextureName);
-			SetLights(sh, ref lights, Camera.FrameNumber);
+			SetLights(sh, ref lights, rstate.FrameNumber);
             sh.UseProgram ();
 		}
 
@@ -50,7 +47,6 @@ namespace LibreLancer.Render.Materials
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get();
             sh.SetWorld(World);
-            sh.SetViewProjection(Camera);
             sh.UseProgram();
 		}
 

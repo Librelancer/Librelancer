@@ -297,6 +297,52 @@ public static class IniSerializer
         }
         return sb.ToString();
     }
+
+    public static string SerializeRoom(BaseRoom room)
+    {
+        var sb = new StringBuilder();
+        sb.AppendSection("Room_Info")
+            .AppendEntry("set_script", room.SetScript?.SourcePath);
+
+        if (!string.IsNullOrWhiteSpace(room.PlayerShipPlacement))
+            sb.AppendSection("PlayerShipPlacement")
+                .AppendEntry("name", room.PlayerShipPlacement);
+        
+        if (!string.IsNullOrWhiteSpace(room.Camera))
+            sb.AppendSection("Camera")
+                .AppendEntry("name", room.Camera)
+                .AppendLine();
+
+        foreach (var hotspot in room.Hotspots)
+        {
+            sb.AppendSection("Hotspot")
+                .AppendEntry("name", hotspot.Name)
+                .AppendEntry("behavior", hotspot.Behavior)
+                .AppendEntry("room_switch", hotspot.Room)
+                .AppendEntry("virtual_room", hotspot.VirtualRoom)
+                .AppendEntry("set_virtual_room", hotspot.SetVirtualRoom);
+        }
+
+        return sb.ToString();
+    }
+
+    public static string SerializeBase(Base b)
+    {
+        var sb = new StringBuilder();
+        sb.AppendSection("BaseInfo")
+            .AppendEntry("nickname", b.Nickname)
+            .AppendEntry("start_room", b.StartRoom.Nickname)
+            .AppendLine();
+
+        foreach (var r in b.Rooms)
+        {
+            sb.AppendSection("Room")
+                .AppendEntry("nickname", r.Nickname)
+                .AppendEntry("file", r.SourceFile)
+                .AppendLine();
+        }
+        return sb.ToString();
+    }
     
     public static string SerializeMBases(IEnumerable<Base> bases)
     {

@@ -13,6 +13,7 @@ namespace LibreLancer.GameData.World
 	{
         //Populated from room ini
 		public string Nickname;
+        public string SourceFile;
 		public string Camera;
         public ResolvedThn SetScript;
 		public List<ResolvedThn> ThnPaths;

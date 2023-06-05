@@ -85,7 +85,6 @@ namespace LibreLancer.Render
         IRendererSettings settings;
         Billboards billboards;
         ResourceManager resman;
-        NebulaVertices nebulae;
 
         public ResourceManager ResourceManager
         {
@@ -108,10 +107,9 @@ namespace LibreLancer.Render
             settings = game.GetService<IRendererSettings>();
             billboards = game.GetService<Billboards>();
             resman = resources;
-            nebulae = game.GetService<NebulaVertices>();
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new LineRenderer();
-            Beams = new BeamsBuffer();
+            Beams = new BeamsBuffer(resources);
             if (GLExtensions.Features430)
             {
                 pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
@@ -176,7 +174,7 @@ namespace LibreLancer.Render
 		public void Update(double elapsed)
         {
             foreach (var model in StarSphereModels)
-                model.Update(camera, game.TotalTime, resman);
+                model.Update(game.TotalTime);
             FxPool.Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
@@ -289,7 +287,8 @@ namespace LibreLancer.Render
             rstate.PreferredFilterLevel = settings.SelectedFiltering;
             rstate.AnisotropyLevel = settings.SelectedAnisotropy;
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
-
+            rstate.SetCamera(camera);
+            commands.Camera = camera;
 			bool transitioned = false;
 			if (nr != null)
 				transitioned = nr.FogTransitioned() && DrawNebulae;
@@ -335,8 +334,8 @@ namespace LibreLancer.Render
 					rstate.ClearColor = starSystem.BackgroundColor;
 				rstate.ClearAll();
             }
-			DebugRenderer.StartFrame(camera, rstate);
-			Polyline.SetCamera(camera);
+			DebugRenderer.StartFrame(rstate);
+			Polyline.StartFrame();
 			commands.StartFrame(rstate);
 			rstate.DepthEnabled = true;
 			//Optimisation for dictionary lookups
@@ -422,7 +421,6 @@ namespace LibreLancer.Render
             Beams.End();
             FxPool.Draw(camera, Polyline, resman, DebugRenderer);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, commands, nr);
-			nebulae.NewFrame();
             if (DrawNebulae)
             {
                 if (nr == null)
@@ -432,10 +430,8 @@ namespace LibreLancer.Render
                 else
                     nr.Draw(commands);
             }
-
-            nebulae.SetData();
-			billboards.End();
-			Polyline.FrameEnd();
+            billboards.End();
+			Polyline.EndFrame();
 			//Opaque Pass
 			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);
@@ -443,7 +439,10 @@ namespace LibreLancer.Render
             {
                 //Starsphere
                 rstate.DepthRange = new Vector2(1, 1);
-                if(camera is ThnCamera thn && !ZOverride) thn.DefaultZ();
+                if (camera is ThnCamera thn && !ZOverride) {
+                    thn.DefaultZ();
+                    rstate.SetCamera(thn);
+                }
                 for (int i = 0; i < StarSphereModels.Length; i++)
                 {
                     Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
@@ -462,7 +461,10 @@ namespace LibreLancer.Render
                             p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims); ;
                     }
                 }
-                if (camera is ThnCamera thn2 && !ZOverride) thn2.CameraZ();
+                if (camera is ThnCamera thn2 && !ZOverride) {
+                    thn2.CameraZ();
+                    rstate.SetCamera(thn2);
+                }
                 if (nr != null && DrawNebulae)
                 {
                     //rstate.DepthEnabled = false;

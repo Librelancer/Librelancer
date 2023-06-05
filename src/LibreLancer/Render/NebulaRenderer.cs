@@ -17,7 +17,6 @@ namespace LibreLancer.Render
 		public Nebula Nebula;
 		Random rand;
         Game game;
-        NebulaVertices nverts;
         Renderer2D render2D;
         Billboards billboards;
 		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
@@ -26,7 +25,6 @@ namespace LibreLancer.Render
 		{
 			Nebula = n;
 			game = g;
-            nverts = g.GetService<NebulaVertices>();
             render2D = g.RenderContext.Renderer2D;
             billboards = g.GetService<Billboards>();
             this.sysr = sysr;
@@ -291,24 +289,11 @@ namespace LibreLancer.Render
                     }
                 }
             }
-            ex.ShellModel.Update(sysr.Camera, 0.0, sysr.ResourceManager);
+
+            ex.ShellModel.Update(0.0);
             ex.ShellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
         }
-        static Shaders.ShaderVariables _puffringsh;
-		static int _ptex0;
-		static int _pfogfactor;
-
-        Shader GetPuffShader()
-        {
-			if (_puffringsh == null)
-            {
-                _puffringsh = Shaders.NebulaExtPuff.Get();
-				_ptex0 = _puffringsh.Shader.GetLocation("tex0");
-				_pfogfactor = _puffringsh.Shader.GetLocation("FogFactor");
-			}
-            return _puffringsh.Shader;
-        }
-
+        
         void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2,
             Vector2 tl,Vector2 tr, Vector2 bl, Vector2 br)
         {
@@ -340,18 +325,8 @@ namespace LibreLancer.Render
         {
             return sysr.StaticBillboards.DoVertices(ref puffId, puffVertices);
         }
-        static ShaderAction puffSetup = SetupPuffShader;
-        static void SetupPuffShader(Shader sh, RenderContext rs, ref RenderCommand dat)
-        {
-            sh.SetInteger(_ptex0, 0);
-            dat.UserData.Texture.BindTo(0);
-            sh.SetFloat(_pfogfactor, dat.UserData.Float);
-            rs.BlendMode = BlendMode.Normal;
-            rs.Cull = false;
-        }
-        static Action<RenderContext> puffCleanup = (x) => x.Cull = true;
 
-        void DrawPuffRing(bool inside, CommandBuffer buffer)
+        unsafe void DrawPuffRing(bool inside, CommandBuffer buffer)
 		{
             /* Skip rendering puff rings */
             if(!inside) {
@@ -372,28 +347,13 @@ namespace LibreLancer.Render
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
             int idx = GetPuffsIdx();
-            string lastTex = null;
-            Texture2D tex = null;
-            var sh = GetPuffShader();
-            _puffringsh.SetView(sysr.Camera);
-            _puffringsh.SetViewProjection(sysr.Camera);
-			for (int i = 0; i < Exterior.Count; i++)
+            for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
-                if (p.Texture == null)
-                {
-                    lastTex = null;
-                    tex = sysr.ResourceManager.NullTexture;
-                }
-                else if (lastTex != p.Texture)
-                {
-                    tex = (Texture2D)sysr.ResourceManager.FindTexture(p.Texture);
-                    lastTex = p.Texture;
-                }
-                buffer.AddCommand(sh, puffSetup, puffCleanup, buffer.WorldBuffer.Identity,
-                    new RenderUserData() { Texture = tex, Float = factor }, sysr.StaticBillboards.VertexBuffer,
-                    PrimitiveTypes.TriangleList, idx, 2, true, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
-                    RenderHelpers.GetZ(sysr.Camera.Position, p.Position));
+                buffer.AddCommand(p.Material, null, buffer.WorldBuffer.Identity, Lighting.Empty
+                    , sysr.StaticBillboards.VertexBuffer,
+                    PrimitiveTypes.TriangleList, 0, idx, 2, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
+                    RenderHelpers.GetZ(sysr.Camera.Position, p.Position), null, 0, *(int*)&factor);
                 idx += 6;
 			}
 		}
@@ -442,7 +402,8 @@ namespace LibreLancer.Render
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),
                     new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y + shape.Dimensions.Height)
                 );
-                Exterior.Add(new ExteriorPuff() { Position = puffPos, Texture = shape.Texture });
+                Exterior.Add(new ExteriorPuff()
+                    {Position = puffPos, Material = new NebulaPuffMaterial(sysr.ResourceManager) {Texture = shape.Texture}});
 				current_angle += delta_angle;
 			}
 		}
@@ -450,7 +411,7 @@ namespace LibreLancer.Render
         struct ExteriorPuff
         {
             public Vector3 Position;
-            public string Texture;
+            public NebulaPuffMaterial Material;
         }
         struct InteriorPuff
 		{
@@ -542,6 +503,8 @@ namespace LibreLancer.Render
 			return new Color3f(c.R, c.G, c.B);
 		}
 
+        private NebulaInteriorMaterial fillMaterial;
+
 		void RenderFill(CommandBuffer buffer, bool inside)
 		{
 			if (Nebula.ExteriorFill == null) return;
@@ -558,83 +521,24 @@ namespace LibreLancer.Render
             if (sysr.Camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
                 return;
 
-			var tex = (Texture2D)sysr.ResourceManager.FindTexture(Nebula.ExteriorFill);
-			//X axis
-			{
-				var tl = new VertexPositionTexture(
-					new Vector3(-1, -1, 0),
-					new Vector2(0, 1)
-				);
-				var tr = new VertexPositionTexture(
-					new Vector3(+1, -1, 0),
-					new Vector2(1, 1)
-				);
-				var bl = new VertexPositionTexture(
-					new Vector3(-1, +1, 0),
-					new Vector2(0, 0)
-				);
-				var br = new VertexPositionTexture(
-					new Vector3(+1, +1, 0),
-					new Vector2(1, 0)
-				);
-				nverts.SubmitQuad(
-					tl, tr, bl, br
-				);
-			}
-			//Z Axis
-			{
-				var tl = new VertexPositionTexture(
-					new Vector3(0, -1, -1),
-					new Vector2(0, 1)
-				);
-				var tr = new VertexPositionTexture(
-					new Vector3(0, -1, +1),
-					new Vector2(1, 1)
-				);
-				var bl = new VertexPositionTexture(
-					new Vector3(0, +1, -1),
-					new Vector2(0, 0)
-				);
-				var br = new VertexPositionTexture(
-					new Vector3(0, +1, +1),
-					new Vector2(0, 1)
-				);
-				nverts.SubmitQuad(
-					tl, tr, bl, br
-				);
-			}
-			//Y Axis
-			{
-				var tl = new VertexPositionTexture(
-					new Vector3(-1, 0, -1),
-					new Vector2(0, 1)
-				);
-				var tr = new VertexPositionTexture(
-					new Vector3(-1, 0, 1),
-					new Vector2(1, 1)
-				);
-				var bl = new VertexPositionTexture(
-					new Vector3(+1, 0, -1),
-					new Vector2(0, 0)
-				);
-				var br = new VertexPositionTexture(
-					new Vector3(+1, 0, 1),
-					new Vector2(0, 1)
-				);
-				nverts.SubmitQuad(
-					tl, tr, bl, br
-				);
-			}
-			var transform = Matrix4x4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(p);
-			nverts.Draw(
-				buffer,
-				sysr.Camera,
-				tex,
-				Nebula.FogColor,
-				transform,
-				inside
-			);
-		}
+            fillMaterial ??= new NebulaInteriorMaterial(sysr.ResourceManager) {Texture = Nebula.ExteriorFill, Dc = Nebula.FogColor};
+            var transform = Matrix4x4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(p);
+            var world = buffer.WorldBuffer.SubmitMatrix(ref transform);
+            var z = RenderHelpers.GetZ(transform, sysr.Camera.Position, Vector3.Zero);
+
+            buffer.AddCommand(
+                fillMaterial,
+                null,
+                world,
+                Lighting.Empty,
+                sysr.StaticBillboards.VertexBuffer,
+                PrimitiveTypes.TriangleList,
+                0,
+                0,
+                StaticBillboards.NebulaFillPrimCount,
+                inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
+                z
+            );
+        }
 	}
 }
-

@@ -35,7 +35,7 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling Billboard");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(240975, 772), sourceBundle.Substring(241747, 226));
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(243814, 886), sourceBundle.Substring(244700, 236));
         }
     }
 }

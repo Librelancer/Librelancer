@@ -10,10 +10,7 @@ namespace LibreLancer.Shaders
 {
 	public class ShaderVariables
 	{
-		int viewPosition;
-        int projectionPosition;
-		int viewProjectionPosition;
-		int worldPosition;
+        int worldPosition;
 		int normalMatrixPosition;
 
 		int dtSamplerPosition;
@@ -50,9 +47,6 @@ namespace LibreLancer.Shaders
 		{
 			shader = sh;
 
-			viewPosition = sh.GetLocation("View");
-			viewProjectionPosition = sh.GetLocation("ViewProjection");
-            projectionPosition = sh.GetLocation("Projection");
 			worldPosition = sh.GetLocation("World");
 			normalMatrixPosition = sh.GetLocation("NormalMatrix");
 
@@ -103,36 +97,6 @@ namespace LibreLancer.Shaders
                 shader.SetInteger(skinningEnabledPosition, skinningEnabled ? 1 : 0);
         }
 
-        public void SetView(ref Matrix4x4 view)
-		{
-			if (viewPosition != -1)
-				shader.SetMatrix(viewPosition, ref view);
-            _camera = null;
-		}
-
-		public void SetViewProjection(ref Matrix4x4 viewProjection)
-		{
-			if (viewProjectionPosition != -1)
-				shader.SetMatrix(viewProjectionPosition, ref viewProjection);
-            _camera = null;
-        }
-
-        //Set View and ViewProjection once per frame per shader
-        ICamera _camera;
-        long _vframeNumber;
-        long _vpframeNumber;
-        long _pframeNumber;
-
-        public void SetView(ICamera camera)
-        {
-            if (camera == _camera && camera.FrameNumber == _vframeNumber)
-                return;
-            _camera = camera;
-            _vframeNumber = camera.FrameNumber;
-            var v = camera.View;
-            if (viewPosition != -1)
-                shader.SetMatrix(viewPosition, ref v);
-        }
 
         private int lightId;
         private long lightFrame;
@@ -156,29 +120,8 @@ namespace LibreLancer.Shaders
             nebulaId = lights.Lights.NebulaCount;
             ltcnt = lightCount;
         }
-        public void SetProjection(ICamera camera)
-        {
-            if (camera == _camera && camera.FrameNumber == _pframeNumber)
-                return;
-            _camera = camera;
-            _pframeNumber = camera.FrameNumber;
-            var v = camera.Projection;
-            if (projectionPosition != -1)
-                shader.SetMatrix(projectionPosition, ref v);
-        }
 
-        public void SetViewProjection(ICamera camera)
-        {
-            if (camera == _camera && camera.FrameNumber == _vpframeNumber)
-                return;
-            _camera = camera;
-            _vpframeNumber = camera.FrameNumber;
-            var vp = camera.ViewProjection;
-            if (viewProjectionPosition != -1)
-                shader.SetMatrix(viewProjectionPosition, ref vp);
-        }
-
-		public unsafe void SetWorld(WorldMatrixHandle world)
+        public unsafe void SetWorld(WorldMatrixHandle world)
 		{
             if (world.Source == (Matrix4x4*) 0)
             {

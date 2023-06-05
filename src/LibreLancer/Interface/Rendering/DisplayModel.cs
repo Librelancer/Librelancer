@@ -118,8 +118,9 @@ namespace LibreLancer.Interface
             context.RenderContext.Cull = false;
             if (DrawModel)
             {
+                context.RenderContext.SetIdentityCamera();
                 model.UpdateTransform();
-                model.Update(context.MatrixCam, context.GlobalTime, context.Data.ResourceManager);
+                model.Update(context.GlobalTime);
                 if (Tint != null)
                 {
                     var color = Tint.GetColor(context.GlobalTime);
@@ -139,7 +140,8 @@ namespace LibreLancer.Interface
             }
             if (VMeshWire)
             {
-                context.Lines.StartFrame(context.MatrixCam, context.RenderContext);
+                context.RenderContext.SetIdentityCamera();
+                context.Lines.StartFrame(context.RenderContext);
                 foreach (var part in model.AllParts)
                 {
                     if (part.Wireframe != null)

@@ -6,15 +6,20 @@ using LibreLancer.Vertices;
 
 namespace LancerEdit;
 
-public class NormalLines : RenderMaterial
+public class NormalLinesMaterial : RenderMaterial
 {
     private const string VERTEX = @"
+layout(std140) uniform Camera_Matrices 
+{
+    mat4 View;
+    mat4 Projection;
+    mat4 ViewProjection;
+};
 in vec3 vertex_position;
 in vec3 vertex_normal;
 
 uniform float Size;
 uniform mat4x4 World;
-uniform mat4x4 ViewProjection;
 
 out vec4 position1;
 out vec3 color1;
@@ -76,7 +81,6 @@ void main() {
 
     private static Shader shader;
     private static int worldLoc;
-    private static int vpLoc;
     private static int sizeLoc;
     
     static void InitShader()
@@ -90,20 +94,17 @@ void main() {
                 prelude = "#version 150\n";
             shader = new Shader(prelude + VERTEX, prelude + FRAGMENT, prelude + GEOMETRY);
             worldLoc = shader.GetLocation("World");
-            vpLoc = shader.GetLocation("ViewProjection");
             sizeLoc = shader.GetLocation("Size");
         }
     }
     
-    public NormalLines() => InitShader();
+    public NormalLinesMaterial(ILibFile library) : base(library) => InitShader();
 
     public float Size { get; set; } = 2;
     
-    public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+    public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         shader.SetMatrix(worldLoc, (IntPtr) World.Source);
-        var vp = Camera.ViewProjection;
-        shader.SetMatrix(vpLoc, ref vp);
         shader.SetFloat(sizeLoc, Size);
         shader.UseProgram();    
     }
@@ -113,7 +114,7 @@ void main() {
     public override void ApplyDepthPrepass(RenderContext rstate) { }
 
     public static Material GetMaterial(ResourceManager res, float size) 
-        => new(res, new NormalLines()
+        => new(res, new NormalLinesMaterial(res)
         {
             Size = size,
         });

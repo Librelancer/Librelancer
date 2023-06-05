@@ -499,8 +499,11 @@ namespace LibreLancer
             Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
             FLLog.Info("GL", $"Renderer: {GL.GetString(GL.GL_RENDERER)}");
             SetVSync(true);
+            GL.ErrorChecking = true;
             //Init game state
             RenderContext = new RenderContext();
+            FLLog.Info("GL", $"Max Anisotropy: {RenderContext.MaxAnisotropy}");
+            FLLog.Info("GL", $"Max AA: {RenderContext.MaxSamples}");
             SDL.SDL_GetWindowSize(sdlWin, out int windowWidth, out int windowHeight);
             SDL.SDL_GL_GetDrawableSize(sdlWin, out  width, out height);
             var scaleW = (float) width / windowWidth;

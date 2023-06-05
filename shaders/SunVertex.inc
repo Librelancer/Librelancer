@@ -1,4 +1,5 @@
 @vertex
+@include(includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_dimensions;
 in vec4 vertex_color;
@@ -10,8 +11,6 @@ out vec2 uv;
 out vec4 innercolor;
 out vec4 outercolor;
 
-uniform mat4 View;
-uniform mat4 ViewProjection;
 uniform vec2 SizeMultiplier;
 
 void main()

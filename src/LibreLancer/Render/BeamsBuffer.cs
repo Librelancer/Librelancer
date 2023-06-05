@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Data.Effects;
+using LibreLancer.Render.Materials;
 using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
@@ -17,7 +18,7 @@ namespace LibreLancer.Render
         private VertexBuffer bufferBolt;
         private CommandBuffer commands;
         private ResourceManager res;
-        private Shaders.ShaderVariables shader;
+        private ProjectileMaterial material;
 
         /*
          * BeamSpear Indices
@@ -109,7 +110,7 @@ namespace LibreLancer.Render
             }
             return indices;
         }
-        public BeamsBuffer()
+        public BeamsBuffer(ResourceManager res)
         {
             var idx1 = ConstructIndices(spearIndices, 12, MAX_BEAMS);
             bufferSpear = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BEAMS * 12, true);
@@ -121,8 +122,7 @@ namespace LibreLancer.Render
             var el2 = new ElementBuffer(idx2.Length);
             el2.SetData(idx2);
             bufferBolt.SetElementBuffer(el2);
-            shader = Shaders.Projectile.Get();
-            shader.Shader.SetInteger(shader.Shader.GetLocation("tex0"), 0);
+            material = new ProjectileMaterial(res);
         }
 
         public void Dispose()
@@ -143,7 +143,6 @@ namespace LibreLancer.Render
         {
             this.commands = commands;
             this.res = res;
-            shader.SetViewProjection(cam);
             verticesSpear = (VertexPositionColorTexture*)bufferSpear.BeginStreaming();
             verticesBolt = (VertexPositionColorTexture*) bufferBolt.BeginStreaming();
             if(begun) throw new InvalidOperationException();
@@ -161,32 +160,20 @@ namespace LibreLancer.Render
             bufferBolt.EndStreaming(vertexCountBolt);
             if (vertexCountSpear > 0)
             {
-                commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
+                commands.AddCommand(material, null, commands.WorldBuffer.Identity, Lighting.Empty,
                     bufferSpear,
-                    PrimitiveTypes.TriangleList, 0, spearCount * (spearIndices.Length / 3), true, SortLayers.OBJECT);
+                    PrimitiveTypes.TriangleList, 0, 0, spearCount * (spearIndices.Length / 3), SortLayers.OBJECT);
                 spearCount = 0;
                 vertexCountSpear = 0;
             }
             if (boltCount > 0)
             {
-                commands.AddCommand(shader.Shader, SetupShader, EnableCull, commands.WorldBuffer.Identity, new RenderUserData(),
+                commands.AddCommand(material, null, commands.WorldBuffer.Identity, Lighting.Empty,
                     bufferBolt,
-                    PrimitiveTypes.TriangleList, 0, boltCount * (boltIndices.Length / 3), true, SortLayers.OBJECT);
+                    PrimitiveTypes.TriangleList, 0, 0, boltCount * (boltIndices.Length / 3),SortLayers.OBJECT);
                 vertexCountBolt = 0;
                 boltCount = 0;
             }
-        }
-        static void SetupShader(Shader shdr, RenderContext res, ref RenderCommand cmd)
-        {
-            code_beam.SetWrapModeS(WrapMode.ClampToEdge);
-            code_beam.SetWrapModeT(WrapMode.ClampToEdge);
-            code_beam.BindTo(0);
-            res.BlendMode = BlendMode.Additive;
-            res.Cull = false;
-        }
-        static void EnableCull(RenderContext rs)
-        {
-            rs.Cull = true;
         }
 
         public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt, float maxTrailLen)

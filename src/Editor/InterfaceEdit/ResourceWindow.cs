@@ -374,8 +374,8 @@ namespace InterfaceEdit
             var transform = Matrix4x4.CreateScale(mdl.XScale, mdl.YScale, 1) *
                             Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
             transform *= DisplayModel.CreateTransform(rtX, rtY, rectangle);
-            var mcam = new MatrixCamera(Matrix4x4.Identity);
-            drawable.Update(mcam, mainWindow.TotalTime, context.ResourceManager);
+            mainWindow.RenderContext.SetIdentityCamera();
+            drawable.Update(mainWindow.TotalTime);
             mainWindow.RenderContext.Cull = false;
             mainWindow.RenderContext.ScissorEnabled = true;
             mainWindow.RenderContext.ScissorRectangle = rectangle;

@@ -1,20 +1,20 @@
 @fragment
-uniform sampler2D Texture;
-uniform vec4 Tint;
+uniform sampler2D DtSampler;
+uniform vec4 Dc;
 
 in vec2 texcoord;
 out vec4 out_frag;
 void main(void)
 {
-	out_frag = texture(Texture, texcoord) * Tint;
+	out_frag = texture(DtSampler, texcoord) * Dc;
 }
 
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec2 vertex_texture1;
 
 out vec2 texcoord;
-uniform mat4x4 ViewProjection;
 uniform mat4x4 World;
 void main()
 {

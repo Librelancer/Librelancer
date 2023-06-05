@@ -1,4 +1,5 @@
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 
@@ -6,7 +7,6 @@ out vec3 out_normal;
 out vec3 world_position;
 
 uniform mat4x4 World;
-uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
 
 void main()
@@ -18,12 +18,12 @@ void main()
 }
 
 @fragment
+@include (includes/camera.inc)
 in vec3 out_normal;
 in vec3 world_position;
 out vec4 out_color;
 
 uniform samplerCube Cubemap;
-uniform vec3 CameraPosition;
 
 void main()
 {

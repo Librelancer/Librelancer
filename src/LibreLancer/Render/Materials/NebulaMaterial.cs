@@ -13,9 +13,8 @@ namespace LibreLancer.Render.Materials
 	{
 		public string DtSampler;
 		public SamplerFlags DtFlags;
-		public NebulaMaterial ()
-		{
-		}
+        public NebulaMaterial(ILibFile library) : base(library) { }
+
 		ShaderVariables GetShader(IVertexType vtype)
 		{
             if (vtype is VertexPositionNormalDiffuseTexture ||
@@ -30,15 +29,12 @@ namespace LibreLancer.Render.Materials
             }
             throw new NotImplementedException(vtype.GetType().ToString());
         }
-		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
-            if (Camera == null)
-                return;
-			//fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
+            //fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
 			rstate.BlendMode = BlendMode.Additive;
 			var shader = GetShader(vertextype);
 			shader.SetWorld(World);
-            shader.SetViewProjection(Camera);
 			//Dt
 			shader.SetDtSampler(0);
 			BindTexture (rstate, 0, DtSampler, 0, DtFlags);

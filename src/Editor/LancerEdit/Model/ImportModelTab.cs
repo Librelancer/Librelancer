@@ -321,7 +321,7 @@ public class ImportModelTab : EditorTab
 
     private bool lit = false;
 
-    private void DrawModel(RenderContext rstate, ICamera camera)
+    private void DrawModel(RenderContext rstate)
     {
         var mat = wireframeMaterial3db.Render;
         rstate.Cull = true;
@@ -329,7 +329,6 @@ public class ImportModelTab : EditorTab
         var bm = (BasicMaterial) mat;
         bm.Oc = 1;
         bm.OcEnabled = true;
-        mat.Camera = camera;
         uint i = 0;
         if(lit)
             preview[previewLod].Draw(rstate, Matrix4x4.Identity, mat, ref lighting, ref i);
@@ -362,7 +361,8 @@ public class ImportModelTab : EditorTab
         lookAtCam.FrameNumber = fR++;
         win.RenderContext.ClearColor = Color4.Black;
         win.RenderContext.ClearAll();
-        DrawModel(win.RenderContext, lookAtCam);
+        win.RenderContext.SetCamera(lookAtCam);
+        DrawModel(win.RenderContext);
         modelViewport.End();
     }
 
@@ -571,7 +571,7 @@ public class ImportModelTab : EditorTab
                     Source = trs
                 };
                 mat.World = whandle;
-                mat.Use(rstate, new VertexPositionNormalDiffuseTexture(), ref lighting);
+                mat.Use(rstate, new VertexPositionNormalDiffuseTexture(), ref lighting, 0);
                 foreach (var dc in Drawcalls)
                     Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.StartIndex, dc.IndexCount / 3);
             }

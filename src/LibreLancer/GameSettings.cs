@@ -64,5 +64,19 @@ namespace LibreLancer
             gs.RenderContext = RenderContext;
             return gs;
         }
+
+        public void Validate()
+        {
+            if (MSAA > RenderContext.MaxSamples)
+            {
+                FLLog.Info("Config", $"{MSAA}x MSAA not supported, disabling.");
+                MSAA = 0;
+            }
+            if (Anisotropy > RenderContext.MaxAnisotropy)
+            {
+                FLLog.Info("Config", $"{Anisotropy}x anisotropy not supported, disabling.");
+                Anisotropy = 0;
+            }
+        }
     }
 }

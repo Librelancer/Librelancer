@@ -6,17 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.GameData.Archetypes;
+using LibreLancer.Render.Materials;
 
 namespace LibreLancer.Render
 {
     public class SunRenderer : ObjectRenderer
 	{
-
-		public Sun Sun { get; private set; }
+        public Sun Sun { get; private set; }
 		Vector3 pos;
 		SystemRenderer sysr;
         int ID;
         VertexBillboardColor2[] vertices;
+
+        private SunSpineMaterial spineMaterial;
+        private SunRadialMaterial centerMaterial;
+        private SunRadialMaterial glowMaterial;
 
 		public SunRenderer (Sun sun)
 		{
@@ -89,42 +93,22 @@ namespace LibreLancer.Render
 
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
+            if (sysr == null)
+            {
+                spineMaterial = new SunSpineMaterial(sys.ResourceManager);
+                spineMaterial.Texture = Sun.SpinesSprite;
+                spineMaterial.SizeMultiplier = Vector2.One;
+                centerMaterial = new SunRadialMaterial(sys.ResourceManager);
+                centerMaterial.Texture = Sun.CenterSprite;
+                glowMaterial = new SunRadialMaterial(sys.ResourceManager);
+                glowMaterial.Texture = Sun.GlowSprite;
+                glowMaterial.Additive = true;
+            }
+            
             sysr = sys;
             sys.AddObject(this);
             return true;
         }
-
-        static Shaders.ShaderVariables radialShader;
-        static Shaders.ShaderVariables spineShader;
-        static int radialTex0;
-        static int spineTex0;
-        static int radialSize;
-        static int spineSize;
-        static int radialAlpha;
-        static ShaderAction RadialSetup = (Shader shdr, RenderContext res, ref RenderCommand cmd) =>
-        {
-            if (cmd.UserData.Float == 0)
-                res.BlendMode = BlendMode.Additive;
-            else
-                res.BlendMode = BlendMode.Normal;
-            shdr.SetInteger(radialTex0, 0);
-            shdr.SetVector2(radialSize, new Vector2(cmd.UserData.Color.R));
-            shdr.SetFloat(radialAlpha, cmd.UserData.Color.G);
-            cmd.UserData.Texture.BindTo(0);
-            res.Cull = false;
-        };
-        static ShaderAction SpineSetup = (Shader shdr, RenderContext res, ref RenderCommand cmd) =>
-        {
-            res.BlendMode = BlendMode.Normal;
-            shdr.SetInteger(spineTex0, 0);
-            shdr.SetVector2(spineSize, Vector2.One);
-            cmd.UserData.Texture.BindTo(0);
-            res.Cull = false;
-        };
-        static Action<RenderContext> Cleanup = (x) =>
-        {
-            x.Cull = true;
-        };
 
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
@@ -135,53 +119,33 @@ namespace LibreLancer.Render
                 z = 900000;
             var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
             var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
-
-            if (radialShader == null)
-            {
-                radialShader = Shaders.SunRadial.Get();
-                radialTex0 = radialShader.Shader.GetLocation("tex0");
-                radialSize = radialShader.Shader.GetLocation("SizeMultiplier");
-                radialAlpha = radialShader.Shader.GetLocation("outerAlpha");
-            }
-            if (spineShader == null)
-            {
-                spineShader = Shaders.SunSpine.Get();
-                spineTex0 = spineShader.Shader.GetLocation("tex0");
-                spineSize = spineShader.Shader.GetLocation("SizeMultiplier");
-            } 
-            radialShader.SetViewProjection(camera);
-            radialShader.SetView(camera);
-            spineShader.SetViewProjection(camera);
-            spineShader.SetView(camera);
-
             int idx = sysr.StaticBillboards.DoVertices(ref ID, vertices);
-
+            //draw center
             if (Sun.CenterSprite != null)
             {
-                //draw center
-                var cr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.CenterSprite);
-                commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, commands.WorldBuffer.Identity,
-                new RenderUserData() { Float = 0, Color = new Color4(dist_scale,alpha,0,0), Texture = cr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
-                idx, 2, true, SortLayers.SUN, z);
-                //next
+                centerMaterial.SizeMultiplier = new Vector2(dist_scale);
+                centerMaterial.OuterAlpha = alpha;
+                commands.AddCommand(centerMaterial, null, commands.WorldBuffer.Identity,
+                    Lighting.Empty, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
+                    0, idx, 2, SortLayers.SUN, z);
                 idx += 6;
             }
             //draw glow
-            var gr = (Texture2D)sysr.ResourceManager.FindTexture(Sun.GlowSprite);
-            commands.AddCommand(radialShader.Shader, RadialSetup, Cleanup, commands.WorldBuffer.Identity,
-                new RenderUserData() { Float = 1, Color = new Color4(dist_scale, alpha, 0, 0), Texture = gr }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
-                idx, 2, true, SortLayers.SUN, z, 1);
+            glowMaterial.SizeMultiplier = new Vector2(dist_scale);
+            glowMaterial.OuterAlpha = alpha;
+            commands.AddCommand(glowMaterial, null, commands.WorldBuffer.Identity,
+                Lighting.Empty, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
+                0, idx, 2, SortLayers.SUN, z, null, 1);
             //next
             idx += 6;
             //draw spines
-            if(Sun.SpinesSprite != null && nr == null)
+            if (Sun.SpinesSprite != null && nr == null)
             {
-                var spinetex = (Texture2D)sysr.ResourceManager.FindTexture(Sun.SpinesSprite);
-                commands.AddCommand(spineShader.Shader, SpineSetup, Cleanup, commands.WorldBuffer.Identity,
-                    new RenderUserData() { Texture = spinetex }, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
-                    idx, 2 * Sun.Spines.Count, true, SortLayers.SUN, z, 2);
+                commands.AddCommand(spineMaterial, null, commands.WorldBuffer.Identity,
+                    Lighting.Empty, sysr.StaticBillboards.VertexBuffer, PrimitiveTypes.TriangleList,
+                    0, idx, 2 * Sun.Spines.Count, SortLayers.SUN, z, null, 2);
             }
         }
-	}
+    }
 }
 

@@ -1,5 +1,6 @@
 @include(includes/sprite.inc)
 @vertex
+@include(includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_dimensions;
 in vec4 vertex_color;
@@ -8,10 +9,6 @@ in vec2 vertex_texture1;
 
 out vec2 Vertex_UV;
 out vec4 Vertex_Color;
-
-uniform mat4 View;
-uniform mat4 ViewProjection;
-
 
 void main()
 {

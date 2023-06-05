@@ -23,11 +23,9 @@ namespace LibreLancer.Render
 			linebuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 
-		ICamera camera;
 		RenderContext rstate;
-		public void StartFrame(ICamera cam, RenderContext rs)
+		public void StartFrame(RenderContext rs)
 		{
-			camera = cam;
 			rstate = rs;
 			lineVertices = 0;	
 		}
@@ -80,9 +78,7 @@ namespace LibreLancer.Render
 				return;
 			rstate.Cull = false;
 			rstate.DepthEnabled = false;
-			var vp = camera.ViewProjection;
-			shader.SetViewProjection(ref vp);
-			shader.UseProgram();
+            shader.UseProgram();
 			linebuffer.SetData(lines, lineVertices);
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);
 			rstate.Cull = true;

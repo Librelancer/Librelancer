@@ -19,14 +19,17 @@ namespace LancerEdit
         private const float TEXCOORD = 1024;
         private static bool loaded = false;
 
-        private static Shader shader; 
-        private static int view;
-        private static int viewProj;
+        private static Shader shader;
         private static int gridColor;
         private static int gridScale;
         private const string VertexShader = @"#version {0}
-uniform mat4x4 ViewProjection;
-uniform mat4x4 View;
+layout(std140) uniform Camera_Matrices 
+{
+    mat4 View;
+    mat4 Projection;
+    mat4 ViewProjection;
+};
+
 uniform float GridScale;
 in vec3 vertex_position;
 in vec2 vertex_texture1;
@@ -86,23 +89,17 @@ void main()
             vertices.SetElementBuffer(elements);
             string glslVer = RenderContext.GLES ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
             shader = new Shader(VertexShader.Replace("{0}", glslVer), FragmentShader.Replace("{0}", glslVer));
-            viewProj = shader.GetLocation("ViewProjection");
-            view = shader.GetLocation("View");
             gridColor = shader.GetLocation("GridColor");
             gridScale = shader.GetLocation("GridScale");
         }    
         
-        public static void Draw(RenderContext rstate, ICamera camera, Color4 color)
+        public static void Draw(RenderContext rstate, Color4 color)
         {
             Load();
             //Set state
             rstate.Cull = false;
             rstate.DepthEnabled = false;
             rstate.BlendMode = BlendMode.Normal;
-            var vp = camera.ViewProjection;
-            var v = camera.View;
-            shader.SetMatrix(viewProj, ref vp);
-            shader.SetMatrix(view, ref v);
             shader.SetFloat(gridScale, 1);
             shader.SetColor4(gridColor, color);
             //Draw

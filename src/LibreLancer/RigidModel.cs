@@ -55,20 +55,6 @@ namespace LibreLancer
         public MeshDrawcall[][] Levels;
         public float[] Switch2;
 
-        public void UpdateCamera(ICamera camera, ResourceManager res)
-        {
-            for (int i = 0; i < Levels.Length; i++)
-            {
-                if (Levels[i] == null) continue;
-                var l = Levels[i];
-                for (int j = 0; j < l.Length; j++)
-                {
-                    var mat = l[j].GetMaterial(res);
-                    if(mat == null) mat = res.DefaultMaterial;
-                    mat?.Update(camera);
-                }
-            }
-        }
         public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length <= level) return;
@@ -88,7 +74,7 @@ namespace LibreLancer
                 }
                 float z = 0;
                 if (mat.Render.IsTransparent)
-                    z = RenderHelpers.GetZ(world, mat.Render.Camera.Position, Center);
+                    z = RenderHelpers.GetZ(world, buffer.Camera.Position, Center);
                 WorldMatrixHandle worldHandle = wm;
                 if (dc.HasScale)
                 {
@@ -157,7 +143,7 @@ namespace LibreLancer
                     tr = dc.Scale * world;
                 mat.Render.World = handle;
                 mat.Render.MaterialAnim = ma;
-                mat.Render.Use(renderContext, dc.Buffer.VertexType, ref lights);
+                mat.Render.Use(renderContext, dc.Buffer.VertexType, ref lights, 0);
                 dc.Buffer.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.StartIndex, dc.PrimitiveCount);
                 
             }
@@ -240,10 +226,9 @@ namespace LibreLancer
         {
             Root?.UpdateTransform(Matrix4x4.Identity);
         }
-        public void Update(ICamera camera, double globalTime, ResourceManager res)
+        public void Update(double globalTime)
         {
             MaterialAnims?.Update((float)globalTime);
-            for (int i = 0; i < AllParts.Length; i++) AllParts[i].Mesh?.UpdateCamera(camera, res);
         }
         
         public float GetRadius()

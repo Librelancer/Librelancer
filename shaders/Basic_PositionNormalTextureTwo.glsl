@@ -2,7 +2,8 @@
 @include(Basic_Fragment.inc)
 
 @vertex
-@include(includes/lighting.inc) 
+@include(includes/lighting.inc)
+@include(includes/camera.inc)
 in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
@@ -16,8 +17,6 @@ out vec4 out_vertexcolor;
 out vec4 view_position;
 
 uniform mat4x4 World;
-uniform mat4x4 View;
-uniform mat4x4 ViewProjection;
 uniform mat4x4 NormalMatrix;
 uniform vec4 MaterialAnim;
 

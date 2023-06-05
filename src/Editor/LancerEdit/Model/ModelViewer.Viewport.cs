@@ -13,6 +13,7 @@ using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
+using LancerEdit.Materials;
 using LibreLancer.Data;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -50,8 +51,7 @@ namespace LancerEdit
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
-            normalsDebugMaterial = new Material(res);
-            normalsDebugMaterial.Type = "NormalDebugMaterial";
+            normalsDebugMaterial = new Material(res, new NormalDebugMaterial(res));
             lighting = Lighting.Create();
             lighting.Enabled = true;
             lighting.Ambient = Color3f.Black;
@@ -208,7 +208,7 @@ namespace LancerEdit
             return mdl;
         }
 
-        unsafe void RenderSurs(ICamera cam)
+        unsafe void RenderSurs()
         {
             var mat = wireframeMaterial3db.Render;
             var world = GetModelMatrix();
@@ -223,7 +223,6 @@ namespace LancerEdit
             foreach(var mdl in surs) {
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
-                mat.Camera = cam;
                 var transform =  world * ((mdl.Part?.LocalTransform) ?? Matrix4x4.Identity);
                 var whandle = new WorldMatrixHandle()
                 {
@@ -232,7 +231,7 @@ namespace LancerEdit
                 };
                 x++;
                 mat.World = whandle;
-                mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty);
+                mat.Use(rstate, new VertexPositionColor(), ref Lighting.Empty, 0);
                 foreach (var dc in mdl.Draws)
                     mdl.Vertices.Draw(PrimitiveTypes.TriangleList, dc.BaseVertex, dc.Start, dc.Count);
             }
@@ -324,22 +323,23 @@ namespace LancerEdit
             else {
                 cam = lookAtCam;
             }
+            buffer.Camera = cam;
+            rstate.SetCamera(cam);
             if (showGrid && viewport && 
                 !(drawable is SphFile) &&
                 modelViewport.Mode != CameraModes.Starsphere)
             {
-                GridRender.Draw(rstate, cam, _window.Config.GridColor);
+                GridRender.Draw(rstate, _window.Config.GridColor);
             }
-            _window.LineRenderer.StartFrame(cam, rstate);
+            _window.LineRenderer.StartFrame(rstate);
             if (drawable is DF.DfmFile dfm)
             {
                 skel.UploadBoneData(buffer.BonesBuffer);
                 dfm.SetSkinning(skel.BodySkinning);
-                dfm.Update(cam, 0, _window.TotalTime);
             }
             if (vmsModel != null) {
                 vmsModel.UpdateTransform();
-                vmsModel.Update(cam, _window.TotalTime, _window.Resources);
+                vmsModel.Update(_window.TotalTime);
             }
             if (viewMode != M_NONE)
             {
@@ -378,7 +378,7 @@ namespace LancerEdit
             _window.LineRenderer.Render();
             //Draw Sur
             if (surs != null)
-                RenderSurs(cam);
+                RenderSurs();
             //Draw hardpoints
             DrawHardpoints(cam);
             if (drawSkeleton) DrawSkeleton(cam);
@@ -441,8 +441,7 @@ namespace LancerEdit
                 var part = vmsModel.AllParts[i];
                 if (part.Mesh == null) continue;
                 if (!part.Active) continue;
-                var mat = NormalLines.GetMaterial(_window.Resources, normalLength * 0.1f * vmsModel.GetRadius());
-                mat.Update(cam);
+                var mat = NormalLinesMaterial.GetMaterial(_window.Resources, normalLength * 0.1f * vmsModel.GetRadius());
                 var lvl = GetLevel(part.Mesh.Switch2);
                 part.Mesh.DrawImmediate(lvl, _window.Resources, _window.RenderContext, part.LocalTransform * matrix,
                     ref Lighting.Empty,
@@ -546,7 +545,6 @@ namespace LancerEdit
             if (viewMode == M_NORMALS)
             {
                 mat = normalsDebugMaterial;
-                mat.Update(cam);
             }
             if (drawable is DF.DfmFile dfm)
             {
@@ -578,7 +576,6 @@ namespace LancerEdit
                             partMaterials.Add(i, mat);
                         }
 
-                        mat.Update(cam);
                         var lvl = GetLevel(part.Mesh.Switch2);
                         part.Mesh.DrawBuffer(lvl, _window.Resources, buffer, part.LocalTransform * matrix,
                             ref Lighting.Empty,

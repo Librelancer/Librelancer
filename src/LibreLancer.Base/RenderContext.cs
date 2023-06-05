@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer
 {
@@ -15,8 +16,22 @@ namespace LibreLancer
 	}
 	//OpenGL Render States
 	public class RenderContext
-	{
+    {
+        public long FrameNumber => frameNumber;
+        private long frameNumber = 0;
+        
 		static internal RenderContext Instance;
+
+        private UniformBuffer cameraBuffer;
+
+        struct CameraMatrices
+        {
+            public Matrix4x4 View;
+            public Matrix4x4 Projection;
+            public Matrix4x4 ViewProjection;
+            public Vector3 CameraPosition;
+            public float Padding;
+        }
         
         public static bool GLES => GL.GLES;
 		public Color4 ClearColor
@@ -148,6 +163,30 @@ namespace LibreLancer
 			
 		}
 
+        private bool cameraIsIdentity = false;
+
+        public void SetIdentityCamera()
+        {
+            if (cameraIsIdentity) return;
+            var matrices = new CameraMatrices();
+            matrices.View = Matrix4x4.Identity;
+            matrices.Projection = Matrix4x4.Identity;
+            matrices.ViewProjection = Matrix4x4.Identity;
+            matrices.CameraPosition = Vector3.Zero;
+            cameraBuffer.SetData(ref matrices);
+            cameraIsIdentity = true;
+        }
+        public void SetCamera(ICamera camera)
+        {
+            var matrices = new CameraMatrices();
+            matrices.View = camera.View;
+            matrices.Projection = camera.Projection;
+            matrices.ViewProjection = camera.ViewProjection;
+            matrices.CameraPosition = camera.Position;
+            cameraBuffer.SetData(ref matrices);
+            cameraIsIdentity = false;
+        }
+
         public uint NullVAO;
         
         public Renderer2D Renderer2D { get; }
@@ -190,6 +229,9 @@ namespace LibreLancer
             applied.DepthWrite = true;
             requested = applied;
             Renderer2D = new Renderer2D(this);
+            cameraBuffer = new UniformBuffer(1, Marshal.SizeOf<CameraMatrices>(), typeof(CameraMatrices));
+            SetIdentityCamera();
+            cameraBuffer.BindTo(2);
         }
 
         public Rectangle CurrentViewport => requested.Viewport;
@@ -240,7 +282,8 @@ namespace LibreLancer
 		{
 			Apply();
 			GL.Clear (GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-		}
+            frameNumber++;
+        }
 
 		public void ClearDepth()
 		{
@@ -365,7 +408,6 @@ namespace LibreLancer
             ApplyRenderTarget();
             ApplyViewport();
             SetBlendMode(requested.BlendMode);
-            GL.LineWidth(1);
             if (requested.DepthRange != applied.DepthRange)
             {
                 applied.DepthRange = requested.DepthRange;

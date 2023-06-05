@@ -19,19 +19,20 @@ namespace LibreLancer.Render.Materials
 		public Color4 Dc;
 		public string DtSampler;
 		public SamplerFlags DtFlags;
+        
+        public DetailMapMaterial(ILibFile library) : base(library) { }
 
 
-		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+
+		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
             var sh = Shaders.DetailMapMaterial.Get(RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetWorld (World);
-            sh.SetView(Camera);
-            sh.SetViewProjection(Camera);
 
-			sh.SetAc(Ac);
+            sh.SetAc(Ac);
 			sh.SetDc(Dc);
 			sh.SetTileRate(TileRate);
 			sh.SetFlipU(FlipU);
@@ -41,7 +42,7 @@ namespace LibreLancer.Render.Materials
 			BindTexture (rstate, 0, DtSampler, 0, DtFlags);
 			sh.SetDmSampler(1);
 			BindTexture (rstate, 1, DmSampler, 1, DmFlags);
-			SetLights(sh, ref lights, Camera.FrameNumber);
+			SetLights(sh, ref lights, rstate.FrameNumber);
             sh.UseProgram ();
 		}
 
@@ -50,7 +51,6 @@ namespace LibreLancer.Render.Materials
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get();
             sh.SetWorld(World);
-            sh.SetViewProjection(Camera);
             sh.UseProgram();
 		}
 

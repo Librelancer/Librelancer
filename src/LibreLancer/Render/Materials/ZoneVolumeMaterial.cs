@@ -13,12 +13,9 @@ namespace LibreLancer.Render.Materials
     {
         public Color4 Dc = Color4.White;
         public float RadiusRatio;
-        
-        public ZoneVolumeMaterial()
-        {
-        }
-        
 
+        public ZoneVolumeMaterial(ILibFile library) : base(library) { }
+        
         public override void ApplyDepthPrepass(RenderContext rstate)
         {
             throw new InvalidOperationException();
@@ -34,12 +31,11 @@ namespace LibreLancer.Render.Materials
 
         public override bool DisableCull => true;
 
-        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights)
+        public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
             rstate.BlendMode = BlendMode.Normal;
             var shader = Shaders.ZoneVolume.Get();
             shader.SetWorld(World);
-            shader.SetViewProjection(Camera);
             //Colors
             shader.SetDc(Dc);
             //Dt

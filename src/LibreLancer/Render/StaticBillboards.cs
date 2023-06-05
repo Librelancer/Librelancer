@@ -26,6 +26,15 @@ namespace LibreLancer.Render
             TextureCoordinate = tex;
             Dimensions = new Vector3(x, y, angle);
         }
+        
+        public VertexBillboardColor2(Vector3 position, Vector2 tex)
+        {
+            Position = position;
+            Color = Color2 = Color4.White;
+            TextureCoordinate = tex;
+            Dimensions = Vector3.Zero;
+        }
+        
         public VertexDeclaration GetVertexDeclaration()
         {
             return new VertexDeclaration(
@@ -70,7 +79,34 @@ namespace LibreLancer.Render
             }
             ibo.SetData(indices);
             VertexBuffer.SetElementBuffer(ibo);
+            NebulaFill();
         }
+
+        public const int NebulaFillPrimCount = 6;
+
+        void NebulaFill()
+        {
+            int a = 0;
+            DoVertices(ref a, new VertexBillboardColor2[]
+            {
+                //X Axis
+                new(new Vector3(-1, -1, 0), new Vector2(0, 1)),
+                new (new Vector3(+1, -1, 0), new Vector2(1, 1)),
+                new(new Vector3(-1, +1, 0), new Vector2(0, 0)),
+                new(new Vector3(+1, +1, 0), new Vector2(1, 0)),
+                //Z axis
+                new(new Vector3(0, -1, -1), new Vector2(0, 1)),
+                new(new Vector3(0, -1, +1), new Vector2(1, 1)),
+                new(new Vector3(0, +1, -1), new Vector2(0, 0)),
+                new(new Vector3(0, +1, +1), new Vector2(0, 1)),
+                //Y Axis
+                new(new Vector3(-1, 0, -1), new Vector2(0, 1)),
+                new(new Vector3(-1, 0, 1), new Vector2(1, 1)),
+                new(new Vector3(+1, 0, -1), new Vector2(0, 0)),
+                new(new Vector3(+1, 0, 1), new Vector2(0, 1)),
+            });
+        }
+        
         int idCounter = 0;
         public int DoVertices(ref int id, VertexBillboardColor2[] vertices)
         {

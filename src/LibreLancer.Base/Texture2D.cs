@@ -28,7 +28,7 @@ namespace LibreLancer
             currentLevels = hasMipMaps ? (LevelCount - 1) : 0;
 			//Bind the new TextureD
 			GLBind.Trash();
-			GLBind.BindTexture(4, GL.GL_TEXTURE_2D, ID);
+            BindForModify();
 			//initialise the texture data
 			var imageSize = 0;
 			Dxt1 = format == SurfaceFormat.Dxt1;
@@ -74,7 +74,7 @@ namespace LibreLancer
         public void SetFiltering(TextureFiltering filtering)
 		{
             if (currentFiltering == filtering) return;
-            BindTo(4);
+            BindForModify();
             SetTargetFiltering(GL.GL_TEXTURE_2D, filtering);
         }
 
@@ -90,12 +90,15 @@ namespace LibreLancer
 			}
         }
 
+        void BindForModify()
+            => GLBind.BindTextureForModify(GL.GL_TEXTURE_2D, ID);
+
         public override void BindTo(int unit)
         {
             if(IsDisposed) throw new ObjectDisposedException("Texture2D");
+            if (unit == 4) throw new InvalidOperationException("Unit 4: Use BindForModify (private)");
             GLBind.BindTexture(unit, GL.GL_TEXTURE_2D, ID);
-            //Unit 4 is for creation, don't call it a trillion times
-            if(unit != 4 && LevelCount > 1 && maxLevel != currentLevels) {
+            if(LevelCount > 1 && maxLevel != currentLevels) {
                 currentLevels = maxLevel;
                 GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_LEVEL, maxLevel);
             }
@@ -111,7 +114,7 @@ namespace LibreLancer
         }
         public void GetData<T>(T[] data) where T : struct
         {
-			BindTo(4);
+			BindForModify();
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 throw new NotImplementedException();
@@ -132,7 +135,7 @@ namespace LibreLancer
 		public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: unmanaged
         {
             maxLevel = Math.Max(level, maxLevel);
-            BindTo(4);
+            BindForModify();
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
 				int w, h;
@@ -182,7 +185,7 @@ namespace LibreLancer
 			if (mode == modeS)
 				return;
 			modeS = mode;
-			BindTo (4);
+            BindForModify();
 			GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, (int)mode);
 		}
 		public void SetWrapModeT(WrapMode mode)
@@ -190,13 +193,13 @@ namespace LibreLancer
 			if (mode == modeT)
 				return;
 			modeT = mode;
-			BindTo (4);
+            BindForModify();
 			GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, (int)mode);
 		}
 
 		internal void SetData(int level, Rectangle rect, IntPtr data)
 		{
-			BindTo(4);
+			BindForModify();
 			GL.TexSubImage2D (GL.GL_TEXTURE_2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);
 		}
 

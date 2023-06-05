@@ -168,6 +168,7 @@ namespace LibreLancer
                 foreach (var room in inibase.Rooms)
                 {
                     var nr = new BaseRoom();
+                    nr.SourceFile = room.FilePath;
                     nr.Music = room.Music;
                     nr.MusicOneShot = room.MusicOneShot;
                     nr.ThnPaths = new List<ResolvedThn>();

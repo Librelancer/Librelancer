@@ -150,7 +150,7 @@ namespace LibreLancer.Render
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
             if (Model != null) {
-                Model.Update(camera, sysr.Game.TotalTime, sysr.ResourceManager);
+                Model.Update(sysr.Game.TotalTime);
                 for (int i = 0; i < Model.AllParts.Length; i++)
                 {
                     if (!visibleParts[i]) continue;

@@ -62,13 +62,7 @@ namespace LibreLancer.Utf.Dfm
 		{
 			ready = true;
 		}
-
-
-		public void Update(ICamera camera)
-		{
-			if (ready) Material.Update(camera);
-		}
-
+        
 		public void DrawBuffer(DfmSkinning skinning, CommandBuffer buffer, VertexBuffer vbo, WorldMatrixHandle world, Lighting lights, Material overrideMat)
 		{
 			buffer.AddCommand(

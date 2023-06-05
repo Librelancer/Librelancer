@@ -1,6 +1,7 @@
 @feature VERTEX_DIFFUSE
 
 @vertex
+@include (includes/camera.inc)
 in vec3 vertex_position;
 in vec2 vertex_texture1;
 #ifdef VERTEX_DIFFUSE
@@ -10,7 +11,7 @@ out vec2 out_texcoord;
 out vec4 frag_vertexcolor;
 
 uniform mat4x4 World;
-uniform mat4x4 ViewProjection;
+
 
 void main()
 {

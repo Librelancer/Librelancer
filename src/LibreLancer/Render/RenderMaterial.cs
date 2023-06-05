@@ -18,21 +18,22 @@ namespace LibreLancer.Render
         
         public int Key { get; private set; }
 
-        protected RenderMaterial()
+        protected RenderMaterial(ILibFile library)
         {
+            Library = library;
             Key = Interlocked.Increment(ref _key);
         }
+        
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
 		public WorldMatrixHandle World = new WorldMatrixHandle();
-		public ICamera Camera;
 		public ILibFile Library;
 		public bool Fade = false;
 		public float FadeNear = 0;
 		public float FadeFar = 0;
         public UniformBuffer Bones;
         public int BufferOffset;
-        public abstract void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights);
+        public abstract void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData);
 		public abstract bool IsTransparent { get; }
         public virtual bool DisableCull {  get { return false; } }
         public bool DoubleSided = false;
