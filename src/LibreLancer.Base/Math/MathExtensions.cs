@@ -51,10 +51,23 @@ namespace LibreLancer
         
         static void ToEuler(Matrix4x4 mx, out float yaw, out float pitch, out float roll)
         {
-            var r = mx.ExtractRotation();
-            yaw = MathF.Atan2(2.0f * (r.Y * r.W + r.X * r.Z), 1.0f - 2.0f * (r.X * r.X + r.Y * r.Y));
-            pitch = MathF.Asin(2.0f * (r.X * r.W - r.Y * r.Z));
-            roll = MathF.Atan2(2.0f * (r.X * r.Y + r.Z * r.W), 1.0f - 2.0f * (r.X * r.X + r.Z * r.Z));
+            double p, y, r;
+            double h = Math.Sqrt(mx.M11 * mx.M11 + mx.M12 * mx.M12);
+            if (h > 0.00000001)
+            {
+                p = Math.Atan2( mx.M23, mx.M33);
+                y = Math.Atan2(-mx.M13, h);
+                r = Math.Atan2( mx.M12, mx.M11);
+            }
+            else
+            {
+                p = Math.Atan2(-mx.M32, mx.M22);
+                y = Math.Atan2(-mx.M13, h);
+                r = 0;
+            }
+            pitch = (float) p;
+            yaw = (float) y;
+            roll = (float) r;
         }
 
 
@@ -66,7 +79,7 @@ namespace LibreLancer
         public static Vector3 GetEulerDegrees(this Matrix4x4 mx)
         {
             float p, y, r;
-            ToEuler(mx, out p, out y, out r);
+            ToEuler(mx, out y, out p, out r);
             const float radToDeg = 180.0f / MathF.PI;
             return new Vector3(p * radToDeg, y * radToDeg, r * radToDeg);
         }

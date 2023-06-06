@@ -237,13 +237,18 @@ namespace BuildLL
                 } else
                     await FullBuild(GetLinuxRid(), true);
             });
+            Target("Test", DependsOn("GenerateVersion"), () => {
+                Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj");
+            });
 
             static void TarDirectory(string file, string dir)
             {
                 Bash($"tar -I 'gzip -9' -cf {Quote(file)} -C {Quote(dir)} .", true);
             }
+            
+            Target("BuildAndTest", DependsOn("BuildAll", "Test"));
 
-            Target("LinuxDaily", DependsOn("BuildEngine", "BuildSdk"), () =>
+            Target("LinuxDaily", DependsOn("BuildEngine", "BuildSdk", "Test"), () =>
             {
                 RmDir("packaging/packages/a");
                 RmDir("packaging/packages/b");

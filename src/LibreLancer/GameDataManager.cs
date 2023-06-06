@@ -1018,10 +1018,7 @@ namespace LibreLancer
                         if (zne.Rotate != null)
                         {
                             var r = zne.Rotate.Value;
-                            z.RotationMatrix =
-                                Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(r.X)) *
-                                Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(r.Y)) *
-                                Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(r.Z));
+                            z.RotationMatrix = MathHelper.MatrixFromEulerDegrees(r);
                             z.RotationAngles = new Vector3(
                                 MathHelper.DegreesToRadians(r.X),
                                 MathHelper.DegreesToRadians(r.Y),
@@ -1229,9 +1226,7 @@ namespace LibreLancer
                     var arch = fldata.Asteroids.FindAsteroid(c.Name);
                     sta.Drawable = ResolveDrawable(arch.MaterialLibrary, arch.DaArchetype);
                     sta.RotationMatrix =
-                        Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(c.Rotation.X)) *
-                        Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(c.Rotation.Y)) *
-                        Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(c.Rotation.Z));
+                        MathHelper.MatrixFromEulerDegrees(c.Rotation);
                     a.Cube.Add(sta);
                 }
             }
@@ -1714,10 +1709,7 @@ namespace LibreLancer
             }
             if (o.Rotate != null)
             {
-                obj.Rotation =
-                    Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(o.Rotate.Value.X)) *
-                    Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(o.Rotate.Value.Y)) *
-                    Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(o.Rotate.Value.Z));
+                obj.Rotation = MathHelper.MatrixFromEulerDegrees(o.Rotate.Value);
             }
             obj.Archetype = archetypes[o.Archetype];
             obj.TradelaneSpaceName = o.TradelaneSpaceName;

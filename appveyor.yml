@@ -31,7 +31,7 @@ for:
     - cmd: echo 7z a librelancer-daily-win64.zip -r librelancer-win7-x64 revision.txt >> postbuild.bat
     - cmd: echo 7z a librelancer-sdk-daily-win32.zip -r librelancer-sdk-win7-x86 revision.txt >> postbuild.bat
     - cmd: echo 7z a librelancer-sdk-daily-win64.zip -r librelancer-sdk-win7-x64 revision.txt >> postbuild.bat
-    - cmd: powershell -File .\build.ps1 --postbuild postbuild.bat
+    - cmd: powershell -File .\build.ps1 BuildAndTest --postbuild postbuild.bat
 
     test: off
     

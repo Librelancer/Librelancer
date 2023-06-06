@@ -366,5 +366,23 @@ namespace LibreLancer
             if (Math.Abs(output.Z) < epsilon) output.Z = 0;
             return output;
         }
+
+        public static Matrix4x4 MatrixFromEulerDegrees(Vector3 angles)
+        {
+            angles *= (MathF.PI / 180.0f);
+            return  Matrix4x4.CreateRotationX(angles.X) *
+                    Matrix4x4.CreateRotationY(angles.Y) *
+                    Matrix4x4.CreateRotationZ(angles.Z);
+        }
+
+        public static Matrix4x4 MatrixFromEulerDegrees(float x, float y, float z)
+        {
+            x *= MathF.PI / 180.0f;
+            y *= MathF.PI / 180.0f;
+            z *= MathF.PI / 180.0f;
+            return  Matrix4x4.CreateRotationX(x) *
+                    Matrix4x4.CreateRotationY(y) *
+                    Matrix4x4.CreateRotationZ(z);
+        }
     }
 }

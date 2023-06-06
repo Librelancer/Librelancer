@@ -225,18 +225,11 @@ namespace LancerEdit
                     var translate = new Vector3(partAxX, partAxY, partAxZ).Normalized() * partPreview;
                     jointPreview = Matrix4x4.CreateTranslation(translate);
                 }
-                editingPart.OverrideTransform = Matrix4x4.CreateFromYawPitchRoll(
-                MathHelper.DegreesToRadians(partPitch),
-                MathHelper.DegreesToRadians(partYaw),
-                MathHelper.DegreesToRadians(partRoll)) * jointPreview *
+                editingPart.OverrideTransform = MathHelper.MatrixFromEulerDegrees(partPitch, partYaw, partRoll) * jointPreview *
                     Matrix4x4.CreateTranslation(new Vector3(partX, partY, partZ) + new Vector3(partOX, partOY, partOZ));
                 if(ImGui.Button("Apply")) {
                     editingPart.Origin = new Vector3(partX, partY, partZ);
-                    editingPart.Rotation = Matrix4x4.CreateFromYawPitchRoll(
-                        MathHelper.DegreesToRadians(partYaw),
-                        MathHelper.DegreesToRadians(partPitch),
-                        MathHelper.DegreesToRadians(partRoll)
-                    );
+                    editingPart.Rotation = MathHelper.MatrixFromEulerDegrees(partPitch, partYaw, partRoll);
                     if(editingPart is RevConstruct) {
                         var rev = (RevConstruct)editingPart;
                         rev.Offset = new Vector3(partOX, partOY, partOZ);

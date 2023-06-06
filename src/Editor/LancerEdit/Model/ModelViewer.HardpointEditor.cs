@@ -242,11 +242,7 @@ namespace LancerEdit
                 {
                     var hp = hpEditing.Definition;
                     hp.Position = new Vector3(HPx, HPy, HPz);
-                    hp.Orientation = Matrix4x4.CreateFromYawPitchRoll(
-                        MathHelper.DegreesToRadians(HPyaw),
-                        MathHelper.DegreesToRadians(HPpitch),
-                        MathHelper.DegreesToRadians(HProll)
-                    );
+                    hp.Orientation = MathHelper.MatrixFromEulerDegrees(HPpitch, HPyaw, HProll);
                     if (!isFix)
                     {
                         var rev = (RevoluteHardpointDefinition)hp;
@@ -269,11 +265,8 @@ namespace LancerEdit
                 {
                     hpEditOpen = false;
                 }
-                editingGizmo.Override = Matrix4x4.CreateFromYawPitchRoll(
-                            MathHelper.DegreesToRadians(HPyaw),
-                            MathHelper.DegreesToRadians(HPpitch),
-                            MathHelper.DegreesToRadians(HProll)
-                        ) * Matrix4x4.CreateTranslation(HPx, HPy, HPz);
+                editingGizmo.Override = MathHelper.MatrixFromEulerDegrees(HPpitch, HPyaw, HProll) * 
+                                        Matrix4x4.CreateTranslation(HPx, HPy, HPz);
                 editingGizmo.EditingMin = MathHelper.DegreesToRadians(HPmin);
                 editingGizmo.EditingMax = MathHelper.DegreesToRadians(HPmax);
                 ImGui.End();

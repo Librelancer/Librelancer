@@ -119,7 +119,7 @@ public static class IniSerializer
         var rot = z.RotationMatrix.GetEulerDegrees();
         var ln = rot.Length();
         if (!float.IsNaN(ln) && ln > 0)
-            sb.AppendEntry("rotate", new Vector3(rot.Y, rot.X, rot.Z));
+            sb.AppendEntry("rotate", rot);
         switch (z.Shape)
         {
             case ZoneBox box:

@@ -31,6 +31,11 @@ namespace BuildLL
             if (!string.IsNullOrWhiteSpace(args)) a = $" -- {args}";
             RunCommand("dotnet", $"run --project {P(project)}{a}");
         }
+        
+        public static void Test(string project)
+        {
+            RunCommand("dotnet", $"test {P(project)}");
+        }
 
         public static void Publish(string project, DotnetPublishSettings settings = null)
         {
