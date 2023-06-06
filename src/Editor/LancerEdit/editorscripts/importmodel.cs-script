@@ -3,6 +3,9 @@ using SimpleMesh;
 ScriptUsage(@"input(.gltf|.glb|.dae|.obj) output
 - Output will be .3db/.cmp + .sur pair");
 
+bool noSur = false;
+FlagOption("no-sur", "Skip generating a .sur", v => noSur = v);
+
 var args = ParseArguments(2);
 AssertFileExists(args[0]);
 
@@ -20,16 +23,16 @@ EditResult<Model> LoadModel(string filename)
     return model;
 }
 
-string modelName = Path.GetFilenameWithoutExtension(args[0]);
+string modelName = Path.GetFileNameWithoutExtension(args[0]);
 
 var input = LoadModel(args[0]);
 PrintMessages(input);
 if(input.IsError)
     return;
 
-var imported = ImportedModel.FromSimpleMesh(modelName, input.Data);
-PrintMessages(imported);
-if(imported.IsError)
+var importedModel = ImportedModel.FromSimpleMesh(modelName, input.Data);
+PrintMessages(importedModel);
+if(importedModel.IsError)
     return;
     
 bool is3db = importedModel.Data.Root.Children.Count == 0;
@@ -47,4 +50,16 @@ if(utfSave.IsError) {
     Console.WriteLine($"Error writing '{args[1]}{extension}'.");
 } else {
     Console.WriteLine($"Created '{args[1]}{extension}'.");
+}
+
+if(!noSur && SurfaceBuilder.HasHulls(importedModel.Data)) {
+    var sur = SurfaceBuilder.CreateSur(importedModel.Data);
+    PrintMessages(sur);
+    if(sur.IsSuccess) {
+         using (var surOut = File.Create(args[1] + ".sur"))
+         {
+            sur.Data.Save(surOut);
+            Console.WriteLine($"Created '{args[1]}.sur'");
+         }
+    }
 }

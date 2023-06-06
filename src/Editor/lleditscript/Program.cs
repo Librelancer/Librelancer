@@ -45,7 +45,7 @@ namespace lleditscript
 
         public void FlagOption(string prototype, string description, Action<bool> action)
         {
-            os.Add(prototype, description, action);
+            os.Add(prototype, description, f => action(f != null));
         }
 
         public void StringOption(string prototype, string description, Action<string> action)
