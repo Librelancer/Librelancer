@@ -199,7 +199,7 @@ namespace LancerEdit
                         break;
                     case FileType.Thn:
                     case FileType.Lua:
-                        var lt = new ThornTab(this, f, detectedType == FileType.Lua);
+                        var lt = new ThornTab(this, f);
                         recentFiles.FileOpened(f);                        
                         AddTab(lt);
                         break;

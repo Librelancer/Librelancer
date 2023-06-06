@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -35,7 +36,12 @@ namespace LancerEdit
                 {
                     // Lua code will usually contain a # { } or = somewhere in the first few bytes.
                     var text = Encoding.ASCII.GetString(block);
-                    if (text.Any(c => c == '#' || c == '{' || c == '}' || c == '=') && filename.EndsWith(".lua")) return FileType.Lua;
+                    if (text.Any(c => c == '#' || c == '{' || c == '}' || c == '=') && 
+                        (filename.EndsWith(".lua", StringComparison.OrdinalIgnoreCase) ||
+                        filename.EndsWith(".thn", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        return FileType.Lua;
+                    }                        
                 }
 			}
             if (Blender.FileIsBlender(filename))

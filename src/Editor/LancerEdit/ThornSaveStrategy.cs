@@ -2,7 +2,7 @@ using LibreLancer.ImUI;
 
 namespace LancerEdit
 {
-    public class ThornSaveStrategy : ISaveStrategy
+    public sealed class ThornSaveStrategy : ISaveStrategy
     {
         private readonly ThornTab tab;
 
@@ -17,9 +17,13 @@ namespace LancerEdit
             {
                 Save(false);
             }
-            if (Theme.IconMenuItem(Icons.Save, "Save As", true))
+            if (Theme.IconMenuItem(Icons.Save, "Save As...", true))
             {
                 Save(true);
+            }
+            if (Theme.IconMenuItem(Icons.Export, "Export as " + (tab.IsSourceCode ? "Compiled Thorn" : "Lua Source") + "...", true))
+            {
+                Export();
             }
         }
 
@@ -41,6 +45,21 @@ namespace LancerEdit
                     tab.Save(f);
                 }, FileDialogFilters.ThnFilters);
             }
+        }
+
+        private void Export()
+        {
+            FileDialog.Save(f =>
+            {
+                if (tab.IsSourceCode)
+                {
+                    tab.ExportCompiled(f);
+                }
+                else
+                {
+                    tab.ExportSource(f);
+                }
+            }, FileDialogFilters.ThnFilters);           
         }
     }
 }
