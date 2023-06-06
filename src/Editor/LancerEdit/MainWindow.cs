@@ -21,6 +21,7 @@ using LibreLancer.Render;
 using LibreLancer.Shaders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using SharpDX.MediaFoundation;
+using LibreLancer.Thorn;
 
 namespace LancerEdit
 {
@@ -184,14 +185,21 @@ namespace LancerEdit
         {
             if (f != null && File.Exists(f))
             {
-                switch (DetectFileType.Detect(f))
+                var detectedType = DetectFileType.Detect(f);
+                switch (detectedType)
                 {
                     case FileType.Utf:
-                        var t = new UtfTab(this, new EditableUtf(f), System.IO.Path.GetFileName(f));
+                        var t = new UtfTab(this, new EditableUtf(f), Path.GetFileName(f));
                         recentFiles.FileOpened(f);
                         t.FilePath = f;
                         AddTab(t);
                         guiHelper.ResetRenderTimer();
+                        break;
+                    case FileType.Thn:
+                    case FileType.Lua:
+                        var lt = new ThornTab(this, f);
+                        recentFiles.FileOpened(f);                        
+                        AddTab(lt);
                         break;
                     case FileType.Blender:
                     case FileType.Other:
@@ -337,6 +345,7 @@ namespace LancerEdit
                     c.Load(this, folder, () =>
                     {
                         OpenDataContext = c;
+                        Resources = c.Resources;
                         FinishLoadingSpinner();
                     });                
                 }
@@ -371,7 +380,7 @@ namespace LancerEdit
 				}
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
 				{
-                    FileDialog.Open(OpenFile, FileDialogFilters.UtfFilters);
+                    FileDialog.Open(OpenFile, FileDialogFilters.UtfFilters + FileDialogFilters.ThnFilters);
                 }
 
                 recentFiles.Menu();
