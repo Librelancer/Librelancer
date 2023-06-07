@@ -102,7 +102,7 @@ public class Blender
 
         var exportCode =
             "import bpy\n"
-            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLTF_EMBEDDED', export_extras=True)";
+            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLTF_EMBEDDED', export_extras=True, use_mesh_edges=True)";
         File.WriteAllText(tmppython, exportCode);
         var p = Process.Start(name, args);
         p.WaitForExit();
