@@ -18,7 +18,42 @@ namespace LibreLancer.Sur
         public List<SurfacePart> Surfaces = new List<SurfacePart>();
         
 		Dictionary<uint, ConvexMesh[]> shapes = new Dictionary<uint, ConvexMesh[]>();
-        
+
+        public bool TryGetHardpoint(uint meshId, uint hpId, out ConvexMesh[] mesh)
+        {
+            mesh = null;
+            List<ConvexMesh> hull = new List<ConvexMesh>();
+            foreach (var surface in Surfaces)
+            {
+                if (surface.Crc != meshId) continue;
+                if (!surface.HardpointIds.Contains(hpId))
+                    continue;
+                var hulls = surface.GetHulls(false);
+                for (int i = 0; i < hulls.Length; i++)
+                {
+                    var th = hulls[i];
+                    if (th.HullId != hpId)
+                        continue;
+                    var verts = new List<Vector3>();
+                    foreach (var v in surface.Points)
+                        verts.Add(v.Point);
+                    var indices = new List<int>();
+                    foreach (var tri in th.Faces)
+                    {
+                        indices.Add(tri.Points.A);
+                        indices.Add(tri.Points.B);
+                        indices.Add(tri.Points.C);
+                    }
+                    hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
+                }
+            }
+            if (hull.Count > 0) {
+                mesh = hull.ToArray();
+                return true;
+            }
+            return false;
+        }
+
         public ConvexMesh[] GetMesh(uint meshId)
         {
             List<ConvexMesh> hull = new List<ConvexMesh>();

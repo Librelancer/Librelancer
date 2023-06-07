@@ -137,12 +137,14 @@ namespace LancerEdit
             surs = new List<SurModel>();
             if((drawable is ModelFile))
             {
-                /*surs.Add(GetSurModel(surfile.GetMesh(0,false), null, surPart));
-                foreach(var hpid in surfile.HardpointIds)
-                {
-                    surs.Add(GetSurModel(surfile.GetMesh(hpid, true), null, surHardpoint));
-                }*/
                 surs.Add(GetSurModel(surfile.GetMesh(0), null, surPart));
+                foreach (var hp in vmsModel.Root.Hardpoints)
+                {
+                    if (surfile.TryGetHardpoint(0, CrcTool.FLModelCrc(hp.Name), out var meshes))
+                    {
+                        surs.Add(GetSurModel(meshes, null, surHardpoint));   
+                    }
+                }
             }
             else
             {
@@ -152,43 +154,17 @@ namespace LancerEdit
                     if (!surfile.HasShape(crc))
                         continue;
                     surs.Add(GetSurModel(surfile.GetMesh(crc), kv.Value, surPart));
+                    foreach (var hp in kv.Value.Hardpoints)
+                    {
+                        if (surfile.TryGetHardpoint(crc, CrcTool.FLModelCrc(hp.Name), out var meshes))
+                        {
+                            surs.Add(GetSurModel(meshes, kv.Value, surHardpoint));   
+                        }
+                    }
                 }
-                /*Dictionary<Part, SurPart> surParts;
-                var surHierarchy = ((CmpFile) drawable).ToSurHierarchy(out surParts);
-                surfile.FillMeshHierarchy(surHierarchy);
-                foreach (var kv in surParts)
-                {
-                    var mdl = new SurModel() {Part = kv.Key};
-                    foreach (var hp in kv.Key.Model.Hardpoints)
-                    {
-                        var crc = CrcTool.FLModelCrc(hp.Name);
-                        if (surfile.HardpointIds.Contains(crc))
-                            surs.Add(GetSurModel(surfile.GetMesh(crc, true), kv.Key, surHardpoint));
-                    }
-                    if (kv.Value.DisplayMeshes != null)
-                    {
-                        foreach (var msh in kv.Value.DisplayMeshes)
-                            AddVertices(mdl, msh);
-                    }
-                    mdl.Vertices = new VertexBuffer(typeof(VertexPositionColor), mdl.BuildVertices.Count);
-                    mdl.Vertices.SetData(mdl.BuildVertices.ToArray());
-                    mdl.BuildVertices = null;
-                    mdl.Elements = new ElementBuffer(mdl.BuildIndices.Count);
-                    mdl.Elements.SetData(mdl.BuildIndices.ToArray());
-                    mdl.Vertices.SetElementBuffer(mdl.Elements);
-                    mdl.BuildIndices = null;
-                    surs.Add(mdl);
-                }*/
             }
         }
-        void AddVertices(SurModel mdl, LibreLancer.Physics.ConvexMesh mesh)
-        {
-            var baseVertex = mdl.BuildVertices.Count;
-            var index = mdl.BuildIndices.Count;
-            mdl.BuildVertices.AddRange(mesh.Vertices.Select(x => new VertexPositionColor(x, surPart)));
-            mdl.BuildIndices.AddRange(mesh.Indices.Select(x => (short)x));
-            mdl.Draws.Add(new SurDrawCall() { BaseVertex = baseVertex, Start = index, Count = mesh.Indices.Length / 3 });
-        }
+
         SurModel GetSurModel(LibreLancer.Physics.ConvexMesh[] meshes, RigidModelPart part, Color4 color)
         {
             var mdl = new SurModel() { Part = part };
