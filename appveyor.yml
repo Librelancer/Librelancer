@@ -18,7 +18,7 @@ for:
         - job_name: Windows and Linux build
 
     install:
-    - sh: sudo apt-get update && sudo apt-get install -y libgtk-3-dev g++-mingw-w64-x86_64
+    - sh: sudo apt-get update && sudo apt-get install -y libgtk-3-dev g++-mingw-w64-x86-64
 
     build_script:
         - sh:  cd /home/appveyor/projects/librelancer
