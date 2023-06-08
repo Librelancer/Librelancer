@@ -176,7 +176,7 @@ namespace BuildLL
             //Move the AppHost
             var apphostName = Path.GetFileNameWithoutExtension(proj);
             var origName = apphostName + ".dll";
-            if(IsWindows) apphostName += ".exe";
+            if(rid.StartsWith("win", StringComparison.OrdinalIgnoreCase)) apphostName += ".exe";
             string appHostPath = Path.Combine(outputDirectory, apphostName);
             if(File.Exists(appHostPath)) File.Delete(appHostPath);
             File.Move(Path.Combine(publishDir, apphostName), appHostPath);

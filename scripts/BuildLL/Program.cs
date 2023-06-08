@@ -15,6 +15,8 @@ namespace BuildLL
         private static int parallel = -1;
         private static string glslangValidatorPath = null;
         private static bool buildDebug = false;
+        private static bool withWin32 = false;
+        private static bool withWin64 = false;
         public static void Options()
         {
             StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
@@ -22,6 +24,8 @@ namespace BuildLL
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
             StringArg("--glslangValidator", x => glslangValidatorPath = x);
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
+            FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
+            FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
         }
         
         static readonly string[] sdkProjects = {
@@ -158,17 +162,22 @@ namespace BuildLL
                     Directory.CreateDirectory("obj/x86");
                     Directory.CreateDirectory("obj/x64");
                     CopyDirContents("./deps/x64/", "./bin/natives/x64", false, "*.dll");
-                    CopyDirContents("./deps/x86/", "./bin/natives/x86", false, "*.dll");
-                    //build 32-bit
-                    CMake.Run(".", new CMakeSettings() {
-                        OutputPath = "obj/x86",
-                        Generator = "Visual Studio 17 2022",
-                        Platform = "Win32",
-                        BuildType = config
-                    });
-                    MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x86);
-                    CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
-                    if(buildDebug) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
+                    if (withWin32)
+                    {
+                        CopyDirContents("./deps/x86/", "./bin/natives/x86", false, "*.dll");
+                        //build 32-bit
+                        CMake.Run(".", new CMakeSettings()
+                        {
+                            OutputPath = "obj/x86",
+                            Generator = "Visual Studio 17 2022",
+                            Platform = "Win32",
+                            BuildType = config
+                        });
+                        MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}",
+                            VSVersion.VS2022, MSBuildPlatform.x86);
+                        CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
+                        if (buildDebug) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
+                    }
                     //build 64-bit
                     CMake.Run(".", new CMakeSettings() {
                         OutputPath = "obj/x64",
@@ -183,14 +192,43 @@ namespace BuildLL
                 }
                 else
                 {
+                    string args = "";
+                    if (parallel > 0) args = "-j" + parallel;
+                    
+                    if (withWin32) {
+                        Directory.CreateDirectory("obj/x86-mingw");
+                        CopyDirContents("./deps/x86/", "./bin/natives/x86", false, "*.dll");
+                        CMake.Run(".", new CMakeSettings()
+                        {
+                            OutputPath = "obj/x86-mingw",
+                            Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix, "-DCMAKE_TOOLCHAIN_FILE=./scripts/mingw-w64-i686.cmake" },
+                            BuildType = config
+                        });
+                        RunCommand("make", args, "obj/x86-mingw");
+                        CopyDirContents("obj/x86-mingw/binaries/", "./bin/natives/x86/", false, "*.dll");
+                        MingwDeps.CopyMingwDependencies("i686-w64-mingw32","./bin/natives/x86/");
+                    }
+                    if (withWin64)
+                    {
+                        Directory.CreateDirectory("obj/x64-mingw");
+                        CopyDirContents("./deps/x64/", "./bin/natives/x64", false, "*.dll");
+                        CMake.Run(".", new CMakeSettings()
+                        {
+                            OutputPath = "obj/x64-mingw",
+                            Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix, "-DCMAKE_TOOLCHAIN_FILE=./scripts/mingw-w64-x86_64.cmake" },
+                            BuildType = config
+                        });
+                        RunCommand("make", args, "obj/x64-mingw");
+                        CopyDirContents("obj/x64-mingw/binaries/", "./bin/natives/x64");
+                        MingwDeps.CopyMingwDependencies("x86_64-w64-mingw32","./bin/natives/x64/");
+                    }
+                    //Build linux
                     CMake.Run(".", new CMakeSettings()
                     {
                         OutputPath = "obj",
                         Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
                         BuildType = config
                     });
-                    string args = "";
-                    if (parallel > 0) args = "-j" + parallel;
                     RunCommand("make", args, "obj");
                     CopyDirContents("obj/binaries/", "./bin/natives/");
                 }
@@ -198,43 +236,40 @@ namespace BuildLL
 
             Target("Clean", () =>
             {
-                if (IsWindows)
-                {
+                if (withWin32)
                     Clean("win7-x86");
+                if (IsWindows || withWin64)
                     Clean("win7-x64");
-                }
-                else
+                if(!IsWindows)
                     Clean(GetLinuxRid());
             });
             
             
             Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives"), async () =>
             {
-                if(IsWindows) {
+                if(withWin32)
                     await FullBuild("win7-x86", false);
+                if(IsWindows || withWin64)
                     await FullBuild("win7-x64", false);
-                } else
+                if(!IsWindows)
                     await FullBuild(GetLinuxRid(), false);
             });
             Target("BuildDocumentation", DependsOn("GenerateVersion"), () =>
             {
-                if (IsWindows)
-                {
+                if (withWin32)
                     DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win7-x86/lib/Docs/", VersionString);
-                    DocumentationBuilder.Copy("./bin/librelancer-sdk-win7-x86/lib/Docs/", "./bin/librelancer-sdk-win7-x64/lib/Docs/");
-                }
-                else
-                {
+                if(IsWindows || withWin64)
+                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win7-x64/lib/Docs/", VersionString);
+                if(!IsWindows)
                     DocumentationBuilder.BuildDocs("./docs/", $"./bin/librelancer-sdk-{GetLinuxRid()}/lib/Docs/", VersionString);
-                }
-
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives"), async () =>
             {
-                if(IsWindows) {
+                if(withWin32)
                     await FullBuild("win7-x86", true);
+                if(IsWindows || withWin64)
                     await FullBuild("win7-x64", true);
-                } else
+                if(!IsWindows)
                     await FullBuild(GetLinuxRid(), true);
             });
             Target("Test", DependsOn("GenerateVersion"), () => {
@@ -244,6 +279,11 @@ namespace BuildLL
             static void TarDirectory(string file, string dir)
             {
                 Bash($"tar -I 'gzip -9' -cf {Quote(file)} -C {Quote(dir)} .", true);
+            }
+
+            static void ZipDirectory(string file, string dir)
+            {
+                Bash($"zip -r -9 {Quote(file)} {Quote(dir)}", true);
             }
             
             Target("BuildAndTest", DependsOn("BuildAll", "Test"));
@@ -256,16 +296,39 @@ namespace BuildLL
                 Directory.CreateDirectory("packaging/packages/b");
                 var lastCommit = Git.ShaTip(".");
                 Console.WriteLine("Compressing");
+                string engineNamePrefix = "librelancer-" + (versionSetting == "git"
+                    ? lastCommit.Substring(0, 7)
+                    : versionSetting);
+                string sdkNamePrefix = "librelancer-" + (versionSetting == "git"
+                    ? lastCommit.Substring(0, 7)
+                    : versionSetting);
                 //Engine
-                var name = "librelancer-" + lastCommit.Substring(0,7) + "-ubuntu-amd64";
+                var name = $"{engineNamePrefix}-ubuntu-amd64";
                 CopyDirContents("bin/librelancer-" + GetLinuxRid(), "packaging/packages/a/" + name, true);
                 TarDirectory("packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz", "packaging/packages/a");
                 RmDir("packaging/packages/a");
                 //Sdk
-                name = "librelancer-sdk-" + lastCommit.Substring(0,7) + "-ubuntu-amd64";
+                name = $"{sdkNamePrefix}-ubuntu-amd64";
                 CopyDirContents("bin/librelancer-sdk-" + GetLinuxRid(), "packaging/packages/b/" + name, true);
                 TarDirectory("packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz", "packaging/packages/b");
                 RmDir("packaging/packages/b");
+                if (withWin64)
+                {
+                    RmDir("packaging/packages/c");
+                    RmDir("packaging/packages/d");
+                    Directory.CreateDirectory("packaging/packages/c");
+                    Directory.CreateDirectory("packaging/packages/d");
+                    //Engine
+                    name = $"{engineNamePrefix}-win7-x64";
+                    CopyDirContents("bin/librelancer-win7-x64", "packaging/packages/c/" + name, true);
+                    ZipDirectory("packaging/packages/librelancer-daily-win64.zip", "packaging/packages/c");
+                    RmDir("packaging/packages/c");
+                    //Sdk
+                    name = $"{sdkNamePrefix}-win7-x64";
+                    CopyDirContents("bin/librelancer-sdk-win7-x64", "packaging/packages/d/" + name, true);
+                    ZipDirectory("packaging/packages/librelancer-sdk-daily-win64.zip", "packaging/packages/d");
+                    RmDir("packaging/packages/d");
+                }
                 //Timestamp
                 var unixTime = (long)((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
                 File.WriteAllText("packaging/packages/timestamp", unixTime.ToString());

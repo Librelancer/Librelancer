@@ -94,4 +94,3 @@ ${CRUNCH_DIR}/crnlib/lzma_LzmaLib.cpp
 ${CRNLIB_THREAD_SRCS}
 crnlibglue.cpp
 )
- 
