@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using Newtonsoft.Json;
@@ -145,7 +147,10 @@ namespace BuildLL
             }
             return true;
         }
-        
+
+        private const int E_LFANEW = 0x3C;
+        private const int SUBSYSTEM_OFFSET = 0x5C;
+        private static Regex winExe = new Regex(@"<\s*OutputType\s*>\s*WinExe", RegexOptions.IgnoreCase);
         public static void PatchedPublish(string proj, string outputDirectory, string rid)
         {
             Directory.CreateDirectory(outputDirectory);
@@ -192,8 +197,19 @@ namespace BuildLL
             }
             for(int i = 0; i < newPathBytes.Length; i++)
                 apphostExe[offset + i] = newPathBytes[i];
+            if (!IsWindows && rid.StartsWith("win", StringComparison.OrdinalIgnoreCase))
+            {
+                if (winExe.IsMatch(File.ReadAllText(proj)))
+                {
+                    var peHeaderLocation = BitConverter.ToInt32(apphostExe, E_LFANEW);
+                    var subsystemLocation = peHeaderLocation + SUBSYSTEM_OFFSET;
+                    Console.WriteLine($"Patching subsystem for {appHostPath}");
+                    var winexeBytes = BitConverter.GetBytes((ushort) Subsystem.WindowsGui);
+                    apphostExe[subsystemLocation] = winexeBytes[0];
+                    apphostExe[subsystemLocation + 1] = winexeBytes[1];
+                }
+            }
             File.WriteAllBytes(appHostPath, apphostExe);
         }
-        
     }
 }
