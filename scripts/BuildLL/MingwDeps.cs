@@ -22,13 +22,23 @@ public static class MingwDeps
             }
             foreach (var d in deps)
             {
-                var f = Directory.GetFiles($"/usr/{prefix}", d, SearchOption.AllDirectories).FirstOrDefault();
+                var f = FindFile(prefix, d);
                 if (f != null)
                 {
                     CopyFile(f, Path.Combine(targetfolder, d));
                 }
             }
         }
+    }
+    static string FindFile(string prefix, string file)
+    {
+        var f = Directory.GetFiles($"/usr/{prefix}", file, SearchOption.AllDirectories).FirstOrDefault();
+        if(f == null && Directory.Exists($"/usr/lib/gcc/{prefix}")) {
+            var win32Dir = Directory.GetDirectories($"/usr/lib/gcc/{prefix}").FirstOrDefault(x => x.EndsWith("win32"));
+            if(win32Dir != null)
+                f = Directory.GetFiles(win32Dir, file, SearchOption.AllDirectories).FirstOrDefault();
+        }
+		return f;
     }
     static string[] GetDllsForFile(string prefix, string file)
     {
