@@ -283,7 +283,7 @@ namespace BuildLL
 
             static void ZipDirectory(string file, string dir)
             {
-                Bash($"zip -r -9 {Quote(file)} {Quote(dir)}", true);
+                Bash($"cd {Quote(dir)} && zip -r -9 - . > {Quote(Path.GetFullPath(file))}", true);
             }
             
             Target("BuildAndTest", DependsOn("BuildAll", "Test"));
