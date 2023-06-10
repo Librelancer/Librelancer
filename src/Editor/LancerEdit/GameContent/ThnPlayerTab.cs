@@ -36,6 +36,7 @@ public class ThnPlayerTab : GameContentTab
         this.gameData = gameData;
         this.win = mw;
         viewport = new Viewport3D(mw);
+        viewport.EnableMSAA = false;
     }
     
     void Open(params string[] files)

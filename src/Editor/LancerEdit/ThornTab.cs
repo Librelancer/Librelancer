@@ -44,6 +44,7 @@ namespace LancerEdit
             colorTextEdit = new ColorTextEdit();
             colorTextEdit.SetMode(ColorTextEditMode.Lua);
             thornViewport = new Viewport3D(window);
+            thornViewport.EnableMSAA = false;
             SaveStrategy = new ThornSaveStrategy(this);
 
             Reload();
