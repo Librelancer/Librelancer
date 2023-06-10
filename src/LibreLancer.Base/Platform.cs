@@ -119,10 +119,11 @@ namespace LibreLancer
         public static bool CheckDependencies()
         {
             if (RunningOS != OS.Windows) return true;
-            if (!CheckVCRun("msvcr110.dll", V2012_64, V2012_32)) return false;
+            #if MSVC_BUILD
             if (!CheckVCRun("vcruntime140.dll", V2015_64, V2015_32)) return false;
             if(IntPtr.Size == 8) //vcruntime140_1.dll only seems present on x64
                 if (!CheckVCRun("vcruntime140_1.dll", V2015_64, V2015_32)) return false;
+            #endif
             return true;
         }
     }

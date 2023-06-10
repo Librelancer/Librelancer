@@ -1,0 +1,22 @@
+#!/bin/bash
+BUILD_OPTIONS="-DFT_DISABLE_ZLIB=TRUE -DFT_DISABLE_BZIP2=TRUE -DFT_DISABLE_PNG=TRUE -DFT_DISABLE_HARFBUZZ=TRUE -DFT_DISABLE_BROTLI=TRUE -DBUILD_SHARED_LIBS=true -DCMAKE_BUILD_TYPE=Release"
+export LDFLAGS=-static-libgcc
+# Clean build each time
+cd "$(dirname "${BASH_SOURCE[0]}")"
+rm -rf obj
+# Get source
+mkdir obj
+cd obj
+wget https://sourceforge.net/projects/freetype/files/freetype2/2.13.0/freetype-2.13.0.tar.xz/download -O freetype.tar.xz
+tar xaf freetype.tar.xz
+rm freetype.tar.xz
+# cd into available folder
+cd freetype*/
+cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../../mingw-w64-i686.cmake $BUILD_OPTIONS -B build-i686
+cmake --build build-i686 --config Release
+cp ./build-i686/libfreetype.dll ../../../deps/x86/freetype6.dll
+cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=../../mingw-w64-x86_64.cmake $BUILD_OPTIONS -B build-x86_64
+cmake --build build-x86_64 --config Release
+cp ./build-x86_64/libfreetype.dll ../../../deps/x64/freetype6.dll
+
+
