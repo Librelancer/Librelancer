@@ -12,7 +12,7 @@
         <ModelView ID="ship_preview" X="234" Y="38" Width="160" Height="142">
 		</ModelView>
         <TextEntry id="content" Anchor="BottomCenter" Y="55" Width="360" Height="30"
-        Font="PlayerName" TextColor="text" TextShadow="black">
+        Font="$PlayerName" TextColor="text" TextShadow="black">
         	<TextEntry.Border>
         		<DisplayRectangle color="text"/>
         	</TextEntry.Border>
