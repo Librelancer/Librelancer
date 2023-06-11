@@ -321,17 +321,11 @@ namespace LibreLancer
 
         }
 
+        private bool isVsync = false;
+
         public void SetVSync(bool vsync)
         {
-            if (vsync)
-            {
-                if (SDL.SDL_GL_SetSwapInterval(-1) < 0)
-                    SDL.SDL_GL_SetSwapInterval(1);
-            }
-            else
-            {
-                SDL.SDL_GL_SetSwapInterval(0);
-            }
+            isVsync = vsync;
         }
 
         Point minWindowSize = Point.Zero;
@@ -423,6 +417,7 @@ namespace LibreLancer
             return null;
         }
 
+        
         public void Run()
         {
             //Try to set DPI Awareness on Win32
@@ -697,7 +692,7 @@ namespace LibreLancer
                     TakeScreenshot();
                     _screenshot = false;
                 }
-                SDL.SDL_GL_SwapWindow(sdlWin);
+                GLSwap.SwapWindow(sdlWin, isVsync, fullscreen);
                 if (GL.FrameHadErrors()) //If there was a GL error, track it down.
                     GL.ErrorChecking = true;
                 elapsed = timer.Elapsed.TotalSeconds - last;

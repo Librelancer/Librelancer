@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Input;
@@ -141,6 +142,8 @@ namespace LibreLancer
 				ChangeState(new IntroMovie(this, 0));
 			else
 				ChangeState(new LoadingDataState(this));
+            // Low latency GC mode in game only, not in base assembly
+            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
         }
 
         public string GetSaveFolder()
@@ -193,7 +196,7 @@ namespace LibreLancer
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
-				Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
+                Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
 				fps_updatetimer = FPS_INTERVAL;
 			}
 			RenderContext.ClearAll ();
