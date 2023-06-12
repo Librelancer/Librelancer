@@ -9,8 +9,7 @@ using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Render
 {
-	public delegate void ShaderAction(Shader shdr, RenderContext res, ref RenderCommand cmd);
-	public class CommandBuffer
+	public class CommandBuffer : IDisposable
 	{
 		const int MAX_COMMANDS = 16384;
 		const int MAX_TRANSPARENT_COMMANDS = 16384;
@@ -194,6 +193,12 @@ namespace LibreLancer.Render
 			if (lastbb != null)
 				lastbb.FlushCommands(context);
 		}
+
+        public void Dispose()
+        {
+            BonesBuffer.Dispose();
+            WorldBuffer.Dispose();
+        }
 
 	}
 	class KeyComparer : IComparer<int>

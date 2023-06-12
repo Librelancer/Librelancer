@@ -19,9 +19,10 @@ namespace LibreLancer
             FLLog.Info("Available Threads", Environment.ProcessorCount.ToString());
         }
         
-        public static void ConsoleInit()
+        public static void ConsoleInit(bool silent = false)
         {
-            LogPlatform();
+            if(!silent)
+                LogPlatform();
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);

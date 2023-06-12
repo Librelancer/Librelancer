@@ -131,6 +131,8 @@ namespace lleditscript
 
         static int Main(string[] args)
         {
+            AppHandler.ConsoleInit(true);
+            
             bool argsStdin = false;
             bool modulePath = false;
             int argStart;

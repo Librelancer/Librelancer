@@ -98,7 +98,7 @@ namespace LibreLancer
     }
     public class GameResourceManager : ResourceManager, IDisposable
 	{
-		public Game Game;
+		public IGLWindow GLWindow;
 
 		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
@@ -130,7 +130,7 @@ namespace LibreLancer
 
         public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
         {
-            if (!Game.IsUiThread()) throw new InvalidOperationException();
+            if (!GLWindow.IsUiThread()) throw new InvalidOperationException();
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             vbo = null;
             index = null;
@@ -191,9 +191,9 @@ namespace LibreLancer
 		}
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => frameanims;
 
-        public GameResourceManager(Game g) : this()
+        public GameResourceManager(IGLWindow g) : this()
 		{
-			Game = g;
+			GLWindow = g;
 			DefaultMaterial = new Material(this);
 			DefaultMaterial.Name = "$LL_DefaultMaterialName";
 		}

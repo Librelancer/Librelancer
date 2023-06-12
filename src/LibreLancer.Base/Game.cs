@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 namespace LibreLancer
 {
     public delegate void ScreenshotSaveHandler(string filename, int width, int height, byte[] data);
-    public class Game : IUIThread
+    public class Game : IUIThread, IGLWindow
     {
         int width;
         int height;
@@ -31,7 +31,7 @@ namespace LibreLancer
         ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         int mythread = -1;
         public ScreenshotSaveHandler ScreenshotSave;
-        public RenderContext RenderContext;
+        public RenderContext RenderContext { get; private set; }
         public string Renderer
         {
             get; private set;
@@ -363,6 +363,26 @@ namespace LibreLancer
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
+        
+        public static HeadlessContext CreateHeadless()
+        {
+            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
+                throw new Exception("SDL_Init failed");
+            var win = SDL.SDL_CreateWindow("Headless Librelancer",
+                SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                128, 128,
+                SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+            if (win == IntPtr.Zero)
+                throw new Exception("Failed to create hidden SDL window");
+            var ctx = CreateGLContext(win);
+            if (ctx == IntPtr.Zero)
+                throw new Exception("Failed to create OpenGL context");
+            return new HeadlessContext()
+            {
+                RenderContext = new RenderContext(),
+                UiThreadId = Thread.CurrentThread.ManagedThreadId
+            };
+        }
 
         static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
         {
@@ -417,6 +437,20 @@ namespace LibreLancer
             return null;
         }
 
+        static IntPtr CreateGLContext(IntPtr sdlWin)
+        {
+            IntPtr glcontext = IntPtr.Zero;
+            if (Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER") == "GLES" ||
+                !CreateContextCore(sdlWin, out glcontext))
+            {
+                if (!CreateContextES(sdlWin, out glcontext))
+                {
+                    return IntPtr.Zero;
+                }
+            }
+            GL.LoadSDL();
+            return glcontext;
+        }
         
         public void Run()
         {
@@ -467,30 +501,24 @@ namespace LibreLancer
             curResizeNESW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW);
             curResizeNWSE = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
             //Window sizing
-            if (minWindowSize != Point.Zero)
-            {
-                SDL.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
-            }
             if (sdlWin == IntPtr.Zero)
             {
                 Dialogs.CrashWindow.Run("Librelancer", "Failed to create SDL window",
                     "SDL Error: " + (SDL.SDL_GetError() ?? ""));
                 return;
             }
+            if (minWindowSize != Point.Zero)
+            {
+                SDL.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
+            }
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
             windowptr = sdlWin;
-            IntPtr glcontext = IntPtr.Zero;
-            if (Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER") == "GLES" ||
-                !CreateContextCore(sdlWin, out glcontext))
+            var glContext = CreateGLContext(sdlWin);
+            if (glContext == IntPtr.Zero)
             {
-                if (!CreateContextES(sdlWin, out glcontext))
-                {
-                    Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
-                        "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" + SDL.SDL_GetError() ?? "");
-                    return;
-                }
+                Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
+                    "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" + SDL.SDL_GetError() ?? "");
             }
-            GL.LoadSDL();
             Renderer = string.Format("{0} ({1})", GL.GetString(GL.GL_VERSION), GL.GetString(GL.GL_RENDERER));
             FLLog.Info("GL", $"Renderer: {GL.GetString(GL.GL_RENDERER)}");
             SetVSync(true);
@@ -523,7 +551,7 @@ namespace LibreLancer
                               SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
                               SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS |
                               SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                SDL.SDL_GL_MakeCurrent(win2, glcontext);
+                SDL.SDL_GL_MakeCurrent(win2, glContext);
                 RenderContext.ClearColor = Color4.Black;
                 SDL.SDL_GL_GetDrawableSize(win2, out  var rw, out  var rh);
                 RenderContext.ReplaceViewport(0,0, rw, rh);
@@ -533,7 +561,7 @@ namespace LibreLancer
                 SDL.SDL_GL_SwapWindow(win2);
                 Load();
                 splashTexture.Dispose();
-                SDL.SDL_GL_MakeCurrent(sdlWin, glcontext);
+                SDL.SDL_GL_MakeCurrent(sdlWin, glContext);
                 SDL.SDL_DestroyWindow(win2);
             }
             else

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace LibreLancer
 {
@@ -14,9 +15,11 @@ namespace LibreLancer
 		Less = 0x201,
 		LessEqual = 0x203
 	}
+
 	//OpenGL Render States
 	public class RenderContext
     {
+
         public long FrameNumber => frameNumber;
         private long frameNumber = 0;
         
@@ -255,8 +258,10 @@ namespace LibreLancer
         public void PopViewport()
         {
             viewports.Pop ();
-            var vp = viewports.Peek ();
-            SetViewport(new Rectangle(vp.X, vp.Y, vp.Width, vp.Height));
+            if (viewports.Count > 0) {
+                var vp = viewports.Peek();
+                SetViewport(new Rectangle(vp.X, vp.Y, vp.Width, vp.Height));
+            }
         }
 
         void SetViewport(Rectangle vp)

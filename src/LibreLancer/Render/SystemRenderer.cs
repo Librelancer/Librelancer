@@ -102,7 +102,7 @@ namespace LibreLancer.Render
             StarSphereModels = new RigidModel[0];
             Polyline = new PolylineRender(commands);
             FxPool = new ParticleEffectPool(commands);
-            rstate = resources.Game.RenderContext;
+            rstate = resources.GLWindow.RenderContext;
             this.game = game;
             settings = game.GetService<IRendererSettings>();
             billboards = game.GetService<Billboards>();
