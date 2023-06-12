@@ -9,6 +9,7 @@ using LibreLancer.Thn;
 
 namespace LibreLancer.GameData.World
 {
+    public record SceneScript(bool AllAmbient, bool TrafficPriority, ResolvedThn Thn);
 	public class BaseRoom
 	{
         //Populated from room ini
@@ -16,7 +17,7 @@ namespace LibreLancer.GameData.World
         public string SourceFile;
 		public string Camera;
         public ResolvedThn SetScript;
-		public List<ResolvedThn> ThnPaths;
+		public List<SceneScript> SceneScripts;
 		public List<BaseHotspot> Hotspots;
         public List<string> ForSaleShipPlacements;
 		public string Music;
@@ -32,7 +33,7 @@ namespace LibreLancer.GameData.World
         
         public IEnumerable<ThnScript> OpenScene()
         {
-            foreach (var p in ThnPaths) yield return new ThnScript(p.ResolvedPath);
+            foreach (var p in SceneScripts) yield return new ThnScript(p.Thn.ResolvedPath);
         }
         public ThnScript OpenSet()
         {

@@ -114,6 +114,7 @@ namespace LibreLancer
             //Set up THN
             SwitchToRoom(room == null && session.PlayerShip != null);
             FadeIn(0.8, 1.7);
+            GC.Collect();
         }
 
         protected override void OnActionDown(InputAction action)

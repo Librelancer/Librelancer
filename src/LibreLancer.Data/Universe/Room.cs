@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Universe.Rooms;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
@@ -13,27 +14,33 @@ namespace LibreLancer.Data.Universe
 	{
         public string FilePath { get; private set; }
 		public string Nickname { get; private set; }
-		public string Music { get; private set; }
-        public bool MusicOneShot { get; private set; }
+
+        [Section("Room_Info")] 
+        public RoomInfo RoomInfo;
+        [Section("CharacterPlacement")] 
+        public CharacterPlacement CharacterPlacement;
+        [Section("Room_Sound")] 
+        public RoomSound RoomSound;
+        [Section("ForSaleShipPlacement")] 
+        public List<NameSection> ForSaleShipPlacements = new List<NameSection>();
+        [Section("Camera")] 
+        public NameSection Camera;
+        [Section("Hotspot")] 
+        public List<RoomHotspot> Hotspots = new List<RoomHotspot>();
+        [Section("PlayerShipPlacement")] 
+        public PlayerShipPlacement PlayerShipPlacement;
+        [Section("FlashlightSet")] 
+        public List<FlashlightSet> FlashlightSets = new List<FlashlightSet>();
+        [Section("FlashlightLine")] 
+        public List<FlashlightLine> FlashlightLines = new List<FlashlightLine>();
+        [Section("Spiels")] 
+        public Spiels Spiels;
         
-        public string SetScript { get; private set; }
-        public List<string> SceneScripts { get; private set; }
-        public List<string> ForShipSalePlacements { get; private set; }
-        public List<RoomHotspot> Hotspots { get; private set; }
-		public string Camera { get; private set; }
-		public string PlayerShipPlacement { get; private set; }
-		public string LaunchingScript { get; private set; }
-		public string LandingScript { get; private set; }
-        public string StartScript { get; private set;  }
-        public string GoodscartScript { get; private set; }
         public Room(Section section, FreelancerData data)
 		{
 			if (section == null) throw new ArgumentNullException("section");
 			string file = null;
-			SceneScripts = new List<string>();
-			Hotspots = new List<RoomHotspot>();
-            ForShipSalePlacements = new List<string>();
-			foreach (Entry e in section)
+            foreach (Entry e in section)
 			{
 				switch (e.Name.ToLowerInvariant())
 				{
@@ -53,119 +60,7 @@ namespace LibreLancer.Data.Universe
             FilePath = file;
             if (data.VFS.FileExists(data.Freelancer.DataPath + file))
             {
-                foreach (Section s in ParseFile(data.Freelancer.DataPath + file, data.VFS))
-                {
-                    switch (s.Name.ToLowerInvariant())
-                    {
-                        case "room_info":
-                            foreach (Entry e in s)
-                            {
-                                if (e.Name.ToLowerInvariant() == "set_script")
-                                   SetScript = e[0].ToString();
-                                if (e.Name.ToLowerInvariant() == "goodscart_script")
-                                    GoodscartScript = e[0].ToString();
-                                if (e.Name.ToLowerInvariant() == "scene")
-                                {
-                                    if (e.Count == 3 || e.Count == 4)
-                                        SceneScripts.Add(e[2].ToString());
-                                    else
-                                        SceneScripts.Add(e[1].ToString());
-                                }
-                            }
-                            break;
-                        case "room_sound":
-                            foreach (Entry e in s)
-                            {
-                                if (e.Name.ToLowerInvariant() == "music")
-                                {
-                                    Music = e[0].ToString();
-                                    if (e.Count > 1 && e[1].ToString()
-                                            .Equals("oneshot", StringComparison.OrdinalIgnoreCase))
-                                        MusicOneShot = true;
-                                }
-                            }
-                            break;
-                        case "camera":
-                            // TODO Room camera
-                            foreach (Entry e in s)
-                            {
-                                if (e.Name.ToLowerInvariant() == "name")
-                                    Camera = e[0].ToString();
-                            }
-                            break;
-                        case "spiels":
-                            // TODO Room spiels
-                            break;
-                        case "playershipplacement":
-                            foreach (Entry e in s)
-                            {
-                                switch (e.Name.ToLowerInvariant())
-                                {
-                                    case "name":
-                                        PlayerShipPlacement = e[0].ToString();
-                                        break;
-                                    case "launching_script":
-                                        LaunchingScript = e[0].ToString();
-                                        break;
-                                    case "landing_script":
-                                        LandingScript = e[0].ToString();
-                                        break;
-                                }
-                            }
-                            break;
-                        case "characterplacement":
-                            foreach(Entry e in s)
-                            {
-                                switch(e.Name.ToLowerInvariant())
-                                {
-                                    case "start_script":
-                                        StartScript = e[0].ToString();
-                                        break;
-                                }
-                            }
-                            break;
-                        case "forsaleshipplacement":
-                           foreach(Entry e in s)
-                            {
-                                if (e.Name.Equals("name", StringComparison.OrdinalIgnoreCase))
-                                    ForShipSalePlacements.Add(e[0].ToString());
-                            }
-                            break;
-                        case "hotspot":
-                            // TODO Room hotspot
-                            var hotspot = new RoomHotspot();
-                            foreach (Entry e in s)
-                            {
-                                switch (e.Name.ToLowerInvariant())
-                                {
-                                    case "name":
-                                        hotspot.Name = e[0].ToString();
-                                        break;
-                                    case "behavior":
-                                        hotspot.Behavior = e[0].ToString();
-                                        break;
-                                    case "room_switch":
-                                        hotspot.RoomSwitch = e[0].ToString();
-                                        break;
-                                    case "set_virtual_room":
-                                        hotspot.SetVirtualRoom = e[0].ToString();
-                                        break;
-                                    case "virtual_room":
-                                        hotspot.VirtualRoom = e[0].ToString();
-                                        break;
-                                }
-                            }
-                            Hotspots.Add(hotspot);
-                            break;
-                        case "flashlightset":
-                            // TODO Room flashlightset
-                            break;
-                        case "flashlightline":
-                            // TODO Room flashlightline
-                            break;
-                        default: throw new Exception("Invalid Section in " + file + ": " + s.Name);
-                    }
-                }
+                ParseAndFill(data.Freelancer.DataPath + file, data.VFS);
             }
             else
             {
@@ -173,12 +68,4 @@ namespace LibreLancer.Data.Universe
             }
         }
 	}
-	public class RoomHotspot
-	{
-		public string Name;
-		public string Behavior;
-		public string RoomSwitch;
-		public string SetVirtualRoom;
-        public string VirtualRoom;
-    }
 }

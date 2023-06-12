@@ -303,6 +303,20 @@ public static class IniSerializer
         var sb = new StringBuilder();
         sb.AppendSection("Room_Info")
             .AppendEntry("set_script", room.SetScript?.SourcePath);
+        foreach (var scene in room.SceneScripts)
+        {
+            sb.Append("scene = ");
+            if (scene.AllAmbient)
+                sb.Append("all, ");
+            sb.Append("ambient, ");
+            sb.Append(scene.Thn.SourcePath);
+            if (scene.TrafficPriority)
+                sb.Append(", TRAFFIC_PRIORITY");
+            sb.AppendLine();
+        }
+
+        sb.AppendSection("[Room_Sound]");
+        
 
         if (!string.IsNullOrWhiteSpace(room.PlayerShipPlacement))
             sb.AppendSection("PlayerShipPlacement")

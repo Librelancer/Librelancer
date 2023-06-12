@@ -60,7 +60,7 @@ namespace LibreLancer.GameData.World
 
         public StarSystem ()
 		{
-		}
+        }
     }
 }
 

@@ -16,6 +16,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
 using LibreLancer.GameData.World;
+using LibreLancer.Interface;
 using LibreLancer.Render;
 using LibreLancer.Thn;
 using LibreLancer.Utf.Anm;
@@ -132,8 +133,12 @@ namespace LibreLancer
                 ?.BaseAppr;
         }
 
-        ResolvedThn ResolveThn(string path) => new () { SourcePath = path, ResolvedPath = ResolveDataPath(path) };
-        
+        ResolvedThn ResolveThn(string path)
+        {
+            if (path == null) return null;
+            return new() {SourcePath = path, ResolvedPath = ResolveDataPath(path)};
+        }
+
         IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");
@@ -169,24 +174,22 @@ namespace LibreLancer
                 {
                     var nr = new BaseRoom();
                     nr.SourceFile = room.FilePath;
-                    nr.Music = room.Music;
-                    nr.MusicOneShot = room.MusicOneShot;
-                    nr.ThnPaths = new List<ResolvedThn>();
-                    nr.PlayerShipPlacement = room.PlayerShipPlacement;
-                    nr.ForSaleShipPlacements = room.ForShipSalePlacements;
+                    nr.Music = room.RoomSound?.Music;
+                    nr.MusicOneShot = room.RoomSound?.MusicOneShot ?? false;
+                    nr.SceneScripts = new List<SceneScript>();
+                    nr.PlayerShipPlacement = room.PlayerShipPlacement?.Name;
+                    nr.ForSaleShipPlacements = room.ForSaleShipPlacements.Select(x => x.Name).ToList();
                     tasks.Begin(() =>
                     {
-                        nr.SetScript = ResolveThn(room.SetScript);
-                        foreach (var path in room.SceneScripts)
-                            nr.ThnPaths.Add(ResolveThn(path));
-                        if (room.LandingScript != null)
-                            nr.LandScript = ResolveThn(room.LandingScript);
-                        if (room.StartScript != null)
-                            nr.StartScript = ResolveThn(room.StartScript);
-                        if (room.LaunchingScript != null)
-                            nr.LaunchScript = ResolveThn(room.LaunchingScript);
-                        if (room.GoodscartScript != null)
-                            nr.GoodscartScript = ResolveThn(room.GoodscartScript);
+                        nr.SetScript = ResolveThn(room.RoomInfo?.SetScript);
+                        if(room.RoomInfo?.SceneScripts != null)
+                            foreach (var e in room.RoomInfo.SceneScripts)
+                                nr.SceneScripts.Add(new SceneScript(e.AmbientAll, e.TrafficPriority, ResolveThn(e.Path)));
+                        nr.LandScript = ResolveThn(room.PlayerShipPlacement?.LandingScript);
+                        nr.LaunchScript = ResolveThn(room.PlayerShipPlacement?.LaunchingScript);
+                        nr.StartScript = ResolveThn(room.CharacterPlacement?.StartScript);
+
+                        nr.GoodscartScript = ResolveThn(room.RoomInfo?.GoodscartScript);
                     });
                     nr.Hotspots = new List<BaseHotspot>();
                     foreach (var hp in room.Hotspots)
@@ -200,7 +203,7 @@ namespace LibreLancer
                         });
                     nr.Nickname = room.Nickname;
                     if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
-                    nr.Camera = room.Camera;
+                    nr.Camera = room.Camera?.Name;
                     nr.FixedNpcs = new List<BaseFixedNpc>();
                     if (mbase == null) continue;
                     var mroom = mbase.FindRoom(room.Nickname);
@@ -464,14 +467,17 @@ namespace LibreLancer
                         {
                             var isc = new GameData.IntroScene();
                             isc.Scripts = new List<ThnScript>();
-                            foreach (var p in room.SceneScripts)
+                            if (room.RoomInfo != null)
                             {
-                                var path = ResolveDataPath(p);
-                                isc.ThnName = path;
-                                isc.Scripts.Add(new ThnScript(path));
+                                foreach (var p in room.RoomInfo.SceneScripts)
+                                {
+                                    var path = ResolveDataPath(p.Path);
+                                    isc.ThnName = path;
+                                    isc.Scripts.Add(new ThnScript(path));
+                                }
+                                isc.Music = room.RoomSound?.Music;
+                                IntroScenes.Add(isc);
                             }
-                            isc.Music = room.Music;
-                            IntroScenes.Add(isc);
                         }
                     }
                 }

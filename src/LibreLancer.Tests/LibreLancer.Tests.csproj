@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Editor\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />
       <ProjectReference Include="..\LibreLancer\LibreLancer.csproj" />
     </ItemGroup>
 
