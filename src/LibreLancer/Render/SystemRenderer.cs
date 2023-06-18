@@ -41,7 +41,6 @@ namespace LibreLancer.Render
         public bool DrawStarsphere = true;
         
         //Global Renderer Options
-		public float LODMultiplier = 1.3f;
 		public bool ExtraLights = false; //See comments in Draw() before enabling
 
 		public RigidModel[] StarSphereModels;
@@ -82,9 +81,10 @@ namespace LibreLancer.Render
             }
         }
 
-        IRendererSettings settings;
+        public IRendererSettings Settings;
         Billboards billboards;
         ResourceManager resman;
+        
 
         public ResourceManager ResourceManager
         {
@@ -104,7 +104,7 @@ namespace LibreLancer.Render
             FxPool = new ParticleEffectPool(commands);
             rstate = resources.GLWindow.RenderContext;
             this.game = game;
-            settings = game.GetService<IRendererSettings>();
+            Settings = game.GetService<IRendererSettings>();
             billboards = game.GetService<Billboards>();
             resman = resources;
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
@@ -272,7 +272,7 @@ namespace LibreLancer.Render
                 //Don't render on Width/Height = 0
                 return;
             RenderTarget restoreTarget = rstate.RenderTarget;
-			if (settings.SelectedMSAA > 0)
+			if (Settings.SelectedMSAA > 0)
 			{
 				if (_mwidth != renderWidth || _mheight != renderHeight)
 				{
@@ -280,12 +280,12 @@ namespace LibreLancer.Render
 					_mheight = Game.Height;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(renderWidth, renderHeight, settings.SelectedMSAA);
+					msaa = new MultisampleTarget(renderWidth, renderHeight, Settings.SelectedMSAA);
 				}
                 rstate.RenderTarget = msaa;
 			}
-            rstate.PreferredFilterLevel = settings.SelectedFiltering;
-            rstate.AnisotropyLevel = settings.SelectedAnisotropy;
+            rstate.PreferredFilterLevel = Settings.SelectedFiltering;
+            rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
             rstate.SetCamera(camera);
             commands.Camera = camera;
@@ -385,7 +385,7 @@ namespace LibreLancer.Render
                 foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
 				rstate.DepthFunction = DepthFunction.LessEqual;
                 rstate.RenderTarget = null;
-                if (settings.SelectedMSAA > 0) rstate.RenderTarget = msaa;
+                if (Settings.SelectedMSAA > 0) rstate.RenderTarget = msaa;
 				//Run compute shader
 				pointLightBuffer.BindIndex(0);
 				transparentLightBuffer.BindIndex(1);
@@ -493,7 +493,7 @@ namespace LibreLancer.Render
             }
             debugPoints = new Vector3[0];
 			DebugRenderer.Render();
-			if (settings.SelectedMSAA > 0)
+			if (Settings.SelectedMSAA > 0)
 			{
                 if(restoreTarget == null)
 				    msaa.BlitToScreen();

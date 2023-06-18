@@ -61,6 +61,11 @@ namespace LibreLancer
             FadeIn(0.1, 0.3);
         }
 
+        public override void OnSettingsChanged()
+        {
+            if (scene?.Renderer != null)
+                scene.Renderer.Settings = Game.Config.Settings;
+        }
 
         private void Mouse_MouseUp(MouseEventArgs e)
         {

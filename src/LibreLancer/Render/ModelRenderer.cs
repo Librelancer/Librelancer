@@ -59,7 +59,7 @@ namespace LibreLancer.Render
 			{
 				var d = ranges[i];
 				if (i > 0 && ranges[i] < ranges[i - 1]) break;
-				if (dsq < (d * sysr.LODMultiplier) * (d * sysr.LODMultiplier)) break;
+				if (dsq < (d * sysr.Settings.LodMultiplier) * (d * sysr.Settings.LodMultiplier)) break;
                 if (i >= file.Mesh.Levels.Length) {
                     CurrentLevel = -1;
                     return -1;
@@ -113,7 +113,7 @@ namespace LibreLancer.Render
 			var dsq = Vector3.DistanceSquared(pos, camera.Position);
 			if (LODRanges != null) //Fastest cull
 			{
-				var maxd = LODRanges[LODRanges.Length - 1] * sysr.LODMultiplier;
+				var maxd = LODRanges[LODRanges.Length - 1] * sysr.Settings.LodMultiplier;
 				maxd *= maxd;
                 if (dsq > maxd)
                 {

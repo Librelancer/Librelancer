@@ -43,6 +43,10 @@ namespace LibreLancer
         {
         }
 
+        public virtual void OnSettingsChanged()
+        {
+        }
+
         public abstract void Update(double delta);
 		public abstract void Draw(double delta);
         public virtual void OnResize()

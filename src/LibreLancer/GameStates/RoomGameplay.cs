@@ -117,6 +117,13 @@ namespace LibreLancer
             GC.Collect();
         }
 
+        public override void OnSettingsChanged()
+        {
+            if (scene?.Renderer != null)
+                scene.Renderer.Settings = Game.Config.Settings;
+        }
+           
+
         protected override void OnActionDown(InputAction action)
         {
             if (ui.KeyboardGrabbed) return;

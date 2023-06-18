@@ -229,6 +229,14 @@ namespace LancerEdit
             ImGui.TextDisabled("Leave blank to autodetect Blender");
         }
 
+        void SystemViewerTab()
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Render Distance: ");
+            ImGui.SameLine();
+            ImGui.SliderFloat("##lodmultiplier", ref config.LodMultiplier, 1.0f, 8.0f);
+        }
+
         public void Draw()
         {
             if (windowOpen)
@@ -245,6 +253,12 @@ namespace LancerEdit
                     if (ImGui.BeginTabItem("Blender"))
                     {
                         BlenderTab();
+                        ImGui.EndTabItem();
+                    }
+
+                    if (ImGui.BeginTabItem("System Viewer"))
+                    {
+                        SystemViewerTab();
                         ImGui.EndTabItem();
                     }
 

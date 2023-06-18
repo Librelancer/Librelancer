@@ -62,6 +62,7 @@ namespace LibreLancer
         {
             Audio.MasterVolume = config.Settings.MasterVolume;
             Audio.Music.Volume = config.Settings.MusicVolume;
+            currentState?.OnSettingsChanged();
         }
 
         public void ChangeState(GameState state)

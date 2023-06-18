@@ -177,6 +177,10 @@ World Time: {12:F2}
             updateStartDelay = 3;
         }
 
+        public override void OnSettingsChanged() =>
+            sysrender.Settings = Game.Config.Settings;
+        
+
         protected override void OnActionDown(InputAction obj)
         {
             if(obj == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();

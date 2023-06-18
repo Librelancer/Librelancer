@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 using LibreLancer;
+using LibreLancer.Data;
 using LibreLancer.Ini;
 using LibreLancer.Render;
 using static System.FormattableString;
@@ -47,6 +48,8 @@ namespace LancerEdit
         private string lastExportPath;
         [Entry("blender_path")] 
         private string blenderPath;
+        [Entry("lod_multiplier")] 
+        public float LodMultiplier = 1.3f;
 
         public int SelectedAnisotropy => TextureFilter > 2 ? (int)Math.Pow(2, TextureFilter - 2) : 0;
 
@@ -59,6 +62,8 @@ namespace LancerEdit
         };
 
         int IRendererSettings.SelectedMSAA => MSAA;
+
+        float IRendererSettings.LodMultiplier => LodMultiplier;
 
         public string LastExportPath
         {
@@ -97,6 +102,7 @@ namespace LancerEdit
                     writer.WriteLine($"last_export_path = {lastExportPath}");
                 if(!string.IsNullOrWhiteSpace(blenderPath))
                     writer.WriteLine($"blender_path = {blenderPath}");
+                writer.WriteLine($"lod_multiplier = {LodMultiplier.ToStringInvariant()}");
             }
         }
 

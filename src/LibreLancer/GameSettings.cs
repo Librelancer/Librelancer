@@ -26,6 +26,10 @@ namespace LibreLancer
         public int Anisotropy = 0;
         [Entry("msaa")]
         public int MSAA = 0;
+        [Entry("lod_multiplier")] 
+        public float LodMultiplier = 1.3f;
+
+        float IRendererSettings.LodMultiplier => LodMultiplier;
 
         int IRendererSettings.SelectedAnisotropy => Anisotropy;
         TextureFiltering IRendererSettings.SelectedFiltering =>
@@ -46,6 +50,7 @@ namespace LibreLancer
             writer.WriteLine($"vsync = {(VSync ? "true" : "false")}");
             writer.WriteLine($"anisotropy = {Anisotropy}");
             writer.WriteLine($"msaa = {MSAA}");
+            writer.WriteLine($"lod_multiplier = {Fmt(LodMultiplier)}");
         }
         
         [WattleScriptHidden] 
@@ -61,6 +66,7 @@ namespace LibreLancer
             gs.VSync = VSync;
             gs.Anisotropy = Anisotropy;
             gs.MSAA = MSAA;
+            gs.LodMultiplier = LodMultiplier;
             gs.RenderContext = RenderContext;
             return gs;
         }
