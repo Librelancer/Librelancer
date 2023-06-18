@@ -8,7 +8,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class BuzzPassByBlock : PilotBlock, ICustomEntryHandler
+    public class BuzzPassByBlock : PilotBlock
     {
         [Entry("buzz_distance_to_pass_by")] public float DistanceToPassBy;
         [Entry("buzz_pass_by_time")] public float PassByTime;
@@ -22,19 +22,12 @@ namespace LibreLancer.Data.Pilots
 
         public List<DirectionWeight> BreakDirectionWeights = new List<DirectionWeight>();
         public List<BuzzPassByStyle> PassByStyleWeights = new List<BuzzPassByStyle>();
-        
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new(
-                "buzz_pass_by_style_weight",
-                (s, e) =>
-                    ((BuzzPassByBlock) s).PassByStyleWeights.Add(new BuzzPassByStyle(e))),
-            new("buzz_break_direction_weight",
-                (s, e) => ((BuzzPassByBlock) s).BreakDirectionWeights.Add(new DirectionWeight(e)))
 
-        };
+        [EntryHandler("buzz_break_direction_weight", MinComponents = 2, Multiline = true)]
+        void HandleDirection(Entry e) => BreakDirectionWeights.Add(new DirectionWeight(e));
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("buzz_pass_by_style_weight", MinComponents = 2, Multiline = true)]
+        void HandleStyle(Entry e) => PassByStyleWeights.Add(new BuzzPassByStyle(e));
     }
 
     public class BuzzPassByStyle

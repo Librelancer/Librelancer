@@ -8,7 +8,7 @@ using System.Linq;
 using LibreLancer.Ini;
 namespace LibreLancer.Data
 {
-	public class GfNpc : ICustomEntryHandler
+	public class GfNpc
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -37,51 +37,48 @@ namespace LibreLancer.Data
         public List<NpcRumor> Rumors = new List<NpcRumor>();
         public List<NpcBribe> Bribes = new List<NpcBribe>();
         public NpcMission Mission;
-        
-        private static CustomEntry[] entries = {
-            new("know", (n,e) => ((GfNpc)n).Know.Add(
-                new NpcKnow(e[0].ToInt32(), e[1].ToInt32(), e[2].ToInt32(), e[3].ToInt32())
-                )),
-            new("rumor", (n, e) => ((GfNpc)n).Rumors.Add(
-                    new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), false)
-                )),
-            new("rumor_type2", (n, e) => ((GfNpc)n).Rumors.Add(
-                new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), true)
-            )),
-            new("bribe", (n, e) => ((GfNpc)n).Bribes.Add(
-                new NpcBribe(e[0].ToString(), e[1].ToInt32(), e[2].ToInt32())
-            )),
-            new ("misn", (n,e ) => ((GfNpc)n).Mission = new NpcMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle())),
-            new ("rumordb", RumorKnowDb),
-            new ("knowdb", KnowDb)
-        };
 
-        static void RumorKnowDb(ICustomEntryHandler self, Entry knowdb)
+        [EntryHandler("know", MinComponents = 4, Multiline = true)]
+        void HandleKnow(Entry e) => Know.Add(
+            new NpcKnow(e[0].ToInt32(), e[1].ToInt32(), e[2].ToInt32(), e[3].ToInt32())
+        );
+
+        [EntryHandler("rumor", MinComponents = 4, Multiline = true)]
+        void HandleRumor(Entry e) => Rumors.Add(
+            new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), false)
+        );
+        
+        [EntryHandler("rumor_type2", MinComponents = 4, Multiline = true)]
+        void HandleRumorType2(Entry e) => Rumors.Add(
+            new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), true)
+        );
+
+        [EntryHandler("bribe", MinComponents = 3, Multiline = true)]
+        void HandleBribe(Entry e) => Bribes.Add(
+            new NpcBribe(e[0].ToString(), e[1].ToInt32(), e[2].ToInt32())
+        );
+
+        [EntryHandler("misn", MinComponents = 3)]
+        void HandleMisn(Entry e) => Mission = new NpcMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle());
+
+        [EntryHandler("rumorknowdb", Multiline = true)]
+        void RumorKnowDb(Entry knowdb)
         {
-            var gf = (GfNpc) self;
-            if (gf.Rumors.Count == 0)
-            {
+            if (Rumors.Count == 0)
                 IniWarning.Warn("rumorknowdb without rumor", knowdb);
-            }
             else
-            {
-                gf.Rumors[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
-            }
+                Rumors[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
         }
         
-        static void KnowDb(ICustomEntryHandler self, Entry knowdb)
+        [EntryHandler("knowdb", Multiline = true)]
+        
+        void KnowDb(Entry knowdb)
         {
-            var gf = (GfNpc) self;
-            if (gf.Know.Count == 0)
-            {
+            if (Know.Count == 0)
                 IniWarning.Warn("knowdb without know", knowdb);
-            }
             else
-            {
-                gf.Know[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
-            }
+                Know[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
         }
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => entries;
     }
 
     public record NpcMission(string Kind, float Min, float Max);

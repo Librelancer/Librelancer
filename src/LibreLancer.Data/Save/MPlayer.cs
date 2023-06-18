@@ -9,21 +9,10 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Save
 {
-    public record SaveItemCount(int Item, int Count)
-    {
-        public static bool FromEntry(Entry e, out SaveItemCount count)
-        {
-            if (e.Count != 2)
-            {
-                count = null;
-                FLLog.Warning("Ini", $"Invalid save line: {e} in {e.File}:{e.Line}");
-                return false;
-            }
-            count = new SaveItemCount(e[0].ToInt32(), e[1].ToInt32());
-            return true;
-        }
-    }
-    public class MPlayer : ICustomEntryHandler, IWriteSection
+    public record SaveItemCount(HashValue Item, int Count);
+
+    public record VNPC(HashValue ItemA, HashValue ItemB, int Unknown1, int Unknown2);
+    public class MPlayer : IWriteSection
     {
         [Entry("can_dock")]
         public int CanDock;
@@ -44,23 +33,17 @@ namespace LibreLancer.Data.Save
 
         public List<SaveItemCount> ShipTypeKilled = new List<SaveItemCount>();
         public List<SaveItemCount> RmCompleted = new List<SaveItemCount>();
+        public List<VNPC> VNPCs = new List<VNPC>();
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("vnpc", CustomEntry.Ignore),
-            new ("ship_type_killed", (h, e) =>
-            {
-                if(SaveItemCount.FromEntry(e, out var count))
-                    ((MPlayer)h).ShipTypeKilled.Add(count);
-            }),
-            new ("rm_completed", (h, e) =>
-            {
-                if(SaveItemCount.FromEntry(e, out var count))
-                    ((MPlayer)h).RmCompleted.Add(count);
-            })
-        };
+        [EntryHandler("vnpc", MinComponents = 4, Multiline = true)]
+        void HandleVNPC(Entry e) =>
+            VNPCs.Add(new VNPC(new HashValue(e[0]), new HashValue(e[1]), e[2].ToInt32(), e[3].ToInt32()));
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("ship_type_killed", MinComponents = 2, Multiline = true)]
+        void HandleShipKill(Entry e) => ShipTypeKilled.Add(new SaveItemCount(new HashValue(e[0]), e[1].ToInt32()));
+        
+        [EntryHandler("rm_completed", MinComponents = 2, Multiline = true)]
+        void HandleRm(Entry e) => RmCompleted.Add(new SaveItemCount(new HashValue(e[0]), e[1].ToInt32()));
 
 
         public void WriteTo(StringBuilder builder)
@@ -83,6 +66,10 @@ namespace LibreLancer.Data.Save
                     .Append((uint) r.Item)
                     .Append(", ")
                     .AppendLine(r.Count.ToString());
+            }
+            foreach(var v in VNPCs)
+            {
+                builder.AppendLine($"vnpc = {(uint)v.ItemA}, {(uint)v.ItemB}, {v.Unknown1}, {v.Unknown2}");
             }
             builder.AppendEntry("total_cash_earned", TotalCashEarned);
             builder.AppendEntry("total_time_played", TotalTimePlayed);

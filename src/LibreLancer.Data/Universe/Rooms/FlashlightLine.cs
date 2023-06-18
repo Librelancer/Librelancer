@@ -18,5 +18,5 @@ public class FlashlightLine
     [Entry("numlights")] 
     public int NumLights;
     [Entry("hardpoint", Multiline = true)] 
-    public static List<string> Hardpoints = new List<string>();
+    public List<string> Hardpoints = new List<string>();
 }

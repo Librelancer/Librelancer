@@ -16,5 +16,7 @@ public class FlashlightSet
     [Entry("endpause")] 
     public float EndPause;
     [Entry("hardpoint", Multiline = true)] 
-    public static List<string> Hardpoints = new List<string>();
+    public List<string> Hardpoints = new List<string>();
+    [Entry("numlights")]
+    public int NumLights;
 }

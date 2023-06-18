@@ -68,20 +68,30 @@ namespace LibreLancer.Data.Save
         public override string ToString() => ToString("cargo");
     }
 
+    public class LogEntry
+    {
+        public int[] Data;
 
-    public class SavePlayer : ICustomEntryHandler, IWriteSection
+        public LogEntry() { }
+        public LogEntry(Entry e) => Data = e.Select(x => x.ToInt32()).ToArray();
+    }
+
+    public record VisitEntry(HashValue Obj, int Visit)
+    {
+        public VisitEntry(Entry e) : this(new HashValue(e[0]), e[1].ToInt32()) { }
+    }
+
+
+    public class SavePlayer : IWriteSection
     {
         
         
         [Entry("descrip_strid")] public int DescripStrid;
 
-        //HandleEntry(description)
         public string Description;
 
-        //HandleEntry (tstamp)
         public DateTime? TimeStamp;
 
-        //HandleEntry (name)
         public string Name;
         [Entry("rank")] public string Rank;
 
@@ -91,7 +101,6 @@ namespace LibreLancer.Data.Save
         [Entry("num_misn_successes")] public int NumMissionSuccesses;
         [Entry("num_misn_failures")] public int NumMissionFailures;
 
-        //HandleEntry(house)
         public List<SaveRep> House = new List<SaveRep>();
 
         [Entry("voice")] public string Voice;
@@ -115,28 +124,26 @@ namespace LibreLancer.Data.Save
 
         [Entry("ship_archetype")] public HashValue ShipArchetype;
 
-        //HandleEntry(equip)
         public List<PlayerEquipment> Equip = new List<PlayerEquipment>();
-
-        //HandleEntry(cargo)
         public List<PlayerCargo> Cargo = new List<PlayerCargo>();
-        //HandleEntry(visit)
+        public List<VisitEntry> Visit = new List<VisitEntry>();
+        public List<LogEntry> Log = new List<LogEntry>();
 
+        [EntryHandler("tstamp", MinComponents = 2)]
+        void HandleTimestamp(Entry e) => TimeStamp =  DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64());
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("tstamp", (h, e) =>  ((SavePlayer)h).TimeStamp =  DateTime.FromFileTime(e[0].ToInt64() << 32 | e[1].ToInt64())),
-            new("house", (h, e) => ((SavePlayer)h).House.Add(new SaveRep(e))),
-            new("description", (h,e) => ((SavePlayer)h).HandleDescription(e)),
-            new("log", CustomEntry.Ignore),
-            new("visit", CustomEntry.Ignore),
-            new("name", (h,e) =>((SavePlayer)h).HandleName(e)),
-            new("equip", (h, e) => ((SavePlayer)h).Equip.Add(new PlayerEquipment(e))),
-            new("cargo", (h, e) => ((SavePlayer)h).Cargo.Add(new PlayerCargo(e))),
-        };
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
-        
+        [EntryHandler("house", MinComponents = 2, Multiline = true)]
+        void HandleHouse(Entry e) => House.Add(new SaveRep(e));
+
+        [EntryHandler("log", MinComponents = 2, Multiline = true)]
+        void HandleLog(Entry e) => Log.Add(new LogEntry(e));
+
+        [EntryHandler("visit", MinComponents = 2, Multiline = true)]
+        void HandleVisit(Entry e) => Visit.Add(new VisitEntry(e));
+
         [Entry("interface")] public int Interface;
+        
+        [EntryHandler("description")]
         void HandleDescription(Entry e)
         {
             try
@@ -149,6 +156,8 @@ namespace LibreLancer.Data.Save
                 Description = string.Join(',', e.Select(x => x.ToString()));
             }
         }
+        
+        [EntryHandler("name")]
         void HandleName(Entry e)
         {
             try
@@ -235,6 +244,12 @@ namespace LibreLancer.Data.Save
                 builder.AppendLine(e.ToString());
             foreach (var c in Cargo)
                 builder.AppendLine(c.ToString());
+            builder.AppendLine();
+            foreach (var v in Visit)
+                builder.Append("visit = ").Append((uint) v.Obj).Append(", ").AppendLine(v.Visit.ToString());
+            builder.AppendLine();
+            foreach (var l in Log)
+                builder.Append("log = ").AppendJoin(", ", l.Data).AppendLine();
             builder.AppendLine();
             builder.AppendEntry("interface", Interface);
             builder.AppendLine();

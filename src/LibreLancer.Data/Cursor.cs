@@ -10,7 +10,7 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data
 {
     
-	public class Cursor : ICustomEntryHandler
+	public class Cursor
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -25,13 +25,16 @@ namespace LibreLancer.Data
         [Entry("color")]
 		public Color4 Color = Color4.White;
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
+        [EntryHandler("anim", MinComponents = 3)]
+        void HandleAnim(Entry e)
         {
-            new("anim", (s,e) => ((Cursor)s).Shape = e[0].ToString()),
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
-     
+            Shape = e[0].ToString();
+            Anim0 = e[1].ToSingle();
+            Anim1 = e[2].ToSingle();
+        }
+        
         public string Shape;
+        public float Anim0;
+        public float Anim1;
     }
 }

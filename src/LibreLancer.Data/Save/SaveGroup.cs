@@ -8,19 +8,16 @@ using System.Text;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Save
 {
-    public class SaveGroup : ICustomEntryHandler, IWriteSection
+    public class SaveGroup : IWriteSection
     {
         [Entry("nickname")]
         public string Nickname;
 
         public List<SaveRep> Rep = new List<SaveRep>();
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("rep", (s,e) => ((SaveGroup)s).Rep.Add(new SaveRep(e)))
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("rep", Multiline = true, MinComponents = 2)]
+        void HandleRep(Entry e) => Rep.Add(new SaveRep(e));
+        
         public void WriteTo(StringBuilder builder)
         {
             builder.AppendLine("[Group]")

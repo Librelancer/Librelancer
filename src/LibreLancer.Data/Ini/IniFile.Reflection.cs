@@ -34,8 +34,16 @@ namespace LibreLancer.Ini
             public bool IsChildSection;
             public List<ReflectionField> Fields = new List<ReflectionField>();
             public uint[] FieldHashes;
+            public List<ReflectionMethod> Methods = new List<ReflectionMethod>();
+            public uint[] MethodHashes;
             public List<ReflectionSection> ChildSections = new List<ReflectionSection>();
             public ulong RequiredFields = 0;
+        }
+
+        class ReflectionMethod
+        {
+            public EntryHandlerAttribute Attr;
+            public MethodInfo Method;
         }
 
         class ReflectionSection
@@ -132,13 +140,26 @@ namespace LibreLancer.Ini
                             throw new Exception("Child sections can only be lists");
                         }
                     }
-                    
+                }
+                foreach (var method in t.GetMethods(F_CLASSMEMBERS))
+                {
+                    var attrs = method.GetCustomAttributes<EntryHandlerAttribute>();
+                    foreach (var a in attrs) {
+                        info.Methods.Add(new ReflectionMethod()
+                        {
+                            Attr = a, Method = method
+                        });
+                    }
                 }
                 //This should never be tripped
-                if (info.Fields.Count > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
+                if ((info.Fields.Count + info.Methods.Count) > 64) throw new Exception("Too many fields!! Edit bitmask code & raise limit");
                 info.FieldHashes = new uint[info.Fields.Count];
                 for (int i = 0; i < info.Fields.Count; i++) {
                     info.FieldHashes[i] = Hash(info.Fields[i].Attr.Name);
+                }
+                info.MethodHashes = new uint[info.Methods.Count];
+                for (int i = 0; i < info.Methods.Count; i++) {
+                    info.MethodHashes[i] = Hash(info.Methods[i].Attr.Name);
                 }
                 sectionclasses.Add(t, info);
                 return info;
@@ -230,7 +251,7 @@ namespace LibreLancer.Ini
                 //Find entry
                 var eHash = Hash(e.Name);
                 int idx = -1;
-                for (int i = 0; i < type.Fields.Count; i++)
+                for (int i = 0; i < type.FieldHashes.Length; i++)
                 {
                     if (eHash == type.FieldHashes[i] &&
                         type.Fields[i].Attr.Name.Equals(e.Name, StringComparison.OrdinalIgnoreCase))
@@ -239,27 +260,33 @@ namespace LibreLancer.Ini
                         break;
                     }
                 }
+                // Use method
+                for (int i = 0; i < type.MethodHashes.Length; i++)
+                {
+                    if (eHash == type.MethodHashes[i] &&
+                        type.Methods[i].Attr.Name.Equals(e.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var j = i + type.FieldHashes.Length;
+                        var method = type.Methods[i];
+                        if (!method.Attr.Multiline)
+                        {
+                            if ((bitmask & (1ul << j)) != 0)
+                            {
+                                IniWarning.DuplicateEntry(e, s);
+                            }
+                            bitmask |= 1ul << j;
+                        }
+                        if (ComponentCheck(int.MaxValue, s, e, method.Attr.MinComponents))
+                            method.Method.Invoke(obj, new[] {e});
+                        idx = -2;
+                        break;
+                    }
+                }
+                if (idx == -2) continue;
                 //Special Handling: Use sparingly
                 if (idx == -1)
                 {
-                    bool handled = false;
-                    if (obj is ICustomEntryHandler ce)
-                    {
-                        foreach (var k in ce.CustomEntries)
-                        {
-                            if (k.Hash == eHash)
-                            {
-                                k.Handler(ce, e);
-                                handled = true;
-                                break;
-                            }
-                        }
-                    } else if (obj is IEntryHandler eh)
-                    {
-                        eh.HandleEntry(e);
-                        handled = true;
-                    }
-                    if (!handled) 
+                    if(obj is not IEntryHandler eh || !eh.HandleEntry(e))
                         IniWarning.UnknownEntry(e,s);
                     continue;
                 }
@@ -291,12 +318,7 @@ namespace LibreLancer.Ini
                 {
                     if (ComponentCheck(1, s, e))
                     {
-                        HashValue value;
-                        if (e[0].TryToInt32(out int hash))
-                            value = hash;
-                        else
-                            value = new HashValue(e[0].ToString());
-                        field.Field.SetValue(obj, value);
+                        field.Field.SetValue(obj, new HashValue(e[0]));
                     }
                 }
                 else if (ftype == typeof(float))

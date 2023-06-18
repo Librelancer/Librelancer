@@ -3,7 +3,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data;
 
-public class BaseFaction : ICustomEntryHandler
+public class BaseFaction
 {
     [Entry("faction")] 
     public string Faction;
@@ -16,15 +16,14 @@ public class BaseFaction : ICustomEntryHandler
 
     //Unused, removed by JFLP
     [Entry("offers_missions", Presence = true)] 
-    public bool OffersMissions; 
+    public bool OffersMissions;
 
-    private static CustomEntry[] entries = {
-        new("mission_type", (f, e) => ((BaseFaction) f).Missions.Add(
-            new BaseFactionMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle())
-        ))
-    };
-    
-    IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => entries;
+    [EntryHandler("mission_type", MinComponents = 3, Multiline = true)]
+    void HandleMissionType(Entry e)
+    {
+        var weight = e.Count > 3 ? e[3].ToSingle() : 100;
+        Missions.Add(new BaseFactionMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle(), weight));
+    }
 }
 
 public record BaseFactionMission(string Type, float MinDiff, float MaxDiff, float Weight);

@@ -4,7 +4,7 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Missions
 {
 
-    public class FactionProps : ICustomEntryHandler
+    public class FactionProps
     {
         [Entry("affiliation", Required = true)]
         public string Affiliation;
@@ -28,16 +28,15 @@ namespace LibreLancer.Data.Missions
         public List<SpaceCostume> SpaceCostume = new List<SpaceCostume>();
         public List<ScanForCargo> ScanForCargo = new List<ScanForCargo>();
         public List<FormationKind> Formation = new List<FormationKind>();
+
+        [EntryHandler("scan_for_cargo", MinComponents = 2, Multiline = true)]
+        void HandleScanForCargo(Entry e) => ScanForCargo.Add(new ScanForCargo(e));
         
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("scan_for_cargo", (s,e) => ((FactionProps)s).ScanForCargo.Add(new ScanForCargo(e))),
-            new ("formation", (s, e) => ((FactionProps)s).Formation.Add(new FormationKind(e))),
-            new ("space_costume", (s, e) => ((FactionProps)s).SpaceCostume.Add(new SpaceCostume(e)))
+        [EntryHandler("formation", MinComponents = 2, Multiline = true)]
+        void HandleFormation(Entry e) => Formation.Add(new FormationKind(e));
 
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("space_costume", MinComponents = 3, Multiline = true)]
+        void HandleSpaceCostume(Entry e) => SpaceCostume.Add(new SpaceCostume(e));
     }
 
     public struct ScanForCargo

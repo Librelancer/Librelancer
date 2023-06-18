@@ -5,7 +5,7 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Universe.Rooms;
 public record SceneEntry(bool AmbientAll, bool TrafficPriority, string Path);
 
-public class RoomInfo : ICustomEntryHandler
+public class RoomInfo
 {
     [Entry("set_script")] 
     public string SetScript;
@@ -15,13 +15,12 @@ public class RoomInfo : ICustomEntryHandler
     [Entry("goodscart_script")]
     public string GoodscartScript;
     
-    public IEnumerable<CustomEntry> CustomEntries => new[] {
-        new CustomEntry( "scene",Scene)
-    };
+    [Entry("animation")]
+    public string Animation;
 
-    static void Scene(ICustomEntryHandler h, Entry e)
+    [EntryHandler("scene", MinComponents = 2, Multiline = true)]
+    void Scene(Entry e)
     {
-        var self = (RoomInfo) h;
         try
         {
             int i = 0;
@@ -37,7 +36,7 @@ public class RoomInfo : ICustomEntryHandler
             var path = e[i].ToString();
             var trafficPriority = (i + 1 < e.Count) && 
                               e[i + 1].ToString().Equals("TRAFFIC_PRIORITY", StringComparison.OrdinalIgnoreCase);
-            self.SceneScripts.Add(new SceneEntry(all, trafficPriority, path));
+            SceneScripts.Add(new SceneEntry(all, trafficPriority, path));
         }
         catch
         {

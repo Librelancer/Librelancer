@@ -3,7 +3,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.InitialWorld
 {
-    public class FlGroup : ICustomEntryHandler
+    public class FlGroup
     {
         [Entry("nickname", Required = true)] public string Nickname;
         [Entry("ids_name")] public int IdsName;
@@ -11,19 +11,10 @@ namespace LibreLancer.Data.InitialWorld
         [Entry("ids_short_name")] public int IdsShortName;
 
         public List<GroupReputation> Rep = new List<GroupReputation>();
-        
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("rep", (h, e) =>
-            {
-                if (e.Count < 2)
-                    FLLog.Warning("InitialWorld", $"Invalid rep entry at {e.File}:{e.Line}");
-                else
-                    ((FlGroup)h).Rep.Add(new GroupReputation(e[0].ToSingle(), e[1].ToString()));
-            })
-        };
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("rep", MinComponents = 2, Multiline = true)]
+        void HandleRep(Entry e) =>
+            Rep.Add(new GroupReputation(e[0].ToSingle(), e[1].ToString()));
     }
 
 }

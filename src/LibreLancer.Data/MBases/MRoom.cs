@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data
 {
-	public class MRoom : ICustomEntryHandler
+	public class MRoom
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -15,12 +15,10 @@ namespace LibreLancer.Data
 		public int CharacterDensity;
 		public List<MRoomNpcRef> NPCs = new List<MRoomNpcRef>();
 
-        private static CustomEntry[] entries = new CustomEntry[] {
-            new("fixture", (m, e) => ((MRoom)m).NPCs.Add(new MRoomNpcRef(e)))
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => entries;
+        [EntryHandler("fixture", MinComponents = 2, Multiline = true)]
+        void HandleFixture(Entry e) => NPCs.Add(new MRoomNpcRef(e));
     }
+    
 	public class MRoomNpcRef
 	{
 		public string Npc;

@@ -4,7 +4,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Interface;
 
-public class KeyCmd : ICustomEntryHandler
+public class KeyCmd
 {
     [Entry("nickname")]
     public string Nickname;
@@ -12,13 +12,9 @@ public class KeyCmd : ICustomEntryHandler
     [Entry("ids_info")] public int IdsInfo;
     [Entry("state")] public string[] State;
     [Entry("key")] public List<string[]> Keys = new List<string[]>();
-    
-    private static readonly CustomEntry[] _custom = new CustomEntry[]
-    {
-        new("key", (s,e) => ((KeyCmd)s).Keys.Add(e.Select(x => x.ToString()).ToArray()))
-    };
 
-    IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+    [EntryHandler("key", Multiline = true)]
+    void HandleKey(Entry e) => Keys.Add(e.Select(x => x.ToString()).ToArray());
 }
 
 [IgnoreSection("keymap=1.1")]

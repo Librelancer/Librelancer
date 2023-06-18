@@ -1,4 +1,5 @@
 using System;
+using LibreLancer.Ini;
 
 namespace LibreLancer.Data;
 
@@ -9,6 +10,21 @@ public struct HashValue : IEquatable<HashValue>
     
     private uint h;
     private string s;
+
+    public HashValue(IValue v)
+    {
+        if (v.TryToInt32(out int hash))
+        {
+            h = (uint)hash;
+            s = null;
+        }
+        else
+        {
+            s = v.ToString();
+            h = FLHash.CreateID(s);
+        }
+    }
+    
     
     public HashValue(string s)
     {

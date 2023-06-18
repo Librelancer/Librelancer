@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-
+using LibreLancer.Data.Ships;
 using LibreLancer.Ini;
 using LibreLancer.Data.Solar;
 
 namespace LibreLancer.Data
 {
-	public class Archetype : ICustomEntryHandler
+	public class Archetype
 	{
         [Entry("nickname")]
         public string Nickname = "";
@@ -65,18 +65,23 @@ namespace LibreLancer.Data
         public float DistanceRender;
         [Entry("nomad")]
         public bool Nomad;
-        
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("docking_sphere", (s,e) => ((Archetype)s).HandleDockingSphere(e)),
-            new("animated_textures", CustomEntry.Ignore),
-            new("surface_hit_effects", CustomEntry.Ignore),
-            new("fuse", CustomEntry.Ignore),
-            new("shield_link", CustomEntry.Ignore)
-        };
+        [Entry("animated_textures")] 
+        public bool AnimatedTextures;
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        public ShieldLink ShieldLink;
+        public List<ObjectFuse> Fuses = new List<ObjectFuse>();
+        public List<SurfaceHitEffects> SurfaceHitEffects = new List<SurfaceHitEffects>();
+
+        [EntryHandler("surface_hit_effects", MinComponents = 2, Multiline = true)]
+        void HandleSurfaceHitEffect(Entry e) => SurfaceHitEffects.Add(new SurfaceHitEffects(e));
+
+        [EntryHandler("fuse", MinComponents = 3, Multiline = true)]
+        void HandleFuse(Entry e) => Fuses.Add(new ObjectFuse(e));
+
+        [EntryHandler("shield_link", MinComponents = 3)]
+        void HandleShieldLink(Entry e) => ShieldLink = new ShieldLink(e);
         
+        [EntryHandler("docking_sphere", MinComponents = 3, Multiline = true)]
         void HandleDockingSphere(Entry e)
         {
             string scr = e.Count == 4 ? e[3].ToString() : null;

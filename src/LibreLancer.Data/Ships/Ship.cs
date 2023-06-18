@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Ships
 {
-	public class Ship : ICustomEntryHandler
+	public class Ship
 	{
         [Entry("ids_name")]
 		public int IdsName;
@@ -110,36 +111,57 @@ namespace LibreLancer.Data.Ships
         [Entry("explosion_resistance")]
         public float ExplosionResistance;
 
-        public List<ShipFuse> Fuses = new List<ShipFuse>();
+        public List<ObjectFuse> Fuses = new List<ObjectFuse>();
 
         public List<ShipHpDef> HardpointTypes = new List<ShipHpDef>();
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("fuse", (h, e) => ((Ship) h).Fuses.Add(new ShipFuse(e))),
-            new("shield_link", CustomEntry.Ignore),
-            new("surface_hit_effects", CustomEntry.Ignore),
-            new("hp_type", (h, e) => ((Ship) h).HardpointTypes.Add(new ShipHpDef(e)))
-        };
+        public List<SurfaceHitEffects> SurfaceHitEffects = new List<SurfaceHitEffects>();
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        public ShieldLink ShieldLink;
+
+        [EntryHandler("fuse", Multiline = true, MinComponents = 3)]
+        void HandleFuse(Entry e) => Fuses.Add(new ObjectFuse(e));
+
+        [EntryHandler("hp_type", Multiline = true, MinComponents = 2)]
+        void HandleHpType(Entry e) => HardpointTypes.Add(new ShipHpDef(e));
+
+        [EntryHandler("surface_hit_effects", Multiline = true, MinComponents = 2)]
+        void HandleSurface(Entry e) => SurfaceHitEffects.Add(new SurfaceHitEffects(e));
+
+        [EntryHandler("shield_link", MinComponents = 3)]
+        void HandleShieldLink(Entry e) => ShieldLink = new ShieldLink(e);
     }
 
-    public class ShipFuse
+    public class ShieldLink
     {
-        public string Fuse;
-        public float DelayUNKNOWN;
-        public float Threshold;
+        public string Name;
+        public string HardpointMount;
+        public string HardpointShield;
 
-        public ShipFuse()
+        public ShieldLink()
         {
         }
 
-        public ShipFuse(Entry e)
+        public ShieldLink(Entry e)
         {
-            Fuse = e[0].ToString();
-            DelayUNKNOWN = e[1].ToSingle();
-            Threshold = e[2].ToSingle();
+            Name = e[0].ToString();
+            HardpointMount = e[1].ToString();
+            HardpointShield = e[2].ToString();
+        }
+    }
+
+    public class SurfaceHitEffects
+    {
+        public float Threshold;
+        public string[] Effects;
+
+        public SurfaceHitEffects()
+        {
+        }
+        public SurfaceHitEffects(Entry e)
+        {
+            Threshold = e[0].ToSingle();
+            Effects = e.Skip(1).Select(x => x.ToString()).ToArray();
         }
     }
 }

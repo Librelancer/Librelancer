@@ -9,7 +9,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class Zone : SystemPart, IEntryHandler
+	public class Zone : SystemPart
     {
         [Entry("shape")] 
         public ZoneShape? Shape;
@@ -104,25 +104,21 @@ namespace LibreLancer.Data.Universe
         public List<Encounter> Encounters { get; private set; } = new List<Encounter>();
         public List<DensityRestriction> DensityRestrictions { get; private set; } = new List<DensityRestriction>();
 
-        bool IEntryHandler.HandleEntry(Entry e)
+        [EntryHandler("encounter", MinComponents = 1, Multiline = true)]
+        void HandleEncounter(Entry e) => Encounters.Add(new Encounter(e));
+
+        [EntryHandler("faction", MinComponents = 2, Multiline = true)]
+        void HandleFaction(Entry e)
         {
-            if (e.Name.Equals("encounter", StringComparison.OrdinalIgnoreCase)) {
-                Encounters.Add(new Encounter(e));
-                return true;
+            if (Encounters.Count == 0) {
+                FLLog.Warning("Ini", $"faction entry without matching encounter at {e.File}:{e.Line}");
             }
-            if (e.Name.Equals("faction", StringComparison.OrdinalIgnoreCase)) {
-                if (Encounters.Count == 0) {
-                    FLLog.Warning("Ini", $"faction entry without matching encounter at {e.File}:{e.Line}");
-                }
-                else {
-                    Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle("chance")));
-                }
-                return true;
+            else {
+                Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle("chance")));
             }
-            if (e.Name.Equals("density_restriction", StringComparison.OrdinalIgnoreCase)) {
-                DensityRestrictions.Add(new DensityRestriction(e[0].ToInt32(), e[1].ToString()));
-            }
-            return false;
         }
+
+        [EntryHandler("density_restriction", MinComponents = 2, Multiline = true)]
+        void HandleDensityRestriction(Entry e) => DensityRestrictions.Add(new DensityRestriction(e[0].ToInt32(), e[1].ToString()));
     }
 }

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Solar
 {
-	public class Spines : ICustomEntryHandler
+	public class Spines
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -21,13 +21,8 @@ namespace LibreLancer.Data.Solar
 		public int MaxRadius;
 		public List<Spine> Items = new List<Spine>();
 
-        
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("spine", (s,e) => ((Spines)s).Items.Add(new Spine(e)))
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("spine", MinComponents = 9, Multiline = true)]
+        void HandleSpine(Entry e) => Items.Add(new Spine(e));
     }
 }
 

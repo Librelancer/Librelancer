@@ -8,7 +8,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class LensFlare: ICustomEntryHandler
+	public class LensFlare
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -19,13 +19,31 @@ namespace LibreLancer.Data.Solar
         [Entry("max_radius")]
 		public int MaxRadius;
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            //Don't know what to do with bead entry yet, but it is valid
-            new("bead", CustomEntry.Ignore)
-        };
+        public List<Bead> Beads = new List<Bead>();
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+
+        [EntryHandler("bead", MinComponents = 6, Multiline = true)]
+        void HandleBead(Entry e) => Beads.Add(new Bead(e));
+    }
+
+    public struct Bead
+    {
+        public float A;
+        public float B;
+        public float C;
+        public float D;
+        public float E;
+        public float F;
+
+        public Bead(Entry e)
+        {
+            A = e[0].ToSingle();
+            B = e[1].ToSingle();
+            C = e[2].ToSingle();
+            D = e[3].ToSingle();
+            E = e[4].ToSingle();
+            F = e[5].ToSingle();
+        }
     }
 }
 

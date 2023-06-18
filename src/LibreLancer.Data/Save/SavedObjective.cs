@@ -5,7 +5,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Save;
 
-public class SavedObjective : ICustomEntryHandler
+public class SavedObjective
 {
     [Entry("nickname")] public int Nickname;
     [Entry("state")] public int State;
@@ -17,33 +17,28 @@ public class SavedObjective : ICustomEntryHandler
     public int IdsTwo;
     public Vector3 ObjectivePosition;
     public string StringParam;
-    
-    private static readonly CustomEntry[] _custom = new CustomEntry[]
-    {
-        new("type", (h, e) =>
-        {
-            var o = ((SavedObjective) h);
-            o.Type = e[0].ToInt32();
-            if (o.Type == 3) {
-                o.IdsOne = e[1].ToInt32();
-            }
-            else
-            {
-                o.ObjNickname = e[1].ToInt32();
-                o.IdsOne = e[2].ToInt32();
-                if (e.Count > 3)
-                    o.IdsTwo = e[3].ToInt32();
-                if(e.Count > 6)
-                    o.ObjectivePosition = new Vector3(
-                        e[4].ToSingle(),
-                        e[5].ToSingle(),
-                        e[6].ToSingle()
-                    );
-                if (e.Count > 7)
-                    o.StringParam = e[7].ToString();
-            }
-        })
-    };
 
-    IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+    [EntryHandler("type", MinComponents = 2)]
+    void HandleType(Entry e)
+    {
+        Type = e[0].ToInt32();
+        if (Type == 3) {
+            IdsOne = e[1].ToInt32();
+        }
+        else
+        {
+            ObjNickname = e[1].ToInt32();
+            IdsOne = e[2].ToInt32();
+            if (e.Count > 3)
+                IdsTwo = e[3].ToInt32();
+            if(e.Count > 6)
+                ObjectivePosition = new Vector3(
+                    e[4].ToSingle(),
+                    e[5].ToSingle(),
+                    e[6].ToSingle()
+                );
+            if (e.Count > 7)
+                StringParam = e[7].ToString();
+        }
+    }
 }

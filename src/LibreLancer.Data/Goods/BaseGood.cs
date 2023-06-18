@@ -7,19 +7,15 @@ using System.Collections.Generic;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Goods
 {
-    public class BaseGood : ICustomEntryHandler
+    public class BaseGood
     {
         [Entry("base", Required = true)]
         public string Base;
 
         public List<MarketGood> MarketGoods = new List<MarketGood>();
 
+        [EntryHandler("marketgood", MinComponents = 7, Multiline = true)]
+        void HandleMarketGood(Entry e) => MarketGoods.Add(new MarketGood(e));
         
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("marketgood", (s,e) => ((BaseGood)s).MarketGoods.Add(new MarketGood(e)))
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
     }
 }

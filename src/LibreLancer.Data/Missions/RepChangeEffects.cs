@@ -1,34 +1,21 @@
 using System.Collections.Generic;
 using LibreLancer.Ini;
+using SharpDX.Direct2D1;
 
 namespace LibreLancer.Data.Missions
 {
-    public class RepChangeEffects : ICustomEntryHandler
+    public class RepChangeEffects
     {
         [Entry("group", Required = true)]
         public string Group;
 
         public List<EmpathyEvent> Events = new List<EmpathyEvent>();
         public List<GroupReputation> EmpathyRate = new List<GroupReputation>();
-        
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("empathy_rate", (h, e) =>
-            {
-                if (e.Count < 2)
-                    FLLog.Warning("Ini", $"Invalid empathy_rate entry at {e.File}:{e.Line}");
-                else
-                    ((RepChangeEffects)h).EmpathyRate.Add(new GroupReputation(e[1].ToSingle(), e[0].ToString()));
-            }),
-            new("event", (h, e) =>
-            {
-                if (e.Count < 2)
-                    FLLog.Warning("Ini", $"Invalid event entry at {e.File}:{e.Line}");
-                else
-                    ((RepChangeEffects) h).Events.Add(new EmpathyEvent(e));
-            })
-        };
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("empathy_rate", MinComponents = 2, Multiline = true)]
+        void HandleEmpathyRate(Entry e) => EmpathyRate.Add(new GroupReputation(e[1].ToSingle(), e[0].ToString()));
+        
+        [EntryHandler("event", MinComponents = 2, Multiline = true)]
+        void HandleEvent(Entry e) => Events.Add(new EmpathyEvent(e));
     }
 }

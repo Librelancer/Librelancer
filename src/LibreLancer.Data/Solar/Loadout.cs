@@ -11,7 +11,7 @@ using LibreLancer.Data.Equipment;
 
 namespace LibreLancer.Data.Solar
 {
-	public class Loadout : ICustomEntryHandler
+	public class Loadout
     {
         [Entry("nickname", Required =  true)] public string Nickname;
 
@@ -20,17 +20,11 @@ namespace LibreLancer.Data.Solar
         public List<LoadoutCargo> Cargo = new List<LoadoutCargo>();
         public List<LoadoutEquip> Equip = new List<LoadoutEquip>();
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("cargo", (s,e) => ((Loadout)s).Cargo.Add(new LoadoutCargo(e))),
-            new("equip", (s,e) => ((Loadout)s).Equip.Add(new LoadoutEquip(e))),
-            new("hull", CustomEntry.Ignore),
-            new("addon", CustomEntry.Ignore),
-            new("hull_damage", CustomEntry.Ignore)
-        };
+        [EntryHandler("cargo", MinComponents = 1, Multiline = true)]
+        void HandleCargo(Entry e) => Cargo.Add(new LoadoutCargo(e));
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
-
+        [EntryHandler("equip", MinComponents = 1, Multiline = true)]
+        void HandleEquip(Entry e) => Equip.Add(new LoadoutEquip(e));
     }
 
     public class LoadoutEquip

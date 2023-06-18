@@ -34,7 +34,7 @@ namespace LibreLancer.Data.Pilots
         Hardest
     }
     
-    public class JobBlock : PilotBlock, ICustomEntryHandler
+    public class JobBlock : PilotBlock
     {
         [Entry("wait_for_leader_target")] public bool WaitForLeaderTarget;
 
@@ -62,15 +62,9 @@ namespace LibreLancer.Data.Pilots
         
         public List<AttackPreference> AttackPreferences = new List<AttackPreference>();
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new(
-                "attack_preference",
-                (s, e) =>
-                    ((JobBlock) s).AttackPreferences.Add(new AttackPreference(e))),
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("attack_preference", MinComponents = 3, Multiline = true)]
+        void HandleAttackPreference(Entry e) => AttackPreferences.Add(new AttackPreference(e));
+        
     }
 
     public class AttackPreference

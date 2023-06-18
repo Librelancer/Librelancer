@@ -15,7 +15,7 @@ using LibreLancer.Data.Characters;
 
 namespace LibreLancer.Data.Universe
 {
-	public class SystemObject : SystemPart, ICustomEntryHandler
+	public class SystemObject : SystemPart
     {
         [Entry("ambient_color")] 
         [Entry("ambient")]
@@ -79,12 +79,17 @@ namespace LibreLancer.Data.Universe
         [Entry("parent")] 
         public string Parent;
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new("goto", (s,e) => ((SystemObject )s).Goto = new JumpReference(e[0].ToString(), e[1].ToString(), e[2].ToString())),
-            new("ring", CustomEntry.Ignore)
-        };
+        public string RingZone;
+        public string RingFile;
 
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("goto", MinComponents = 3)]
+        void HandleGoto(Entry e) => Goto = new JumpReference(e[0].ToString(), e[1].ToString(), e[2].ToString());
+
+        [EntryHandler("ring", MinComponents = 2)]
+        void HandleRing(Entry e)
+        {
+            RingZone = e[0].ToString();
+            RingFile = e[1].ToString();
+        }
     }
 }

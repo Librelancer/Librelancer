@@ -8,7 +8,7 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class BuzzHeadTowardBlock : PilotBlock, ICustomEntryHandler
+    public class BuzzHeadTowardBlock : PilotBlock
     {
         [Entry("buzz_min_distance_to_head_toward")]
         public float MinDistanceToHeadToward;
@@ -42,18 +42,11 @@ namespace LibreLancer.Data.Pilots
         public List<HeadTowardsStyle> HeadTowardsStyleWeight = new List<HeadTowardsStyle>();
         public List<DirectionWeight> DodgeDirectionWeights = new List<DirectionWeight>();
 
-        private static readonly CustomEntry[] _custom = new CustomEntry[]
-        {
-            new(
-                "buzz_head_toward_style_weight",
-                (s, e) =>
-                    ((BuzzHeadTowardBlock) s).HeadTowardsStyleWeight.Add(new HeadTowardsStyle(e))),
-            new("buzz_dodge_direction_weight",
-                (s, e) => ((BuzzHeadTowardBlock) s).DodgeDirectionWeights.Add(new DirectionWeight(e)))
+        [EntryHandler("buzz_head_toward_style_weight", MinComponents = 2, Multiline = true)]
+        void HandleStyleWeight(Entry e) => HeadTowardsStyleWeight.Add(new HeadTowardsStyle(e));
 
-        };
-
-        IEnumerable<CustomEntry> ICustomEntryHandler.CustomEntries => _custom;
+        [EntryHandler("buzz_dodge_direction_weight", MinComponents = 2, Multiline = true)]
+        void HandleDodgeDirection(Entry e) => DodgeDirectionWeights.Add(new DirectionWeight(e));
     }
     
     public class HeadTowardsStyle
