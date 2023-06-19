@@ -224,11 +224,7 @@ namespace LibreLancer.Interface
         {
             baseWidget.UnFocus();
         }
-
-        public void Dispose()
-        {
-            baseWidget = null;
-        }
+        
         RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
 
         private UiWidget baseWidget;

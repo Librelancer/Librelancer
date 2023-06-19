@@ -433,7 +433,6 @@ namespace LibreLancer
 
         protected override void OnUnload()
         {
-            ui.Dispose();
             scene.Dispose();
             Game.Keyboard.KeyDown -= UiKeyDown;
             Game.Keyboard.TextInput -= UiTextInput;
