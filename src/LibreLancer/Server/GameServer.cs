@@ -46,6 +46,8 @@ namespace LibreLancer.Server
         public List<Player> ConnectedPlayers = new List<Player>();
         public Player LocalPlayer;
 
+        public ConcurrentHashSet<long> CharactersInUse = new ConcurrentHashSet<long>();
+
         private bool needLoadData = true;
         public GameServer(string fldir)
         {

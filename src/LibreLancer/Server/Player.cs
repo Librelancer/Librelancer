@@ -821,6 +821,13 @@ namespace LibreLancer.Server
             {
                 var sc = CharacterList[index];
                 FLLog.Info("Server", $"opening id {sc.Id}");
+                if (!Game.CharactersInUse.Add(sc.Id)) {
+                    FLLog.Info("Server", $"Character `{sc.Name}` is already in use");
+                    return Task.FromResult(false);
+                }
+                if (Character != null) {
+                    
+                }
                 Character = NetCharacter.FromDb(sc.Id, Game);
                 IsAdmin = Game.AdminCharacters.Contains(Character.Name);
                 Name = Character.Name;
@@ -837,11 +844,11 @@ namespace LibreLancer.Server
                 } else {
                     SpaceInitialSpawn(null);
                 }
-                return Task.FromResult(false);
+                return Task.FromResult(true);
             }
             else
             {
-                return Task.FromResult(true);
+                return Task.FromResult(false);
             }
         }
         
@@ -1008,6 +1015,20 @@ namespace LibreLancer.Server
         {
             Character?.UpdatePosition(Base, System, Position);
         }
+
+        void LoggedOut()
+        {
+            if (Character != null)
+            {
+                Character.UpdatePosition(Base, System, Position);
+                World?.RemovePlayer(this);
+                Character?.Dispose();
+                foreach(var player in Game.AllPlayers.Where(x => x != this))
+                    player.RemoteClient.OnPlayerLeave(ID, Name);
+                Game.CharactersInUse.Remove(Character.ID);
+                Character = null;
+            }
+        }
         
         public void Disconnected()
         {
@@ -1016,15 +1037,7 @@ namespace LibreLancer.Server
                 inputPackets.CompleteAdding();
                 packetQueueTask.Wait(1000);
             }
-            if (Character != null)
-            {
-                Character.UpdatePosition(Base, System, Position);
-                World?.RemovePlayer(this);
-                Character?.Dispose();
-                foreach(var player in Game.AllPlayers.Where(x => x != this))
-                    player.RemoteClient.OnPlayerLeave(ID, Name);
-                Character = null;
-            }
+            LoggedOut();
         }
         
         public void PlaySound(string sound)

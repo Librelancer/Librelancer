@@ -30,6 +30,8 @@ namespace LibreLancer.Server
         GameDataManager gData;
         private DatabaseCharacter dbChar;
 
+        public long ID => charId;
+
 
         private bool inTransaction = false;
         void TryApply()

@@ -299,14 +299,25 @@ namespace LibreLancer
 
             public void LoadCharacter()
             {
-                netSession.RpcServer.SelectCharacter(cselInfo.Selected);
-                netClient.Disconnected += (str) => netSession.Disconnected();
-                netClient.Disconnected -= NetClientOnDisconnected;
-                netClient = null;
-                state.FadeOut(0.2, () =>
+                netSession.RpcServer.SelectCharacter(cselInfo.Selected).ContinueWith(x => state.Game.QueueUIThread(() =>
                 {
-                    state.Game.ChangeState(new NetWaitState(netSession, state.Game));
-                });
+                    if (x.Result)
+                    {
+                        state.FadeOut(0.2, () =>
+                        {
+                            netClient.Disconnected += (str) => netSession.Disconnected();
+                            netClient.Disconnected -= NetClientOnDisconnected;
+                            netClient = null;
+                            state.Game.ChangeState(new NetWaitState(netSession, state.Game));
+                        });
+                    }
+                    else
+                    {
+                        state.ui.Event("SelectCharFailure");
+                    }
+                }));
+                
+               
             }
 
             private int delIndex = -1;

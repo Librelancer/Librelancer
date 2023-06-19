@@ -41,6 +41,11 @@ class characterlist : characterlist_Designer
 			OpenModal(new popup(0, STRID_NAME_TAKEN, "ok"));
 		});
     }
+
+	SelectCharFailure()
+	{
+		OpenModal(new popup(0, STRID_ALREADY_LOGGED_IN, "ok"));
+	}
     
     Disconnect()
     {
