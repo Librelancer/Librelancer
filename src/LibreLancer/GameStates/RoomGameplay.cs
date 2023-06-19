@@ -546,10 +546,10 @@ namespace LibreLancer
             scene = new Cutscene(ctx, Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
             scene.ScriptFinished += SceneOnScriptFinished;
             sceneScripts = currentRoom.OpenScene().ToArray();
-            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript.ResolvedPath))
+            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.ResolvedPath))
             {
                 RoomDoSceneScript(new ThnScript(currentRoom.LandScript.ResolvedPath), ScriptState.Enter);
-            } else if (!string.IsNullOrEmpty(currentRoom.StartScript.ResolvedPath))
+            } else if (!string.IsNullOrEmpty(currentRoom.StartScript?.ResolvedPath))
             {
                 RoomDoSceneScript(new ThnScript(currentRoom.StartScript.ResolvedPath), ScriptState.Enter);
             }

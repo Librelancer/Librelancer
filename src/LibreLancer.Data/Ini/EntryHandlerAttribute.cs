@@ -6,7 +6,7 @@ namespace LibreLancer.Ini;
 
 
 [MeansImplicitUse]
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public class EntryHandlerAttribute : Attribute
 {
     public int MinComponents = 0;

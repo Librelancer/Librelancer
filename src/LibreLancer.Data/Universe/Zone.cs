@@ -108,6 +108,7 @@ namespace LibreLancer.Data.Universe
         void HandleEncounter(Entry e) => Encounters.Add(new Encounter(e));
 
         [EntryHandler("faction", MinComponents = 2, Multiline = true)]
+        [EntryHandler("faction_weight", MinComponents = 2, Multiline = true)]
         void HandleFaction(Entry e)
         {
             if (Encounters.Count == 0) {

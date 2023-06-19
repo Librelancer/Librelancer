@@ -141,6 +141,12 @@ namespace LibreLancer.Data.Save
         [EntryHandler("visit", MinComponents = 2, Multiline = true)]
         void HandleVisit(Entry e) => Visit.Add(new VisitEntry(e));
 
+        [EntryHandler("cargo", MinComponents = 2, Multiline = true)]
+        void HandleCargo(Entry e) => Cargo.Add(new PlayerCargo(e));
+
+        [EntryHandler("equip", MinComponents = 1, Multiline = true)]
+        void HandleEquip(Entry e) => Equip.Add(new PlayerEquipment(e));
+
         [Entry("interface")] public int Interface;
         
         [EntryHandler("description")]
