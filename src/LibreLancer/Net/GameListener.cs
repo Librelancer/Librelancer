@@ -232,7 +232,7 @@ namespace LibreLancer.Net
                 catch (Exception e)
                 {
                     FLLog.Warning("Server", $"Error when reading packet {e}");
-                    var dw = new NetDataWriter();
+                    var dw = new PacketWriter();
                     dw.Put(DisconnectReason.ConnectionError);
                     peer.Disconnect(dw);
                     if (peer.Tag is Player p)
