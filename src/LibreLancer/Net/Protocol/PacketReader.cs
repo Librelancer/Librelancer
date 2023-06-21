@@ -19,6 +19,17 @@ public struct PacketReader
         this.hpids = hpids;
     }
 
+    public bool TryGetDisconnectReason(out DisconnectReason reason)
+    {
+        reason = DisconnectReason.Unknown;
+        if (!reader.TryGetUInt(out var sig) || sig != LNetConst.DISCONNECT_MAGIC)
+            return false;
+        if (!reader.TryGetByte(out var r) || r >= (byte) DisconnectReason.MaxValue)
+            return false;
+        reason = (DisconnectReason) r;
+        return true;
+    }
+
     public ulong GetVariableUInt64()
     {
         long b = reader.GetByte();

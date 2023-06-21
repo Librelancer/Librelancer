@@ -16,6 +16,7 @@ using LibreLancer.Render;
 using LibreLancer.Thn;
 using LiteNetLib;
 using WattleScript.Interpreter;
+using DisconnectReason = LibreLancer.Net.DisconnectReason;
 
 namespace LibreLancer
 {
@@ -305,7 +306,7 @@ namespace LibreLancer
                     {
                         state.FadeOut(0.2, () =>
                         {
-                            netClient.Disconnected += (str) => netSession.Disconnected();
+                            netClient.Disconnected += (reason) => netSession.Disconnected();
                             netClient.Disconnected -= NetClientOnDisconnected;
                             netClient = null;
                             state.Game.ChangeState(new NetWaitState(netSession, state.Game));
@@ -336,11 +337,11 @@ namespace LibreLancer
                 });
             }
 
-            private void NetClientOnDisconnected(string obj)
+            private void NetClientOnDisconnected(DisconnectReason reason)
             {
                 netClient?.Shutdown();
                 netClient = null;
-                state.ui.Event("Disconnect");
+                state.ui.Event("Disconnect", reason.ToString());
             }
 
             public void RefreshServers()

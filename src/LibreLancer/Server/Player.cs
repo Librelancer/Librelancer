@@ -671,8 +671,12 @@ namespace LibreLancer.Server
             try
             {
                 FLLog.Info("Server", "Account logged in");
+                if (!Game.Database.PlayerLogin(playerGuid, out CharacterList)) {
+                    FLLog.Info("Server", $"Account {playerGuid} is banned, kicking.");
+                    Client.Disconnect(DisconnectReason.Banned);
+                    return;
+                }
                 Client.SendPacket(new LoginSuccessPacket(), PacketDeliveryMethod.ReliableOrdered);
-                CharacterList = Game.Database.PlayerLogin(playerGuid);
                 Client.SendPacket(new OpenCharacterListPacket()
                 {
                     Info = new CharacterSelectInfo()
@@ -691,6 +695,7 @@ namespace LibreLancer.Server
                 FLLog.Error("Player",ex.Message);
                 FLLog.Error("Player",
                     ex.StackTrace);
+                Client.Disconnect(DisconnectReason.LoginError);
             }
         }
 
@@ -753,7 +758,7 @@ namespace LibreLancer.Server
                 catch (Exception)
                 {
                     FLLog.Error("Player", $"Exception thrown while processing packets. Force disconnect {Character?.Name ?? "null"}");
-                    (Client as RemotePacketClient)?.Disconnect();
+                    Client.Disconnect(DisconnectReason.ConnectionError);
                     Disconnected();
                     break;
                 }
@@ -824,9 +829,6 @@ namespace LibreLancer.Server
                 if (!Game.CharactersInUse.Add(sc.Id)) {
                     FLLog.Info("Server", $"Character `{sc.Name}` is already in use");
                     return Task.FromResult(false);
-                }
-                if (Character != null) {
-                    
                 }
                 Character = NetCharacter.FromDb(sc.Id, Game);
                 IsAdmin = Game.AdminCharacters.Contains(Character.Name);

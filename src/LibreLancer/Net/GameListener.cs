@@ -83,7 +83,8 @@ namespace LibreLancer.Net
                     if (!reqReader.TryGetString(out var token))
                     {
                         var dw = new PacketWriter();
-                        dw.Put("TokenRequired?" + game.LoginUrl);
+                        dw.Put(DisconnectReason.TokenRequired);
+                        dw.Put(game.LoginUrl);
                         FLLog.Debug("Server", "Sending TokenRequired");
                         request.Reject(dw);
                     }
@@ -96,7 +97,7 @@ namespace LibreLancer.Net
                             {
                                 FLLog.Info("Login", $"Login failed for {request.RemoteEndPoint}");
                                 var dw = new PacketWriter();
-                                dw.Put("Login failure");
+                                dw.Put(DisconnectReason.LoginError);
                                 request.Reject(dw);
                             }
                             else
@@ -183,14 +184,14 @@ namespace LibreLancer.Net
                     if (peer.Tag is Player pl) hpidReader = pl.HpidReader;
                     var reader = new PacketReader(msg, hpidReader);
                     var pkt = Packets.Read(reader);
-                    if (peer.Tag == TagConnecting)
+                    if (peer.Tag is DateTime)
                     {
                         if (pkt is AuthenticationReplyPacket auth)
                         {
                             if (auth.Guid == Guid.Empty)
                             {
                                 var dw = new PacketWriter();
-                                dw.Put("bad GUID");
+                                dw.Put(DisconnectReason.LoginError);
                                 peer.Disconnect(dw);
                             }
                             else
@@ -199,17 +200,17 @@ namespace LibreLancer.Net
                                 remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered, true);
                                 var p = new Player(remote, game, auth.Guid);
                                 peer.Tag = p;
-                                Task.Run(() => p.OnLoggedIn());
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);
                                 }
+                                Task.Run(() => p.OnLoggedIn());
                             }
                         }
                         else
                         {
                             var dw = new PacketWriter();
-                            dw.Put("Invalid packet");
+                            dw.Put(DisconnectReason.ConnectionError);
                             peer.Disconnect(dw);
                         }
                     }
@@ -232,7 +233,7 @@ namespace LibreLancer.Net
                 {
                     FLLog.Warning("Server", $"Error when reading packet {e}");
                     var dw = new NetDataWriter();
-                    dw.Put("Packet processing error");
+                    dw.Put(DisconnectReason.ConnectionError);
                     peer.Disconnect(dw);
                     if (peer.Tag is Player p)
                         p.Disconnected();
@@ -277,11 +278,20 @@ namespace LibreLancer.Net
             {
                 //ToArray() to stop collection modified errors
                 Parallel.ForEach(Server.ConnectedPeerList
-                    .Where(p => p.Tag is Player && p.ConnectionState == ConnectionState.Connected)
-                    .ToArray(), (p) =>
+                    .Where(c => c.ConnectionState == ConnectionState.Connected)
+                    .ToArray(), (c) =>
                 {
-                    var player = (Player) p.Tag;
-                    (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
+                    if (c.Tag is Player player)
+                    {
+                        (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
+                    }
+                    else if (c.Tag is DateTime dt && dt < DateTime.Now)
+                    {
+                        FLLog.Info("Net", $"Guid login timeout for {c.EndPoint}");
+                        var msg = new PacketWriter();
+                        msg.Put(DisconnectReason.LoginError);
+                        c.Disconnect(msg);
+                    }
                 });
                 if (!running) sendLoop.Stop();
             });
@@ -297,7 +307,7 @@ namespace LibreLancer.Net
             msg.Put((byte)1);
             Packets.Write(msg, new GuidAuthenticationPacket());
             peer.Send(msg, DeliveryMethod.ReliableOrdered);
-			peer.Tag = TagConnecting;
+			peer.Tag = DateTime.Now.AddSeconds(15);
 		}
 
 		public void Stop()

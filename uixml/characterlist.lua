@@ -5,7 +5,7 @@ class characterlist : characterlist_Designer
         base()
         var e = this.Elements;
         e.listtable.SetData(Game.CharacterList());
-        
+        e.listtable.OnDoubleClick(() => Game.LoadCharacter());
         e.newchar.OnClick(() => Game.RequestNewCharacter());
         e.loadchar.OnClick(() => Game.LoadCharacter());
         e.deletechar.OnClick(() => Game.DeleteCharacter());

@@ -20,6 +20,9 @@ namespace LibreLancer.Entities.Character
 
         // Last time this account / save was accessed
         public DateTime LastLogin { get; set; }
+        
+        // Ban expiry, null if not banned
+        public DateTime? BanExpiry { get; set; }
 
         // This account has many characters
         public virtual ICollection<Character> Characters { get; set; }

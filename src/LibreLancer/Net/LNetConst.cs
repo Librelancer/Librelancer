@@ -11,5 +11,6 @@ namespace LibreLancer.Net
         public const uint PING_MAGIC = 0xBACAFEBA;
 		public const string DEFAULT_APP_IDENT = "LIBRELANCER";
         public const ulong BROADCAST_KEY = 0xBEEFBEEFCAFECAFE;
+        public const uint DISCONNECT_MAGIC = 0xFEFEBBFE;
     }
 }

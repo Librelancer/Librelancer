@@ -27,5 +27,7 @@ namespace LibreLancer.Net
             Packets.Enqueue(packet);
             onAck();
         }
+
+        public void Disconnect(DisconnectReason reason) => throw new InvalidOperationException($"Tried to disconnect SP with reason {reason}");
     }
 }

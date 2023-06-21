@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Net;
 using LibreLancer.Server;
+using LibreLancer.Server.ConsoleCommands;
 using Microsoft.EntityFrameworkCore;
 
 namespace LLServer
@@ -28,7 +30,7 @@ namespace LLServer
 
 	class MainClass
 	{
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             AppHandler.ConsoleInit();
             if (args.Length > 0 && args[0] == "--makeconfig")
@@ -82,21 +84,72 @@ namespace LLServer
 
             bool running = true;
 			while (running)
-			{
-				var cmd = Console.ReadLine();
-				switch (cmd.Trim().ToLowerInvariant())
+            {
+                var (cmd, cmdargs) = GetCommand(Console.ReadLine()?.Trim() ?? "");
+                switch (cmd.ToLowerInvariant())
 				{
 					case "stop":
 					case "quit":
 					case "exit":
 						running = false;
 						break;
-				}
-			}
+                    case "ban":
+                    {
+                        Guid? g = null;
+                        if (cmdargs.Length > 0)
+                        {
+                            if (Guid.TryParse(cmdargs, out var v))
+                                g = v;
+                            else
+                                g = srv.Database.FindAccount(cmdargs);
+                        }
+                        if (g.HasValue)
+                        {
+                            FLLog.Info("Server", $"Banning account {g} for 30 days");
+                            await srv.Database.BanAccount(g.Value, DateTime.UtcNow.AddDays(30));
+                        }
+                        break;
+                    }
+                    case "unban":
+                    {
+                        Guid? g = null;
+                        if (cmdargs.Length > 0)
+                        {
+                            if (Guid.TryParse(cmdargs, out var v))
+                                g = v;
+                            else
+                                g = srv.Database.FindAccount(cmdargs);
+                        }
+                        if (g.HasValue)
+                        {
+                            FLLog.Info("Server", $"Unbanning account {g}");
+                            await srv.Database.UnbanAccount(g.Value);
+                        }
+                        break;
+                    }
+                }
+            }
 			srv.Stop();
 			return 0;
 		}
 
+        static (string cmd, string args) GetCommand(string commandString)
+        {
+            var firstSpace = commandString.IndexOf(' ');
+            string cmd;
+            string args;
+            if (firstSpace == -1) {
+                cmd = commandString;
+                args = "";
+            }
+            else
+            {
+                cmd = commandString.Substring(0, firstSpace).Trim();
+                args = commandString.Substring(firstSpace).Trim();
+            }
+            return (cmd, args);
+        }
+        
 		static void MakeConfig()
 		{
 			Config config = new Config();

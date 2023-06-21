@@ -4,20 +4,28 @@ class serverlist : serverlist_Designer
 	{
 		base();
 		var e = this.Elements;
-		e.mainmenu.OnClick(() => this.ExitAnimation(() => {
-			Game.StopNetworking();
-			OpenScene("mainmenu");
-		}));
+		e.mainmenu.OnClick(() => this.Leave());
+		e.listtable.OnDoubleClick(() => this.TryConnect());
 		e.refreshlist.OnClick(() => Game.RefreshServers());
-		e.connect.OnClick(() => {
-			this.connecting = new connecting();
-			OpenModal(this.connecting);
-			Game.ConnectSelection()
-		});
+		e.connect.OnClick(() => this.TryConnect());
 		e.directip.OnClick(() => OpenModal(new ipentry(this)));
 		e.animgroupA.Animate('flyinleft', 0, 0.8)
 		e.animgroupB.Animate('flyinright', 0, 0.8)
 		this.InitNetwork();
+	}
+
+    Leave()
+    {
+        this.ExitAnimation(() => {
+            Game.StopNetworking();
+            OpenScene("mainmenu");
+        });
+    }
+	TryConnect()
+	{
+		this.connecting = new connecting();
+		OpenModal(this.connecting);
+		Game.ConnectSelection();
 	}
 
 	InitNetwork()
@@ -68,13 +76,14 @@ class serverlist : serverlist_Designer
 		OpenModal(new login(this, true));
 	}
 
- 	Disconnect()
+ 	Disconnect(reason)
     {
 		if(this.connecting != nil) {
 			this.connecting.Close();
 			this.connecting = nil;
 		}
-        OpenModal(new popup(0, STRID_DISCONNECT, "ok", () => this.InitNetwork()));
+		var id = (reason == "Banned" ? STRID_BANNED : STRID_DISCONNECT);
+        OpenModal(new popup(0, id, "ok", () => this.InitNetwork()));
     }
 }
 

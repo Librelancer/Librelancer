@@ -27,7 +27,7 @@ namespace LibreLancer.Net
         
         public event Action<LocalServerInfo> ServerFound;
         public event Action<bool> AuthenticationRequired;
-        public event Action<string> Disconnected;
+        public event Action<DisconnectReason> Disconnected;
         public Guid UUID;
         ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
         private HttpClient http;
@@ -152,7 +152,7 @@ namespace LibreLancer.Net
                     Connect(ep);
                 }
                 else {
-                    mainThread.QueueUIThread(() => { Disconnected?.Invoke("Invalid IP or Host Address"); });
+                    mainThread.QueueUIThread(() => { Disconnected?.Invoke(DisconnectReason.InvalidEndpoint); });
                 }
             });
         }
@@ -369,11 +369,12 @@ namespace LibreLancer.Net
             listener.PeerDisconnectedEvent += (peer, info) =>
             {
                 var additional = new PacketReader(info.AdditionalData);
-                if (additional.TryGetString(out var reason) &&
-                    connecting && reason.StartsWith("TokenRequired?"))
+                if (additional.TryGetDisconnectReason(out var reason) &&
+                    connecting && 
+                    reason == DisconnectReason.TokenRequired &&
+                    additional.TryGetString(out var url))
                 {
                     loginEndpoint = peer.EndPoint;
-                    var url = reason.Substring(14);
                     Task.Run(async () =>
                     {
                         loginServer = await http.LoginServerInfo(url);
@@ -383,14 +384,18 @@ namespace LibreLancer.Net
                         }
                         else
                         {
-                            mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
+                            FLLog.Error("Net", "Remote disconnected with invalid login server");
+                            mainThread.QueueUIThread(() => { Disconnected?.Invoke(DisconnectReason.ConnectionError); });
                         }
                     });
                 }
                 else
                 {
-                    FLLog.Info("Net", $"Disconnected {reason ?? info.Reason.ToString()}");
-                    mainThread.QueueUIThread(() => { Disconnected?.Invoke(info.Reason.ToString()); });
+                    mainThread.QueueUIThread(() =>
+                    {
+                        FLLog.Info("Net", $"Remote disconnected for reason '{reason}' ({info.Reason})");
+                        Disconnected?.Invoke(reason == DisconnectReason.Unknown ? DisconnectReason.ConnectionError : reason);
+                    });
                 }
             };
             client.Start();

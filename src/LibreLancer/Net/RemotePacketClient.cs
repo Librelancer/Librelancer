@@ -61,10 +61,12 @@ namespace LibreLancer.Net
                 }
             }
         }
-
-        public void Disconnect()
+        
+        public void Disconnect(DisconnectReason reason)
         {
-            Client.Disconnect();
+            var pw = new PacketWriter();
+            pw.Put(reason);
+            Client.Disconnect(pw);
         }
         
 

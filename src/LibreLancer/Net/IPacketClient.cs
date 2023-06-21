@@ -11,5 +11,6 @@ namespace LibreLancer.Net
     {
         void SendPacket(IPacket packet, PacketDeliveryMethod method, bool force = false);
         void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method);
+        void Disconnect(DisconnectReason reason);
     }
 }

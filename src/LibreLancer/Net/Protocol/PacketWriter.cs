@@ -24,7 +24,7 @@ public class PacketWriter
     {
         writer = new NetDataWriter();
     }
-
+    
     public static implicit operator NetDataWriter(PacketWriter pw)
     {
         return pw.writer;
@@ -52,6 +52,12 @@ public class PacketWriter
         }
     }
     
+    public void Put(DisconnectReason reason)
+    {
+        writer.Put(LNetConst.DISCONNECT_MAGIC);
+        writer.Put((byte)reason);
+    }
+
     public void PutVariableUInt64(ulong u)
     {
         if (u <= 127)
