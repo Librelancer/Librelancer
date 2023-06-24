@@ -128,7 +128,6 @@ namespace LLServer
 		static void MakeConfig(string configPath)
 		{
 			ServerConfig config = new ServerConfig();
-            config.UseLazyLoading = true;
 
 			Console.Write("Freelancer Path: ");
 			config.FreelancerPath = (Console.ReadLine() ?? "").Trim();

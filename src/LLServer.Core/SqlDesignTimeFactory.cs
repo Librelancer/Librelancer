@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Database;
 using Microsoft.EntityFrameworkCore;
@@ -11,23 +12,19 @@ namespace LLServer
 {
     public class SqlDesignTimeFactory : IDesignTimeDbContextFactory<LibreLancerContext>
     {
-        private ServerConfig config;
-        public SqlDesignTimeFactory(ServerConfig config)
+        private string databasePath;
+        public SqlDesignTimeFactory(string dbpath)
         {
-            this.config = config;
+            databasePath =  Path.GetFullPath(dbpath, Platform.GetBasePath());
         }
         public SqlDesignTimeFactory()
         {
-            config = new ServerConfig();
-            config.UseLazyLoading = true;
-            config.DatabasePath =  Path.Combine(Path.GetTempPath(), "librelancer.ef.database.db");
+            databasePath =  Path.Combine(Path.GetTempPath(), "librelancer.ef.database.db");
         }
         public LibreLancerContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<LibreLancerContext>();
-            optionsBuilder.UseSqlite($"Data Source={config.DatabasePath};");
-            if (config.UseLazyLoading)
-                optionsBuilder.UseLazyLoadingProxies();
+            optionsBuilder.UseSqlite($"Data Source={databasePath};");
             return new LibreLancerContext(optionsBuilder.Options);
         }
     }

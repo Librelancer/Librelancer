@@ -29,7 +29,7 @@ public class ServerApp
             FLLog.Error("Config", $"'{Config.FreelancerPath ?? "NULL"}' is not a valid game folder");
             return false;
         }
-        var ctxFactory = new SqlDesignTimeFactory(Config);
+        var ctxFactory = new SqlDesignTimeFactory(Config.DatabasePath);
         using (var ctx = ctxFactory.CreateDbContext(new string[0]))
         {
             if (ctx.Database.GetPendingMigrations().Any())
