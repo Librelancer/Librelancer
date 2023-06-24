@@ -11,14 +11,14 @@ namespace LLServer
 {
     public class SqlDesignTimeFactory : IDesignTimeDbContextFactory<LibreLancerContext>
     {
-        private Config config;
-        public SqlDesignTimeFactory(Config config)
+        private ServerConfig config;
+        public SqlDesignTimeFactory(ServerConfig config)
         {
             this.config = config;
         }
         public SqlDesignTimeFactory()
         {
-            config = new Config();
+            config = new ServerConfig();
             config.UseLazyLoading = true;
             config.DatabasePath =  Path.Combine(Path.GetTempPath(), "librelancer.ef.database.db");
         }

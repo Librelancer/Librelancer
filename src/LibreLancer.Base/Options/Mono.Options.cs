@@ -44,7 +44,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
-namespace Mono.Options;
+namespace LibreLancer.Options;
 
 internal static class StringCoda
 {

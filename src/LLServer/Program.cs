@@ -3,85 +3,59 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.Data;
-using LibreLancer.Net;
-using LibreLancer.Server;
-using LibreLancer.Server.ConsoleCommands;
-using Microsoft.EntityFrameworkCore;
+using LibreLancer.Options;
 
 namespace LLServer
 {
-	public class Config
-	{
-		public string ServerName;
-		public string ServerDescription;
-		public string FreelancerPath;
-        public string LoginUrl;
-		public string DatabasePath;
-        public bool UseLazyLoading;
-        public string[] Admins;
-        public int Port = LNetConst.DEFAULT_PORT;
-    }
-
-	class MainClass
+    class MainClass
 	{
         public static async Task<int> Main(string[] args)
         {
+            bool printHelp = false;
+            bool printVersion = false;
+            bool runConsole = false;
+            string configPath = null;
+            var os = new OptionSet();
+            os.Add("h|?|help", "shows this message and exits", x => printHelp = x != null);
+            os.Add("v|version", "shows the version and exits", x => printVersion = x != null);
+            os.Add("c|config=", "set path for the configuration file", x => configPath = x);
+            var extra = os.Parse(args);
+            if (printHelp)
+            {
+                Console.WriteLine($"LLServer {Platform.GetInformationalVersion<MainClass>()}");
+                os.WriteOptionDescriptions(Console.Out);
+                Console.WriteLine("Run with makeconfig to generate a config file.");
+                return 0;
+            }
+            if (printVersion)
+            {
+                Console.WriteLine(Platform.GetInformationalVersion<MainClass>());
+                return 0;
+            }
             AppHandler.ConsoleInit();
-            if (args.Length > 0 && args[0] == "--makeconfig")
-			{
-				MakeConfig();
+            configPath ??= Path.Combine(Platform.GetBasePath(), "llserver.json");
+            if (extra.Count > 0 && extra[0] == "makeconfig")
+            {
+                MakeConfig(configPath);
 				return 0;
 			}
-
-            if (!File.Exists("librelancerserver.config.json"))
+            if (!File.Exists(configPath))
             {
-                Console.Error.WriteLine("Can't find librelancerserver.config.json");
+                Console.Error.WriteLine($"Can't find {configPath}. Use the --config option to specify a file or run LLServer makeconfig");
                 return 2;
             }
-			var config = JSON.Deserialize<Config>(File.ReadAllText("librelancerserver.config.json"));
-            config.DatabasePath = Path.GetFullPath(config.DatabasePath);
-			var srv = new GameServer(config.FreelancerPath);
-            if (config.Admins != null) srv.AdminCharacters = new List<string>(config.Admins);
-			var ctxFactory = new SqlDesignTimeFactory(config);
-            if (!File.Exists(config.DatabasePath))
-            {
-                FLLog.Info("Server", $"Creating database file {config.DatabasePath}");
-                using (var ctx = ctxFactory.CreateDbContext(new string[0]))
-                {
-                    ctx.Database.Migrate();
-                }
-            }
+			var config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
+            config.DatabasePath = Path.GetFullPath(config.DatabasePath, Platform.GetBasePath());
 
-            using (var ctx = ctxFactory.CreateDbContext(new string[0]))
-            {
-                //Force create model early
-                if (ctx.Database.GetPendingMigrations().Any())
-                {
-                    FLLog.Info("Server", "Migrating database");
-                    ctx.Database.Migrate();
-                }
+            var app = new ServerApp(config);
+            if (!app.StartServer()) {
+                Console.Error.WriteLine("Server failed to start");
+                return 1;
             }
-            
-            srv.DbContextFactory = ctxFactory;
-            srv.ServerName = config.ServerName;
-			srv.ServerDescription = config.ServerDescription;
-            srv.LoginUrl = config.LoginUrl;
-            srv.Listener.Port = config.Port > 0 ? config.Port : LNetConst.DEFAULT_PORT;
-            
-            if (!string.IsNullOrWhiteSpace(srv.LoginUrl) &&
-                !srv.LoginUrl.StartsWith("https://"))
-            {
-                Console.Error.WriteLine("Configuration Error: Only HTTPS login servers are supported");
-                return 2;
-            }
-            srv.Start();
-
             bool running = true;
 			while (running)
             {
@@ -101,12 +75,12 @@ namespace LLServer
                             if (Guid.TryParse(cmdargs, out var v))
                                 g = v;
                             else
-                                g = srv.Database.FindAccount(cmdargs);
+                                g = app.Server.Database.FindAccount(cmdargs);
                         }
                         if (g.HasValue)
                         {
                             FLLog.Info("Server", $"Banning account {g} for 30 days");
-                            await srv.Database.BanAccount(g.Value, DateTime.UtcNow.AddDays(30));
+                            await app.Server.Database.BanAccount(g.Value, DateTime.UtcNow.AddDays(30));
                         }
                         break;
                     }
@@ -118,18 +92,19 @@ namespace LLServer
                             if (Guid.TryParse(cmdargs, out var v))
                                 g = v;
                             else
-                                g = srv.Database.FindAccount(cmdargs);
+                                g = app.Server.Database.FindAccount(cmdargs);
                         }
                         if (g.HasValue)
                         {
                             FLLog.Info("Server", $"Unbanning account {g}");
-                            await srv.Database.UnbanAccount(g.Value);
+                            await app.Server.Database.UnbanAccount(g.Value);
                         }
                         break;
                     }
                 }
             }
-			srv.Stop();
+            Console.WriteLine("Server shutting down");
+			app.StopServer();
 			return 0;
 		}
 
@@ -150,9 +125,9 @@ namespace LLServer
             return (cmd, args);
         }
         
-		static void MakeConfig()
+		static void MakeConfig(string configPath)
 		{
-			Config config = new Config();
+			ServerConfig config = new ServerConfig();
             config.UseLazyLoading = true;
 
 			Console.Write("Freelancer Path: ");
@@ -167,7 +142,7 @@ namespace LLServer
 			Console.Write("Server Description: ");
 			config.ServerDescription = (Console.ReadLine() ?? "").Trim();
 
-			File.WriteAllText("librelancerserver.config.json", JSON.Serialize(config));
+			File.WriteAllText(configPath, JSON.Serialize(config));
 		}
 	}
 }

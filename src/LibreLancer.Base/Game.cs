@@ -12,6 +12,7 @@ using System.Numerics;
 using System.Threading;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace LibreLancer
 {
@@ -30,6 +31,8 @@ namespace LibreLancer
         public Keyboard Keyboard = new Keyboard();
         ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         int mythread = -1;
+        private uint wakeEvent;
+        
         public ScreenshotSaveHandler ScreenshotSave;
         public RenderContext RenderContext { get; private set; }
         public string Renderer
@@ -270,22 +273,7 @@ namespace LibreLancer
         public void QueueUIThread(Action work)
         {
             actions.Enqueue(work);
-        }
-        public void EnsureUIThread(Action work)
-        {
-            if (Thread.CurrentThread.ManagedThreadId == mythread)
-                work();
-            else
-            {
-                bool done = false;
-                actions.Enqueue(() =>
-                {
-                    work();
-                    done = true;
-                });
-                while (!done)
-                    Thread.Sleep(1);
-            }
+            InterruptWait();
         }
 
         public bool IsUiThread() =>  Thread.CurrentThread.ManagedThreadId == mythread;
@@ -360,6 +348,14 @@ namespace LibreLancer
         {
             waitForEvent = true;
         }
+
+        public void InterruptWait()
+        {
+            var ev = new SDL.SDL_Event();
+            ev.type = (SDL.SDL_EventType) wakeEvent;
+            SDL.SDL_PushEvent(ref ev);
+        }
+        
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
@@ -473,6 +469,8 @@ namespace LibreLancer
                 FLLog.Error("SDL", "SDL_Init failed, exiting.");
                 return;
             }
+
+            wakeEvent = SDL.SDL_RegisterEvents(1);
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
             //Set GL states
@@ -602,7 +600,7 @@ namespace LibreLancer
                 doRelease = 0;
                 bool eventWaited = false;
                 if (waitForEvent)
-                {                        
+                {                    
                     waitForEvent = false;
                     if (SDL.SDL_WaitEventTimeout(out e, 2000) != 0)
                     {

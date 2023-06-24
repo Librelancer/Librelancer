@@ -13,7 +13,7 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
-using Mono.Options;
+using LibreLancer.Options;
 
 namespace lleditscript
 {

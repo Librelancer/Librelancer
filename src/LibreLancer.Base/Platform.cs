@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -60,9 +61,26 @@ namespace LibreLancer
             RegisterDllMap(typeof(Platform).Assembly);
 		}
 
-        public static string GetLocalConfigFolder() => RunningPlatform.GetLocalConfigFolder();
+        public static string GetBasePath()
+        {
+            using var processModule = Process.GetCurrentProcess().MainModule;
+            var basePath = Path.GetDirectoryName(processModule?.FileName);
+            return basePath;
+        }
 
-        
+        private static bool? portable;
+        public static bool IsPortable()
+        {
+            if (portable.HasValue) return portable.Value;
+            portable =  File.Exists(Path.Combine(Path.GetDirectoryName(typeof(Platform).Assembly.Location), "portable"));
+            if(portable.Value)
+                FLLog.Info("Data", "Running in portable mode");
+            return portable.Value;
+        }
+
+        public static string GetLocalConfigFolder() =>
+            IsPortable() ? GetBasePath() : RunningPlatform.GetLocalConfigFolder();
+
         public static bool IsDirCaseSensitive (string directory)
 		{
 			return RunningPlatform.IsDirCaseSensitive (directory);

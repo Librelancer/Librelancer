@@ -33,6 +33,8 @@ namespace LibreLancer.Server
         }
     }
 
+    public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime Expiry);
+
     public class ServerDatabase
     {
         private GameServer server;
@@ -65,13 +67,28 @@ namespace LibreLancer.Server
             }
         }
 
+        public BannedPlayerDescription[] GetBannedPlayers()
+        {
+            using (var ctx = CreateDbContext())
+            {
+                var c = ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
+                    .Select(x => new
+                    {
+                        AccountId = x.AccountIdentifier,
+                        BanExpiry = x.BanExpiry,
+                        Characters = x.Characters.Select(x => x.Name).ToArray()
+                    });
+                return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
+            }
+        }
+
         public Guid? FindAccount(string character)
         {
             using (var ctx = CreateDbContext())
             {
-                var c = ctx.Characters.FirstOrDefault(x => x.Name == character);
-                c ??= ctx.Characters.FirstOrDefault(x => x.Name.Contains(character));
-                return c?.Account.AccountIdentifier;
+                var c = ctx.Characters.Include(x => x.Account).FirstOrDefault(x => x.Name == character);
+                c ??= ctx.Characters.Include(x => x.Account).FirstOrDefault(x => x.Name.Contains(character));
+                return c?.Account?.AccountIdentifier;
             }
         }
         

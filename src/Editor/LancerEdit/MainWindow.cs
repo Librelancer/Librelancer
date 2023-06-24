@@ -310,14 +310,14 @@ namespace LancerEdit
                         SimpleMesh.Model.FromStream(stream));
                 }
 
-                EnsureUIThread(() => ResultMessages(model));
+                QueueUIThread(() => ResultMessages(model));
                 if (model.IsSuccess)
                 {
                     var mdl = model.Data.AutoselectRoot(out _).ApplyScale();
                     var x = Vector3.Transform(Vector3.Zero, mdl.Roots[0].Transform);
                     bool modelWarning = x.Length() > 0.0001;
                     mdl = mdl.ApplyRootTransforms(false).CalculateBounds();
-                    EnsureUIThread(() => FinishImporterLoad(mdl, modelWarning, Path.GetFileName(filename)));
+                    QueueUIThread(() => FinishImporterLoad(mdl, modelWarning, Path.GetFileName(filename)));
                 }
             });
         }

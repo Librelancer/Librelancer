@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ImportGroup>
+        <Import Project="../CommonVersion.props" />
+    </ImportGroup>
+    
+    <PropertyGroup>
+        <OutputType>winexe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <RootNamespace>LLServer</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LLServer.Core\LLServer.Core.csproj" />
+    </ItemGroup>
+
+    <Import Project="..\PublishAssets\PublishAssets.projitems" Label="Shared" />
+</Project>
