@@ -36,23 +36,33 @@ namespace LibreLancer.Database
             modelBuilder.Entity<Character>().HasMany(x => x.Reputations).WithOne().OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Character>().HasMany(x => x.VisitEntries).WithOne().OnDelete(DeleteBehavior.Cascade);
         }
-        
-        public override Task<int> SaveChangesAsync(
-            bool acceptAllChangesOnSuccess,
-            CancellationToken token = default)
+
+        void UpdateTimestamps()
         {
             foreach (var update in ChangeTracker
                          .Entries()
                          .Where(x => x.Entity is BaseEntity && x.State == EntityState.Modified || 
                                      x.State == EntityState.Added)
                          .Select(x => new { Entity = (BaseEntity)x.Entity, State = x.State })
-                     )
+                    )
             {
                 var nowUtc = DateTime.UtcNow;
                 update.Entity.UpdateDate = nowUtc;
                 if (update.State == EntityState.Added)
                     update.Entity.CreationDate = nowUtc;
             }
+        }
+        public override int SaveChanges()
+        {
+            UpdateTimestamps();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(
+            bool acceptAllChangesOnSuccess,
+            CancellationToken token = default)
+        {
+            UpdateTimestamps();
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, token);
         }
     }
