@@ -19,49 +19,11 @@ namespace LibreLancer.Net
         public void SendPacket(IPacket packet, PacketDeliveryMethod method, bool force = false)
         {
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
-            if (mt == DeliveryMethod.ReliableOrdered && !force)
-            {
-                lock (reliableLock)
-                {
-                    reliableSend.Enqueue(packet);
-                }
-            }
-            else
-            {
-                var m = new PacketWriter(new NetDataWriter(), Hpids);
-                m.Put((byte)1);
-                Packets.Write(m, packet);
-                Client.Send(m, ch, mt);
-            }
+            var m = new PacketWriter(new NetDataWriter(), Hpids);
+            Packets.Write(m, packet);
+            Client.Send(m, ch, mt);
         }
 
-        private double sendTime = 1 / 66.0;
-        private double elapsed = 0.0;
-        public void Update(double t)
-        {
-            elapsed -= t;
-            if (elapsed <= 0.0)
-            {
-                elapsed = sendTime;
-                lock (reliableSend)
-                {
-                    while (reliableSend.Count > 0)
-                    {
-                        var dw = new PacketWriter(new NetDataWriter(), Hpids);
-                        if(reliableSend.Count > 255)
-                            dw.Put((byte)255);
-                        else
-                            dw.Put((byte)reliableSend.Count);
-                        for (int i = 0; (i < 255 && reliableSend.Count > 0); i++)
-                        {
-                            Packets.Write(dw, reliableSend.Dequeue());
-                        }
-                        Client.Send(dw, DeliveryMethod.ReliableOrdered);
-                    }
-                }
-            }
-        }
-        
         public void Disconnect(DisconnectReason reason)
         {
             var pw = new PacketWriter();
@@ -73,7 +35,6 @@ namespace LibreLancer.Net
         public void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method)
         {
             var m = new PacketWriter();
-            m.Put((byte) 1);
             Packets.Write(m, packet);
             method.ToLiteNetLib(out var mtd, out var channel);
             Client.SendWithDeliveryEvent(m, channel, mtd, onAck);

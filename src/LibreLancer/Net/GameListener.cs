@@ -49,8 +49,10 @@ namespace LibreLancer.Net
             netThread.Start();
 		}
 
+        private AutoResetEvent stopHandle;
         void NetThread()
         {
+            stopHandle = new AutoResetEvent(false);
             http = new HttpClient();
             EventBasedNetListener listener = new EventBasedNetListener();
             EventBasedNetListener broadcastListener = new EventBasedNetListener();
@@ -260,42 +262,18 @@ namespace LibreLancer.Net
                 }
             };
             broadcastServer.ReuseAddress = true;
-            broadcastServer.IPv6Mode = IPv6Mode.SeparateSocket;
+            broadcastServer.IPv6Enabled = true;
             broadcastServer.BroadcastReceiveEnabled = true;
             broadcastServer.UnsyncedEvents = true;
             broadcastServer.Start(LNetConst.BROADCAST_PORT);
             Server = new NetManager(listener);
-            Server.IPv6Mode = IPv6Mode.SeparateSocket;
+            Server.IPv6Enabled = true;
             Server.UnconnectedMessagesEnabled = true;
             Server.ChannelsCount = 3;
             Server.UnsyncedEvents = true;
             Server.Start(Port);
             FLLog.Info("Server", "Listening on port " + Port);
-            var sw = Stopwatch.StartNew();
-            var last = 0.0;
-            FixedTimestepLoop sendLoop = null;
-            sendLoop = new FixedTimestepLoop((time,_) =>
-            {
-                //ToArray() to stop collection modified errors
-                Parallel.ForEach(Server.ConnectedPeerList
-                    .Where(c => c.ConnectionState == ConnectionState.Connected)
-                    .ToArray(), (c) =>
-                {
-                    if (c.Tag is Player player)
-                    {
-                        (player.Client as RemotePacketClient)?.Update(time.TotalSeconds);
-                    }
-                    else if (c.Tag is DateTime dt && dt < DateTime.Now)
-                    {
-                        FLLog.Info("Net", $"Guid login timeout for {c.EndPoint}");
-                        var msg = new PacketWriter();
-                        msg.Put(DisconnectReason.LoginError);
-                        c.Disconnect(msg);
-                    }
-                });
-                if (!running) sendLoop.Stop();
-            });
-            sendLoop.Start();
+            stopHandle.WaitOne();
             http.Dispose();
             Server.Stop();
             broadcastServer.Stop();
@@ -304,14 +282,14 @@ namespace LibreLancer.Net
         void RequestPlayerGuid(NetPeer peer)
         {
             var msg = new PacketWriter();
-            msg.Put((byte)1);
             Packets.Write(msg, new GuidAuthenticationPacket());
             peer.Send(msg, DeliveryMethod.ReliableOrdered);
 			peer.Tag = DateTime.Now.AddSeconds(15);
 		}
 
 		public void Stop()
-		{
+        {
+            stopHandle.Set();
 			running = false;
 			netThread.Join();
         }

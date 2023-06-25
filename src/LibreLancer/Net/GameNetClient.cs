@@ -251,7 +251,7 @@ namespace LibreLancer.Net
             client = new NetManager(listener)
             {
                 UnconnectedMessagesEnabled = true,
-                IPv6Mode =  IPv6Mode.SeparateSocket,
+                IPv6Enabled = true,
                 NatPunchEnabled = true,
                 EnableStatistics = true,
                 ChannelsCount =  3
@@ -319,42 +319,37 @@ namespace LibreLancer.Net
                 {
 #endif
                     var reader = new PacketReader(msg, hpidReader);
-                    var packetCount = reader.GetByte(); //reliable packets can be merged
-                    if (packetCount > 1)
-                        FLLog.Debug("Net", $"Received {packetCount} merged packets");
-                    for (int i = 0; i < packetCount; i++)
+                    var pkt = Packets.Read(reader);
+                    if (pkt is SetStringsPacket strs) {
+                        hpidReader.SetStrings(strs.Data);
+                    }
+                    else if (pkt is AddStringPacket add) {
+                        hpidReader.AddString(add.ToAdd);
+                    }
+                    else if (connecting)
                     {
-                        var pkt = Packets.Read(reader);
-                        if (pkt is SetStringsPacket strs) {
-                            hpidReader.SetStrings(strs.Data);
-                        }
-                        else if (pkt is AddStringPacket add) {
-                            hpidReader.AddString(add.ToAdd);
-                        }
-                        else if (connecting)
+                        if (pkt is GuidAuthenticationPacket)
                         {
-                            if (pkt is GuidAuthenticationPacket)
-                            {
-                                var auth = (GuidAuthenticationPacket) pkt;
-                                FLLog.Info("Net", "GUID Request Received");
-                                SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
-                                        PacketDeliveryMethod.ReliableOrdered);
-                            }
-                            else if (pkt is LoginSuccessPacket)
-                            {
-                                FLLog.Info("Client", "Login success");
-                                SendPacket(new SetStringsPacket() { Data = hpidWrite.GetData() }, PacketDeliveryMethod.ReliableOrdered);
-                                connecting = false;
-                            }
-                            else
-                            {
-                                client.DisconnectAll();
-                            }
+                            var auth = (GuidAuthenticationPacket) pkt;
+                            FLLog.Info("Net", "GUID Request Received");
+                            SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
+                                PacketDeliveryMethod.ReliableOrdered);
+                        }
+                        else if (pkt is LoginSuccessPacket)
+                        {
+                            FLLog.Info("Client", "Login success");
+                            SendPacket(new SetStringsPacket() { Data = hpidWrite.GetData() }, PacketDeliveryMethod.ReliableOrdered);
+                            connecting = false;
                         }
                         else
                         {
-                            packets.Enqueue(pkt);
+                            FLLog.Info("Net", $"Invalid login packet {pkt.GetType()}");
+                            client.DisconnectAll();
                         }
+                    }
+                    else
+                    {
+                        packets.Enqueue(pkt);
                     }
 #if !DEBUG
                 }
