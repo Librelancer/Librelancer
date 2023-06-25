@@ -228,6 +228,7 @@ namespace LibreLancer.Server
                 if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds))
                     toSpinDown.Add(w.Key);
             }
+            Listener?.Server?.TriggerUpdate(); //Send packets asap
             //Remove
             if (toSpinDown.Count > 0)
             {
@@ -251,7 +252,6 @@ namespace LibreLancer.Server
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
             }
-
             if (!running) processingLoop.Stop();
         }
 

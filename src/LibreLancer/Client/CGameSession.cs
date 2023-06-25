@@ -287,6 +287,7 @@ namespace LibreLancer.Client
                     }
                 }
             }
+            (connection as GameNetClient)?.Update(); //Send packets at 60fps
         }
 
         SPUpdatePacket GetUpdatePacket(IPacket p)

@@ -429,6 +429,8 @@ namespace LibreLancer.Net
             http.Dispose();
         }
 
+        public void Update() => client?.TriggerUpdate();
+
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             var om = new PacketWriter(new NetDataWriter(), hpidWrite);
