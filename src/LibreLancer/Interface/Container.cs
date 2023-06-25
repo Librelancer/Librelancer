@@ -109,6 +109,24 @@ namespace LibreLancer.Interface
             }
             return null;
         }
+
+        public override bool WantsEscape()
+        {
+            if (!Visible) return false;
+            if (base.WantsEscape()) return true;
+            foreach(var child in Children)
+                if (child.WantsEscape())
+                    return true;
+            return false;
+        }
+
+        public override void OnEscapePressed()
+        {
+            if (!Visible) return;
+            base.OnEscapePressed();
+            foreach(var child in Children)
+                child.OnEscapePressed();
+        }
     }
     
 }

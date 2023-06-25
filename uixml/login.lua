@@ -17,6 +17,7 @@ class login : login_Designer with Modal
 			}
 		});
         scn.close.OnClick(() => this.Close());
+		this.Widget.OnEscape(() => this.Close());
     }
 }
 

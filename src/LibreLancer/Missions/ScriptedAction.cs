@@ -225,8 +225,12 @@ namespace LibreLancer.Missions
             if (Ship.Equals("none", StringComparison.OrdinalIgnoreCase))
             {
                 var p = runtime.Player;
-                p.Character.Ship = null;
-                p.Character.Items = new List<NetCargo>();
+                using (var c = p.Character.BeginTransaction())
+                {
+                    c.UpdateShip(null);
+                    c.ClearAllCargo();
+                    p.Character.Items = new List<NetCargo>();
+                }
                 runtime.Player.UpdateCurrentInventory();
             }
             else
@@ -234,18 +238,23 @@ namespace LibreLancer.Missions
                 var p = runtime.Player;
                 if (p.Game.GameData.TryGetLoadout(Loadout, out var loadout))
                 {
-                    p.Character.Ship = p.Game.GameData.Ships.Get(Ship);
-                    p.Character.Items = new List<NetCargo>();
-                    foreach (var equip in loadout.Items)
+                    using (var c = p.Character.BeginTransaction())
                     {
-                        p.Character.Items.Add(new NetCargo()
+                        c.UpdateShip(p.Game.GameData.Ships.Get(Ship));
+                        p.Character.Items = new List<NetCargo>();
+                        c.ClearAllCargo();
+                        foreach (var equip in loadout.Items)
                         {
-                            Equipment = equip.Equipment,
-                            Hardpoint = string.IsNullOrEmpty(equip.Hardpoint) ? "internal" : equip.Hardpoint,
-                            Health = 1f,
-                            Count = 1
-                        });
+                            p.Character.Items.Add(new NetCargo()
+                            {
+                                Equipment = equip.Equipment,
+                                Hardpoint = string.IsNullOrEmpty(equip.Hardpoint) ? "internal" : equip.Hardpoint,
+                                Health = 1f,
+                                Count = 1
+                            });
+                        }
                     }
+                   
                 }
                 runtime.Player.UpdateCurrentInventory();
             }
@@ -314,7 +323,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.Character.UpdateCredits(runtime.Player.Character.Credits + Amount);
+            runtime.Player.AddCash(Amount);
         }
     }
     

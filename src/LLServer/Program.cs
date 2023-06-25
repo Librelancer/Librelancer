@@ -101,6 +101,32 @@ namespace LLServer
                         }
                         break;
                     }
+                    case "admin":
+                    {
+                        long? id = null;
+                        if (cmdargs.Length > 0)
+                            id = app.Server.Database.FindCharacter(cmdargs);
+                        if (id.HasValue)
+                        {
+                            FLLog.Info("Server", $"Making '{cmdargs}' admin");
+                            await app.Server.Database.AdminCharacter(id.Value);
+                            app.Server.AdminChanged(id.Value, true);
+                        }
+                        break;
+                    }
+                    case "deadmin":
+                    {
+                        long? id = null;
+                        if (cmdargs.Length > 0)
+                            id = app.Server.Database.FindCharacter(cmdargs);
+                        if (id.HasValue)
+                        {
+                            FLLog.Info("Server", $"Removing '{cmdargs}' admin");
+                            await app.Server.Database.DeadminCharacter(id.Value);
+                            app.Server.AdminChanged(id.Value, false);
+                        }
+                        break;
+                    }
                 }
             }
             Console.WriteLine("Server shutting down");

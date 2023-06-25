@@ -11,6 +11,7 @@ class textentry : textentry_Designer with Modal
         scn.content.OnTextEntered((name) => this.OnTextEnter(name));
 		scn.ok.OnClick(() => this.OnTextEnter(scn.content.CurrentText));
         scn.close.OnClick(() => this.Close('cancel'));
+		this.Widget.OnEscape(() => this.Close('cancel'));
 		this.characters = Game.GetNewCharacters()
 		this.index = 1;
 		this.SetInfo(this.characters[1])

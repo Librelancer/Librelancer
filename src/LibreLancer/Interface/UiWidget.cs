@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
@@ -149,12 +150,18 @@ namespace LibreLancer.Interface
         }
 
         private event Action<double> callback;
-        public void OnUpdate(WattleScript.Interpreter.Closure handler)
+        public void OnUpdate(Closure handler)
         {
             callback += (x) =>
             {
                 handler.Call(x);
             };
+        }
+
+        private event Action escapePressed;
+        public void OnEscape(Closure handler)
+        {
+            escapePressed += () => handler.Call();
         }
 
         private Vector2? animSetPos;
@@ -212,6 +219,16 @@ namespace LibreLancer.Interface
         public virtual bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
             return false;
+        }
+
+        [WattleScriptHidden]
+        public virtual bool WantsEscape() => Visible && escapePressed != null;
+
+        [WattleScriptHidden]
+        public virtual void OnEscapePressed()
+        {
+            if(Visible)
+                escapePressed?.Invoke();    
         }
         
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }

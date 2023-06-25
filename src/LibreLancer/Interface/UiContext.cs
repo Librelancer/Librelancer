@@ -220,6 +220,14 @@ namespace LibreLancer.Interface
             return baseWidget?.MouseWanted(this, GetRectangle(), mouseX * inputRatio, mouseY * inputRatio) ?? false;
         }
 
+        public bool WantsEscape()
+        {
+            if (modals.Count > 0) return true;
+            if (!Visible) return false;
+            if (textFocusWidget != null) return true;
+            return baseWidget?.WantsEscape() ?? false;
+        }
+
         public void OnFocus()
         {
             baseWidget.UnFocus();
@@ -306,6 +314,12 @@ namespace LibreLancer.Interface
         {
             lua.CallEvent(ev, p);
         }
+
+        public void OnEscapePressed()
+        {
+            GetActive()?.OnEscapePressed();
+        }
+
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
         public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());

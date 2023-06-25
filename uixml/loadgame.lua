@@ -9,14 +9,8 @@ class loadgame : loadgame_Designer with Modal
 		e.listtable.SetData(Game.SaveGames());
 		e.resume.OnClick(() => { Game.Resume(); this.Close(); });
 
-		e.goback.OnClick(() => {
-			if (this.isModal) {
-				Game.QuitToMenu();
-				this.Close();
-			} else {
-				this.ExitAnimation(() => OpenScene("mainmenu"));
-			}
-		});
+		e.goback.OnClick(() => this.do_goback());
+		this.Widget.OnEscape(() => this.do_goback())
 
 		e.load.OnClick(() => this.ExitAnimation(() => {
 			Game.LoadSelectedGame();
@@ -28,6 +22,16 @@ class loadgame : loadgame_Designer with Modal
 	}
 
 	ExitAnimation(f) => f();
+
+	do_goback()
+	{
+		if (this.isModal) {
+			Game.Resume();
+			this.Close();
+		} else {
+			this.ExitAnimation(() => OpenScene("mainmenu"));
+		}
+	}
 
 	asmodal()
 	{

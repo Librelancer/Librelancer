@@ -14,6 +14,7 @@ class savegame : savegame_Designer with Modal
 			Game.Resume();
 			this.Close();
 		})
+		this.Widget.OnEscape(() => { Game.Resume(); this.Close(); });
 
 		e.goback.OnClick(() => {
 			Game.QuitToMenu();

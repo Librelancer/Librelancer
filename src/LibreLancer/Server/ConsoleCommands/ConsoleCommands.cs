@@ -41,7 +41,7 @@ namespace LibreLancer.Server.ConsoleCommands
                 player.RemoteClient.OnConsoleMessage($"invalid command '{cmd}'");
                 return;
             }
-            if (command.Admin && !player.IsAdmin)
+            if (command.Admin && !(player.Character?.Admin ?? false))
             {
                 player.RemoteClient.OnConsoleMessage($"Permission denied.");
                 return;

@@ -14,12 +14,12 @@ namespace LibreLancer.Server.ConsoleCommands
                     player.RemoteClient.OnConsoleMessage($"Player {target} is not online");
                 }
                 else {
-                    targetPlayer.Character.UpdateCredits(player.Character.Credits + credits);
+                    targetPlayer.AddCash(credits);
                     targetPlayer.UpdateCurrentInventory();
                     player.RemoteClient.OnConsoleMessage($"Added {credits} credits to {target}");
                 }
             } else if (ConsoleCommands.ParseString(args, out credits)) {
-                player.Character.UpdateCredits(player.Character.Credits + credits);
+                player.AddCash(credits);
                 player.UpdateCurrentInventory();
                 player.RemoteClient.OnConsoleMessage($"Added {credits} credits to {player.Name}");
             }

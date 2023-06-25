@@ -19,6 +19,10 @@ namespace LibreLancer.Entities.Character
         }
 
         public string Name { get; set; }
+        
+        // Is this an admin character?
+        
+        public bool IsAdmin { get; set; }
 
         public uint Rank { get; set; }
 

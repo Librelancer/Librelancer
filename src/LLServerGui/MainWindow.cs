@@ -144,9 +144,11 @@ public class MainWindow : Game
 
     bool ServerReady() => server.Server?.Listener?.Server?.IsRunning ?? false;
 
-    private BannedPlayerDescription[] BannedPlayers;
+    private BannedPlayerDescription[] bannedPlayers;
+    private AdminCharacterDescription[] admins;
     private Guid? banId;
     private string banSearchString;
+    private string adminSearchString;
 
     bool BeginModalWithClose(string id, ImGuiWindowFlags? flags = null)
     {
@@ -168,6 +170,37 @@ public class MainWindow : Game
         }
         if (ServerReady())
         {
+            ImGui.SetNextWindowSize(new Vector2(400, 400) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+            if (BeginModalWithClose("Admins"))
+            {
+                InputTextLabel("Character: ", "##character", ref adminSearchString);
+                ImGui.SameLine();
+                if (ImGui.Button("Make Admin"))
+                {
+                    var adminId = server.Server.Database.FindCharacter(adminSearchString);
+                    if (adminId != null)
+                    {
+                        FLLog.Info("Server", $"Making {adminId.Value} admin");
+                        server.Server.Database.AdminCharacter(adminId.Value).Wait();
+                        server.Server.AdminChanged(adminId.Value, true);
+                        admins = server.Server.Database.GetAdmins();
+                        adminSearchString = "";
+                    }
+                }
+                foreach (var a in admins)
+                {
+                    ImGui.Separator();
+                    ImGui.TextUnformatted(a.Name);
+                    if (ImGui.Button("Remove Admin##" + a.Id))
+                    {
+                        FLLog.Info("Server", $"Removing admin from {a.Name}");
+                        server.Server.Database.DeadminCharacter(a.Id).Wait();
+                        server.Server.AdminChanged(a.Id, false);
+                        admins = server.Server.Database.GetAdmins();
+                    }
+                }
+                ImGui.EndPopup();
+            }
             if (BeginModalWithClose("Ban", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 InputTextLabel("Character: ", "##character", ref banSearchString);
@@ -189,14 +222,14 @@ public class MainWindow : Game
             ImGui.SetNextWindowSize(new Vector2(400, 400) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
             if (BeginModalWithClose("Unban"))
             {
-                if(BannedPlayers.Length == 0)
+                if(bannedPlayers.Length == 0)
                     ImGui.Text("There are no banned players");
                 ImGui.BeginChild("##banned");
-                foreach (var b in BannedPlayers)
+                foreach (var b in bannedPlayers)
                 {
                     ImGui.TextUnformatted($"Id: {b.AccountId}");
                     ImGui.SameLine();
-                    if (ImGui.Button("Unban"))
+                    if (ImGui.Button("Unban##" + b.AccountId))
                     {
                         server.Server.Database.UnbanAccount(b.AccountId);
                         FLLog.Info("Server", $"Unbanned account {b.AccountId}");
@@ -219,8 +252,15 @@ public class MainWindow : Game
             ImGui.SameLine();
             if (ImGui.Button("Unban Player"))
             {
-                BannedPlayers = server.Server.Database.GetBannedPlayers();
+                bannedPlayers = server.Server.Database.GetBannedPlayers();
                 ImGui.OpenPopup("Unban");
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Admins"))
+            {
+                admins = server.Server.Database.GetAdmins();
+                adminSearchString = "";
+                ImGui.OpenPopup("Admins");
             }
             ImGui.SameLine();
             if (ImGui.Button("Stop"))

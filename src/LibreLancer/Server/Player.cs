@@ -28,7 +28,6 @@ namespace LibreLancer.Server
         //ID
         public int ID = 0;
         private static int _gid = 0;
-        public bool IsAdmin;
         //Reference
         public IPacketClient Client;
         public NetHpidReader HpidReader = new NetHpidReader();
@@ -213,47 +212,44 @@ namespace LibreLancer.Server
                 FLLog.Error("Player", $"{Name} has no hp available to mount {slot.Equipment.Nickname} ({slot.Equipment.HpType})");
                 return Task.FromResult(false);
             }
-            slot.Hardpoint = hp;
-            Character.ItemModified(slot);
+            using (var c = Character.BeginTransaction())
+            {
+                slot.Hardpoint = hp;
+                c.CargoModified();
+            }
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
             return Task.FromResult(true);
         }
 
         public void OpenSaveGame(SaveGame sg)
         {
-            IsAdmin = true;
             Orientation = Quaternion.Identity;
             Position = sg.Player.Position;
             Base = sg.Player.Base;
             System = sg.Player.System;
             Character = new NetCharacter();
-            Character.UpdateCredits(sg.Player.Money);
-            Character.Ship = Game.GameData.Ships.Get(sg.Player.ShipArchetype);
-            Character.Items = new List<NetCargo>();
-            foreach (var eq in sg.Player.Equip)
+            Character.Admin = true;
+            using (var c = Character.BeginTransaction())
             {
-                var hp = eq.Hardpoint;
-                if (string.IsNullOrEmpty(hp)) hp = "internal";
-                Equipment equip = Game.GameData.Equipment.Get(eq.Item);
-                if (equip != null)
+                c.UpdateCredits(sg.Player.Money);
+                c.UpdateShip(Game.GameData.Ships.Get(sg.Player.ShipArchetype));
+                foreach (var eq in sg.Player.Equip)
                 {
-                    Character.Items.Add(new NetCargo()
-                    {
-                        Equipment = equip, Hardpoint = hp, Health = 1, Count = 1
-                    });
+                    var hp = eq.Hardpoint;
+                    if (string.IsNullOrEmpty(hp)) hp = "internal";
+                    Equipment equip = Game.GameData.Equipment.Get(eq.Item);
+                    if (equip != null)
+                        c.AddCargo(equip, hp, 1);
+                }
+                foreach (var cg in sg.Player.Cargo)
+                {
+                    Equipment equip = Game.GameData.Equipment.Get(cg.Item);
+                    if (equip != null)
+                        c.AddCargo(equip, null, cg.Count);
                 }
             }
-            foreach (var cg in sg.Player.Cargo)
-            {
-                Equipment equip = Game.GameData.Equipment.Get(cg.Item);
-                if (equip != null)
-                {
-                    Character.Items.Add(new NetCargo()
-                    {
-                        Equipment = equip, Count = cg.Count
-                    });
-                }
-            }
+            
+            
             foreach (var rep in RepFromSave(sg))
             {
                 Character.Reputation.Reputations[rep.fac] = rep.rep;
@@ -271,6 +267,15 @@ namespace LibreLancer.Server
                 SpaceInitialSpawn(sg);
             }
             
+        }
+        
+        public void AddCash(long credits)
+        {
+            if (Character == null) return;
+            using (var c = Character.BeginTransaction())
+            {
+                c.UpdateCredits(Character.Credits + credits);
+            }
         }
 
         void SpaceInitialSpawn(SaveGame sg)
@@ -334,7 +339,10 @@ namespace LibreLancer.Server
             //load base
             BaseData = Game.GameData.GetBase(Base);
             //update
-            Character.UpdatePosition(Base, System, Position);
+            using (var c = Character.BeginTransaction())
+            {
+                c.UpdatePosition(Base, System, Position);
+            }
             MissionRuntime?.SpaceExit();
             MissionRuntime?.BaseEnter(Base);
             MissionRuntime?.CheckMissionScript();
@@ -375,19 +383,23 @@ namespace LibreLancer.Server
             var cost = (long) (g.Price * (ulong)count);
             if (Character.Credits >= cost)
             {
-                string hp;
-                if (count == 1 && (hp = FirstAvailableHardpoint(g.Good.Equipment.HpType)) != null) {
-                    Character.AddCargo(g.Good.Equipment, hp, 1);
+                string hp = count == 1
+                    ? FirstAvailableHardpoint(g.Good.Equipment.HpType)
+                    : null;
+                if (hp == null &&
+                    GetUsedVolume() + count * g.Good.Equipment.Volume > Character.Ship.HoldSize)
+                {
+                    FLLog.Error("Player", $"{Name} tried to overfill cargo hold");
+                    return Task.FromResult(false);
                 }
-                else {
-                    if (GetUsedVolume() + count * g.Good.Equipment.Volume > Character.Ship.HoldSize)
-                    {
-                        FLLog.Error("Player", $"{Name} tried to overfill cargo hold");
-                        return Task.FromResult(false);
-                    }                    
-                    Character.AddCargo(g.Good.Equipment, null, count);
+                using (var c = Character.BeginTransaction())
+                {
+                    if (hp != null)
+                        c.AddCargo(g.Good.Equipment, hp, 1);
+                    else
+                        c.AddCargo(g.Good.Equipment, null, count);
+                    c.UpdateCredits(Character.Credits - cost);
                 }
-                Character.UpdateCredits(Character.Credits - cost);
                 rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
                 return Task.FromResult(true);
             }
@@ -414,8 +426,11 @@ namespace LibreLancer.Server
             ulong unitPrice = GetUnitPrice(slot.Equipment);
             if (slot.Equipment is not CommodityEquipment)
                 unitPrice = (ulong) (unitPrice * TradeConstants.EQUIP_RESALE_MULTIPLIER);
-            Character.RemoveCargo(slot, count);
-            Character.UpdateCredits(Character.Credits + (long) ((ulong) count * unitPrice));
+            using (var c = Character.BeginTransaction())
+            {
+                c.RemoveCargo(slot, count);
+                c.UpdateCredits(Character.Credits + (long) ((ulong) count * unitPrice));
+            }
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
             return Task.FromResult(true);
         }
@@ -569,45 +584,47 @@ namespace LibreLancer.Server
                 FLLog.Error("Player", $"{Name} tried to overfill new ship hold");
                 return Task.FromResult(ShipPurchaseStatus.Fail);
             }
-            
-            Character.BeginTransaction();
-            //Remove sold items
-            foreach (var item in counts) {
-                var slot = Character.Items.FirstOrDefault(x => x.ID == item.Key);
-                Character.RemoveCargo(slot, slot.Count - item.Value);
-            }
-            //Unmount items and remove items without a good
-            List<NetCargo> toRemove = new List<NetCargo>();
-            foreach (var item in Character.Items) {
-                item.Hardpoint = null;
-                if (item.DbItem != null) item.DbItem.Hardpoint = null;
-                if(item.Equipment.Good == null)
-                    toRemove.Add(item);
-            }
-            foreach(var item in toRemove)
-                Character.RemoveCargo(item, item.Count);
-            //Set Ship
-            Character.SetShip(Game.GameData.Ships.Get(resolved.Ship));
-            //Install new cargo and mount
-            foreach (var item in mountedPlayer)
+
+            using (var c = Character.BeginTransaction())
             {
-                var slot = Character.Items.FirstOrDefault(x => x.ID == item.ID);
-                slot.Hardpoint = item.Hardpoint;
-                if (slot.DbItem != null) slot.DbItem.Hardpoint = item.Hardpoint;
+                //Remove sold items
+                foreach (var item in counts)
+                {
+                    var slot = Character.Items.FirstOrDefault(x => x.ID == item.Key);
+                    c.RemoveCargo(slot, slot.Count - item.Value);
+                }
+                //Unmount items and remove items without a good
+                List<NetCargo> toRemove = new List<NetCargo>();
+                foreach (var item in Character.Items)
+                {
+                    item.Hardpoint = null;
+                    if (item.Equipment.Good == null)
+                        toRemove.Add(item);
+                }
+                foreach (var item in toRemove)
+                    c.RemoveCargo(item, item.Count);
+                //Set Ship
+                c.UpdateShip(Game.GameData.Ships.Get(resolved.Ship));
+                //Install new cargo and mount
+                foreach (var item in mountedPlayer)
+                {
+                    var slot = Character.Items.FirstOrDefault(x => x.ID == item.ID);
+                    slot.Hardpoint = item.Hardpoint;
+                }
+                foreach (var item in mountedPackage)
+                {
+                    var inc = included[item.ID];
+                    c.AddCargo(inc.Equipment, item.Hardpoint, inc.Amount);
+                    included[item.ID] = null;
+                }
+                foreach (var item in included)
+                {
+                    if (item == null) continue;
+                    c.AddCargo(item.Equipment, item.Equipment.Good == null ? item.Hardpoint : null,
+                        item.Amount);
+                }
+                c.UpdateCredits(Character.Credits - shipPrice);
             }
-            foreach (var item in mountedPackage)
-            {
-                var inc = included[item.ID];
-                Character.AddCargo(inc.Equipment, item.Hardpoint, inc.Amount);
-                included[item.ID] = null;
-            }
-            foreach (var item in included)
-            {
-                if (item == null) continue;
-                Character.AddCargo(item.Equipment, item.Equipment.Good == null ? item.Hardpoint : null, item.Amount);
-            }
-            Character.UpdateCredits(Character.Credits - shipPrice);
-            Character.ApplyTransaction();
             
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
             //Success
@@ -831,7 +848,6 @@ namespace LibreLancer.Server
                     return Task.FromResult(false);
                 }
                 Character = NetCharacter.FromDb(sc.Id, Game);
-                IsAdmin = Game.AdminCharacters.Contains(Character.Name);
                 Name = Character.Name;
                 rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
                 UpdateCurrentReputations();
@@ -1015,16 +1031,20 @@ namespace LibreLancer.Server
 
         public void OnSPSave()
         {
-            Character?.UpdatePosition(Base, System, Position);
+            if (Character != null)
+            {
+                using var c = Character.BeginTransaction();
+                c.UpdatePosition(Base, System, Position);
+            }
         }
 
         void LoggedOut()
         {
             if (Character != null)
             {
-                Character.UpdatePosition(Base, System, Position);
+                using var c = Character.BeginTransaction();
+                c.UpdatePosition(Base, System, Position);
                 World?.RemovePlayer(this);
-                Character?.Dispose();
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
                     player.RemoteClient.OnPlayerLeave(ID, Name);
                 Game.CharactersInUse.Remove(Character.ID);

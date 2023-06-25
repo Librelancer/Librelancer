@@ -13,5 +13,6 @@ class modal : modal_Designer with Modal
 
         e.close.OnClick(() => this.Close('cancel'));
         e.ok_ok.OnClick(() => this.Close('ok'));
+		this.Widget.OnEscape(() => this.Close('cancel'));
     }
 }

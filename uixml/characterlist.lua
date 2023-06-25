@@ -9,6 +9,7 @@ class characterlist : characterlist_Designer
         e.newchar.OnClick(() => Game.RequestNewCharacter());
         e.loadchar.OnClick(() => Game.LoadCharacter());
         e.deletechar.OnClick(() => Game.DeleteCharacter());
+		this.Widget.OnEscape(() => this.GoBack());
         e.serverlist.OnClick(() => this.ExitAnimation(() => {
             Game.StopNetworking();
             OpenScene("serverlist");
@@ -21,6 +22,14 @@ class characterlist : characterlist_Designer
     
     //TODO: Animate out
     ExitAnimation(f) => f();
+
+	GoBack()
+	{
+		this.ExitAnimation(() => {
+            Game.StopNetworking();
+            OpenScene("serverlist");
+        });
+	}
     
     Update()
     {

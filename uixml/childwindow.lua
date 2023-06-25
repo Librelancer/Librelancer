@@ -14,6 +14,7 @@ mixin ChildWindow
         this.BkWidth = this.Elements.background.Width;
         this.BkHeight = this.Elements.background.Height;
         this.Widget.OnUpdate((delta) => this.Update(delta));
+		this.Widget.OnEscape(() => this.Close());
     }
     
     Open(widget)

@@ -16,7 +16,10 @@ class popup : popup_Designer with Modal
             e.ok_ok.Visible = true
             e.accept.Visible = false
             e.decline.Visible = false
-        }
+			this.Widget.OnEscape(() => this.Close('ok'));
+        } else {
+			this.Widget.OnEscape(() => this.Close('decline'));
+		}
         
         if (callback != nil) this.ModalCallback(callback);
         

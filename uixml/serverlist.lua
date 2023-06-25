@@ -5,6 +5,7 @@ class serverlist : serverlist_Designer
 		base();
 		var e = this.Elements;
 		e.mainmenu.OnClick(() => this.Leave());
+		this.Widget.OnEscape(() => this.Leave());
 		e.listtable.OnDoubleClick(() => this.TryConnect());
 		e.refreshlist.OnClick(() => Game.RefreshServers());
 		e.connect.OnClick(() => this.TryConnect());

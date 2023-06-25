@@ -15,25 +15,52 @@ using Microsoft.EntityFrameworkCore;
 namespace LibreLancer.Server
 {
 
-    public class DatabaseCharacter : IDisposable
+    public class DatabaseCharacter
     {
-        public Character Character;
-        private DbContext context;
+        public long Id;
+        private ServerDatabase db;
+        private Character cached;
 
-        internal DatabaseCharacter(Character c, DbContext ctx)
+        internal DatabaseCharacter(Character c, ServerDatabase db)
         {
-            Character = c;
-            context = ctx;
+            Id = c.Id;
+            cached = c;
+            this.db = db;
         }
-        public void ApplyChanges() => context.SaveChanges();
 
-        public void Dispose()
+        public void Update(Action<Character> update)
         {
-            context.Dispose();
+            using (var ctx = db.CreateDbContext())
+            {
+                cached = ctx.Characters
+                    .Include(c => c.Items)
+                    .Include(c => c.Reputations)
+                    .Include(c => c.VisitEntries)
+                    .First(c => c.Id == Id);
+                update(cached);
+                ctx.SaveChanges();
+            }
+        }
+
+        public Character GetCharacter()
+        {
+            if (cached != null)
+                return cached;
+            using (var ctx = db.CreateDbContext())
+            {
+                cached = ctx.Characters
+                    .Include(c => c.Items)
+                    .Include(c => c.Reputations)
+                    .Include(c => c.VisitEntries)
+                    .First(c => c.Id == Id);
+            }
+            return cached;
         }
     }
 
     public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime Expiry);
+
+    public record AdminCharacterDescription(long Id, string Name);
 
     public class ServerDatabase
     {
@@ -43,7 +70,7 @@ namespace LibreLancer.Server
 		    this.server = server;
 		}
 
-        LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext(new string[0]);
+        public LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext(new string[0]);
 
         public async Task BanAccount(Guid playerGuid, DateTime expiryUtc)
         {
@@ -67,6 +94,13 @@ namespace LibreLancer.Server
             }
         }
 
+        public AdminCharacterDescription[] GetAdmins()
+        {
+            using var ctx = CreateDbContext();
+            return ctx.Characters.Where(x => x.IsAdmin).Select(x =>
+                new AdminCharacterDescription(x.Id, x.Name)).ToArray();
+        }
+
         public BannedPlayerDescription[] GetBannedPlayers()
         {
             using (var ctx = CreateDbContext())
@@ -76,9 +110,45 @@ namespace LibreLancer.Server
                     {
                         AccountId = x.AccountIdentifier,
                         BanExpiry = x.BanExpiry,
-                        Characters = x.Characters.Select(x => x.Name).ToArray()
+                        Characters = x.Characters.Select(y => y.Name).ToArray()
                     });
                 return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
+            }
+        }
+
+        public long? FindCharacter(string character)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                var c = ctx.Characters.Select(x => new {x.Id, x.Name}).FirstOrDefault(c => c.Name == character);
+                return c?.Id;
+            }
+        }
+
+        
+        public async Task AdminCharacter(long character)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                var c = ctx.Characters.FirstOrDefault(x => x.Id == character);
+                if (c != null)
+                {
+                    c.IsAdmin = true;
+                    await ctx.SaveChangesAsync();
+                }
+            }
+        }
+        
+        public async Task DeadminCharacter(long character)
+        {
+            using (var ctx = CreateDbContext())
+            {
+                var c = ctx.Characters.FirstOrDefault(x => x.Id == character);
+                if (c != null)
+                {
+                    c.IsAdmin = false;
+                    await ctx.SaveChangesAsync();
+                }
             }
         }
 
@@ -164,7 +234,7 @@ namespace LibreLancer.Server
                     .Include(c => c.Reputations)
                     .Include(c => c.VisitEntries)
                     .First(c => c.Id == id);
-            return new DatabaseCharacter(character, ctx);
+            return new DatabaseCharacter(character, this);
         }
 
         public void AddCharacter(Guid playerGuid, Action<Character> fillCharacter)

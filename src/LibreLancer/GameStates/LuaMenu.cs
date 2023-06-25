@@ -102,11 +102,15 @@ namespace LibreLancer
 
         private void UiKeyDown(KeyEventArgs e)
         {
-            if(!KeyCaptureContext.Capturing(keyCapture))
+            if (!KeyCaptureContext.Capturing(keyCapture))
+            {
+                if (e.Key == Keys.Escape)
+                    ui.OnEscapePressed();
                 ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
+            }
         }
         
-        [WattleScript.Interpreter.WattleScriptUserData]
+        [WattleScriptUserData]
         public class ServerList : ITableData
         {
             public List<LocalServerInfo> Servers = new List<LocalServerInfo>();

@@ -16,6 +16,8 @@ namespace LibreLancer.Server
     public class NetCharacter
     {
         public string Name;
+        
+        public bool Admin;
         public string Base { get; private set; }
         public string System { get; private set; }
         public Vector3 Position { get; private set; }
@@ -23,94 +25,163 @@ namespace LibreLancer.Server
 
         public ReputationCollection Reputation = new ReputationCollection();
         
-
-        public GameData.Ship Ship;
-        public List<NetCargo> Items;
+        public GameData.Ship Ship { get; private set; }
+        public List<NetCargo> Items = new List<NetCargo>();
+        
         private long charId;
         GameDataManager gData;
         private DatabaseCharacter dbChar;
 
         public long ID => charId;
 
-
-        private bool inTransaction = false;
-        void TryApply()
-        {
-            if(!inTransaction)
-                dbChar?.ApplyChanges();
-        }
-
-        public void BeginTransaction()
-        {
-            if (inTransaction) throw new InvalidOperationException("Already making transaction");
-            inTransaction = true;
-        }
-
-        public void ApplyTransaction()
-        {
-            if (!inTransaction) throw new InvalidOperationException("No transaction to apply");
-            dbChar?.ApplyChanges();
-            inTransaction = false;
-        }
+        private int transactionCount;
         
-        public void UpdatePosition(string _base, string sys, Vector3 pos)
+        public CharacterTransaction BeginTransaction()
         {
-            Base = _base;
-            System = sys;
-            Position = pos;
-            if (dbChar != null)
-            {
-                dbChar.Character.Base = _base;
-                dbChar.Character.System = sys;
-                dbChar.Character.X = pos.X;
-                dbChar.Character.Y = pos.Y;
-                dbChar.Character.Z = pos.Z;
-                TryApply();
-            }
+            if (Interlocked.Increment(ref transactionCount) > 1)
+                throw new Exception("CharacterTransaction may only be created once");
+            return new CharacterTransaction(this);
         }
 
-        public void UpdateReputations()
+
+        public class CharacterTransaction : IDisposable
         {
-            if (dbChar != null)
+            private NetCharacter nc;
+            private bool cargoDirty = false;
+
+            internal CharacterTransaction(NetCharacter n) => nc = n;
+            
+            public void UpdatePosition(string _base, string sys, Vector3 pos)
             {
-                foreach (var rep in Reputation.Reputations)
+                nc.Base = _base;
+                nc.System = sys;
+                nc.Position = pos;
+            }
+
+            public void UpdateCredits(long credits)
+            {
+                nc.Credits = credits;
+            }
+            
+            public void UpdateShip(GameData.Ship ship)
+            {
+                nc.Ship = ship;
+            }
+
+            private List<long> cargoToDelete = new List<long>();
+
+            public void CargoModified() => cargoDirty = true;
+            
+            public void AddCargo(GameData.Items.Equipment equip, string hardpoint, int count)
+            {
+                cargoDirty = true;
+                if (equip.Good?.Ini.Combinable ?? false) 
                 {
-                    var dbRep = dbChar.Character.Reputations.FirstOrDefault(x =>
-                        x.RepGroup.Equals(rep.Key.Nickname, StringComparison.OrdinalIgnoreCase));
-                    if (dbRep != null)
+                    if (!string.IsNullOrEmpty(hardpoint))
                     {
-                        dbRep.ReputationValue = rep.Value;
+                        throw new InvalidOperationException("Tried to mount combinable item");
+                    }
+                    var slot = nc.Items.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
+                    if (slot == null)
+                    {
+                        CargoItem dbItem = null;
+                        nc.Items.Add(new NetCargo() {Equipment = equip, Count = count });
                     }
                     else
                     {
-                        dbChar.Character.Reputations.Add(new Reputation() { RepGroup = rep.Key.Nickname, ReputationValue = rep.Value });
+                        slot.Count += count;
                     }
+                } else {
+                    nc.Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count });
                 }
-                TryApply();
+            }
+            
+            public void ClearAllCargo()
+            {
+                foreach(var item in nc.Items.Where(x => x.DbItemId != 0))
+                    cargoToDelete.Add(item.DbItemId);
+                nc.Items = new List<NetCargo>();
+            }
+            
+            public void RemoveCargo(NetCargo slot, int amount)
+            {
+                cargoDirty = true;
+                slot.Count -= amount;
+                if (slot.Count <= 0)
+                {
+                    nc.Items.Remove(slot);
+                    cargoToDelete.Add(slot.DbItemId);
+                }
+            }
+
+            public void Dispose()
+            {
+                if (Interlocked.Decrement(ref nc.transactionCount) < 0)
+                    throw new Exception("Transaction already committed");
+                var newItems = new List<(NetCargo cargo, CargoItem dbItem)>();
+                nc.dbChar?.Update(c =>
+                {
+                    c.Base = nc.Base;
+                    c.System = nc.System;
+                    c.X = nc.Position.X;
+                    c.Y = nc.Position.Y;
+                    c.Z = nc.Position.Z;
+                    c.Money = nc.Credits;
+                    c.Ship = nc.Ship?.Nickname;
+                    if (cargoDirty)
+                    {
+                        foreach (var item in cargoToDelete)
+                        {
+                            var dbItem = c.Items.FirstOrDefault(x => item == x.Id);
+                            if (dbItem != null) c.Items.Remove(dbItem);
+                        }
+                        foreach (var item in nc.Items) {
+                            var dbItem = item.DbItemId == 0 ? null :
+                                c.Items.FirstOrDefault(x => item.DbItemId == x.Id);
+                            //Add new items
+                            if (dbItem == null) {
+                                dbItem = new CargoItem();
+                                newItems.Add((item, dbItem));
+                                c.Items.Add(dbItem);
+                            }
+                            //Update existing
+                            dbItem.ItemName = item.Equipment?.Nickname;
+                            dbItem.ItemCount = item.Count;
+                            dbItem.Hardpoint = item.Hardpoint;
+                            dbItem.Health = item.Health;
+                        }
+                    }
+                });
+                //Set the autogenerated ids up
+                foreach (var i in newItems) {
+                    i.cargo.DbItemId = i.dbItem.Id;
+                }
             }
         }
-        
+
         public static NetCharacter FromDb(long id, GameServer game)
         {
             var db = game.Database.GetCharacter(id);
             var nc = new NetCharacter();
+            var c = db.GetCharacter();
+            nc.Admin = c.IsAdmin;
             nc.Reputation = new ReputationCollection();
-            foreach (var rep in db.Character.Reputations)
+            foreach (var rep in c.Reputations)
             {
                 var f = game.GameData.GetFaction(rep.RepGroup);
                 if (f != null) nc.Reputation.Reputations[f] = rep.ReputationValue;
             }
-            nc.Name = db.Character.Name;
+            nc.Name = c.Name;
             nc.gData = game.GameData;
             nc.dbChar = db;
             nc.charId = id;
-            nc.Base = db.Character.Base;
-            nc.System = db.Character.System;
-            nc.Position = new Vector3(db.Character.X, db.Character.Y, db.Character.Z);
-            nc.Ship = game.GameData.Ships.Get(db.Character.Ship);
-            nc.Credits = db.Character.Money;
+            nc.Base = c.Base;
+            nc.System = c.System;
+            nc.Position = new Vector3(c.X, c.Y, c.Z);
+            nc.Ship = game.GameData.Ships.Get(c.Ship);
+            nc.Credits = c.Money;
             nc.Items = new List<NetCargo>();
-            foreach (var cargo in db.Character.Items)
+            foreach (var cargo in c.Items)
             {
                 var resolved = game.GameData.Equipment.Get(cargo.ItemName);
                 if (resolved == null) continue;
@@ -120,95 +191,10 @@ namespace LibreLancer.Server
                     Hardpoint = cargo.Hardpoint,
                     Health = cargo.Health,
                     Equipment = resolved, 
-                    DbItem = cargo
+                    DbItemId = cargo.Id
                 });
             }
             return nc;
-        }
-
-        public void UpdateCredits(long credits)
-        {
-            Credits = credits;
-            if (dbChar != null)
-            {
-                dbChar.Character.Money = credits;
-                TryApply();
-            }
-        }
-
-        public void ItemModified(NetCargo cargo)
-        {
-            if (dbChar != null) {
-                TryApply();
-            }
-        }
-
-        public void AddCargo(GameData.Items.Equipment equip, string hardpoint, int count)
-        {
-            if (equip.Good?.Ini.Combinable ?? false) 
-            {
-                if (!string.IsNullOrEmpty(hardpoint))
-                {
-                    throw new InvalidOperationException("Tried to mount combinable item");
-                }
-                var slot = Items.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
-                if (slot == null)
-                {
-                    CargoItem dbItem = null;
-                    if (dbChar != null) {
-                        dbItem = new CargoItem() {ItemCount = count, ItemName = equip.Nickname};
-                        dbChar.Character.Items.Add(dbItem);
-                        TryApply();
-                    }
-                    Items.Add(new NetCargo() {Equipment = equip, Count = count, DbItem = dbItem});
-                }
-                else
-                {
-                    if (dbChar != null)
-                    {
-                        slot.DbItem.ItemCount += count;
-                        TryApply();
-                    }
-                    slot.Count += count;
-                }
-            } else {
-                CargoItem dbItem = null;
-                if (dbChar != null)
-                {
-                    dbItem = new CargoItem() {ItemCount = count, Hardpoint = hardpoint, ItemName = equip.Nickname};
-                    dbChar.Character.Items.Add(dbItem);
-                    TryApply();
-                }
-                Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count, DbItem = dbItem });
-            }
-        }
-
-        public void SetShip(GameData.Ship ship)
-        {
-            Ship = ship;
-            if (dbChar != null) {
-                dbChar.Character.Ship = ship.Nickname;
-                TryApply();
-            }
-        }
-        
-        public void RemoveCargo(NetCargo slot, int amount)
-        {
-            slot.Count -= amount;
-            if (slot.Count <= 0)
-            {
-                Items.Remove(slot);
-                if (slot.DbItem != null)
-                {
-                    dbChar.Character.Items.Remove(slot.DbItem);
-                    TryApply();
-                }
-            } 
-            else if(slot.DbItem != null)
-            {
-                slot.DbItem.ItemCount = slot.Count;
-                TryApply();
-            }
         }
 
         public NetShipLoadout EncodeLoadout()
@@ -238,16 +224,6 @@ namespace LibreLancer.Server
             selectable.Location = gData.GetBase(Base).System;
             return selectable;
         }
-
-        public void Dispose()
-        {
-            if (dbChar != null)
-            {
-                dbChar.Dispose();
-                dbChar = null;
-            }
-        }
-
     }
 
     public class NetCargo
@@ -266,6 +242,6 @@ namespace LibreLancer.Server
         public string Hardpoint;
         public float Health;
         public int Count;
-        public CargoItem DbItem;
+        public long DbItemId;
     }
 }

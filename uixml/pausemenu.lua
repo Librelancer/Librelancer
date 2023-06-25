@@ -21,6 +21,7 @@ class pausemenu : pausemenu_Designer with Modal
             opt.asmodal();
             SwapModal(this, opt);
         });
+		this.Widget.OnEscape(() => { Game.Resume(); this.Close(); });
         e.resume.OnClick(() => { Game.Resume(); this.Close(); });
         e.quittomenu.OnClick(() => { Game.QuitToMenu(); this.Close(); });
     }

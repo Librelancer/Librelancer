@@ -68,20 +68,8 @@ class options : options_Designer with Modal
 		base();
 		local e = this.Elements
 		this.isModal = false
-		this.Elements.goback.OnClick(() => {
-			this.opts.SfxVolume = e.sfxvol.Value
-			this.opts.MusicVolume = e.musicvol.Value
-			this.opts.MSAA = idx_to_msaa(this.MSAA.vcurrent)
-			this.opts.Anisotropy = idx_to_anisotropy(this.AF.vcurrent)
-			this.keymap.Save();
-			Game.ApplySettings(this.opts)
-			if (this.isModal) {
-				Game.Resume()
-				this.Close()
-			} else {
-				OpenScene("mainmenu")
-			}
-		});
+		this.Elements.goback.OnClick(() => this.do_goback());
+		this.Widget.OnEscape(() => this.do_goback());
 		this.Panels = {
 			{ e.performance, e.win_performance },
 			{ e.audio, e.win_audio },
@@ -132,6 +120,22 @@ class options : options_Designer with Modal
 		e.ctrl_cancel.OnClick(() => this.keymap.ResetBindings())
 	}
 
+	do_goback()
+	{
+		local e = this.Elements
+		this.opts.SfxVolume = e.sfxvol.Value
+		this.opts.MusicVolume = e.musicvol.Value
+		this.opts.MSAA = idx_to_msaa(this.MSAA.vcurrent)
+		this.opts.Anisotropy = idx_to_anisotropy(this.AF.vcurrent)
+		this.keymap.Save();
+		Game.ApplySettings(this.opts)
+		if (this.isModal) {
+			Game.Resume()
+			this.Close()
+		} else {
+			OpenScene("mainmenu")
+		}
+	}
 	asmodal()
 	{
 		this.ModalInit()

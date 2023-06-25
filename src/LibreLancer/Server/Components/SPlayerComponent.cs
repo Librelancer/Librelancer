@@ -248,7 +248,8 @@ namespace LibreLancer.Server.Components
                     Player.RemoteClient.DeleteSlot(slot.ID);
                 else
                     Player.RemoteClient.UpdateSlotCount(slot.ID, slot.Count - 1);
-                Player.Character.RemoveCargo(slot, 1);
+                using var t = Player.Character.BeginTransaction();
+                t.RemoveCargo(slot, 1);
                 return true;
             }
             return false;

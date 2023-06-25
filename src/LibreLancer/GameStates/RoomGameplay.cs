@@ -460,6 +460,10 @@ namespace LibreLancer
 			{
 				ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
 			}
+            else if (e.Key == Keys.Escape && ui.WantsEscape())
+            {
+                ui.OnEscapePressed();
+            }
 			else
 			{
                 if (e.Key == Keys.Escape && !paused)

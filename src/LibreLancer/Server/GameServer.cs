@@ -34,10 +34,6 @@ namespace LibreLancer.Server
         
         public BaselinePrice[] BaselineGoodPrices;
 
-        //TODO: This should be set in the database, not as a config string
-        public List<string> AdminCharacters = new List<string>();
-
-
         volatile bool running = false;
 
         public GameListener Listener;
@@ -125,6 +121,18 @@ namespace LibreLancer.Server
         {
             running = false;
             gameThread.Join();
+        }
+
+        public void AdminChanged(long id, bool isAdmin)
+        {
+            foreach (var p in GetPlayers())
+            {
+                if (p.Character?.ID == id)
+                {
+                    p.Character.Admin = isAdmin;
+                    break;
+                }
+            }
         }
         
         

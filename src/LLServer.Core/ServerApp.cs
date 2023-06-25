@@ -44,8 +44,6 @@ public class ServerApp
         Server.ServerDescription = Config.ServerDescription;
         Server.LoginUrl = Config.LoginUrl;
         Server.Listener.Port = Config.Port > 0 ? Config.Port : LNetConst.DEFAULT_PORT;
-        if (Config.Admins != null)
-            Server.AdminCharacters = Config.Admins.ToList();
         Server.Start();
         return true;
     }
