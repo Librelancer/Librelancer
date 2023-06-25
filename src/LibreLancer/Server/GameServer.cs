@@ -33,6 +33,7 @@ namespace LibreLancer.Server
         public ServerDatabase Database;
         public ResourceManager Resources;
         public WorldProvider Worlds;
+        public ServerPerformance PerformanceStats;
 
         public BaselinePrice[] BaselineGoodPrices;
 
@@ -245,6 +246,7 @@ namespace LibreLancer.Server
 
             processingLoop.TimeStep = worlds.Count > 0 ? RATE_60 : RATE_30;
             var updateDuration = serverTiming.Elapsed - startTime;
+            PerformanceStats?.AddEntry((float)updateDuration.TotalMilliseconds);
             if (updateDuration > RATE_60)
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");

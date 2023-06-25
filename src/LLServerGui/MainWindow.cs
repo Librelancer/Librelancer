@@ -45,16 +45,12 @@ public class MainWindow : Game
     }
 
     private bool isRunning = false;
-    private RenderTarget2D lastFrame;
 
     protected override void Draw(double elapsed)
     {
         if(!guiRender.DoRender(elapsed))
         {
-            if(Width !=0 && Height != 0 && lastFrame != null)
-                lastFrame.BlitToScreen();
-            WaitForEvent(); //Yield like a regular GUI program
-            return;
+            WaitForEvent(500); //Yield like a regular GUI program (0.5s)
         }
         guiRender.NewFrame(elapsed);
         RenderContext.ReplaceViewport(0, 0, Width, Height);
@@ -78,22 +74,9 @@ public class MainWindow : Game
             StartupGui();
         ImGui.End();
         ImGui.PopFont();
-        if (Width != 0 && Height != 0)
-        {
-            if (lastFrame == null ||
-                lastFrame.Width != Width ||
-                lastFrame.Height != Height)
-            {
-                if (lastFrame != null) lastFrame.Dispose();
-                lastFrame = new RenderTarget2D(Width, Height);
-            }
-            RenderContext.RenderTarget = lastFrame;
-            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderContext.ClearAll();
-            guiRender.Render(RenderContext);
-            RenderContext.RenderTarget = null;
-            lastFrame.BlitToScreen();
-        }
+        RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+        RenderContext.ClearAll();
+        guiRender.Render(RenderContext);
     }
 
     private ServerConfig config;
@@ -122,7 +105,9 @@ public class MainWindow : Game
                 server = new ServerApp(config);
                 if (!server.StartServer()) {
                     QueueUIThread(() => startupError = true);
-                } else {
+                } else
+                {
+                    server.Server.PerformanceStats = new ServerPerformance(this);
                     File.WriteAllText(configPath, JSON.Serialize(config));
                 }
             });
@@ -158,7 +143,7 @@ public class MainWindow : Game
         return ImGui.BeginPopupModal(id, ref x);
     }
 
-    void RunningServer()
+    unsafe void RunningServer()
     {
         if (startupError)
         {
@@ -273,6 +258,23 @@ public class MainWindow : Game
             ImGui.TextUnformatted($"Server Running on Port {server.Server.Listener.Port}");
             ImGui.TextUnformatted(
                 $"Players Connected: {server.Server.Listener.Server.ConnectedPeersCount}/{server.Server.Listener.MaxConnections}");
+            float* values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
+            var len = server.Server.PerformanceStats.Timings.Count;
+            double avg = 0;
+            double max = 0;
+            double min = double.MaxValue;
+            for (int i = 0; i < len; i++)
+            {
+                var v = server.Server.PerformanceStats.Timings[i];
+                max = Math.Max(max, v);
+                min = Math.Min(min, v);
+                values[i] = v;
+                avg += v;
+            }
+            avg /= len;
+            ImGui.TextUnformatted($"Update Time: (Avg: {avg:F4}ms/Min: {min:F4}ms/Max: {max:F4}ms)");
+            ImGui.PlotLines("##updatetime", ref values[0], len, 0, "", 0, (float)Math.Max(max, 17),
+                new Vector2(400, 150));
         }
         log.Draw();
     }

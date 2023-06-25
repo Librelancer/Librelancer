@@ -344,9 +344,11 @@ namespace LibreLancer
         }
         
         private bool waitForEvent = false;
-        public void WaitForEvent()
+        private int waitTimeout = 2000;
+        public void WaitForEvent(int timeout = 2000)
         {
             waitForEvent = true;
+            waitTimeout = timeout;
         }
 
         public void InterruptWait()
@@ -602,7 +604,7 @@ namespace LibreLancer
                 if (waitForEvent)
                 {                    
                     waitForEvent = false;
-                    if (SDL.SDL_WaitEventTimeout(out e, 2000) != 0)
+                    if (SDL.SDL_WaitEventTimeout(out e, waitTimeout) != 0)
                     {
                         eventWaited = true;
                     }
