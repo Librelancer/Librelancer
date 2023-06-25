@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Client.Components;
 using LibreLancer.GameData.Items;
 
 namespace LibreLancer.World.Components
@@ -26,12 +27,24 @@ namespace LibreLancer.World.Components
 
         protected override void OnFire(Vector3 point, GameObject target)
         {
+            CurrentCooldown = Object.Def.RefireDelay;
+            if (Parent.Parent.TryGetComponent<PowerCoreComponent>(out var powercore))
+            {
+                if (powercore.CurrentEnergy < Object.Def.PowerUsage)
+                    return;
+                powercore.CurrentEnergy -= Object.Def.PowerUsage;
+            }
             if (projectiles == null)
             {
                 hpfires = Parent.GetHardpoints()
                     .Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
                 projectiles = Parent.GetWorld().Projectiles;
                 toSpawn = projectiles.GetData(Object);
+            }
+
+            if (Parent.TryGetComponent<CMuzzleFlashComponent>(out var muzzleFlash))
+            {
+                muzzleFlash.OnFired();
             }
 
             var tr = (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
@@ -49,7 +62,6 @@ namespace LibreLancer.World.Components
                     projectiles.QueueProjectile(Parent.Parent.NetID, Object, hp, pos, heading);
                 }
             }
-            CurrentCooldown = Object.Def.RefireDelay;
         }
     }
 }

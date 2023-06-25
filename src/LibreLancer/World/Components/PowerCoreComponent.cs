@@ -10,10 +10,18 @@ namespace LibreLancer.World.Components
     {
         public PowerCore Equip;
         public float CurrentThrustCapacity;
+        public float CurrentEnergy;
 		public PowerCoreComponent(PowerCore equip, GameObject parent) : base(parent)
         {
             this.Equip = equip;
             CurrentThrustCapacity = Equip.ThrustCapacity;
+            CurrentEnergy = Equip.Capacity;
         }
-	}
+
+        public override void Update(double time)
+        {
+            CurrentEnergy += (float) (time * Equip.ChargeRate);
+            CurrentEnergy = MathHelper.Clamp(CurrentEnergy, 0, Equip.Capacity);
+        }
+    }
 }

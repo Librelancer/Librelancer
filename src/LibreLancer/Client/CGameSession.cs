@@ -399,7 +399,7 @@ namespace LibreLancer.Client
             if (hp != null)
             {
                 hp.CurrentHealth = state.Health;
-                var sh = gp.player.GetChildComponents<CShieldComponent>().FirstOrDefault();
+                var sh = gp.player.GetFirstChildComponent<CShieldComponent>();
                 sh?.SetShieldHealth(state.Shield);
             }
             if(gp?.player != null && resync)
@@ -496,6 +496,10 @@ namespace LibreLancer.Client
                     var x = Game.GameData.Equipment.Get(p.Gun) as GunEquipment;
                     var projdata = gp.world.Projectiles.GetData(x);
                     gp.world.Projectiles.SpawnProjectile(objects[p.Owner], p.Hardpoint, projdata, p.Start, p.Heading);
+                    var o = objects[p.Owner].Children.FirstOrDefault(go =>
+                        p.Hardpoint.Equals(go.Attachment?.Name));
+                    if(o?.TryGetComponent<CMuzzleFlashComponent>(out var mz) ?? false)
+                        mz.OnFired();
                 }
             });
         }
@@ -979,7 +983,7 @@ namespace LibreLancer.Client
             {
                 health.CurrentHealth = update.HullValue;
             }
-            var sh = obj.GetChildComponents<CShieldComponent>().FirstOrDefault();
+            var sh = obj.GetFirstChildComponent<CShieldComponent>();
             if (sh != null) {
                 sh.SetShieldHealth(update.ShieldValue);
             }

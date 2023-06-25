@@ -14,7 +14,7 @@ using LibreLancer.World;
 
 namespace LibreLancer.Client.Components
 {
-	public class CEngineComponent : SEngineComponent
+	public class  CEngineComponent : SEngineComponent
 	{
         List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
         private AttachedSound rumble;
@@ -142,7 +142,7 @@ namespace LibreLancer.Client.Components
             }
 
             for (int i = 0; i < fireFx.Count; i++)
-                fireFx[i].SParam = Speed;
+                fireFx[i].SParam = MathHelper.Clamp(Speed, 0, 1);
         }
 		public override void Register(Physics.PhysicsWorld physics)
         {

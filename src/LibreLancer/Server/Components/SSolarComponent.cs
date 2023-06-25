@@ -15,7 +15,7 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time)
         {
-            var shield = Parent.GetChildComponents<SShieldComponent>().FirstOrDefault();
+            var shield = Parent.GetFirstChildComponent<SShieldComponent>();
             if (shield != null)
             {
                 if (shield.Health < shield.Equip.Def.MaxCapacity) {

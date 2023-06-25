@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Client.Components;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -13,6 +14,7 @@ namespace LibreLancer.GameData.Items
     {
         public Data.Equipment.Gun Def;
         public MunitionEquip Munition;
+        public ResolvedFx FlashEffect;
 
         static GunEquipment() => EquipmentObjectManager.RegisterType<GunEquipment>(AddEquipment);
         static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
@@ -22,6 +24,9 @@ namespace LibreLancer.GameData.Items
             if(type != EquipmentType.RemoteObject &&
                type != EquipmentType.Cutscene)
                 child.Components.Add(new GunComponent(child, gn));
+            if(type == EquipmentType.LocalPlayer ||
+               type == EquipmentType.RemoteObject)
+                child.Components.Add(new CMuzzleFlashComponent(child, gn));
             if (snd != null)
             {
                 snd.LoadSound(gn.Munition.Def.OneShotSound);

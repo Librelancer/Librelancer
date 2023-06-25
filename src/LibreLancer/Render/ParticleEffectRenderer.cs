@@ -23,6 +23,12 @@ namespace LibreLancer.Render
             if (effect == null) return;
 			fx = new ParticleEffectInstance(effect);
 		}
+
+        public void Restart()
+        {
+            fx.Reset(false);
+        }
+        
         Vector3 cameraPos;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {

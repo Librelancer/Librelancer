@@ -410,7 +410,7 @@ namespace LibreLancer
         private bool didLaunch = false;
         public void Launch()
         {
-            if (!string.IsNullOrEmpty(currentRoom.LaunchScript.ResolvedPath))
+            if (!string.IsNullOrEmpty(currentRoom.LaunchScript?.ResolvedPath))
             {
                 RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.ResolvedPath), ScriptState.Launch);
             }

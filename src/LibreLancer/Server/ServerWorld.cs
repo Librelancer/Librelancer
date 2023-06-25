@@ -529,7 +529,7 @@ namespace LibreLancer.Server
                 List<ObjectUpdate> ps = new List<ObjectUpdate>();
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
                 var phealth = phealthcomponent.CurrentHealth;
-                var pshieldComponent = player.Value.GetChildComponents<SShieldComponent>().FirstOrDefault();
+                var pshieldComponent = player.Value.GetFirstChildComponent<SShieldComponent>();
                 float pshield = 0;
                 if (pshieldComponent != null)
                     pshield = pshieldComponent.Health;
@@ -594,7 +594,7 @@ namespace LibreLancer.Server
                     if (obj.TryGetComponent<SHealthComponent>(out var health))
                     {
                         update.HullValue = (long)health.CurrentHealth;
-                        var sh = obj.GetChildComponents<SShieldComponent>().FirstOrDefault();
+                        var sh = obj.GetFirstChildComponent<SShieldComponent>();
                         if (sh != null)
                         {
                             update.ShieldValue = (long)sh.Health;

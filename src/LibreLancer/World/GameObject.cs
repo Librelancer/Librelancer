@@ -445,6 +445,16 @@ namespace LibreLancer.World
 			return null;
 		}
 
+        public T GetFirstChildComponent<T>() where T : GameComponent
+        {
+            for (int i = 0; i < Children.Count; i++)
+            {
+                var c = Children[i].GetComponent<T>();
+                if (c != null) return c;
+            }
+            return null;
+        }
+
 		public IEnumerable<T> GetChildComponents<T>() where T : GameComponent
 		{
 			for (int i = 0; i < Children.Count; i++)

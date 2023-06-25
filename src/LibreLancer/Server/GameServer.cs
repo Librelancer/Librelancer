@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -26,29 +27,31 @@ namespace LibreLancer.Server
         public string ServerDescription = "Description of the server is here.";
         public string ServerNews = "News of the server goes here";
         public string LoginUrl = null;
-        
+
         public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory;
         public GameDataManager GameData;
         public ServerDatabase Database;
         public ResourceManager Resources;
-        
+        public WorldProvider Worlds;
+
         public BaselinePrice[] BaselineGoodPrices;
 
         volatile bool running = false;
 
         public GameListener Listener;
         private Thread gameThread;
-        
+
         public List<Player> ConnectedPlayers = new List<Player>();
         public Player LocalPlayer;
 
         public ConcurrentHashSet<long> CharactersInUse = new ConcurrentHashSet<long>();
 
         private bool needLoadData = true;
+
         public GameServer(string fldir)
         {
             Resources = new ServerResourceManager();
-            GameData = new GameDataManager(fldir, Resources);	
+            GameData = new GameDataManager(fldir, Resources);
             Listener = new GameListener(this);
         }
 
@@ -68,9 +71,10 @@ namespace LibreLancer.Server
                 x.Nickname.Equals(fac.Package, StringComparison.OrdinalIgnoreCase));
             //TODO: initial_rep = %%FACTION%%
             //does this have any effect in FL?
-            
-            var src = new StringBuilder(Encoding.UTF8.GetString(FlCodec.ReadFile(GameData.VFS.Resolve("EXE\\mpnewcharacter.fl"))));
-            
+
+            var src = new StringBuilder(
+                Encoding.UTF8.GetString(FlCodec.ReadFile(GameData.VFS.Resolve("EXE\\mpnewcharacter.fl"))));
+
             src.Replace("%%NAME%%", SavePlayer.EncodeName(name));
             src.Replace("%%BASE_COSTUME%%", pilot.Body);
             src.Replace("%%COMM_COSTUME%%", pilot.Comm);
@@ -95,6 +99,7 @@ namespace LibreLancer.Server
                     Hardpoint = x.Hardpoint ?? ""
                 }.ToString());
             }
+
             foreach (var x in loadout.Cargo)
             {
                 pkgStr.AppendLine(new PlayerCargo()
@@ -103,12 +108,13 @@ namespace LibreLancer.Server
                     Count = x.Count
                 }.ToString());
             }
+
             //append
             src.Replace("%%PACKAGE%%", pkgStr.ToString());
             var initext = src.ToString();
             return SaveGame.FromString($"mpnewcharacter: {fac.Nickname}", initext);
         }
-        
+
         public void Start()
         {
             running = true;
@@ -134,34 +140,24 @@ namespace LibreLancer.Server
                 }
             }
         }
-        
-        
+
+
         Dictionary<StarSystem, ServerWorld> worlds = new Dictionary<StarSystem, ServerWorld>();
-        List<StarSystem> availableWorlds = new List<StarSystem>();
         ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
         ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
-        
+
         public void OnLocalPacket(IPacket pkt)
         {
             localPackets.Enqueue(pkt);
         }
-        public void RequestWorld(StarSystem system, Action<ServerWorld> spunUp)
+
+        public void WorldReady(ServerWorld world)
         {
-            lock(availableWorlds)
-            {
-                if (availableWorlds.Contains(system)) { spunUp(worlds[system]); return; }
-            }
             worldRequests.Enqueue(() =>
             {
-                var world = new ServerWorld(system, this);
-                var sysName = this.GameData.GetString(system.IdsName);
-                FLLog.Info("Server", "Spun up " + system.Nickname + " (" + sysName + ")");
-                worlds.Add(system, world);
-                lock (availableWorlds)
-                {
-                    availableWorlds.Add(system);
-                }
-                spunUp(world);
+                var sysName = this.GameData.GetString(world.System.IdsName);
+                FLLog.Info("Server", "Spun up " + world.System.Nickname + " (" + sysName + ")");
+                worlds.Add(world.System, world);
             });
         }
 
@@ -173,9 +169,10 @@ namespace LibreLancer.Server
                 bp.Add(new BaselinePrice()
                 {
                     GoodCRC = CrcTool.FLModelCrc(good.Ini.Nickname),
-                    Price = (ulong)good.Ini.Price
+                    Price = (ulong) good.Ini.Price
                 });
             }
+
             BaselineGoodPrices = bp.ToArray();
         }
 
@@ -184,7 +181,7 @@ namespace LibreLancer.Server
             var s = source.System;
             foreach (var p in GetPlayers())
             {
-                if(p.System.Equals(s, StringComparison.OrdinalIgnoreCase))
+                if (p.System.Equals(s, StringComparison.OrdinalIgnoreCase))
                     p.RemoteClient.ReceiveChatMessage(ChatCategory.System, source.Name, message);
             }
         }
@@ -201,7 +198,7 @@ namespace LibreLancer.Server
 
         public Player GetConnectedPlayer(string name) =>
             GetPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        
+
 
         private FixedTimestepLoop processingLoop;
 
@@ -213,6 +210,7 @@ namespace LibreLancer.Server
 
         void Process(TimeSpan time, TimeSpan totalTime)
         {
+            var startTime = serverTiming.Elapsed;
             while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
                 LocalPlayer.ProcessPacketDirect(local);
             Action a;
@@ -224,32 +222,38 @@ namespace LibreLancer.Server
                 LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
             }
             ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
-            Parallel.ForEach(worlds, (world) =>
+            foreach (var w in worlds)
             {
-                if(!world.Value.Update(time.TotalSeconds, totalTime.TotalSeconds))
-                    toSpinDown.Add(world.Key);
-            });
+                if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds))
+                    toSpinDown.Add(w.Key);
+            }
             //Remove
             if (toSpinDown.Count > 0)
             {
-                lock (availableWorlds) 
+                foreach (var w in toSpinDown)
                 {
-                    foreach (var w in toSpinDown)
+                    if (worlds[w].PlayerCount <= 0)
                     {
-                        if (worlds[w].PlayerCount <= 0)
-                        {
-                            worlds[w].Finish();
-                            availableWorlds.Remove(w);
-                            worlds.Remove(w);
-                            var wName = GameData.GetString(w.IdsName);
-                            FLLog.Info("Server", $"Shut down world {w.Nickname} ({wName})");
-                        }
+                        Worlds.RemoveWorld(w);
+                        worlds[w].Finish();
+                        worlds.Remove(w);
+                        var wName = GameData.GetString(w.IdsName);
+                        FLLog.Info("Server", $"Shut down world {w.Nickname} ({wName})");
                     }
                 }
             }
+
             processingLoop.TimeStep = worlds.Count > 0 ? RATE_60 : RATE_30;
+            var updateDuration = serverTiming.Elapsed - startTime;
+            if (updateDuration > RATE_60)
+            {
+                FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
+            }
+
             if (!running) processingLoop.Stop();
         }
+
+        private Stopwatch serverTiming;
 
         void GameThread()
         {
@@ -259,6 +263,8 @@ namespace LibreLancer.Server
                 GameData.LoadData(null);
                 FLLog.Info("Server", "Finished Loading Game Data");
             }
+            Worlds = new WorldProvider(this);
+            serverTiming = Stopwatch.StartNew();
             InitBaselinePrices();
             Database = new ServerDatabase(this);
             Listener?.Start();

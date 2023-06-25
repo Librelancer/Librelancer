@@ -281,7 +281,7 @@ namespace LibreLancer.Server
         void SpaceInitialSpawn(SaveGame sg)
         {
             var sys = Game.GameData.GetSystem(System);
-            Game.RequestWorld(sys, (world) =>
+            Game.Worlds.RequestWorld(sys, (world) =>
             {
                 World = world;
                 world.EnqueueAction(() =>
@@ -1087,7 +1087,7 @@ namespace LibreLancer.Server
             if(World != null) World.RemovePlayer(this);
             
             var sys = Game.GameData.GetSystem(system);
-            Game.RequestWorld(sys, (world) =>
+            Game.Worlds.RequestWorld(sys, (world) =>
             {
                 this.World = world;
                 var obj = sys.Objects.FirstOrDefault((o) =>
@@ -1131,7 +1131,7 @@ namespace LibreLancer.Server
             }
             var b = Game.GameData.GetBase(Base);
             var sys = Game.GameData.GetSystem(b.System);
-            Game.RequestWorld(sys, (world) =>
+            Game.Worlds.RequestWorld(sys, (world) =>
             {
                 this.World = world;
                 var obj = sys.Objects.FirstOrDefault((o) =>

@@ -48,7 +48,7 @@ namespace LibreLancer
 				newC = ConsoleColor.Yellow;
 				break;
 			}
-			NonblockWrite(newC, string.Format("[{0}] {1}: {2}", severity, component, message),severity);
+			NonblockWrite(newC, string.Format(" [{0}: {3:HH:mm:ss}] {1}: {2}", severity, component, message, DateTime.Now),severity);
 		}
 
         private static object spewLock = new object();

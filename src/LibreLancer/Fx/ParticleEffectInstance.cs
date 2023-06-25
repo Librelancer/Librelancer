@@ -91,10 +91,10 @@ namespace LibreLancer.Fx
             
         }
         
-        public void Reset()
+        public void Reset(bool killParticles = true)
         {
             globaltime = 0;
-            Pool.KillAll(this);
+            if(killParticles) Pool.KillAll(this);
             for (int i = 0; i < SpawnTimers.Length; i++) SpawnTimers[i] = 0;
             for (int i = 0; i < ParticleCounts.Length; i++) ParticleCounts[i] = 0;
         }

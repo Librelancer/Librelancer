@@ -29,7 +29,7 @@ namespace LibreLancer.Client.Components
         public CShieldComponent(ShieldEquipment equip, GameObject parent) : base(parent)
         {
             this.equip = equip;
-            
+            this.Health = equip.Def.MaxCapacity;
         }
 
         public void SetShieldHealth(float value, Action<ShieldUpdate> callback = null)

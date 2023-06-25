@@ -446,7 +446,7 @@ World Time: {12:F2}
             {
                 if (g.selection.Selected == null) return -1;
                 CShieldComponent shield;
-                if ((shield = g.selection.Selected.GetChildComponents<CShieldComponent>().FirstOrDefault()) == null) return -1;
+                if ((shield = g.selection.Selected.GetFirstChildComponent<CShieldComponent>()) == null) return -1;
                 return shield.ShieldPercent;
             }
 
@@ -488,10 +488,10 @@ World Time: {12:F2}
 
             public float GetPlayerShield()
             {
-                return g.player.GetChildComponents<CShieldComponent>().FirstOrDefault()?.ShieldPercent ?? -1;
+                return g.player.GetFirstChildComponent<CShieldComponent>()?.ShieldPercent ?? -1;
             }
-        
-            public float GetPlayerPower() => 1f;
+
+            public float GetPlayerPower() =>  g.powerCore.CurrentEnergy / g.powerCore.Equip.Capacity;
 
             private string activeManeuver = "FreeFlight";
             public string GetActiveManeuver() => activeManeuver;

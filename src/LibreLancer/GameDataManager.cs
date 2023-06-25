@@ -740,6 +740,7 @@ namespace LibreLancer
                             Munition = mn,
                             Def = gn
                         };
+                        eqp.FlashEffect = GetEffect(gn.FlashParticleName);
                         equip = eqp;
                         equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
                     }
