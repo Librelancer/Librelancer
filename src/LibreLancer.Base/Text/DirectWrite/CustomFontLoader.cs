@@ -56,6 +56,7 @@ namespace LibreLancer.Text.DirectWrite
         FontFileStream FontFileLoader.CreateStreamFromKey(DataPointer fontFileReferenceKey)
         {
             var index = Utilities.Read<int>(fontFileReferenceKey.Pointer);
+            _fontStreams[index].AddReference();
             return _fontStreams[index];
         }
     }
