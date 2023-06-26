@@ -13,6 +13,8 @@ namespace LibreLancer
         [DllImport("kernel32.dll")]
         static extern bool SetDllDirectory(string directory);
 
+        public static string ProjectName = "Librelancer";
+
         static void LogPlatform()
         {
             FLLog.Info("Platform", Platform.OSDescription);
@@ -34,7 +36,7 @@ namespace LibreLancer
         public static void Run(Action action, Action onCrash = null)
         {
             LogPlatform();
-            string errorMessage =  $"Librelancer has crashed. See the log for more information.";
+            string errorMessage =  $"{ProjectName} has crashed. See the log for more information.";
             Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
             if (Platform.RunningOS == OS.Windows)
             {
@@ -42,7 +44,7 @@ namespace LibreLancer
                 var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
                 SetDllDirectory(fullpath);
                 //Setup Spew
-                var spewFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Librelancer");
+                var spewFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ProjectName);
                 if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
                 string spewFilename = Assembly.GetCallingAssembly().GetName().Name + ".log.txt";
                 var spewPath = Path.Combine(spewFolder, spewFilename);
