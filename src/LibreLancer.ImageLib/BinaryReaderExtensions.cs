@@ -10,24 +10,13 @@ namespace LibreLancer
 {
     static class BinaryReaderExtensions
     {
-        static Dictionary<Type, int> sizes = new Dictionary<Type, int>();
-        public static T ReadStruct<T>(this BinaryReader reader) where T : struct
+        public static unsafe T ReadStruct<T>(this BinaryReader reader) where T : unmanaged
         {
-            //cache the sizes since Marshal.SizeOf doesn't
-            var type = typeof(T);
-            if (!sizes.ContainsKey(type))
-            {
-                sizes.Add(type, Marshal.SizeOf(type));
-            }
-            // Read in a byte array
-            byte[] bytes = reader.ReadBytes(sizes[type]);
-
-            // Pin the managed memory while, copy it out the data, then unpin it
-            GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-            T theStructure = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), type);
-            handle.Free();
-
-            return theStructure;
+            T value = new T();
+            Span<byte> bytes = new Span<byte>(&value, sizeof(T));
+            if (reader.Read(bytes) != sizeof(T))
+                throw new EndOfStreamException();
+            return value;
         }
     }
 }
