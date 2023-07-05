@@ -91,6 +91,7 @@ namespace LancerEdit
         bool doFilter = false;
         string currentFilter;
         bool hasVWire = false;
+        bool showWarnings = false;
 
         private RigidModel vmsModel;
         
@@ -270,6 +271,12 @@ namespace LancerEdit
             }
             TabButtons();
             ImGui.BeginChild("##main");
+            var warnings = GetBrokenTextures();
+            if (warnings.Length > 0)
+            {
+                if (ImGuiExt.ToggleButton(Icons.Warning.ToString(), showWarnings)) showWarnings = !showWarnings;
+                ImGui.SameLine();
+            }
             ViewerControls.DropdownButton("View Mode", ref viewMode, viewModes);
             ImGui.SameLine();
             using (var ct = Toolbar.Begin("#controls", true)) {
@@ -281,23 +288,6 @@ namespace LancerEdit
                 ct.CheckItem("Bounds", ref doBounds);
                 ct.CheckItem("Normals", ref drawNormals);
             }
-            /*ImGui.Checkbox("Background", ref doBackground);
-            ImGui.SameLine();
-            if (!(drawable is SphFile)) //Grid too small for planets lol
-            {
-                ImGui.Checkbox("Grid", ref showGrid);
-                ImGui.SameLine();
-            }
-            if (hasVWire)
-            {
-                ImGui.Checkbox("VMeshWire", ref drawVMeshWire);
-                ImGui.SameLine();
-            }
-            ImGui.Checkbox("Wireframe", ref doWireframe);
-            ImGui.SameLine();
-            ImGui.Checkbox("Bounds", ref doBounds);
-            ImGui.SameLine();
-            ImGui.Checkbox("Normals", ref drawNormals);*/
             DoViewport();
             //
             var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
@@ -333,12 +323,34 @@ namespace LancerEdit
             if (drawNormals)
             {
                 ImGui.SetNextWindowPos(new Vector2(_window.Width - 135 * ImGuiHelper.Scale, _window.Height - 135 * ImGuiHelper.Scale));
-                ImGui.Begin("viewButtons#" + Unique, ImGuiWindowFlags.AlwaysAutoResize |
+                ImGui.Begin("normalScale#" + Unique, ImGuiWindowFlags.AlwaysAutoResize |
                                                      ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove);
                 ImGui.Text("Normal Scale");
                 ImGui.PushItemWidth(90 * ImGuiHelper.Scale);
                 ImGui.SliderFloat("##normalScale", ref normalLength, 0.25f, 3f);
                 ImGui.PopItemWidth();
+                ImGui.End();
+            }
+
+            if (warnings.Length > 0 && showWarnings)
+            {
+                ImGui.SetNextWindowSize(new Vector2(500,220) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+                ImGui.Begin("Warnings##" + Unique, ref showWarnings);
+                bool first = true;
+                foreach (var w in warnings)
+                {
+                    if(!first) ImGui.Separator();
+                    if (w.Width != w.Height)
+                    {
+                        ImGui.TextUnformatted($"{w.Name}: Dimensions are not square ({w.Width} != {w.Height})");
+                    }
+                    if (!MathHelper.IsPowerOfTwo(w.Width) ||
+                        !MathHelper.IsPowerOfTwo(w.Height))
+                    {
+                        ImGui.TextUnformatted($"{w.Name}: Dimensions are not powers of two ({w.Width}x{w.Height})");
+                    }
+                    first = false;
+                }
                 ImGui.End();
             }
 
@@ -371,6 +383,19 @@ namespace LancerEdit
             }
         }
         float viewButtonsWidth = 100;
+            
+        TextureReference[] GetBrokenTextures()
+        {
+            var missing = new List<MissingReference>();
+            var matrefs = new List<uint>();
+            var texrefs = new List<TextureReference>();
+            DetectResources(missing, matrefs, texrefs);
+            return texrefs.Where(x => x.Found && (
+                (x.Width != x.Height) ||
+                !MathHelper.IsPowerOfTwo(x.Width) ||
+                !MathHelper.IsPowerOfTwo(x.Height)
+                )).ToArray();
+        }
         
         class HardpointGizmo
         {
@@ -989,10 +1014,11 @@ namespace LancerEdit
                 Export(SimpleMesh.ModelSaveFormat.Collada, FileDialogFilters.ColladaFilter);
         }
         
-        public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
+        public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
         {
             ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
         }
+
 
         public override void Dispose()
         {

@@ -19,7 +19,7 @@ public abstract class EditorTab : DockTab
 { 
     public ISaveStrategy SaveStrategy { get; set; } = new NoSaveStrategy();
 
-    public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
+    public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
     {
     }
 

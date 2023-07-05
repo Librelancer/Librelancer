@@ -11,9 +11,35 @@ using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 namespace LancerEdit
 {
+    public class TextureReference
+    {
+        public string Name;
+        public bool Found;
+        public int Width;
+        public int Height;
+
+        public TextureReference()
+        {
+        }
+
+        public TextureReference(string name, Texture tex)
+        {
+            Name = name;
+            Found = tex != null;
+            if (tex is Texture2D t2d)
+            {
+                Width = t2d.Width;
+                Height = t2d.Height;
+            }
+            if (tex is TextureCube tcb)
+            {
+                Width = Height = tcb.Size;
+            }
+        }
+    }
 	static class ResourceDetection
 	{
-		public static void DetectDrawable(string name, IDrawable drawable, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
+		public static void DetectDrawable(string name, IDrawable drawable, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
 		{
 			if (drawable is CmpFile)
 			{
@@ -44,7 +70,7 @@ namespace LancerEdit
 				}
 			}
 		}
-		static void DetectResourcesModel(ModelFile mdl, string mdlname, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
+		static void DetectResourcesModel(ModelFile mdl, string mdlname, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
         {
             if (mdl.Levels.Length <= 0) return;
 			var lvl = mdl.Levels[0];
@@ -64,7 +90,7 @@ namespace LancerEdit
 			}
 		}
 
-		static void DoMaterialRefs(Material m, ResourceManager res, List<MissingReference> missing, List<string> texrefs, string refstr)
+		static void DoMaterialRefs(Material m, ResourceManager res, List<MissingReference> missing, List<TextureReference> texrefs, string refstr)
 		{
 			RefTex(m.DtName, res, missing, texrefs, m.Name, refstr);
 			if (m.Render is NomadMaterial)
@@ -78,12 +104,14 @@ namespace LancerEdit
 			RefTex(m.Dm1Name, res, missing, texrefs, m.Name, refstr);
 		}
 
-		static void RefTex(string tex, ResourceManager res, List<MissingReference> missing, List<string> texrefs, string mName, string refstr)
+		static void RefTex(string tex, ResourceManager res, List<MissingReference> missing, List<TextureReference> texrefs, string mName, string refstr)
 		{
 			if (tex != null)
-			{
-				if (!HasTexture(texrefs, tex)) texrefs.Add(tex);
-				if (res.FindTexture(tex) == null)
+            {
+                if (HasTexture(texrefs, tex)) return;
+                var tx = res.FindTexture(tex);
+                texrefs.Add(new TextureReference(tex, tx));
+                if (tx == null)
 				{
 					var str = "Texture: " + tex;
 					if (!HasMissing(missing, str)) missing.Add(new MissingReference(str, mName + refstr));
@@ -91,10 +119,10 @@ namespace LancerEdit
 			}
 		}
 
-		public static bool HasTexture(List<string> refs, string item)
+		public static bool HasTexture(List<TextureReference> refs, string item)
 		{
-			foreach (string tex in refs)
-				if (tex.Equals(item, StringComparison.InvariantCultureIgnoreCase)) return true;
+			foreach (var tex in refs)
+				if (tex.Name.Equals(item, StringComparison.InvariantCultureIgnoreCase)) return true;
 			return false;
 		}
 		public static bool HasMissing(List<MissingReference> missing, string item)

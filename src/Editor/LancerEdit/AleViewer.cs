@@ -248,7 +248,7 @@ namespace LancerEdit
             debug.Render();
         }
 
-        public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<string> texrefs)
+        public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
         {
             foreach (var reference in instance.Effect.References)
             {
@@ -256,15 +256,20 @@ namespace LancerEdit
                 {
                     var node = reference.Node;
                     var fx = (FxBasicAppearance)reference.Node;
-                    if (fx.Texture != null && !ResourceDetection.HasTexture(texrefs, fx.Texture)) texrefs.Add(fx.Texture);
+                    if (fx.Texture == null || !ResourceDetection.HasTexture(texrefs, fx.Texture))
+                        continue;
                     TexFrameAnimation texFrame;
-                    if (fx.Texture != null &&  plib.Resources.FindTexture(fx.Texture) == null && 
+                    Texture tex = null;
+                    if (fx.Texture != null &&  (tex = plib.Resources.FindTexture(fx.Texture)) == null && 
                         !plib.Resources.TryGetFrameAnimation(fx.Texture, out texFrame))
                     {
                         var str = "Texture: " + fx.Texture; //TODO: This is wrong - handle properly
                         if (!ResourceDetection.HasMissing(missing, str)) missing.Add(new MissingReference(
                             str, string.Format("{0}: {1} ({2})", instance.Effect.Name, node.NodeName, node.Name)));
+                        texrefs.Add(new TextureReference(fx.Texture, null));
                     }
+                    if(tex != null)
+                        texrefs.Add(new TextureReference(fx.Texture, tex));
                 }
             }
         }

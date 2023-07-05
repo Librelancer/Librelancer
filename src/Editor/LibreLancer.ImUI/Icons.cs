@@ -67,6 +67,7 @@ public static class Icons
     private const char ExpandArrowsAlt = '\uf31e';
     private const char Tree = '\uf1bb';
     private const char SignInAlt = '\uf2f6';
+    private const char ExclamationTriangle = '\uf071';
     
     //Tinted icons
     public static readonly char Con_Pris;
@@ -87,6 +88,8 @@ public static class Icons
     public static readonly char Rev_LightCoral;
     public static readonly char Rev_Coral;
 
+    public static readonly char Warning;
+
     static Icons()
     {
         Tint(out Con_Pris, ExpandArrowsAlt, Color4.LightPink);
@@ -105,6 +108,7 @@ public static class Icons
         Tint(out Rev_LightCoral, SyncAlt, Color4.LightCoral);
         Tint(out Rev_LightSeaGreen, SyncAlt, Color4.LightSeaGreen);
         Tint(out Rev_LightGreen, SyncAlt, Color4.LightGreen);
+        Tint(out Warning, ExclamationTriangle, Color4.Orange);
     }
     
     public static IEnumerable<char> GetChars()
@@ -179,6 +183,8 @@ public static class Icons
         yield return Con_Sph;
         yield return Tree_DarkGreen;
         yield return Hardpoints;
+
+        yield return Warning;
     }
 
     

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
@@ -15,9 +16,9 @@ namespace LancerEdit
         ResourceManager res;
         List<MissingReference> missing;
         List<uint> referencedMats;
-        List<string> referencedTex;
+        List<TextureReference> referencedTex;
         MainWindow win;
-        public ResourcesTab(MainWindow window, ResourceManager res, List<MissingReference> missing, List<uint> referencedMats, List<string> referencedTex)
+        public ResourcesTab(MainWindow window, ResourceManager res, List<MissingReference> missing, List<uint> referencedMats, List<TextureReference> referencedTex)
         {
             this.res = res;
             this.win = window;
@@ -41,7 +42,7 @@ namespace LancerEdit
                 var col = new Vector4(0.6f, 0.6f, 0.6f, 1f);
                 foreach (var tex in referencedTex)
                 {
-                    if (t.Key.Equals(tex, StringComparison.InvariantCultureIgnoreCase))
+                    if (t.Key.Equals(tex.Name, StringComparison.InvariantCultureIgnoreCase))
                     {
                         col = tcolor;
                         break;
@@ -75,7 +76,7 @@ namespace LancerEdit
             }
             foreach(var m in res.AnimationDictionary)
             {
-                var col = referencedTex.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
+                var col = referencedTex.Any(x => x.Name == m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
                 ImGui.TextColored(col, "Animated Texture");
                 ImGui.NextColumn();
                 SelectableColored(col, ImGuiExt.IDSafe(m.Key));
