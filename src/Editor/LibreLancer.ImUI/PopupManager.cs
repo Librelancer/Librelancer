@@ -11,16 +11,27 @@ namespace LibreLancer.ImUI
 {
     public class PopupManager
     {
-        List<PopupContext> popups = new List<PopupContext>();
         private List<MessageBoxData> messageBoxes = new List<MessageBoxData>();
 
-        class PopupContext
+        private List<string> toOpens = new List<string>();
+        private Dictionary<string, PopupContext> actionPopups = new Dictionary<string, PopupContext>();
+
+        private List<PopupWindow> openPopups = new List<PopupWindow>();
+
+        class PopupContext : PopupWindow
         {
-            public bool DoOpen = false;
+            public override string Title { get; set; }
             public Action<PopupData> DrawAction;
             public PopupData Data;
-            public string Title;
             public ImGuiWindowFlags Flags;
+
+            public override ImGuiWindowFlags WindowFlags => Flags;
+            public override void Draw()
+            {
+                DrawAction(Data);
+                Data.First = false;
+                Data.DoFocus = false;
+            }
         }
 
         private int unique = 0;
@@ -33,9 +44,15 @@ namespace LibreLancer.ImUI
             public bool Multiline;
         }
 
+        public void OpenPopup<T>(T popup) where T : PopupWindow
+        {
+            toOpens.Add(popup.Title);
+            openPopups.Add(popup);
+        }
+        
         public void AddPopup<T>(string title, Action<PopupData, T> action, ImGuiWindowFlags flags = 0)
         {
-            popups.Add(
+            actionPopups.Add(title,
                 new PopupContext()
                 {
                     Title = title,
@@ -48,7 +65,7 @@ namespace LibreLancer.ImUI
 
         public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0)
         {
-            popups.Add(
+            actionPopups.Add(title,
                 new PopupContext()
                 {
                     Title = title,
@@ -61,27 +78,19 @@ namespace LibreLancer.ImUI
 
         public void OpenPopup(string title)
         {
-            foreach (var p in popups)
-            {
-                if (p.Title == title)
-                {
-                    p.DoOpen = true;
-                    break;
-                }
-            }
+            actionPopups[title].Data.First = true;
+            actionPopups[title].Data.DoFocus = true;
+            toOpens.Add(title);
+            openPopups.Add(actionPopups[title]);        
         }
 
         public void OpenPopup<T>(string title, T args)
         {
-            foreach (var p in popups)
-            {
-                if (p.Title == title)
-                {
-                    p.DoOpen = true;
-                    p.Data.Arguments = args;
-                    break;
-                }
-            }
+            actionPopups[title].Data.Arguments = args;
+            actionPopups[title].Data.First = true;
+            actionPopups[title].Data.DoFocus = true;
+            toOpens.Add(title);
+            openPopups.Add(actionPopups[title]);
         }
 
         public void MessageBox(string title, string message, bool selectable = true)
@@ -95,32 +104,29 @@ namespace LibreLancer.ImUI
 
         public void Run()
         {
-            foreach (var p in popups)
+            foreach(var o in toOpens)
+                ImGui.OpenPopup(o);
+            toOpens.Clear();
+            for (int i = 0; i < openPopups.Count; i++)
             {
-                if (p.DoOpen)
-                {
-                    p.Data.DoFocus = p.Data.First = true;
-                    ImGui.OpenPopup(p.Title);
-                    p.DoOpen = false;
-                }
-
+                var p = openPopups[i];
                 bool open = true;
                 bool beginval;
-                if (!p.Data.NoClose)
-                    beginval = ImGui.BeginPopupModal(p.Title, ref open, p.Flags);
+                if (!p.NoClose)
+                    beginval = ImGui.BeginPopupModal(p.Title, ref open, p.WindowFlags);
                 else
-                    beginval = ImGuiExt.BeginModalNoClose(p.Title, p.Flags);
+                    beginval = ImGuiExt.BeginModalNoClose(p.Title, p.WindowFlags);
                 if (beginval)
                 {
-                    p.DrawAction(p.Data);
-                    if (p.Data.First)
-                        p.Data.First = false;
-                    else
-                        p.Data.DoFocus = false;
+                    p.Draw();
                     ImGui.EndPopup();
                 }
+                else
+                {
+                    openPopups.RemoveAt(i);
+                    i--;
+                }
             }
-
             for (int i = 0; i < messageBoxes.Count; i++)
             {
                 var p = messageBoxes[i];

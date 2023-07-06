@@ -37,15 +37,15 @@ public class Toolbar : IDisposable
         return false;
     }
 
-    public bool ButtonItem(string name)
+    public bool ButtonItem(string name, bool enabled = true)
     {
         if (DoOverflow(name, 15))
         {
             if (isOverflowOpen)
-                return ImGui.MenuItem(name);
+                return ImGui.MenuItem(name, enabled);
             return false;
         }
-        return ImGui.Button(name);
+        return ImGuiExt.Button(name, enabled);
     }
 
     public void ToggleButtonItem(string name, ref bool isSelected)

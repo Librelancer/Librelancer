@@ -12,8 +12,15 @@ using LibreLancer.Infocards;
 
 namespace LancerEdit;
 
-public class IdsSearch
+public class IdsSearch : PopupWindow
 {
+    public override string Title { get; set; }
+
+    public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
+
+    public override bool NoClose => dialogState == 1;
+
+
     private const int MAX_PREV_LEN = 50;
 
     private bool searchCaseSensitive;
@@ -27,10 +34,10 @@ public class IdsSearch
 
     private string searchText = "";
     private bool isSearchInfocards = false;
-    
+
     private static int _uid = 0;
     private int Unique = Interlocked.Increment(ref _uid);
-    
+
     private string resultTitle;
 
     private Action<int> onSearchResult;
@@ -38,60 +45,47 @@ public class IdsSearch
     private InfocardManager manager;
     private FontManager fonts;
 
-    public IdsSearch(InfocardManager manager, FontManager fonts)
+    private IdsSearch(InfocardManager manager, FontManager fonts)
     {
         this.manager = manager;
         this.fonts = fonts;
-    }
-    
-    public void SearchStrings(Action<int> onSelect)
-    {
-        dialogState = 0;
-        isSearchInfocards = false;
-        searchText = "";
-        doOpenSearch = true;
-        onSearchResult = onSelect;
+        Title = ImGuiExt.IDWithExtra("Search", Unique);
     }
 
-    public void SearchInfocards(Action<int> onSelect)
+    public static IdsSearch SearchStrings(InfocardManager manager, FontManager fonts, Action<int> onSelect)
     {
-        dialogState = 0;
-        isSearchInfocards = true;
-        searchText = "";
-        doOpenSearch = true;
-        onSearchResult = onSelect;
+        var dlg = new IdsSearch(manager, fonts);
+        dlg.dialogState = 0;
+        dlg.isSearchInfocards = false;
+        dlg.searchText = "";
+        dlg.onSearchResult = onSelect;
+        return dlg;
     }
 
-    private bool doOpenSearch = false;
-    
-    public void Draw()
+    public static IdsSearch SearchInfocards(InfocardManager manager, FontManager fonts, Action<int> onSelect)
     {
-        if (doOpenSearch)
-        {
-            doOpenSearch = false;
-            searchDlgOpen = true;
-            searchResultsOpen = false;
-            ImGui.OpenPopup(ImGuiExt.IDWithExtra("Search", Unique));
-        }
+        var dlg = new IdsSearch(manager, fonts);
+        dlg.dialogState = 0;
+        dlg.isSearchInfocards = true;
+        dlg.searchText = "";
+        dlg.onSearchResult = onSelect;
+        return dlg;
+    }
+    
+    public override void Draw()
+    {
         if (searchResultsOpen) SearchResults();
-        if (ImGui.BeginPopupModal(ImGuiExt.IDWithExtra("Search", Unique), ref searchDlgOpen,
-                ImGuiWindowFlags.AlwaysAutoResize))
+        if (dialogState == 0)
         {
-            if (dialogState == 0)
-            {
-                SearchWindow();
-            }
-            else if (dialogState == 1)
-            {
-                SearchStatus();
-            }
-            else
-            {
-                searchResultsOpen = true;
-                ImGui.CloseCurrentPopup();
-            }
-
-            ImGui.EndPopup();
+            SearchWindow();
+        }
+        else if (dialogState == 1)
+        {
+            SearchStatus();
+        }
+        else
+        {
+            SearchResults();
         }
     }
 
@@ -160,10 +154,9 @@ public class IdsSearch
         ImGui.SameLine();
         ImGui.Text("Searching");
     }
-    
+
     private void SearchResults()
     {
-        ImGui.Begin(ImGuiExt.IDWithExtra("Search", Unique), ref searchResultsOpen, ImGuiWindowFlags.AlwaysAutoResize);
         ImGui.TextUnformatted(resultTitle);
         ImGui.BeginChild("##results", new Vector2(200, 200), true);
         for (var i = 0; i < searchResults.Length; i++)
@@ -199,13 +192,11 @@ public class IdsSearch
         }
 
         ImGui.EndChild();
-        ImGui.End();
     }
-    
+
     private string EllipseIfNeeded(string s)
     {
         if (s.Length > MAX_PREV_LEN) s = s.Substring(0, MAX_PREV_LEN) + "...";
         return s.Replace("%", "%%");
     }
-    
 }

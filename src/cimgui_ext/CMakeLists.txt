@@ -18,5 +18,7 @@ add_library(cimgui SHARED
 	cimgui_spinner.cpp
 	cimgui_memory_editor.cpp
     ftshim.c
+    ImGuizmo.cpp
+    cimgui_guizmo.cpp
 )
 target_compile_definitions(cimgui PUBLIC -DIMGUI_ENABLE_FREETYPE -DCIMGUI_FREETYPE -DIMGUI_ENABLE_STB_TRUETYPE)

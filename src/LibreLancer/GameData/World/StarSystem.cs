@@ -55,6 +55,8 @@ namespace LibreLancer.GameData.World
         //Dust
         public string Spacedust;
         public int SpacedustMaxParticles;
+        //Preloads
+        public PreloadObject[] Preloads;
         //Resource files to load
         public UniqueList<string> ResourceFiles = new UniqueList<string>();
 

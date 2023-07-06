@@ -70,6 +70,7 @@ namespace LibreLancer
             roll = (float) r;
         }
 
+        static float Sanitize(float f) => Math.Abs(f) < float.Epsilon ? 0.0f : f;
 
         /// <summary>
         /// Gets the Pitch Yaw and Roll from a Matrix4x4 SLOW!!!
@@ -81,7 +82,7 @@ namespace LibreLancer
             float p, y, r;
             ToEuler(mx, out y, out p, out r);
             const float radToDeg = 180.0f / MathF.PI;
-            return new Vector3(p * radToDeg, y * radToDeg, r * radToDeg);
+            return new Vector3(Sanitize(p * radToDeg), Sanitize(y * radToDeg), Sanitize(r * radToDeg));
         }
     }
 }

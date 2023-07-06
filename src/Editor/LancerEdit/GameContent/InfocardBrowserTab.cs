@@ -48,7 +48,6 @@ public class InfocardBrowserTab : GameContentTab
     private const string Popup_EditString = "Edit String";
     private const string Popup_AddString = "Add String";
     private const string Popup_AddInfocard = "Add Infocard";
-    private IdsSearch searchWindow;
 
     private bool showDllList = false;
 
@@ -67,7 +66,6 @@ public class InfocardBrowserTab : GameContentTab
         popups.AddPopup<EditingStringState>(Popup_EditString, EditStringPopup);
         popups.AddPopup<AddState>(Popup_AddString, (p, a) => AddPopup(a, false), ImGuiWindowFlags.AlwaysAutoResize);
         popups.AddPopup<AddState>(Popup_AddInfocard, (p, a) => AddPopup(a, true), ImGuiWindowFlags.AlwaysAutoResize);
-        searchWindow = new IdsSearch(manager, fonts);
     }
 
     void ResetListContent()
@@ -151,7 +149,6 @@ public class InfocardBrowserTab : GameContentTab
             return;
         }
 
-        searchWindow.Draw();
         popups.Run();
         //strings vs infocards
         if (ImGuiExt.ToggleButton("Strings", showStrings))
@@ -184,17 +181,17 @@ public class InfocardBrowserTab : GameContentTab
         if (ImGui.Button("Search..."))
         {
             if (showStrings)
-                searchWindow.SearchStrings(x =>
+                popups.OpenPopup(IdsSearch.SearchStrings(manager, fonts, x =>
                 {
                     id = x;
                     GotoString();
-                });
+                }));
             else
-                searchWindow.SearchInfocards(x =>
+                popups.OpenPopup(IdsSearch.SearchInfocards(manager, fonts, x =>
                 {
                     id = x;
                     GotoInfocard();
-                });
+                }));
         }
 
         ImGui.SameLine();

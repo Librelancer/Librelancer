@@ -51,9 +51,15 @@ namespace LibreLancer
         }
 		public override void Dispose ()
 		{
-			GL.DeleteFramebuffer (FBO);
-			DepthBuffer.Dispose();
-            Texture.Dispose();
+			Dispose(false);
+        }
+
+        public void Dispose(bool keepTexture)
+        {
+            GL.DeleteFramebuffer (FBO);
+            DepthBuffer.Dispose();
+            if(!keepTexture)
+                Texture.Dispose();
         }
 	}
 }

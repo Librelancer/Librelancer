@@ -97,6 +97,11 @@ namespace LancerEdit
             rstate.ClearAll();
         }
 
+        private bool inputsEnabled = true;
+        public void SetInputsEnabled(bool enabled)
+        {
+            inputsEnabled = enabled;
+        }
         public void End(bool view = true)
         {
             rstate.PopViewport();
@@ -110,17 +115,23 @@ namespace LancerEdit
             //Viewport Control
             if (view)
             {
-                ImGuiHelper.DisableAlpha();
                 ImGui.Dummy(Vector2.One);
                 ImGui.SameLine();
-                ImGui.ImageButton((IntPtr)rid, new Vector2(rw, rh),
-                                  new Vector2(0,1), new Vector2(1,0),
-                                  0,
-                                  Color4.Black, Color4.White);
+                var cpos = ImGui.GetCursorScreenPos();
+                ImGuizmo.SetRect(cpos.X, cpos.Y, rw, rh);
+                ImGuizmo.SetDrawlist();
+                ImGuiHelper.DisableAlpha();
+                ImGui.GetWindowDrawList().AddImage((IntPtr)rid, cpos, cpos + new Vector2(rw,rh),
+                    new Vector2(0,1), new Vector2(1,0), 0xFFFFFFFF);
                 ImGuiHelper.EnableAlpha();
+                ImGui.GetWindowDrawList().AddRect(cpos, cpos + new Vector2(rw,rh), ImGui.GetColorU32(ImGuiCol.Border));
+                if(inputsEnabled)
+                    ImGui.InvisibleButton("##button", new Vector2(rw, rh));
+                else
+                    ImGui.Dummy(new Vector2(rw, rh));
                 if (Mode == CameraModes.Cockpit) ModelRotation = Vector2.Zero;
                 if (Mode == CameraModes.Arcball) ArcballUpdate();
-                if (ImGui.IsItemHovered(ImGuiHoveredFlags.None))
+                if (inputsEnabled && ImGui.IsItemHovered(ImGuiHoveredFlags.None))
                 {
                     switch(Mode)
                     {

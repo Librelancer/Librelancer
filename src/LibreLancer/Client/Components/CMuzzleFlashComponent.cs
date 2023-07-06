@@ -29,7 +29,7 @@ public class CMuzzleFlashComponent : GameComponent
 
     public override void Register(PhysicsWorld physics)
     {
-        if (Object.FlashEffect == null) return;
+        if (Object.FlashEffect == null || GetResourceManager() == null) return;
         var pfx = Object.FlashEffect.GetEffect(GetResourceManager());
         if (pfx == null) return;
         

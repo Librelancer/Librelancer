@@ -24,6 +24,7 @@ namespace LibreLancer.GameData.World
         public VisitFlags VisitFlags;
         
         //Properties not yet used in game, but copied from ini for round trip support
+        public string[] PopType;
         public string Music;
         public string Spacedust;
         public int SpacedustMaxParticles;

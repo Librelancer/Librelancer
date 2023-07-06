@@ -10,11 +10,9 @@ using DockSphere = LibreLancer.GameData.World.DockSphere;
 
 namespace LibreLancer.GameData
 {
-    public class Archetype
+    public class Archetype : IdentifiableItem
     {
         public ResolvedModel ModelFile;
-        //HACK: remove later
-        public string Nickname;
         public string NavmapIcon;
         public ObjectLoadout Loadout;
         public Data.Solar.ArchetypeType Type;

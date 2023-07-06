@@ -108,6 +108,9 @@ namespace LibreLancer.ImUI
 
         public static IUIThread UiThread => instance.game;
 
+        [DllImport("cimgui")]
+        static extern void igGuizmoSetImGuiContext(IntPtr ctx);
+
 		public unsafe ImGuiHelper(Game game, float scale)
         { 
             ImGuiExt.igFtLoad();
@@ -118,6 +121,7 @@ namespace LibreLancer.ImUI
 			game.Keyboard.TextInput += Keyboard_TextInput;
             context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
+            igGuizmoSetImGuiContext(context);
             SetKeyMappings();
             var io = ImGui.GetIO();
             io.WantSaveIniSettings = false;
@@ -358,7 +362,7 @@ namespace LibreLancer.ImUI
 		public void NewFrame(double elapsed)
 		{
 			ImGuiIOPtr io = ImGui.GetIO();
-			io.DisplaySize = new Vector2(game.Width, game.Height);
+            io.DisplaySize = new Vector2(game.Width, game.Height);
 			io.DisplayFramebufferScale = new Vector2(1, 1);
 			io.DeltaTime = elapsed > 1 ? 0 : (float)elapsed;
 			//Update input
@@ -371,6 +375,7 @@ namespace LibreLancer.ImUI
                 game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
 			ImGui.NewFrame();
+            ImGuizmo.BeginFrame();
         }
         //These are required as FBOs with 1 - SrcAlpha will end up with alpha != 1
         public static void DisableAlpha()

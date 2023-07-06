@@ -75,7 +75,7 @@ namespace LibreLancer.Data.Universe
         public int Density;
 
         [Entry("population_additive")] 
-        public bool PopulationAdditive;
+        public bool? PopulationAdditive;
 
         [Entry("zone_creation_distance")] 
         public string ZoneCreationDistance;

@@ -898,6 +898,15 @@ namespace LibreLancer
                     });
                 }
 
+                var p = new List<PreloadObject>();
+                foreach(var a in inisys.ArchetypeShip) p.Add(new PreloadObject(PreloadType.Ship, a));
+                foreach(var a in inisys.ArchetypeSimple) p.Add(new PreloadObject(PreloadType.Simple, a));
+                foreach(var a in inisys.ArchetypeEquipment) p.Add(new PreloadObject(PreloadType.Equipment, a));
+                foreach(var a in inisys.ArchetypeSnd) p.Add(new PreloadObject(PreloadType.Sound, a));
+                foreach(var a in inisys.ArchetypeSolar) p.Add(new PreloadObject(PreloadType.Solar, a));
+                foreach(var a in inisys.ArchetypeVoice) p.Add(new PreloadObject(PreloadType.Voice, a));
+                sys.Preloads = p.ToArray();
+
                 if (inisys.TexturePanels != null)
                     sys.TexturePanelsFiles.AddRange(inisys.TexturePanels.Files);
 
@@ -1011,6 +1020,7 @@ namespace LibreLancer
                         z.PopulationAdditive = zne.PopulationAdditive;
                         z.MissionEligible = zne.MissionEligible;
                         z.MaxBattleSize = zne.MaxBattleSize;
+                        z.PopType = zne.PopType;
                         z.ReliefTime = zne.ReliefTime;
                         z.RepopTime = zne.RepopTime;
                         z.AttackIds = zne.AttackIds;
@@ -1432,7 +1442,7 @@ namespace LibreLancer
             }
             foreach (var ex in n.ExclusionZones)
             {
-                if (ex.ShellPath != null) ex.Shell = ResolveDrawable("", ex.ShellPath);
+                if (ex.ShellPath != null) ex.Shell = ResolveDrawable(ex.ShellPath);
             }
 
             return n;
@@ -1440,7 +1450,9 @@ namespace LibreLancer
 
         public GameItemCollection<Ship> Ships = new GameItemCollection<Ship>();
 
-        Dictionary<string, GameData.Archetype> archetypes = new Dictionary<string, GameData.Archetype>(StringComparer.OrdinalIgnoreCase);
+        public GameItemCollection<Archetype> Archetypes = new GameItemCollection<Archetype>();
+        
+        
         
         ResolvedModel ResolveDrawable(string file) => ResolveDrawable((IEnumerable<string>) null, file);
 
@@ -1626,13 +1638,13 @@ namespace LibreLancer
                 obj.Nickname = arch.Nickname;
                 obj.LODRanges = arch.LODRanges;
                 obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
-                archetypes.Add(ax.Key, obj);
+                Archetypes.Add(obj);
             }
         }
         
         public (IDrawable, float[]) GetSolar(string solar)
         {
-            var at = archetypes[solar];
+            var at = Archetypes.Get(solar);
             return (at.ModelFile.LoadFile(resource), at.LODRanges);
         }
 
@@ -1718,7 +1730,9 @@ namespace LibreLancer
             {
                 obj.Rotation = MathHelper.MatrixFromEulerDegrees(o.Rotate.Value);
             }
-            obj.Archetype = archetypes[o.Archetype];
+
+            obj.Archetype = Archetypes.Get(o.Archetype);
+
             obj.TradelaneSpaceName = o.TradelaneSpaceName;
             if (o.NextRing != null && o.TradelaneSpaceName != 0) {
                 obj.IdsLeft = o.TradelaneSpaceName;
@@ -1767,7 +1781,7 @@ namespace LibreLancer
                         else
                             FLLog.Error("Stararch", "Could not find spines " + star.Spines);
                     }
-                    obj.Archetype = sun;
+                    obj.Star = sun;
                 }
             }
             else
@@ -1789,7 +1803,7 @@ namespace LibreLancer
 
 
         //Used to spawn objects within mission scripts
-        public GameData.Archetype GetSolarArchetype(string id) => archetypes[id];
+        public GameData.Archetype GetSolarArchetype(string id) => Archetypes.Get(id);
 
       
 

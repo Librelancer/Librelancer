@@ -4,6 +4,7 @@ using System.Numerics;
 using LibreLancer.GameData.World;
 using System.Text;
 using LibreLancer.Data;
+using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 using LibreLancer.Render;
 
@@ -21,11 +22,34 @@ public static class IniSerializer
         if (sys.FarClip != 20000)
             sb.AppendEntry("space_farclip", sys.FarClip);
         sb.AppendLine();
+        
+        //Archetype
+        if (sys.Preloads.Length > 0)
+        {
+            sb.AppendSection("Archetype");
+            foreach (var p in sys.Preloads)
+            {
+                var name = p.Type switch
+                {
+                    PreloadType.Ship => "ship",
+                    PreloadType.Simple => "simple",
+                    PreloadType.Solar => "solar",
+                    PreloadType.Sound => "snd",
+                    PreloadType.Voice => "voice",
+                    PreloadType.Equipment => "equipment",
+                    _ => "solar"
+                };
+                sb.AppendEntry(name, p.Values);
+            }
+            sb.AppendLine();
+        }
+        
         foreach (var ep in sys.EncounterParameters)
             sb.AppendSection("EncounterParameters")
                 .AppendEntry("nickname", ep.Nickname)
-                .AppendEntry("file", ep.SourceFile)
+                .AppendEntry("filename", ep.SourceFile)
                 .AppendLine();
+
 
         //TexturePanels
         if (sys.TexturePanelsFiles.Count > 0)
@@ -38,15 +62,15 @@ public static class IniSerializer
 
         //Music
         sb.AppendSection("Music")
-            .AppendEntry("music_space", sys.MusicSpace)
-            .AppendEntry("music_danger", sys.MusicDanger)
-            .AppendEntry("music_battle", sys.MusicBattle)
+            .AppendEntry("space", sys.MusicSpace)
+            .AppendEntry("danger", sys.MusicDanger)
+            .AppendEntry("battle", sys.MusicBattle)
             .AppendLine();
 
         //Dust
         sb.AppendSection("Dust")
             .AppendEntry("spacedust", sys.Spacedust)
-            .AppendEntry("spacedust_maxparticles", sys.SpacedustMaxParticles)
+            .AppendEntry("spacedust_maxparticles", sys.SpacedustMaxParticles, false)
             .AppendLine();
 
 
@@ -104,22 +128,28 @@ public static class IniSerializer
         return sb.ToString();
     }
 
+    static void SerializeRotation(StringBuilder sb, Matrix4x4? matrix)
+    {
+        if (matrix == null) return;
+        var euler = matrix.Value.GetEulerDegrees();
+        var ln = euler.Length();
+        if (!float.IsNaN(ln) && ln > 0)
+            sb.AppendEntry("rotate", euler);
+    }
+
     public static string SerializeZone(Zone z)
     {
         var sb = new StringBuilder();
         sb.AppendSection("Zone");
         sb.AppendEntry("nickname", z.Nickname);
-        sb.AppendEntry("ids_name", z.IdsName);
+        sb.AppendEntry("ids_name", z.IdsName, false);
         foreach (var info in z.IdsInfo)
             sb.AppendEntry("ids_info", info);
         if (z.Comment != null)
             foreach (var c in z.Comment)
                 sb.AppendEntry("comment", c);
         sb.AppendEntry("pos", z.Position);
-        var rot = z.RotationMatrix.GetEulerDegrees();
-        var ln = rot.Length();
-        if (!float.IsNaN(ln) && ln > 0)
-            sb.AppendEntry("rotate", rot);
+        SerializeRotation(sb, z.RotationMatrix);
         switch (z.Shape)
         {
             case ZoneBox box:
@@ -168,6 +198,7 @@ public static class IniSerializer
         sb.AppendEntry("density", z.Density, false);
         sb.AppendEntry("repop_time", z.RepopTime, false);
         sb.AppendEntry("max_battle_size", z.MaxBattleSize, false);
+        sb.AppendEntry("pop_type", z.PopType);
         if (z.PopulationAdditive.HasValue)
             sb.AppendEntry("population_additive", z.PopulationAdditive.Value);
         sb.AppendEntry("relief_time", z.ReliefTime, false);
@@ -202,17 +233,11 @@ public static class IniSerializer
             .AppendEntry("ids_name", obj.IdsName, false);
         if (obj.Position != Vector3.Zero)
             sb.AppendEntry("pos", obj.Position);
-        if (obj.Rotation != null)
-        {
-            var rot = obj.Rotation.Value.GetEulerDegrees();
-            var ln = rot.Length();
-            if (!float.IsNaN(ln) && ln > 0)
-                sb.AppendEntry("rotate", new Vector3(rot.Y, rot.X, rot.Z));
-        }
-
+        SerializeRotation(sb, obj.Rotation);
         if (obj.AmbientColor != null)
             sb.AppendEntry("ambient_color", obj.AmbientColor.Value);
-        sb.AppendEntry(obj.Archetype is Sun ? "star" : "Archetype", obj.Archetype?.Nickname);
+        sb.AppendEntry( "Archetype", obj.Archetype?.Nickname);
+        sb.AppendEntry("star", obj.Star?.Nickname);
         sb.AppendEntry("msg_id_prefix", obj.MsgIdPrefix);
         foreach (var i in obj.IdsInfo)
             sb.AppendEntry("ids_info", i);

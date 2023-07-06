@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.GameData.Archetypes;
 
 namespace LibreLancer.GameData.World
 {
@@ -13,6 +14,7 @@ namespace LibreLancer.GameData.World
         public int[] IdsInfo;
         public string Base; //used for linking IdsInfo
 		public Archetype Archetype;
+        public Sun Star;
 		public Vector3 Position = Vector3.Zero;
         public Vector3 Spin = Vector3.Zero;
 		public Matrix4x4? Rotation;

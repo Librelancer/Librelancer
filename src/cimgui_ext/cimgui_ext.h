@@ -43,6 +43,16 @@ IGEXPORT int igExtTextEditorIsTextChanged(texteditor_t textedit);
 IGEXPORT void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x, int32_t *y);
 IGEXPORT void igExtTextEditorRender(texteditor_t textedit, const char *id);
 IGEXPORT void igExtTextEditorFree(texteditor_t textedit);
+//guizmo
+IGEXPORT void igGuizmoBeginFrame();
+IGEXPORT void igGuizmoSetOrthographic(int orthographic);
+IGEXPORT int igGuizmoIsUsing();
+IGEXPORT int igGuizmoIsOver();
+IGEXPORT void igGuizmoSetID(int id);
+IGEXPORT void igGuizmoSetRect(float x, float y, float width, float height);
+IGEXPORT bool igGuizmoManipulate(float* view, float* projection, int operation, int mode, float* matrix);
+IGEXPORT void igGuizmoSetDrawlist();
+IGEXPORT void igGuizmoSetImGuiContext(void* ctx);
 #ifdef __cplusplus
 }
 #endif

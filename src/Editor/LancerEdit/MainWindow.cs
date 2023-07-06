@@ -368,7 +368,7 @@ namespace LancerEdit
 			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
 			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);
-			ImGui.PushFont(ImGuiHelper.Noto);
+            ImGui.PushFont(ImGuiHelper.Noto);
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
             {

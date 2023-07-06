@@ -62,7 +62,7 @@ namespace LibreLancer.World
 
             foreach (var obj in sys.Objects)
             {
-                var g = new GameObject(obj.Archetype, res, Renderer != null);
+                var g = new GameObject(obj.Star ?? obj.Archetype, res, Renderer != null);
                 if (obj.IdsLeft != 0 && obj.IdsRight != 0)
                     g.Name = new TradelaneName(g, obj.IdsLeft, obj.IdsRight);
                 else
