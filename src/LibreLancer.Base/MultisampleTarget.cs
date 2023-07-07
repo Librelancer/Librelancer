@@ -49,7 +49,8 @@ namespace LibreLancer
                 GL.Disable(GL.GL_SCISSOR_TEST);
                 RenderContext.Instance.applied.ScissorEnabled = false;
             }
-			//Unbind everything
+            RenderContext.Instance.applied.RenderTarget = null;
+            //Unbind everything
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 			//read from our fbo
 			GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, fbo);
@@ -58,7 +59,6 @@ namespace LibreLancer
 			GL.DrawBuffer(GL.GL_BACK);
 			//blit
 			GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
-            RenderContext.Instance.applied.RenderTarget = null;
         }
 
         public void BlitToRenderTarget(RenderTarget2D rTarget)
@@ -69,6 +69,7 @@ namespace LibreLancer
                 GL.Disable(GL.GL_SCISSOR_TEST);
                 RenderContext.Instance.applied.ScissorEnabled = false;
             }
+            RenderContext.Instance.applied.RenderTarget = null;
             //Unbind everything
             GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
             //read from our fbo
