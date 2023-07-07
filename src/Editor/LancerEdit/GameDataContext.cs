@@ -62,10 +62,9 @@ public class GameDataContext : IDisposable
         //Do things
         using var rm = new GameResourceManager(Resources);
         using var renderer = new ArchetypePreviews(win, rm);
-        int j = 0;
         foreach (var a in GameData.Archetypes)
         {
-            j += GetArchetypePreview(a, renderer);
+            GetArchetypePreview(a, renderer);
             if(rm.EstimatedTextureMemory > 128 * 1024 * 1024)
                 rm.ClearTextures();
         }
@@ -77,7 +76,7 @@ public class GameDataContext : IDisposable
     public int GetArchetypePreview(Archetype archetype, ArchetypePreviews renderer = null)
     {
         if (renderedArchetypes.TryGetValue(archetype.Nickname, out var arch))
-            return renderer != null ? 0 : arch.Item2;
+            return arch.Item2;
         Texture2D tx;
         if(renderer != null) 
             tx = renderer.RenderPreview(archetype, 128, 128);
@@ -88,7 +87,7 @@ public class GameDataContext : IDisposable
         }
         arch = (tx, ImGuiHelper.RegisterTexture(tx));
         renderedArchetypes[archetype.Nickname] = arch;
-        return renderer != null ? 1 : arch.Item2;
+        return arch.Item2;
     }
     
     public void Dispose()

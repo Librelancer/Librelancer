@@ -44,6 +44,11 @@ namespace LibreLancer
 		public void BlitToScreen()
 		{
             if(!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
+            RenderContext.Instance.Renderer2D.Flush();
+            if (RenderContext.Instance.applied.ScissorEnabled) {
+                GL.Disable(GL.GL_SCISSOR_TEST);
+                RenderContext.Instance.applied.ScissorEnabled = false;
+            }
 			//Unbind everything
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 			//read from our fbo
@@ -53,11 +58,17 @@ namespace LibreLancer
 			GL.DrawBuffer(GL.GL_BACK);
 			//blit
 			GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
-		}
+            RenderContext.Instance.applied.RenderTarget = null;
+        }
 
         public void BlitToRenderTarget(RenderTarget2D rTarget)
         {
             if (!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
+            RenderContext.Instance.Renderer2D.Flush();
+            if (RenderContext.Instance.applied.ScissorEnabled) {
+                GL.Disable(GL.GL_SCISSOR_TEST);
+                RenderContext.Instance.applied.ScissorEnabled = false;
+            }
             //Unbind everything
             GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
             //read from our fbo
@@ -77,6 +88,6 @@ namespace LibreLancer
             GL.DeleteFramebuffer(fbo);
 			GL.DeleteRenderbuffer(depthID);
 			GL.DeleteTexture(texID);
-		}
+        }
 	}
 }
