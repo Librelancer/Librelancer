@@ -24,7 +24,7 @@ public class StateGraphTab : EditorTab
 
     private int lastHoveredX = -1;
     private int lastHoveredY = -1;
-    public override void Draw()
+    public override void Draw(double elapsed)
     {
         ImGui.Combo("State Graph", ref selectedIndex, graphNames, graphNames.Length);
         var tab = graphs[selectedIndex];

@@ -47,7 +47,7 @@ namespace InterfaceEdit
             }
         }
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             if (!validXml) {
                 ImGui.TextColored(Color4.Red, exceptionText);

@@ -1,3 +1,4 @@
+using System.Numerics;
 using ImGuiNET;
 
 namespace LibreLancer.ImUI;
@@ -9,6 +10,8 @@ public abstract class PopupWindow
     
     public virtual bool NoClose => false;
     public abstract void Draw();
+
+    public virtual Vector2 InitSize => Vector2.Zero;
 
     public virtual void OnClosed() { }
 }

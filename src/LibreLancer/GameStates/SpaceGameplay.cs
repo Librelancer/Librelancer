@@ -732,7 +732,7 @@ World Time: {12:F2}
             {
                 if(!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
                 {
-                    var newSelection = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+                    var newSelection = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
                     if (newSelection != null) selection.Selected = newSelection;
                     isLeftDown = true;
                 }
@@ -839,7 +839,7 @@ World Time: {12:F2}
             
             GetCameraMatrices(out var cameraView, out var cameraProjection);
 
-            var obj = GetSelection(Game.Mouse.X, Game.Mouse.Y);
+            var obj = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
             if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
                 current_cur = cur_arrow;
             else {
@@ -900,106 +900,6 @@ World Time: {12:F2}
             vp = activeCamera.ViewProjection;
         }
         
-		GameObject GetSelection(float x, float y)
-        {
-            GetCameraMatrices(out var cameraView, out var cameraProjection);
-           
-			var vp = new Vector2(Game.Width, Game.Height);
-            var start = Vector3Ex.UnProject(new Vector3(x, y, 0f), cameraProjection, cameraView, vp);
-			var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), cameraProjection, cameraView, vp);
-            var dir = (end - start).Normalized();
-
-			PhysicsObject rb;
-
-            var result = SelectionCast(
-				start,
-				dir,
-				50000,
-				out rb
-			);
-			if (result && rb.Tag is GameObject)
-				return (GameObject)rb.Tag;
-			return null;
-		}
-
-		//Select by bounding box, not by mesh
-		bool SelectionCast(Vector3 rayOrigin, Vector3 direction, float maxDist, out PhysicsObject body)
-		{
-			float dist = float.MaxValue;
-			body = null;
-			var jitterDir = direction * maxDist;
-            var md2 = maxDist * maxDist;
-			foreach (var rb in world.Physics.Objects)
-            {
-				if (rb.Tag == player) continue;
-                if (Vector3.DistanceSquared(rb.Position, activeCamera.Position) > md2) continue;
-                if (rb.Collider is SphereCollider)
-				{
-					//Test spheres
-					var sph = (SphereCollider)rb.Collider;
-                    var ray = new Ray(rayOrigin, direction);
-                    var sphere = new BoundingSphere(rb.Position, sph.Radius);
-                    var res = ray.Intersects(sphere);
-                    if (res != null)
-                    {
-                        var p2 = rayOrigin + (direction * res.Value);
-                        if (res == 0.0) p2 = rb.Position;
-                        var nd = Vector3.DistanceSquared(p2, activeCamera.Position);
-                        if (nd < dist)
-                        {
-                            dist = nd;
-                            body = rb;
-                        }
-                    }
-                }
-				else
-				{
-					//var tag = rb.Tag as GameObject;
-                    var box = rb.GetBoundingBox();
-                    if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir)) continue;
-                    var nd = Vector3.DistanceSquared(rb.Position, activeCamera.Position);
-                    if (nd < dist)
-                    {
-                        dist = nd;
-                        body = rb;
-                    }
-					/*if (tag == null || tag.CmpParts.Count == 0)
-					{
-						//Single part
-						var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
-						if (nd < dist)
-						{
-							dist = nd;
-							body = rb;
-						}
-					}
-					else
-					{
-						//Test by cmp parts
-						var sh = (CompoundSurShape)rb.Shape;
-						for (int i = 0; i < sh.Shapes.Length; i++)
-						{
-							sh.Shapes[i].UpdateBoundingBox();
-							var bb = sh.Shapes[i].BoundingBox;
-							bb.Min += rb.Position;
-							bb.Max += rb.Position;
-							if (bb.RayIntersect(ref rayOrigin, ref jitterDir))
-							{
-								
-								var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
-								if (nd < dist)
-								{
-									dist = nd;
-									body = rb;
-								}
-								break;
-							}
-						}
-					}*/
-				}
-			}
-			return body != null;
-		}
         
         (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
         {

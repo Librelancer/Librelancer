@@ -99,6 +99,9 @@ namespace LibreLancer
     public class GameResourceManager : ResourceManager, IDisposable
 	{
 		public IGLWindow GLWindow;
+        
+        public long EstimatedTextureMemory { get; private set; }
+
 
 		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
 		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
@@ -198,8 +201,18 @@ namespace LibreLancer
 			DefaultMaterial.Name = "$LL_DefaultMaterialName";
 		}
 
-		
-		public GameResourceManager()
+        public GameResourceManager(GameResourceManager src) : this(src.GLWindow)
+        {
+            texturefiles = new Dictionary<string, string>(src.texturefiles, StringComparer.OrdinalIgnoreCase);
+            shapes = new Dictionary<string, TextureShape>(src.shapes, StringComparer.OrdinalIgnoreCase);
+            materialfiles = new Dictionary<uint, string>(src.materialfiles);
+            foreach (var mat in src.materials.Keys)
+                materials[mat] = null;
+            foreach (var tex in src.textures.Keys)
+                textures[tex] = null;
+        }
+        
+        public GameResourceManager()
 		{
 			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
@@ -260,7 +273,8 @@ namespace LibreLancer
 			var dat = ImageLib.Generic.FromFile(filename);
 			textures.Add(name, dat);
 			texturefiles.Add(name, filename);
-		}
+            EstimatedTextureMemory += dat.EstimatedTextureMemory;
+        }
 
 		public void ClearTextures()
 		{
@@ -275,7 +289,9 @@ namespace LibreLancer
 					textures[k] = null;
 				}
 			}
-		}
+
+            EstimatedTextureMemory = 0;
+        }
 
 		public override Texture FindTexture (string name)
         {
@@ -399,6 +415,7 @@ namespace LibreLancer
 					v.Initialize();
                     if (v.Texture != null)
                     {
+                        EstimatedTextureMemory += v.Texture.EstimatedTextureMemory;
                         textures.Add(tex.Key, v.Texture);
                         texturefiles.Add(tex.Key, filename);
                     }
@@ -407,7 +424,11 @@ namespace LibreLancer
 				{
 					var v = tex.Value;
 					v.Initialize();
-					textures[tex.Key] = v.Texture;
+                    textures[tex.Key] = v.Texture;
+                    if (v.Texture != null)
+                    {
+                        EstimatedTextureMemory += v.Texture.EstimatedTextureMemory;
+                    }
 				}
 			}
 			foreach (var anim in t.Animations)

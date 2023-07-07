@@ -84,7 +84,7 @@ namespace LancerEdit
         }
         
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             //Child Window
             var size = ImGui.GetWindowSize();

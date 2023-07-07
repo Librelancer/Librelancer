@@ -235,7 +235,7 @@ namespace LibreLancer.World
             }
         }
 
-        public GameObject(Archetype arch, ResourceManager res, bool draw = true)
+        public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool phys = true)
         {
             Kind = GameObjectKind.Solar;
 			if (arch is Archs.Sun)
@@ -244,7 +244,7 @@ namespace LibreLancer.World
             }
 			else
 			{
-				InitWithDrawable(arch.ModelFile.LoadFile(res), res, draw);
+				InitWithDrawable(arch.ModelFile.LoadFile(res), res, draw, phys);
 			}
 		}
 		public GameObject()
@@ -399,10 +399,12 @@ namespace LibreLancer.World
             }
 		}
 
-        public void SetLoadout(ObjectLoadout loadout)
+        public void SetLoadout(ObjectLoadout loadout, bool cutscene = false)
         {
             foreach (var item in loadout.Items)
             {
+                var type = cutscene ? EquipmentType.Cutscene :
+                    (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server;
                 if (item.Equipment is AnimationEquipment anm)
                 {
                     if(anm.Animation != null)
@@ -411,8 +413,7 @@ namespace LibreLancer.World
                 else
                 {
                     EquipmentObjectManager.InstantiateEquipment(this, Resources, null,
-                        (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server,
-                        item.Hardpoint ?? "internal", item.Equipment);
+                        type, item.Hardpoint ?? "internal", item.Equipment);
                 }
             }
         }

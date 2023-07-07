@@ -28,7 +28,7 @@ namespace LancerEdit
             Title = "Resources";
         }
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             ImGui.Columns(2, "cols", true);
             ImGui.Text("Type");

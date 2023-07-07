@@ -23,6 +23,7 @@ namespace LibreLancer
 		public GameDataManager GameData;
         public DebugView Debug;
         public UiContext Ui;
+        public CommandBuffer Commands;
 		public AudioManager Audio;
 		public FontManager Fonts;
 		public SoundManager Sound;
@@ -130,6 +131,8 @@ namespace LibreLancer
 			Screenshots = new ScreenshotManager(this);
             Typewriter = new Typewriter(this);
             Lines = new LineRenderer();
+            Commands = new CommandBuffer();
+            Services.Add(Commands);
             Services.Add(Billboards);
             Services.Add(ResourceManager);
             Services.Add(Config);

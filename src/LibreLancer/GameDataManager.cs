@@ -1680,6 +1680,9 @@ namespace LibreLancer
         }
 
         Dictionary<string, ObjectLoadout> _loadouts = new Dictionary<string, ObjectLoadout>(StringComparer.OrdinalIgnoreCase);
+
+        public IEnumerable<ObjectLoadout> Loadouts => _loadouts.Values;
+        
         ObjectLoadout GetLoadout(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return null;

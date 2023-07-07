@@ -50,6 +50,12 @@ namespace LibreLancer.Fx
                         var h = rect.Length.GetMax(false);
                         r += w > h ? w : h;
                     }
+                    else if (emitNode.Paired[0].Node is FxOrientedAppearance orient)
+                    {
+                        var w = orient.Width?.GetMax(false) ?? 0f;
+                        var h = orient.Height?.GetMax(false) ?? 0f;
+                        r += Math.Max(w, h);
+                    }
                     else if (emitNode.Paired[0].Node is FxBasicAppearance basic)
                     {
                         r += basic.Size.GetMax(false);

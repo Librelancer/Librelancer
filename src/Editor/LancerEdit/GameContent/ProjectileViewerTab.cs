@@ -55,7 +55,7 @@ public class ProjectileViewerTab : GameContentTab
         beams = new BeamsBuffer(context.Resources);
     }
 
-    public override void Draw()
+    public override void Draw(double elapsed)
     {
         ImGui.Columns(2);
         ImGui.BeginChild("##munitions");

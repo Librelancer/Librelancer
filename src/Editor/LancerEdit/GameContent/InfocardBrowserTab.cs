@@ -140,7 +140,7 @@ public class InfocardBrowserTab : GameContentTab
         display.SetInfocard(infocard);
     }
 
-    public override void Draw()
+    public override void Draw(double elapsed)
     {
         if (editingXml)
         {

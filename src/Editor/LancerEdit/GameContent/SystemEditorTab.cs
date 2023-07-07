@@ -6,6 +6,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
@@ -16,7 +17,7 @@ using ModelRenderer = LibreLancer.Render.ModelRenderer;
 
 namespace LancerEdit;
 
-public class SystemViewerTab : GameContentTab
+public class SystemEditorTab : GameContentTab
 {
     private GameDataContext gameData;
 
@@ -43,12 +44,11 @@ public class SystemViewerTab : GameContentTab
     private InfocardControl icard;
 
     private PopupManager popups = new PopupManager();
-    public SystemViewerTab(GameDataContext gameData, MainWindow mw)
+    public SystemEditorTab(GameDataContext gameData, MainWindow mw)
     {
         Title = "System Viewer";
         
         this.gameData = gameData;
-        
         viewport = new Viewport3D(mw);
         viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, 4);
@@ -56,6 +56,7 @@ public class SystemViewerTab : GameContentTab
         viewport.Mode = CameraModes.Walkthrough;
         viewport.Background =  new Vector4(0.12f,0.12f,0.12f, 1f);
         viewport.ResetControls();
+        viewport.DoubleClicked += ViewportOnDoubleClicked;
         camera = new LookAtCamera()
         {
             GameFOV = true,
@@ -84,6 +85,19 @@ public class SystemViewerTab : GameContentTab
         ChangeSystem();
     }
 
+    private bool scrollToSelection = false;
+
+    private void ViewportOnDoubleClicked(Vector2 pos)
+    {
+        if (openTabs[1])
+        {
+            selectedObject =
+                world.GetSelection(camera, null, pos.X, pos.Y, viewport.RenderWidth, viewport.RenderHeight);
+            selectedTransform = selectedObject?.LocalTransform ?? Matrix4x4.Identity;
+            scrollToSelection = true;
+        }
+    }
+
     void ChangeSystem()
     {
         if (sysIndex != sysIndexLoaded)
@@ -107,7 +121,7 @@ public class SystemViewerTab : GameContentTab
             renderer.PhysicsHook = RenderZones;
             //Setup UI
             InitZoneList();
-            
+            BuildObjectList();
         }
     }
 
@@ -167,12 +181,54 @@ public class SystemViewerTab : GameContentTab
         }
         return d;
     }
+
+    void ChangeLoadout(GameObject obj, ObjectLoadout loadout)
+    {
+        var ed = GetEditData(obj);
+        ed.Loadout = loadout;
+
+        var newObj = world.NewObject(obj.SystemObject, gameData.Resources, false,
+            true, loadout, ed.Archetype);
+        ed.Parent = newObj;
+        newObj.Components.Add(ed);
+        if (selectedObject == obj)
+            selectedObject = newObj;
+        newObj.SetLocalTransform(obj.LocalTransform);
+        obj.Unregister(world.Physics);
+        world.RemoveObject(obj);
+        BuildObjectList();
+    }
+
+    void ChangeArchetype(GameObject obj, Archetype archetype)
+    {
+        var ed = GetEditData(obj);
+        ed.Archetype = archetype;
+        ed.Loadout = null;
+        var newObj = world.NewObject(obj.SystemObject, gameData.Resources, false,
+            true, null, ed.Archetype);
+        ed.Parent = newObj;
+        newObj.Components.Add(ed);
+        if (selectedObject == obj)
+            selectedObject = newObj;
+        newObj.SetLocalTransform(obj.LocalTransform);
+        obj.Unregister(world.Physics);
+        world.RemoveObject(obj);
+        BuildObjectList();
+    }
     
     void ObjectProperties(GameObject sel)
     {
         ImGui.BeginChild("##properties");
         ImGui.TextUnformatted($"Nickname: {sel.Nickname}");
         var ed = GetEditData(sel, false);
+        if (ed != null && ImGui.Button("Reset")) {
+            sel.Unregister(world.Physics);
+            world.RemoveObject(sel);
+            sel = world.NewObject(sel.SystemObject, gameData.Resources, false);
+            selectedTransform = sel.LocalTransform;
+            selectedObject = sel;
+            BuildObjectList();
+        }
         //Name
         if(ed == null)
             ImGui.TextUnformatted($"Name: {sel.Name.GetName(gameData.GameData, camera.Position)}");
@@ -190,30 +246,50 @@ public class SystemViewerTab : GameContentTab
         var rot = sel.LocalTransform.GetEulerDegrees();
         ImGui.TextUnformatted($"Position: {pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
         ImGui.TextUnformatted($"Rotation: {rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
-        ImGui.Selectable($"Archetype: {sel.SystemObject.Archetype?.Nickname}");
-        if (ImGui.IsItemHovered())
+        ImGui.SameLine();
+        if (ImGui.Button("0##rot"))
         {
-            var pv = gameData.GetArchetypePreview(sel.SystemObject.Archetype);
-            if (pv != -1)
+            //Create data if needed
+            GetEditData(sel);
+            sel.SetLocalTransform(Matrix4x4.CreateTranslation(pos));
+            selectedTransform = sel.LocalTransform;
+        }
+        //Archetype
+        if(ed != null)
+            ImGui.TextUnformatted($"Archetype: {ed.Archetype?.Nickname ?? "(none)"}");
+        else
+            ImGui.TextUnformatted($"Archetype: {sel.SystemObject.Archetype?.Nickname ?? "(none)"}");
+        ImGui.SameLine();
+        if (ImGui.Button($"{Icons.Edit}##archetype"))
+        {
+            popups.OpenPopup(new ArchetypeSelection(x =>
             {
-                ImGui.BeginTooltip();
-                ImGui.Image((IntPtr) pv, new Vector2(64) * ImGuiHelper.Scale, new Vector2(0, 1),
-                    new Vector2(1, 0));
-                ImGui.EndTooltip();
-            }
+                ChangeArchetype(sel, x);
+            }, ed?.Archetype ?? sel.SystemObject.Archetype, gameData));
+        }
+        //Loadout
+        if(ed != null)
+            ImGui.TextUnformatted($"Loadout: {ed.Loadout?.Nickname ?? "(none)"}");
+        else
+            ImGui.TextUnformatted($"Loadout: {sel.SystemObject.Loadout?.Nickname ?? "(none)"}");
+        ImGui.SameLine();
+        if (ImGui.Button($"{Icons.Edit}##loadout"))
+        {
+            popups.OpenPopup(new LoadoutSelection(x =>
+            {
+                ChangeLoadout(sel, x);
+            }, ed != null ? ed.Loadout : sel.SystemObject.Loadout, gameData));
         }
         ImGui.EndChild();
     }
 
     void ObjectsPanel()
     {
-        var oprops = selectedObject;
-        if (oprops != null)
+        ImGui.BeginChild("##objects", new Vector2(ImGui.GetWindowWidth(), ImGui.GetWindowHeight() / 2));
+        foreach (var obj in objectList)
         {
-            ImGui.BeginChild("##objects", new Vector2(ImGui.GetWindowWidth(), ImGui.GetWindowHeight() / 2));
-        }
-        foreach (var obj in world.Objects.Where(x => x.SystemObject != null))
-        {
+            if (scrollToSelection && selectedObject == obj)
+                ImGui.SetScrollHereY();
             if (ImGui.Selectable(obj.Nickname, selectedObject == obj, ImGuiSelectableFlags.AllowDoubleClick))
             {
                 selectedObject = obj;
@@ -222,14 +298,15 @@ public class SystemViewerTab : GameContentTab
                     MoveCameraTo(obj);
             }
         }
-        if (oprops != null)
-        {
-            ImGui.EndChild();
-            ImGui.Separator();
-            ImGui.Text("Properties");
-            ImGui.Separator();
-            ObjectProperties(oprops);
-        }
+        scrollToSelection = false;
+        ImGui.EndChild();
+        ImGui.Separator();
+        ImGui.Text("Properties");
+        ImGui.Separator();
+        if(selectedObject != null)
+            ObjectProperties(selectedObject);
+        else
+            ImGui.Text("No Object Selected");
     }
 
     private Dictionary<string, ZoneDisplayKind> zoneTypes = new Dictionary<string, ZoneDisplayKind>();
@@ -314,7 +391,7 @@ public class SystemViewerTab : GameContentTab
         var dir = Vector3.Transform(-Vector3.UnitZ,rot);
         var to = viewport.CameraOffset + (dir * 10);
         camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
-        world.RenderUpdate(elapsed);
+        world.Update(elapsed);
     }
 
     void DrawInfocard()
@@ -416,8 +493,16 @@ public class SystemViewerTab : GameContentTab
     private GameObject selectedObject = null;
     private bool dirty = false;
 
-    public override unsafe void Draw()
+    private GameObject[] objectList;
+    void BuildObjectList()
     {
+        objectList = world.Objects.Where(x => x.SystemObject != null)
+            .OrderBy(x => x.SystemObject.Nickname).ToArray();
+    }
+
+    public override unsafe void Draw(double elapsed)
+    {
+        world.RenderUpdate(elapsed);
         ImGuiHelper.AnimatingElement();
         var contentw = ImGui.GetContentRegionAvail().X;
         if (openTabs.Any())

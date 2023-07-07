@@ -305,7 +305,7 @@ namespace InterfaceEdit
                     _playData = null;
                 }
             }
-            else Tabs();
+            else Tabs(elapsed);
             //Status Bar
             ImGui.SetNextWindowSize(new Vector2(size.X, 25f * ImGuiHelper.Scale), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
@@ -383,7 +383,7 @@ namespace InterfaceEdit
             }
         }
         
-        void Tabs()
+        void Tabs(double elapsed)
         {
             bool childopened = true;
             ImGui.Begin("tabwindow", ref childopened,
@@ -394,7 +394,7 @@ namespace InterfaceEdit
                 ImGuiWindowFlags.NoResize);
             tabControl.TabLabels();
             ImGui.BeginChild("##tabcontent");
-            if (tabControl.Selected != null) tabControl.Selected.Draw();
+            if (tabControl.Selected != null) tabControl.Selected.Draw(elapsed);
             ImGui.EndChild();
             ImGui.End();
             if(resourceEditor != null) resourceEditor.Draw();

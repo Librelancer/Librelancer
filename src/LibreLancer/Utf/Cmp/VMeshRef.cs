@@ -102,7 +102,9 @@ namespace LibreLancer.Utf.Cmp
 		public void Initialize(ResourceManager cache)
         {
             if (MeshCrc == 0 || ready) return;
-            Mesh.Initialize (StartMesh, endMesh, cache);
+            Mesh?.Initialize (StartMesh, endMesh, cache);
+            if (Mesh == null)
+                return;
             ready = true;
             //Check if ref needs optimising
             if(endMesh - StartMesh > 5)
@@ -135,7 +137,7 @@ namespace LibreLancer.Utf.Cmp
 
         public MeshDrawcall[] GetDrawcalls()
         {
-            if (MeshCrc == 0) return new MeshDrawcall[0];
+            if (MeshCrc == 0 || !ready) return new MeshDrawcall[0];
             if(needsOptimize) Optimize();
             List<MeshDrawcall> dcs = new List<MeshDrawcall>();
             if (optimized != null)

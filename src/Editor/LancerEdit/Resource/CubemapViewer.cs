@@ -31,7 +31,7 @@ namespace LancerEdit
             viewport.ResetControls();
             this.mw = mw;
         }
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             viewport.Begin();
             var cam = new LookAtCamera();

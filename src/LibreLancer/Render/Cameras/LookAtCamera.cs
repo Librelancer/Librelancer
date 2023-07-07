@@ -12,6 +12,7 @@ namespace LibreLancer.Render.Cameras
         Matrix4x4 projection;
         Matrix4x4 vp;
         Vector3 pos;
+        BoundingFrustum frustum;
 
         public Vector2 ZRange = new Vector2(0.1f, 300000f);
         public bool GameFOV;
@@ -28,46 +29,13 @@ namespace LibreLancer.Render.Cameras
             var up = Vector3.Transform(Vector3.UnitY, rot ?? Matrix4x4.Identity);
             view = Matrix4x4.CreateLookAt(from, to, up);
             vp = view * projection;
-            fn++;
-        }
-        public Matrix4x4 ViewProjection {
-            get {
-                return vp;
-            }
+            frustum = new BoundingFrustum(vp);
         }
 
-        public Matrix4x4 Projection {
-            get {
-                return projection;
-            }
-        }
-
-        public Matrix4x4 View {
-            get {
-                return view;
-            }
-        }
-
-        public Vector3 Position {
-            get {
-                return pos;
-            }
-        }
-
-        public BoundingFrustum Frustum {
-            get {
-                return new BoundingFrustum(vp);
-            }
-        }
-
-        long fn = 0;
-        public long FrameNumber {
-            get {
-                return fn;
-            }
-            set {
-                fn = value;
-            }
-        }
+        public Matrix4x4 ViewProjection => vp;
+        public Matrix4x4 Projection => projection;
+        public Matrix4x4 View => view;
+        public Vector3 Position => pos;
+        public BoundingFrustum Frustum => frustum;
     }
 }

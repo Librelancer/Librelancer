@@ -246,7 +246,7 @@ namespace LancerEdit
         }
         int selectedCam = 0;
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             popups.Run();
             HardpointEditor();

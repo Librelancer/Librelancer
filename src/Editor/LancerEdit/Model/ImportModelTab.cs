@@ -358,7 +358,6 @@ public class ImportModelTab : EditorTab
         var to = modelViewport.CameraOffset + dir * 10;
         if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
         lookAtCam.Update(modelViewport.RenderWidth, modelViewport.RenderHeight, modelViewport.CameraOffset, to, rot);
-        lookAtCam.FrameNumber = fR++;
         win.RenderContext.ClearColor = Color4.Black;
         win.RenderContext.ClearAll();
         win.RenderContext.SetCamera(lookAtCam);
@@ -473,7 +472,7 @@ public class ImportModelTab : EditorTab
         }
     }
 
-    public override void Draw()
+    public override void Draw(double elapsed)
     {
         ImGui.BeginGroup();
         if (TabHandler.VerticalTab("Input Nodes", tabNo == 0))

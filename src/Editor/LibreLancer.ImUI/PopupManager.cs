@@ -25,6 +25,8 @@ namespace LibreLancer.ImUI
             public PopupData Data;
             public ImGuiWindowFlags Flags;
 
+            public override bool NoClose => Data.NoClose;
+
             public override ImGuiWindowFlags WindowFlags => Flags;
             public override void Draw()
             {
@@ -63,7 +65,7 @@ namespace LibreLancer.ImUI
             );
         }
 
-        public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0)
+        public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0, bool noClose = false)
         {
             actionPopups.Add(title,
                 new PopupContext()
@@ -71,7 +73,7 @@ namespace LibreLancer.ImUI
                     Title = title,
                     DrawAction = action,
                     Flags = flags,
-                    Data = new PopupData()
+                    Data = new PopupData() { NoClose =  noClose },
                 }
             );
         }
@@ -112,6 +114,8 @@ namespace LibreLancer.ImUI
                 var p = openPopups[i];
                 bool open = true;
                 bool beginval;
+                if(p.InitSize != Vector2.Zero)
+                    ImGui.SetNextWindowSize(p.InitSize * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
                 if (!p.NoClose)
                     beginval = ImGui.BeginPopupModal(p.Title, ref open, p.WindowFlags);
                 else

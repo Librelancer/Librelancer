@@ -44,6 +44,7 @@ namespace LibreLancer.Utf.Cmp
             for(int i = 0; i < NumIndices; i++)
             {
                 var idx = Indices[i] + VertexOffset;
+                if (idx >= vms.VertexCount) continue;
                 //TODO: This is ridiculous
                 if (vms.verticesVertexPosition != null) Lines[i] = vms.verticesVertexPosition[idx].Position;
                 if (vms.verticesVertexPositionNormal != null) Lines[i] = vms.verticesVertexPositionNormal[idx].Position;

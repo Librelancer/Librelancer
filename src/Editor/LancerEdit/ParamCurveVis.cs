@@ -64,7 +64,7 @@ namespace LancerEdit
             "BumpOut",
             "Smooth"
         };
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             int idx = typeIndex;
             ImGui.Combo("Type", ref typeIndex, typeNames, typeNames.Length);

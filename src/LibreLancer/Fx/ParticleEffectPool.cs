@@ -102,14 +102,12 @@ namespace LibreLancer.Fx
                 Up = src_up
             };
         }
-        public ParticleEffectPool(CommandBuffer commands)
+
+        private static readonly ushort[] indices;
+
+        static ParticleEffectPool()
         {
-            cmd = commands;
-            //Set up vertices
-            vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES * 4, true);
-            //Indices
-            ibo = new ElementBuffer(MAX_PARTICLES * 6);
-            ushort[] indices = new ushort[MAX_PARTICLES * 6];
+            indices = new ushort[MAX_PARTICLES * 6];
             int iptr = 0;
             for (int i = 0; i < (MAX_PARTICLES * 4); i += 4)
             {
@@ -122,6 +120,14 @@ namespace LibreLancer.Fx
                 indices[iptr++] = (ushort)(i + 3);
                 indices[iptr++] = (ushort)(i + 2);
             }
+        }
+        public ParticleEffectPool(CommandBuffer commands)
+        {
+            cmd = commands;
+            //Set up vertices
+            vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES * 4, true);
+            //Indices
+            ibo = new ElementBuffer(MAX_PARTICLES * 6);
             ibo.SetData(indices);
             vbo.SetElementBuffer(ibo);
         }

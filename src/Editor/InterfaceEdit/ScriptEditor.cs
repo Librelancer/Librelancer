@@ -28,7 +28,7 @@ namespace InterfaceEdit
             File.WriteAllText(path, textEditor.GetText());
         }
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             textEditor.Render("##textEditor");
         }

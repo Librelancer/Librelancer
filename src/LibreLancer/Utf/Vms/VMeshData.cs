@@ -115,14 +115,18 @@ namespace LibreLancer.Utf.Vms
 						FlexibleVertexFormat |= D3DFVF.NORMAL;
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1: //(D3DFVF)0x0112:
+                    case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX4: //(D3DFVF)0x0412: (Tangent binormal - ignore)
                         verticesVertexPositionNormalTexture = new VertexPositionNormalTexture[VertexCount];
                         for (int i = 0; i < VertexCount; i++)
                         {
                             Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                             Vector3 normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
+                            if ((FlexibleVertexFormat & D3DFVF.TEX4) == D3DFVF.TEX4)
+                                reader.BaseStream.Seek(6 * sizeof(float), SeekOrigin.Begin);
                             verticesVertexPositionNormalTexture[i] = new VertexPositionNormalTexture(position, normal, textureCoordinate);
                         }
+                        FlexibleVertexFormat = D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1;
                         break;
                     case D3DFVF.XYZ | D3DFVF.DIFFUSE | D3DFVF.TEX1: //(D3DFVF)0x0142:
                         verticesVertexPositionNormalDiffuseTexture = new VertexPositionNormalDiffuseTexture[VertexCount];
@@ -168,9 +172,6 @@ namespace LibreLancer.Utf.Vms
                         verticesVertexPositionNormalDiffuseTextureTwo = new VertexPositionNormalDiffuseTextureTwo[VertexCount];
                         for (int i = 0; i < VertexCount; i++) verticesVertexPositionNormalDiffuseTextureTwo[i] = new VertexPositionNormalDiffuseTextureTwo(reader);
                         break;
-                    /*case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX4: //(D3DFVF)0x0412:
-                        for (int i = 0; i < VertexCount; i++) vertices[i] = new VertexPositionNormalTextureTangentBinormal(reader);
-                        break;*/
                     default:
                         throw new FileContentException("UTF:VMeshData", "FVF 0x" + ((int)FlexibleVertexFormat).ToString("X") + " not supported.");
                 }

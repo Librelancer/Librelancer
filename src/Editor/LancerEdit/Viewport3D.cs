@@ -102,6 +102,8 @@ namespace LancerEdit
         {
             inputsEnabled = enabled;
         }
+
+        public event Action<Vector2> DoubleClicked;
         public void End(bool view = true)
         {
             rstate.PopViewport();
@@ -112,12 +114,14 @@ namespace LancerEdit
             rstate.DepthEnabled = false;
             rstate.BlendMode = BlendMode.Normal;
             rstate.Cull = false;
+            MouseInFrame = false;
             //Viewport Control
             if (view)
             {
                 ImGui.Dummy(Vector2.One);
                 ImGui.SameLine();
                 var cpos = ImGui.GetCursorScreenPos();
+                MousePos = ImGui.GetIO().MousePos - cpos;
                 ImGuizmo.SetRect(cpos.X, cpos.Y, rw, rh);
                 ImGuizmo.SetDrawlist();
                 ImGuiHelper.DisableAlpha();
@@ -125,14 +129,27 @@ namespace LancerEdit
                     new Vector2(0,1), new Vector2(1,0), 0xFFFFFFFF);
                 ImGuiHelper.EnableAlpha();
                 ImGui.GetWindowDrawList().AddRect(cpos, cpos + new Vector2(rw,rh), ImGui.GetColorU32(ImGuiCol.Border));
-                if(inputsEnabled)
-                    ImGui.InvisibleButton("##button", new Vector2(rw, rh));
+                bool click = false;
+                //Taken from imgui_internal.h
+                const int MouseButtonLeft = 1 << 0;
+                const int PressedOnClickRelease = 1 << 5;
+                const int PressedOnDoubleClick = 1 << 8;
+                const ImGuiButtonFlags Flags =
+                    (ImGuiButtonFlags) (MouseButtonLeft | PressedOnClickRelease | PressedOnDoubleClick);
+                if (inputsEnabled)
+                    click = ImGui.InvisibleButton("##button", new Vector2(rw, rh), Flags);
                 else
                     ImGui.Dummy(new Vector2(rw, rh));
                 if (Mode == CameraModes.Cockpit) ModelRotation = Vector2.Zero;
                 if (Mode == CameraModes.Arcball) ArcballUpdate();
-                if (inputsEnabled && ImGui.IsItemHovered(ImGuiHoveredFlags.None))
+                if (click && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                 {
+                    MouseInFrame = true;
+                    DoubleClicked?.Invoke(MousePos);
+                }
+                else if (inputsEnabled && ImGui.IsItemHovered(ImGuiHoveredFlags.None))
+                {
+                    MouseInFrame = true;
                     switch(Mode)
                     {
                         case CameraModes.Walkthrough:
@@ -146,9 +163,13 @@ namespace LancerEdit
                             break;
                     }
                 }
+                
             }
         }
 
+        public bool MouseInFrame;
+        public Vector2 MousePos;
+        
         float GotoRadius => ModelScale * 5.2f;
 
         public void GoTop()

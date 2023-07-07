@@ -64,7 +64,7 @@ public class ThnPlayerTab : GameContentTab
         cutscene?.Update(elapsed);
     }
 
-    public override void Draw()
+    public override void Draw(double elapsed)
     {
         if(ImGui.Button("Open"))
             FileDialog.Open(x => Open(x));

@@ -140,6 +140,39 @@ namespace LibreLancer
                     throw new NotSupportedException();
             }
         }
+
+        internal static int GetSizeEstimate(this SurfaceFormat format)
+        {
+            switch (format)
+            {
+                case SurfaceFormat.Vector4:
+                    return 16;
+                case SurfaceFormat.HdrBlendable:
+                case SurfaceFormat.HalfVector4:
+                case SurfaceFormat.Vector2:
+                case SurfaceFormat.Rgba64:
+                    return 8;
+                case SurfaceFormat.HalfVector2:
+                case SurfaceFormat.Single:
+                case SurfaceFormat.Rg32:
+                case SurfaceFormat.NormalizedByte4:
+                case SurfaceFormat.Rgba1010102:
+                case SurfaceFormat.Color:
+                case SurfaceFormat.Depth:
+                    return 4;
+                case SurfaceFormat.HalfSingle:
+                case SurfaceFormat.NormalizedByte2:
+                case SurfaceFormat.Bgr565:
+                case SurfaceFormat.Bgra4444:
+                case SurfaceFormat.Bgra5551:
+                    return 2;
+                case SurfaceFormat.R8:
+                    return 1;
+                
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
         internal static int GetSize(this SurfaceFormat format)
         {
             switch (format)
@@ -150,7 +183,7 @@ namespace LibreLancer
                 case SurfaceFormat.Dxt5:
                     return 16;
                 default:
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
             }
         }
     }

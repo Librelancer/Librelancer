@@ -87,7 +87,7 @@ namespace InterfaceEdit
         }
 
         private bool firstProperties = true;
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             //Main Window Contents
             if (propertiesOpen && !statePlaying)

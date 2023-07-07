@@ -30,7 +30,7 @@ namespace LancerEdit
         int frame = 0;
 
         float zoom = 100;
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             ImGui.Text("Zoom: ");
             ImGui.SameLine();

@@ -10,6 +10,8 @@ namespace LibreLancer
     {
         public uint ID;
         public SurfaceFormat Format { get; protected set; }
+        
+        public int EstimatedTextureMemory { get; protected set; }
         public int LevelCount
         {
             get;

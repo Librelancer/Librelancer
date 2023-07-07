@@ -96,6 +96,10 @@ namespace LibreLancer.Render
 
         public SystemRenderer(ICamera camera, GameResourceManager resources, Game game)
         {
+            this.game = game;
+            Settings = game.GetService<IRendererSettings>();
+            billboards = game.GetService<Billboards>();
+            commands = game.GetService<CommandBuffer>();
             this.camera = camera;
             AsteroidFields = new List<AsteroidFieldRenderer>();
             Nebulae = new List<NebulaRenderer>();
@@ -103,9 +107,6 @@ namespace LibreLancer.Render
             Polyline = new PolylineRender(commands);
             FxPool = new ParticleEffectPool(commands);
             rstate = resources.GLWindow.RenderContext;
-            this.game = game;
-            Settings = game.GetService<IRendererSettings>();
-            billboards = game.GetService<Billboards>();
             resman = resources;
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new LineRenderer();
@@ -235,12 +236,12 @@ namespace LibreLancer.Render
 
 		MultisampleTarget msaa;
 		int _mwidth = -1, _mheight = -1;
-		CommandBuffer commands = new CommandBuffer();
+        private CommandBuffer commands;
 		int _twidth = -1, _theight = -1;
 		int _dwidth = -1, _dheight = -1;
 		DepthMap depthMap;
 
-        List<ObjectRenderer> objects;
+        public List<ObjectRenderer> objects;
 
         public void AddObject(ObjectRenderer render)
         {
@@ -276,8 +277,8 @@ namespace LibreLancer.Render
 			{
 				if (_mwidth != renderWidth || _mheight != renderHeight)
 				{
-					_mwidth = Game.Width;
-					_mheight = Game.Height;
+					_mwidth = renderWidth;
+                    _mheight = renderHeight;
 					if (msaa != null)
 						msaa.Dispose();
 					msaa = new MultisampleTarget(renderWidth, renderHeight, Settings.SelectedMSAA);

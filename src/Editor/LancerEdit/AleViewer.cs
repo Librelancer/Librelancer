@@ -94,7 +94,7 @@ namespace LancerEdit
             ImGui.SameLine();
         }
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             bool doTabs = false;
             foreach (var t in openTabs) if (t) { doTabs = true; break; }

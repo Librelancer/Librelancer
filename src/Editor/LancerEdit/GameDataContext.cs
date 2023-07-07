@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer;
@@ -45,22 +46,49 @@ public class GameDataContext : IDisposable
             });
         });
     }
+
+
+    private int renderCounter = 0;
     
+
+    public bool RenderAllArchetypePreviews()
+    {
+        //Delay Processing so messages can show
+        ImGuiHelper.AnimatingElement();
+        if (renderCounter < 5) {
+            renderCounter++;
+            return false;
+        }
+        //Do things
+        using var rm = new GameResourceManager(Resources);
+        using var renderer = new ArchetypePreviews(win, rm);
+        int j = 0;
+        foreach (var a in GameData.Archetypes)
+        {
+            j += GetArchetypePreview(a, renderer);
+            if(rm.EstimatedTextureMemory > 128 * 1024 * 1024)
+                rm.ClearTextures();
+        }
+        return true;
+    }
 
     private Dictionary<string, (Texture2D, int)> renderedArchetypes = new Dictionary<string, (Texture2D, int)>();
     
-    public int GetArchetypePreview(Archetype archetype)
+    public int GetArchetypePreview(Archetype archetype, ArchetypePreviews renderer = null)
     {
         if (renderedArchetypes.TryGetValue(archetype.Nickname, out var arch))
-            return arch.Item2;
-        var mdl = archetype.ModelFile?.LoadFile(Resources);
-        if (mdl is IRigidModelFile rmf)
+            return renderer != null ? 0 : arch.Item2;
+        Texture2D tx;
+        if(renderer != null) 
+            tx = renderer.RenderPreview(archetype, 128, 128);
+        else
         {
-            var tx = ModelPreviews.RenderPreview(win, rmf.CreateRigidModel(true), Resources, 128, 128);
-            arch = (tx, ImGuiHelper.RegisterTexture(tx));
-            renderedArchetypes[archetype.Nickname] = arch;
+            using var r2 = new ArchetypePreviews(win, Resources);
+            tx = r2.RenderPreview(archetype, 128, 128);
         }
-        return -1;
+        arch = (tx, ImGuiHelper.RegisterTexture(tx));
+        renderedArchetypes[archetype.Nickname] = arch;
+        return renderer != null ? 1 : arch.Item2;
     }
     
     public void Dispose()

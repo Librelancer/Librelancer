@@ -52,6 +52,7 @@ namespace LibreLancer
                 }
                 else
                 {
+                    imageSize = Width * Height * 4;
                     GL.TexImage2D(GL.GL_TEXTURE_2D, 0,
                         GL.GL_RGBA,
                         Width, Height, 0,
@@ -63,6 +64,10 @@ namespace LibreLancer
                               glInternalFormat,
                               Width, Height, 0,
                               glFormat, glType, IntPtr.Zero);
+            }
+            EstimatedTextureMemory = imageSize == 0 ? Width * Height * format.GetSizeEstimate() : imageSize;
+            if (hasMipMaps) {
+                EstimatedTextureMemory = (int) (EstimatedTextureMemory * 1.33f);
             }
             //enable filtering
 			GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);

@@ -32,7 +32,8 @@ namespace LibreLancer.ImUI
 			_ids += 2;
             UpdateRenderTitle();
 		}
-		public abstract void Draw();
+
+        public abstract void Draw(double elapsed);
 		public virtual void Update(double elapsed)
 		{
 		}

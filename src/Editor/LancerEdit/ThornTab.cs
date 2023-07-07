@@ -107,7 +107,7 @@ namespace LancerEdit
             }            
         }
 
-        public override void Draw()
+        public override void Draw(double elapsed)
         {
             if (window.OpenDataContext != null)
             {
