@@ -281,7 +281,7 @@ public class SystemEditorTab : GameContentTab
     {
         ImGui.BeginChild("##properties");
         var ed = GetEditData(sel, false);
-        if (ImGuiExt.Button("Reset", !(ed?.IsNewObject ?? false))) {
+        if (ImGuiExt.Button("Reset", ed != null && !ed.IsNewObject)) {
             sel.Unregister(world.Physics);
             world.RemoveObject(sel);
             sel = world.NewObject(sel.SystemObject, gameData.Resources, false);
