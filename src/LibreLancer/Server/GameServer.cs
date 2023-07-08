@@ -84,7 +84,7 @@ namespace LibreLancer.Server
             //TODO: pilot comm_anim (not in vanilla mpnewcharacter)
             //TODO: pilot body_anim (not in vanilla mpnewcharacter)
             src.Replace("%%MONEY%%", package.Money.ToString());
-            src.Replace("%%HOME_SYSTEM%%", GameData.GetBase(fac.Base).System);
+            src.Replace("%%HOME_SYSTEM%%", GameData.Bases.Get(fac.Base).System);
             src.Replace("%%HOME_BASE%%", fac.Base);
 
             var pkgStr = new StringBuilder();

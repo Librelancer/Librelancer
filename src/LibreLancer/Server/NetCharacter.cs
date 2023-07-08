@@ -168,7 +168,7 @@ namespace LibreLancer.Server
             nc.Reputation = new ReputationCollection();
             foreach (var rep in c.Reputations)
             {
-                var f = game.GameData.GetFaction(rep.RepGroup);
+                var f = game.GameData.Factions.Get(rep.RepGroup);
                 if (f != null) nc.Reputation.Reputations[f] = rep.ReputationValue;
             }
             nc.Name = c.Name;
@@ -221,7 +221,7 @@ namespace LibreLancer.Server
             selectable.Ship = Ship.Nickname;
             selectable.Name = Name;
             selectable.Funds = Credits;
-            selectable.Location = gData.GetBase(Base).System;
+            selectable.Location = gData.Bases.Get(Base).System;
             return selectable;
         }
     }

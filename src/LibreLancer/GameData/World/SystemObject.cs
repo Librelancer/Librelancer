@@ -12,7 +12,7 @@ namespace LibreLancer.GameData.World
 		public string Nickname;
         public int IdsName;
         public int[] IdsInfo;
-        public string Base; //used for linking IdsInfo
+        public Base Base; //used for linking IdsInfo
 		public Archetype Archetype;
         public Sun Star;
 		public Vector3 Position = Vector3.Zero;

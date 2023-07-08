@@ -141,6 +141,7 @@ namespace LancerEdit
                     ImGui.CloseCurrentPopup();
                 }
             }, ImGuiWindowFlags.AlwaysAutoResize, true);
+            MinimumWindowSize = new Point(200, 200);
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)

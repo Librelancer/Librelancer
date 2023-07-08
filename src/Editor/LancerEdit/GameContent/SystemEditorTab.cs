@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
@@ -13,7 +14,6 @@ using LibreLancer.Infocards;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.World;
-using Microsoft.EntityFrameworkCore.Metadata;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
 
 namespace LancerEdit;
@@ -79,7 +79,7 @@ public class SystemEditorTab : GameContentTab
         
         systemMap.CreateContext(gameData, mw);
         
-        systems = gameData.GameData.ListSystems().OrderBy(x => x).ToArray();
+        systems = gameData.GameData.Systems.Select(x => x.Nickname).OrderBy(x => x).ToArray();
 
         this.win = mw;
         
@@ -112,7 +112,7 @@ public class SystemEditorTab : GameContentTab
             //Load system
             renderer = new SystemRenderer(camera, gameData.Resources, win);
             world = new GameWorld(renderer, null);
-            curSystem = gameData.GameData.GetSystem(systems[sysIndex]);
+            curSystem = gameData.GameData.Systems.Get(systems[sysIndex]);
             systemInfocard = gameData.GameData.GetInfocard(curSystem.IdsInfo, gameData.Fonts);
             if (icard != null) icard.SetInfocard(systemInfocard);
             gameData.GameData.LoadAllSystem(curSystem);
@@ -227,12 +227,61 @@ public class SystemEditorTab : GameContentTab
         ImGui.TextUnformatted(value);
         ImGui.TableNextColumn();
     }
+
+    void FactionRow(string name, Faction f, Action<Faction> onSet)
+    {
+        PropertyRow(name, f == null ? "(none)" : $"{f.Nickname} ({gameData.Infocards.GetStringResource(f.IdsName)})");
+        if (ImGui.Button($"{Icons.Edit}##{name}"))
+            popups.OpenPopup(new FactionSelection(onSet, name, f, gameData));
+    }
+    
+    void BaseRow(string name, Base f, Action<Base> onSet, string message = null)
+    {
+        PropertyRow(name, f == null ? "(none)" : $"{f.Nickname} ({gameData.Infocards.GetStringResource(f.IdsName)})");
+        if (ImGui.Button($"{Icons.Edit}##{name}"))
+            popups.OpenPopup(new BaseSelection(onSet, name, message, f, gameData));
+    }
+
+    string DockDescription(DockAction a)
+    {
+        if (a == null) return "(none)";
+        var sb = new StringBuilder();
+        sb.AppendLine(a.Kind.ToString());
+        if (a.Kind == DockKinds.Jump)
+        {
+            var sys = gameData.GameData.Systems.Get(a.Target);
+            var sname = sys == null ? "INVALID" : gameData.Infocards.GetStringResource(sys.IdsName);
+            sb.AppendLine($"{a.Target} ({sname})");
+            sb.AppendLine($"{a.Exit}");
+        }
+        if (a.Kind == DockKinds.Base)
+        {
+            var b = gameData.GameData.Bases.Get(a.Target);
+            var bname = b == null ? "INVALID" : gameData.Infocards.GetStringResource(b.IdsName);
+            sb.AppendLine($"{a.Target} ({bname})");
+        }
+        return sb.ToString();
+    }
+    void DockRow(DockAction act, Archetype a, Action<DockAction> onSet)
+    {
+        PropertyRow("Dock", DockDescription(act));
+        if (ImGui.Button($"{Icons.Edit}##dock"))
+        {
+            popups.OpenPopup(
+                new DockActionSelection(
+                    onSet, act,  a,
+                    objectList.Select(x => x.SystemObject.Nickname).ToArray(),
+                    gameData
+                )
+            );
+        }
+    }
     
     void ObjectProperties(GameObject sel)
     {
         ImGui.BeginChild("##properties");
         var ed = GetEditData(sel, false);
-        if (ed != null && ImGui.Button("Reset")) {
+        if (ImGuiExt.Button("Reset", !(ed?.IsNewObject ?? false))) {
             sel.Unregister(world.Physics);
             world.RemoveObject(sel);
             sel = world.NewObject(sel.SystemObject, gameData.Resources, false);
@@ -289,13 +338,58 @@ public class SystemEditorTab : GameContentTab
         PropertyRow("Visit", VisitFlagEditor.FlagsString(ed?.Visit ?? sel.SystemObject.Visit));
         if(ImGui.Button($"{Icons.Edit}##visit"))
             popups.OpenPopup(new VisitFlagEditor(ed?.Visit ?? sel.SystemObject.Visit, x => GetEditData(sel).Visit = x));
+        FactionRow("Reputation", ed == null ? sel.SystemObject.Reputation : ed.Reputation, x => GetEditData(sel).Reputation = x);
+        Controls.EndPropertyTable();
+        Controls.BeginPropertyTable("base and docking",true,false,true);
+        BaseRow(
+            "Base", 
+            ed == null ? sel.SystemObject.Base : ed.Base, 
+            x => GetEditData(sel).Base = x,
+            "This is the base entry used when linking infocards.\nDocking requires setting the dock action"
+            );
+        DockRow(
+            ed == null ? sel.SystemObject.Dock : ed.Dock, 
+            ed == null ? sel.SystemObject.Archetype : ed.Archetype,
+            x => GetEditData(sel).Dock = x
+            );
         Controls.EndPropertyTable();
         ImGui.EndChild();
     }
 
+    void CreateObject(string nickname, Archetype archetype)
+    {
+        var rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
+                  Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
+        var dir = Vector3.Transform(-Vector3.UnitZ,rot);
+        var to = viewport.CameraOffset + (dir * 50);
+        var sysobj = new SystemObject()
+        {
+            Nickname = nickname,
+            IdsInfo = Array.Empty<int>(),
+            Archetype = archetype,
+            Position = to,
+        };
+        selectedObject = world.NewObject(sysobj, gameData.Resources, false);
+        selectedTransform = selectedObject.LocalTransform;
+        GetEditData(selectedObject).IsNewObject = true;
+        BuildObjectList();
+        scrollToSelection = true;
+        dirty = true;
+    }
+
+
+    private float h1 = 200, h2 = 200;
     void ObjectsPanel()
     {
-        ImGui.BeginChild("##objects", new Vector2(ImGui.GetWindowWidth(), ImGui.GetWindowHeight() / 2));
+        var totalH = ImGui.GetWindowHeight();
+        ImGuiExt.SplitterV(2f, ref h1, ref h2, 15 * ImGuiHelper.Scale, 60 * ImGuiHelper.Scale, -1);
+        h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
+        ImGui.BeginChild("##objects", new Vector2(ImGui.GetWindowWidth(), h1));
+        if (ImGui.Button("New Object"))
+        {
+            popups.OpenPopup(new NewObjectPopup(gameData, world, CreateObject));
+        }
+        ImGui.BeginChild("objscroll");
         foreach (var obj in objectList)
         {
             if (scrollToSelection && selectedObject == obj)
@@ -310,13 +404,15 @@ public class SystemEditorTab : GameContentTab
         }
         scrollToSelection = false;
         ImGui.EndChild();
-        ImGui.Separator();
+        ImGui.EndChild();
+        ImGui.BeginChild("##properties", new Vector2(ImGui.GetWindowWidth(), h2));
         ImGui.Text("Properties");
         ImGui.Separator();
         if(selectedObject != null)
             ObjectProperties(selectedObject);
         else
             ImGui.Text("No Object Selected");
+        ImGui.EndChild();
     }
 
     private SystemEditData systemData;
@@ -408,7 +504,7 @@ public class SystemEditorTab : GameContentTab
         }
         ImGui.Separator();
         Controls.BeginPropertyTable("Props", true, false, true);
-        PropertyRow("Name", gameData.GameData.GetString(systemData.IdsName));
+        PropertyRow("Name", gameData.Infocards.GetStringResource(systemData.IdsName));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
             popups.OpenPopup(IdsSearch.SearchStrings(gameData.Infocards, gameData.Fonts, newIds => {
@@ -653,7 +749,7 @@ public class SystemEditorTab : GameContentTab
         ImGui.BeginChild("##main");
         using (var tb = Toolbar.Begin("##toolbar", false))
         {
-            var curSysName = gameData.GameData.GetString(systemData.IdsName);
+            var curSysName = gameData.Infocards.GetStringResource(systemData.IdsName);
             tb.TextItem($"Current System: {curSysName} ({curSystem.Nickname})");
             tb.ToggleButtonItem("Maps", ref universeOpen);
             tb.ToggleButtonItem("Infocard", ref infocardOpen);
@@ -669,6 +765,9 @@ public class SystemEditorTab : GameContentTab
                     if (item.TryGetComponent<ObjectEditData>(out var dat))
                     {
                         dat.Apply();
+                        if (dat.IsNewObject) {
+                            curSystem.Objects.Add(item.SystemObject);
+                        }
                         item.Components.Remove(dat);
                     }
                 }
@@ -677,7 +776,7 @@ public class SystemEditorTab : GameContentTab
                 if (writeUniverse)
                 {
                     var path = gameData.GameData.VFS.Resolve(gameData.GameData.Ini.Freelancer.UniversePath);
-                    File.WriteAllText(path, IniSerializer.SerializeUniverse(gameData.GameData.AllSystems, gameData.GameData.AllBases));
+                    File.WriteAllText(path, IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases));
                 }
                 dirty = false;
             }

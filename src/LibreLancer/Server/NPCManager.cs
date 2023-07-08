@@ -62,7 +62,7 @@ namespace LibreLancer.Server
 
         public ObjectName RandomName(string affiliation)
         {
-            var fac = World.Server.GameData.GetFaction(affiliation);
+            var fac = World.Server.GameData.Factions.Get(affiliation);
             if (fac == null) return new ObjectName("NULL");
             var rand = new Random();
             var first = rand.Next(0, 2) == 1 ? fac.Properties.FirstNameMale : fac.Properties.FirstNameFemale;
@@ -96,7 +96,7 @@ namespace LibreLancer.Server
             obj.Components.Add(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
-            var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.GetFaction(affiliation)};
+            var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
             obj.Components.Add(new SelectedTargetComponent(obj));
             obj.Components.Add(npcComponent);            

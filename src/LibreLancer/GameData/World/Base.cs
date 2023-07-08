@@ -8,10 +8,9 @@ using LibreLancer.GameData.Market;
 
 namespace LibreLancer.GameData.World
 {
-	public class Base
+	public class Base : IdentifiableItem
     {
         //Populated from universe
-        public string Nickname;
         public int IdsName;
         public string System;
         public string TerrainTiny;

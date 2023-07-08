@@ -280,7 +280,7 @@ namespace LibreLancer.Server
 
         void SpaceInitialSpawn(SaveGame sg)
         {
-            var sys = Game.GameData.GetSystem(System);
+            var sys = Game.GameData.Systems.Get(System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 World = world;
@@ -306,7 +306,7 @@ namespace LibreLancer.Server
 
         IEnumerable<NetSoldShip> GetSoldShips()
         {
-            var b = Game.GameData.GetBase(Base);
+            var b = Game.GameData.Bases.Get(Base);
             foreach (var s in b.SoldShips)
             {
                 ulong goodsPrice = 0;
@@ -337,7 +337,7 @@ namespace LibreLancer.Server
                 });
             }
             //load base
-            BaseData = Game.GameData.GetBase(Base);
+            BaseData = Game.GameData.Bases.Get(Base);
             //update
             using (var c = Character.BeginTransaction())
             {
@@ -460,7 +460,7 @@ namespace LibreLancer.Server
         public Task<ShipPurchaseStatus> PurchaseShip(int package, MountId[] mountedPlayer, MountId[] mountedPackage, SellCount[] sellPlayer,
             SellCount[] sellPackage)
         {
-            var b = Game.GameData.GetBase(Base);
+            var b = Game.GameData.Bases.Get(Base);
             var resolved = Game.GameData.GetShipPackage((uint) package);
             if (resolved == null) return Task.FromResult(ShipPurchaseStatus.Fail);
             if (b.SoldShips.All(x => x.Package != resolved)) {
@@ -885,7 +885,7 @@ namespace LibreLancer.Server
         {
             foreach (var h in sg.Player.House)
             {
-                var f = Game.GameData.GetFaction(h.Group);
+                var f = Game.GameData.Factions.Get(h.Group);
                 if (f != null)
                     yield return (f, h.Reputation);
             }
@@ -962,7 +962,7 @@ namespace LibreLancer.Server
         {
             rpcClient.UpdateReputations(Character.Reputation.Reputations.Select(x => new NetReputation()
             {
-                FactionHash = x.Key.Hash,
+                FactionHash = x.Key.CRC,
                 Reputation = x.Value
             }).ToArray());
         }
@@ -1086,7 +1086,7 @@ namespace LibreLancer.Server
             rpcClient.StartJumpTunnel();
             if(World != null) World.RemovePlayer(this);
             
-            var sys = Game.GameData.GetSystem(system);
+            var sys = Game.GameData.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 this.World = world;
@@ -1129,8 +1129,8 @@ namespace LibreLancer.Server
                 FLLog.Error("Server", $"{Name} cannot launch without a ship");
                 return;
             }
-            var b = Game.GameData.GetBase(Base);
-            var sys = Game.GameData.GetSystem(b.System);
+            var b = Game.GameData.Bases.Get(Base);
+            var sys = Game.GameData.Systems.Get(b.System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 this.World = world;

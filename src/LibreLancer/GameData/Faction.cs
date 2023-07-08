@@ -2,11 +2,9 @@ using System.Collections.Generic;
 
 namespace LibreLancer.GameData
 {
-    public class Faction
+    public class Faction : IdentifiableItem
     {
-        public string Nickname;
         public bool Hidden; //Hidden from the player status list
-        public uint Hash;
         public int IdsName;
         public int IdsShortName;
         public int IdsInfo;

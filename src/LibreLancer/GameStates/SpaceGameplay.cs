@@ -79,7 +79,7 @@ World Time: {12:F2}
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             this.session = session;
-            sys = g.GameData.GetSystem(session.PlayerSystem);
+            sys = g.GameData.Systems.Get(session.PlayerSystem);
             ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
             nextObjectiveUpdate = session.CurrentObjectiveIds;

@@ -10,10 +10,9 @@ using LibreLancer.Data;
 
 namespace LibreLancer.GameData.World
 {
-	public class StarSystem
+	public class StarSystem : IdentifiableItem
 	{
         //Comes from universe.ini
-		public string Nickname;
         public Vector2 UniversePosition;
         public int IdsName;
         public int IdsInfo;

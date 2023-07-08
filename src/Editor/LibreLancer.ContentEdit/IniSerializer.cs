@@ -251,7 +251,7 @@ public static class IniSerializer
         sb.AppendEntry("atmosphere_range", obj.AtmosphereRange, false);
         if (obj.BurnColor != null)
             sb.AppendEntry("burn_color", obj.BurnColor.Value);
-        sb.AppendEntry("base", obj.Base);
+        sb.AppendEntry("base", obj.Base?.Nickname);
         if (obj.Dock != null)
         {
             if (obj.Dock.Kind == DockKinds.Base)

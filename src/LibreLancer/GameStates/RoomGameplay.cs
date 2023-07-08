@@ -74,17 +74,14 @@ namespace LibreLancer
             //Load room data
             this.session = session;
 			baseId = newBase;
-			currentBase = g.GameData.GetBase(newBase);
+			currentBase = g.GameData.Bases.Get(newBase);
 			currentRoom = room ?? currentBase.StartRoom;
             currentRoom.InitForDisplay();
             var rm = virtualRoom ?? currentRoom.Nickname;
             this.virtualRoom = virtualRoom;
             //Find infocard
-            sys = g.GameData.GetSystem(currentBase.System);
-            var obj = sys.Objects.FirstOrDefault((o) =>
-            {
-                return o.Base?.Equals(newBase, StringComparison.OrdinalIgnoreCase) ?? false;
-            });
+            sys = g.GameData.Systems.Get(currentBase.System);
+            var obj = sys.Objects.FirstOrDefault((o) => o.Base == currentBase);
             int ids = 0;
             if (obj?.IdsInfo.Length > 0) {
                 ids = obj.IdsInfo[0];

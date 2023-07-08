@@ -626,7 +626,7 @@ namespace LibreLancer.Client
         {
             foreach (var r in reps)
             {
-                var f = Game.GameData.GetFaction(r.FactionHash);
+                var f = Game.GameData.Factions.Get(r.FactionHash);
                 if (f != null)
                     PlayerReputations.Reputations[f] = r.Reputation;
             }
@@ -676,7 +676,7 @@ namespace LibreLancer.Client
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses));
-                var fac = Game.GameData.GetFaction(affiliation);
+                var fac = Game.GameData.Factions.Get(affiliation);
                 if(fac != null)
                     newobj.Components.Add(new CFactionComponent(newobj, fac));
                 foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))

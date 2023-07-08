@@ -29,7 +29,7 @@ namespace LancerEdit
             var min = crmin + (new Vector2(width, height) * margin);
             var factor = (new Vector2(width, height) * (1 - 2 * margin)) / 16f;
             string retVal = null;
-            foreach (var sys in gameData.AllSystems)
+            foreach (var sys in gameData.Systems)
             {
                 ImGui.SetCursorPos(min + (sys.UniversePosition * factor) - new Vector2(8,8));
                 if (ImGui.Button($"x##{sys.Nickname}"))

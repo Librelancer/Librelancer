@@ -34,6 +34,7 @@ public class VisitFlagEditor : PopupWindow
 
     public static string FlagsString(VisitFlags f)
     {
+        if (f == 0) return "(none)";
         var b = new StringBuilder();
         if ((f & VisitFlags.Visited) == VisitFlags.Visited) b.Append(Icons.Check);
         if ((f & VisitFlags.Wreck) == VisitFlags.Wreck) b.Append(Icons.Gift);

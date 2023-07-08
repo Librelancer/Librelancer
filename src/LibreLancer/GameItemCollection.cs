@@ -9,12 +9,20 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
     private Dictionary<string, T> nicknameCollection = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
     private Dictionary<uint, T> crcCollection = new Dictionary<uint, T>();
 
-    public bool TryGetValue(string nickname, out T value) => nicknameCollection.TryGetValue(nickname, out value);
+    public bool TryGetValue(string nickname, out T value)
+    {
+        if (string.IsNullOrEmpty(nickname)) {
+            value = null;
+            return false;
+        }
+        return nicknameCollection.TryGetValue(nickname, out value);
+    }
 
     public bool TryGetValue(uint crc, out T value) => crcCollection.TryGetValue(crc, out value);
 
     public T Get(string nickname)
     {
+        if (string.IsNullOrEmpty(nickname)) return null;
         nicknameCollection.TryGetValue(nickname, out var result);
         return result;
     }
@@ -33,7 +41,8 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
 
     public void Add(T item)
     {
-        var identity = (IdentifiableItem) item;
+        if (string.IsNullOrEmpty(item.Nickname) || item.CRC == 0)
+            throw new ArgumentNullException();
         nicknameCollection[item.Nickname] = item;
         crcCollection[item.CRC] = item;
     }

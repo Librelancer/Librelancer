@@ -44,23 +44,7 @@ namespace LibreLancer
             fldata = new Data.FreelancerData(flini, VFS);
         }
         public string DataVersion => fldata.DataVersion;
-        public string GetInterfaceXml(string id)
-        {
-            if (fldata.Freelancer.XInterfacePath == null)
-            {
-                using (var reader = new StreamReader(typeof(GameDataManager).Assembly.GetManifestResourceStream("LibreLancer.Interface.Default." + id + ".xml")))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-            else
-            {
-                using (var reader = new StreamReader(fldata.Freelancer.XInterfacePath + id + ".xml"))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-        }
+        
         public string ResolveDataPath(string input)
         {
             return VFS.Resolve(fldata.Freelancer.DataPath + input);
@@ -88,15 +72,6 @@ namespace LibreLancer
                     movies.Add(path);
             }
             return movies;
-        }
-        public List<Data.RichFont> GetRichFonts()
-        {
-            return fldata.RichFonts.Fonts;
-        }
-        public bool BaseExists(string id) => bases.ContainsKey(id);
-        public Base GetBase(string id)
-        {
-            return bases[id];
         }
 
         private AnmFile characterAnimations;
@@ -142,7 +117,6 @@ namespace LibreLancer
         IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");
-            bases = new Dictionary<string, Base>(fldata.Universe.Bases.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var inibase in fldata.Universe.Bases)
             {
                 if (inibase.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
@@ -151,6 +125,7 @@ namespace LibreLancer
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
                 var b = new Base();
                 b.Nickname = inibase.Nickname;
+                b.CRC = CrcTool.FLModelCrc(b.Nickname);
                 b.SourceFile = inibase.SourceFile;
                 b.IdsName = inibase.IdsName;
                 b.BaseRunBy = inibase.BGCSBaseRunBy;
@@ -224,7 +199,7 @@ namespace LibreLancer
                     }
                     b.Rooms.Add(nr);
                 }
-                bases.Add(inibase.Nickname, b);
+                Bases.Add(b);
             }
             fldata.MBases = null; //Free memory
         }
@@ -233,10 +208,7 @@ namespace LibreLancer
         private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
         private Dictionary<string, ResolvedGood> equipToGood = new Dictionary<string, ResolvedGood>();
         Dictionary<string, long> shipPrices = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-
-        private Dictionary<string, Faction> factions = new Dictionary<string, Faction>(StringComparer.OrdinalIgnoreCase);
-        private Dictionary<uint, Faction> factionHash = new Dictionary<uint, Faction>();
-
+        
         public IEnumerable<ResolvedGood> AllGoods => goods.Values;
 
         public bool TryGetGood(string nickname, out ResolvedGood good) => goods.TryGetValue(nickname, out good);
@@ -318,7 +290,7 @@ namespace LibreLancer
             foreach (var m in fldata.Markets.BaseGoods)
             {
                 Base b;
-                if(!bases.TryGetValue(m.Base, out b))
+                if(!Bases.TryGetValue(m.Base, out b))
                 {
                     //This is allowed by demo at least
                     FLLog.Warning("Market", "BaseGoods references nonexistent base " + m.Base);
@@ -347,7 +319,6 @@ namespace LibreLancer
             }
             fldata.Markets = null; //Free memory
         }
-        Dictionary<string, Base> bases;
         Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
         private Dictionary<uint, GameData.Market.ShipPackage> shipPackageByCRC = new Dictionary<uint, ShipPackage>();
 
@@ -363,26 +334,24 @@ namespace LibreLancer
             FLLog.Info("Factions", $"Initing {fldata.InitialWorld.Groups.Count} factions");
             foreach (var f in fldata.InitialWorld.Groups)
             {
-                var hash = CrcTool.FLModelCrc(f.Nickname);
                 var fac = new Faction() {
                     Nickname = f.Nickname,
-                    Hash = hash,
                     IdsInfo = f.IdsInfo,
                     IdsName = f.IdsName,
                     IdsShortName = f.IdsShortName,
                     Properties = fldata.FactionProps.FactionProps.FirstOrDefault(x => x.Affiliation.Equals(f.Nickname, StringComparison.OrdinalIgnoreCase))
                 };
                 fac.Hidden = fldata.Freelancer.HiddenFactions.Contains(fac.Nickname, StringComparer.OrdinalIgnoreCase);
-                factions[f.Nickname] = fac;
-                factionHash[hash] = fac;
+                fac.CRC = CrcTool.FLModelCrc(fac.Nickname);
+                Factions.Add(fac);
             }
 
             foreach (var f in fldata.InitialWorld.Groups)
             {
-                var us = factions[f.Nickname];
+                var us = Factions.Get(f.Nickname);
                 foreach (var rep in f.Rep)
                 {
-                    if (factions.TryGetValue(rep.Name, out var other))
+                    if (Factions.TryGetValue(rep.Name, out var other))
                     {
                         us.Reputations[other] = rep.Rep;
                     }
@@ -403,8 +372,8 @@ namespace LibreLancer
                     us.MissionAbortRepChange =
                         emp.Events.LastOrDefault(x => x.Type == EmpathyEventType.RandomMissionAbort).ChangeAmount;
                     us.FactionEmpathy = emp.EmpathyRate
-                        .Where(x => x.Rep != 0 && (GetFaction(x.Name) != null))
-                        .Select(x => new Empathy(GetFaction(x.Name), x.Rep))
+                        .Where(x => x.Rep != 0 && (Factions.Get(x.Name) != null))
+                        .Select(x => new Empathy(Factions.Get(x.Name), x.Rep))
                         .ToArray();
                 }
                 else
@@ -412,23 +381,8 @@ namespace LibreLancer
                     us.FactionEmpathy = Array.Empty<Empathy>();
                 }
             }
-            
-            
         }
 
-        public Faction GetFaction(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name)) return null;
-            factions.TryGetValue(name, out var f);
-            return f;
-        }
-
-        public Faction GetFaction(uint hash)
-        {
-            factionHash.TryGetValue(hash, out var f);
-            return f;
-        }
-        
         public void LoadData(IUIThread ui, Action onIniLoaded = null)
         {
             fldata.LoadData();
@@ -580,14 +534,7 @@ namespace LibreLancer
             return IntroScenes[i];
         }
 #endif
-        public void LoadHardcodedFiles()
-        {
-            resource.LoadResourceFile(ResolveDataPath("INTERFACE/interface.generic.vms"));
-        }
-        public IDrawable GetMenuButton()
-        {
-            return resource.GetDrawable(ResolveDataPath("INTERFACE/INTRO/OBJECTS/front_button.cmp"));
-        }
+        
         public Texture2D GetSplashScreen()
         {
             if (!glResource.TextureExists("__startupscreen_1280.tga"))
@@ -614,17 +561,7 @@ namespace LibreLancer
             }
             return (Texture2D)resource.FindTexture("__startupscreen_1280.tga");
         }
-        public Texture2D GetFreelancerLogo()
-        {
-            if (!glResource.TextureExists("__freelancerlogo.tga"))
-            {
-                glResource.AddTexture(
-                    "__freelancerlogo.tga",
-                    ResolveDataPath("INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga")
-                );
-            }
-            return (Texture2D)resource.FindTexture("__freelancerlogo.tga");
-        }
+        
         public IEnumerable<Maneuver> GetManeuvers()
         {
             var p = fldata.Freelancer.DataPath.Replace('\\', Path.DirectorySeparatorChar);
@@ -641,11 +578,9 @@ namespace LibreLancer
             }
         }
 
-        public bool SystemExists(string id) => systems.ContainsKey(id);
-        public IEnumerable<string> ListSystems() => systems.Keys;
-        public IEnumerable<string> ListBases() => bases.Keys;
-
         public GameItemCollection<Equipment> Equipment = new GameItemCollection<Equipment>();
+
+        public GameItemCollection<Faction> Factions = new GameItemCollection<Faction>();
         void InitEquipment()
         {
             FLLog.Info("Game", "Initing " + fldata.Equipment.Equip.Count + " equipments");
@@ -841,10 +776,9 @@ namespace LibreLancer
             }
             return q;
         }
-        Dictionary<string, StarSystem> systems = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
 
-        public IEnumerable<StarSystem> AllSystems => systems.Values;
-        public IEnumerable<Base> AllBases => bases.Values;
+        public GameItemCollection<StarSystem> Systems = new GameItemCollection<StarSystem>();
+        public GameItemCollection<Base> Bases = new GameItemCollection<Base>();
 
         void InitLoadouts()
         {
@@ -878,12 +812,14 @@ namespace LibreLancer
                 if (inisys.MultiUniverse) continue; //Skip multiuniverse for now
                 FLLog.Info("System", inisys.Nickname);
                 var sys = new StarSystem();
-                sys.LocalFaction = GetFaction(inisys.LocalFaction);
+                sys.LocalFaction = Factions.Get(inisys.LocalFaction);
                 sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
                 sys.AmbientColor = inisys.AmbientColor;
                 sys.IdsName = inisys.IdsName;
                 sys.IdsInfo = inisys.IdsInfo;
                 sys.Nickname = inisys.Nickname;
+                sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
+                sys.MsgIdPrefix = inisys.MsgIdPrefix;
                 sys.BackgroundColor = inisys.SpaceColor;
                 sys.MusicSpace = inisys.MusicSpace;
                 sys.MusicBattle = inisys.MusicBattle;
@@ -1119,7 +1055,7 @@ namespace LibreLancer
                         }
                     }
                 });
-                systems.Add(sys.Nickname, sys);
+                Systems.Add(sys);
             }
         }
         public IEnumerator<object> LoadSystemResources(StarSystem sys)
@@ -1157,7 +1093,6 @@ namespace LibreLancer
                 a++;
             }
         }
-        public StarSystem GetSystem(string id) => systems[id];
 
         public void LoadAllSystem(StarSystem system)
         {
@@ -1640,6 +1575,7 @@ namespace LibreLancer
                     obj.CollisionGroups = arch.CollisionGroups.ToArray();
                 }
                 obj.Nickname = arch.Nickname;
+                obj.CRC = CrcTool.FLModelCrc(obj.Nickname);
                 obj.LODRanges = arch.LODRanges;
                 obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
                 Archetypes.Add(obj);
@@ -1706,15 +1642,15 @@ namespace LibreLancer
         {
             var obj = new SystemObject();
             obj.Nickname = o.Nickname;
-            obj.Reputation = GetFaction(o.Reputation);
+            obj.Reputation = Factions.Get(o.Reputation);
             obj.Visit = (VisitFlags) (o.Visit ?? 0);
             obj.IdsName = o.IdsName;
             obj.Position = o.Pos ?? Vector3.Zero;
             obj.Parent = o.Parent;
             obj.Spin = o.Spin ?? Vector3.Zero;
             obj.IdsInfo = o.IdsInfo.ToArray();
-            obj.Base = o.Base;
-            obj.Faction = GetFaction(o.Faction);
+            obj.Base = Bases.Get(o.Base);
+            obj.Faction = Factions.Get(o.Faction);
             obj.Pilot = GetPilot(o.Pilot);
             obj.Behavior = o.Behavior;
             obj.BurnColor = o.BurnColor;

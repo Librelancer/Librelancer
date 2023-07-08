@@ -14,6 +14,8 @@ namespace LancerEdit;
 
 public class ObjectEditData : GameComponent
 {
+    public bool IsNewObject;
+    
     public int IdsName;
     public int[] IdsInfo;
     public int IdsLeft;
@@ -21,6 +23,9 @@ public class ObjectEditData : GameComponent
     public VisitFlags Visit;
     public Archetype Archetype;
     public ObjectLoadout Loadout;
+    public Faction Reputation;
+    public Base Base;
+    public DockAction Dock;
 
     private SystemObject sysobj;
     
@@ -33,7 +38,10 @@ public class ObjectEditData : GameComponent
         IdsRight = sysobj.IdsRight;
         Loadout = sysobj.Loadout;
         Archetype = sysobj.Archetype;
+        Reputation = sysobj.Reputation;
         Visit = sysobj.Visit;
+        Base = sysobj.Base;
+        Dock = sysobj.Dock;
     }
 
     public void Apply()
@@ -52,6 +60,9 @@ public class ObjectEditData : GameComponent
         sysobj.Archetype = Archetype;
         sysobj.Loadout = Loadout;
         sysobj.Visit = Visit;
+        sysobj.Reputation = Reputation;
+        sysobj.Base = Base;
+        sysobj.Dock = Dock;
         
         if (IdsLeft != 0 && IdsRight != 0)
             Parent.Name = new TradelaneName(Parent, IdsLeft, IdsRight);
