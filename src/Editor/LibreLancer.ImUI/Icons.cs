@@ -12,6 +12,7 @@ public static class Icons
     public const char BezierCurve = '\uf55b';
     public const char Book = '\uf02d';
     public const char BookOpen = '\uf518';
+    public const char Check = '\uf00c';
     public const char Info = '\uf129';
     public const char File = '\uf15b';
     public const char Fire = '\uf06d';
@@ -40,6 +41,7 @@ public static class Icons
     public const char StreetView = '\uf21d';
     public const char Star = '\uf005';
     public const char Table = '\uf0ce';
+    public const char Gift = '\uf06b';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -116,6 +118,7 @@ public static class Icons
         yield return BezierCurve;
         yield return Book;
         yield return BookOpen;
+        yield return Check;
         yield return Info;
         yield return File;
         yield return Fire;
@@ -165,6 +168,7 @@ public static class Icons
         yield return Images;
         yield return Stop;
         yield return IceCream;
+        yield return Gift;
         
         yield return Cube_LightYellow;
         yield return Cube_Purple;

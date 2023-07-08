@@ -151,6 +151,7 @@ namespace LibreLancer
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
                 var b = new Base();
                 b.Nickname = inibase.Nickname;
+                b.SourceFile = inibase.SourceFile;
                 b.IdsName = inibase.IdsName;
                 b.BaseRunBy = inibase.BGCSBaseRunBy;
                 b.AutosaveForbidden = inibase.AutosaveForbidden ?? false;
@@ -843,6 +844,7 @@ namespace LibreLancer
         Dictionary<string, StarSystem> systems = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
 
         public IEnumerable<StarSystem> AllSystems => systems.Values;
+        public IEnumerable<Base> AllBases => bases.Values;
 
         void InitLoadouts()
         {

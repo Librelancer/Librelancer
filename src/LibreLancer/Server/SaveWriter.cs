@@ -53,8 +53,5 @@ namespace LibreLancer.Server
             
             return sg.ToString();
         }
-
-        static string Float(float f) => f.ToString("0.#########");
-        static string Vector3(Vector3 v) => $"{Float(v.X)}, {Float(v.Y)}, {Float(v.Z)}";
     }
 }

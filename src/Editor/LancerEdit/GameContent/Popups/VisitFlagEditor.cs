@@ -1,0 +1,59 @@
+using System;
+using System.Numerics;
+using System.Text;
+using ImGuiNET;
+using LibreLancer.GameData.World;
+using LibreLancer.ImUI;
+
+namespace LancerEdit;
+
+public class VisitFlagEditor : PopupWindow
+{
+    public override string Title { get; set; } = "Visit";
+
+    public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
+
+    private VisitFlags flags;
+    private Action<VisitFlags> onSelect;
+
+    public VisitFlagEditor(VisitFlags flags, Action<VisitFlags> onSelect)
+    {
+        this.flags = flags;
+        this.onSelect = onSelect;
+    }
+
+    void Flag(char icon, VisitFlags f)
+    {
+        bool selected = (flags & f) == f;
+        if (ImGuiExt.ToggleButton($"{icon} {f}", selected))
+        {
+            if (selected) flags &= ~f;
+            else flags |= f;
+        }
+    }
+
+    public static string FlagsString(VisitFlags f)
+    {
+        var b = new StringBuilder();
+        if ((f & VisitFlags.Visited) == VisitFlags.Visited) b.Append(Icons.Check);
+        if ((f & VisitFlags.Wreck) == VisitFlags.Wreck) b.Append(Icons.Gift);
+        if ((f & VisitFlags.Hidden) == VisitFlags.Hidden) b.Append(Icons.EyeSlash);
+        b.Append(" (").Append(f.ToString()).Append(")");
+        return b.ToString();
+    }
+
+    public override void Draw()
+    {
+        Flag(Icons.Check, VisitFlags.Visited);
+        Flag(Icons.Gift, VisitFlags.Wreck);
+        Flag(Icons.EyeSlash, VisitFlags.Hidden);
+        if (ImGui.Button("Ok"))
+        {
+            onSelect(flags);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Cancel"))
+            ImGui.CloseCurrentPopup();
+    }
+}

@@ -47,7 +47,7 @@ public class SystemEditorTab : GameContentTab
     private PopupManager popups = new PopupManager();
     public SystemEditorTab(GameDataContext gameData, MainWindow mw)
     {
-        Title = "System Viewer";
+        Title = "System Editor";
         
         this.gameData = gameData;
         viewport = new Viewport3D(mw);
@@ -285,6 +285,10 @@ public class SystemEditorTab : GameContentTab
                 ChangeLoadout(sel, x);
             }, ed != null ? ed.Loadout : sel.SystemObject.Loadout, gameData));
         }
+        //Visit
+        PropertyRow("Visit", VisitFlagEditor.FlagsString(ed?.Visit ?? sel.SystemObject.Visit));
+        if(ImGui.Button($"{Icons.Edit}##visit"))
+            popups.OpenPopup(new VisitFlagEditor(ed?.Visit ?? sel.SystemObject.Visit, x => GetEditData(sel).Visit = x));
         Controls.EndPropertyTable();
         ImGui.EndChild();
     }
@@ -378,6 +382,23 @@ public class SystemEditorTab : GameContentTab
         renderer.StarSphereModels = models.ToArray();
     }
 
+    void ColorProperty(string name, Color4 color, Action<Color4> onSet)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(name);
+        ImGui.TableNextColumn();
+        ImGui.PushItemWidth(-1);
+        if (ImGui.ColorButton(name, color, ImGuiColorEditFlags.NoAlpha,
+                new Vector2(ImGui.CalcItemWidth(), ImGui.GetFrameHeight())))
+        {
+            popups.OpenPopup(new ColorPicker(name, color, onSet));
+        }
+        ImGui.TableNextColumn();
+        if(ImGui.Button($"{Icons.Edit}##{name}"))
+            popups.OpenPopup(new ColorPicker(name, color, onSet));
+        ImGui.PopItemWidth();
+    }
     
     void SystemPanel()
     {
@@ -385,14 +406,18 @@ public class SystemEditorTab : GameContentTab
             systemData = new SystemEditData(curSystem);
             ReloadStarspheres();
         }
-        float colWidth = Math.Min(ImGui.GetWindowWidth() - 10, 150 * ImGuiHelper.Scale);
-        ImGuiExt.ColorPicker3("Space Color", ref systemData.SpaceColor, colWidth);
-        if (ImGuiExt.Button("Reset##space", systemData.SpaceColor != curSystem.BackgroundColor))
-            systemData.SpaceColor = curSystem.BackgroundColor;
         ImGui.Separator();
-        ImGuiExt.ColorPicker3("Ambient Color", ref systemData.Ambient, colWidth);
-        if (ImGuiExt.Button("Reset##ambient", systemData.Ambient != curSystem.AmbientColor))
-            systemData.Ambient = curSystem.AmbientColor;
+        Controls.BeginPropertyTable("Props", true, false, true);
+        PropertyRow("Name", gameData.GameData.GetString(systemData.IdsName));
+        if (ImGui.Button($"{Icons.Edit}##name"))
+        {
+            popups.OpenPopup(IdsSearch.SearchStrings(gameData.Infocards, gameData.Fonts, newIds => {
+               systemData.IdsName = newIds;
+            }));
+        }
+        ColorProperty("Space Color", systemData.SpaceColor, x => systemData.SpaceColor = x);
+        ColorProperty("Ambient Color", systemData.Ambient, x => systemData.Ambient = x);
+        Controls.EndPropertyTable();
         ImGui.Separator();
         ImGui.Text("Music");
         Controls.BeginPropertyTable("Music", true, false, true, true, true);
@@ -628,7 +653,7 @@ public class SystemEditorTab : GameContentTab
         ImGui.BeginChild("##main");
         using (var tb = Toolbar.Begin("##toolbar", false))
         {
-            var curSysName = gameData.GameData.GetString(curSystem.IdsName);
+            var curSysName = gameData.GameData.GetString(systemData.IdsName);
             tb.TextItem($"Current System: {curSysName} ({curSystem.Nickname})");
             tb.ToggleButtonItem("Maps", ref universeOpen);
             tb.ToggleButtonItem("Infocard", ref infocardOpen);
@@ -637,6 +662,7 @@ public class SystemEditorTab : GameContentTab
             }
             if (tb.ButtonItem("Save", dirty || systemData.IsDirty()))
             {
+                bool writeUniverse = systemData.IsUniverseDirty();
                 systemData.Apply();
                 foreach (var item in world.Objects.Where(x => x.SystemObject != null))
                 {
@@ -648,6 +674,11 @@ public class SystemEditorTab : GameContentTab
                 }
                 var resolved = gameData.GameData.ResolveDataPath("universe/" + curSystem.SourceFile);
                 File.WriteAllText(resolved, IniSerializer.SerializeStarSystem(curSystem));
+                if (writeUniverse)
+                {
+                    var path = gameData.GameData.VFS.Resolve(gameData.GameData.Ini.Freelancer.UniversePath);
+                    File.WriteAllText(path, IniSerializer.SerializeUniverse(gameData.GameData.AllSystems, gameData.GameData.AllBases));
+                }
                 dirty = false;
             }
         }

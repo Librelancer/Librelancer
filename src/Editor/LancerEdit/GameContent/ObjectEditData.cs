@@ -18,6 +18,7 @@ public class ObjectEditData : GameComponent
     public int[] IdsInfo;
     public int IdsLeft;
     public int IdsRight;
+    public VisitFlags Visit;
     public Archetype Archetype;
     public ObjectLoadout Loadout;
 
@@ -32,6 +33,7 @@ public class ObjectEditData : GameComponent
         IdsRight = sysobj.IdsRight;
         Loadout = sysobj.Loadout;
         Archetype = sysobj.Archetype;
+        Visit = sysobj.Visit;
     }
 
     public void Apply()
@@ -49,7 +51,8 @@ public class ObjectEditData : GameComponent
         sysobj.IdsRight = IdsRight;
         sysobj.Archetype = Archetype;
         sysobj.Loadout = Loadout;
-
+        sysobj.Visit = Visit;
+        
         if (IdsLeft != 0 && IdsRight != 0)
             Parent.Name = new TradelaneName(Parent, IdsLeft, IdsRight);
         else

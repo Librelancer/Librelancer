@@ -7,15 +7,9 @@ namespace LibreLancer.Data;
 
 public static class StringBuilderExtensions
 {
-    static string Float(float f)
-    {
-        if (f == 0) return "0"; //Stops -0 from creeping in
-        return f.ToString("0.####");
-    }
-
     public static StringBuilder AppendFloat(this StringBuilder builder, float f)
     {
-        return builder.Append(Float(f));
+        return builder.Append(f.ToStringInvariant());
     }
 
     public static StringBuilder AppendSection(this StringBuilder builder, string name)
@@ -26,12 +20,12 @@ public static class StringBuilderExtensions
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, float value, bool writeIfZero = true)
     {
         if (!writeIfZero && value == 0) return builder;
-        return builder.Append(name).Append(" = ").AppendLine(Float(value));
+        return builder.Append(name).Append(" = ").AppendLine(value.ToStringInvariant());
     }
     
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, float value1, string value2)
     {
-        return builder.Append(name).Append(" = ").Append(Float(value1)).Append(", ").AppendLine(value2);
+        return builder.Append(name).Append(" = ").Append(value1.ToStringInvariant()).Append(", ").AppendLine(value2);
     }
     
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, HashValue value, bool writeIfZero = true)
@@ -68,12 +62,12 @@ public static class StringBuilderExtensions
 
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, Vector3 value)
     {
-        return builder.AppendLine($"{name} = {Float(value.X)}, {Float(value.Y)}, {Float(value.Z)}");
+        return builder.AppendLine($"{name} = {value.X.ToStringInvariant()}, {value.Y.ToStringInvariant()}, {value.Z.ToStringInvariant()}");
     }
     
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, Vector2 value)
     {
-        return builder.AppendLine($"{name} = {Float(value.X)}, {Float(value.Y)}");
+        return builder.AppendLine($"{name} = {value.X.ToStringInvariant()}, {value.Y.ToStringInvariant()}");
     }
 
     public static StringBuilder AppendEntry(this StringBuilder builder, string name, Color4 value, bool alpha = false)
