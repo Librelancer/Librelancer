@@ -71,7 +71,7 @@ public class ProjectileViewerTab : GameContentTab
         ImGui.EndChild();
         ImGui.NextColumn();
         ImGui.BeginChild("##rendering");
-        ViewerControls.DropdownButton("Camera Mode", ref cameraMode, camModes);
+        Controls.DropdownButton("Camera Mode", ref cameraMode, camModes);
         viewport.Mode = (CameraModes) camModes[cameraMode].Tag;
         ImGui.SameLine();
         if (ImGui.Button("Reset Camera (Ctrl+R)"))

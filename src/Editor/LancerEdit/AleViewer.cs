@@ -131,7 +131,7 @@ namespace LancerEdit
             //Display + Camera controls
             aleViewport.End();
             //Action Bar
-            ViewerControls.DropdownButton("Camera Mode", ref cameraMode, camModes);
+            Controls.DropdownButton("Camera Mode", ref cameraMode, camModes);
             aleViewport.Mode = (CameraModes) camModes[cameraMode].Tag;
             ImGui.SameLine();
             if (ImGui.Button("Reset Camera (Ctrl+R)"))

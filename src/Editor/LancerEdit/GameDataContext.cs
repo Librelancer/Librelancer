@@ -25,6 +25,8 @@ public class GameDataContext : IDisposable
 
     public string Folder;
 
+    public string GetDataFolder() => GameData.VFS.Resolve(GameData.Ini.Freelancer.DataPath);
+
     public void Load(MainWindow win, string folder, Action onComplete)
     {
         Folder = folder;

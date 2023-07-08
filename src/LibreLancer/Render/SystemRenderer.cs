@@ -24,6 +24,7 @@ namespace LibreLancer.Render
         ICamera camera;
 
 		public Color4 NullColor = Color4.Black;
+        public Color4? BackgroundOverride;
 
         public GameWorld World { get; set; }
 		public List<AsteroidFieldRenderer> AsteroidFields { get; private set; }
@@ -328,12 +329,12 @@ namespace LibreLancer.Render
 				rstate.ClearAll();
 			}
 			else
-			{
-				if (starSystem == null)
-					rstate.ClearColor = NullColor;
-				else
-					rstate.ClearColor = starSystem.BackgroundColor;
-				rstate.ClearAll();
+            {
+                rstate.ClearColor = 
+                    BackgroundOverride ??
+                    starSystem?.BackgroundColor ??
+                    NullColor;
+                rstate.ClearAll();
             }
 			DebugRenderer.StartFrame(rstate);
 			Polyline.StartFrame();

@@ -277,7 +277,7 @@ namespace LancerEdit
                 if (ImGuiExt.ToggleButton(Icons.Warning.ToString(), showWarnings)) showWarnings = !showWarnings;
                 ImGui.SameLine();
             }
-            ViewerControls.DropdownButton("View Mode", ref viewMode, viewModes);
+            Controls.DropdownButton("View Mode", ref viewMode, viewModes);
             ImGui.SameLine();
             using (var ct = Toolbar.Begin("#controls", true)) {
                 ct.CheckItem("Background", ref doBackground);
@@ -291,7 +291,7 @@ namespace LancerEdit
             DoViewport();
             //
             var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
-            ViewerControls.DropdownButton("Camera Mode", ref selectedCam, camModes);
+            Controls.DropdownButton("Camera Mode", ref selectedCam, camModes);
             modelViewport.Mode = (CameraModes) (camModes[selectedCam].Tag);
             ImGui.SameLine();
             if(ImGui.Button("Reset Camera (Ctrl+R)"))

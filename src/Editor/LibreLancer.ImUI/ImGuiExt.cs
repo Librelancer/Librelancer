@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -94,6 +95,19 @@ namespace LibreLancer.ImUI
                 ImGui.Text(disableReason);
                 ImGui.EndTooltip();
             }
+        }
+
+        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
+        public static bool ColorPicker3(string label, ref Color4 color, float size = -1f)
+        {
+            if(size != -1f) ImGui.PushItemWidth(size);
+            var v3 = new Vector3(color.R, color.G, color.B);
+            var retval = ImGui.ColorPicker3(label, ref v3);
+            color.R = v3.X;
+            color.G = v3.Y;
+            color.B = v3.Z;
+            if(size != -1f) ImGui.PopItemWidth();
+            return retval;
         }
 
         public static unsafe void ToastText(string text, Color4 background, Color4 foreground)

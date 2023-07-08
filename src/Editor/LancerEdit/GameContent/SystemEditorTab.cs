@@ -13,6 +13,7 @@ using LibreLancer.Infocards;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.World;
+using Microsoft.EntityFrameworkCore.Metadata;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
 
 namespace LancerEdit;
@@ -119,6 +120,7 @@ public class SystemEditorTab : GameContentTab
             systemMap.SetObjects(curSystem);
             sysIndexLoaded = sysIndex;
             renderer.PhysicsHook = RenderZones;
+            systemData = new SystemEditData(curSystem);
             //Setup UI
             InitZoneList();
             BuildObjectList();
@@ -216,10 +218,19 @@ public class SystemEditorTab : GameContentTab
         BuildObjectList();
     }
     
+    void PropertyRow(string name, string value)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(name);
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(value);
+        ImGui.TableNextColumn();
+    }
+    
     void ObjectProperties(GameObject sel)
     {
         ImGui.BeginChild("##properties");
-        ImGui.TextUnformatted($"Nickname: {sel.Nickname}");
         var ed = GetEditData(sel, false);
         if (ed != null && ImGui.Button("Reset")) {
             sel.Unregister(world.Physics);
@@ -229,12 +240,11 @@ public class SystemEditorTab : GameContentTab
             selectedObject = sel;
             BuildObjectList();
         }
-        //Name
-        if(ed == null)
-            ImGui.TextUnformatted($"Name: {sel.Name.GetName(gameData.GameData, camera.Position)}");
-        else
-            ImGui.TextUnformatted($"Name: {gameData.Infocards.GetStringResource(ed.IdsName)}");
-        ImGui.SameLine();
+        Controls.BeginPropertyTable("properties", true, false, true);
+        PropertyRow("Nickname", sel.Nickname);
+        PropertyRow("Name", ed == null 
+            ? sel.Name.GetName(gameData.GameData, camera.Position)
+            : gameData.Infocards.GetStringResource(ed.IdsName));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
             popups.OpenPopup(IdsSearch.SearchStrings(gameData.Infocards, gameData.Fonts, newIds => {
@@ -244,9 +254,8 @@ public class SystemEditorTab : GameContentTab
         //Position
         var pos = Vector3.Transform(Vector3.Zero, sel.LocalTransform);
         var rot = sel.LocalTransform.GetEulerDegrees();
-        ImGui.TextUnformatted($"Position: {pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
-        ImGui.TextUnformatted($"Rotation: {rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
-        ImGui.SameLine();
+        PropertyRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
+        PropertyRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
         if (ImGui.Button("0##rot"))
         {
             //Create data if needed
@@ -255,11 +264,9 @@ public class SystemEditorTab : GameContentTab
             selectedTransform = sel.LocalTransform;
         }
         //Archetype
-        if(ed != null)
-            ImGui.TextUnformatted($"Archetype: {ed.Archetype?.Nickname ?? "(none)"}");
-        else
-            ImGui.TextUnformatted($"Archetype: {sel.SystemObject.Archetype?.Nickname ?? "(none)"}");
-        ImGui.SameLine();
+        PropertyRow("Archetype", ed == null
+            ? (sel.SystemObject.Archetype?.Nickname ?? "(none)")
+            : (ed.Archetype?.Nickname ?? "(none)"));
         if (ImGui.Button($"{Icons.Edit}##archetype"))
         {
             popups.OpenPopup(new ArchetypeSelection(x =>
@@ -268,11 +275,9 @@ public class SystemEditorTab : GameContentTab
             }, ed?.Archetype ?? sel.SystemObject.Archetype, gameData));
         }
         //Loadout
-        if(ed != null)
-            ImGui.TextUnformatted($"Loadout: {ed.Loadout?.Nickname ?? "(none)"}");
-        else
-            ImGui.TextUnformatted($"Loadout: {sel.SystemObject.Loadout?.Nickname ?? "(none)"}");
-        ImGui.SameLine();
+        PropertyRow("Loadout", ed == null
+            ? (sel.SystemObject.Loadout?.Nickname ?? "(none)")
+            : (ed.Loadout?.Nickname ?? "(none)"));
         if (ImGui.Button($"{Icons.Edit}##loadout"))
         {
             popups.OpenPopup(new LoadoutSelection(x =>
@@ -280,6 +285,7 @@ public class SystemEditorTab : GameContentTab
                 ChangeLoadout(sel, x);
             }, ed != null ? ed.Loadout : sel.SystemObject.Loadout, gameData));
         }
+        Controls.EndPropertyTable();
         ImGui.EndChild();
     }
 
@@ -308,6 +314,101 @@ public class SystemEditorTab : GameContentTab
         else
             ImGui.Text("No Object Selected");
     }
+
+    private SystemEditData systemData;
+
+    void MusicProp(string name, string arg, Action<string> onSet)
+    {
+        PropertyRow(name, arg ?? "(none)");
+        if(Controls.Music(name, win, !string.IsNullOrEmpty(arg)))
+            gameData.Sounds.PlayMusic(arg, 0, true);
+        ImGui.TableNextColumn();
+        if (ImGui.Button($"{Icons.Edit}##{name}"))
+            popups.OpenPopup(new MusicSelection(onSet, name, arg, gameData, win));
+        ImGui.TableNextColumn();
+        if (ImGuiExt.Button($"{Icons.TrashAlt}##{name}", !string.IsNullOrEmpty(arg)))
+            onSet(null);
+    }
+
+    void StarsphereProp(string name, ResolvedModel arg, Action<ResolvedModel> onSet)
+    {
+        var modelName = arg?.ModelFile;
+        if (modelName != null)
+            modelName = Path.GetFileName(modelName);
+        PropertyRow(name, modelName ?? "(none)");
+        if (ImGui.Button($"{Icons.Edit}##{name}"))
+        {
+            popups.OpenPopup(new FileSelector(name, gameData.GetDataFolder(), file =>
+            {
+                var modelFile = gameData.GameData.ResolveDataPath(file);
+                var sourcePath = file.Replace('/', '\\');
+                onSet(new ResolvedModel() {ModelFile = modelFile, SourcePath = sourcePath});
+                ReloadStarspheres();
+            }, FileSelector.MakeFilter(".cmp")));
+        }
+        ImGui.TableNextColumn();
+        if (ImGuiExt.Button($"{Icons.TrashAlt}##{name}", arg != null))
+        {
+            onSet(null);
+            ReloadStarspheres();
+        }
+    }
+
+    void ReloadStarspheres()
+    {
+        var models = new List<RigidModel>();
+        if (systemData.StarsBasic != null)
+        {
+            var mdl = systemData.StarsBasic.LoadFile(gameData.Resources);
+            if(mdl is IRigidModelFile rm)
+                models.Add(rm.CreateRigidModel(true));
+        }
+        if (systemData.StarsComplex != null)
+        {
+            var mdl = systemData.StarsComplex.LoadFile(gameData.Resources);
+            if(mdl is IRigidModelFile rm)
+                models.Add(rm.CreateRigidModel(true));
+        }
+        if (systemData.StarsNebula != null)
+        {
+            var mdl = systemData.StarsNebula.LoadFile(gameData.Resources);
+            if(mdl is IRigidModelFile rm)
+                models.Add(rm.CreateRigidModel(true));
+        }
+        renderer.StarSphereModels = models.ToArray();
+    }
+
+    
+    void SystemPanel()
+    {
+        if (ImGuiExt.Button("Reset All", systemData.IsDirty())) {
+            systemData = new SystemEditData(curSystem);
+            ReloadStarspheres();
+        }
+        float colWidth = Math.Min(ImGui.GetWindowWidth() - 10, 150 * ImGuiHelper.Scale);
+        ImGuiExt.ColorPicker3("Space Color", ref systemData.SpaceColor, colWidth);
+        if (ImGuiExt.Button("Reset##space", systemData.SpaceColor != curSystem.BackgroundColor))
+            systemData.SpaceColor = curSystem.BackgroundColor;
+        ImGui.Separator();
+        ImGuiExt.ColorPicker3("Ambient Color", ref systemData.Ambient, colWidth);
+        if (ImGuiExt.Button("Reset##ambient", systemData.Ambient != curSystem.AmbientColor))
+            systemData.Ambient = curSystem.AmbientColor;
+        ImGui.Separator();
+        ImGui.Text("Music");
+        Controls.BeginPropertyTable("Music", true, false, true, true, true);
+        MusicProp("Space", systemData.MusicSpace, x => systemData.MusicSpace = x);
+        MusicProp("Battle", systemData.MusicBattle, x => systemData.MusicBattle = x);
+        MusicProp("Danger", systemData.MusicDanger, x => systemData.MusicDanger = x);
+        Controls.EndPropertyTable();
+        ImGui.Separator();
+        ImGui.Text("Stars");
+        Controls.BeginPropertyTable("Stars", true, false, true, true);
+        StarsphereProp("Layer 1", systemData.StarsBasic, x => systemData.StarsBasic = x);
+        StarsphereProp("Layer 2", systemData.StarsComplex, x => systemData.StarsComplex = x);
+        StarsphereProp("Layer 3", systemData.StarsNebula, x => systemData.StarsNebula = x);
+        Controls.EndPropertyTable();
+    }
+    
 
     private Dictionary<string, ZoneDisplayKind> zoneTypes = new Dictionary<string, ZoneDisplayKind>();
     private HashSet<string> renderZones = new HashSet<string>();
@@ -484,7 +585,9 @@ public class SystemEditorTab : GameContentTab
         ImGui.BeginGroup();
         TabButton("Zones", 0);
         TabButton("Objects", 1);
-        TabButton("View", 2);
+        TabButton("System", 2);
+        TabButton("View", 3);
+        
         ImGui.EndGroup();
         ImGui.SameLine();
     }
@@ -516,7 +619,8 @@ public class SystemEditorTab : GameContentTab
             ImGui.BeginChild("##tabchild");
             if (openTabs[0]) ZonesPanel();
             if(openTabs[1]) ObjectsPanel();
-            if(openTabs[2]) ViewPanel();
+            if (openTabs[2]) SystemPanel();
+            if(openTabs[3]) ViewPanel();
             ImGui.EndChild();
             ImGui.NextColumn();
         }
@@ -531,8 +635,9 @@ public class SystemEditorTab : GameContentTab
             if (tb.ButtonItem("Change System (F6)")) {
                 doChangeSystem = true;
             }
-            if (tb.ButtonItem("Save", dirty))
+            if (tb.ButtonItem("Save", dirty || systemData.IsDirty()))
             {
+                systemData.Apply();
                 foreach (var item in world.Objects.Where(x => x.SystemObject != null))
                 {
                     if (item.TryGetComponent<ObjectEditData>(out var dat))
@@ -546,6 +651,8 @@ public class SystemEditorTab : GameContentTab
                 dirty = false;
             }
         }
+        renderer.BackgroundOverride = systemData.SpaceColor;
+        renderer.SystemLighting.Ambient = systemData.Ambient;
         viewport.Begin();
         renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
         viewport.End();

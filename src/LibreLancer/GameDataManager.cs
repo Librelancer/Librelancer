@@ -525,6 +525,8 @@ namespace LibreLancer
                 glResource.AddCursor(cur, cur.Nickname);
             }
         }
+
+        public IEnumerable<Data.Audio.AudioEntry> AllSounds => fldata.Audio.Entries;
         public Data.Audio.AudioEntry GetAudioEntry(string id)
         {
             return fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();

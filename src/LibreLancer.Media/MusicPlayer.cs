@@ -177,7 +177,7 @@ namespace LibreLancer.Media
 
         }
 
-        public PlayState State { get; private set; }
+        public PlayState State { get; private set; } = PlayState.Stopped;
     }
 }
 

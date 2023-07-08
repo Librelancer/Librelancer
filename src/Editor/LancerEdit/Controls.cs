@@ -8,6 +8,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
+using LibreLancer.Media;
 
 namespace LancerEdit
 {
@@ -29,8 +30,18 @@ namespace LancerEdit
             Tag = tag;
         }
     }
-    public static class ViewerControls
+    public static class Controls
     {
+        public static bool Music(string id, MainWindow win, bool enabled = true)
+        {
+            if (win.Audio.Music.State == PlayState.Playing)
+            {
+                if (ImGui.Button($"{Icons.Stop}##{id}"))
+                    win.Audio.Music.Stop(0);
+                return false;
+            }
+            return ImGuiExt.Button($"{Icons.Play}##{id}", enabled);
+        }
         public static bool GradientButton(string id, Color4 colA, Color4 colB, Vector2 size, bool gradient)
         {
             if (!gradient)
@@ -68,6 +79,22 @@ namespace LancerEdit
                 ImGui.EndPopup();
             }
             ImGui.PopID();
+        }
+        
+        private static readonly string[] columnNames = new string[] {"A", "B", "C", "D", "E", "F", "G", "H"};
+        public static void BeginPropertyTable(string name, params bool[] columns)
+        {
+            ImGui.BeginTable(name, columns.Length, ImGuiTableFlags.Borders);
+            for (int i = 0; i < columns.Length; i++) {
+                ImGui.TableSetupColumn(columnNames[i], columns[i] ? ImGuiTableColumnFlags.WidthFixed : ImGuiTableColumnFlags.WidthStretch);   
+            }
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+        }
+
+        public static void EndPropertyTable()
+        {
+            ImGui.PopStyleVar();
+            ImGui.EndTable();
         }
     }
 }

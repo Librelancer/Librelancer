@@ -116,7 +116,7 @@ namespace LancerEdit
 
         void EditorTab()
         {
-            ViewerControls.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
+            Controls.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Default Camera");
@@ -132,7 +132,7 @@ namespace LancerEdit
             config.MSAA = msaaLevels[cMsaa];
             ImGui.Checkbox("View Buttons", ref config.ViewButtons);
             ImGui.Checkbox("Pause When Unfocused", ref config.PauseWhenUnfocused);
-            if (ViewerControls.GradientButton("Viewport Background", config.Background, config.Background2,
+            if (Controls.GradientButton("Viewport Background", config.Background, config.Background2,
                     new Vector2(22 * ImGuiHelper.Scale), config.BackgroundGradient))
             {
                 ImGui.OpenPopup("Viewport Background");
