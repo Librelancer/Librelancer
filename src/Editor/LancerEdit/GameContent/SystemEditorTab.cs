@@ -378,6 +378,24 @@ public class SystemEditorTab : GameContentTab
     }
 
 
+    private List<SystemObject> toRemove = new List<SystemObject>();
+    void DeleteObject(GameObject go)
+    {
+        if (selectedObject == go)
+            selectedObject = null;
+        var ed = GetEditData(go);
+        if(ed == null || !ed.IsNewObject)
+            toRemove.Add(go.SystemObject);
+        go.Unregister(world.Physics);
+        world.RemoveObject(go);
+        BuildObjectList();
+    }
+    void RestoreObject(SystemObject o)
+    {
+        toRemove.Remove(o);
+        world.NewObject(o, gameData.Resources, false);
+        BuildObjectList();
+    }
     private float h1 = 200, h2 = 200;
     void ObjectsPanel()
     {
@@ -388,6 +406,16 @@ public class SystemEditorTab : GameContentTab
         if (ImGui.Button("New Object"))
         {
             popups.OpenPopup(new NewObjectPopup(gameData, world, CreateObject));
+        }
+        ImGui.SameLine();
+        if (ImGuiExt.Button("Restore Object", toRemove.Count > 0))
+            ImGui.OpenPopup("Restore");
+        if (ImGui.BeginPopupContextItem("Restore"))
+        {
+            for (int i = 0; i < toRemove.Count; i++)
+                if (ImGui.MenuItem(toRemove[i].Nickname))
+                    RestoreObject(toRemove[i]);
+            ImGui.EndPopup();
         }
         ImGui.BeginChild("objscroll");
         foreach (var obj in objectList)
@@ -400,6 +428,12 @@ public class SystemEditorTab : GameContentTab
                 selectedTransform = obj.LocalTransform;
                 if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     MoveCameraTo(obj);
+            }
+            if (ImGui.BeginPopupContextItem(obj.Nickname))
+            {
+                if(ImGui.MenuItem("Delete"))
+                    DeleteObject(obj);
+                ImGui.EndPopup();
             }
         }
         scrollToSelection = false;
@@ -724,6 +758,35 @@ public class SystemEditorTab : GameContentTab
             .OrderBy(x => x.SystemObject.Nickname).ToArray();
     }
 
+    void SaveSystem()
+    {
+        bool writeUniverse = systemData.IsUniverseDirty();
+        systemData.Apply();
+        foreach (var item in world.Objects.Where(x => x.SystemObject != null))
+        {
+            if (item.TryGetComponent<ObjectEditData>(out var dat))
+            {
+                dat.Apply();
+                if (dat.IsNewObject) {
+                    curSystem.Objects.Add(item.SystemObject);
+                }
+                item.Components.Remove(dat);
+            }
+        }
+        foreach (var o in toRemove)
+            curSystem.Objects.Remove(o);
+        toRemove = new List<SystemObject>();
+        var resolved = gameData.GameData.ResolveDataPath("universe/" + curSystem.SourceFile);
+        File.WriteAllText(resolved, IniSerializer.SerializeStarSystem(curSystem));
+        if (writeUniverse)
+        {
+            var path = gameData.GameData.VFS.Resolve(gameData.GameData.Ini.Freelancer.UniversePath);
+            File.WriteAllText(path, IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases));
+        }
+        dirty = false;
+    }
+    
+
     public override unsafe void Draw(double elapsed)
     {
         world.RenderUpdate(elapsed);
@@ -757,29 +820,7 @@ public class SystemEditorTab : GameContentTab
                 doChangeSystem = true;
             }
             if (tb.ButtonItem("Save", dirty || systemData.IsDirty()))
-            {
-                bool writeUniverse = systemData.IsUniverseDirty();
-                systemData.Apply();
-                foreach (var item in world.Objects.Where(x => x.SystemObject != null))
-                {
-                    if (item.TryGetComponent<ObjectEditData>(out var dat))
-                    {
-                        dat.Apply();
-                        if (dat.IsNewObject) {
-                            curSystem.Objects.Add(item.SystemObject);
-                        }
-                        item.Components.Remove(dat);
-                    }
-                }
-                var resolved = gameData.GameData.ResolveDataPath("universe/" + curSystem.SourceFile);
-                File.WriteAllText(resolved, IniSerializer.SerializeStarSystem(curSystem));
-                if (writeUniverse)
-                {
-                    var path = gameData.GameData.VFS.Resolve(gameData.GameData.Ini.Freelancer.UniversePath);
-                    File.WriteAllText(path, IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases));
-                }
-                dirty = false;
-            }
+                SaveSystem();
         }
         renderer.BackgroundOverride = systemData.SpaceColor;
         renderer.SystemLighting.Ambient = systemData.Ambient;
