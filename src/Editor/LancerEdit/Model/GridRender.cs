@@ -4,24 +4,22 @@
 
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.Render;
 using LibreLancer.Vertices;
 
 namespace LancerEdit
 {
+    // Adapted from http://asliceofrendering.com/scene%20helper/2020/01/05/InfiniteGrid/
     public static class GridRender
     {
         private static VertexBuffer vertices;
         private static ElementBuffer elements;
-
-
-        private const float GRID_SIZE = 1024;
-        private const float TEXCOORD = 1024;
         private static bool loaded = false;
 
         private static Shader shader;
         private static int gridColor;
         private static int gridScale;
+        private static int near;
+        private static int far;
         private const string VertexShader = @"#version {0}
 layout(std140) uniform Camera_Matrices 
 {
@@ -30,84 +28,141 @@ layout(std140) uniform Camera_Matrices
     mat4 ViewProjection;
 };
 
-uniform float GridScale;
 in vec3 vertex_position;
-in vec2 vertex_texture1;
-out vec2 texcoord;
-out vec4 view_position;
+
+out vec3 nearPoint;
+out vec3 farPoint;
+out mat4 fragView;
+out mat4 fragProj;
+
+vec3 UnprojectPoint(float x, float y, float z, mat4 view, mat4 projection) {
+    mat4 viewInv = inverse(view);
+    mat4 projInv = inverse(projection);
+    vec4 unprojectedPoint =  viewInv * projInv * vec4(x, y, z, 1.0);
+    return unprojectedPoint.xyz / unprojectedPoint.w;
+}
+
 void main()
 {
-    gl_Position = ViewProjection * vec4(vertex_position, 1);
-    texcoord = vertex_texture1 / GridScale;
-    view_position = View * vec4(vertex_position, 1);
+    vec3 p = vertex_position;
+    nearPoint = UnprojectPoint(p.x, p.y, 0.0, View, Projection).xyz; // unprojecting on the near plane
+    farPoint = UnprojectPoint(p.x, p.y, 1.0, View, Projection).xyz; // unprojecting on the far plane
+    gl_Position = vec4(p, 1.0);
+    fragView = View;
+    fragProj = Projection;
 }
 ";
 
         private const string FragmentShader = @"#version {0}
-in vec2 texcoord;
-in vec4 view_position;
-out vec4 out_color;
+uniform float near;
+uniform float far;
+uniform float gridScale;
+uniform vec4 gridColor;
 
-const float FADE_NEAR = 10.0;
-const float FADE_FAR = 100.0;
-const float N = 25.0; //gives a decent thickness
+in vec3 nearPoint;
+in vec3 farPoint;
+in mat4 fragView;
+in mat4 fragProj;
+out vec4 outColor;
 
-uniform vec4 GridColor;
-float invGridAlpha( in vec2 p, in vec2 ddx, in vec2 ddy )
-{
-    vec2 w = max(abs(ddx), abs(ddy)) + 0.01;
-    vec2 a = p + 0.5*w;                        
-    vec2 b = p - 0.5*w;           
-    vec2 i = (floor(a)+min(fract(a)*N,1.0)-
-              floor(b)-min(fract(b)*N,1.0))/(N*w);
-    return (1.0-i.x)*(1.0-i.y);
+vec4 grid(vec3 fragPos3D, float scale, bool drawAxis) {
+    vec2 coord = fragPos3D.xz * scale;
+    vec2 derivative = fwidth(coord);
+    vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
+    float line = min(grid.x, grid.y);
+    float minimumz = min(derivative.y, 1);
+    float minimumx = min(derivative.x, 1);
+    vec4 color = vec4(gridColor.r, gridColor.g, gridColor.b, 1.0 - min(line, 1.0));
+    // z axis
+    if(fragPos3D.x > (-0.1 / scale) * minimumx && fragPos3D.x < (0.1 / scale) * minimumx)
+        color.rgb = vec3(0.2, 0.2, 1.0);
+    // x axis
+    if(fragPos3D.z > (-0.1 / scale) * minimumz && fragPos3D.z < (0.1 / scale) * minimumz)
+        color.rgb = vec3(1.0, 0.2, 0.2);
+    color.a *= gridColor.a;
+    return color;
 }
+float computeDepth(vec3 pos) {
+    vec4 clip_space_pos = fragProj * fragView * vec4(pos.xyz, 1.0);
+    return clip_space_pos.z / clip_space_pos.w;
+}
+float computeLinearDepth(vec3 pos) {
+    vec4 clip_space_pos = fragProj * fragView * vec4(pos.xyz, 1.0);
+    float clip_space_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0; // put back between -1 and 1
+    float linearDepth = (2.0 * near * far) / (far + near - clip_space_depth * (far - near)); // get linear value between 0.01 and 100
+    return linearDepth / far; // normalize
+}
+void main() {
+    float t = -nearPoint.y / (farPoint.y - nearPoint.y);
+    vec3 fragPos3D = nearPoint + t * (farPoint - nearPoint);
 
-void main()
-{
-    float grid = (1.0 - invGridAlpha(texcoord, dFdx(texcoord), dFdy(texcoord)));
-    float dist = length(view_position);
-	float fadeFactor = (FADE_FAR- dist) / (FADE_FAR - FADE_NEAR);
-	fadeFactor = clamp(fadeFactor, 0.0, 1.0);
-    out_color = GridColor * vec4(1.0,1.0,1.0,grid * fadeFactor); 
+    gl_FragDepth = ((gl_DepthRange.diff * computeDepth(fragPos3D)) +
+                gl_DepthRange.near + gl_DepthRange.far) / 2.0;
+
+    float linearDepth = computeLinearDepth(fragPos3D);
+    float fading = max(0, (0.5 - linearDepth));
+
+    outColor = (grid(fragPos3D, gridScale * 10, true) + grid(fragPos3D, gridScale, true))* float(t > 0); // adding multiple resolution for the grid
+    outColor.a *= fading;
 }
 ";
         static void Load()
         {
             if (loaded) return;
             loaded = true;
-            vertices = new VertexBuffer(typeof(VertexPositionTexture), 4);
+            vertices = new VertexBuffer(typeof(VertexPosition), 6);
             vertices.SetData(new[]
             {
-                new VertexPositionTexture(new Vector3(-GRID_SIZE,0,-GRID_SIZE), Vector2.Zero),
-                new VertexPositionTexture(new Vector3(GRID_SIZE,0,-GRID_SIZE),new Vector2(TEXCOORD,0) ),
-                new VertexPositionTexture(new Vector3(-GRID_SIZE,0,GRID_SIZE), new Vector2(0,TEXCOORD) ), 
-                new VertexPositionTexture(new Vector3(GRID_SIZE,0,GRID_SIZE), new Vector2(TEXCOORD,TEXCOORD) ),
+                new VertexPosition(new Vector3(1,1,0)),
+                new VertexPosition(new Vector3(-1,-1,0)),
+                new VertexPosition(new Vector3(-1,1,0)),
+                new VertexPosition(new Vector3(-1,-1,0)),
+                new VertexPosition(new Vector3(1,1,0)),
+                new VertexPosition(new Vector3(1, -1, 0)),
             });
-            elements = new ElementBuffer(6);
-            elements.SetData(new short[] { 0, 1, 2, 1, 3, 2});
-            vertices.SetElementBuffer(elements);
             string glslVer = RenderContext.GLES ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
             shader = new Shader(VertexShader.Replace("{0}", glslVer), FragmentShader.Replace("{0}", glslVer));
-            gridColor = shader.GetLocation("GridColor");
-            gridScale = shader.GetLocation("GridScale");
-        }    
-        
-        public static void Draw(RenderContext rstate, Color4 color)
+            near = shader.GetLocation("near");
+            far = shader.GetLocation("far");
+            gridScale = shader.GetLocation("gridScale");
+            gridColor = shader.GetLocation("gridColor");
+        }
+
+        public static float DistanceScale(float y)
+        {
+            float gridScale = 1f;
+            if (y >= 15f)
+                gridScale = 0.1f;
+            if (y >= 60f)
+                gridScale = 0.005f;
+            if (y >= 200f)
+                gridScale = 0.001f;
+            if (y >= 9000f)
+                gridScale = 0.0001f;
+            if (y >= 23000f)
+                gridScale = 0.00001f;
+            if (y >= 80000f)
+                gridScale = 0.000001f;
+            return gridScale;
+        }
+
+        public static void Draw(RenderContext rstate, float scale, Color4 color, float nearPlane, float farPlane)
         {
             Load();
-            //Set state
             rstate.Cull = false;
-            rstate.DepthEnabled = false;
             rstate.BlendMode = BlendMode.Normal;
-            shader.SetFloat(gridScale, 1);
-            shader.SetColor4(gridColor, color);
             //Draw
+            shader.SetFloat(near, nearPlane);
+            shader.SetFloat(far, farPlane);
+            shader.SetFloat(gridScale, scale);
+            shader.SetColor4(gridColor, color);
+            shader.UseProgram();
+            rstate.DepthWrite = false;
             vertices.Draw(PrimitiveTypes.TriangleList, 2);
+            rstate.DepthWrite = true;
             //Restore State
             rstate.BlendMode = BlendMode.Opaque;
             rstate.Cull = true;
-            rstate.DepthEnabled = true;
         }
     }
 }

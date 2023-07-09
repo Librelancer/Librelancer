@@ -57,7 +57,7 @@ public class ImGuizmo
 
     [DllImport("cimgui", EntryPoint = "igGuizmoManipulate")]
     public static unsafe extern bool Manipulate(ref Matrix4x4 view, ref Matrix4x4 projection, GuizmoOperation operation,
-        GuizmoMode mode,  Matrix4x4* matrix);
+        GuizmoMode mode, Matrix4x4* matrix, Matrix4x4* delta);
 
     [DllImport("cimgui", EntryPoint = "igGuizmoSetDrawlist")]
     public static extern void SetDrawlist();

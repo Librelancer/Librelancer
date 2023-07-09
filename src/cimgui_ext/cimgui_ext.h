@@ -50,7 +50,7 @@ IGEXPORT int igGuizmoIsUsing();
 IGEXPORT int igGuizmoIsOver();
 IGEXPORT void igGuizmoSetID(int id);
 IGEXPORT void igGuizmoSetRect(float x, float y, float width, float height);
-IGEXPORT bool igGuizmoManipulate(float* view, float* projection, int operation, int mode, float* matrix);
+IGEXPORT bool igGuizmoManipulate(float* view, float* projection, int operation, int mode, float* matrix, float* delta);
 IGEXPORT void igGuizmoSetDrawlist();
 IGEXPORT void igGuizmoSetImGuiContext(void* ctx);
 #ifdef __cplusplus

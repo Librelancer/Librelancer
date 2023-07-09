@@ -48,6 +48,7 @@ namespace LibreLancer.Render
 		public Matrix4x4[] StarSphereWorlds;
         public Lighting[] StarSphereLightings;
 		public LineRenderer DebugRenderer;
+        public Action GridHook;
         public Action PhysicsHook;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
@@ -416,7 +417,6 @@ namespace LibreLancer.Render
 				rstate.DepthFunction = DepthFunction.LessEqual;
                 rstate.ColorWrite = true;
 			}
-
 			//Actual Drawing
             Beams.Begin(commands, resman, camera);
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
@@ -476,7 +476,8 @@ namespace LibreLancer.Render
 
                 rstate.DepthRange = new Vector2(0, 1);
             }
-			//Transparent Pass
+            GridHook?.Invoke();
+            //Transparent Pass
             rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;

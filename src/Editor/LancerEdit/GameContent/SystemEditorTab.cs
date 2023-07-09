@@ -92,10 +92,17 @@ public class SystemEditorTab : GameContentTab
     {
         if (openTabs[1])
         {
-            selectedObject =
-                world.GetSelection(camera, null, pos.X, pos.Y, viewport.RenderWidth, viewport.RenderHeight);
-            selectedTransform = selectedObject?.LocalTransform ?? Matrix4x4.Identity;
-            scrollToSelection = true;
+            var sel = world.GetSelection(camera, null, pos.X, pos.Y, viewport.RenderWidth, viewport.RenderHeight);
+            if (ShouldAddSecondary())
+            {
+                if(sel != null && !selection.Contains(sel))
+                    selection.Add(sel);
+            }
+            else
+            {
+                SelectSingle(sel);
+                scrollToSelection = true;
+            }
         }
     }
 
@@ -103,7 +110,7 @@ public class SystemEditorTab : GameContentTab
     {
         if (sysIndex != sysIndexLoaded)
         {
-            selectedObject = null;
+            SelectSingle(null);
             if (world != null)
             {
                 world.Renderer.Dispose();
@@ -120,11 +127,23 @@ public class SystemEditorTab : GameContentTab
             systemMap.SetObjects(curSystem);
             sysIndexLoaded = sysIndex;
             renderer.PhysicsHook = RenderZones;
+            renderer.GridHook = RenderGrid;
             systemData = new SystemEditData(curSystem);
             //Setup UI
             InitZoneList();
             BuildObjectList();
         }
+    }
+
+    private bool renderGrid = false;
+    private void RenderGrid()
+    {
+        if (!renderGrid) return;
+        var cpos = camera.Position;
+        var y = Math.Abs(cpos.Y);
+        if (y <= 100) y = 100;
+        
+        GridRender.Draw(win.RenderContext, GridRender.DistanceScale(y), win.Config.GridColor,camera.ZRange.X, camera.ZRange.Y);
     }
 
     private bool showZones = false;
@@ -184,6 +203,9 @@ public class SystemEditorTab : GameContentTab
         return d;
     }
 
+    bool IsPrimarySelection(GameObject obj) =>
+        selection.Count > 0 && selection[0] == obj;
+    
     void ChangeLoadout(GameObject obj, ObjectLoadout loadout)
     {
         var ed = GetEditData(obj);
@@ -193,8 +215,8 @@ public class SystemEditorTab : GameContentTab
             true, loadout, ed.Archetype);
         ed.Parent = newObj;
         newObj.Components.Add(ed);
-        if (selectedObject == obj)
-            selectedObject = newObj;
+        if (IsPrimarySelection(obj))
+            SelectSingle(newObj);
         newObj.SetLocalTransform(obj.LocalTransform);
         obj.Unregister(world.Physics);
         world.RemoveObject(obj);
@@ -210,8 +232,8 @@ public class SystemEditorTab : GameContentTab
             true, null, ed.Archetype);
         ed.Parent = newObj;
         newObj.Components.Add(ed);
-        if (selectedObject == obj)
-            selectedObject = newObj;
+        if (IsPrimarySelection(obj))
+            SelectSingle(newObj);
         newObj.SetLocalTransform(obj.LocalTransform);
         obj.Unregister(world.Physics);
         world.RemoveObject(obj);
@@ -286,7 +308,7 @@ public class SystemEditorTab : GameContentTab
             world.RemoveObject(sel);
             sel = world.NewObject(sel.SystemObject, gameData.Resources, false);
             selectedTransform = sel.LocalTransform;
-            selectedObject = sel;
+            SelectSingle(sel);
             BuildObjectList();
         }
         Controls.BeginPropertyTable("properties", true, false, true);
@@ -369,9 +391,9 @@ public class SystemEditorTab : GameContentTab
             Archetype = archetype,
             Position = to,
         };
-        selectedObject = world.NewObject(sysobj, gameData.Resources, false);
-        selectedTransform = selectedObject.LocalTransform;
-        GetEditData(selectedObject).IsNewObject = true;
+        var o = world.NewObject(sysobj, gameData.Resources, false);
+        GetEditData(o).IsNewObject = true;
+        SelectSingle(o);
         BuildObjectList();
         scrollToSelection = true;
         dirty = true;
@@ -381,8 +403,8 @@ public class SystemEditorTab : GameContentTab
     private List<SystemObject> toRemove = new List<SystemObject>();
     void DeleteObject(GameObject go)
     {
-        if (selectedObject == go)
-            selectedObject = null;
+        if (selection.Contains(go))
+            selection.Remove(go);
         var ed = GetEditData(go);
         if(ed == null || !ed.IsNewObject)
             toRemove.Add(go.SystemObject);
@@ -396,6 +418,9 @@ public class SystemEditorTab : GameContentTab
         world.NewObject(o, gameData.Resources, false);
         BuildObjectList();
     }
+    
+    bool ShouldAddSecondary() => selection.Count > 0 && (win.Keyboard.IsKeyDown(Keys.LeftShift) ||
+                                                         win.Keyboard.IsKeyDown(Keys.RightShift));
     private float h1 = 200, h2 = 200;
     void ObjectsPanel()
     {
@@ -420,17 +445,42 @@ public class SystemEditorTab : GameContentTab
         ImGui.BeginChild("objscroll");
         foreach (var obj in objectList)
         {
-            if (scrollToSelection && selectedObject == obj)
+            bool isPrimary = IsPrimarySelection(obj);
+            bool isSelected = selection.Contains(obj);
+            bool addSecondary = ShouldAddSecondary();
+            if (scrollToSelection && isPrimary)
                 ImGui.SetScrollHereY();
-            if (ImGui.Selectable(obj.Nickname, selectedObject == obj, ImGuiSelectableFlags.AllowDoubleClick))
+            if (isSelected && !isPrimary)
+                ImGui.PushStyleColor(ImGuiCol.Header, new Color4(120, 83, 101, 255));
+            if(addSecondary && !isPrimary)
+                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Color4(156, 107, 131, 255));
+            if (ImGui.Selectable(obj.Nickname, isSelected, ImGuiSelectableFlags.AllowDoubleClick))
             {
-                selectedObject = obj;
-                selectedTransform = obj.LocalTransform;
+                if (!selection.Contains(obj)) {
+                    if(selection.Count > 0 && (win.Keyboard.IsKeyDown(Keys.LeftShift) ||
+                       win.Keyboard.IsKeyDown(Keys.RightShift)))
+                        selection.Add(obj);
+                    else
+                        SelectSingle(obj);
+                }
                 if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     MoveCameraTo(obj);
             }
+            if(isSelected && !isPrimary)
+                ImGui.PopStyleColor();
+            if(addSecondary && !isPrimary)
+                ImGui.PopStyleColor();
             if (ImGui.BeginPopupContextItem(obj.Nickname))
             {
+                if (ImGui.MenuItem("Select with Children"))
+                {
+                    SelectSingle(obj);
+                    foreach (var c in objectList)
+                    {
+                        if (obj.Nickname.Equals(c.SystemObject.Parent, StringComparison.OrdinalIgnoreCase))
+                            selection.Add(c);
+                    }
+                }
                 if(ImGui.MenuItem("Delete"))
                     DeleteObject(obj);
                 ImGui.EndPopup();
@@ -442,8 +492,31 @@ public class SystemEditorTab : GameContentTab
         ImGui.BeginChild("##properties", new Vector2(ImGui.GetWindowWidth(), h2));
         ImGui.Text("Properties");
         ImGui.Separator();
-        if(selectedObject != null)
-            ObjectProperties(selectedObject);
+        if(selection.Count == 1)
+            ObjectProperties(selection[0]);
+        else if (selection.Count > 0) {
+            ImGui.Text("Multiple objects selected");
+            bool canReset = false;
+            foreach (var obj in selection) {
+                if (GetEditData(obj, false) != null) {
+                    canReset = true;
+                    break;
+                }
+            }
+            if (ImGuiExt.Button("Reset All", canReset)) {
+                for (int i = 0; i < selection.Count; i++)
+                {
+                    var sel = selection[i];
+                    sel.Unregister(world.Physics);
+                    world.RemoveObject(sel);
+                    sel = world.NewObject(sel.SystemObject, gameData.Resources, false);
+                    if(i == 0)
+                        selectedTransform = sel.LocalTransform;
+                    selection[i] = sel;
+                }
+                BuildObjectList();
+            }
+        }
         else
             ImGui.Text("No Object Selected");
         ImGui.EndChild();
@@ -748,9 +821,18 @@ public class SystemEditorTab : GameContentTab
     }
     private bool firstTab = true;
     private Matrix4x4 selectedTransform;
-    private GameObject selectedObject = null;
+    private List<GameObject> selection = new List<GameObject>();
     private bool dirty = false;
 
+    void SelectSingle(GameObject obj)
+    {
+        selectedTransform = obj?.LocalTransform ?? Matrix4x4.Identity;
+        if (selection.Count > 0)
+            selection = new List<GameObject>();
+        if(obj != null)
+            selection.Add(obj);
+    }
+    
     private GameObject[] objectList;
     void BuildObjectList()
     {
@@ -789,6 +871,8 @@ public class SystemEditorTab : GameContentTab
 
     public override unsafe void Draw(double elapsed)
     {
+        var curSysName = gameData.Infocards.GetStringResource(systemData.IdsName);
+        Title = $"{curSysName} ({curSystem.Nickname})";
         world.RenderUpdate(elapsed);
         ImGuiHelper.AnimatingElement();
         var contentw = ImGui.GetContentRegionAvail().X;
@@ -810,10 +894,11 @@ public class SystemEditorTab : GameContentTab
         }
         TabButtons();
         ImGui.BeginChild("##main");
+        ImGui.SameLine();
         using (var tb = Toolbar.Begin("##toolbar", false))
         {
-            var curSysName = gameData.Infocards.GetStringResource(systemData.IdsName);
-            tb.TextItem($"Current System: {curSysName} ({curSystem.Nickname})");
+            tb.CheckItem("Grid", ref renderGrid);
+            tb.TextItem($"Camera Position: {camera.Position}");
             tb.ToggleButtonItem("Maps", ref universeOpen);
             tb.ToggleButtonItem("Infocard", ref infocardOpen);
             if (tb.ButtonItem("Change System (F6)")) {
@@ -827,22 +912,27 @@ public class SystemEditorTab : GameContentTab
         viewport.Begin();
         renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
         viewport.End();
-        if (selectedObject != null)
+        if (selection.Count > 0)
         {
             var v = camera.View;
             var p = camera.Projection;
             fixed (Matrix4x4* tr = &selectedTransform)
             {
+                Matrix4x4 delta;
                 if (ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS,
                         GuizmoMode.WORLD,
-                        tr))
+                        tr, &delta))
                 {
                     dirty = true;
-                    if(!selectedObject.TryGetComponent<ObjectEditData>(out var _))
-                        selectedObject.Components.Add(new ObjectEditData(selectedObject));
+                    GetEditData(selection[0]);
+                    for (int i = 1; i < selection.Count; i++)
+                    {
+                        selection[i].SetLocalTransform(selection[i].LocalTransform * delta);
+                        GetEditData(selection[i]);
+                    }
                 }
             }
-            selectedObject.SetLocalTransform(selectedTransform);
+            selection[0].SetLocalTransform(selectedTransform);
             viewport.SetInputsEnabled(!ImGuizmo.IsOver() && !ImGuizmo.IsUsing());
         }
         else

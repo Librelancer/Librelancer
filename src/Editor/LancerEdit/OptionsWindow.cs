@@ -110,7 +110,7 @@ namespace LancerEdit
             windowOpen = true;
         }
 
-        Vector3 editCol;
+        Vector4 editCol;
         Vector3 editCol2;
         private bool editGrad;
 
@@ -136,7 +136,7 @@ namespace LancerEdit
                     new Vector2(22 * ImGuiHelper.Scale), config.BackgroundGradient))
             {
                 ImGui.OpenPopup("Viewport Background");
-                editCol = new Vector3(config.Background.R, config.Background.G, config.Background.B);
+                editCol = config.Background;
                 editCol2 = new Vector3(config.Background2.R, config.Background2.G, config.Background2.B);
                 editGrad = config.BackgroundGradient;
             }
@@ -149,7 +149,7 @@ namespace LancerEdit
             {
                 ImGui.Checkbox("Gradient", ref editGrad);
 
-                ImGui.ColorPicker3(editGrad ? "Top###a" : "###a", ref editCol);
+                ImGui.ColorPicker4(editGrad ? "Top###a" : "###a", ref editCol, ImGuiColorEditFlags.NoAlpha);
                 if (editGrad)
                 {
                     ImGui.SameLine();
@@ -168,7 +168,7 @@ namespace LancerEdit
                 if (ImGui.Button("Default"))
                 {
                     var def = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
-                    editCol = new Vector3(def.R, def.G, def.B);
+                    editCol = def;
                     editGrad = false;
                 }
 
@@ -181,7 +181,7 @@ namespace LancerEdit
                     new Vector2(22 * ImGuiHelper.Scale)))
             {
                 ImGui.OpenPopup("Grid Color");
-                editCol = new Vector3(config.GridColor.R, config.GridColor.G, config.GridColor.B);
+                editCol = config.GridColor;
             }
 
             ImGui.SameLine();
@@ -189,10 +189,10 @@ namespace LancerEdit
             ImGui.Text("Grid Color");
             if (ImGui.BeginPopupModal("Grid Color", ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.ColorPicker3("###a", ref editCol);
+                ImGui.ColorPicker4("###a", ref editCol);
                 if (ImGui.Button("OK"))
                 {
-                    config.GridColor = new Color4(editCol.X, editCol.Y, editCol.Z, 1);
+                    config.GridColor = new Color4(editCol.X, editCol.Y, editCol.Z, editCol.W);
                     ImGui.CloseCurrentPopup();
                 }
 
@@ -200,7 +200,7 @@ namespace LancerEdit
                 if (ImGui.Button("Default"))
                 {
                     var def = Color4.CornflowerBlue;
-                    editCol = new Vector3(def.R, def.G, def.B);
+                    editCol = new Vector4(def.R, def.G, def.B, 1) * new Vector4(0.5f, 0.5f, 0.5f, 1);
                     editGrad = false;
                 }
 

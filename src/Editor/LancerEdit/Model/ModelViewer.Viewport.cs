@@ -301,12 +301,6 @@ namespace LancerEdit
             }
             buffer.Camera = cam;
             rstate.SetCamera(cam);
-            if (showGrid && viewport && 
-                !(drawable is SphFile) &&
-                modelViewport.Mode != CameraModes.Starsphere)
-            {
-                GridRender.Draw(rstate, _window.Config.GridColor);
-            }
             _window.LineRenderer.StartFrame(rstate);
             if (drawable is DF.DfmFile dfm)
             {
@@ -332,6 +326,13 @@ namespace LancerEdit
                     }
                     DrawSimple(cam, false);
                     buffer.DrawOpaque(rstate);
+                    if (showGrid && viewport && 
+                        !(drawable is SphFile) &&
+                        modelViewport.Mode != CameraModes.Starsphere)
+                    {
+                        var d = Math.Abs(modelViewport.CameraOffset.Y);
+                        GridRender.Draw(rstate, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
+                    }
                     rstate.DepthWrite = false;
                     buffer.DrawTransparent(rstate);
                     rstate.DepthWrite = true;

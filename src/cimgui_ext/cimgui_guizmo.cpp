@@ -32,9 +32,9 @@ IGEXPORT void igGuizmoSetRect(float x, float y, float width, float height)
     ImGuizmo::SetRect(x, y, width, height);
 }
 
-IGEXPORT bool igGuizmoManipulate(float* view, float* projection, int operation, int mode, float* matrix)
+IGEXPORT bool igGuizmoManipulate(float* view, float* projection, int operation, int mode, float* matrix, float* delta)
 {
-    return ImGuizmo::Manipulate(view, projection, (ImGuizmo::OPERATION)operation, (ImGuizmo::MODE)mode, matrix, NULL, NULL, NULL, NULL);
+    return ImGuizmo::Manipulate(view, projection, (ImGuizmo::OPERATION)operation, (ImGuizmo::MODE)mode, matrix, delta, NULL, NULL, NULL);
 }
 
 IGEXPORT void igGuizmoSetDrawlist()

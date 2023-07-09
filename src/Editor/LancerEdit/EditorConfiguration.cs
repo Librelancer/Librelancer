@@ -41,7 +41,7 @@ namespace LancerEdit
         [Entry("background_gradient")]
         public bool BackgroundGradient = false;
         [Entry("grid_color")]
-        public Color4 GridColor = Color4.CornflowerBlue;
+        public Color4 GridColor = Color4.CornflowerBlue * new Color4(0.5f, 0.5f, 0.5f, 1f);
         [Entry("default_camera_mode")]
         public int DefaultCameraMode = 0;
         [Entry("last_export_path")] 
