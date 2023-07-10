@@ -274,7 +274,7 @@ namespace LancerEdit
             }
         }
 
-        public override void OnHotkey(Hotkeys hk)
+        public override void OnHotkey(Hotkeys hk, bool shiftPressed)
         {
             if (hk == Hotkeys.ResetViewport) aleViewport.ResetControls();
         }

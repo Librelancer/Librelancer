@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System.Linq;
 using System.Numerics;
 using LibreLancer.GameData.Archetypes;
 
@@ -39,7 +40,15 @@ namespace LibreLancer.GameData.World
         public string Parent;
         public string Voice;
         public string[] SpaceCostume;
-        
+
+        public SystemObject Clone()
+        {
+            var o = (SystemObject)MemberwiseClone();
+            o.IdsInfo = IdsInfo?.ToArray();
+            o.SpaceCostume = SpaceCostume?.ToArray();
+            return o;
+        }
+
         public SystemObject ()
 		{
 		}

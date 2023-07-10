@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
@@ -313,6 +314,16 @@ public class SystemEditorTab : GameContentTab
         }
         Controls.BeginPropertyTable("properties", true, false, true);
         PropertyRow("Nickname", sel.Nickname);
+        if (ImGui.Button($"{Icons.Edit}##nickname"))
+        {
+            popups.OpenPopup(new RenameObjectPopup(sel.Nickname, world, x =>
+            {
+                GetEditData(sel);
+                sel.Nickname = x;
+                BuildObjectList();
+                scrollToSelection = true;
+            }));
+        }
         PropertyRow("Name", ed == null 
             ? sel.Name.GetName(gameData.GameData, camera.Position)
             : gameData.Infocards.GetStringResource(ed.IdsName));
@@ -787,10 +798,52 @@ public class SystemEditorTab : GameContentTab
 
     private bool doChangeSystem = false;
 
-    public override void OnHotkey(Hotkeys hk)
+    private static readonly Regex endNumbers = new Regex(@"(\d+)$", RegexOptions.Compiled);
+
+    static string MakeCopyNickname(string nickname)
+    {
+        var m = endNumbers.Match(nickname);
+        if (m.Success)
+        {
+           var newNumber = (int.Parse(m.Groups[1].Value) + 1)
+               .ToString()
+                .PadLeft(m.Groups[1].Value.Length, '0');
+           return nickname.Substring(0, m.Groups[1].Index) + newNumber;
+        }
+        return m + "_01";
+    }
+
+    public override void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
         if (hk == Hotkeys.ChangeSystem)
             doChangeSystem = true;
+
+        if (hk == Hotkeys.Copy && selection.Count > 0)
+        {
+            win.Clipboard = selection
+                .Select(x => (GetEditData(x, false) ?? new ObjectEditData(x)).MakeCopy())
+                .ToArray();
+        }
+        if (hk == Hotkeys.Paste && win.Clipboard is ObjectEditData[] objs)
+        {
+            selection = new List<GameObject>();
+            foreach (var o in objs)
+            {
+                string n = o.SystemObject.Nickname;
+                while (world.GetObject(n) != null) {
+                    n = MakeCopyNickname(n);
+                }
+                var newData = o.MakeCopy();
+                newData.SystemObject.Nickname = n;
+                var newObject = world.NewObject(newData.SystemObject, gameData.Resources, false, true,
+                    newData.Loadout, newData.Archetype);
+                newData.Parent = newObject;
+                newObject.Components.Add(newData);
+                selection.Add(newObject);
+            }
+            selectedTransform = selection[0].LocalTransform;
+            BuildObjectList();
+        }
     }
 
     BitArray128 openTabs;
@@ -837,7 +890,7 @@ public class SystemEditorTab : GameContentTab
     void BuildObjectList()
     {
         objectList = world.Objects.Where(x => x.SystemObject != null)
-            .OrderBy(x => x.SystemObject.Nickname).ToArray();
+            .OrderBy(x => x.Nickname).ToArray();
     }
 
     void SaveSystem()

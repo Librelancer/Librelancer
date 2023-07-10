@@ -149,21 +149,27 @@ namespace LancerEdit
             var mods = e.Modifiers;
             mods &= ~KeyModifiers.Numlock;
             mods &= ~KeyModifiers.Capslock;
-            if ((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.S) {
-                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).SaveStrategy.Save();
+
+            if (TabControl.Selected is not EditorTab editor) 
+                return;
+            bool control = (mods & KeyModifiers.Control) != 0;
+            bool popupOrTextEditing =  ImGui.GetIO().WantCaptureKeyboard;
+            if(e.Key == Keys.S && control){
+                editor.SaveStrategy.Save();
+                return;
             }
-            if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.D) {
-                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.Deselect);
-            }
-            if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.R) {
-                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ResetViewport);
-            }
-            if((mods == KeyModifiers.LeftControl || mods == KeyModifiers.RightControl) && e.Key == Keys.G) {
-                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ToggleGrid);
-            }
-            if (e.Key == Keys.F6) {
-                if (TabControl.Selected != null) ((EditorTab)TabControl.Selected).OnHotkey(Hotkeys.ChangeSystem);
-            }
+            Hotkeys hk = e.Key switch
+            {
+                Keys.C when control && !popupOrTextEditing => Hotkeys.Copy,
+                Keys.V when control && !popupOrTextEditing => Hotkeys.Paste,
+                Keys.R when control => Hotkeys.ResetViewport,
+                Keys.G when control => Hotkeys.ToggleGrid,
+                Keys.D when control => Hotkeys.Deselect,
+                Keys.F6 => Hotkeys.ChangeSystem,
+                _ => 0
+            };
+            if(hk != 0)
+                editor.OnHotkey(hk, (mods & KeyModifiers.Shift) != 0);
         }
 
 
@@ -173,8 +179,14 @@ namespace LancerEdit
 		public List<uint> ReferencedMaterials = new List<uint>();
 		public List<TextureReference> ReferencedTextures = new List<TextureReference>();
 		public bool ClipboardCopy = true;
-		public LUtfNode Clipboard;
-		List<DockTab> toAdd = new List<DockTab>();
+		public object Clipboard;
+
+        protected override void OnClipboardUpdate()
+        {
+            Clipboard = null;
+        }
+
+        List<DockTab> toAdd = new List<DockTab>();
 		double frequency = 0;
 		int updateTime = 10;
         public CommodityIconDialog Make3dbDlg;

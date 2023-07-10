@@ -9,10 +9,12 @@ namespace LancerEdit;
 
 public enum Hotkeys
 {
-    Deselect,
+    Deselect = 1,
     ResetViewport,
     ToggleGrid,
-    ChangeSystem
+    ChangeSystem,
+    Copy,
+    Paste
 }
 
 public abstract class EditorTab : DockTab
@@ -23,7 +25,7 @@ public abstract class EditorTab : DockTab
     {
     }
 
-    public virtual void OnHotkey(Hotkeys hk)
+    public virtual void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
     }
 }

@@ -21,19 +21,9 @@ public class LoadoutSelection : PopupWindow
     public LoadoutSelection(Action<ObjectLoadout> onSelect, ObjectLoadout initial, GameDataContext gd)
     {
         loadouts = gd.GameData.Loadouts.ToArray();
-        names = loadouts.Select(x => x.Nickname).ToArray();
+        names = loadouts.Select(x => x.Nickname).OrderBy(x => x).ToArray();
+        selectedIndex = Array.IndexOf(loadouts, initial);
         this.onSelect = onSelect;
-        if (initial != null)
-        {
-            for (int i = 0; i < loadouts.Length; i++) {
-                if (loadouts[i] == initial)
-                {
-                    selectedIndex = i;
-                    break;
-                }
-            }
-        }
-        
     }
 
     public override void Draw()

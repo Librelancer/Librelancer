@@ -238,7 +238,7 @@ namespace LancerEdit
             ImGui.SameLine();
         }
 
-        public override void OnHotkey(Hotkeys hk)
+        public override void OnHotkey(Hotkeys hk, bool shiftPressed)
         {
             if (hk == Hotkeys.Deselect) selectedNode = null;
             if (hk == Hotkeys.ResetViewport) modelViewport.ResetControls();

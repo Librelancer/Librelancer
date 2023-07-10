@@ -648,7 +648,7 @@ namespace LancerEdit
                     main.ClipboardCopy = true;
                     main.Clipboard = node.MakeCopy();
                 }
-                if (main.Clipboard != null)
+                if (main.Clipboard is LUtfNode utfNode)
                 {
                     if (Theme.BeginIconMenu(Icons.Paste, "Paste"))
                     {
@@ -656,14 +656,14 @@ namespace LancerEdit
                         {
                             if (main.ClipboardCopy)
                             {
-                                var cpy = main.Clipboard.MakeCopy();
+                                var cpy = utfNode.MakeCopy();
                                 cpy.Parent = parent;
                                 parent.Children.Insert(parent.Children.IndexOf(node), cpy);
                             }
                             else
                             {
-                                main.Clipboard.Parent = parent;
-                                parent.Children.Insert(parent.Children.IndexOf(node), main.Clipboard);
+                                utfNode.Parent = parent;
+                                parent.Children.Insert(parent.Children.IndexOf(node), utfNode);
                                 main.Clipboard = null;
                             }
                         }
@@ -671,14 +671,14 @@ namespace LancerEdit
                         {
                             if (main.ClipboardCopy)
                             {
-                                var cpy = main.Clipboard.MakeCopy();
+                                var cpy = utfNode.MakeCopy();
                                 cpy.Parent = parent;
                                 parent.Children.Insert(parent.Children.IndexOf(node) + 1, cpy);
                             }
                             else
                             {
-                                main.Clipboard.Parent = parent;
-                                parent.Children.Insert(parent.Children.IndexOf(node) + 1, main.Clipboard);
+                                utfNode.Parent = parent;
+                                parent.Children.Insert(parent.Children.IndexOf(node) + 1, utfNode);
                                 main.Clipboard = null;
                             }
                         }
@@ -689,14 +689,14 @@ namespace LancerEdit
                                 if (node.Children == null) node.Children = new List<LUtfNode>();
                                 if (main.ClipboardCopy)
                                 {
-                                    var cpy = main.Clipboard.MakeCopy();
+                                    var cpy = utfNode.MakeCopy();
                                     cpy.Parent = node;
                                     node.Children.Add(cpy);
                                 }
                                 else
                                 {
-                                    main.Clipboard.Parent = node;
-                                    node.Children.Add(main.Clipboard);
+                                    utfNode.Parent = node;
+                                    node.Children.Add(utfNode);
                                     main.Clipboard = null;
                                 }
                             }
@@ -709,14 +709,14 @@ namespace LancerEdit
                                     pasteInto.Children = new List<LUtfNode>();
                                     if (main.ClipboardCopy)
                                     {
-                                        var cpy = main.Clipboard.MakeCopy();
+                                        var cpy = utfNode.MakeCopy();
                                         cpy.Parent = pasteInto;
                                         pasteInto.Children.Add(cpy);
                                     }
                                     else
                                     {
-                                        main.Clipboard.Parent = pasteInto;
-                                        pasteInto.Children.Add(main.Clipboard);
+                                        utfNode.Parent = pasteInto;
+                                        pasteInto.Children.Add(utfNode);
                                         main.Clipboard = null;
                                     }
                                 });

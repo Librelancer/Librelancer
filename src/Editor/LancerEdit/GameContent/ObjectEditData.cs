@@ -28,6 +28,8 @@ public class ObjectEditData : GameComponent
     public DockAction Dock;
 
     private SystemObject sysobj;
+
+    public SystemObject SystemObject => sysobj;
     
     public ObjectEditData(GameObject parent) : base(parent)
     {
@@ -44,12 +46,25 @@ public class ObjectEditData : GameComponent
         Dock = sysobj.Dock;
     }
 
+    public ObjectEditData MakeCopy()
+    {
+        var o = (ObjectEditData) MemberwiseClone();
+        o.IsNewObject = true;
+        o.IdsInfo = IdsInfo?.ToArray();
+        o.sysobj = sysobj.Clone();
+        if(Parent != null)
+            o.Apply();
+        o.Parent = null;
+        return o;
+    }
+
     public void Apply()
     {
         var pos = Vector3.Transform(Vector3.Zero, Parent.LocalTransform);
         var r = Parent.LocalTransform.ExtractRotation();
         var d = MathHelper.QuatError(r, Quaternion.Identity);
 
+        sysobj.Nickname = Parent.Nickname;
         sysobj.Position = pos;
         sysobj.Rotation = d > 0.0001f ? Matrix4x4.CreateFromQuaternion(r) : null;
 

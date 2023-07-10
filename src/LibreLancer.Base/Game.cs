@@ -690,6 +690,11 @@ namespace LibreLancer
                                 SDL.SDL_free(e.drop.file);
                                 break;
                             }
+                        case SDL.SDL_EventType.SDL_CLIPBOARDUPDATE:
+                            {
+                                OnClipboardUpdate();
+                                break;
+                            }
                     }
                 }
                 Mouse.Wheel /= 2.5f;
@@ -736,6 +741,11 @@ namespace LibreLancer
             Cleanup();
             SDL.SDL_Quit();
         }
+
+        protected virtual void OnClipboardUpdate()
+        {
+        }
+        
         protected virtual void OnResize()
         {
         }
