@@ -79,6 +79,9 @@ namespace LibreLancer.Data.Universe
         [Entry("parent")] 
         public string Parent;
 
+        [Entry("comment")] 
+        public string Comment;
+
         public string RingZone;
         public string RingFile;
 

@@ -20,6 +20,7 @@ public interface IObjectData
     Faction Reputation { get; }
     Base Base { get; }
     DockAction Dock { get;  }
+    string Comment { get; }
 }
 
 class SystemObjectAccessor : IObjectData
@@ -36,6 +37,7 @@ class SystemObjectAccessor : IObjectData
     public Faction Reputation => sysobj.Reputation;
     public Base Base => sysobj.Base;
     public DockAction Dock => sysobj.Dock;
+    public string Comment => sysobj.Comment;
 }
 
 public static class GameObjectExtensions
@@ -64,6 +66,8 @@ public class ObjectEditData : GameComponent, IObjectData
     public Faction Reputation { get; set; }
     public Base Base { get; set; }
     public DockAction Dock { get; set; }
+    
+    public string Comment { get; set; }
 
     private SystemObject sysobj;
 
@@ -82,6 +86,7 @@ public class ObjectEditData : GameComponent, IObjectData
         Visit = sysobj.Visit;
         Base = sysobj.Base;
         Dock = sysobj.Dock;
+        Comment = sysobj.Comment;
     }
 
     public ObjectEditData MakeCopy()
@@ -116,6 +121,7 @@ public class ObjectEditData : GameComponent, IObjectData
         sysobj.Reputation = Reputation;
         sysobj.Base = Base;
         sysobj.Dock = Dock;
+        sysobj.Comment = Comment;
         
         if (IdsLeft != 0 && IdsRight != 0)
             Parent.Name = new TradelaneName(Parent, IdsLeft, IdsRight);

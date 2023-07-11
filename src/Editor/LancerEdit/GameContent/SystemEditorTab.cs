@@ -392,6 +392,18 @@ public class SystemEditorTab : GameContentTab
         );
         DockRow(gc.Dock, gc.Archetype, x => GetEditData(sel).Dock = x);
         Controls.EndPropertyTable();
+        
+        //Comment
+        Controls.BeginPropertyTable("comment", true, false, true);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Comment");
+        ImGui.TableNextColumn();
+        Controls.TruncText(gc.Comment, 20);
+        ImGui.TableNextColumn();
+        if (ImGui.Button($"{Icons.Edit}##comment"))
+            popups.OpenPopup(new CommentPopup(gc.Comment, x => GetEditData(sel).Comment = x));
+        Controls.EndPropertyTable();
         ImGui.EndChild();
     }
 

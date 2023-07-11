@@ -1675,6 +1675,7 @@ namespace LibreLancer
             obj.Parent = o.Parent;
             obj.Voice = o.Voice;
             obj.SpaceCostume = o.SpaceCostume;
+            obj.Comment = Data.CommentEscaping.Unescape(o.Comment);
             if (o.DockWith != null)
             {
                 obj.Dock = new DockAction() { Kind = DockKinds.Base, Target = o.DockWith };

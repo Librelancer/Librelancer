@@ -40,6 +40,9 @@ namespace LibreLancer.GameData.World
         public string Parent;
         public string Voice;
         public string[] SpaceCostume;
+        
+        //Editor only
+        public string Comment;
 
         public SystemObject Clone()
         {

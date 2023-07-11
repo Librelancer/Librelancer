@@ -235,6 +235,7 @@ public static class IniSerializer
         var sb = new StringBuilder();
         sb.AppendSection("Object")
             .AppendEntry("nickname", obj.Nickname)
+            .AppendEntry("comment", CommentEscaping.Escape(obj.Comment))
             .AppendEntry("ids_name", obj.IdsName, false);
         if (obj.Position != Vector3.Zero)
             sb.AppendEntry("pos", obj.Position);

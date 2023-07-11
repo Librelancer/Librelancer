@@ -114,6 +114,30 @@ namespace LancerEdit
             }
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
         }
+
+        public static void TruncText(string text, int maxLength)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            var fL = text.IndexOf('\n');
+            if (fL != -1 || text.Length > maxLength)
+            {
+                var x = fL != -1
+                    ? Math.Min(fL, maxLength)
+                    : maxLength;
+                var s = ImGuiExt.IDWithExtra(text.Substring(0, x) + "...", "elpt");
+                ImGui.PushStyleColor(ImGuiCol.HeaderHovered, Vector4.Zero);
+                ImGui.PushStyleColor(ImGuiCol.HeaderActive, Vector4.Zero);
+                ImGui.Selectable(s, false);
+                ImGui.PopStyleColor();
+                ImGui.PopStyleColor();
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(text);
+            }
+            else
+            {
+                ImGui.TextUnformatted(text);
+            }
+        }
         
         
         public static void PropertyRow(string name, string value)
