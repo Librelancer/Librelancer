@@ -29,7 +29,8 @@ namespace LibreLancer
 
 		public static float Ease(EasingTypes type, float time, float t1, float t2, float v1, float v2)
 		{
-			switch (type) {
+			switch (type) { 
+            case 0: //TODO: What is zero?
 			case EasingTypes.Linear:
 				return Linear (time, t1, t2, v1, v2);
 			case EasingTypes.EaseIn:
