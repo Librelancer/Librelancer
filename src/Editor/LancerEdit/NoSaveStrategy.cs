@@ -22,6 +22,8 @@ namespace LancerEdit
             // Does nothing
         }
 
+        public bool ShouldSave => false;
+
         public static NoSaveStrategy Instance = new NoSaveStrategy();
     }
 }

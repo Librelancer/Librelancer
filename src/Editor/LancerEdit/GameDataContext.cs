@@ -27,25 +27,32 @@ public class GameDataContext : IDisposable
 
     public string GetDataFolder() => GameData.VFS.Resolve(GameData.Ini.Freelancer.DataPath);
 
-    public void Load(MainWindow win, string folder, Action onComplete)
+    public void Load(MainWindow win, string folder, Action onComplete, Action<Exception> onError)
     {
         Folder = folder;
         Resources = new GameResourceManager(win);
         this.win = win;
         Task.Run(() =>
         {
-            GameData = new GameDataManager(folder, Resources);
-            GameData.LoadData(win);
-            //Replace infocard manager with editable version
-            GameData.Ini.Infocards = new EditableInfocardManager(GameData.Ini.Infocards.Dlls);
-            FLLog.Info("Game", "Finished loading game data");
-            win.QueueUIThread(() =>
+            try
             {
-                Sounds = new SoundManager(GameData, win.Audio, win);
-                Fonts = new FontManager();
-                Fonts.LoadFontsFromGameData(GameData);
-                onComplete();
-            });
+                GameData = new GameDataManager(folder, Resources);
+                GameData.LoadData(win);
+                //Replace infocard manager with editable version
+                GameData.Ini.Infocards = new EditableInfocardManager(GameData.Ini.Infocards.Dlls);
+                FLLog.Info("Game", "Finished loading game data");
+                win.QueueUIThread(() =>
+                {
+                    Sounds = new SoundManager(GameData, win.Audio, win);
+                    Fonts = new FontManager();
+                    Fonts.LoadFontsFromGameData(GameData);
+                    onComplete();
+                });
+            }
+            catch (Exception e)
+            {
+                win.QueueUIThread(() => onError(e));
+            }
         });
     }
 

@@ -29,7 +29,7 @@ public class RenameObjectPopup : PopupWindow
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Nickname: ");
         ImGui.PushItemWidth(240);
-        ImGui.InputText("##nickname", ref nickname, 150, ImGuiInputTextFlags.CallbackCharFilter, callback);
+        Controls.InputTextId("##nickname", ref nickname);
         ImGui.PopItemWidth();
         bool valid = true;
         if (string.IsNullOrWhiteSpace(nickname)) {
@@ -51,23 +51,5 @@ public class RenameObjectPopup : PopupWindow
         if(ImGui.Button("Cancel"))
             ImGui.CloseCurrentPopup();
     }
-
-    private static unsafe ImGuiInputTextCallback callback = HandleTextEditCallback;
-    static unsafe int HandleTextEditCallback(ImGuiInputTextCallbackData* data)
-    {
-        var ch = (char) data->EventChar;
-        if ((ch >= '0' && ch <= '9') ||
-            (ch >= 'a' && ch <= 'z') ||
-            (ch >= 'A' && ch <= 'Z') ||
-            ch == '_')
-        {
-            return 0;
-        }
-        if (ch == ' ')
-        {
-            data->EventChar = (byte)'_';
-            return 0;
-        }
-        return 1;
-    }
+    
 }

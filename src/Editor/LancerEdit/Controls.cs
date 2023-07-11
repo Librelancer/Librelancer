@@ -32,6 +32,30 @@ namespace LancerEdit
     }
     public static class Controls
     {
+        public static void InputTextId(string name, ref string value)
+        {
+            ImGui.InputText(name, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
+        }
+        
+        private static unsafe ImGuiInputTextCallback callback = HandleTextEditCallback;
+        static unsafe int HandleTextEditCallback(ImGuiInputTextCallbackData* data)
+        {
+            var ch = (char) data->EventChar;
+            if ((ch >= '0' && ch <= '9') ||
+                (ch >= 'a' && ch <= 'z') ||
+                (ch >= 'A' && ch <= 'Z') ||
+                ch == '_')
+            {
+                return 0;
+            }
+            if (ch == ' ')
+            {
+                data->EventChar = (byte)'_';
+                return 0;
+            }
+            return 1;
+        }
+        
         public static bool Music(string id, MainWindow win, bool enabled = true)
         {
             if (win.Audio.Music.State == PlayState.Playing)
@@ -89,6 +113,17 @@ namespace LancerEdit
                 ImGui.TableSetupColumn(columnNames[i], columns[i] ? ImGuiTableColumnFlags.WidthFixed : ImGuiTableColumnFlags.WidthStretch);   
             }
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+        }
+        
+        
+        public static void PropertyRow(string name, string value)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(name);
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(value);
+            ImGui.TableNextColumn();
         }
 
         public static void EndPropertyTable()

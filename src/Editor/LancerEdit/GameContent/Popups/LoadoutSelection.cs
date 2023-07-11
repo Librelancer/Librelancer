@@ -2,64 +2,131 @@ using System;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using LancerEdit.Filters;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace LancerEdit;
 
 public class LoadoutSelection : PopupWindow
 {
     public override string Title { get; set; } = "Loadout";
-    public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
+    public override Vector2 InitSize => new(600, 350);
 
-    private ObjectLoadout[] loadouts;
-    private string[] names;
+    private ObjectLoadout[] allLoadouts;
+    private ObjectLoadout[] filteredLoadouts;
+    private ObjectLoadout selected;
+    private bool scrollToSelected = true;
     private int selectedIndex = -1;
+    private bool filterCompatible = false;
+    private string filterText = "";
 
     private Action<ObjectLoadout> onSelect;
-    
-    public LoadoutSelection(Action<ObjectLoadout> onSelect, ObjectLoadout initial, GameDataContext gd)
+
+    private ObjectFiltering<ObjectLoadout> filters;
+
+    private GameDataContext gd;
+
+    public unsafe LoadoutSelection(Action<ObjectLoadout> onSelect, ObjectLoadout initial, string[] hardpoints,
+        GameDataContext gd)
     {
-        loadouts = gd.GameData.Loadouts.ToArray();
-        names = loadouts.Select(x => x.Nickname).OrderBy(x => x).ToArray();
-        selectedIndex = Array.IndexOf(loadouts, initial);
+        allLoadouts = filteredLoadouts = gd.GameData.Loadouts.OrderBy(x => x.Nickname).ToArray();
+        filters = new LoadoutFilters(hardpoints);
+        selected = initial;
+        this.gd = gd;
         this.onSelect = onSelect;
+        textCallback = OnTextChanged;
+    }
+
+    private bool doFiltering = false;
+
+    private ImGuiInputTextCallback textCallback;
+
+    unsafe int OnTextChanged(ImGuiInputTextCallbackData* d)
+    {
+        doFiltering = true;
+        return 0;
     }
 
     public override void Draw()
     {
-        ImGui.Combo("##item", ref selectedIndex, names, names.Length);
-        if (selectedIndex != -1)
+        if (doFiltering)
+            filteredLoadouts = filters.Filter(filterText, allLoadouts, filterCompatible ? "compatible" : "").ToArray();
+        var frameH = ImGui.GetFrameHeightWithSpacing();
+        var windowH = ImGui.GetWindowHeight();
+
+        ImGui.BeginTable("##parent", 2, ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInner);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.PushItemWidth(-1);
+        ImGui.InputTextWithHint("##filter", "Filter", ref filterText, 250, ImGuiInputTextFlags.CallbackEdit,
+            textCallback);
+        ImGui.PopItemWidth();
+        if (ImGui.Checkbox("Hide Incompatible", ref filterCompatible))
+            doFiltering = true;
+        ImGui.BeginChild("##loadouts", new Vector2(-1, windowH - frameH * 5f));
+        foreach (var l in filteredLoadouts)
         {
-            ImGui.Separator();
-            var x = loadouts[selectedIndex];
-            ImGui.BeginChild("##items", new Vector2(400, 400));
-            if(!string.IsNullOrEmpty(x.Archetype))
-                ImGui.TextUnformatted($"Archetype: {x.Archetype}");
-            foreach (var item in x.Items)
+            if (selected == l && scrollToSelected)
             {
-                ImGui.TextUnformatted($"{item.Hardpoint}: {item.Equipment.Nickname}");
+                ImGui.SetScrollHereY();
             }
-            foreach (var item in x.Cargo)
+
+            if (ImGui.Selectable(l.Nickname, selected == l, ImGuiSelectableFlags.AllowDoubleClick))
             {
-                ImGui.TextUnformatted($"Cargo: {item.Item.Nickname} x{item.Count}");
+                selected = l;
+                if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                {
+                    onSelect(l);
+                    ImGui.CloseCurrentPopup();
+                }
             }
-            ImGui.EndChild();
         }
 
-        if (ImGui.Button("Ok")) {
-            if(selectedIndex != -1)
-                onSelect?.Invoke(loadouts[selectedIndex]);
+        scrollToSelected = false;
+        ImGui.EndChild();
+        ImGui.TableNextColumn();
+        if (selected != null)
+        {
+            ImGui.BeginChild("##items", new Vector2(-1, windowH - frameH * 3f));
+            ImGui.TextUnformatted($"Archetype: {selected.Archetype}");
+            foreach (var item in selected.Items)
+            {
+                ImGui.TextUnformatted(
+                    $"{item.Hardpoint}: '{gd.Infocards.GetStringResource(item.Equipment.IdsName)}' ({item.Equipment.Nickname})");
+            }
+
+            foreach (var item in selected.Cargo)
+            {
+                ImGui.TextUnformatted(
+                    $"Cargo: '{gd.Infocards.GetStringResource(item.Item.IdsName)}' ({item.Item.Nickname}) x{item.Count}");
+            }
+
+            ImGui.EndChild();
+        }
+        else
+        {
+            ImGui.Text("No selection");
+        }
+
+        ImGui.EndTable();
+        ImGui.Separator();
+        if (ImGui.Button("Ok"))
+        {
+            onSelect?.Invoke(selected);
             ImGui.CloseCurrentPopup();
         }
+
         ImGui.SameLine();
         if (ImGui.Button("Clear"))
         {
             onSelect?.Invoke(null);
             ImGui.CloseCurrentPopup();
         }
+
         ImGui.SameLine();
-        if(ImGui.Button("Cancel"))
+        if (ImGui.Button("Cancel"))
             ImGui.CloseCurrentPopup();
     }
 }

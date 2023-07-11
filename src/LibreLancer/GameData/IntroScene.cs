@@ -11,7 +11,7 @@ namespace LibreLancer.GameData
 	public class IntroScene
 	{
 		public string ThnName;
-		public List<ThnScript> Scripts;
+		public List<ResolvedThn> Scripts;
 		public string Music;
 	}
 }

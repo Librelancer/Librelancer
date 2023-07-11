@@ -54,6 +54,21 @@ namespace LibreLancer.ImUI
             ImGui.PopID();
             return ret;
         }
+        
+        public static void TabButton(string name, int idx, ref BitArray128 openTabs)
+        {
+            if (VerticalTab($"{name}", openTabs[idx]))
+            {
+                if (!openTabs[idx])
+                {
+                    openTabs = new BitArray128();
+                    openTabs[idx] = true;
+                }
+                else
+                    openTabs = new BitArray128();
+            }
+        }
+
     }
 
 }

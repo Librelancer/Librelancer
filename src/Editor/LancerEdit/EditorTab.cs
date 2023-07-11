@@ -21,6 +21,8 @@ public abstract class EditorTab : DockTab
 { 
     public ISaveStrategy SaveStrategy { get; set; } = new NoSaveStrategy();
 
+    public override bool UnsavedDocument => SaveStrategy.ShouldSave;
+
     public virtual void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
     {
     }

@@ -18,5 +18,10 @@ namespace LancerEdit
         /// Draws the menu options in the File menu
         /// </summary>
         void DrawMenuOptions();
+
+        /// <summary>
+        /// Specifies whether the tab should have an asterisk drawn
+        /// </summary>
+        bool ShouldSave { get; }
     }
 }

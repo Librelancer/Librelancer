@@ -19,7 +19,9 @@ namespace LibreLancer.ImUI
 
         static long _ids = 1;
 		static Random rand = new Random();
-		protected long Unique { get; private set; }
+		public long Unique { get; private set; }
+
+        public virtual bool UnsavedDocument { get; }
 
         void UpdateRenderTitle()
         {

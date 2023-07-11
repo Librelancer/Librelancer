@@ -21,6 +21,8 @@ namespace LancerEdit
             this.utfTab = utfTab;
         }
 
+        public bool ShouldSave => false;
+
         public void DrawMenuOptions()
         {
             if (Theme.IconMenuItem(Icons.Save, string.Format("Save '{0}'", utfTab.DocumentName), true))

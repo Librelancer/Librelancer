@@ -1,31 +1,69 @@
-using System.IO.Compression;
+
 using System.Linq;
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.Client.Components;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
-using LibreLancer.Server.Components;
 using LibreLancer.World;
-using LibreLancer.World.Components;
-using SharpDX.Direct2D1;
 
 namespace LancerEdit;
 
-public class ObjectEditData : GameComponent
+public interface IObjectData
 {
-    public bool IsNewObject;
+    int IdsName { get; }
+    int[] IdsInfo { get;  }
+    int IdsLeft { get; }
+    int IdsRight { get; }
+    VisitFlags Visit { get; }
+    Archetype Archetype { get; }
+    ObjectLoadout Loadout { get; }
+    Faction Reputation { get; }
+    Base Base { get; }
+    DockAction Dock { get;  }
+}
+
+class SystemObjectAccessor : IObjectData
+{
+    public SystemObjectAccessor(SystemObject obj) => sysobj = obj;
+    private SystemObject sysobj;
+    public int IdsName => sysobj.IdsName;
+    public int[] IdsInfo => sysobj.IdsInfo;
+    public int IdsLeft => sysobj.IdsLeft;
+    public int IdsRight => sysobj.IdsRight;
+    public VisitFlags Visit => sysobj.Visit;
+    public Archetype Archetype => sysobj.Archetype;
+    public ObjectLoadout Loadout => sysobj.Loadout;
+    public Faction Reputation => sysobj.Reputation;
+    public Base Base => sysobj.Base;
+    public DockAction Dock => sysobj.Dock;
+}
+
+public static class GameObjectExtensions
+{
+    public static IObjectData Content(this GameObject go)
+    {
+        if (go.TryGetComponent<ObjectEditData>(out var d))
+            return d;
+        if (go.SystemObject == null) return null;
+        return new SystemObjectAccessor(go.SystemObject);
+    }
+}
+
+
+public class ObjectEditData : GameComponent, IObjectData
+{
+    public bool IsNewObject { get; set; }
     
-    public int IdsName;
-    public int[] IdsInfo;
-    public int IdsLeft;
-    public int IdsRight;
-    public VisitFlags Visit;
-    public Archetype Archetype;
-    public ObjectLoadout Loadout;
-    public Faction Reputation;
-    public Base Base;
-    public DockAction Dock;
+    public int IdsName { get; set; }
+    public int[] IdsInfo { get; set; }
+    public int IdsLeft { get; set; }
+    public int IdsRight { get; set; }
+    public VisitFlags Visit { get; set; }
+    public Archetype Archetype { get; set; }
+    public ObjectLoadout Loadout { get; set; }
+    public Faction Reputation { get; set; }
+    public Base Base { get; set; }
+    public DockAction Dock { get; set; }
 
     private SystemObject sysobj;
 

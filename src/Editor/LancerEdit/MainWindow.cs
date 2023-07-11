@@ -368,9 +368,44 @@ namespace LancerEdit
                     {
                         OpenDataContext = c;
                         FinishLoadingSpinner();
+                    }, e =>
+                    {
+                        FinishLoadingSpinner();
+                        ErrorDialog(GetExceptionText(e));
                     });                
                 }
             });
+        }
+
+        static string GetExceptionText(Exception e)
+        {
+            var sb = new StringBuilder();
+            IterateExceptions(e, sb);
+            return sb.ToString();
+        }
+
+        static void IterateExceptions(Exception e, StringBuilder sb)
+        {
+            if (e is AggregateException ag)
+            {
+                sb.AppendLine("Multiple Errors");
+                foreach (var e2 in ag.InnerExceptions)
+                {
+                    sb.AppendLine("--");
+                    IterateExceptions(e2, sb);
+                }
+            }
+            else
+            {
+                sb.AppendLine(e.Message);
+                sb.AppendLine(e.StackTrace);
+                if (e.InnerException != null)
+                {
+                    sb.AppendLine(">");
+                    sb.AppendLine("Inner Exception: ");
+                    IterateExceptions(e.InnerException, sb);
+                }
+            }
         }
       
 		protected override void Draw(double elapsed)
@@ -614,9 +649,9 @@ namespace LancerEdit
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
                 h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
                 if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
-                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.RenderTitle : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
+                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             } else
-                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.RenderTitle : ""));
+                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""));
 
             TabControl.Selected?.Draw(elapsed);
 

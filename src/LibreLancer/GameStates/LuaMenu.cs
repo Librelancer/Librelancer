@@ -39,8 +39,7 @@ namespace LibreLancer
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
             intro = g.GameData.GetIntroScene();
-            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
-            scene.BeginScene(intro.Scripts);
+            TryRunScript(intro.Scripts);
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
             GC.Collect(); //crap
@@ -60,6 +59,25 @@ namespace LibreLancer
                 g.LoadTimer = null;
             }
             FadeIn(0.1, 0.3);
+        }
+        void TryRunScript(List<ResolvedThn> thnScripts)
+        {
+            var intro = new List<ThnScript>();
+            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
+            foreach (var s in thnScripts)
+            {
+                try
+                {
+                    intro.Add(new ThnScript(s.ResolvedPath));
+                }
+                catch (Exception e)
+                {
+                    FLLog.Error("Thn", $"Error loading script {s.SourcePath}: {e.Message}\n{e.StackTrace}");
+                    scene = null;
+                    return;
+                }
+            }
+            scene.BeginScene(intro);
         }
 
         public override void OnSettingsChanged()
@@ -384,7 +402,7 @@ namespace LibreLancer
         public override void Draw(double delta) 
         {
             RenderMaterial.VertexLighting = true;
-            scene.Draw(delta, Game.Width, Game.Height);
+            scene?.Draw(delta, Game.Width, Game.Height);
             ui.RenderWidget(delta);
             DoFade(delta);
             cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
@@ -397,17 +415,17 @@ namespace LibreLancer
         {
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
-            scene.UpdateViewport(Game.RenderContext.CurrentViewport);
-            scene.Update(delta);
+            scene?.UpdateViewport(Game.RenderContext.CurrentViewport);
+            scene?.Update(delta);
             api._Update();
         }
 #if DEBUG
         void LoadSpecific(int index)
         {
             intro = Game.GameData.GetIntroSceneSpecific(index);
-            scene.Dispose();
-            scene.BeginScene(intro.Scripts);
-            scene.Update(1 / 60.0); //Do all the setup events - smoother entrance
+            scene?.Dispose();
+            TryRunScript(intro.Scripts);
+            scene?.Update(1 / 60.0); //Do all the setup events - smoother entrance
             Game.Sound.PlayMusic(intro.Music, 0);
         }
         
@@ -438,7 +456,7 @@ namespace LibreLancer
 
         protected override void OnUnload()
         {
-            scene.Dispose();
+            scene?.Dispose();
             Game.Keyboard.KeyDown -= UiKeyDown;
             Game.Keyboard.TextInput -= UiTextInput;
 #if DEBUG

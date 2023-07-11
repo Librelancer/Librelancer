@@ -108,6 +108,19 @@ namespace LibreLancer
                 ?.BaseAppr;
         }
 
+        bool TryResolveThn(string path, out ResolvedThn r)
+        {
+            r = null;
+            if (path == null) return false;
+            var resolved = TryResolveData(path);
+            if (resolved != null)
+            {
+                r = new ResolvedThn() {SourcePath = path, ResolvedPath = resolved};
+                return true;
+            }
+            return false;
+        }
+        
         ResolvedThn ResolveThn(string path)
         {
             if (path == null) return null;
@@ -237,7 +250,6 @@ namespace LibreLancer
             List<Data.Goods.Good> ships = new List<Good>();
             foreach (var g in fldata.Goods.Goods)
             {
-                goodHashes.Add(CrcTool.FLModelCrc(g.Nickname), g.Nickname);
                 switch (g.Category)
                 {
                     case Data.Goods.GoodCategory.ShipHull:
@@ -255,6 +267,7 @@ namespace LibreLancer
                             var good = new ResolvedGood() {Equipment = equip, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname) };
                             equip.Good = good;
                             goods.Add(g.Nickname, good);
+                            goodHashes.Add(CrcTool.FLModelCrc(g.Nickname), g.Nickname);
                         }
                         break;
                 }
@@ -421,14 +434,15 @@ namespace LibreLancer
                         if (room.Nickname == b.StartRoom)
                         {
                             var isc = new GameData.IntroScene();
-                            isc.Scripts = new List<ThnScript>();
+                            isc.Scripts = new List<ResolvedThn>();
                             if (room.RoomInfo != null)
                             {
                                 foreach (var p in room.RoomInfo.SceneScripts)
                                 {
-                                    var path = ResolveDataPath(p.Path);
-                                    isc.ThnName = path;
-                                    isc.Scripts.Add(new ThnScript(path));
+                                    if (TryResolveThn(p.Path, out var thn))
+                                        isc.Scripts.Add(thn);
+                                    else
+                                        FLLog.Error("Thn", $"Could not find intro script {p.Path}");
                                 }
                                 isc.Music = room.RoomSound?.Music;
                                 IntroScenes.Add(isc);

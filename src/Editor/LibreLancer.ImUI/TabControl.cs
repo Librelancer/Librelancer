@@ -43,7 +43,9 @@ public class TabControl
             {
                 bool isTabOpen = true;
                 bool selectedThis = false;
-                if (ImGui.BeginTabItem(Tabs[i].RenderTitle, ref isTabOpen, Tabs[i] == _setSelected ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
+                var tabFlags = Tabs[i] == _setSelected ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
+                if (Tabs[i].UnsavedDocument) tabFlags |= ImGuiTabItemFlags.UnsavedDocument;
+                if (ImGui.BeginTabItem(Tabs[i].RenderTitle, ref isTabOpen,tabFlags))
                 {
                     selectedThis = true;
                     ImGui.EndTabItem();

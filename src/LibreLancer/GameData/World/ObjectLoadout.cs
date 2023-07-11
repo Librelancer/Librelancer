@@ -3,9 +3,8 @@ using LibreLancer.GameData.Items;
 
 namespace LibreLancer.GameData.World;
 
-public class ObjectLoadout
+public class ObjectLoadout : IdentifiableItem
 {
-    public string Nickname;
     public string Archetype;
     public List<LoadoutItem> Items = new List<LoadoutItem>();
     public List<BasicCargo> Cargo = new List<BasicCargo>();

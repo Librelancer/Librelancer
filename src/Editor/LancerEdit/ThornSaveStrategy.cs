@@ -11,6 +11,8 @@ namespace LancerEdit
             this.tab = tab;
         }
 
+        public bool ShouldSave => false;
+
         public void DrawMenuOptions()
         {
             if (Theme.IconMenuItem(Icons.Save, string.Format("Save '{0}'", tab.DocumentName), true))
