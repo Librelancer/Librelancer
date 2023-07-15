@@ -10,8 +10,7 @@ namespace LibreLancer.Render
 {
 	public class LineRenderer :  IDisposable, Physics.IDebugRenderer
 	{
-		public Color4 Color = Color4.Red;
-		const int MAX_LINES = 200000;
+		const int MAX_LINES = 65536;
 		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
 		VertexBuffer linebuffer;
 		int lineVertices = 0;
@@ -30,60 +29,52 @@ namespace LibreLancer.Render
 			lineVertices = 0;	
 		}
 
-		public void DrawLine(Vector3 start, Vector3 end)
-		{
-            DrawLineInternal(start, end, Color);
-		}
-
         public void DrawLine(Vector3 start, Vector3 end, Color4 color)
         {
-            DrawLineInternal(start, end, color);
+            if (lineVertices + 2 >= lines.Length)
+            {
+                Render();
+                lineVertices = 0;
+            }
+            lines[lineVertices++] = new VertexPositionColor(start, color);
+            lines[lineVertices++] = new VertexPositionColor(end, color);        
         }
-		public void DrawPoint(Vector3 pos)
-		{
-			DrawPointInternal(pos);
-		}
+        
+		public void DrawPoint(Vector3 pos, Color4 color)
+        {
+            if ((lineVertices % 2 == 0) &&
+                (lineVertices + 2) >= lines.Length)
+            {
+                Render();
+                lineVertices = 0;
+            }
+            lines[lineVertices++] = new VertexPositionColor(pos, color);
+        }
+        
+        public void DrawTriangleMesh(Matrix4x4 mat, Vector3[] positions, int[] indices, Color4 color)
+        {
+            for(int i = 1; i < indices.Length; i++)
+            {
+                var p1 = positions[indices[i - 1]];
+                var p2 = positions[indices[i]];
+                DrawLine(Vector3.Transform(p1, mat), Vector3.Transform(p2, mat), color);
+            }
+        }
 
-		public void DrawTriangle(Vector3 pos1, Vector3 pos2, Vector3 pos3)
-		{
-			DrawTriangleInternal(pos1, pos2, pos3);
-		}
-
-        void DrawLineInternal(Vector3 start, Vector3 end, Color4 color)
-		{
-			if ((lineVertices * 2) + 1 >= MAX_LINES)
-			{
-				Render();
-				lineVertices = 0;
-			}
-			lines[lineVertices++] = new VertexPositionColor(start, Color);
-			lines[lineVertices++] = new VertexPositionColor(end, Color);
-		}
-
-		void DrawPointInternal(Vector3 pos)
-		{
-
-		}
-
-		void DrawTriangleInternal(Vector3 pos1, Vector3 pos2, Vector3 pos3)
-		{
-            DrawLineInternal(pos1, pos2, Color);
-            DrawLineInternal(pos1, pos3, Color);
-			DrawLineInternal(pos3, pos2, Color);
-		}
-
-		public void Render()
+        public void Render()
 		{
 			if (lineVertices == 0)
 				return;
 			rstate.Cull = false;
-			rstate.DepthEnabled = false;
+            rstate.DepthWrite = false;
+            rstate.PolygonOffset = Vector2.One;
             shader.UseProgram();
 			linebuffer.SetData(lines, lineVertices);
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);
-			rstate.Cull = true;
-			rstate.DepthEnabled = true;
-		}
+            rstate.PolygonOffset = Vector2.Zero;
+            rstate.DepthWrite = true;
+            rstate.Cull = true;
+        }
 
 		public void Dispose()
 		{

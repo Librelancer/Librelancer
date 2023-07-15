@@ -40,7 +40,7 @@ namespace LibreLancer.Fx
 
 			if (DrawNormals)
 			{
-				Debug.DrawLine(p - (n * 100), p + (n * 100));
+				Debug.DrawLine(p - (n * 100), p + (n * 100), Color4.Red);
 			}
 		}
 	}

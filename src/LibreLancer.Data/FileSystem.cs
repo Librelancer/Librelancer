@@ -240,6 +240,7 @@ namespace LibreLancer.Data
             }
             var path = Path.Combine(baseFolder, filename.Replace('\\', Path.DirectorySeparatorChar));
             if (File.Exists(path)) return path;
+            if (Directory.Exists(path)) return path;
             return null;
         }
     }

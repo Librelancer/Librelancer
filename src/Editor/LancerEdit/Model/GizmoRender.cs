@@ -6,50 +6,20 @@ using System;
 using System.Numerics;
 using LibreLancer;
 using LibreLancer.Render;
-using LibreLancer.Render.Materials;
-using LibreLancer.Vertices;
-using LibreLancer.Utf.Mat;
+
 namespace LancerEdit
 {
     static class GizmoRender
     {
-        public const int MAX_LINES = 40000;
-        public static float Scale = 1;
-        //Render State
-
-        static Material gizmoMaterial;
-        static VertexPositionColor[] lines;
-        static VertexBuffer lineBuffer;
-        static int vertexCountL = 0;
-
-        static bool inited = false;
-        public static void Init(ResourceManager res)
-        {
-            if (inited) return;
-            inited = true;
-            lines = new VertexPositionColor[MAX_LINES * 2];
-            lineBuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_LINES * 2, true);
-
-            gizmoMaterial = new Material(res);
-            gizmoMaterial.Dc = Color4.White;
-            gizmoMaterial.DtName = ResourceManager.WhiteTextureName;
-        }
-
-
-        public static void Begin()
-        {
-            vertexCountL = 0;
-        }
-
-        public static void AddGizmoArc(Matrix4x4 tr, float min, float max)
+        public static void AddGizmoArc(LineRenderer lr, float scale, Matrix4x4 tr, float min, float max)
         {
             //angle magic for display
             float a = -max, b = -min;
             max = b; min = a;
 
             //Setup
-            float baseSize = 0.33f * Scale;
-            float arrowSize = 0.62f * Scale;
+            float baseSize = 0.33f * scale;
+            float arrowSize = 0.62f * scale;
             float arrowLength = arrowSize * 3;
             float arrowOffset = (baseSize > 0) ? baseSize + arrowSize : 0;
 
@@ -67,8 +37,8 @@ namespace LancerEdit
             //First Notch
             var notch_inner = Vector3.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
             var notch_outer = Vector3.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
-            AddPoint(notch_inner, Color4.Yellow);
-            AddPoint(notch_outer, Color4.Yellow);
+            lr.DrawPoint(notch_inner, Color4.Yellow);
+            lr.DrawPoint(notch_outer, Color4.Yellow);
 
             int segments = (int)Math.Ceiling(length / MathHelper.DegreesToRadians(11.25f));
             if (segments <= 1) segments = 2;
@@ -82,14 +52,14 @@ namespace LancerEdit
                 var p2_inner = Vector3.Transform(new Vector3((float)x2 * innerRadius, arrowOffset, -(float)y2 * innerRadius), tr);
                 var p2_outer = Vector3.Transform(new Vector3((float)x2 * outerRadius, arrowOffset, -(float)y2 * outerRadius), tr);
                 //Draw quad
-                AddPoint(p1_inner, Color4.Yellow);
-                AddPoint(p1_outer, Color4.Yellow);
-                AddPoint(p1_outer, Color4.Yellow);
-                AddPoint(p2_outer, Color4.Yellow);
-                AddPoint(p2_outer, Color4.Yellow);
-                AddPoint(p2_inner, Color4.Yellow);
-                AddPoint(p2_inner, Color4.Yellow);
-                AddPoint(p1_inner, Color4.Yellow);
+                lr.DrawPoint(p1_inner, Color4.Yellow);
+                lr.DrawPoint(p1_outer, Color4.Yellow);
+                lr.DrawPoint(p1_outer, Color4.Yellow);
+                lr.DrawPoint(p2_outer, Color4.Yellow);
+                lr.DrawPoint(p2_outer, Color4.Yellow);
+                lr.DrawPoint(p2_inner, Color4.Yellow);
+                lr.DrawPoint(p2_inner, Color4.Yellow);
+                lr.DrawPoint(p1_inner, Color4.Yellow);
                 //Next
                 y = y2;
                 x = x2;
@@ -98,8 +68,8 @@ namespace LancerEdit
             //Second notch
             notch_inner = Vector3.Transform(new Vector3((float)x * outerRadius, arrowOffset, -(float)y * outerRadius), tr);
             notch_outer = Vector3.Transform(new Vector3((float)x * notchRadius, arrowOffset, -(float)y * notchRadius), tr);
-            AddPoint(notch_inner, Color4.Yellow);
-            AddPoint(notch_outer, Color4.Yellow);
+            lr.DrawPoint(notch_inner, Color4.Yellow);
+            lr.DrawPoint(notch_outer, Color4.Yellow);
         }
 
         static readonly int[] gizmoIndices =
@@ -110,10 +80,10 @@ namespace LancerEdit
         };
         static Vector3 vM(float x, float y, float z) => new Vector3(x, z, -y);
 
-        public static void AddGizmo(Matrix4x4 tr, Color4 color)
+        public static void AddGizmo(LineRenderer lr, float scale, Matrix4x4 tr, Color4 color)
         {
-            float baseSize = 0.33f * Scale;
-            float arrowSize = 0.62f * Scale;
+            float baseSize = 0.33f * scale;
+            float arrowSize = 0.62f * scale;
             float arrowLength = arrowSize * 3;
             float arrowOffset = (baseSize > 0) ? baseSize + arrowSize : 0;
             var vertices = new Vector3[]
@@ -125,36 +95,8 @@ namespace LancerEdit
                 vM(0, 0, arrowOffset + arrowSize), vM(arrowSize, 0, arrowOffset),
                 vM(0, 0, arrowOffset - arrowSize), vM(0, -arrowSize, arrowOffset)
             };
-            AddTriangleMesh(tr, vertices, gizmoIndices, color);
+            lr.DrawTriangleMesh(tr, vertices, gizmoIndices, color);
         }
-
-
-        public static void RenderGizmos(ICamera cam, RenderContext rstate)
-        {
-            rstate.DepthEnabled = true;
-            lineBuffer.SetData(lines, vertexCountL);
-            var r = (BasicMaterial)gizmoMaterial.Render;
-            //Lines
-            r.AlphaEnabled = false;
-            rstate.Cull = false;
-            r.Use(rstate, lines[0], ref Lighting.Empty, 0);
-            lineBuffer.Draw(PrimitiveTypes.LineList, vertexCountL / 2);
-        }
-
-        static void AddTriangleMesh(Matrix4x4 mat, Vector3[] positions, int[] indices, Color4 color)
-        {
-            for(int i = 1; i < indices.Length; i++)
-            {
-                var p1 = positions[indices[i - 1]];
-                var p2 = positions[indices[i]];
-                AddPoint(Vector3.Transform(p1, mat), color);
-                AddPoint(Vector3.Transform(p2, mat), color);
-            }
-        }
-
-        static void AddPoint(Vector3 pos, Color4 col)
-        {
-            lines[vertexCountL++] = new VertexPositionColor(pos, col);
-        }
+        
     }
 }

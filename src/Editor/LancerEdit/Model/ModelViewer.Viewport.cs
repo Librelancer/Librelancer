@@ -80,7 +80,6 @@ namespace LancerEdit
             lighting.NumberOfTilesX = -1;
             if (drawable is DF.DfmFile)
                 skel = new DfmSkeletonManager((DF.DfmFile)drawable);
-            GizmoRender.Init(res);
         }
 
         void ResetCamera()
@@ -199,7 +198,7 @@ namespace LancerEdit
             foreach(var mdl in surs) {
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
-                var transform =  world * ((mdl.Part?.LocalTransform) ?? Matrix4x4.Identity);
+                var transform =  ((mdl.Part?.LocalTransform) ?? Matrix4x4.Identity) * world;
                 var whandle = new WorldMatrixHandle()
                 {
                     ID = x,
@@ -364,24 +363,18 @@ namespace LancerEdit
         void DrawSkeleton(ICamera cam)
         {
             var matrix = GetModelMatrix();
-            GizmoRender.Scale = gizmoScale;
-            GizmoRender.Begin();
-
+            _window.LineRenderer.StartFrame(_window.RenderContext);
             var dfm = (DF.DfmFile) drawable;
             foreach (var b in dfm.Bones)
             {
-                GizmoRender.AddGizmo(b.Value.BoneToRoot * matrix, Color4.Green);
+                GizmoRender.AddGizmo(_window.LineRenderer, gizmoScale, b.Value.BoneToRoot * matrix, Color4.Green);
             }
-            GizmoRender.RenderGizmos(cam, rstate);
+            _window.LineRenderer.Render();
         }
+        
         Matrix4x4 GetModelMatrix()
         {
             return Matrix4x4.CreateRotationX(rotation.Y) * Matrix4x4.CreateRotationY(rotation.X);
-        }
-                
-        void ResetViewport()
-        {
-
         }
 
         void DrawWires()
@@ -426,70 +419,29 @@ namespace LancerEdit
             }
         }
 
-
-        Vector3[] GetBoxMesh(BoundingBox box)
-        {
-            var a = new Vector3(box.Min.X, box.Max.Y, box.Max.Z); 
-            var b = new Vector3(box.Max.X, box.Max.Y, box.Max.Z); 
-            var c = new Vector3(box.Max.X, box.Min.Y, box.Max.Z);
-            var d = new Vector3(box.Min.X, box.Min.Y, box.Max.Z); 
-            var e = new Vector3(box.Min.X, box.Max.Y, box.Min.Z); 
-            var f = new Vector3(box.Max.X, box.Max.Y, box.Min.Z); 
-            var g = new Vector3(box.Max.X, box.Min.Y, box.Min.Z); 
-            var h = new Vector3(box.Min.X, box.Min.Y, box.Min.Z); 
-            return new[]
-            {
-                a,b,
-                c,d,
-                e,f,
-                g,h,
-                a,e,
-                b,f,
-                c,g,
-                d,h,
-                a,d,
-                b,c,
-                e,h,
-                f,g
-            };
-        }
-
         void DrawBox(BoundingBox box, Matrix4x4 mat, int color)
         {
-            var lines = GetBoxMesh(box);
-            var c = _window.LineRenderer.Color;
-            color %= initialCmpColors.Length;
-            _window.LineRenderer.Color = initialCmpColors[color];
-            for (int i = 0; i < lines.Length / 2; i++)
-            {
-                _window.LineRenderer.DrawLine(
-                    Vector3.Transform(lines[i * 2],mat),
-                    Vector3.Transform(lines[i * 2 + 1],mat)
-                );
-            }
-            _window.LineRenderer.Color = c;
+            EditorPrimitives.DrawBox(_window.LineRenderer, box, mat,
+                initialCmpColors[color % initialCmpColors.Length]);
         }
         
         void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat, int color)
         {
-            var c = _window.LineRenderer.Color;
             color %= initialCmpColors.Length;
-            _window.LineRenderer.Color = initialCmpColors[color];
             for (int i = 0; i < wires.Lines.Length / 2; i++)
             {
                 _window.LineRenderer.DrawLine(
                     Vector3.Transform(wires.Lines[i * 2],mat),
-                    Vector3.Transform(wires.Lines[i * 2 + 1],mat)
+                    Vector3.Transform(wires.Lines[i * 2 + 1],mat),
+                    initialCmpColors[color]
                 );
             }
-            _window.LineRenderer.Color = c;
         }
 
         void DrawHardpoints(ICamera cam)
         {
             var matrix = GetModelMatrix();
-            GizmoRender.Scale = gizmoScale;
-            GizmoRender.Begin();
+            _window.LineRenderer.StartFrame(_window.RenderContext);
             foreach (var tr in gizmos)
             {
                 if (tr.Enabled || tr.Override != null)
@@ -500,13 +452,13 @@ namespace LancerEdit
                         var rev = (RevoluteHardpointDefinition)tr.Hardpoint.Definition;
                         var min = tr.Override == null ? rev.Min : tr.EditingMin;
                         var max = tr.Override == null ? rev.Max : tr.EditingMax;
-                        GizmoRender.AddGizmoArc(transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, min,max);
+                        GizmoRender.AddGizmoArc(_window.LineRenderer, gizmoScale,transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, min,max);
                     }
                     //draw (red for editing, light pink for normal)
-                    GizmoRender.AddGizmo(transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
+                    GizmoRender.AddGizmo(_window.LineRenderer, gizmoScale,transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
                 }
             }
-            GizmoRender.RenderGizmos(cam, rstate);
+            _window.LineRenderer.Render();
         }
         
         private int jColors = 0;

@@ -490,11 +490,11 @@ namespace LibreLancer.Render
                 var lmY = point + new Vector3(0, 5, 0);
                 var lZ = point + new Vector3(0, 0, 5);
                 var lmZ = point + new Vector3(0, 0, -5);
-                DebugRenderer.DrawLine(lX, lmX);
-                DebugRenderer.DrawLine(lY, lmY);
-                DebugRenderer.DrawLine(lZ, lmZ);
+                DebugRenderer.DrawLine(lX, lmX, Color4.Red);
+                DebugRenderer.DrawLine(lY, lmY, Color4.Red);
+                DebugRenderer.DrawLine(lZ, lmZ, Color4.Red);
             }
-            debugPoints = new Vector3[0];
+            debugPoints = Array.Empty<Vector3>();
 			DebugRenderer.Render();
 			if (Settings.SelectedMSAA > 0)
 			{

@@ -81,7 +81,7 @@ namespace LibreLancer.Fx
 			);
 			if (DrawNormals)
 			{
-				Debug.DrawLine(p - (n * 12), p + (n * 12));
+				Debug.DrawLine(p - (n * 12), p + (n * 12), Color4.Red);
 			}
 		}
 	}

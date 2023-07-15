@@ -712,6 +712,14 @@ public class SystemEditorTab : GameContentTab
 
         hoveredZone = null;
         ZoneRenderer.Finish(Data.Resources);
+
+        foreach (var obj in objectList.Selection)
+        {
+            var rc = obj.RenderComponent as ModelRenderer;
+            if (rc == null) continue;
+            var bbox = rc.Model.GetBoundingBox();
+            EditorPrimitives.DrawBox(renderer.DebugRenderer, bbox, obj.LocalTransform, Color4.White);
+        }
     }
 
     public override void Update(double elapsed)

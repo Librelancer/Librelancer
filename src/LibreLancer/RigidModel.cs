@@ -201,6 +201,15 @@ namespace LibreLancer
                     mp.UpdateTransform(localTransform);
             }
         }
+
+        internal void CalculateBoundingBox(ref Vector3 min, ref Vector3 max)
+        {
+            if (Mesh == null) return;
+            var bmin = Vector3.Transform(Mesh.BoundingBox.Min, localTransform);
+            var bmax = Vector3.Transform(Mesh.BoundingBox.Max, localTransform);
+            min = Vector3.Min(min, bmin);
+            max = Vector3.Max(max, bmax);
+        }
     }
 
     public enum RigidModelSource
@@ -229,6 +238,15 @@ namespace LibreLancer
         public void Update(double globalTime)
         {
             MaterialAnims?.Update((float)globalTime);
+        }
+
+        public BoundingBox GetBoundingBox()
+        {
+            Vector3 min = new Vector3(float.MaxValue);
+            Vector3 max = new Vector3(float.MinValue);
+            foreach(var p in AllParts)
+                p.CalculateBoundingBox(ref min, ref max);
+            return new BoundingBox(min, max);
         }
         
         public float GetRadius()

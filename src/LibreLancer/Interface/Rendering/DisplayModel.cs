@@ -78,12 +78,12 @@ namespace LibreLancer.Interface
         void DrawVMeshWire(UiContext context, Vector3[] wires, Matrix4x4 mat)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
-            context.Lines.Color = color;
             for (int i = 0; i < wires.Length / 2; i++)
             {
                 context.Lines.DrawLine(
                     Vector3.Transform(wires[i * 2],mat),
-                    Vector3.Transform(wires[i * 2 + 1],mat)
+                    Vector3.Transform(wires[i * 2 + 1],mat),
+                    color
                 );
             }
         }
