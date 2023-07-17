@@ -127,6 +127,7 @@ namespace LibreLancer.ImUI
             io.WantSaveIniSettings = false;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             io.NativePtr->IniFilename = (byte*)0; //disable ini!!
+            io.Fonts.Flags |= ImFontAtlasFlags.NoMouseCursors;
             var fontConfigA = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
             var fontConfigB = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
             var fontConfigC = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
