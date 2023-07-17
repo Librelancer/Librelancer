@@ -299,7 +299,7 @@ namespace LibreLancer.Render
         {
             billboardCount = 0;
             
-            var close = AsteroidFieldShared.GetCloseCube(cameraPos, field.FillDist * 2);
+            var close = AsteroidFieldShared.GetCloseCube(cameraPos, (int)(field.FillDist * 2));
             var checkRad = field.FillDist + field.BillboardSize.Y;
             int checkCount = 0;
             for (var x = -1; x <= 1; x++)

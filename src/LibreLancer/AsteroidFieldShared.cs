@@ -8,42 +8,25 @@ using System.Numerics;
 namespace LibreLancer
 {
 	public static class AsteroidFieldShared
-	{
-		//TODO: This function is disgusting (GetCloseCube)
-		public static Vector3 GetCloseCube(Vector3 cameraPos, float cube_size)
-		{
-			var div = cameraPos / cube_size;
-			var corner = new Vector3 (
-				             (float)Math.Round (div.X), 
-				             (float)Math.Round (div.Y), 
-				             (float)Math.Round (div.Z)
-			             ) * cube_size;
-			var sz = new Vector3 (cube_size / 2f, cube_size / 2f, cube_size / 2f);
-			//Find closest!
-			var a = corner + new Vector3 (sz.X, sz.Y, sz.Z);
-			var b = corner + new Vector3 (-sz.X, sz.Y, sz.Z);
-			var c = corner + new Vector3 (sz.X, sz.Y, -sz.Z);
-			var d = corner + new Vector3 (-sz.X, sz.Y, -sz.Z);
-
-			var e = corner + new Vector3 (sz.X, -sz.Y, sz.Z);
-			var f = corner + new Vector3 (-sz.X, -sz.Y, sz.Z);
-			var g = corner + new Vector3 (sz.X, -sz.Y, -sz.Z);
-			var h = corner + new Vector3 (-sz.X, -sz.Y, -sz.Z);
-
-			float d2 = Vector3.DistanceSquared (cameraPos, a);
-			float temp;
-			Vector3 result = a;
-
-			if ((temp = Vector3.DistanceSquared (cameraPos, b)) < d2) { d2 = temp; result = b; }
-			if ((temp = Vector3.DistanceSquared (cameraPos, c)) < d2) { d2 = temp; result = c; }
-			if ((temp = Vector3.DistanceSquared (cameraPos, d)) < d2) { d2 = temp; result = d; }
-			if ((temp = Vector3.DistanceSquared (cameraPos, e)) < d2) { d2 = temp; result = e; }
-			if ((temp = Vector3.DistanceSquared (cameraPos, f)) < d2) { d2 = temp; result = f; }
-			if ((temp = Vector3.DistanceSquared (cameraPos, g)) < d2) { d2 = temp; result = g; }
-			if ((temp = Vector3.DistanceSquared (cameraPos, h)) < d2) { d2 = temp; result = h; }
-
-			return result;
-		}
+	{ 
+        public static Vector3 GetCloseCube(Vector3 cameraPos, int cubeSize)
+        {
+            var posX = (int) (cameraPos.X < 0 ? cameraPos.X - 0.1f : cameraPos.X + 0.1f);
+            var posY = (int) (cameraPos.Y < 0 ? cameraPos.Y - 0.1f : cameraPos.Y + 0.1f);
+            var posZ = (int) (cameraPos.Z < 0 ? cameraPos.Z - 0.1f : cameraPos.Z + 0.1f);
+            int sz = (int) ((cubeSize + 1.0f) * 0.5f);
+            var center = new Vector3(
+                posX < 1 ? sz : -sz,
+                posY < 1 ? sz : -sz,
+                posZ < 1 ? sz : -sz
+            );
+            var cubePos = new Vector3(
+                (posX / cubeSize) * cubeSize,
+                (posY / cubeSize) * cubeSize,
+                (posZ / cubeSize) * cubeSize
+            );
+            return cubePos + center;
+        }
 		//TODO: This function seems to work, but should probably be analyzed to see if the outputs are any good
 		/// <summary>
 		/// Function to determine whether or not a cube is present in a field based on fill_rate

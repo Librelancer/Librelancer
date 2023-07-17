@@ -15,13 +15,8 @@ namespace LibreLancer
 		public static float EllipsoidFunction(Vector3 center, Vector3 size, Vector3 point)
 		{
 			var test = point - center;
-			double result = (
-				((test.X / size.X) * (test.X / size.X)) +
-				((test.Y / size.Y) * (test.Y / size.Y)) +
-				((test.Z / size.Z) * (test.Z / size.Z))
-			);
-			return (float)result;
-		}
+            return (test / size).LengthSquared();
+        }
 		public static Vector3 GetPointOnRadius(Vector3 size, float y, float angle)
 		{
             //sphere:
