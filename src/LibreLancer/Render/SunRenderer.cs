@@ -100,9 +100,9 @@ namespace LibreLancer.Render
                 spineMaterial.SizeMultiplier = Vector2.One;
                 centerMaterial = new SunRadialMaterial(sys.ResourceManager);
                 centerMaterial.Texture = Sun.CenterSprite;
+                centerMaterial.Additive = true;
                 glowMaterial = new SunRadialMaterial(sys.ResourceManager);
                 glowMaterial.Texture = Sun.GlowSprite;
-                glowMaterial.Additive = true;
             }
             
             sysr = sys;

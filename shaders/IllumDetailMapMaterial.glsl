@@ -18,7 +18,7 @@ in vec3 out_normal;
 in vec3 world_position;
 in vec4 view_position;
 
-@include(includes/blend_overlay.inc)
+@include(includes/modulate.inc)
 
 void main()
 {
@@ -33,7 +33,12 @@ void main()
 
 	vec2 texcoord1 = texcoord * TileRate1;
 	vec4 detail1 = texture(Dm1Sampler, texcoord1);
-
-
-	out_color = light(Ac, detail1 * detail1.a * tex.a, Dc, blend_overlay(detail0, tex), world_position, view_position, out_normal);
+	
+	vec4 base_color = light(Ac, vec4(0.), Dc, tex, world_position, view_position, out_normal);
+	
+	base_color = modulate2x(detail0, base_color);
+	
+	vec4 illum = modulate2x(detail1, tex);
+	
+	out_color = vec4(mix(base_color.rgb, illum.rgb, illum.a), 1.0);
 }
