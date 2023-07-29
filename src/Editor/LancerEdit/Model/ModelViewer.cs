@@ -597,14 +597,7 @@ namespace LancerEdit
                         ImGui.Text(Icons.Cube_Purple.ToString());
                     }
                     ImGui.SameLine();
-                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
-                    ImGui.PushID("visible$" + hp.Name);
-                    var push = !gz.Enabled;
-                    if(push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
-                    if (ImGui.Button(Icons.Eye.ToString())) gz.Enabled = !gz.Enabled;
-                    if(push) ImGui.PopStyleColor();
-                    ImGui.PopID();
-                    ImGui.PopStyleVar(1);
+                    Controls.VisibleButton(hp.Name, ref gz.Enabled);
                     ImGui.SameLine();
                     ImGui.Selectable(ImGuiExt.IDSafe(hp.Name));
                     var action = EditDeleteHpMenu(part.Path + hp.Name);
@@ -744,7 +737,7 @@ namespace LancerEdit
             if (useDistance)
             {
                 if (switch2 == null) return 0;
-                for (int i = 0; i < switch2.Length; i++)
+                for (int i = 0; i < (switch2.Length - 1); i++)
                 {
                     if (levelDistance <= switch2[i])
                         return i;

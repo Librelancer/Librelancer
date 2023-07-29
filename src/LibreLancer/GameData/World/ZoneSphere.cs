@@ -18,7 +18,13 @@ namespace LibreLancer.GameData.World
 			Radius = r;
 			sph = new BoundingSphere(zone.Position, Radius);
 		}
-		public override bool Intersects(BoundingBox box)
+
+        public override void Update()
+        {
+            sph = new BoundingSphere(Zone.Position, Radius);
+        }
+
+        public override bool Intersects(BoundingBox box)
 		{
 			return sph.Intersects(box);
 		}

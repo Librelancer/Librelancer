@@ -14,13 +14,14 @@ public class RenameObjectPopup : PopupWindow
 
     private string firstNickname;
     private string nickname;
-    private GameWorld world;
+    private Func<string,bool> inUse;
     private Action<string> onSelect;
     
-    public RenameObjectPopup(string initial, GameWorld world, Action<string> onSelect)
+    
+    public RenameObjectPopup(string initial, Func<string,bool> inUse, Action<string> onSelect)
     {
         firstNickname = nickname = initial;
-        this.world = world;
+        this.inUse = inUse;
         this.onSelect = onSelect;
     }
     
@@ -37,7 +38,7 @@ public class RenameObjectPopup : PopupWindow
             valid = false;
         }
         else if (!nickname.Equals(firstNickname, StringComparison.OrdinalIgnoreCase) &&
-                 (world.GetObject(nickname) != null))
+                inUse(nickname))
         {
             ImGui.TextColored(Color4.Red, "Nickname is already in use");
             valid = false;

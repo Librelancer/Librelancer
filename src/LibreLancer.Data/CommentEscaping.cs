@@ -23,6 +23,10 @@ public class CommentEscaping
                         sb.Append('=');
                         i++;
                         break;
+                    case 'C':
+                        sb.Append(',');
+                        i++;
+                        break;
                     case 'S':
                         sb.Append(';');
                         i++;
@@ -39,7 +43,7 @@ public class CommentEscaping
                         sb.Append('\\');
                         i++;
                         break;
-                    case 'u' when i + 3 < comment.Length:
+                    case 'x' when i + 3 < comment.Length:
                         if (int.TryParse(
                                 comment.AsSpan().Slice(i + 2, 2), 
                                 NumberStyles.HexNumber, null, out int uchar))
@@ -79,6 +83,7 @@ public class CommentEscaping
                 case ' ':
                 case '\n':
                 case '\t':
+                case ',':
                 case var c when c < 32 || c > 126:
                     needsEscape = true;
                     break;
@@ -106,11 +111,14 @@ public class CommentEscaping
                 case '\t':
                     sb.Append("\\t");
                     break;
+                case ',':
+                    sb.Append("\\C");
+                    break;
                 case var c when c >= 32 && c <= 126:
                     sb.Append(c);
                     break;
                 case var c when c < 32 || c > 126:
-                    sb.Append("\\u");
+                    sb.Append("\\x");
                     sb.Append(((uint) c).ToString("X2"));
                     break;
             }

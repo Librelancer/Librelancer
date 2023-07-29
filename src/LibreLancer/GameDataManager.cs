@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Goods;
@@ -21,6 +22,7 @@ using LibreLancer.Render;
 using LibreLancer.Thn;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
+using Archetype = LibreLancer.GameData.Archetype;
 using DockSphere = LibreLancer.GameData.World.DockSphere;
 using FileSystem = LibreLancer.Data.FileSystem;
 using Spine = LibreLancer.GameData.World.Spine;
@@ -951,6 +953,8 @@ namespace LibreLancer
                     {
                         var z = new Zone();
                         z.Nickname = zne.Nickname;
+                        z.IdsName = zne.IdsName;
+                        z.IdsInfo = zne.IdsInfo.ToArray();
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
                         z.PropertyFlags = (ZonePropFlags) zne.PropertyFlags;
                         z.PropertyFogColor = zne.PropertyFogColor;
@@ -964,7 +968,7 @@ namespace LibreLancer
                         z.Interference = zne.Interference;
                         z.PowerModifier = zne.PowerModifier;
                         z.DragModifier = zne.DragModifier;
-                        z.Comment = zne.Comment;
+                        z.Comment = CommentEscaping.Unescape(zne.Comment);
                         z.LaneId = zne.LaneId;
                         z.TradelaneAttack = zne.TradelaneAttack;
                         z.TradelaneDown = zne.TradelaneDown;
@@ -1093,12 +1097,6 @@ namespace LibreLancer
                     if (a % 3 == 0) yield return null;
                     a++;
                 }
-            }
-            foreach (var nb in sys.Nebulae)
-            {
-                nb.LoadResources();
-                if (a % 3 == 0) yield return null;
-                a++;
             }
             foreach (var resfile in sys.ResourceFiles)
             {

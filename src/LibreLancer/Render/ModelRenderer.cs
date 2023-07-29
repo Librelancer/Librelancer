@@ -13,6 +13,7 @@ namespace LibreLancer.Render
 		public RigidModel Model { get; private set; }
         
 		public NebulaRenderer Nebula;
+        private int NebulaVersion = -1;
         
         Vector3 pos;
 		bool inited = false;
@@ -39,11 +40,12 @@ namespace LibreLancer.Render
                 spinZ += elapsed * Spin.Z;
                 if (spinZ > (2 * Math.PI)) spinZ -= 2 * Math.PI;
             }
-            if (Nebula == null || pos != position && sysr != null)
+            if (NebulaVersion != sysr.ZoneVersion || pos != position && sysr != null)
 			{
 				pos = position;
 				Nebula = sysr.ObjectInNebula(position);
-			}
+                NebulaVersion = sysr.ZoneVersion;
+            }
         }
 
         int GetLevel(RigidModelPart file, Vector3 center, Vector3 camera)

@@ -36,6 +36,26 @@ namespace LancerEdit
         {
             ImGui.InputText(name, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
         }
+
+        public static bool SmallButton(string text)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
+            var retval = ImGui.Button(text);
+            ImGui.PopStyleVar(1);
+            return retval;
+        }
+
+        public static void VisibleButton(string name, ref bool visible)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
+            ImGui.PushID("visible$" + name);
+            var push = !visible;
+            if(push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
+            if (ImGui.Button(Icons.Eye.ToString())) visible = !visible;
+            if(push) ImGui.PopStyleColor();
+            ImGui.PopID();
+            ImGui.PopStyleVar(1);
+        }
         
         private static unsafe ImGuiInputTextCallback callback = HandleTextEditCallback;
         static unsafe int HandleTextEditCallback(ImGuiInputTextCallbackData* data)

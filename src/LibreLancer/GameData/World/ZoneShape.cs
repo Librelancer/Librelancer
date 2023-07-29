@@ -15,11 +15,20 @@ namespace LibreLancer.GameData.World
 		public abstract Vector3 RandomPoint (Func<float> randfunc);
 		public abstract ZoneShape Scale(float scale);
 
+        public abstract void Update();
+
 		protected Zone Zone;
 		protected ZoneShape(Zone zn)
 		{
 			Zone = zn;
 		}
+
+        public ZoneShape Clone(Zone newZone)
+        {
+            var o = (ZoneShape) MemberwiseClone();
+            o.Zone = newZone;
+            return o;
+        }
     }
 }
 

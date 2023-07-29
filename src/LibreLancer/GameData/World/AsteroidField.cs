@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Render;
 
@@ -34,6 +35,20 @@ namespace LibreLancer.GameData.World
 		//Multiplier hardcoded in Freelancer's common.dll
         //This is for near_field, not for rendering
 		//const float FILLDIST_MULTIPLIER = 1.74f;
+
+        public AsteroidField Clone(Dictionary<string,Zone> newZones)
+        {
+            var o = (AsteroidField) MemberwiseClone();
+            o.Zone = Zone == null
+                ? null
+                : newZones.GetValueOrDefault(Zone.Nickname);
+            o.Band = Band?.Clone();
+            o.CubeRotation = CubeRotation?.Clone();
+            o.Cube = Cube.CloneCopy();
+            if (ExclusionZones != null)
+                o.ExclusionZones = ExclusionZones.Select(x => x.Clone(newZones)).ToList();
+            return o;
+        }
     }
 }
 

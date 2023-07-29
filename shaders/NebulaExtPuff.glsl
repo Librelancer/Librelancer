@@ -11,6 +11,8 @@ out vec2 uv;
 out vec4 innercolor;
 out vec4 outercolor;
 
+uniform mat4 World;
+
 
 void main()
 {
@@ -25,12 +27,13 @@ void main()
         View[1][1],
         View[2][1]
     );
+    vec3 worldpos = (World * vec4(vertex_position, 1)).xyz;
     //Billboard calculation
     float s = sin(vertex_dimensions.z);
     float c = cos(vertex_dimensions.z);
     vec3 up = c * srcRight - s * srcUp;
     vec3 right = s * srcRight + c * srcUp;
-    vec3 pos = vertex_position + (right * vertex_dimensions.x) + (up * vertex_dimensions.y);
+    vec3 pos = worldpos + (right * vertex_dimensions.x) + (up * vertex_dimensions.y);
     gl_Position = ViewProjection * vec4(pos, 1);
     //pass-through to fragment
     uv = vertex_texture1;

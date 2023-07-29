@@ -104,5 +104,7 @@ namespace LibreLancer.GameData.World
             else
                 return m4;
 		}
-	}
+
+        public AsteroidCubeRotation Clone() => (AsteroidCubeRotation) MemberwiseClone();
+    }
 }

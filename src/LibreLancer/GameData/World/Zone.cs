@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Universe;
 
@@ -31,7 +32,7 @@ namespace LibreLancer.GameData.World
         public float Interference;
         public float PowerModifier;
         public float DragModifier;
-        public string[] Comment;
+        public string Comment;
         public int LaneId;
         public int TradelaneAttack;
         public int TradelaneDown;
@@ -56,6 +57,21 @@ namespace LibreLancer.GameData.World
 		public Zone ()
 		{
 		}
+
+        public Zone Clone()
+        {
+            Zone nz = (Zone)MemberwiseClone();
+            nz.IdsInfo = IdsInfo.ShallowCopy();
+            nz.PopType = PopType.ShallowCopy();
+            nz.AttackIds = AttackIds.ShallowCopy();
+            nz.MissionType = MissionType.ShallowCopy();
+            nz.PathLabel = PathLabel.ShallowCopy();
+            nz.Usage = Usage.ShallowCopy();
+            nz.Encounters = Encounters.CloneCopy();
+            nz.DensityRestrictions = DensityRestrictions.ShallowCopy();
+            nz.Shape = Shape?.Clone(nz);
+            return nz;
+        }
     }
 
     [Flags]

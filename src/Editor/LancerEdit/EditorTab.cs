@@ -14,7 +14,8 @@ public enum Hotkeys
     ToggleGrid,
     ChangeSystem,
     Copy,
-    Paste
+    Paste,
+    ClearRotation,
 }
 
 public abstract class EditorTab : DockTab

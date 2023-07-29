@@ -27,9 +27,14 @@ namespace LibreLancer
 				this.weights[i] = current + weights[i];
 				current += weights[i];
 			}
-			this.items = items;
-		}
-		public T GetNext()
+            this.items = items.ShallowCopy();
+        }
+
+        private WeightedRandomCollection()
+        {
+        }
+
+        public T GetNext()
 		{
 			var val = (float)(random.NextDouble() * max);
 			for (int i = 0; i < weights.Length; i++)
@@ -39,6 +44,14 @@ namespace LibreLancer
 			}
 			return items[items.Length - 1];
 		}
-	}
+
+        public WeightedRandomCollection<T> Clone() => new WeightedRandomCollection<T>()
+        {
+            random = new Random(),
+            items = items.ShallowCopy(),
+            weights = weights.ShallowCopy(),
+            max = max,
+        };
+    }
 }
 

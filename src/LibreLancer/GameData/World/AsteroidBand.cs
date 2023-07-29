@@ -15,6 +15,8 @@ namespace LibreLancer.GameData.World
 		public Color4 ColorShift;
 		public float TextureAspect;
 		public float OffsetDistance;
-	}
+
+        public AsteroidBand Clone() => (AsteroidBand) MemberwiseClone();
+    }
 }
 

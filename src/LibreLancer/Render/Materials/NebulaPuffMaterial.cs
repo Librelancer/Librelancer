@@ -24,6 +24,7 @@ public class NebulaPuffMaterial : RenderMaterial
 
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        shader.SetWorld(World);
         shader.SetDtSampler(0);
         shader.Shader.SetFloat(_fogFactor, *(float*)&userData);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);

@@ -31,12 +31,8 @@ namespace LibreLancer.Render
 		public List<NebulaRenderer> Nebulae { get; private set; }
 
 		private StarSystem starSystem;
-		public StarSystem StarSystem
-		{
-			get { return starSystem; }
-			set { LoadSystem(value); }
-		}
-		
+		public StarSystem StarSystem => starSystem;
+
         //Editor Options
         public bool DrawNebulae = true;
         public bool DrawStarsphere = true;
@@ -58,6 +54,8 @@ namespace LibreLancer.Render
 		RenderContext rstate;
 		Game game;
 		Texture2D dot;
+        
+        public int ZoneVersion = 0;
 
 		//Fancy Forward+ stuff (GL 4.3 up)
 		List<PointLight> pointLights = new List<PointLight>();
@@ -121,22 +119,33 @@ namespace LibreLancer.Render
             }
 		}
 
-		void LoadSystem(StarSystem system)
-		{
-			starSystem = system;
+        public void LoadZones(IList<AsteroidField> asteroids, IList<Nebula> nebulae)
+        {
+            if (AsteroidFields != null)
+                foreach (var f in AsteroidFields) f.Dispose();
+            AsteroidFields = new List<AsteroidFieldRenderer>();
+            Nebulae = new List<NebulaRenderer>();
+            if (asteroids != null)
+            {
+                foreach(var field in asteroids)
+                    AsteroidFields.Add(new AsteroidFieldRenderer(field, this));
+            }
 
-			if (StarSphereModels != null)
-			{
-				StarSphereModels = new RigidModel[0];
-			}
+            if (nebulae != null)
+            {
+                foreach(var n in nebulae)
+                    Nebulae.Add(new NebulaRenderer(n, Game, this));
+            }
+        }
 
-			if (AsteroidFields != null)
-				foreach (var f in AsteroidFields) f.Dispose();
-                
-			//Load new system
-			starSystem = system;
-
-			List<RigidModel> starSphereRenderData = new List<RigidModel>();
+        public void LoadStarspheres(StarSystem system)
+        {
+            starSystem = system;
+            if (StarSphereModels != null)
+            {
+                StarSphereModels = new RigidModel[0];
+            }
+            List<RigidModel> starSphereRenderData = new List<RigidModel>();
             void AddModel(ResolvedModel mdl)
             {
                 if (mdl == null) return;
@@ -149,30 +158,23 @@ namespace LibreLancer.Render
             AddModel(system.StarsNebula);
 
             StarSphereModels = starSphereRenderData.ToArray();
+        }
 
-			AsteroidFields = new List<AsteroidFieldRenderer>();
-			if (system.AsteroidFields != null)
-			{
-				foreach (var a in system.AsteroidFields)
-				{
-					AsteroidFields.Add(new AsteroidFieldRenderer(a, this));
-				}
-			}
+        public void LoadLights(StarSystem system)
+        {
+            SystemLighting = new SystemLighting();
+            SystemLighting.Ambient = system.AmbientColor;
+            foreach (var lt in system.LightSources)
+                SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
+        }
+        
 
-			Nebulae = new List<NebulaRenderer>();
-			if (system.Nebulae != null)
-			{
-				foreach (var n in system.Nebulae)
-				{
-					Nebulae.Add(new NebulaRenderer(n, Game, this));
-				}
-			}
-
-			SystemLighting = new SystemLighting();
-			SystemLighting.Ambient = system.AmbientColor;
-			foreach (var lt in system.LightSources)
-				SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
-		}
+		public void LoadSystem(StarSystem system)
+		{
+            LoadLights(system);
+            LoadStarspheres(system);
+            LoadZones(system.AsteroidFields, system.Nebulae);
+        }
 
 		public void Update(double elapsed)
         {

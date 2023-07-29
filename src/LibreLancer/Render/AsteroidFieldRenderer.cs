@@ -64,28 +64,14 @@ namespace LibreLancer.Render
                 CreateBufferObject();
             }
             //Set up band
-            if (field.Band == null)
+            if (field.Band == null || 
+                field.Zone.Shape is not (ZoneSphere or ZoneEllipsoid))
                 return;
             bandMaterial = new AsteroidBandMaterial(sys.ResourceManager);
             bandMaterial.Texture = field.Band.Shape;
             bandMaterial.ColorShift = field.Band.ColorShift;
             bandMaterial.TextureAspect = field.Band.TextureAspect;
-            Vector3 sz;
-            if (field.Zone.Shape is ZoneSphere)
-                sz = new Vector3(((ZoneSphere)field.Zone.Shape).Radius);
-            else if (field.Zone.Shape is ZoneEllipsoid)
-                sz = ((ZoneEllipsoid)field.Zone.Shape).Size;
-            else
-                return;
-            sz.X -= field.Band.OffsetDistance;
-            sz.Z -= field.Band.OffsetDistance;
-            lightingRadius = Math.Max(sz.X, sz.Z);
             renderBand = true;
-            bandTransform = (
-                Matrix4x4.CreateScale(sz.X, field.Band.Height / 2, sz.Z) * 
-                field.Zone.RotationMatrix * 
-                Matrix4x4.CreateTranslation(field.Zone.Position)
-            );
             bandCylinder = sys.ResourceManager.GetOpenCylinder(SIDES);
         }
 
@@ -486,6 +472,7 @@ namespace LibreLancer.Render
             //Band is last
             if (renderBand)
             {
+                CalculateBandTransform();
                 if (!_camera.Frustum.Intersects(new BoundingSphere(field.Zone.Position, lightingRadius)))
                     return;
                 var bandHandle = buffer.WorldBuffer.SubmitMatrix(ref bandTransform);
@@ -502,6 +489,22 @@ namespace LibreLancer.Render
                     }
                 }
             }
+        }
+        void CalculateBandTransform()
+        {
+            Vector3 sz = Vector3.Zero;
+            if (field.Zone.Shape is ZoneSphere s)
+                sz = new Vector3(s.Radius);
+            else if (field.Zone.Shape is ZoneEllipsoid e)
+                sz = e.Size;
+            sz.X -= field.Band.OffsetDistance;
+            sz.Z -= field.Band.OffsetDistance;
+            lightingRadius = Math.Max(sz.X, sz.Z);
+            bandTransform = (
+                Matrix4x4.CreateScale(sz.X, field.Band.Height / 2f, sz.Z) * 
+                field.Zone.RotationMatrix * 
+                Matrix4x4.CreateTranslation(field.Zone.Position)
+            );
         }
         float BillboardAlpha(float dist)
         {

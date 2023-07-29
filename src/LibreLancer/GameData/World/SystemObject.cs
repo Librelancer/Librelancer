@@ -47,8 +47,8 @@ namespace LibreLancer.GameData.World
         public SystemObject Clone()
         {
             var o = (SystemObject)MemberwiseClone();
-            o.IdsInfo = IdsInfo?.ToArray();
-            o.SpaceCostume = SpaceCostume?.ToArray();
+            o.IdsInfo = IdsInfo.ShallowCopy();
+            o.SpaceCostume = SpaceCostume.ShallowCopy();
             return o;
         }
 

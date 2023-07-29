@@ -150,9 +150,7 @@ public static class IniSerializer
         sb.AppendEntry("ids_name", z.IdsName, false);
         foreach (var info in z.IdsInfo)
             sb.AppendEntry("ids_info", info);
-        if (z.Comment != null)
-            foreach (var c in z.Comment)
-                sb.AppendEntry("comment", c);
+        sb.AppendEntry("comment", CommentEscaping.Escape(z.Comment));
         sb.AppendEntry("pos", z.Position);
         SerializeRotation(sb, z.RotationMatrix);
         switch (z.Shape)

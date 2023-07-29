@@ -2,6 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace LibreLancer.GameData.World
 {
 	public class ExclusionZone
@@ -16,6 +20,15 @@ namespace LibreLancer.GameData.World
 		public float ShellScalar;
 		//Fog
 		public float FogFar;
+
+        public ExclusionZone Clone(Dictionary<string, Zone> newZones)
+        {
+            var o = (ExclusionZone)MemberwiseClone();
+            o.Zone = Zone == null
+                ? null
+                : newZones.GetValueOrDefault(Zone.Nickname);
+            return o;
+        }
 	}
 }
 

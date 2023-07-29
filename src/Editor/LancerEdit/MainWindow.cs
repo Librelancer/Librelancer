@@ -46,6 +46,7 @@ namespace LancerEdit
         bool finishLoading = false;
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
+        private HotkeyHelp hotkeys = new HotkeyHelp();
         
         public EditorConfiguration Config;
         OptionsWindow options;
@@ -165,6 +166,7 @@ namespace LancerEdit
                 Keys.R when control => Hotkeys.ResetViewport,
                 Keys.G when control => Hotkeys.ToggleGrid,
                 Keys.D when control => Hotkeys.Deselect,
+                Keys.D0 when control => Hotkeys.ClearRotation,
                 Keys.F6 => Hotkeys.ChangeSystem,
                 _ => 0
             };
@@ -549,7 +551,10 @@ namespace LancerEdit
                     var helpFile = Path.Combine(selfPath, "Docs", "index.html");
                     Shell.OpenCommand(helpFile);
                 }
-				if (Theme.IconMenuItem(Icons.Info, "About", true))
+
+                Theme.IconMenuToggle(Icons.Keyboard, "Hotkeys", ref hotkeys.Open, true);
+                
+                if (Theme.IconMenuItem(Icons.Info, "About", true))
 				{
 					openAbout = true;
 				}
@@ -668,6 +673,7 @@ namespace LancerEdit
             }
             ImGui.End();
             Make3dbDlg.Draw();
+            hotkeys.Draw();
             for (int i = TextWindows.Count - 1; i >= 0; i--) {
                 if (!TextWindows[i].Draw()) {
                     TextWindows.RemoveAt(i);

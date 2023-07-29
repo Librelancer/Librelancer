@@ -114,12 +114,13 @@ namespace LibreLancer.World
         }
 
 
-        public void LoadSystem(StarSystem sys, ResourceManager res, bool server)
+        public void LoadSystem(StarSystem sys, ResourceManager res, bool server, bool loadRenderer = true)
         {
             foreach (var g in objects)
                 g.Unregister(Physics);
 
-            if (Renderer != null) Renderer.StarSystem = sys;
+            if (Renderer != null && loadRenderer)
+                Renderer.LoadSystem(sys);
 
             objects = new List<GameObject>();
             if (Renderer != null)

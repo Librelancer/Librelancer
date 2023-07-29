@@ -343,6 +343,8 @@ namespace LibreLancer.Render
                 if (sysr.Camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
                     return;
             }
+            var world = Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(Nebula.Zone.Position);
+            var wh = buffer.WorldBuffer.SubmitMatrix(ref world);
             /* Actually Render */
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
@@ -350,7 +352,7 @@ namespace LibreLancer.Render
             for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
-                buffer.AddCommand(p.Material, null, buffer.WorldBuffer.Identity, Lighting.Empty
+                buffer.AddCommand(p.Material, null, wh, Lighting.Empty
                     , sysr.StaticBillboards.VertexBuffer,
                     PrimitiveTypes.TriangleList, 0, idx, 2, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
                     RenderHelpers.GetZ(sysr.Camera.Position, p.Position), null, 0, *(int*)&factor);
@@ -389,7 +391,7 @@ namespace LibreLancer.Render
 					yval + (sz.Y * Nebula.ExteriorMoveBitPercent)
 				);
 				var pos = PrimitiveMath.GetPointOnRadius(sz, y, (float)current_angle);
-				var puffPos = Nebula.Zone.Position + new Vector3(pos.X, pos.Y - (sz.Y / 2), pos.Z);
+				var puffPos = new Vector3(pos.X, pos.Y - (sz.Y / 2), pos.Z);
 				var radius = rn.NextFloat(
 					Nebula.ExteriorBitRadius * (1 - Nebula.ExteriorBitRandomVariation),
 					Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation)

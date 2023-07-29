@@ -2,13 +2,14 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Collections.Generic;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
     public record FactionSpawn(string Faction, float Chance);
-	public class Encounter
+	public class Encounter : ICloneable
     {
         public string Archetype;
         public int Difficulty;
@@ -26,5 +27,12 @@ namespace LibreLancer.Data.Universe
             if (e.Count > 2)
                 Chance = e[2].ToSingle("chance");
         }
-	}
+
+        object ICloneable.Clone()
+        {
+            var m = (Encounter)MemberwiseClone();
+            m.FactionSpawns = FactionSpawns.ShallowCopy();
+            return m;
+        }
+    }
 }

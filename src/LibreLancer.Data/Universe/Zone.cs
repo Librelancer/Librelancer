@@ -48,7 +48,7 @@ namespace LibreLancer.Data.Universe
         public float DragModifier;
 
         [Entry("comment")] 
-        public string[] Comment;
+        public string Comment;
 
         [Entry("lane_id")] 
         public int LaneId;

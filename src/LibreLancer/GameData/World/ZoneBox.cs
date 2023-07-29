@@ -21,7 +21,15 @@ namespace LibreLancer.GameData.World
             R = Matrix4x4.Transpose(R);
             transformedPos = Vector3.Transform(zone.Position, R);
         }
-		public override bool Intersects(BoundingBox box)
+
+        public override void Update()
+        {
+            R = Zone.RotationMatrix;
+            R = Matrix4x4.Transpose(R);
+            transformedPos = Vector3.Transform(Zone.Position, R);
+        }
+
+        public override bool Intersects(BoundingBox box)
 		{
 			var min = Zone.Position - (Size / 2);
 			var max = Zone.Position + (Size / 2);

@@ -23,7 +23,15 @@ namespace LibreLancer.GameData.World
 			R = Matrix4x4.Transpose(R);
             transformedPos = Vector3.Transform(zone.Position, R);
 		}
-		public override bool Intersects(BoundingBox box)
+
+        public override void Update()
+        {
+            R = Zone.RotationMatrix;
+            R = Matrix4x4.Transpose(R);
+            transformedPos = Vector3.Transform(Zone.Position, R);
+        }
+
+        public override bool Intersects(BoundingBox box)
 		{
 			var corners = cornerbuf.Value;
 			box.GetCorners(corners);

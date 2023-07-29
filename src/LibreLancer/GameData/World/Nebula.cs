@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace LibreLancer.GameData.World
@@ -60,14 +61,17 @@ namespace LibreLancer.GameData.World
 		//Exclusion
 		public List<ExclusionZone> ExclusionZones;
 
-        public Action LoadResAction;
-        public void LoadResources()
+        public Nebula Clone(Dictionary<string, Zone> newZones)
         {
-            if(LoadResAction != null)
-            {
-                LoadResAction();
-                LoadResAction = null;
-            }
+            var o = (Nebula)MemberwiseClone();
+            o.Zone = Zone == null
+                ? null
+                : newZones.GetValueOrDefault(Zone.Nickname);
+            o.ExteriorCloudShapes = ExteriorCloudShapes?.Clone();
+            o.InteriorCloudShapes = InteriorCloudShapes?.Clone();
+            if (ExclusionZones != null)
+                o.ExclusionZones = ExclusionZones.Select(x => x.Clone(newZones)).ToList();
+            return o;
         }
     }
 	public struct CloudShape

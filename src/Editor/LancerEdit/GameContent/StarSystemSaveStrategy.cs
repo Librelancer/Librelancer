@@ -25,11 +25,11 @@ public class StarSystemSaveStrategy : ISaveStrategy
                 {
                     tab.CurrentSystem.Objects.Add(item.SystemObject);
                 }
-
                 item.Components.Remove(dat);
             }
         }
-
+        if(tab.ZoneList.Dirty)
+            tab.ZoneList.ApplyZones(tab.CurrentSystem);
         foreach (var o in tab.DeletedObjects)
             tab.CurrentSystem.Objects.Remove(o);
         tab.DeletedObjects = new List<SystemObject>();
@@ -45,12 +45,12 @@ public class StarSystemSaveStrategy : ISaveStrategy
         tab.ObjectsDirty = false;
     }
 
-    public bool ShouldSave => tab.ObjectsDirty || tab.SystemData.IsDirty();
+    public bool ShouldSave => tab.ObjectsDirty || tab.SystemData.IsDirty() || tab.ZoneList.Dirty;
 
     public void DrawMenuOptions()
     {
         if(Theme.IconMenuItem(Icons.Save, $"Save '{tab.CurrentSystem.Nickname}'",
-            tab.ObjectsDirty || tab.SystemData.IsDirty()))
+            tab.ObjectsDirty || tab.SystemData.IsDirty() || tab.ZoneList.Dirty))
             Save();
         Theme.IconMenuItem(Icons.Save, "Save As", false);
     }
