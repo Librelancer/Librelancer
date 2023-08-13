@@ -211,7 +211,8 @@ namespace LibreLancer.Render
 		}
 
 		NebulaRenderer CheckNebulae()
-		{
+        {
+            if (!DrawNebulae) return null;
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
