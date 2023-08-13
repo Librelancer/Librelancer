@@ -61,10 +61,7 @@ namespace LibreLancer.GameData.World
 		Vector4 axisy;
 		Vector4 axisz;
 
-        Matrix4x4 m1;
-        Matrix4x4 m2;
-        Matrix4x4 m3;
-        Matrix4x4 m4;
+        private Matrix4x4[] rotations;
 
         public AsteroidCubeRotation()
         {
@@ -77,33 +74,39 @@ namespace LibreLancer.GameData.World
             axisz = z;
         }
 
-        public Matrix4x4 GetRotation(float param)
-		{
-            if (dirty)
+        static float Angle(Vector4 v, int i) => MathHelper.DegreesToRadians(i switch
+        {
+            1 => v.Y,
+            2 => v.Z,
+            3 => v.W,
+            _ => v.X
+        });
+
+        void GenerateRotations()
+        {
+            rotations = new Matrix4x4[64];
+            var i = 0;
+            for (int x = 0; x <= 3; x++)
             {
-                m1 = Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.X)) *
-                    Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.X)) *
-                    Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.X));
-                m2 = Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.Y)) *
-                   Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.Y)) *
-                   Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.Y));
-                m3 = Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.Z)) *
-                   Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.Z)) *
-                   Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.Z));
-                m4 = Matrix4x4.CreateRotationX(MathHelper.DegreesToRadians(AxisX.W)) *
-                   Matrix4x4.CreateRotationY(MathHelper.DegreesToRadians(AxisY.W)) *
-                   Matrix4x4.CreateRotationZ(MathHelper.DegreesToRadians(AxisZ.W));
-                dirty = false;
+                for (int y = 0; y <= 3; y++)
+                {
+                    for (int z = 0; z <= 3; z++)
+                    {
+                        rotations[i++] = Matrix4x4.CreateRotationX(Angle(axisx, x)) *
+                                         Matrix4x4.CreateRotationY(Angle(axisy, y)) *
+                                         Matrix4x4.CreateRotationZ(Angle(axisz, z));
+                    }
+                }
             }
-            if (param < 0.25f)
-                return m1;
-            else if (param < 0.5f)
-                return m2;
-            else if (param < 0.75f)
-                return m3;
-            else
-                return m4;
-		}
+            dirty = false;
+        }
+        
+        public Matrix4x4 GetRotation(int variation)
+        {
+            if (dirty)
+                GenerateRotations();
+            return rotations[variation & 0x3f];
+        }
 
         public AsteroidCubeRotation Clone() => (AsteroidCubeRotation) MemberwiseClone();
     }

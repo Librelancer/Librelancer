@@ -666,7 +666,7 @@ namespace LancerEdit
                 ImGui.Text("Log");
                 ImGui.SameLine(ImGui.GetWindowWidth() - 30 * ImGuiHelper.Scale);
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-                if (ImGui.Button(Icons.X.ToString())) showLog = false;
+                if (ImGui.Button(Icons.X)) showLog = false;
                 ImGui.PopStyleVar();
                 logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale), ImGuiInputTextFlags.ReadOnly);
                 ImGui.EndChild();

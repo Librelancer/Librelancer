@@ -122,8 +122,7 @@ namespace LibreLancer.Client.Components
 							continue;
 						if (Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, center) > cds)
 							continue;
-						float tval;
-						if (!AsteroidFieldShared.CubeExists(center, Field.EmptyCubeFrequency, out tval))
+						if (!AsteroidFieldShared.CubeExists(center, Field.EmptyCubeFrequency, out int tval))
 							continue;
 						if (GetExclusionZone(center) != null)
 							continue;

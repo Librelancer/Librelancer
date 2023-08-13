@@ -55,7 +55,7 @@ namespace LancerEdit
             if (selected) {
                 ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]);
             }
-            var ret = ImGui.Button(icon.ToString());
+            var ret = ImGui.Button(icon);
             if(selected) ImGui.PopStyleColor();
             if (ImGui.IsItemHovered()) {
                 ImGui.SetTooltip(tooltip);

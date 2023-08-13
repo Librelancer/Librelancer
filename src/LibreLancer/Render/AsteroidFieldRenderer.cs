@@ -301,7 +301,7 @@ namespace LibreLancer.Render
                         if (field.Zone.Shape.ScaledDistance(center) > 1.1f) continue;
                         //rotate
                         var rotation =
-                            AsteroidCubeRotation.Default.GetRotation(AsteroidFieldShared.PositionHash(center));
+                            AsteroidCubeRotation.Default.GetRotation((int)(AsteroidFieldShared.PositionHash(center) * 63));
                         for (int i = 0; i < billboardCube.Length; i++)
                         {
                             var spritepos = center + Vector3.Transform(billboardCube[i].Position, rotation);
@@ -364,7 +364,7 @@ namespace LibreLancer.Render
                         if (!frustum.Intersects(cubeSphere)) {
                             continue;
                         }
-                        float tval;
+                        int tval;
                         if (!AsteroidFieldShared.CubeExists(center, field.EmptyCubeFrequency, out tval)){
                             continue;
                         }

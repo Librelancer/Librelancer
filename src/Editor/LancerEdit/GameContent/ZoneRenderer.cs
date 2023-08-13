@@ -27,7 +27,10 @@ public class ZoneRenderer
     {
         using (var stream = typeof(ZoneRenderer).Assembly.GetManifestResourceStream(name))
         {
-            var msh = SimpleMesh.Model.FromStream(stream);
+            var msh = SimpleMesh.Model.FromStream(stream)
+                .AutoselectRoot(out _)
+                .ApplyRootTransforms(true);
+            
             if ((msh.Roots[0].Geometry.Attributes & VertexAttributes.Normal) == 0)
                 throw new Exception("Missing normals");
             var vertices = msh.Roots[0].Geometry.Vertices.Select(x => new VertexPositionNormal(x.Position, x.Normal)).ToArray();

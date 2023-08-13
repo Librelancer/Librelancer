@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
@@ -19,66 +17,61 @@ public enum ZoneDisplayKind
 }
 public class ZoneList
 {
-    public List<Zone> Zones = new List<Zone>();
+    public List<EditZone> Zones = new List<EditZone>();
     public List<AsteroidField> AsteroidFields = new List<AsteroidField>();
     public List<Nebula> Nebulae = new List<Nebula>();
-
-    private Dictionary<string, Zone> zoneDict;
-
-    public HashSet<string> VisibleZones = new HashSet<string>();
-
-    public Zone Selected;
-    public Zone HoveredZone;
-
-    private Dictionary<Zone, bool> dirtyZones = new Dictionary<Zone, bool>();
-
+    
+    public EditZone Selected;
+    public EditZone HoveredZone;
+    
     private bool dirtyOrder = false;
+    private bool dirtyZones = false;
 
-    public bool Dirty => dirtyOrder || dirtyZones.Count > 0;
+    public bool Dirty => dirtyOrder || dirtyZones;
 
 
     Dictionary<string,ZoneDisplayKind> zoneTypes = new Dictionary<string, ZoneDisplayKind>();
 
     public void ApplyZones(StarSystem system)
     {
-        system.Zones = Zones.Select(x => x.Clone()).ToList();
+        system.Zones = new List<Zone>();
         system.ZoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
         foreach (var z in Zones)
-            system.ZoneDict[z.Nickname] = z;
+        {
+            var cloned = z.Current.Clone();
+            z.Original = cloned;
+            z.Dirty = false;
+            system.Zones.Add(cloned);
+            system.ZoneDict[cloned.Nickname] = cloned;
+        }
         system.AsteroidFields = AsteroidFields.Select(x => x.Clone(system.ZoneDict)).ToList();
         system.Nebulae = Nebulae.Select(x => x.Clone(system.ZoneDict)).ToList();
-        
         dirtyOrder = false;
-        dirtyZones = new Dictionary<Zone, bool>();
+        dirtyZones = false;
     }
 
-    public void ResetZone(Zone z)
+
+    public void SetZonesDirty(EditZone z)
     {
-        
+         dirtyZones = true;
+         z.Dirty = true;
     }
 
-    public void RenameZone(Zone z, string newNickname)
+    public void CheckDirty()
     {
-        if (VisibleZones.Contains(z.Nickname))
-        {
-            VisibleZones.Remove(z.Nickname);
-            VisibleZones.Add(newNickname);
-        }
-        zoneDict.Remove(z.Nickname);
-        zoneDict[newNickname] = z;
-        z.Nickname = newNickname;
-        SetZoneDirty(z);
+        if (dirtyOrder) return;
+        dirtyZones = Zones.Any(x => x.Dirty);
     }
 
-    public bool HasZone(string nickname) => zoneDict.ContainsKey(nickname);
+    public bool HasZone(string nickname) =>
+        Zones.Any(x => x.Current.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase));
 
     public void SetZones(List<Zone> zones, List<AsteroidField> asteroidFields, List<Nebula> nebulae)
     {
-        dirtyZones = new Dictionary<Zone, bool>();
-        Zones = zones.Select(x => x.Clone()).ToList();
-        zoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
+        Zones = zones.Select(x => new EditZone(x)).ToList();
+        var zoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
         foreach (var z in Zones)
-            zoneDict[z.Nickname] = z;
+            zoneDict[z.Current.Nickname] = z.Current;
 
         AsteroidFields = asteroidFields.Select(x => x.Clone(zoneDict)).ToList();
         Nebulae = nebulae.Select(x => x.Clone(zoneDict)).ToList();
@@ -105,10 +98,6 @@ public class ZoneList
         }
     }
 
-    public bool IsZoneDirty(Zone z) => dirtyZones.TryGetValue(z, out _);
-
-    public void SetZoneDirty(Zone z) => dirtyZones[z] = true;
-
     public ZoneDisplayKind GetZoneType(string nickname)
     {
         if (zoneTypes.TryGetValue(nickname, out var d))
@@ -122,12 +111,13 @@ public class ZoneList
     public void ShowAll()
     {
         foreach (var z in Zones)
-            VisibleZones.Add(z.Nickname);
+            z.Visible = true;
     }
 
     public void HideAll()
     {
-        VisibleZones = new HashSet<string>();
+        foreach (var z in Zones)
+            z.Visible = false;
     }
 
     public void Draw()
@@ -139,22 +129,20 @@ public class ZoneList
         for (int i = 0; i < Zones.Count; i++)
         {
             var z = Zones[i];
-            ImGui.PushID(z.Nickname);
-            var contains = VisibleZones.Contains(z.Nickname);
-            var v = contains;
+            ImGui.PushID(z.Current.Nickname);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.One);
-            Controls.VisibleButton(z.Nickname, ref v);
+            Controls.VisibleButton(z.Current.Nickname, ref z.Visible);
             ImGui.SameLine();
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            if(ImGuiExt.Button(Icons.ArrowUp.ToString(), i != 0))
+            if(ImGuiExt.Button(Icons.ArrowUp, i != 0))
                 idxUp = i;
             ImGui.SameLine();
-            if (ImGuiExt.Button(Icons.ArrowDown.ToString(), i != Zones.Count - 1))
+            if (ImGuiExt.Button(Icons.ArrowDown, i != Zones.Count - 1))
                 idxDown = i;
             ImGui.PopStyleVar();
             ImGui.PopStyleVar();
             ImGui.SameLine();
-            if (ImGui.Selectable(z.Nickname, Selected == z)) {
+            if (ImGui.Selectable(z.Current.Nickname, Selected == z)) {
                 Selected = z;
             }
             if (ImGui.IsItemHovered())
@@ -168,11 +156,6 @@ public class ZoneList
                     ImGui.ResetMouseDragDelta();
                     dirtyOrder = true;
                 }
-            }
-            if (v != contains)
-            {
-                if (contains) VisibleZones.Remove(z.Nickname);
-                else VisibleZones.Add(z.Nickname);
             }
             ImGui.PopID();
         }

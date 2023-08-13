@@ -83,6 +83,26 @@ namespace LibreLancer.ImUI
            ImGui.EndDisabled();
            return r;
         }
+        
+        /// <summary>
+        /// Button that can be disabled
+        /// </summary>
+        /// <param name="icon">Icon.</param>
+        /// <param name="enabled">If set to <c>true</c> enabled.</param>
+        public static bool Button(char icon, bool enabled)
+        {
+            Span<byte> str = stackalloc byte[5];
+            Span<char> c = stackalloc char[1];
+            c[0] = icon;
+            int l = Encoding.UTF8.GetBytes(c, str);
+            str[l] = 0;
+            ImGui.BeginDisabled(!enabled);
+            bool r;
+            fixed(byte* b = str)
+                r = ImGuiNative.igButton(b, new Vector2()) != 0;
+            ImGui.EndDisabled();
+            return r;
+        }
 
         public static void Checkbox(string label, ref bool v, bool enabled, string disableReason)
         {

@@ -58,19 +58,53 @@ namespace LibreLancer.GameData.World
 		{
 		}
 
+        public void CopyTo(Zone other)
+        {
+            other.Nickname = Nickname;
+            other.IdsName = IdsName;
+            other.IdsInfo = IdsInfo.ShallowCopy();
+            other.Position = Position;
+            other.RotationMatrix = RotationMatrix;
+            other.RotationAngles = RotationAngles;
+            other.Shape = Shape?.Clone(other);
+            other.EdgeFraction = EdgeFraction;
+            other.PropertyFlags = PropertyFlags;
+            other.PropertyFogColor = PropertyFogColor;
+            other.Sort = Sort;
+            other.VisitFlags = VisitFlags;
+            other.PopType = PopType.ShallowCopy();
+            other.Music = Music;
+            other.Spacedust = Spacedust;
+            other.SpacedustMaxParticles = SpacedustMaxParticles;
+            other.Interference = Interference;
+            other.PowerModifier = PowerModifier;
+            other.DragModifier = DragModifier;
+            other.Comment = Comment;
+            other.LaneId = LaneId;
+            other.TradelaneAttack = TradelaneAttack;
+            other.TradelaneDown = TradelaneDown;
+            other.Damage = Damage;
+            other.Toughness = Toughness;
+            other.Density = Density;
+            other.PopulationAdditive = PopulationAdditive;
+            other.MissionEligible = MissionEligible;
+            other.MaxBattleSize = MaxBattleSize;
+            other.ReliefTime = ReliefTime;
+            other.RepopTime = RepopTime;
+            other.AttackIds = AttackIds.ShallowCopy();
+            other.MissionType = MissionType.ShallowCopy();
+            other.PathLabel = PathLabel.ShallowCopy();
+            other.Usage = Usage.ShallowCopy();
+            other.VignetteType = VignetteType;
+            other.Encounters = Encounters.CloneCopy();
+            other.DensityRestrictions = DensityRestrictions.ShallowCopy();
+        }
+
         public Zone Clone()
         {
-            Zone nz = (Zone)MemberwiseClone();
-            nz.IdsInfo = IdsInfo.ShallowCopy();
-            nz.PopType = PopType.ShallowCopy();
-            nz.AttackIds = AttackIds.ShallowCopy();
-            nz.MissionType = MissionType.ShallowCopy();
-            nz.PathLabel = PathLabel.ShallowCopy();
-            nz.Usage = Usage.ShallowCopy();
-            nz.Encounters = Encounters.CloneCopy();
-            nz.DensityRestrictions = DensityRestrictions.ShallowCopy();
-            nz.Shape = Shape?.Clone(nz);
-            return nz;
+            var z = new Zone();
+            CopyTo(z);
+            return z;
         }
     }
 

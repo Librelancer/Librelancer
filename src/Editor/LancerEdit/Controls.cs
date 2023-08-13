@@ -48,10 +48,10 @@ namespace LancerEdit
         public static void VisibleButton(string name, ref bool visible)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
-            ImGui.PushID("visible$" + name);
+            ImGui.PushID(name);
             var push = !visible;
             if(push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
-            if (ImGui.Button(Icons.Eye.ToString())) visible = !visible;
+            if (ImGui.Button(Icons.Eye)) visible = !visible;
             if(push) ImGui.PopStyleColor();
             ImGui.PopID();
             ImGui.PopStyleVar(1);

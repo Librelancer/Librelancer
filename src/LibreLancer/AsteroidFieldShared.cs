@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace LibreLancer
 {
@@ -34,18 +35,24 @@ namespace LibreLancer
 		/// <returns><c>true</c> if the cube is present, <c>false</c> otherwise.</returns>
 		/// <param name="cubePos">Cube position.</param>
 		/// <param name="fill_rate">Fill rate.</param>
-        public static unsafe bool CubeExists(Vector3 cubePos, float empty_frequency, out float test_value)
+        public static bool CubeExists(Vector3 cubePos, float emptyFrequency, out int selectedRotation)
 		{
 			//Check for fill rate
-			test_value = 0;
-			if (empty_frequency < float.Epsilon)
-				return true;
-			if (empty_frequency >= 1)
+			selectedRotation = 0;
+            if (emptyFrequency >= 1)
 				return false;
 			//integer hash
-            test_value = PositionHash(cubePos);
-			return test_value > empty_frequency;
-		}
+            var hashValue = PositionHash(cubePos);
+            if (hashValue > emptyFrequency)
+            {
+                var rot = emptyFrequency > float.Epsilon
+                    ? (hashValue - emptyFrequency) / (1.0f - emptyFrequency)
+                    : hashValue;
+                selectedRotation = (int) (rot * 63);
+                return true;
+            }
+            return false;
+        }
 
         public static unsafe float PositionHash(Vector3 cubePos)
         {
@@ -60,6 +67,7 @@ namespace LibreLancer
             return constructFloat(h);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 		//return a float between [0,1] for a hash
 		static unsafe float constructFloat(uint m)
 		{

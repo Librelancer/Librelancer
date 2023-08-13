@@ -187,21 +187,30 @@ public class SystemEditorTab : GameContentTab
             ImGui.Text("No Zone Selected");
             return;
         }
-        var sel = ZoneList.Selected;
-        
+
+        var sel = ZoneList.Selected.Current;
+        var ez = ZoneList.Selected;
+
+        if (ImGuiExt.Button("Reset", ez.Dirty)) {
+            ez.Reset();
+            ZoneList.CheckDirty();
+        }
+
         Controls.BeginPropertyTable("properties", true, false, true);
         Controls.PropertyRow("Nickname", sel.Nickname);
         if (ImGui.Button($"{Icons.Edit}##nickname"))
         {
-            popups.OpenPopup(new RenameObjectPopup(sel.Nickname, x => ZoneList.HasZone(x), x =>
-                ZoneList.RenameZone(sel, x)));
+            popups.OpenPopup(new RenameObjectPopup(sel.Nickname, x => ZoneList.HasZone(x), x => { 
+                sel.Nickname = x;
+                ZoneList.SetZonesDirty(ez); 
+            }));
         }
 
         Controls.PropertyRow("Name", Data.Infocards.GetStringResource(sel.IdsName));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
             popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts,
-                newIds => { sel.IdsName = newIds; ZoneList.SetZoneDirty(sel); }));
+                newIds => { sel.IdsName = newIds; ZoneList.SetZonesDirty(ez); }));
         }
 
         //Position
@@ -212,7 +221,7 @@ public class SystemEditorTab : GameContentTab
             sel.RotationAngles = Vector3.Zero;
             sel.RotationMatrix = Matrix4x4.Identity;
             sel.Shape.Update();
-            ZoneList.SetZoneDirty(sel);
+            ZoneList.SetZonesDirty(ez);
         }
         Controls.EndPropertyTable();
         
@@ -226,7 +235,7 @@ public class SystemEditorTab : GameContentTab
         ImGui.TableNextColumn();
         if (ImGui.Button($"{Icons.Edit}##comment"))
             popups.OpenPopup(new CommentPopup(sel.Comment, x =>
-            { sel.Comment = x; ZoneList.SetZoneDirty(sel); }));
+            { sel.Comment = x; ZoneList.SetZonesDirty(ez); }));
         Controls.EndPropertyTable();
     }
 
@@ -724,11 +733,13 @@ public class SystemEditorTab : GameContentTab
     private void RenderZones()
     {
         ZoneRenderer.Begin(win.RenderContext, camera);
-        foreach (var z in ZoneList.Zones)
+        foreach (var ez in ZoneList.Zones)
         {
-            if (z != ZoneList.HoveredZone && 
-                z != ZoneList.Selected &&
-                !ZoneList.VisibleZones.Contains(z.Nickname)) continue;
+            if (!ez.Visible &&
+                ez != ZoneList.HoveredZone && 
+                ez != ZoneList.Selected)
+                continue;
+            var z = ez.Current;
             var zoneColor = zoneColors[(int)ZoneList.GetZoneType(z.Nickname)]
                 .ChangeAlpha(0.5f);
             bool inZone = z.Shape.ContainsPoint(camera.Position);
@@ -1043,16 +1054,17 @@ public class SystemEditorTab : GameContentTab
         {
             var v = camera.View;
             var p = camera.Projection;
-            var tr = ZoneList.Selected.RotationMatrix * Matrix4x4.CreateTranslation(ZoneList.Selected.Position);
+            var zs = ZoneList.Selected;
+            var tr = zs.Current.RotationMatrix * Matrix4x4.CreateTranslation(zs.Current.Position);
             if (ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS,
                     GuizmoMode.WORLD,
                     &tr, (Matrix4x4*)0))
             {
-                ZoneList.Selected.Position = Vector3.Transform(Vector3.Zero, tr);
-                ZoneList.Selected.RotationMatrix = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
-                ZoneList.Selected.RotationAngles = ZoneList.Selected.RotationMatrix.GetEulerDegrees();
-                ZoneList.Selected.Shape?.Update();
-                ZoneList.SetZoneDirty(ZoneList.Selected);
+                zs.Current.Position = Vector3.Transform(Vector3.Zero, tr);
+                zs.Current.RotationMatrix = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                zs.Current.RotationAngles = zs.Current.RotationMatrix.GetEulerDegrees();
+                zs.Current.Shape?.Update();
+                ZoneList.SetZonesDirty(zs);
                 World.Renderer.ZoneVersion++;
             }
             return ImGuizmo.IsOver() || ImGuizmo.IsUsing();
