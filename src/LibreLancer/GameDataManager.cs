@@ -1439,9 +1439,12 @@ namespace LibreLancer
         {
             if (src.Inherit != null)
             {
-                var parent = fldata.Pilots.Pilots.First(x =>
+                var parent = fldata.Pilots.Pilots.FirstOrDefault(x =>
                     x.Nickname.Equals(src.Inherit, StringComparison.OrdinalIgnoreCase));
-                FillPilot(pilot, parent);
+                if(parent == null)
+                    FLLog.Error("Data", $"Pilot {src.Nickname} references missing inherit {src.Inherit}");
+                else
+                    FillPilot(pilot, parent);
             }
 
             string n = src.Nickname;
