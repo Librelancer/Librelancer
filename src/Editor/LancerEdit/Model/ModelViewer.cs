@@ -120,8 +120,8 @@ namespace LancerEdit
                     {
                         maxLevels = Math.Max(maxLevels, p.Mesh.Levels.Length);
                         if(p.Mesh.Switch2 != null)
-                            foreach (var d in p.Mesh.Switch2)
-                                maxDistance = Math.Max(d, maxDistance);
+                            for(int i = 0; i < p.Mesh.Switch2.Length - 1; i++)
+                                maxDistance = Math.Max(p.Mesh.Switch2[i], maxDistance);
                     }
                     
                 }
@@ -739,7 +739,7 @@ namespace LancerEdit
                 if (switch2 == null) return 0;
                 for (int i = 0; i < (switch2.Length - 1); i++)
                 {
-                    if (levelDistance <= switch2[i])
+                    if (levelDistance <= switch2[i + 1])
                         return i;
                 }
                 return int.MaxValue;

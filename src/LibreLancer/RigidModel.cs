@@ -292,9 +292,9 @@ namespace LibreLancer
         static int GetLevel(float[] switch2, float levelDistance)
         {
             if (switch2 == null) return 0;
-            for (int i = 0; i < switch2.Length; i++)
+            for (int i = 0; i < (switch2.Length - 1); i++)
             {
-                if (levelDistance <= switch2[i])
+                if (levelDistance <= switch2[i + 1])
                     return i;
             }
             return int.MaxValue;
