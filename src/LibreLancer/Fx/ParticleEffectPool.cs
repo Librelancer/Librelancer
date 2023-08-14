@@ -27,7 +27,6 @@ namespace LibreLancer.Fx
         public IdPool ParticleAllocator = new IdPool(PARTICLE_BIT_COUNT, false);
         public Particle[] Particles = new Particle[INITIAL_PARTICLES];
 
-        ElementBuffer ibo;
         VertexBuffer vbo;
         ParticleVertex* vertices;
         CommandBuffer cmd;
@@ -39,97 +38,44 @@ namespace LibreLancer.Fx
         {
             public Vector3 Position;
             public Color4 Color;
-            public Vector2 TextureCoordinate;
+            public Vector4 TextureCoordinates;
             public Vector3 Dimensions;
             public Vector3 Right;
             public Vector3 Up;
             public VertexDeclaration GetVertexDeclaration()
             {
                 return new VertexDeclaration(
-                    sizeof(float) * 3 + sizeof(float) * 4 + sizeof(float) * 2 + sizeof(float) * 3 * 3,
+                    sizeof(float) * 3 + sizeof(float) * 4 * 2 + sizeof(float) * 3 * 3,
                     new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
                     new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 3),
-                    new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 7),
-                    new VertexElement(VertexSlots.Dimensions, 3, VertexElementType.Float, false, sizeof(float) * 9),
-                    new VertexElement(VertexSlots.Right, 3, VertexElementType.Float, false, sizeof(float) * 12),
-                    new VertexElement(VertexSlots.Up, 3, VertexElementType.Float, false, sizeof(float) * 15)
+                    new VertexElement(VertexSlots.Texture1, 4, VertexElementType.Float, false, sizeof(float) * 7),
+                    new VertexElement(VertexSlots.Dimensions, 3, VertexElementType.Float, false, sizeof(float) * 11),
+                    new VertexElement(VertexSlots.Right, 3, VertexElementType.Float, false, sizeof(float) * 14),
+                    new VertexElement(VertexSlots.Up, 3, VertexElementType.Float, false, sizeof(float) * 17)
                 );
             }
         }
 
         void CreateQuad(ref int count, Vector3 position, Vector2 size, Color4 color, float angle, ParticleTexture texture, float frame, Vector3 src_right, Vector3 src_up)
         {
-            var sz1 = new Vector3(size.X * -0.5f, size.Y * -0.5f, angle);
-            var sz2 = new Vector3(size.X * 0.5f, size.Y * -0.5f, angle);
-            var sz3 = new Vector3(size.X * -0.5f, size.Y * 0.5f, angle);
-            var sz4 = new Vector3(size.X * 0.5f, size.Y * 0.5f, angle);
+            var sz = new Vector3(size.X, size.Y, angle);
             var frameNo = (int)Math.Floor((texture.FrameCount - 1) * frame);
-            int i = frameNo * 4;
             vertices[count++] = new ParticleVertex()
             {
                 Position = position,
                 Color = color,
-                TextureCoordinate = texture.Coordinates[i + 2],
-                Dimensions = sz1,
-                Right = src_right,
-                Up = src_up
-            };
-            vertices[count++] = new ParticleVertex()
-            {
-                Position = position,
-                Color = color,
-                TextureCoordinate = texture.Coordinates[i],
-                Dimensions = sz2,
-                Right = src_right,
-                Up = src_up
-            };
-            vertices[count++] = new ParticleVertex()
-            {
-                Position = position,
-                Color = color,
-                TextureCoordinate = texture.Coordinates[i + 3],
-                Dimensions = sz3,
-                Right = src_right,
-                Up = src_up
-            };
-            vertices[count++] = new ParticleVertex()
-            {
-                Position = position,
-                Color = color,
-                TextureCoordinate = texture.Coordinates[i + 1],
-                Dimensions = sz4,
+                TextureCoordinates = texture.GetCoordinates(frameNo),
+                Dimensions = sz,
                 Right = src_right,
                 Up = src_up
             };
         }
 
-        private static readonly ushort[] indices;
-
-        static ParticleEffectPool()
-        {
-            indices = new ushort[MAX_PARTICLES * 6];
-            int iptr = 0;
-            for (int i = 0; i < (MAX_PARTICLES * 4); i += 4)
-            {
-                //Triangle 1
-                indices[iptr++] = (ushort)i;
-                indices[iptr++] = (ushort)(i + 1);
-                indices[iptr++] = (ushort)(i + 2);
-                //Triangle 2
-                indices[iptr++] = (ushort)(i + 1);
-                indices[iptr++] = (ushort)(i + 3);
-                indices[iptr++] = (ushort)(i + 2);
-            }
-        }
         public ParticleEffectPool(CommandBuffer commands)
         {
             cmd = commands;
             //Set up vertices
-            vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES * 4, true);
-            //Indices
-            ibo = new ElementBuffer(MAX_PARTICLES * 6);
-            ibo.SetData(indices);
-            vbo.SetElementBuffer(ibo);
+            vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES, true);
         }
 
         public void Update(double delta)
@@ -231,9 +177,9 @@ namespace LibreLancer.Fx
             if (countApp <= 0) return; //No particles no drawing!
             for (int i = 1; i < countApp; i++) {
                 bufspace[i].Start = (bufspace[i - 1].Start + bufspace[i - 1].Count);
-                bufspace[i].Current = bufspace[i].Start * 4;
+                bufspace[i].Current = bufspace[i].Start;
             }
-            int maxVbo = (bufspace[countApp - 1].Start + bufspace[countApp - 1].Count) * 4;
+            int maxVbo = (bufspace[countApp - 1].Start + bufspace[countApp - 1].Count);
             //Fill buffer
             vertices = (ParticleVertex*)vbo.BeginStreaming();
             foreach (var i in ParticleAllocator.GetAllocated())
@@ -252,14 +198,15 @@ namespace LibreLancer.Fx
             //Draw buffers
             int basicCount = 0;
             basicMaterial.Library = res;
+            basicMaterial.Parameters.Clear();
             for (int i = 0; i < countApp; i++)
             {
                 //Get Variables
                 var ni = appearances[i];
                 var pos = Vector3.Transform(Vector3.Zero, ni.i.DrawTransform);
                 var z = RenderHelpers.GetZ(camera.Position, pos);
-                var startIndex = bufspace[i].Start * 6;
-                var primCount = bufspace[i].Count * 2;
+                var startIndex = bufspace[i].Start;
+                var primCount = bufspace[i].Count;
                 //Draw
                 Texture2D texture;
                 int drawIdx = (ni.i.DrawIndex << 11) + ni.idx;
@@ -271,7 +218,7 @@ namespace LibreLancer.Fx
                         cmd.AddCommand(
                             basicMaterial, null,
                             cmd.WorldBuffer.Identity, Lighting.Empty,
-                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount,
+                            vbo, PrimitiveTypes.Points, -1, startIndex, primCount,
                             SortLayers.OBJECT, z, null, drawIdx, basicMaterial.Parameters.Count
                         );
                         basicMaterial.Parameters.Add((texture, perp.BlendInfo));
@@ -283,7 +230,7 @@ namespace LibreLancer.Fx
                         cmd.AddCommand(
                             basicMaterial, null,
                             cmd.WorldBuffer.Identity, Lighting.Empty,
-                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount,
+                            vbo, PrimitiveTypes.Points, -1, startIndex, primCount,
                             SortLayers.OBJECT, z, null, drawIdx, basicMaterial.Parameters.Count
                         );
                         basicMaterial.Parameters.Add((texture, rect.BlendInfo));
@@ -296,7 +243,7 @@ namespace LibreLancer.Fx
                         cmd.AddCommand(
                             basicMaterial, null,
                             cmd.WorldBuffer.Identity, Lighting.Empty,
-                            vbo, PrimitiveTypes.TriangleList, 0, startIndex, primCount,
+                            vbo, PrimitiveTypes.Points, -1, startIndex, primCount,
                             SortLayers.OBJECT, z, null, drawIdx, basicMaterial.Parameters.Count
                         );
                         basicMaterial.Parameters.Add((texture, basic.BlendInfo));
@@ -347,7 +294,7 @@ namespace LibreLancer.Fx
             int index)
         {
             var idx = GetAppFxIdx(instance, appearance, index);
-            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
+            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count)) return;
             var right = Vector3.Cross(normal, Vector3.UnitY);
             var up = Vector3.Cross(right, normal);
             up.Normalize();
@@ -372,7 +319,7 @@ namespace LibreLancer.Fx
         )
         {
             var idx = GetAppFxIdx(instance, appearance, index);
-            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
+            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count)) return;
             CreateQuad(
                 ref bufspace[idx].Current, 
                 Position, size, color, angle, texture, frame,
@@ -394,7 +341,7 @@ namespace LibreLancer.Fx
         )
         {
             var idx = GetAppFxIdx(instance, appearance, index);
-            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count) * 4) return;
+            if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count)) return;
             var up = normal;
             var toCamera = (camera.Position - Position).Normalized();
             var right = Vector3.Cross(toCamera, up);
@@ -408,7 +355,6 @@ namespace LibreLancer.Fx
         public void Dispose()
         {
             vbo.Dispose();
-            ibo.Dispose();
         }
     }
 }

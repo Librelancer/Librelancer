@@ -9,7 +9,7 @@
 #include "SPIRV/GlslangToSpv.h"
 #include "gl2spv.h"
 
-const char *glslVersion = "#version 310 es\nprecision highp float;\nprecision highp int;\n";
+const char *glslVersion = "#version 320 es\nprecision highp float;\nprecision highp int;\n";
 
 
 #define PRINT_LOG if(log && strlen(log) > 0) { \
@@ -17,9 +17,11 @@ fprintf(stderr, "%s\n", log); \
 }
 
 
-int CompileShader_Internal(const char *inputStr, const char *inputName, const char *defines, bool vertex, std::vector<uint32_t>& spv)
+int CompileShader_Internal(const char *inputStr, const char *inputName, const char *defines, int kind, std::vector<uint32_t>& spv)
 {
-    EShLanguage stage = vertex ? EShLangVertex : EShLangFragment;
+    EShLanguage stage = kind == GL_KIND_VERTEX ?  EShLangVertex
+                        : kind == GL_KIND_FRAGMENT ? EShLangFragment
+                        : EShLangGeometry;
     glslang::TShader shader(stage);
     const char* strings[3];
     int lengths[3];
@@ -76,9 +78,9 @@ int CompileShader_Internal(const char *inputStr, const char *inputName, const ch
     return 1;
 }
 
-int CompileShader(const char *inputStr, const char *inputName, const char *defines, bool vertex, std::vector<uint32_t>& spv)
+int CompileShader(const char *inputStr, const char *inputName, const char *defines, int kind, std::vector<uint32_t>& spv)
 {
-    int retval = CompileShader_Internal(inputStr, inputName, defines, vertex, spv);
+    int retval = CompileShader_Internal(inputStr, inputName, defines, kind, spv);
     return retval;
 }
 

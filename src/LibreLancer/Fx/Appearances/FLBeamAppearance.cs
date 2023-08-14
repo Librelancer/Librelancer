@@ -71,11 +71,12 @@ namespace LibreLancer.Fx
             var res = instance.Resources;
             TextureHandler.Update(Texture, res);
             var frame = GetFrame(globalTime, sparam, ref instance.Pool.Particles[beam.ParticleIndices[0]]);
-            int index = (int) Math.Floor((TextureHandler.FrameCount - 1) * frame) * 4;
-            tl = TextureHandler.Coordinates[index];
-            tr = TextureHandler.Coordinates[index + 1];
-            bl = TextureHandler.Coordinates[index + 2];
-            br = TextureHandler.Coordinates[index + 3];
+            int index = (int) Math.Floor((TextureHandler.FrameCount - 1) * frame);
+            var texCoords = TextureHandler.GetCoordinates(index);
+            tl = new Vector2(texCoords.X, texCoords.Y);
+            tr = new Vector2(texCoords.X + texCoords.Z, texCoords.Y);
+            bl = new Vector2(texCoords.X, texCoords.Y + texCoords.W);
+            br = new Vector2(texCoords.X + texCoords.Z, texCoords.Y + texCoords.W);
             //Sorting hack kinda
 			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
 			for (int j = 0; j < 2; j++) //two planes

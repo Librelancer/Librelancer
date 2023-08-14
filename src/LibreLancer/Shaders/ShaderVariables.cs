@@ -284,7 +284,7 @@ namespace LibreLancer.Shaders
             FLLog.Debug("Shader", text);
         }
 
-        public static ShaderVariables Compile(string vertex, string fragment)
+        public static ShaderVariables Compile(string vertex, string fragment, string geometry = null)
         {
             string prelude;
             if (GLExtensions.Features430)
@@ -293,6 +293,8 @@ namespace LibreLancer.Shaders
                 prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n";
             else
                 prelude = "#version 150\n";
+            if(geometry != null)
+                return new ShaderVariables(new Shader(prelude + vertex, prelude + fragment, prelude + geometry));
             return new ShaderVariables(new Shader(prelude + vertex, prelude + fragment));
         }
 	}

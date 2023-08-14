@@ -254,6 +254,17 @@ public class CodeGenerator
             );
         }
 
+        CodeExpression[] ShaderCompile(string defs, bool gl3)
+        {
+            var ls = new List<CodeExpression>();
+            ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, defs, ShaderCompiler.ShaderKind.Vertex), gl3));
+            ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, defs, ShaderCompiler.ShaderKind.Fragment), gl3));
+            if (!string.IsNullOrWhiteSpace(fx.GeometrySource)) { 
+                ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.GeometrySource, fx.Name, defs, ShaderCompiler.ShaderKind.Geometry), gl3));
+            }
+            return ls.ToArray();
+        }
+
         var gl3Statements = new List<CodeStatement>();
         var gl4Statements = new List<CodeStatement>();
 
@@ -262,19 +273,14 @@ public class CodeGenerator
         gl3Statements.Add(new CodeAssignStatement(
             new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                 new CodePrimitiveExpression(0)),
-            new CodeMethodInvokeExpression(compMeth,
-                StringBuilderExpression(ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, "", true), true),
-                StringBuilderExpression(ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, "", false), true)
+            new CodeMethodInvokeExpression(compMeth, ShaderCompile("", true))
             )
-        ));
+        );
         Console.WriteLine($"Compiling (GL4) {fx.Name} (basic)");
         gl4Statements.Add(new CodeAssignStatement(
             new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                 new CodePrimitiveExpression(0)),
-            new CodeMethodInvokeExpression(compMeth,
-                StringBuilderExpression(ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, "#define FEATURES430\n", true), false),
-                StringBuilderExpression(ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, "#define FEATURES430\n", false), false)
-            )
+            new CodeMethodInvokeExpression(compMeth, ShaderCompile("#define FEATURES430\n", false))
         ));
         //Compile all variants
         idx = 1;
@@ -284,25 +290,18 @@ public class CodeGenerator
             builder.AppendLine();
             foreach (var def in permutation)
                 builder.Append("#define ").AppendLine(def);
-            var variantVertex = ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, builder.ToString(), true);
-            var variantFragment = ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, builder.ToString(), false);
-
             Console.WriteLine($"Compiling (GL3) {fx.Name} ({string.Join(", ", permutation)})");
             gl3Statements.Add(new CodeAssignStatement(
                 new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                     new CodePrimitiveExpression(idx)),
-                new CodeMethodInvokeExpression(compMeth, StringBuilderExpression(variantVertex, true),
-                    StringBuilderExpression(variantFragment, true))
+                new CodeMethodInvokeExpression(compMeth, ShaderCompile(builder.ToString(), true))
             ));
             builder.AppendLine("#define FEATURES430");
             Console.WriteLine($"Compiling (GL4) {fx.Name} ({string.Join(", ", permutation)})");
-            variantVertex = ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, builder.ToString(), true);
-            variantFragment = ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, builder.ToString(), false);
             gl4Statements.Add(new CodeAssignStatement(
                 new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                     new CodePrimitiveExpression(idx)),
-                new CodeMethodInvokeExpression(compMeth, StringBuilderExpression(variantVertex, false),
-                    StringBuilderExpression(variantFragment, false))
+                new CodeMethodInvokeExpression(compMeth, ShaderCompile(builder.ToString(), false))
             ));
             idx++;
         }

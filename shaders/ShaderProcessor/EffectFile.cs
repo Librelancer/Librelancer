@@ -21,6 +21,7 @@ public class EffectFile
     public string FragmentSource;
     public string Name;
     public string VertexSource;
+    public string GeometrySource;
 
     private static string ProcessIncludes(string fname, string src, string directory)
     {
@@ -72,7 +73,7 @@ public class EffectFile
             var inMultilineComment = false;
             StringBuilder currentBlock = null;
             string currentBlockName = null;
-            var blockIsFragment = false;
+            int blockType = -1;
             var lineNumber = 1;
             string ln;
             while ((ln = reader.ReadLine()) != null)
@@ -117,14 +118,16 @@ public class EffectFile
                                 case "vertex":
                                 case "fragment":
                                 case "feature":
+                                case "geometry":
                                 case "lazy":
                                     if (currentBlock != null)
                                     {
-                                        if (blockIsFragment) effectFile.FragmentSource = currentBlock.ToString();
-                                        else effectFile.VertexSource = currentBlock.ToString();
+                                        if (blockType == 2) effectFile.FragmentSource = currentBlock.ToString();
+                                        else if (blockType == 1) effectFile.VertexSource = currentBlock.ToString();
+                                        else if (blockType == 0) effectFile.GeometrySource = currentBlock.ToString();
                                     }
-
                                     currentBlock = null;
+                                    blockType = -1;
                                     break;
                             }
 
@@ -141,7 +144,17 @@ public class EffectFile
                                     }
 
                                     currentBlock = new StringBuilder();
-                                    blockIsFragment = false;
+                                    blockType = 1;
+                                    break;
+                                case "geometry":
+                                    if (effectFile.GeometrySource != null)
+                                    {
+                                        Console.Error.WriteLine($"Duplicate geometry block at {lineNumber}");
+                                        return null;
+                                    }
+
+                                    currentBlock = new StringBuilder();
+                                    blockType = 0;
                                     break;
                                 case "fragment":
                                     if (effectFile.FragmentSource != null)
@@ -151,7 +164,7 @@ public class EffectFile
                                     }
 
                                     currentBlock = new StringBuilder();
-                                    blockIsFragment = true;
+                                    blockType = 2;
                                     break;
                                 case "feature":
                                     features.Add(vals[1]);
@@ -173,8 +186,9 @@ public class EffectFile
 
             if (currentBlock != null)
             {
-                if (blockIsFragment) effectFile.FragmentSource = currentBlock.ToString();
-                else effectFile.VertexSource = currentBlock.ToString();
+                if (blockType == 2) effectFile.FragmentSource = currentBlock.ToString();
+                else if (blockType == 1) effectFile.VertexSource = currentBlock.ToString();
+                else if (blockType == 0) effectFile.GeometrySource = currentBlock.ToString();   
             }
         }
 

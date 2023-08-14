@@ -9,7 +9,10 @@ extern "C" {
 #define SHEXPORT
 #endif
 SHEXPORT void SHInit();
-SHEXPORT const char *SHCompile(const char *source, const char *filename, const char *defines, bool vertex);
+#define SH_KIND_VERTEX (0)
+#define SH_KIND_FRAGMENT (1)
+#define SH_KIND_GEOMETRY (2)
+SHEXPORT const char *SHCompile(const char *source, const char *filename, const char *defines, int kind);
 SHEXPORT void SHFreeResult(const char *ptr);
 SHEXPORT void SHFinish();
 #ifdef __cplusplus

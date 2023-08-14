@@ -13,7 +13,7 @@ int ToGLSL(std::vector<uint32_t>& spirv_binary, std::string& outstr)
     try
     {
         spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
-	spirv_cross::ShaderResources res = glsl.get_shader_resources();
+	    spirv_cross::ShaderResources res = glsl.get_shader_resources();
         spirv_cross::CompilerGLSL::Options options;
         options.version = 150;
         options.es = false;
@@ -37,16 +37,19 @@ SHEXPORT void SHInit()
     GlslInit();
 }
 
-SHEXPORT const char *SHCompile(const char *source, const char *filename, const char *defines, bool vertex)
+SHEXPORT const char *SHCompile(const char *source, const char *filename, const char *defines, int kind)
 {
     std::vector<uint32_t> spv;
-    if(!CompileShader(source, filename, defines, vertex, spv)) {
-        fprintf(stderr, vertex ? "vertex shader compilation failed\n" : "fragment shader compilation failed\n");
+    const char *kindString = kind == SH_KIND_VERTEX ? "vertex"
+                             : kind == SH_KIND_FRAGMENT ? "fragment"
+                             : "geometry";
+    if(!CompileShader(source, filename, defines, kind, spv)) {
+        fprintf(stderr, "%s shader compilation failed\n", kindString);
         return NULL;
     }
     std::string outGlsl;
     if(!ToGLSL(spv, outGlsl)) {
-        fprintf(stderr, vertex ? "vertex shader compilation failed\n" : "fragment shader compilation failed\n");
+        fprintf(stderr, "%s shader compilation failed\n", kindString);
         return NULL;
     }
     return strdup(outGlsl.c_str());

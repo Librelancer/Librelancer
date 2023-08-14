@@ -27,7 +27,7 @@ namespace LibreLancer.Render
         
         public void StartFrame()
         {
-            material.Parameters = new List<(Texture texture, BlendMode blendMode)>();
+            material.Parameters.Clear();
             vertices = (VertexPositionColorTexture*)vbo.BeginStreaming();
         }
 
