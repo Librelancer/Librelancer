@@ -96,7 +96,7 @@ namespace LibreLancer.Dll
         public static ResourceDll FromStream(Stream stream, string savePath = null)
         {
             var dll = new ResourceDll() {SavePath = savePath};
-            var (rsrcOffset, rsrc) = GetRsrcSection(stream);
+            var (rsrcOffset, rsrc) = ReadPE(stream);
             var directory = Struct<IMAGE_RESOURCE_DIRECTORY>(rsrc, 0);
             List<ResourceTable> resources = new List<ResourceTable>();
             for (int i = 0; i < directory.NumberOfNamedEntries + directory.NumberOfIdEntries; i++)
@@ -204,6 +204,10 @@ namespace LibreLancer.Dll
                         if((IMAGE_RESOURCE_DATA_IS_DIRECTORY & langEntry.OffsetToData) == IMAGE_RESOURCE_DATA_IS_DIRECTORY)
                             throw new Exception("Malformed .rsrc section");
                         var dataEntry = Struct<IMAGE_RESOURCE_DATA_ENTRY>(rsrc, (int) langEntry.OffsetToData);
+                        var doff = ((int) dataEntry.OffsetToData - rsrcOffset);
+                        if (doff >= rsrc.Length || doff + dataEntry.Size >= rsrc.Length || doff < 0) {
+                            Console.WriteLine("aaa");
+                        }
                         var dat = new ArraySegment<byte>(rsrc, (int)dataEntry.OffsetToData - rsrcOffset, (int)dataEntry.Size);
                         res.Locales.Add(new ResourceData() {Locale = langEntry.Name, Data = dat});
                     }
@@ -230,21 +234,24 @@ namespace LibreLancer.Dll
             }
         }
         
-        static (int, byte[]) GetRsrcSection(Stream stream)
+        static (int, byte[]) ReadPE(Stream stream)
         {
             using (var pe = new PEReader(stream))
             {
-                var section = pe.GetSectionData(".rsrc");
+                var fullImage = pe.GetEntireImage().GetContent();
                 int offset = 0;
+                int rawStart = 0;
                 for (int i = 0; i < pe.PEHeaders.SectionHeaders.Length; i++)
                 {
                     var h = pe.PEHeaders.SectionHeaders[i];
                     if (h.Name == ".rsrc") {
                         offset = h.VirtualAddress;
+                        rawStart = h.PointerToRawData;
                     }
                 }
-                var array = new byte[section.Length];
-                section.GetContent().CopyTo(array);
+                //allow reading past end of .rsrc section
+                var array = new byte[fullImage.Length - rawStart];
+                fullImage.CopyTo(rawStart, array, 0, array.Length);
                 return (offset, array);
             }
         }
