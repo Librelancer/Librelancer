@@ -17,6 +17,7 @@ public class ColorPicker : PopupWindow
     {
         color = initial;
         Title = title;
+        this.onSelect = onSelect;
     }
 
     public override void Draw()
