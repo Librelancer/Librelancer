@@ -1339,7 +1339,7 @@ namespace IMGUIZMO_NAMESPACE
       }
    }
 
-   static void DrawScaleGizmo(OPERATION op, int type)
+   static void DrawScaleGizmo(OPERATION op, int type, matrix_t *matrix)
    {
       ImDrawList* drawList = gContext.mDrawList;
 
@@ -1418,6 +1418,11 @@ namespace IMGUIZMO_NAMESPACE
          drawList->AddLine(ImVec2(sourcePosOnScreen.x + dif.x, sourcePosOnScreen.y + dif.y), ImVec2(destinationPosOnScreen.x - dif.x, destinationPosOnScreen.y - dif.y), translationLineColor, 2.f);
          */
          char tmps[512];
+         // CALLUM: Draw final scale as opposed to multiplier
+         matrix_t mat = *matrix;
+         scaleDisplay[0] = mat.v.right.Length();
+         scaleDisplay[1] = mat.v.up.Length();
+         scaleDisplay[2] = mat.v.dir.Length();
          //vec_t deltaInfo = gContext.mModel.v.position - gContext.mMatrixOrigin;
          int componentInfoIndex = (type - MT_SCALE_X) * 3;
          ImFormatString(tmps, sizeof(tmps), scaleInfoMask[type - MT_SCALE_X], scaleDisplay[translationInfoIndex[componentInfoIndex]]);
@@ -2290,7 +2295,7 @@ namespace IMGUIZMO_NAMESPACE
             modified = true;
          }
          gContext.mScaleLast = gContext.mScale;
-
+    
          // compute matrix & delta
          matrix_t deltaMatrixScale;
          deltaMatrixScale.Scale(gContext.mScale * gContext.mScaleValueOrigin);
@@ -2543,8 +2548,8 @@ namespace IMGUIZMO_NAMESPACE
       if (!gContext.mbUsingBounds)
       {
          DrawRotationGizmo(operation, type);
-         DrawTranslationGizmo(operation, type);
-         DrawScaleGizmo(operation, type);
+         DrawTranslationGizmo(operation, type);   
+         DrawScaleGizmo(operation, type, (matrix_t*)matrix);
          DrawScaleUniveralGizmo(operation, type);
       }
       return manipulated;

@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Pilots;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
@@ -223,6 +224,7 @@ public class SystemEditorTab : GameContentTab
             sel.Shape.Update();
             ZoneList.SetZonesDirty(ez);
         }
+        if(ShapeProperties(ref sel.Shape, sel)) ZoneList.SetZonesDirty(ez);
         Controls.EndPropertyTable();
         
         //Comment
@@ -238,6 +240,83 @@ public class SystemEditorTab : GameContentTab
             { sel.Comment = x; ZoneList.SetZonesDirty(ez); }));
         Controls.EndPropertyTable();
     }
+    bool ShapeChangeButton<T>(ref ZoneShape sh, Zone z) where T:  ZoneShape
+    {
+        if (ImGui.Button($"{Icons.Edit}##shape"))
+            ImGui.OpenPopup("shapeitem");
+        bool changed = false;
+        if (ImGui.BeginPopup("shapeitem"))
+        {
+            if (ImGui.MenuItem("Sphere", typeof(T) != typeof(ZoneSphere)))
+            {
+                sh = sh.ChangeTo<ZoneSphere>(z);
+                changed = true;
+            }
+            if (ImGui.MenuItem("Ellipsoid", typeof(T) != typeof(ZoneEllipsoid)))
+            {
+                sh = sh.ChangeTo<ZoneEllipsoid>(z);
+                changed = true;
+            }
+            if (ImGui.MenuItem("Box", typeof(T) != typeof(ZoneBox)))
+            {
+                sh = sh.ChangeTo<ZoneBox>(z);
+                changed = true;
+            }
+            if (ImGui.MenuItem("Cylinder", typeof(T) != typeof(ZoneCylinder)))
+            {
+                sh = sh.ChangeTo<ZoneCylinder>(z);
+                changed = true;
+            }
+            if (ImGui.MenuItem("Ring", typeof(T) != typeof(ZoneRing)))
+            {
+                sh = sh.ChangeTo<ZoneRing>(z);
+                changed = true;
+            }
+            ImGui.EndPopup();
+        }
+        return changed;
+    }
+    bool ShapeProperties(ref ZoneShape shape, Zone zone)
+    {
+        bool changed = false;
+        switch (shape)
+        {
+            case ZoneCylinder cyl:
+                Controls.PropertyRow("Shape", "Cylinder");
+                changed = ShapeChangeButton<ZoneCylinder>(ref shape, zone);
+                Controls.PropertyRow("Radius", cyl.Radius.ToString("F2"));
+                Controls.PropertyRow("Height", cyl.Height.ToString("F2"));
+                break;
+            case ZoneSphere sphere:
+                Controls.PropertyRow("Shape", "Sphere");
+                changed = ShapeChangeButton<ZoneSphere>(ref shape, zone);
+                Controls.PropertyRow("Radius", sphere.Radius.ToString("F2"));
+                break;
+            case ZoneEllipsoid ellipsoid:
+                Controls.PropertyRow("Shape", "Ellipsoid");
+                changed = ShapeChangeButton<ZoneEllipsoid>(ref shape, zone);
+                Controls.PropertyRow("Size X", ellipsoid.Size.X.ToString("F2"));
+                Controls.PropertyRow("Size Y", ellipsoid.Size.Y.ToString("F2"));
+                Controls.PropertyRow("Size Z", ellipsoid.Size.Z.ToString("F2"));
+                break;
+            case ZoneBox box:
+                Controls.PropertyRow("Shape", "Box");
+                changed = ShapeChangeButton<ZoneBox>(ref shape, zone);
+                Controls.PropertyRow("Size X", box.Size.X.ToString("F2"));
+                Controls.PropertyRow("Size Y", box.Size.Y.ToString("F2"));
+                Controls.PropertyRow("Size Z", box.Size.Z.ToString("F2"));
+                break;
+            case ZoneRing ring:
+                Controls.PropertyRow("Shape", "Ring");
+                changed = ShapeChangeButton<ZoneRing>(ref shape, zone);
+                Controls.PropertyRow("Outer Radius",  ring.OuterRadius.ToString("F2"));
+                Controls.PropertyRow("Inner Radius", ring.InnerRadius.ToString("F2"));
+                Controls.PropertyRow("Height", ring.Height.ToString("F2"));
+                break;
+        }
+        return changed;
+    }
+    
 
     void ViewPanel()
     {
@@ -1026,11 +1105,12 @@ public class SystemEditorTab : GameContentTab
         {
             var v = camera.View;
             var p = camera.Projection;
+            var mode = ImGui.GetIO().KeyCtrl ? GuizmoMode.WORLD : GuizmoMode.LOCAL;
             fixed (Matrix4x4* tr = &objectList.SelectedTransform)
             {
                 Matrix4x4 delta;
                 if (ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS,
-                        GuizmoMode.WORLD,
+                        mode,
                         tr, &delta))
                 {
                     ObjectsDirty = true;
@@ -1055,13 +1135,17 @@ public class SystemEditorTab : GameContentTab
             var v = camera.View;
             var p = camera.Projection;
             var zs = ZoneList.Selected;
-            var tr = zs.Current.RotationMatrix * Matrix4x4.CreateTranslation(zs.Current.Position);
-            if (ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS,
-                    GuizmoMode.WORLD,
+            var (zsize, zsizemode) = zs.Current.Shape.GetSize();
+            var mode = ImGui.GetIO().KeyCtrl ? GuizmoMode.WORLD : GuizmoMode.LOCAL;
+            var tr = Matrix4x4.CreateScale(zsize) * zs.Current.RotationMatrix * Matrix4x4.CreateTranslation(zs.Current.Position);
+            if (ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS | zsizemode,
+                    mode,
                     &tr, (Matrix4x4*)0))
             {
+                Matrix4x4.Decompose(tr, out var newScale, out var rot, out _);
                 zs.Current.Position = Vector3.Transform(Vector3.Zero, tr);
-                zs.Current.RotationMatrix = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                zs.Current.RotationMatrix = Matrix4x4.CreateFromQuaternion(rot);
+                zs.Current.Shape.SetSize(newScale);
                 zs.Current.RotationAngles = zs.Current.RotationMatrix.GetEulerDegrees();
                 zs.Current.Shape?.Update();
                 ZoneList.SetZonesDirty(zs);
