@@ -43,9 +43,10 @@ namespace LibreLancer.Data.Equipment
         public List<Explosion> Explosions = new List<Explosion>();
         [Section("mine")]
         public List<Mine> Mines = new List<Mine>();
-        public void AddEquipmentIni(string path, FreelancerData data)
-		{
-            ParseAndFill(path, data.VFS);
+        
+        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
+        {
+            ParseAndFill(paths, fldata.VFS);
         }
     }
 }

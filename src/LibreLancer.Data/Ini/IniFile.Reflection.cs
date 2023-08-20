@@ -551,6 +551,22 @@ namespace LibreLancer.Ini
             foreach(var kv in deferred)
                 ProcessDeferred(kv.Key, kv.Value, datapath, vfs);
         }
+        
+        public void ParseAndFill(IEnumerable<string> filenames, LibreLancer.Data.FileSystem vfs)
+        {
+            var sections = GetContainerInfo(GetType());
+            var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();
+            foreach (var f in filenames)
+            {
+                DeferredSection lastDeferred = null;
+                foreach (var section in ParseFile(f, vfs))
+                {
+                    lastDeferred = ProcessSection(section, sections, lastDeferred, deferred);
+                }
+            }
+            foreach(var kv in deferred)
+                ProcessDeferred(kv.Key, kv.Value);
+        }
 
         public void ParseAndFill(string filename, LibreLancer.Data.FileSystem vfs)
         {

@@ -77,24 +77,9 @@ public class TurretViewCamera : ICamera
     public void UpdateProjection()
     {
         var aspect = Viewport.AspectRatio;
-        var fovV = FOVUtil.CalcFovx(ini.TurretCamera.FovX, aspect);
+        var fovV = FOVUtil.CalcFovx(ini.TurretCamera.FovX <= 0 ? 70 : ini.TurretCamera.FovX, aspect);
         Projection = Matrix4x4.CreatePerspectiveFieldOfView(fovV, aspect, 3f, 10000000f);
     }
-    
-    public void UpdateFrameNumber(long f)
-    {
-        fnum = f;
-    }
-
-
-    public long FrameNumber
-    {
-        get
-        {
-            return fnum;
-        }
-    }
-    
 
     private CameraIni ini;
 

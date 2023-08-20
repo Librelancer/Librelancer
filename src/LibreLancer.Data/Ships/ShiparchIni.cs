@@ -10,28 +10,17 @@ namespace LibreLancer.Data.Ships
 {
 	public class ShiparchIni : IniFile
 	{
+        [Section("ship")]
 		public List<Ship> Ships = new List<Ship>();
 
 		public ShiparchIni ()
 		{
 		}
-		public void AddShiparchIni(string path, FreelancerData fldata)
+        
+		public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
 		{
-			foreach (Section s in ParseFile(path, fldata.VFS)) {
-                if (s.Name.ToLowerInvariant() == "ship")
-                    Ships.Add(FromSection<Ship>(s));
-			}
-		}
-
-		public Ship GetShip(string name)
-		{
-			
-			IEnumerable<Ship> result = from Ship s in Ships where s.Nickname == name select s;
-			if (result.Count<Ship> () == 1)
-				return result.First<Ship> ();
-			else
-				throw new Exception ();
-		}
-	}
+            ParseAndFill(paths, fldata.VFS);
+        }
+    }
 }
 

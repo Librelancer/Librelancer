@@ -104,7 +104,7 @@ namespace LibreLancer.Render.Cameras
         public void UpdateProjection()
 		{
             var aspect = Viewport.AspectRatio;
-            var fovV = FOVUtil.CalcFovx(ini.ThirdPersonCamera.FovX, aspect);
+            var fovV = FOVUtil.CalcFovx(ini.ThirdPersonCamera.FovX <= 0 ? 70 : ini.ThirdPersonCamera.FovX, aspect);
 			Projection = Matrix4x4.CreatePerspectiveFieldOfView(fovV, aspect, 3f, 10000000f);
 		}
 

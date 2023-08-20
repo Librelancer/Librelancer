@@ -126,8 +126,7 @@ namespace LibreLancer.Data
             tasks.Add(Task.Run(() =>
             {
                 Equipment = new EquipmentIni();
-                foreach (var eq in Freelancer.EquipmentPaths)
-                    Equipment.AddEquipmentIni(eq, this);
+                Equipment.ParseAllInis(Freelancer.EquipmentPaths, this);
             }));
             tasks.Add(Task.Run(() =>
             {
@@ -278,8 +277,7 @@ namespace LibreLancer.Data
             tasks.Add(Task.Run(() =>
             {
                 Ships = new ShiparchIni();
-                foreach (var shp in Freelancer.ShiparchPaths)
-                    Ships.AddShiparchIni(shp, this);
+                Ships.ParseAllInis(Freelancer.ShiparchPaths, this);
             }));
             tasks.Add(Task.Run(() =>
             {

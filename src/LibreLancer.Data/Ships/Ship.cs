@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Ships
 {
+    [InheritSection]
 	public class Ship
 	{
         [Entry("ids_name")]
