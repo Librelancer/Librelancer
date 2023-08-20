@@ -136,9 +136,9 @@ namespace LancerEdit
             LoadScripts();
             popups.AddPopup("Loading##systemviewer", _ =>
             {
-                ImGui.Text("Loading System Editor...");
+                ImGui.Text("Loading Universe Editor...");
                 if (this.OpenDataContext.RenderAllArchetypePreviews()) {
-                    this.AddTab(new SystemEditorTab(this.OpenDataContext, this));
+                    this.AddTab(new UniverseEditorTab(this.OpenDataContext, this));
                     ImGui.CloseCurrentPopup();
                 }
             }, ImGuiWindowFlags.AlwaysAutoResize, true);
@@ -474,7 +474,7 @@ namespace LancerEdit
                     AddTab(new InfocardBrowserTab(OpenDataContext, this));
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
                     AddTab(new ProjectileViewerTab(this, OpenDataContext));
-                if (Theme.IconMenuItem(Icons.Globe, "System Editor", OpenDataContext != null))
+                if (Theme.IconMenuItem(Icons.Globe, "Universe Editor", OpenDataContext != null))
                     popups.OpenPopup("Loading##systemviewer");
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));

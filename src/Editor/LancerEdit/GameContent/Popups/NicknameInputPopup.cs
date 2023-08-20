@@ -7,9 +7,9 @@ using SharpDX.DXGI;
 
 namespace LancerEdit;
 
-public class RenameObjectPopup : PopupWindow
+public class NicknameInputPopup : PopupWindow
 {
-    public override string Title { get; set; } = "Rename";
+    public override string Title { get; set; }
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
 
     private string firstNickname;
@@ -18,8 +18,9 @@ public class RenameObjectPopup : PopupWindow
     private Action<string> onSelect;
     
     
-    public RenameObjectPopup(string initial, Func<string,bool> inUse, Action<string> onSelect)
+    public NicknameInputPopup(string title, string initial, Func<string,bool> inUse, Action<string> onSelect)
     {
+        this.Title = title;
         firstNickname = nickname = initial;
         this.inUse = inUse;
         this.onSelect = onSelect;

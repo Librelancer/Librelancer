@@ -52,7 +52,7 @@ namespace LibreLancer
             return VFS.Resolve(fldata.Freelancer.DataPath + input);
         }
 
-        string TryResolveData(string input)
+        public string TryResolveData(string input)
         {
             var v =  VFS.Resolve(fldata.Freelancer.DataPath + input, false);
             if(v == null) FLLog.Error("GameData", $"File {fldata.Freelancer.DataPath}{input} not found");

@@ -319,7 +319,7 @@ public class InfocardBrowserTab : GameContentTab
                 {
                     xmlState = new EditingStringState(
                         infocardsIds[currentInfocard],
-                        manager.GetXmlResource(infocardsIds[currentInfocard])
+                        XmlFormatter.Prettify(manager.GetXmlResource(infocardsIds[currentInfocard]))
                     );
                     editingXml = true;
                 }
@@ -377,7 +377,7 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.Text($"Editing: {xmlState.Ids}");
         if (ImGui.Button("Save"))
         {
-            manager.SetXmlResource(xmlState.Ids, xmlState.Text);
+            manager.SetXmlResource(xmlState.Ids, XmlFormatter.Minimize(xmlState.Text));
             DisplayInfoXml();
             editingXml = false;
         }

@@ -66,7 +66,6 @@ namespace LancerEdit
         public void Draw(int width, int height, double delta)
         {
             //Set viewport
-            height -= 30;
             if (width <= 0) width = 1;
             if (height <= 0) height = 1;
             if (width != rw || height != rh)

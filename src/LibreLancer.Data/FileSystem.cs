@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -43,6 +44,12 @@ namespace LibreLancer.Data
             throw new FileNotFoundException(filename);
         }
 
+        public void Refresh()
+        {
+            foreach (var f in FileProviders)
+                f.Refresh();
+        }
+
         public string Resolve(string filename, bool throwOnError = true)
         {
             foreach (var p in FileProviders)
@@ -71,6 +78,7 @@ namespace LibreLancer.Data
     {
         Stream Open(string filename);
         string Resolve(string filename);
+        void Refresh();
     }
 
     /// <summary>
@@ -93,6 +101,11 @@ namespace LibreLancer.Data
             string fname;
             if ((fname = Resolve(filename)) != null) return File.OpenRead(fname);
             else return null;
+        }
+
+        public void Refresh()
+        {
+            //No-op
         }
 
         public string Resolve(string filename)
@@ -178,6 +191,11 @@ namespace LibreLancer.Data
         {
             caseSensitive = Platform.IsDirCaseSensitive(path);
             baseFolder = path;
+            Refresh();
+        }
+
+        public void Refresh()
+        {
             if(caseSensitive) {
                 fileDict = new Dictionary<string, (string, string[])>(StringComparer.CurrentCultureIgnoreCase);
                 WalkDir(baseFolder);
