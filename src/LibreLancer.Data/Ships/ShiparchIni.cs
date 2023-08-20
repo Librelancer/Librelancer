@@ -5,19 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.Solar;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Ships
 {
 	public class ShiparchIni : IniFile
 	{
         [Section("ship")]
+        [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
 		public List<Ship> Ships = new List<Ship>();
 
-		public ShiparchIni ()
-		{
-		}
-        
-		public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
+        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
 		{
             ParseAndFill(paths, fldata.VFS);
         }

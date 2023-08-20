@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.Solar;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Ships
 {
@@ -120,6 +121,9 @@ namespace LibreLancer.Data.Ships
         public List<SurfaceHitEffects> SurfaceHitEffects = new List<SurfaceHitEffects>();
 
         public ShieldLink ShieldLink;
+
+        [Section("collisiongroup", Child = true)]
+        public List<CollisionGroup> CollisionGroups = new List<CollisionGroup>();
 
         [EntryHandler("fuse", Multiline = true, MinComponents = 3)]
         void HandleFuse(Entry e) => Fuses.Add(new ObjectFuse(e));
