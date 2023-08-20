@@ -4,16 +4,20 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
+    [InheritSection]
     public abstract class AbstractEquipment
     {
         [Entry("nickname")]
         public string Nickname;
         [Entry("da_archetype")]
         public string DaArchetype;
+        [Entry("inherit")] 
+        public string Inherit;
         [Entry("material_library", Multiline = true)]
         public List<string> MaterialLibrary = new List<string>();
         [Entry("lodranges")]

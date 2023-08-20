@@ -9,10 +9,8 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-
     public class Light : AbstractEquipment
     {
-        [Entry("inherit")] public string Inherit;
         [Entry("always_on")] public bool? AlwaysOn;
         [Entry("docking_light")] public bool? DockingLight;
         [Entry("bulb_size")] public float? BulbSize;

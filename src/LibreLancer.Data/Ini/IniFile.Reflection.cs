@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Ini
 {
@@ -54,6 +55,7 @@ namespace LibreLancer.Ini
             public bool IsList;
             public ReflectionInfo Type;
             public bool AttachToParent;
+            public bool IsInheritSection;
         }
 
         class ContainerClass
@@ -190,15 +192,18 @@ namespace LibreLancer.Ini
                             s.IsList = true;
                         }
                         if (attr.Type != null)
+                        {
                             s.Type = GetSectionInfo(attr.Type);
+                            s.IsInheritSection = attr.Type.GetCustomAttributes<InheritSectionAttribute>(true).Any();
+                        }
                         else
                         {
                             if (fieldType.IsAbstract) {
                                 throw new Exception(t.Name + " section " + attr.Name + " inits abstract class " + fieldType.Name);
                             }
                             s.Type = GetSectionInfo(fieldType);
+                            s.IsInheritSection = fieldType.GetCustomAttributes<InheritSectionAttribute>(true).Any();
                         }
-
                         s.Field = field;
                         s.Delimiters = attr.Delimiters;
                         sections.Add(s);
@@ -241,7 +246,7 @@ namespace LibreLancer.Ini
             FLLog.Error("Ini", "Not enough components for " + e.Name + FormatLine(e.File, e.Line, s.Name));
             return false;
         }
-        static object GetFromSection(Section s, ReflectionInfo type, object obj = null, string datapath = null, FileSystem vfs = null)
+        static object GetFromSection(Section s, ReflectionInfo type, object obj = null, string datapath = null, FileSystem vfs = null, bool checkRequired = true)
         {
             if(obj == null) obj = Activator.CreateInstance(type.Type);
             ulong bitmask = 0;
@@ -501,7 +506,7 @@ namespace LibreLancer.Ini
                     }
                 }
             }
-            if(requiredBits != 0)
+            if(requiredBits != 0 && checkRequired)
             {
                 //These sections crash the game if they don't have required fields
                 //So don't let them be added to lists
@@ -524,39 +529,127 @@ namespace LibreLancer.Ini
         public void ParseAndFill(string filename, MemoryStream stream, bool preparse = true)
         {
             var sections = GetContainerInfo(GetType());
+            var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();
+            DeferredSection lastDeferred = null;
             foreach (var section in ParseFile(filename, stream, preparse))
             {
-                ProcessSection(section, sections);
+                lastDeferred = ProcessSection(section, sections, lastDeferred, deferred);
             }
-
+            foreach(var kv in deferred)
+                ProcessDeferred(kv.Key, kv.Value);
         }
 
         public void ParseAndFill(string filename, string datapath, LibreLancer.Data.FileSystem vfs)
         {
             var sections = GetContainerInfo(GetType());
+            var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();
+            DeferredSection lastDeferred = null;
             foreach (var section in ParseFile(filename, vfs))
             {
-                ProcessSection(section, sections, datapath, vfs);
+                lastDeferred = ProcessSection(section, sections, lastDeferred, deferred, datapath, vfs);
             }
+            foreach(var kv in deferred)
+                ProcessDeferred(kv.Key, kv.Value, datapath, vfs);
         }
 
         public void ParseAndFill(string filename, LibreLancer.Data.FileSystem vfs)
         {
             var sections = GetContainerInfo(GetType());
+            var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();
+            DeferredSection lastDeferred = null;
             foreach (var section in ParseFile(filename, vfs))
             {
-                ProcessSection(section, sections);
+                lastDeferred = ProcessSection(section, sections, lastDeferred, deferred);
+            }
+            foreach(var kv in deferred)
+                ProcessDeferred(kv.Key, kv.Value);
+        }
+
+        private static readonly uint nicknameHash = Hash("nickname");
+        private static readonly uint inheritHash = Hash("inherit");
+        string GetProperty(Section section, uint hash)
+        {
+            var n = section.LastOrDefault(x => Hash(x.Name) == hash);
+            if (n == null || n.Count < 1) return null;
+            return n[0].ToString();
+        }
+
+        void ProcessDeferred(ReflectionSection tgt, List<DeferredSection> data, string datapath = null, FileSystem vfs = null)
+        {
+            //Collect names
+            Dictionary<string, Section> byNickname = new Dictionary<string, Section>();
+            foreach (var s in data)
+            {
+                string nick;
+                if ((nick = GetProperty(s.Section, nicknameHash)) == null) {
+                    FLLog.Warning("Ini", $"Section {s.Section.Name} has no nickname {FormatLine(s.Section.File, s.Section.Line)})");
+                }
+                else {
+                    byNickname[nick] = s.Section;
+                }
+            }
+            //Walk hierarchy and fill objects
+            foreach (var s in data)
+            {
+                List<Section> toApply = new List<Section>();
+                Section p = s.Section;
+                while (true) {
+                    toApply.Add(p);
+                    string inherit;
+                    if ((inherit = GetProperty(p, inheritHash)) == null)
+                        break;
+                    if (!byNickname.TryGetValue(inherit, out p))
+                        break;
+                }
+                var list = (IList)tgt.Field.GetValue(this);
+                var parsed = GetFromSection(toApply[toApply.Count - 1], tgt.Type, null, datapath, vfs, toApply.Count - 1 == 0);
+                for (int i = toApply.Count - 2; i >= 0; i--) {
+                    parsed = GetFromSection(toApply[i], tgt.Type, parsed, datapath, vfs, i == 0);
+                }
+                if (parsed != null)
+                    list.Add(parsed);
+                foreach (var (childSection, chtgt) in s.Children)
+                {
+                    var parsedChild = GetFromSection(childSection, chtgt.Type, null, datapath, vfs);
+                    if (parsedChild != null) {
+                        AddSectionToParent(parsedChild, parsed, childSection);
+                    }
+                }
+            }
+            
+        }
+
+        record DeferredSection(Section Section, List<(Section, ReflectionSection)> Children);
+
+        void AddSectionToParent(object parsed, object parent, Section section)
+        {
+            bool success = false;
+            var parentInfo = GetSectionInfo(parent.GetType());
+            foreach (var cs in parentInfo.ChildSections) {
+                if (cs.Name.Equals(section.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    var ls2 = (IList)cs.Field.GetValue(parent);
+                    ls2.Add(parsed);
+                    success = true;
+                    break;
+                }       
+            }
+            if (!success)
+            {
+                FLLog.Warning("Ini",
+                    $"Type {parentInfo.GetType().Name} does not accept child section {section.Name} {FormatLine(section.File, section.Line)}");
             }
         }
         
-        void ProcessSection(Section section, ContainerClass sections, string datapath = null, FileSystem vfs = null)
+        
+        DeferredSection ProcessSection(Section section, ContainerClass sections, DeferredSection lastDeferred, Dictionary<ReflectionSection, List<DeferredSection>> deferredSections, string datapath = null, FileSystem vfs = null)
         {
-            if (sections.IgnoreHashes.Contains(Hash(section.Name))) return;
+            if (sections.IgnoreHashes.Contains(Hash(section.Name))) return null;
             var tgt = sections.GetSection(section.Name);
             if (tgt == null)
             {
                 IniWarning.UnknownSection(section);
-                return;
+                return null;
             }
             if (tgt.Field == null)
             {
@@ -576,6 +669,22 @@ namespace LibreLancer.Ini
                         }
                     }
                 }
+                else if (tgt.IsInheritSection && tgt.IsList && !tgt.AttachToParent)
+                {
+                    if (!deferredSections.TryGetValue(tgt, out var dlist))
+                    {
+                        dlist = new List<DeferredSection>();
+                        deferredSections[tgt] = dlist;
+                    }
+                    var def = new DeferredSection(section, new List<(Section, ReflectionSection)>());
+                    dlist.Add(def);
+                    return def;
+                }
+                else if (tgt.AttachToParent && lastDeferred != null)
+                {
+                    lastDeferred.Children.Add((section, tgt));
+                    return lastDeferred;
+                }
                 else
                 {
                     var parsed = GetFromSection(section, tgt.Type, null, datapath, vfs);
@@ -589,25 +698,10 @@ namespace LibreLancer.Ini
                                 var count = list.Count;
                                 if (count <= 0) {
                                     FLLog.Warning("Ini", $"Section {section.Name} has no parent {FormatLine(section.File, section.Line)}");
-                                    return;
+                                    return null;
                                 }
                                 var parent = list[count - 1];
-                                bool success = false;
-                                var parentInfo = GetSectionInfo(parent.GetType());
-                                foreach (var cs in parentInfo.ChildSections) {
-                                    if (cs.Name.Equals(section.Name, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var ls2 = (IList)cs.Field.GetValue(parent);
-                                        ls2.Add(parsed);
-                                        success = true;
-                                        break;
-                                    }       
-                                }
-                                if (!success)
-                                {
-                                    FLLog.Warning("Ini",
-                                        $"Type {parentInfo.GetType().Name} does not accept child section {section.Name} {FormatLine(section.File, section.Line)}");
-                                }
+                                AddSectionToParent(parsed, parent, section);
                             }
                             else
                             {
@@ -619,6 +713,7 @@ namespace LibreLancer.Ini
                     }
                 }
             }
+            return null;
         }
 
         static bool HasIgnoreCase(string[] array, string value)

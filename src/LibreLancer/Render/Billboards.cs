@@ -10,7 +10,7 @@ namespace LibreLancer.Render
 {
 	public unsafe class Billboards
 	{
-		const int MAX_BILLBOARDS = 5000;
+		const int MAX_BILLBOARDS = 10000;
 
         RenderData[] rendat;
         //Basic
