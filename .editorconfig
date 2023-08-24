@@ -1,0 +1,65 @@
+root = true
+
+# All files
+[*]
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+charset = utf8
+
+# C# files
+[*.cs]
+indent_size = 4
+csharp_style_var_when_type_is_apparent = true:suggestion
+dotnet_style_readonly_field = true:silent
+
+# Modifier preferences
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
+
+# Keywords > BCL types
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+
+# Other features
+csharp_style_prefer_index_operator = false:none
+csharp_style_prefer_range_operator = false:none
+
+# Define the 'private_static_fields' symbol group
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+
+# Define the 'private_fields' symbol group:
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+# Define the 'nounderscore' naming style
+dotnet_naming_style.nounderscore.capitalization = camel_case
+dotnet_naming_style.nounderscore.required_prefix =
+
+# Define the 'underscored' naming style
+dotnet_naming_style.underscored.capitalization = camel_case
+dotnet_naming_style.underscored.required_prefix = _
+
+# Define the 'private_static_fields_underscored' naming rule
+dotnet_naming_rule.private_static_fields_underscored.symbols = private_static_fields
+dotnet_naming_rule.private_static_fields_underscored.style = underscored
+dotnet_naming_rule.private_static_fields_underscored.severity = suggestion
+
+# Define the 'private_fields_nounderscore' naming rule
+dotnet_naming_rule.private_fields_nounderscore.symbols = private_fields
+dotnet_naming_rule.private_fields_nounderscore.style = nounderscore
+dotnet_naming_rule.private_fields_nounderscore.severity = suggestion
+
+[*.csproj]
+indent_size = 2
+
+[*.xml]
+indent_size = 2
+
+[*.{props,config}]
+indent_size = 2
+
+[*.sh]
+end_of_line = lf
