@@ -128,7 +128,8 @@ public class VMeshResource
             indexBuffer.AddRange(b.Indices);
         var baseVertex = indexBuffer.Min();
         var newIndices = indexBuffer.Select(x => checked ((ushort) (x - baseVertex))).ToArray();
-        int startIndex = 0;
+        var indexResource = VertexResource.Allocator.AllocateIndex(newIndices);
+        int startIndex = indexResource.StartIndex - VertexResource.StartIndex;
         foreach (var b in merged) {
             drawcalls.Add(new MeshDrawcall()
             {
@@ -145,14 +146,13 @@ public class VMeshResource
         return (vmo, newCalls);
     }
 
-    public int GetStartIndex(VMeshOptimizeInfo info, ResourceManager resources)
+    public void OptimizeIfNeeded(VMeshOptimizeInfo info, ResourceManager resources)
     {
-        if (!info.Enabled || optimized == null) return VertexResource.StartIndex;
+        if (!info.Enabled || optimized == null) return;
         if (!optimized.TryGetValue(info, out var v)){
             Optimize(info.StartMesh, info.EndMesh, info.StartVertex, resources);
             v = optimized[info];
         }
-        return v?.Item1.StartIndex ?? VertexResource.StartIndex;
     }
 
     public void Dispose()

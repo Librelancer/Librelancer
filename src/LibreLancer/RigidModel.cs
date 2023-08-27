@@ -76,9 +76,7 @@ namespace LibreLancer
             else{
                 wm = buffer.WorldBuffer.SubmitMatrix(ref world);
             }
-
-            var startIndex = l.Resource.GetStartIndex(l.Optimize, res);
-
+            l.Resource.OptimizeIfNeeded(l.Optimize, res);
             for (int i = 0; i < l.Drawcalls.Length; i++)
             {
                 var dc = l.Drawcalls[i];
@@ -101,7 +99,7 @@ namespace LibreLancer
                     l.Resource.VertexResource.VertexBuffer,
                     PrimitiveTypes.TriangleList,
                     l.Resource.VertexResource.BaseVertex + dc.BaseVertex,
-                    startIndex + dc.StartIndex,
+                    l.Resource.VertexResource.StartIndex + dc.StartIndex,
                     dc.PrimitiveCount,
                     SortLayers.OBJECT,
                     z
@@ -130,7 +128,7 @@ namespace LibreLancer
                 src.World = world;
             Matrix4x4.Invert(world, out src.Normal);
             src.Normal = Matrix4x4.Transpose(src.Normal);
-            var startIndex = l.Resource.GetStartIndex(l.Optimize, res);
+            l.Resource.OptimizeIfNeeded(l.Optimize, res);
             for (int i = 0; i < l.Drawcalls.Length; i++)
             {
                 var dc = l.Drawcalls[i];
@@ -151,7 +149,7 @@ namespace LibreLancer
                 l.Resource.VertexResource.VertexBuffer.Draw(
                     PrimitiveTypes.TriangleList,
                     dc.BaseVertex + l.Resource.VertexResource.BaseVertex,
-                    dc.StartIndex + startIndex,
+                    dc.StartIndex + l.Resource.VertexResource.StartIndex,
                     dc.PrimitiveCount);
             }
         }
