@@ -142,8 +142,8 @@ namespace LibreLancer.Render
             resources = null;
             foreach (var i in indexResources)
             {
-                i.Dispose();
                 i.Allocator = null;
+                i.Dispose();
             }
             indexResources = null;
             foreach(var b in buffersByType.Values)
