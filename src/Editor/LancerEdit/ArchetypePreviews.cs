@@ -55,9 +55,9 @@ public class ArchetypePreviews : IDisposable
         var radius = 10f;
         if (mdl is IRigidModelFile rmf)
         {
-            radius = rmf.CreateRigidModel(true).GetRadius();
+            radius = rmf.CreateRigidModel(true, resources).GetRadius();
         }
-        
+
         var mat = Matrix4x4.CreateFromYawPitchRoll(2.62f, -0.24f, 0);
         var res = Vector3.Transform(new Vector3(0, 0, radius* 2.35f), mat);
         camera.Update(width, height, res, Vector3.Zero);
@@ -92,7 +92,7 @@ public class ArchetypePreviews : IDisposable
         world.Dispose();
         return renderTarget.Texture;
     }
-    
+
     public void Dispose()
     {
         renderer.Dispose();

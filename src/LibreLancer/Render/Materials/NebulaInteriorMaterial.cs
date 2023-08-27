@@ -12,10 +12,10 @@ public class NebulaInteriorMaterial : RenderMaterial
 
     public string Texture;
     public Color4 Dc;
-    
-    public NebulaInteriorMaterial(ILibFile library) : base(library) { }
 
-    
+    public NebulaInteriorMaterial(ResourceManager library) : base(library) { }
+
+
     static NebulaInteriorMaterial()
     {
         shader = Shaders.NebulaInterior.Get();

@@ -16,10 +16,8 @@ namespace LibreLancer.Utf.Cmp
         public ushort NumIndices;
         public ushort MaxVertex;
         public ushort[] Indices;
-
-        public Vector3[] Lines;
         
-        public VMeshWire(IntermediateNode node, ILibFile parent)
+        public VMeshWire(IntermediateNode node)
         {
             if(node.Count != 1 || 
             !(node[0] is LeafNode) || 
@@ -30,31 +28,7 @@ namespace LibreLancer.Utf.Cmp
 
             ReadWireData(((LeafNode) node[0]).DataSegment);
         }
-
-        public void Initialize(ILibFile res)
-        {
-            if (Lines != null) return;
-            VMeshData vms;
-            if((vms = res.FindMesh(MeshCRC)) == null) {
-                Lines = new Vector3[0];
-                FLLog.Error("Vms", "VMeshWire cannot find VMeshData CRC 0x" + MeshCRC.ToString("X"));
-                return;
-            }
-            Lines = new Vector3[NumIndices];
-            for(int i = 0; i < NumIndices; i++)
-            {
-                var idx = Indices[i] + VertexOffset;
-                if (idx >= vms.VertexCount) continue;
-                //TODO: This is ridiculous
-                if (vms.verticesVertexPosition != null) Lines[i] = vms.verticesVertexPosition[idx].Position;
-                if (vms.verticesVertexPositionNormal != null) Lines[i] = vms.verticesVertexPositionNormal[idx].Position;
-                if (vms.verticesVertexPositionTexture != null) Lines[i] = vms.verticesVertexPositionTexture[idx].Position;
-                if (vms.verticesVertexPositionNormalTexture != null) Lines[i] = vms.verticesVertexPositionNormalTexture[idx].Position;
-                if (vms.verticesVertexPositionNormalTextureTwo != null) Lines[i] = vms.verticesVertexPositionNormalTextureTwo[idx].Position;
-                if (vms.verticesVertexPositionNormalDiffuseTexture != null) Lines[i] = vms.verticesVertexPositionNormalDiffuseTexture[idx].Position;
-                if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null) Lines[i] = vms.verticesVertexPositionNormalDiffuseTextureTwo[idx].Position;
-            }
-        }
+        
 
         public const int HEADER_SIZE = 16;
         unsafe void ReadWireData(ArraySegment<byte> data)

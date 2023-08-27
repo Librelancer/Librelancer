@@ -36,7 +36,7 @@ namespace LibreLancer.Thn
         public Dictionary<string, ThnSoundInstance> Sounds = new Dictionary<string, ThnSoundInstance>();
 
         private ThnScript thn;
-        
+
         public ThnScriptInstance(Cutscene cs, ThnScript script)
         {
             this.thn = script;
@@ -148,7 +148,6 @@ namespace LibreLancer.Thn
                                              $"'{kv.Value.MeshCategory}'");
                     }
 
-                    drawable?.Initialize(resman);
                     if (kv.Value.UserFlag != 0)  {
                         //This is a starsphere
                         Cutscene.AddStarsphere(drawable, obj);
@@ -186,9 +185,9 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Scene)
                 {
-                    if(kv.Value.DisplayText != null) 
+                    if(kv.Value.DisplayText != null)
                         Cutscene.SetDisplayText(kv.Value.DisplayText);
-                   
+
                     var amb = kv.Value.Ambient.Value;
                     if (amb.X == 0 && amb.Y == 0 && amb.Z == 0) continue;
                     Cutscene.SetAmbient(amb);

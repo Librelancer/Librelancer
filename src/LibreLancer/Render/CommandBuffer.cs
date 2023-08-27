@@ -39,19 +39,19 @@ namespace LibreLancer.Render
             this.rstate = rstate;
 		}
 		public void AddCommand(
-            RenderMaterial material, 
-            MaterialAnim anim, 
-            WorldMatrixHandle world, 
-            Lighting lights, 
-            VertexBuffer buffer, 
-            PrimitiveTypes primitive, 
-            int baseVertex, 
-            int start, 
-            int count, 
-            int layer, 
-            float z = 0, 
-            DfmSkinning skinning = null, 
-            int offset = 0, 
+            RenderMaterial material,
+            MaterialAnim anim,
+            WorldMatrixHandle world,
+            Lighting lights,
+            VertexBuffer buffer,
+            PrimitiveTypes primitive,
+            int baseVertex,
+            int start,
+            int count,
+            int layer,
+            float z = 0,
+            DfmSkinning skinning = null,
+            int offset = 0,
             int userData = 0)
 		{
 			if (material.IsTransparent)
@@ -99,16 +99,17 @@ namespace LibreLancer.Render
 		}
 		//TODO: Implement MaterialAnim for asteroids
 		public unsafe void AddCommandFade(
-            RenderMaterial material, 
-            WorldMatrixHandle world, 
-            Lighting lights, 
-            VertexBuffer buffer, 
-            PrimitiveTypes primitive, 
-            int start, 
-            int count, 
-            int layer, 
-            Vector2 fadeParams, 
-            float z = 0, 
+            RenderMaterial material,
+            WorldMatrixHandle world,
+            Lighting lights,
+            VertexBuffer buffer,
+            PrimitiveTypes primitive,
+            int baseVertex,
+            int start,
+            int count,
+            int layer,
+            Vector2 fadeParams,
+            float z = 0,
             int offset = 0)
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
@@ -121,7 +122,8 @@ namespace LibreLancer.Render
 				Start = start,
 				Count = count,
                 Type = RenderCommand.MakeType(RenderCmdType.MaterialFade, primitive),
-                BaseVertex = *(int*)(&fadeParams.X),
+                BaseVertex = baseVertex,
+                Hash = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
 				World = world,
             };
@@ -239,7 +241,7 @@ namespace LibreLancer.Render
             if (type == RenderType.Transparent)
             {
                 return (2UL << 62) | ((ulong) sortlayer << 54) | float2index(-z) << 22 | ((ulong) index & 0x3fffff);
-            } 
+            }
             else if (type == RenderType.Opaque)
             {
                 return (ulong) matKey;
@@ -254,7 +256,7 @@ namespace LibreLancer.Render
         {
             return (byte) (((byte)cmdType << 4) | (byte) prims);
         }
-        
+
 
         public ulong Key;
 		public byte Type;
@@ -287,7 +289,7 @@ namespace LibreLancer.Render
 				if (CmdType == RenderCmdType.MaterialFade)
 				{
 					Material.Fade = true;
-					var fn = BaseVertex;
+					var fn = Hash;
 					var ff = Index;
 					Material.FadeNear = *(float*)(&fn);
 					Material.FadeFar = *(float*)(&ff);

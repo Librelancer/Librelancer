@@ -41,7 +41,7 @@ World Time: {12:F2}
 		StarSystem sys;
 		public GameWorld world;
         public FreelancerGame FlGame => Game;
-		
+
 		SystemRenderer sysrender;
 		bool wireframe = false;
 		bool textEntry = false;
@@ -55,7 +55,7 @@ World Time: {12:F2}
         CHealthComponent playerHealth;
         SelectedTargetComponent selection;
         private ContactList contactList;
-        
+
 		public float Velocity = 0f;
 		const float MAX_VELOCITY = 80f;
         Cursor cur_arrow;
@@ -78,6 +78,7 @@ World Time: {12:F2}
         {
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
+            g.ResourceManager.ClearMeshes();
             this.session = session;
             sys = g.GameData.Systems.Get(session.PlayerSystem);
             ui = Game.Ui;
@@ -90,10 +91,10 @@ World Time: {12:F2}
         }
 
         ChaseCamera _chaseCamera;
-        TurretViewCamera _turretViewCamera; 
+        TurretViewCamera _turretViewCamera;
         ICamera activeCamera;
         private bool isTurretView = false;
-        
+
         void FinishLoad()
         {
             Game.Saves.Selected = -1;
@@ -140,7 +141,7 @@ World Time: {12:F2}
             _chaseCamera.ChasePosition = session.PlayerPosition;
             _chaseCamera.ChaseOrientation = player.LocalTransform.ClearTranslation();
             var offset = shp.ChaseOffset;
-            
+
             _chaseCamera.DesiredPositionOffset = offset;
             if (shp.CameraHorizontalTurnAngle > 0)
                 _chaseCamera.HorizontalTurnAngle = shp.CameraHorizontalTurnAngle;
@@ -151,7 +152,7 @@ World Time: {12:F2}
             _chaseCamera.Reset();
 
             activeCamera = _chaseCamera;
-            
+
             sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender, () => session.WorldTime);
@@ -179,7 +180,7 @@ World Time: {12:F2}
 
         public override void OnSettingsChanged() =>
             sysrender.Settings = Game.Config.Settings;
-        
+
 
         protected override void OnActionDown(InputAction obj)
         {
@@ -190,13 +191,13 @@ World Time: {12:F2}
         }
 
         private int updateStartDelay = -1;
-        
+
         [WattleScript.Interpreter.WattleScriptUserData]
 
         public class ContactList : IContactListData
         {
             readonly record struct Contact(GameObject obj, float distance, string display);
-            
+
             private Contact[] Contacts = Array.Empty<Contact>();
             private SpaceGameplay game;
             private Vector3 playerPos;
@@ -218,8 +219,8 @@ World Time: {12:F2}
                 else
                     return "FAR";
             }
-            
-            
+
+
             Contact GetContact(GameObject obj)
             {
                 var distance = Vector3.Distance(playerPos, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
@@ -245,7 +246,7 @@ World Time: {12:F2}
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
                        GetRep(o) == RepAttitude.Hostile;
             }
-            
+
             public void SetFilter(string filter)
             {
                 contactFilter = AllFilter;
@@ -284,7 +285,7 @@ World Time: {12:F2}
                 }
                 return RepAttitude.Neutral;
             }
-            
+
             public void UpdateList()
             {
                 playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
@@ -316,7 +317,7 @@ World Time: {12:F2}
             {
                 return Contacts[index].display;
             }
-            
+
             public RepAttitude GetAttitude(int index)
             {
                 return GetRep(Contacts[index].obj);
@@ -332,7 +333,7 @@ World Time: {12:F2}
             SpaceGameplay g;
             public LuaAPI(SpaceGameplay gameplay)
             {
-                this.g = gameplay;   
+                this.g = gameplay;
             }
 
             public ContactList GetContactList() => g.contactList;
@@ -368,7 +369,7 @@ World Time: {12:F2}
 
             public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging ? (int)(g.control.ChargePercent * 100) : -1;
             public bool IsMultiplayer() => g.session.Multiplayer;
-            
+
             public SaveGameFolder SaveGames() => g.Game.Saves;
             public void DeleteSelectedGame() => g.Game.Saves.TryDelete(g.Game.Saves.Selected);
 
@@ -388,7 +389,7 @@ World Time: {12:F2}
             {
                 g.session.Save(description);
             }
-            
+
             public void Resume()
             {
                 g.session.Resume();
@@ -397,7 +398,7 @@ World Time: {12:F2}
             }
 
             public DisplayFaction[] GetPlayerRelations() => g.session.GetUIRelations();
-            
+
             public void QuitToMenu()
             {
                 g.session.QuitToMenu();
@@ -460,7 +461,7 @@ World Time: {12:F2}
                 }
                 return "neutral";
             }
-            
+
 
             public Vector2 SelectionPosition()
             {
@@ -560,7 +561,7 @@ World Time: {12:F2}
                 if (!pausemenu && e.Key == Keys.F1)
                 {
                     pausemenu = true;
-                    if(!session.Multiplayer) 
+                    if(!session.Multiplayer)
                         paused = true;
                     session.Pause();
                     ui.Event("Pause");
@@ -608,7 +609,7 @@ World Time: {12:F2}
 			return false;
 		}
 
-        
+
         public bool ShowHud = true;
         //Set to true when the mission system selection.Selected music on launch
         public bool RtcMusic = false;
@@ -665,7 +666,7 @@ World Time: {12:F2}
                 if (session.Popups.Count > 0 && session.Popups.TryDequeue(out var popup))
                 {
                     FLLog.Debug("Space", "Displaying popup");
-                    if(!session.Multiplayer) 
+                    if(!session.Multiplayer)
                         paused = true;
                     session.Pause();
                     ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
@@ -740,7 +741,7 @@ World Time: {12:F2}
                 {
                     isLeftDown = false;
                 }
-            } 
+            }
         }
 
         private void Mouse_MouseUp(MouseEventArgs e)
@@ -760,7 +761,7 @@ World Time: {12:F2}
             world.RemoveObject(player);
             ui.Event("Killed");
         }
-        
+
 		void ProcessInput(double delta)
         {
             if (Dead) {
@@ -776,7 +777,7 @@ World Time: {12:F2}
             }
 
             shipInput.Reverse = false;
-            
+
 			if (!ui.KeyboardGrabbed)
             {
 				if (Input.IsActionDown(InputAction.USER_INC_THROTTLE))
@@ -836,7 +837,7 @@ World Time: {12:F2}
                 _turretViewCamera.PanControls = Vector2.Zero;
             }
 			control.CurrentStrafe = strafe;
-            
+
             GetCameraMatrices(out var cameraView, out var cameraProjection);
 
             var obj = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
@@ -855,7 +856,7 @@ World Time: {12:F2}
                 weapons.AimPoint = contactPoint;
             }
 
-           
+
             if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
                 weapons.FireAll();
             if(Input.IsActionDown(InputAction.USER_LAUNCH_MISSILES))
@@ -865,7 +866,7 @@ World Time: {12:F2}
                 if (Input.IsActionDown(InputAction.USER_FIRE_WEAPON1 + i))
                     weapons.FireIndex(i);
             }
-            
+
             if (world.Projectiles.HasQueued)
             {
                 session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());
@@ -899,8 +900,8 @@ World Time: {12:F2}
         {
             vp = activeCamera.ViewProjection;
         }
-        
-        
+
+
         (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
         {
             GetViewProjection(out var vp);
@@ -932,7 +933,7 @@ World Time: {12:F2}
                 targetWireframe.Model = selection.Selected.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(Vector3.Transform(Vector3.Zero, player.LocalTransform),
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform), Vector3.UnitY);
-                
+
                 targetWireframe.Matrix = (lookAt * selection.Selected.LocalTransform).ClearTranslation();
             }
 

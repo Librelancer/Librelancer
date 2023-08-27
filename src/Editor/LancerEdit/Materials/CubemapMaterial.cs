@@ -14,7 +14,7 @@ namespace LancerEdit.Materials
     {
         public TextureCube Texture;
 
-        public CubemapMaterial(ILibFile library) : base(library) { }
+        public CubemapMaterial(ResourceManager library) : base(library) { }
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
@@ -31,7 +31,7 @@ namespace LancerEdit.Materials
         {
             throw new NotImplementedException();
         }
-        
+
 
         public override bool IsTransparent
         {

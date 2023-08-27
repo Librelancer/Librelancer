@@ -65,7 +65,7 @@ namespace LibreLancer.World
     {
         internal string _NameString = null;
         internal int[] _Ids = null;
-        
+
         private bool dirty = true;
         private string cached;
 
@@ -78,7 +78,7 @@ namespace LibreLancer.World
         {
             this._NameString = str;
         }
-        
+
         public virtual string GetName(GameDataManager gameData, Vector3 other)
         {
             if (dirty)
@@ -116,8 +116,8 @@ namespace LibreLancer.World
         Hostile = 1 << 4,
         Reputations = Neutral | Friendly | Hostile,
     }
-    
-    
+
+
 	public class GameObject
 	{
         //
@@ -159,7 +159,7 @@ namespace LibreLancer.World
 			get
 			{
                 return _localTransform;
-			} 
+			}
 		}
 
         public void SetLocalTransform(Matrix4x4 tr, bool phys = false)
@@ -187,10 +187,10 @@ namespace LibreLancer.World
                 tr *= _parent.WorldTransform;
             return tr;
         }
-        
+
         private bool transformDirty = false;
         Matrix4x4 worldTransform = Matrix4x4.Identity;
-        
+
         public Matrix4x4 WorldTransform
         {
             get {
@@ -216,7 +216,7 @@ namespace LibreLancer.World
 		public AnimationComponent AnimationComponent;
 		public SystemObject SystemObject;
         public RigidModel RigidModel;
-        
+
         public GameObject Parent
         {
             get => _parent;
@@ -325,7 +325,7 @@ namespace LibreLancer.World
                 }
             }
         }
-        
+
         public void SpawnDebris(string part)
         {
             if (World?.Server == null) {
@@ -361,18 +361,17 @@ namespace LibreLancer.World
             PhysicsComponent phys = null;
 			bool isCmp = false;
             string name = "";
-            if(draw) drawable?.Initialize(res);
 			if (dr is SphFile)
 			{
 				var radius = ((SphFile)dr).Radius;
                 phys = new PhysicsComponent(this) { SphereRadius = radius };
                 name = ((SphFile)dr).SideMaterialNames[0];
-                RigidModel = ((SphFile) dr).CreateRigidModel(draw);
+                RigidModel = ((SphFile) dr).CreateRigidModel(draw, res);
             }
 			else if (dr is IRigidModelFile mdl)
 			{
 				//var mdl = dr as ModelFile;
-                RigidModel = mdl.CreateRigidModel(draw);
+                RigidModel = mdl.CreateRigidModel(draw, res);
 				var path = Path.ChangeExtension(RigidModel.Path, "sur");
                 name = Path.GetFileNameWithoutExtension(RigidModel.Path);
                 if (File.Exists(path))
@@ -482,7 +481,7 @@ namespace LibreLancer.World
             foreach(var child in ExtraRenderers)
                 child.Update(time, myPos, WorldTransform);
         }
-        
+
         public void Register(PhysicsWorld physics)
         {
             Flags |= GameObjectFlags.Exists;
@@ -499,7 +498,7 @@ namespace LibreLancer.World
 			if (World == null) return _parent?.GetWorld();
 			return World;
 		}
-        
+
         public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool parentCull = false)
         {
             if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys, parentCull)) {
@@ -513,7 +512,7 @@ namespace LibreLancer.World
             foreach (var child in Children) {
                 child.PrepareRender(camera, nr, sys, parentCull);
             }
-            
+
             foreach (var child in ExtraRenderers)
                 child.PrepareRender(camera, nr, sys, false);
         }
@@ -536,7 +535,7 @@ namespace LibreLancer.World
 
 		public Hardpoint GetHardpoint(string hpname)
         {
-            if (hpname == null) 
+            if (hpname == null)
                 return null;
             Hardpoint tryget;
             if (hardpoints.TryGetValue(hpname, out tryget)) return tryget;
@@ -555,7 +554,7 @@ namespace LibreLancer.World
 			return hardpoints.Values;
 		}
 
-		
+
 
 		public override string ToString()
 		{

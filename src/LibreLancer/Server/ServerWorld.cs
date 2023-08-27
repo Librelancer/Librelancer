@@ -32,7 +32,7 @@ namespace LibreLancer.Server
         private NetIDGenerator idGen = new NetIDGenerator();
 
         public bool Paused => paused;
-        
+
         private bool paused = false;
 
         public void Pause()
@@ -44,7 +44,7 @@ namespace LibreLancer.Server
         {
             EnqueueAction(() => paused = false);
         }
-        
+
         public ServerWorld(StarSystem system, GameServer server)
         {
             Server = server;
@@ -58,7 +58,7 @@ namespace LibreLancer.Server
 
         private void PhysicsOnCollision(PhysicsObject obja, PhysicsObject objb)
         {
-            if (obja.Tag is GameObject g1 && 
+            if (obja.Tag is GameObject g1 &&
                 objb.Tag is GameObject g2)
             {
                 if (g1.Kind == GameObjectKind.Missile)
@@ -82,12 +82,12 @@ namespace LibreLancer.Server
         {
             var missile = obj.GetComponent<SMissileComponent>();
             var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
-            
+
             obj.Unregister(GameWorld.Physics);
             GameWorld.RemoveObject(obj);
             updatingObjects.Remove(obj);
             idGen.Free(obj.NetID);
-            foreach (var p in Players) 
+            foreach (var p in Players)
                 p.Key.RemoteClient.DestroyMissile(obj.NetID, true);
             if (missile.Missile.Explosion != null)
             {
@@ -97,13 +97,13 @@ namespace LibreLancer.Server
                         g.TryGetComponent<SHealthComponent>(out var health))
                     {
                         health.Damage(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage);
-                        if(missile.Owner != null && 
+                        if(missile.Owner != null &&
                            g.TryGetComponent<SNPCComponent>(out var npc))
                             npc.OnProjectileHit(missile.Owner);
                     }
                 }
             }
-            
+
         }
 
         public int PlayerCount;
@@ -127,7 +127,7 @@ namespace LibreLancer.Server
             obj.Components.Add(new SPlayerComponent(player, obj));
             obj.Components.Add(new SHealthComponent(obj)
             {
-                CurrentHealth = player.Character.Ship.Hitpoints, 
+                CurrentHealth = player.Character.Ship.Hitpoints,
                 MaxHealth = player.Character.Ship.Hitpoints
             });
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
@@ -148,7 +148,7 @@ namespace LibreLancer.Server
                 p.Key.RemoteClient.UpdateEffects(obj.NetID, obj.GetComponent<SFuseRunnerComponent>().Effects.ToArray());
             }
         }
-        
+
 
         public void ProjectileHit(GameObject obj, GameObject owner, MunitionEquip munition)
         {
@@ -267,7 +267,7 @@ namespace LibreLancer.Server
                 p.Key.RemoteClient.TradelaneActivate(obj.NicknameCRC, left);
             }
         }
-        
+
         public void DeactivateLane(GameObject obj, bool left)
         {
             foreach (var p in Players)
@@ -291,7 +291,7 @@ namespace LibreLancer.Server
         }
 
         private List<GameObject> withAnimations = new List<GameObject>();
-        
+
         public void StartAnimation(GameObject obj)
         {
             if(!withAnimations.Contains(obj))
@@ -299,7 +299,7 @@ namespace LibreLancer.Server
             foreach (var p in Players)
                 UpdateAnimations(obj, p.Key);
         }
-        
+
         void RemoveObjectInternal(GameObject obj)
         {
             obj.Unregister(GameWorld.Physics);
@@ -375,12 +375,12 @@ namespace LibreLancer.Server
                 if (kind == GameObjectKind.Ship)
                 {
                     var ship = Server.GameData.Ships.Get(archetype);
-                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false);
+                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false, Server.Resources);
                 }
                 else
                 {
                     var arch = Server.GameData.GetSolarArchetype(archetype);
-                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false);
+                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false, Server.Resources);
                 }
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
@@ -514,7 +514,7 @@ namespace LibreLancer.Server
         {
             tick *= 1000.0;
             while (tick > uint.MaxValue) tick -= uint.MaxValue;
-            
+
             foreach(var player in Players)
             {
                 var tr = player.Value.WorldTransform;
@@ -553,7 +553,7 @@ namespace LibreLancer.Server
                         update.ID = (int) obj.NicknameCRC;
                         update.IsCRC = true;
                     }
-                    
+
                     var tr = obj.WorldTransform;
                     update.Position = Vector3.Transform(Vector3.Zero, tr);
                     update.Orientation = tr.ExtractRotation();

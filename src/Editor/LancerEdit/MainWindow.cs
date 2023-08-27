@@ -47,7 +47,7 @@ namespace LancerEdit
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
         private HotkeyHelp hotkeys = new HotkeyHelp();
-        
+
         public EditorConfiguration Config;
         OptionsWindow options;
         public MainWindow() : base(800,600,false)
@@ -121,9 +121,9 @@ namespace LancerEdit
             }
             //Open passed in files!
             if(InitOpenFile != null)
-                foreach(var f in InitOpenFile) 
+                foreach(var f in InitOpenFile)
                     OpenFile(f);
-            RichText = RenderContext.Renderer2D.CreateRichTextEngine(); 
+            RichText = RenderContext.Renderer2D.CreateRichTextEngine();
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
@@ -138,6 +138,7 @@ namespace LancerEdit
             {
                 ImGui.Text("Loading Universe Editor...");
                 if (this.OpenDataContext.RenderAllArchetypePreviews()) {
+                    GC.Collect();
                     this.AddTab(new UniverseEditorTab(this.OpenDataContext, this));
                     ImGui.CloseCurrentPopup();
                 }
@@ -151,7 +152,7 @@ namespace LancerEdit
             mods &= ~KeyModifiers.Numlock;
             mods &= ~KeyModifiers.Capslock;
 
-            if (TabControl.Selected is not EditorTab editor) 
+            if (TabControl.Selected is not EditorTab editor)
                 return;
             bool control = (mods & KeyModifiers.Control) != 0;
             bool popupOrTextEditing =  ImGui.GetIO().WantCaptureKeyboard;
@@ -222,7 +223,7 @@ namespace LancerEdit
                     case FileType.Thn:
                     case FileType.Lua:
                         var lt = new ThornTab(this, f);
-                        recentFiles.FileOpened(f);                        
+                        recentFiles.FileOpened(f);
                         AddTab(lt);
                         break;
                     case FileType.Blender:
@@ -230,7 +231,7 @@ namespace LancerEdit
                         TryImportModel(f);
                         break;
                 }
-               
+
             }
         }
 
@@ -243,7 +244,7 @@ namespace LancerEdit
         private RenderTarget2D lastFrame;
         private bool loadingSpinnerActive = false;
         bool openLoading = false;
-        
+
         public void StartLoadingSpinner()
         {
             QueueUIThread(() =>
@@ -276,7 +277,7 @@ namespace LancerEdit
                 }
             }
         }
-        
+
         private string GetBasePath()
         {
             using var processModule = Process.GetCurrentProcess().MainModule;
@@ -310,7 +311,7 @@ namespace LancerEdit
                 }
             }
         }
-        
+
         private List<ScriptRunner> activeScripts = new List<ScriptRunner>();
         public void RunScript(EditScript sc)
         {
@@ -374,7 +375,7 @@ namespace LancerEdit
                     {
                         FinishLoadingSpinner();
                         ErrorDialog(GetExceptionText(e));
-                    });                
+                    });
                 }
             });
         }
@@ -409,7 +410,7 @@ namespace LancerEdit
                 }
             }
         }
-      
+
 		protected override void Draw(double elapsed)
         {
             //Don't process all the imgui stuff when it isn't needed
@@ -486,7 +487,7 @@ namespace LancerEdit
                 {
                     options.Show();
                 }
-               
+
 				if (Theme.IconMenuItem(Icons.Palette, "Resources",true))
 				{
 					AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
@@ -553,7 +554,7 @@ namespace LancerEdit
                 }
 
                 Theme.IconMenuToggle(Icons.Keyboard, "Hotkeys", ref hotkeys.Open, true);
-                
+
                 if (Theme.IconMenuItem(Icons.Info, "About", true))
 				{
 					openAbout = true;
@@ -646,7 +647,7 @@ namespace LancerEdit
                               ImGuiWindowFlags.NoBringToFrontOnFocus |
                               ImGuiWindowFlags.NoMove |
                               ImGuiWindowFlags.NoResize);
-            
+
             TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();
             if (showLog)
@@ -683,11 +684,11 @@ namespace LancerEdit
 			ImGui.SetNextWindowSize(new Vector2(size.X, 22f * ImGuiHelper.Scale), ImGuiCond.Always);
 			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
 			bool sbopened = true;
-			ImGui.Begin("statusbar", ref sbopened, 
-			                  ImGuiWindowFlags.NoTitleBar | 
-			                  ImGuiWindowFlags.NoSavedSettings | 
-			                  ImGuiWindowFlags.NoBringToFrontOnFocus | 
-			                  ImGuiWindowFlags.NoMove | 
+			ImGui.Begin("statusbar", ref sbopened,
+			                  ImGuiWindowFlags.NoTitleBar |
+			                  ImGuiWindowFlags.NoSavedSettings |
+			                  ImGuiWindowFlags.NoBringToFrontOnFocus |
+			                  ImGuiWindowFlags.NoMove |
 			                  ImGuiWindowFlags.NoResize);
 			if (updateTime > 9)
 			{
@@ -744,7 +745,7 @@ namespace LancerEdit
             }
             toAdd.Clear();
         }
-        
+
         string confirmText;
         bool doConfirm = false;
         Action confirmAction;
@@ -778,9 +779,9 @@ namespace LancerEdit
            {
                AddTab(new ImportModelTab(model, tabName, this));
            }
-            
+
         }
-        
+
         public void ResultMessages<T>(EditResult<T> result)
         {
             if (result.Messages.Count == 0) return;
@@ -800,9 +801,9 @@ namespace LancerEdit
         }
 
         public void ErrorDialog(string text) =>  popups.MessageBox("Error", text);
-        
+
         protected override void OnDrop(string file) => OpenFile(file);
-        
+
         protected override void Cleanup()
 		{
 			Audio.Dispose();

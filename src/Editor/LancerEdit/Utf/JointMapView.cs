@@ -75,22 +75,22 @@ namespace LancerEdit
                         iT += map.Channel.Interval;
                     }
                     else
-                        t = map.Channel.Times[i];
+                        t = map.Channel.GetTime(i);
                     ImGui.Text(t.ToString());
                     ImGui.NextColumn();
                     switch (map.Channel.InterpretedType)
                     {
                         case FrameType.Float:
-                            ImGui.Text(map.Channel.Angles[i].ToString());
+                            ImGui.Text(map.Channel.GetAngle(i).ToString());
                             break;
                         case FrameType.Vector3:
-                            ImGui.Text(map.Channel.Positions[i].ToString());
+                            ImGui.Text(map.Channel.GetPosition(i).ToString());
                             break;
                         case FrameType.Quaternion:
-                            ImGui.Text(map.Channel.Quaternions[i].ToString());
+                            ImGui.Text(map.Channel.GetQuaternion(i).ToString());
                             break;
                         case FrameType.VecWithQuat:
-                            ImGui.Text($"{map.Channel.Positions[i]} {map.Channel.Quaternions[i]}");
+                            ImGui.Text($"{map.Channel.GetPosition(i)} {map.Channel.GetQuaternion(i)}");
                             break;
                     }
                     ImGui.NextColumn();

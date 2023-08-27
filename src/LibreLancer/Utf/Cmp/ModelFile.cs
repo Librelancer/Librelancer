@@ -16,11 +16,8 @@ namespace LibreLancer.Utf.Cmp
     /// <summary>
     /// Represents a UTF Model File (.3db)
     /// </summary>
-    public class ModelFile : UtfFile, IRigidModelFile, ILibFile
+    public class ModelFile : UtfFile, IRigidModelFile
     {
-        //private RenderTools.Camera camera;
-        private ILibFile additionalLibrary;
-        private bool ready;
         public string Path { get; set; }
         public VmsFile VMeshLibrary { get; private set; }
         public MatFile MaterialLibrary { get; private set; }
@@ -32,23 +29,20 @@ namespace LibreLancer.Utf.Cmp
         public float[] Switch2 { get; private set; }
         public VMeshWire VMeshWire { get; private set; }
 
-        public ModelFile(string path, ILibFile additionalLibrary)
+        public ModelFile(string path)
         {
             Path = path;
-            load(parseFile(path), additionalLibrary);
+            load(parseFile(path));
         }
 
-        public ModelFile(IntermediateNode root, ILibFile additionalLibrary)
+        public ModelFile(IntermediateNode root)
         {
             Path = root.Name;
-            load(root, additionalLibrary);
+            load(root);
         }
-        
-        private void load(IntermediateNode root, ILibFile additionalLibrary)
-        {
-            this.additionalLibrary = additionalLibrary;
-            ready = false;
 
+        private void load(IntermediateNode root)
+        {
             Hardpoints = new List<HardpointDefinition>();
             var lvls = new Dictionary<int, VMeshRef>();
 
@@ -60,12 +54,12 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "vmeshlibrary":
                         IntermediateNode vMeshLibraryNode = node as IntermediateNode;
-                        if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode, this);
+                        if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode);
                         else throw new Exception("Multiple vmeshlibrary nodes in 3db root");
                         break;
                     case "material library":
                         IntermediateNode materialLibraryNode = node as IntermediateNode;
-                        if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode, this);
+                        if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
                         else throw new Exception("Multiple material library nodes in 3db root");
                         break;
                     case "texture library":
@@ -104,7 +98,7 @@ namespace LibreLancer.Utf.Cmp
                             if (vMeshPartNode.Count == 1)
                             {
                                 LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                lvls.Add(0, new VMeshRef(vMeshRefNode.DataSegment, this));
+                                lvls.Add(0, new VMeshRef(vMeshRefNode.DataSegment));
                             }
                             else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                         }
@@ -124,14 +118,14 @@ namespace LibreLancer.Utf.Cmp
                                     if (!int.TryParse(levelNode.Name.Substring(5), out level)) throw new Exception("Invalid Level: Missing index");
 
                                     IntermediateNode vMeshPartNode = levelNode[0] as IntermediateNode;
-                                    
+
                                     if (vMeshPartNode.Count == 1)
                                     {
                                         LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
                                         if (vMeshRefNode != null && vMeshRefNode.Name.Equals("vmeshref",
                                                 StringComparison.OrdinalIgnoreCase))
                                         {
-                                            lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment, this));
+                                            lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment));
                                         }
                                     }
                                     else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
@@ -147,7 +141,7 @@ namespace LibreLancer.Utf.Cmp
                         }
                         break;
                     case "vmeshwire":
-                        VMeshWire = new VMeshWire(node as IntermediateNode, this);
+                        VMeshWire = new VMeshWire(node as IntermediateNode);
                         break;
                     case "mass properties":
                         // TODO 3db Mass Properties
@@ -163,7 +157,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                 }
             }
-            
+
             //Sort levels in order
             var lvl2 = new List<VMeshRef>();
             for (int i = 0; i < 100; i++)
@@ -180,13 +174,7 @@ namespace LibreLancer.Utf.Cmp
             Levels = lvl2.ToArray();
         }
 
-		public void Initialize(ResourceManager cache)
-        {
-            for(int i = 0; i < Levels.Length; i++) Levels[i].Initialize(cache);
-            ready = Levels.Length > 0;
-            if(VMeshWire != null) VMeshWire.Initialize(this);
-        }
-        public RigidModelPart CreatePart(bool drawable)
+        public RigidModelPart CreatePart(bool drawable, ResourceManager resources)
         {
             var p = new RigidModelPart  { Path = Path };
             if (Levels.Length > 0 && Levels[0] != null)
@@ -194,15 +182,16 @@ namespace LibreLancer.Utf.Cmp
                 p.Mesh = new VisualMesh();
                 if (drawable)
                 {
-                    p.Mesh.Levels = new MeshDrawcall[Levels.Length][];
+                    p.Mesh.Levels = new MeshLevel[Levels.Length];
                     for (int i = 0; i < Levels.Length; i++)
                     {
-                        if (Levels[i] != null && Levels[i].MeshCrc != 0) p.Mesh.Levels[i] = Levels[i].GetDrawcalls();
+                        var msh = new MeshLevel();
+                        p.Mesh.Levels[i] = Levels[i]?.CreateLevel(resources);
                     }
                 }
                 else
                 {
-                    p.Mesh.Levels = new MeshDrawcall[0][];
+                    p.Mesh.Levels = Array.Empty<MeshLevel>();
                 }
                 p.Mesh.Radius = Levels[0].Radius;
                 p.Mesh.Center = Levels[0].Center;
@@ -215,36 +204,16 @@ namespace LibreLancer.Utf.Cmp
             p.Wireframe = VMeshWire;
             return p;
         }
-        public RigidModel CreateRigidModel(bool drawable)
+        public RigidModel CreateRigidModel(bool drawable, ResourceManager resources)
         {
             var model = new RigidModel();
-            model.Root = CreatePart(drawable);
+            model.Root = CreatePart(drawable, resources);
             model.Root.Name = "Root";
             model.Source = RigidModelSource.SinglePart;
             model.AllParts = new[] { model.Root };
             model.Path = Path;
             model.MaterialAnims = MaterialAnim;
             return model;
-        }
-        public Texture FindTexture(string name)
-        {
-            return additionalLibrary.FindTexture(name);
-        }
-
-        public Material FindMaterial(uint materialId)
-        {
-			return additionalLibrary.FindMaterial(materialId);
-        }
-
-        public VMeshData FindMesh(uint vMeshLibId)
-        {
-            if (VMeshLibrary != null)
-            {
-                VMeshData mesh = VMeshLibrary.FindMesh(vMeshLibId);
-                if (mesh != null) return mesh;
-            }
-            if (additionalLibrary != null) return additionalLibrary.FindMesh(vMeshLibId);
-            return null;
         }
 
         public void ClearResources()

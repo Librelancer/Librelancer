@@ -39,7 +39,7 @@ namespace LibreLancer.Thn
                 Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
             }
         }
-        
+
         public void Update()
         {
             if (Object != null)
@@ -191,7 +191,7 @@ namespace LibreLancer.Thn
         {
             SceneSetup(new[] { scene }, false);
         }
-        
+
         void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
         {
             hasScene = false;
@@ -251,7 +251,7 @@ namespace LibreLancer.Thn
                 starSphereObjects = new ThnObject[sorted.Length];
                 for (int i = 0; i < sorted.Length; i++)
                 {
-                    Renderer.StarSphereModels[i] = (sorted[i].Item1 as IRigidModelFile).CreateRigidModel(true);
+                    Renderer.StarSphereModels[i] = (sorted[i].Item1 as IRigidModelFile).CreateRigidModel(true, ResourceManager);
                     Renderer.StarSphereWorlds[i] =
                         sorted[i].Item2.Rotate * Matrix4x4.CreateTranslation(sorted[i].Item2.Translate);
                     Renderer.StarSphereLightings[i] = Lighting.Empty;
@@ -266,7 +266,7 @@ namespace LibreLancer.Thn
             _Update(0);
             running = true;
         }
-        
+
 
         private ThnObject[] starSphereObjects;
 
@@ -304,7 +304,7 @@ namespace LibreLancer.Thn
                 accumTime = 0;
             }
         }
-        
+
         public void _Update(double delta)
         {
             if (Running)

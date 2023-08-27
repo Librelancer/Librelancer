@@ -6,17 +6,38 @@ using System;
 using System.IO;
 namespace LibreLancer.Sur
 {
-	public class SurfaceFace
+	public struct SurfaceFace
     {
-        public int Index;
-        public int Flag;
-        public int Opposite;
-        private int Unknown;
-        public Point3 Points;
-        public Point3 Shared;
-        public Point3 Flags;
+        private uint Data;
 
-        static (int p, int f, int s) ReadSide(BinaryReader reader, ref int longCount)
+        public int Index
+        {
+            get => (int) ((Data >> 0) & 0xFFF);
+            set => Data = (uint) ((Data & ~0xFFF) | (uint) (value & 0xFFF));
+        }
+
+        public bool Flag
+        {
+            get => (Data & 0x80000000) != 0;
+            set {
+                if (value)
+                    Data |= 0x80000000;
+                else
+                    Data &= ~0x80000000;
+            }
+        }
+
+        public int Opposite
+        {
+            get => (int) ((Data >> 12) & 0xFFF);
+            set => Data = (uint) ((Data & ~0xFFF000) | (((uint) value & 0xFFF) << 12));
+        }
+        
+        public Point3<int> Shared;
+        public Point3<ushort> Points;
+        public Point3<bool> Flags;
+
+        static (ushort p, bool f, int s) ReadSide(BinaryReader reader, ref int longCount)
         {
             var point = reader.ReadUInt16();
             var x = reader.ReadUInt16();
@@ -24,18 +45,14 @@ namespace LibreLancer.Sur
             var edgeOffset = longCount + ((x & 0x4000) != 0 ? (x & 0x3FFF) | ~0x3FFF : x & 0x3FFF);
             var shared = edgeOffset - edgeOffset / 4;
             longCount++;
-            return (point, flag, shared);
+            return (point, flag != 0, shared);
         }
 
         public static SurfaceFace Read(BinaryReader reader, ref int longCount)
         {
             var f = new SurfaceFace();
-            
-			uint arg = reader.ReadUInt32 ();
-            f.Index = (int) ((arg >> 0) & 0xFFF);
-            f.Opposite = (int) ((arg >> 12) & 0xFFF);
-            f.Unknown = (int) ((arg >> 24) & 0x7F);
-            f.Flag = (int) (arg >> 31);
+
+            f.Data = reader.ReadUInt32();
 
             (f.Points.A, f.Flags.A, f.Shared.A) = ReadSide(reader, ref longCount);
             (f.Points.B, f.Flags.B, f.Shared.B) = ReadSide(reader, ref longCount);
@@ -43,11 +60,11 @@ namespace LibreLancer.Sur
             return f;
         }
 
-        void WriteSide(int p, int f, int s, ref int edgeCount, BinaryWriter writer)
+        void WriteSide(int p, bool f, int s, ref int edgeCount, BinaryWriter writer)
         {
             var shared = s - edgeCount + s / 3 - edgeCount / 3;
             shared &= 0x7FFF;
-            if (f != 0) shared |= 0x8000;
+            if (f) shared |= 0x8000;
             writer.Write((ushort)p);
             writer.Write((ushort)shared);
             edgeCount++;
@@ -55,11 +72,7 @@ namespace LibreLancer.Sur
 
         public void Write(BinaryWriter writer, ref int edgeCount)
         {
-            var arg = (uint) (Index & 0xFFF |
-                              (Opposite & 0xFFF) << 12 |
-                              (Unknown & 0x7F) << 24 |
-                              Flag << 31);
-            writer.Write(arg);
+            writer.Write(Data);
             WriteSide(Points.A, Flags.A, Shared.A, ref edgeCount, writer);
             WriteSide(Points.B, Flags.B, Shared.B, ref edgeCount, writer);
             WriteSide(Points.C, Flags.C, Shared.C, ref edgeCount, writer);

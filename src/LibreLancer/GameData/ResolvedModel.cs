@@ -10,15 +10,15 @@ namespace LibreLancer.GameData
         public string ModelFile;
         public string SourcePath;
 
-        public IDrawable LoadFile(ResourceManager res)
+        public IDrawable LoadFile(ResourceManager res, MeshLoadMode loadMode = MeshLoadMode.GPU)
         {
             if (ModelFile == null) return null;
             if (LibraryFiles != null)
             {
                 foreach (var f in LibraryFiles)
-                    res.LoadResourceFile(f);
+                    res.LoadResourceFile(f, loadMode);
             }
-            return res.GetDrawable(ModelFile);
+            return res.GetDrawable(ModelFile, loadMode);
         }
     }
 }

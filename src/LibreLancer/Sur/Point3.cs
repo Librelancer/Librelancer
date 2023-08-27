@@ -1,12 +1,12 @@
 namespace LibreLancer.Sur;
 
-public struct Point3
+public struct Point3<T> where T : unmanaged
 {
-    public int A;
-    public int B;
-    public int C;
+    public T A;
+    public T B;
+    public T C;
 
-    public Point3(int a, int b, int c)
+    public Point3(T a, T b, T c)
     {
         A = a;
         B = b;

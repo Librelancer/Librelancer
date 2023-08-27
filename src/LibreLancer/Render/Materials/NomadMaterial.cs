@@ -23,9 +23,9 @@ namespace LibreLancer.Render.Materials
 
 		public float Oc = 1f;
 
-        public NomadMaterial(ILibFile library) : base(library) { }
+        public NomadMaterial(ResourceManager library) : base(library) { }
 
-        
+
 
 		public override void ApplyDepthPrepass(RenderContext rstate)
 		{

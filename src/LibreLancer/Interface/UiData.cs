@@ -74,7 +74,7 @@ namespace LibreLancer.Interface
                 Color = Parser.Color(color)
             };
         }
-        
+
         Dictionary<string, Texture2D> loadedFiles = new Dictionary<string,Texture2D>();
         public Texture2D GetTextureFile(string filename)
         {
@@ -98,7 +98,7 @@ namespace LibreLancer.Interface
             if(string.IsNullOrEmpty(path)) return null;
             try
             {
-                return ((IRigidModelFile) ResourceManager.GetDrawable(DataResolve(path))).CreateRigidModel(true);
+                return ((IRigidModelFile) ResourceManager.GetDrawable(DataResolve(path))).CreateRigidModel(true, ResourceManager);
             }
             catch (Exception e)
             {
@@ -111,7 +111,7 @@ namespace LibreLancer.Interface
             XInterfacePath = xinterfacePath;
             OpenResources();
         }
-        
+
         public void OpenDefault()
         {
             XInterfacePath = null;
@@ -143,7 +143,7 @@ namespace LibreLancer.Interface
         {
             uibundle = tb;
         }
-        
+
         public string ReadAllText(string file)
         {
             if (uibundle == null && !string.IsNullOrEmpty(XInterfacePath))
@@ -171,7 +171,7 @@ namespace LibreLancer.Interface
                 return uibundle.Exists(file);
             }
         }
-        
+
         //some info is using fully-qualified paths instead of data-relative paths.
         //maybe fix? but not likely
         public string DataResolve(string file)

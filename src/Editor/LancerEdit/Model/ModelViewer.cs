@@ -94,7 +94,7 @@ namespace LancerEdit
         bool showWarnings = false;
 
         private RigidModel vmsModel;
-        
+
         public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
             selectedCam = win.Config.DefaultCameraMode;
@@ -111,7 +111,7 @@ namespace LancerEdit
             if (drawable is CmpFile)
             {
                 //Setup Editor UI for constructs + hardpoints
-                vmsModel = (drawable as CmpFile).CreateRigidModel(true);
+                vmsModel = (drawable as CmpFile).CreateRigidModel(true, res);
                 animator = new AnimationComponent(vmsModel, (drawable as CmpFile).Animation);
                 int maxLevels = 0;
                 foreach (var p in vmsModel.AllParts)
@@ -123,13 +123,13 @@ namespace LancerEdit
                             for(int i = 0; i < p.Mesh.Switch2.Length - 1; i++)
                                 maxDistance = Math.Max(p.Mesh.Switch2[i], maxDistance);
                     }
-                    
+
                 }
                 foreach (var cmpPart in (drawable as CmpFile).Parts) {
                     if (cmpPart.Camera != null) {
                         cameraPart = cmpPart;
                         break;
-                    }   
+                    }
                 }
                 levels = new string[maxLevels];
                 for (int i = 0; i < maxLevels; i++)
@@ -137,7 +137,7 @@ namespace LancerEdit
             }
             else if (drawable is ModelFile)
             {
-                vmsModel = (drawable as ModelFile).CreateRigidModel(true);
+                vmsModel = (drawable as ModelFile).CreateRigidModel(true, res);
                 levels = new string[vmsModel.AllParts[0].Mesh.Levels.Length];
                 for (int i = 0; i < levels.Length; i++)
                     levels[i] = i.ToString();
@@ -150,7 +150,7 @@ namespace LancerEdit
             else if (drawable is SphFile)
             {
                 levels = new string[] {"0"};
-                vmsModel = (drawable as SphFile).CreateRigidModel(true);
+                vmsModel = (drawable as SphFile).CreateRigidModel(true, res);
             }
             if (vmsModel != null)
             {
@@ -232,7 +232,7 @@ namespace LancerEdit
             if (drawable is DF.DfmFile)
                 TabButton("Skeleton", 2);
             TabButton("Render", 3);
-            if(drawable is CmpFile || drawable is ModelFile) 
+            if(drawable is CmpFile || drawable is ModelFile)
                 TabButton("Export", 4);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
@@ -383,7 +383,7 @@ namespace LancerEdit
             }
         }
         float viewButtonsWidth = 100;
-            
+
         TextureReference[] GetBrokenTextures()
         {
             var missing = new List<MissingReference>();
@@ -396,7 +396,7 @@ namespace LancerEdit
                 !MathHelper.IsPowerOfTwo(x.Height)
                 )).ToArray();
         }
-        
+
         class HardpointGizmo
         {
             public Hardpoint Hardpoint;
@@ -551,7 +551,7 @@ namespace LancerEdit
         {
 
         }
-        
+
         void DoModel(RigidModelPart part)
         {
             //Hardpoints
@@ -797,7 +797,7 @@ namespace LancerEdit
                 if (drawable is ModelFile)
                 {
                     hprefs.Nodes[0].HardpointsToNodes(vmsModel.Root.Hardpoints);
-                } 
+                }
                 else if (drawable is CmpFile)
                 {
                     foreach (var mdl in vmsModel.AllParts)
@@ -879,7 +879,7 @@ namespace LancerEdit
                 ImGui.EndPopup();
             }
         }
-        
+
         void AnimationPanel()
         {
             var anm = ((CmpFile)drawable).Animation;
@@ -971,7 +971,7 @@ namespace LancerEdit
         }
 
         private ModelExporterSettings exportSettings = new ModelExporterSettings();
-        
+
         void Export(SimpleMesh.ModelSaveFormat fmt, FileDialogFilters filters)
         {
             if (drawable == null) return;
@@ -1006,7 +1006,7 @@ namespace LancerEdit
             if (ImGui.Button("Export Collada"))
                 Export(SimpleMesh.ModelSaveFormat.Collada, FileDialogFilters.ColladaFilter);
         }
-        
+
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
         {
             ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);

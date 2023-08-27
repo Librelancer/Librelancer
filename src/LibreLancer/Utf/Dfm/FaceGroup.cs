@@ -12,40 +12,20 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class FaceGroup
 	{
-
-		private ILibFile materialLibrary;
-
-		private string materialName;
-		private Material material;
-		public Material Material
-		{
-			get
-			{
-				if (material == null)
-				{
-					material = materialLibrary.FindMaterial(CrcTool.FLModelCrc(materialName));
-				}
-
-				return material;
-			}
-		}
+        public string MaterialName { get; private set; }
 
 		public int StartIndex;
 		public ushort[] TriangleStripIndices { get; private set; }
 		public ushort[] EdgeIndices { get; private set; }
 		public float[] EdgeAngles { get; private set; }
 
-		private bool ready = false;
-
-		public FaceGroup(IntermediateNode root, ILibFile materialLibrary)
+		public FaceGroup(IntermediateNode root)
 		{
-			this.materialLibrary = materialLibrary;
-
 			foreach (LeafNode node in root)
 			{
 				switch (node.Name.ToLowerInvariant())
 				{
-				case "material_name": materialName = node.StringData;
+				case "material_name": MaterialName = node.StringData;
 					break;
 				case "tristrip_indices": TriangleStripIndices = node.UInt16ArrayData;
 					break;
@@ -56,29 +36,6 @@ namespace LibreLancer.Utf.Dfm
 				default: throw new Exception("Invalid node in " + root.Name + ": " + node.Name);
 				}
 			}
-		}
-
-		public void Initialize(ResourceManager cache)
-		{
-			ready = true;
-		}
-        
-		public void DrawBuffer(DfmSkinning skinning, CommandBuffer buffer, VertexBuffer vbo, WorldMatrixHandle world, Lighting lights, Material overrideMat)
-		{
-			buffer.AddCommand(
-				(overrideMat ?? Material).Render,
-				null,
-				world,
-				lights,
-				vbo,
-				PrimitiveTypes.TriangleStrip,
-				0,
-				StartIndex,
-				TriangleStripIndices.Length - 2,
-				SortLayers.OPAQUE,
-				0,
-                skinning
-			);
 		}
     }
 }

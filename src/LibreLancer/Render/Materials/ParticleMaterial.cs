@@ -17,8 +17,8 @@ public class ParticleMaterial : RenderMaterial
     {
         shader = Shaders.Particle.Get();
     }
-    
-    public ParticleMaterial(ILibFile library) : base(library) { }
+
+    public ParticleMaterial(ResourceManager library) : base(library) { }
 
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

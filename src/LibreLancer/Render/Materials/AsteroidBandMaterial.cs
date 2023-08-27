@@ -14,7 +14,7 @@ public class AsteroidBandMaterial : RenderMaterial
     public Color4 ColorShift;
     public float TextureAspect;
     public string Texture;
-    
+
     static AsteroidBandMaterial()
     {
         shader = AsteroidBand.Get();
@@ -22,7 +22,7 @@ public class AsteroidBandMaterial : RenderMaterial
         _textureAspect = shader.Shader.GetLocation("TextureAspect");
     }
 
-    public AsteroidBandMaterial(ILibFile library) : base(library) { }
+    public AsteroidBandMaterial(ResourceManager library) : base(library) { }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

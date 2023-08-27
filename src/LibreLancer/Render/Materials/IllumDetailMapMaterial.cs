@@ -23,7 +23,7 @@ namespace LibreLancer.Render.Materials
 		public int FlipU;
 		public int FlipV;
 
-        public IllumDetailMapMaterial(ILibFile library) : base(library) { }
+        public IllumDetailMapMaterial(ResourceManager library) : base(library) { }
 
 
 		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

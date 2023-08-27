@@ -50,7 +50,50 @@ public class ZoneList
         dirtyZones = false;
     }
 
+    public bool ZoneExists(string name) =>
+        Zones.Any(x => x.Current.Nickname.Equals(name, StringComparison.OrdinalIgnoreCase));
 
+    public void RemoveZone(EditZone z)
+    {
+        //Remove from Asteroid Fields
+        for (int i = 0; i < AsteroidFields.Count; i++) {
+            if (AsteroidFields[i].Zone == z.Current)
+            {
+                AsteroidFields.RemoveAt(i);
+                break;
+            }
+            for (int j = AsteroidFields[i].ExclusionZones.Count - 1; j >= 0; j--){
+                if (AsteroidFields[i].ExclusionZones[j].Zone == z.Current){
+                    AsteroidFields[i].ExclusionZones.RemoveAt(j);
+                }
+            }
+        }
+        //Remove from Nebulae
+        for (int i = 0; i < Nebulae.Count; i++) {
+            if (Nebulae[i].Zone == z.Current)
+            {
+                Nebulae.RemoveAt(i);
+                break;
+            }
+            for (int j = Nebulae[i].ExclusionZones.Count - 1; j >= 0; j--){
+                if (Nebulae[i].ExclusionZones[j].Zone == z.Current){
+                    Nebulae[i].ExclusionZones.RemoveAt(j);
+                }
+            }
+        }
+        //Remove from Zones
+        Zones.Remove(z);
+        dirtyOrder = true;
+    }
+
+    public EditZone AddZone(Zone z)
+    {
+        var ez = new EditZone() { Current = z };
+        dirtyOrder = true;
+        Zones.Add(ez);
+        return ez;
+    }
+    
     public void SetZonesDirty(EditZone z)
     {
          dirtyZones = true;
@@ -68,6 +111,7 @@ public class ZoneList
 
     public void SetZones(List<Zone> zones, List<AsteroidField> asteroidFields, List<Nebula> nebulae)
     {
+        dirtyOrder = dirtyZones = false;
         Zones = zones.Select(x => new EditZone(x)).ToList();
         var zoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
         foreach (var z in Zones)

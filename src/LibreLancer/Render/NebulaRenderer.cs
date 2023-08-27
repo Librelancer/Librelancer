@@ -258,8 +258,7 @@ namespace LibreLancer.Render
             if (ex.ShellModel == null)
             {
                 var file = (IRigidModelFile) ex.Shell.LoadFile(sysr.ResourceManager);
-                file.Initialize(sysr.ResourceManager);
-                ex.ShellModel = file.CreateRigidModel(true);
+                ex.ShellModel = file.CreateRigidModel(true, sysr.ResourceManager);
             }
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
@@ -277,7 +276,7 @@ namespace LibreLancer.Render
 			//Set all render materials. We don't want LOD for this Mesh.
             foreach (var pt in ex.ShellModel.AllParts)
             {
-                foreach (var dc in pt.Mesh.Levels[0])
+                foreach (var dc in pt.Mesh.Levels[0].Drawcalls)
                 {
                     var mat = dc.GetMaterial(sysr.ResourceManager)?.Render;
                     if (mat is BasicMaterial basic)
@@ -293,7 +292,7 @@ namespace LibreLancer.Render
             ex.ShellModel.Update(0.0);
             ex.ShellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
         }
-        
+
         void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2,
             Vector2 tl,Vector2 tr, Vector2 bl, Vector2 br)
         {
@@ -464,7 +463,7 @@ namespace LibreLancer.Render
 				}
 			}
 		}
-							                                                 
+
 		Vector3 RandomDirection()
 		{
 			var v = new Vector3(
@@ -475,7 +474,7 @@ namespace LibreLancer.Render
 			v.Normalize();
 			return v;
 		}
-							                                                 
+
 		Vector3 RandomPointSphere(float radius)
 		{
 			var phi = (rand.NextDouble() * (2 * Math.PI));

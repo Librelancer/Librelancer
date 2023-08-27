@@ -14,9 +14,6 @@ namespace LibreLancer.Utf.Mat
 {
 	public class Material
 	{
-		protected static Texture2D nullTexture;
-		protected ILibFile textureLibrary;
-		protected Shader effect = null;
 
 		public bool Loaded = true;
 
@@ -159,19 +156,15 @@ namespace LibreLancer.Utf.Mat
 		public RenderMaterial Render
 		{
 			get
-			{
-				if (!Loaded) throw new Exception("Material unloaded"); //Should never happen
-				if (_rmat == null)
-					Initialize();
+            {
+                if (_rmat == null) throw new InvalidOperationException("Material not initialized");
 				return _rmat;
 			}
 		}
 		bool isBasic = false;
 
-		protected Material(IntermediateNode node, ILibFile library, string type)
+		protected Material(IntermediateNode node, string type)
 		{
-
-			this.textureLibrary = library;
 			this.type = type;
 
 			Name = node.Name;
@@ -185,7 +178,6 @@ namespace LibreLancer.Utf.Mat
 
 		public Material(ResourceManager res)
 		{
-			textureLibrary = res;
 			type = "DcDt";
 
 			Name = "NullMaterial";
@@ -195,20 +187,17 @@ namespace LibreLancer.Utf.Mat
 			isBasic = true;
 		}
 
-        public Material(ResourceManager res, RenderMaterial render)
+        public Material(RenderMaterial render)
         {
-            textureLibrary = res;
             type = "CUSTOM";
             Name = "CUSTOM";
             _rmat = render;
         }
 
-		public static Material FromNode(IntermediateNode node, ILibFile textureLibrary)
+		public static Material FromNode(IntermediateNode node)
 		{
 			if (node == null)
 				throw new ArgumentNullException("node");
-			if (textureLibrary == null)
-				throw new ArgumentNullException("textureLibrary");
 
 			LeafNode typeNode = node["Type"] as LeafNode;
 			if (typeNode == null)
@@ -219,9 +208,9 @@ namespace LibreLancer.Utf.Mat
 			type = MaterialMap.Instance.Get(type) ?? type;
 			type = MaterialMap.Instance.Get(node.Name.ToLowerInvariant()) ?? type;
 
-			if (type == "HighGlassMaterial" || 
+			if (type == "HighGlassMaterial" ||
                 type == "GlassMaterial" ||
-			    type == "HUDAnimMaterial" || 
+			    type == "HUDAnimMaterial" ||
 			    type == "HUDIconMaterial" ||
 			    type == "PlanetWaterMaterial")
 			{
@@ -231,7 +220,7 @@ namespace LibreLancer.Utf.Mat
 			{
 				type = "DcDt"; //HACK: This is handled in NebulaRenderer, not in Material.cs
 			}
-			var mat = new Material(node, textureLibrary, type);
+			var mat = new Material(node, type);
 			if (basicMaterials.Contains(type))
 			{
 				mat.isBasic = true;
@@ -358,11 +347,11 @@ namespace LibreLancer.Utf.Mat
 			return true;
 		}
 
-		public virtual void Initialize()
+		public void Initialize(ResourceManager res)
 		{
 			if (isBasic)
 			{
-				var bm = new BasicMaterial(type, this.textureLibrary);
+				var bm = new BasicMaterial(type, res);
 				_rmat = bm;
 				//set up material
 				bm.Dc = Dc;
@@ -374,7 +363,7 @@ namespace LibreLancer.Utf.Mat
 				bm.DtFlags = (SamplerFlags)DtFlags;
 				bm.EtSampler = EtName;
 				bm.EtFlags = (SamplerFlags)EtFlags;
-				bm.Library = textureLibrary;
+				bm.Library = res;
 				if (type.Contains("Ot"))
 					bm.AlphaEnabled = true;
 				if (type.Contains("Two"))
@@ -390,15 +379,15 @@ namespace LibreLancer.Utf.Mat
 				{
 					case "Nebula":
 					case "NebulaTwo":
-						var nb = new NebulaMaterial(this.textureLibrary);
+						var nb = new NebulaMaterial(res);
 						if (type == "NebulaTwo") nb.DoubleSided = true;
 						_rmat = nb;
 						nb.DtSampler = DtName;
 						nb.DtFlags = (SamplerFlags)DtFlags;
-						nb.Library = textureLibrary;
+						nb.Library = res;
 						break;
 					case "AtmosphereMaterial":
-						var am = new AtmosphereMaterial(this.textureLibrary);
+						var am = new AtmosphereMaterial(res);
 						_rmat = am;
 						am.Dc = Dc;
 						am.Ac = Ac;
@@ -407,10 +396,10 @@ namespace LibreLancer.Utf.Mat
 						am.Scale = Scale;
 						am.DtSampler = DtName;
 						am.DtFlags = (SamplerFlags)DtFlags;
-						am.Library = textureLibrary;
+						am.Library = res;
 						break;
 					case "Masked2DetailMapMaterial":
-						var m2 = new Masked2DetailMapMaterial(this.textureLibrary);
+						var m2 = new Masked2DetailMapMaterial(res);
 						_rmat = m2;
 						m2.Dc = Dc;
 						m2.Ac = Ac;
@@ -424,10 +413,10 @@ namespace LibreLancer.Utf.Mat
 						m2.Dm0Flags = (SamplerFlags)Dm0Flags;
 						m2.Dm1Sampler = Dm1Name;
 						m2.Dm1Flags = (SamplerFlags)Dm1Flags;
-						m2.Library = textureLibrary;
+						m2.Library = res;
 						break;
 					case "IllumDetailMapMaterial":
-						var ilm = new IllumDetailMapMaterial(this.textureLibrary);
+						var ilm = new IllumDetailMapMaterial(res);
 						_rmat = ilm;
 						ilm.Dc = Dc;
 						ilm.Ac = Ac;
@@ -443,10 +432,10 @@ namespace LibreLancer.Utf.Mat
 						ilm.Dm0Flags = (SamplerFlags)Dm0Flags;
 						ilm.Dm1Sampler = Dm1Name;
 						ilm.Dm1Flags = (SamplerFlags)Dm1Flags;
-						ilm.Library = textureLibrary;
+						ilm.Library = res;
 						break;
 					case "DetailMap2Dm1Msk2PassMaterial":
-						var dm2p = new DetailMap2Dm1Msk2PassMaterial(this.textureLibrary);
+						var dm2p = new DetailMap2Dm1Msk2PassMaterial(res);
 						_rmat = dm2p;
 						dm2p.Dc = Dc;
 						dm2p.Ac = Ac;
@@ -459,11 +448,11 @@ namespace LibreLancer.Utf.Mat
 
 						dm2p.Dm1Sampler = Dm1Name;
 						dm2p.Dm1Flags = (SamplerFlags)Dm1Flags;
-						dm2p.Library = textureLibrary;
+						dm2p.Library = res;
 						break;
 					case "NomadMaterialNoBendy":
 					case "NomadMaterial":
-						var nmd = new NomadMaterial(this.textureLibrary);
+						var nmd = new NomadMaterial(res);
 						_rmat = nmd;
 						nmd.Dc = Dc;
 						nmd.BtSampler = btName;
@@ -473,10 +462,10 @@ namespace LibreLancer.Utf.Mat
 						nmd.NtFlags = (SamplerFlags)NtFlags;
 						nmd.NtSampler = NtName;
 						nmd.Oc = Oc ?? 1f;
-						nmd.Library = textureLibrary;
+						nmd.Library = res;
 						break;
 					case "DetailMapMaterial":
-						var dm = new DetailMapMaterial(this.textureLibrary);
+						var dm = new DetailMapMaterial(res);
 						_rmat = dm;
 						dm.Dc = Dc;
 						dm.Ac = Ac;
@@ -487,7 +476,7 @@ namespace LibreLancer.Utf.Mat
 						dm.DmFlags = (SamplerFlags)DmFlags;
 						dm.DtSampler = DtName;
 						dm.DtFlags = (SamplerFlags)DtFlags;
-						dm.Library = textureLibrary;
+						dm.Library = res;
 						break;
                     default:
 						throw new NotImplementedException();

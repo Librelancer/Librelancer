@@ -157,7 +157,7 @@ namespace LibreLancer.Client
         {
             gameplayActions.Clear();
             objects = new Dictionary<int, GameObject>();
-            
+
             if (PlayerBase != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
@@ -175,7 +175,7 @@ namespace LibreLancer.Client
 
         SpaceGameplay gp;
         Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
-        
+
         public bool Update()
         {
             hasChanged = false;
@@ -203,7 +203,7 @@ namespace LibreLancer.Client
         private CircularBuffer<PlayerMoveState> moveState = new CircularBuffer<PlayerMoveState>(128);
         private CircularBuffer<SPUpdatePacket> oldPackets = new CircularBuffer<SPUpdatePacket>(1000);
         public uint LastAck = 0;
-        
+
         struct PlayerMoveState
         {
             public int Tick;
@@ -246,7 +246,7 @@ namespace LibreLancer.Client
                 var player = gp.player;
                 var phys = player.GetComponent<ShipPhysicsComponent>();
                 var steering = player.GetComponent<ShipSteeringComponent>();
-                
+
                 moveState.Enqueue(new PlayerMoveState()
                 {
                     Tick = _updateTick++,
@@ -340,10 +340,10 @@ namespace LibreLancer.Client
         }
 
         public int UpdateQueueCount => updatePackets.Count;
-        
+
         volatile bool processUpdatePackets = false;
-        
-        
+
+
         public void WorldReady()
         {
             while (gameplayActions.TryDequeue(out var act))
@@ -355,10 +355,10 @@ namespace LibreLancer.Client
             processUpdatePackets = true;
             moveState = new CircularBuffer<PlayerMoveState>(128);
         }
-        
+
         private Queue<IPacket> updatePackets = new Queue<IPacket>();
 
-       
+
 
         void Resimulate(int i, SpaceGameplay gp)
         {
@@ -379,20 +379,20 @@ namespace LibreLancer.Client
         {
             var newPos = obj.PhysicsComponent.Body.Position;
             var newOrient = obj.PhysicsComponent.Body.Transform.ExtractRotation();
-            if ((oldPos - newPos).Length() > 
+            if ((oldPos - newPos).Length() >
                 obj.PhysicsComponent.Body.LinearVelocity.Length() * 0.33f) {
                 obj.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
                 obj.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
-            } 
+            }
             else {
                 obj.PhysicsComponent.PredictionErrorPos = (oldPos - newPos);
                 obj.PhysicsComponent.PredictionErrorQuat =
                     Quaternion.Inverse(newOrient) * oldQuat;
             }
         }
-        
+
         void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
-        { 
+        {
             foreach (var update in p.Updates)
                 UpdateObject(update, gp.world);
             var hp = gp.player.GetComponent<CHealthComponent>();
@@ -412,7 +412,7 @@ namespace LibreLancer.Client
                         var errorPos = state.Position - moveState[i].Position;
                         var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
                         var phys = gp.player.GetComponent<ShipPhysicsComponent>();
-                        
+
                         if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0) {
                             phys.ResyncChargePercent(p.PlayerState.CruiseChargePct, (1 / 60.0f) * (moveState.Count - i));
                             phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, (1 / 60.0f) * (moveState.Count - i));
@@ -444,22 +444,22 @@ namespace LibreLancer.Client
                             gp.player.PhysicsComponent.Update(1 / 60.0);
                         }
                         break;
-                        
+
                     }
                 }
             }
-           
+
         }
 
         public Action<IPacket> ExtraPackets;
-        
+
 
         void SetSelfLoadout(NetShipLoadout ld)
         {
             var sh = ld.ShipCRC == 0 ? null : Game.GameData.Ships.Get(ld.ShipCRC);
             PlayerShip = sh?.Nickname ?? null;
             CargoSize = sh?.HoldSize ?? 0;
-            
+
             Items = new List<NetCargo>(ld.Items.Count);
             if (sh != null)
             {
@@ -486,7 +486,7 @@ namespace LibreLancer.Client
         {
             RunSync(() => gp.EndTradelane());
         }
-        
+
 
         void IClientPlayer.SpawnProjectiles(ProjectileSpawn[] projectiles)
         {
@@ -689,7 +689,7 @@ namespace LibreLancer.Client
 
                 newobj.Components.Add(new WeaponControlComponent(newobj));
                 objects.Add(id, newobj);
-                
+
                 gp.world.AddObject(newobj);
             });
         }
@@ -727,12 +727,12 @@ namespace LibreLancer.Client
                 if (kind == GameObjectKind.Ship)
                 {
                     var ship = Game.GameData.Ships.Get(archetype);
-                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true, Game.ResourceManager);
                 }
                 else
                 {
                     var arch = Game.GameData.GetSolarArchetype(archetype);
-                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true);
+                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true, Game.ResourceManager);
                 }
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
@@ -854,7 +854,7 @@ namespace LibreLancer.Client
                 o.Flags |= GameObjectFlags.Important;
             });
         }
-        
+
         void IClientPlayer.PlayMusic(string music, float fade) => audioActions.Enqueue(() =>
         {
             if(string.IsNullOrWhiteSpace(music) ||
@@ -877,8 +877,8 @@ namespace LibreLancer.Client
             });
         }
 
-       
-        
+
+
         void UpdatePackets()
         {
             IPacket packet;
@@ -1005,7 +1005,7 @@ namespace LibreLancer.Client
 
             obj.Flags &= ~(GameObjectFlags.Reputations);
             switch (update.RepToPlayer) {
-                case RepAttitude.Friendly: 
+                case RepAttitude.Friendly:
                     obj.Flags |= GameObjectFlags.Friendly;
                     break;
                 case RepAttitude.Hostile:
@@ -1049,17 +1049,17 @@ namespace LibreLancer.Client
                     ((IClientPlayer) this).OnConsoleMessage("null");
             }
             else {
-                rpcServer.ChatMessage(category, str);  
+                rpcServer.ChatMessage(category, str);
             }
         }
 
-        
+
 
         void IClientPlayer.ReceiveChatMessage(ChatCategory category, string player, string message)
         {
             Chats.Append($"{player}: {message}", "Arial", 26, category.GetColor());
         }
-        
+
         private static int NEW_PLAYER = 393298;
         private static int DEPARTING_PLAYER = 393299;
 
@@ -1109,7 +1109,7 @@ namespace LibreLancer.Client
             if (id == 0) return gp.player;
             return objects[id];
         }
-        
+
         void IClientPlayer.UpdateFormation(NetFormation form)
         {
             gameplayActions.Enqueue(() =>
@@ -1130,7 +1130,7 @@ namespace LibreLancer.Client
                 }
             });
         }
-        
+
 
         public void Disconnected()
         {

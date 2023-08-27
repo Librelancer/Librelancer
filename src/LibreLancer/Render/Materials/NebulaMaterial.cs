@@ -13,7 +13,7 @@ namespace LibreLancer.Render.Materials
 	{
 		public string DtSampler;
 		public SamplerFlags DtFlags;
-        public NebulaMaterial(ILibFile library) : base(library) { }
+        public NebulaMaterial(ResourceManager library) : base(library) { }
 
 		ShaderVariables GetShader(IVertexType vtype)
 		{
@@ -21,7 +21,7 @@ namespace LibreLancer.Render.Materials
                 vtype is VertexPositionNormalDiffuseTextureTwo)
             {
                 return Shaders.NebulaMaterial.Get(ShaderFeatures.VERTEX_DIFFUSE);
-            } 
+            }
             if (vtype is VertexPositionNormalTexture ||
                        vtype is VertexPositionNormalTextureTwo)
             {

@@ -103,7 +103,9 @@ namespace LibreLancer
 		public const int GL_SHADER_STORAGE_BUFFER = 0x90D2;
         public const int GL_UNIFORM_BUFFER = 0x8A11;
         public const int GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 0x8a34;
-
+        public const int GL_COPY_READ_BUFFER = 0x8F36;
+        public const int GL_COPY_WRITE_BUFFER = 0x8F37;
+        
 		public const int GL_STREAM_DRAW = 0x88E0;
 		public const int GL_DYNAMIC_DRAW = 0x88E8;
 		public const int GL_STATIC_DRAW = 0x88E4;

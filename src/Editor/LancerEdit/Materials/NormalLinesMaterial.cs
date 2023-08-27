@@ -9,7 +9,7 @@ namespace LancerEdit;
 public class NormalLinesMaterial : RenderMaterial
 {
     private const string VERTEX = @"
-layout(std140) uniform Camera_Matrices 
+layout(std140) uniform Camera_Matrices
 {
     mat4 View;
     mat4 Projection;
@@ -82,7 +82,7 @@ void main() {
     private static Shader shader;
     private static int worldLoc;
     private static int sizeLoc;
-    
+
     static void InitShader()
     {
         if (shader == null)
@@ -97,24 +97,24 @@ void main() {
             sizeLoc = shader.GetLocation("Size");
         }
     }
-    
-    public NormalLinesMaterial(ILibFile library) : base(library) => InitShader();
+
+    public NormalLinesMaterial(ResourceManager library) : base(library) => InitShader();
 
     public float Size { get; set; } = 2;
-    
+
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         shader.SetMatrix(worldLoc, (IntPtr) World.Source);
         shader.SetFloat(sizeLoc, Size);
-        shader.UseProgram();    
+        shader.UseProgram();
     }
 
     public override bool IsTransparent => false;
-    
+
     public override void ApplyDepthPrepass(RenderContext rstate) { }
 
-    public static Material GetMaterial(ResourceManager res, float size) 
-        => new(res, new NormalLinesMaterial(res)
+    public static Material GetMaterial(ResourceManager res, float size)
+        => new(new NormalLinesMaterial(res)
         {
             Size = size,
         });

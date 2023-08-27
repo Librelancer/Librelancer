@@ -19,8 +19,8 @@ namespace LibreLancer.Render.Materials
 		public Color4 Dc;
 		public string DtSampler;
 		public SamplerFlags DtFlags;
-        
-        public DetailMapMaterial(ILibFile library) : base(library) { }
+
+        public DetailMapMaterial(ResourceManager library) : base(library) { }
 
 
 

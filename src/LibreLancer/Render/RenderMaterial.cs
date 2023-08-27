@@ -15,19 +15,19 @@ namespace LibreLancer.Render
 	public abstract class RenderMaterial
     {
         private static int _key = 0;
-        
+
         public int Key { get; private set; }
 
-        protected RenderMaterial(ILibFile library)
+        protected RenderMaterial(ResourceManager library)
         {
             Library = library;
             Key = Interlocked.Increment(ref _key);
         }
-        
+
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
 		public WorldMatrixHandle World = new WorldMatrixHandle();
-		public ILibFile Library;
+		public ResourceManager Library;
 		public bool Fade = false;
 		public float FadeNear = 0;
 		public float FadeFar = 0;

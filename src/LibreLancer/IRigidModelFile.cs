@@ -6,6 +6,6 @@ namespace LibreLancer
 {
     public interface IRigidModelFile : IDrawable
     {
-        RigidModel CreateRigidModel(bool drawable);
+        RigidModel CreateRigidModel(bool drawable, ResourceManager resources);
     }
 }

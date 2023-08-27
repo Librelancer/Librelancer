@@ -10,7 +10,7 @@ namespace LibreLancer.Utf
 {
 	public class UtfLoader : UtfFile
 	{
-		public static IDrawable GetDrawable(IntermediateNode root, ILibFile resources, string path = "/")
+		public static IDrawable GetDrawable(IntermediateNode root, ResourceManager resources, string path = "/")
 		{
 			bool cmpnd = false;
 			bool multilevel = false;
@@ -18,18 +18,18 @@ namespace LibreLancer.Utf
 			{
 				var l = node.Name.ToLowerInvariant();
                 if (l == "sphere") return new SphFile(root, resources, path);
-				if (l == "vmeshpart") return new ModelFile(root, resources);
+				if (l == "vmeshpart") return new ModelFile(root);
 				if (l == "cmpnd") cmpnd = true;
 				if (l == "multilevel") multilevel = true;
-				if (l == "skeleton") return new DfmFile(root, resources);
+				if (l == "skeleton") return new DfmFile(root);
 			}
 			if (cmpnd)
-				return new CmpFile(root, resources);
+				return new CmpFile(root);
 			if (multilevel)
-				return new ModelFile(root, resources);
+				return new ModelFile(root);
             return null;
 		}
-		public static IDrawable LoadDrawable(string file, ILibFile resources)
+		public static IDrawable LoadDrawable(string file, ResourceManager resources)
 		{
 			var root = parseFile(file);
             var dr = GetDrawable(root, resources, file);
@@ -39,7 +39,7 @@ namespace LibreLancer.Utf
                 FLLog.Error("Utf", file + " is not valid IDrawable");
 			return dr;
 		}
-		public static bool LoadResourceNode(IntermediateNode root, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static bool LoadResourceNode(IntermediateNode root, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
             materials = null;
             textures = null;
@@ -52,7 +52,7 @@ namespace LibreLancer.Utf
                     {
                         case "material library":
                             IntermediateNode materialLibraryNode = node as IntermediateNode;
-                            materials = new MatFile(materialLibraryNode, library);
+                            materials = new MatFile(materialLibraryNode);
                             break;
                         case "texture library":
                             IntermediateNode textureLibraryNode = node as IntermediateNode;
@@ -67,7 +67,7 @@ namespace LibreLancer.Utf
                             break;
                         case "vmeshlibrary":
                             IntermediateNode vmsnode = node as IntermediateNode;
-                            vms = new Vms.VmsFile(vmsnode, library);
+                            vms = new Vms.VmsFile(vmsnode);
                             break;
                     }
                 }
@@ -82,7 +82,7 @@ namespace LibreLancer.Utf
             }
             return true;
 		}
-		public static void LoadResourceFile(string file, ILibFile library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static void LoadResourceFile(string file, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
 			materials = null;
 			textures = null;

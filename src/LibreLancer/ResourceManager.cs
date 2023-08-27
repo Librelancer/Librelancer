@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
@@ -18,11 +19,12 @@ using LibreLancer.Sur;
 namespace LibreLancer
 {
     //TODO: Allow for disposing and all that Jazz
-    public abstract class ResourceManager : ILibFile
+    public abstract class ResourceManager
     {
         Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
 
-        public abstract void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index) where T : struct;
+        public abstract VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
+            where T : struct, IVertexType;
         public abstract QuadSphere GetQuadSphere(int slices);
         public abstract OpenCylinder GetOpenCylinder(int slices);
         public abstract Dictionary<string, Texture> TextureDictionary { get; }
@@ -37,9 +39,10 @@ namespace LibreLancer
         public const string GreyTextureName = "$$LIBRELANCER.Grey";
         public abstract Texture FindTexture(string name);
         public abstract Material FindMaterial(uint materialId);
-        public abstract VMeshData FindMesh(uint vMeshLibId);
-        public abstract IDrawable GetDrawable(string filename);
-        public abstract void LoadResourceFile(string filename);
+        public abstract VMeshResource FindMesh(uint vMeshLibId);
+        public abstract VMeshData FindMeshData(uint vMeshLibId);
+        public abstract IDrawable GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
+        public abstract void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
         public abstract Fx.ParticleLibrary GetParticleLibrary(string filename);
 
         public abstract bool TryGetShape(string name, out TextureShape shape);
@@ -67,7 +70,7 @@ namespace LibreLancer
         public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => throw new InvalidOperationException();
 
-        public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
+        public override VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
         {
             throw new InvalidOperationException();
         }
@@ -76,13 +79,14 @@ namespace LibreLancer
         public override ParticleLibrary GetParticleLibrary(string filename) => throw new InvalidOperationException();
         public override QuadSphere GetQuadSphere(int slices) => throw new InvalidOperationException();
         public override Material FindMaterial(uint materialId) => throw new InvalidOperationException();
-        public override VMeshData FindMesh(uint vMeshLibId) => throw new InvalidOperationException();
+        public override VMeshResource FindMesh(uint vMeshLibId) => throw new InvalidOperationException();
+        public override VMeshData FindMeshData(uint vMeshLibId) => throw new InvalidOperationException();
         public override Texture FindTexture(string name) => throw new InvalidOperationException();
 
         public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
         public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
 
-        public override IDrawable GetDrawable(string filename)
+        public override IDrawable GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
         {
             IDrawable drawable;
             if (!drawables.TryGetValue(filename, out drawable))
@@ -94,25 +98,25 @@ namespace LibreLancer
             return drawable;
         }
 
-        public override void LoadResourceFile(string filename) { }
+        public override void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU) { }
     }
     public class GameResourceManager : ResourceManager, IDisposable
 	{
 		public IGLWindow GLWindow;
-        
         public long EstimatedTextureMemory { get; private set; }
 
-
-		Dictionary<uint, VMeshData> meshes = new Dictionary<uint, VMeshData>();
-		Dictionary<uint, Material> materials = new Dictionary<uint, Material>();
-		Dictionary<uint, string> materialfiles = new Dictionary<uint, string>();
-		Dictionary<string, Texture> textures = new Dictionary<string, Texture>(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, string> texturefiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, IDrawable> drawables = new Dictionary<string, IDrawable>(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, TextureShape> shapes = new Dictionary<string, TextureShape>(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, Cursor> cursors = new Dictionary<string, Cursor>(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, TexFrameAnimation> frameanims = new Dictionary<string, TexFrameAnimation>(StringComparer.OrdinalIgnoreCase);
-        Dictionary<string, Fx.ParticleLibrary> particlelibs = new Dictionary<string, Fx.ParticleLibrary>(StringComparer.OrdinalIgnoreCase);
+		Dictionary<uint, VMeshResource> meshes = new();
+        Dictionary<uint, VMeshData> meshDatas = new();
+        Dictionary<uint, string> meshFiles = new();
+		Dictionary<uint, Material> materials = new();
+		Dictionary<uint, string> materialfiles = new();
+		Dictionary<string, Texture> textures = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, string> texturefiles = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, IDrawable> drawables = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, TextureShape> shapes = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, Cursor> cursors = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, TexFrameAnimation> frameanims = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, ParticleLibrary> particlelibs = new(StringComparer.OrdinalIgnoreCase);
 
 		List<string> loadedResFiles = new List<string>();
 		List<string> preloadFiles = new List<string>();
@@ -120,43 +124,13 @@ namespace LibreLancer
         Dictionary<int, QuadSphere> quadSpheres = new Dictionary<int, QuadSphere>();
         Dictionary<int, OpenCylinder> cylinders = new Dictionary<int, OpenCylinder>();
 
-        VertexResource<VertexPosition> posResource = new VertexResource<VertexPosition>();
-        VertexResource<VertexPositionColor> posColorResource = new VertexResource<VertexPositionColor>();
-        VertexResource<VertexPositionNormal> posNormalResource = new VertexResource<VertexPositionNormal>();
-        VertexResource<VertexPositionColorTexture> posColorTextureResource = new VertexResource<VertexPositionColorTexture>();
-        VertexResource<VertexPositionNormalTexture> posNormalTextureResource = new VertexResource<VertexPositionNormalTexture>();
-        VertexResource<VertexPositionNormalDiffuseTexture> posNormalColorTextureResource = new VertexResource<VertexPositionNormalDiffuseTexture>();
-        VertexResource<VertexPositionNormalTextureTwo> posNormalTextureTwoResource = new VertexResource<VertexPositionNormalTextureTwo>();
-        VertexResource<VertexPositionNormalDiffuseTextureTwo> posNormalDiffuseTextureTwoResource = new VertexResource<VertexPositionNormalDiffuseTextureTwo>();
+        private VertexResourceAllocator vertexResourceAllocator = new VertexResourceAllocator();
 
-        T[] As<T>(object input) => (T[])input;
-
-        public override void AllocateVertices<T>(T[] vertices, ushort[] indices, out int startIndex, out int baseVertex, out VertexBuffer vbo, out IndexResourceHandle index)
+        public override VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
         {
             if (!GLWindow.IsUiThread()) throw new InvalidOperationException();
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
-            vbo = null;
-            index = null;
-            startIndex = baseVertex = -1;
-            if(typeof(T) == typeof(VertexPosition)) {
-                posResource.Allocate(As<VertexPosition>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionColor)) {
-                posColorResource.Allocate(As<VertexPositionColor>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionNormal)) {
-                posNormalResource.Allocate(As<VertexPositionNormal>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionColorTexture)) {
-                posColorTextureResource.Allocate(As<VertexPositionColorTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionNormalTexture)) {
-                posNormalTextureResource.Allocate(As<VertexPositionNormalTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionNormalDiffuseTexture)) {
-                posNormalColorTextureResource.Allocate(As<VertexPositionNormalDiffuseTexture>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionNormalTextureTwo)) {
-                posNormalTextureTwoResource.Allocate(As<VertexPositionNormalTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else if (typeof(T) == typeof(VertexPositionNormalDiffuseTextureTwo)) {
-                posNormalDiffuseTextureTwoResource.Allocate(As<VertexPositionNormalDiffuseTextureTwo>(vertices), indices, out vbo, out startIndex, out baseVertex, out index);
-            } else {
-                throw new NotSupportedException("Allocate " + typeof(T).Name);
-            }
+            return vertexResourceAllocator.Allocate(vertices, indices);
         }
 
         public override QuadSphere GetQuadSphere(int slices) {
@@ -199,6 +173,7 @@ namespace LibreLancer
 			GLWindow = g;
 			DefaultMaterial = new Material(this);
 			DefaultMaterial.Name = "$LL_DefaultMaterialName";
+            DefaultMaterial.Initialize(this);
 		}
 
         public GameResourceManager(GameResourceManager src) : this(src.GLWindow)
@@ -211,7 +186,7 @@ namespace LibreLancer
             foreach (var tex in src.textures.Keys)
                 textures[tex] = null;
         }
-        
+
         public GameResourceManager()
 		{
 			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
@@ -219,7 +194,7 @@ namespace LibreLancer
 
 			WhiteTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
 			WhiteTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
-            
+
             GreyTexture = new Texture2D(1,1, false, SurfaceFormat.Color);
             GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF});
 		}
@@ -293,6 +268,22 @@ namespace LibreLancer
             EstimatedTextureMemory = 0;
         }
 
+        public void ClearMeshes()
+        {
+            loadedResFiles = new List<string>();
+            var keys = new uint[meshes.Count];
+            meshes.Keys.CopyTo(keys, 0);
+            foreach (var k in keys)
+            {
+                if (meshes[k] != null)
+                {
+                    meshes[k].Dispose();
+                    meshes[k] = null;
+                }
+                meshDatas[k] = null;
+            }
+        }
+
 		public override Texture FindTexture (string name)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
@@ -324,18 +315,38 @@ namespace LibreLancer
 			return m;
 		}
 
-     
-
-        public override VMeshData FindMesh (uint vMeshLibId)
+        public override VMeshResource FindMesh (uint vMeshLibId)
 		{
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
-            VMeshData vms;
-            meshes.TryGetValue(vMeshLibId, out vms);
-            if (vms == null) FLLog.Warning("ResourceManager", "Mesh " + vMeshLibId + " not found");
+            if (!meshes.TryGetValue(vMeshLibId, out var vms)){
+                return null;
+            }
+            if (vms != null) return vms;
+            if (meshDatas.TryGetValue(vMeshLibId, out var d) && d != null){
+                d.Initialize(this);
+                meshes[vMeshLibId] = d.Resource;
+                vms = d.Resource;
+            }
+            else
+            {
+                LoadResourceFile(meshFiles[vMeshLibId], MeshLoadMode.GPU);
+                vms = meshes[vMeshLibId];
+            }
             return vms;
 		}
 
-		public void AddResources(Utf.IntermediateNode node, string id)
+        public override VMeshData FindMeshData(uint vMeshLibId)
+        {
+            if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
+            if (!meshDatas.TryGetValue(vMeshLibId, out var vms)){
+                return null;
+            }
+            if (vms != null) return vms;
+            LoadResourceFile(meshFiles[vMeshLibId], MeshLoadMode.CPU);
+            return meshDatas[vMeshLibId];
+        }
+
+        public void AddResources(Utf.IntermediateNode node, string id)
 		{
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             MatFile mat;
@@ -344,7 +355,7 @@ namespace LibreLancer
 			Utf.UtfLoader.LoadResourceNode(node, this, out mat, out txm, out vms);
 			if (mat != null) AddMaterials(mat, id);
 			if (txm != null) AddTextures(txm, id);
-			if (vms != null) AddMeshes(vms);
+			if (vms != null) AddMeshes(vms, MeshLoadMode.All, id);
 		}
 
 		public void RemoveResourcesForId(string id)
@@ -372,7 +383,23 @@ namespace LibreLancer
 				}
 			}
 			foreach (var key in removeMats) materials.Remove(key);
-		}
+
+            var removeMeshes = meshes.Where(x => meshFiles[x.Key] == id).ToArray();
+            var removeMeshDatas = meshDatas.Where(x => meshFiles[x.Key] == id).ToArray();
+
+            foreach (var m in removeMeshes)
+            {
+                m.Value.Dispose();
+                meshFiles.Remove(m.Key);
+                meshes.Remove(m.Key);
+            }
+            foreach (var m in removeMeshDatas)
+            {
+                meshFiles.Remove(m.Key);
+                meshDatas.Remove(m.Key);
+            }
+
+        }
 
         public override Fx.ParticleLibrary GetParticleLibrary(string filename)
         {
@@ -387,57 +414,43 @@ namespace LibreLancer
             return lib;
         }
 
-
-        public override void LoadResourceFile(string filename)
-		{
+        public override void LoadResourceFile(string filename, MeshLoadMode meshMode = MeshLoadMode.GPU)
+        {
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             var fn = filename.ToLowerInvariant();
-            if (!loadedResFiles.Contains(fn))
-            {
-                MatFile mat;
-                TxmFile txm;
-                VmsFile vms;
-                Utf.UtfLoader.LoadResourceFile(filename, this, out mat, out txm, out vms);
-                if (mat != null) AddMaterials(mat, filename);
-                if (txm != null) AddTextures(txm, filename);
-                if (vms != null) AddMeshes(vms);
-                if (vms == null && mat == null && txm == null) throw new Exception("Not a resource file " + filename);
-                loadedResFiles.Add(fn);
-            }
-		}
+            if (loadedResFiles.Contains(fn)) return;
+
+            MatFile mat;
+            TxmFile txm;
+            VmsFile vms;
+            Utf.UtfLoader.LoadResourceFile(filename, this, out mat, out txm, out vms);
+            if (mat != null) AddMaterials(mat, filename);
+            if (txm != null) AddTextures(txm, filename);
+            if (vms != null) AddMeshes(vms, meshMode, filename);
+            if (vms == null && mat == null && txm == null)
+                FLLog.Warning("Resources", $"Could not load resources from file '{filename}'");
+            loadedResFiles.Add(fn);
+        }
 
 		void AddTextures(TxmFile t, string filename)
 		{
 			foreach (var tex in t.Textures) {
-				if (!textures.ContainsKey(tex.Key))
+				if (!textures.TryGetValue(tex.Key, out var existing) || existing == null)
 				{
 					var v = tex.Value;
 					v.Initialize();
                     if (v.Texture != null)
                     {
                         EstimatedTextureMemory += v.Texture.EstimatedTextureMemory;
-                        textures.Add(tex.Key, v.Texture);
-                        texturefiles.Add(tex.Key, filename);
-                    }
-				}
-				else if (textures[tex.Key] == null)
-				{
-					var v = tex.Value;
-					v.Initialize();
-                    textures[tex.Key] = v.Texture;
-                    if (v.Texture != null)
-                    {
-                        EstimatedTextureMemory += v.Texture.EstimatedTextureMemory;
+                        textures[tex.Key] = v.Texture;
+                        texturefiles.TryAdd(tex.Key, filename);
                     }
 				}
 			}
 			foreach (var anim in t.Animations)
-			{
-				if (!frameanims.ContainsKey(anim.Key))
-				{
-					frameanims.Add(anim.Key, anim.Value);
-				}
-			}
+            {
+                frameanims.TryAdd(anim.Key, anim.Value);
+            }
 		}
 
 		void AddMaterials(MatFile m, string filename)
@@ -448,19 +461,38 @@ namespace LibreLancer
 			foreach (var kv in m.Materials) {
 				if (!materials.ContainsKey(kv.Key))
 				{
+                    kv.Value.Initialize(this);
 					materials.Add(kv.Key, kv.Value);
-					materialfiles.Add(kv.Key, filename);
-				}
+                    materialfiles[kv.Key] = filename;
+                }
 			}
 		}
-		void AddMeshes(VmsFile vms)
-		{
+		void AddMeshes(VmsFile vms, MeshLoadMode mode, string filename)
+        {
+            bool isGpu = (mode & MeshLoadMode.GPU) == MeshLoadMode.GPU;
+            bool isCpu = (mode & MeshLoadMode.CPU) == MeshLoadMode.CPU;
 			foreach (var kv in vms.Meshes) {
-				if (!meshes.ContainsKey (kv.Key))
-					meshes.Add (kv.Key, kv.Value);
-			}
+                if (!meshes.TryGetValue(kv.Key, out var existingGpu) || (isGpu && existingGpu == null))
+                {
+                    if (isGpu)
+                    {
+                        kv.Value.Initialize(this);
+                        meshes[kv.Key] = kv.Value.Resource;
+                    }
+                    else
+                    {
+                        kv.Value.Resource = null;
+                    }
+                    meshFiles.TryAdd(kv.Key, filename);
+                }
+                if (!meshDatas.TryGetValue(kv.Key, out var existingCpu) || (isCpu && existingCpu == null))
+                {
+                    meshDatas[kv.Key] = isCpu ? kv.Value : null;
+                    meshFiles.TryAdd(kv.Key, filename);
+                }
+            }
 		}
-		public override IDrawable GetDrawable(string filename)
+		public override IDrawable GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
 			IDrawable drawable;
@@ -468,23 +500,27 @@ namespace LibreLancer
 			{
 				drawable = Utf.UtfLoader.LoadDrawable(filename, this);
                 if(drawable == null) {
-                    drawables.Add(filename, drawable);
+                    drawables.Add(filename, null);
                     return null;
                 }
-				drawable.Initialize(this);
 				if (drawable is CmpFile) /* Get Resources */
 				{
 					var cmp = (CmpFile)drawable;
 					if (cmp.MaterialLibrary != null) AddMaterials(cmp.MaterialLibrary, filename);
 					if (cmp.TextureLibrary != null) AddTextures(cmp.TextureLibrary, filename);
-					if (cmp.VMeshLibrary != null) AddMeshes(cmp.VMeshLibrary);
+					if (cmp.VMeshLibrary != null) AddMeshes(cmp.VMeshLibrary, loadMode, filename);
+                    foreach (var mdl in cmp.Models.Values) {
+                        if (mdl.MaterialLibrary != null) AddMaterials(mdl.MaterialLibrary, filename);
+                        if (mdl.TextureLibrary != null) AddTextures(mdl.TextureLibrary, filename);
+                        if (mdl.VMeshLibrary != null) AddMeshes(mdl.VMeshLibrary, loadMode, filename);
+                    }
 				}
 				if (drawable is ModelFile)
 				{
 					var mdl = (ModelFile)drawable;
 					if (mdl.MaterialLibrary != null) AddMaterials(mdl.MaterialLibrary, filename);
 					if (mdl.TextureLibrary != null) AddTextures(mdl.TextureLibrary, filename);
-					if (mdl.VMeshLibrary != null) AddMeshes(mdl.VMeshLibrary);
+					if (mdl.VMeshLibrary != null) AddMeshes(mdl.VMeshLibrary, loadMode, filename);
                 }
 				if (drawable is DfmFile)
 				{
@@ -497,7 +533,7 @@ namespace LibreLancer
 					var sph = (SphFile)drawable;
 					if (sph.MaterialLibrary != null) AddMaterials(sph.MaterialLibrary, filename);
 					if (sph.TextureLibrary != null) AddTextures(sph.TextureLibrary, filename);
-					if (sph.VMeshLibrary != null) AddMeshes(sph.VMeshLibrary);
+					if (sph.VMeshLibrary != null) AddMeshes(sph.VMeshLibrary, loadMode, filename);
                 }
                 drawable.ClearResources();
 				drawables.Add(filename, drawable);
@@ -520,14 +556,7 @@ namespace LibreLancer
             WhiteTexture.Dispose();
             GreyTexture.Dispose();
             //Vertex buffers
-            posResource.Dispose();
-            posColorResource.Dispose();
-            posColorTextureResource.Dispose();
-            posNormalResource.Dispose();
-            posNormalTextureResource.Dispose();
-            posNormalColorTextureResource.Dispose();
-            posNormalTextureTwoResource.Dispose();
-            posNormalDiffuseTextureTwoResource.Dispose();
+            vertexResourceAllocator.Dispose();
         }
 	}
 }

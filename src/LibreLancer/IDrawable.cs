@@ -7,7 +7,6 @@ namespace LibreLancer
 {
     public interface IDrawable
     {
-        void Initialize(ResourceManager cache);
         void ClearResources();
     }
 }

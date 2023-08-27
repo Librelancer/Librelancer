@@ -74,18 +74,20 @@ namespace LancerEdit
         {
             if (mdl.Levels.Length <= 0) return;
 			var lvl = mdl.Levels[0];
+            var msh = res.FindMesh(lvl.MeshCrc);
+            if (msh == null) return;
 			for (int i = lvl.StartMesh; i < (lvl.StartMesh + lvl.MeshCount); i++)
-			{
-				if (lvl.Mesh.Meshes[i].Material == null)
+            {
+                var mat = res.FindMaterial(msh.Meshes[i].MaterialCrc);
+				if (mat == null)
 				{
-					var str = "Material: 0x" + lvl.Mesh.Meshes[i].MaterialCrc.ToString("X");
+					var str = "Material: 0x" + msh.Meshes[i].MaterialCrc.ToString("X");
 					if (!HasMissing(missing, str)) missing.Add(new MissingReference(str, string.Format("{0}, VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i)));
 				}
 				else
 				{
-					if (!matrefs.Contains(lvl.Mesh.Meshes[i].MaterialCrc)) matrefs.Add(lvl.Mesh.Meshes[i].MaterialCrc);
-					var m = lvl.Mesh.Meshes[i].Material;
-					DoMaterialRefs(m, res, missing, texrefs, string.Format(" - {0} VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i));
+					if (!matrefs.Contains(msh.Meshes[i].MaterialCrc)) matrefs.Add(msh.Meshes[i].MaterialCrc);
+					DoMaterialRefs(mat, res, missing, texrefs, string.Format(" - {0} VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i));
 				}
 			}
 		}

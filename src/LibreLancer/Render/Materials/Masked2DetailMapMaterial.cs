@@ -22,8 +22,8 @@ namespace LibreLancer.Render.Materials
 		public float TileRate1;
 		public int FlipU;
 		public int FlipV;
-        
-        public Masked2DetailMapMaterial(ILibFile library) : base(library) { }
+
+        public Masked2DetailMapMaterial(ResourceManager library) : base(library) { }
 
 
 		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

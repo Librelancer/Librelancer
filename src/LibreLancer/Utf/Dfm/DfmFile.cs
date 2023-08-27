@@ -15,10 +15,8 @@ namespace LibreLancer.Utf.Dfm
     /// <summary>
     /// Represents a UTF Deformable File (.dfm)
     /// </summary>
-    public class DfmFile : UtfFile, ILibFile, IDrawable
+    public class DfmFile : UtfFile, IDrawable
 	{
-		private ILibFile additionalLibrary;
-
 		public string Path { get; private set; }
 
         public MatFile MaterialLibrary;
@@ -44,9 +42,8 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
-		public DfmFile(IntermediateNode root, ILibFile additionalLibrary)
+		public DfmFile(IntermediateNode root)
 		{
-			this.additionalLibrary = additionalLibrary;
 			Levels = new Dictionary<int, DfmMesh>();
 
 			Bones = new Dictionary<string, Bone>();
@@ -61,7 +58,7 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				case "material library":
 					IntermediateNode materialLibraryNode = node as IntermediateNode;
-					if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode, this);
+					if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
 					else throw new Exception("Multiple material library nodes in dfm root");
 					break;
 				case "texture library":
@@ -79,7 +76,7 @@ namespace LibreLancer.Utf.Dfm
 
 							int level = 0;
 							if (!int.TryParse(meshNode.Name.Substring(4), out level)) throw new Exception("");
-							Levels.Add(level, new DfmMesh(meshNode, this, Parts));
+							Levels.Add(level, new DfmMesh(meshNode, Parts));
 						}
 						else if (multiLevelSubNode.Name.Equals("fractions", StringComparison.OrdinalIgnoreCase))
 						{
@@ -167,34 +164,7 @@ namespace LibreLancer.Utf.Dfm
 			if (Levels.ContainsKey (0))
 				Levels [0].Initialize (cache);
 		}
-        public Texture FindTexture(string name)
-		{
-			//if (TextureLibrary != null)
-			//{
-				//Texture texture = TextureLibrary.FindTexture(name);
-				//if (texture != null) return texture;
-			//}
-			if (additionalLibrary != null) return additionalLibrary.FindTexture(name);
-			return null;
-
-		}
-
-		public Material FindMaterial(uint materialId)
-		{
-			if (MaterialLibrary != null)
-			{
-				Material material = MaterialLibrary.FindMaterial(materialId);
-				if (material != null) return material;
-			}
-			if (additionalLibrary != null) return additionalLibrary.FindMaterial(materialId);
-			return null;
-		}
-
-		public VMeshData FindMesh(uint vMeshLibId)
-		{
-			return null;
-		}
-
+        
         public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material overrideMat = null)
 		{
 			Levels[0].DrawBuffer(buffer, world, light,overrideMat);		

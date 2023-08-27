@@ -378,19 +378,19 @@ public static class SurfaceBuilder
             {
                 missingHit++;
             }
-            face.Flag = type == 5 ? 1 : 0;
+            face.Flag = type == 5;
             face.Flags = type == 5
-                ? new Point3(1, 1, 1)
-                : new Point3(0, 0, 0);
-            face.Points.A = indices[edges[edgeCount].X];
+                ? new Point3<bool>(true, true, true)
+                : new Point3<bool>(false, false, false);
+            face.Points.A = (ushort)indices[edges[edgeCount].X];
             face.Shared.A = reversed[edgeCount];
             edgeCount++;
             
-            face.Points.B = indices[edges[edgeCount].X];
+            face.Points.B = (ushort)indices[edges[edgeCount].X];
             face.Shared.B = reversed[edgeCount];
             edgeCount++;
             
-            face.Points.C = indices[edges[edgeCount].X];
+            face.Points.C = (ushort)indices[edges[edgeCount].X];
             face.Shared.C = reversed[edgeCount];
             edgeCount++;
             surf.Faces.Add(face);

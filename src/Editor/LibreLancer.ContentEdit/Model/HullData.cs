@@ -12,10 +12,10 @@ class HullData
 
     public int FaceCount => Indices.Length / 3;
 
-    public Point3 GetFace(int faceIndex)
+    public Point3<int> GetFace(int faceIndex)
     {
         faceIndex *= 3;
-        return new Point3(Indices[faceIndex], Indices[faceIndex + 1], Indices[faceIndex + 2]);
+        return new Point3<int>(Indices[faceIndex], Indices[faceIndex + 1], Indices[faceIndex + 2]);
     }
 
     public Vector3 GetFaceNormal(int faceIndex)

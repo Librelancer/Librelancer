@@ -21,8 +21,7 @@ namespace LibreLancer
         uint VBO;
 		uint VAO;
         bool streaming;
-        int size;
-        public bool HasElements = false;
+        public bool HasElements => _elements != null;
 		Type type;
 		VertexDeclaration decl;
 		IVertexType vertextype;
@@ -61,7 +60,6 @@ namespace LibreLancer
 			GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
             if(isStream)
                 buffer = Marshal.AllocHGlobal(length * decl.Stride);
-            size = length;
 			decl.SetPointers ();
 			VertexCount = length;
         }
@@ -76,7 +74,6 @@ namespace LibreLancer
             GLBind.VertexArray(VAO);
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
             GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
-            size = length;
             decl.SetPointers();
             VertexCount = length;
         }
@@ -92,6 +89,23 @@ namespace LibreLancer
 			var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
 			GL.BufferSubData (GL.GL_ARRAY_BUFFER, (IntPtr)(s * decl.Stride), (IntPtr)(len * decl.Stride), handle.AddrOfPinnedObject());
 			handle.Free ();
+        }
+
+        public void Expand(int newSize)
+        {
+            if (newSize < VertexCount)
+                throw new InvalidOperationException();
+            var newHandle = GL.GenBuffer();
+            GL.BindBuffer(GL.GL_COPY_READ_BUFFER, VBO);
+            GL.BindBuffer(GL.GL_COPY_WRITE_BUFFER, newHandle);
+            GL.BufferData(GL.GL_COPY_WRITE_BUFFER, new IntPtr(newSize * decl.Stride), IntPtr.Zero, streaming ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW);
+            GL.CopyBufferSubData(GL.GL_COPY_READ_BUFFER, GL.GL_COPY_WRITE_BUFFER, IntPtr.Zero, IntPtr.Zero, (IntPtr)(VertexCount * decl.Stride));
+            GL.DeleteBuffer(VBO);
+            VBO = newHandle;
+            GLBind.VertexArray(VAO);
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
+            decl.SetPointers();
+            VertexCount = newSize;
         }
 
 		public void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount)
@@ -110,6 +124,20 @@ namespace LibreLancer
 			TotalDrawcalls++;
 		}
 
+        public unsafe void DrawImmediateElements(PrimitiveTypes primitiveTypes, int baseVertex, ReadOnlySpan<ushort> elements)
+        {
+            if (elements.Length == 0) throw new InvalidOperationException("elements length can't be 0");
+            RenderContext.Instance.Apply();
+            GLBind.VertexArray(VAO);
+            var eb = GL.GenBuffer();
+            GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, eb);
+            fixed (ushort* ptr = &elements.GetPinnableReference())
+                GL.BufferData(GL.GL_ELEMENT_ARRAY_BUFFER, (IntPtr)(elements.Length * 2), (IntPtr)ptr, GL.GL_STREAM_DRAW);
+            GL.DrawElementsBaseVertex(primitiveTypes.GLType(),elements.Length, GL.GL_UNSIGNED_SHORT, IntPtr.Zero, baseVertex);
+            GL.DeleteBuffer(eb);
+            GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, _elements?.Handle ?? 0);
+        }
+
         const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT;
         private IntPtr buffer;
         public IntPtr BeginStreaming()
@@ -125,7 +153,7 @@ namespace LibreLancer
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
             if (count == 0) return;
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
-            GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(size * decl.Stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
+            GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(VertexCount * decl.Stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
             GL.BufferSubData(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr) (count * decl.Stride), buffer);
         }
 
@@ -133,6 +161,7 @@ namespace LibreLancer
         {
             GLBind.VertexArray(VAO);
         }
+
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
             if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
@@ -184,23 +213,29 @@ namespace LibreLancer
 			}
 			TotalDrawcalls++;
 		}
+
         public void SetElementBuffer(ElementBuffer elems)
         {
 			GLBind.VertexArray (VAO);
             GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, elems.Handle);
-
-			HasElements = true;
-			_elements = elems;
-            elems.VertexBuffer = this;
+            _elements = elems;
+            elems.VertexBuffers.Add(this);
         }
+
+        internal void RefreshElementBuffer()
+        {
+            GLBind.VertexArray (VAO);
+            GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, _elements.Handle);
+        }
+
 		public void UnsetElementBuffer()
 		{
 			GLBind.VertexArray(VAO);
 			GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
-			HasElements = false;
+            _elements.VertexBuffers.Remove(this);
 			_elements = null;
-            _elements.VertexBuffer = null;
 		}
+
         public void Dispose()
         {
             if (isDisposed) return;

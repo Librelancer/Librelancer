@@ -29,6 +29,11 @@ namespace LibreLancer
 
             return theStructure;
         }
+
+        public static void Skip(this BinaryReader reader, int size)
+        {
+            reader.BaseStream.Seek(size, SeekOrigin.Current);
+        }
     }
 }
 

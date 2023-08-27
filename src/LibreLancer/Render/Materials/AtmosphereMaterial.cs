@@ -20,8 +20,8 @@ namespace LibreLancer.Render.Materials
 		public float Alpha;
 		public float Fade; //TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
 		public float Scale;
-        
-        public AtmosphereMaterial(ILibFile library) : base(library) { }
+
+        public AtmosphereMaterial(ResourceManager library) : base(library) { }
 
 
 

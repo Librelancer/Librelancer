@@ -13,15 +13,15 @@ public class SunSpineMaterial : RenderMaterial
 
     public Vector2 SizeMultiplier;
     public string Texture;
-    
-    
+
+
     static SunSpineMaterial()
     {
         shader = Shaders.SunSpine.Get();
         _sizeMultiplier = shader.Shader.GetLocation("SizeMultiplier");
     }
-    
-    public SunSpineMaterial(ILibFile library) : base(library) { }
+
+    public SunSpineMaterial(ResourceManager library) : base(library) { }
 
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

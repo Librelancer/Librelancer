@@ -27,7 +27,7 @@ namespace LibreLancer.Interface
         {
             this.target = target;
         }
-        
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
@@ -45,7 +45,15 @@ namespace LibreLancer.Interface
         {
             if (target.Model.Source == RigidModelSource.Sphere)
             {
-                DrawVMeshWire(context, sphereWireframe, target.Matrix);
+                var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+                for (int i = 0; i < sphereWireframe.Length / 2; i++)
+                {
+                    context.Lines.DrawLine(
+                        Vector3.Transform(sphereWireframe[i * 2],target.Matrix),
+                        Vector3.Transform(sphereWireframe[i * 2 + 1],target.Matrix),
+                        color
+                    );
+                }
             }
             else
             {
@@ -53,24 +61,20 @@ namespace LibreLancer.Interface
                 {
                     if (part.Wireframe != null)
                     {
-                        DrawVMeshWire(context, part.Wireframe.Lines, part.LocalTransform * target.Matrix);
+                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform * target.Matrix);
                     }
                 }
             }
         }
-        void DrawVMeshWire(UiContext context, Vector3[] wires, Matrix4x4 mat)
+
+        void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
         {
-            var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime); 
-            for (int i = 0; i < wires.Length / 2; i++)
-            {
-                context.Lines.DrawLine(
-                    Vector3.Transform(wires[i * 2],mat),
-                    Vector3.Transform(wires[i * 2 + 1],mat),
-                    color
-                );
-            }
+            var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
+            if(mesh != null)
+                context.Lines.DrawVWire(wire, mesh.VertexResource, mat, color);
         }
-        
+
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
             float zoom;

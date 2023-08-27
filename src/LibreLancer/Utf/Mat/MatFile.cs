@@ -11,23 +11,18 @@ using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Mat
 {
-	public class MatFile : UtfFile, ILibFile
-	{
-		private ILibFile additionalTextureLibrary;
+	public class MatFile : UtfFile
+    {
 
-		public Dictionary<uint, Material> Materials { get; private set; }
+        public Dictionary<uint, Material> Materials { get; private set; } = new ();
 
 		public TxmFile TextureLibrary { get; private set; }
 
-		public MatFile (ILibFile additionalTextureLibrary)
+		public MatFile ()
 		{
-			this.additionalTextureLibrary = additionalTextureLibrary;
-
-			Materials = new Dictionary<uint, Material> ();
 		}
 
-		public MatFile (IntermediateNode materialLibraryNode, ILibFile additionalTextureLibrary)
-			: this (additionalTextureLibrary)
+		public MatFile (IntermediateNode materialLibraryNode)
 		{
 			setMaterials (materialLibraryNode);
 		}
@@ -42,8 +37,8 @@ namespace LibreLancer.Utf.Mat
                     {
                         try
                         {
-                            var mat = Material.FromNode(materialNode as IntermediateNode, this);
-                            Materials.Add (materialId, Material.FromNode (materialNode as IntermediateNode, this));
+                            var mat = Material.FromNode(materialNode as IntermediateNode);
+                            Materials.Add (materialId, Material.FromNode (materialNode as IntermediateNode));
                         }
                         catch (Exception e)
                         {
@@ -53,23 +48,5 @@ namespace LibreLancer.Utf.Mat
 				}
             }
         }
-
-		public Texture FindTexture (string name)
-		{
-			return additionalTextureLibrary.FindTexture (name);
-		}
-
-		public Material FindMaterial (uint materialId)
-		{
-			if (Materials.ContainsKey (materialId))
-				return Materials [materialId];
-
-			return null;
-		}
-
-		public VMeshData FindMesh (uint vMeshLibId)
-		{
-			return null;
-		}
 	}
 }

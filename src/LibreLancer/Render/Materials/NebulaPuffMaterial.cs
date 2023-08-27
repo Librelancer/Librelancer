@@ -18,8 +18,8 @@ public class NebulaPuffMaterial : RenderMaterial
         shader = Shaders.NebulaExtPuff.Get();
         _fogFactor = shader.Shader.GetLocation("FogFactor");
     }
-    
-    public NebulaPuffMaterial(ILibFile library) : base(library) { }
+
+    public NebulaPuffMaterial(ResourceManager library) : base(library) { }
 
 
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

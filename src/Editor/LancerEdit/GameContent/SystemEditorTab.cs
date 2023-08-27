@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -149,6 +150,20 @@ public class SystemEditorTab : GameContentTab
     {
         PanelWithProperties("##zones", () =>
         {
+            if (ImGui.Button("New Zone"))
+            {
+                popups.OpenPopup(new NicknameInputPopup("New Zone", "", ZoneList.ZoneExists, n =>
+                {
+                    var rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
+                              Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
+                    var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+                    var to = viewport.CameraOffset + (dir * 50);
+                    var z = new Zone() {Nickname = n, Position = to};
+                    z.Shape = new ZoneSphere(z, 50);
+                    ZoneList.Selected = ZoneList.AddZone(z);
+                }));
+            }
+            ImGui.SameLine();
             if (ImGui.Button("Show All"))
                 ZoneList.ShowAll();
             ImGui.SameLine();
@@ -699,7 +714,7 @@ public class SystemEditorTab : GameContentTab
 
     void LightsPanel()
     {
-        
+
     }
 
     void MusicProp(string name, string arg, Action<string> onSet)
@@ -747,21 +762,21 @@ public class SystemEditorTab : GameContentTab
         {
             var mdl = SystemData.StarsBasic.LoadFile(Data.Resources);
             if (mdl is IRigidModelFile rm)
-                models.Add(rm.CreateRigidModel(true));
+                models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
         if (SystemData.StarsComplex != null)
         {
             var mdl = SystemData.StarsComplex.LoadFile(Data.Resources);
             if (mdl is IRigidModelFile rm)
-                models.Add(rm.CreateRigidModel(true));
+                models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
         if (SystemData.StarsNebula != null)
         {
             var mdl = SystemData.StarsNebula.LoadFile(Data.Resources);
             if (mdl is IRigidModelFile rm)
-                models.Add(rm.CreateRigidModel(true));
+                models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
         renderer.StarSphereModels = models.ToArray();
@@ -920,7 +935,7 @@ public class SystemEditorTab : GameContentTab
             }
         }
     }
-    
+
     private static readonly Regex endNumbers = new Regex(@"(\d+)$", RegexOptions.Compiled);
 
     static string MakeCopyNickname(string nickname)

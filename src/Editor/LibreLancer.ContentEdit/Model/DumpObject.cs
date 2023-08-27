@@ -43,15 +43,13 @@ namespace LibreLancer.ContentEdit.Model
         {
             var writer = new StringWriter();
             writer.WriteLine("---- HEADER ----\n");
-            writer.WriteLine("Mesh Type                 = {0}", vms.MeshType);
-            writer.WriteLine("Surface Type              = {0}", vms.SurfaceType);
-            writer.WriteLine("Number of Meshes          = {0}", vms.MeshCount);
-            writer.WriteLine("Total referenced vertices = {0}", vms.IndexCount);
+            writer.WriteLine("Number of Meshes          = {0}", vms.Meshes.Length);
+            writer.WriteLine("Total referenced vertices = {0}", vms.Indices.Length);
             writer.WriteLine("Flexible Vertex Format    = 0x{0}", ((int)vms.OriginalFVF).ToString("X"));
             writer.WriteLine("Total number of vertices  = {0}", vms.VertexCount);
             writer.WriteLine("\n---- MESHES ----\n");
             writer.WriteLine("Mesh Number  MaterialID  Start Vertex  End Vertex  Start Triangle  NumRefVertex");
-            for (int i = 0; i < vms.MeshCount; i++)
+            for (int i = 0; i < vms.Meshes.Length; i++)
             {
                 var m = vms.Meshes[i];
                 writer.WriteLine("{0}  {1}  {2}  {3}  {4}  {5}",
@@ -64,7 +62,7 @@ namespace LibreLancer.ContentEdit.Model
             }
             writer.WriteLine("\n---- Triangles ----\n");
             writer.WriteLine("Triangle  Vertex 1  Vertex 2  Vertex 3");
-            for (int i = 0; i < vms.IndexCount; i += 3)
+            for (int i = 0; i < vms.Indices.Length; i += 3)
             {
                 writer.WriteLine("{0}  {1}  {2}  {3}",
                     (i / 3).ToString().PadLeft(8),
@@ -139,10 +137,25 @@ namespace LibreLancer.ContentEdit.Model
                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.X),
                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.Y),
                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.Z),
-                        " " + vms.Diffuse[i].ToString("XXXXXXXX"),
+                        " " + vms.verticesVertexPositionNormalDiffuseTexture[i].Diffuse.ToString("XXXXXXXX"),
                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].TextureCoordinate.X),
                         FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].TextureCoordinate.Y));
-                if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null) { }
+                if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null)
+                {
+                    writer.WriteLine("{0}{1},{2},{3},    {4},    {5},   {6},    {7},    {8},   {9},   {10},   {11}",
+                        i.ToString().PadLeft(6),
+                        vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Position.X.ToString().PadLeft(13),
+                        vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Position.Y.ToString().PadLeft(12),
+                        vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Position.Z.ToString().PadLeft(12),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Normal.X),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Normal.Y),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Normal.Z),
+                        " " + vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Diffuse.ToString("XXXXXXXX"),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinate.X),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinate.Y),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinateTwo.X),
+                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinateTwo.Y));
+                }
             }
 
             return writer.ToString();

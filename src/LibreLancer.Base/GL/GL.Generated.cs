@@ -105,6 +105,7 @@ namespace LibreLancer
         private static delegate* unmanaged<int> _glGetError;
         private static delegate* unmanaged<IntPtr,IntPtr,void> _glDebugMessageCallback;
         private static delegate* unmanaged<int,int,int,int,IntPtr,int,void> _glDebugMessageControl;
+        private static delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, void> _glCopyBufferSubData;
         
         public static void Load(Func<string,IntPtr> getProcAddress, bool isGles)
         {
@@ -206,6 +207,7 @@ namespace LibreLancer
             _glGetError = (delegate* unmanaged<int>)getProcAddress("glGetError");
             _glDebugMessageCallback = (delegate* unmanaged<IntPtr,IntPtr,void>)getProcAddress("glDebugMessageCallback");
             _glDebugMessageControl = (delegate* unmanaged<int,int,int,int,IntPtr,int,void>)getProcAddress("glDebugMessageControl");
+            _glCopyBufferSubData = (delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, void>) getProcAddress("glCopyBufferSubData");
         }
         public static void Enable(int flags)
         {
@@ -566,6 +568,13 @@ namespace LibreLancer
         public static void BufferSubData(int target, IntPtr offset, IntPtr size, IntPtr data)
         {
             _glBufferSubData(target, offset, size, data);
+            ErrorCheck();
+        }
+
+        public static void CopyBufferSubData(int readtarget, int writetarget, IntPtr readoffset, IntPtr writeoffset,
+            IntPtr size)
+        {
+            _glCopyBufferSubData(readtarget, writetarget, readoffset, writeoffset, size);
             ErrorCheck();
         }
         public static void GenVertexArrays(int n, out uint arrays)

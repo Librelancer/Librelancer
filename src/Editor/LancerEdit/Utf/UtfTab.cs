@@ -50,7 +50,7 @@ namespace LancerEdit
         {
             Title = DocumentName;
         }
-     
+
         ImGuiTreeNodeFlags tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
         TextBuffer text;
 
@@ -82,7 +82,7 @@ namespace LancerEdit
             var path = "/" + string.Join("/", strings);
             return path;
         }
-        
+
 
         public override void Draw(double elapsed)
         {
@@ -145,7 +145,6 @@ namespace LancerEdit
                     try
                     {
                         drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
-                        drawable.Initialize(main.Resources);
                         if(Utf.Root.Children.Any((x) => x.Name.Equals("cmpnd",StringComparison.OrdinalIgnoreCase))) {
                             foreach(var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))) {
                                 var n = new ModelHpNode();
@@ -170,7 +169,7 @@ namespace LancerEdit
                         main.AddTab(new ModelViewer(DocumentName, drawable, main, this,hpn));
                     }
                 }
-                
+
                 if (tb.ButtonItem("View Ale"))
                 {
                     AleFile ale = null;
@@ -214,10 +213,10 @@ namespace LancerEdit
                     main.Resources.AddResources(Utf.Export(), Unique.ToString());
                 }
             }
-           
+
             Popups();
         }
-       
+
         unsafe int DummyCallback(ImGuiInputTextCallbackData* data)
         {
             return 0;
@@ -271,7 +270,7 @@ namespace LancerEdit
                                 jointViews.Add(jmv);
                         };
                     }
-                    
+
                     if (selectedNode.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
                     {
                         if (ImGui.Button("View Object Map"))
@@ -406,7 +405,7 @@ namespace LancerEdit
                         {
                             var tab = new TextureViewer(title, tex2d, null);
                             main.AddTab(tab);
-                        } 
+                        }
                         else if (tex is TextureCube texcube)
                         {
                             var tab = new CubemapViewer(title, texcube, main);
@@ -460,7 +459,7 @@ namespace LancerEdit
                     LibreLancer.Utf.Vms.VMeshData dat = null;
                     try
                     {
-                        dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data), new EmptyLib(), "");
+                        dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data),  "");
                     }
                     catch (Exception ex)
                     {
@@ -470,16 +469,16 @@ namespace LancerEdit
                     if (dat != null)
                     {
                         main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshData(dat), selectedNode.Name + ".txt"));
-                    }   
+                    }
                 }
-                
+
                 if (selectedNode.Name.ToLowerInvariant() == "vmeshref" &&
                     ImGui.Button("View VMeshRef"))
                 {
                     LibreLancer.Utf.Cmp.VMeshRef dat = null;
                     try
                     {
-                        dat = new LibreLancer.Utf.Cmp.VMeshRef(new ArraySegment<byte>(selectedNode.Data), new EmptyLib());
+                        dat = new LibreLancer.Utf.Cmp.VMeshRef(new ArraySegment<byte>(selectedNode.Data));
                     }
                     catch (Exception ex)
                     {
@@ -489,7 +488,7 @@ namespace LancerEdit
                     if (dat != null)
                     {
                         main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshRef(dat), selectedNode.Name + ".txt"));
-                    }   
+                    }
                 }
             }
             else

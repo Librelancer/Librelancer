@@ -20,8 +20,8 @@ namespace LibreLancer.Render.Materials
 		public int FlipV;
 		public float TileRate;
 
-		public DetailMap2Dm1Msk2PassMaterial (ILibFile library) : base(library) { }
-        
+		public DetailMap2Dm1Msk2PassMaterial (ResourceManager library) : base(library) { }
+
         public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.DepthEnabled = true;

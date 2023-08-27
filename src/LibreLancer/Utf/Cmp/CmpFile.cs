@@ -16,10 +16,8 @@ namespace LibreLancer.Utf.Cmp
     /// <summary>
     /// Represents a UTF Compound File (.cmp)
     /// </summary>
-    public class CmpFile : UtfFile, IRigidModelFile, ILibFile
+    public class CmpFile : UtfFile, IRigidModelFile
     {
-        private ILibFile additionalLibrary;
-
         public string Path { get; set; }
 
         public VmsFile VMeshLibrary { get; private set; }
@@ -33,7 +31,7 @@ namespace LibreLancer.Utf.Cmp
         public Dictionary<string, ModelFile> Models { get; private set; }
         public Dictionary<string, CmpCameraInfo> Cameras { get; private set; }
 
-        public CmpFile(string path, ILibFile additionalLibrary) : this(parseFile(path), additionalLibrary)
+        public CmpFile(string path) : this(parseFile(path))
 		{
 			Path = path;
 		}
@@ -49,15 +47,13 @@ namespace LibreLancer.Utf.Cmp
             return null;
         }
 
-        public CmpFile(IntermediateNode rootnode, ILibFile additionalLibrary)
+        public CmpFile(IntermediateNode rootnode)
         {
-            this.additionalLibrary = additionalLibrary;
-
             Models = new Dictionary<string, ModelFile>();
             Cameras = new Dictionary<string, CmpCameraInfo>();
             Constructs = new ConstructCollection();
             Parts = new List<Part>();
-            List<string> modelNames = new List<string>(); 
+            List<string> modelNames = new List<string>();
 			foreach (Node node in rootnode)
             {
                 switch (node.Name.ToLowerInvariant())
@@ -66,7 +62,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "vmeshlibrary":
                         IntermediateNode vMeshLibraryNode = node as IntermediateNode;
-                        if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode, this);
+                        if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode);
                         else throw new Exception("Multiple vmeshlibrary nodes in cmp root");
                         break;
                     case "animation":
@@ -76,7 +72,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "material library":
                         IntermediateNode materialLibraryNode = node as IntermediateNode;
-                        if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode, this);
+                        if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
                         else throw new Exception("Multiple material library nodes in cmp root");
                         break;
                     case "texture library":
@@ -113,7 +109,7 @@ namespace LibreLancer.Utf.Cmp
                                             break;
 										case "index":
                                             break;
-                                        default: 
+                                        default:
                                             FLLog.Error("Cmp","Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
                                             break;
                                     }
@@ -133,7 +129,7 @@ namespace LibreLancer.Utf.Cmp
                             if(im.Any(x => x.Name.Equals("vmeshpart",StringComparison.OrdinalIgnoreCase) ||
                                 x.Name.Equals("multilevel",StringComparison.OrdinalIgnoreCase)))
                             {
-                                ModelFile m = new ModelFile(im, this);
+                                ModelFile m = new ModelFile(im);
                                 m.Path = node.Name;
                                 Models.Add(node.Name, m);
                                 modelNames.Add(node.Name);
@@ -158,34 +154,7 @@ namespace LibreLancer.Utf.Cmp
             foreach (var b in broken) Parts.Remove(b);
         }
 
-		public void Initialize(ResourceManager cache)
-        {
-            foreach (var part in Parts) part.Initialize(cache);
-        }
-        
-        public Texture FindTexture(string name)
-        {
-           	return additionalLibrary.FindTexture(name);
-        }
-
-        public Material FindMaterial(uint materialId)
-        {
-           	return additionalLibrary.FindMaterial(materialId);
-        }
-
-        
-        public VMeshData FindMesh(uint vMeshLibId)
-        {
-            if (VMeshLibrary != null)
-            {
-                VMeshData mesh = VMeshLibrary.FindMesh(vMeshLibId);
-                if (mesh != null) return mesh;
-            }
-            if (additionalLibrary != null) return additionalLibrary.FindMesh(vMeshLibId);
-            return null;
-        }
-
-        public RigidModel CreateRigidModel(bool drawable)
+        public RigidModel CreateRigidModel(bool drawable, ResourceManager resources)
         {
             var mdl = new RigidModel() {Path = Path, Source = RigidModelSource.Compound};
             mdl.Parts = new Dictionary<string, RigidModelPart>(StringComparer.OrdinalIgnoreCase);
@@ -194,7 +163,7 @@ namespace LibreLancer.Utf.Cmp
             foreach (var p in Parts)
             {
                 if (p.Camera != null) continue;
-                var mdlPart = p.Model.CreatePart(drawable);
+                var mdlPart = p.Model.CreatePart(drawable, resources);
                 mdlPart.Name = p.ObjectName;
                 mdlPart.Path = p.FileName;
                 if (p.Construct != null)

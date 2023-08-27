@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Vms
     /// <summary>
     /// Represents a VMesh (.vms) file
     /// </summary>
-    public class VmsFile : UtfFile, ILibFile
+    public class VmsFile : UtfFile
     {
         public Dictionary<uint, VMeshData> Meshes { get; private set; }
 
@@ -21,7 +21,7 @@ namespace LibreLancer.Utf.Vms
             Meshes = new Dictionary<uint, VMeshData>();
         }
 
-        public VmsFile(string path, ILibFile materialLibrary)
+        public VmsFile(string path)
             : this()
         {
             foreach (IntermediateNode node in parseFile(path))
@@ -30,7 +30,7 @@ namespace LibreLancer.Utf.Vms
                 {
                     case "vmeshlibrary":
                         IntermediateNode vMeshLibrary = node as IntermediateNode;
-                        setMeshes(vMeshLibrary, materialLibrary);
+                        setMeshes(vMeshLibrary);
                         break;
                     default:
                         throw new Exception("Invalid node in vms root: " + node.Name);
@@ -38,13 +38,13 @@ namespace LibreLancer.Utf.Vms
             }
         }
 
-        public VmsFile(IntermediateNode vMeshLibrary, ILibFile materialLibrary)
+        public VmsFile(IntermediateNode vMeshLibrary)
             : this()
         {
-            setMeshes(vMeshLibrary, materialLibrary);
+            setMeshes(vMeshLibrary);
         }
 
-        private void setMeshes(IntermediateNode vMeshLibrary, ILibFile materialLibrary)
+        private void setMeshes(IntermediateNode vMeshLibrary)
         {
             foreach (IntermediateNode vmsNode in vMeshLibrary)
             {
@@ -61,27 +61,9 @@ namespace LibreLancer.Utf.Vms
                 }
                 else
                 {
-                    Meshes.Add(CrcTool.FLModelCrc(vmsNode.Name),
-                        new VMeshData(vmsdat.DataSegment, materialLibrary, vmsNode.Name));
+                    Meshes.Add(CrcTool.FLModelCrc(vmsNode.Name), new VMeshData(vmsdat.DataSegment, vmsNode.Name));
                 }
             }
-        }
-
-        public Texture FindTexture(string name)
-        {
-            return null;
-        }
-
-        public Material FindMaterial(uint materialId)
-        {
-            return null;
-        }
-
-        public VMeshData FindMesh(uint vMeshLibId)
-        {
-            if (Meshes.ContainsKey(vMeshLibId)) return Meshes[vMeshLibId];
-
-            return null;
         }
     }
 }

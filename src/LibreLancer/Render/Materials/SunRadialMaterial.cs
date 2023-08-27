@@ -16,16 +16,16 @@ public class SunRadialMaterial : RenderMaterial
     public float OuterAlpha;
     public bool Additive;
     public string Texture;
-    
-    
+
+
     static SunRadialMaterial()
     {
         shader = Shaders.SunRadial.Get();
         _sizeMultiplier = shader.Shader.GetLocation("SizeMultiplier");
         _outerAlpha = shader.Shader.GetLocation("outerAlpha");
     }
-    
-    public SunRadialMaterial(ILibFile library) : base(library) { }
+
+    public SunRadialMaterial(ResourceManager library) : base(library) { }
 
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

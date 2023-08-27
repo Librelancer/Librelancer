@@ -13,7 +13,7 @@ namespace LancerEdit.Materials
 	public class NormalDebugMaterial : RenderMaterial
 	{
 
-        public NormalDebugMaterial(ILibFile library) : base(library) { }
+        public NormalDebugMaterial(ResourceManager library) : base(library) { }
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{

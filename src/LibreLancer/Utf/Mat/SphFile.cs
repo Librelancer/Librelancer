@@ -9,21 +9,19 @@ using System.Numerics;
 using LibreLancer.Utf.Vms;
 
 using LibreLancer.Primitives;
+using LibreLancer.Render;
 using LibreLancer.World;
 
 namespace LibreLancer.Utf.Mat
 {
-   
+
     /// <summary>
     /// Represents a UTF Sphere File (.sph)
     /// </summary>
     public class SphFile : UtfFile, IRigidModelFile
     {
-        private QuadSphere sphere;
-		
-		private bool ready;
 
-        private ILibFile library;
+        private ResourceManager library;
 
 		public MatFile MaterialLibrary;
 		public TxmFile TextureLibrary;
@@ -76,7 +74,7 @@ namespace LibreLancer.Utf.Mat
                     sph.sideMaterials[i] = value;
                 }
             }
-           
+
         }
 
         SphMaterials materialsAccessor;
@@ -89,13 +87,12 @@ namespace LibreLancer.Utf.Mat
 				return sideMaterialNames;
 			}
 		}
-        public SphFile(IntermediateNode root, ILibFile library, string path = "/")
+        public SphFile(IntermediateNode root, ResourceManager library, string path = "/")
         {
             if (root == null) throw new ArgumentNullException("root");
             if (library == null) throw new ArgumentNullException("materialLibrary");
 
             materialsAccessor = new SphMaterials(this);
-            ready = false;
 
 			this.library = library;
             sideMaterialNames = new List<string>();
@@ -125,12 +122,12 @@ namespace LibreLancer.Utf.Mat
 						break;
 					case "vmeshlibrary":
 						IntermediateNode vMeshLibraryNode = node as IntermediateNode;
-						if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode, library);
+						if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode);
 						else throw new Exception("Multiple vmeshlibrary nodes in 3db root");
 						break;
 					case "material library":
 						IntermediateNode materialLibraryNode = node as IntermediateNode;
-						if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode, library);
+						if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
 						else throw new Exception("Multiple material library nodes in 3db root");
 						break;
 					case "texture library":
@@ -146,17 +143,7 @@ namespace LibreLancer.Utf.Mat
                 FLLog.Warning("Sph", $"Sph {path} does not contain all 6 sides and will not render");
             }
         }
-		Material defaultMaterial;
-		public void Initialize(ResourceManager cache)
-        {
-            if (SideMaterials.Length >= 6)
-            {
-                sphere = cache.GetQuadSphere(RenderContext.GLES ? 26 : 32);
-                defaultMaterial = cache.DefaultMaterial;
-                ready = true;
-            }
-        }
-        
+
         static CubeMapFace[] faces = new CubeMapFace[] {
 			CubeMapFace.PositiveZ,
 			CubeMapFace.PositiveX,
@@ -165,28 +152,29 @@ namespace LibreLancer.Utf.Mat
 			CubeMapFace.PositiveY,
 			CubeMapFace.NegativeY
 		};
-        
-        public RigidModel CreateRigidModel(bool drawable)
+
+        public RigidModel CreateRigidModel(bool drawable, ResourceManager resources)
         {
             var model = new RigidModel() {Source = RigidModelSource.Sphere};
             var part = new RigidModelPart();
             var dcs = new List<MeshDrawcall>();
-            var scale = Matrix4x4.CreateScale(Radius);
+
+            var vmesh = new VisualMesh();
+            vmesh.Radius = Radius;
+            vmesh.BoundingBox = BoundingBox.CreateFromSphere(new BoundingSphere(Vector3.Zero, Radius));;
             if (drawable && SideMaterials.Length >= 6)
             {
+                var sphere = resources.GetQuadSphere(RenderContext.GLES ? 26 : 32);
                 for (int i = 0; i < 6; i++)
                 {
                     int start, count;
                     Vector3 pos;
                     sphere.GetDrawParameters(faces[i], out start, out count, out pos);
                     var dc = new MeshDrawcall();
-                    dc.Buffer = sphere.VertexBuffer;
                     dc.MaterialCrc = CrcTool.FLModelCrc(sideMaterialNames[i]);
                     dc.BaseVertex = 0;
                     dc.StartIndex = start;
                     dc.PrimitiveCount = count;
-                    dc.HasScale = true;
-                    dc.Scale = scale;
                     dcs.Add(dc);
                 }
 
@@ -199,21 +187,24 @@ namespace LibreLancer.Utf.Mat
                         Vector3 pos;
                         sphere.GetDrawParameters(faces[i], out start, out count, out pos);
                         var dc = new MeshDrawcall();
-                        dc.Buffer = sphere.VertexBuffer;
                         dc.MaterialCrc = crc;
                         dc.BaseVertex = 0;
                         dc.StartIndex = start;
                         dc.PrimitiveCount = count;
-                        dc.HasScale = true;
-                        dc.Scale = scale;
                         dcs.Add(dc);
                     }
                 }
+                vmesh.Levels = new[]
+                {
+                    new MeshLevel()
+                    {
+                        Drawcalls = dcs.ToArray(),
+                        Scale = Radius,
+                        Resource = new VMeshResource() {VertexResource = new VertexResource(sphere.VertexBuffer)}
+                    }
+                };
             }
-            var vmesh = new VisualMesh();
-            vmesh.Radius = Radius;
-            vmesh.BoundingBox = BoundingBox.CreateFromSphere(new BoundingSphere(Vector3.Zero, Radius));
-            vmesh.Levels = new[] {dcs.ToArray()};
+
             part.Hardpoints = new List<Hardpoint>();
             part.Mesh = vmesh;
             model.Root = part;

@@ -36,7 +36,7 @@ namespace LibreLancer.Render
         //Editor Options
         public bool DrawNebulae = true;
         public bool DrawStarsphere = true;
-        
+
         //Global Renderer Options
 		public bool ExtraLights = false; //See comments in Draw() before enabling
 
@@ -54,7 +54,7 @@ namespace LibreLancer.Render
 		RenderContext rstate;
 		Game game;
 		Texture2D dot;
-        
+
         public int ZoneVersion = 0;
 
 		//Fancy Forward+ stuff (GL 4.3 up)
@@ -84,7 +84,7 @@ namespace LibreLancer.Render
         public IRendererSettings Settings;
         Billboards billboards;
         ResourceManager resman;
-        
+
 
         public ResourceManager ResourceManager
         {
@@ -151,7 +151,7 @@ namespace LibreLancer.Render
                 if (mdl == null) return;
                 var loaded = (mdl.LoadFile(resman) as IRigidModelFile);
                 if (loaded == null) return;
-                starSphereRenderData.Add(loaded.CreateRigidModel(true));
+                starSphereRenderData.Add(loaded.CreateRigidModel(true, resman));
             }
             AddModel(system.StarsBasic);
             AddModel(system.StarsComplex);
@@ -167,7 +167,7 @@ namespace LibreLancer.Render
             foreach (var lt in system.LightSources)
                 SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
         }
-        
+
 
 		public void LoadSystem(StarSystem system)
 		{
@@ -226,7 +226,7 @@ namespace LibreLancer.Render
 		//TODO: Allow for cubic / IGraph attenuation
 		public void PointLightDX(Vector3 position, float range, Color4 color, Vector3 attenuation)
 		{
-			if (!GLExtensions.Features430 || !ExtraLights) 
+			if (!GLExtensions.Features430 || !ExtraLights)
 				return;
 			var lt = new PointLight();
 			lt.Position = new Vector4(position, 1);
@@ -274,7 +274,7 @@ namespace LibreLancer.Render
         public bool ZOverride = false; // Stop Thn Camera from changing Z
 		public unsafe void Draw(int renderWidth, int renderHeight)
 		{
-            if (renderWidth == 0 || renderHeight == 0) 
+            if (renderWidth == 0 || renderHeight == 0)
                 //Don't render on Width/Height = 0
                 return;
             RenderTarget restoreTarget = rstate.RenderTarget;
@@ -334,7 +334,7 @@ namespace LibreLancer.Render
 			}
 			else
             {
-                rstate.ClearColor = 
+                rstate.ClearColor =
                     BackgroundOverride ??
                     starSystem?.BackgroundColor ??
                     NullColor;
@@ -348,7 +348,7 @@ namespace LibreLancer.Render
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
 			billboards.Begin(camera, commands);
-			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete						  
+			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete
 			if (GLExtensions.Features430 && ExtraLights)
 			{
 				//Forward+ heck yeah!
@@ -374,8 +374,8 @@ namespace LibreLancer.Render
 					_theight = tilesH;
 					//if (opaqueLightBuffer != null) opaqueLightBuffer.Dispose();
 					if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
-					//opaqueLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int)); 
-					transparentLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int)); 
+					//opaqueLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int));
+					transparentLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int));
 				}
 				//Depth
 				if (_dwidth != Game.Width || _dheight != Game.Height)

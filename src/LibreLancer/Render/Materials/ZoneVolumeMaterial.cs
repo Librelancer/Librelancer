@@ -14,8 +14,8 @@ namespace LibreLancer.Render.Materials
         public Color4 Dc = Color4.White;
         public float RadiusRatio;
 
-        public ZoneVolumeMaterial(ILibFile library) : base(library) { }
-        
+        public ZoneVolumeMaterial(ResourceManager library) : base(library) { }
+
         public override void ApplyDepthPrepass(RenderContext rstate)
         {
             throw new InvalidOperationException();

@@ -27,11 +27,11 @@ namespace LibreLancer.Render.Materials
 		public string EtSampler;
 		public SamplerFlags EtFlags;
 
-		public BasicMaterial(string type, ILibFile library) : base(library)
+		public BasicMaterial(string type, ResourceManager library) : base(library)
 		{
 			Type = type;
 		}
-        
+
 		static ShaderVariables GetShader(IVertexType vertextype, ShaderFeatures caps)
         {
             if (vertextype is Utf.Dfm.DfmVertex)

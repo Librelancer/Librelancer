@@ -51,7 +51,7 @@ namespace LancerEdit
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
-            normalsDebugMaterial = new Material(res, new NormalDebugMaterial(res));
+            normalsDebugMaterial = new Material(new NormalDebugMaterial(res));
             lighting = Lighting.Create();
             lighting.Enabled = true;
             lighting.Ambient = Color3f.Black;
@@ -141,7 +141,7 @@ namespace LancerEdit
                 {
                     if (surfile.TryGetHardpoint(0, CrcTool.FLModelCrc(hp.Name), out var meshes))
                     {
-                        surs.Add(GetSurModel(meshes, null, surHardpoint));   
+                        surs.Add(GetSurModel(meshes, null, surHardpoint));
                     }
                 }
             }
@@ -157,7 +157,7 @@ namespace LancerEdit
                     {
                         if (surfile.TryGetHardpoint(crc, CrcTool.FLModelCrc(hp.Name), out var meshes))
                         {
-                            surs.Add(GetSurModel(meshes, kv.Value, surHardpoint));   
+                            surs.Add(GetSurModel(meshes, kv.Value, surHardpoint));
                         }
                     }
                 }
@@ -187,7 +187,7 @@ namespace LancerEdit
         {
             var mat = wireframeMaterial3db.Render;
             var world = GetModelMatrix();
-           
+
             rstate.Cull = false;
             rstate.DepthWrite = false;
             var bm = ((BasicMaterial)mat);
@@ -258,7 +258,7 @@ namespace LancerEdit
         void DrawGL(int renderWidth, int renderHeight, bool viewport, bool bkgG)
         {
             if (_window.Config.BackgroundGradient && bkgG)
-            { 
+            {
                 _window.RenderContext.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
             }
             rstate.DepthEnabled = true;
@@ -325,7 +325,7 @@ namespace LancerEdit
                     }
                     DrawSimple(cam, false);
                     buffer.DrawOpaque(rstate);
-                    if (showGrid && viewport && 
+                    if (showGrid && viewport &&
                         !(drawable is SphFile) &&
                         modelViewport.Mode != CameraModes.Starsphere)
                     {
@@ -359,7 +359,7 @@ namespace LancerEdit
             DrawHardpoints(cam);
             if (drawSkeleton) DrawSkeleton(cam);
         }
-        
+
         void DrawSkeleton(ICamera cam)
         {
             var matrix = GetModelMatrix();
@@ -371,7 +371,7 @@ namespace LancerEdit
             }
             _window.LineRenderer.Render();
         }
-        
+
         Matrix4x4 GetModelMatrix()
         {
             return Matrix4x4.CreateRotationX(rotation.Y) * Matrix4x4.CreateRotationY(rotation.X);
@@ -402,7 +402,7 @@ namespace LancerEdit
                 }
             }
         }
-        
+
         void DrawNormals(ICamera cam)
         {
             var matrix = GetModelMatrix();
@@ -424,17 +424,14 @@ namespace LancerEdit
             EditorPrimitives.DrawBox(_window.LineRenderer, box, mat,
                 initialCmpColors[color % initialCmpColors.Length]);
         }
-        
+
         void DrawVMeshWire(VMeshWire wires, Matrix4x4 mat, int color)
         {
             color %= initialCmpColors.Length;
-            for (int i = 0; i < wires.Lines.Length / 2; i++)
+            var vms = res.FindMesh(wires.MeshCRC);
+            if (vms != null)
             {
-                _window.LineRenderer.DrawLine(
-                    Vector3.Transform(wires.Lines[i * 2],mat),
-                    Vector3.Transform(wires.Lines[i * 2 + 1],mat),
-                    initialCmpColors[color]
-                );
+                _window.LineRenderer.DrawVWire(wires, vms.VertexResource, mat, initialCmpColors[color]);
             }
         }
 
@@ -460,9 +457,9 @@ namespace LancerEdit
             }
             _window.LineRenderer.Render();
         }
-        
+
         private int jColors = 0;
-        
+
         void DrawSimple(ICamera cam, bool wireFrame)
         {
             Material mat = null;

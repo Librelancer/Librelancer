@@ -44,7 +44,7 @@ namespace LibreLancer.Utf.Dfm
 		private ElementBuffer elementBuffer;
 		private bool ready = false;
 
-		public DfmMesh(IntermediateNode root, ILibFile materialLibrary, Dictionary<int, DfmPart> parts)
+		public DfmMesh(IntermediateNode root, Dictionary<int, DfmPart> parts)
 		{
 			this.parts = parts;
 			FaceGroups = new List<FaceGroup>();
@@ -63,7 +63,7 @@ namespace LibreLancer.Utf.Dfm
 						}
 						else if (faceGroupNode.Name.StartsWith("group", StringComparison.OrdinalIgnoreCase))
 						{
-							FaceGroups.Add(new FaceGroup(faceGroupNode as IntermediateNode, materialLibrary));
+							FaceGroups.Add(new FaceGroup(faceGroupNode as IntermediateNode));
 						}
 						else throw new Exception("Invalid node in " + faceGroupsNode.Name + ": " + faceGroupNode.Name);
 					}
@@ -148,8 +148,11 @@ namespace LibreLancer.Utf.Dfm
 			}
 		}
 
+        private ResourceManager res;
+
 		public void Initialize(ResourceManager cache)
-		{
+        {
+            res = cache;
 			List<DfmVertex> vertices = new List<DfmVertex>();
 			for (int i = 0; i < PointIndices.Length; i++)
 			{
@@ -186,7 +189,6 @@ namespace LibreLancer.Utf.Dfm
 			foreach (FaceGroup faceGroup in FaceGroups)
 			{
 				faceGroup.StartIndex = indexCount;
-				faceGroup.Initialize(cache);
 				indexCount += faceGroup.TriangleStripIndices.Length;
 			}
 			var indices = new ushort[indexCount];
@@ -206,8 +208,22 @@ namespace LibreLancer.Utf.Dfm
         {
             var wh = buffer.WorldBuffer.SubmitMatrix(ref world);
 			foreach (FaceGroup faceGroup in FaceGroups)
-			{
-                faceGroup.DrawBuffer(skinning, buffer, vertexBuffer, wh, light, overrideMat);
+            {
+                var mat = overrideMat ?? res.FindMaterial(CrcTool.FLModelCrc(faceGroup.MaterialName));
+                buffer.AddCommand(
+                    mat.Render,
+                    null,
+                    wh,
+                    light,
+                    vertexBuffer,
+                    PrimitiveTypes.TriangleStrip,
+                    0,
+                    faceGroup.StartIndex,
+                    faceGroup.TriangleStripIndices.Length - 2,
+                    SortLayers.OPAQUE,
+                    0,
+                    skinning
+                );
 			}
 		}
 

@@ -76,11 +76,5 @@ namespace LibreLancer.Utf.Cmp
             this.objectName = objectName;
             this.fileName = fileName;
         }
-
-		public void Initialize(ResourceManager cache)
-        {
-            if (Camera != null) return;
-            Model.Initialize(cache);
-        }
     }
 }

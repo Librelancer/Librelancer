@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
+using LibreLancer.Utf.Cmp;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -25,7 +26,7 @@ namespace LibreLancer.Interface
                 foreach (var l in p.Mesh.Levels)
                 {
                     if (l == null) continue;
-                    foreach (var dc in l)
+                    foreach (var dc in l.Drawcalls)
                     {
                         var mat = dc.GetMaterial(res)?.Render;
                         if (mat is BasicMaterial bm)
@@ -39,7 +40,7 @@ namespace LibreLancer.Interface
             return mats;
         }
     }
-    
+
     [UiLoadable]
     [WattleScriptUserData]
     public class DisplayModel : DisplayElement
@@ -49,21 +50,21 @@ namespace LibreLancer.Interface
 
         public Vector3 Rotate { get; set; }
         public Vector3 RotateAnimation { get; set; }
-        
+
         public float BaseRadius { get; set; }
-        
+
         public bool Clip { get; set; }
-        
+
         public bool VMeshWire { get; set; }
 
         public bool DrawModel { get; set; } = true;
 
         public InterfaceColor WireframeColor { get; set; }
-        
+
         private RigidModel model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats;
-        
+
         public static Matrix4x4 CreateTransform(int gWidth, int gHeight, Rectangle r)
         {
             float gX = (float)gWidth / 2;
@@ -74,21 +75,16 @@ namespace LibreLancer.Interface
             var sY = r.Height / (float)(gHeight);
             return Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
-        
-        void DrawVMeshWire(UiContext context, Vector3[] wires, Matrix4x4 mat)
+
+        void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
-            for (int i = 0; i < wires.Length / 2; i++)
-            {
-                context.Lines.DrawLine(
-                    Vector3.Transform(wires[i * 2],mat),
-                    Vector3.Transform(wires[i * 2 + 1],mat),
-                    color
-                );
-            }
+            var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
+            if(mesh != null)
+                context.Lines.DrawVWire(wire, mesh.VertexResource, mat, color);
         }
 
-        
+
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
             if (Model == null) return;
@@ -146,7 +142,7 @@ namespace LibreLancer.Interface
                 {
                     if (part.Wireframe != null)
                     {
-                        DrawVMeshWire(context, part.Wireframe.Lines, part.LocalTransform * transform);
+                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform * transform);
                     }
                 }
                 context.Lines.Render();
@@ -155,7 +151,7 @@ namespace LibreLancer.Interface
             context.RenderContext.ScissorEnabled = false;
             context.RenderContext.Cull = true;
         }
-        
+
         bool CanRender(UiContext context)
         {
             if (!loadable) return false;
@@ -172,8 +168,8 @@ namespace LibreLancer.Interface
             }
             return true;
         }
-        
-        
-       
+
+
+
     }
 }
