@@ -26,13 +26,11 @@ namespace LibreLancer.Utf.Ale
             {
                 string name = ReadName(reader);
                 SkipUnusedFloats(reader);
-                List<AlchemyNodeRef> refs = ReadAlchemyNodeReferences(reader);
-                List<(uint, uint)> pairs = ReadPairs(reader);
                 Effects.Add(new ALEffect {
                     Name = name,
                     CRC = CrcTool.FLAleCrc(name),
-                    Fx = refs,
-                    Pairs = pairs
+                    Fx = ReadAlchemyNodeReferences(reader),
+                    Pairs = ReadPairs(reader)
                 });
             }
         }
