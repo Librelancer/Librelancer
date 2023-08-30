@@ -78,8 +78,11 @@ namespace LancerEdit
             lighting.Lights.SourceEnabled[0] = true;
             lighting.Lights.SourceEnabled[1] = true;
             lighting.NumberOfTilesX = -1;
-            if (drawable is DF.DfmFile)
-                skel = new DfmSkeletonManager((DF.DfmFile)drawable);
+            if (drawable is DF.DfmFile d)
+            {
+                d.Initialize(res);
+                skel = new DfmSkeletonManager(d);
+            }
         }
 
         void ResetCamera()

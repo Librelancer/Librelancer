@@ -525,6 +525,7 @@ namespace LibreLancer
 				if (drawable is DfmFile)
 				{
 					var dfm = (DfmFile)drawable;
+                    dfm.Initialize(this);
 					if (dfm.MaterialLibrary != null) AddMaterials(dfm.MaterialLibrary, filename);
 					if (dfm.TextureLibrary != null) AddTextures(dfm.TextureLibrary, filename);
                 }
