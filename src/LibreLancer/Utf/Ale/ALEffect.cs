@@ -13,7 +13,7 @@ namespace LibreLancer.Utf.Ale
 		public uint CRC;
 		public List<AlchemyNodeRef> FxTree;
 		public List<AlchemyNodeRef> Fx;
-		public List<Tuple<uint,uint>> Pairs;
+		public List<(uint Source, uint Target)> Pairs;
 		public ALEffect ()
 		{
 		}
