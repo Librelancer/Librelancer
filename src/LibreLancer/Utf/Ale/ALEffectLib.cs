@@ -16,10 +16,10 @@ namespace LibreLancer.Utf.Ale
 
         public ALEffectLib(LeafNode node)
         {
-            using var reader = new BinaryReader(node.DataSegment.GetReadStream());
+            using BinaryReader reader = new(node.DataSegment.GetReadStream());
             Version = reader.ReadSingle();
 
-            var effectCount = reader.ReadInt32();
+            int effectCount = reader.ReadInt32();
             Effects = new List<ALEffect>(effectCount);
 
             for (int ef = 0; ef < effectCount; ef++)
@@ -60,7 +60,7 @@ namespace LibreLancer.Utf.Ale
         private static List<AlchemyNodeRef> ReadAlchemyNodeReferences(BinaryReader reader)
         {
             int fxCount = reader.ReadInt32();
-            var refs = new List<AlchemyNodeRef>(fxCount);
+            List<AlchemyNodeRef> refs = new(fxCount);
             for (int i = 0; i < fxCount; i++)
             {
                 refs.Add(new AlchemyNodeRef(
