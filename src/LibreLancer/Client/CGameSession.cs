@@ -477,15 +477,11 @@ namespace LibreLancer.Client
             }
         }
 
-        void IClientPlayer.StartTradelane()
-        {
-            RunSync(() => gp.StartTradelane());
-        }
+        void IClientPlayer.StartTradelane() => RunSync(gp.StartTradelane);
+        public void TradelaneDisrupted() => RunSync(gp.TradelaneDisrupted);
 
-        void IClientPlayer.EndTradelane()
-        {
-            RunSync(() => gp.EndTradelane());
-        }
+
+        void IClientPlayer.EndTradelane() => RunSync(gp.EndTradelane);
 
 
         void IClientPlayer.SpawnProjectiles(ProjectileSpawn[] projectiles)

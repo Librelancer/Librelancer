@@ -398,7 +398,7 @@ namespace LibreLancer
             }
         }
 
-        public void LoadData(IUIThread ui, Action onIniLoaded = null)
+        public void LoadData(IUIThread ui, Action? onIniLoaded = null)
         {
             fldata.LoadData();
             if (glResource != null && ui != null)

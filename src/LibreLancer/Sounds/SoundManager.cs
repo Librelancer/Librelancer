@@ -174,7 +174,7 @@ namespace LibreLancer.Sounds
             }
             return inst;
         }
-        class LazyConcurrentDictionary<TKey, TValue>
+        class LazyConcurrentDictionary<TKey, TValue> where TKey : notnull
         {
             private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary;
 
@@ -192,7 +192,7 @@ namespace LibreLancer.Sounds
         }
 
         private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new LazyConcurrentDictionary<string, VoiceUtf>();
-        public void PlayVoiceLine(string voice, uint hash, Action onEnd)
+        public void PlayVoiceLine(string voice, uint hash, Action? onEnd = null)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             Task.Run(() =>

@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace LibreLancer.Ini
 {
@@ -145,14 +146,15 @@ namespace LibreLancer.Ini
 
 		public override string ToString()
 		{
-			string result = Name;
-            if (values.Count > 0) result += " = ";
+            StringBuilder sb = new(Name);
+            if (values.Count > 0) sb.Append(" = ");
             for (int i = 0; i < values.Count; i++)
             {
-                result += values[i];
-                if (i < values.Count - 1) result += ", ";
+                sb.Append(values[i]);
+                if (i < values.Count - 1)
+                    sb.Append(", ");
             }
-            return result;
+            return sb.ToString();
 		}
 	}
 }

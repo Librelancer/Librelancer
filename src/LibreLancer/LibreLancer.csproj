@@ -32,6 +32,7 @@
   <PropertyGroup>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <CompilerGeneratedFilesOutputPath>obj\Generated</CompilerGeneratedFilesOutputPath>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
   <ItemGroup>
     <Folder Include="Interface\Default" />
