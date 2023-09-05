@@ -47,7 +47,6 @@
     <EmbeddedResource Include="Shaders\lightingcull.glcompute" />
     <EmbeddedResource Include="Interface\Default\interface.json" />
     <None Remove="Interface\LiberationSans_0.png" />
-    <None Remove="Sounds\VoiceLines\VoiceLines.NnVoice.cs~RF72b25a35.TMP" />
   </ItemGroup>
 
 </Project>
