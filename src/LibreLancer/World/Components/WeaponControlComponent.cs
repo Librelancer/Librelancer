@@ -90,7 +90,6 @@ namespace LibreLancer.World.Components
             TimeSinceLastDryFire = Stopwatch.GetTimestamp();
             var snd = Parent.World.Renderer.Game.GetService<SoundManager>();
             snd.PlayOneShot("fire_dry");
-
         }
 
         public void FireIndex(int index)

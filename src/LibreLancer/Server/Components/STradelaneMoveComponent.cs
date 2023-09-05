@@ -2,13 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Linq;
-using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Missions;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using System.Linq;
+using System.Numerics;
 
 namespace LibreLancer.Server.Components
 {
@@ -46,11 +45,13 @@ namespace LibreLancer.Server.Components
             return false;
         }
 
-        public void LaneEntered()
+        public bool LaneEntered()
         {
-            if (TryGetMissionRuntime(out var msn, out var player))
+            if (TryGetMissionRuntime(out var msn, out var player) && msn is not null)
             {
-                var cmp = currenttradelane.GetComponent<SDockableComponent>();
+                SDockableComponent? cmp = currenttradelane.GetComponent<SDockableComponent>();
+                if (cmp is null)
+                    return false;
 
                 msn.TradelaneEntered(
                     player ? "Player" : Parent.Nickname,
@@ -58,6 +59,8 @@ namespace LibreLancer.Server.Components
                     lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft
                 );
             }
+
+            return true;
         }
 
         public override void Update(double time)
@@ -70,27 +73,29 @@ namespace LibreLancer.Server.Components
                 ExitTradelane();
                 return;
             }
-            bool tradeLaneDisrupted = tradelaneComponent.GetChildComponents<SShieldComponent>()
-                .Any(c => c.Health == 0 && distance < 3000);
 
-            var offset = Vector3.Zero;
-            if (Parent.Formation != null)
+            var (position, direction) = CalculateNextTradelane(tradelaneComponent);
+            var distanceToTradelane = direction.Length();
+
+            if (TradelaneDisrupted(distanceToTradelane, tradelaneComponent))
             {
-                offset = Parent.Formation.GetShipOffset(Parent);
-            }
-
-            var eng = Parent.GetComponent<CEngineComponent>();
-            if (eng != null) eng.Speed = 0.9f;
-
-            var targetPoint = Vector3.Transform(Vector3.Zero + offset, tradelaneComponent.GetHardpoint(lane).Transform * tradelaneComponent.WorldTransform);
-            var direction = targetPoint - Parent.PhysicsComponent.Body.Position;
-            var distance = direction.Length();
-            if (distance < 200)
-            {
-                currenttradelane = tradelaneComponent;
-                LaneEntered();
+                TradeLaneDisruption();
                 return;
             }
+            else if (distanceToTradelane < 200)
+            {
+                currenttradelane = tradelaneComponent;
+                if (!LaneEntered())
+                    ExitTradelane();
+
+                return;
+            }
+
+            MoveShip(position, direction);
+        }
+
+        private void MoveShip(Vector3 targetPoint, Vector3 direction)
+        {
             direction.Normalize();
             Parent.PhysicsComponent.Body.LinearVelocity = direction * 3000;
 
@@ -99,38 +104,38 @@ namespace LibreLancer.Server.Components
             //var slerped = Quaternion.Slerp(currRot, targetRot, 0.02f); //TODO: Slerp doesn't work?
             Parent.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(targetRot) *
                                                       Matrix4x4.CreateTranslation(Parent.PhysicsComponent.Body.Position));
-
-            HandleTradelaneDisruption(tradelaneComponent, distance);
-
         }
 
-        private void HandleTradelaneDisruption(GameObject tradelaneComponent, float distance)
+        private (Vector3, Vector3) CalculateNextTradelane(GameObject tradelaneComponent)
         {
+            var offset = Vector3.Zero;
+            if (Parent.Formation is not null)
+                offset = Parent.Formation.GetShipOffset(Parent);
 
-            if(Parent.TryGetComponent<SPlayerComponent>(out var pc))
-                TradeLaneDisruption(pc);
+            CEngineComponent? eng = Parent.GetComponent<CEngineComponent>();
+            if (eng is not null)
+                eng.Speed = 0.9f;
+
+            var targetPosition = Vector3.Transform(Vector3.Zero + offset, tradelaneComponent.GetHardpoint(lane).Transform * tradelaneComponent.WorldTransform);
+            var direction = targetPosition - Parent.PhysicsComponent.Body.Position;
+            return (targetPosition, direction);
         }
 
-        private void TradeLaneDisruption(SPlayerComponent pc)
+        private static bool TradelaneDisrupted(float distance, GameObject tradelaneComponent) =>
+            distance < 3000 && 
+            tradelaneComponent.GetChildComponents<SShieldComponent>()
+                .Any(c => c.Health == 0);
+
+
+        private void TradeLaneDisruption()
         {
-            TurnOnEngine();
-            pc.Player.TradelaneDisrupted();
-            Parent.Components.Remove(this);
+            ExitTradelane();
+
+            if (Parent.TryGetComponent<SPlayerComponent>(out var pc))
+                pc.Player.TradelaneDisrupted();
         }
 
         private void ExitTradelane()
-        {
-            TurnOnEngine();
-            if (Parent.TryGetComponent<SPlayerComponent>(out var player))
-                player.Player.EndTradelane();
-
-            if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
-                msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
-
-            Parent.Components.Remove(this);
-        }
-
-        private void TurnOnEngine()
         {
             var ctrl = Parent.GetComponent<ShipPhysicsComponent>();
             if (ctrl != null)
@@ -138,6 +143,14 @@ namespace LibreLancer.Server.Components
                 ctrl.EnginePower = 0.4f;
                 ctrl.Active = true;
             }
+
+            if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+                player.Player.EndTradelane();
+
+            if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
+                msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
+
+            Parent.Components.Remove(this);
         }
     }
 }

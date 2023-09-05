@@ -144,8 +144,8 @@ namespace LibreLancer.Ini
             return namePointer.GetHashCode() ^ values.GetHashCode();
         }*/
 
-		public override string ToString()
-		{
+        public override string ToString()
+        {
             StringBuilder sb = new(Name);
             if (values.Count > 0) sb.Append(" = ");
             for (int i = 0; i < values.Count; i++)
@@ -155,6 +155,6 @@ namespace LibreLancer.Ini
                     sb.Append(", ");
             }
             return sb.ToString();
-		}
-	}
+        }
+    }
 }
