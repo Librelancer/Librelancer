@@ -18,13 +18,14 @@ namespace LibreLancer.World.Components
     {
         public Vector3 AimPoint = Vector3.Zero;
         public bool Enabled { get; set; } = true;
-        private long TimeSinceLastDryFire { get; set; }
+        private double DryFireTimer { get; set; }
         public WeaponControlComponent(GameObject parent) : base(parent)
         {
         }
 
         public override void Update(double time)
         {
+            DryFireTimer += time;
             if (AimPoint != Vector3.Zero)
             {
                 Parent.World.DrawDebug(AimPoint);
@@ -83,11 +84,9 @@ namespace LibreLancer.World.Components
 
         private void PlayDryFireSound()
         {
-            TimeSpan dryFireElapsed = Stopwatch.GetElapsedTime(TimeSinceLastDryFire);
-            if (dryFireElapsed.TotalSeconds < 1.0)
+            if (DryFireTimer < 1.0)
                 return;
 
-            TimeSinceLastDryFire = Stopwatch.GetTimestamp();
             var snd = Parent.World.Renderer.Game.GetService<SoundManager>();
             snd.PlayOneShot("fire_dry");
         }

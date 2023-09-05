@@ -888,7 +888,7 @@ World Time: {12:F2}
 
         public void TradelaneDisrupted()
         {
-            Game.Sound.PlayVoiceLine(VoiceLines.NnVoice.Name, VoiceLines.NnVoice.TradelaneDisrupted);
+            Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.TradeLaneDisrupted);
             EndTradelane();
         }
 
