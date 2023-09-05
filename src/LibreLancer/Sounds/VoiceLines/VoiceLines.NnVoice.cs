@@ -149,7 +149,6 @@ public static partial class VoiceLines
         public const uint TravelDestinationSystem = 0xB3E6FA41;
         public const uint TurretLost = 0x87473EC6;
         public const uint VolatileGassesDetected = 0x9B35EA00;
-        public const uint WeaponLost = 0x8265824F;
         public const uint Warning = 0xAD9A098B;
         public const uint WarningLeavingCombatAreaReturn = 0x95E9E9CF;
         public const uint WarningLeavingMissionArea = 0x909122C4;
@@ -157,5 +156,6 @@ public static partial class VoiceLines
         public const uint WarningLeavingMissionAreaDockGate = 0x9205BF07;
         public const uint WarningLeavingMissionAreaDockTradeLane = 0x870BB14C;
         public const uint Waypoint = 0xAA8A4B41;
+        public const uint WeaponLost = 0x8265824F;
     }
 }

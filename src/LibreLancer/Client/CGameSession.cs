@@ -478,8 +478,8 @@ namespace LibreLancer.Client
         }
 
         void IClientPlayer.StartTradelane() => RunSync(gp.StartTradelane);
-        public void TradelaneDisrupted() => RunSync(gp.TradelaneDisrupted);
 
+        void IClientPlayer.TradelaneDisrupted() => RunSync(gp.TradelaneDisrupted);
 
         void IClientPlayer.EndTradelane() => RunSync(gp.EndTradelane);
 

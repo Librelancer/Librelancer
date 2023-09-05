@@ -2,14 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
 using LibreLancer.Interface;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Sounds;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace LibreLancer.World.Components
 {
@@ -26,6 +25,7 @@ namespace LibreLancer.World.Components
         public override void Update(double time)
         {
             DryFireTimer += time;
+
             if (AimPoint != Vector3.Zero)
             {
                 Parent.World.DrawDebug(AimPoint);
@@ -87,8 +87,8 @@ namespace LibreLancer.World.Components
             if (DryFireTimer < 1.0)
                 return;
 
-            var snd = Parent.World.Renderer.Game.GetService<SoundManager>();
-            snd.PlayOneShot("fire_dry");
+            SoundManager? snd = Parent.World.Renderer?.Game.GetService<SoundManager>();
+            snd?.PlayOneShot("fire_dry");
         }
 
         public void FireIndex(int index)
