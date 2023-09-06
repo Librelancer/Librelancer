@@ -437,7 +437,7 @@ namespace LibreLancer.World
             return (component != null);
         }
 
-		public T? GetComponent<T>() where T : GameComponent
+		public T GetComponent<T>() where T : GameComponent
 		{
             for (int i = 0; i < Components.Count; i++)
                 if (Components[i] is T component)
