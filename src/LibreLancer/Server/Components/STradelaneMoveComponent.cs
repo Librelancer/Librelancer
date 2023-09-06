@@ -47,14 +47,14 @@ namespace LibreLancer.Server.Components
 
         public bool LaneEntered()
         {
-            if (TryGetMissionRuntime(out var msn, out var player) && msn is not null)
+            if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
             {
                 SDockableComponent cmp = currenttradelane.GetComponent<SDockableComponent>();
                 if (cmp is null)
                     return false;
 
                 msn.TradelaneEntered(
-                    player ? "Player" : Parent.Nickname,
+                    isPlayer ? "Player" : Parent.Nickname,
                     currenttradelane.Nickname,
                     lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft
                 );

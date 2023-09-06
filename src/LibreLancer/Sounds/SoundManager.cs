@@ -192,7 +192,7 @@ namespace LibreLancer.Sounds
         }
 
         private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new LazyConcurrentDictionary<string, VoiceUtf>();
-        public void PlayVoiceLine(string voice, uint hash, Action? onEnd = null)
+        public void PlayVoiceLine(string voice, uint hash, Action onEnd = null)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             Task.Run(() =>

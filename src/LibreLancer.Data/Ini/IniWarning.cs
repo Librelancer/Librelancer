@@ -17,7 +17,7 @@ public static class IniWarning
         FLLog.Warning("Ini", "Duplicate of " + e.Name + FormatLine(e.File, e.Line, s));
     }
 
-    public static void Warn(string warning, Entry e, Section s = null)
+    public static void Warn(string warning, Entry e, Section? s = null)
     {
         FLLog.Warning("Ini", warning + " " + FormatLine(e.File, e.Line, s));
     }
@@ -30,7 +30,7 @@ public static class IniWarning
             return $" in {file} (line not available)";
     }
 
-    static string FormatLine(string file, int line, Section section)
+    static string FormatLine(string file, int line, Section? section)
     {
         if (section == null)
             return FormatLine(file, line);
