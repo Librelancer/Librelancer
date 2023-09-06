@@ -22,7 +22,7 @@ namespace LibreLancer.Server.Components
             this.lane = lane;
         }
 
-        bool TryGetMissionRuntime(out MissionRuntime? msn, out bool player)
+        bool TryGetMissionRuntime(out MissionRuntime msn, out bool player)
         {
             if (Parent.TryGetComponent<SPlayerComponent>(out var p) &&
                 p.Player.MissionRuntime != null)
@@ -49,7 +49,7 @@ namespace LibreLancer.Server.Components
         {
             if (TryGetMissionRuntime(out var msn, out var player) && msn is not null)
             {
-                SDockableComponent? cmp = currenttradelane.GetComponent<SDockableComponent>();
+                SDockableComponent cmp = currenttradelane.GetComponent<SDockableComponent>();
                 if (cmp is null)
                     return false;
 
@@ -80,6 +80,7 @@ namespace LibreLancer.Server.Components
             if (TradelaneDisrupted(distanceToTradelane, tradelaneComponent))
             {
                 TradeLaneDisruption();
+                // tradelaneComponent.Parent.Formation.Remove(tradelaneComponent.Parent); TODO: Once formation triggers work or wandering npcs are added this can be tested.
                 return;
             }
             else if (distanceToTradelane < 200)
@@ -112,7 +113,7 @@ namespace LibreLancer.Server.Components
             if (Parent.Formation is not null)
                 offset = Parent.Formation.GetShipOffset(Parent);
 
-            CEngineComponent? eng = Parent.GetComponent<CEngineComponent>();
+            CEngineComponent eng = Parent.GetComponent<CEngineComponent>();
             if (eng is not null)
                 eng.Speed = 0.9f;
 
@@ -130,7 +131,6 @@ namespace LibreLancer.Server.Components
         private void TradeLaneDisruption()
         {
             ExitTradelane();
-
             if (Parent.TryGetComponent<SPlayerComponent>(out var pc))
                 pc.Player.TradelaneDisrupted();
         }

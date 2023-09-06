@@ -122,10 +122,10 @@ namespace LibreLancer
             //higher severity = lower enum value (why khronos?)
             if (type == GL_DEBUG_TYPE_ERROR && 
                 severity < GL_DEBUG_SEVERITY_LOW) {
-                //FLLog.Info("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
+                FLLog.Info("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
             }
             else {
-                //FLLog.Debug("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
+                FLLog.Debug("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
             }
         }
         

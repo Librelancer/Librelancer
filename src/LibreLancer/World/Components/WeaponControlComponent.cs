@@ -87,6 +87,7 @@ namespace LibreLancer.World.Components
             if (DryFireTimer < 1.0)
                 return;
 
+            DryFireTimer = 0.0;
             SoundManager? snd = Parent.World.Renderer?.Game.GetService<SoundManager>();
             snd?.PlayOneShot("fire_dry");
         }

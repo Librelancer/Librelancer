@@ -25,7 +25,6 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time)
         {
-            return;
             if (OfflineTimer > 0)
             {
                 OfflineTimer -= time;
