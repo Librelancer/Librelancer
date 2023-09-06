@@ -174,7 +174,7 @@ namespace LibreLancer.Sounds
             }
             return inst;
         }
-        class LazyConcurrentDictionary<TKey, TValue> where TKey : notnull
+        class LazyConcurrentDictionary<TKey, TValue>
         {
             private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary;
 
