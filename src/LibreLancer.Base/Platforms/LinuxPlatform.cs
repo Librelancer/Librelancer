@@ -3,21 +3,19 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using FontConfigSharp;
 using System.Runtime.InteropServices;
+using LibreLancer.Platforms.Linux;
 
 namespace LibreLancer.Platforms
 {
 	class LinuxPlatform : IPlatform
 	{
-		FcConfig fcconfig;
+		IntPtr fcconfig;
 
 		public LinuxPlatform()
-		{
-			fcconfig = Fc.InitLoadConfigAndFonts ();
-            fcconfig.SetCurrent();
+        {
+            fcconfig = LibFontConfig.FcInitLoadConfigAndFonts();
+            LibFontConfig.FcConfigSetCurrent(fcconfig);
 		}
 
         public string GetLocalConfigFolder()
@@ -52,22 +50,27 @@ namespace LibreLancer.Platforms
             Marshal.FreeHGlobal(str);
         }
 
+        static LibFontConfig.FcResult GetString(IntPtr pattern, string obj, int n, ref string val)
+        {
+            var ptr = IntPtr.Zero;
+            var result =  LibFontConfig.FcPatternGetString (pattern, obj, n, ref ptr);
+            if (result == LibFontConfig.FcResult.Match)
+                val = Marshal.PtrToStringAnsi (ptr);
+            return result;
+        }
         public byte[] GetMonospaceBytes()
         {
+            var pat = LibFontConfig.FcNameParse("monospace");
+            LibFontConfig.FcConfigSubstitute(fcconfig, pat, LibFontConfig.FcMatchKind.Pattern);
+            LibFontConfig.FcDefaultSubstitute(pat);
+            var fnt = LibFontConfig.FcFontMatch(fcconfig, pat, out _);
             string file = null;
-            using (var pat = FcPattern.FromFamilyName ("monospace")) {
-                //Match normally
-                pat.ConfigSubstitute(fcconfig, FcMatchKind.Pattern);
-                pat.DefaultSubstitute();
-                FcResult result;
-                using (var font = pat.Match (fcconfig, out result)) {
-                    if (font.GetString (Fc.FC_FILE, 0, ref file) == FcResult.Match)
-                    {
-                        return System.IO.File.ReadAllBytes(file);
-                    }
-                }
-            }
-            throw new Exception("No system monospace font found");
+            bool use = GetString(fnt, LibFontConfig.FC_FILE, 0, ref file) == LibFontConfig.FcResult.Match;
+            LibFontConfig.FcPatternDestroy(pat);
+            if (use)
+                return System.IO.File.ReadAllBytes(file);
+            else
+                throw new Exception("No system monospace font found");
         }
     }
 }
