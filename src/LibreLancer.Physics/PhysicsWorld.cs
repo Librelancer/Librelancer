@@ -343,6 +343,8 @@ namespace LibreLancer.Physics
 
         public void StepSimulation(float timestep)
         {
+            if (timestep < float.Epsilon) // We're paused
+                return;
             Simulation.Timestep(timestep, threadDispatcher);
             foreach(var obj in objects)
                 obj.UpdateProperties();
