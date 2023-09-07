@@ -16,9 +16,6 @@
 [submodule "extern/cimgui"]
 	path = extern/cimgui
 	url = https://github.com/cimgui/cimgui
-[submodule "extern/Collada141"]
-	path = extern/Collada141
-	url = https://github.com/Librelancer/Collada141
 [submodule "extern/ImGuiColorTextEdit"]
 	path = extern/ImGuiColorTextEdit
 	url = https://github.com/DomRe/ImGuiColorTextEdit
