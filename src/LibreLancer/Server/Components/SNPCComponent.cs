@@ -51,7 +51,9 @@ namespace LibreLancer.Server.Components
 
         public void StartTradelane()
         {
-            Parent.GetComponent<ShipPhysicsComponent>().Active = false;
+            ShipPhysicsComponent component = Parent.GetComponent<ShipPhysicsComponent>();
+            if (component is not null)
+                component.Active = false;
         }
         
 

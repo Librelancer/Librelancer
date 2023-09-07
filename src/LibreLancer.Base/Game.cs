@@ -701,8 +701,7 @@ namespace LibreLancer
                 //Do game things
                 if (!running)
                     break;
-                Action work;
-                while (actions.TryDequeue(out work))
+                while (actions.TryDequeue(out Action work))
                     work();
                 totalTime = timer.Elapsed.TotalSeconds;
                 Accumulate(timer);

@@ -120,201 +120,477 @@
     ],
     "client_methods": [
         {
-          "name": "UpdateBaselinePrices",
-          "args": [ { "name": "prices", "type":  "BaselinePrice[]" }]
+            "name": "UpdateBaselinePrices",
+            "args": [
+                {
+                    "name": "prices",
+                    "type": "BaselinePrice[]"
+                }
+            ]
         },
-        { 
+        {
             "name": "CallThorn",
-        	"args": [ { "name": "script", "type": "string" }, { "name":  "mainObject", "type":  "int" } ]
+            "args": [
+                {
+                    "name": "script",
+                    "type": "string"
+                },
+                {
+                    "name": "mainObject",
+                    "type": "int"
+                }
+            ]
         },
         {
-          "name": "SpawnObject",
-          "args": [ 
-            { "name":  "id", "type":  "int" }, 
-            { "name":  "name", "type":  "ObjectName" },
-            { "name":  "affiliation", "type":  "string" },
-            { "name":  "position", "type":  "Vector3" },
-            { "name":  "orientation", "type":  "Quaternion" },
-            { "name":  "loadout", "type":  "NetShipLoadout" }
-          ]
+            "name": "SpawnObject",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "name",
+                    "type": "ObjectName"
+                },
+                {
+                    "name": "affiliation",
+                    "type": "string"
+                },
+                {
+                    "name": "position",
+                    "type": "Vector3"
+                },
+                {
+                    "name": "orientation",
+                    "type": "Quaternion"
+                },
+                {
+                    "name": "loadout",
+                    "type": "NetShipLoadout"
+                }
+            ]
         },
         {
-          "name": "SpawnPlayer",
-          "args": [
-            { "name":  "system", "type":  "string" },
-            { "name":  "objective", "type":  "int" },
-            { "name":  "position", "type":  "Vector3" },
-            { "name":  "orientation", "type":  "Quaternion" }
-          ]
+            "name": "SpawnPlayer",
+            "args": [
+                {
+                    "name": "system",
+                    "type": "string"
+                },
+                {
+                    "name": "objective",
+                    "type": "int"
+                },
+                {
+                    "name": "position",
+                    "type": "Vector3"
+                },
+                {
+                    "name": "orientation",
+                    "type": "Quaternion"
+                }
+            ]
         },
         {
-          "name": "UpdateEffects",
-          "args": [ { "name":  "id", "type":  "int" }, { "name": "effects", "type": "SpawnedEffect[]" }]
+            "name": "UpdateEffects",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "effects",
+                    "type": "SpawnedEffect[]"
+                }
+            ]
         },
         {
-          "name": "SpawnProjectiles",
-          "args": [ 
-            { "name":  "projectiles", "type":  "ProjectileSpawn[]" }
-          ]
+            "name": "SpawnProjectiles",
+            "args": [
+                {
+                    "name": "projectiles",
+                    "type": "ProjectileSpawn[]"
+                }
+            ]
         },
         {
-          "name": "UpdateAnimations",
-          "args": [
-            { "name":  "systemObject", "type":  "bool" },
-            { "name":  "id", "type":  "int" },
-            { "name":  "animations", "type":  "NetCmpAnimation[]" }
-          ]
+            "name": "UpdateAnimations",
+            "args": [
+                {
+                    "name": "systemObject",
+                    "type": "bool"
+                },
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "animations",
+                    "type": "NetCmpAnimation[]"
+                }
+            ]
         },
         {
-          "name": "UpdateReputations",
-          "args": [ { "name":  "reps", "type":  "NetReputation[]" }]
+            "name": "UpdateReputations",
+            "args": [
+                {
+                    "name": "reps",
+                    "type": "NetReputation[]"
+                }
+            ]
         },
         {
-          "name": "UpdateInventory",
-          "args": [
-            { "name":  "credits", "type":  "long" },
-            { "name":  "shipworth", "type":  "ulong" },
-            { "name":  "ship", "type":  "NetShipLoadout" }
-          ]
+            "name": "UpdateInventory",
+            "args": [
+                {
+                    "name": "credits",
+                    "type": "long"
+                },
+                {
+                    "name": "shipworth",
+                    "type": "ulong"
+                },
+                {
+                    "name": "ship",
+                    "type": "NetShipLoadout"
+                }
+            ]
         },
         {
-          "name": "UpdateSlotCount",
-          "args": [
-            { "name":  "slot", "type": "int" },
-            { "name":  "count", "type":  "int" }
-          ]
+            "name": "UpdateSlotCount",
+            "args": [
+                {
+                    "name": "slot",
+                    "type": "int"
+                },
+                {
+                    "name": "count",
+                    "type": "int"
+                }
+            ]
         },
         {
-          "name": "DeleteSlot",
-          "args": [
-            { "name":  "slot", "type":  "int" }
-          ]
+            "name": "DeleteSlot",
+            "args": [
+                {
+                    "name": "slot",
+                    "type": "int"
+                }
+            ]
         },
         {
-          "name": "SpawnSolar",
-          "args": [
-            { "name":  "solars", "type":  "SolarInfo[]" }
-          ]
+            "name": "SpawnSolar",
+            "args": [
+                {
+                    "name": "solars",
+                    "type": "SolarInfo[]"
+                }
+            ]
         },
         {
-          "name": "OnConsoleMessage",
-          "args": [ { "name":  "text", "type":  "string" }]
+            "name": "OnConsoleMessage",
+            "args": [
+                {
+                    "name": "text",
+                    "type": "string"
+                }
+            ]
         },
         {
-          "name": "SpawnDebris",
-          "args": [
-            { "name":  "id", "type":  "int" },
-            { "name":  "kind", "type":  "GameObjectKind" },
-            { "name":  "archetype", "type":  "string" },
-            { "name":  "part", "type":  "string" },
-            { "name":  "position", "type":  "Vector3" },
-            { "name":  "orientation", "type":  "Quaternion" },
-            { "name":  "mass", "type":  "float" }
-          ]
+            "name": "SpawnDebris",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "kind",
+                    "type": "GameObjectKind"
+                },
+                {
+                    "name": "archetype",
+                    "type": "string"
+                },
+                {
+                    "name": "part",
+                    "type": "string"
+                },
+                {
+                    "name": "position",
+                    "type": "Vector3"
+                },
+                {
+                    "name": "orientation",
+                    "type": "Quaternion"
+                },
+                {
+                    "name": "mass",
+                    "type": "float"
+                }
+            ]
         },
         {
-          "name": "SpawnMissile",
-          "args": [
-            { "name":  "id", "type":  "int" },
-            { "name":  "playSound", "type":  "bool" },
-            { "name":  "equip", "type":  "uint" },
-            { "name":  "position", "type":  "Vector3" },
-            { "name":  "orientation", "type":  "Quaternion" }
-          ]
+            "name": "SpawnMissile",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "playSound",
+                    "type": "bool"
+                },
+                {
+                    "name": "equip",
+                    "type": "uint"
+                },
+                {
+                    "name": "position",
+                    "type": "Vector3"
+                },
+                {
+                    "name": "orientation",
+                    "type": "Quaternion"
+                }
+            ]
         },
         {
-          "name": "DestroyMissile",
-          "args": [
-            { "name":  "id", "type":  "int" },
-            { "name": "explode", "type":  "bool" }
-          ]
+            "name": "DestroyMissile",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "explode",
+                    "type": "bool"
+                }
+            ]
         },
         {
-          "name": "BaseEnter",
-          "args": [
-            { "name" :  "_base", "type":  "string" },
-            { "name":  "objective", "type":  "int" },
-            { "name":  "rtcs", "type":  "string[]" },
-            { "name":  "news", "type":  "NewsArticle[]" },
-            { "name":  "goods", "type":  "SoldGood[]" },
-            { "name":  "ships", "type":  "NetSoldShip[]" }
-          ]
+            "name": "BaseEnter",
+            "args": [
+                {
+                    "name": "_base",
+                    "type": "string"
+                },
+                {
+                    "name": "objective",
+                    "type": "int"
+                },
+                {
+                    "name": "rtcs",
+                    "type": "string[]"
+                },
+                {
+                    "name": "news",
+                    "type": "NewsArticle[]"
+                },
+                {
+                    "name": "goods",
+                    "type": "SoldGood[]"
+                },
+                {
+                    "name": "ships",
+                    "type": "NetSoldShip[]"
+                }
+            ]
         },
         {
-          "name": "UpdateRTCs",
-          "args": [
-            { "name":  "rtcs", "type":  "string[]" }
-          ]
+            "name": "UpdateRTCs",
+            "args": [
+                {
+                    "name": "rtcs",
+                    "type": "string[]"
+                }
+            ]
         },
         {
-          "name": "ObjectiveUpdate",
-          "args": [ { "name":  "objective", "type":  "int" }]
+            "name": "ObjectiveUpdate",
+            "args": [
+                {
+                    "name": "objective",
+                    "type": "int"
+                }
+            ]
         },
         {
-          "name": "Killed"
+            "name": "Killed"
         },
         {
-          "name": "DespawnObject",
-          "args": [ {"name": "id", "type":  "int"}]
+            "name": "DespawnObject",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                }
+            ]
         },
         {
-          "name": "PlaySound",
-          "args": [{"name": "sound", "type":  "string" }]
+            "name": "PlaySound",
+            "args": [
+                {
+                    "name": "sound",
+                    "type": "string"
+                }
+            ]
         },
         {
-          "name": "PlayMusic",
-          "args": [{"name": "music", "type":  "string" }, { "name": "fade", "type": "float" }]
+            "name": "PlayMusic",
+            "args": [
+                {
+                    "name": "music",
+                    "type": "string"
+                },
+                {
+                    "name": "fade",
+                    "type": "float"
+                }
+            ]
         },
         {
-          "name": "DestroyPart",
-          "args": [{"name":  "idtype", "type":  "byte"}, {"name": "id", "type": "int" }, {"name": "part", "type":  "string"}]
+            "name": "DestroyPart",
+            "args": [
+                {
+                    "name": "idtype",
+                    "type": "byte"
+                },
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "part",
+                    "type": "string"
+                }
+            ]
         },
         {
-          "name": "RunMissionDialog",
-          "args": [ {"name":  "lines", "type": "NetDlgLine[]" }]
+            "name": "RunMissionDialog",
+            "args": [
+                {
+                    "name": "lines",
+                    "type": "NetDlgLine[]"
+                }
+            ]
         },
         {
-          "name": "StartJumpTunnel"
+            "name": "StartJumpTunnel"
         },
         {
-          "name": "StartTradelane"
+            "name": "StartTradelane"
         },
         {
-          "name": "EndTradelane"
+            "name": "TradelaneDisrupted"
         },
         {
-          "name": "UpdateFormation",
-          "args": [ { "name":  "formation", "type":  "NetFormation" }]
+            "name": "EndTradelane"
         },
         {
-          "name": "TradelaneActivate",
-          "args": [ { "name":  "id", "type":  "uint" }, { "name":  "left", "type":  "bool"}],
-          "channel": "1"
+            "name": "UpdateFormation",
+            "args": [
+                {
+                    "name": "formation",
+                    "type": "NetFormation"
+                }
+            ]
         },
         {
-          "name": "TradelaneDeactivate",
-          "args": [ { "name":  "id", "type":  "uint" }, { "name":  "left", "type":  "bool" }],
-          "channel": "1"
+            "name": "TradelaneActivate",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "uint"
+                },
+                {
+                    "name": "left",
+                    "type": "bool"
+                }
+            ],
+            "channel": "1"
         },
         {
-          "name": "MarkImportant",
-          "args": [ { "name":  "objId", "type":  "int" }]
+            "name": "TradelaneDeactivate",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "uint"
+                },
+                {
+                    "name": "left",
+                    "type": "bool"
+                }
+            ],
+            "channel": "1"
         },
         {
-          "name": "ReceiveChatMessage",
-          "args": [ { "name":  "category", "type":  "ChatCategory" }, { "name":  "player", "type":  "string" },{ "name":  "message", "type":  "string" }]
+            "name": "MarkImportant",
+            "args": [
+                {
+                    "name": "objId",
+                    "type": "int"
+                }
+            ]
         },
         {
-          "name": "PopupOpen",
-          "args": [ { "name":  "title" ,  "type":  "int" }, { "name":  "contents" ,  "type":  "int" }, { "name":  "id" , "type":  "string" } ]
+            "name": "ReceiveChatMessage",
+            "args": [
+                {
+                    "name": "category",
+                    "type": "ChatCategory"
+                },
+                {
+                    "name": "player",
+                    "type": "string"
+                },
+                {
+                    "name": "message",
+                    "type": "string"
+                }
+            ]
         },
         {
-          "name": "OnPlayerJoin",
-          "args": [ { "name":  "id", "type":  "int" }, { "name":  "name", "type":  "string" }]
+            "name": "PopupOpen",
+            "args": [
+                {
+                    "name": "title",
+                    "type": "int"
+                },
+                {
+                    "name": "contents",
+                    "type": "int"
+                },
+                {
+                    "name": "id",
+                    "type": "string"
+                }
+            ]
         },
         {
-          "name": "OnPlayerLeave",
-          "args": [ { "name":  "id", "type":  "int" }, { "name": "name", "type": "string" }]
+            "name": "OnPlayerJoin",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "name",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "OnPlayerLeave",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "int"
+                },
+                {
+                    "name": "name",
+                    "type": "string"
+                }
+            ]
         }
     ]
 }

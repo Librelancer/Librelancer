@@ -2,12 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Interface;
+using LibreLancer.Net.Protocol;
+using LibreLancer.Sounds;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.Interface;
-using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.World.Components
 {
@@ -15,12 +16,16 @@ namespace LibreLancer.World.Components
     public class WeaponControlComponent : GameComponent
     {
         public Vector3 AimPoint = Vector3.Zero;
+        public bool Enabled { get; set; } = true;
+        private double DryFireTimer { get; set; }
         public WeaponControlComponent(GameObject parent) : base(parent)
         {
         }
 
         public override void Update(double time)
         {
+            DryFireTimer += time;
+
             if (AimPoint != Vector3.Zero)
             {
                 Parent.World.DrawDebug(AimPoint);
@@ -66,12 +71,25 @@ namespace LibreLancer.World.Components
             return range;
         }
 
-        bool CanFireWeapons()
+        public bool CanFireWeapons()
         {
-            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
+            if (!Enabled || Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
                 (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
+            {
+                PlayDryFireSound();
                 return false;
+            }
             return true;
+        }
+
+        private void PlayDryFireSound()
+        {
+            if (DryFireTimer < 1.0)
+                return;
+
+            DryFireTimer = 0.0;
+            SoundManager snd = Parent.World.Renderer?.Game.GetService<SoundManager>();
+            snd?.PlayOneShot("fire_dry");
         }
 
         public void FireIndex(int index)

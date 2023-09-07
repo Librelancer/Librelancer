@@ -83,6 +83,12 @@ namespace LibreLancer.Server
             InTradelane = true;
         }
 
+        public void TradelaneDisrupted()
+        {
+            rpcClient.TradelaneDisrupted();
+            InTradelane = false;
+        }
+
         public void EndTradelane()
         {
             rpcClient.EndTradelane();

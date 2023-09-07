@@ -16,6 +16,7 @@ using LibreLancer.Net;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -881,12 +882,20 @@ World Time: {12:F2}
         public void StartTradelane()
         {
             player.GetComponent<ShipPhysicsComponent>().Active = false;
+            player.GetComponent<WeaponControlComponent>().Enabled = false;
             pilotcomponent.Cancel();
+        }
+
+        public void TradelaneDisrupted()
+        {
+            Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.TradeLaneDisrupted);
+            EndTradelane();
         }
 
         public void EndTradelane()
         {
             player.GetComponent<ShipPhysicsComponent>().Active = true;
+            player.GetComponent<WeaponControlComponent>().Enabled = true;
         }
 
 
