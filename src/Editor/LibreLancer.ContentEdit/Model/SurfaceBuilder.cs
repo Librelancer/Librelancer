@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using BulletSharp.SoftBody;
-using LibreLancer.Data.Effects;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using SimpleMesh;
@@ -52,7 +50,7 @@ public static class SurfaceBuilder
             }
             DescribeNode(p.Root, builder);
         }
-        
+
         return builder.ToString();
     }
 
@@ -117,9 +115,9 @@ public static class SurfaceBuilder
             warnings.Add(EditMessage.Warning("Verify writing sur failed"));
         return new EditResult<SurFile>(result, warnings);
     }
-    
 
-   
+
+
     static void CreateSurfacePart(ImportedModelNode node, List<SurfacePart> parts, Action<HullData, uint, Matrix4x4> addToParent, bool is3db, List<EditMessage> warnings)
     {
         List<HullData> convexHulls = new List<HullData>();
@@ -145,7 +143,7 @@ public static class SurfaceBuilder
         if (convexHulls.Count == 0) {
             warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
         }
-        
+
         List<SurfacePoint> points = new List<SurfacePoint>();
         List<SurfaceNode> nodes = new List<SurfaceNode>();
 
@@ -171,19 +169,19 @@ public static class SurfaceBuilder
             n.SetBoundary(minimum, maximum);
             nodes.Add(n);
         }
-        
+
         foreach (var h in convexHulls)
         {
            AddHull(h, modelCrc, 4);
         }
-        
+
         var part = new SurfacePart();
         parts.Add(part);
 
         // Pull child hulls into closest dynamic part
         foreach (var child in node.Children)
         {
-            
+
             CreateSurfacePart(child, parts, (h,c, m) =>
             {
                 if(node.Construct is FixConstruct)
@@ -196,11 +194,11 @@ public static class SurfaceBuilder
                 }
             }, false, warnings);
         }
-        
+
         part.Crc = modelCrc;
         part.Points = points;
         part.Dynamic = node.Construct is FixConstruct;
-        
+
         //  Condense node list by grouping nodes into pairs until only one node remain which becomes root
         while (nodes.Count > 1) {
             var unsorted = new List<SurfaceNode>();
@@ -212,18 +210,18 @@ public static class SurfaceBuilder
                     lengths.Add(Vector3.Distance(leftNode.Center, rightNode.Center));
                 }
             }
-            
+
             // Group list into pairs until one or none are left
             nodes = new List<SurfaceNode>();
             while (unsorted.Count > 1)
             {
                 var index = lengths.IndexOfMin(); // Get pair index of shortest length
-                
+
                 // Get and remove pair from unsorted list
                 var (leftNode, rightNode) = pairs[index];
                 unsorted.Remove(leftNode);
                 unsorted.Remove(rightNode);
-                
+
                 // Create new node by grouping selected pair
                 nodes.Add(SurfaceNode.GroupNodes(leftNode, rightNode));
 
@@ -238,12 +236,12 @@ public static class SurfaceBuilder
                         pairs.RemoveAt(i);
                     }
                 }
-                
+
                 // Should one remain add it to next round
                 if(unsorted.Count == 1) nodes.Add(unsorted[0]);
             }
         }
-        
+
         // Set resulting node to root
         if (nodes.Count == 1)
         {
@@ -269,14 +267,14 @@ public static class SurfaceBuilder
                 }
                 part.Root.Hull = hull.Data;
             }
-            
+
             part.Minimum = new Vector3(float.MaxValue);
             part.Maximum = new Vector3(float.MinValue);
             part.Center = Vector3.Zero;
-            
+
             float minRadius = 0;
             float maxRadius = 0;
-            
+
             foreach (var p in points)
             {
                 part.Minimum = Vector3.Min(part.Minimum, p.Point);
@@ -307,7 +305,7 @@ public static class SurfaceBuilder
         return EditResult<HullData>.TryCatch(() => new ConvexHullCalculator().GenerateHull(pos, false));
     }
 
-    
+
 
     static EditResult<HullData> CreateHull(ModelNode h)
     {
@@ -361,7 +359,7 @@ public static class SurfaceBuilder
         var reversed = edges.Select(
             x => edges.IndexOf(new Point(x.Y, x.X))
         ).ToArray();
-        
+
         int edgeCount = 0;
 
         const float RayEpsilon = 1E-7f;
@@ -385,11 +383,11 @@ public static class SurfaceBuilder
             face.Points.A = (ushort)indices[edges[edgeCount].X];
             face.Shared.A = reversed[edgeCount];
             edgeCount++;
-            
+
             face.Points.B = (ushort)indices[edges[edgeCount].X];
             face.Shared.B = reversed[edgeCount];
             edgeCount++;
-            
+
             face.Points.C = (ushort)indices[edges[edgeCount].X];
             face.Shared.C = reversed[edgeCount];
             edgeCount++;

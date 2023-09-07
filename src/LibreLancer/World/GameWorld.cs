@@ -44,7 +44,7 @@ namespace LibreLancer.World
                 render.World = this;
                 if (initPhys)
                 {
-                    Renderer.PhysicsHook = () => { Physics.DrawWorld(); };
+                    Renderer.PhysicsHook = () => { Physics.DrawWorld(render.Camera.Frustum, render.Camera.Position); };
                 }
             }
 
@@ -52,7 +52,7 @@ namespace LibreLancer.World
                 Projectiles = new ProjectileManager(this);
         }
 
-        public GameObject NewObject(SystemObject obj, ResourceManager res, bool server, 
+        public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
             bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null)
         {
             var arch = changedArch ?? obj.Star ?? obj.Archetype;
@@ -196,7 +196,7 @@ namespace LibreLancer.World
             if (nickname == null) return null;
             foreach (var obj in objects)
             {
-                if (obj.Nickname == nickname) return obj;
+                if (nickname.Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase)) return obj;
             }
 
             return null;
@@ -244,7 +244,7 @@ namespace LibreLancer.World
             if (MessageBroadcasted != null)
                 MessageBroadcasted(sender, kind);
         }
-        
+
         public GameObject GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth, float vpHeight)
         {
 
@@ -333,7 +333,7 @@ namespace LibreLancer.World
 							bb.Max += rb.Position;
 							if (bb.RayIntersect(ref rayOrigin, ref jitterDir))
 							{
-								
+
 								var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
 								if (nd < dist)
 								{

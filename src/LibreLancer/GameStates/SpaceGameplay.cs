@@ -24,9 +24,8 @@ namespace LibreLancer
 {
 	public class SpaceGameplay : GameState
     {
-        const string DEMO_TEXT =
-@"GAMEPLAY DEMO
-{3} ({4})
+        const string DEBUG_TEXT =
+@"{3} ({4})
 Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
 Velocity: {6}
@@ -940,9 +939,10 @@ World Time: {12:F2}
             if (updateStartDelay > 0) updateStartDelay--;
             if (waitObjectiveFrames > 0) waitObjectiveFrames--;
             world.RenderUpdate(delta);
+            sysrender.DebugRenderer.StartFrame(Game.RenderContext);
+
             sysrender.Draw(Game.Width, Game.Height);
 
-            sysrender.DebugRenderer.StartFrame(Game.RenderContext);
             sysrender.DebugRenderer.Render();
 
             if ((Thn == null || !Thn.Running) && ShowHud)
@@ -978,7 +978,7 @@ World Time: {12:F2}
                         sel_obj = selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
                 }
                 var systemName = Game.GameData.GetString(sys.IdsName);
-                var text = string.Format(DEMO_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
+                var text = string.Format(DEBUG_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
                     sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
@@ -995,6 +995,16 @@ World Time: {12:F2}
                         ImGui.PlotLines("update packet size", ref floats[0], floats.Length);
                     }
                 }
+
+                bool hasDebug = world.Physics.DebugRenderer != null;
+                ImGui.Checkbox("Draw hitboxes", ref hasDebug);
+                ImGui.BeginDisabled(!hasDebug);
+                ImGui.Checkbox("Draw raycasts", ref world.Physics.ShowRaycasts);
+                ImGui.EndDisabled();
+                if (hasDebug)
+                    world.Physics.DebugRenderer = sysrender.DebugRenderer;
+                else
+                    world.Physics.DebugRenderer = null;
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

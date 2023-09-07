@@ -18,34 +18,10 @@ namespace LibreLancer.Client.Components
 	{
 		public AsteroidField Field;
         ConvexMeshCollider shape;
+        private ResourceManager res;
 		public CAsteroidFieldComponent(AsteroidField field, ResourceManager res, GameObject parent) : base(parent)
 		{
 			Field = field;
-            Dictionary<string, int> indexes = new Dictionary<string, int>();
-			foreach (var asteroid in Field.Cube)
-            {
-				var path = Path.ChangeExtension(asteroid.Drawable.ModelFile, "sur");
-				if (File.Exists(path))
-				{
-                    int idx;
-                    if(!indexes.TryGetValue(path, out idx)) {
-                        if(shape == null)
-                        {
-                            shape = new ConvexMeshCollider(res.GetSur(path));
-                            idx = 0;
-                            indexes.Add(path, 0);
-                        } else {
-                            idx = shape.AddMeshProvider(res.GetSur(path));
-                            indexes.Add(path, idx);
-                        }
-                    }
-                    shape.AddPart(0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * field.CubeSize), null, idx);
-				}
-				else
-				{
-					FLLog.Error("Sur", "Hitbox not found " + path);
-				}
-			}
 			float rdist = 0f;
 			if (field.Zone.Shape is ZoneSphere)
 				rdist = ((ZoneSphere)field.Zone.Shape).Radius;
@@ -61,7 +37,8 @@ namespace LibreLancer.Client.Components
 			}
 			rdist += COLLIDE_DISTANCE;
 			activateDist = rdist * rdist;
-		}
+            this.res = res;
+        }
 
 		float activateDist;
 
@@ -80,6 +57,21 @@ namespace LibreLancer.Client.Components
         public override void Register(PhysicsWorld physics)
         {
             phys = physics;
+            Dictionary<string, int> indexes = new Dictionary<string, int>();
+            shape = new ConvexMeshCollider(phys);
+            foreach (var asteroid in Field.Cube)
+            {
+                var path = Path.ChangeExtension(asteroid.Drawable.ModelFile, "sur");
+                if (File.Exists(path))
+                {
+                    var id = physics.UseMeshFile(res.GetSur(path));
+                    shape.AddPart(id, 0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * Field.CubeSize), null);
+                }
+                else
+                {
+                    FLLog.Error("Sur", "Hitbox not found " + path);
+                }
+            }
         }
         public override void Unregister(PhysicsWorld physics)
         {
@@ -88,7 +80,6 @@ namespace LibreLancer.Client.Components
         }
 		const float COLLIDE_DISTANCE = 600;
 
-        //List<RigidBody> bodies = new List<RigidBody>();
         List<PhysicsObject> bodies = new List<PhysicsObject>();
 		public override void Update(double time)
 		{

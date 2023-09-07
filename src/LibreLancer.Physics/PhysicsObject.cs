@@ -4,122 +4,57 @@
 
 using System;
 using System.Numerics;
-using BulletSharp;
-using BM = BulletSharp.Math;
+
 namespace LibreLancer.Physics
 {
-    public class PhysicsObject
+    public abstract class PhysicsObject : IDisposable
     {
         public object Tag;
-        public bool Static { get; internal set; }
-        internal RigidBody RigidBody { get; private set; }
+        internal int Id;
+
+        protected PhysicsObject(int id)
+        {
+            Id = id;
+        }
+
+        public abstract bool Static { get; }
+        public abstract bool Active { get; }
         public Collider Collider { get; internal set;  }
-        internal PhysicsObject(RigidBody rb, Collider col)
-        {
-            RigidBody = rb;
-            Collider = col;
-        }
 
-        public bool Active => !Static && RigidBody.ActivationState != ActivationState.IslandSleeping;
 
-        public Matrix4x4 Transform { get; private set; }
+        public abstract Matrix4x4 Transform { get; protected set; }
 
-        public Vector3 Position { get; private set; }
+        public abstract Vector3 Position { get; protected set; }
 
-        public void SetTransform(Matrix4x4 transform)
-        {
-            Transform = transform;
-            RigidBody.WorldTransform = transform.Cast();
-            Position = Vector3.Transform(Vector3.Zero, Transform);
-        }
+        public abstract void SetTransform(Matrix4x4 transform);
 
-        public Vector3 AngularVelocity
-        {
-            get {
-                var ang = RigidBody.AngularVelocity.Cast();
-                if (ang.LengthSquared() < float.Epsilon) return Vector3.Zero;
-                return ang;
-            } set {
-                RigidBody.AngularVelocity = value.Cast();
-            }
-        }
+        public abstract Vector3 AngularVelocity { get; set; }
 
-        public Vector3 LinearVelocity
-        {
-            get {
-                return RigidBody.LinearVelocity.Cast();
-            }
-            set {
-                RigidBody.LinearVelocity = value.Cast();
-            }
-        }
+        public abstract Vector3 LinearVelocity { get; set; }
 
-        public BoundingBox GetBoundingBox()
-        {
-            BM.Vector3 min, max;
-            Collider.BtShape.GetAabb(RigidBody.WorldTransform, out min, out max);
-            return new BoundingBox(min.Cast(), max.Cast());
-        }
+        public abstract BoundingBox GetBoundingBox();
 
-        public Vector3 RotateVector(Vector3 src)
-        {
-            return Vector3.Transform(src, RigidBody.WorldTransform.Cast().ClearTranslation());
-        }
+        public abstract Vector3 RotateVector(Vector3 src);
 
-        public void SetDamping(float linearDamping, float angularDamping)
-        {
-            RigidBody.SetDamping(linearDamping,angularDamping);
-        }
+        public abstract void SetDamping(float linearDamping, float angularDamping);
 
-        public void AddForce(Vector3 force)
-        {
-            if (force.LengthSquared() > float.Epsilon)
-            {
-                RigidBody.Activate(true);
-                RigidBody.ApplyForce(force.Cast(), BM.Vector3.Zero);
-            }
-        }
+        public abstract void AddForce(Vector3 force);
 
-        public void Activate()
-        {
-            RigidBody.Activate(true);
-        }
-        
-        public void Impulse(Vector3 force)
-        {
-            if(force.LengthSquared() > float.Epsilon)
-            {
-                RigidBody.Activate(true);
-                RigidBody.ApplyImpulse(force.Cast(), BM.Vector3.Zero);
-            }
-        }
-        public void AddTorque(Vector3 torque)
-        {
-            if (torque.LengthSquared() > float.Epsilon)
-            {
-                RigidBody.Activate(true);
-                RigidBody.ApplyTorque(torque.Cast());
-            }
-        }
-        
+        public abstract void Activate();
+
+        public abstract void Impulse(Vector3 force);
+
+        public abstract void AddTorque(Vector3 torque);
+
         /// <summary>
         /// Runs a step without collision detection or proper damping.
         /// Useful for player reconciliation only
         /// </summary>
         /// <param name="timestep">Should be 1/60.0 normally</param>
-        public void PredictionStep(float timestep)
-        {
-            RigidBody.IntegrateVelocities(timestep);
-            RigidBody.PredictIntegratedTransform(timestep, out var predicted);
-            RigidBody.ProceedToTransform(predicted);
-            RigidBody.ClearForces();
-            UpdateProperties();
-        }
+        public abstract void PredictionStep(float timestep);
 
-        internal void UpdateProperties()
-        {
-            Transform = RigidBody.WorldTransform.Cast();
-            Position = Vector3.Transform(Vector3.Zero, Transform);
-        }
+        internal abstract void UpdateProperties();
+
+        public abstract void Dispose();
     }
 }

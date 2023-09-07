@@ -15,7 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\External\BulletSharpPInvoke_Core31\BulletSharpPInvoke_Core31.csproj" />
+    <ProjectReference Include="..\..\extern\bepuphysics2\BepuPhysics\BepuPhysics.csproj" />
+    <ProjectReference Include="..\..\extern\bepuphysics2\BepuUtilities\BepuUtilities.csproj" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
   </ItemGroup>
 

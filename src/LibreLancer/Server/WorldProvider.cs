@@ -10,7 +10,7 @@ namespace LibreLancer.Server;
 public class WorldProvider
 {
     private GameServer server;
-    
+
     public WorldProvider(GameServer server)
     {
         this.server = server;
@@ -20,7 +20,7 @@ public class WorldProvider
     {
         worlds.TryRemove(system, out _);
     }
-    
+
     struct WorldState
     {
         public bool Ready;
@@ -28,7 +28,7 @@ public class WorldProvider
     }
 
     private ConcurrentDictionary<StarSystem, WorldState> worlds = new ConcurrentDictionary<StarSystem, WorldState>();
-    
+
     void LoadWorld(StarSystem system, out WorldState ws)
     {
         var x = new WorldState();
@@ -51,12 +51,18 @@ public class WorldProvider
         {
             if (!worlds.TryGetValue(system, out var ws))
                 LoadWorld(system, out ws);
-            while (!ws.Ready) {
+            while (!ws.Ready)
+            {
                 await Task.Delay(33);
-                if(!worlds.TryGetValue(system, out ws))
+                if (!worlds.TryGetValue(system, out ws))
                     LoadWorld(system, out ws);
             }
+
             spunUp(ws.World);
+        }).ContinueWith(x =>
+        {
+            if (x.Exception != null)
+                throw x.Exception;
         });
     }
 }

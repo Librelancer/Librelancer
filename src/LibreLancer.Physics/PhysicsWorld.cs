@@ -3,32 +3,45 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
-using BulletSharp;
-using BM = BulletSharp.Math;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
+using BepuPhysics.Trees;
+using BepuUtilities;
+using BepuUtilities.Memory;
+using LibreLancer.Physics.ContactEvents;
 
 namespace LibreLancer.Physics
 {
     /// <summary>
     /// Creates a bullet physics world. Any object created here will be invalid upon Dispose()
     /// </summary>
-    public class PhysicsWorld : IDisposable
+    public class PhysicsWorld : IDisposable, ContactEvents.IContactEventHandler
     {
         public IReadOnlyList<PhysicsObject> Objects
         {
             get { return objects; }
         }
-        
-        DiscreteDynamicsWorld btWorld;
-        CollisionDispatcher btDispatcher;
-        DbvtBroadphase broadphase;
-        CollisionConfiguration collisionConf;
+
+        //mapipng bepu bodies to librelancer objects
+        private Dictionary<int, PhysicsObject> objectsById = new Dictionary<int, PhysicsObject>();
+        private IdPool ids = new IdPool(100, true);
+        private CollidableProperty<int> bepuToLancer;
+        //our list
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
+
+
+
         bool disposed = false;
-        
-        private CollisionObject pointObj;
+
+        private BufferPool bufferPool;
+        private ThreadDispatcher threadDispatcher;
+        internal Simulation Simulation;
+        private ContactEvents.ContactEvents contactEvents;
 
         public delegate void CollideHandler(PhysicsObject objA, PhysicsObject objB);
 
@@ -36,180 +49,307 @@ namespace LibreLancer.Physics
 
         public PhysicsWorld()
         {
-            collisionConf = new DefaultCollisionConfiguration();
-
-            btDispatcher = new CollisionDispatcher(collisionConf);
-            broadphase = new DbvtBroadphase();
-            btWorld = new DiscreteDynamicsWorld(btDispatcher, broadphase, null, collisionConf);
-            btWorld.Gravity = BM.Vector3.Zero;
-
-            pointObj = new CollisionObject();
-            pointObj.CollisionShape = new SphereShape(1);
+            bufferPool = new BufferPool();
+            threadDispatcher = new ThreadDispatcher(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
+            contactEvents = new ContactEvents.ContactEvents(threadDispatcher, bufferPool);
+            Simulation = Simulation.Create(bufferPool,
+                new ContactEventCallbacks(contactEvents, 300),
+                new LibrelancerPoseIntegratorCallbacks(),
+                new SolveDescription(8, 1)
+            );
+            bepuToLancer = new CollidableProperty<int>(Simulation);
         }
 
+        public IDebugRenderer DebugRenderer { get; set; }
 
-        DebugDrawWrapper wrap;
-
-        public void EnableWireframes(IDebugRenderer renderer)
+        public void DrawWorld(BoundingFrustum frustum, Vector3? cameraPosition)
         {
-            wrap = new DebugDrawWrapper(renderer);
-            btWorld.DebugDrawer = wrap;
-        }
-
-        public void DisableWireframes()
-        {
-            btWorld.DebugDrawer = null;
-            wrap = null;
-        }
-
-        public void DrawWorld()
-        {
-            btWorld.DebugDrawWorld();
+            if (DebugRenderer != null)
+            {
+                foreach (var o in objects)
+                {
+                    if (cameraPosition != null &&
+                        Vector3.DistanceSquared(o.Position, cameraPosition.Value) > (25000 * 25000))
+                        continue;
+                    if (frustum != null && !frustum.Intersects(o.GetBoundingBox()))
+                        continue;
+                    o.Collider.Draw(o.Transform, DebugRenderer);
+                }
+                if (ShowRaycasts)
+                {
+                    for (int i = 0; i < debugRayIndex; i++)
+                    {
+                        DebugRenderer.DrawLine(debugRays[i].Start, debugRays[i].End, debugRays[i].Success ? Color4.Green : Color4.Blue);
+                        if (debugRays[i].Success)
+                        {
+                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(0,10,0), debugRays[i].End + new Vector3(0,10,0), Color4.Red);
+                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(10,0,0), debugRays[i].End + new Vector3(10,0,0), Color4.Red);
+                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(0,0,10), debugRays[i].End + new Vector3(0,0,10), Color4.Red);
+                        }
+                    }
+                }
+            }
+            debugRayIndex = 0;
         }
 
         public PhysicsObject AddStaticObject(Matrix4x4 transform, Collider col)
         {
-            using (var rbInfo = new RigidBodyConstructionInfo(0,
-                new DefaultMotionState(transform.Cast()),
-                col.BtShape, BM.Vector3.Zero))
-            {
-                var body = new RigidBody(rbInfo);
-                body.Restitution = 1;
-                var phys = new PhysicsObject(body, col) {Static = true};
-                phys.UpdateProperties();
-                body.UserObject = phys;
-                btWorld.AddRigidBody(body);
-                objects.Add(phys);
-                return phys;
-            }
+            col.Create(Simulation, bufferPool);
+            var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle));
+            ids.TryAllocate(out int id);
+            var obj = new StaticObject(id, Simulation.Statics.GetStaticReference(h), Simulation, transform, col);
+            bepuToLancer.Allocate(h) = id;
+            objectsById[id] = obj;
+            objects.Add(obj);
+            return obj;
         }
 
-        static bool IsInvalid(BM.Vector3 v)
-        {
-            return float.IsNaN(v.X) ||
-                float.IsNaN(v.Y) ||
-                float.IsNaN(v.Z);
-        }
+       struct SweepHandler : ISweepHitHandler
+       {
+           private PhysicsWorld world;
+           public List<PhysicsObject> Result;
 
-        class SphereTestCallback : ContactResultCallback
-        {
-            public List<PhysicsObject> Result = new List<PhysicsObject>();
+           public SweepHandler(PhysicsWorld world)
+           {
+               this.world = world;
+               Result = new List<PhysicsObject>();
+           }
+           public bool AllowTest(CollidableReference collidable) => true;
 
-            public override float AddSingleResult(ManifoldPoint cp, CollisionObjectWrapper colObj0Wrap, int partId0, int index0,
-                CollisionObjectWrapper colObj1Wrap, int partId1, int index1)
-            {
-                if (colObj0Wrap.CollisionObject is RigidBody rb0)
-                {
-                    if (rb0.UserObject != null)
-                        Result.Add((PhysicsObject) rb0.UserObject);
-                }
-                else if (colObj1Wrap.CollisionObject is RigidBody rb1)
-                {
-                    if (rb1.UserObject != null)
-                        Result.Add((PhysicsObject) rb1.UserObject);
-                }
-                return 1f;
-            }
-        }
+           public bool AllowTest(CollidableReference collidable, int child) => true;
+
+           public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
+           {
+               Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
+           }
+
+           public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
+           {
+               Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
+           }
+       }
+
+       //TODO: Use a CollisionQuery instead.
         public List<PhysicsObject> SphereTest(Vector3 origin, float radius)
         {
-            using var co = new CollisionObject();
-            using var sph = new SphereShape(radius);
-            using var cb = new SphereTestCallback();
-            co.CollisionShape = sph;
-            co.WorldTransform = BM.Matrix.Translation(origin.Cast());
-            btWorld.ContactTest(co, cb);
-            return cb.Result;
+            SweepHandler handler = new SweepHandler(this);
+            Simulation.Sweep(
+                new Sphere(radius),
+                new RigidPose(origin),
+                new BodyVelocity(Vector3.Zero),
+                1,
+                bufferPool,
+                ref handler
+            );
+            return handler.Result;
         }
 
+        struct HitHandler : IRayHitHandler
+        {
+            public PhysicsObject Result;
+            public Vector3 ContactPoint;
+            private PhysicsWorld world;
+            private int selfId;
+
+            public HitHandler(PhysicsWorld world, PhysicsObject self)
+            {
+                this.world = world;
+                selfId = self?.Id ?? -1;
+            }
+
+            public bool AllowTest(CollidableReference collidable) => world.bepuToLancer[collidable] != selfId;
+
+            public bool AllowTest(CollidableReference collidable, int childIndex) =>
+                world.bepuToLancer[collidable] != selfId;
+
+            public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable,
+                int childIndex)
+            {
+                maximumT = t;
+                ContactPoint = ray.Origin + ray.Direction * t;
+                Result = world.objectsById[world.bepuToLancer[collidable]];
+            }
+        }
+
+        private int debugRayIndex = 0;
+        public bool ShowRaycasts = false;
+        private (Vector3 Start, Vector3 End, bool Success)[] debugRays = new (Vector3 Start, Vector3 End, bool Success)[32];
 
         public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist, out Vector3 contactPoint, out PhysicsObject didHit)
         {
-            contactPoint = Vector3.Zero;
-            didHit = null;
-            ClosestRayResultCallback cb;
-            var from = origin.Cast();
-            var to = (origin + direction * maxDist).Cast();
-            if (IsInvalid(from) || IsInvalid(to)) return false;
-            if ((from - to).Length == 0) return false;
-
-            if (me != null) {
-                cb = new KinematicClosestNotMeRayResultCallback(me.RigidBody);
-                cb.RayFromWorld = from;
-                cb.RayToWorld = to;
-            }
-            else {
-                cb = new ClosestRayResultCallback(ref from,  ref to);
-            }
-            using (cb)
-            {
-                btWorld.RayTestRef(ref from, ref to, cb);
-                if (cb.HasHit)
+            HitHandler handler = new HitHandler(this, me);
+            Simulation.RayCast(origin, direction, maxDist, ref handler);
+            contactPoint = handler.ContactPoint;
+            didHit = handler.Result;
+            if (ShowRaycasts && debugRayIndex < debugRays.Length){
+                if (didHit != null)
                 {
-                    didHit = cb.CollisionObject.UserObject as PhysicsObject;
-                    contactPoint = cb.HitPointWorld.Cast();
-                    return true;
+                    debugRays[debugRayIndex++] = (origin, contactPoint, true);
                 }
-                return false;
+                else
+                {
+                    debugRays[debugRayIndex++] = (origin, origin + (direction * maxDist), false);
+                }
             }
+            return didHit != null;
         }
 
-        public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null) {
+
+        //TODO : Not good
+        public uint UseMeshFile(IConvexMeshProvider file)
+        {
+            if (meshFileIds.TryGetValue(file, out var id))
+                return id;
+            nextMeshId++;
+            meshFiles[nextMeshId] = file;
+            meshFileIds[file] = nextMeshId;
+            return nextMeshId;
+        }
+
+        private Dictionary<ulong, (TypedIndex Shape, Vector3 Center)[]> shapes = new();
+        private Dictionary<uint, IConvexMeshProvider> meshFiles = new();
+        private Dictionary<IConvexMeshProvider, uint> meshFileIds = new();
+        private uint nextMeshId = 0;
+        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, uint meshId)
+        {
+            var id = (ulong) meshId | ((ulong) fileId << 32);
+            if (shapes.TryGetValue(id, out var sh))
+                return sh;
+            var f = meshFiles[fileId];
+            var src = f.GetMesh(meshId);
+            var shx = new List<(TypedIndex Shapes, Vector3 Center)>();
+            for (int i = 0; i < src.Length; i++)
+            {
+                try
+                {
+                    var verts = src[i].Vertices;
+                    var indices = src[i].Indices;
+                    if (indices.Length <= 6) {
+                        //Two triangles does not a convex hull make
+                        if (indices.Length >= 3)
+                        {
+                            var tri = new Triangle(
+                                verts[indices[0]],
+                                verts[indices[1]],
+                                verts[indices[2]]
+                            );
+                            shx.Add((Simulation.Shapes.Add(tri), Vector3.Zero));
+                        }
+                        if (indices.Length == 6){
+                            var tri = new Triangle(
+                                verts[indices[3]],
+                                verts[indices[4]],
+                                verts[indices[5]]
+                            );
+                            shx.Add((Simulation.Shapes.Add(tri), Vector3.Zero));
+                        }
+                    }
+                    else
+                    {
+                        var points = new Vector3[src[i].Indices.Length];
+                        for (int j = 0; j < src[i].Indices.Length; j++)
+                            points[j] = src[i].Vertices[src[i].Indices[j]];
+                        var convexHull = new ConvexHull(points, bufferPool, out var center);
+                        if (convexHull.FaceToVertexIndicesStart.Length == 2)
+                        {
+                            //Co-planar, fix up
+                            convexHull.Dispose(bufferPool);
+                            for (int j = 0; j < indices.Length; j += 3)
+                            {
+                                shx.Add((Simulation.Shapes.Add(new Triangle(
+                                    verts[indices[j]],
+                                    verts[indices[j+1]],
+                                    verts[indices[j+2]]
+                                    )), Vector3.Zero));
+                            }
+                        }
+                        else
+                        {
+                            shx.Add((Simulation.Shapes.Add(convexHull), center));
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    FLLog.Error("Physics", $"Please report: {e}");
+                }
+            }
+
+            shapes[id] = shx.ToArray();
+            return shapes[id];
+        }
+
+        static Symmetric3x3 ToInverseInertia(Vector3 inertia)
+        {
+            Vector3 inverted = new Vector3(
+                inertia.X == 0 ? 0 : 1.0f / inertia.X,
+                inertia.Y == 0 ? 0 : 1.0f / inertia.Y,
+                inertia.Z == 0 ? 0 : 1.0f / inertia.Z
+            );
+            return new Symmetric3x3()
+            {
+                XX = inverted.X,
+                YY = inverted.Y,
+                ZZ = inverted.Z
+            };
+        }
+
+        public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null)
+        {
             if(mass < float.Epsilon) {
                 throw new Exception("Mass must be non-zero");
             }
-            BM.Vector3 localInertia;
-            if (inertia != null) {
-                localInertia = inertia.Value.Cast();
-            }
-            else {
-                col.BtShape.CalculateLocalInertia(mass, out localInertia);
-            }
-            using (var rbInfo = new RigidBodyConstructionInfo(mass,
-                                                             new DefaultMotionState(transform.Cast()),
-                                                             col.BtShape, localInertia))
+            Symmetric3x3 invInertia;
+            if (inertia != null)
+                invInertia = ToInverseInertia(inertia.Value);
+            else
+                invInertia = col.CalculateInverseInertia(mass);
+            col.Create(Simulation, bufferPool);
+            var h = Simulation.Bodies.Add(new BodyDescription()
             {
-                var body = new RigidBody(rbInfo);
-                body.SetDamping(0, 0);
-                body.Restitution = 0.8f;
-                var phys = new PhysicsObject(body, col) { Static = false };
-                phys.UpdateProperties();
-                body.UserObject = phys;
-                btWorld.AddRigidBody(body);
-                objects.Add(phys);
-                dynamicObjects.Add(phys);
-                return phys;
-            }
+                LocalInertia = new BodyInertia()
+                {
+                    InverseMass = 1.0f / mass,
+                    InverseInertiaTensor = invInertia,
+                },
+                Collidable = new CollidableDescription(col.Handle),
+                Pose = transform.ToPose(),
+            });
+            ids.TryAllocate(out int id);
+            var obj = new DynamicObject(id, Simulation.Bodies.GetBodyReference(h), col);
+            bepuToLancer.Allocate(h) = id;
+            objectsById[id] = obj;
+            objects.Add(obj);
+            dynamicObjects.Add(obj);
+            contactEvents.Register(h, this);
+            return obj;
+        }
+
+        void ContactEvents.IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair,
+            ref TManifold contactManifold, int workerIndex)
+        {
+            QueueCollision(pair.A, pair.B);
+        }
+
+        private ConcurrentQueue<(PhysicsObject A, PhysicsObject B)> collisionEvents =
+            new ConcurrentQueue<(PhysicsObject A, PhysicsObject B)>();
+
+        internal void QueueCollision(CollidableReference a, CollidableReference b)
+        {
+            var objA = objectsById[bepuToLancer[a]];
+            var objB = objectsById[bepuToLancer[b]];
+            collisionEvents.Enqueue((objA, objB));
         }
 
         public void StepSimulation(float timestep)
         {
-            btWorld.StepSimulation(timestep, 0, timestep);
-            if (disposed) return; //Allow delete within FixedUpdate. Hacky but works
-            //Update C#-side properties after each step. Creates stuttering otherwise
-            foreach (var obj in dynamicObjects) {
+            Simulation.Timestep(timestep, threadDispatcher);
+            foreach(var obj in objects)
                 obj.UpdateProperties();
-                obj.RigidBody.Activate(true);
-            }
-            if (OnCollision != null)
+            contactEvents.Flush();
+            while (collisionEvents.TryDequeue(out var ev))
             {
-                int numManifolds = btDispatcher.NumManifolds;
-                for (int i = 0; i < numManifolds; i++)
-                {
-                    var contactManifold = btDispatcher.GetManifoldByIndexInternal(i);
-                    var numContacts = contactManifold.NumContacts;
-                    for (int j = 0; j < numContacts; j++)
-                    {
-                        var point = contactManifold.GetContactPoint(j);
-                        if (point.Distance < 0)
-                        {
-                            var body0 = contactManifold.Body0;
-                            var body1 = contactManifold.Body1;
-                            OnCollision(body0.UserObject as PhysicsObject, body1.UserObject as PhysicsObject);
-                            break;
-                        }
-                    }
-                }
+                OnCollision?.Invoke(ev.A, ev.B);
             }
         }
 
@@ -219,36 +359,34 @@ namespace LibreLancer.Physics
         /// <param name="obj">Physics Object to remove.</param>
         public void RemoveObject(PhysicsObject obj)
         {
-            if (obj.RigidBody.MotionState != null)
-                obj.RigidBody.MotionState.Dispose();
-            btWorld.RemoveCollisionObject(obj.RigidBody);
-            obj.RigidBody.Dispose();
+            int id = -1;
+            if (obj is StaticObject s)
+            {
+                id = bepuToLancer[s.BepuObject.Handle];
+                Simulation.Statics.Remove(s.BepuObject.Handle);
+            }
+            else if (obj is DynamicObject d)
+            {
+                id = bepuToLancer[d.BepuObject.Handle];
+                contactEvents.Unregister(d.BepuObject.Handle);
+                Simulation.Bodies.Remove(d.BepuObject.Handle);
+            }
+            if (id != -1)
+            {
+                ids.Free(id);
+                objectsById.Remove(id);
+            }
             objects.Remove(obj);
-            if (!obj.Static) dynamicObjects.Remove(obj);
         }
 
         public void Dispose()
         {
             if (disposed) return;
             disposed = true;
-            //Delete all RigidBody objects
-            for (int i = btWorld.NumCollisionObjects - 1; i >= 0; i--)
-            {
-                CollisionObject obj = btWorld.CollisionObjectArray[i];
-                RigidBody body = obj as RigidBody;
-                if (body != null && body.MotionState != null)
-                {
-                    body.MotionState.Dispose();
-                }
-                btWorld.RemoveCollisionObject(obj);
-                obj.Dispose();
-            }
-            pointObj.CollisionShape.Dispose();
-            pointObj.Dispose();
-            btWorld.Dispose();
-            broadphase.Dispose();
-            btDispatcher.Dispose();
-            collisionConf.Dispose();
+            contactEvents.Dispose();
+            Simulation.Dispose();
+            threadDispatcher.Dispose();
+            bufferPool.Clear();
         }
     }
 }

@@ -51,6 +51,7 @@ namespace LancerEdit
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
+            wireframeMaterial3db.Initialize(res);
             normalsDebugMaterial = new Material(new NormalDebugMaterial(res));
             lighting = Lighting.Create();
             lighting.Enabled = true;

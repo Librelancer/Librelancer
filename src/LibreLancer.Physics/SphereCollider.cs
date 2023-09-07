@@ -3,25 +3,32 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using BulletSharp;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuUtilities;
+using BepuUtilities.Memory;
+
 namespace LibreLancer.Physics
 {
     public class SphereCollider : Collider
     {
-        SphereShape btSphere;
-        internal override CollisionShape BtShape
-        {
-            get
-            {
-                return btSphere;
-            }
-        }
         public SphereCollider(float radius)
         {
-            btSphere = new SphereShape(radius);
-            this.Radius = radius;
+            Radius = radius;
         }
 
         public override float Radius { get; }
+        internal override void Create(Simulation sim, BufferPool pool)
+        {
+            base.Create(sim, pool);
+            if (!Handle.Exists){
+                Handle = sim.Shapes.Add(new Sphere(Radius));
+            }
+        }
+
+        public override Symmetric3x3 CalculateInverseInertia(float mass)
+        {
+            return new Sphere(Radius).ComputeInertia(mass).InverseInertiaTensor;
+        }
     }
 }

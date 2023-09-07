@@ -484,6 +484,7 @@ namespace LibreLancer.Render
             rstate.DepthWrite = false;
 			commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
+            rstate.DepthEnabled = true;
             PhysicsHook?.Invoke();
             foreach (var point in debugPoints)
             {

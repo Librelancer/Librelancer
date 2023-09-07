@@ -16,12 +16,6 @@
 [submodule "extern/cimgui"]
 	path = extern/cimgui
 	url = https://github.com/cimgui/cimgui
-[submodule "extern/bullet3"]
-	path = extern/bullet3
-	url = https://github.com/bulletphysics/bullet3
-[submodule "extern/BulletSharpPInvoke"]
-	path = extern/BulletSharpPInvoke
-	url = https://github.com/AndresTraks/BulletSharpPInvoke
 [submodule "extern/Collada141"]
 	path = extern/Collada141
 	url = https://github.com/Librelancer/Collada141
@@ -59,3 +53,6 @@
 [submodule "extern/SPIRV-Cross"]
 	path = extern/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross
+[submodule "extern/bepuphysics2"]
+	path = extern/bepuphysics2
+	url = https://github.com/bepu/bepuphysics2

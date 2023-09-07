@@ -40,12 +40,12 @@ namespace LibreLancer.World.Components
         public Vector3 Steering;
         public float CruiseAccelPct = 0;
         public int Tick;
-        
+
         public ShipPhysicsComponent(GameObject parent) : base(parent)
         {
             Active = true;
         }
-        
+
         //TODO: Engine Kill
 
         public void ResyncChargePercent(float prev, float time)
@@ -73,13 +73,13 @@ namespace LibreLancer.World.Components
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
             }
         }
-        
+
         public override void Update(double time)
         {
             if (!Active) return;
             if (CruiseEnabled)
             {
-                if (EngineState != EngineStates.Cruise && 
+                if (EngineState != EngineStates.Cruise &&
                     EngineState != EngineStates.CruiseCharging)
                 {
                     EngineState = EngineStates.CruiseCharging;
@@ -165,11 +165,11 @@ namespace LibreLancer.World.Components
             {
                 if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
                 {
-                    strafe -= Vector3.UnitX; 
+                    strafe -= Vector3.UnitX;
                 }
                 else if ((CurrentStrafe & StrafeControls.Right) == StrafeControls.Right)
                 {
-                    strafe += Vector3.UnitX; 
+                    strafe += Vector3.UnitX;
                 }
                 if ((CurrentStrafe & StrafeControls.Up) == StrafeControls.Up)
                 {
@@ -199,6 +199,6 @@ namespace LibreLancer.World.Components
             Parent.PhysicsComponent.Body.AddTorque(angularForce);
         }
 
-        
+
     }
 }

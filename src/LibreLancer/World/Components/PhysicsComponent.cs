@@ -25,13 +25,13 @@ namespace LibreLancer.World.Components
 
         public Vector3 PredictionErrorPos = Vector3.Zero;
         public Quaternion PredictionErrorQuat = Quaternion.Identity;
-        
+
         public PhysicsComponent(GameObject parent) : base(parent)
         {
         }
         public void ChildDebris(GameObject parent, RigidModelPart part, float mass, Vector3 initialforce)
         {
-            var cp = new PhysicsComponent(parent) { 
+            var cp = new PhysicsComponent(parent) {
                 Sur = this.Sur,
                 Mass = mass,
                 PlainCrc = CrcTool.FLModelCrc(part.Name),
@@ -42,7 +42,7 @@ namespace LibreLancer.World.Components
             cp.Body.Impulse(initialforce);
             parent.Components.Add(cp);
         }
-        
+
 
         bool partRemoved = false;
         public void DisablePart(RigidModelPart part)
@@ -73,7 +73,7 @@ namespace LibreLancer.World.Components
                 }
                 var pos = Body.Position;
                 var quat = Body.Transform.ExtractRotation();
-                
+
                 Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat * PredictionErrorQuat) *
                     Matrix4x4.CreateTranslation(pos + PredictionErrorPos), true);
             }
@@ -88,17 +88,18 @@ namespace LibreLancer.World.Components
                 cld = new SphereCollider(SphereRadius);
             } else {
                 var mr = (ModelRenderer)Parent.RenderComponent;
-                _convexMesh = new ConvexMeshCollider(Sur);
+                var meshId = physics.UseMeshFile(Sur);
+                _convexMesh = new ConvexMeshCollider(physics);
                 cld = _convexMesh;
                 if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
-                    _convexMesh.AddPart(PlainCrc, Matrix4x4.Identity, null);
+                    _convexMesh.AddPart(meshId, PlainCrc, Matrix4x4.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
                         var crc = CrcTool.FLModelCrc(part.Name);
                         if (part.Construct == null)
-                            _convexMesh.AddPart(crc, Matrix4x4.Identity, part);
+                            _convexMesh.AddPart( meshId, crc, Matrix4x4.Identity, part);
                         else
-                            _convexMesh.AddPart(crc, part.LocalTransform, part);
+                            _convexMesh.AddPart( meshId, crc, part.LocalTransform, part);
                     }
                 }
             }

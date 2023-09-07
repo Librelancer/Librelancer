@@ -3,30 +3,37 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using BulletSharp;
-using BM = BulletSharp.Math;
+using System.Numerics;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuUtilities;
+using BepuUtilities.Memory;
+
 namespace LibreLancer.Physics
 {
     public abstract class Collider : IDisposable
     {
-        internal abstract CollisionShape BtShape { get; }
+        protected Simulation sim;
+        protected BufferPool pool;
+        public TypedIndex Handle { get; protected set; }
 
-        internal bool isDisposed = false;
-        public virtual void Dispose()
+        public void Dispose()
         {
-            if(BtShape != null) {
-                isDisposed = true;
-                BtShape.Dispose();
-            }
+            sim.Shapes.RecursivelyRemoveAndDispose(Handle, pool);
+            Handle = new TypedIndex();
         }
-        public virtual float Radius {
-            get {
-                //This seems to return incorrect values. Even for spheres :/
-                if (isDisposed) throw new ObjectDisposedException("Collider");
-                BtShape.GetBoundingSphere(out _, out float r);
-                return r;
-            }
+        public abstract float Radius { get; }
+
+        internal virtual void Create(Simulation sim, BufferPool pool)
+        {
+            this.sim = sim;
+            this.pool = pool;
         }
 
+        internal virtual void Draw(Matrix4x4 transform, IDebugRenderer renderer)
+        {
+        }
+
+        public abstract Symmetric3x3 CalculateInverseInertia(float mass);
     }
 }
