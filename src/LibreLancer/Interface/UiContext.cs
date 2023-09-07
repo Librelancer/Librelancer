@@ -28,6 +28,8 @@ namespace LibreLancer.Interface
         public CommandBuffer CommandBuffer;
         //Ui
         private object _gameApi;
+        //TODO: Properly reload RigidModels on meshes cleared
+        public int MeshDisposeVersion = 0;
         public object GameApi
         {
             get
@@ -48,7 +50,7 @@ namespace LibreLancer.Interface
         {
             Data = data;
         }
-        
+
         public UiContext(FreelancerGame game)
         {
             RenderContext = game.RenderContext;
@@ -86,9 +88,9 @@ namespace LibreLancer.Interface
         {
             lua.OpenScene(scene);
         }
-        
-        
-        
+
+
+
         private void MouseOnMouseUp(MouseEventArgs e)
         {
             if (game.Debug.CaptureMouse) return;
@@ -150,7 +152,7 @@ namespace LibreLancer.Interface
             }
             return new Vector2(resolveX, resolveY);
         }
-        
+
         public Vector2 PointsToPixels(Vector2 points)
         {
             var ratio = ViewportHeight / 480;
@@ -232,7 +234,7 @@ namespace LibreLancer.Interface
         {
             baseWidget.UnFocus();
         }
-        
+
         RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
 
         private UiWidget baseWidget;
@@ -289,7 +291,7 @@ namespace LibreLancer.Interface
         {
             Data.Sounds?.PlayVoiceLine(voice, FLHash.CreateID(line), null);
         }
-        
+
         class ModalState
         {
             public UiWidget Widget;
@@ -323,7 +325,7 @@ namespace LibreLancer.Interface
         public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
         public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
         public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());
-        
+
         public void OnMouseDoubleClick() => GetActive()?.OnMouseDoubleClick(this, GetRectangle());
 
         public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, GetRectangle(), delta);
@@ -349,7 +351,7 @@ namespace LibreLancer.Interface
             }
             if (game != null && game.Mouse.Wheel != 0)
             {
-                OnMouseWheel(game.Mouse.Wheel);   
+                OnMouseWheel(game.Mouse.Wheel);
             }
             textFocusWidget = null;
             RenderContext.DepthEnabled = false;

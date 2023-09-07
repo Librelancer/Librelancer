@@ -79,6 +79,7 @@ World Time: {12:F2}
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
             g.ResourceManager.ClearTextures(); //Do before loading things
             g.ResourceManager.ClearMeshes();
+            Game.Ui.MeshDisposeVersion++;
             this.session = session;
             sys = g.GameData.Systems.Get(session.PlayerSystem);
             ui = Game.Ui;

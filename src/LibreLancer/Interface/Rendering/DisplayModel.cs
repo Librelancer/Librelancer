@@ -152,9 +152,14 @@ namespace LibreLancer.Interface
             context.RenderContext.Cull = true;
         }
 
+        private int v = 0;
         bool CanRender(UiContext context)
         {
             if (!loadable) return false;
+            if (v != context.MeshDisposeVersion){ //HACK: Clear models on vmesh dispose
+                v = context.MeshDisposeVersion;
+                model = null;
+            }
             if (model == null)
             {
                 model = context.Data.GetModel(Model.Path);

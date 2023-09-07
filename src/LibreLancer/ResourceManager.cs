@@ -329,6 +329,7 @@ namespace LibreLancer
             }
             else
             {
+                FLLog.Debug("Resources", $"Reloading meshes from {meshFiles[vMeshLibId]}");
                 LoadResourceFile(meshFiles[vMeshLibId], MeshLoadMode.GPU);
                 vms = meshes[vMeshLibId];
             }
