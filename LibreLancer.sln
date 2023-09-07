@@ -53,11 +53,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WattleScript.Interpreter", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WattleScript.HardwireGen", "extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj", "{49D998AE-98EF-4786-9225-8A09CE6C96C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Tests", "src\LibreLancer.Tests\LibreLancer.Tests.csproj", "{770D3253-2628-45BB-B087-B3BC528FF03B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Tests", "src\LibreLancer.Tests\LibreLancer.Tests.csproj", "{770D3253-2628-45BB-B087-B3BC528FF03B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLServerGui", "src\LLServerGui\LLServerGui.csproj", "{CA2BC5AC-C25D-4C2F-8092-175F1F1BF0F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLServerGui", "src\LLServerGui\LLServerGui.csproj", "{CA2BC5AC-C25D-4C2F-8092-175F1F1BF0F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLServer.Core", "src\LLServer.Core\LLServer.Core.csproj", "{3A1E19F8-0267-4D28-92FB-3745874428C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLServer.Core", "src\LLServer.Core\LLServer.Core.csproj", "{3A1E19F8-0267-4D28-92FB-3745874428C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuUtilities", "extern\bepuphysics2\BepuUtilities\BepuUtilities.csproj", "{45F57047-5BF4-41BF-A13C-A1CD3BFCFD8A}"
 EndProject
@@ -422,10 +422,8 @@ Global
 		src\PublishAssets\PublishAssets.projitems*{079429ec-f982-4954-b4dd-ad99160f3437}*SharedItemsImports = 5
 		src\PublishAssets\PublishAssets.projitems*{2d55d94d-d39a-446d-bb2e-b2e3f2f6c585}*SharedItemsImports = 5
 		src\PublishAssets\PublishAssets.projitems*{3d82c20a-f844-40cc-86b2-0f9fa66854ff}*SharedItemsImports = 5
-		src\PublishAssets\PublishAssets.projitems*{531d1b55-e764-44e6-bdb4-f19f29233db0}*SharedItemsImports = 5
-		src\PublishAssets\PublishAssets.projitems*{9d59408d-4708-45f6-ab61-18a00f9add78}*SharedItemsImports = 5
 		src\PublishAssets\PublishAssets.projitems*{be914d42-4fa8-4ef6-b4be-1d9d6ba93392}*SharedItemsImports = 5
-		src\PublishAssets\PublishAssets.projitems*{d26e97a5-7453-4d41-a471-bd78bb74fcc5}*SharedItemsImports = 5
+		src\PublishAssets\PublishAssets.projitems*{ca2bc5ac-c25d-4c2f-8092-175f1f1bf0f4}*SharedItemsImports = 5
 		src\PublishAssets\PublishAssets.projitems*{f25c3752-0ab4-45ca-90da-efd276c4322a}*SharedItemsImports = 5
 		src\PublishAssets\PublishAssets.projitems*{fd9729fd-84fc-49e7-b3ff-bba3f4268b87}*SharedItemsImports = 13
 		src\PublishAssets\PublishAssets.projitems*{fdc20255-07a5-4f6b-9b32-151d8d053a11}*SharedItemsImports = 5
