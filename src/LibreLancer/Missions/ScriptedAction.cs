@@ -41,6 +41,9 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_AdjAcct:
                         yield return new Act_AdjAcct(a);
                         break;
+                    case TriggerActions.Act_DisableTradelane:
+                        yield return new Act_DisableTradelane(a);
+                        break;
                     case TriggerActions.Act_SpawnSolar:
                         yield return new Act_SpawnSolar(a);
                         break;
@@ -254,7 +257,7 @@ namespace LibreLancer.Missions
                             });
                         }
                     }
-                   
+
                 }
                 runtime.Player.UpdateCurrentInventory();
             }
@@ -263,7 +266,7 @@ namespace LibreLancer.Missions
     public class Act_PlaySoundEffect : ScriptedAction
     {
         public string Effect;
-        
+
         public Act_PlaySoundEffect(MissionAction act) : base(act)
         {
             Effect = act.Entry[0].ToString();
@@ -312,6 +315,29 @@ namespace LibreLancer.Missions
         }
     }
 
+    public class Act_DisableTradelane : ScriptedAction
+    {
+        public string Tradelane;
+
+        public Act_DisableTradelane(MissionAction act) : base(act)
+        {
+            Tradelane = act.Entry[0].ToString();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.WorldAction(() =>
+            {
+                var gameObj = runtime.Player.World.GameWorld.GetObject(Tradelane);
+                var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
+                if (firstChild != null)
+                {
+                    firstChild.Damage(float.MaxValue);
+                }
+            });
+        }
+    }
+
     public class Act_AdjAcct : ScriptedAction
     {
         public int Amount;
@@ -326,7 +352,7 @@ namespace LibreLancer.Missions
             runtime.Player.AddCash(Amount);
         }
     }
-    
+
     public class Act_LightFuse : ScriptedAction
     {
         public string Target;
@@ -439,6 +465,6 @@ namespace LibreLancer.Missions
             });
         }
     }
-    
-    
+
+
 }

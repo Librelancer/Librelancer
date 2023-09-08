@@ -8,7 +8,7 @@ public class AiDockListState : AiObjListState
 {
     private AiDockState dockState;
     private string target;
-    //TODO: AI should exit tradelane at this point
+    //TODO: AI should tradelane specifically in this direction
     private string exit;
     public AiDockListState(string target, string exit)
     {
@@ -20,6 +20,7 @@ public class AiDockListState : AiObjListState
     {
         var tgt = obj.World.GetObject(target);
         dockState = new AiDockState(tgt);
+        dockState.Cruise = false;
         dockState.OnStart(obj, ai);
     }
 

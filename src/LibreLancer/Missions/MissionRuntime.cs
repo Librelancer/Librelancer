@@ -126,6 +126,22 @@ namespace LibreLancer.Missions
                 }
             }
 
+            if (cond == TriggerConditions.Cnd_DistVec)
+            {
+                if (Player.World == null) return false;
+
+                bool inside = data.Entry[0].ToString() == "inside";
+                var objA = Player.World.GameWorld.GetObject(data.Entry[1].ToString());
+                if (objA == null) return false;
+                var point = new Vector3(data.Entry[2].ToSingle(), data.Entry[3].ToSingle(), data.Entry[4].ToSingle());
+                var d = data.Entry[5].ToSingle();
+                bool satisfied;
+                if (Vector3.Distance(Vector3.Transform(Vector3.Zero, objA.LocalTransform), point) < (d * d))
+                    satisfied = inside;
+                else
+                    satisfied = !inside;
+                return satisfied;
+            }
             if (cond == TriggerConditions.Cnd_DistShip)
             {
                 if (Player.World == null) return false;

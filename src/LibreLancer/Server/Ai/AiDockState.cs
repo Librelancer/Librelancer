@@ -11,11 +11,12 @@ namespace LibreLancer.Server.Ai
     public class AiDockState : AiState
     {
         private GameObject target;
+        public bool Cruise = true;
         public AiDockState(GameObject target)
         {
             this.target = target;
         }
-        
+
         public override void OnStart(GameObject obj, SNPCComponent ai)
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap) &&
@@ -23,6 +24,7 @@ namespace LibreLancer.Server.Ai
             {
                 dock.StartDock(obj, 0);
                 ap.StartDock(target);
+                ap.CanCruise = Cruise;
             }
         }
 
