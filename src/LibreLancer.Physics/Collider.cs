@@ -19,7 +19,7 @@ namespace LibreLancer.Physics
 
         public void Dispose()
         {
-            sim.Shapes.RecursivelyRemoveAndDispose(Handle, pool);
+            sim.Shapes.RemoveAndDispose(Handle, pool);
             Handle = new TypedIndex();
         }
         public abstract float Radius { get; }
