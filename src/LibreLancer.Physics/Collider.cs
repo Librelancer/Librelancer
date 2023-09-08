@@ -15,12 +15,18 @@ namespace LibreLancer.Physics
     {
         protected Simulation sim;
         protected BufferPool pool;
+        private bool isDisposed = false;
         public TypedIndex Handle { get; protected set; }
 
         public void Dispose()
         {
-            sim.Shapes.RecursivelyRemoveAndDispose(Handle, pool);
+            if (isDisposed)
+            {
+                throw new ObjectDisposedException("Collider has already been disposed!");
+            }
+            sim.Shapes.RemoveAndDispose(Handle, pool);
             Handle = new TypedIndex();
+            isDisposed = true;
         }
         public abstract float Radius { get; }
 
