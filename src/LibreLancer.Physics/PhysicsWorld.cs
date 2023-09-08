@@ -361,6 +361,8 @@ namespace LibreLancer.Physics
         /// <param name="obj">Physics Object to remove.</param>
         public void RemoveObject(PhysicsObject obj)
         {
+            if (!objects.Remove(obj))
+                throw new InvalidOperationException("Object already freed");
             int id = -1;
             if (obj is StaticObject s)
             {
@@ -378,7 +380,6 @@ namespace LibreLancer.Physics
                 ids.Free(id);
                 objectsById.Remove(id);
             }
-            objects.Remove(obj);
         }
 
         public void Dispose()

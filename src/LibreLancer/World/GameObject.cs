@@ -484,11 +484,11 @@ namespace LibreLancer.World
 
         public void Register(PhysicsWorld physics)
         {
-            Flags |= GameObjectFlags.Exists;
 			foreach (var child in Children)
 				child.Register(physics);
 			foreach (var component in Components)
 				component.Register(physics);
+            Flags |= GameObjectFlags.Exists;
 		}
 
 		public GameWorld World;
@@ -521,11 +521,11 @@ namespace LibreLancer.World
 
 		public void Unregister(PhysicsWorld physics)
         {
-            Flags &= ~GameObjectFlags.Exists;
             foreach (var component in Components)
                 component.Unregister(physics);
 			foreach (var child in Children)
 				child.Unregister(physics);
+            Flags &= ~GameObjectFlags.Exists;
 		}
 
 		public bool HardpointExists(string hpname)

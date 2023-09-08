@@ -80,9 +80,10 @@ namespace LibreLancer.Server
 
         public void ExplodeMissile(GameObject obj)
         {
+            if ((obj.Flags & GameObjectFlags.Exists) == 0)
+                return;
             var missile = obj.GetComponent<SMissileComponent>();
             var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
-
             obj.Unregister(GameWorld.Physics);
             GameWorld.RemoveObject(obj);
             updatingObjects.Remove(obj);
