@@ -27,14 +27,14 @@ namespace LibreLancer.Missions
 
         public Dictionary<string, MissionNPC> NPCs =
             new Dictionary<string, MissionNPC>(StringComparer.OrdinalIgnoreCase);
-        
-        public Dictionary<string, MissionFormation> Formations = 
+
+        public Dictionary<string, MissionFormation> Formations =
                 new Dictionary<string, MissionFormation>(StringComparer.OrdinalIgnoreCase);
-            
-        public Dictionary<string, ScriptedTrigger> AvailableTriggers = 
+
+        public Dictionary<string, ScriptedTrigger> AvailableTriggers =
             new Dictionary<string, ScriptedTrigger>(StringComparer.OrdinalIgnoreCase);
 
-        public Dictionary<string, ScriptAiCommands> ObjLists = 
+        public Dictionary<string, ScriptAiCommands> ObjLists =
             new Dictionary<string, ScriptAiCommands>(StringComparer.OrdinalIgnoreCase);
 
         public Dictionary<string, MissionDialog> Dialogs =
@@ -42,7 +42,7 @@ namespace LibreLancer.Missions
 
         public Dictionary<string, NNObjective> Objectives =
             new Dictionary<string, NNObjective>(StringComparer.OrdinalIgnoreCase);
-        
+
         public List<string> InitTriggers = new List<string>();
 
         //Set only the first one
@@ -117,7 +117,7 @@ namespace LibreLancer.Missions
             this.Ini = ini;
             AiState = ConvertObjList(Ini);
         }
-        
+
         static AiObjListState ConvertObjList(ObjList list)
         {
             AiObjListState first = null;
@@ -207,6 +207,12 @@ namespace LibreLancer.Missions
                         }
 
                         cur = new AiGotoSplineState(points, cruise, maxThrottle, range);
+                        break;
+                    }
+                    case ObjListCommands.Dock:
+                    {
+                        string exit = l.Entry.Count > 1 ? l.Entry[1].ToString() : null;
+                        cur = new AiDockListState(l.Entry[0].ToString(), exit);
                         break;
                     }
                     case ObjListCommands.Delay:

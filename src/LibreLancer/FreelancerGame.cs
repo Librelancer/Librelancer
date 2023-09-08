@@ -40,7 +40,7 @@ namespace LibreLancer
 		int uithread;
 		bool useintromovies;
 		GameState currentState;
-	
+
 		public GameConfig Config
 		{
 			get
@@ -154,7 +154,7 @@ namespace LibreLancer
         {
             var dir = GetSaveDirectory("Librelancer", "Librelancer");
             try
-            { 
+            {
                 Directory.CreateDirectory(dir);
             }
             catch (Exception e)
@@ -200,7 +200,7 @@ namespace LibreLancer
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
-                Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
+                //Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
 				fps_updatetimer = FPS_INTERVAL;
 			}
 			RenderContext.ClearAll ();

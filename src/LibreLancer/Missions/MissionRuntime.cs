@@ -71,7 +71,7 @@ namespace LibreLancer.Missions
                         {
                             obj.GetComponent<SNPCComponent>().ProjectileHitHook = ProjectileHit;
                         }else {
-                            FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not spawned {cond.Entry[0]}");   
+                            FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not spawned {cond.Entry[0]}");
                         }
                     });
                 }
@@ -105,21 +105,36 @@ namespace LibreLancer.Missions
 
         public void BaseEnter(string _base) => ProcessCondition(TriggerConditions.Cnd_BaseEnter,
             (x) => IdEquals(x.Entry[0].ToString(), _base));
-        
+
         bool CheckPerTickCond(TriggerConditions cond, MissionCondition data, float time)
         {
             if (cond == TriggerConditions.Cnd_True)
                 return true;
 
+            if (cond == TriggerConditions.Cnd_WatchTrigger)
+            {
+                bool on = data.Entry[1].ToString().Equals("on", StringComparison.OrdinalIgnoreCase);
+                if (on)
+                {
+                    return activeTriggers.Any(x => x.Trigger.Nickname.Equals(
+                        data.Entry[0].ToString(), StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    return !activeTriggers.Any(x => x.Trigger.Nickname.Equals(
+                        data.Entry[0].ToString(), StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
             if (cond == TriggerConditions.Cnd_DistShip)
             {
                 if (Player.World == null) return false;
-                
+
                 bool inside = data.Entry[0].ToString() == "inside";
                 var objA = Player.World.GameWorld.GetObject(data.Entry[1].ToString());
                 var objB = Player.World.GameWorld.GetObject(data.Entry[2].ToString());
                 if (objA == null || objB == null) return false;
-                
+
                 var d = data.Entry[3].ToSingle();
                 d *= d;
                 bool satisfy;
@@ -140,10 +155,10 @@ namespace LibreLancer.Missions
                 }
                 return satisfy;
             }
-            
+
             return false;
         }
-        
+
         public void Update(double elapsed)
         {
             lock (_msnLock)
@@ -233,7 +248,7 @@ namespace LibreLancer.Missions
         static Func<MissionCondition, bool> TruePredicate = (c) => true;
 
         private bool uiUpdate = false;
-        
+
         public void CheckMissionScript()
         {
             for (int i = activeTriggers.Count - 1; i >= 0; i--)
@@ -242,7 +257,7 @@ namespace LibreLancer.Missions
                 {
                     activeTriggers.RemoveAt(i);
                     uiUpdate = true;
-                } 
+                }
                 else if (activeTriggers[i].Conditions.Count == 0)
                 {
                     var tr = activeTriggers[i].Trigger;
@@ -252,7 +267,7 @@ namespace LibreLancer.Missions
                 }
             }
         }
-        
+
         static bool IdEquals(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
 
 
@@ -268,7 +283,7 @@ namespace LibreLancer.Missions
                     IdEquals(c.Entry[2].ToString(), attacker.Nickname)
             );
         }
-        
+
         public void EnterLocation(string room, string bse)
         {
             ProcessCondition(TriggerConditions.Cnd_LocEnter, (c) => IdEquals(room, c.Entry[0].ToString()) &&
@@ -319,7 +334,7 @@ namespace LibreLancer.Missions
                        IdEquals(c.Entry[1].ToString(), target);
             });
         }
-        
+
         //TODO: Bad tracking
 
         private Dictionary<string, int> labelCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -360,7 +375,7 @@ namespace LibreLancer.Missions
         {
             ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("reject", c.Entry[0].ToString()));
         }
-        
+
 
         public void FinishRTC(string rtc)
         {
@@ -371,7 +386,7 @@ namespace LibreLancer.Missions
         {
             ProcessCondition(TriggerConditions.Cnd_SpaceEnter, TruePredicate);
         }
-        
+
         void DoTrigger(ScriptedTrigger tr)
         {
             FLLog.Debug("Mission", "Running trigger " + tr.Nickname);
