@@ -681,8 +681,8 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
         out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         pairMaterial.FrictionCoefficient = 1f;
-        pairMaterial.MaximumRecoveryVelocity = 2f;
-        pairMaterial.SpringSettings = new SpringSettings(30, 1);
+        pairMaterial.MaximumRecoveryVelocity = MaximumRecoveryVelocity;
+        pairMaterial.SpringSettings = new SpringSettings(5, 0f);
         events.HandleManifold(workerIndex, pair, ref manifold);
         return true;
     }
