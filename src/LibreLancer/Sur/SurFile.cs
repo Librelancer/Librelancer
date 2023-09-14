@@ -16,7 +16,7 @@ namespace LibreLancer.Sur
 	public class SurFile : IConvexMeshProvider
     {
         public List<SurfacePart> Surfaces = new List<SurfacePart>();
-        
+
 		Dictionary<uint, ConvexMesh[]> shapes = new Dictionary<uint, ConvexMesh[]>();
 
         public bool TryGetHardpoint(uint meshId, uint hpId, out ConvexMesh[] mesh)
@@ -63,14 +63,16 @@ namespace LibreLancer.Sur
                 var hulls = surface.GetHulls(false);
                 for (int i = 0; i < hulls.Length; i++)
                 {
-                    var th = hulls[i];
-                    if (th.HullId != meshId)
+                    var triHull = hulls[i];
+                    if (triHull.Type == 5 ||
+                        surface.HardpointIds.Contains(triHull.HullId) ||
+                        Surfaces.Any(x => x != surface && x.Crc == triHull.HullId))
                         continue;
                     var verts = new List<Vector3>();
                     foreach (var v in surface.Points)
                         verts.Add(v.Point);
                     var indices = new List<int>();
-                    foreach (var tri in th.Faces)
+                    foreach (var tri in triHull.Faces)
                     {
                         indices.Add(tri.Points.A);
                         indices.Add(tri.Points.B);
@@ -81,15 +83,15 @@ namespace LibreLancer.Sur
             }
             return hull.ToArray();
         }
-        
+
         public bool HasShape(uint meshId)
 		{
 			return Surfaces.Any(x => x.Crc == meshId);
 		}
-        
+
         private const uint SUR_MAGIC = 0x73726576; //"vers"
         private const uint SUR_VERSION = 0x40000000; //2.0f
-        
+
         public static SurFile Read(Stream stream)
         {
             var sur = new SurFile();
@@ -99,7 +101,7 @@ namespace LibreLancer.Sur
                 if (reader.ReadUInt32() != SUR_VERSION)
                     throw new Exception("Incorrect sur version");
                 while (stream.Position < stream.Length) {
-                    sur.Surfaces.Add(SurfacePart.Read(reader)); 
+                    sur.Surfaces.Add(SurfacePart.Read(reader));
                 }
             }
             return sur;
