@@ -47,7 +47,7 @@ namespace LibreLancer.Server
         public List<SelectableCharacter> CharacterList;
         //Respawn?
         public bool Dead = false;
-       
+
         Guid playerGuid; //:)
 
         public NetResponseHandler ResponseHandler;
@@ -55,7 +55,7 @@ namespace LibreLancer.Server
         private RemoteClientPlayer rpcClient;
 
         public RemoteClientPlayer RemoteClient => rpcClient;
-        
+
         public Player(IPacketClient client, GameServer game, Guid playerGuid)
         {
             this.Client = client;
@@ -121,7 +121,7 @@ namespace LibreLancer.Server
         {
             msnRuntime?.StoryNPCSelect(name,room,_base);
         }
-        
+
 
         void IServerPlayer.ClosedPopup(string id)
         {
@@ -177,8 +177,8 @@ namespace LibreLancer.Server
                 return 0;
             return (ulong) (Game.GameData.GetShipPrice(Character.Ship) * TradeConstants.SHIP_RESALE_MULTIPLIER);
         }
-        
-        
+
+
         Task<bool> IServerPlayer.Unmount(string hardpoint)
         {
             if (BaseData == null) {
@@ -254,8 +254,8 @@ namespace LibreLancer.Server
                         c.AddCargo(equip, null, cg.Count);
                 }
             }
-            
-            
+
+
             foreach (var rep in RepFromSave(sg))
             {
                 Character.Reputation.Reputations[rep.fac] = rep.rep;
@@ -272,9 +272,9 @@ namespace LibreLancer.Server
                 InitStory(sg);
                 SpaceInitialSpawn(sg);
             }
-            
+
         }
-        
+
         public void AddCash(long credits)
         {
             if (Character == null) return;
@@ -329,7 +329,7 @@ namespace LibreLancer.Server
                 };
             }
         }
-        
+
         void PlayerEnterBase()
         {
             //fetch news articles
@@ -355,7 +355,7 @@ namespace LibreLancer.Server
             //send to player
             lock (rtcs)
             {
-               
+
                 rpcClient.BaseEnter(Base, ObjectiveIds, rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
@@ -378,7 +378,7 @@ namespace LibreLancer.Server
         }
 
         float GetUsedVolume() => Character.Items.Select(x => x.Count * x.Equipment.Volume).Sum();
-        
+
 
         Task<bool> IServerPlayer.PurchaseGood(string item, int count)
         {
@@ -545,7 +545,7 @@ namespace LibreLancer.Server
                 if (hp != "internal" && usedHardpoints.Contains(hp)) {
                     FLLog.Error("Player", $"{Name} tried to mount to hardpoint {hp} twice");
                     return Task.FromResult(ShipPurchaseStatus.Fail);
-                }  
+                }
                 if (hp != "internal") {
                     usedHardpoints.Add(hp);
                 }
@@ -570,7 +570,7 @@ namespace LibreLancer.Server
                 if (hp != "internal" && usedHardpoints.Contains(hp)) {
                     FLLog.Error("Player", $"{Name} tried to mount to hardpoint {hp} twice");
                     return Task.FromResult(ShipPurchaseStatus.Fail);
-                }  
+                }
                 if (hp != "internal") {
                     usedHardpoints.Add(hp);
                 }
@@ -631,7 +631,7 @@ namespace LibreLancer.Server
                 }
                 c.UpdateCredits(Character.Credits - shipPrice);
             }
-            
+
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
             //Success
             return Task.FromResult(shipPrice < 0 ? ShipPurchaseStatus.SuccessGainCredits : ShipPurchaseStatus.Success);
@@ -648,7 +648,7 @@ namespace LibreLancer.Server
             { "mission_06", 7 },
             { "mission_07", 8 },
             { "mission_08", 9 },
-            { "mission_09", 10 }, 
+            { "mission_09", 10 },
             { "mission_10", 11 },
             { "mission_11", 12 },
             { "mission_12", 13 },
@@ -667,7 +667,7 @@ namespace LibreLancer.Server
             if (Game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
             if (missionNum != 0 && (missionNum - 1) < Game.GameData.Ini.Missions.Count)
             {
-                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this, 
+                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this,
                     sg.TriggerSave.Select(x => (uint)x.Trigger).ToArray());
                 msnRuntime.Update(0.0);
             }
@@ -723,7 +723,7 @@ namespace LibreLancer.Server
         }
 
         public bool SinglePlayer => Client is LocalPacketClient;
-        
+
         public NetHpidWriter HpidWriter => (Client as RemotePacketClient)?.Hpids;
 
         public void SendSPUpdate(SPUpdatePacket update) =>
@@ -755,7 +755,7 @@ namespace LibreLancer.Server
             }
             rpcClient.SpawnSolar(si.ToArray());
         }
-        
+
         public void SendDestroyPart(int id, string part)
         {
             rpcClient.DestroyPart(0, id, part);
@@ -763,7 +763,7 @@ namespace LibreLancer.Server
 
         private BlockingCollection<IPacket> inputPackets = new BlockingCollection<IPacket>();
         private Task packetQueueTask;
-        
+
         public void EnqueuePacket(IPacket packet)
         {
             inputPackets.Add(packet);
@@ -788,7 +788,7 @@ namespace LibreLancer.Server
             }
             FLLog.Debug("Player", "ProcessPacketQueue() finished");
         }
-        
+
         public void ProcessPacketDirect(IPacket packet)
         {
             if(ResponseHandler.HandlePacket(packet))
@@ -820,7 +820,7 @@ namespace LibreLancer.Server
                 FLLog.Exception("Player", e);
                 throw;
             }
-          
+
         }
 
         void IServerPlayer.RTCMissionAccepted()
@@ -875,7 +875,7 @@ namespace LibreLancer.Server
                 return Task.FromResult(false);
             }
         }
-        
+
 
         Task<bool> IServerPlayer.DeleteCharacter(int index)
         {
@@ -972,7 +972,7 @@ namespace LibreLancer.Server
                 Reputation = x.Value
             }).ToArray());
         }
-        
+
         public void UpdateCurrentInventory() => rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
 
         public void ForceLand(string target)
@@ -982,7 +982,7 @@ namespace LibreLancer.Server
             Base = target;
             PlayerEnterBase();
         }
-        
+
         public void Despawn(int objId)
         {
             rpcClient.DespawnObject(objId);
@@ -1033,7 +1033,7 @@ namespace LibreLancer.Server
                 }
             }
         }
-        
+
 
         public void OnSPSave()
         {
@@ -1057,7 +1057,7 @@ namespace LibreLancer.Server
                 Character = null;
             }
         }
-        
+
         public void Disconnected()
         {
             if (packetQueueTask != null)
@@ -1067,7 +1067,7 @@ namespace LibreLancer.Server
             }
             LoggedOut();
         }
-        
+
         public void PlaySound(string sound)
         {
             rpcClient.PlaySound(sound);
@@ -1091,7 +1091,7 @@ namespace LibreLancer.Server
         {
             rpcClient.StartJumpTunnel();
             if(World != null) World.RemovePlayer(this);
-            
+
             var sys = Game.GameData.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
@@ -1192,7 +1192,7 @@ namespace LibreLancer.Server
                else {
                    FLLog.Warning("Server", $"Could not find object to join formation {target}");
                }
-           }); 
+           });
         }
 
         void IServerPlayer.LeaveFormation()
@@ -1203,7 +1203,7 @@ namespace LibreLancer.Server
                 obj.Formation?.Remove(obj);
             });
         }
-        
+
 
         void INetResponder.SendResponse(IPacket packet)
         {

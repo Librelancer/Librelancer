@@ -23,6 +23,13 @@ namespace LibreLancer.GameData
         {
             return $"Faction: {Nickname}";
         }
+
+        public float GetReputation(Faction f)
+        {
+            if (Reputations.TryGetValue(f, out var r))
+                return r;
+            return 0.0f;
+        }
     }
-    
+
 }

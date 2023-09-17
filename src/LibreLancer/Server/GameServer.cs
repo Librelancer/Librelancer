@@ -28,6 +28,9 @@ namespace LibreLancer.Server
         public string ServerNews = "News of the server goes here";
         public string LoginUrl = null;
 
+        public bool SendDebugInfo = false;
+        public string DebugInfo { get; private set; }
+
         public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory;
         public GameDataManager GameData;
         public ServerDatabase Database;
@@ -48,6 +51,13 @@ namespace LibreLancer.Server
         public ConcurrentHashSet<long> CharactersInUse = new ConcurrentHashSet<long>();
 
         private bool needLoadData = true;
+
+
+        private string debugInfoForFrame = "";
+        public void ReportDebugInfo(string info)
+        {
+            debugInfoForFrame = info;
+        }
 
         public GameServer(string fldir)
         {
@@ -223,11 +233,14 @@ namespace LibreLancer.Server
                 LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
             }
             ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
+            debugInfoForFrame = "";
             foreach (var w in worlds)
             {
                 if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds))
                     toSpinDown.Add(w.Key);
             }
+
+            DebugInfo = debugInfoForFrame;
             Listener?.Server?.TriggerUpdate(); //Send packets asap
             //Remove
             if (toSpinDown.Count > 0)
@@ -248,7 +261,7 @@ namespace LibreLancer.Server
             processingLoop.TimeStep = worlds.Count > 0 ? RATE_60 : RATE_30;
             var updateDuration = serverTiming.Elapsed - startTime;
             PerformanceStats?.AddEntry((float)updateDuration.TotalMilliseconds);
-            if (updateDuration > RATE_60)
+            if (updateDuration > RATE_60 && worlds.Count > 0)
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
             }

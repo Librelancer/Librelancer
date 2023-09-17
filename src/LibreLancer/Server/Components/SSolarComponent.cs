@@ -3,12 +3,12 @@ using LibreLancer.World;
 
 namespace LibreLancer.Server.Components
 {
-    public class SSolarComponent : GameComponent
+    public class SSolarComponent : SRepComponent
     {
         public bool SendSolarUpdate = false;
         private int stopUpdateTimer = 0;
         private const int UPDATE_TIMEOUT_TICKS = 8 * 60;
-        
+
         public SSolarComponent(GameObject parent) : base(parent)
         {
         }
@@ -21,7 +21,7 @@ namespace LibreLancer.Server.Components
                 if (shield.Health < shield.Equip.Def.MaxCapacity) {
                     SendSolarUpdate = true;
                     stopUpdateTimer = UPDATE_TIMEOUT_TICKS;
-                } 
+                }
                 else {
                     if (stopUpdateTimer > 0)
                         stopUpdateTimer--;

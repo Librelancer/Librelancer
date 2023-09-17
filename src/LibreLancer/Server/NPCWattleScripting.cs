@@ -128,7 +128,7 @@ namespace LibreLancer.Server
             }
             if (Object.TryGetComponent<SNPCComponent>(out var n))
             {
-                PrintState(n.CurrentState, builder);
+                PrintState(n.CurrentDirective, builder);
                 return builder.ToString();
             }
             return "(null)";

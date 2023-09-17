@@ -65,6 +65,7 @@ namespace LibreLancer.Data
         public InfocardMapIni InfocardMap;
         public InitialWorldIni InitialWorld;
         public FactionPropIni FactionProps;
+        public FormationsIni Formations;
         public EmpathyIni Empathy;
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
@@ -240,6 +241,14 @@ namespace LibreLancer.Data
                 else
                 {
                     MBases.AddFile(Freelancer.DataPath + "MISSIONS\\mbases.ini", VFS);
+                }
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                Formations = new FormationsIni();
+                if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\formations.ini"))
+                {
+                    Formations.AddFile(Freelancer.DataPath + "MISSIONS\\formations.ini", VFS);
                 }
             }));
             tasks.Add(Task.Run(() =>

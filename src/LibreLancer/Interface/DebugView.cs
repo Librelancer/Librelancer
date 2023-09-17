@@ -14,7 +14,7 @@ namespace LibreLancer.Interface
     {
         private FreelancerGame game;
         private ImGuiHelper igrender;
-        
+
         public DebugView(FreelancerGame game)
         {
             this.game = game;
@@ -30,11 +30,12 @@ namespace LibreLancer.Interface
         {
             if (triggers != null)
             {
+                ImGui.SetNextWindowSize(new Vector2(600, 500), ImGuiCond.FirstUseEver);
                 ImGui.Begin("Triggers");
                 int i = 0;
                 foreach (var t in triggers)
                 {
-                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 100), true);
+                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 250), true);
                     ImGui.PushFont(ImGuiHelper.SystemMonospace);
                     ImGui.Text(t.Name);
                     ImGui.PopFont();

@@ -265,7 +265,16 @@ namespace LibreLancer.Client
                 });
 
                 //Store multiple updates for redundancy.
-                var ip = new InputUpdatePacket() {Current = FromMoveState(0), AckTick = LastAck};
+                var ip = new InputUpdatePacket()
+                {
+                    Current = FromMoveState(0),
+                    AckTick = LastAck,
+                };
+                if (gp.Selection.Selected != null)
+                {
+                    ip.SelectedIsCRC = gp.Selection.Selected.SystemObject != null;
+                    ip.SelectedObject =ip.SelectedIsCRC ? (int)gp.Selection.Selected.NicknameCRC : gp.Selection.Selected.NetID;
+                }
                 if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
                 if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
                 if (moveState.Count > 3) ip.HistoryC = FromMoveState(3);
@@ -899,6 +908,19 @@ namespace LibreLancer.Client
                     fx.UpdateEffects(effect);
                 }
             });
+        }
+
+        public void SetDebug(bool on)
+        {
+            if (connection is EmbeddedServer es)
+                es.Server.SendDebugInfo = on;
+        }
+
+        public string GetSelectedDebugInfo()
+        {
+            if (connection is EmbeddedServer es)
+                return es.Server.DebugInfo;
+            return null;
         }
 
         public MissionRuntime.TriggerInfo[] GetTriggerInfo()

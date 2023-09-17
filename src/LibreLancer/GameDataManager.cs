@@ -46,7 +46,7 @@ namespace LibreLancer
             fldata = new Data.FreelancerData(flini, VFS);
         }
         public string DataVersion => fldata.DataVersion;
-        
+
         public string ResolveDataPath(string input)
         {
             return VFS.Resolve(fldata.Freelancer.DataPath + input);
@@ -103,7 +103,7 @@ namespace LibreLancer
                 rightHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.RightHand.MeshPath));
             return true;
         }
-        
+
         public string GetCostumeForNPC(string npc)
         {
             return Ini.SpecificNPCs.Npcs.FirstOrDefault(x => x.Nickname.Equals(npc, StringComparison.OrdinalIgnoreCase))
@@ -122,7 +122,7 @@ namespace LibreLancer
             }
             return false;
         }
-        
+
         ResolvedThn ResolveThn(string path)
         {
             if (path == null) return null;
@@ -223,7 +223,7 @@ namespace LibreLancer
         private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
         private Dictionary<string, ResolvedGood> equipToGood = new Dictionary<string, ResolvedGood>();
         Dictionary<string, long> shipPrices = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-        
+
         public IEnumerable<ResolvedGood> AllGoods => goods.Values;
 
         public bool TryGetGood(string nickname, out ResolvedGood good) => goods.TryGetValue(nickname, out good);
@@ -244,7 +244,7 @@ namespace LibreLancer
             shipPrices.TryGetValue(ship.Nickname, out long price);
             return price;
         }
-        
+
         void InitGoods()
         {
             FLLog.Info("Game", "Initing " + fldata.Goods.Goods.Count + " goods");
@@ -337,6 +337,10 @@ namespace LibreLancer
         Dictionary<string, GameData.Market.ShipPackage> shipPackages = new Dictionary<string, GameData.Market.ShipPackage>();
         private Dictionary<uint, GameData.Market.ShipPackage> shipPackageByCRC = new Dictionary<uint, ShipPackage>();
 
+        public FormationDef GetFormation(string form) =>
+            string.IsNullOrWhiteSpace(form) ? null :
+            fldata.Formations.Formations.FirstOrDefault(
+                x => form.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase));
 
         public ShipPackage GetShipPackage(uint crc)
         {
@@ -459,12 +463,12 @@ namespace LibreLancer
             var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
             var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
-            tasks.Begin(() => InitSystems(tasks), 
-                baseTask, 
-                archetypesTask, 
-                equipmentTask, 
-                ships, 
-                factionsTask, 
+            tasks.Begin(() => InitSystems(tasks),
+                baseTask,
+                archetypesTask,
+                equipmentTask,
+                ships,
+                factionsTask,
                 loadoutsTask,
                 pilotTask
                 );
@@ -550,7 +554,7 @@ namespace LibreLancer
             return IntroScenes[i];
         }
 #endif
-        
+
         public Texture2D GetSplashScreen()
         {
             if (!glResource.TextureExists("__startupscreen_1280.tga"))
@@ -577,7 +581,7 @@ namespace LibreLancer
             }
             return (Texture2D)resource.FindTexture("__startupscreen_1280.tga");
         }
-        
+
         public IEnumerable<Maneuver> GetManeuvers()
         {
             var p = fldata.Freelancer.DataPath.Replace('\\', Path.DirectorySeparatorChar);
@@ -738,7 +742,7 @@ namespace LibreLancer
                     eqp.ModelFile = ResolveDrawable(sh.MaterialLibrary, sh.DaArchetype);
                     equip = eqp;
                 }
-                
+
 
                 if (val is Data.Equipment.Engine deng)
                 {
@@ -747,17 +751,17 @@ namespace LibreLancer
                         engequip.CruiseSpeed = deng.CruiseSpeed;
                     equip = engequip;
                 }
-                
+
                 if (val is Tradelane tl)
                 {
                     var tlequip = new TradelaneEquipment();
                     tlequip.RingActive = GetEffect(tl.TlRingActive);
                     equip = tlequip;
                 }
-                
+
                 if (val is Data.Equipment.Commodity cm)
                     equip = new GameData.Items.CommodityEquipment();
-                if(equip == null) 
+                if(equip == null)
                     continue;
                 SetCommonFields(equip, val);
                 Equipment.Add(equip);
@@ -1349,7 +1353,7 @@ namespace LibreLancer
                 n.ExclusionZones = new List<ExclusionZone>();
                 foreach (var excz in nbl.ExclusionZones)
                 {
-                    
+
                     Zone zone;
                     if (!sys.ZoneDict.TryGetValue(excz.ZoneName, out zone))
                     {
@@ -1402,9 +1406,9 @@ namespace LibreLancer
         public GameItemCollection<Ship> Ships = new GameItemCollection<Ship>();
 
         public GameItemCollection<Archetype> Archetypes = new GameItemCollection<Archetype>();
-        
-        
-        
+
+
+
         ResolvedModel ResolveDrawable(string file) => ResolveDrawable((IEnumerable<string>) null, file);
 
         ResolvedModel ResolveDrawable(string libs, string file) => ResolveDrawable(new[] {libs}, file);
@@ -1420,7 +1424,7 @@ namespace LibreLancer
             return mdl;
         }
 
-      
+
 
         void FillBlock<T>(string nick, string blockId, List<T> source, ref T dest) where T : Data.Pilots.PilotBlock
         {
@@ -1454,11 +1458,11 @@ namespace LibreLancer
             FillBlock(n, src.DamageReactionId, fldata.Pilots.DamageReactionBlocks, ref pilot.DamageReaction);
             FillBlock(n, src.EngineKillId, fldata.Pilots.EngineKillBlocks, ref pilot.EngineKill);
             FillBlock(n, src.EvadeBreakId, fldata.Pilots.EvadeBreakBlocks, ref pilot.EvadeBreak);
-            FillBlock(n, src.EvadeDodgeId, fldata.Pilots.EvadeDodgeBlocks, ref pilot.EvadeDodge); 
+            FillBlock(n, src.EvadeDodgeId, fldata.Pilots.EvadeDodgeBlocks, ref pilot.EvadeDodge);
             FillBlock(n, src.FormationId, fldata.Pilots.FormationBlocks, ref pilot.Formation);
             FillBlock(n, src.GunId, fldata.Pilots.GunBlocks, ref pilot.Gun);
             FillBlock(n, src.JobId, fldata.Pilots.JobBlocks, ref pilot.Job);
-            FillBlock(n, src.MineId, fldata.Pilots.MineBlocks, ref pilot.Mine); 
+            FillBlock(n, src.MineId, fldata.Pilots.MineBlocks, ref pilot.Mine);
             FillBlock(n, src.MissileId, fldata.Pilots.MissileBlocks, ref pilot.Missile);
             FillBlock(n, src.MissileReactionId, fldata.Pilots.MissileReactionBlocks, ref pilot.MissileReactionBlock);
             FillBlock(n, src.RepairId, fldata.Pilots.RepairBlocks, ref pilot.Repair);
@@ -1474,7 +1478,7 @@ namespace LibreLancer
             pilots.TryGetValue(nickname, out var p);
             return p;
         }
-        
+
         void InitPilots()
         {
             FLLog.Info("Game", "Initing Pilots");
@@ -1485,7 +1489,7 @@ namespace LibreLancer
                 pilots[p.Nickname] = p;
             }
         }
-        
+
         void InitShips()
         {
             FLLog.Info("Game", "Initing " + fldata.Ships.Ships.Count + " ships");
@@ -1596,7 +1600,7 @@ namespace LibreLancer
                 Archetypes.Add(obj);
             }
         }
-        
+
         public (IDrawable, float[]) GetSolar(string solar)
         {
             var at = Archetypes.Get(solar);
@@ -1637,7 +1641,7 @@ namespace LibreLancer
         Dictionary<string, ObjectLoadout> _loadouts = new Dictionary<string, ObjectLoadout>(StringComparer.OrdinalIgnoreCase);
 
         public IEnumerable<ObjectLoadout> Loadouts => _loadouts.Values;
-        
+
         ObjectLoadout GetLoadout(string key)
         {
             if (string.IsNullOrWhiteSpace(key)) return null;
@@ -1652,7 +1656,7 @@ namespace LibreLancer
             }
             return _loadouts.TryGetValue(name, out l);
         }
-        
+
         public SystemObject GetSystemObject(Data.Universe.SystemObject o)
         {
             var obj = new SystemObject();
@@ -1764,7 +1768,7 @@ namespace LibreLancer
         //Used to spawn objects within mission scripts
         public GameData.Archetype GetSolarArchetype(string id) => Archetypes.Get(id);
 
-      
+
 
         private Dictionary<string, FuseResources> fuses =
             new Dictionary<string, FuseResources>(StringComparer.OrdinalIgnoreCase);

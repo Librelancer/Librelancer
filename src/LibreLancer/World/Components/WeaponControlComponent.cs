@@ -108,7 +108,16 @@ namespace LibreLancer.World.Components
                 wp.Fire(AimPoint);
             }
         }
-        
+
+        public void FireGuns()
+        {
+            if (!CanFireWeapons()) return;
+            foreach(var wp in Parent.GetChildComponents<GunComponent>())
+            {
+                wp.Fire(AimPoint);
+            }
+        }
+
         public void FireAll()
         {
             if (!CanFireWeapons()) return;

@@ -11,9 +11,9 @@ using LibreLancer.World.Components;
 
 namespace LibreLancer.Server.Components
 {
-    public class SNPCComponent : GameComponent
+    public class SNPCComponent : SRepComponent
     {
-        public AiState CurrentState;
+        public AiState CurrentDirective;
         public NetShipLoadout Loadout;
         private NPCManager manager;
         public MissionRuntime MissionRuntime;
@@ -21,9 +21,7 @@ namespace LibreLancer.Server.Components
         public Action<GameObject, GameObject> ProjectileHitHook;
         public Action OnKilled;
 
-        public List<GameObject> HostileNPCs = new List<GameObject>();
-        public Faction Faction;
-        
+
         private GameData.Pilot Pilot;
         private StateGraph _stateGraph;
 
@@ -55,7 +53,7 @@ namespace LibreLancer.Server.Components
             if (component is not null)
                 component.Active = false;
         }
-        
+
 
         public void Killed()
         {
@@ -75,8 +73,7 @@ namespace LibreLancer.Server.Components
 
         public void SetState(AiState state)
         {
-            FLLog.Debug("NPC", "");
-            this.CurrentState = state;
+            this.CurrentDirective = state;
             state?.OnStart(Parent, this);
         }
 
@@ -106,7 +103,7 @@ namespace LibreLancer.Server.Components
             Pilot = pilot;
             attackPref = new Dictionary<GameObjectKind, int>();
             if (pilot == null) return;
-            
+
             if (Pilot.Job != null) {
                 for (int i = 0; i < Pilot.Job.AttackPreferences.Count; i++)
                 {
@@ -134,8 +131,54 @@ namespace LibreLancer.Server.Components
             return 0;
         }
 
-        private double fireTimer;
         private double missileTimer;
+
+        float ValueWithVariance(float? value, float? variance)
+        {
+            if (value == null) return 0;
+            var b = value.Value;
+            var v = variance.HasValue ? random.NextFloat(-variance.Value, variance.Value) : 0;
+            return b + (b * v);
+        }
+
+        private bool inBurst = false;
+        private float burstTimer = 0;
+        private float fireTimer = 0;
+        bool RunFireTimers(float dt)
+        {
+            bool retVal = false;
+            if (inBurst)
+            {
+                burstTimer -= dt;
+                if (burstTimer <= 0)
+                {
+                    inBurst = false;
+                    burstTimer = Pilot?.Gun?.FireNoBurstIntervalTime ?? 0;
+                }
+                else
+                {
+                    fireTimer -= dt;
+                    if (fireTimer <= 0)
+                    {
+                        fireTimer = ValueWithVariance(Pilot?.Gun?.FireIntervalTime,
+                            Pilot?.Gun?.FireIntervalVariancePercent);
+                        retVal = true;
+                    }
+                }
+            }
+            else
+            {
+                burstTimer -= dt;
+                if (burstTimer <= 0){
+                    inBurst = true;
+                    burstTimer = ValueWithVariance(Pilot?.Gun?.FireBurstIntervalTime ?? 1f,
+                        Pilot?.Gun?.FireBurstIntervalVariancePercent);
+                }
+            }
+            return retVal;
+        }
+
+        private GameObject lastShootAt;
 
         GameObject GetHostileAndFire(double time)
         {
@@ -147,7 +190,7 @@ namespace LibreLancer.Server.Components
                          .GetNearbyObjects(Parent, myPos, 5000))
             {
                 if (Vector3.Distance(other.WorldTransform.Translation, myPos) < 5000 &&
-                    HostileNPCs.Contains(other))
+                    IsHostileTo(other))
                 {
                     int weight = GetHostileWeight(other);
                     if (weight > shootAtWeight)
@@ -178,26 +221,16 @@ namespace LibreLancer.Server.Components
                     if (missileTimer <= 0)
                     {
                         weapons.FireMissiles();
+                        missileTimer = ValueWithVariance(Pilot?.Missile?.LaunchIntervalTime,
+                            Pilot?.Missile?.LaunchVariancePercent);
                         missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
                     }
                 }
                 //Fire guns
                 if (dist < gunRange)
                 {
-                    fireTimer -= time;
-                    if (fireTimer <= 0)
-                    {
-                        weapons.FireAll();
-                        fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
-                    }
-                }
-                else {
-                    if (CurrentState == null && Parent.TryGetComponent<AutopilotComponent>(out var ap)) {
-                        if (ap.CurrentBehaviour == AutopilotBehaviours.None)
-                        {
-                            ap.GotoObject(shootAt, false, 1, gunRange * 0.5f);
-                        }
-                    }
+                    if (RunFireTimers((float)time))
+                        weapons.FireGuns();
                 }
             }
             else
@@ -222,14 +255,25 @@ namespace LibreLancer.Server.Components
         }
 
         private double timeInState = 0;
-        
+
+        public string GetDebugInfo()
+        {
+            string ls = lastShootAt == null ? "none" :
+                lastShootAt.Nickname ?? "no nickname";
+            var maxRange = 0f;
+            if(Parent.TryGetComponent<WeaponControlComponent>(out var wp))
+                 maxRange = wp.GetMaxRange() * 0.95f;
+            return $"Shooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}";
+        }
+
         public override void Update(double time)
         {
-            CurrentState?.Update(Parent, this, time);
+            CurrentDirective?.Update(Parent, this, time);
 
             var shootAt = GetHostileAndFire(time);
-            
-            if (CurrentState != null || shootAt == null) {
+            lastShootAt = shootAt;
+
+            if (CurrentDirective != null || shootAt == null) {
                 currentState = StateGraphEntry.NULL;
                 timeInState = 0;
                 return;
@@ -238,7 +282,7 @@ namespace LibreLancer.Server.Components
             Parent.TryGetComponent<AutopilotComponent>(out var ap);
             Parent.TryGetComponent<ShipPhysicsComponent>(out var si);
             timeInState += time;
-            
+
             switch (currentState) {
                 case StateGraphEntry.NULL:
                     si.EnginePower = 0;

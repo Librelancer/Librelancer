@@ -31,7 +31,7 @@ namespace LibreLancer.Server.Components
                 FromClient = true;
             }
         }
-        
+
         private CircularBuffer<ReceivedInputs> inputs = new (96);
 
         private CircularBuffer<(uint t, PlayerAuthState p, ObjectUpdate[] u)> oldStates =
@@ -40,6 +40,8 @@ namespace LibreLancer.Server.Components
         public int SequenceApplied = 0;
 
         public Player Player { get; private set; }
+
+        public GameObject SelectedObject { get; private set; }
 
         public SPlayerComponent(Player player, GameObject parent) : base(parent)
         {
@@ -76,6 +78,11 @@ namespace LibreLancer.Server.Components
         public void QueueInput(InputUpdatePacket input)
         {
             MostRecentAck = input.AckTick;
+            //Select object immediately
+            if (input.SelectedIsCRC)
+                SelectedObject = Parent.World.GetObject((uint) input.SelectedObject);
+            else
+                SelectedObject = Parent.World.GetFromNetID(input.SelectedObject);
             //We've lost some inputs along the way
             if (inputs.Count > 0 && inputs[^1].Sequence < input.Current.Sequence - 1)
             {
@@ -129,7 +136,7 @@ namespace LibreLancer.Server.Components
         {
             packet = new NetInputControls();
             sequence = 0;
-            
+
             if (_last != null && fillAgain) {
                 //We are waiting for the buffer to refill for our hard resync
                 if (inputs.Count > 7) {
@@ -141,7 +148,7 @@ namespace LibreLancer.Server.Components
                     return true;
                 }
             }
-            
+
             if (_last == null && inputs.Count == 0)
             {
                 //Haven't received any data yet
@@ -195,13 +202,13 @@ namespace LibreLancer.Server.Components
                     sequence = sequenceFetch;
                     packet = _last.Value;
                     return true;
-                } else {    
+                } else {
                     //We have no data
                     return false;
                 }
             }
             else if (_last != null) {
-                //Queue empty, repeat last 
+                //Queue empty, repeat last
                 sequence = sequenceFetch++;
                 packet = _last.Value;
                 return true;

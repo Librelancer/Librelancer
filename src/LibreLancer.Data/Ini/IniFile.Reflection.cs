@@ -120,7 +120,7 @@ namespace LibreLancer.Ini
                     foreach (var a in attrs) {
                         info.Fields.Add(new ReflectionField()
                         {
-                            Attr = a, Field = field, NullableType = 
+                            Attr = a, Field = field, NullableType =
                                 Nullable.GetUnderlyingType(field.FieldType)
                         });
                         if (a.Required) info.RequiredFields |= (1ul << (info.Fields.Count - 1));
@@ -380,6 +380,15 @@ namespace LibreLancer.Ini
                         }
                     }
                 }
+                else if (ftype == typeof(List<Vector3>))
+                {
+                    bitmask &= ~(1ul << idx); //Avoid duplicate warnings
+                    if (ComponentCheck(3, s, e))
+                    {
+                        var v = (List<Vector3>)field.Field.GetValue(obj);
+                        v.Add(new Vector3(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), e[2].ToSingle(e.Name)));
+                    }
+                }
                 else if(ftype == typeof(Quaternion))
                 {
                     if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[1].ToSingle(e.Name), e[2].ToSingle(e.Name), e[3].ToSingle(e.Name), e[0].ToSingle(e.Name)));
@@ -551,7 +560,7 @@ namespace LibreLancer.Ini
             foreach(var kv in deferred)
                 ProcessDeferred(kv.Key, kv.Value, datapath, vfs);
         }
-        
+
         public void ParseAndFill(IEnumerable<string> filenames, LibreLancer.Data.FileSystem vfs)
         {
             var sections = GetContainerInfo(GetType());
@@ -632,7 +641,7 @@ namespace LibreLancer.Ini
                     }
                 }
             }
-            
+
         }
 
         record DeferredSection(Section Section, List<(Section, ReflectionSection)> Children);
@@ -648,7 +657,7 @@ namespace LibreLancer.Ini
                     ls2.Add(parsed);
                     success = true;
                     break;
-                }       
+                }
             }
             if (!success)
             {
@@ -656,8 +665,8 @@ namespace LibreLancer.Ini
                     $"Type {parentInfo.GetType().Name} does not accept child section {section.Name} {FormatLine(section.File, section.Line)}");
             }
         }
-        
-        
+
+
         DeferredSection ProcessSection(Section section, ContainerClass sections, DeferredSection lastDeferred, Dictionary<ReflectionSection, List<DeferredSection>> deferredSections, string datapath = null, FileSystem vfs = null)
         {
             if (sections.IgnoreHashes.Contains(Hash(section.Name))) return null;

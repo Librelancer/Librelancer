@@ -370,6 +370,11 @@ namespace LibreLancer.Missions
             {
                 var fuse = runtime.Player.World.Server.GameData.GetFuse(Fuse);
                 var gameObj = runtime.Player.World.GameWorld.GetObject(Target);
+                if (gameObj == null)
+                {
+                    FLLog.Error("Mission", $"Act_LightFuse can't find target {Target}");
+                    return;
+                }
                 if (!gameObj.TryGetComponent<SFuseRunnerComponent>(out var fr))
                 {
                     fr = new SFuseRunnerComponent(gameObj);

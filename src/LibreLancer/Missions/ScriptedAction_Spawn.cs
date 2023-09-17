@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Missions;
@@ -91,7 +92,7 @@ namespace LibreLancer.Missions
                     FLLog.Warning("Mission", $"Missing object list {objList}");
                 }
             }
-            
+
             runtime.Player.WorldAction(() =>
             {
                 runtime.Player.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
@@ -116,20 +117,21 @@ namespace LibreLancer.Missions
             });
         }
     }
-    
+
     public class Act_SpawnFormation : ShipSpawnBase
     {
         public string Formation;
         public Vector3? Position;
 
         //TODO: implement formations
-        private static Vector3[] formationOffsets = new Vector3[]
-        {
+        private static IReadOnlyList<Vector3> nullOffsets = new List<Vector3>(
+        new[]{
+            Vector3.Zero,
             new Vector3(-60, 0, 0),
             new Vector3(60, 0, 0),
             new Vector3(0, -60, 0),
             new Vector3(0, 60, 0)
-        };
+        });
         public Act_SpawnFormation(MissionAction act) : base(act)
         {
             Formation = act.Entry[0].ToString();
@@ -142,18 +144,18 @@ namespace LibreLancer.Missions
         {
             var form = script.Formations[Formation];
             var fpos = Position ?? form.Position;
-            SpawnShip(form.Ships[0], fpos, form.Orientation, null, script, runtime);
             var mat = Matrix4x4.CreateFromQuaternion(form.Orientation) *
                       Matrix4x4.CreateTranslation(fpos);
-            int j = 0;
-            for (int i = 1; i < form.Ships.Count; i++)
+            var formDef = runtime.Player.Game.GameData.GetFormation(form.Formation);
+            IReadOnlyList<Vector3> positions = formDef?.Positions ?? nullOffsets;
+            for (int i = 0; i < form.Ships.Count; i++)
             {
-                var pos = Vector3.Transform(formationOffsets[j++], mat);
+                var pos = Vector3.Transform(positions[i], mat);
                 SpawnShip(form.Ships[i], pos, form.Orientation, null, script, runtime);
             }
         }
     }
-    
+
     public class Act_SpawnShip : ShipSpawnBase
     {
         public string Ship;
@@ -183,7 +185,7 @@ namespace LibreLancer.Missions
             SpawnShip(Ship, Position, Orientation, ObjList, script, runtime);
         }
     }
-    
+
     public class Act_Destroy : ScriptedAction
     {
         public string Target;

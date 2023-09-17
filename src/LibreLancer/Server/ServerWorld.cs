@@ -486,6 +486,7 @@ namespace LibreLancer.Server
             }
             //Network update tick
             SendWorldUpdates(totalTime);
+            UpdateDebugInfo();
             //Despawn after 2 seconds of nothing
             if (PlayerCount == 0) {
                 noPlayersTime += delta;
@@ -495,6 +496,21 @@ namespace LibreLancer.Server
             {
                 noPlayersTime = 0;
                 return true;
+            }
+        }
+
+        void UpdateDebugInfo()
+        {
+            if (Server.LocalPlayer != null &&
+                Server.SendDebugInfo &&
+                Players.TryGetValue(Server.LocalPlayer, out var go) &&
+                go.Flags.HasFlag(GameObjectFlags.Exists))
+            {
+                var pc = go.GetComponent<SPlayerComponent>();
+                if (pc.SelectedObject != null && pc.SelectedObject.TryGetComponent<SNPCComponent>(out var npc))
+                {
+                    Server.ReportDebugInfo(npc.GetDebugInfo());
+                }
             }
         }
 

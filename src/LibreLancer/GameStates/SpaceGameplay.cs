@@ -53,7 +53,7 @@ World Time: {12:F2}
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
         CHealthComponent playerHealth;
-        SelectedTargetComponent selection;
+        public SelectedTargetComponent Selection;
         private ContactList contactList;
 
 		public float Velocity = 0f;
@@ -107,8 +107,8 @@ World Time: {12:F2}
             weapons = new WeaponControlComponent(player);
             pilotcomponent = new AutopilotComponent(player);
             steering = new ShipSteeringComponent(player);
-            selection = new SelectedTargetComponent(player);
-            player.Components.Add(selection);
+            Selection = new SelectedTargetComponent(player);
+            player.Components.Add(Selection);
             //Order components in terms of inputs (very important)
             player.Components.Add(pilotcomponent);
             player.Components.Add(shipInput);
@@ -243,7 +243,7 @@ World Time: {12:F2}
 
             bool ImportantFilter(GameObject o)
             {
-                return game.selection.Selected == o ||
+                return game.Selection.Selected == o ||
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
                        GetRep(o) == RepAttitude.Hostile;
             }
@@ -306,12 +306,12 @@ World Time: {12:F2}
             public int Count => Contacts.Length;
             public bool IsSelected(int index)
             {
-                return game.selection.Selected == Contacts[index].obj;
+                return game.Selection.Selected == Contacts[index].obj;
             }
 
             public void SelectIndex(int index)
             {
-                game.selection.Selected = Contacts[index].obj;
+                game.Selection.Selected = Contacts[index].obj;
             }
 
             public string Get(int index)
@@ -411,52 +411,52 @@ World Time: {12:F2}
 
             public Infocard CurrentInfocard()
             {
-                if (g.selection.Selected?.SystemObject != null)
+                if (g.Selection.Selected?.SystemObject != null)
                 {
                     int ids = 0;
-                    if (g.selection.Selected.SystemObject.IdsInfo.Length > 0) {
-                        ids = g.selection.Selected.SystemObject.IdsInfo[0];
+                    if (g.Selection.Selected.SystemObject.IdsInfo.Length > 0) {
+                        ids = g.Selection.Selected.SystemObject.IdsInfo[0];
                     }
                     return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
                 }
                 return null;
             }
 
-            public string CurrentInfoString() => g.selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
+            public string CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
 
             public string SelectionName()
             {
-                return g.selection.Selected?.Name?.GetName(g.Game.GameData, g.player.PhysicsComponent.Body.Position) ?? "NULL";
+                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.PhysicsComponent.Body.Position) ?? "NULL";
             }
 
-            public TargetShipWireframe SelectionWireframe() => g.selection.Selected != null ? g.targetWireframe : null;
+            public TargetShipWireframe SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
 
             public bool SelectionVisible()
             {
-                return g.selection.Selected != null && g.ScreenPosition(g.selection.Selected).visible;
+                return g.Selection.Selected != null && g.ScreenPosition(g.Selection.Selected).visible;
             }
 
             public float SelectionHealth()
             {
-                if (g.selection.Selected == null) return -1;
-                if (!g.selection.Selected.TryGetComponent<CHealthComponent>(out var health))
+                if (g.Selection.Selected == null) return -1;
+                if (!g.Selection.Selected.TryGetComponent<CHealthComponent>(out var health))
                     return -1;
                 return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
             }
 
             public float SelectionShield()
             {
-                if (g.selection.Selected == null) return -1;
+                if (g.Selection.Selected == null) return -1;
                 CShieldComponent shield;
-                if ((shield = g.selection.Selected.GetFirstChildComponent<CShieldComponent>()) == null) return -1;
+                if ((shield = g.Selection.Selected.GetFirstChildComponent<CShieldComponent>()) == null) return -1;
                 return shield.ShieldPercent;
             }
 
             public string SelectionReputation()
             {
-                if (g.selection.Selected.SystemObject != null)
+                if (g.Selection.Selected.SystemObject != null)
                 {
-                    var rep = g.session.PlayerReputations.GetReputation(g.selection.Selected.SystemObject.Reputation);
+                    var rep = g.session.PlayerReputations.GetReputation(g.Selection.Selected.SystemObject.Reputation);
                     if (rep < -0.4) return "hostile";
                     if (rep > 0.4) return "friendly";
                 }
@@ -466,8 +466,8 @@ World Time: {12:F2}
 
             public Vector2 SelectionPosition()
             {
-                if (g.selection.Selected == null) return new Vector2(-1000, -1000);
-                var (pos, visible) = g.ScreenPosition(g.selection.Selected);
+                if (g.Selection.Selected == null) return new Vector2(-1000, -1000);
+                var (pos, visible) = g.ScreenPosition(g.Selection.Selected);
                 if (visible) {
                     return new Vector2(
                         g.ui.PixelsToPoints(pos.X),
@@ -501,9 +501,9 @@ World Time: {12:F2}
             {
                 var dict = new LuaCompatibleDictionary();
                 dict.Set("FreeFlight", true);
-                dict.Set("Goto", g.selection.Selected != null);
-                dict.Set("Dock", g.selection.Selected?.GetComponent<CDockComponent>() != null);
-                dict.Set("Formation", g.selection.Selected != null && g.selection.Selected.Kind == GameObjectKind.Ship);
+                dict.Set("Goto", g.Selection.Selected != null);
+                dict.Set("Dock", g.Selection.Selected?.GetComponent<CDockComponent>() != null);
+                dict.Set("Formation", g.Selection.Selected != null && g.Selection.Selected.Kind == GameObjectKind.Ship);
                 return dict;
             }
             public void HotspotPressed(string e)
@@ -590,21 +590,21 @@ World Time: {12:F2}
                     pilotcomponent.Cancel();
 					return true;
 				case "Dock":
-					if (selection.Selected == null) return false;
+					if (Selection.Selected == null) return false;
 					CDockComponent d;
-					if ((d = selection.Selected.GetComponent<CDockComponent>()) != null)
+					if ((d = Selection.Selected.GetComponent<CDockComponent>()) != null)
 					{
-                        pilotcomponent.StartDock(selection.Selected);
-                        session.RpcServer.RequestDock(selection.Selected.Nickname);
+                        pilotcomponent.StartDock(Selection.Selected);
+                        session.RpcServer.RequestDock(Selection.Selected.Nickname);
 						return true;
 					}
 					return false;
 				case "Goto":
-					if (selection.Selected == null) return false;
-                    pilotcomponent.GotoObject(selection.Selected);
+					if (Selection.Selected == null) return false;
+                    pilotcomponent.GotoObject(Selection.Selected);
 					return true;
                 case "Formation":
-                    session.RpcServer.EnterFormation(selection.Selected.NetID);
+                    session.RpcServer.EnterFormation(Selection.Selected.NetID);
                     return true;
 			}
 			return false;
@@ -673,7 +673,7 @@ World Time: {12:F2}
                     ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
                 }
             }
-            if (selection.Selected != null && !selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) selection.Selected = null; //Object has been blown up/despawned
+            if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; //Object has been blown up/despawned
 		}
 
 		bool thrust = false;
@@ -735,7 +735,7 @@ World Time: {12:F2}
                 if(!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
                 {
                     var newSelection = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
-                    if (newSelection != null) selection.Selected = newSelection;
+                    if (newSelection != null) Selection.Selected = newSelection;
                     isLeftDown = true;
                 }
                 else
@@ -938,12 +938,12 @@ World Time: {12:F2}
                 return;
             }
 
-            if (selection.Selected != null) {
-                targetWireframe.Model = selection.Selected.RigidModel;
+            if (Selection.Selected != null) {
+                targetWireframe.Model = Selection.Selected.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(Vector3.Transform(Vector3.Zero, player.LocalTransform),
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform), Vector3.UnitY);
 
-                targetWireframe.Matrix = (lookAt * selection.Selected.LocalTransform).ClearTranslation();
+                targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform).ClearTranslation();
             }
 
             if (updateStartDelay > 0) updateStartDelay--;
@@ -977,21 +977,25 @@ World Time: {12:F2}
                 Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
                 Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
             }
+            session.SetDebug(Game.Debug.Enabled);
             Game.Debug.Draw(delta, () =>
             {
                 string sel_obj = "None";
-                if (selection.Selected != null)
+                if (Selection.Selected != null)
                 {
-                    if (selection.Selected.Name == null)
+                    if (Selection.Selected.Name == null)
                         sel_obj = "unknown object";
                     else
-                        sel_obj = selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
+                        sel_obj = Selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
                 }
                 var systemName = Game.GameData.GetString(sys.IdsName);
                 var text = string.Format(DEBUG_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
                     sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
+                var dbgT = session.GetSelectedDebugInfo();
+                if(!string.IsNullOrWhiteSpace(dbgT))
+                    ImGui.Text(dbgT);
                 ImGui.Text($"input queue: {session.UpdateQueueCount}");
                 if (session.Multiplayer)
                 {

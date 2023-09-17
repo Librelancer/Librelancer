@@ -34,7 +34,7 @@ namespace LibreLancer.Net.Protocol
         }
 
         public static IPacket Read(PacketReader inPacket)
-        { 
+        {
             return (IPacket)parsers[(int)inPacket.GetVariableUInt32()](inPacket);
         }
 
@@ -81,7 +81,7 @@ namespace LibreLancer.Net.Protocol
             outPacket.Put(ToAdd);
         }
     }
-    
+
     public class SetStringsPacket : IPacket
     {
         public byte[] Data;
@@ -95,7 +95,7 @@ namespace LibreLancer.Net.Protocol
             outPacket.Put(Data, 0, Data.Length);
         }
     }
-    
+
     public class LoginSuccessPacket : IPacket
     {
         public static object Read(PacketReader message)
@@ -131,7 +131,7 @@ namespace LibreLancer.Net.Protocol
         }
 
     }
-    
+
     public class SolarInfo
     {
         public int ID;
@@ -164,7 +164,7 @@ namespace LibreLancer.Net.Protocol
         public string Hardpoint;
         public byte Health;
         public int Count;
-        
+
         public NetShipCargo(int id, uint crc, string hp, byte health, int count)
         {
             ID = id;
@@ -190,10 +190,10 @@ namespace LibreLancer.Net.Protocol
             for (int i = 0; i < cargoCount; i++)
             {
                 s.Items.Add(new NetShipCargo(
-                    message.GetVariableInt32(), 
-                    message.GetUInt(), 
-                    message.GetHpid(), 
-                    message.GetByte(), 
+                    message.GetVariableInt32(),
+                    message.GetUInt(),
+                    message.GetHpid(),
+                    message.GetByte(),
                     (int)message.GetVariableUInt32()
                     ));
             }
@@ -221,7 +221,7 @@ namespace LibreLancer.Net.Protocol
         public Quaternion Orientation;
         public Vector3 LinearVelocity;
         public Vector3 AngularVelocity;
-        
+
         public float Health;
         public float Shield;
         public float CruiseChargePct;
@@ -249,7 +249,7 @@ namespace LibreLancer.Net.Protocol
             writer.PutQuaternion(Orientation, 18);
             writer.PutVector3(LinearVelocity);
             writer.PutVector3(AngularVelocity);
-            
+
             if (Health == prev.Health) {
                 writer.PutBool(false);
             }
@@ -288,11 +288,13 @@ namespace LibreLancer.Net.Protocol
         public StrafeControls Strafe;
         public float Throttle;
         public bool Cruise;
-        public bool Thrust;    
+        public bool Thrust;
     }
-    
+
     public class InputUpdatePacket : IPacket
     {
+        public bool SelectedIsCRC;
+        public int SelectedObject;
         public uint AckTick;
         public NetInputControls Current;
         public NetInputControls HistoryA;
@@ -313,7 +315,7 @@ namespace LibreLancer.Net.Protocol
             if(cur.Steering != baseline.Steering)
                 writer.PutVector3(cur.Steering);
         }
-        
+
         static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
         {
             var nc = new NetInputControls();
@@ -333,6 +335,8 @@ namespace LibreLancer.Net.Protocol
             var br = new BitReader(message.GetRemainingBytes(), 0);
             var p = new InputUpdatePacket();
             p.AckTick = br.GetVarUInt32();
+            p.SelectedIsCRC = br.GetBool();
+            p.SelectedObject = (int)br.GetUInt(32);
             p.Current.Sequence = br.GetVarInt32();
             p.Current.Steering = br.GetVector3();
             p.Current.Strafe = (StrafeControls) br.GetUInt(4);
@@ -349,12 +353,14 @@ namespace LibreLancer.Net.Protocol
             p.HistoryC = ReadDelta(ref br, ref p.HistoryB);
             return p;
         }
-        
+
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public void WriteContents(PacketWriter outPacket)
         {
             var bw = new BitWriter();
             bw.PutVarUInt32(AckTick);
+            bw.PutBool(SelectedIsCRC);
+            bw.PutUInt((uint)SelectedObject, 32);
             bw.PutVarInt32(Current.Sequence);
             bw.PutVector3(Current.Steering);
             bw.PutUInt((uint)Current.Strafe, 4);
@@ -368,14 +374,14 @@ namespace LibreLancer.Net.Protocol
                 bw.PutUInt(2, 2);
                 bw.PutFloat(Current.Throttle);
             }
-            
+
             WriteDelta(ref bw, ref Current, ref HistoryA);
             WriteDelta(ref bw, ref HistoryA, ref HistoryB);
             WriteDelta(ref bw, ref HistoryB, ref HistoryC);
             bw.WriteToPacket(outPacket);
         }
     }
-    
+
 
     public class NetDlgLine
     {
