@@ -17,6 +17,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Server.Components;
 using LibreLancer.World;
 using NetResponseHandler = LibreLancer.Net.Protocol.NetResponseHandler;
 using RemoteClientPlayer = LibreLancer.Net.Protocol.RemoteClientPlayer;
@@ -745,13 +746,21 @@ namespace LibreLancer.Server
             foreach (var solar in solars)
             {
                 var tr = solar.Value.WorldTransform;
-                si.Add(new SolarInfo()
+                var info = new SolarInfo()
                 {
                     ID = solar.Value.NetID,
+                    Name = solar.Value.Name,
                     Archetype = solar.Value.ArchetypeName,
                     Position = Vector3.Transform(Vector3.Zero, tr),
                     Orientation = tr.ExtractRotation()
-                });
+                };
+                if (solar.Value.TryGetComponent<SRepComponent>(out var rep)){
+                    info.Faction = rep.Faction?.Nickname;
+                }
+                if (solar.Value.TryGetComponent<SDockableComponent>(out var dock)){
+                    info.Dock = dock.Action;
+                }
+                si.Add(info);
             }
             rpcClient.SpawnSolar(si.ToArray());
         }
@@ -1124,9 +1133,9 @@ namespace LibreLancer.Server
             });
         }
 
-        void IServerPlayer.RequestDock(string nickname)
+        void IServerPlayer.RequestDock(ObjNetId id)
         {
-            World.RequestDock(this, nickname);
+            World.RequestDock(this, id);
         }
 
         void IServerPlayer.Launch()

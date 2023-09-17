@@ -7,7 +7,9 @@ using System.Numerics;
 using System.Collections.Generic;
 using LibreLancer.Data.Missions;
 using LibreLancer.Server;
+using LibreLancer.Server.Ai.ObjList;
 using LibreLancer.Server.Components;
+using LibreLancer.World;
 
 namespace LibreLancer.Missions
 {
@@ -62,6 +64,9 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_RelocateShip:
                         yield return new Act_RelocateShip(a);
                         break;
+                    case TriggerActions.Act_SetInitialPlayerPos:
+                        yield return new Act_SetInitialPlayerPos(a);
+                        break;
                     case TriggerActions.Act_LightFuse:
                         yield return new Act_LightFuse(a);
                         break;
@@ -91,6 +96,9 @@ namespace LibreLancer.Missions
                         break;
                     case TriggerActions.Act_AddRTC:
                         yield return new Act_AddRTC(a);
+                        break;
+                    case TriggerActions.Act_PobjIdle:
+                        yield return new Act_PobjIdle(a);
                         break;
                     case TriggerActions.Act_SetShipAndLoadout:
                         yield return new Act_SetShipAndLoadout(a);
@@ -417,16 +425,52 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            var ol = script.ObjLists[List].AiState;
-            if (script.Ships.ContainsKey(Target)) {
-                runtime.Player.World.NPCs.NpcDoAction(Target,
-                    (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
-            } else if (script.Formations.TryGetValue(Target, out var formation))
+            if (Target.Equals("player", StringComparison.OrdinalIgnoreCase))
             {
-                foreach (var s in formation.Ships)
+                runtime.Player.WorldAction(() => { ObjListForPlayer(runtime, script); });
+            }
+            else
+            {
+                var ol = script.ObjLists[List].AiState;
+                if (script.Ships.ContainsKey(Target))
                 {
-                    runtime.Player.World.NPCs.NpcDoAction(s,
+                    runtime.Player.World.NPCs.NpcDoAction(Target,
                         (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
+                }
+                else if (script.Formations.TryGetValue(Target, out var formation))
+                {
+                    foreach (var s in formation.Ships)
+                    {
+                        runtime.Player.World.NPCs.NpcDoAction(s,
+                            (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
+                    }
+                }
+            }
+        }
+
+        void ObjListForPlayer(MissionRuntime runtime, MissionScript script)
+        {
+            var ol = script.ObjLists[List];
+            var pObject = runtime.Player.World.Players[runtime.Player];
+            var world = runtime.Player.World;
+            foreach (var a in ol.Ini.Commands)
+            {
+                if (a.Command == ObjListCommands.BreakFormation)
+                {
+                    //Break formation somehow?
+                }
+                else if (a.Command == ObjListCommands.FollowPlayer)
+                {
+                    var newFormation = new ShipFormation(pObject);
+                    pObject.Formation = newFormation;
+                    for (int i = 1; i < a.Entry.Count; i++)
+                    {
+                        var obj = world.GameWorld.GetObject(a.Entry[i].ToString());
+                        if (obj != null && obj.TryGetComponent<SNPCComponent>(out var c))
+                        {
+                            c.SetState(new AiFollowState("player", new Vector3(0,10, 15)));
+                        }
+                    }
                 }
             }
         }

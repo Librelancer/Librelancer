@@ -161,21 +161,20 @@ namespace LibreLancer.Server
             }
         }
 
-        public void RequestDock(Player player, string nickname)
+        public void RequestDock(Player player, ObjNetId id)
         {
             actions.Enqueue(() =>
             {
                 var obj = Players[player];
-                FLLog.Info("Server", $"{player.Name} requested dock at {nickname}");
-                var dock = GameWorld.Objects.FirstOrDefault(x =>
-                    x.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase));
+                FLLog.Info("Server", $"{player.Name} requested dock at {id}");
+                var dock = GetObject(id);
                 if(dock == null)
-                    FLLog.Warning("Server", $"Dock object {nickname} does not exist.");
+                    FLLog.Warning("Server", $"Dock object {id} does not exist.");
                 else
                 {
                     var component = dock.GetComponent<SDockableComponent>();
                     if(component == null)
-                        FLLog.Warning("Server", $"object {nickname} is not dockable.");
+                        FLLog.Warning("Server", $"object {dock.Nickname} is not dockable.");
                     else {
                         component.StartDock(obj, 0);
                     }
@@ -231,7 +230,8 @@ namespace LibreLancer.Server
             });
         }
 
-        GameObject GetObject(bool crc, int id)
+        public GameObject GetObject(ObjNetId id) => GetObject(id.IsCRC, id.Value);
+        public GameObject GetObject(bool crc, int id)
         {
             if (id == 0) return null;
             if (crc)
@@ -347,7 +347,7 @@ namespace LibreLancer.Server
         List<GameObject> updatingObjects = new List<GameObject>();
         List<GameObject> spawnedNPCs = new List<GameObject>();
 
-        public void SpawnSolar(string nickname, string archetype, string loadout, Vector3 position, Quaternion orientation)
+        public void SpawnSolar(string nickname, string archetype, string loadout, Vector3 position, Quaternion orientation, int idsName = 0, string? dockWith = null)
         {
             actions.Enqueue(() =>
             {
@@ -355,6 +355,8 @@ namespace LibreLancer.Server
                 var gameobj = new GameObject(arch, Server.Resources, false);
                 gameobj.ArchetypeName = archetype;
                 gameobj.NetID = idGen.Allocate();
+                if (idsName != 0)
+                    gameobj.Name = new ObjectName(idsName);
                 gameobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                           Matrix4x4.CreateTranslation(position));
                 gameobj.Nickname = nickname;
@@ -363,6 +365,14 @@ namespace LibreLancer.Server
                 gameobj.CollisionGroups = arch.CollisionGroups;
                 GameWorld.AddObject(gameobj);
                 SpawnedSolars.Add(nickname, gameobj);
+                if (!string.IsNullOrWhiteSpace(dockWith))
+                {
+                    var act = new DockAction() {Kind = DockKinds.Base, Target = dockWith};
+                    gameobj.Components.Add(new SDockableComponent(gameobj, arch.DockSpheres.ToArray())
+                    {
+                        Action = act
+                    });
+                }
                 foreach(Player p in Players.Keys)
                     p.SendSolars(SpawnedSolars);
             });

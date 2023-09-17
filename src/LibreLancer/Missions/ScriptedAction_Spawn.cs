@@ -25,7 +25,18 @@ namespace LibreLancer.Missions
         {
             var sol = script.Solars[Solar];
             var arch = sol.Archetype;
-            runtime.Player.WorldAction(() => { runtime.Player.World.SpawnSolar(sol.Nickname, arch, sol.Loadout, sol.Position, sol.Orientation); });
+            runtime.Player.WorldAction(() =>
+            {
+                runtime.Player.World.SpawnSolar(
+                    sol.Nickname,
+                    arch,
+                    sol.Loadout,
+                    sol.Position,
+                    sol.Orientation,
+                    sol.StringId,
+                    sol.Base
+                    );
+            });
         }
     }
 

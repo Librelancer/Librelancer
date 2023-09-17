@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using LibreLancer.GameData.World;
+using LibreLancer.World;
 using LibreLancer.World.Components;
 
 namespace LibreLancer.Net.Protocol
@@ -135,23 +137,58 @@ namespace LibreLancer.Net.Protocol
     public class SolarInfo
     {
         public int ID;
+        public ObjectName Name;
         public string Archetype;
+        public string Faction;
+        public DockAction Dock;
         public Vector3 Position;
         public Quaternion Orientation;
+
+        static DockAction GetDock(PacketReader message)
+        {
+            var k = message.GetByte();
+            if (k == 0) return null;
+            return new DockAction()
+            {
+                Kind = (DockKinds) (k >> 4),
+                Target = message.GetString(),
+                TargetLeft = message.GetString(),
+                    Exit = message.GetString(),
+                    Tunnel = message.GetString()
+                };
+        }
+
         public static SolarInfo Read(PacketReader message)
         {
             return new SolarInfo
             {
-                ID = message.GetInt(),
+                ID = message.GetVariableInt32(),
+                Name = message.GetObjectName(),
                 Archetype = message.GetString(),
+                Faction = message.GetString(),
+                Dock = GetDock(message),
                 Position = message.GetVector3(),
                 Orientation = message.GetQuaternion()
             };
         }
         public void Put(PacketWriter message)
         {
-            message.Put(ID);
+            message.PutVariableInt32(ID);
+            message.Put(Name);
             message.Put(Archetype);
+            message.Put(Faction);
+            if (Dock != null)
+            {
+                message.Put((byte)(((byte)Dock.Kind << 4) | 1));
+                message.Put(Dock.Target);
+                message.Put(Dock.TargetLeft);
+                message.Put(Dock.Exit);
+                message.Put(Dock.Tunnel);
+            }
+            else
+            {
+                message.Put((byte)0);
+            }
             message.Put(Position);
             message.Put(Orientation);
         }

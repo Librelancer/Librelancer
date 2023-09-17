@@ -836,17 +836,30 @@ namespace LibreLancer.Client
                         go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(si.Orientation) *
                                              Matrix4x4.CreateTranslation(si.Position));
                         go.Nickname = $"$Solar{si.ID}";
+                        go.Name = si.Name;
                         go.World = gp.world;
                         go.Register(go.World.Physics);
                         go.CollisionGroups = arch.CollisionGroups;
                         FLLog.Debug("Client", $"Spawning object {si.ID}");
                         go.NetID = si.ID;
+                        if (si.Dock != null){
+                            go.Components.Add(new CDockComponent(go)
+                            {
+                                Action = si.Dock,
+                                DockAnimation = arch.DockSpheres[0].Script,
+                                DockHardpoint = arch.DockSpheres[0].Hardpoint,
+                                TriggerRadius = arch.DockSpheres[0].Radius
+                            });
+                        }
                         gp.world.AddObject(go);
                         objects.Add(si.ID, go);
                     }
                 }
             });
         }
+
+        void IClientPlayer.StopShip() =>
+            RunSync(() => gp.StopShip());
 
         void IClientPlayer.MarkImportant(int id)
         {

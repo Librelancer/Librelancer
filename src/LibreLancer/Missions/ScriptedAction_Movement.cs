@@ -12,13 +12,13 @@ namespace LibreLancer.Missions
     {
         public Vector3 Position;
         public float Unknown; //1 in M01A
-        
+
         public Act_MovePlayer(MissionAction act) : base(act)
         {
             Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
                 act.Entry[2].ToSingle());
             if(act.Entry.Count > 3)
-                Unknown = act.Entry[3].ToSingle(); 
+                Unknown = act.Entry[3].ToSingle();
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -27,12 +27,44 @@ namespace LibreLancer.Missions
         }
     }
 
+    public class Act_PobjIdle : ScriptedAction
+    {
+        public Act_PobjIdle(MissionAction a) : base(a)
+        {
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            //This is correct: but the NPCs currently blow you up when stopped
+            //runtime.Player.RemoteClient.StopShip();
+        }
+    }
+
+    public class Act_SetInitialPlayerPos : ScriptedAction
+    {
+        public Vector3 Position;
+        public Quaternion Orientation;
+
+        public Act_SetInitialPlayerPos(MissionAction act) : base(act)
+        {
+            Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
+                act.Entry[2].ToSingle());
+            Orientation = new Quaternion(act.Entry[4].ToSingle(), act.Entry[5].ToSingle(),
+                act.Entry[6].ToSingle(), act.Entry[3].ToSingle());
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.ForceMove(Position, Orientation);
+        }
+    }
+
     public class Act_RelocateShip : ScriptedAction
     {
         public string Ship;
         public Vector3 Position;
         public Quaternion? Orientation;
-        
+
         public Act_RelocateShip(MissionAction act) : base(act)
         {
             Ship = act.Entry[0].ToString();
@@ -59,7 +91,7 @@ namespace LibreLancer.Missions
                     var quat = Orientation ?? obj.LocalTransform.ExtractRotation();
                     obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat) * Matrix4x4.CreateTranslation(Position));
                 });
-            }   
+            }
         }
     }
 }

@@ -91,7 +91,6 @@ namespace LibreLancer.World
                             Action = obj.Dock,
                         });
                     }
-
                     g.Components.Add(new CDockComponent(g)
                     {
                         Action = obj.Dock,
@@ -105,7 +104,8 @@ namespace LibreLancer.World
             if (server)
             {
                 g.Components.Add(new SHealthComponent(g) {InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100});
-                if (arch.IsUpdatableSolar()) g.Components.Add(new SSolarComponent(g));
+                if (arch.IsUpdatableSolar() || obj.Faction != null)
+                    g.Components.Add(new SSolarComponent(g) { Faction = obj.Faction });
             }
 
             g.Register(Physics);

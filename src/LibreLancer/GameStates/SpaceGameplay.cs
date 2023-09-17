@@ -13,7 +13,6 @@ using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Net;
-using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Sounds.VoiceLines;
@@ -595,7 +594,7 @@ World Time: {12:F2}
 					if ((d = Selection.Selected.GetComponent<CDockComponent>()) != null)
 					{
                         pilotcomponent.StartDock(Selection.Selected);
-                        session.RpcServer.RequestDock(Selection.Selected.Nickname);
+                        session.RpcServer.RequestDock(Selection.Selected);
 						return true;
 					}
 					return false;
@@ -763,6 +762,18 @@ World Time: {12:F2}
             ui.Event("Killed");
         }
 
+        public void StopShip()
+        {
+            shipInput.Throttle = 0;
+            shipInput.AutopilotThrottle = 0;
+            shipInput.MouseFlight = false;
+            _chaseCamera.MouseFlight = false;
+            _turretViewCamera.PanControls = Vector2.Zero;
+            pilotcomponent.Cancel();
+            steering.Thrust = false;
+            shipInput.Reverse = false;
+            steering.Cruise = false;
+        }
 		void ProcessInput(double delta)
         {
             if (Dead) {
