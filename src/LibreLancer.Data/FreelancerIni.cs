@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using LibreLancer.Ini;
 using LibreLancer.Dll;
-    
+
 namespace LibreLancer.Data
 {
 	public class FreelancerIni : IniFile
@@ -32,13 +32,15 @@ namespace LibreLancer.Data
         public List<string> SoundPaths { get; private set; }
 		public List<string> GraphPaths { get; private set; }
 		public List<string> EffectPaths { get; private set; }
+
+        public List<string> ExplosionPaths { get; private set; }
 		public List<string> AsteroidPaths { get; private set; }
 		public List<string> RichFontPaths { get; private set; }
         public List<string> FontPaths { get; private set;  }
         public List<string> PetalDbPaths { get; private set; }
         public List<string> FusePaths { get; private set;  }
         public List<string> NewCharDBPaths { get; private set;  }
-        
+
         public List<string> VoicePaths { get; private set; }
 
         public string StarsPath { get; private set; }
@@ -49,15 +51,15 @@ namespace LibreLancer.Data
         public string DacomPath { get; private set; } = "EXE\\dacom.ini";
 
         public string NewPlayerPath { get; private set; } = "EXE\\newplayer.fl";
-        
+
         public string MpNewCharacterPath { get; private set; } = "EXE\\mpnewcharacter.fl";
-        
+
         public List<string> MBasesPaths { get; private set; }
-        
+
         public string MousePath { get; private set; }
         public string CamerasPath { get; private set; }
         public string ConstantsPath { get; private set; }
-        
+
         public string NavmapPath { get; private set; }
 
         public List<string> NoNavmapSystems { get; private set; }
@@ -108,6 +110,7 @@ namespace LibreLancer.Data
 			SoundPaths = new List<string>();
 			GraphPaths = new List<string>();
 			EffectPaths = new List<string>();
+            ExplosionPaths = new List<string>();
 			AsteroidPaths = new List<string> ();
 			RichFontPaths = new List<string>();
             FontPaths = new List<string>();
@@ -122,7 +125,7 @@ namespace LibreLancer.Data
             bool extHideFac = false;
             NoNavmapSystems = new List<string>(NoNavmaps);
             HiddenFactions = new List<string>(NoShowFactions);
-            
+
             var fullPath = vfs.Resolve(path);
 
             foreach (Section s in ParseFile(fullPath, vfs)) {
@@ -183,7 +186,7 @@ namespace LibreLancer.Data
                                         XInterfacePath = e[0].ToString();
                                     else
                                         XInterfacePath = DataPath + e[0].ToString();
-                                    if (!XInterfacePath.EndsWith("\\",StringComparison.InvariantCulture) && 
+                                    if (!XInterfacePath.EndsWith("\\",StringComparison.InvariantCulture) &&
                                         !XInterfacePath.EndsWith("/",StringComparison.InvariantCulture))
                                         XInterfacePath += "/";
                                     break;
@@ -246,6 +249,9 @@ namespace LibreLancer.Data
 						case "effects":
 							EffectPaths.Add(DataPath + e[0].ToString());
 							break;
+                        case "explosions":
+                            ExplosionPaths.Add(DataPath + e[0].ToString());
+                            break;
 						case "asteroids":
 							AsteroidPaths.Add (DataPath + e [0].ToString ());
 							break;

@@ -58,11 +58,11 @@ namespace LibreLancer.Server.Components
         public void Killed()
         {
             OnKilled?.Invoke();
-            manager.Despawn(Parent);
+            manager.Despawn(Parent, true);
         }
         public void Docked()
         {
-            manager.Despawn(Parent);
+            manager.Despawn(Parent, false);
         }
 
         private GameObject attack;

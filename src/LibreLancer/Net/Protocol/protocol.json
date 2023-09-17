@@ -423,6 +423,10 @@
                 {
                     "name": "id",
                     "type": "int"
+                },
+                {
+                    "name": "explode",
+                    "type": "bool"
                 }
             ]
         },

@@ -24,6 +24,7 @@ namespace LibreLancer.GameData
 		public float Mass;
 		public float StrafeForce;
         public float Hitpoints;
+        public Explosion Explosion;
 
         public Vector3 ChaseOffset;
         public float MaxBankAngle;
@@ -34,7 +35,7 @@ namespace LibreLancer.GameData
         public List<DamageFuse> Fuses = new List<DamageFuse>();
 
         public Dictionary<string, List<HpType>> HardpointTypes = new (StringComparer.OrdinalIgnoreCase);
-        public Dictionary<string, List<string>> PossibleHardpoints = new (StringComparer.OrdinalIgnoreCase); 
+        public Dictionary<string, List<string>> PossibleHardpoints = new (StringComparer.OrdinalIgnoreCase);
         public Ship ()
 		{
 		}

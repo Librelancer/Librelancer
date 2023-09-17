@@ -309,7 +309,7 @@ namespace LibreLancer.Server
             updatingObjects.Remove(obj);
         }
 
-        public void RemovePlayer(Player player)
+        public void RemovePlayer(Player player, bool exploded)
         {
             actions.Enqueue(() =>
             {
@@ -317,20 +317,20 @@ namespace LibreLancer.Server
                 Players.Remove(player);
                 foreach(var p in Players)
                 {
-                    p.Key.Despawn(player.ID);
+                    p.Key.Despawn(player.ID, exploded);
                 }
                 Interlocked.Decrement(ref PlayerCount);
             });
         }
 
-        public void RemoveNPC(GameObject obj)
+        public void RemoveNPC(GameObject obj, bool exploded)
         {
             actions.Enqueue(() =>
             {
                 RemoveObjectInternal(obj);
                 spawnedNPCs.Remove(obj);
                 idGen.Free(obj.NetID);
-                foreach (var p in Players) p.Key.Despawn(obj.NetID);
+                foreach (var p in Players) p.Key.Despawn(obj.NetID, exploded);
             });
         }
 
@@ -471,7 +471,7 @@ namespace LibreLancer.Server
                 SpawnedSolars.Remove(nickname);
                 GameWorld.RemoveObject(s);
                 foreach (Player p in Players.Keys)
-                    p.Despawn(s.NetID);
+                    p.Despawn(s.NetID, false);
             });
         }
 

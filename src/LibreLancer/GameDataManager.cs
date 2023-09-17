@@ -426,7 +426,8 @@ namespace LibreLancer
             var tasks = new LoadingTasks();
             tasks.Begin(() => GetCharacterAnimations());
             var pilotTask = tasks.Begin(InitPilots);
-            var ships = tasks.Begin(InitShips);
+            var explosionTask = tasks.Begin(InitExplosions);
+            var ships = tasks.Begin(InitShips, explosionTask);
             List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
             var baseTask = tasks.Begin(() => introbases.AddRange(InitBases(tasks)));
             tasks.Begin(() =>
@@ -597,6 +598,8 @@ namespace LibreLancer
                 };
             }
         }
+
+        public GameItemCollection<GameData.Explosion> Explosions = new GameItemCollection<GameData.Explosion>();
 
         public GameItemCollection<Equipment> Equipment = new GameItemCollection<Equipment>();
 
@@ -1490,6 +1493,18 @@ namespace LibreLancer
             }
         }
 
+        void InitExplosions()
+        {
+            FLLog.Info("Game", "Initing Explosions");
+            foreach (var orig in fldata.Explosions.Explosions)
+            {
+                var ex = new GameData.Explosion() {Nickname = orig.Nickname};
+                ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
+                if(orig.Effects.Count > 0)
+                    ex.Effect = GetEffect(orig.Effects[0].Name);
+                Explosions.Add(ex);
+            }
+        }
         void InitShips()
         {
             FLLog.Info("Game", "Initing " + fldata.Ships.Ships.Count + " ships");
@@ -1515,6 +1530,7 @@ namespace LibreLancer
                 ship.NameIds = orig.IdsName;
                 ship.Infocard = orig.IdsInfo;
                 ship.ShipType = orig.Type;
+                ship.Explosion = Explosions.Get(orig.ExplosionArch);
                 ship.CRC = FLHash.CreateID(ship.Nickname);
                 foreach (var fuse in orig.Fuses)
                 {

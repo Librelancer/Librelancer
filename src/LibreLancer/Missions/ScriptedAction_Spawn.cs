@@ -215,7 +215,7 @@ namespace LibreLancer.Missions
                 script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
                 foreach (var lbl in ship.Labels)
                     runtime.LabelDecrement(lbl);
-                runtime.Player.WorldAction(() => { runtime.Player.World.NPCs.Despawn(runtime.Player.World.GameWorld.GetObject(Target)); });
+                runtime.Player.WorldAction(() => { runtime.Player.World.NPCs.Despawn(runtime.Player.World.GameWorld.GetObject(Target), false); });
             }
         }
     }

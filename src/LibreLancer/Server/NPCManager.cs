@@ -34,15 +34,15 @@ namespace LibreLancer.Server
         }
 
         public int AttackingPlayer = 0;
-        
+
         public void FrameStart()
         {
             AttackingPlayer = 0;
         }
 
-        public void Despawn(GameObject obj)
+        public void Despawn(GameObject obj, bool exploded)
         {
-            World.RemoveNPC(obj);
+            World.RemoveNPC(obj, exploded);
         }
 
         private Dictionary<string, GameObject> missionNPCs = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
@@ -69,7 +69,7 @@ namespace LibreLancer.Server
             return new ObjectName(rand.Next(first), rand.Next(fac.Properties.LastName));
 
         }
-        
+
         public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, string stateGraph, ObjectLoadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
@@ -99,7 +99,7 @@ namespace LibreLancer.Server
             var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
             obj.Components.Add(new SelectedTargetComponent(obj));
-            obj.Components.Add(npcComponent);            
+            obj.Components.Add(npcComponent);
             obj.Components.Add(new AutopilotComponent(obj));
             obj.Components.Add(new ShipSteeringComponent(obj));
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });

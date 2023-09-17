@@ -36,6 +36,7 @@ namespace LibreLancer.Data
         public CameraIni Cameras;
         public InfocardManager Infocards;
         public EffectsIni Effects;
+        public ExplosionsIni Explosions;
         public FuseIni Fuses;
         public EquipmentIni Equipment;
         public HpTypesIni HpTypes;
@@ -194,6 +195,12 @@ namespace LibreLancer.Data
                 Effects = new EffectsIni();
                 foreach (var fx in Freelancer.EffectPaths)
                     Effects.AddIni(fx, VFS);
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                Explosions = new ExplosionsIni();
+                foreach(var fx in Freelancer.ExplosionPaths)
+                    Explosions.AddFile(fx, VFS);
             }));
             tasks.Add(Task.Run(() =>
             {

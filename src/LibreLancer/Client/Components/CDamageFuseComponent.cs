@@ -29,7 +29,7 @@ namespace LibreLancer.Client.Components
                 this.threshold = threshold;
                 actions = new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT));
             }
-            
+
             public void Update(float health, double time, GameObject parent)
             {
                 if (health > threshold)
@@ -76,12 +76,14 @@ namespace LibreLancer.Client.Components
         }
 
         private List<DamageFuseRunner> runners = new List<DamageFuseRunner>();
-        public CDamageFuseComponent(GameObject parent, IEnumerable<DamageFuse> fuses) : base(parent)
+        public Explosion Explosion;
+        public CDamageFuseComponent(GameObject parent, IEnumerable<DamageFuse> fuses, Explosion explosion) : base(parent)
         {
             foreach(var f in fuses)
                 runners.Add(new DamageFuseRunner(f.Fuse, f.Threshold));
+            Explosion = explosion;
         }
-        
+
 
         public override void Update(double time)
         {

@@ -995,20 +995,20 @@ namespace LibreLancer.Server
 
         public void ForceLand(string target)
         {
-            World?.RemovePlayer(this);
+            World?.RemovePlayer(this, false);
             World = null;
             Base = target;
             PlayerEnterBase();
         }
 
-        public void Despawn(int objId)
+        public void Despawn(int objId, bool explode)
         {
-            rpcClient.DespawnObject(objId);
+            rpcClient.DespawnObject(objId, explode);
         }
 
         public void Killed()
         {
-            World?.RemovePlayer(this);
+            World?.RemovePlayer(this, true);
             World = null;
             Dead = true;
             rpcClient.Killed();
@@ -1068,7 +1068,7 @@ namespace LibreLancer.Server
             {
                 using var c = Character.BeginTransaction();
                 c.UpdatePosition(Base, System, Position);
-                World?.RemovePlayer(this);
+                World?.RemovePlayer(this, false);
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
                     player.RemoteClient.OnPlayerLeave(ID, Name);
                 Game.CharactersInUse.Remove(Character.ID);
@@ -1108,7 +1108,7 @@ namespace LibreLancer.Server
         public void JumpTo(string system, string target)
         {
             rpcClient.StartJumpTunnel();
-            if(World != null) World.RemovePlayer(this);
+            if(World != null) World.RemovePlayer(this, false);
 
             var sys = Game.GameData.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>
