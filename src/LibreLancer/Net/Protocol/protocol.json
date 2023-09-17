@@ -179,7 +179,7 @@
                 },
                 {
                     "name": "objective",
-                    "type": "int"
+                    "type": "NetObjective"
                 },
                 {
                     "name": "position",
@@ -376,7 +376,7 @@
                 },
                 {
                     "name": "objective",
-                    "type": "int"
+                    "type": "NetObjective"
                 },
                 {
                     "name": "rtcs",
@@ -406,11 +406,11 @@
             ]
         },
         {
-            "name": "ObjectiveUpdate",
+            "name": "SetObjective",
             "args": [
                 {
                     "name": "objective",
-                    "type": "int"
+                    "type": "NetObjective"
                 }
             ]
         },

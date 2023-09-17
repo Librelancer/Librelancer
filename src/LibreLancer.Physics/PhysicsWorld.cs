@@ -30,6 +30,7 @@ namespace LibreLancer.Physics
         private Dictionary<int, PhysicsObject> objectsById = new Dictionary<int, PhysicsObject>();
         private IdPool ids = new IdPool(100, true);
         private CollidableProperty<int> bepuToLancer;
+        internal CollidableProperty<bool> collidableObjects;
         //our list
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
@@ -53,11 +54,12 @@ namespace LibreLancer.Physics
             threadDispatcher = new ThreadDispatcher(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
             contactEvents = new ContactEvents.ContactEvents(threadDispatcher, bufferPool);
             Simulation = Simulation.Create(bufferPool,
-                new ContactEventCallbacks(contactEvents, 300),
+                new ContactEventCallbacks(contactEvents, this, 300),
                 new LibrelancerPoseIntegratorCallbacks(),
                 new SolveDescription(8, 1)
             );
             bepuToLancer = new CollidableProperty<int>(Simulation);
+            collidableObjects = new CollidableProperty<bool>(Simulation);
         }
 
         public IDebugRenderer DebugRenderer { get; set; }
@@ -97,8 +99,9 @@ namespace LibreLancer.Physics
             col.Create(Simulation, bufferPool);
             var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle));
             ids.TryAllocate(out int id);
-            var obj = new StaticObject(id, Simulation.Statics.GetStaticReference(h), Simulation, transform, col);
+            var obj = new StaticObject(id, Simulation.Statics.GetStaticReference(h), this, transform, col);
             bepuToLancer.Allocate(h) = id;
+            collidableObjects.Allocate(h) = true;
             objectsById[id] = obj;
             objects.Add(obj);
             return obj;
@@ -114,9 +117,10 @@ namespace LibreLancer.Physics
                this.world = world;
                Result = new List<PhysicsObject>();
            }
-           public bool AllowTest(CollidableReference collidable) => true;
 
-           public bool AllowTest(CollidableReference collidable, int child) => true;
+           public bool AllowTest(CollidableReference collidable) => world.collidableObjects[collidable];
+
+           public bool AllowTest(CollidableReference collidable, int child) => world.collidableObjects[collidable];
 
            public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
            {
@@ -157,10 +161,13 @@ namespace LibreLancer.Physics
                 selfId = self?.Id ?? -1;
             }
 
-            public bool AllowTest(CollidableReference collidable) => world.bepuToLancer[collidable] != selfId;
+            public bool AllowTest(CollidableReference collidable) =>
+                world.bepuToLancer[collidable] != selfId &&
+                                                                     world.collidableObjects[collidable];
 
             public bool AllowTest(CollidableReference collidable, int childIndex) =>
-                world.bepuToLancer[collidable] != selfId;
+                world.bepuToLancer[collidable] != selfId &&
+                world.collidableObjects[collidable];
 
             public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable,
                 int childIndex)
@@ -316,8 +323,9 @@ namespace LibreLancer.Physics
                 Pose = transform.ToPose(),
             });
             ids.TryAllocate(out int id);
-            var obj = new DynamicObject(id, Simulation.Bodies.GetBodyReference(h), col);
+            var obj = new DynamicObject(id, this, Simulation.Bodies.GetBodyReference(h), col);
             bepuToLancer.Allocate(h) = id;
+            collidableObjects.Allocate(h) = true;
             objectsById[id] = obj;
             objects.Add(obj);
             dynamicObjects.Add(obj);

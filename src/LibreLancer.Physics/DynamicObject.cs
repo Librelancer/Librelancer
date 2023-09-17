@@ -7,12 +7,19 @@ namespace LibreLancer.Physics;
 internal class DynamicObject : PhysicsObject
 {
     internal BodyReference BepuObject;
-    private Simulation sim;
+    private PhysicsWorld world;
 
-    internal DynamicObject(int id, BodyReference bepuObject, Collider col) : base(id)
+    internal DynamicObject(int id, PhysicsWorld world, BodyReference bepuObject, Collider col) : base(id)
     {
         this.BepuObject = bepuObject;
         this.Collider = col;
+        this.world = world;
+    }
+
+    public override bool Collidable
+    {
+        get => world.collidableObjects[BepuObject.Handle];
+        set => world.collidableObjects[BepuObject.Handle] = value;
     }
 
     public override bool Static => false;

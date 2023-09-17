@@ -656,25 +656,24 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
 {
     private readonly ContactEvents events;
     public float MaximumRecoveryVelocity;
+    private PhysicsWorld world;
 
-    public ContactEventCallbacks(ContactEvents events, float maximumRecoveryVelocity)
+    public ContactEventCallbacks(ContactEvents events, PhysicsWorld world, float maximumRecoveryVelocity)
     {
         this.events = events;
+        this.world = world;
         MaximumRecoveryVelocity = maximumRecoveryVelocity;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b,
-        ref float speculativeMargin)
-    {
-        return true;
-    }
+        ref float speculativeMargin) =>
+        world.collidableObjects[a] && world.collidableObjects[b];
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB)
-    {
-        return true;
-    }
+    public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB) =>
+        world.collidableObjects[pair.A] && world.collidableObjects[pair.B];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold,
@@ -690,9 +689,7 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB,
         ref ConvexContactManifold manifold)
-    {
-        return true;
-    }
+        => world.collidableObjects[pair.A] && world.collidableObjects[pair.B];
 
     public void Initialize(Simulation simulation)
     {

@@ -39,12 +39,12 @@ namespace LibreLancer
 		};
         const string LAUNCH_ACTION = "$LAUNCH";
         private const string INVALID_ACTION = "$INVALID";
-		Base currentBase;        
+		Base currentBase;
         private StarSystem sys;
         BaseRoom currentRoom;
 		Cutscene scene;
         private UiContext ui;
-        
+
 		CGameSession session;
 		string baseId;
         string active;
@@ -68,7 +68,7 @@ namespace LibreLancer
         private bool paused = false;
 
         private int nextObjectiveUpdate = 0;
-        
+
         public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
         {
             //Load room data
@@ -104,8 +104,8 @@ namespace LibreLancer
             cursor = Game.ResourceManager.GetCursor("arrow");
             talk_story = Game.ResourceManager.GetCursor("talk_story");
             ui = Game.Ui;
-            nextObjectiveUpdate = session.CurrentObjectiveIds;
-            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjectiveIds;
+            nextObjectiveUpdate = session.CurrentObjective.Ids;
+            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
             //Set up THN
@@ -119,7 +119,7 @@ namespace LibreLancer
             if (scene?.Renderer != null)
                 scene.Renderer.Settings = Game.Config.Settings;
         }
-           
+
 
         protected override void OnActionDown(InputAction action)
         {
@@ -129,7 +129,7 @@ namespace LibreLancer
                 case InputAction.USER_CHAT:
                     ui.ChatboxEvent();
                     break;
-            }        
+            }
         }
 
         private void MouseOnMouseDown(MouseEventArgs e)
@@ -183,13 +183,13 @@ namespace LibreLancer
             }
 
             public bool HasShip() => !string.IsNullOrWhiteSpace(g.session.PlayerShip);
-            
+
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
-            public int GetObjectiveStrid() => g.session.CurrentObjectiveIds;
+            public int GetObjectiveStrid() => g.session.CurrentObjective.Ids;
 
             public DisplayFaction[] GetPlayerRelations() => g.session.GetUIRelations();
-            
+
             public KeyMapTable GetKeyMap()
             {
                 var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
@@ -213,7 +213,7 @@ namespace LibreLancer
                 else
                     g.MissionRejected();
             }
-            
+
             public SaveGameFolder SaveGames() => g.Game.Saves;
             public void DeleteSelectedGame() => g.Game.Saves.TryDelete(g.Game.Saves.Selected);
 
@@ -239,7 +239,7 @@ namespace LibreLancer
             {
                 g.session.Save(description);
             }
-            
+
             public void Resume()
             {
                 g.paused = false;
@@ -263,7 +263,7 @@ namespace LibreLancer
 
             public Trader Trader;
             public ShipDealer ShipDealer;
-            
+
             public ChatSource GetChats() => g.session.Chats;
 
             public void PopulateNavmap(Navmap navmap)
@@ -276,7 +276,7 @@ namespace LibreLancer
                 for (int i = 0; i < buttons.Length; i++)
                 {
                     buttons[i] = new NavbarButtonInfo(
-                        g.tophotspots[i].Name, 
+                        g.tophotspots[i].Name,
                         g.tophotspots[i].SetVirtualRoom ?? g.tophotspots[i].Room
                     );
                 }
@@ -307,7 +307,7 @@ namespace LibreLancer
                     if (!string.IsNullOrEmpty(hp.VirtualRoom) &&
                         !hp.VirtualRoom.Equals(g.virtualRoom, StringComparison.OrdinalIgnoreCase))
                         continue;
-                    switch (hp.Name.ToUpperInvariant()) 
+                    switch (hp.Name.ToUpperInvariant())
                     {
                         case "IDS_HOTSPOT_COMMODITYTRADER":
                             actions.Add(new NavbarButtonInfo("CommodityTrader", hp.Name));
@@ -316,7 +316,7 @@ namespace LibreLancer
                             actions.Add(new NavbarButtonInfo("ShipDealer", hp.Name));
                             break;
                         case "IDS_HOTSPOT_EQUIPMENTDEALER":
-                            actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name)); 
+                            actions.Add(new NavbarButtonInfo("EquipmentDealer", hp.Name));
                             break;
                     }
                 }
@@ -401,8 +401,8 @@ namespace LibreLancer
             currentCutscene = ct;
             RoomDoSceneScript(script, ScriptState.Cutscene);
         }
-        
-        
+
+
 
         private bool didLaunch = false;
         public void Launch()
@@ -503,7 +503,7 @@ namespace LibreLancer
                 }
             }
         }
-        
+
 		void SwitchToRoom(bool dolanding)
         {
             Game.Saves.Selected = -1;
@@ -520,7 +520,7 @@ namespace LibreLancer
             if (session.PlayerShip != null)
             {
                 var shp = Game.GameData.Ships.Get(session.PlayerShip);
-                playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager); 
+                playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager);
                 playerShip.PhysicsComponent = null;
                 CreatePlayerEquipment();
             }
@@ -528,7 +528,7 @@ namespace LibreLancer
             {
                 playerShip = new GameObject(); //Empty
             }
-          
+
             session.OnUpdatePlayerShip = CreatePlayerEquipment;
             var ctx = new ThnScriptContext(currentRoom.OpenSet());
             ctx.PlayerShip = playerShip;
@@ -593,7 +593,7 @@ namespace LibreLancer
             return null;
         }
 
-      
+
 
         void ProcessNextCutscene()
         {
@@ -663,7 +663,7 @@ namespace LibreLancer
                 else if (currentState == ScriptState.Launch)
                 {
                     SendLaunch();
-                } 
+                }
                 else
                 {
                     currentState = ScriptState.None;

@@ -138,6 +138,7 @@ namespace LibreLancer.Net.Protocol
     {
         public int ID;
         public ObjectName Name;
+        public string Nickname;
         public string Archetype;
         public string Faction;
         public DockAction Dock;
@@ -164,6 +165,7 @@ namespace LibreLancer.Net.Protocol
             {
                 ID = message.GetVariableInt32(),
                 Name = message.GetObjectName(),
+                Nickname = message.GetString(),
                 Archetype = message.GetString(),
                 Faction = message.GetString(),
                 Dock = GetDock(message),
@@ -175,6 +177,7 @@ namespace LibreLancer.Net.Protocol
         {
             message.PutVariableInt32(ID);
             message.Put(Name);
+            message.Put(Nickname);
             message.Put(Archetype);
             message.Put(Faction);
             if (Dock != null)

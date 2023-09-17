@@ -83,7 +83,7 @@ namespace InterfaceEdit
             return Selected > -1;
         }
     }
-    
+
     [WattleScriptUserData]
     public class FakeKeyMap : ITableData
     {
@@ -150,7 +150,7 @@ namespace InterfaceEdit
             "Contact13", "Contact14", "Contact15", "Contact16",
             "Contact17", "Contact18", "Contact19", "Contact20"
         };
-        
+
         private int selIndex = -1;
         public int Count => contacts.Length;
         public bool IsSelected(int index) => selIndex == index;
@@ -160,6 +160,8 @@ namespace InterfaceEdit
         public string Get(int index) => contacts[index];
 
         public RepAttitude GetAttitude(int index) => RepAttitude.Friendly;
+
+        public bool IsWaypoint(int index) => index == 2;
 
         public void SetFilter(string filter)
         {
@@ -262,7 +264,7 @@ namespace InterfaceEdit
         }
 
         public Infocard _Infocard;
-        
+
         public Infocard CurrentInfocard() => _Infocard;
         public string CurrentInfoString() => "CURRENT INFORMATION (test)";
 
@@ -309,7 +311,7 @@ namespace InterfaceEdit
                 new(false, 263754)
             };
         }
-        
+
 
         public bool ConnectAddress(string address)
         {
@@ -521,7 +523,7 @@ namespace InterfaceEdit
 
 
         public FakeKeyMap GetKeyMap() => new FakeKeyMap();
-        
+
         public TraderFake Trader = new TraderFake();
         public FakeShipDealer ShipDealer = new FakeShipDealer();
 
@@ -532,16 +534,16 @@ namespace InterfaceEdit
         public float SelectionShield() => 0.75f;
 
         public string SelectionReputation() => "friendly";
-        
+
         public Vector2 SelectionPosition() => new Vector2(300,300);
-        
+
         public TargetShipWireframe SelectionWireframe() => null;
-        
+
         public int ThrustPercent() => 111;
         public int Speed() => 67;
         public void HotspotPressed(string hotspot)
         {
-            
+
         }
 
         public string ActiveNavbarButton()
@@ -569,19 +571,19 @@ namespace InterfaceEdit
             this.win = win;
             this.settings.RenderContext = win.RenderContext;
         }
-        
+
         public void RequestNewCharacter()
         {
             win.UiEvent("OpenNewCharacter");
         }
-        
+
         public void LoadCharacter(){}
         public void DeleteCharacter() { }
 
         public void NewCharacter(string name, int index) { }
     }
 
-    
+
     [WattleScriptUserData]
     public class FakeShipDealer
     {
@@ -617,9 +619,9 @@ namespace InterfaceEdit
 
         public void StartPurchase(UISoldShip ship, Closure callback)
         {
-            
+
         }
-        
+
         public int GetHoldSize() => 60;
 
         public UIInventoryItem[] GetPlayerGoods(string filter) => TestingApi.TraderFake.pitems;

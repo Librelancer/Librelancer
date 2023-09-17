@@ -58,7 +58,7 @@ namespace LibreLancer.Client
         public ChatSource Chats = new ChatSource();
         private IPacketConnection connection;
         private IServerPlayer rpcServer;
-        public int CurrentObjectiveIds;
+        public NetObjective CurrentObjective;
         public IServerPlayer RpcServer => rpcServer;
 
         private double timeOffset;
@@ -532,9 +532,9 @@ namespace LibreLancer.Client
 
         public Action ObjectiveUpdated;
 
-        void IClientPlayer.ObjectiveUpdate(int objective)
+        void IClientPlayer.SetObjective(NetObjective objective)
         {
-            CurrentObjectiveIds = objective;
+            CurrentObjective = objective;
             ObjectiveUpdated?.Invoke();
         }
 
@@ -699,11 +699,11 @@ namespace LibreLancer.Client
             });
         }
 
-        void IClientPlayer.SpawnPlayer(string system, int objective, Vector3 position, Quaternion orientation)
+        void IClientPlayer.SpawnPlayer(string system, NetObjective objective, Vector3 position, Quaternion orientation)
         {
             enterCount++;
             PlayerBase = null;
-            CurrentObjectiveIds = objective;
+            CurrentObjective = objective;
             FLLog.Info("Client", $"Spawning in {system}");
             PlayerSystem = system;
             PlayerPosition = position;
@@ -761,7 +761,7 @@ namespace LibreLancer.Client
         public SoldGood[] Goods;
         public NetSoldShip[] Ships;
 
-        void IClientPlayer.BaseEnter(string _base, int objective, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
+        void IClientPlayer.BaseEnter(string _base, NetObjective objective, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
         {
             if (enterCount > 0 && (connection is EmbeddedServer es)) {
                 var path = Game.GetSaveFolder();
@@ -769,7 +769,7 @@ namespace LibreLancer.Client
                 es.Save(Path.Combine(path, "AutoSave.fl"), null, true);
                 Game.Saves.UpdateFile(Path.Combine(path, "AutoSave.fl"));
             }
-            CurrentObjectiveIds = objective;
+            CurrentObjective = objective;
             enterCount++;
             PlayerBase = _base;
             News = news;
@@ -823,6 +823,8 @@ namespace LibreLancer.Client
             RunSync(() => { RunDialog(lines); });
         }
 
+        GameObject missionWaypoint;
+
         void IClientPlayer.SpawnSolar(SolarInfo[] solars)
         {
             RunSync(() =>
@@ -835,7 +837,7 @@ namespace LibreLancer.Client
                         var go = new GameObject(arch, Game.ResourceManager, true);
                         go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(si.Orientation) *
                                              Matrix4x4.CreateTranslation(si.Position));
-                        go.Nickname = $"$Solar{si.ID}";
+                        go.Nickname = si.Nickname;
                         go.Name = si.Name;
                         go.World = gp.world;
                         go.Register(go.World.Physics);
@@ -872,6 +874,7 @@ namespace LibreLancer.Client
                 o.Flags |= GameObjectFlags.Important;
             });
         }
+
 
         void IClientPlayer.PlayMusic(string music, float fade) => audioActions.Enqueue(() =>
         {

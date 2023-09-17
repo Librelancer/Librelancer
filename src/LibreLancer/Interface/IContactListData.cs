@@ -9,7 +9,8 @@ namespace LibreLancer.Interface
         string Get(int index);
 
         void SetFilter(string filter);
-        
+
         RepAttitude GetAttitude(int index);
+        bool IsWaypoint(int index);
     }
 }

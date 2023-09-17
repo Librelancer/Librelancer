@@ -25,6 +25,7 @@ namespace LibreLancer.World.Components
 
         public Vector3 PredictionErrorPos = Vector3.Zero;
         public Quaternion PredictionErrorQuat = Quaternion.Identity;
+        public bool Collidable = true;
 
         public PhysicsComponent(GameObject parent) : base(parent)
         {
@@ -54,6 +55,7 @@ namespace LibreLancer.World.Components
         public override void Update(double time)
         {
             if (Body == null) return;
+            Body.Collidable = Collidable;
             if(partRemoved)
             {
                 _convexMesh.FinishUpdatePart();

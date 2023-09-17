@@ -43,7 +43,7 @@ namespace LibreLancer.Server
         public Base BaseData;
         public Vector3 Position;
         public Quaternion Orientation;
-        public int ObjectiveIds;
+        public NetObjective Objective;
         //Store so we can choose the correct character from the index
         public List<SelectableCharacter> CharacterList;
         //Respawn?
@@ -66,6 +66,14 @@ namespace LibreLancer.Server
             ResponseHandler = new NetResponseHandler();
             rpcClient = new RemoteClientPlayer(this);
         }
+
+        public void SetObjective(NetObjective objective)
+        {
+            FLLog.Info("Server", $"Set player objective to {objective.Kind}: {objective.Ids}");
+            Objective = objective;
+            rpcClient.SetObjective(objective);
+        }
+
 
         public void UpdateMissionRuntime(double elapsed)
         {
@@ -293,7 +301,7 @@ namespace LibreLancer.Server
                 World = world;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -357,7 +365,7 @@ namespace LibreLancer.Server
             lock (rtcs)
             {
 
-                rpcClient.BaseEnter(Base, ObjectiveIds, rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
+                rpcClient.BaseEnter(Base, Objective, rtcs.ToArray(), news.ToArray(), BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
                     Price = x.Price,
@@ -750,6 +758,7 @@ namespace LibreLancer.Server
                 {
                     ID = solar.Value.NetID,
                     Name = solar.Value.Name,
+                    Nickname = solar.Value.Nickname,
                     Archetype = solar.Value.ArchetypeName,
                     Position = Vector3.Transform(Vector3.Zero, tr),
                     Orientation = tr.ExtractRotation()
@@ -1124,7 +1133,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -1172,7 +1181,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, ObjectiveIds, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();

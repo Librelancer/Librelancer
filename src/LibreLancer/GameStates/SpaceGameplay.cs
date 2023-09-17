@@ -83,8 +83,8 @@ World Time: {12:F2}
             sys = g.GameData.Systems.Get(session.PlayerSystem);
             ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
-            nextObjectiveUpdate = session.CurrentObjectiveIds;
-            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjectiveIds;
+            nextObjectiveUpdate = session.CurrentObjective.Ids;
+            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.OnUpdateInventory = session.OnUpdatePlayerShip = null; //we should clear these handlers better
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             loader.Init();
@@ -228,7 +228,9 @@ World Time: {12:F2}
                 if (obj.Kind == GameObjectKind.Ship &&
                     obj.TryGetComponent<CFactionComponent>(out var fac))
                 {
-                    name = $"{game.Game.GameData.GetString(fac.Faction.IdsShortName)} - {name}";
+                    var fn = game.Game.GameData.GetString(fac.Faction.IdsShortName);
+                    if(!string.IsNullOrWhiteSpace(fn))
+                        name = $"{fn} - {name}";
                 }
                 return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
             }
@@ -244,6 +246,7 @@ World Time: {12:F2}
             {
                 return game.Selection.Selected == o ||
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
+                       o.Kind == GameObjectKind.Waypoint ||
                        GetRep(o) == RepAttitude.Hostile;
             }
 
@@ -290,7 +293,9 @@ World Time: {12:F2}
             {
                 playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
                 Contacts = game.world.Objects.Where(x => x != game.player &&
-                                                         (x.Kind == GameObjectKind.Ship || x.Kind == GameObjectKind.Solar) &&
+                                                         (x.Kind == GameObjectKind.Ship ||
+                                                           x.Kind == GameObjectKind.Solar ||
+                                                         x.Kind == GameObjectKind.Waypoint) &&
                                                          !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData, Vector3.Zero)))
                     .Where(contactFilter)
                     .Select(GetContact)
@@ -322,6 +327,12 @@ World Time: {12:F2}
             {
                 return GetRep(Contacts[index].obj);
             }
+
+            public bool IsWaypoint(int index)
+            {
+                return Contacts[index].obj.Kind == GameObjectKind.Waypoint;
+            }
+
         }
 
 
@@ -348,7 +359,7 @@ World Time: {12:F2}
             }
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
-            public int GetObjectiveStrid() => g.session.CurrentObjectiveIds;
+            public int GetObjectiveStrid() => g.session.CurrentObjective.Ids;
             public void ApplySettings(GameSettings settings)
             {
                 g.Game.Config.Settings = settings;
@@ -936,6 +947,37 @@ World Time: {12:F2}
             return (windowSpace, ndc.Z < 1);
         }
 
+        private GameObject missionWaypoint;
+
+        void UpdateObjectiveObjects()
+        {
+            if (missionWaypoint != null)
+            {
+                if (Selection.Selected == missionWaypoint)
+                    Selection.Selected = null;
+                world.RemoveObject(missionWaypoint);
+                missionWaypoint = null;
+            }
+            if ((session.CurrentObjective.Kind == ObjectiveKind.Object ||
+                session.CurrentObjective.Kind == ObjectiveKind.NavMarker) &&
+                sys.Nickname.Equals(session.CurrentObjective.System, StringComparison.OrdinalIgnoreCase))
+            {
+                var pos = session.CurrentObjective.Kind == ObjectiveKind.Object
+                    ? Vector3.Transform(Vector3.Zero, world.GetObject(session.CurrentObjective.Object).WorldTransform)
+                    : session.CurrentObjective.Position;
+                if (pos != Vector3.Zero)
+                {
+                    var waypointArch = Game.GameData.GetSolarArchetype("waypoint");
+                    missionWaypoint = new GameObject(waypointArch, Game.ResourceManager);
+                    missionWaypoint.Name = new ObjectName(1091); //Mission Waypoint
+                    missionWaypoint.SetLocalTransform(Matrix4x4.CreateTranslation(pos));
+                    missionWaypoint.World = world;
+                    world.AddObject(missionWaypoint);
+                    missionWaypoint.Register(world.Physics);
+                }
+            }
+        }
+
         private TargetShipWireframe targetWireframe = new TargetShipWireframe();
 
 		//RigidBody debugDrawBody;
@@ -973,6 +1015,7 @@ World Time: {12:F2}
                 {
                     ui.Event("ObjectiveUpdate", nextObjectiveUpdate);
                     nextObjectiveUpdate = 0;
+                    UpdateObjectiveObjects();
                 }
                 ui.RenderWidget(delta);
             }

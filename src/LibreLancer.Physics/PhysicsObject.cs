@@ -32,6 +32,8 @@ namespace LibreLancer.Physics
 
         public abstract Vector3 LinearVelocity { get; set; }
 
+        public abstract bool Collidable { get; set; }
+
         public abstract BoundingBox GetBoundingBox();
 
         public abstract Vector3 RotateVector(Vector3 src);

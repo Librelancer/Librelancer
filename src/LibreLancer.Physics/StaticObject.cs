@@ -10,13 +10,19 @@ internal class StaticObject : PhysicsObject
     public override Matrix4x4 Transform { get; protected set; }
     public override Vector3 Position { get; protected set; }
 
-    internal StaticReference BepuObject;
-    private Simulation sim;
+    public override bool Collidable
+    {
+        get => world.collidableObjects[BepuObject.Handle];
+        set => world.collidableObjects[BepuObject.Handle] = value;
+    }
 
-    internal StaticObject(int id, StaticReference bepuObject, Simulation sim, Matrix4x4 transform, Collider col) : base(id)
+    internal StaticReference BepuObject;
+    private PhysicsWorld world;
+
+    internal StaticObject(int id, StaticReference bepuObject, PhysicsWorld world, Matrix4x4 transform, Collider col) : base(id)
     {
         this.BepuObject = bepuObject;
-        this.sim = sim;
+        this.world = world;
         this.Collider = col;
         Transform = transform;
         Position = Vector3.Transform(Vector3.Zero, transform);

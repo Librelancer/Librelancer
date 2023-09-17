@@ -9,6 +9,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer.Client.Components;
+using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
@@ -25,7 +26,8 @@ namespace LibreLancer.World
         None,
         Ship,
         Solar,
-        Missile
+        Missile,
+        Waypoint
     }
 
     public class TradelaneName : ObjectName
@@ -237,7 +239,7 @@ namespace LibreLancer.World
 
         public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool phys = true)
         {
-            Kind = GameObjectKind.Solar;
+            Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
 			if (arch is Archs.Sun)
 			{
 				RenderComponent = new SunRenderer((Archs.Sun)arch);
@@ -375,7 +377,7 @@ namespace LibreLancer.World
 				var path = Path.ChangeExtension(RigidModel.Path, "sur");
                 name = Path.GetFileNameWithoutExtension(RigidModel.Path);
                 if (File.Exists(path))
-                    phys = new PhysicsComponent(this) { Sur = res.GetSur(path) };
+                    phys = new PhysicsComponent(this) { Sur = res.GetSur(path), Collidable = Kind != GameObjectKind.Waypoint };
                 else if (havePhys)
                 {
                     FLLog.Error("Sur", $"Could not load sur file {path}");
