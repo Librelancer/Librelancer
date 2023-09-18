@@ -30,7 +30,7 @@ namespace LibreLancer.Server.Ai.ObjList
             MaxThrottle = maxThrottle;
             Range = range;
         }
-        
+
         public override void OnStart(GameObject obj, SNPCComponent ai)
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
@@ -45,7 +45,7 @@ namespace LibreLancer.Server.Ai.ObjList
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
-                if (ap.CurrentBehaviour == AutopilotBehaviours.None) ;
+                if (ap.CurrentBehaviour == AutopilotBehaviours.None)
                     ai.SetState(Next);
             }
             else

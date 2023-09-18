@@ -134,6 +134,7 @@ namespace LibreLancer.Server
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
             if (player == Server.LocalPlayer) obj.Nickname = "Player"; //HACK: Set local player ID for mission script
             obj.NetID = player.ID;
+            obj.Flags |= GameObjectFlags.Player;
             GameWorld.AddObject(obj);
             obj.Register(GameWorld.Physics);
             Players[player] = obj;

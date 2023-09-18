@@ -25,7 +25,7 @@ namespace LibreLancer.Server.Components
         {
             DockSphere = s;
         }
-        
+
         private const float OPEN_DURATION = 5;
         public void TriggerOpen(GameObject parent)
         {
@@ -43,7 +43,7 @@ namespace LibreLancer.Server.Components
             component.StartAnimation(DockSphere.Script, false, 0,1,0, close);
             parent.World.Server.StartAnimation(parent);
         }
-        
+
         public void Update(GameObject parent, float dt)
         {
             if (Open)
@@ -57,13 +57,13 @@ namespace LibreLancer.Server.Components
             }
         }
     }
-    
+
     public class SDockableComponent : GameComponent
 	{
 		public DockAction Action;
-        
+
         public DockingPoint[] DockPoints;
-        
+
 		public SDockableComponent(GameObject parent, DockSphere[] dockSpheres) : base(parent)
         {
             DockPoints = dockSpheres.Select(x => new DockingPoint(x)).ToArray();
@@ -111,13 +111,13 @@ namespace LibreLancer.Server.Components
                 }
 			}
 		}
-        
+
 
         bool CanDock(int i, GameObject obj, string tlHP = null)
 		{
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
-            
+
 			var hp = Parent.GetHardpoint(tlHP ?? DockPoints[i].DockSphere.Hardpoint);
 			var targetPos = Vector3.Transform(Vector3.Zero, hp.Transform * Parent.WorldTransform);
 			if ((targetPos - pos).Length() < (DockPoints[i].DockSphere.Radius * 2 + rad))
@@ -132,15 +132,15 @@ namespace LibreLancer.Server.Components
         private bool rightActive = false;
         private int inactiveTicksRight = 0;
         private const int INACTIVE_TIME = 16;
-        
+
 		void TriggerAnimation(int i)
 		{
-            if (Action.Kind == DockKinds.Tradelane && 
+            if (Action.Kind == DockKinds.Tradelane &&
                 DockPoints[i].DockSphere.Hardpoint.Equals("hpleftlane", StringComparison.OrdinalIgnoreCase)) {
                 Parent.World.Server.ActivateLane(Parent, true);
                 inactiveTicksLeft = INACTIVE_TIME;
                 leftActive = true;
-            } 
+            }
             else if (Action.Kind == DockKinds.Tradelane &&
                 DockPoints[i].DockSphere.Hardpoint.Equals("hprightlane", StringComparison.OrdinalIgnoreCase)) {
                 Parent.World.Server.ActivateLane(Parent, false);
@@ -183,6 +183,9 @@ namespace LibreLancer.Server.Components
         {
             var movement = new STradelaneMoveComponent(ship, Parent, tlHardpoint);
             ship.Components.Add(movement);
+            ShipPhysicsComponent component = Parent.GetComponent<ShipPhysicsComponent>();
+            if (component is not null)
+                component.Active = false;
             if (ship.TryGetComponent<SNPCComponent>(out var npc))
             {
                 npc.StartTradelane();
@@ -192,9 +195,8 @@ namespace LibreLancer.Server.Components
                 player.Player.StartTradelane();
             }
             movement.LaneEntered();
-            ship.Components.Add(movement);
         }
-        
+
         public override void Update(double time)
         {
             bool leftThisTick = false;
@@ -221,7 +223,7 @@ namespace LibreLancer.Server.Components
                         if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                         {
                             player.Player.ForceLand(Action.Target);
-                        } 
+                        }
                         else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                         {
                             npc.Docked();
@@ -232,7 +234,7 @@ namespace LibreLancer.Server.Components
                         if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                         {
                             player.Player.JumpTo(Action.Target, Action.Exit);
-                        } 
+                        }
                         else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                         {
                             npc.Docked();

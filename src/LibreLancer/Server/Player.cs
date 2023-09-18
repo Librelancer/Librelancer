@@ -19,6 +19,7 @@ using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 using NetResponseHandler = LibreLancer.Net.Protocol.NetResponseHandler;
 using RemoteClientPlayer = LibreLancer.Net.Protocol.RemoteClientPlayer;
 
@@ -1205,6 +1206,7 @@ namespace LibreLancer.Server
                    else {
                        other.Formation = new ShipFormation(other, self);
                    }
+                   self.Formation = other.Formation;
                    msnRuntime?.PlayerManeuver("formation", other.Nickname);
                }
                else {

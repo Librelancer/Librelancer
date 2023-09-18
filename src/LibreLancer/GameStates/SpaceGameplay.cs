@@ -124,6 +124,7 @@ World Time: {12:F2}
             playerHealth.MaxHealth = shp.Hitpoints;
             playerHealth.CurrentHealth = shp.Hitpoints;
             player.Components.Add(playerHealth);
+            player.Flags |= GameObjectFlags.Player;
             if(shp.Mass < 0)
             {
                 FLLog.Error("Ship", "Mass < 0");

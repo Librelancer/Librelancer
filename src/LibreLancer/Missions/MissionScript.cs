@@ -225,6 +225,15 @@ namespace LibreLancer.Missions
                         cur = new AiBreakFormationState();
                         break;
                     }
+                    case ObjListCommands.MakeNewFormation:
+                    {
+                        cur = new AiMakeNewFormationState()
+                        {
+                            FormationDef = l.Entry[0].ToString(),
+                            Others = l.Entry.Skip(1).Select(x => x.ToString()).ToArray()
+                        };
+                        break;
+                    }
                     case ObjListCommands.Follow:
                     {
                         //[1] may be range?

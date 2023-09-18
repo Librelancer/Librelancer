@@ -454,6 +454,11 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
+            if (!script.ObjLists.ContainsKey(List))
+            {
+                FLLog.Error("Mission", $"Could not find objlist {List}");
+                return;
+            }
             if (Target.Equals("player", StringComparison.OrdinalIgnoreCase))
             {
                 runtime.Player.WorldAction(() => { ObjListForPlayer(runtime, script); });

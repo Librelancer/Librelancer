@@ -191,6 +191,8 @@ namespace LibreLancer.Server.Components
             {
                 if ((other.Flags & GameObjectFlags.Cloaked) == GameObjectFlags.Cloaked)
                     continue;
+                if (other.TryGetComponent<STradelaneMoveComponent>(out _))
+                    continue;
                 if (Vector3.Distance(other.WorldTransform.Translation, myPos) < 5000 &&
                     IsHostileTo(other))
                 {
@@ -265,7 +267,10 @@ namespace LibreLancer.Server.Components
             var maxRange = 0f;
             if(Parent.TryGetComponent<WeaponControlComponent>(out var wp))
                  maxRange = wp.GetMaxRange() * 0.95f;
-            return $"Shooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}";
+            bool physActive = false;
+            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var ps))
+                physActive = ps.Active;
+            return $"Shooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}";
         }
 
         public override void Update(double time)

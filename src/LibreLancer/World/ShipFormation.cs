@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 
@@ -11,7 +12,7 @@ namespace LibreLancer.World
     {
         public GameObject LeadShip { get; private set; }
         public IReadOnlyList<GameObject> Followers => _followers;
-        
+
         List<GameObject> _followers = new List<GameObject>();
 
         public Vector3[] Offsets = new[]
@@ -22,9 +23,13 @@ namespace LibreLancer.World
             new Vector3(0, 60, 0)
         };
 
+        public Vector3? PlayerPosition;
+
         public Vector3 GetShipOffset(GameObject self)
         {
             if (LeadShip == self) return Vector3.Zero;
+            if (PlayerPosition != null && ((self.Flags & GameObjectFlags.Player) == GameObjectFlags.Player))
+                return PlayerPosition.Value;
             var idx = _followers.IndexOf(self);
             if (idx == -1) throw new InvalidOperationException("Ship not in formation");
             return Offsets[idx];
@@ -51,6 +56,16 @@ namespace LibreLancer.World
         public void Add(GameObject obj)
         {
             _followers.Add(obj);
+            //Sort player to end (SP formations)
+            if (PlayerPosition != null)
+            {
+                var pobj = _followers.FirstOrDefault(x => (x.Flags & GameObjectFlags.Player) == GameObjectFlags.Player);
+                if (pobj != null)
+                {
+                    _followers.Remove(pobj);
+                    _followers.Add(pobj);
+                }
+            }
             UpdatePlayers();
         }
 
@@ -80,11 +95,19 @@ namespace LibreLancer.World
                     player.Player.RemoteClient.UpdateFormation(ToNetFormation(f));
             }
         }
-        
+
         public ShipFormation()
         {
         }
 
+        public ShipFormation(GameObject lead, FormationDef formation)
+        {
+            LeadShip = lead;
+            _followers = new List<GameObject>();
+            UpdatePlayers();
+            Offsets = formation.Positions.Skip(1).ToArray();
+
+        }
         public ShipFormation(GameObject lead, params GameObject[] follow)
         {
             LeadShip = lead;

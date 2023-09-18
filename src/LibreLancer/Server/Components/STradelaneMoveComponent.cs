@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using LibreLancer.Client.Components;
 using LibreLancer.Missions;
 using LibreLancer.World;
@@ -63,6 +64,16 @@ namespace LibreLancer.Server.Components
             return true;
         }
 
+        void DisruptOther(GameObject go)
+        {
+            if (go.TryGetComponent<STradelaneMoveComponent>(out var tlmov) &&
+                tlmov.currenttradelane == currenttradelane)
+            {
+                tlmov.TradeLaneDisruption();
+            }
+        }
+
+        private float totalTime = 0;
         public override void Update(double time)
         {
             var cmp = currenttradelane.GetComponent<SDockableComponent>();
@@ -74,11 +85,23 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
+
             var (position, direction) = CalculateNextTradelane(tradelaneComponent);
             var distanceToTradelane = direction.Length();
 
             if (TradelaneDisrupted(distanceToTradelane, tradelaneComponent))
             {
+                //Do it to all the ships
+                if (Parent.Formation != null)
+                {
+                    if (Parent.Formation.LeadShip != Parent) {
+                        DisruptOther(Parent.Formation.LeadShip);
+                    }
+                    foreach (var f in Parent.Formation.Followers) {
+                        if(f != Parent)
+                            DisruptOther(f);
+                    }
+                }
                 TradeLaneDisruption();
                 // tradelaneComponent.Parent.Formation.Remove(tradelaneComponent.Parent); TODO: Once formation triggers work or wandering npcs are added this can be tested.
                 return;
@@ -92,38 +115,50 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            MoveShip(position, direction);
+            MoveShip(CalculateCurrentTradelane(), position, direction);
+
+            totalTime += (float)time;
         }
 
-        private void MoveShip(Vector3 targetPoint, Vector3 direction)
+        private void MoveShip(Vector3 sourcePoint, Vector3 targetPoint, Vector3 direction)
         {
             direction.Normalize();
-            Parent.PhysicsComponent.Body.LinearVelocity = direction * 3000;
-
-            //var currRot = Quaternion.From(Parent.PhysicsComponent.Body.Transform.ClearTranslation());
-            var targetRot = QuaternionEx.LookAt(Parent.PhysicsComponent.Body.Position, targetPoint);
-            //var slerped = Quaternion.Slerp(currRot, targetRot, 0.02f); //TODO: Slerp doesn't work?
-            Parent.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(targetRot) *
-                                                      Matrix4x4.CreateTranslation(Parent.PhysicsComponent.Body.Position));
+            var speed = Easing.Ease(EasingTypes.EaseIn, MathHelper.Clamp(totalTime, 0, 3), 0, 3, 0, 3000);
+            Parent.PhysicsComponent.Body.LinearVelocity = direction * speed;
+            Parent.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
+            var targetRot = QuaternionEx.LookAt(sourcePoint, targetPoint);
+            Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(targetRot) * Matrix4x4.CreateTranslation(Parent.PhysicsComponent.Body.Position),true);
         }
 
+        private Vector3 CalculateCurrentTradelane()
+        {
+            var offset = Vector3.Zero;
+            if (Parent.Formation is not null)
+            {
+                offset = Parent.Formation.GetShipOffset(Parent);
+            }
+            return Vector3.Transform(Vector3.Zero + offset, currenttradelane.GetHardpoint(lane).TransformNoRotate * currenttradelane.WorldTransform);
+        }
         private (Vector3, Vector3) CalculateNextTradelane(GameObject tradelaneComponent)
         {
             var offset = Vector3.Zero;
             if (Parent.Formation is not null)
+            {
                 offset = Parent.Formation.GetShipOffset(Parent);
+            }
 
             CEngineComponent eng = Parent.GetComponent<CEngineComponent>();
             if (eng is not null)
                 eng.Speed = 0.9f;
 
-            var targetPosition = Vector3.Transform(Vector3.Zero + offset, tradelaneComponent.GetHardpoint(lane).Transform * tradelaneComponent.WorldTransform);
-            var direction = targetPosition - Parent.PhysicsComponent.Body.Position;
+            var targetPosition = Vector3.Transform(Vector3.Zero + offset, tradelaneComponent.GetHardpoint(lane).TransformNoRotate * tradelaneComponent.WorldTransform);
+            var direction = (targetPosition - Parent.PhysicsComponent.Body.Position);
+
             return (targetPosition, direction);
         }
 
         private static bool TradelaneDisrupted(float distance, GameObject tradelaneComponent) =>
-            distance < 3000 && 
+            distance < 3000 &&
             tradelaneComponent.GetChildComponents<SShieldComponent>()
                 .Any(c => c.Health == 0);
 

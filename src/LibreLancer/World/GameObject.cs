@@ -117,6 +117,7 @@ namespace LibreLancer.World
         Friendly = 1 << 3,
         Hostile = 1 << 4,
         Cloaked = 1 << 5, //Bad
+        Player = 1 << 6,
         Reputations = Neutral | Friendly | Hostile,
     }
 

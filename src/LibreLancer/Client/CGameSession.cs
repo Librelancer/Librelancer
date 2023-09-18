@@ -445,10 +445,15 @@ namespace LibreLancer.Client
                             gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                             phys.ChargePercent = state.CruiseChargePct;
                             phys.CruiseAccelPct = state.CruiseAccelPct;
-                            //simulate inputs
-                            for (i = i + 1; i < moveState.Count; i++) {
-                                Resimulate(i, gp);
+                            if (!inTradelane)
+                            {
+                                //simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
+                                for (i = i + 1; i < moveState.Count; i++)
+                                {
+                                    Resimulate(i, gp);
+                                }
                             }
+
                             SmoothError(gp.player, predictedPos, predictedOrient);
                             gp.player.PhysicsComponent.Update(1 / 60.0);
                         }
@@ -486,11 +491,25 @@ namespace LibreLancer.Client
             }
         }
 
-        void IClientPlayer.StartTradelane() => RunSync(gp.StartTradelane);
+        private bool inTradelane = false;
 
-        void IClientPlayer.TradelaneDisrupted() => RunSync(gp.TradelaneDisrupted);
+        void IClientPlayer.StartTradelane()
+        {
+            inTradelane = true;
+            RunSync(gp.StartTradelane);
+        }
 
-        void IClientPlayer.EndTradelane() => RunSync(gp.EndTradelane);
+        void IClientPlayer.TradelaneDisrupted()
+        {
+            inTradelane = false;
+            RunSync(gp.TradelaneDisrupted);
+        }
+
+        void IClientPlayer.EndTradelane()
+        {
+            inTradelane = false;
+            RunSync(gp.EndTradelane);
+        }
 
 
         void IClientPlayer.SpawnProjectiles(ProjectileSpawn[] projectiles)
