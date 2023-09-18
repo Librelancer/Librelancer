@@ -80,7 +80,7 @@ namespace LibreLancer.Media
             err = OnError;
             ld_errorlog_register(err);
         }
-        
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate IntPtr ReadFn(byte* buffer, IntPtr size1, IntPtr size2, ld_stream* stream);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -227,9 +227,16 @@ namespace LibreLancer.Media
             throw new InvalidOperationException();
         }
 
-        public override void Close()
+        private bool _disposed = false;
+        protected override void Dispose(bool disposing)
         {
-            ld_pcmstream_close(decoder);
+            if (!_disposed)
+            {
+                if (disposing)
+                    ld_pcmstream_close(decoder);
+                _disposed = true;
+            }
+            base.Dispose(disposing);
         }
     }
 }
