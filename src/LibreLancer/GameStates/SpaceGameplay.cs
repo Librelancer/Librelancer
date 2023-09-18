@@ -1055,6 +1055,7 @@ World Time: {12:F2}
                         sel_obj = "unknown object";
                     else
                         sel_obj = Selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
+                    sel_obj = $"{sel_obj} ({Selection.Selected.Nickname ?? "null nickname"})";
                 }
                 var systemName = Game.GameData.GetString(sys.IdsName);
                 var text = string.Format(DEBUG_TEXT, activeCamera.Position.X, activeCamera.Position.Y, activeCamera.Position.Z,
