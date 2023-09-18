@@ -102,6 +102,9 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_PobjIdle:
                         yield return new Act_PobjIdle(a);
                         break;
+                    case TriggerActions.Act_ChangeState:
+                        yield return new Act_ChangeState(a);
+                        break;
                     case TriggerActions.Act_SetShipAndLoadout:
                         yield return new Act_SetShipAndLoadout(a);
                         break;
@@ -506,6 +509,25 @@ namespace LibreLancer.Missions
                         }
                     }
                 }
+            }
+        }
+    }
+
+    public class Act_ChangeState : ScriptedAction
+    {
+        public bool Succeed;
+
+        public Act_ChangeState(MissionAction act) : base(act)
+        {
+            Succeed = act.Entry[0].ToString().Equals("SUCCEED", StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            if (Succeed)
+            {
+                runtime.Player.MissionSuccess();
             }
         }
     }

@@ -105,6 +105,13 @@ namespace LibreLancer.Server
             InTradelane = false;
         }
 
+        public void MissionSuccess()
+        {
+            currentMissionNumber++;
+            loadTriggers = Array.Empty<uint>();
+            LoadMission();
+        }
+
         public MissionRuntime MissionRuntime => msnRuntime;
 
         List<string> rtcs = new List<string>();
@@ -665,22 +672,31 @@ namespace LibreLancer.Server
             { "mission_13", 14 }
         };
 
+        private int currentMissionNumber;
+        private uint[] loadTriggers;
+
         void MissionNumber(string str, ref int num)
         {
             if (!string.IsNullOrEmpty(str) && missionNumbers.TryGetValue(str, out var n))
                 num = n;
+        }
+
+        void LoadMission()
+        {
+            if (currentMissionNumber != 0 && (currentMissionNumber - 1) < Game.GameData.Ini.Missions.Count)
+            {
+                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[currentMissionNumber - 1], this, loadTriggers);
+                msnRuntime.Update(0.0);
+            }
         }
         void InitStory(Data.Save.SaveGame sg)
         {
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
             MissionNumber(sg.StoryInfo?.Mission, ref missionNum);
             if (Game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
-            if (missionNum != 0 && (missionNum - 1) < Game.GameData.Ini.Missions.Count)
-            {
-                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[missionNum - 1], this,
-                    sg.TriggerSave.Select(x => (uint)x.Trigger).ToArray());
-                msnRuntime.Update(0.0);
-            }
+            currentMissionNumber = missionNum;
+            loadTriggers = sg.TriggerSave.Select(x => (uint) x.Trigger).ToArray();
+            LoadMission();
         }
 
         private Queue<Action> worldActions = new Queue<Action>();
