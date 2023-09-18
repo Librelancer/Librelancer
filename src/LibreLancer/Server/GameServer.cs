@@ -258,10 +258,11 @@ namespace LibreLancer.Server
                 }
             }
 
+            bool was30 = processingLoop.TimeStep == RATE_30;
             processingLoop.TimeStep = worlds.Count > 0 ? RATE_60 : RATE_30;
             var updateDuration = serverTiming.Elapsed - startTime;
             PerformanceStats?.AddEntry((float)updateDuration.TotalMilliseconds);
-            if (updateDuration > RATE_60 && worlds.Count > 0)
+            if (updateDuration > RATE_60 && !was30)
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
             }

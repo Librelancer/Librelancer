@@ -846,7 +846,7 @@ namespace LibreLancer.Client
                         go.CollisionGroups = arch.CollisionGroups;
                         FLLog.Debug("Client", $"Spawning object {si.ID}");
                         go.NetID = si.ID;
-                        if (si.Dock != null){
+                        if (si.Dock != null && arch.DockSpheres.Count > 0){
                             go.Components.Add(new CDockComponent(go)
                             {
                                 Action = si.Dock,

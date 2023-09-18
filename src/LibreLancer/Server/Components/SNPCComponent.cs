@@ -189,6 +189,8 @@ namespace LibreLancer.Server.Components
             foreach (var other in Parent.GetWorld().SpatialLookup
                          .GetNearbyObjects(Parent, myPos, 5000))
             {
+                if ((other.Flags & GameObjectFlags.Cloaked) == GameObjectFlags.Cloaked)
+                    continue;
                 if (Vector3.Distance(other.WorldTransform.Translation, myPos) < 5000 &&
                     IsHostileTo(other))
                 {

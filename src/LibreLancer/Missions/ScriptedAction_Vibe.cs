@@ -27,21 +27,30 @@ namespace LibreLancer.Missions
             {
                 var tgt = runtime.Player.World.GameWorld.GetObject(target);
                 var o = runtime.Player.World.GameWorld.GetObject(other);
-                if (tgt != null && o != null && tgt.TryGetComponent<SNPCComponent>(out var npc)) {
+                if (tgt != null && o != null && tgt.TryGetComponent<SRepComponent>(out var rep)) {
+                    FLLog.Debug("Mission", $"{tgt} rep to {o}: {vibe}");
                     if (vibe == VibeSet.REP_FRIEND_MAXIMUM ||
                         vibe == VibeSet.REP_FRIEND_THRESHOLD)
                     {
-                        npc.HostileNPCs.Remove(o);
+                        rep.SetAttitude(o, RepAttitude.Friendly);
                     }
-                    else
+                    else if (vibe == VibeSet.REP_NEUTRAL_HOSTILE ||
+                             vibe == VibeSet.REP_NEUTRAL ||
+                             vibe == VibeSet.REP_NEUTRAL_FRIENDLY)
                     {
-                        npc.HostileNPCs.Add(o);
+                        rep.SetAttitude(o, RepAttitude.Neutral);
+                    }
+                    else if (vibe == VibeSet.REP_HOSTILE_MAXIMUM ||
+                             vibe == VibeSet.REP_HOSTILE_THRESHOLD)
+
+                    {
+                        rep.SetAttitude(o, RepAttitude.Hostile);
                     }
                 }
             });
         }
     }
-    
+
     public class Act_SetVibe : SetVibeBase
     {
         public VibeSet Vibe;
@@ -83,7 +92,7 @@ namespace LibreLancer.Missions
             }
         }
     }
-    
+
     public class Act_SetVibeShipToLbl : SetVibeBase
     {
         public VibeSet Vibe;
@@ -102,7 +111,7 @@ namespace LibreLancer.Missions
                 SetVibe(runtime, Ship, ship.Nickname, Vibe);
         }
     }
-    
+
     public class Act_SetVibeLblToShip : SetVibeBase
     {
         public VibeSet Vibe;

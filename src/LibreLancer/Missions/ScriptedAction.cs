@@ -120,6 +120,9 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_Invulnerable:
                         yield return new Act_Invulnerable(a);
                         break;
+                    case TriggerActions.Act_Cloak:
+                        yield return new Act_Cloak(a);
+                        break;
                     case TriggerActions.Act_SetNNObj:
                         yield return new Act_SetNNObj(a);
                         break;

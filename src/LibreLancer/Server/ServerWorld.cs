@@ -594,14 +594,9 @@ namespace LibreLancer.Server
 
                     if (obj.TryGetComponent<SEngineComponent>(out var eng))
                         update.Throttle = eng.Speed;
-                    if (obj.TryGetComponent<SNPCComponent>(out var npc))
+                    if (obj.TryGetComponent<SRepComponent>(out var rep))
                     {
-                        if (npc.HostileNPCs.Contains(player.Value)) {
-                            update.RepToPlayer = RepAttitude.Hostile;
-                        }
-                        else {
-                            update.RepToPlayer = RepAttitude.Neutral;
-                        }
+                        update.RepToPlayer = rep.GetRep(player.Value);
                     }
                     if(obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))
                     {

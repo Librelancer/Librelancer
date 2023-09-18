@@ -8,6 +8,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
+using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
@@ -190,6 +191,20 @@ World Time: {12:F2}
                ui.ChatboxEvent();
         }
 
+        RepAttitude GetRepToPlayer(GameObject obj)
+        {
+            if ((obj.Flags & GameObjectFlags.Friendly) == GameObjectFlags.Friendly) return RepAttitude.Friendly;
+            if ((obj.Flags & GameObjectFlags.Neutral) == GameObjectFlags.Neutral) return RepAttitude.Neutral;
+            if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile) return RepAttitude.Hostile;
+            if (obj.SystemObject != null)
+            {
+                var rep = session.PlayerReputations.GetReputation(obj.SystemObject.Reputation);
+                if (rep <= Faction.HostileThreshold) return RepAttitude.Hostile;
+                if (rep >= Faction.FriendlyThreshold) return RepAttitude.Friendly;
+            }
+            return RepAttitude.Neutral;
+        }
+
         private int updateStartDelay = -1;
 
         [WattleScript.Interpreter.WattleScriptUserData]
@@ -247,7 +262,7 @@ World Time: {12:F2}
                 return game.Selection.Selected == o ||
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
                        o.Kind == GameObjectKind.Waypoint ||
-                       GetRep(o) == RepAttitude.Hostile;
+                       game.GetRepToPlayer(o) == RepAttitude.Hostile;
             }
 
             public void SetFilter(string filter)
@@ -273,20 +288,6 @@ World Time: {12:F2}
                         FLLog.Warning("Ui", $"Unknown contact list filter {filter}, defaulting to all");
                         break;
                 }
-            }
-
-            RepAttitude GetRep(GameObject obj)
-            {
-                if ((obj.Flags & GameObjectFlags.Friendly) == GameObjectFlags.Friendly) return RepAttitude.Friendly;
-                if ((obj.Flags & GameObjectFlags.Neutral) == GameObjectFlags.Neutral) return RepAttitude.Neutral;
-                if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile) return RepAttitude.Hostile;
-                if (obj.SystemObject != null)
-                {
-                    var rep = game.session.PlayerReputations.GetReputation(obj.SystemObject.Reputation);
-                    if (rep < -0.4) return RepAttitude.Hostile;
-                    if (rep > 0.4) return RepAttitude.Friendly;
-                }
-                return RepAttitude.Neutral;
             }
 
             public void UpdateList()
@@ -325,7 +326,7 @@ World Time: {12:F2}
 
             public RepAttitude GetAttitude(int index)
             {
-                return GetRep(Contacts[index].obj);
+                return game.GetRepToPlayer(Contacts[index].obj);
             }
 
             public bool IsWaypoint(int index)
@@ -464,13 +465,15 @@ World Time: {12:F2}
 
             public string SelectionReputation()
             {
-                if (g.Selection.Selected.SystemObject != null)
+                if (g.Selection.Selected == null)
+                    return "neutral";
+                var rep = g.GetRepToPlayer(g.Selection.Selected);
+                return rep switch
                 {
-                    var rep = g.session.PlayerReputations.GetReputation(g.Selection.Selected.SystemObject.Reputation);
-                    if (rep < -0.4) return "hostile";
-                    if (rep > 0.4) return "friendly";
-                }
-                return "neutral";
+                    RepAttitude.Friendly => "friendly",
+                    RepAttitude.Hostile => "hostile",
+                    _ => "neutral"
+                };
             }
 
 

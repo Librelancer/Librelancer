@@ -8,26 +8,40 @@ namespace LibreLancer.Server.Components;
 public class SRepComponent : GameComponent
 {
     public Faction Faction;
-    public List<GameObject> HostileNPCs = new List<GameObject>();
 
-    public bool IsHostileTo(GameObject other)
+    public Dictionary<GameObject, RepAttitude> forcedReps = new Dictionary<GameObject, RepAttitude>();
+
+    public void SetAttitude(GameObject go, RepAttitude a) =>
+        forcedReps[go] = a;
+
+    static RepAttitude FromNumber(float a)
     {
-        if (HostileNPCs.Contains(other))
-            return true;
+        if (a <= Faction.HostileThreshold)
+            return RepAttitude.Hostile;
+        if (a >= Faction.FriendlyThreshold)
+            return RepAttitude.Friendly;
+        return 0;
+    }
+
+    public RepAttitude GetRep(GameObject other)
+    {
+        if (forcedReps.TryGetValue(other, out var f))
+            return f;
         if (Faction == null)
-            return false;
+            return RepAttitude.Neutral;
         if (other.TryGetComponent<SPlayerComponent>(out var sp))
         {
-            if (sp.Player.Character.Reputation.GetReputation(Faction) < -0.4f)
-                return true;
+            return FromNumber(sp.Player.Character.Reputation.GetReputation(Faction));
         }
-        else if (other.TryGetComponent<SRepComponent>(out var r))
+        if (other.TryGetComponent<SRepComponent>(out var r))
         {
-            if (r.Faction != null && Faction.GetReputation(r.Faction) < -0.4f)
-                return true;
+            if (r.Faction != null)
+                return FromNumber(Faction.GetReputation(r.Faction));
         }
-        return false;
+        return RepAttitude.Neutral;
     }
+
+    public bool IsHostileTo(GameObject other) => GetRep(other) == RepAttitude.Hostile;
 
     public SRepComponent(GameObject parent) : base(parent)
     {

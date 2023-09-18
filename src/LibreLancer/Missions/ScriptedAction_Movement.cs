@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Data.Missions;
+using LibreLancer.World;
 
 namespace LibreLancer.Missions
 {
@@ -25,6 +26,32 @@ namespace LibreLancer.Missions
         {
             runtime.Player.ForceMove(Position);
         }
+    }
+
+    public class Act_Cloak : ScriptedAction
+    {
+        public string Target;
+        public bool Cloaked;
+        public Act_Cloak(MissionAction a) : base(a)
+        {
+            Target = a.Entry[0].ToString();
+            Cloaked = a.Entry[1].ToBoolean();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.WorldAction(() =>
+            {
+                var obj = runtime.Player.World.GameWorld.GetObject(Target);
+                if (obj != null)
+                {
+                    FLLog.Debug("Mission", $"{obj} change cloaked to {Cloaked}");
+                    if (Cloaked) obj.Flags |= GameObjectFlags.Cloaked;
+                    else obj.Flags &= ~GameObjectFlags.Cloaked;
+                }
+            });
+        }
+
     }
 
     public class Act_PobjIdle : ScriptedAction

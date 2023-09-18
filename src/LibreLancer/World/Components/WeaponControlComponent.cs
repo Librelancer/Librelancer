@@ -73,8 +73,10 @@ namespace LibreLancer.World.Components
 
         public bool CanFireWeapons()
         {
-            if (!Enabled || Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
-                (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
+            if (!Enabled ||
+                (Parent.Flags & GameObjectFlags.Cloaked) == GameObjectFlags.Cloaked ||
+                (Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
+                (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging)))
             {
                 PlayDryFireSound();
                 return false;

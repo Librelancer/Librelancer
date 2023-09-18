@@ -19,6 +19,9 @@ namespace LibreLancer.GameData
         public Data.Missions.FactionProps Properties;
         public Dictionary<Faction, float> Reputations = new Dictionary<Faction, float>();
 
+        public const float FriendlyThreshold = 0.6f;
+        public const float HostileThreshold = -0.6f;
+
         public override string ToString()
         {
             return $"Faction: {Nickname}";
