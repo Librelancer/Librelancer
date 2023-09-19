@@ -32,6 +32,7 @@ namespace LibreLancer.Render
         Random rand = new Random();
         SystemRenderer sys;
         private AsteroidBandMaterial bandMaterial;
+        private AsteroidCubeMesh cubeMesh;
 
         public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
         {
@@ -63,7 +64,7 @@ namespace LibreLancer.Render
             cubes = new CalculatedCube[4000];
             if (field.Cube.Count > 0)
             {
-                CreateBufferObject();
+                cubeMesh = new AsteroidCubeMeshBuilder().CreateMesh(field, sys.ResourceManager);
             }
             //Set up band
             if (field.Band == null ||
@@ -77,156 +78,11 @@ namespace LibreLancer.Render
             bandCylinder = sys.ResourceManager.GetOpenCylinder(SIDES);
         }
 
-        List<VertexPositionNormalDiffuseTexture> verts;
-        List<ushort> indices;
-        List<DrawCall> cubeDrawCalls = new List<DrawCall>();
 
-        VertexBuffer cube_vbo;
-        ElementBuffer cube_ibo;
-        class DrawCall
-        {
-            public uint MaterialCrc;
-            public int StartIndex;
-            public int Count;
-            public int BaseVertex;
-        }
-
-        float cubeRadius = 0;
-        //Code for baking an asteroid cube into a mesh
-        void CreateBufferObject()
-        {
-            verts = new List<VertexPositionNormalDiffuseTexture>();
-            indices = new List<ushort>();
-            //Gather a list of all materials
-            List<uint> matCrcs = new List<uint>();
-            if (field.AllowMultipleMaterials)
-            {
-                foreach (var ast in field.Cube)
-                {
-                    var f = (ModelFile) ast.Drawable.LoadFile(sys.ResourceManager, MeshLoadMode.CPU);
-                    var l0 = f.Levels[0];
-                    var vms = sys.ResourceManager.FindMeshData(l0.MeshCrc);
-                    for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
-                    {
-                        var m = vms.Meshes[i].MaterialCrc;
-                        if(!matCrcs.Contains(m))
-                            matCrcs.Add(m);
-                    }
-                }
-            }
-            else
-            {
-                var f = (ModelFile) field.Cube[0].Drawable.LoadFile(sys.ResourceManager, MeshLoadMode.CPU);
-                var l0 = f.Levels[0];
-                var vms = sys.ResourceManager.FindMeshData(l0.MeshCrc);
-                matCrcs.Add(vms.Meshes[l0.StartMesh].MaterialCrc);
-            }
-            //Create the draw calls
-            foreach (var mat in matCrcs)
-            {
-                var start = indices.Count;
-                var newIndices = new List<int>();
-                foreach (var ast in field.Cube)
-                {
-                    AddAsteroidToBuffer(ast, mat, matCrcs.Count == 1, newIndices);
-                }
-                var min = newIndices.Min();
-                foreach(var i in newIndices)
-                    indices.Add(checked((ushort)(i - min)));
-                var count = indices.Count - start;
-                cubeDrawCalls.Add(new DrawCall() { BaseVertex = min, MaterialCrc = mat, StartIndex = start, Count = count });
-            }
-            cube_vbo = new VertexBuffer(typeof(VertexPositionNormalDiffuseTexture), verts.Count);
-            cube_ibo = new ElementBuffer(indices.Count);
-            cube_ibo.SetData(indices.ToArray());
-            cube_vbo.SetData(verts.ToArray());
-            cube_vbo.SetElementBuffer(cube_ibo);
-            verts = null;
-            indices = null;
-        }
-
-        VertexPositionNormalDiffuseTexture GetVertex(VMeshData vms, int index, ref Matrix4x4 world, ref Matrix4x4 normal)
-        {
-            VertexPositionNormalDiffuseTexture vert;
-            switch (vms.FlexibleVertexFormat)
-            {
-                case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1:
-                    vert = vms.verticesVertexPositionNormalDiffuseTexture[index];
-                    break;
-                case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1:
-                {
-                    var v = vms.verticesVertexPositionNormalTexture[index];
-                    vert = new VertexPositionNormalDiffuseTexture(
-                        v.Position,
-                        v.Normal,
-                        (uint)Color4.White.ToAbgr(),
-                        v.TextureCoordinate);
-                    break;
-                }
-                case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2:
-                {
-                    var v = vms.verticesVertexPositionNormalTextureTwo[index];
-                    vert = new VertexPositionNormalDiffuseTexture(
-                        v.Position,
-                        v.Normal,
-                        (uint)Color4.White.ToAbgr(),
-                        v.TextureCoordinate);
-                    break;
-                }
-                case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX2:
-                {
-                    var v = vms.verticesVertexPositionNormalDiffuseTextureTwo[index];
-                    vert = new VertexPositionNormalDiffuseTexture(
-                        v.Position,
-                        v.Normal,
-                        v.Diffuse,
-                        v.TextureCoordinate);
-                    break;
-                }
-                default:
-                    throw new Exception($"D3DFVF {vms.FlexibleVertexFormat} not supported");
-            }
-            vert.Position = Vector3.Transform(vert.Position, world);
-            vert.Normal = Vector3.TransformNormal(vert.Normal, normal);
-            return vert;
-        }
-
-        void AddAsteroidToBuffer(StaticAsteroid ast, uint matCrc, bool singleMat, List<int> newIndices)
-        {
-            var model = (ModelFile) ast.Drawable.LoadFile(sys.ResourceManager, MeshLoadMode.CPU);
-            var l0 = model.Levels[0];
-            var vms = sys.ResourceManager.FindMeshData(l0.MeshCrc);
-            var transform = ast.RotationMatrix * Matrix4x4.CreateTranslation(ast.Position * field.CubeSize);
-            var norm = transform;
-            Matrix4x4.Invert(norm, out norm);
-            norm = Matrix4x4.Transpose(norm);
-            for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
-            {
-                var m = vms.Meshes[i];
-                if (m.MaterialCrc != matCrc && !singleMat) continue;
-                var baseVertex = l0.StartVertex + m.StartVertex;
-                int indexStart = m.TriangleStart;
-                int indexCount = m.NumRefVertices;
-                for (int j = indexStart; j < indexStart + indexCount; j++) {
-                    var idx = baseVertex + vms.Indices[j];
-                    var vtx = GetVertex(vms, idx, ref transform, ref norm);
-                    int x = verts.IndexOf(vtx);
-                    if (x == -1){
-                        x = verts.Count;
-                        verts.Add(vtx);
-                    }
-                    newIndices.Add(x);
-                }
-            }
-        }
 
         public void Dispose()
         {
-            if (field.Cube.Count > 0)
-            {
-                cube_ibo.Dispose();
-                cube_vbo.Dispose();
-            }
+            cubeMesh?.Dispose();
         }
 
         private float lastFog = float.MaxValue;
@@ -358,13 +214,13 @@ namespace LibreLancer.Render
                     for (int z = -amountCubes; z <= amountCubes; z++)
                     {
                         var center = close + new Vector3(x,y,z) * field.CubeSize;
-                        var closestDistance = (Vector3.Distance(center, position) - cubeRadius);
+                        var closestDistance = (Vector3.Distance(center, position) - cubeMesh.Radius);
                         if (closestDistance >= field.FillDist || closestDistance >= lastFog) continue;
                         if (!field.Zone.Shape.ContainsPoint(center)) {
                             continue;
                         }
 
-                        var cubeSphere = new BoundingSphere(center,  cubeRadius);
+                        var cubeSphere = new BoundingSphere(center,  cubeMesh.Radius);
                         if (!frustum.Intersects(cubeSphere)) {
                             continue;
                         }
@@ -411,18 +267,18 @@ namespace LibreLancer.Render
                     {
                         var center = cubes[j].pos;
                         var z = RenderHelpers.GetZ(cameraPos, center);
-                        for (int i = 0; i < cubeDrawCalls.Count; i++)
+                        for (int i = 0; i < cubeMesh.Drawcalls.Length; i++)
                         {
-                            var dc = cubeDrawCalls[i];
+                            var dc = cubeMesh.Drawcalls[i];
                             var mat = res.FindMaterial(dc.MaterialCrc);
-                            if ((Vector3.Distance(center, cameraPos) + cubeRadius) < fadeNear)
+                            if ((Vector3.Distance(center, cameraPos) + cubeMesh.Radius) < fadeNear)
                             {
                                 buffer.AddCommand(
                                     mat.Render,
                                     null,
                                     buffer.WorldBuffer.SubmitMatrix(ref cubes[j].tr),
                                     lt,
-                                    cube_vbo,
+                                    cubeMesh.VertexBuffer,
                                     PrimitiveTypes.TriangleList,
                                     dc.BaseVertex,
                                     dc.StartIndex,
@@ -437,7 +293,7 @@ namespace LibreLancer.Render
                                     mat.Render,
                                     buffer.WorldBuffer.SubmitMatrix(ref cubes[j].tr),
                                     lt,
-                                    cube_vbo,
+                                    cubeMesh.VertexBuffer,
                                     PrimitiveTypes.TriangleList,
                                     dc.BaseVertex,
                                     dc.StartIndex,
