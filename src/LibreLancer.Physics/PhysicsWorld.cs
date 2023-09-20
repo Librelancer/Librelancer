@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Numerics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -39,7 +40,7 @@ namespace LibreLancer.Physics
 
         bool disposed = false;
 
-        private BufferPool bufferPool;
+        public BufferPool BufferPool;
         private ThreadDispatcher threadDispatcher;
         internal Simulation Simulation;
         private ContactEvents.ContactEvents contactEvents;
@@ -50,16 +51,17 @@ namespace LibreLancer.Physics
 
         public PhysicsWorld()
         {
-            bufferPool = new BufferPool();
+            BufferPool = new BufferPool();
             threadDispatcher = new ThreadDispatcher(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
-            contactEvents = new ContactEvents.ContactEvents(threadDispatcher, bufferPool);
-            Simulation = Simulation.Create(bufferPool,
+            contactEvents = new ContactEvents.ContactEvents(threadDispatcher, BufferPool);
+            Simulation = Simulation.Create(BufferPool,
                 new ContactEventCallbacks(contactEvents, this, 300),
                 new LibrelancerPoseIntegratorCallbacks(),
                 new SolveDescription(8, 1)
             );
             bepuToLancer = new CollidableProperty<int>(Simulation);
             collidableObjects = new CollidableProperty<bool>(Simulation);
+            objectsById[-1] = null;
         }
 
         public IDebugRenderer DebugRenderer { get; set; }
@@ -94,9 +96,15 @@ namespace LibreLancer.Physics
             debugRayIndex = 0;
         }
 
+        struct DisallowAwakening : IStaticChangeAwakeningFilter
+        {
+            public bool AllowAwakening => false;
+            public bool ShouldAwaken(BodyReference body) => false;
+        }
+
         public PhysicsObject AddStaticObject(Matrix4x4 transform, Collider col)
         {
-            col.Create(Simulation, bufferPool);
+            col.Create(Simulation, BufferPool);
             var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle));
             ids.TryAllocate(out int id);
             var obj = new StaticObject(id, Simulation.Statics.GetStaticReference(h), this, transform, col);
@@ -105,6 +113,29 @@ namespace LibreLancer.Physics
             objectsById[id] = obj;
             objects.Add(obj);
             return obj;
+        }
+
+
+
+        public void CreateUnmanagedStatic(ref UnmanagedStatic obj, Matrix4x4 transform, Collider col)
+        {
+            if (obj.Valid)
+                throw new InvalidOperationException("Object is already created");
+            col.Create(Simulation, BufferPool);
+            var disallow = new DisallowAwakening();
+            var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle), ref disallow);
+            bepuToLancer.Allocate(h) = -1;
+            collidableObjects.Allocate(h) = true;
+            obj.Valid = true;
+            obj.Handle = h;
+        }
+
+        public void RemoveUnmanagedStatic(ref UnmanagedStatic obj)
+        {
+            if (!obj.Valid)
+                throw new InvalidOperationException("Object does not exist");
+            Simulation.Statics.Remove(obj.Handle);
+            obj = default;
         }
 
        struct SweepHandler : ISweepHitHandler
@@ -142,7 +173,7 @@ namespace LibreLancer.Physics
                 new RigidPose(origin),
                 new BodyVelocity(Vector3.Zero),
                 1,
-                bufferPool,
+                BufferPool,
                 ref handler
             );
             return handler.Result;
@@ -154,6 +185,7 @@ namespace LibreLancer.Physics
             public Vector3 ContactPoint;
             private PhysicsWorld world;
             private int selfId;
+            public bool DidHit;
 
             public HitHandler(PhysicsWorld world, PhysicsObject self)
             {
@@ -175,6 +207,7 @@ namespace LibreLancer.Physics
                 maximumT = t;
                 ContactPoint = ray.Origin + ray.Direction * t;
                 Result = world.objectsById[world.bepuToLancer[collidable]];
+                DidHit = true;
             }
         }
 
@@ -189,7 +222,7 @@ namespace LibreLancer.Physics
             contactPoint = handler.ContactPoint;
             didHit = handler.Result;
             if (ShowRaycasts && debugRayIndex < debugRays.Length){
-                if (didHit != null)
+                if (handler.DidHit)
                 {
                     debugRays[debugRayIndex++] = (origin, contactPoint, true);
                 }
@@ -198,7 +231,7 @@ namespace LibreLancer.Physics
                     debugRays[debugRayIndex++] = (origin, origin + (direction * maxDist), false);
                 }
             }
-            return didHit != null;
+            return handler.DidHit;
         }
 
 
@@ -256,11 +289,11 @@ namespace LibreLancer.Physics
                         var points = new Vector3[src[i].Indices.Length];
                         for (int j = 0; j < src[i].Indices.Length; j++)
                             points[j] = src[i].Vertices[src[i].Indices[j]];
-                        var convexHull = new ConvexHull(points, bufferPool, out var center);
+                        var convexHull = new ConvexHull(points, BufferPool, out var center);
                         if (convexHull.FaceToVertexIndicesStart.Length == 2)
                         {
                             //Co-planar, fix up
-                            convexHull.Dispose(bufferPool);
+                            convexHull.Dispose(BufferPool);
                             for (int j = 0; j < indices.Length; j += 3)
                             {
                                 shx.Add((Simulation.Shapes.Add(new Triangle(
@@ -311,7 +344,7 @@ namespace LibreLancer.Physics
                 invInertia = ToInverseInertia(inertia.Value);
             else
                 invInertia = col.CalculateInverseInertia(mass);
-            col.Create(Simulation, bufferPool);
+            col.Create(Simulation, BufferPool);
             var h = Simulation.Bodies.Add(new BodyDescription()
             {
                 LocalInertia = new BodyInertia()
@@ -397,7 +430,7 @@ namespace LibreLancer.Physics
             contactEvents.Dispose();
             Simulation.Dispose();
             threadDispatcher.Dispose();
-            bufferPool.Clear();
+            BufferPool.Clear();
         }
     }
 }

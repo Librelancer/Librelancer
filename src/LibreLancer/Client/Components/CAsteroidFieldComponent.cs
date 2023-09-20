@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Numerics;
+using BepuUtilities.Collections;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Physics;
@@ -13,7 +15,7 @@ using LibreLancer.World;
 
 namespace LibreLancer.Client.Components
 {
-	//Generates rigidbodies the player can hit for asteroid fields
+	//Generates light static objects the player can hit for asteroid fields
 	public class CAsteroidFieldComponent : GameComponent
 	{
 		public AsteroidField Field;
@@ -72,15 +74,32 @@ namespace LibreLancer.Client.Components
                     FLLog.Error("Sur", "Hitbox not found " + path);
                 }
             }
+
+            spawnedA = new QuickList<SpawnedCube>(64, physics.BufferPool);
+            spawnedB = new QuickList<SpawnedCube>(64, physics.BufferPool);
         }
         public override void Unregister(PhysicsWorld physics)
         {
             if(shape != null) shape.Dispose();
             phys = null;
+            var oldList = useA ? ref spawnedA : ref spawnedB;
+            for(int i = 0; i < oldList.Count; i++)
+                physics.RemoveUnmanagedStatic(ref oldList[i].Object);
+            spawnedA.Dispose(physics.BufferPool);
+            spawnedB.Dispose(physics.BufferPool);
         }
 		const float COLLIDE_DISTANCE = 600;
 
-        List<PhysicsObject> bodies = new List<PhysicsObject>();
+        struct SpawnedCube
+        {
+            public Vector3 Position;
+            public UnmanagedStatic Object;
+        }
+
+        private QuickList<SpawnedCube> spawnedA;
+        private QuickList<SpawnedCube> spawnedB;
+        private bool useA = false;
+
 		public override void Update(double time)
 		{
 			var world = Parent.GetWorld();
@@ -89,15 +108,31 @@ namespace LibreLancer.Client.Components
 			if (Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, Field.Zone.Position) > activateDist) return;
 			var cds = (Field.CubeSize + COLLIDE_DISTANCE);
 			cds *= cds;
-			for (int i = bodies.Count - 1; i >= 0; i--)
+
+            useA = !useA;
+
+            ref var oldList = ref useA ? ref spawnedA : ref spawnedB;
+            ref var bodies = ref useA ? ref spawnedB : ref spawnedA;
+
+            bodies.Count = 0;
+
+            int removeCount = 0;
+
+			for (int i = 0; i < oldList.Count; i++)
 			{
-				var distance = Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, bodies[i].Position);
+				var distance = Vector3.DistanceSquared(player.PhysicsComponent.Body.Position, oldList[i].Position);
 				if (distance > cds)
-				{
-                    world.Physics.RemoveObject(bodies[i]);
-					bodies.RemoveAt(i);
-				}
+                {
+                    world.Physics.RemoveUnmanagedStatic(ref oldList[i].Object);
+                    removeCount++;
+                }
+                else
+                {
+                    bodies.Add(oldList[i], world.Physics.BufferPool);
+                }
 			}
+
+            int addCount = 0;
 
 			var close = AsteroidFieldShared.GetCloseCube(player.PhysicsComponent.Body.Position, Field.CubeSize);
 			var cubeRad = new Vector3(Field.CubeSize) * 0.5f;
@@ -129,9 +164,10 @@ namespace LibreLancer.Client.Components
 						if (create)
 						{
                             var transform = Field.CubeRotation.GetRotation(tval) * Matrix4x4.CreateTranslation(center);
-                            var body = phys.AddStaticObject(transform, shape);
-                            bodies.Add(body);
-						}
+                            bodies.Add(new SpawnedCube() { Position = center }, world.Physics.BufferPool);
+                            world.Physics.CreateUnmanagedStatic(ref bodies[bodies.Count - 1].Object, transform, shape);
+                            addCount++;
+                        }
 					}
 				}
 			}

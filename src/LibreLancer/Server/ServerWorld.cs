@@ -58,6 +58,8 @@ namespace LibreLancer.Server
 
         private void PhysicsOnCollision(PhysicsObject obja, PhysicsObject objb)
         {
+            if (obja == null || objb == null) //Asteroid collision
+                return;
             if (obja.Tag is GameObject g1 &&
                 objb.Tag is GameObject g2)
             {

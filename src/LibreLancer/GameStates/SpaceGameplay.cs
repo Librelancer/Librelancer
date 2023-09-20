@@ -102,6 +102,7 @@ World Time: {12:F2}
             var shp = Game.GameData.Ships.Get(session.PlayerShip);
             //Set up player object + camera
             player = new GameObject(shp, Game.ResourceManager, true, true);
+            player.Nickname = "player";
             control = new ShipPhysicsComponent(player) {Ship = shp};
             shipInput = new ShipInputComponent(player) {BankLimit = shp.MaxBankAngle};
             weapons = new WeaponControlComponent(player);

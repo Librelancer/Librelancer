@@ -31,17 +31,17 @@ namespace LibreLancer.World
                 var length = Projectiles[i].Normal.Length() * tFloat;
                 var dir = Projectiles[i].Normal.Normalized();
                 if (world.Physics.PointRaycast(
-                    Projectiles[i].Owner?.PhysicsComponent?.Body, 
-                    Projectiles[i].Position, 
-                    dir, 
-                    length, 
+                    Projectiles[i].Owner?.PhysicsComponent?.Body,
+                    Projectiles[i].Position,
+                    dir,
+                    length,
                     out var contactPoint,
                     out var po))
                 {
                     Projectiles[i].Alive = false;
                     Projectiles[i].Effect = null;
                     world.Renderer?.SpawnTempFx(Projectiles[i].Data.HitEffect, contactPoint);
-                    if (po.Tag is GameObject go) 
+                    if (po?.Tag is GameObject go)
                     {
                         world.Server?.ProjectileHit(go, Projectiles[i].Owner, Projectiles[i].Data.Munition);
                     }
@@ -156,7 +156,7 @@ namespace LibreLancer.World
                 inst?.Play();
             }
         }
-        
+
         public void SpawnProjectile(GameObject owner, string hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
             if (projectilePtr == 16383) projectilePtr = 0;
