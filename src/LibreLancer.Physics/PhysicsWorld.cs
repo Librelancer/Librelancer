@@ -36,6 +36,7 @@ namespace LibreLancer.Physics
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
 
+        public IReadOnlyList<PhysicsObject> DynamicObjects => dynamicObjects;
 
 
         bool disposed = false;
@@ -415,6 +416,7 @@ namespace LibreLancer.Physics
                 id = bepuToLancer[d.BepuObject.Handle];
                 contactEvents.Unregister(d.BepuObject.Handle);
                 Simulation.Bodies.Remove(d.BepuObject.Handle);
+                dynamicObjects.Remove(d);
             }
             if (id != -1)
             {

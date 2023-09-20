@@ -13,6 +13,7 @@ using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
@@ -137,7 +138,7 @@ namespace LibreLancer.World
                 var g = new GameObject();
                 g.Resources = res;
                 g.World = this;
-                g.Components.Add(new CAsteroidFieldComponent(field, res, g));
+                g.Components.Add(new AsteroidFieldComponent(field, res, g));
                 AddObject(g);
                 g.Register(Physics);
             }
