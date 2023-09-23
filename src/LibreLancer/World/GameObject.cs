@@ -478,9 +478,10 @@ namespace LibreLancer.World
                     Current = null;
                     return false;
                 }
-                T result;
-                while ((result = obj.Children[i].GetComponent<T>()) == null && i < obj.Children.Count)
+                T result = null;
+                while (i < obj.Children.Count && (result = obj.Children[i].GetComponent<T>()) == null)
                     i++;
+                i++;
                 Current = result;
                 return result != null;
             }
