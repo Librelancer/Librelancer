@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -459,14 +460,49 @@ namespace LibreLancer.World
             return null;
         }
 
-		public IEnumerable<T> GetChildComponents<T>() where T : GameComponent
-		{
-			for (int i = 0; i < Children.Count; i++)
-			{
-				var c = Children[i].GetComponent<T>();
-				if (c != null) yield return c;
-			}
-		}
+        public struct ChildComponentEnumerator<T> : IEnumerator<T> where T : GameComponent
+        {
+            private int i;
+            private GameObject obj;
+
+            public ChildComponentEnumerator(GameObject obj)
+            {
+                this.obj = obj;
+                i = 0;
+            }
+
+            public bool MoveNext()
+            {
+                if (i >= obj.Children.Count)
+                {
+                    Current = null;
+                    return false;
+                }
+                T result;
+                while ((result = obj.Children[i].GetComponent<T>()) == null && i < obj.Children.Count)
+                    i++;
+                Current = result;
+                return result != null;
+            }
+
+            public void Reset()
+            {
+                i = 0;
+                Current = null;
+            }
+
+            public T Current { get; private set; }
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() => Reset();
+        }
+
+
+		public StructEnumerable<T, ChildComponentEnumerator<T>> GetChildComponents<T>() where T : GameComponent
+        {
+            return new(new ChildComponentEnumerator<T>(this));
+        }
 
 		public void Update(double time)
         {
