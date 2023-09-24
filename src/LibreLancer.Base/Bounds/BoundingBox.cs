@@ -38,9 +38,9 @@ namespace LibreLancer
     {
 
         #region Public Fields
-		
+
         public Vector3 Min;
-      
+
         public Vector3 Max;
 
         public const int CornerCount = 8;
@@ -91,11 +91,12 @@ namespace LibreLancer
 
         public ContainmentType Contains(BoundingFrustum frustum)
         {
-            //TODO: bad done here need a fix. 
+            //TODO: bad done here need a fix.
             //Because question is not frustum contain box but reverse and this is not the same
             int i;
             ContainmentType contained;
-            Vector3[] corners = frustum.GetCorners();
+            Span<Vector3> corners = stackalloc Vector3[BoundingFrustum.CornerCount];
+            frustum.GetCorners(corners);
 
             // First we check if frustum is in box
             for (i = 0; i < corners.Length; i++)
@@ -326,10 +327,10 @@ namespace LibreLancer
         public Vector3[] GetCorners()
         {
             return new Vector3[] {
-                new Vector3(this.Min.X, this.Max.Y, this.Max.Z), 
+                new Vector3(this.Min.X, this.Max.Y, this.Max.Z),
                 new Vector3(this.Max.X, this.Max.Y, this.Max.Z),
-                new Vector3(this.Max.X, this.Min.Y, this.Max.Z), 
-                new Vector3(this.Min.X, this.Min.Y, this.Max.Z), 
+                new Vector3(this.Max.X, this.Min.Y, this.Max.Z),
+                new Vector3(this.Min.X, this.Min.Y, this.Max.Z),
                 new Vector3(this.Min.X, this.Max.Y, this.Min.Z),
                 new Vector3(this.Max.X, this.Max.Y, this.Min.Z),
                 new Vector3(this.Max.X, this.Min.Y, this.Min.Z),

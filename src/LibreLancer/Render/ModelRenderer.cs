@@ -11,10 +11,10 @@ namespace LibreLancer.Render
 	{
 		public Matrix4x4 World { get; private set; }
 		public RigidModel Model { get; private set; }
-        
+
 		public NebulaRenderer Nebula;
         private int NebulaVersion = -1;
-        
+
         Vector3 pos;
 		bool inited = false;
 		SystemRenderer sysr;
@@ -84,7 +84,7 @@ namespace LibreLancer.Render
                     if (lvl != -1)
                     {
                         var bsphere = new BoundingSphere(center, part.Mesh.Radius);
-                        if (camera.Frustum.Intersects(bsphere)) return false; //visible
+                        if (camera.FrustumCheck(bsphere)) return false; //visible
                     }
                 }
             }
@@ -93,7 +93,7 @@ namespace LibreLancer.Render
 
 		public override void DepthPrepass(ICamera camera, RenderContext rstate)
 		{
-            
+
         }
 
         Matrix4x4 _worldSph;
@@ -137,7 +137,7 @@ namespace LibreLancer.Render
                     if (lvl != -1)
                     {
                         var bsphere = new BoundingSphere(center, part.Mesh.Radius);
-                        if (camera.Frustum.Intersects(bsphere))
+                        if (camera.FrustumCheck(bsphere))
                         {
                             visible = true;
                             visibleParts[i] = true;

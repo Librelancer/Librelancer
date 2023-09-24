@@ -52,7 +52,7 @@ namespace LibreLancer.Fx
         double globaltime = 0;
         public double GlobalTime => globaltime;
 
-        public bool IsFinished() 
+        public bool IsFinished()
         {
             for (int i = 0; i < ParticleCounts.Length; i++)
             {
@@ -88,9 +88,9 @@ namespace LibreLancer.Fx
             {
                 if (node.Node is FLBeamAppearance) Beams[node.BeamIndex].Node = node;
             }
-            
+
         }
-        
+
         public void Reset(bool killParticles = true)
         {
             globaltime = 0;
@@ -110,9 +110,9 @@ namespace LibreLancer.Fx
         {
             if (!float.IsFinite(Effect.Radius)) return;
             var sph = new BoundingSphere(Position, Effect.Radius);
-            Culled = !camera.Frustum.Intersects(sph);
+            Culled = !camera.FrustumCheck(sph);
         }
-        
+
         public void Update(double delta, Matrix4x4 transform, float sparam)
         {
             if (Pool == null) return;
@@ -129,7 +129,7 @@ namespace LibreLancer.Fx
                 }
             }
         }
-        
+
         public int GetNextFreeParticle() => Pool.GetFreeParticle();
 
         public bool NodeEnabled(NodeReference node) => enableStates[node.Index];
@@ -138,9 +138,9 @@ namespace LibreLancer.Fx
         public void Draw(Matrix4x4 transform, float sparam)
         {
             DrawTransform = transform;
-            DrawSParam = sparam; 
+            DrawSParam = sparam;
         }
-        
+
         public Matrix4x4 DrawTransform;
         public float DrawSParam;
         public void DrawBeams(PolylineRender polyline, LineRenderer debug, Matrix4x4 transform, float sparam)

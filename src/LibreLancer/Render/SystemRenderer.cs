@@ -246,7 +246,7 @@ namespace LibreLancer.Render
 		int _dwidth = -1, _dheight = -1;
 		DepthMap depthMap;
 
-        public List<ObjectRenderer> objects;
+        public List<ObjectRenderer> objects = new List<ObjectRenderer>(250);
 
         public void AddObject(ObjectRenderer render)
         {
@@ -307,17 +307,6 @@ namespace LibreLancer.Render
 				if (nr != null && nr.DoLightning(out p2))
 					pointLights.Add(p2);
 			}
-            //Async calcs
-            objects = new List<ObjectRenderer>(250);
-            /*for (int i = 0; i < World.Objects.Count; i += 16)
-			{
-				JThreads.Instance.AddTask((o) =>
-				{
-					var offset = (int)o;
-					for (int j = 0; j < 16 && ((j + offset) < World.Objects.Count); j++) World.Objects[j + offset].PrepareRender(camera, nr, this);
-				}, i);
-			}
-			JThreads.Instance.BeginExecute();*/
             foreach (var obj in tempFx)
             {
                 obj.Render.PrepareRender(camera, nr, this, false);
@@ -462,7 +451,7 @@ namespace LibreLancer.Render
                         var p = mdl.AllParts[j];
                         var w = p.LocalTransform * ssworld;
                         var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
-                        if (camera.Frustum.Intersects(bsphere))
+                        if (camera.FrustumCheck(bsphere))
                             p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims); ;
                     }
                 }
@@ -509,7 +498,8 @@ namespace LibreLancer.Render
                 rstate.RenderTarget = restoreTarget;
 			}
             rstate.DepthEnabled = true;
-		}
+            objects.Clear();
+        }
 
 		public void Dispose()
 		{

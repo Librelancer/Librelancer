@@ -23,25 +23,18 @@ public class TurretViewCamera : ICamera
     public Matrix4x4 View { get; private set; } = Matrix4x4.Identity;
     Matrix4x4 viewprojection;
     bool _vpdirty = true;
-    public BoundingFrustum _frustum = null;
+    private BoundingFrustum frustum;
 
-    public BoundingFrustum Frustum
-    {
-        get
-        {
-            if (_frustum == null)
-            {
-                UpdateVp();
-            }
+    public bool FrustumCheck(BoundingSphere sphere) => frustum.Intersects(sphere);
 
-            return _frustum;
-        }
-    }
+    public bool FrustumCheck(BoundingBox box) => frustum.Intersects(box);
+
+
 
     void UpdateVp()
     {
         viewprojection = View * Projection;
-        _frustum = new BoundingFrustum(viewprojection);
+        frustum = new BoundingFrustum(viewprojection);
         _vpdirty = false;
     }
 
@@ -70,7 +63,7 @@ public class TurretViewCamera : ICamera
     public Vector3 CameraOffset;
     public Vector2 PanControls;
     private Vector2 orbitPan = Vector2.Zero;
-    
+
     long fnum = 0;
 
 
@@ -89,12 +82,12 @@ public class TurretViewCamera : ICamera
         this.Viewport = viewport;
         ChasePosition = Vector3.Zero;
     }
-    
-    
+
+
     public void Update(double delta)
     {
         orbitPan += (PanControls * (float) (delta));
-        
+
         orbitPan.Y = MathHelper.Clamp(orbitPan.Y,-MathHelper.PiOver2 + 0.02f, MathHelper.PiOver2 - 0.02f);
         var mat = Matrix4x4.CreateFromYawPitchRoll(-orbitPan.X, orbitPan.Y, 0);
         var from = Vector3.Transform(CameraOffset, mat);

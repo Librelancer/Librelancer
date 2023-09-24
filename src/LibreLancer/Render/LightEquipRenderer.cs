@@ -108,14 +108,14 @@ namespace LibreLancer.Render
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             var visible = (
-                !forceCull && 
-                LightOn && 
+                !forceCull &&
+                LightOn &&
                 Vector3.DistanceSquared(camera.Position, pos) < CULL &&
-                camera.Frustum.Intersects(new BoundingSphere(pos, equip.BulbSize * 3))
+                camera.FrustumCheck(new BoundingSphere(pos, equip.BulbSize * 3))
             );
             this.sys = sys;
             bool showLight = !equip.Animated || !lt_on;
-            if (equip.EmitRange > 0 && showLight && camera.Frustum.Intersects(new BoundingSphere(pos, equip.EmitRange)))
+            if (equip.EmitRange > 0 && showLight && camera.FrustumCheck(new BoundingSphere(pos, equip.EmitRange)))
             {
                 sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
             }

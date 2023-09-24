@@ -67,16 +67,16 @@ namespace LibreLancer.Physics
 
         public IDebugRenderer DebugRenderer { get; set; }
 
-        public void DrawWorld(BoundingFrustum frustum, Vector3? cameraPosition)
+        public void DrawWorld(ICamera camera)
         {
+            var position = camera.Position;
             if (DebugRenderer != null)
             {
                 foreach (var o in objects)
                 {
-                    if (cameraPosition != null &&
-                        Vector3.DistanceSquared(o.Position, cameraPosition.Value) > (25000 * 25000))
+                    if (Vector3.DistanceSquared(o.Position, position) > (25000 * 25000))
                         continue;
-                    if (frustum != null && !frustum.Intersects(o.GetBoundingBox()))
+                    if (!camera.FrustumCheck(o.GetBoundingBox()))
                         continue;
                     o.Collider.Draw(o.Transform, DebugRenderer);
                 }

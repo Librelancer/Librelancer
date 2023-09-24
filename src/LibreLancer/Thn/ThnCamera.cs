@@ -46,7 +46,10 @@ namespace LibreLancer.Thn
             frameNo++;
         }
 
-        
+        public bool FrustumCheck(BoundingSphere sphere) => frustum.Intersects(sphere);
+        public bool FrustumCheck(BoundingBox box) => frustum.Intersects(box);
+
+
 
         void CalcCameraProps(out float fovV, out float aspectRatio)
         {
@@ -64,7 +67,7 @@ namespace LibreLancer.Thn
             fovV = FOVUtil.FovVRad(fovh, ratio);
             aspectRatio = ratio;
         }
-        
+
 		public void Update()
         {
             CalcCameraProps(out float fovv, out float aspectRatio);

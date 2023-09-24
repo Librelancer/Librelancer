@@ -31,17 +31,36 @@ SOFTWARE.
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace LibreLancer
 {
-    public class BoundingFrustum : IEquatable<BoundingFrustum>
+    public struct BoundingFrustum : IEquatable<BoundingFrustum>
     {
         #region Private Fields
 
         private Matrix4x4 matrix;
-        private readonly Vector3[] corners = new Vector3[CornerCount];
-        private readonly Plane[] planes = new Plane[PlaneCount];
+
+        private Vector3 corner0;
+        private Vector3 corner1;
+        private Vector3 corner2;
+        private Vector3 corner3;
+        private Vector3 corner4;
+        private Vector3 corner5;
+        private Vector3 corner6;
+        private Vector3 corner7;
+
+        private Plane plane0;
+        private Plane plane1;
+        private Plane plane2;
+        private Plane plane3;
+        private Plane plane4;
+        private Plane plane5;
+
+
+        //private readonly Vector3[] corners = new Vector3[CornerCount];
+        //private readonly Plane[] planes = new Plane[PlaneCount];
 
         private const int PlaneCount = 6;
 
@@ -78,32 +97,32 @@ namespace LibreLancer
 
         public Plane Near
         {
-            get { return this.planes[0]; }
+            get { return plane0; }
         }
-        
+
         public Plane Far
         {
-            get { return this.planes[1]; }
+            get { return plane1; }
         }
-        
+
         public Plane Left
         {
-            get { return this.planes[2]; }
+            get { return plane2; }
         }
 
         public Plane Right
         {
-            get { return this.planes[3]; }
+            get { return plane3; }
         }
 
         public Plane Top
         {
-            get { return this.planes[4]; }
+            get { return plane4; }
         }
 
         public Plane Bottom
         {
-            get { return this.planes[5]; }
+            get { return plane5; }
         }
 
         #endregion Public Properties
@@ -136,33 +155,57 @@ namespace LibreLancer
 
         public void Contains(ref BoundingBox box, out ContainmentType result)
         {
-            var intersects = false;
-            for (var i = 0; i < PlaneCount; ++i)
-            {
-                var planeIntersectionType = default(PlaneIntersectionType);
-                box.Intersects(ref this.planes[i], out planeIntersectionType);
-                switch (planeIntersectionType)
-                {
-                case PlaneIntersectionType.Front:
-                    result = ContainmentType.Disjoint; 
-                    return;
-                case PlaneIntersectionType.Intersecting:
-                    intersects = true;
-                    break;
-                }
+            bool intersects = false;
+            box.Intersects(ref plane0, out var intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            box.Intersects(ref plane1, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            box.Intersects(ref plane2, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            box.Intersects(ref plane3, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            box.Intersects(ref plane4, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            box.Intersects(ref plane5, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
             }
             result = intersects ? ContainmentType.Intersects : ContainmentType.Contains;
         }
-
-        /*
-        public ContainmentType Contains(BoundingFrustum frustum)
-        {
-            if (this == frustum)                // We check to see if the two frustums are equal
-                return ContainmentType.Contains;// If they are, there's no need to go any further.
-
-            throw new NotImplementedException();
-        }
-        */
 
         public ContainmentType Contains(BoundingSphere sphere)
         {
@@ -173,22 +216,54 @@ namespace LibreLancer
 
         public void Contains(ref BoundingSphere sphere, out ContainmentType result)
         {
-            var intersects = false;
-            for (var i = 0; i < PlaneCount; ++i) 
-            {
-                var planeIntersectionType = default(PlaneIntersectionType);
-
-                // TODO: we might want to inline this for performance reasons
-                sphere.Intersects(ref this.planes[i], out planeIntersectionType);
-                switch (planeIntersectionType)
-                {
-                case PlaneIntersectionType.Front:
-                    result = ContainmentType.Disjoint; 
-                    return;
-                case PlaneIntersectionType.Intersecting:
-                    intersects = true;
-                    break;
-                }
+            bool intersects = false;
+            sphere.Intersects(ref plane0, out var intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            sphere.Intersects(ref plane1, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            sphere.Intersects(ref plane2, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            sphere.Intersects(ref plane3, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            sphere.Intersects(ref plane4, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
+            }
+            sphere.Intersects(ref plane5, out intersectionType);
+            if (intersectionType == PlaneIntersectionType.Front) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            else if (intersectionType == PlaneIntersectionType.Intersecting) {
+                intersects = true;
             }
             result = intersects ? ContainmentType.Intersects : ContainmentType.Contains;
         }
@@ -202,14 +277,25 @@ namespace LibreLancer
 
         public void Contains(ref Vector3 point, out ContainmentType result)
         {
-            for (var i = 0; i < PlaneCount; ++i)
-            {
-                // TODO: we might want to inline this for performance reasons
-                if (PlaneHelper.ClassifyPoint(ref point, ref this.planes[i]) > 0)
-                {
-                    result = ContainmentType.Disjoint;
-                    return;
-                }
+            if (PlaneHelper.ClassifyPoint(ref point, ref plane0) > 0) {
+                result = ContainmentType.Disjoint;
+                return;
+            }
+            if (PlaneHelper.ClassifyPoint(ref point, ref plane1) > 0) {
+                result = ContainmentType.Disjoint;
+                return;
+            }if (PlaneHelper.ClassifyPoint(ref point, ref plane2) > 0) {
+                result = ContainmentType.Disjoint;
+                return;
+            }if (PlaneHelper.ClassifyPoint(ref point, ref plane3) > 0) {
+                result = ContainmentType.Disjoint;
+                return;
+            }if (PlaneHelper.ClassifyPoint(ref point, ref plane4) > 0) {
+                result = ContainmentType.Disjoint;
+                return;
+            }if (PlaneHelper.ClassifyPoint(ref point, ref plane5) > 0) {
+                result = ContainmentType.Disjoint;
+                return;
             }
             result = ContainmentType.Contains;
         }
@@ -221,21 +307,22 @@ namespace LibreLancer
 
         public override bool Equals(object obj)
         {
-            BoundingFrustum f = obj as BoundingFrustum;
-            return (object.Equals(f, null)) ? false : (this == f);
+            return obj is BoundingFrustum bf && this == bf;
         }
 
-        public Vector3[] GetCorners()
-        {
-            return (Vector3[])this.corners.Clone();
-        }
-		
-		public void GetCorners(Vector3[] corners)
+		public void GetCorners(Span<Vector3> corners)
         {
 			if (corners == null) throw new ArgumentNullException("corners");
 		    if (corners.Length < CornerCount) throw new ArgumentOutOfRangeException("corners");
 
-            this.corners.CopyTo(corners, 0);
+            corners[0] = corner0;
+            corners[1] = corner1;
+            corners[2] = corner2;
+            corners[3] = corner3;
+            corners[4] = corner4;
+            corners[5] = corner5;
+            corners[6] = corner6;
+            corners[7] = corner7;
         }
 
         public override int GetHashCode()
@@ -304,17 +391,17 @@ namespace LibreLancer
         {
             StringBuilder sb = new StringBuilder(256);
             sb.Append("{Near:");
-            sb.Append(this.planes[0].ToString());
+            sb.Append(plane0.ToString());
             sb.Append(" Far:");
-            sb.Append(this.planes[1].ToString());
+            sb.Append(plane1.ToString());
             sb.Append(" Left:");
-            sb.Append(this.planes[2].ToString());
+            sb.Append(plane2.ToString());
             sb.Append(" Right:");
-            sb.Append(this.planes[3].ToString());
+            sb.Append(plane3.ToString());
             sb.Append(" Top:");
-            sb.Append(this.planes[4].ToString());
+            sb.Append(plane4.ToString());
             sb.Append(" Bottom:");
-            sb.Append(this.planes[5].ToString());
+            sb.Append(plane5.ToString());
             sb.Append("}");
             return sb.ToString();
         }
@@ -326,31 +413,31 @@ namespace LibreLancer
 
         private void CreateCorners()
         {
-            IntersectionPoint(ref this.planes[0], ref this.planes[2], ref this.planes[4], out this.corners[0]);
-            IntersectionPoint(ref this.planes[0], ref this.planes[3], ref this.planes[4], out this.corners[1]);
-            IntersectionPoint(ref this.planes[0], ref this.planes[3], ref this.planes[5], out this.corners[2]);
-            IntersectionPoint(ref this.planes[0], ref this.planes[2], ref this.planes[5], out this.corners[3]);
-            IntersectionPoint(ref this.planes[1], ref this.planes[2], ref this.planes[4], out this.corners[4]);
-            IntersectionPoint(ref this.planes[1], ref this.planes[3], ref this.planes[4], out this.corners[5]);
-            IntersectionPoint(ref this.planes[1], ref this.planes[3], ref this.planes[5], out this.corners[6]);
-            IntersectionPoint(ref this.planes[1], ref this.planes[2], ref this.planes[5], out this.corners[7]);
+            IntersectionPoint(ref plane0, ref plane2, ref plane4, out corner0);
+            IntersectionPoint(ref plane0, ref plane3, ref plane4, out corner1);
+            IntersectionPoint(ref plane0, ref plane3, ref plane5, out corner2);
+            IntersectionPoint(ref plane0, ref plane2, ref plane5, out corner3);
+            IntersectionPoint(ref plane1, ref plane2, ref plane4, out corner4);
+            IntersectionPoint(ref plane1, ref plane3, ref plane4, out corner5);
+            IntersectionPoint(ref plane1, ref plane3, ref plane5, out corner6);
+            IntersectionPoint(ref plane1, ref plane2, ref plane5, out corner7);
         }
 
         private void CreatePlanes()
-        {            
-            this.planes[0] = new Plane(-this.matrix.M13, -this.matrix.M23, -this.matrix.M33, -this.matrix.M43);
-            this.planes[1] = new Plane(this.matrix.M13 - this.matrix.M14, this.matrix.M23 - this.matrix.M24, this.matrix.M33 - this.matrix.M34, this.matrix.M43 - this.matrix.M44);
-            this.planes[2] = new Plane(-this.matrix.M14 - this.matrix.M11, -this.matrix.M24 - this.matrix.M21, -this.matrix.M34 - this.matrix.M31, -this.matrix.M44 - this.matrix.M41);
-            this.planes[3] = new Plane(this.matrix.M11 - this.matrix.M14, this.matrix.M21 - this.matrix.M24, this.matrix.M31 - this.matrix.M34, this.matrix.M41 - this.matrix.M44);
-            this.planes[4] = new Plane(this.matrix.M12 - this.matrix.M14, this.matrix.M22 - this.matrix.M24, this.matrix.M32 - this.matrix.M34, this.matrix.M42 - this.matrix.M44);
-            this.planes[5] = new Plane(-this.matrix.M14 - this.matrix.M12, -this.matrix.M24 - this.matrix.M22, -this.matrix.M34 - this.matrix.M32, -this.matrix.M44 - this.matrix.M42);
-            
-            this.NormalizePlane(ref this.planes[0]);
-            this.NormalizePlane(ref this.planes[1]);
-            this.NormalizePlane(ref this.planes[2]);
-            this.NormalizePlane(ref this.planes[3]);
-            this.NormalizePlane(ref this.planes[4]);
-            this.NormalizePlane(ref this.planes[5]);
+        {
+            plane0 = new Plane(-this.matrix.M13, -this.matrix.M23, -this.matrix.M33, -this.matrix.M43);
+            plane1 = new Plane(this.matrix.M13 - this.matrix.M14, this.matrix.M23 - this.matrix.M24, this.matrix.M33 - this.matrix.M34, this.matrix.M43 - this.matrix.M44);
+            plane2 = new Plane(-this.matrix.M14 - this.matrix.M11, -this.matrix.M24 - this.matrix.M21, -this.matrix.M34 - this.matrix.M31, -this.matrix.M44 - this.matrix.M41);
+            plane3 = new Plane(this.matrix.M11 - this.matrix.M14, this.matrix.M21 - this.matrix.M24, this.matrix.M31 - this.matrix.M34, this.matrix.M41 - this.matrix.M44);
+            plane4 = new Plane(this.matrix.M12 - this.matrix.M14, this.matrix.M22 - this.matrix.M24, this.matrix.M32 - this.matrix.M34, this.matrix.M42 - this.matrix.M44);
+            plane5 = new Plane(-this.matrix.M14 - this.matrix.M12, -this.matrix.M24 - this.matrix.M22, -this.matrix.M34 - this.matrix.M32, -this.matrix.M44 - this.matrix.M42);
+
+            this.NormalizePlane(ref plane0);
+            this.NormalizePlane(ref plane1);
+            this.NormalizePlane(ref plane2);
+            this.NormalizePlane(ref plane3);
+            this.NormalizePlane(ref plane4);
+            this.NormalizePlane(ref plane5);
         }
 
         private static void IntersectionPoint(ref Plane a, ref Plane b, ref Plane c, out Vector3 result)
@@ -361,10 +448,10 @@ namespace LibreLancer
             //                             N1 . ( N2 * N3 )
             //
             // Note: N refers to the normal, d refers to the displacement. '.' means dot product. '*' means cross product
-            
+
             Vector3 v1, v2, v3;
             Vector3 cross;
-            
+
             cross = Vector3.Cross(b.Normal, c.Normal);
 
             float f = Vector3.Dot(a.Normal, cross);
@@ -373,12 +460,12 @@ namespace LibreLancer
             v1 = (a.D * (Vector3.Cross(b.Normal, c.Normal)));
             v2 = (b.D * (Vector3.Cross(c.Normal, a.Normal)));
             v3 = (c.D * (Vector3.Cross(a.Normal, b.Normal)));
-            
+
             result.X = (v1.X + v2.X + v3.X) / f;
             result.Y = (v1.Y + v2.Y + v3.Y) / f;
             result.Z = (v1.Z + v2.Z + v3.Z) / f;
         }
-        
+
         private void NormalizePlane(ref Plane p)
         {
             float factor = 1f / p.Normal.Length();

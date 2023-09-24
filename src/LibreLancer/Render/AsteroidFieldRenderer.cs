@@ -94,9 +94,9 @@ namespace LibreLancer.Render
             if (Vector3.DistanceSquared(cameraPos, field.Zone.Position) <= renderDistSq)
             {
                 if (field.Cube.Count > 0)
-                    asteroidsTask = Task.Run(() => CalculateAsteroidsTask(camera.Position, camera.Frustum));
+                    asteroidsTask = Task.Run(() => CalculateAsteroidsTask(camera));
                 if (field.BillboardCount != -1)
-                    billboardTask = Task.Run(() => CalculateBillboards(camera.Position, camera.Frustum));
+                    billboardTask = Task.Run(() => CalculateBillboards(camera));
             }
         }
 
@@ -141,11 +141,11 @@ namespace LibreLancer.Render
         private int billboardCount = 0;
         private Task billboardTask;
         private bool warnedTooManyBillboards = false;
-        void CalculateBillboards(Vector3 position, BoundingFrustum frustum)
+        void CalculateBillboards(ICamera camera)
         {
             billboardCount = 0;
-
-            var close = AsteroidFieldShared.GetCloseCube(cameraPos, (int)(field.FillDist * 2));
+            var position = camera.Position;
+            var close = AsteroidFieldShared.GetCloseCube(position, (int)(field.FillDist * 2));
             var checkRad = field.FillDist + field.BillboardSize.Y;
             int checkCount = 0;
             for (var x = -1; x <= 1; x++)
@@ -169,7 +169,7 @@ namespace LibreLancer.Render
                             if(Vector3.Distance(position, spritepos) > field.FillDist) continue;
                             billboardBuffer[checkCount] = billboardCube[i];
                             billboardBuffer[checkCount].Position = spritepos;
-                            billboardBuffer[checkCount++].Distance = Vector3.DistanceSquared(center, cameraPos);
+                            billboardBuffer[checkCount++].Distance = Vector3.DistanceSquared(center, position);
                         }
                     }
                 }
@@ -189,7 +189,7 @@ namespace LibreLancer.Render
             {
                 var billboard = billboardBuffer[i];
                 var sphere = new BoundingSphere(billboard.Position, billboard.Size * 1.5f);
-                if (!frustum.Intersects(sphere)) continue;
+                if (!camera.FrustumCheck(sphere)) continue;
                 calculatedBillboards[billboardCount++] = billboard;
             }
         }
@@ -204,9 +204,10 @@ namespace LibreLancer.Render
         int cubeCount = -1;
         CalculatedCube[] cubes;
 
-        void CalculateAsteroidsTask(Vector3 position, BoundingFrustum frustum)
+        void CalculateAsteroidsTask(ICamera cam)
         {
             cubeCount = 0;
+            var position = cam.Position;
             var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
             int amountCubes = (int)Math.Floor((field.FillDist / field.CubeSize)) + 1;
             for (int x = -amountCubes; x <= amountCubes; x++) {
@@ -221,7 +222,7 @@ namespace LibreLancer.Render
                         }
 
                         var cubeSphere = new BoundingSphere(center,  cubeMesh.Radius);
-                        if (!frustum.Intersects(cubeSphere)) {
+                        if (!cam.FrustumCheck(cubeSphere)) {
                             continue;
                         }
                         int tval;
@@ -335,7 +336,7 @@ namespace LibreLancer.Render
             if (renderBand)
             {
                 CalculateBandTransform();
-                if (!_camera.Frustum.Intersects(new BoundingSphere(field.Zone.Position, lightingRadius)))
+                if (!_camera.FrustumCheck(new BoundingSphere(field.Zone.Position, lightingRadius)))
                     return;
                 var bandHandle = buffer.WorldBuffer.SubmitMatrix(ref bandTransform);
                 for (int i = 0; i < SIDES; i++)

@@ -35,13 +35,13 @@ using System.Numerics;
 
 namespace LibreLancer
 {
- 
+
     public struct BoundingSphere : IEquatable<BoundingSphere>
     {
         #region Public Fields
-		
+
         public Vector3 Center;
-		
+
         public float Radius;
 
         #endregion Public Fields
@@ -111,9 +111,9 @@ namespace LibreLancer
 			else if (Center.Z > box.Max.Z)
 				dmin += (Center.Z - box.Max.Z) * (Center.Z - box.Max.Z);
 
-			if (dmin <= Radius * Radius) 
+			if (dmin <= Radius * Radius)
 				return ContainmentType.Intersects;
-            
+
             //else disjoint
             return ContainmentType.Disjoint;
 
@@ -128,8 +128,8 @@ namespace LibreLancer
         {
             //check if all corner is in sphere
             bool inside = true;
-
-            Vector3[] corners = frustum.GetCorners();
+            Span<Vector3> corners = stackalloc Vector3[BoundingFrustum.CornerCount];
+            frustum.GetCorners(corners);
             foreach (Vector3 corner in corners)
             {
                 if (this.Contains(corner) == ContainmentType.Disjoint)
@@ -207,11 +207,6 @@ namespace LibreLancer
             result = CreateFromBoundingBox(box);
         }
 
-        public static BoundingSphere CreateFromFrustum(BoundingFrustum frustum)
-        {
-            return BoundingSphere.CreateFromPoints(frustum.GetCorners());
-        }
-
         public static BoundingSphere CreateFromPoints(IEnumerable<Vector3> points)
         {
             if (points == null)
@@ -221,20 +216,20 @@ namespace LibreLancer
             Vector3 center = new Vector3();
             // First, we'll find the center of gravity for the point 'cloud'.
             int num_points = 0; // The number of points (there MUST be a better way to get this instead of counting the number of points one by one?)
-            
+
             foreach (Vector3 v in points)
             {
                 center += v;    // If we actually knew the number of points, we'd get better accuracy by adding v / num_points.
                 ++num_points;
             }
-            
+
             center /= (float)num_points;
 
             // Calculate the radius of the needed sphere (it equals the distance between the center and the point further away).
             foreach (Vector3 v in points)
             {
                 float distance = ((Vector3)(v - center)).Length();
-                
+
                 if (distance > radius)
                     radius = distance;
             }
@@ -258,7 +253,7 @@ namespace LibreLancer
             float leftRadius = Math.Max(original.Radius - distance, additional.Radius);
             float Rightradius = Math.Max(original.Radius + distance, additional.Radius);
             ocenterToaCenter = ocenterToaCenter + (((leftRadius - Rightradius) / (2 * ocenterToaCenter.Length())) * ocenterToaCenter);//oCenterToResultCenter
-            
+
             BoundingSphere result = new BoundingSphere();
             result.Center = original.Center + ocenterToaCenter;
             result.Radius = (leftRadius + Rightradius) / 2;

@@ -12,7 +12,9 @@ namespace LibreLancer
 		Matrix4x4 Projection { get; }
 		Matrix4x4 View { get; }
 		Vector3 Position { get; }
-		BoundingFrustum Frustum { get; }
+
+        bool FrustumCheck(BoundingSphere sphere);
+        bool FrustumCheck(BoundingBox box);
 	}
 }
 

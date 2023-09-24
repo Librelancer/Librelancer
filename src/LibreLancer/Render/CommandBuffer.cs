@@ -19,7 +19,6 @@ namespace LibreLancer.Render
 		RenderCommand[] Transparents = new RenderCommand[MAX_TRANSPARENT_COMMANDS];
 		int currentCommand = 0;
 		int transparentCommand = 0;
-		Action _transparentSort;
         RenderContext rstate;
         public UniformBuffer BonesBuffer;
         public WorldMatrixBuffer WorldBuffer;
@@ -34,7 +33,6 @@ namespace LibreLancer.Render
 		{
 			currentCommand = 0;
 			transparentCommand = 0;
-			_transparentSort = SortTransparent;
             WorldBuffer.Reset();
             this.rstate = rstate;
 		}

@@ -27,6 +27,7 @@ SOFTWARE.
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace LibreLancer
 {
@@ -38,6 +39,7 @@ namespace LibreLancer
         /// <param name="point">The point to check with</param>
         /// <param name="plane">The plane to check against</param>
         /// <returns>Greater than zero if on the positive side, less than zero if on the negative size, 0 otherwise</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float ClassifyPoint(ref Vector3 point, ref Plane plane)
         {
             return point.X * plane.Normal.X + point.Y * plane.Normal.Y + point.Z * plane.Normal.Z + plane.D;
@@ -60,9 +62,9 @@ namespace LibreLancer
     public struct Plane : IEquatable<Plane>
     {
         #region Public Fields
-		
+
         public float D;
-		
+
         public Vector3 Normal;
 
         #endregion Public Fields
@@ -132,7 +134,7 @@ namespace LibreLancer
         {
             result = ((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z);
         }
-        
+
         /*
         public static void Transform(ref Plane plane, ref Quaternion rotation, out Plane result)
         {
@@ -160,7 +162,7 @@ namespace LibreLancer
 			float factor;
 			Vector3 normal = Normal;
 			Normal = Vector3.Normalize(Normal);
-			factor = (float)Math.Sqrt(Normal.X * Normal.X + Normal.Y * Normal.Y + Normal.Z * Normal.Z) / 
+			factor = (float)Math.Sqrt(Normal.X * Normal.X + Normal.Y * Normal.Y + Normal.Z * Normal.Z) /
 					(float)Math.Sqrt(normal.X * normal.X + normal.Y * normal.Y + normal.Z * normal.Z);
 			D = D * factor;
         }
@@ -176,7 +178,7 @@ namespace LibreLancer
         {
 			float factor;
 			result.Normal = Vector3.Normalize(value.Normal);
-			factor = (float)Math.Sqrt(result.Normal.X * result.Normal.X + result.Normal.Y * result.Normal.Y + result.Normal.Z * result.Normal.Z) / 
+			factor = (float)Math.Sqrt(result.Normal.X * result.Normal.X + result.Normal.Y * result.Normal.Y + result.Normal.Z * result.Normal.Z) /
 					(float)Math.Sqrt(value.Normal.X * value.Normal.X + value.Normal.Y * value.Normal.Y + value.Normal.Z * value.Normal.Z);
 			result.D = value.D * factor;
         }

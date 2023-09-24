@@ -339,7 +339,7 @@ namespace LibreLancer.Render
                 var bitRadius = Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation);
                 var szR = Math.Max(sz.X, Math.Max(sz.Y, sz.Z));
                 var sph = new BoundingSphere(Nebula.Zone.Position, (szR + bitRadius) * 1.2f);
-                if (sysr.Camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
+                if (!sysr.Camera.FrustumCheck(sph))
                     return;
             }
             var world = Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(Nebula.Zone.Position);
@@ -519,7 +519,7 @@ namespace LibreLancer.Render
 				return;
 			var p = Nebula.Zone.Position;
             var sph = new BoundingSphere(p, Math.Max(sz.X, Math.Max(sz.Y, sz.Z)) * 1.2f);
-            if (sysr.Camera.Frustum.Contains(sph) == ContainmentType.Disjoint)
+            if (!sysr.Camera.FrustumCheck(sph))
                 return;
 
             fillMaterial ??= new NebulaInteriorMaterial(sysr.ResourceManager) {Texture = Nebula.ExteriorFill, Dc = Nebula.FogColor};

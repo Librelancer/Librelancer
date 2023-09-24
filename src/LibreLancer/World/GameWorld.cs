@@ -45,7 +45,7 @@ namespace LibreLancer.World
                 render.World = this;
                 if (initPhys)
                 {
-                    Renderer.PhysicsHook = () => { Physics.DrawWorld(render.Camera.Frustum, render.Camera.Position); };
+                    Renderer.PhysicsHook = () => { Physics.DrawWorld(render.Camera); };
                 }
             }
 

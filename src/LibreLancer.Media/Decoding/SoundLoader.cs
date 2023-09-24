@@ -134,19 +134,26 @@ namespace LibreLancer.Media
 
         public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        byte[] csbuffer;
+        private IntPtr csbuffer = IntPtr.Zero;
+        private int csbufferLength = -1;
 
         IntPtr StreamRead(byte* buffer, IntPtr size1, IntPtr size2, ld_stream* stream)
         {
-            var sz = (long)size1 * (long)size2;
+            var sz = (int)size1 * (int)size2;
 
-            if (csbuffer == null || csbuffer.LongLength != sz)
+            if (csbufferLength < sz)
             {
-                csbuffer = new byte[sz];
+                if (csbuffer != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(csbuffer);
+                }
+                csbuffer = Marshal.AllocHGlobal(sz);
+                csbufferLength = sz;
             }
-            var result = baseStream.Read(csbuffer, 0, (int)sz);
-            Marshal.Copy(csbuffer, 0, (IntPtr)buffer, result);
-            return (IntPtr)result;
+            var buf = new Span<byte>((void*) csbuffer, sz);
+            var result = baseStream.Read(buf);
+            buf.Slice(0, result).CopyTo(new Span<byte>((void*)buffer, result));
+            return result;
         }
 
         int StreamSeek(ld_stream* stream, int offset, LdSeek seek)
@@ -232,8 +239,11 @@ namespace LibreLancer.Media
         {
             if (!_disposed)
             {
-                if (disposing)
-                    ld_pcmstream_close(decoder);
+                ld_pcmstream_close(decoder);
+                if (csbuffer != IntPtr.Zero) {
+                    Marshal.FreeHGlobal(csbuffer);
+                    csbuffer = IntPtr.Zero;
+                }
                 _disposed = true;
             }
             base.Dispose(disposing);

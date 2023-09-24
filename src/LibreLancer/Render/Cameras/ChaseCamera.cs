@@ -40,18 +40,20 @@ namespace LibreLancer.Render.Cameras
 		public Matrix4x4 View { get; private set; }
 		Matrix4x4 viewprojection;
 		bool _vpdirty = true;
-		public BoundingFrustum _frustum = null;
-		public BoundingFrustum Frustum
-		{
-			get
-			{
-				if (_frustum == null)
-				{
-					UpdateVp();
-				}
-				return _frustum;
-			}
-		}
+        private BoundingFrustum _frustum;
+
+        public bool FrustumCheck(BoundingSphere sphere)
+        {
+            if (_vpdirty) UpdateVp();
+            return _frustum.Intersects(sphere);
+        }
+
+        public bool FrustumCheck(BoundingBox box)
+        {
+            if (_vpdirty) UpdateVp();
+            return _frustum.Intersects(box);
+        }
+
 
 		void UpdateVp()
 		{
@@ -176,7 +178,7 @@ namespace LibreLancer.Render.Cameras
             var rigTransform = Matrix4x4.CreateFromQuaternion(rigRotate) * Matrix4x4.CreateTranslation(ChasePosition); //Camera Rig
             var lookAheadTransform = Matrix4x4.CreateFromQuaternion(lookAhead); //LookAhead Rig
             var camTransform = Matrix4x4.CreateTranslation(DesiredPositionOffset);
-            
+
             Vector3 lookAheadPosition = ChasePosition + Vector3.Transform(-Vector3.UnitZ * 100, ChaseOrientation);
             var lookAheadStack = lookAheadTransform * rigTransform;
             var lookAheadRigUp = CalcDir(ref lookAheadStack, Vector3.UnitY);
@@ -193,7 +195,7 @@ namespace LibreLancer.Render.Cameras
             Position = Vector3.Transform(Vector3.Zero, tr);
             Matrix4x4.Invert(v, out v);
             View = v;
-            
+
             _vpdirty = true;
 		}
 

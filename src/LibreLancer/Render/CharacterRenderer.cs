@@ -9,7 +9,7 @@ namespace LibreLancer.Render
 	public class CharacterRenderer : ObjectRenderer
     {
         public const float RADIUS = 1.5f;
-        
+
         public DfmSkeletonManager Skeleton;
 		public CharacterRenderer(DfmSkeletonManager skeleton)
 		{
@@ -23,14 +23,14 @@ namespace LibreLancer.Render
         }
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
-            Skeleton.GetTransforms(transform, 
-                out var headTransform, 
-                out var leftTransform, 
+            Skeleton.GetTransforms(transform,
+                out var headTransform,
+                out var leftTransform,
                 out var rightTransform
                 );
             Skeleton.UploadBoneData(commands.BonesBuffer);
             var lighting = RenderHelpers.ApplyLights(
-                lights, LightGroup, 
+                lights, LightGroup,
                 Vector3.Transform(Vector3.Zero, transform), RADIUS, nr,
                 LitAmbient, LitDynamic, NoFog
                 );
@@ -56,13 +56,13 @@ namespace LibreLancer.Render
         {
             var position = Vector3.Transform(Vector3.Zero, transform);
             var bsphere = new BoundingSphere(position, RADIUS);
-            return !camera.Frustum.Intersects(bsphere);
+            return !camera.FrustumCheck(bsphere);
         }
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             var position = Vector3.Transform(Vector3.Zero, transform);
             var bsphere = new BoundingSphere(position, RADIUS);
-            if (camera.Frustum.Intersects(bsphere))
+            if (camera.FrustumCheck(bsphere))
             {
                 sys.AddObject(this);
                 return true;
