@@ -28,7 +28,8 @@ namespace LibreLancer.World
         Ship,
         Solar,
         Missile,
-        Waypoint
+        Waypoint,
+        Debris
     }
 
     public class TradelaneName : ObjectName
@@ -313,13 +314,18 @@ namespace LibreLancer.World
             PhysicsComponent.UpdateParts();
         }
 
-        public void DisableCmpPart(string part)
+        private HashSet<string> disabledParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        public bool DisableCmpPart(string part)
         {
             if(RigidModel != null && RigidModel.Parts.TryGetValue(part, out var p))
             {
+                if (disabledParts.Contains(part))
+                    return false;
                 p.Active = false;
                 PhysicsComponent.DisablePart(p);
                 World?.Server?.PartDisabled(this, part);
+                disabledParts.Add(part);
                 for (int i = Children.Count - 1; i >= 0; i--)
                 {
                     var child = Children[i];
@@ -328,7 +334,9 @@ namespace LibreLancer.World
                         Children.RemoveAt(i);
                     }
                 }
+                return true;
             }
+            return false;
         }
 
         public void SpawnDebris(string part)
@@ -338,7 +346,8 @@ namespace LibreLancer.World
             }
             if (RigidModel != null && RigidModel.Parts.TryGetValue(part, out var srcpart))
             {
-                DisableCmpPart(part);
+                if (!DisableCmpPart(part))
+                    return;
                 var tr = srcpart.LocalTransform * WorldTransform;
                 var pos0 = Vector3.Transform(Vector3.Zero, WorldTransform);
                 var pos1 = Vector3.Transform(Vector3.Zero, tr);

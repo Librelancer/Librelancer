@@ -699,7 +699,7 @@ namespace LibreLancer.Client
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
                 newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
-                newobj.Components.Add(new CDamageFuseComponent(newobj, shp.Fuses, shp.Explosion));
+                newobj.Components.Add(new CExplosionComponent(newobj, shp.Explosion));
                 var fac = Game.GameData.Factions.Get(affiliation);
                 if(fac != null)
                     newobj.Components.Add(new CFactionComponent(newobj, fac));
@@ -769,9 +769,11 @@ namespace LibreLancer.Client
                 var go = new GameObject($"debris{id}", newmodel, Game.ResourceManager, part, mass, true);
                 go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                      Matrix4x4.CreateTranslation(position));
+                go.Kind = GameObjectKind.Debris;
                 go.World = gp.world;
                 go.Register(go.World.Physics);
                 go.NetID = id;
+                go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                 gp.world.AddObject(go);
                 objects.Add(id, go);
             });

@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Fuses;
@@ -34,6 +35,23 @@ namespace LibreLancer.Server.Components
             instances.Add(instance);
         }
 
+        private BitArray128 runningHealthFuses = new BitArray128();
+        public List<DamageFuse> DamageFuses = new List<DamageFuse>();
+
+        public bool RunningDeathFuse => instances.Any(x => x.Fuse.Fuse.DeathFuse);
+
+        public void RunAtHealth(float t)
+        {
+            for (int i = 0; i < DamageFuses.Count; i++) {
+                if (t < DamageFuses[i].Threshold && !runningHealthFuses[i])
+                {
+                    runningHealthFuses[i] = true;
+                    Run(DamageFuses[i].Fuse);
+                    FLLog.Debug("Server", $"Running fuse {DamageFuses[i].Fuse.Fuse.Name}");
+                }
+            }
+        }
+
 
         private uint fxID = 1;
 
@@ -50,7 +68,7 @@ namespace LibreLancer.Server.Components
                     Effects.Add(new SpawnedEffect()
                     {
                         ID = fxID++, Effect = fxact.Effect,
-                        Hardpoints = fxact.Hardpoints.ToArray()
+                        Hardpoints = fxact.Hardpoints.ToArray(),
                     });
                     Parent.World.Server.EffectSpawned(Parent);
                 }
@@ -60,7 +78,7 @@ namespace LibreLancer.Server.Components
                     if(dst.Fate == FusePartFate.disappear)
                     {
                         Parent.DisableCmpPart(dst.GroupName);
-                    } 
+                    }
                     else if (dst.Fate == FusePartFate.debris)
                     {
                         Parent.SpawnDebris(dst.GroupName);
@@ -68,18 +86,35 @@ namespace LibreLancer.Server.Components
                 }
                 else if (act is FuseDestroyHpAttachment)
                 {
-                    
+
                 }
                 else if (act is FuseImpulse)
                 {
-                    
+
                 }
                 else if (act is FuseIgniteFuse ig)
                 {
-                    Run(instance.Fuse.GameData.GetFuse(ig.Fuse));
+                    bool start = true;
+                    foreach (var f in instances) {
+                        if (f.Fuse.Fuse.Name.Equals(ig.Fuse, StringComparison.OrdinalIgnoreCase)) {
+                            FLLog.Debug("Fuse", $"Fuse already running {ig.Fuse}");
+                            start = false;
+                            break;
+                        }
+                    }
+                    if (start)
+                    {
+                        FLLog.Debug("Fuse", $"Igniting {ig.Fuse}");
+                        Run(instance.Fuse.GameData.GetFuse(ig.Fuse));
+                    }
                 }
                 else if (act is FuseDestroyRoot)
                 {
+                    FLLog.Debug("Fuse", $"Killing {Parent}");
+                    if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+                    {
+                        player.Killed();
+                    }
                     if (Parent.TryGetComponent<SNPCComponent>(out var npc))
                     {
                         npc.Killed();
@@ -87,7 +122,7 @@ namespace LibreLancer.Server.Components
                 }
             }
         }
-        
+
         public override void Update(double time)
         {
             for (int i = 0; i < instances.Count; i++)

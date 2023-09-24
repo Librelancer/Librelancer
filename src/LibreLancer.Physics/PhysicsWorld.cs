@@ -32,6 +32,7 @@ namespace LibreLancer.Physics
         private IdPool ids = new IdPool(100, true);
         private CollidableProperty<int> bepuToLancer;
         internal CollidableProperty<bool> collidableObjects;
+        internal CollidableProperty<Vector2> dampings;
         //our list
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
@@ -57,11 +58,12 @@ namespace LibreLancer.Physics
             contactEvents = new ContactEvents.ContactEvents(threadDispatcher, BufferPool);
             Simulation = Simulation.Create(BufferPool,
                 new ContactEventCallbacks(contactEvents, this, 300),
-                new LibrelancerPoseIntegratorCallbacks(),
+                new LibrelancerPoseIntegratorCallbacks() { World = this },
                 new SolveDescription(8, 1)
             );
             bepuToLancer = new CollidableProperty<int>(Simulation);
             collidableObjects = new CollidableProperty<bool>(Simulation);
+            dampings = new CollidableProperty<Vector2>(Simulation);
             objectsById[-1] = null;
         }
 
@@ -360,6 +362,7 @@ namespace LibreLancer.Physics
             var obj = new DynamicObject(id, this, Simulation.Bodies.GetBodyReference(h), col);
             bepuToLancer.Allocate(h) = id;
             collidableObjects.Allocate(h) = true;
+            dampings.Allocate(h) = Vector2.Zero;
             objectsById[id] = obj;
             objects.Add(obj);
             dynamicObjects.Add(obj);
@@ -429,6 +432,9 @@ namespace LibreLancer.Physics
         {
             if (disposed) return;
             disposed = true;
+            bepuToLancer.Dispose();
+            collidableObjects.Dispose();
+            dampings.Dispose();
             contactEvents.Dispose();
             Simulation.Dispose();
             threadDispatcher.Dispose();

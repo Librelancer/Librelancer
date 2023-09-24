@@ -118,7 +118,7 @@ World Time: {12:F2}
             //takes input from steering
             player.Components.Add(control);
             player.Components.Add(weapons);
-            player.Components.Add(new CDamageFuseComponent(player, shp.Fuses, shp.Explosion));
+            player.Components.Add(new CExplosionComponent(player, shp.Explosion));
             player.Components.Add(new CPlayerCargoComponent(player, session));
             player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
             playerHealth = new CHealthComponent(player);
@@ -781,7 +781,7 @@ World Time: {12:F2}
 
         public void Explode(GameObject obj)
         {
-            if (obj.TryGetComponent<CDamageFuseComponent>(out var df) &&
+            if (obj.TryGetComponent<CExplosionComponent>(out var df) &&
                 df.Explosion?.Effect != null)
             {
                 var pfx = df.Explosion.Effect.GetEffect(FlGame.ResourceManager);

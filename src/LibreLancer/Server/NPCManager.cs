@@ -85,6 +85,7 @@ namespace LibreLancer.Server
                 CurrentHealth = ship.Hitpoints,
                 MaxHealth = ship.Hitpoints
             });
+            obj.Components.Add(new SFuseRunnerComponent(obj) { DamageFuses = ship.Fuses });
             foreach (var equipped in loadout.Items)
             {
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,

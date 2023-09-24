@@ -281,6 +281,7 @@ namespace LibreLancer.World
 			foreach (var rb in Physics.Objects)
             {
 				if (rb.Tag == self) continue;
+                if (rb.Tag is GameObject go && go.Kind == GameObjectKind.Debris) continue;
                 if (Vector3.DistanceSquared(rb.Position, camera.Position) > md2) continue;
                 if (rb.Collider is SphereCollider)
 				{

@@ -74,7 +74,7 @@ internal class DynamicObject : PhysicsObject
 
     public override void SetDamping(float linearDamping, float angularDamping)
     {
-        //Not implemented yet
+        world.dampings[BepuObject.Handle] = new Vector2(linearDamping, angularDamping);
     }
 
     private const float ForceFactor = (1 / 60.0f);

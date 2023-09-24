@@ -133,6 +133,7 @@ namespace LibreLancer.Server
                 CurrentHealth = player.Character.Ship.Hitpoints,
                 MaxHealth = player.Character.Ship.Hitpoints
             });
+            obj.Components.Add(new SFuseRunnerComponent(obj) { DamageFuses = player.Character.Ship.Fuses });
             obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
             if (player == Server.LocalPlayer) obj.Nickname = "Player"; //HACK: Set local player ID for mission script
             obj.NetID = player.ID;
@@ -412,6 +413,7 @@ namespace LibreLancer.Server
                 updatingObjects.Add(go);
                 go.Register(GameWorld.Physics);
                 go.PhysicsComponent.Body.Impulse(initialForce);
+                go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                 //Spawn debris
                 foreach (Player p in Players.Keys)
                 {
