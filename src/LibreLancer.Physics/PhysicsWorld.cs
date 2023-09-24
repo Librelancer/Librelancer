@@ -36,7 +36,7 @@ namespace LibreLancer.Physics
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
 
-        public IReadOnlyList<PhysicsObject> DynamicObjects => dynamicObjects;
+        public List<PhysicsObject> DynamicObjects => dynamicObjects;
 
 
         bool disposed = false;
