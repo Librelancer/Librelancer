@@ -61,7 +61,7 @@ public class ArchetypePreviews : IDisposable
         var mat = Matrix4x4.CreateFromYawPitchRoll(2.62f, -0.24f, 0);
         var res = Vector3.Transform(new Vector3(0, 0, radius* 2.35f), mat);
         camera.Update(width, height, res, Vector3.Zero);
-        var world = new GameWorld(renderer, null, false);
+        var world = new GameWorld(renderer, resources, null, false);
         var obj = new GameObject(archetype, resources, true, false);
         if(archetype.Loadout != null)
             obj.SetLoadout(archetype.Loadout);

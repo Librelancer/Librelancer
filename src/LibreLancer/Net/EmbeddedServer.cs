@@ -14,14 +14,14 @@ namespace LibreLancer.Net
         public GameServer Server;
         public LocalPacketClient Client;
 
-        public EmbeddedServer(GameDataManager gameData)
+        public EmbeddedServer(GameDataManager gameData, GameResourceManager resources)
         {
             Client = new LocalPacketClient();
-            Server = new GameServer(gameData);
+            Server = new GameServer(gameData, resources.ConvexCollection);
             Server.LocalPlayer = new Player(Client, Server, Guid.Empty);
             Server.ConnectedPlayers.Add(Server.LocalPlayer);
         }
-        
+
         public void StartFromSave(string path)
         {
             var sg = Data.Save.SaveGame.FromFile(path);
@@ -35,7 +35,7 @@ namespace LibreLancer.Net
             Server.LocalPlayer.OnSPSave();
             File.WriteAllText(path, SaveWriter.WriteSave(Server.LocalPlayer.Character, description, autosave ? 1628 : 0, DateTime.Now));
         }
-        
+
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             #if DEBUG

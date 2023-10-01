@@ -13,6 +13,7 @@ using LibreLancer.Utf.Dfm;
 using LibreLancer.Vertices;
 using LibreLancer.Primitives;
 using LibreLancer.Fx;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Sur;
 
@@ -48,6 +49,8 @@ namespace LibreLancer
         public abstract bool TryGetShape(string name, out TextureShape shape);
         public abstract bool TryGetFrameAnimation(string name, out TexFrameAnimation anim);
 
+        public ConvexMeshCollection ConvexCollection { get; protected set; }
+
         public SurFile GetSur(string filename)
         {
             SurFile sur;
@@ -74,6 +77,12 @@ namespace LibreLancer
         {
             throw new InvalidOperationException();
         }
+
+        public ServerResourceManager(ConvexMeshCollection collection)
+        {
+            ConvexCollection = collection ?? new ConvexMeshCollection(GetSur);
+        }
+
 
         public override OpenCylinder GetOpenCylinder(int slices) => throw new InvalidOperationException();
         public override ParticleLibrary GetParticleLibrary(string filename) => throw new InvalidOperationException();
@@ -197,7 +206,9 @@ namespace LibreLancer
 
             GreyTexture = new Texture2D(1,1, false, SurfaceFormat.Color);
             GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF});
-		}
+
+            ConvexCollection = new ConvexMeshCollection(GetSur);
+        }
 
 		public void Preload()
 		{
@@ -559,6 +570,7 @@ namespace LibreLancer
             GreyTexture.Dispose();
             //Vertex buffers
             vertexResourceAllocator.Dispose();
+            ConvexCollection.Dispose();
         }
 	}
 }

@@ -27,7 +27,9 @@ namespace LibreLancer.Physics
             get { return objects; }
         }
 
-        //mapipng bepu bodies to librelancer objects
+        public ConvexMeshCollection ConvexCollection { get; private set; }
+
+        //mapping bepu bodies to librelancer objects
         private Dictionary<int, PhysicsObject> objectsById = new Dictionary<int, PhysicsObject>();
         private IdPool ids = new IdPool(100, true);
         private CollidableProperty<int> bepuToLancer;
@@ -53,9 +55,10 @@ namespace LibreLancer.Physics
 
         public event CollideHandler OnCollision;
 
-        public PhysicsWorld()
+        public PhysicsWorld(ConvexMeshCollection convexCollection)
         {
             BufferPool = new BufferPool();
+            ConvexCollection = convexCollection;
             threadDispatcher = new ThreadDispatcher(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
             contactEvents = new ContactEvents.ContactEvents(threadDispatcher, BufferPool);
             Simulation = Simulation.Create(BufferPool,
@@ -251,21 +254,7 @@ namespace LibreLancer.Physics
             return handler.DidHit;
         }
 
-
-        //TODO : Not good
-        public uint UseMeshFile(IConvexMeshProvider file)
-        {
-            if (meshFileIds.TryGetValue(file, out var id))
-                return id;
-            nextMeshId++;
-            meshFiles[nextMeshId] = file;
-            meshFileIds[file] = nextMeshId;
-            return nextMeshId;
-        }
-
         private Dictionary<ulong, (TypedIndex Shape, Vector3 Center)[]> shapes = new();
-        private Dictionary<uint, IConvexMeshProvider> meshFiles = new();
-        private Dictionary<IConvexMeshProvider, uint> meshFileIds = new();
         private uint nextMeshId = 0;
 
         internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, uint meshId)
@@ -273,41 +262,16 @@ namespace LibreLancer.Physics
             var id = (ulong) meshId | ((ulong) fileId << 32);
             if (shapes.TryGetValue(id, out var sh))
                 return sh;
-            var f = meshFiles[fileId];
-            var src = f.GetMesh(meshId);
-            var shx = new List<(TypedIndex Shapes, Vector3 Center)>();
-            for (int i = 0; i < src.Length; i++)
-            {
-                var verts = src[i].Vertices;
-                var indices = src[i].Indices;
-                var points = new Vector3[src[i].Indices.Length];
-                for (int j = 0; j < indices.Length; j++)
-                    points[j] = verts[indices[j]];
-                if (ConvexHullHelper.CreateShape(points, BufferPool, out var center, out var convexHull))
-                {
-                    if (convexHull.FaceToVertexIndicesStart.Length <= 2)
-                    {
-                        convexHull.Dispose(BufferPool);
-                    }
-                    else
-                    {
-                        shx.Add((Simulation.Shapes.Add(convexHull), center));
-                        continue;
-                    }
-                }
-
-                for (int j = 0; j < indices.Length; j += 3)
-                {
-                    shx.Add((Simulation.Shapes.Add(new Triangle(
-                        verts[indices[j]],
-                        verts[indices[j + 1]],
-                        verts[indices[j + 2]]
-                    )), Vector3.Zero));
-                }
+            var cvx = ConvexCollection.GetShapes(fileId, meshId);
+            var shx = new (TypedIndex Shape, Vector3 Center)[cvx.Hulls.Length + cvx.Triangles.Length];
+            for (int i = 0; i < cvx.Hulls.Length; i++) {
+                shx[i] = (Simulation.Shapes.Add(cvx.Hulls[i].Hull), cvx.Hulls[i].Center);
             }
-
-            shapes[id] = shx.ToArray();
-            return shapes[id];
+            for (int i = 0; i < cvx.Triangles.Length; i++) {
+                shx[i + cvx.Hulls.Length] = (Simulation.Shapes.Add(cvx.Triangles[i]), Vector3.Zero);
+            }
+            shapes[id] = shx;
+            return shx;
         }
 
         static Symmetric3x3 ToInverseInertia(Vector3 inertia)

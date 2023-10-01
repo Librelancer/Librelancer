@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Media;
 using LibreLancer.Render;
-using LibreLancer.Render.Cameras;
 using LibreLancer.Sounds;
 
 namespace LibreLancer
@@ -146,8 +144,6 @@ namespace LibreLancer
 				ChangeState(new IntroMovie(this, 0));
 			else
 				ChangeState(new LoadingDataState(this));
-            // Low latency GC mode in game only, not in base assembly
-            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
         }
 
         public string GetSaveFolder()

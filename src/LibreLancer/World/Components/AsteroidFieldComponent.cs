@@ -63,7 +63,7 @@ namespace LibreLancer.World.Components
                 var path = Path.ChangeExtension(asteroid.Drawable.ModelFile, "sur");
                 if (File.Exists(path))
                 {
-                    var id = physics.UseMeshFile(res.GetSur(path));
+                    var id = physics.ConvexCollection.UseFile(path);
                     shape.AddPart(id, 0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * Field.CubeSize), null);
                 }
                 else

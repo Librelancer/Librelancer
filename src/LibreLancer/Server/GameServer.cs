@@ -17,6 +17,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Physics;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace LibreLancer.Server
@@ -61,14 +62,14 @@ namespace LibreLancer.Server
 
         public GameServer(string fldir)
         {
-            Resources = new ServerResourceManager();
+            Resources = new ServerResourceManager(null);
             GameData = new GameDataManager(fldir, Resources);
             Listener = new GameListener(this);
         }
 
-        public GameServer(GameDataManager gameData)
+        public GameServer(GameDataManager gameData, ConvexMeshCollection convexCollection)
         {
-            Resources = new ServerResourceManager();
+            Resources = new ServerResourceManager(convexCollection);
             GameData = gameData;
             needLoadData = false;
         }

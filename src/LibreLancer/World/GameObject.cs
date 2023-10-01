@@ -300,7 +300,7 @@ namespace LibreLancer.World
             {
                 PhysicsComponent = new PhysicsComponent(this)
                 {
-                    Sur = res.GetSur(path),
+                    SurPath = path,
                     Mass = mass,
                     PlainCrc = plainCrc
                 };
@@ -389,7 +389,7 @@ namespace LibreLancer.World
 				var path = Path.ChangeExtension(RigidModel.Path, "sur");
                 name = Path.GetFileNameWithoutExtension(RigidModel.Path);
                 if (File.Exists(path))
-                    phys = new PhysicsComponent(this) { Sur = res.GetSur(path), Collidable = Kind != GameObjectKind.Waypoint };
+                    phys = new PhysicsComponent(this) { SurPath = path, Collidable = Kind != GameObjectKind.Waypoint };
                 else if (havePhys)
                 {
                     FLLog.Error("Sur", $"Could not load sur file {path}");

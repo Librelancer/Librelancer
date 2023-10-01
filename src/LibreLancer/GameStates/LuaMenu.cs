@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using LibreLancer.Client;
 using LibreLancer.GameData;
@@ -28,7 +29,7 @@ namespace LibreLancer
         Cutscene scene;
         Cursor cur;
         MenuAPI api;
-        
+
         public LuaMenu(FreelancerGame g) : base(g)
         {
             api = new MenuAPI(this);
@@ -58,6 +59,8 @@ namespace LibreLancer
                 FLLog.Info("Game", $"Initial load took {g.LoadTimer.Elapsed.TotalSeconds} seconds");
                 g.LoadTimer = null;
             }
+            // Set low latency GC mode only once everything has been loaded in
+            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
             FadeIn(0.1, 0.3);
         }
         void TryRunScript(List<ResolvedThn> thnScripts)
@@ -127,7 +130,7 @@ namespace LibreLancer
                 ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
             }
         }
-        
+
         [WattleScriptUserData]
         public class ServerList : ITableData
         {
@@ -193,7 +196,7 @@ namespace LibreLancer
                 };
                 return table;
             }
-            
+
             public GameSettings GetCurrentSettings() => state.Game.Config.Settings.MakeCopy();
 
             public void ApplySettings(GameSettings settings)
@@ -209,7 +212,7 @@ namespace LibreLancer
             {
                 state.FadeOut(0.2, () =>
                 {
-                    var embeddedServer = new EmbeddedServer(state.Game.GameData);
+                    var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager);
                     var session = new CGameSession(state.Game, embeddedServer);
                     embeddedServer.StartFromSave(state.Game.Saves.SelectedFile);
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
@@ -220,7 +223,7 @@ namespace LibreLancer
             {
                 state.FadeOut(0.2, () =>
                 {
-                    var embeddedServer = new EmbeddedServer(state.Game.GameData);
+                    var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager);
                     var session = new CGameSession(state.Game, embeddedServer);
                     embeddedServer.StartFromSave(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
@@ -281,7 +284,7 @@ namespace LibreLancer
                             netSession.HandlePacket(pkt);
                             break;
                     }
-                    
+
                 }
             }
             private GameNetClient netClient;
@@ -339,8 +342,8 @@ namespace LibreLancer
                         state.ui.Event("SelectCharFailure");
                     }
                 }));
-                
-               
+
+
             }
 
             private int delIndex = -1;
@@ -390,7 +393,7 @@ namespace LibreLancer
                     if(!task.Result) state.Game.QueueUIThread(() => onError.Call());
                 });
             }
-            
+
             public void StopNetworking()
             {
                 netClient?.Shutdown();
@@ -399,7 +402,7 @@ namespace LibreLancer
             public override void Exit() => state.FadeOut(0.2, () => state.Game.Exit());
         }
 
-        public override void Draw(double delta) 
+        public override void Draw(double delta)
         {
             RenderMaterial.VertexLighting = true;
             scene?.Draw(delta, Game.Width, Game.Height);
@@ -428,7 +431,7 @@ namespace LibreLancer
             scene?.Update(1 / 60.0); //Do all the setup events - smoother entrance
             Game.Sound.PlayMusic(intro.Music, 0);
         }
-        
+
         void Keyboard_KeyDown(KeyEventArgs e)
         {
             if ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl)

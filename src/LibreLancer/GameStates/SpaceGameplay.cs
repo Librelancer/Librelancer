@@ -158,7 +158,7 @@ World Time: {12:F2}
 
             sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
-            world = new GameWorld(sysrender, () => session.WorldTime);
+            world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
             world.LoadSystem(sys, Game.ResourceManager, false);
             session.WorldReady();
             player.World = world;
@@ -392,7 +392,7 @@ World Time: {12:F2}
                 g.FadeOut(0.2, () =>
                 {
                     g.session.OnExit();
-                    var embeddedServer = new EmbeddedServer(g.Game.GameData);
+                    var embeddedServer = new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager);
                     var session = new CGameSession(g.Game, embeddedServer);
                     embeddedServer.StartFromSave(g.Game.Saves.SelectedFile);
                     g.Game.ChangeState(new NetWaitState(session, g.Game));

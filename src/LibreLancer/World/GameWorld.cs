@@ -34,10 +34,10 @@ namespace LibreLancer.World
 
         private Func<double> timeSource;
 
-        public GameWorld(SystemRenderer render, Func<double> timeSource, bool initPhys = true)
+        public GameWorld(SystemRenderer render, ResourceManager resources, Func<double> timeSource, bool initPhys = true)
         {
             if (initPhys)
-                Physics = new PhysicsWorld();
+                Physics = new PhysicsWorld(resources.ConvexCollection);
             this.timeSource = timeSource;
             if (render != null)
             {

@@ -49,7 +49,7 @@ namespace LibreLancer.Server
         {
             Server = server;
             System = system;
-            GameWorld = new GameWorld(null, () => server.TotalTime);
+            GameWorld = new GameWorld(null, server.Resources, () => server.TotalTime);
             GameWorld.Server = this;
             GameWorld.LoadSystem(system, server.Resources, true);
             GameWorld.Physics.OnCollision += PhysicsOnCollision;

@@ -14,7 +14,7 @@ namespace LibreLancer.World.Components
         public PhysicsObject Body;
         public float Mass; //0 mass means it can't move
         public Vector3? Inertia = null;
-        public SurFile Sur;
+        public string SurPath;
         public float SphereRadius = -1;
         Collider collider;
         ConvexMeshCollider _convexMesh;
@@ -33,7 +33,7 @@ namespace LibreLancer.World.Components
         public void ChildDebris(GameObject parent, RigidModelPart part, float mass, Vector3 initialforce)
         {
             var cp = new PhysicsComponent(parent) {
-                Sur = this.Sur,
+                SurPath = this.SurPath,
                 Mass = mass,
                 PlainCrc = CrcTool.FLModelCrc(part.Name),
             };
@@ -86,11 +86,11 @@ namespace LibreLancer.World.Components
             if (pworld == physics) return;
             pworld = physics;
             Collider cld = null;
-            if(Sur == null) { //sphere
+            if(SurPath == null) { //sphere
                 cld = new SphereCollider(SphereRadius);
             } else {
                 var mr = (ModelRenderer)Parent.RenderComponent;
-                var meshId = physics.UseMeshFile(Sur);
+                var meshId = physics.ConvexCollection.UseFile(SurPath);
                 _convexMesh = new ConvexMeshCollider(physics);
                 cld = _convexMesh;
                 if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
