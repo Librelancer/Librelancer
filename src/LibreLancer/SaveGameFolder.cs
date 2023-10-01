@@ -12,13 +12,7 @@ namespace LibreLancer
     [WattleScriptUserData]
     public class SaveGameFolder : ITableData
     {
-        class SaveGameFile
-        {
-            public string Path;
-            public SaveGame Save;
-        }
-
-        private List<SaveGameFile> files = new List<SaveGameFile>();
+        private List<MetaSave> files = new List<MetaSave>();
         private InfocardManager infocards;
 
         [WattleScriptHidden] public InfocardManager Infocards
@@ -26,7 +20,7 @@ namespace LibreLancer
             get => infocards;
             set => infocards = value;
         }
-        [WattleScriptHidden] public string SelectedFile => ValidSelection() ? files[Selected].Path : null;
+        [WattleScriptHidden] public string SelectedFile => ValidSelection() ? files[Selected].Filename : null;
         public int Count => files.Count;
         public int Selected { get; set; }
         public string GetContentString(int row, string column)
@@ -38,35 +32,35 @@ namespace LibreLancer
             }
             else if (column == "date")
             {
-                if (files[row].Save.Player.TimeStamp == null) return "";
+                if (files[row].Timestamp == null) return "";
                 return
-                    $"{files[row].Save.Player.TimeStamp.Value.ToShortDateString()} {files[row].Save.Player.TimeStamp.Value:HH:mm}";
+                    $"{files[row].Timestamp.Value.ToShortDateString()} {files[row].Timestamp.Value:HH:mm}";
             }
             return "[invalid]";
         }
 
         string GetDescription(int row)
         {
-            return files[row].Save.Player.Description ??
-                   infocards.GetStringResource(files[row].Save.Player.DescripStrid);
+            return files[row].Description ??
+                   infocards.GetStringResource(files[row].DescriptionStrid);
         }
 
         private string folder;
 
         public SaveGameFolder() { }
-        
+
         public void Load(string folder)
         {
             FLLog.Info("Save", $"Loading folder {folder}");
             this.infocards = infocards;
             this.folder = folder;
             if (Directory.Exists(folder)) {
-                files = LoadFiles(folder).OrderByDescending(x => x.Save.Player.TimeStamp.HasValue)
-                    .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
-                FLLog.Info("Save", $"Loaded {files.Count} saves");
+                files = LoadFiles(folder).OrderByDescending(x => x.Timestamp.HasValue)
+                    .ThenByDescending(x => x.Timestamp).ToList();
+                FLLog.Info("Save", $"Located {files.Count} saves");
             }
             else {
-                files = new List<SaveGameFile>();
+                files = new List<MetaSave>();
                 FLLog.Info("Save", "Folder does not exist");
             }
         }
@@ -74,41 +68,28 @@ namespace LibreLancer
         public void AddFile(string path)
         {
             Selected = -1;
-            files.Add(new SaveGameFile() { Path = path, Save = SaveGame.FromFile(path)});
-            files = files.OrderByDescending(x => x.Save.Player.TimeStamp.HasValue)
-                .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
+            files.Add(MetaSave.FromFile(path));
+            files = files.OrderByDescending(x => x.Timestamp.HasValue)
+                .ThenByDescending(x => x.Timestamp).ToList();
         }
 
-        public void UpdateFile(string path)
-        {
-            var f = files.FirstOrDefault(x => x.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
-            if (f != null) {
-                f.Save = SaveGame.FromFile(path);
-                files = files.OrderByDescending(x => x.Save.Player.TimeStamp.HasValue)
-                    .ThenByDescending(x => x.Save.Player.TimeStamp).ToList();
-            }
-        }
-
-        static IEnumerable<SaveGameFile> LoadFiles(string folder)
+        static IEnumerable<MetaSave> LoadFiles(string folder)
         {
             foreach (var f in Directory.GetFiles(folder, "*.fl"))
             {
-                SaveGame sg = null;
+                MetaSave sg = null;
                 try
                 {
-                    sg = SaveGame.FromFile(f);
+                    sg = MetaSave.FromFile(f);
                 }
                 catch (Exception e)
                 {
                     FLLog.Error("Save", $"Can't load save game `{f}`");
                     continue;
                 }
-                if (sg.Player == null) {
-                    FLLog.Error("Save", $"Can't load save game `{f}`");
-                }
-                else if (!Path.GetFileNameWithoutExtension(f).Equals("restart", StringComparison.OrdinalIgnoreCase))
+                if (!Path.GetFileNameWithoutExtension(f).Equals("restart", StringComparison.OrdinalIgnoreCase))
                 {
-                    yield return new SaveGameFile() {Path = f, Save = sg};
+                    yield return sg;
                 }
             }
         }
@@ -118,7 +99,7 @@ namespace LibreLancer
             if (!ValidSelection()) return;
             try
             {
-                File.Delete(files[index].Path);
+                File.Delete(files[index].Filename);
                 files.RemoveAt(index);
                 Selected = -1;
             }

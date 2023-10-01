@@ -9,7 +9,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Text;
 using LibreLancer.Ini;
-    
+
 namespace LibreLancer.Data.Save
 {
     public class PlayerEquipment
@@ -84,8 +84,8 @@ namespace LibreLancer.Data.Save
 
     public class SavePlayer : IWriteSection
     {
-        
-        
+
+
         [Entry("descrip_strid")] public int DescripStrid;
 
         public string Description;
@@ -148,13 +148,13 @@ namespace LibreLancer.Data.Save
         void HandleEquip(Entry e) => Equip.Add(new PlayerEquipment(e));
 
         [Entry("interface")] public int Interface;
-        
+
         [EntryHandler("description")]
         void HandleDescription(Entry e)
         {
             try
             {
-                var bytes = SplitInGroups(e[0].ToString(), 2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+                var bytes = e[0].ToString().SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
                 Description = Encoding.BigEndianUnicode.GetString(bytes);
             }
             catch (Exception)
@@ -162,13 +162,13 @@ namespace LibreLancer.Data.Save
                 Description = string.Join(',', e.Select(x => x.ToString()));
             }
         }
-        
+
         [EntryHandler("name")]
         void HandleName(Entry e)
         {
             try
             {
-                var bytes = SplitInGroups(e[0].ToString(), 2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+                var bytes = e[0].ToString().SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
                 Name = Encoding.BigEndianUnicode.GetString(bytes);
             }
             catch (Exception)
@@ -186,18 +186,7 @@ namespace LibreLancer.Data.Save
             return builder.ToString();
         }
 
-        static IEnumerable<string> SplitInGroups(string original, int size)
-        {
-            var p = 0;
-            var l = original.Length;
-            while (l - p > size)
-            {
-                yield return original.Substring(p, size);
-                p += size;
-            }
-            var s = original.Substring(p);
-            if (!string.IsNullOrWhiteSpace(s) && !string.IsNullOrEmpty(s)) yield return s;
-        }
+
 
         public void WriteTo(StringBuilder builder)
         {

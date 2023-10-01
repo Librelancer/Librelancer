@@ -788,7 +788,6 @@ namespace LibreLancer.Client
                 var path = Game.GetSaveFolder();
                 Directory.CreateDirectory(path);
                 es.Save(Path.Combine(path, "AutoSave.fl"), null, true);
-                Game.Saves.UpdateFile(Path.Combine(path, "AutoSave.fl"));
             }
             CurrentObjective = objective;
             enterCount++;
