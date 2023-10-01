@@ -73,7 +73,7 @@ struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
         {
             var bodyIndex = bodyIndices[bundleSlotIndex];
             //Not every slot in the SIMD vector is guaranteed to be filled.
-            if (bodyIndex >= 0 && integrationMask[bundleSlotIndex] != 0)
+            if (bodyIndex >= 0)
             {
                 var bodyHandle = World.Simulation.Bodies.ActiveSet.IndexToHandle[bodyIndex];
                 linearDampingValues[bundleSlotIndex] = MathF.Pow(1.0f - World.dampings[bodyHandle].X, dtNarrow);

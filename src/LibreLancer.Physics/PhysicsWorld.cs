@@ -32,7 +32,9 @@ namespace LibreLancer.Physics
         private IdPool ids = new IdPool(100, true);
         private CollidableProperty<int> bepuToLancer;
         internal CollidableProperty<bool> collidableObjects;
+
         internal CollidableProperty<Vector2> dampings;
+
         //our list
         List<PhysicsObject> objects = new List<PhysicsObject>();
         List<PhysicsObject> dynamicObjects = new List<PhysicsObject>();
@@ -58,7 +60,7 @@ namespace LibreLancer.Physics
             contactEvents = new ContactEvents.ContactEvents(threadDispatcher, BufferPool);
             Simulation = Simulation.Create(BufferPool,
                 new ContactEventCallbacks(contactEvents, this, 300),
-                new LibrelancerPoseIntegratorCallbacks() { World = this },
+                new LibrelancerPoseIntegratorCallbacks() {World = this},
                 new SolveDescription(8, 1)
             );
             bepuToLancer = new CollidableProperty<int>(Simulation);
@@ -82,20 +84,26 @@ namespace LibreLancer.Physics
                         continue;
                     o.Collider.Draw(o.Transform, DebugRenderer);
                 }
+
                 if (ShowRaycasts)
                 {
                     for (int i = 0; i < debugRayIndex; i++)
                     {
-                        DebugRenderer.DrawLine(debugRays[i].Start, debugRays[i].End, debugRays[i].Success ? Color4.Green : Color4.Blue);
+                        DebugRenderer.DrawLine(debugRays[i].Start, debugRays[i].End,
+                            debugRays[i].Success ? Color4.Green : Color4.Blue);
                         if (debugRays[i].Success)
                         {
-                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(0,10,0), debugRays[i].End + new Vector3(0,10,0), Color4.Red);
-                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(10,0,0), debugRays[i].End + new Vector3(10,0,0), Color4.Red);
-                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(0,0,10), debugRays[i].End + new Vector3(0,0,10), Color4.Red);
+                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(0, 10, 0),
+                                debugRays[i].End + new Vector3(0, 10, 0), Color4.Red);
+                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(10, 0, 0),
+                                debugRays[i].End + new Vector3(10, 0, 0), Color4.Red);
+                            DebugRenderer.DrawLine(debugRays[i].End - new Vector3(0, 0, 10),
+                                debugRays[i].End + new Vector3(0, 0, 10), Color4.Red);
                         }
                     }
                 }
             }
+
             debugRayIndex = 0;
         }
 
@@ -119,7 +127,6 @@ namespace LibreLancer.Physics
         }
 
 
-
         public void CreateUnmanagedStatic(ref UnmanagedStatic obj, Matrix4x4 transform, Collider col)
         {
             if (obj.Valid)
@@ -141,33 +148,34 @@ namespace LibreLancer.Physics
             obj = default;
         }
 
-       struct SweepHandler : ISweepHitHandler
-       {
-           private PhysicsWorld world;
-           public List<PhysicsObject> Result;
+        struct SweepHandler : ISweepHitHandler
+        {
+            private PhysicsWorld world;
+            public List<PhysicsObject> Result;
 
-           public SweepHandler(PhysicsWorld world)
-           {
-               this.world = world;
-               Result = new List<PhysicsObject>();
-           }
+            public SweepHandler(PhysicsWorld world)
+            {
+                this.world = world;
+                Result = new List<PhysicsObject>();
+            }
 
-           public bool AllowTest(CollidableReference collidable) => world.collidableObjects[collidable];
+            public bool AllowTest(CollidableReference collidable) => world.collidableObjects[collidable];
 
-           public bool AllowTest(CollidableReference collidable, int child) => world.collidableObjects[collidable];
+            public bool AllowTest(CollidableReference collidable, int child) => world.collidableObjects[collidable];
 
-           public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal, CollidableReference collidable)
-           {
-               Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
-           }
+            public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal,
+                CollidableReference collidable)
+            {
+                Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
+            }
 
-           public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
-           {
-               Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
-           }
-       }
+            public void OnHitAtZeroT(ref float maximumT, CollidableReference collidable)
+            {
+                Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
+            }
+        }
 
-       //TODO: Use a CollisionQuery instead.
+        //TODO: Use a CollisionQuery instead.
         public List<PhysicsObject> SphereTest(Vector3 origin, float radius)
         {
             SweepHandler handler = new SweepHandler(this);
@@ -198,13 +206,14 @@ namespace LibreLancer.Physics
 
             public bool AllowTest(CollidableReference collidable) =>
                 world.bepuToLancer[collidable] != selfId &&
-                                                                     world.collidableObjects[collidable];
+                world.collidableObjects[collidable];
 
             public bool AllowTest(CollidableReference collidable, int childIndex) =>
                 world.bepuToLancer[collidable] != selfId &&
                 world.collidableObjects[collidable];
 
-            public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable,
+            public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal,
+                CollidableReference collidable,
                 int childIndex)
             {
                 maximumT = t;
@@ -216,15 +225,19 @@ namespace LibreLancer.Physics
 
         private int debugRayIndex = 0;
         public bool ShowRaycasts = false;
-        private (Vector3 Start, Vector3 End, bool Success)[] debugRays = new (Vector3 Start, Vector3 End, bool Success)[32];
 
-        public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist, out Vector3 contactPoint, out PhysicsObject didHit)
+        private (Vector3 Start, Vector3 End, bool Success)[] debugRays =
+            new (Vector3 Start, Vector3 End, bool Success)[32];
+
+        public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist,
+            out Vector3 contactPoint, out PhysicsObject didHit)
         {
             HitHandler handler = new HitHandler(this, me);
             Simulation.RayCast(origin, direction, maxDist, ref handler);
             contactPoint = handler.ContactPoint;
             didHit = handler.Result;
-            if (ShowRaycasts && debugRayIndex < debugRays.Length){
+            if (ShowRaycasts && debugRayIndex < debugRays.Length)
+            {
                 if (handler.DidHit)
                 {
                     debugRays[debugRayIndex++] = (origin, contactPoint, true);
@@ -234,6 +247,7 @@ namespace LibreLancer.Physics
                     debugRays[debugRayIndex++] = (origin, origin + (direction * maxDist), false);
                 }
             }
+
             return handler.DidHit;
         }
 
@@ -253,6 +267,7 @@ namespace LibreLancer.Physics
         private Dictionary<uint, IConvexMeshProvider> meshFiles = new();
         private Dictionary<IConvexMeshProvider, uint> meshFileIds = new();
         private uint nextMeshId = 0;
+
         internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, uint meshId)
         {
             var id = (ulong) meshId | ((ulong) fileId << 32);
@@ -263,58 +278,31 @@ namespace LibreLancer.Physics
             var shx = new List<(TypedIndex Shapes, Vector3 Center)>();
             for (int i = 0; i < src.Length; i++)
             {
-                try
+                var verts = src[i].Vertices;
+                var indices = src[i].Indices;
+                var points = new Vector3[src[i].Indices.Length];
+                for (int j = 0; j < indices.Length; j++)
+                    points[j] = verts[indices[j]];
+                if (ConvexHullHelper.CreateShape(points, BufferPool, out var center, out var convexHull))
                 {
-                    var verts = src[i].Vertices;
-                    var indices = src[i].Indices;
-                    if (indices.Length <= 6) {
-                        //Two triangles does not a convex hull make
-                        if (indices.Length >= 3)
-                        {
-                            var tri = new Triangle(
-                                verts[indices[0]],
-                                verts[indices[1]],
-                                verts[indices[2]]
-                            );
-                            shx.Add((Simulation.Shapes.Add(tri), Vector3.Zero));
-                        }
-                        if (indices.Length == 6){
-                            var tri = new Triangle(
-                                verts[indices[3]],
-                                verts[indices[4]],
-                                verts[indices[5]]
-                            );
-                            shx.Add((Simulation.Shapes.Add(tri), Vector3.Zero));
-                        }
+                    if (convexHull.FaceToVertexIndicesStart.Length <= 2)
+                    {
+                        convexHull.Dispose(BufferPool);
                     }
                     else
                     {
-                        var points = new Vector3[src[i].Indices.Length];
-                        for (int j = 0; j < src[i].Indices.Length; j++)
-                            points[j] = src[i].Vertices[src[i].Indices[j]];
-                        var convexHull = new ConvexHull(points, BufferPool, out var center);
-                        if (convexHull.FaceToVertexIndicesStart.Length == 2)
-                        {
-                            //Co-planar, fix up
-                            convexHull.Dispose(BufferPool);
-                            for (int j = 0; j < indices.Length; j += 3)
-                            {
-                                shx.Add((Simulation.Shapes.Add(new Triangle(
-                                    verts[indices[j]],
-                                    verts[indices[j+1]],
-                                    verts[indices[j+2]]
-                                    )), Vector3.Zero));
-                            }
-                        }
-                        else
-                        {
-                            shx.Add((Simulation.Shapes.Add(convexHull), center));
-                        }
+                        shx.Add((Simulation.Shapes.Add(convexHull), center));
+                        continue;
                     }
                 }
-                catch (Exception e)
+
+                for (int j = 0; j < indices.Length; j += 3)
                 {
-                    FLLog.Error("Physics", $"Please report: {e}");
+                    shx.Add((Simulation.Shapes.Add(new Triangle(
+                        verts[indices[j]],
+                        verts[indices[j + 1]],
+                        verts[indices[j + 2]]
+                    )), Vector3.Zero));
                 }
             }
 
@@ -339,9 +327,11 @@ namespace LibreLancer.Physics
 
         public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null)
         {
-            if(mass < float.Epsilon) {
+            if (mass < float.Epsilon)
+            {
                 throw new Exception("Mass must be non-zero");
             }
+
             Symmetric3x3 invInertia;
             if (inertia != null)
                 invInertia = ToInverseInertia(inertia.Value);
@@ -370,7 +360,8 @@ namespace LibreLancer.Physics
             return obj;
         }
 
-        void ContactEvents.IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource, CollidablePair pair,
+        void ContactEvents.IContactEventHandler.OnStartedTouching<TManifold>(CollidableReference eventSource,
+            CollidablePair pair,
             ref TManifold contactManifold, int workerIndex)
         {
             QueueCollision(pair.A, pair.B);
@@ -391,7 +382,7 @@ namespace LibreLancer.Physics
             if (timestep < float.Epsilon) // We're paused
                 return;
             Simulation.Timestep(timestep, threadDispatcher);
-            foreach(var obj in objects)
+            foreach (var obj in objects)
                 obj.UpdateProperties();
             contactEvents.Flush();
             while (collisionEvents.TryDequeue(out var ev))
@@ -421,6 +412,7 @@ namespace LibreLancer.Physics
                 Simulation.Bodies.Remove(d.BepuObject.Handle);
                 dynamicObjects.Remove(d);
             }
+
             if (id != -1)
             {
                 ids.Free(id);
