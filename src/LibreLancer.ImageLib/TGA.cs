@@ -1,184 +1,258 @@
-﻿// MIT License - Copyright (c) Malte Rupprecht
+﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
+using System.Xml;
 
 namespace LibreLancer.ImageLib
 {
 	public static class TGA
 	{
-		public static Texture2D FromFile(string file)
-		{
-			using (var stream = File.OpenRead (file)) {
-				return FromStream (stream);
-			}
-		}
 
-		public static Texture2D FromStream(Stream stream, bool hasMipMaps = false, Texture2D target = null, int mipLevel = -1)
-		{
-			byte[] buffer = new byte[2];
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct TGAHeader
+        {
+            public byte Offset;
+            public byte Indexed;
+            public byte ImageType;
+            public ushort PaletteStart;
+            public ushort PaletteLength;
+            public byte PaletteBits;
+            public ushort XOrigin;
+            public ushort YOrigin;
+            public ushort Width;
+            public ushort Height;
+            public byte BitsPerPixel;
+            public byte Inverted;
+        }
 
-			byte colorMapType;
-			byte imageType;
-			int firstEntryIndex;
-			int colorMapLength;
-			byte colorMapEntrySize;
-			int imageWidth;
-			int imageHeight;
-			byte pixelDepth;
+        static int BytesPerPixel(int bpp)
+        {
+            switch (bpp) {
+                case 8: return 1;
+                case 15:
+                case 16:
+                    return 2;
+                case 24:
+                    return 3;
+                case 32:
+                    return 4;
+                default:
+                    throw new InvalidDataException();
+            }
+        }
 
-			//try
-			//{
-			int ID_Length = stream.ReadByte();
-			colorMapType = (byte)stream.ReadByte();
+        private const int NO_IMAGE_DATA = 0;
+        private const int INDEXED = 1;
+        private const int RGB = 2;
+        private const int BW = 3;
 
-			// Should only be 0 (no color-map) or 1 (color-map is included).
-			if (colorMapType != 0 && colorMapType != 1) return null;
+        public static Texture2D FromStream(Stream stream, bool hasMipMaps = false, Texture2D target = null,
+            int mipLevel = -1)
+        {
+            var reader = new BinaryReader(stream);
+            var header = reader.ReadStruct<TGAHeader>();
+            //bool imageInverted = (1 - ((header.Inverted >> 5) & 1)) != 0;
 
-			imageType = (byte)stream.ReadByte();
+            if (header.Indexed > 1)
+            {
+                FLLog.Error("TGA", $"Unsupported palette {header.Indexed}");
+                return null;
+            }
 
-			stream.Read(buffer, 0, 2);
-			firstEntryIndex = BitConverter.ToUInt16(buffer, 0);
+            bool rle;
+            int imageType;
 
-			stream.Read(buffer, 0, 2);
-			colorMapLength = BitConverter.ToUInt16(buffer, 0);
+            if (header.ImageType >= 8)
+            {
+                imageType = header.ImageType - 8;
+                rle = true;
+            }
+            else
+            {
+                imageType = header.ImageType;
+                rle = false;
+            }
 
-			colorMapEntrySize = (byte)stream.ReadByte();
+            if (imageType <= NO_IMAGE_DATA || imageType >= BW)
+            {
+                FLLog.Error("TGA", $"Unsupported image type {header.ImageType}");
+                return null;
+            }
 
-			stream.Seek(2, SeekOrigin.Current); // ignore the X Origin
-			stream.Seek(2, SeekOrigin.Current); // ignore the Y Origin
+            if (header.Offset > 0)
+                stream.Seek(header.Offset, SeekOrigin.Begin);
 
-			stream.Read(buffer, 0, 2);
-			imageWidth = BitConverter.ToUInt16(buffer, 0);
+            int bytesPerPixel = BytesPerPixel(header.Indexed == 1 ? header.PaletteBits : header.BitsPerPixel);
+            byte[] tgaData = new byte[header.Width * header.Height * bytesPerPixel];
 
-			if (imageWidth == 0) throw new Exception(); //return null;
+            if (!rle && header.Indexed == 0)
+            {
+                if (reader.BaseStream.Read(tgaData) < tgaData.Length)
+                {
+                    throw new EndOfStreamException();
+                }
+            }
+            else
+            {
+                byte[] colorMap = null;
+                if (header.Indexed == 1)
+                {
+                    reader.BaseStream.Seek(header.PaletteStart, SeekOrigin.Current);
+                    colorMap = reader.ReadBytes(bytesPerPixel * header.PaletteLength);
+                }
 
-			stream.Read(buffer, 0, 2);
-			imageHeight = BitConverter.ToUInt16(buffer, 0);
+                bool readNextPixel = false;
+                int rleCount = 0;
+                bool rleRepeating = false;
+                var dataSpan = tgaData.AsSpan();
 
-			if (imageHeight == 0) throw new Exception(); //return null;
+                for (int i = 0; i < header.Width * header.Height; i++)
+                {
+                    if (rle)
+                    {
+                        if (rleCount == 0)
+                        {
+                            byte rlePacket = reader.ReadByte();
+                            rleCount = 1 + (rlePacket & 127);
+                            rleRepeating = (rlePacket >> 7) != 0;
+                            readNextPixel = true;
+                        }
+                        else if (!rleRepeating)
+                        {
+                            readNextPixel = true;
+                        }
+                    }
+                    else
+                    {
+                        readNextPixel = true;
+                    }
 
-			pixelDepth = (byte)stream.ReadByte();
+                    if (readNextPixel)
+                    {
+                        if (colorMap != null)
+                        {
+                            int paletteIndex = header.BitsPerPixel == 8 ? reader.ReadByte() : reader.ReadUInt16();
+                            if (paletteIndex >= header.PaletteLength)
+                                paletteIndex = 0;
+                            paletteIndex *= bytesPerPixel;
+                            colorMap.AsSpan().Slice(paletteIndex, bytesPerPixel)
+                                .CopyTo(dataSpan.Slice(i * bytesPerPixel));
+                        }
+                        else
+                        {
+                            if (reader.BaseStream.Read(dataSpan.Slice(i * bytesPerPixel, bytesPerPixel)) <
+                                bytesPerPixel)
+                                throw new EndOfStreamException();
+                        }
 
-			stream.Seek(1, SeekOrigin.Current); // ignore the Image Descriptor
+                        readNextPixel = false;
+                    }
+                    else
+                    {
+                        dataSpan.Slice((i - 1) * bytesPerPixel, bytesPerPixel)
+                            .CopyTo(dataSpan.Slice(i * bytesPerPixel));
+                    }
+                    rleCount--;
+                }
+            }
 
-			// Skip the Image ID.
-			while (ID_Length-- != 0) stream.Seek(1, SeekOrigin.Current);
+            //Technically we should flip these, but Freelancer does not
+            //Leave unflipped
 
-			// Verify there's enough data.
-			int len = (int)(stream.Length - stream.Position);
-			len -= colorMapLength * ((colorMapEntrySize + 7) / 8);
+            /*if (imageInverted)
+            {
 
-			if (len <= 0) throw new Exception(); //return null;
+                for (int j = 0; j * 2 < header.Height; ++j)
+                {
+                    int index1 = j * header.Width * bytesPerPixel;
+                    int index2 = (header.Height - 1 - j) * header.Width * bytesPerPixel;
+                    for (int i = header.Width * bytesPerPixel; i > 0; --i)
+                    {
+                        (tgaData[index1], tgaData[index2]) = (tgaData[index2], tgaData[index1]);
+                        ++index1;
+                        ++index2;
+                    }
+                }
+            }*/
 
-			if (imageWidth * imageHeight * ((pixelDepth + 7) / 8) > len) throw new Exception(); //return null;
-			//}
-			//catch
-			//{
-			//throw new Exception(); //return null;
-			//}
 
-			// Only handle uncompressed mapped and RGB images.
-			if (imageType == 1)
-			{
-				if (firstEntryIndex != 0 ||
-					colorMapEntrySize != 24 ||
-					pixelDepth != 8)
-					throw new Exception(); //return null;
-			}
-			else if (imageType == 2)
-			{
-				if (pixelDepth != 16 && pixelDepth != 24 && pixelDepth != 32)
-					throw new Exception(); //return null;
-			}
-			else
-			{
-				throw new Exception(); //return null;
-			}
-			int stride = (4 * imageWidth);
-			int bytes = stride * imageHeight;
-			byte[] pdata = new byte[bytes];
+            //Conversion of texture data - if necessary
+            int targetBytesPerPixel = 0;
+            if (target != null)
+                targetBytesPerPixel = target.Format == SurfaceFormat.Color ? 4 : 2;
+            else if (bytesPerPixel == 3)
+                targetBytesPerPixel = 4;
+            else
+                targetBytesPerPixel = bytesPerPixel;
 
-			// Process the image data depending on its type.
-			if (imageType == 1)
-			{
-				int pal = (int)stream.Position;
-				stream.Seek(3 * colorMapLength, SeekOrigin.Current);
-				long streampos = stream.Position;
-				for (int y = 0; y < imageHeight;y++ )
-				{
-					int p = y * stride;
-					for (int x = 0; x < imageWidth; ++x)
-					{
-						stream.Seek(streampos, SeekOrigin.Begin);
-						int c = pal + 3 * stream.ReadByte();
-						streampos = stream.Position;
-
-						stream.Seek(c, SeekOrigin.Begin);
-						pdata[p++] = (byte)stream.ReadByte();
-						pdata[p++] = (byte)stream.ReadByte();
-						pdata[p++] = (byte)stream.ReadByte();
-						pdata[p++] = 0xFF;
-					}
-				}
-			}
-			else if (pixelDepth == 16)
-			{
-				for (int y = 0; y < imageHeight;y++ )
-				{
-					int p = y * stride;
-					for (int x = 0; x < imageWidth; ++x)
-					{
-						stream.Read(buffer, 0, 2);
-						int val = BitConverter.ToUInt16(buffer, 0);
-						int r = (val & 0x7C00) >> 10;
-						int g = (val & 0x03E0) >> 5;
-						int b = (val & 0x001F);
-						pdata[p++] = (byte)((r << 3) | (r >> 2));
-						pdata[p++] = (byte)((g << 3) | (g >> 2));
-						pdata[p++] = (byte)((b << 3) | (b >> 2));
-						pdata[p++] = 0xFF;
-					}
-				}
-			}
-			else
-			{
-				for (int y = 0; y < imageHeight;y++ )
-				{
-					int p = y * stride;
-					for (int x = 0; x < imageWidth; ++x)
-					{
-						byte r = (byte)stream.ReadByte();
-						byte g = (byte)stream.ReadByte();
-						byte b = (byte)stream.ReadByte();
-						byte a = 0xFF;
-						if (pixelDepth == 32)
-						{
-							a = (byte)stream.ReadByte();
-						}
-						pdata [p++] = r;
-						pdata [p++] = g;
-						pdata [p++] = b;
-						pdata [p++] = a;
-					}
-				}
-			}
-			if (target == null)
-			{
-				var tex = new Texture2D(imageWidth, imageHeight, hasMipMaps, SurfaceFormat.Color);
-				tex.SetData(pdata);
-				if (pixelDepth != 32 || imageType == 1)
-					tex.WithAlpha = false;
-				return tex;
-			}
-			else
-			{
-				target.SetData(mipLevel, null, pdata, 0, pdata.Length);
-				return null;
-			}
-		}
-	}
+            byte[] targetData;
+            if (targetBytesPerPixel == bytesPerPixel)
+            {
+                targetData = tgaData;
+                if (bytesPerPixel == 2 && targetBytesPerPixel == 2)
+                {
+                    var src = MemoryMarshal.Cast<byte, ushort>(tgaData);
+                    for (int i = 0; i < header.Width * header.Height; i++)
+                    {
+                        src[i] |= (ushort)32768; //16-bit TGA images shouldn't display with alpha, set to 1
+                    }
+                }
+            }
+            else
+            {
+                targetData = new byte[header.Width * header.Height * targetBytesPerPixel];
+                if (bytesPerPixel == 2 && targetBytesPerPixel == 4)
+                {
+                    var src = MemoryMarshal.Cast<byte, ushort>(tgaData);
+                    var dst = MemoryMarshal.Cast<byte, uint>(targetData);
+                    for (int i = 0; i < header.Width * header.Height; i++)
+                    {
+                        var val = src[i];
+                        var r = (uint) ((val & 0x7C00) >> 10);
+                        r = (r << 3) | (r >> 2);
+                        var g = (uint) ((val & 0x03E0) >> 5);
+                        g = (g << 3) | (g >> 2);
+                        var b = (uint) (val & 0x001F);
+                        b = (b << 3) | (b >> 2);
+                        dst[i] = 0xFF000000 | (b << 16) | (g << 8) | r;
+                    }
+                }
+                else if (bytesPerPixel == 3 && targetBytesPerPixel == 4)
+                {
+                    var dst = MemoryMarshal.Cast<byte, uint>(targetData);
+                    for (int i = 0; i < header.Width * header.Height; i++)
+                    {
+                        var j = i * 3;
+                        var r = (uint) tgaData[j];
+                        var g = (uint) tgaData[j + 1];
+                        var b = (uint) tgaData[j + 2];
+                        dst[i] = 0xFF000000 | (b << 16) | (g << 8) | r;
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException($"Convert from {bytesPerPixel} bytes to {targetBytesPerPixel}");
+                }
+            }
+            if (target == null)
+            {
+                var tex = new Texture2D(header.Width, header.Height, hasMipMaps, bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Color);
+                tex.SetData(targetData);
+                if (bytesPerPixel != 4 || imageType == 1)
+                    tex.WithAlpha = false;
+                return tex;
+            }
+            else
+            {
+                target.SetData(mipLevel, null, targetData, 0, targetData.Length);
+                return null;
+            }
+        }
+    }
 }

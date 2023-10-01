@@ -14,6 +14,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Utf.Ale;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.ImageLib;
 using LibreLancer.Utf.Cmp;
 
 namespace LancerEdit
@@ -398,7 +399,10 @@ namespace LancerEdit
                     {
                         using (var stream = new MemoryStream(selectedNode.Data))
                         {
-                            tex = LibreLancer.ImageLib.Generic.FromStream(stream);
+                            if (DDS.StreamIsDDS(stream))
+                                tex = DDS.FromStream(stream);
+                            else
+                                tex = TGA.FromStream(stream);
                         }
                         var title = string.Format("{0} ({1})", selectedNode.Name, Title);
                         if (tex is Texture2D tex2d)
