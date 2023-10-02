@@ -179,7 +179,11 @@ namespace LibreLancer.Utf.Dfm
                 if (count > 4) throw new NotImplementedException();
                 var uv = UV0[UV0Indices[i]];
                 uv.Y = 1 - uv.Y;
-                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], uv, weights, id1, id2, id3, id4));
+                if (id1 < 0 || id2 < 0 || id3 < 0 || id4 < 0 | id1 > 255 || id2 > 255 || id3 > 255 || id4 > 255)
+                {
+                    throw new IndexOutOfRangeException("Bone index is out of range (<0 or >255)");
+                }
+                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], uv, weights, (byte)id1, (byte)id2, (byte)id3, (byte)id4));
 			}
 
 			vertexBuffer = new VertexBuffer(typeof(DfmVertex), vertices.Count);

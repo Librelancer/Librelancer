@@ -6,69 +6,98 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace LibreLancer.Utf.Anm
 {
-	public class Channel
+	public struct Channel
     {
-        private const uint OFFSET_MASK = 0x0FFFFFFF;
-        private const uint TYPE_MASK = 0xF0000000;
-        
-        private const uint TYPE_QUATERNION = (1U << 28);
-        private const uint TYPE_0x40 = (2U << 28);
-        private const uint TYPE_0x80 = (3U << 28);
-        private const uint TYPE_IDENTITY = (4U << 28);
+        //Store some pre-calculated values in here for easier switch statements &
+        //Size+offset mappings
 
-        private const uint TYPE_VECEMPTY = (5U << 28);
-        private const uint TYPE_VEC3 = (6U << 28);
+        //Bits 0-4 - stride
+        private const uint STRIDE_MASK = 0x0000003F;
+        //Bits 5-9 - vec3 offset, Bits 10-11 - vec3 type
+        private const uint VEC_OFFSET_MASK = 0x000003E0; // >> 5
+        private const uint VEC_TYPE_MASK = 0x00000C00;
+        private const uint TYPE_VEC3 = 0x00000400;
+        private const uint TYPE_VECEMPTY = 0x00000800;
+        //Bits 12 - 16 - quat offset, Bits 17 - 19 - quat type
+        private const uint QUAT_OFFSET_MASK = 0x0001F000; // >> 12
+        private const uint QUAT_TYPE_MASK = 0x00060000;
+        private const uint QUAT_TYPE_FULL = 0x00020000;
+        private const uint QUAT_TYPE_0x40 = 0x00040000;
+        private const uint QUAT_TYPE_0x80 = 0x00060000;
+        private const uint QUAT_TYPE_IDENTITY = 0x00080000;
+        //Bit 20 - are there angles?
+        private const uint ANGLES = 0x00100000;
 
-        private const uint TYPE_FLOAT = (7U << 28);
-        
+        private uint header = 0;
+
         private byte[] channelData;
-        private uint stride;
 
-        private uint quaternions;
-        private uint vectors;
-        private uint angles;
-        
         public int FrameCount { get; private set; }
 		public float Interval { get; private set; }
-		public int ChannelType { get; private set; }
+
+        public int ChannelType
+        {
+            get
+            {
+                int originalType = 0;
+                originalType |= ((header & QUAT_TYPE_MASK) switch
+                {
+                    QUAT_TYPE_IDENTITY => 0x20,
+                    QUAT_TYPE_FULL => 0x4,
+                    QUAT_TYPE_0x40 => 0x40,
+                    QUAT_TYPE_0x80 => 0x80,
+                    _ => 0
+                });
+                originalType |= ((header & VEC_TYPE_MASK)) switch
+                {
+                    TYPE_VEC3 => 0x2,
+                    TYPE_VECEMPTY => 0x10,
+                    _ => 0
+                };
+                if ((header & ANGLES) != 0)
+                    originalType |= 0x1;
+                return originalType;
+            }
+        }
 
         public FrameType InterpretedType
         {
             get
             {
-                if (quaternions != 0 && vectors != 0)
+                if ((header & QUAT_TYPE_MASK) != 0 && (header & VEC_TYPE_MASK) != 0)
                     return FrameType.VecWithQuat;
-                else if (quaternions != 0)
+                else if ((header & QUAT_TYPE_MASK) != 0)
                     return FrameType.Quaternion;
-                else if (vectors != 0)
+                else if ((header & VEC_TYPE_MASK) != 0)
                     return FrameType.Vector3;
                 else
                     return FrameType.Float;
             }
         }
 
-        public QuaternionMethod QuaternionMethod => (quaternions & TYPE_MASK) switch
+        public QuaternionMethod QuaternionMethod => (header & QUAT_TYPE_MASK) switch
         {
-            TYPE_IDENTITY => QuaternionMethod.Empty,
-            TYPE_QUATERNION => QuaternionMethod.Full,
-            TYPE_0x40 => QuaternionMethod.Compressed0x40,
-            TYPE_0x80 => QuaternionMethod.Compressed0x80,
+            QUAT_TYPE_IDENTITY => QuaternionMethod.Empty,
+            QUAT_TYPE_FULL => QuaternionMethod.Full,
+            QUAT_TYPE_0x40 => QuaternionMethod.Compressed0x40,
+            QUAT_TYPE_0x80 => QuaternionMethod.Compressed0x80,
             _ => QuaternionMethod.None
         };
 
-        public bool HasPosition => vectors != 0;
-        public bool HasOrientation => quaternions != 0;
-        public bool HasAngle => angles != 0;
+        public bool HasPosition => (header & VEC_TYPE_MASK) != 0;
+        public bool HasOrientation => (header & QUAT_TYPE_MASK) != 0;
+        public bool HasAngle => (header & ANGLES) != 0;
 
         public unsafe float GetTime(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if (Interval >= 0)
                 return 0;
-            var offset = (stride * index);
+            var offset = ((header & STRIDE_MASK) * index);
             fixed (byte* ptr = channelData)
                 return *(float*) (&ptr[offset]);
         }
@@ -76,36 +105,47 @@ namespace LibreLancer.Utf.Anm
         public unsafe float GetAngle(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            if ((angles & TYPE_MASK) != TYPE_FLOAT)
+            if ((header & ANGLES) == 0)
                 return 0;
-            var offset = (stride * index) + (angles & OFFSET_MASK);
+            var offset = ((header & STRIDE_MASK) * index) + (Interval > 0 ? 4 : 0);
             fixed (byte* ptr = channelData)
                 return *(float*) (&ptr[offset]);
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        int GetOffset(int index, uint mask, int shift)
+        {
+            var stride = (header & STRIDE_MASK);
+            var off = (header & mask) >> shift;
+            return (int) (stride * index + off);
+        }
+
+
         public unsafe Vector3 GetPosition(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            if ((vectors & TYPE_MASK) != TYPE_VEC3)
+            if ((header & VEC_TYPE_MASK) != TYPE_VEC3)
                 return Vector3.Zero;
-            var offset = (stride * index) + (vectors & OFFSET_MASK);
+            var offset = GetOffset(index, VEC_OFFSET_MASK, 5);
             fixed (byte* ptr = channelData)
                 return *(Vector3*) (&ptr[offset]);
         }
 
+
         public Quaternion GetQuaternion(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            var offset = (int) ((stride * index) + (quaternions & OFFSET_MASK));
-            switch (quaternions & TYPE_MASK)
+            var offset = GetOffset(index, QUAT_OFFSET_MASK, 12);
+            //var offset = (int) ((header & STRIDE_MASK) * index + (header & QUAT_OFFSET_MASK) >> 12);
+            switch (header & QUAT_TYPE_MASK)
             {
-                case TYPE_QUATERNION:
+                case QUAT_TYPE_FULL:
                     return GetFullQuat(offset);
-                case TYPE_0x80:
+                case QUAT_TYPE_0x80:
                     return GetQuat0x80(offset);
-                case TYPE_0x40:
+                case QUAT_TYPE_0x40:
                     return GetQuat0x40(offset);
-                case TYPE_IDENTITY:
+                case QUAT_TYPE_IDENTITY:
                 case 0:
                     return Quaternion.Identity;
                 default:
@@ -163,7 +203,7 @@ namespace LibreLancer.Utf.Anm
                 );
             }
         }
-        
+
         int GetIndex(float time, out float t0, out float t1)
         {
             if (Interval < 0)
@@ -194,7 +234,7 @@ namespace LibreLancer.Utf.Anm
                 return Math.Max(Interval * (FrameCount - 1), 0);
             }
         }
-        
+
         public Vector3 PositionAtTime(float time)
         {
             var idx = GetIndex(time, out float t0, out float t1);
@@ -225,36 +265,40 @@ namespace LibreLancer.Utf.Anm
             var blend = (time - t0) / (t1 - t0);
             return MathHelper.Lerp(a, b, blend);
         }
-        unsafe void ReadHeader(LeafNode node)
+
+        unsafe int ReadHeader(LeafNode node)
         {
             if (node.DataSegment.Count < 12) throw new Exception("Anm Header malformed");
             fixed (byte* bytes = node.DataSegment.Array)
             {
                 FrameCount = *(int*) (&bytes[node.DataSegment.Offset]);
                 Interval = *(float*) (&bytes[node.DataSegment.Offset + 4]);
-                ChannelType = *(int*) (&bytes[node.DataSegment.Offset + 8]);
+                return *(int*) (&bytes[node.DataSegment.Offset + 8]);
             }
         }
+
+
 		public Channel(IntermediateNode root)
 		{
             //Fetch from nodes
             byte[] cdata = null;
+            int channelType = 0;
 			foreach (LeafNode channelSubNode in root)
 			{
                 if(channelSubNode.Name.Equals("header", StringComparison.OrdinalIgnoreCase))
-                    ReadHeader(channelSubNode);
+                    channelType = ReadHeader(channelSubNode);
                 else if (channelSubNode.Name.Equals("frames", StringComparison.OrdinalIgnoreCase))
                 {
                     cdata = channelSubNode.ByteArrayData;
                 }
             }
             /* Pad data to avoid ARM data alignment errors */
-            if((ChannelType & 0x80) == 0x80 ||
-               (ChannelType & 0x40) == 0x40) {
+            if((channelType & 0x80) == 0x80 ||
+               (channelType & 0x40) == 0x40) {
                 int startStride = 0;
                 if(Interval < 0) startStride += 4;
-                if((ChannelType & 0x1) == 0x1) startStride += 4;
-                if((ChannelType & 0x2) == 0x2) startStride += 12;
+                if((channelType & 0x1) == 0x1) startStride += 4;
+                if((channelType & 0x2) == 0x2) startStride += 12;
                 int fullStride = startStride + 8;
                 int compStride = startStride + 6;
                 channelData = new byte[fullStride * FrameCount];
@@ -268,46 +312,53 @@ namespace LibreLancer.Utf.Anm
             } else {
                 channelData = cdata;
             }
-            
-            if(((ChannelType & 0x2) == 0x2) &&
-               ((ChannelType & 0x10) == 0x10))
+
+            int stride = 0;
+
+            if(((channelType & 0x2) == 0x2) &&
+               ((channelType & 0x10) == 0x10))
                 throw new Exception("Channel has invalid vector specification");
             if (Interval < 0) {
                 stride += 4;
             }
-            if ((ChannelType & 0x1) == 0x1)
+            if ((channelType & 0x1) == 0x1)
             {
-                angles = TYPE_FLOAT | stride;
+                header |= ANGLES;
                 stride += 4;
             }
-            if ((ChannelType & 0x2) == 0x2)
+            if ((channelType & 0x2) == 0x2)
             {
-                vectors = TYPE_VEC3 | stride;
+                header |= TYPE_VEC3;
+                header |= (uint)((stride << 5) & VEC_OFFSET_MASK);
                 stride += 12;
             }
-            if ((ChannelType & 0x10) == 0x10)
+            if ((channelType & 0x10) == 0x10)
             {
-                vectors = TYPE_VECEMPTY;
+                header |= TYPE_VECEMPTY;
             }
-            if ((ChannelType & 0x40) == 0x40)
+            if ((channelType & 0x40) == 0x40)
             {
-                quaternions = TYPE_0x40 | stride;
+                header |= QUAT_TYPE_0x40;
+                header |= (uint)((stride << 12) & QUAT_OFFSET_MASK);
                 stride += 8;
             }
-            if ((ChannelType & 0x80) == 0x80)
+            if ((channelType & 0x80) == 0x80)
             {
-                quaternions = TYPE_0x80 | stride;
+                header |= QUAT_TYPE_0x80;
+                header |= (uint)((stride << 12) & QUAT_OFFSET_MASK);
                 stride += 8;
             }
-            if ((ChannelType & 0x4) == 0x4)
+            if ((channelType & 0x4) == 0x4)
             {
-                quaternions = TYPE_QUATERNION | stride;
+                header |= QUAT_TYPE_FULL;
+                header |= (uint)((stride << 12) & QUAT_OFFSET_MASK);
                 stride += 16;
             }
-            if ((ChannelType & 0x20) == 0x20)
+            if ((channelType & 0x20) == 0x20)
             {
-                quaternions = TYPE_IDENTITY;
+                header |= QUAT_TYPE_IDENTITY;
             }
+            header |= (uint)(stride & STRIDE_MASK);
         }
     }
 }

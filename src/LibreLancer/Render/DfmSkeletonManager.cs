@@ -15,17 +15,17 @@ namespace LibreLancer.Render
     {
         public float FloorHeight;
         public float RootHeight;
-        
+
         public DfmFile Head;
         public DfmFile Body;
         public DfmFile LeftHand;
         public DfmFile RightHand;
-        
+
         public DfmSkinning HeadSkinning;
         public DfmSkinning BodySkinning;
         public DfmSkinning LeftHandSkinning;
         public DfmSkinning RightHandSkinning;
-        
+
         //Connect Head
         private HardpointDefinition HeadBodyHp;
         private BoneInstance HeadBodyBone;
@@ -46,11 +46,11 @@ namespace LibreLancer.Render
         struct ResolvedJoint
         {
             public BoneInstance Bone;
-            public JointMap JointMap;
-            public ResolvedJoint(BoneInstance bone, JointMap jm)
+            public int JointMapIndex;
+            public ResolvedJoint(BoneInstance bone, int jm)
             {
                 Bone = bone;
-                JointMap = jm;
+                JointMapIndex = jm;
             }
         }
 
@@ -75,20 +75,20 @@ namespace LibreLancer.Render
         private ScriptInstance _rootMotionInstance;
         class ScriptInstance
         {
-            public string Name;
             public double T;
             public float StartTime;
             public float TimeScale;
             public float Duration;
             public bool Loop;
-            
-            public List<ObjectMap> ObjectMaps = new List<ObjectMap>();
+
             public List<ResolvedJoint> Joints = new List<ResolvedJoint>();
             public DfmSkeletonManager Parent;
             public Vector3 RootTranslation;
             public Vector3 RootTranslationOrigin;
             public Quaternion RootRotation = Quaternion.Identity;
             public Quaternion RootRotationOrigin = Quaternion.Identity;
+
+            public Script Script;
             public bool RunScript(double delta)
             {
                 T += delta;
@@ -96,7 +96,7 @@ namespace LibreLancer.Render
                 bool running = false;
                 foreach (var j in Joints)
                 {
-                    var ch = j.JointMap.Channel;
+                    ref var ch = ref Script.JointMaps[j.JointMapIndex].Channel;
                     var cht = ft;
                     if (Duration > 0 && Loop) cht = ft % ch.Duration;
                     if (ch.HasOrientation)
@@ -106,9 +106,10 @@ namespace LibreLancer.Render
                     if (ft < ch.Duration)
                         running = true;
                 }
-                
-                foreach (var o in ObjectMaps)
+
+                for (int i = 0; i < Script.ObjectMaps.Length; i++)
                 {
+                    ref var o = ref Script.ObjectMaps[i];
                     if (!o.ParentName.Equals("Root", StringComparison.OrdinalIgnoreCase)) continue;
                     Vector3 translate = Vector3.Zero;
                     Quaternion rotate = Quaternion.Identity;
@@ -126,7 +127,7 @@ namespace LibreLancer.Render
                             rotate *= qOne;
                             cht -= o.Channel.Duration;
                             if (hangDetect++ > 10000)
-                                throw new Exception($"Hang in root object map code: broke {Name}");
+                                throw new Exception($"Hang in root object map code: broke {Script.Name}");
                         }
                     }
                     if (o.Channel.HasPosition) translate += o.Channel.PositionAtTime(cht);
@@ -190,7 +191,7 @@ namespace LibreLancer.Render
             var parent = hpB.Transform * boneB.LocalTransform();
             return child * parent;
         }
-        
+
         public void UpdateScripts(double delta)
         {
             _rootMotionInstance = null;
@@ -201,7 +202,7 @@ namespace LibreLancer.Render
             }
             foreach(var sc in toRemove) RunningScripts.Remove(sc);
         }
-        
+
         public void UploadBoneData(UniformBuffer bonesBuffer)
         {
             int off = 0;
@@ -212,7 +213,7 @@ namespace LibreLancer.Render
             }
             if (LeftHand != null)
             {
-                LeftHandSkinning.SetBoneData(bonesBuffer, ref off);   
+                LeftHandSkinning.SetBoneData(bonesBuffer, ref off);
             }
             if (RightHand != null)
             {
@@ -235,31 +236,31 @@ namespace LibreLancer.Render
             else
                 rightHand = source;
         }
-        
+
         public void StartScript(Script anmScript, float start_time, float time_scale, float duration, bool loop = false)
         {
             if(anmScript.HasRootHeight) RootHeight = anmScript.RootHeight;
             var inst = new ScriptInstance();
-            inst.Name = anmScript.Name;
+            inst.Script = anmScript;
             inst.StartTime = start_time;
             inst.TimeScale = time_scale;
             inst.Duration = duration;
-            inst.ObjectMaps = anmScript.ObjectMaps;
             inst.Loop = loop;
             inst.Parent = this;
-            foreach (var jm in anmScript.JointMaps)
+            for(int i = 0; i < anmScript.JointMaps.Length; i++)
             {
+                ref var jm = ref anmScript.JointMaps[i];
                 if (BodySkinning.Bones.TryGetValue(jm.ChildName, out BoneInstance bb))
-                    inst.Joints.Add(new ResolvedJoint(bb, jm));
+                    inst.Joints.Add(new ResolvedJoint(bb, i));
                 else if (Head != null && HeadSkinning.Bones.TryGetValue(jm.ChildName, out BoneInstance bh))
-                    inst.Joints.Add(new ResolvedJoint(bh, jm));
+                    inst.Joints.Add(new ResolvedJoint(bh, i));
                 else if (LeftHand != null && LeftHandSkinning.Bones.TryGetValue(jm.ChildName, out BoneInstance bl))
-                    inst.Joints.Add(new ResolvedJoint(bl, jm));
+                    inst.Joints.Add(new ResolvedJoint(bl, i));
                 else if (RightHand != null && RightHandSkinning.Bones.TryGetValue(jm.ChildName, out BoneInstance br))
-                    inst.Joints.Add(new ResolvedJoint(br, jm));
+                    inst.Joints.Add(new ResolvedJoint(br, i));
             }
             RunningScripts.Add(inst);
         }
-        
+
     }
 }

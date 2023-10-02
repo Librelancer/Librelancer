@@ -6,16 +6,14 @@ using System;
 
 namespace LibreLancer.Utf.Anm
 {
-    public class ObjectMap
+    public struct ObjectMap
     {
-        public string NodeName;
         public string ParentName;
         public string ChildName;
         public Channel Channel;
 
         public ObjectMap(IntermediateNode root)
         {
-            NodeName = root.Name;
             foreach (Node node in root)
             {
                 if (node.Name.Equals("parent name", StringComparison.OrdinalIgnoreCase))

@@ -31,8 +31,8 @@ namespace LibreLancer.World.Components
         private Func<double> getTotalTime;
 
         private double accumTime;
-        
-        public IEnumerable<NetCmpAnimation> Serialize() => 
+
+        public IEnumerable<NetCmpAnimation> Serialize() =>
             animations.Select(x => new NetCmpAnimation()
             {
                 Name = x.Name,
@@ -145,7 +145,7 @@ namespace LibreLancer.World.Components
             getTotalTime = time;
         }
 
-        
+
 
         public bool HasAnimation(string animationName)
 		{
@@ -185,26 +185,26 @@ namespace LibreLancer.World.Components
 		bool ProcessAnimation(ActiveAnimation a)
 		{
 			bool finished = true;
-			foreach (var map in a.Script.ObjectMaps)
+			for (int i = 0; i < a.Script.ObjectMaps.Length; i++)
 			{
-				if (!ProcessObjectMap(map, a.StartTime, a.Loop))
+				if (!ProcessObjectMap(ref a.Script.ObjectMaps[i], a.StartTime, a.Loop))
 					finished = false;
 			}
-			foreach (var map in a.Script.JointMaps)
+            for (int i = 0; i < a.Script.JointMaps.Length; i++)
 			{
-				if (!ProcessJointMap(map, a.StartTime, a.Loop, a.Reverse))
+				if (!ProcessJointMap(ref a.Script.JointMaps[i], a.StartTime, a.Loop, a.Reverse))
 					finished = false;
 			}
 			return finished;
 		}
-        
 
-		bool ProcessObjectMap(ObjectMap om, double startTime, bool loop)
+
+		bool ProcessObjectMap(ref ObjectMap om, double startTime, bool loop)
 		{
 			return false;
 		}
 
-		bool ProcessJointMap(JointMap jm, double startTime, bool loop, bool reverse)
+		bool ProcessJointMap(ref JointMap jm, double startTime, bool loop, bool reverse)
         {
             var mdl = Parent == null ? rm : Parent.RigidModel;
             var joint = mdl.Parts[jm.ChildName].Construct;
@@ -217,7 +217,7 @@ namespace LibreLancer.World.Components
 				else
 					t = t % jm.Channel.Duration;
 			}
-            if (reverse) 
+            if (reverse)
                 t = jm.Channel.Duration - t;
             float angle = 0;
             if (jm.Channel.HasAngle) angle = jm.Channel.AngleAtTime((float) t);
