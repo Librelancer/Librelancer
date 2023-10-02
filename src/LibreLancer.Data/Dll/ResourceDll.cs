@@ -56,7 +56,7 @@ namespace LibreLancer.Dll
             public uint Locale;
             public ArraySegment<byte> Data;
         }
-        
+
         const uint RT_RCDATA = 23;
         const uint RT_VERSION = 16;
         const uint RT_STRING = 6;
@@ -72,10 +72,10 @@ namespace LibreLancer.Dll
         public VersionInfoResource VersionInfo;
 
         public string SavePath;
-        
+
         public static ResourceDll FromFile(string path, FileSystem vfs = null)
         {
-            if (path == null) 
+            if (path == null)
                 throw new ArgumentNullException(nameof(path));
             if (vfs == null)
             {
@@ -180,7 +180,7 @@ namespace LibreLancer.Dll
             }
             return dll;
         }
-        
+
 
         static int DirOffset(uint a) => (int)(a & 0x7FFFFFFF);
 
@@ -204,10 +204,6 @@ namespace LibreLancer.Dll
                         if((IMAGE_RESOURCE_DATA_IS_DIRECTORY & langEntry.OffsetToData) == IMAGE_RESOURCE_DATA_IS_DIRECTORY)
                             throw new Exception("Malformed .rsrc section");
                         var dataEntry = Struct<IMAGE_RESOURCE_DATA_ENTRY>(rsrc, (int) langEntry.OffsetToData);
-                        var doff = ((int) dataEntry.OffsetToData - rsrcOffset);
-                        if (doff >= rsrc.Length || doff + dataEntry.Size >= rsrc.Length || doff < 0) {
-                            Console.WriteLine("aaa");
-                        }
                         var dat = new ArraySegment<byte>(rsrc, (int)dataEntry.OffsetToData - rsrcOffset, (int)dataEntry.Size);
                         res.Locales.Add(new ResourceData() {Locale = langEntry.Name, Data = dat});
                     }
@@ -233,7 +229,7 @@ namespace LibreLancer.Dll
                 handle.Free();
             }
         }
-        
+
         static (int, byte[]) ReadPE(Stream stream)
         {
             using (var pe = new PEReader(stream))

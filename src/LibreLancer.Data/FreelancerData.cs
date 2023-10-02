@@ -80,7 +80,6 @@ namespace LibreLancer.Data
 
         public bool LoadDacom = true;
 
-        public List<Missions.MissionIni> Missions = new List<Missions.MissionIni>();
         static readonly string[] missionFiles = new string[]
         {
             "MISSIONS\\M01A\\m01a.ini",
@@ -99,7 +98,25 @@ namespace LibreLancer.Data
             "MISSIONS\\M13\\M13.ini"
         };
 
+        public int MissionCount => missionFiles.Length;
+
         public SpecificNPCIni SpecificNPCs;
+
+        public MissionIni LoadMissionIni(int index)
+        {
+            var msn = missionFiles[index];
+            if (VFS.FileExists(Freelancer.DataPath + msn))
+            {
+                var m = new MissionIni(Freelancer.DataPath + msn, VFS);
+                if (m.Info?.NpcShipFile != null)
+                {
+                    m.ShipIni = new NPCShipIni(Freelancer.DataPath + m.Info.NpcShipFile, VFS);
+                }
+                return m;
+            }
+            return null;
+        }
+
 
         public FreelancerData (FreelancerIni fli, FileSystem vfs)
         {
@@ -309,19 +326,6 @@ namespace LibreLancer.Data
             }));
             tasks.Add(Task.Run(() =>
             {
-                foreach (var msn in missionFiles)
-                {
-                    if (VFS.FileExists(Freelancer.DataPath + msn))
-                    {
-                        var m = new MissionIni(Freelancer.DataPath + msn, VFS);
-                        if (m.Info?.NpcShipFile != null)
-                        {
-                            m.ShipIni = new NPCShipIni(Freelancer.DataPath + m.Info.NpcShipFile, VFS);
-                        }
-                        Missions.Add(m);
-                    }
-                }
-
                 if (VFS.FileExists(Freelancer.DataPath + "missions\\npcships.ini"))
                     NPCShips = new NPCShipIni(Freelancer.DataPath + "missions\\npcships.ini", VFS);
             }));

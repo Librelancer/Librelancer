@@ -683,9 +683,9 @@ namespace LibreLancer.Server
 
         void LoadMission()
         {
-            if (currentMissionNumber != 0 && (currentMissionNumber - 1) < Game.GameData.Ini.Missions.Count)
+            if (currentMissionNumber != 0 && (currentMissionNumber - 1) < Game.GameData.Ini.MissionCount)
             {
-                msnRuntime = new MissionRuntime(Game.GameData.Ini.Missions[currentMissionNumber - 1], this, loadTriggers);
+                msnRuntime = new MissionRuntime(Game.GameData.Ini.LoadMissionIni(currentMissionNumber - 1), this, loadTriggers);
                 msnRuntime.Update(0.0);
             }
         }
