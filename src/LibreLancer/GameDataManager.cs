@@ -426,7 +426,8 @@ namespace LibreLancer
             }
             if(onIniLoaded != null) ui.QueueUIThread(onIniLoaded);
             var tasks = new LoadingTasks();
-            tasks.Begin(() => GetCharacterAnimations());
+            if(glResource != null)
+                tasks.Begin(() => GetCharacterAnimations());
             var pilotTask = tasks.Begin(InitPilots);
             var explosionTask = tasks.Begin(InitExplosions);
             var ships = tasks.Begin(InitShips, explosionTask);
