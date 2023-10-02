@@ -82,10 +82,12 @@ namespace LibreLancer
             if (characterAnimations == null)
             {
                 characterAnimations = new AnmFile();
+                var stringTable = new StringDeduplication();
                 foreach (var file in fldata.Bodyparts.Animations)
                 {
-                    AnmFile.ParseToTable(characterAnimations.Scripts, ResolveDataPath(file));
+                    AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, ResolveDataPath(file));
                 }
+                characterAnimations.Buffer.Shrink();
             }
             return characterAnimations;
         }

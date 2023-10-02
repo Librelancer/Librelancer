@@ -12,17 +12,18 @@ namespace LibreLancer.Utf.Anm
 {
     public class AnmFile : UtfFile
     {
+        public AnmBuffer Buffer = new AnmBuffer();
         //Optimisation to avoid some copying
-        public static void ParseToTable(Dictionary<string, Script> table, string path)
+        public static void ParseToTable(Dictionary<string, Script> table, AnmBuffer buffer, StringDeduplication strings, string path)
         {
-            var anm = new AnmFile();
+            var anm = new AnmFile() {Buffer = buffer};
             anm.Scripts = table;
             foreach (IntermediateNode node in parseFile(path))
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "animation":
-                        anm.Load(node, null);
+                        anm.Load(node, strings, null);
                         break;
                     default: throw new Exception("Invalid Node in anm root: " + node.Name);
                 }
@@ -32,12 +33,13 @@ namespace LibreLancer.Utf.Anm
 
         public AnmFile(string path)
         {
+            var table = new StringDeduplication();
             foreach (IntermediateNode node in parseFile(path))
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "animation":
-                        Load(node, null);
+                        Load(node, table, null);
                         break;
                     default: throw new Exception("Invalid Node in anm root: " + node.Name);
                 }
@@ -51,14 +53,16 @@ namespace LibreLancer.Utf.Anm
 
         public AnmFile(IntermediateNode root, ConstructCollection constructs)
         {
-            Load(root, constructs);
+            Load(root, new StringDeduplication(), constructs);
+            Buffer.Shrink();
         }
         public AnmFile(Stream stream)
         {
             var utf = parseFile("stream", stream);
-            Load(utf, null);
+            Load(utf, new StringDeduplication(), null);
+            Buffer.Shrink();
         }
-        void Load(IntermediateNode root, ConstructCollection constructs)
+        void Load(IntermediateNode root, StringDeduplication strings, ConstructCollection constructs)
         {
             if(Scripts == null) Scripts = new Dictionary<string, Script>(root.Count, StringComparer.OrdinalIgnoreCase);
             foreach (Node node in root)
@@ -67,7 +71,7 @@ namespace LibreLancer.Utf.Anm
                 {
                     foreach (IntermediateNode scNode in (IntermediateNode)node)
                     {
-                        Scripts[scNode.Name] = new Script(scNode, constructs);
+                        Scripts[scNode.Name] = new Script(scNode, Buffer, strings);
                     }
                 }
             }

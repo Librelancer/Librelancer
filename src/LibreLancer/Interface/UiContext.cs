@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using SharpDX.MediaFoundation;
 
 namespace LibreLancer.Interface
 {
@@ -60,7 +61,7 @@ namespace LibreLancer.Interface
             game.Mouse.MouseDown += MouseOnMouseDown;
             game.Mouse.MouseUp += MouseOnMouseUp;
             game.Mouse.MouseDoubleClick += MouseOnDoubleClick;
-            CommandBuffer = new CommandBuffer();
+            CommandBuffer = game.Commands;
         }
 
         public string GetClipboardText()

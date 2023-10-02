@@ -33,8 +33,9 @@ namespace LibreLancer.Utf.Anm
         private const uint ANGLES = 0x00100000;
 
         private uint header = 0;
+        private int startIdx = 0;
 
-        private byte[] channelData;
+        private AnmBuffer buffer;
 
         public int FrameCount { get; private set; }
 		public float Interval { get; private set; }
@@ -97,8 +98,8 @@ namespace LibreLancer.Utf.Anm
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if (Interval >= 0)
                 return 0;
-            var offset = ((header & STRIDE_MASK) * index);
-            fixed (byte* ptr = channelData)
+            var offset = GetOffset(index, 0, 0);
+            fixed (byte* ptr = buffer.Buffer)
                 return *(float*) (&ptr[offset]);
         }
 
@@ -107,8 +108,8 @@ namespace LibreLancer.Utf.Anm
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if ((header & ANGLES) == 0)
                 return 0;
-            var offset = ((header & STRIDE_MASK) * index) + (Interval > 0 ? 4 : 0);
-            fixed (byte* ptr = channelData)
+            var offset = GetOffset(index, 0, 0) + (Interval < 0 ? 4 : 0);
+            fixed (byte* ptr = buffer.Buffer)
                 return *(float*) (&ptr[offset]);
         }
 
@@ -117,7 +118,7 @@ namespace LibreLancer.Utf.Anm
         {
             var stride = (header & STRIDE_MASK);
             var off = (header & mask) >> shift;
-            return (int) (stride * index + off);
+            return startIdx + (int) (stride * index + off);
         }
 
 
@@ -127,7 +128,7 @@ namespace LibreLancer.Utf.Anm
             if ((header & VEC_TYPE_MASK) != TYPE_VEC3)
                 return Vector3.Zero;
             var offset = GetOffset(index, VEC_OFFSET_MASK, 5);
-            fixed (byte* ptr = channelData)
+            fixed (byte* ptr = buffer.Buffer)
                 return *(Vector3*) (&ptr[offset]);
         }
 
@@ -136,7 +137,6 @@ namespace LibreLancer.Utf.Anm
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             var offset = GetOffset(index, QUAT_OFFSET_MASK, 12);
-            //var offset = (int) ((header & STRIDE_MASK) * index + (header & QUAT_OFFSET_MASK) >> 12);
             switch (header & QUAT_TYPE_MASK)
             {
                 case QUAT_TYPE_FULL:
@@ -155,7 +155,7 @@ namespace LibreLancer.Utf.Anm
 
         unsafe Quaternion GetFullQuat(int offset)
         {
-            fixed (byte* ptr = channelData)
+            fixed (byte* ptr = buffer.Buffer)
             {
                 float* flt = (float*) (&ptr[offset]);
                 return new Quaternion(flt[1], flt[2], flt[3], flt[0]);
@@ -164,7 +164,7 @@ namespace LibreLancer.Utf.Anm
 
         unsafe Quaternion GetQuat0x40(int offset)
         {
-            fixed (byte* ptr = channelData)
+            fixed (byte* ptr = buffer.Buffer)
             {
                 short* sh = (short*) (&ptr[offset]);
                 var ha = new Vector3(
@@ -184,7 +184,7 @@ namespace LibreLancer.Utf.Anm
 
         unsafe Quaternion GetQuat0x80(int offset)
         {
-            fixed (byte* ptr = channelData)
+            fixed (byte* ptr = buffer.Buffer)
             {
                 short* sh = (short*) (&ptr[offset]);
                 var ha = new Vector3(
@@ -278,10 +278,11 @@ namespace LibreLancer.Utf.Anm
         }
 
 
-		public Channel(IntermediateNode root)
+		public Channel(IntermediateNode root, AnmBuffer buffer)
 		{
             //Fetch from nodes
-            byte[] cdata = null;
+            this.buffer = buffer;
+            ArraySegment<byte> cdata = new ArraySegment<byte>();
             int channelType = 0;
 			foreach (LeafNode channelSubNode in root)
 			{
@@ -289,7 +290,7 @@ namespace LibreLancer.Utf.Anm
                     channelType = ReadHeader(channelSubNode);
                 else if (channelSubNode.Name.Equals("frames", StringComparison.OrdinalIgnoreCase))
                 {
-                    cdata = channelSubNode.ByteArrayData;
+                    cdata = channelSubNode.DataSegment;
                 }
             }
             /* Pad data to avoid ARM data alignment errors */
@@ -301,16 +302,18 @@ namespace LibreLancer.Utf.Anm
                 if((channelType & 0x2) == 0x2) startStride += 12;
                 int fullStride = startStride + 8;
                 int compStride = startStride + 6;
-                channelData = new byte[fullStride * FrameCount];
+                startIdx = buffer.Take(fullStride * FrameCount);
+                //channelData = new byte[fullStride * FrameCount];
                 for(int i = 0; i < FrameCount; i++) {
                     int src = compStride * i;
-                    int dst = fullStride * i;
+                    int dst = startIdx + fullStride * i;
                     for(int j = 0; j < compStride; j++) {
-                        channelData[dst + j] = cdata[src + j];
+                        buffer.Buffer[dst + j] = cdata[src + j];
                     }
                 }
             } else {
-                channelData = cdata;
+                startIdx = buffer.Take(cdata.Count);
+                cdata.CopyTo(buffer.Buffer, startIdx);
             }
 
             int stride = 0;

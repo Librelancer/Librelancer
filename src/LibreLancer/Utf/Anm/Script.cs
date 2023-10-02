@@ -16,7 +16,7 @@ namespace LibreLancer.Utf.Anm
 		public ObjectMap[] ObjectMaps { get; private set; }
 		public JointMap[] JointMaps { get; private set; }
 
-        public Script(IntermediateNode root, ConstructCollection constructs)
+        public Script(IntermediateNode root, AnmBuffer buffer, StringDeduplication strings)
         {
             Name = root.Name;
 			var om = new List<ObjectMap>();
@@ -29,9 +29,9 @@ namespace LibreLancer.Utf.Anm
                     RootHeight = (node as LeafNode).SingleData.Value;
                 }
 				else if (node.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
-					om.Add(new ObjectMap(node as IntermediateNode));
+					om.Add(new ObjectMap(node as IntermediateNode, buffer, strings));
 				else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
-                    jm.Add(new JointMap(node as IntermediateNode));
+                    jm.Add(new JointMap(node as IntermediateNode, buffer, strings));
                 else
                 {
                     FLLog.Warning("Anm", $"{root.Name}: invalid node {node.Name}, possible broken animation?");

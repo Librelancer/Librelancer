@@ -28,17 +28,19 @@ namespace LancerEdit
             catch (Exception)
             {
                 return null;
-            }   
+            }
         }
-        
+
         private JointMapView(LUtfNode node)
         {
             unique = uniqueCount--;
             name = node.Name;
             scriptName = node.Parent.Name;
-            map = new JointMap(EditableUtf.NodeToEngine(node));
+            var b = new AnmBuffer();
+            map = new JointMap(EditableUtf.NodeToEngine(node), b);
+            b.Shrink();
         }
-        
+
         private bool open = true;
         public bool Draw()
         {
@@ -102,6 +104,6 @@ namespace LancerEdit
                 return false;
             return open;
         }
-        
+
     }
 }
