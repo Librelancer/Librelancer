@@ -30,20 +30,6 @@ namespace LibreLancer.World.Components
         public PhysicsComponent(GameObject parent) : base(parent)
         {
         }
-        public void ChildDebris(GameObject parent, RigidModelPart part, float mass, Vector3 initialforce)
-        {
-            var cp = new PhysicsComponent(parent) {
-                SurPath = this.SurPath,
-                Mass = mass,
-                PlainCrc = CrcTool.FLModelCrc(part.Name),
-            };
-            DisablePart(part);
-            parent.PhysicsComponent = cp;
-            cp.Register(pworld);
-            cp.Body.Impulse(initialforce);
-            parent.Components.Add(cp);
-        }
-
 
         bool partRemoved = false;
         public void DisablePart(RigidModelPart part)
