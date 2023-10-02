@@ -290,7 +290,7 @@ namespace LibreLancer.Shaders
             if (GLExtensions.Features430)
                 prelude = "#version 430\n#define FEATURES430\n";
             else if (RenderContext.GLES)
-                prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n";
+                prelude = "#version 310 es\n#extension GL_OES_shader_io_blocks: require\n#extension GL_OES_geometry_shader: require\nprecision highp float;\nprecision highp int;\n";
             else
                 prelude = "#version 150\n";
             if(geometry != null)
