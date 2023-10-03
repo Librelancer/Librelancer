@@ -25,6 +25,8 @@ namespace LibreLancer
         private int minIndex = 0;
         private int minFree = 0;
 
+        public int MaxValue { get; private set; }
+
         public bool TryAllocate(out int allocated)
         {
             for (int i = minFree; i < bits.Length; i++)
@@ -38,6 +40,8 @@ namespace LibreLancer
                     minIndex = Math.Min(minIndex, i);
                     minFree = bits[i] == 0 ? i + 1 : i;
                     Count++;
+                    if((allocated + 1) > MaxValue)
+                        MaxValue = (allocated + 1);
                     return true;
                 }
             }
@@ -51,6 +55,8 @@ namespace LibreLancer
                 maxIndex = Math.Max(maxIndex, i);
                 minIndex = Math.Min(minIndex, i);
                 Count++;
+                if((allocated + 1) > MaxValue)
+                    MaxValue = (allocated + 1);
                 return true;
             }
             allocated = -1;
@@ -138,6 +144,31 @@ namespace LibreLancer
                 if (minIndex == index) minIndex++;
                 if (maxIndex <= 0) maxIndex = 0;
                 if (minIndex <= 0) minIndex = 0;
+            }
+
+            if (Count == 0)
+                MaxValue = 0;
+            else if((id + 1) == MaxValue) {
+                if(maxIndex == 0 && bits[0] == uint.MaxValue)
+                    MaxValue = 0;
+                else
+                {
+                    bool set = false;
+                    for (int j = maxIndex; j >= 0; j--)
+                    {
+                        if (bits[j] == uint.MaxValue)
+                            continue;
+                        for(int i = 31; i >= 0; i--) {
+                            if ((bits[j] & (1U << i)) == 0) {
+                                MaxValue = (j << 5) + i + 1;
+                                set = true;
+                                break;
+                            }
+                        }
+                        if (set)
+                            break;
+                    }
+                }
             }
         }
     }

@@ -72,8 +72,11 @@ namespace LibreLancer.World
         public void Remove(GameObject obj)
         {
             if (LeadShip == obj) {
-                LeadShip = Followers[0];
-                _followers.RemoveAt(0);
+                if (Followers.Count > 0)
+                {
+                    LeadShip = Followers[0];
+                    _followers.RemoveAt(0);
+                }
             }
             else
             {

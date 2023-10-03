@@ -59,7 +59,13 @@ namespace LibreLancer.Physics
         {
             BufferPool = new BufferPool();
             ConvexCollection = convexCollection;
-            threadDispatcher = new ThreadDispatcher(Math.Clamp(Environment.ProcessorCount / 2, 1, 8));
+            //We are already running multiple PhysicsWorld instances and tasks on other cores.
+            //Reserve at least 4 cores for game threads, only use excess.
+            //Particularly on raspberry pi the cost of dispatch is too high.
+            int threadCount = Math.Clamp((Environment.ProcessorCount - 4) / 2, 1, 4);
+            if(threadCount > 1) {
+                threadDispatcher = new ThreadDispatcher(threadCount);
+            }
             contactEvents = new ContactEvents.ContactEvents(threadDispatcher, BufferPool);
             Simulation = Simulation.Create(BufferPool,
                 new ContactEventCallbacks(contactEvents, this, 300),
@@ -393,8 +399,8 @@ namespace LibreLancer.Physics
             dampings.Dispose();
             contactEvents.Dispose();
             Simulation.Dispose();
-            threadDispatcher.Dispose();
             BufferPool.Clear();
+            threadDispatcher?.Dispose();
         }
     }
 }

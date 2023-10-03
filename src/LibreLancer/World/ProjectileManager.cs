@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Fx;
@@ -14,8 +15,7 @@ namespace LibreLancer.World
     public class ProjectileManager
     {
         public Projectile[] Projectiles = new Projectile[16384];
-
-        int projectilePtr = 0;
+        private IdPool ids = new IdPool(16384 / 32, false);
 
         GameWorld world;
         public ProjectileManager(GameWorld world)
@@ -26,7 +26,7 @@ namespace LibreLancer.World
         public void Update(double time)
         {
             var tFloat = (float)time;
-            for(int i = 0; i < Projectiles.Length; i++) {
+            for(int i = 0; i < ids.MaxValue; i++) {
                 if (!Projectiles[i].Alive) continue;
                 var length = Projectiles[i].Normal.Length() * tFloat;
                 var dir = Projectiles[i].Normal.Normalized();
@@ -52,6 +52,7 @@ namespace LibreLancer.World
                 if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
                     Projectiles[i].Alive = false;
                     Projectiles[i].Effect = null;
+                    ids.Free(i);
                 }
             }
 
@@ -159,8 +160,9 @@ namespace LibreLancer.World
 
         public void SpawnProjectile(GameObject owner, string hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
-            if (projectilePtr == 16383) projectilePtr = 0;
-            Projectiles[projectilePtr] = new Projectile() {
+            if (!ids.TryAllocate(out int ptr))
+                throw new Exception("Projectile overflow");
+            Projectiles[ptr] = new Projectile() {
                 Data = projectile,
                 Owner = owner,
                 Time = 0,
@@ -171,9 +173,8 @@ namespace LibreLancer.World
             };
             PlayProjectileSound(owner, projectile.Munition.Def.OneShotSound, position, hardpoint);
             if (world.Renderer != null && projectile.TravelEffect != null) {
-                Projectiles[projectilePtr].Effect = new ParticleEffectInstance(projectile.TravelEffect);
+                Projectiles[ptr].Effect = new ParticleEffectInstance(projectile.TravelEffect);
             }
-            projectilePtr++;
         }
     }
     public class ProjectileData

@@ -4,15 +4,13 @@
   </ImportGroup>
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+  <PropertyGroup>
+     <ReferencedConfiguration>$(Configuration)</ReferencedConfiguration>
+     <ReferencedConfiguration Condition="'$(Configuration)' == 'Release'">ReleaseNoProfiling</ReferencedConfiguration>
+   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
@@ -28,6 +26,16 @@
     <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj" />
     <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\extern\bepuphysics2\BepuPhysics\BepuPhysics.csproj">
+      <SetConfiguration>Configuration=$(ReferencedConfiguration)</SetConfiguration>
+    </ProjectReference>
+    <ProjectReference Include="..\..\extern\bepuphysics2\BepuUtilities\BepuUtilities.csproj">
+      <SetConfiguration>Configuration=$(ReferencedConfiguration)</SetConfiguration>
+    </ProjectReference>
+  </ItemGroup>
+
 
   <PropertyGroup>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
