@@ -35,10 +35,10 @@
      <ReferencedConfiguration Condition="'$(Configuration)' == 'Release'">ReleaseNoProfiling</ReferencedConfiguration>
    </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\extern\bepuphysics2\BepuPhysics\BepuPhysics.csproj">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\..\extern\bepuphysics2\BepuPhysics\BepuPhysics.csproj">
       <SetConfiguration>Configuration=$(ReferencedConfiguration)</SetConfiguration>
     </ProjectReference>
-    <ProjectReference Include="..\..\extern\bepuphysics2\BepuUtilities\BepuUtilities.csproj">
+    <ProjectReference Include="$(MSBuildThisFileDirectory)\..\..\extern\bepuphysics2\BepuUtilities\BepuUtilities.csproj">
       <SetConfiguration>Configuration=$(ReferencedConfiguration)</SetConfiguration>
     </ProjectReference>
   </ItemGroup>
