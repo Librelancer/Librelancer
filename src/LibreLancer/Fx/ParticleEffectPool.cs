@@ -1,7 +1,7 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -261,7 +261,7 @@ namespace LibreLancer.Fx
                 beams[i].DrawBeams(polyline, debug, beams[i].DrawTransform, beams[i].DrawSParam);
             }
         }
-        
+
         int GetAppFxIdx(ParticleEffectInstance instance, FxAppearance a, int index)
         {
             if (instance.FrameNumber != fNo) {
@@ -294,6 +294,7 @@ namespace LibreLancer.Fx
             int index)
         {
             var idx = GetAppFxIdx(instance, appearance, index);
+            if (idx == -1) return;
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count)) return;
             var right = Vector3.Cross(normal, Vector3.UnitY);
             var up = Vector3.Cross(right, normal);
@@ -319,16 +320,17 @@ namespace LibreLancer.Fx
         )
         {
             var idx = GetAppFxIdx(instance, appearance, index);
+            if (idx == -1) return;
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count)) return;
             CreateQuad(
-                ref bufspace[idx].Current, 
+                ref bufspace[idx].Current,
                 Position, size, color, angle, texture, frame,
                 camera.View.GetRight(), camera.View.GetUp()
             );
         }
 
         public void DrawRect(
-            ParticleEffectInstance instance, 
+            ParticleEffectInstance instance,
             FxBasicAppearance appearance,
             ParticleTexture texture,
             Vector3 Position,
@@ -341,6 +343,7 @@ namespace LibreLancer.Fx
         )
         {
             var idx = GetAppFxIdx(instance, appearance, index);
+            if (idx == -1) return;
             if (bufspace[idx].Current == (bufspace[idx].Start + bufspace[idx].Count)) return;
             var up = normal;
             var toCamera = (camera.Position - Position).Normalized();

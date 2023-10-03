@@ -239,8 +239,9 @@ namespace LibreLancer.Physics
 
         public void FinishUpdatePart()
         {
-            if (Handle.Exists && refinementCounter != lastRefinement) {
-                BepuBigCompound().Tree.RefitAndRefine(pool, refinementCounter++);
+            if (Handle.Exists && refinementCounter != lastRefinement)
+            {
+                BepuBigCompound().Tree.Refit();
                 lastRefinement = refinementCounter;
             }
         }
