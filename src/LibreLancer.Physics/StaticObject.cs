@@ -35,6 +35,13 @@ internal class StaticObject : PhysicsObject
         BepuObject.UpdateBounds();
     }
 
+    public override void SetOrientation(Quaternion orientation)
+    {
+        BepuObject.Pose.Orientation = orientation;
+        BepuObject.UpdateBounds();
+        Transform = BepuObject.Pose.ToMatrix();
+    }
+
     public override Vector3 AngularVelocity
     {
         get => Vector3.Zero;

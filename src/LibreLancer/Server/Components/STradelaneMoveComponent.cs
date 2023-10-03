@@ -127,7 +127,7 @@ namespace LibreLancer.Server.Components
             Parent.PhysicsComponent.Body.LinearVelocity = direction * speed;
             Parent.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
             var targetRot = QuaternionEx.LookAt(sourcePoint, targetPoint);
-            Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(targetRot) * Matrix4x4.CreateTranslation(Parent.PhysicsComponent.Body.Position),true);
+            Parent.PhysicsComponent.Body.SetOrientation(targetRot);
         }
 
         private Vector3 CalculateCurrentTradelane()

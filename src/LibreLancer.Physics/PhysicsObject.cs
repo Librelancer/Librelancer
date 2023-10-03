@@ -21,6 +21,8 @@ namespace LibreLancer.Physics
         public abstract bool Active { get; }
         public Collider Collider { get; internal set;  }
 
+        public abstract void SetOrientation(Quaternion orientation);
+
 
         public abstract Matrix4x4 Transform { get; protected set; }
 
