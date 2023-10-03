@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using LibreLancer.Client.Components;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
@@ -215,11 +215,51 @@ namespace LibreLancer.World
 		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
 		//Components
 		public List<GameObject> Children = new List<GameObject>();
-		public List<GameComponent> Components = new List<GameComponent>();
         public Data.Solar.CollisionGroup[] CollisionGroups;
-		public ObjectRenderer RenderComponent;
-		public PhysicsComponent PhysicsComponent;
-		public AnimationComponent AnimationComponent;
+		public ObjectRenderer RenderComponent { get; set; }
+		public PhysicsComponent PhysicsComponent { get; private set; }
+		public AnimationComponent AnimationComponent { get; set; }
+
+
+        private Dictionary<Type, GameComponent> componentLookup = new Dictionary<Type, GameComponent>();
+        private List<GameComponent> components = new List<GameComponent>();
+        public void AddComponent<T>(T component) where T: GameComponent
+        {
+            componentLookup.TryAdd(typeof(T), component);
+            components.Add(component);
+            if (typeof(T).BaseType != typeof(GameComponent)) {
+                componentLookup.TryAdd(typeof(T).BaseType, component);
+            }
+        }
+
+        public bool TryGetComponent<T>(out T component) where T : GameComponent
+        {
+            if (componentLookup.TryGetValue(typeof(T), out var c))
+            {
+                component = Unsafe.As<T>(c);
+                return true;
+            }
+            component = null;
+            return false;
+        }
+
+        public T GetComponent<T>() where T : GameComponent
+        {
+            TryGetComponent(out T c);
+            return c;
+        }
+
+
+        public void RemoveComponent<T>(T component) where T : GameComponent
+        {
+            components.Remove(component);
+            componentLookup.Remove(typeof(T));
+            if (typeof(T).BaseType != typeof(GameComponent))
+            {
+                componentLookup.Remove(typeof(T).BaseType);
+            }
+        }
+
 		public SystemObject SystemObject;
         public RigidModel RigidModel;
 
@@ -304,7 +344,7 @@ namespace LibreLancer.World
                     Mass = mass,
                     PlainCrc = plainCrc
                 };
-                Components.Add(PhysicsComponent);
+                AddComponent(PhysicsComponent);
             }
         }
 		public void UpdateCollision()
@@ -397,13 +437,13 @@ namespace LibreLancer.World
                 if (RigidModel.Animation != null)
                 {
                     AnimationComponent = new AnimationComponent(this, RigidModel.Animation);
-                    Components.Add(AnimationComponent);
+                    AddComponent(AnimationComponent);
                 }
 			}
             if (havePhys && phys != null)
             {
                 PhysicsComponent = phys;
-                Components.Add(phys);
+                AddComponent(phys);
             }
             PopulateHardpoints();
             if (draw && RigidModel != null)
@@ -444,20 +484,6 @@ namespace LibreLancer.World
                 }
             }
         }
-
-        public bool TryGetComponent<T>(out T component) where T : GameComponent
-        {
-            component = GetComponent<T>();
-            return (component != null);
-        }
-
-		public T GetComponent<T>() where T : GameComponent
-		{
-            for (int i = 0; i < Components.Count; i++)
-                if (Components[i] is T component)
-                    return component;
-			return null;
-		}
 
         public T GetFirstChildComponent<T>() where T : GameComponent
         {
@@ -518,8 +544,8 @@ namespace LibreLancer.World
         {
             for (int i = 0; i < Children.Count; i++)
 				Children[i].Update(time);
-			for (int i = 0; i < Components.Count; i++)
-				Components[i].Update(time);
+			for (int i = 0; i < components.Count; i++)
+				components[i].Update(time);
 		}
 
         public void RenderUpdate(double time)
@@ -536,7 +562,7 @@ namespace LibreLancer.World
         {
 			foreach (var child in Children)
 				child.Register(physics);
-			foreach (var component in Components)
+			foreach (var component in components)
 				component.Register(physics);
             Flags |= GameObjectFlags.Exists;
 		}
@@ -571,7 +597,7 @@ namespace LibreLancer.World
 
 		public void Unregister(PhysicsWorld physics)
         {
-            foreach (var component in Components)
+            foreach (var component in components)
                 component.Unregister(physics);
 			foreach (var child in Children)
 				child.Unregister(physics);
@@ -603,8 +629,6 @@ namespace LibreLancer.World
 		{
 			return hardpoints.Values;
 		}
-
-
 
 		public override string ToString()
 		{

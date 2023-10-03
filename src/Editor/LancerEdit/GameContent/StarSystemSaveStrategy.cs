@@ -11,7 +11,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
 {
     private SystemEditorTab tab;
     public StarSystemSaveStrategy(SystemEditorTab tab) => this.tab = tab;
-    
+
     public void Save()
     {
         bool writeUniverse = tab.SystemData.IsUniverseDirty();
@@ -25,7 +25,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
                 {
                     tab.CurrentSystem.Objects.Add(item.SystemObject);
                 }
-                item.Components.Remove(dat);
+                item.RemoveComponent(dat);
             }
         }
         if(tab.ZoneList.Dirty)

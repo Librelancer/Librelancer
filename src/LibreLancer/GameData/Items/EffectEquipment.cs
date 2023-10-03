@@ -28,7 +28,7 @@ namespace LibreLancer.GameData.Items
                 if (e.Particles != null)
                 {
                     obj.RenderComponent = new ParticleEffectRenderer(e.Particles.GetEffect(res));
-                    obj.Components.Add(new CUpdateSParamComponent(obj));
+                    obj.AddComponent(new CUpdateSParamComponent(obj));
                 }
             }
             return obj;

@@ -87,12 +87,12 @@ namespace LibreLancer.World
                 {
                     if (server)
                     {
-                        g.Components.Add(new SDockableComponent(g, arch.DockSpheres.ToArray())
+                        g.AddComponent(new SDockableComponent(g, arch.DockSpheres.ToArray())
                         {
                             Action = obj.Dock,
                         });
                     }
-                    g.Components.Add(new CDockComponent(g)
+                    g.AddComponent(new CDockComponent(g)
                     {
                         Action = obj.Dock,
                         DockAnimation = arch.DockSpheres[0].Script,
@@ -104,9 +104,9 @@ namespace LibreLancer.World
 
             if (server)
             {
-                g.Components.Add(new SHealthComponent(g) {InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100});
+                g.AddComponent(new SHealthComponent(g) {InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100});
                 if (arch.IsUpdatableSolar() || obj.Faction != null)
-                    g.Components.Add(new SSolarComponent(g) { Faction = obj.Faction });
+                    g.AddComponent(new SSolarComponent(g) { Faction = obj.Faction });
             }
 
             g.Register(Physics);
@@ -138,7 +138,7 @@ namespace LibreLancer.World
                 var g = new GameObject();
                 g.Resources = res;
                 g.World = this;
-                g.Components.Add(new AsteroidFieldComponent(field, res, g));
+                g.AddComponent(new AsteroidFieldComponent(field, res, g));
                 AddObject(g);
                 g.Register(Physics);
             }

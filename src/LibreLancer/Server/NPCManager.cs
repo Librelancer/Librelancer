@@ -80,12 +80,12 @@ namespace LibreLancer.Server
             obj.Name = name;
             obj.Nickname = nickname;
             obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orient) * Matrix4x4.CreateTranslation(position));
-            obj.Components.Add(new SHealthComponent(obj)
+            obj.AddComponent(new SHealthComponent(obj)
             {
                 CurrentHealth = ship.Hitpoints,
                 MaxHealth = ship.Hitpoints
             });
-            obj.Components.Add(new SFuseRunnerComponent(obj) { DamageFuses = ship.Fuses });
+            obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = ship.Fuses });
             foreach (var equipped in loadout.Items)
             {
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,
@@ -94,17 +94,17 @@ namespace LibreLancer.Server
             }
             var cargo = new SNPCCargoComponent(obj);
             cargo.Cargo.AddRange(loadout.Cargo);
-            obj.Components.Add(cargo);
+            obj.AddComponent(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
             var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
-            obj.Components.Add(new SelectedTargetComponent(obj));
-            obj.Components.Add(npcComponent);
-            obj.Components.Add(new AutopilotComponent(obj));
-            obj.Components.Add(new ShipSteeringComponent(obj));
-            obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = ship });
-            obj.Components.Add(new WeaponControlComponent(obj));
+            obj.AddComponent(new SelectedTargetComponent(obj));
+            obj.AddComponent(npcComponent);
+            obj.AddComponent(new AutopilotComponent(obj));
+            obj.AddComponent(new ShipSteeringComponent(obj));
+            obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = ship });
+            obj.AddComponent(new WeaponControlComponent(obj));
             World.OnNPCSpawn(obj);
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;

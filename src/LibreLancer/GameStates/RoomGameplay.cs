@@ -520,8 +520,8 @@ namespace LibreLancer
             if (session.PlayerShip != null)
             {
                 var shp = Game.GameData.Ships.Get(session.PlayerShip);
-                playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager);
-                playerShip.PhysicsComponent = null;
+                playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true,
+                    false);
                 CreatePlayerEquipment();
             }
             else
@@ -609,7 +609,7 @@ namespace LibreLancer
                 obj.RenderComponent = new CharacterRenderer(skel);
                 var anmComponent = new AnimationComponent(obj, Game.GameData.GetCharacterAnimations());
                 obj.AnimationComponent = anmComponent;
-                obj.Components.Add(anmComponent);
+                obj.AddComponent(anmComponent);
                 string spot = npc.Spot;
                 if (string.IsNullOrEmpty(spot)) {
                     spot = ct.Reserves[0].Spot[position++];
@@ -731,8 +731,7 @@ namespace LibreLancer
                 }
                 var toSellShip = Game.GameData.Ships.Get(ships[i]);
                 //Set up object
-                var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager) { Parent = marker.Object };
-                obj.PhysicsComponent = null;
+                var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true, false) { Parent = marker.Object };
                 marker.Object.Children.Add(obj);
                 if(obj.HardpointExists("HpMount"))
                 {

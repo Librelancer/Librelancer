@@ -109,22 +109,22 @@ World Time: {12:F2}
             pilotcomponent = new AutopilotComponent(player);
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
-            player.Components.Add(Selection);
+            player.AddComponent(Selection);
             //Order components in terms of inputs (very important)
-            player.Components.Add(pilotcomponent);
-            player.Components.Add(shipInput);
+            player.AddComponent(pilotcomponent);
+            player.AddComponent(shipInput);
             //takes input from pilot and shipinput
-            player.Components.Add(steering);
+            player.AddComponent(steering);
             //takes input from steering
-            player.Components.Add(control);
-            player.Components.Add(weapons);
-            player.Components.Add(new CExplosionComponent(player, shp.Explosion));
-            player.Components.Add(new CPlayerCargoComponent(player, session));
+            player.AddComponent(control);
+            player.AddComponent(weapons);
+            player.AddComponent(new CExplosionComponent(player, shp.Explosion));
+            player.AddComponent(new CPlayerCargoComponent(player, session));
             player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
             playerHealth = new CHealthComponent(player);
             playerHealth.MaxHealth = shp.Hitpoints;
             playerHealth.CurrentHealth = shp.Hitpoints;
-            player.Components.Add(playerHealth);
+            player.AddComponent(playerHealth);
             player.Flags |= GameObjectFlags.Player;
             if(shp.Mass < 0)
             {

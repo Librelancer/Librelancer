@@ -21,7 +21,7 @@ namespace LibreLancer.GameData.Items
         static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var pc = new PowerCoreComponent(((PowerEquipment)equip).Def, parent);
-            parent.Components.Add(pc);
+            parent.AddComponent(pc);
             return null;
         }
     }

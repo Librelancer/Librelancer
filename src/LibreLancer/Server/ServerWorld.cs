@@ -127,14 +127,14 @@ namespace LibreLancer.Server
             var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
             foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server, item.Hardpoint, item.Equipment);
-            obj.Components.Add(new SPlayerComponent(player, obj));
-            obj.Components.Add(new SHealthComponent(obj)
+            obj.AddComponent(new SPlayerComponent(player, obj));
+            obj.AddComponent(new SHealthComponent(obj)
             {
                 CurrentHealth = player.Character.Ship.Hitpoints,
                 MaxHealth = player.Character.Ship.Hitpoints
             });
-            obj.Components.Add(new SFuseRunnerComponent(obj) { DamageFuses = player.Character.Ship.Fuses });
-            obj.Components.Add(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
+            obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = player.Character.Ship.Fuses });
+            obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
             if (player == Server.LocalPlayer) obj.Nickname = "Player"; //HACK: Set local player ID for mission script
             obj.NetID = player.ID;
             obj.Flags |= GameObjectFlags.Player;
@@ -201,7 +201,7 @@ namespace LibreLancer.Server
                 go.NetID = idGen.Allocate();
                 go.World = GameWorld;
                 go.PhysicsComponent.Mass = 1;
-                go.Components.Add(new SMissileComponent(go, missile)
+                go.AddComponent(new SMissileComponent(go, missile)
                 {
                     Target = target, Owner = owner,
                     Speed = owner.PhysicsComponent.Body.LinearVelocity.Length() + muzzleVelocity
@@ -372,7 +372,7 @@ namespace LibreLancer.Server
                 if (!string.IsNullOrWhiteSpace(dockWith))
                 {
                     var act = new DockAction() {Kind = DockKinds.Base, Target = dockWith};
-                    gameobj.Components.Add(new SDockableComponent(gameobj, arch.DockSpheres.ToArray())
+                    gameobj.AddComponent(new SDockableComponent(gameobj, arch.DockSpheres.ToArray())
                     {
                         Action = act
                     });

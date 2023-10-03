@@ -21,11 +21,11 @@ namespace LibreLancer.GameData.Items
             switch (type)
             {
                 case EquipmentType.Server:
-                    obj.Components.Add(new SShieldComponent(sh, obj));
+                    obj.AddComponent(new SShieldComponent(sh, obj));
                     break;
                 case EquipmentType.LocalPlayer:
                 case EquipmentType.RemoteObject:
-                    obj.Components.Add(new CShieldComponent(sh, obj));
+                    obj.AddComponent(new CShieldComponent(sh, obj));
                     break;
             }
             return obj;

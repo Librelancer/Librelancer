@@ -182,7 +182,7 @@ namespace LibreLancer.Server.Components
         void StartTradelane(GameObject ship, string tlHardpoint)
         {
             var movement = new STradelaneMoveComponent(ship, Parent, tlHardpoint);
-            ship.Components.Add(movement);
+            ship.AddComponent(movement);
             ShipPhysicsComponent component = Parent.GetComponent<ShipPhysicsComponent>();
             if (component is not null)
                 component.Active = false;

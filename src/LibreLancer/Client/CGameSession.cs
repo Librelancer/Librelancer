@@ -588,7 +588,7 @@ namespace LibreLancer.Client
                        var ren = new ParticleEffectRenderer(fx) {Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
                        go.ExtraRenderers.Add(ren);
                     }
-                    go.Components.Add(new CMissileComponent(go, mn));
+                    go.AddComponent(new CMissileComponent(go, mn));
                     go.Register(go.World.Physics);
                     gp.world.AddObject(go);
                     objects.Add(id, go);
@@ -698,11 +698,11 @@ namespace LibreLancer.Client
                 newobj.NetID = id;
                 newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                          Matrix4x4.CreateTranslation(position));
-                newobj.Components.Add(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
-                newobj.Components.Add(new CExplosionComponent(newobj, shp.Explosion));
+                newobj.AddComponent(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
+                newobj.AddComponent(new CExplosionComponent(newobj, shp.Explosion));
                 var fac = Game.GameData.Factions.Get(affiliation);
                 if(fac != null)
-                    newobj.Components.Add(new CFactionComponent(newobj, fac));
+                    newobj.AddComponent(new CFactionComponent(newobj, fac));
                 foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
                     var equip = Game.GameData.Equipment.Get(eq.EquipCRC);
@@ -711,7 +711,7 @@ namespace LibreLancer.Client
                 }
                 newobj.Register(gp.world.Physics);
 
-                newobj.Components.Add(new WeaponControlComponent(newobj));
+                newobj.AddComponent(new WeaponControlComponent(newobj));
                 objects.Add(id, newobj);
 
                 gp.world.AddObject(newobj);
@@ -867,7 +867,7 @@ namespace LibreLancer.Client
                         FLLog.Debug("Client", $"Spawning object {si.ID}");
                         go.NetID = si.ID;
                         if (si.Dock != null && arch.DockSpheres.Count > 0){
-                            go.Components.Add(new CDockComponent(go)
+                            go.AddComponent(new CDockComponent(go)
                             {
                                 Action = si.Dock,
                                 DockAnimation = arch.DockSpheres[0].Script,
@@ -940,7 +940,7 @@ namespace LibreLancer.Client
                     if (!obj.TryGetComponent<CNetEffectsComponent>(out var fx))
                     {
                         fx = new CNetEffectsComponent(obj);
-                        obj.Components.Add(fx);
+                        obj.AddComponent(fx);
                     }
 
                     fx.UpdateEffects(effect);

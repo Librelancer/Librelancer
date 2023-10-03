@@ -156,7 +156,6 @@ namespace LibreLancer.Thn
                     {
                         obj.Object = new GameObject(drawable, Cutscene.ResourceManager, true, false);
                         obj.Object.Name = new ObjectName(kv.Value.Name);
-                        obj.Object.PhysicsComponent = null; //Jitter seems to interfere with directly setting orientation
                         if (getHpMount)
                             obj.HpMount = obj.Object.GetHardpoint("HpMount");
                         var r = (ModelRenderer)obj.Object.RenderComponent;
@@ -226,7 +225,7 @@ namespace LibreLancer.Thn
                     if (kv.Value.MainObject && Cutscene.MainObject != null)
                     {
                         obj.Object.Parent = Cutscene.MainObject;
-                        obj.Object.Components.Add(new DirtyTransformComponent(obj.Object));
+                        obj.Object.AddComponent(new DirtyTransformComponent(obj.Object));
                         obj.PosFromObject = true;
                     }
                 }
@@ -242,7 +241,7 @@ namespace LibreLancer.Thn
                         obj.Object.RenderComponent = new CharacterRenderer(skel);
                         var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
                         obj.Object.AnimationComponent = anmComponent;
-                        obj.Object.Components.Add(anmComponent);
+                        obj.Object.AddComponent(anmComponent);
                     }
                     else
                     {

@@ -26,8 +26,7 @@ namespace LibreLancer.World
         public void Update(double time)
         {
             var tFloat = (float)time;
-            for(int i = 0; i < ids.MaxValue; i++) {
-                if (!Projectiles[i].Alive) continue;
+            foreach(var i in ids.GetAllocated()) {
                 var length = Projectiles[i].Normal.Length() * tFloat;
                 var dir = Projectiles[i].Normal.Normalized();
                 if (world.Physics.PointRaycast(

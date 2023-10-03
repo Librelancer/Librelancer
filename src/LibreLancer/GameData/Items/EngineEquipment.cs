@@ -17,10 +17,10 @@ namespace LibreLancer.GameData.Items
         {
             var eng = (EngineEquipment) equip;
             if(type != EquipmentType.Server)
-                parent.Components.Add(new CEngineComponent(parent, eng));
+                parent.AddComponent(new CEngineComponent(parent, eng));
             else
             {
-                parent.Components.Add(new SEngineComponent(parent) {Engine = eng});
+                parent.AddComponent(new SEngineComponent(parent) {Engine = eng});
             }
 
             if (snd != null)

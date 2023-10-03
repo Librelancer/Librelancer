@@ -185,7 +185,7 @@ namespace LibreLancer.Server.Components
             if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
                 msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
 
-            Parent.Components.Remove(this);
+            Parent.RemoveComponent(this);
         }
     }
 }

@@ -418,7 +418,7 @@ namespace LibreLancer.Missions
                 if (!gameObj.TryGetComponent<SFuseRunnerComponent>(out var fr))
                 {
                     fr = new SFuseRunnerComponent(gameObj);
-                    gameObj.Components.Add(fr);
+                    gameObj.AddComponent(fr);
                 }
                 fr.Run(fuse);
             });

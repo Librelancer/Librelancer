@@ -23,10 +23,10 @@ namespace LibreLancer.GameData.Items
             var child = GameObject.WithModel(gn.ModelFile, type != EquipmentType.Server, res);
             if(type != EquipmentType.RemoteObject &&
                type != EquipmentType.Cutscene)
-                child.Components.Add(new GunComponent(child, gn));
+                child.AddComponent(new GunComponent(child, gn));
             if(type == EquipmentType.LocalPlayer ||
                type == EquipmentType.RemoteObject)
-                child.Components.Add(new CMuzzleFlashComponent(child, gn));
+                child.AddComponent(new CMuzzleFlashComponent(child, gn));
             if (snd != null)
             {
                 snd.LoadSound(gn.Munition.Def.OneShotSound);

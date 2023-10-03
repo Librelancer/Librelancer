@@ -376,7 +376,7 @@ public class SystemEditorTab : GameContentTab
             {
                 d = new ObjectEditData(obj);
                 ObjectsDirty = true;
-                obj.Components.Add(d);
+                obj.AddComponent(d);
             }
         }
 
@@ -391,7 +391,7 @@ public class SystemEditorTab : GameContentTab
         var newObj = World.NewObject(obj.SystemObject, Data.Resources, false,
             true, loadout, ed.Archetype);
         ed.Parent = newObj;
-        newObj.Components.Add(ed);
+        newObj.AddComponent(ed);
         objectList.SelectSingle(newObj);
         newObj.SetLocalTransform(obj.LocalTransform);
         obj.Unregister(World.Physics);
@@ -407,7 +407,7 @@ public class SystemEditorTab : GameContentTab
         var newObj = World.NewObject(obj.SystemObject, Data.Resources, false,
             true, null, ed.Archetype);
         ed.Parent = newObj;
-        newObj.Components.Add(ed);
+        newObj.AddComponent(ed);
         objectList.SelectSingle(newObj);
         newObj.SetLocalTransform(obj.LocalTransform);
         obj.Unregister(World.Physics);
@@ -990,7 +990,7 @@ public class SystemEditorTab : GameContentTab
                 var newObject = World.NewObject(newData.SystemObject, Data.Resources, false, true,
                     newData.Loadout, newData.Archetype);
                 newData.Parent = newObject;
-                newObject.Components.Add(newData);
+                newObject.AddComponent(newData);
                 objectList.Selection.Add(newObject);
             }
 
