@@ -24,6 +24,10 @@ namespace LibreLancer.Render
 			Model = model;
 		}
 
+        public float[] LODRanges;
+        public int CurrentLevel = 0;
+        public Vector3 Spin = Vector3.Zero;
+
         double spinX;
         double spinY;
         double spinZ;

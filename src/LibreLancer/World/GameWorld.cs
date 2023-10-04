@@ -72,13 +72,10 @@ namespace LibreLancer.World
                 g.SetLoadout(arch.Loadout);
             g.World = this;
             g.CollisionGroups = arch.CollisionGroups;
-            if (g.RenderComponent != null)
+            if (g.RenderComponent is ModelRenderer mr)
             {
-                g.RenderComponent.LODRanges = arch.LODRanges;
-                if (g.RenderComponent is ModelRenderer && obj.Spin != Vector3.Zero)
-                {
-                    g.RenderComponent.Spin = obj.Spin;
-                }
+                mr.LODRanges = arch.LODRanges;
+                mr.Spin = obj.Spin;
             }
 
             if (obj.Dock != null)

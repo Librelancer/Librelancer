@@ -312,9 +312,9 @@ namespace LibreLancer.World
             InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, phys);
             ArchetypeName = ship.Nickname;
             Kind = GameObjectKind.Ship;
-            if (RenderComponent != null)
+            if (RenderComponent is ModelRenderer mr)
             {
-                RenderComponent.LODRanges = ship.LODRanges;
+                mr.LODRanges = ship.LODRanges;
             }
             if (PhysicsComponent != null)
             {
@@ -330,7 +330,7 @@ namespace LibreLancer.World
             PopulateHardpoints();
             if (draw && RigidModel != null)
             {
-                RenderComponent = new ModelRenderer(RigidModel) { Name = name };
+                RenderComponent = new ModelRenderer(RigidModel);
             }
             var path = Path.ChangeExtension(RigidModel.Path, "sur");
             name = Path.GetFileNameWithoutExtension(RigidModel.Path);
@@ -448,7 +448,7 @@ namespace LibreLancer.World
             PopulateHardpoints();
             if (draw && RigidModel != null)
             {
-                RenderComponent = new ModelRenderer(RigidModel) { Name = name };
+                RenderComponent = new ModelRenderer(RigidModel);
             }
 		}
 
@@ -579,7 +579,7 @@ namespace LibreLancer.World
         {
             if(RenderComponent == null || RenderComponent.PrepareRender(camera,nr,sys, parentCull)) {
                 //Guns etc. aren't drawn when parent isn't on LOD0
-                parentCull = RenderComponent != null && RenderComponent.CurrentLevel > 0;
+                parentCull = RenderComponent is ModelRenderer {CurrentLevel: > 0};
             }
             else {
                 parentCull = true;

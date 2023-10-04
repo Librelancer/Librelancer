@@ -44,8 +44,8 @@ namespace LibreLancer.World
             {
                 obj.Parent = parent;
                 parent.Children.Add(obj);
-                if (equip.LODRanges != null && obj.RenderComponent != null)
-                    obj.RenderComponent.LODRanges = equip.LODRanges;
+                if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
+                    mrender.LODRanges = equip.LODRanges;
                 if(equip.HPChild != null)
                 {
                     Hardpoint hpChild = obj.GetHardpoint(equip.HPChild);
@@ -59,7 +59,7 @@ namespace LibreLancer.World
                 obj.Attachment = hp;
                 if(obj.RenderComponent is ModelRenderer && parent.RenderComponent != null)
                 {
-                    if (parent.RenderComponent.LODRanges != null)
+                    if (parent.RenderComponent is ModelRenderer m && m.LODRanges != null)
                     {
                         obj.RenderComponent.InheritCull = true;
                     }
@@ -80,7 +80,7 @@ namespace LibreLancer.World
                         //}
                     }
                 }
- 
+
             }
         }
     }
