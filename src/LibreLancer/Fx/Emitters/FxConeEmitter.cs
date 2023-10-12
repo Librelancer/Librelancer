@@ -38,7 +38,7 @@ namespace LibreLancer.Fx
 			return FxRandom.NextFloat(s_min, s_max);
 		}
 
-        protected override void SetParticle(int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
+        protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
@@ -56,8 +56,8 @@ namespace LibreLancer.Fx
             }
             var p = n * radius + translate;
 			n *= Pressure.GetValue(sparam, 0);
-			instance.Pool.Particles[idx].Position = p;
-			instance.Pool.Particles[idx].Normal = n;
+            particle.Position = p;
+            particle.Normal = n;
 		}
 
 		//Different direction to FxCubeEmitter

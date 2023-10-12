@@ -3,10 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Linq;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
-using LibreLancer.Render;
 
 namespace LibreLancer.Fx
 {
@@ -18,13 +17,10 @@ namespace LibreLancer.Fx
         public static float NextFloat(float min, float max) => random.Value.NextFloat(min, max);
     }
 
-    public class BeamParticles
+    public struct EmitterState
     {
-        public NodeReference Node;
-        public FLBeamAppearance BeamApp => (FLBeamAppearance)Node.Node;
-        public const int MAX_PARTICLES = 768;
-        public int[] ParticleIndices = new int[MAX_PARTICLES];
-        public int ParticleCount = 0;
+        public double SpawnTimer;
+        public int Count;
     }
 
     public class ParticleEffectInstance
@@ -43,29 +39,23 @@ namespace LibreLancer.Fx
         public ParticleEffect Effect;
         public ResourceManager Resources;
 
-        public double[] SpawnTimers;
-        public int[] ParticleCounts;
-        public int[] ParticleIndex;
-        public int FrameNumber;
-        public BeamParticles[] Beams;
-        bool[] enableStates;
+        public EmitterState[] Emitters;
         double globaltime = 0;
         public double GlobalTime => globaltime;
 
+        public ParticleBuffer Buffer;
+
         public bool IsFinished()
         {
-            for (int i = 0; i < ParticleCounts.Length; i++)
+            for (int i = 0; i < Emitters.Length; i++)
             {
-                if (ParticleCounts[i] > 0) return false;
+                if (Emitters[i].Count > 0) return false;
             }
-            for (int i = 0; i < Effect.References.Count; i++)
+            for (int i = 0; i < Effect.Emitters.Length; i++)
             {
-                var r = Effect.References[i];
-                if (NodeEnabled(r) && (r.Node is FxEmitter emit))
-                {
-                    if (globaltime < emit.NodeLifeSpan)
-                        return false;
-                }
+                if (Effect.Emitters[i].Enabled &&
+                    globaltime < Effect.Emitters[i].Emitter.NodeLifeSpan)
+                    return false;
             }
             return true;
         }
@@ -73,30 +63,16 @@ namespace LibreLancer.Fx
         public ParticleEffectInstance(ParticleEffect fx)
         {
             ID = Interlocked.Increment(ref _id);
-            SpawnTimers = new double[fx.EmitterCount];
-            ParticleCounts = new int[fx.EmitterCount];
-            enableStates = new bool[fx.References.Count];
-            ParticleIndex = new int[fx.References.Count];
-            if(fx.BeamCount > 0)
-            {
-                Beams = new BeamParticles[fx.BeamCount];
-                for (int i = 0; i < Beams.Length; i++) Beams[i] = new BeamParticles();
-            }
-            for (int i = 0; i < fx.References.Count; i++) enableStates[i] = true;
+            Emitters = new EmitterState[fx.Emitters.Length];
+            Buffer = new ParticleBuffer(fx.ParticleCounts);
             Effect = fx;
-            foreach (var node in fx.References)
-            {
-                if (node.Node is FLBeamAppearance) Beams[node.BeamIndex].Node = node;
-            }
-
         }
 
-        public void Reset(bool killParticles = true)
+        public void Reset()
         {
             globaltime = 0;
-            if(killParticles) Pool.KillAll(this);
-            for (int i = 0; i < SpawnTimers.Length; i++) SpawnTimers[i] = 0;
-            for (int i = 0; i < ParticleCounts.Length; i++) ParticleCounts[i] = 0;
+            Buffer.Reset();
+            Array.Clear(Emitters);
         }
 
         public double LastTime => lasttime;
@@ -119,41 +95,49 @@ namespace LibreLancer.Fx
             Position = Vector3.Transform(Vector3.Zero, transform);
             lasttime = globaltime;
             globaltime += delta;
-            //Update Emitters
-            for (int i = 0; i < Effect.References.Count; i++)
+            //Update particles
+            for (int i = 0; i < Effect.Appearances.Length; i++)
             {
-                var r = Effect.References[i];
-                if (NodeEnabled(r) && (r.Node is FxEmitter))
+                int count = Buffer.GetCount(i);
+                for (int j = 0; j < count; j++)
                 {
-                    ((FxEmitter)r.Node).Update(r, this, delta, ref transform, sparam);
+                    ref var particle = ref Buffer[i, j];
+                    particle.TimeAlive += (float) delta;
+                    if (particle.TimeAlive >= particle.LifeSpan)
+                    {
+                        Emitters[particle.EmitterIndex].Count--;
+                        Debug.Assert(Emitters[particle.EmitterIndex].Count >= 0);
+                        Buffer.RemoveAt(i, j); //Usually a dequeue, can change with sparam
+                        j--;
+                        count--;
+                    }
+                    else
+                    {
+                        particle.Position += (float) delta * particle.Normal;
+                    }
                 }
+            }
+            //Update emitters
+            for (int i = 0; i < Effect.Emitters.Length; i++)
+            {
+                var r = Effect.Emitters[i];
+                if(r.Enabled)
+                    r.Emitter.Update(r, i, this, delta, ref transform, sparam);
             }
         }
 
-        public int GetNextFreeParticle() => Pool.GetFreeParticle();
-
-        public bool NodeEnabled(NodeReference node) => enableStates[node.Index];
-        public void SetNodeEnabled(NodeReference node, bool enabled) => enableStates[node.Index] = enabled;
-
         public void Draw(Matrix4x4 transform, float sparam)
         {
-            DrawTransform = transform;
-            DrawSParam = sparam;
-        }
-
-        public Matrix4x4 DrawTransform;
-        public float DrawSParam;
-        public void DrawBeams(PolylineRender polyline, LineRenderer debug, Matrix4x4 transform, float sparam)
-        {
-            if (Beams != null)
+            if (Pool == null) return;
+            for (int i = 0; i < Effect.Appearances.Length; i++)
             {
-                foreach (var kv in Beams)
-                {
-                    if (NodeEnabled(kv.Node))
-                    {
-                        kv.BeamApp.DrawBeamApp(polyline, (float)globaltime, kv.Node, this, ref transform, sparam);
-                    }
-                }
+                if (!Effect.Appearances[i].Enabled) continue;
+                Effect.Appearances[i].Appearance.Draw(
+                    this,
+                    Effect.Appearances[i],
+                    i,
+                    transform,
+                    sparam);
             }
         }
     }

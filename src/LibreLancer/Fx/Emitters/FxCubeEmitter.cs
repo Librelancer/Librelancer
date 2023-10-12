@@ -32,10 +32,10 @@ namespace LibreLancer.Fx
 			}
 			if (ale.TryGetParameter("CubeEmitter_MaxSpread", out temp)) {
 				MaxSpread = (AlchemyCurveAnimation)temp.Value;
-			}	
+			}
 		}
 
-        protected override void SetParticle (int idx, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam, float globaltime)
+        protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{
 			float w = Width.GetValue (sparam, 0) / 2;
 			float h = Height.GetValue (sparam, 0) / 2;
@@ -56,8 +56,8 @@ namespace LibreLancer.Fx
                 n = Vector3.Transform(n, rotate);
             }
 			var pr = pos;
-			instance.Pool.Particles[idx].Position = pr;
-			instance.Pool.Particles [idx].Normal = n * Pressure.GetValue (sparam, 0);
+			particle.Position = pr;
+			particle.Normal = n * Pressure.GetValue (sparam, 0);
 		}
 
         //Different direction to FxCubeEmitter

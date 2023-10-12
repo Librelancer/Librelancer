@@ -17,7 +17,7 @@ namespace LibreLancer.Render
         public bool Finished = false;
         public int Index; //needed to fix fuses spawning multiple fx on top of each-other
         public Hardpoint Attachment;
-        
+
 		public ParticleEffectRenderer(ParticleEffect effect)
 		{
             if (effect == null) return;
@@ -26,9 +26,9 @@ namespace LibreLancer.Render
 
         public void Restart()
         {
-            fx.Reset(false);
+            fx.Reset();
         }
-        
+
         Vector3 cameraPos;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
@@ -72,7 +72,8 @@ namespace LibreLancer.Render
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
             if (fx == null) return;
-			fx.Draw(tr,SParam);
+            if(!fx.Culled)
+			    fx.Draw(tr,SParam);
 		}
 
         // nice name in debugger window

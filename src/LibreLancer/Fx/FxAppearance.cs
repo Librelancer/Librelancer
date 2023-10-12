@@ -16,16 +16,13 @@ namespace LibreLancer.Fx
 		public FxAppearance (AlchemyNode ale) : base(ale)
 		{
 		}
-        public virtual void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
+        public virtual void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)
         {
 
         }
-		public virtual void OnParticleSpawned(int idx, NodeReference reference, ParticleEffectInstance instance)
-		{
-		}
 
         static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
-        protected bool DoTransform(NodeReference reference, float sparam, float t1, float t2, out Vector3 translate, out Quaternion rotate)
+        public bool TransformParticle(NodeReference reference, float sparam, float t1, float t2, out Vector3 translate, out Quaternion rotate)
         {
             translate = Vector3.Zero;
             rotate = Quaternion.Identity;

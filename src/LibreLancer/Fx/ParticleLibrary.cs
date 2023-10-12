@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LibreLancer.Data.Effects;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -16,10 +17,11 @@ namespace LibreLancer.Fx
 		{
 			Resources = res;
 			foreach (var effect in ale.FxLib.Effects) {
-				var fx = new ParticleEffect (this);
-				fx.CRC = effect.CRC;
-				fx.Name = effect.Name;
+
 				Dictionary<uint, NodeReference> nodesByIndex = new Dictionary<uint, NodeReference>();
+                List<EmitterReference> emitters = new List<EmitterReference>();
+                List<AppearanceReference> appearances = new List<AppearanceReference>();
+
 				foreach (var noderef in effect.Fx)
 				{
 					FxNode node = null;
@@ -29,13 +31,29 @@ namespace LibreLancer.Fx
                         if(nd == null)
                         {
                             node = new FxNode("error node", "error node");
-                            FLLog.Error("Fx", fx.Name + " bad node CRC 0x" + noderef.CRC.ToString("x"));
+                            FLLog.Error("Fx", effect.Name + " bad node CRC 0x" + noderef.CRC.ToString("x"));
                         }
                         else
-                            node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First()); 
+                            node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First());
 					}
-					var reference = new NodeReference();
-					reference.Node = node;
+
+                    NodeReference reference;
+                    if (node is FxEmitter emit)
+                    {
+                        var er = new EmitterReference() {Emitter = emit};
+                        emitters.Add(er);
+                        reference = er;
+                    }
+                    else if (node is FxAppearance app)
+                    {
+                        var ar = new AppearanceReference() {Appearance = app};
+                        appearances.Add(ar);
+                        reference = ar;
+                    }
+                    else
+                    {
+                        reference = new EmptyNodeReference(node);
+                    }
 					reference.IsAttachmentNode = noderef.IsAttachmentNode;
 					nodesByIndex.Add(noderef.Index, reference);
 				}
@@ -53,35 +71,44 @@ namespace LibreLancer.Fx
 				{
 					var n1 = nodesByIndex[pair.Item1];
 					var n2 = nodesByIndex[pair.Item2];
-					n1.Paired.Add(n2);
+                    if (n1 is EmitterReference er &&
+                        n2 is AppearanceReference ar)
+                    {
+                        er.AppIdx = appearances.IndexOf(ar);
+                    }
 				}
-                int emitterIndex = 0;
-                int beamIndex = 0;
-				fx.References = new List<NodeReference>(nodesByIndex.Values);
-                for(int i = 0; i < fx.References.Count; i++) {
-                    fx.References[i].Index = i;
-                    fx.References[i].EmitterIndex = emitterIndex;
-                    fx.References[i].BeamIndex = beamIndex;
-                    if (fx.References[i].Node is FxEmitter) emitterIndex++;
-                    if (fx.References[i].Node is FLBeamAppearance) beamIndex++;
-                }
-                fx.EmitterCount = emitterIndex;
-                fx.BeamCount = beamIndex;
-                fx.CalculateRadius();
-                Effects.Add(fx);
+                Effects.Add(new ParticleEffect(
+                    effect.CRC,
+                    effect.Name,
+                    emitters.ToArray(),
+                    appearances.ToArray(),
+                    nodesByIndex.Values.Where(x => x.Parent == null).ToArray()
+                    ));
 			}
 		}
-		static FxNode NodeFromAle(AlchemyNode ale)
-		{
-			var type = typeof(ParticleLibrary).Assembly.GetType("LibreLancer.Fx." + ale.Name);
-			if (type != null)
-			{
-				return (FxNode)Activator.CreateInstance(type, ale);
-			}
-			else {
-				throw new NotImplementedException(ale.Name);
-			}
-		}
+
+        static FxNode NodeFromAle(AlchemyNode ale) => ale.Name switch
+        {
+            "FLBeamAppearance" => new FLBeamAppearance(ale),
+            "FxBasicAppearance" => new FxBasicAppearance(ale),
+            "FxMeshAppearance" => new FxMeshAppearance(ale),
+            "FxOrientedAppearance" => new FxOrientedAppearance(ale),
+            "FxParticleAppearance" => new FxParticleAppearance(ale),
+            "FxPerpAppearance" => new FxPerpAppearance(ale),
+            "FxRectAppearance" => new FxRectAppearance(ale),
+            "FxConeEmitter" => new FxConeEmitter(ale),
+            "FxCubeEmitter" => new FxCubeEmitter(ale),
+            "FxSphereEmitter" => new FxSphereEmitter(ale),
+            "FLBeamField" => new FLBeamField(ale),
+            "FLDustField" => new FLDustField(ale),
+            "FxAirField" => new FxAirField(ale),
+            "FxCollideField" => new FxCollideField(ale),
+            "FxGravityField" => new FxGravityField(ale),
+            "FxRadialField" => new FxRadialField(ale),
+            "FxTurbulenceField" => new FxTurbulenceField(ale),
+            _ => throw new ArgumentException(ale.Name)
+        };
+
 		public ParticleEffect FindEffect(uint crc)
 		{
 			if (Effects.Count == 1)

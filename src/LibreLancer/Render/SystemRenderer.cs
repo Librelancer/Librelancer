@@ -180,7 +180,6 @@ namespace LibreLancer.Render
         {
             foreach (var model in StarSphereModels)
                 model.Update(game.TotalTime);
-            FxPool.Update(elapsed);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Update(camera);
 			for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Update(elapsed);
             for (int i = tempFx.Count - 1; i >= 0; i--) {
@@ -330,8 +329,8 @@ namespace LibreLancer.Render
                 rstate.ClearAll();
             }
 			DebugRenderer.StartFrame(rstate);
-			Polyline.StartFrame();
 			commands.StartFrame(rstate);
+            FxPool.StartFrame(camera, Polyline);
 			rstate.DepthEnabled = true;
 			//Optimisation for dictionary lookups
 			LightEquipRenderer.FrameStart();
@@ -410,10 +409,10 @@ namespace LibreLancer.Render
                 rstate.ColorWrite = true;
 			}
 			//Actual Drawing
+
             Beams.Begin(commands, resman, camera);
 			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
             Beams.End();
-            FxPool.Draw(camera, Polyline, resman, DebugRenderer);
 			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, commands, nr);
             if (DrawNebulae)
             {
@@ -425,7 +424,7 @@ namespace LibreLancer.Render
                     nr.Draw(commands);
             }
             billboards.End();
-			Polyline.EndFrame();
+			FxPool.EndFrame();
 			//Opaque Pass
 			rstate.DepthEnabled = true;
 			commands.DrawOpaque(rstate);

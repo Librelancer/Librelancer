@@ -44,6 +44,7 @@ namespace LibreLancer.World
                     {
                         world.Server?.ProjectileHit(go, Projectiles[i].Owner, Projectiles[i].Data.Munition);
                     }
+                    ids.Free(i);
                 }
                 Projectiles[i].Position += (Projectiles[i].Normal * tFloat);
                 world.DrawDebug(Projectiles[i].Position);

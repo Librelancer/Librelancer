@@ -47,10 +47,6 @@ namespace LibreLancer.Fx
 			}
 		}
 
-		public virtual void Update(NodeReference reference, ParticleEffectInstance instance, double delta, ref Matrix4x4 transform, float sparam)
-		{
-		}
-
         public override string ToString()
         {
             return $"{Name} - {NodeName}";

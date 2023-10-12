@@ -35,7 +35,7 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling PhysicsDebug");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(335526, 612), sourceBundle.Substring(336138, 163));
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(336090, 612), sourceBundle.Substring(336702, 163));
         }
     }
 }

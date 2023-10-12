@@ -33,7 +33,6 @@ public class ProjectileViewerTab : GameContentTab
     private readonly GameDataContext context;
 
     private MunitionEquip currentMunition;
-    private readonly ParticleEffectPool fxPool;
     private readonly MainWindow mw;
     private readonly MunitionEquip[] projectileList;
     private BeamSpear spear;
@@ -51,7 +50,6 @@ public class ProjectileViewerTab : GameContentTab
         viewport.DefaultOffset = viewport.CameraOffset = new Vector3(0, 0, 20);
         viewport.ModelScale = 10f;
         viewport.ResetControls();
-        fxPool = new ParticleEffectPool(mw.Commands);
         beams = new BeamsBuffer(context.Resources);
     }
 
@@ -94,7 +92,6 @@ public class ProjectileViewerTab : GameContentTab
             beams.AddBeamSpear(position, norm, spear, float.MaxValue);
         else if (bolt != null) beams.AddBeamBolt(position, norm, bolt, float.MaxValue);
         beams.End();
-        fxPool.Draw(camera, null, mw.Resources, null);
         mw.Commands.DrawOpaque(mw.RenderContext);
         mw.RenderContext.DepthWrite = false;
         mw.Commands.DrawTransparent(mw.RenderContext);

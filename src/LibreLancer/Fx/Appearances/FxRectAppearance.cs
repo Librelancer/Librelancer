@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using LibreLancer.Render;
 using LibreLancer.Utf.Ale;
 
@@ -48,42 +49,57 @@ namespace LibreLancer.Fx
             return Vector3.Transform(pt, mvp).Normalized();
         }
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
+        public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx,
+            Matrix4x4 transform, float sparam)
         {
-            var time = particle.TimeAlive / particle.LifeSpan;
-            var node_tr = GetAttachment(reference, transform);
-			var src_pos = particle.Position;
-			var l = Length.GetValue(sparam, time);
-			var w = Width.GetValue(sparam, time);
-			var sc = Scale.GetValue(sparam, time);
-			if (!CenterOnPos) {
-				var nd = particle.Normal.Normalized();
-				src_pos += nd * (l * sc * 0.25f);
-			}
-			var p = Vector3.Transform(src_pos, node_tr);
-            TextureHandler.Update(Texture, res);
-			var c = Color.GetValue(sparam, time);
-			var a = Alpha.GetValue(sparam, time);
-            var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
-            //var n = (p2 - p).Normalized();
-            var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
-			instance.Pool.DrawRect(
-                particle.Instance,
+            var node_tr = GetAttachment(node, transform);
+            var count = instance.Buffer.GetCount(nodeIdx);
+            TextureHandler.Update(Texture, instance.Resources);
+
+            for (int i = 0; i < count; i++)
+            {
+                ref var particle = ref instance.Buffer[nodeIdx, i];
+                var time = particle.TimeAlive / particle.LifeSpan;
+                var src_pos = particle.Position;
+                var l = Length.GetValue(sparam, time);
+                var w = Width.GetValue(sparam, time);
+                var sc = Scale.GetValue(sparam, time);
+                if (!CenterOnPos)
+                {
+                    var nd = particle.Normal.Normalized();
+                    src_pos += nd * (l * sc * 0.25f);
+                }
+
+                var p = Vector3.Transform(src_pos, node_tr);
+                var c = Color.GetValue(sparam, time);
+                var a = Alpha.GetValue(sparam, time);
+                var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
+                //var n = (p2 - p).Normalized();
+                var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
+                instance.Pool.AddRect(
+                    TextureHandler,
+                    p,
+                    new Vector2(l, w) * sc * 0.5f,
+                    new Color4(c, a),
+                    GetFrame((float)instance.GlobalTime, sparam, ref particle),
+                    n,
+                    Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time))
+                );
+                if (DrawNormals)
+                {
+                    Debug.DrawLine(p - (n * 12), p + (n * 12), Color4.Red);
+                }
+            }
+
+            instance.Pool.DrawBuffer(
                 this,
-				TextureHandler,
-				p,
-				new Vector2(l, w) * sc * 0.5f,
-				new Color4(c,a),
-				GetFrame(globaltime, sparam, ref particle),
-				n,
-                Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
-                reference.Index
-			);
-			if (DrawNormals)
-			{
-				Debug.DrawLine(p - (n * 12), p + (n * 12), Color4.Red);
-			}
-		}
+                instance.Resources,
+                transform,
+                (instance.DrawIndex << 11) + nodeIdx,
+                FlipHorizontal,
+                FlipVertical
+            );
+        }
 	}
 }
 

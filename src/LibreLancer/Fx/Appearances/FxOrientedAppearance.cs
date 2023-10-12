@@ -12,7 +12,7 @@ namespace LibreLancer.Fx
 		public AlchemyFloatAnimation Height;
 		public AlchemyFloatAnimation Width;
 
-		public FxOrientedAppearance(AlchemyNode ale) : base(ale) 
+		public FxOrientedAppearance(AlchemyNode ale) : base(ale)
 		{
 			AleParameter temp;
 			if (ale.TryGetParameter("OrientedApp_Height", out temp))
@@ -25,21 +25,22 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
+        public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx,
+            Matrix4x4 transform, float sparam)
         {
-            var time = particle.TimeAlive / particle.LifeSpan;
-            var node_tr = GetAttachment(reference, transform);
+            //var time = particle.TimeAlive / particle.LifeSpan;
+            //var node_tr = GetAttachment(reference, transform);
 
-            var p = Vector3.Transform(particle.Position, node_tr);
-			Texture2D tex;
-			Vector2 tl, tr, bl, br;
+            //var p = Vector3.Transform(particle.Position, node_tr);
+			//Texture2D tex;
+			//Vector2 tl, tr, bl, br;
 			//HandleTexture(res, globaltime, sparam, ref particle, out tex, out tl, out tr, out bl, out br);
-			var c = Color.GetValue(sparam, time);
-			var a = Alpha.GetValue(sparam, time);
+			//var c = Color.GetValue(sparam, time);
+			//var a = Alpha.GetValue(sparam, time);
 
-            var p2 = Vector3.Transform(particle.Position + particle.Normal, node_tr);
+            //var p2 = Vector3.Transform(particle.Position + particle.Normal, node_tr);
 			//var n = (p - p2).Normalized();
-			var n = Vector3.UnitZ;
+			//var n = Vector3.UnitZ;
 
 			/*billboards.DrawPerspective(
 				tex,

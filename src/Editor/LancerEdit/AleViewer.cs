@@ -53,7 +53,7 @@ namespace LancerEdit
             this.name = name;
             this.rstate = main.RenderContext;
             aleViewport = new Viewport3D(main);
-            aleViewport.DefaultOffset = 
+            aleViewport.DefaultOffset =
             aleViewport.CameraOffset = new Vector3(0, 0, 200);
             aleViewport.ModelScale = 25;
             aleViewport.ResetControls();;
@@ -162,11 +162,10 @@ namespace LancerEdit
             var enabledColor = (Vector4)ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
             var disabledColor = (Vector4)ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
 
-            foreach (var reference in instance.Effect.References)
+            foreach (var reference in instance.Effect.Tree)
             {
                 int j = 0;
-                if (reference.Parent == null)
-                    DoNode(reference, j++, enabledColor, disabledColor);
+                DoNode(reference, j++, enabledColor, disabledColor);
             }
         }
 
@@ -175,10 +174,9 @@ namespace LancerEdit
             ImGui.Text(string.Format("Selected: {0}", selectedReference.Node.NodeName));
             ImGui.Text(selectedReference.Node.Name);
             //Node enabled
-            var enabled = instance.NodeEnabled(selectedReference);
-            var wasEnabled = enabled;
+            var enabled = selectedReference.Enabled;
             ImGui.Checkbox("Enabled", ref enabled);
-            if (enabled != wasEnabled) instance.SetNodeEnabled(selectedReference, enabled);
+            selectedReference.Enabled = enabled;
             //
             if (selectedReference.Node is FxEmitter emitter)
             {
@@ -195,7 +193,7 @@ namespace LancerEdit
 
         void DoNode(NodeReference reference, int idx, Vector4 enabled, Vector4 disabled)
         {
-            var col = instance.NodeEnabled(reference) ? enabled : disabled;
+            var col = reference.Enabled ? enabled : disabled;
             string label = null;
             if (reference.IsAttachmentNode)
                 label = string.Format("Attachment##{0}", idx);
@@ -213,7 +211,7 @@ namespace LancerEdit
                         DoNode(child, j++, enabled, disabled);
                     ImGui.TreePop();
                 }
-               
+
             }
             else
             {
@@ -224,7 +222,7 @@ namespace LancerEdit
             }
             ImGui.PopStyleColor();
         }
-        
+
         void DrawGL(int renderWidth, int renderHeight)
         {
             var cam = new LookAtCamera();
@@ -238,9 +236,9 @@ namespace LancerEdit
             rstate.SetCamera(cam);
             buffer.StartFrame(rstate);
             debug.StartFrame(rstate);
+            pool.StartFrame(cam, polyline);
             instance.Draw(transform, sparam);
-            pool.Draw(cam, polyline, res, debug);
-            polyline.EndFrame();
+            pool.EndFrame();
             buffer.DrawOpaque(rstate);
             rstate.DepthWrite = false;
             buffer.DrawTransparent(rstate);
@@ -250,7 +248,7 @@ namespace LancerEdit
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
         {
-            foreach (var reference in instance.Effect.References)
+            foreach (var reference in instance.Effect.Appearances)
             {
                 if (reference.Node is FxBasicAppearance)
                 {
@@ -260,7 +258,7 @@ namespace LancerEdit
                         continue;
                     TexFrameAnimation texFrame;
                     Texture tex = null;
-                    if (fx.Texture != null &&  (tex = plib.Resources.FindTexture(fx.Texture)) == null && 
+                    if (fx.Texture != null &&  (tex = plib.Resources.FindTexture(fx.Texture)) == null &&
                         !plib.Resources.TryGetFrameAnimation(fx.Texture, out texFrame))
                     {
                         var str = "Texture: " + fx.Texture; //TODO: This is wrong - handle properly
@@ -283,7 +281,6 @@ namespace LancerEdit
         public override void Update(double elapsed)
         {
             transform = Matrix4x4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4x4.CreateRotationY(aleViewport.ModelRotation.X);
-            pool.Update(elapsed);
             instance.Update(elapsed, transform, sparam);
         }
 

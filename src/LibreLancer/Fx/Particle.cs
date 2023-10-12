@@ -14,9 +14,7 @@ namespace LibreLancer.Fx
 		public float LifeSpan;
 		public float TimeAlive;
         public Quaternion Orientation;
-		public NodeReference Appearance;
-		public NodeReference Emitter;
-        public ParticleEffectInstance Instance;
-	}
+        public int EmitterIndex;
+    }
 }
 

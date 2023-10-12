@@ -32,45 +32,18 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        public override void Draw(ref Particle particle, int pidx, float lasttime, float globaltime, NodeReference reference, ResourceManager res, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
-        {
-            //Transform and add 
-            Vector3 deltap;
-            Quaternion deltaq;
-            if (DoTransform(reference, sparam, lasttime, globaltime, out deltap, out deltaq))
-            {
-                particle.Position += deltap;
-                particle.Orientation *= deltaq;
-            }
-            var beam = instance.Beams[reference.BeamIndex];
-            if (beam.ParticleCount >= BeamParticles.MAX_PARTICLES) return;
-            beam.ParticleIndices[beam.ParticleCount++] = pidx;
-        }
-
-        class AgeComparer : IComparer<int>
-        {
-            public readonly static AgeComparer Instance = new AgeComparer();
-            public Particle[] Particles;
-            public int Compare(int x, int y)
-            {
-                return Particles[x].TimeAlive.CompareTo(Particles[y].TimeAlive);
-            }
-        }
-
-        public void DrawBeamApp(PolylineRender poly, float globalTime, NodeReference reference, ParticleEffectInstance instance, ref Matrix4x4 transform, float sparam)
+        public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)
 		{
             //get particles!
-            var beam = instance.Beams[reference.BeamIndex];
-            if (beam.ParticleCount < 2) { beam.ParticleCount = 0;  return; }
-            AgeComparer.Instance.Particles = instance.Pool.Particles;
-            Array.Sort(beam.ParticleIndices, 0, beam.ParticleCount, AgeComparer.Instance);
+            var count = instance.Buffer.GetCount(nodeIdx);
+            if (count < 2)
+                return;
             //draw
-            var node_tr = GetAttachment(reference, transform);
-			Texture2D tex;
+            var node_tr = GetAttachment(node, transform);
 			Vector2 tl, tr, bl, br;
             var res = instance.Resources;
             TextureHandler.Update(Texture, res);
-            var frame = GetFrame(globalTime, sparam, ref instance.Pool.Particles[beam.ParticleIndices[0]]);
+            var frame = GetFrame((float) instance.GlobalTime, sparam, ref instance.Buffer[nodeIdx, 0]);
             int index = (int) Math.Floor((TextureHandler.FrameCount - 1) * frame);
             var texCoords = TextureHandler.GetCoordinates(index);
             tl = new Vector2(texCoords.X, texCoords.Y);
@@ -81,15 +54,14 @@ namespace LibreLancer.Fx
 			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
 			for (int j = 0; j < 2; j++) //two planes
 			{
-				poly.StartLine(TextureHandler.Texture ?? res.WhiteTexture, BlendInfo);
+				instance.Pool.Lines.StartLine(TextureHandler.Texture ?? res.WhiteTexture, BlendInfo);
 				bool odd = true;
 				Vector3 dir = Vector3.Zero;
-
-				for (int i = 0; i < beam.ParticleCount; i++)
+				for (int i = 0; i < count; i++)
 				{
-					var pos = Vector3.Transform(instance.Pool.Particles[beam.ParticleIndices[i]].Position, node_tr);
-					if (i + 1 < beam.ParticleCount) {
-						var pos2 = Vector3.Transform(instance.Pool.Particles[beam.ParticleIndices[i + 1]].Position, node_tr);
+					var pos = Vector3.Transform(instance.Buffer[nodeIdx, i].Position, node_tr);
+					if (i + 1 < count) {
+						var pos2 = Vector3.Transform(instance.Buffer[nodeIdx, i + 1].Position, node_tr);
 						var forward = (pos2 - pos).Normalized();
 						var toCamera = (instance.Pool.Camera.Position - pos).Normalized();
 						var up = Vector3.Cross(toCamera, forward);
@@ -102,9 +74,9 @@ namespace LibreLancer.Fx
 							dir = right;
 						}
 					}
-					var time = instance.Pool.Particles[beam.ParticleIndices[i]].TimeAlive / instance.Pool.Particles[beam.ParticleIndices[i]].LifeSpan;
+					var time = instance.Buffer[nodeIdx, i].TimeAlive / instance.Buffer[nodeIdx, i].LifeSpan;
 					var w = Width.GetValue(sparam, time);
-					poly.AddPoint(
+					instance.Pool.Lines.AddPoint(
 						pos + (dir * w / 2),
 						pos - (dir * w / 2),
 						odd ? tl : bl,
@@ -116,9 +88,8 @@ namespace LibreLancer.Fx
 					);
 					odd = !odd;
 				}
-				poly.FinishLine(z);
+				instance.Pool.Lines.FinishLine(z);
 			}
-            beam.ParticleCount = 0;
 		}
 	}
 }

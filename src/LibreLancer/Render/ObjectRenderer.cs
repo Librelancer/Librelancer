@@ -18,35 +18,28 @@ namespace LibreLancer.Render
             (1 << 1) | //Dynamic
             (1 << 3); //InheritCull
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-         void SetFlag(int idx, bool value)
-         {
-            if (value)
-                _flags |= (1 << idx);
-            else
-                _flags &= ~(1 << idx);
-        }
+
         public bool LitAmbient
         {
-            get => (_flags & (1 << 0)) != 0;
-            set => SetFlag( 0, value);
+            get => MathHelper.GetFlag(_flags, 0);
+            set => MathHelper.SetFlag(ref _flags, 0, value);
         }
         public bool LitDynamic
         {
-            get => (_flags & (1 << 1)) != 0;
-            set => SetFlag( 1, value);
+            get => MathHelper.GetFlag(_flags, 1);
+            set => MathHelper.SetFlag(ref _flags, 1, value);
         }
 
         public bool NoFog
         {
-            get => (_flags & (1 << 2)) != 0;
-            set => SetFlag(2, value);
+            get => MathHelper.GetFlag(_flags, 2);
+            set => MathHelper.SetFlag(ref _flags, 2, value);
         }
 
         public bool InheritCull
         {
-            get => (_flags & (1 << 3)) != 0;
-            set => SetFlag(3, value);
+            get => MathHelper.GetFlag(_flags, 3);
+            set => MathHelper.SetFlag(ref _flags, 3, value);
         }
 
         public int LightGroup = 0;

@@ -96,6 +96,7 @@ namespace LibreLancer
 		public const int GL_HALF_FLOAT = 0x140B;
 		public const int GL_FLOAT = 0x1406;
 		public const int GL_UNSIGNED_SHORT = 0x1403;
+        public const int GL_SHORT = 0x1402;
 		public const int GL_BYTE = 0x1400;
 
 		public const int GL_ARRAY_BUFFER = 0x8892;
@@ -105,7 +106,7 @@ namespace LibreLancer
         public const int GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 0x8a34;
         public const int GL_COPY_READ_BUFFER = 0x8F36;
         public const int GL_COPY_WRITE_BUFFER = 0x8F37;
-        
+
 		public const int GL_STREAM_DRAW = 0x88E0;
 		public const int GL_DYNAMIC_DRAW = 0x88E8;
 		public const int GL_STATIC_DRAW = 0x88E4;

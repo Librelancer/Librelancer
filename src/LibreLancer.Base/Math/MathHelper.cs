@@ -3,7 +3,7 @@
  * Copyright (c) 2006-2008 the OpenTK Team.
  * This notice may not be removed from any source distribution.
  * See license.txt for licensing detailed licensing details.
- * 
+ *
  * Contributions by Andy Gill, James Talton and Georg Wächter.
  */
 #endregion
@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace LibreLancer
@@ -344,7 +345,7 @@ namespace LibreLancer
         {
             return (max + x % max) % max;
         }
-        
+
         public static float QuatError(Quaternion a, Quaternion b)
         {
             if (a.W < 0) a = -a;
@@ -383,6 +384,19 @@ namespace LibreLancer
             return  Matrix4x4.CreateRotationX(x) *
                     Matrix4x4.CreateRotationY(y) *
                     Matrix4x4.CreateRotationZ(z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool GetFlag(int flags, int idx) =>
+            (flags & (1 << idx)) != 0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetFlag(ref int flags, int idx, bool value)
+        {
+            if (value)
+                flags |= (1 << idx);
+            else
+                flags &= ~(1 << idx);
         }
     }
 }

@@ -51,6 +51,9 @@ in Vertex
 out vec2 Vertex_UV;
 out vec4 Vertex_Color;
 
+uniform bool FlipU;
+uniform bool FlipV;
+
 #define RIGHT (vertex[0].right)
 #define UP (vertex[0].up)
 #define SIZE (vertex[0].size)
@@ -59,32 +62,37 @@ void main(void)
 {
 	vec3 P = gl_in[0].gl_Position.xyz;
 	vec4 tex = vertex[0].tex;
-
+	
+	float top = FlipV ? tex.y + tex.w : tex.y;
+	float bottom = FlipV ? tex.y : tex.y + tex.w;
+	float left = FlipU ? tex.x + tex.z : tex.x;
+	float right = FlipU ? tex.x : tex.x + tex.z;
+	
  	//bottom-left
  	vec3 va = P + (RIGHT * -0.5 * SIZE.x) + (UP * -0.5 * SIZE.y);
  	gl_Position = ViewProjection * vec4(va, 1);
- 	Vertex_UV = vec2(tex.x, tex.y + tex.w);
+ 	Vertex_UV = vec2(left, bottom);
  	Vertex_Color = vertex[0].color;
  	EmitVertex();  
   
   	//bottom-right
   	vec3 vb = P + (RIGHT * 0.5 * SIZE.x) + (UP * -0.5 * SIZE.y);
   	gl_Position = ViewProjection * vec4(vb, 1);
-  	Vertex_UV = vec2(tex.x + tex.z, tex.y + tex.w);
+  	Vertex_UV = vec2(right, bottom);
   	Vertex_Color = vertex[0].color;
   	EmitVertex();  
   
   	//top-left
   	vec3 vd = P + (RIGHT * -0.5 * SIZE.x) + (UP * 0.5 * SIZE.y);
   	gl_Position = ViewProjection * vec4(vd, 1);
-  	Vertex_UV = tex.xy;
+  	Vertex_UV = vec2(left, top);
   	Vertex_Color = vertex[0].color;
   	EmitVertex();  
  
   	//top-right
   	vec3 vc = P + (RIGHT * 0.5 * SIZE.x) + (UP * 0.5 * SIZE.y);
   	gl_Position = ViewProjection * vec4(vc, 1);
-  	Vertex_UV = vec2(tex.x + tex.z, tex.y);
+  	Vertex_UV = vec2(right, top);
   	Vertex_Color = vertex[0].color;
   	EmitVertex();  
  
