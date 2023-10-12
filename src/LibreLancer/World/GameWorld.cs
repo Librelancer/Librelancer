@@ -121,7 +121,7 @@ namespace LibreLancer.World
                 Renderer.LoadSystem(sys);
 
             objects = new List<GameObject>();
-            if (Renderer != null)
+            if (Renderer != null && Projectiles != null)
                 AddObject((new GameObject()
                     {Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles)}));
 
