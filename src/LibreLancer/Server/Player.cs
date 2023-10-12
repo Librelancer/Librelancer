@@ -1125,7 +1125,9 @@ namespace LibreLancer.Server
         public void JumpTo(string system, string target)
         {
             rpcClient.StartJumpTunnel();
+            FLLog.Debug("Player", $"Jumping to {system} - {target}");
             if(World != null) World.RemovePlayer(this, false);
+            this.World = null;
 
             var sys = Game.GameData.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>

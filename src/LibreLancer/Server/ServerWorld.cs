@@ -342,8 +342,11 @@ namespace LibreLancer.Server
         {
             actions.Enqueue(() =>
             {
-                var phys = Players[player].GetComponent<SPlayerComponent>();
-                phys.QueueInput(input);
+                if (Players.TryGetValue(player, out var p))
+                {
+                    var phys = p.GetComponent<SPlayerComponent>();
+                    phys.QueueInput(input);
+                }
             });
         }
 
