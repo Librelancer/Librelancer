@@ -6,7 +6,7 @@
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights to 
+// in the Software without restriction, including without limitation the rights to
 // use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
 // the Software, and to permit persons to whom the Software is furnished to do
 // so, subject to the following conditions:
@@ -42,17 +42,17 @@ namespace LibreLancer
         /// The red component of this Color4 structure.
         /// </summary>
         public float R;
-        
+
         /// <summary>
         /// The green component of this Color4 structure.
         /// </summary>
         public float G;
-        
+
         /// <summary>
         /// The blue component of this Color4 structure.
         /// </summary>
         public float B;
-        
+
         /// <summary>
         /// The alpha component of this Color4 structure.
         /// </summary>
@@ -119,22 +119,24 @@ namespace LibreLancer
         /// <returns>A <see cref="System.Int32"/> that represents this instance.</returns>
         public int ToAbgr()
         {
-            uint value =
-                (uint)(A * Byte.MaxValue) << 24 |
-                (uint)(B * Byte.MaxValue) << 16 |
-                (uint)(G * Byte.MaxValue) << 8 |
-                (uint)(R * Byte.MaxValue);
+            var a = (uint) MathHelper.Clamp(A * 255, 0, 255);
+            var r = (uint)MathHelper.Clamp(R * 255, 0, 255);
+            var g = (uint)MathHelper.Clamp(G * 255, 0, 255);
+            var b = (uint)MathHelper.Clamp(B * 255, 0, 255);
+
+            uint value = a << 24 | b << 16 | g << 8 | r;
 
             return unchecked((int)value);
         }
 
         public int ToRgba()
         {
-            uint value =
-                (uint)(R * Byte.MaxValue) << 24 |
-                (uint)(G * Byte.MaxValue) << 16 |
-                (uint)(B * Byte.MaxValue) << 8 |
-                (uint)(A * Byte.MaxValue);
+            var a = (uint) MathHelper.Clamp(A * 255, 0, 255);
+            var r = (uint)MathHelper.Clamp(R * 255, 0, 255);
+            var g = (uint)MathHelper.Clamp(G * 255, 0, 255);
+            var b = (uint)MathHelper.Clamp(B * 255, 0, 255);
+
+            uint value = r << 24 | g << 16 | b << 8 | a;
 
             return unchecked((int)value);
         }
@@ -1284,7 +1286,7 @@ namespace LibreLancer
             return new Vector4(x, y, z, rgb.A);
         }
 
-        #endregion        
+        #endregion
 
         #region YUV
 
