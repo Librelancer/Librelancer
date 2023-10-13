@@ -14,6 +14,7 @@ using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Net;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Sounds.VoiceLines;
@@ -1067,6 +1068,10 @@ World Time: {12:F2}
                 var dbgT = session.GetSelectedDebugInfo();
                 if(!string.IsNullOrWhiteSpace(dbgT))
                     ImGui.Text(dbgT);
+                if (Selection.Selected?.PhysicsComponent?.Body?.Collider is ConvexMeshCollider cvx)
+                {
+                    ImGui.Text($"selected compound children: {cvx.BepuChildCount}");
+                }
                 ImGui.Text($"input queue: {session.UpdateQueueCount}");
                 if (session.Multiplayer)
                 {

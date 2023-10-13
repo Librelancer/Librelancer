@@ -34,6 +34,9 @@ namespace LibreLancer.Physics
         private int refinementCounter = 0;
         private int lastRefinement = 0;
 
+        public int BepuChildCount =>
+            Handle.Exists ? BepuBigCompound().Children.Length : childBuilder.Count;
+
         //Helper functions for dealing with compound parts
         //Keeps index order valid for managing the hierarchy
         void AddCompoundPart(TypedIndex shape, Vector3 offset, Matrix4x4 transform)
