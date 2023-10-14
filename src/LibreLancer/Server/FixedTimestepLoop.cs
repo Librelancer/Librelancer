@@ -11,21 +11,23 @@ namespace LibreLancer.Server
         private CircularBuffer<TimeSpan> sleepTimes = new CircularBuffer<TimeSpan>(SLEEP_TIME_COUNT);
 
         //FromSeconds creates an inaccurate timespan
-        public TimeSpan TimeStep = TimeSpan.FromTicks(166667);
+        public TimeSpan TimeStep { get; private set; } = TimeSpan.FromTicks(166667);
 
         public TimeSpan TotalTime { get; private set; }
-        
-        private Action<TimeSpan,TimeSpan> onStep;
-        
-        public FixedTimestepLoop(Action<TimeSpan,TimeSpan> onStep)
+
+        private OnStep onStep;
+
+        public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick);
+
+        public FixedTimestepLoop(OnStep onStep)
         {
             for (int i = 0; i < SLEEP_TIME_COUNT; i++)
                 sleepTimes.Enqueue(TimeSpan.FromMilliseconds(1));
             this.onStep = onStep;
         }
-        
+
         TimeSpan sleepPrecision = TimeSpan.FromMilliseconds(1);
-        
+
         void UpdateSleepPrecision(TimeSpan sleepTime)
         {
             if (sleepTime > TimeSpan.FromMilliseconds(5))
@@ -45,7 +47,7 @@ namespace LibreLancer.Server
 
         private TimeSpan accumulatedTime;
         private TimeSpan lastTime;
-        
+
         TimeSpan Accumulate()
         {
             var current = timer.Elapsed;
@@ -54,12 +56,13 @@ namespace LibreLancer.Server
             lastTime = current;
             return diff;
         }
-       
+
 
         public void Start()
         {
             running = true;
             timer = Stopwatch.StartNew();
+            uint currentTick = 1;
             while (running)
             {
                 Accumulate();
@@ -82,19 +85,19 @@ namespace LibreLancer.Server
                     TotalTime += TimeStep;
                     accumulatedTime -= TimeStep;
                     stepCount++;
-                    onStep(TimeStep,TotalTime);
+                    onStep(TimeStep,TotalTime, currentTick++);
                 }
                 if (stepCount == 2 && accumulatedTime >= TimeStep)
                 {
                     TotalTime += accumulatedTime;
-                    onStep(accumulatedTime,TotalTime);
+                    onStep(accumulatedTime,TotalTime, currentTick++);
                     accumulatedTime = TimeSpan.Zero;
                 }
             }
         }
 
-        
-        
+
+
 
         public void Stop()
         {

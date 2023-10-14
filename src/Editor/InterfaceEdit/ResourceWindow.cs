@@ -23,7 +23,7 @@ namespace InterfaceEdit
         TextBuffer modelName = new TextBuffer();
         private FileSelector librarySelector;
         private FileSelector modelSelector;
-        
+
         public ResourceWindow(MainWindow mainWindow, UiData context)
         {
             this.resources = context.Resources;
@@ -115,7 +115,7 @@ namespace InterfaceEdit
                 clr.Name = colorName.GetText();
                 if (clr.Animation == null)
                 {
-                    
+
                     ColorPickerSimple(clr);
                     if (ImGui.Button("Make Animated"))
                     {
@@ -134,7 +134,7 @@ namespace InterfaceEdit
                         clr.Animation = null;
                     }
                 }
-                
+
             }
             ImGui.EndChild();
             ImGui.EndChild();
@@ -247,6 +247,7 @@ namespace InterfaceEdit
                 ImGui.InputFloat("Offset Y", ref mdl.Y);
                 ImGui.InputFloat("Scale X", ref mdl.XScale);
                 ImGui.InputFloat("Scale Y", ref mdl.YScale);
+                ImGui.Checkbox("XZ Plane", ref mdl.XZPlane);
                 DoViewport(mdl);
             }
 
@@ -358,7 +359,7 @@ namespace InterfaceEdit
             ImGui.SetCursorPos(cPos);
             ImGui.InvisibleButton("##renderThing", new Vector2(rtX, rtY));
         }
-        
+
         private RenderTarget2D renderTarget;
         private int renderTargetImage;
         private int rtX = -1, rtY = -1;
@@ -371,7 +372,15 @@ namespace InterfaceEdit
             //Do drawing
             var rectangle = new Rectangle(5, 5, rtX - 10, rtY - 10);
             mainWindow.RenderContext.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
-            var transform = Matrix4x4.CreateScale(mdl.XScale, mdl.YScale, 1) *
+
+            var scale = mdl.XZPlane
+                ? new Vector3(mdl.XScale, 1, mdl.YScale)
+                : new Vector3(mdl.XScale, mdl.YScale, 1);
+            var rotation = mdl.XZPlane
+                ? Matrix4x4.CreateRotationX(MathF.PI / 2f)
+                : Matrix4x4.Identity;
+            var transform = Matrix4x4.CreateScale(scale) *
+                            rotation *
                             Matrix4x4.CreateTranslation(mdl.X, mdl.Y, 0);
             transform *= DisplayModel.CreateTransform(rtX, rtY, rectangle);
             mainWindow.RenderContext.SetIdentityCamera();
@@ -384,7 +393,7 @@ namespace InterfaceEdit
             mainWindow.RenderContext.Cull = true;
             DrawViewport();
         }
-        
+
         void DoImagePreview(InterfaceImage mdl)
         {
             if (foundTexture == null)
@@ -417,6 +426,11 @@ namespace InterfaceEdit
                 ImGui.SliderFloat("Y", ref mdl.TexCoords.Y0, 0, 1);
                 ImGui.SliderFloat("Width", ref mdl.TexCoords.X3, 0, 1);
                 ImGui.SliderFloat("Height", ref mdl.TexCoords.Y3, 0, 1);
+                float angle = MathHelper.RadiansToDegrees(mdl.Angle);
+                ImGui.SliderFloat("Angle", ref angle, 0, 360);
+                ImGui.SliderFloat("Origin X", ref mdl.OriginX, 0, 1);
+                ImGui.SliderFloat("Origin Y", ref mdl.OriginY, 0, 1);
+                mdl.Angle = MathHelper.DegreesToRadians(angle);
                 //res
                 var x0 = mdl.TexCoords.X0;
                 var x1 = mdl.TexCoords.X0 + mdl.TexCoords.X3;
@@ -453,26 +467,62 @@ namespace InterfaceEdit
                     bl = a;
                     br = c;
                 }
-               
+
                 //pos
                 var cPos = (Vector2)ImGui.GetCursorPos();
                 var wPos = (Vector2)ImGui.GetWindowPos();
                 var scrPos = -ImGui.GetScrollY();
                 var xy = cPos + wPos + new Vector2(0, scrPos);
                 var sz = new Vector2(szX, szY);
-                
+
+                var ogX = mdl.OriginX * szX;
+                var ogY = mdl.OriginY * szY;
+                var (p1, p2, p3, p4) = GetQuad(ogX + xy.X, ogY + xy.Y, szX, szY,
+                    ogX, ogY, mdl.Angle);
+
                 ImGui.GetWindowDrawList().AddImageQuad(
                     (IntPtr)foundTextureId,
-                    xy, 
-                    new Vector2(xy.X + sz.X, xy.Y),
-                    xy + sz, 
-                    new Vector2(xy.X, xy.Y + sz.Y), 
-                    tl,tr,br,bl, 
-                    UInt32.MaxValue 
+                    p1,p2,p3,p4,
+                    tl,tr,br,bl,
+                    UInt32.MaxValue
                     );
+
+                var originPos = xy + (sz * new Vector2(mdl.OriginX, mdl.OriginY));
+                if (originPos != Vector2.Zero)
+                {
+                    ImGui.GetWindowDrawList().AddCircleFilled(originPos, 4, 0xFFFFFFFF);
+                    ImGui.GetWindowDrawList().AddCircleFilled(originPos, 2, 0xFF0000FF);
+                }
+
                 ImGui.Dummy(new Vector2(szX, szY));
             }
-            
+
+        }
+
+        (Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4) GetQuad(float x, float y, float w, float h, float originX, float originY, float angle)
+        {
+            float dx = -originX;
+            float dy = -originY;
+
+            var cos = MathF.Cos(angle);
+            var sin = MathF.Sin(angle);
+            var tl = new Vector2(
+                x + dx * cos - dy * sin,
+                y + dx * sin + dy * cos
+            );
+            var tr = new Vector2(
+                x+(dx+w)*cos-dy*sin,
+                y+(dx+w)*sin+dy*cos
+            );
+            var bl = new Vector2(
+                x + dx * cos - (dy + h) * sin,
+                y + dx * sin + (dy + h) * cos
+            );
+            var br = new Vector2(
+                x+(dx+w)*cos-(dy+h)*sin,
+                y+(dx+w)*sin+(dy+h)*cos
+            );
+            return (tl, tr, br, bl);
         }
 
         public void Dispose()

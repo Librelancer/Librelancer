@@ -17,6 +17,7 @@ namespace LibreLancer.Interface
 
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
+            if(!Enabled) return;
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var withMargins = new RectangleF(
                 clientRectangle.X + MarginLeft,

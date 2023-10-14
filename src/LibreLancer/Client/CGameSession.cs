@@ -60,14 +60,16 @@ namespace LibreLancer.Client
         private IServerPlayer rpcServer;
         public NetObjective CurrentObjective;
         public IServerPlayer RpcServer => rpcServer;
-
-        private double timeOffset;
-        public double WorldTime => Game.TotalTime - timeOffset;
+        public double WorldTime => WorldTick * (1 / 60.0f);
 
         public bool Multiplayer => connection is GameNetClient;
         private bool paused = false;
 
+        public uint WorldTick = 0;
+
         public CircularBuffer<int> UpdatePacketSizes = new CircularBuffer<int>(200);
+
+        public EmbeddedServer EmbedddedServer => connection as EmbeddedServer;
 
         public void Pause()
         {
@@ -126,7 +128,6 @@ namespace LibreLancer.Client
             this.connection = connection;
             rpcServer = new RemoteServerPlayer(connection, this);
             ResponseHandler = new NetResponseHandler();
-            _updateTick = (int)g.CurrentTick;
         }
 
         public void AddRTC(string[] paths)
@@ -206,7 +207,7 @@ namespace LibreLancer.Client
 
         struct PlayerMoveState
         {
-            public int Tick;
+            public uint Tick;
             public Vector3 Position;
             public Quaternion Orientation;
             public Vector3 AngularVelocity;
@@ -226,7 +227,7 @@ namespace LibreLancer.Client
             i++;
             return new NetInputControls()
             {
-                Sequence =  moveState[^i].Tick,
+                Tick =  moveState[^i].Tick,
                 Steering = moveState[^i].Steering,
                 Strafe = moveState[^i].Strafe,
                 Throttle = moveState[^i].Throttle,
@@ -235,9 +236,20 @@ namespace LibreLancer.Client
             };
         }
 
-        private int _updateTick = 0;
+        private int tickSyncCounter = 0;
+
+        public int LastTickOffset = 0;
+
+        public void UpdateStart()
+        {
+            var elapsed = (uint) ((Game.TotalTime - totalTimeForTick) / (1 / 60.0f));
+            FLLog.Debug("World", $"{elapsed} ticks elapsed after load");
+            WorldTick += elapsed;
+        }
+
         public void GameplayUpdate(SpaceGameplay gp, double delta)
         {
+            WorldTick++;
             UpdateAudio();
             while (gameplayActions.TryDequeue(out var act))
                 act();
@@ -249,7 +261,7 @@ namespace LibreLancer.Client
 
                 moveState.Enqueue(new PlayerMoveState()
                 {
-                    Tick = _updateTick++,
+                    Tick = WorldTick,
                     Position = player.PhysicsComponent.Body.Position,
                     Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
                     AngularVelocity = MathHelper.ApplyEpsilon(player.PhysicsComponent.Body.AngularVelocity),
@@ -283,20 +295,62 @@ namespace LibreLancer.Client
                 if (processUpdatePackets)
                 {
                     List<SPUpdatePacket> toUpdate = new List<SPUpdatePacket>();
-                    while (updatePackets.Count > 0 && (WorldTime * 1000.0) >= GetTick(updatePackets.Peek()))
+                    while (updatePackets.TryDequeue(out var pkt))
                     {
-                        var sp = GetUpdatePacket(updatePackets.Dequeue());
+                        var sp = GetUpdatePacket(pkt);
                         if(sp != null)
                             toUpdate.Add(sp);
                     }
-                    //Only do resync on the last packet processed this frame
-                    //Stops the resync spiral of death
+
                     for (int i = 0; i < toUpdate.Count; i++) {
+                        //Only do resync on the last packet processed this frame
+                        //Stops the resync spiral of death
                         ProcessUpdate(toUpdate[i], gp, i == toUpdate.Count - 1);
                     }
+                    if(toUpdate.Count > 0)
+                        ClockSync(toUpdate[^1]);
                 }
             }
             (connection as GameNetClient)?.Update(); //Send packets at 60fps
+        }
+
+        private MovingAverage<int> ticks = new MovingAverage<int>(90);
+
+        public int DroppedInputs = 0;
+        public double AdjustedInterval = 1.0;
+        public int AverageTickOffset => ticks.Average;
+
+        private int jumpTimer = 0;
+        void ClockSync(SPUpdatePacket packet)
+        {
+            var tickOffset = (int)((long)packet.InputSequence - (long)packet.Tick);
+            LastTickOffset = tickOffset;
+            jumpTimer--;
+            if (jumpTimer < 0) jumpTimer = 0;
+            if (tickOffset < -50 && jumpTimer == 0) {
+                WorldTick += 32; //Jump ahead in time
+                jumpTimer = 10;
+                AdjustedInterval = 0.9687;
+                return;
+            }
+            ticks.AddValue(tickOffset);
+            if (tickOffset < 0) {
+                ticks.ForceSetAverage(tickOffset);
+                DroppedInputs++;
+            }
+            AdjustedInterval = ticks.Average switch
+            {
+                <= -16 => 0.75,
+                <= -8 => 0.875,
+                <= -4 => 0.92,
+                < 0 => 0.9687,
+                >= 16 => 1.205,
+                >= 8 => 1.085,
+                >= 6 => 1.0312,
+                >= 4 => 1.0070,
+                (>= 3) when !Multiplayer => 1.0050,
+                _ => 1.0
+            };
         }
 
         SPUpdatePacket GetUpdatePacket(IPacket p)
@@ -373,7 +427,6 @@ namespace LibreLancer.Client
         {
             var physComponent = gp.player.GetComponent<ShipPhysicsComponent>();
             var player = gp.player;
-            physComponent.Tick = moveState[i].Tick;
             physComponent.CurrentStrafe = moveState[i].Strafe;
             physComponent.EnginePower = moveState[i].Throttle;
             physComponent.Steering = moveState[i].Steering;
@@ -402,6 +455,7 @@ namespace LibreLancer.Client
 
         void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
         {
+
             foreach (var update in p.Updates)
                 UpdateObject(update, gp.world);
             var hp = gp.player.GetComponent<CHealthComponent>();
@@ -416,7 +470,7 @@ namespace LibreLancer.Client
             {
                 for (int i = moveState.Count - 1; i >= 0; i--)
                 {
-                    if (moveState[i].Tick == p.InputSequence)
+                    if (moveState[i].Tick == p.Tick)
                     {
                         var errorPos = state.Position - moveState[i].Position;
                         var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
@@ -445,15 +499,11 @@ namespace LibreLancer.Client
                             gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                             phys.ChargePercent = state.CruiseChargePct;
                             phys.CruiseAccelPct = state.CruiseAccelPct;
-                            if (!inTradelane)
+                            //simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
+                            for (i = i + 1; i < moveState.Count; i++)
                             {
-                                //simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
-                                for (i = i + 1; i < moveState.Count; i++)
-                                {
-                                    Resimulate(i, gp);
-                                }
+                                Resimulate(i, gp);
                             }
-
                             SmoothError(gp.player, predictedPos, predictedOrient);
                             gp.player.PhysicsComponent.Update(1 / 60.0);
                         }
@@ -718,7 +768,9 @@ namespace LibreLancer.Client
             });
         }
 
-        void IClientPlayer.SpawnPlayer(string system, NetObjective objective, Vector3 position, Quaternion orientation)
+        private double totalTimeForTick = 0;
+
+        void IClientPlayer.SpawnPlayer(string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick)
         {
             enterCount++;
             PlayerBase = null;
@@ -728,6 +780,8 @@ namespace LibreLancer.Client
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
             SceneChangeRequired();
+            WorldTick = tick + connection.EstimateTickDelay();
+            totalTimeForTick = Game.TotalTime;
         }
 
         void IClientPlayer.UpdateAnimations(bool systemObject, int id, NetCmpAnimation[] animations)
@@ -1010,7 +1064,6 @@ namespace LibreLancer.Client
                     {
                         updatePackets.Enqueue(pkt);
                     }
-                    else timeOffset = Game.TotalTime - (GetTick(pkt) / 1000.0);
                     break;
                 default:
                     if (ExtraPackets != null) ExtraPackets(pkt);

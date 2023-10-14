@@ -1,8 +1,29 @@
 <Scene ScriptFile="hud.lua">
     <Scene id="hudcontrols">
+    <Scene id="indicatorlayer">
+    <Panel X="400" Y="200" Width="50" Height="50" CaptureMouse="false" id="selection_arrow">
+		<Panel.Background>
+			<DisplayImage image="selectionarrow_background" tint="targeting_background"/>
+			<DisplayImage image="selectionarrow_outline"/>
+		</Panel.Background>
+	</Panel>
+	<Panel X="500" Y="200" Width="30" Height="30" CaptureMouse="false" id="noselect_arrow">
+		<Panel.Background>
+			<DisplayImage image="noselectarrow_background" tint="targeting_background"/>
+			<DisplayImage image="noselectarrow_outline"/>
+			<DisplayImage image="arrowimportant" OffsetY="4"/>
+		</Panel.Background>
+	</Panel>
+	<Panel X="500" Y="300" Width="50" Height="50" CaptureMouse="false" id="waypoint">
+		<Panel.Background>
+			<DisplayImage image="waypoint_background" tint="targeting_background"/>
+			<DisplayImage image="waypoint_outline"/>
+		</Panel.Background>
+	</Panel>
+    </Scene>
 	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
 		<Panel.Background>
-			<DisplayModel model="contactlistbox" />
+			<DisplayModel model="contactlistbox"  Rotate="0,0,0" />
 		</Panel.Background>
 		<Button id="nextenemy" X="22" Y="3" Width="21" height="20">
 			<Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
@@ -70,7 +91,7 @@
 		<Panel id="sel_tr" Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
 		<Panel id="sel_bl" Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
 		<Panel id="sel_br" Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
-		<TextBlock id="selection_name" Y="-3" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
+		<TextBlock id="selection_name" Y="-13" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
 		<Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
 			<Gauge.Fill><DisplayColor color="red" /></Gauge.Fill>
 			<Gauge.Background><DisplayColor color="black" /></Gauge.Background>
@@ -82,6 +103,7 @@
 			<Gauge.Border><DisplayRectangle color="blue" /></Gauge.Border>
 		</Gauge>
 	</Panel>
+	
 	<Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2" />
 	<Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2" />
 	<Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6" />

@@ -116,92 +116,102 @@
       <A>1</A>
     </Color>
   </Color>
-  <Model name="fullbutton_animating" path="INTERFACE/NEURONET/INVENTORY/front_button.cmp" x="0" y="0" xscale="7.8" yscale="31" />
-  <Model name="hullgauge" path="INTERFACE/HUD/hud_hullgauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
-  <Model name="shieldgauge" path="INTERFACE/HUD/hud_shieldgauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
-  <Model name="powergauge" path="INTERFACE/HUD/hud_energygauge.3db" x="0" y="0" xscale="11.7" yscale="249" />
-  <Model name="nn_info.3db" path="INTERFACE/NEURONET/ICONS/nn_info.3db" x="0" y="0" xscale="55" yscale="56" />
-  <Model name="nn_playerstatus.3db" path="INTERFACE/NEURONET/ICONS/nn_playerstatus.3db" x="0" y="0" xscale="124" yscale="52" />
-  <Model name="nn_map.3db" path="INTERFACE/NEURONET/ICONS/nn_map.3db" x="0" y="0" xscale="48.5" yscale="48.5" />
-  <Model name="nn_chat.3db" path="INTERFACE/NEURONET/ICONS/nn_chat.3db" x="0.05" y="0" xscale="56" yscale="55" />
-  <Model name="nn_storystar.3db" path="INTERFACE/NEURONET/ICONS/nn_storystar.3db" x="0" y="0" xscale="53" yscale="53" />
-  <Model name="xbutton" path="INTERFACE/TEXTOFFER/x.3db" x="0" y="0" xscale="77" yscale="86" />
-  <Model name="errorexplanation.cmp" path="INTERFACE/NEURONET/errorexplanation.cmp" x="0" y="-0.025" xscale="1.75" yscale="4.9" />
-  <Model name="framewithdipdown" path="INTERFACE/INTRO/OBJECTS/multi_attentionreq'd.cmp" x="0" y="0" xscale="3.89" yscale="4.9" />
-  <Model name="navbox1" path="INTERFACE/HUD/hud_maneuverbox1.cmp" x="0" y="0" xscale="36.4" yscale="57.5" />
-  <Model name="navbox2" path="INTERFACE/HUD/hud_maneuverbox2.cmp" x="0" y="-0.12" xscale="21" yscale="52" />
-  <Model name="navbox3" path="INTERFACE/HUD/hud_maneuverbox3.cmp" x="0" y="-0.05" xscale="16" yscale="52" />
-  <Model name="navbox4" path="INTERFACE/HUD/hud_maneuverbox4.cmp" x="0" y="-0.1" xscale="12.9" yscale="52" />
-  <Model name="navbox5" path="INTERFACE/HUD/hud_maneuverbox5.cmp" x="0" y="-0.12" xscale="11.15" yscale="52" />
-  <Model name="contactlistbox" path="INTERFACE/HUD/hud_target.cmp" x="0.028" y="0" xscale="8.1" yscale="9.3" />
-  <Model name="shipinfobox" path="INTERFACE/HUD/hud_shipinfo.cmp" x="-0.025" y="0" xscale="8.1" yscale="9.3" />
-  <Model name="numberboxes" path="INTERFACE/HUD/hud_numberboxes.cmp" x="0" y="0.28" xscale="5.88" yscale="51" />
-  <Model name="gaugecontainer" path="INTERFACE/HUD/hud_guagewindow.cmp" x="0" y="0.11" xscale="9.8" yscale="45.8" />
-  <Model name="front_loadingbar.cmp" path="INTERFACE/INTRO/OBJECTS/front_loadingbar.cmp" x="0" y="0" xscale="3" yscale="3" />
-  <Model name="actionbox1" path="INTERFACE/BASESIDE/city_maneuvertab1.cmp" x="0" y="0" xscale="37.5" yscale="39.2" />
-  <Model name="actionbox2" path="INTERFACE/BASESIDE/city_maneuvertab2.cmp" x="0" y="0" xscale="21.1" yscale="39.2" />
-  <Model name="actionbox3" path="INTERFACE/BASESIDE/city_maneuvertab3.cmp" x="0" y="0" xscale="14.8" yscale="39.2" />
-  <Model name="hud_mnvrwarp.3db" path="INTERFACE/HUD/hud_mnvrwarp.3db" x="0" y="0" xscale="70" yscale="70" />
-  <Model name="front_serverselect" path="INTERFACE/INTRO/OBJECTS/front_serverselect.cmp" x="0" y="0" xscale="2.045" yscale="4.7" />
-  <Model name="front_serverselect_info" path="INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" x="0" y="0" xscale="2.87" yscale="16.55" />
-  <Model name="front_characselectbox" path="INTERFACE/INTRO/OBJECTS/front_characselectbox.cmp" x="0" y="0" xscale="2.38" yscale="3.75" />
-  <Model name="front_infowindow" path="INTERFACE/INTRO/OBJECTS/front_infowindow.cmp" x="0" y="0" xscale="7.5" yscale="10.1" />
-  <Model name="hud_nnbox5" path="INTERFACE/HUD/hud_nnbox5.cmp" x="0" y="-0.08" xscale="9.7" yscale="40" />
-  <Model name="hud_nnbox7" path="INTERFACE/HUD/hud_nnbox7.cmp" x="0" y="-0.1" xscale="7.2" yscale="41" />
-  <Model name="nn_inventory.3db" path="INTERFACE/NEURONET/ICONS/nn_inventory.3db" x="0" y="0" xscale="50" yscale="111" />
-  <Model name="conversationoffer" path="INTERFACE/TEXTOFFER/conversationoffer.cmp" x="0" y="0" xscale="2.44" yscale="3" />
-  <Model name="news_background" path="INTERFACE/NEURONET/NEWSVENDOR/news_background.cmp" x="0" y="-0.1" xscale="1.57" yscale="2.178" />
-  <Model name="hlp_window" path="INTERFACE/NEURONET/INVENTORY/hlp_window.cmp" x="0" y="0" xscale="2.62" yscale="4.18" />
-  <Model name="navmap_background" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmap_background.cmp" x="0" y="0.03" xscale="3.23" yscale="2.91" />
-  <Model name="nav_navmap_left" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_left.cmp" x="2.87" y="0.02" xscale="5.31" yscale="3.43" />
-  <Model name="nav_navmap_right" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_right.cmp" x="-2.87" y="0.02" xscale="5.27" yscale="3.43" />
-  <Model name="nav_universebutton" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_universebutton.3db" x="0" y="0" xscale="67" yscale="67" />
-  <Model name="nav_knownbases" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_knownbases.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="nav_minablezonefilter" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_minablezonefilter.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="nav_legendtoggle" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_legendtoggle.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="nav_patrol" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_patrol.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="nav_labels" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_labels.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="nav_filter_political" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_political.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="nav_filter_physical" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_physical.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="news_textframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_textframe.3db" x="0" y="0" xscale="1.756" yscale="5.6" />
-  <Model name="news_headlineframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_headlineframe.3db" x="0" y="-0.125" xscale="2.8" yscale="5.2" />
-  <Model name="news_videowindow" path="INTERFACE/NEURONET/NEWSVENDOR/news_videowindow.3db" x="0" y="0" xscale="5.104" yscale="6.83" />
-  <Model name="inv_trade_background" path="INTERFACE/NEURONET/INVENTORY/inv_biginforcard.cmp" x="-1" y="0.973" xscale="1.55" yscale="2.4" />
-  <Model name="inv_sellarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_sellarrow.3db" x="0.63" y="0" xscale="7.4" yscale="36" />
-  <Model name="inv_buyarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_buyarrow.3db" x="-0.6" y="0" xscale="7.4" yscale="36" />
-  <Model name="inv_green_circle" path="INTERFACE/NEURONET/INVENTORY/inv_green_circle.3db" x="0" y="0" xscale="89" yscale="95" />
-  <Model name="inv_green_square" path="INTERFACE/NEURONET/INVENTORY/inv_green_square.3db" x="0" y="0" xscale="89" yscale="95" />
-  <Model name="inv_yellow_circle" path="INTERFACE/NEURONET/INVENTORY/inv_yellow_circle.3db" x="0" y="0" xscale="89" yscale="95" />
-  <Model name="inv_yellow_square" path="INTERFACE/NEURONET/INVENTORY/inv_yellow_square.3db" x="0" y="0" xscale="89" yscale="95" />
-  <Model name="inv_red_circle" path="INTERFACE/NEURONET/INVENTORY/inv_red_circle.3db" x="0" y="0" xscale="89" yscale="95" />
-  <Model name="inv_red_square" path="INTERFACE/NEURONET/INVENTORY/inv_red_square.3db" x="0" y="0" xscale="89" yscale="95" />
-  <Model name="inv_category_weapons" path="INTERFACE/NEURONET/INVENTORY/weaponsicon.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="inv_category_external" path="INTERFACE/NEURONET/INVENTORY/equipmenticon.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="inv_category_internal" path="INTERFACE/NEURONET/INVENTORY/cargobay.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="inv_category_ammo" path="INTERFACE/NEURONET/INVENTORY/ammo.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="inv_mount" path="INTERFACE/NEURONET/INVENTORY/mount.3db" x="0" y="0" xscale="96.8" yscale="103.4" />
-  <Model name="inv_unmount" path="INTERFACE/NEURONET/INVENTORY/unmount.3db" x="0" y="0" xscale="96.8" yscale="103.4" />
-  <Model name="ls_background" path="INTERFACE/LOADSAVE/ls_background.cmp" x="0" y="0" xscale="3.15" yscale="3.3" />
-  <Model name="escapewindow" path="INTERFACE/NEURONET/OPTIONS/escapewindow2.cmp" x="0" y="0" xscale="4" yscale="4" />
-  <Model name="inv_category_commodity" path="INTERFACE/NEURONET/INVENTORY/commodities.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="hud_shiptarget" path="INTERFACE/HUD/hud_shiptarget.3db" x="0" y="0" xscale="52" yscale="52" />
-  <Model name="hud_nextenemy" path="INTERFACE/HUD/hud_nextenemy.3db" x="0" y="0.02" xscale="64" yscale="69" />
-  <Model name="hud_nanobots" path="INTERFACE/HUD/hud_repairactivate.3db" x="0" y="0" xscale="77" yscale="75" />
-  <Model name="hud_tractorbeam2" path="INTERFACE/HUD/hud_tractorbeam2.3db" x="0" y="0" xscale="69" yscale="69" />
-  <Model name="hud_radiationalert" path="INTERFACE/HUD/hud_radiationalert.3db" x="0" y="0" xscale="63" yscale="63" />
-  <Model name="hud_hailship" path="INTERFACE/HUD/hud_communication.3db" x="0" y="0" xscale="65" yscale="65" />
-  <Model name="hud_contactall" path="INTERFACE/HUD/hud_contactall.3db" x="0" y="0" xscale="86" yscale="86" />
-  <Model name="hud_contactloot" path="INTERFACE/HUD/hud_contactloot.3db" x="0" y="0" xscale="86" yscale="86" />
-  <Model name="hud_contactship" path="INTERFACE/HUD/hud_contactship.3db" x="0" y="0" xscale="86" yscale="96" />
-  <Model name="hud_contactstation" path="INTERFACE/HUD/hud_contactstation.3db" x="0" y="0" xscale="86" yscale="86" />
-  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" />
-  <Model name="hud_contactimportant" path="INTERFACE/HUD/hud_contactimportant.3db" x="0" y="0" xscale="86" yscale="86" />
-  <Model name="hud_targetedobject" path="INTERFACE/HUD/hud_targetedobject.3db" x="0" y="0" xscale="76" yscale="76" />
-  <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" />
-  <Model name="relation_hostile" path="INTERFACE/NEURONET/INVENTORY/pstat_grandienthate.3db" x="0" y="0" xscale="16.4" yscale="123" />
-  <Model name="relation_friendly" path="INTERFACE/NEURONET/INVENTORY/pstat_grandientlove.3db" x="0" y="0" xscale="16.4" yscale="123" />
-  <Model name="char_infowindow" path="INTERFACE/NEURONET/INVENTORY/char_infowindow.cmp" x="-0.01" y="0" xscale="2.25" yscale="3.55" />
-  <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
+  <Color>
+    <Name>targeting_background</Name>
+    <Color>
+      <R>0</R>
+      <G>0.09803922</G>
+      <B>0.21568628</B>
+      <A>1</A>
+    </Color>
+  </Color>
+  <Model name="fullbutton_animating" path="INTERFACE/NEURONET/INVENTORY/front_button.cmp" x="0" y="0" xscale="7.8" yscale="31" xz-plane="false" />
+  <Model name="hullgauge" path="INTERFACE/HUD/hud_hullgauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
+  <Model name="shieldgauge" path="INTERFACE/HUD/hud_shieldgauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
+  <Model name="powergauge" path="INTERFACE/HUD/hud_energygauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
+  <Model name="nn_info.3db" path="INTERFACE/NEURONET/ICONS/nn_info.3db" x="0" y="0" xscale="55" yscale="56" xz-plane="false" />
+  <Model name="nn_playerstatus.3db" path="INTERFACE/NEURONET/ICONS/nn_playerstatus.3db" x="0" y="0" xscale="124" yscale="52" xz-plane="false" />
+  <Model name="nn_map.3db" path="INTERFACE/NEURONET/ICONS/nn_map.3db" x="0" y="0" xscale="48.5" yscale="48.5" xz-plane="false" />
+  <Model name="nn_chat.3db" path="INTERFACE/NEURONET/ICONS/nn_chat.3db" x="0.05" y="0" xscale="56" yscale="55" xz-plane="false" />
+  <Model name="nn_storystar.3db" path="INTERFACE/NEURONET/ICONS/nn_storystar.3db" x="0" y="0" xscale="53" yscale="53" xz-plane="false" />
+  <Model name="xbutton" path="INTERFACE/TEXTOFFER/x.3db" x="0" y="0" xscale="77" yscale="86" xz-plane="false" />
+  <Model name="errorexplanation.cmp" path="INTERFACE/NEURONET/errorexplanation.cmp" x="0" y="-0.025" xscale="1.75" yscale="4.9" xz-plane="false" />
+  <Model name="framewithdipdown" path="INTERFACE/INTRO/OBJECTS/multi_attentionreq'd.cmp" x="0" y="0" xscale="3.89" yscale="4.9" xz-plane="false" />
+  <Model name="navbox1" path="INTERFACE/HUD/hud_maneuverbox1.cmp" x="0" y="0" xscale="36.4" yscale="57.5" xz-plane="false" />
+  <Model name="navbox2" path="INTERFACE/HUD/hud_maneuverbox2.cmp" x="0" y="-0.12" xscale="21" yscale="52" xz-plane="false" />
+  <Model name="navbox3" path="INTERFACE/HUD/hud_maneuverbox3.cmp" x="0" y="-0.05" xscale="16" yscale="52" xz-plane="false" />
+  <Model name="navbox4" path="INTERFACE/HUD/hud_maneuverbox4.cmp" x="0" y="-0.1" xscale="12.9" yscale="52" xz-plane="false" />
+  <Model name="navbox5" path="INTERFACE/HUD/hud_maneuverbox5.cmp" x="0" y="-0.12" xscale="11.15" yscale="52" xz-plane="false" />
+  <Model name="contactlistbox" path="INTERFACE/HUD/hud_target.cmp" x="0.028" y="0" xscale="8.1" yscale="9.3" xz-plane="false" />
+  <Model name="shipinfobox" path="INTERFACE/HUD/hud_shipinfo.cmp" x="-0.025" y="0" xscale="8.1" yscale="9.3" xz-plane="false" />
+  <Model name="numberboxes" path="INTERFACE/HUD/hud_numberboxes.cmp" x="0" y="0.28" xscale="5.88" yscale="51" xz-plane="false" />
+  <Model name="gaugecontainer" path="INTERFACE/HUD/hud_guagewindow.cmp" x="0" y="0.11" xscale="9.8" yscale="45.8" xz-plane="false" />
+  <Model name="front_loadingbar.cmp" path="INTERFACE/INTRO/OBJECTS/front_loadingbar.cmp" x="0" y="0" xscale="3" yscale="3" xz-plane="false" />
+  <Model name="actionbox1" path="INTERFACE/BASESIDE/city_maneuvertab1.cmp" x="0" y="0" xscale="37.5" yscale="39.2" xz-plane="false" />
+  <Model name="actionbox2" path="INTERFACE/BASESIDE/city_maneuvertab2.cmp" x="0" y="0" xscale="21.1" yscale="39.2" xz-plane="false" />
+  <Model name="actionbox3" path="INTERFACE/BASESIDE/city_maneuvertab3.cmp" x="0" y="0" xscale="14.8" yscale="39.2" xz-plane="false" />
+  <Model name="hud_mnvrwarp.3db" path="INTERFACE/HUD/hud_mnvrwarp.3db" x="0" y="0" xscale="70" yscale="70" xz-plane="false" />
+  <Model name="front_serverselect" path="INTERFACE/INTRO/OBJECTS/front_serverselect.cmp" x="0" y="0" xscale="2.045" yscale="4.7" xz-plane="false" />
+  <Model name="front_serverselect_info" path="INTERFACE/INTRO/OBJECTS/front_serverselect_info.cmp" x="0" y="0" xscale="2.87" yscale="16.55" xz-plane="false" />
+  <Model name="front_characselectbox" path="INTERFACE/INTRO/OBJECTS/front_characselectbox.cmp" x="0" y="0" xscale="2.38" yscale="3.75" xz-plane="false" />
+  <Model name="front_infowindow" path="INTERFACE/INTRO/OBJECTS/front_infowindow.cmp" x="0" y="0" xscale="7.5" yscale="10.1" xz-plane="false" />
+  <Model name="hud_nnbox5" path="INTERFACE/HUD/hud_nnbox5.cmp" x="0" y="-0.08" xscale="9.7" yscale="40" xz-plane="false" />
+  <Model name="hud_nnbox7" path="INTERFACE/HUD/hud_nnbox7.cmp" x="0" y="-0.1" xscale="7.2" yscale="41" xz-plane="false" />
+  <Model name="nn_inventory.3db" path="INTERFACE/NEURONET/ICONS/nn_inventory.3db" x="0" y="0" xscale="50" yscale="111" xz-plane="false" />
+  <Model name="conversationoffer" path="INTERFACE/TEXTOFFER/conversationoffer.cmp" x="0" y="0" xscale="2.44" yscale="3" xz-plane="false" />
+  <Model name="news_background" path="INTERFACE/NEURONET/NEWSVENDOR/news_background.cmp" x="0" y="-0.1" xscale="1.57" yscale="2.178" xz-plane="false" />
+  <Model name="hlp_window" path="INTERFACE/NEURONET/INVENTORY/hlp_window.cmp" x="0" y="0" xscale="2.62" yscale="4.18" xz-plane="false" />
+  <Model name="navmap_background" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmap_background.cmp" x="0" y="0.03" xscale="3.23" yscale="2.91" xz-plane="false" />
+  <Model name="nav_navmap_left" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_left.cmp" x="2.87" y="0.02" xscale="5.31" yscale="3.43" xz-plane="false" />
+  <Model name="nav_navmap_right" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_right.cmp" x="-2.87" y="0.02" xscale="5.27" yscale="3.43" xz-plane="false" />
+  <Model name="nav_universebutton" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_universebutton.3db" x="0" y="0" xscale="67" yscale="67" xz-plane="false" />
+  <Model name="nav_knownbases" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_knownbases.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_minablezonefilter" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_minablezonefilter.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_legendtoggle" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_legendtoggle.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_patrol" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_patrol.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_labels" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_labels.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_filter_political" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_political.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_filter_physical" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_physical.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="news_textframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_textframe.3db" x="0" y="0" xscale="1.756" yscale="5.6" xz-plane="false" />
+  <Model name="news_headlineframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_headlineframe.3db" x="0" y="-0.125" xscale="2.8" yscale="5.2" xz-plane="false" />
+  <Model name="news_videowindow" path="INTERFACE/NEURONET/NEWSVENDOR/news_videowindow.3db" x="0" y="0" xscale="5.104" yscale="6.83" xz-plane="false" />
+  <Model name="inv_trade_background" path="INTERFACE/NEURONET/INVENTORY/inv_biginforcard.cmp" x="-1" y="0.973" xscale="1.55" yscale="2.4" xz-plane="false" />
+  <Model name="inv_sellarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_sellarrow.3db" x="0.63" y="0" xscale="7.4" yscale="36" xz-plane="false" />
+  <Model name="inv_buyarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_buyarrow.3db" x="-0.6" y="0" xscale="7.4" yscale="36" xz-plane="false" />
+  <Model name="inv_green_circle" path="INTERFACE/NEURONET/INVENTORY/inv_green_circle.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
+  <Model name="inv_green_square" path="INTERFACE/NEURONET/INVENTORY/inv_green_square.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
+  <Model name="inv_yellow_circle" path="INTERFACE/NEURONET/INVENTORY/inv_yellow_circle.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
+  <Model name="inv_yellow_square" path="INTERFACE/NEURONET/INVENTORY/inv_yellow_square.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
+  <Model name="inv_red_circle" path="INTERFACE/NEURONET/INVENTORY/inv_red_circle.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
+  <Model name="inv_red_square" path="INTERFACE/NEURONET/INVENTORY/inv_red_square.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
+  <Model name="inv_category_weapons" path="INTERFACE/NEURONET/INVENTORY/weaponsicon.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="inv_category_external" path="INTERFACE/NEURONET/INVENTORY/equipmenticon.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="inv_category_internal" path="INTERFACE/NEURONET/INVENTORY/cargobay.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="inv_category_ammo" path="INTERFACE/NEURONET/INVENTORY/ammo.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="inv_mount" path="INTERFACE/NEURONET/INVENTORY/mount.3db" x="0" y="0" xscale="96.8" yscale="103.4" xz-plane="false" />
+  <Model name="inv_unmount" path="INTERFACE/NEURONET/INVENTORY/unmount.3db" x="0" y="0" xscale="96.8" yscale="103.4" xz-plane="false" />
+  <Model name="ls_background" path="INTERFACE/LOADSAVE/ls_background.cmp" x="0" y="0" xscale="3.15" yscale="3.3" xz-plane="false" />
+  <Model name="escapewindow" path="INTERFACE/NEURONET/OPTIONS/escapewindow2.cmp" x="0" y="0" xscale="4" yscale="4" xz-plane="false" />
+  <Model name="inv_category_commodity" path="INTERFACE/NEURONET/INVENTORY/commodities.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="hud_shiptarget" path="INTERFACE/HUD/hud_shiptarget.3db" x="0" y="0" xscale="52" yscale="52" xz-plane="false" />
+  <Model name="hud_nextenemy" path="INTERFACE/HUD/hud_nextenemy.3db" x="0" y="0.02" xscale="64" yscale="69" xz-plane="false" />
+  <Model name="hud_nanobots" path="INTERFACE/HUD/hud_repairactivate.3db" x="0" y="0" xscale="77" yscale="75" xz-plane="false" />
+  <Model name="hud_tractorbeam2" path="INTERFACE/HUD/hud_tractorbeam2.3db" x="0" y="0" xscale="69" yscale="69" xz-plane="false" />
+  <Model name="hud_radiationalert" path="INTERFACE/HUD/hud_radiationalert.3db" x="0" y="0" xscale="63" yscale="63" xz-plane="false" />
+  <Model name="hud_hailship" path="INTERFACE/HUD/hud_communication.3db" x="0" y="0" xscale="65" yscale="65" xz-plane="false" />
+  <Model name="hud_contactall" path="INTERFACE/HUD/hud_contactall.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactloot" path="INTERFACE/HUD/hud_contactloot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactship" path="INTERFACE/HUD/hud_contactship.3db" x="0" y="0" xscale="86" yscale="96" xz-plane="false" />
+  <Model name="hud_contactstation" path="INTERFACE/HUD/hud_contactstation.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="hud_contactimportant" path="INTERFACE/HUD/hud_contactimportant.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_targetedobject" path="INTERFACE/HUD/hud_targetedobject.3db" x="0" y="0" xscale="76" yscale="76" xz-plane="false" />
+  <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" xz-plane="false" />
+  <Model name="relation_hostile" path="INTERFACE/NEURONET/INVENTORY/pstat_grandienthate.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
+  <Model name="relation_friendly" path="INTERFACE/NEURONET/INVENTORY/pstat_grandientlove.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
+  <Model name="char_infowindow" path="INTERFACE/NEURONET/INVENTORY/char_infowindow.cmp" x="-0.01" y="0" xscale="2.25" yscale="3.55" xz-plane="false" />
+  <Model name="targetarrow" path="INTERFACE/HUD/hud_targetarrow.3db" x="-1" y="1" xscale="44" yscale="19.6" xz-plane="true" />
+  <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
@@ -223,7 +233,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="sliderarrow_down" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
+  <Image name="sliderarrow_down" texname="HUD_sliderarrow" type="Triangle" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
@@ -245,7 +255,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="sliderarrow_left" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
+  <Image name="sliderarrow_left" texname="HUD_sliderarrow" type="Triangle" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
@@ -267,7 +277,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="sliderarrow_right" texname="HUD_sliderarrow" type="Triangle" rot="None" flip="false">
+  <Image name="sliderarrow_right" texname="HUD_sliderarrow" type="Triangle" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
       <Y0>0.06995885</Y0>
@@ -289,7 +299,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="slider_middle" texname="HUD_slidertexmid" type="Normal" rot="None" flip="false">
+  <Image name="slider_middle" texname="HUD_slidertexmid" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>0</Y0>
@@ -311,7 +321,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="slider_top" texname="HUD_slidertextopbottom" type="Normal" rot="None" flip="false">
+  <Image name="slider_top" texname="HUD_slidertextopbottom" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>0.501</Y0>
@@ -333,7 +343,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="slider_bottom" texname="HUD_slidertextopbottom" type="Normal" rot="None" flip="false">
+  <Image name="slider_bottom" texname="HUD_slidertextopbottom" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>0</Y0>
@@ -355,7 +365,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="hslider_middle" texname="HUD_slidertexmid" type="Normal" rot="Rotate270" flip="false">
+  <Image name="hslider_middle" texname="HUD_slidertexmid" type="Normal" rot="Rotate270" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>0</Y0>
@@ -377,7 +387,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="tgtcorner_tl" texname="HUD_targetingelement" type="Normal" rot="None" flip="false">
+  <Image name="tgtcorner_tl" texname="HUD_targetingelement" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>1</Y0>
@@ -399,7 +409,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="tgtcorner_tr" texname="HUD_targetingelement" type="Normal" rot="Rotate90" flip="false">
+  <Image name="tgtcorner_tr" texname="HUD_targetingelement" type="Normal" rot="Rotate90" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>1</Y0>
@@ -421,7 +431,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="tgtcorner_bl" texname="HUD_targetingelement" type="Normal" rot="Rotate270" flip="false">
+  <Image name="tgtcorner_bl" texname="HUD_targetingelement" type="Normal" rot="Rotate270" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>1</Y0>
@@ -443,7 +453,7 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
-  <Image name="tgtcorner_br" texname="HUD_targetingelement" type="Normal" rot="Rotate180" flip="false">
+  <Image name="tgtcorner_br" texname="HUD_targetingelement" type="Normal" rot="Rotate180" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0</X0>
       <Y0>1</Y0>
@@ -453,6 +463,182 @@
       <Y2>1</Y2>
       <X3>0.248</X3>
       <Y3>0.245</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="noselectarrow_outline" texname="hud_targetingelement" type="Normal" rot="None" originx="0.14" originy="0.17" angle="0.7959919" flip="false">
+    <TexCoords>
+      <X0>0.008</X0>
+      <Y0>0.501</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.227</X3>
+      <Y3>0.227</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="selectionarrow_outline" texname="HUD_targetingelement" type="Normal" rot="None" originx="0.046" originy="0.046" angle="0.7451683" flip="false">
+    <TexCoords>
+      <X0>0.251</X0>
+      <Y0>0.251</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.25</X3>
+      <Y3>0.251</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="selectionarrow_background" texname="HUD_targetingelement" type="Normal" rot="None" originx="0.046" originy="0.046" angle="0.7451683" flip="false">
+    <TexCoords>
+      <X0>0.498</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.25</X3>
+      <Y3>0.251</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="noselectarrow_background" texname="HUD_targetingelement" type="Normal" rot="None" originx="0.139" originy="0.168" angle="0.78799856" flip="false">
+    <TexCoords>
+      <X0>0.258</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.228</X3>
+      <Y3>0.228</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="arrowimportant" texname="HUD_targetingelement" type="Normal" rot="None" originx="0.198" originy="0.158" angle="0.78799856" flip="false">
+    <TexCoords>
+      <X0>0.749</X0>
+      <Y0>0.258</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.258</X3>
+      <Y3>0.253</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="waypoint_outline" texname="HUD_targetingelement" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
+    <TexCoords>
+      <X0>0.749</X0>
+      <Y0>0.502</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.251</X3>
+      <Y3>0.247</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="waypoint_background" texname="HUD_targetingelement" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
+    <TexCoords>
+      <X0>0.749</X0>
+      <Y0>0.749</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.251</X3>
+      <Y3>0.251</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="waypoint_onscreen" texname="HUD_targetingelement" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="false">
+    <TexCoords>
+      <X0>0.25</X0>
+      <Y0>0.5</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>0.25</X3>
+      <Y3>0.25</Y3>
     </TexCoords>
     <DisplayCoords>
       <X0>0</X0>

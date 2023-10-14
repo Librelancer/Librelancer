@@ -216,12 +216,11 @@ namespace LibreLancer.Server
 
         public double TotalTime => processingLoop.TotalTime.TotalSeconds;
 
-        //FromSeconds creates an inaccurate timespan
-        static readonly TimeSpan RATE_60 = TimeSpan.FromTicks(166667);
-        static readonly TimeSpan RATE_30 = TimeSpan.FromTicks(333333);
+        public uint CurrentTick { get; private set; }
 
-        void Process(TimeSpan time, TimeSpan totalTime)
+        void Process(TimeSpan time, TimeSpan totalTime, uint currentTick)
         {
+            CurrentTick = currentTick;
             var startTime = serverTiming.Elapsed;
             while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
                 LocalPlayer.ProcessPacketDirect(local);
@@ -237,7 +236,7 @@ namespace LibreLancer.Server
             debugInfoForFrame = "";
             foreach (var w in worlds)
             {
-                if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds))
+                if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds, currentTick))
                     toSpinDown.Add(w.Key);
             }
 
@@ -258,12 +257,9 @@ namespace LibreLancer.Server
                     }
                 }
             }
-
-            bool was30 = processingLoop.TimeStep == RATE_30;
-            processingLoop.TimeStep = worlds.Count > 0 ? RATE_60 : RATE_30;
             var updateDuration = serverTiming.Elapsed - startTime;
             PerformanceStats?.AddEntry((float)updateDuration.TotalMilliseconds);
-            if (updateDuration > RATE_60 && !was30)
+            if (updateDuration > TimeSpan.FromTicks(166667))
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
             }

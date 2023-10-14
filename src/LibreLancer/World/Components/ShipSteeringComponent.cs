@@ -57,7 +57,6 @@ namespace LibreLancer.World.Components
             physics.EnginePower = InThrottle;
             physics.ThrustEnabled = Thrust;
             physics.CruiseEnabled = Cruise;
-            physics.Tick = Tick;
         }
 
         //Specific decomposition for roll

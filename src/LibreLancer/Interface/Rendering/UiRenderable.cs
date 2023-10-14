@@ -30,6 +30,7 @@ namespace LibreLancer.Interface
 
     public class DisplayElement
     {
+        public bool Enabled = true;
         public virtual void Render(UiContext context, RectangleF clientRectangle)
         {
         }

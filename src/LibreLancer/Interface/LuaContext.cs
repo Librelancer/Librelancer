@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using LibreLancer.Infocards;
+using LibreLancer.Interface.WattleMaths;
 using LibreLancer.Net;
 using WattleScript.Interpreter;
 using WattleScript.Interpreter.Interop.BasicDescriptors;
@@ -21,10 +22,10 @@ namespace LibreLancer.Interface
     public partial class LuaContext : IDisposable
     {
         Script script;
-        
+
         private object _callevent;
         private object _openscene;
-        
+
         static LuaContext()
         {
             UserData.DefaultAccessMode = InteropAccessMode.Hardwired;
@@ -33,128 +34,16 @@ namespace LibreLancer.Interface
             UserData.RegisterType<VerticalAlignment>();
             UserData.RegisterType<AnchorKind>();
             UserData.RegisterType<ChatCategory>();
-            UserData.RegisterType(new Vector2Lua());
-            UserData.RegisterType(new Vector3Lua());
+            UserData.RegisterType(new WattleVector2());
+            UserData.RegisterType(new WattleVector3());
         }
 
         //Run static .cctor
         public static void Initialize() { }
 
-        class Vector2Lua : HardwiredUserDataDescriptor
-        {
-            public Vector2Lua() : base(typeof(Vector2))
-            {
-                AddMember("X", new DescX());
-                AddMember("Y", new DescY());
-            }
 
-            class DescX : HardwiredMemberDescriptor
-            {
-                public DescX() : 
-                    base(typeof(float), "X", 
-                        false, MemberDescriptorAccess.CanRead | MemberDescriptorAccess.CanWrite)
-                {
-                }
 
-                protected override object GetValueImpl(Script script, object obj)
-                {
-                    return Unsafe.Unbox<Vector2>(obj).X;
-                }
 
-                protected override void SetValueImpl(Script script, object obj, object value)
-                {
-                    Unsafe.Unbox<Vector2>(obj).X = (float)value;
-                }
-            }
-            
-            class DescY : HardwiredMemberDescriptor
-            {
-                public DescY() : 
-                    base(typeof(float), "X", 
-                        false, MemberDescriptorAccess.CanRead | MemberDescriptorAccess.CanWrite)
-                {
-                }
-
-                protected override object GetValueImpl(Script script, object obj)
-                {
-                    return Unsafe.Unbox<Vector2>(obj).Y;
-                }
-
-                protected override void SetValueImpl(Script script, object obj, object value)
-                {
-                    Unsafe.Unbox<Vector2>(obj).Y = (float)value;
-                }
-            }
-            
-        }
-
-        class Vector3Lua : HardwiredUserDataDescriptor
-        {
-            public Vector3Lua() : base(typeof(Vector3))
-            {
-                AddMember("X", new DescX());
-                AddMember("Y", new DescY());
-                AddMember("Z", new DescZ());
-            }
-            
-            class DescX : HardwiredMemberDescriptor
-            {
-                public DescX() : 
-                    base(typeof(float), "X", 
-                        false, MemberDescriptorAccess.CanRead | MemberDescriptorAccess.CanWrite) 
-                {
-                }
-
-                protected override object GetValueImpl(Script script, object obj)
-                {
-                    return Unsafe.Unbox<Vector3>(obj).X;
-                }
-
-                protected override void SetValueImpl(Script script, object obj, object value)
-                {
-                    Unsafe.Unbox<Vector3>(obj).X = (float)value;
-                }
-            }
-            
-            class DescY : HardwiredMemberDescriptor
-            {
-                public DescY() : 
-                    base(typeof(float), "Y", 
-                        false, MemberDescriptorAccess.CanRead | MemberDescriptorAccess.CanWrite)
-                {
-                }
-
-                protected override object GetValueImpl(Script script, object obj)
-                {
-                    return Unsafe.Unbox<Vector3>(obj).Y;
-                }
-
-                protected override void SetValueImpl(Script script, object obj, object value)
-                {
-                    Unsafe.Unbox<Vector3>(obj).Y = (float)value;
-                }
-            }
-            
-            class DescZ : HardwiredMemberDescriptor
-            {
-                public DescZ() : 
-                    base(typeof(float), "Z", 
-                        false, MemberDescriptorAccess.CanRead | MemberDescriptorAccess.CanWrite)
-                {
-                }
-
-                protected override object GetValueImpl(Script script, object obj)
-                {
-                    return Unsafe.Unbox<Vector3>(obj).Z;
-                }
-
-                protected override void SetValueImpl(Script script, object obj, object value)
-                {
-                    Unsafe.Unbox<Vector3>(obj).Z = (float)value;
-                }
-            }
-            
-        }
         public static void RegisterType<T>()
         {
             UserData.RegisterType<T>(InteropAccessMode.LazyOptimized);
@@ -173,6 +62,9 @@ namespace LibreLancer.Interface
             script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
             script.Options.ScriptLoader = new UiScriptLoader(context);
             var globalTable = script.Globals;
+            globalTable["ScreenWidth"] = () => 480 * (context.ViewportWidth / context.ViewportHeight);
+            WattleVector2.CreateTable(script);
+            WattleVector3.CreateTable(script);
             var typeTable = new Table(script);
             globalTable["ClrTypes"] = typeTable;
             typeTable["System_Collections_Generic_List___LibreLancer_Interface_XmlStyle___"] = typeof(List<XmlStyle>);
@@ -183,7 +75,7 @@ namespace LibreLancer.Interface
                 typeof(List<ListItem>);
             typeTable["System_Collections_Generic_List___LibreLancer_Interface_TableColumn___"] =
                 typeof(List<TableColumn>);
-            
+
             foreach (var type in typeof(LuaContext).Assembly.GetTypes())
             {
                 if (type.GetCustomAttributes(false).OfType<WattleScriptUserDataAttribute>().Any())
@@ -225,7 +117,7 @@ namespace LibreLancer.Interface
             {
                 throw new Exception($"{e.DecoratedMessage}", e);
             }
-          
+
         }
 
         public void SetGameApi(object g)
@@ -238,7 +130,7 @@ namespace LibreLancer.Interface
             timers = new List<LuaTimer>();
             script.Call(_openscene, scene);
         }
-        
+
         double lastTime;
         public void DoTimers(double globalTime)
         {
@@ -267,12 +159,12 @@ namespace LibreLancer.Interface
             public double Time;
             public object Function;
         }
-        
+
         public void Timer(float timer, object func)
         {
             timers.Add(new LuaTimer() { Time = timer, Function = func});
         }
-        
+
         [WattleScriptUserData]
         public class ContextFunctions
         {
@@ -311,7 +203,7 @@ namespace LibreLancer.Interface
                 throw new Exception(ex.DecoratedMessage, ex);
             }
         }
-     
+
         public void Dispose()
         {
         }

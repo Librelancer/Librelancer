@@ -157,7 +157,44 @@ class hud : hud_Designer
 			{ this.Elements.nn_playerstatus, this.PlayerStatus }
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
+
+		this.SetupIndicators()
     }
+
+	SetupIndicators()
+	{
+		local e = this.Elements;
+
+		Game.SetIndicatorLayer(e.indicatorlayer);
+
+		local selected = e.selection_arrow;
+		e.indicatorlayer.Children.Remove(selected);
+		Game.SetSelectedArrowTemplate(selected, (angle, rep, important) => {
+			selected.Background.GetElement(0).Angle = angle;
+			local fg = selected.Background.GetElement(1);
+			fg.Angle = angle;
+			fg.Tint = GetColor('color_' + rep)
+		});
+		local unselected = e.noselect_arrow;
+		e.indicatorlayer.Children.Remove(unselected);
+		Game.SetUnselectedArrowTemplate(unselected, (angle, rep, alpha, important) => {
+			local bgcol = GetColor('targeting_background').SetAlpha(alpha);
+			local fgcol = GetColor('color_' + rep).SetAlpha(alpha);
+			local bg = unselected.Background.GetElement(0);
+			bg.Angle = angle;
+			bg.Tint = bgcol;
+			local fg = unselected.Background.GetElement(1);
+			fg.Angle = angle;
+			fg.Tint = fgcol;
+			local border = unselected.Background.GetElement(2);
+			border.Enabled = important;
+			border.Tint = fgcol;
+			border.Angle = angle;
+		});
+
+		local waypoint = e.waypoint;
+		e.indicatorlayer.Children.Remove(waypoint);
+	}
 
 	FilterSelected(filter)
 	{
@@ -230,7 +267,6 @@ class hud : hud_Designer
 		    e.selection.Visible = false
 	    }
     }
-    
     
     UpdateManeuverState()
     {

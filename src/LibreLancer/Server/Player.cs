@@ -309,7 +309,7 @@ namespace LibreLancer.Server
                 World = world;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -1152,7 +1152,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -1200,7 +1200,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation);
+                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();

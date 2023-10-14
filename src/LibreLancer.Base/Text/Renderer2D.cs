@@ -65,7 +65,7 @@ namespace LibreLancer
             }
 		}
 		";
-		
+
 		[StructLayout(LayoutKind.Sequential)]
 		struct Vertex2D : IVertexType {
 			public Vector2 Position;
@@ -100,7 +100,7 @@ namespace LibreLancer
 				);
 			}
 		}
-		
+
 		RenderContext rs;
 		VertexBuffer vbo;
 		ElementBuffer el;
@@ -172,7 +172,7 @@ namespace LibreLancer
             if (size < 1) return 0;
             return CreateRichTextEngine().LineHeight(fontName, size);
         }
-        
+
 		int vertexCount = 0;
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
@@ -193,7 +193,7 @@ namespace LibreLancer
         }
 
         private bool scissorUsed = false;
-        
+
         internal void ScissorChanged()
         {
             if (scissorUsed)
@@ -245,7 +245,7 @@ namespace LibreLancer
         private const int C_BR = 1 << 16 | 1;
 
 
-        public void DrawRotated(Texture2D tex, Rectangle source, Rectangle dest, Vector2 origin, Color4 color, BlendMode mode, float angle, bool flip = false)
+        public void DrawRotated(Texture2D tex, Rectangle source, Rectangle dest, Vector2 origin, Color4 color, BlendMode mode, float angle, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             if (rs.ScissorEnabled && !scissorUsed) {
                 Flush();
@@ -258,13 +258,13 @@ namespace LibreLancer
             float h = dest.Height;
             float dx = -origin.X;
             float dy = -origin.Y;
-            
+
             float srcX = (float)source.X;
             float srcY = (float)source.Y;
             float srcW = (float)source.Width;
             float srcH = (float)source.Height;
 
-            
+
             var cos = MathF.Cos(angle);
             var sin = MathF.Sin(angle);
             var tl = new Vector2(
@@ -283,7 +283,7 @@ namespace LibreLancer
                 x+(dx+w)*cos-(dy+h)*sin,
                 y+(dx+w)*sin+(dy+h)*cos
             );
-            
+
             Vector2 ta = new Vector2(srcX / (float) tex.Width,
                 srcY / (float) tex.Height);
             Vector2 tb = new Vector2((srcX + srcW) / (float) tex.Width,
@@ -293,30 +293,56 @@ namespace LibreLancer
             Vector2 td = new Vector2((srcX + srcW) / (float) tex.Width,
                 (srcY + srcH) / (float) tex.Height);
 
+            var topLeftCoord = ta;
+            var topRightCoord = tb;
+            var bottomLeftCoord = tc;
+            var bottomRightCoord = td;
+
+            if (orient == QuadRotation.Rotate90)
+            {
+                topLeftCoord = tc;
+                topRightCoord = ta;
+                bottomLeftCoord = td;
+                bottomRightCoord = tb;
+            }
+            else if (orient == QuadRotation.Rotate180)
+            {
+                topLeftCoord = td;
+                bottomLeftCoord = tb;
+                topRightCoord = tc;
+                bottomRightCoord = ta;
+            }
+            else if (orient == QuadRotation.Rotate270)
+            {
+                topLeftCoord = tb;
+                topRightCoord = td;
+                bottomLeftCoord = ta;
+                bottomRightCoord = tc;
+            }
             vertices [vertexCount++] = new Vertex2D (
-                tl, ta,
+                tl, topLeftCoord,
                 0,
                 color
             );
             vertices [vertexCount++] = new Vertex2D (
-                tr, tb,
+                tr, topRightCoord,
                 0,
                 color
             );
             vertices [vertexCount++] = new Vertex2D (
-                bl, tc,
+                bl, bottomLeftCoord,
                 0,
                 color
             );
             vertices [vertexCount++] = new Vertex2D (
-                br, td,
+                br, bottomRightCoord,
                 0,
                 color
             );
 
             primitiveCount += 2;
         }
-       
+
 
         public void EllipseMask(Texture2D tex, Rectangle source, RectangleF parent, Vector2 center, Vector2 dimensions, float angle, Color4 color)
         {
@@ -333,13 +359,13 @@ namespace LibreLancer
             float h = dimensions.Y;
             float dx = -dimensions.X / 2;
             float dy = -dimensions.Y / 2;
-            
+
             float srcX = (float)source.X;
             float srcY = (float)source.Y;
             float srcW = (float)source.Width;
             float srcH = (float)source.Height;
 
-            
+
             var cos = MathF.Cos(angle);
             var sin = MathF.Sin(angle);
             var tl = new Vector2(
@@ -367,7 +393,7 @@ namespace LibreLancer
                           new Vector2(source.Width, source.Height);
                 return rel / new Vector2(tex.Width, tex.Height);
             }
-            
+
             vertices [vertexCount++] = new Vertex2D (
                 tl, GetTexCoord(tl),
                 C_TL,
@@ -403,7 +429,7 @@ namespace LibreLancer
             float y = (float)rec.Y;
             float w = (float)rec.Width;
             float h = (float)rec.Height;
-            
+
             vertices [vertexCount++] = new Vertex2D (
                 new Vector2 (x, y),
                 noTex,
@@ -528,7 +554,7 @@ namespace LibreLancer
 		public void FillTriangle(Vector2 point1, Vector2 point2, Vector2 point3, Color4 color)
         {
             Prepare(BlendMode.Normal, dot, false);
-          
+
 			vertices[vertexCount++] = new Vertex2D(
 				point1,
 				Vector2.Zero,
@@ -600,7 +626,7 @@ namespace LibreLancer
                 top
             );
             vertices[vertexCount++] = new Vertex2D(
-                new Vector2(x, y + h), 
+                new Vector2(x, y + h),
                 noTex,
                 bottom
             );
@@ -650,7 +676,7 @@ namespace LibreLancer
                     clipped = true;
                 }
             }
-            
+
             if (rs.ScissorEnabled && !scissorUsed)
             {
                 ClipPoint(ref p1, rs.ScissorRectangle, ref clipped);
@@ -658,7 +684,7 @@ namespace LibreLancer
                 ClipPoint(ref p3, rs.ScissorRectangle, ref clipped);
                 ClipPoint(ref p4, rs.ScissorRectangle, ref clipped);
             }
-            
+
             Vector2 topLeftCoord;
             Vector2 topRightCoord;
             Vector2 bottomLeftCoord;
@@ -677,7 +703,7 @@ namespace LibreLancer
                 topRightCoord = tb;
                 bottomLeftCoord = tc;
                 bottomRightCoord = td;
-                
+
                 if (orient == QuadRotation.Rotate90)
                 {
                     topLeftCoord = tc;
@@ -699,7 +725,7 @@ namespace LibreLancer
                     bottomLeftCoord = ta;
                     bottomRightCoord = tc;
                 }
-                
+
                 if (flip)
                 {
                     Swap(ref bottomLeftCoord, ref topLeftCoord);
@@ -718,13 +744,13 @@ namespace LibreLancer
 
                     topLeftCoord.X = (xStart + (xAmount) * GetLerpAmount(p1.X, x, x + w));
                     topLeftCoord.Y = (yStart + (yAmount) * GetLerpAmount(p1.Y, y, y + h));
-                    
+
                     topRightCoord.X = (xStart + (xAmount) * GetLerpAmount(p2.X, x, x + w));
                     topRightCoord.Y = (yStart + (yAmount) * GetLerpAmount(p2.Y, y, y + h));
-                    
+
                     bottomLeftCoord.X = (xStart + (xAmount) * GetLerpAmount(p3.X, x, x + w));
                     bottomLeftCoord.Y = (yStart + (yAmount) * GetLerpAmount(p3.Y, y, y + h));
-                    
+
                     bottomRightCoord.X = (xStart + (xAmount) * GetLerpAmount(p4.X, x, x + w));
                     bottomRightCoord.Y = (yStart + (yAmount) * GetLerpAmount(p4.Y, y, y + h));
                 }
@@ -757,7 +783,7 @@ namespace LibreLancer
 
 			primitiveCount += 2;
 		}
-        
+
         internal void Flush()
 		{
 			if (vertexCount == 0 || primitiveCount == 0)

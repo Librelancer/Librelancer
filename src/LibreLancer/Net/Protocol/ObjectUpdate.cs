@@ -6,7 +6,7 @@ namespace LibreLancer.Net.Protocol;
 
 public class SPUpdatePacket : IPacket
 {
-    public int InputSequence;
+    public uint InputSequence;
     public PlayerAuthState PlayerState;
     public uint Tick;
     public ObjectUpdate[] Updates;
@@ -19,7 +19,7 @@ public class SPUpdatePacket : IPacket
 
 public class PackedUpdatePacket : IPacket
 {
-    public int InputSequence;
+    public uint InputSequence;
     public uint OldTick;
     public uint Tick;
     public byte[] Updates;
@@ -37,7 +37,7 @@ public class PackedUpdatePacket : IPacket
         var p = new PackedUpdatePacket();
         p.Tick = message.GetUInt();
         p.OldTick = message.GetUInt();
-        p.InputSequence = message.GetInt();
+        p.InputSequence = message.GetUInt();
         p.Updates = message.GetRemainingBytes();
         return p;
     }
@@ -175,7 +175,7 @@ public struct GunOrient
         Hardpoint = message.GetBool() ? message.GetHpid() : src.Hardpoint;
         if(message.GetBool())
         {
-            pitch = message.GetBool() 
+            pitch = message.GetBool()
                 ? NetPacking.ApplyDelta(message.GetUInt(8), src.pitch, 8)
                 : message.GetUInt(16);
         }
@@ -185,7 +185,7 @@ public struct GunOrient
         }
         if (message.GetBool())
         {
-            rot = message.GetBool() 
+            rot = message.GetBool()
                 ? NetPacking.ApplyDelta(message.GetUInt(8), src.rot, 8)
                 : message.GetUInt(16);
         }
@@ -255,7 +255,7 @@ public struct UpdateQuaternion
     public uint Component1;
     public uint Component2;
     public uint Component3;
-    
+
     public static implicit operator UpdateQuaternion(Quaternion q)
     {
         var uq = new UpdateQuaternion();
@@ -264,7 +264,7 @@ public struct UpdateQuaternion
     }
 
     private const int DELTA_BITS = 7;
-    
+
     public void WriteDelta(UpdateQuaternion src, ref BitWriter writer)
     {
         if (Largest == src.Largest &&

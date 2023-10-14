@@ -14,6 +14,9 @@ namespace LibreLancer.Net
         public GameServer Server;
         public LocalPacketClient Client;
 
+        //Hardcoded delay for single player.
+        public uint EstimateTickDelay() => 2;
+
         public EmbeddedServer(GameDataManager gameData, GameResourceManager resources)
         {
             Client = new LocalPacketClient();

@@ -323,7 +323,7 @@ namespace LibreLancer.Net.Protocol
 
     public struct NetInputControls
     {
-        public int Sequence;
+        public uint Tick;
         public Vector3 Steering;
         public StrafeControls Strafe;
         public float Throttle;
@@ -344,7 +344,7 @@ namespace LibreLancer.Net.Protocol
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         static void WriteDelta(ref BitWriter writer, ref NetInputControls baseline, ref NetInputControls cur)
         {
-            writer.PutVarInt32(cur.Sequence - baseline.Sequence);
+            writer.PutVarInt32((int)((long)cur.Tick - baseline.Tick));
             writer.PutUInt((uint)cur.Strafe, 4);
             writer.PutBool(cur.Cruise);
             writer.PutBool(cur.Thrust);
@@ -359,7 +359,7 @@ namespace LibreLancer.Net.Protocol
         static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
         {
             var nc = new NetInputControls();
-            nc.Sequence = baseline.Sequence + reader.GetVarInt32();
+            nc.Tick = (uint) (baseline.Tick + reader.GetVarInt32());
             nc.Strafe = (StrafeControls)reader.GetUInt(4);
             nc.Cruise = reader.GetBool();
             nc.Thrust = reader.GetBool();
@@ -377,7 +377,7 @@ namespace LibreLancer.Net.Protocol
             p.AckTick = br.GetVarUInt32();
             p.SelectedIsCRC = br.GetBool();
             p.SelectedObject = (int)br.GetUInt(32);
-            p.Current.Sequence = br.GetVarInt32();
+            p.Current.Tick = br.GetVarUInt32();
             p.Current.Steering = br.GetVector3();
             p.Current.Strafe = (StrafeControls) br.GetUInt(4);
             p.Current.Cruise = br.GetBool();
@@ -401,7 +401,7 @@ namespace LibreLancer.Net.Protocol
             bw.PutVarUInt32(AckTick);
             bw.PutBool(SelectedIsCRC);
             bw.PutUInt((uint)SelectedObject, 32);
-            bw.PutVarInt32(Current.Sequence);
+            bw.PutVarUInt32(Current.Tick);
             bw.PutVector3(Current.Steering);
             bw.PutUInt((uint)Current.Strafe, 4);
             bw.PutBool(Current.Cruise);

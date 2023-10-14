@@ -483,11 +483,14 @@ namespace LibreLancer.Server
             });
         }
 
+        public uint CurrentTick { get; private set; }
+
         private double noPlayersTime;
         private double maxNoPlayers = 2.0;
-        public bool Update(double delta, double totalTime)
+        public bool Update(double delta, double totalTime, uint currentTick)
         {
             //Avoid locks during Update
+            CurrentTick = currentTick;
             Action act;
             while(actions.Count > 0 && actions.TryDequeue(out act)){ act(); }
             //pause
@@ -503,7 +506,7 @@ namespace LibreLancer.Server
                     p.Key.RemoteClient.SpawnProjectiles(queue);
             }
             //Network update tick
-            SendWorldUpdates(totalTime);
+            SendWorldUpdates(currentTick);
             UpdateDebugInfo();
             //Despawn after 2 seconds of nothing
             if (PlayerCount == 0) {
@@ -545,11 +548,8 @@ namespace LibreLancer.Server
         }
 
         //This could do with some work
-        void SendWorldUpdates(double tick)
+        void SendWorldUpdates(uint tick)
         {
-            tick *= 1000.0;
-            while (tick > uint.MaxValue) tick -= uint.MaxValue;
-
             foreach(var player in Players)
             {
                 var tr = player.Value.WorldTransform;
@@ -654,8 +654,8 @@ namespace LibreLancer.Server
                 {
                     player.Key.SendSPUpdate(new SPUpdatePacket()
                     {
-                        Tick = (uint)tick,
-                        InputSequence = selfPlayer.SequenceApplied,
+                        Tick = tick,
+                        InputSequence = selfPlayer.LatestReceived,
                         PlayerState = state,
                         Updates = newUpdates,
                     });
@@ -664,9 +664,9 @@ namespace LibreLancer.Server
                 {
                     selfPlayer.GetAcknowledgedState(out var oldTick, out var oldState, out var oldUpdates);
                     var packet = new PackedUpdatePacket();
-                    packet.Tick = (uint) tick;
+                    packet.Tick = tick;
                     packet.OldTick = oldTick;
-                    packet.InputSequence = selfPlayer.SequenceApplied;
+                    packet.InputSequence = selfPlayer.LatestReceived;
                     selfPlayer.EnqueueState((uint)tick, state,  packet.SetUpdates(state, oldState, oldUpdates, newUpdates, player.Key.HpidWriter));
                     player.Key.SendMPUpdate(packet);
                 }

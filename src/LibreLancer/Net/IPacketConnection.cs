@@ -10,6 +10,8 @@ namespace LibreLancer.Net
     {
         void SendPacket(IPacket packet, PacketDeliveryMethod method);
         bool PollPacket(out IPacket packet);
+        uint EstimateTickDelay();
+
         void Shutdown();
     }
 }

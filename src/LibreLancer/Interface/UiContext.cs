@@ -20,6 +20,8 @@ namespace LibreLancer.Interface
         public float MouseY;
         public bool MouseLeftDown;
         public double GlobalTime;
+
+        public float ScreenWidth => 480 * (ViewportWidth / ViewportHeight);
         //Rendering
         public RenderContext RenderContext;
         public LineRenderer Lines;
@@ -160,11 +162,9 @@ namespace LibreLancer.Interface
             return points * ratio;
         }
 
-        public float PixelsToPoints(float pixels)
-        {
-            var ratio = 480 / ViewportHeight;
-            return pixels * ratio;
-        }
+        public Vector2 PixelsToPoints(Vector2 pixels) => pixels * (480f / ViewportHeight);
+
+        public float PixelsToPoints(float pixels) => pixels * (480 / ViewportHeight);
 
         public int PointsToPixels(float points)
         {

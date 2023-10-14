@@ -24,7 +24,7 @@ namespace LibreLancer.Net
         Thread networkThread;
         private NetManager client;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
-        
+
         public event Action<LocalServerInfo> ServerFound;
         public event Action<bool> AuthenticationRequired;
         public event Action<DisconnectReason> Disconnected;
@@ -32,7 +32,7 @@ namespace LibreLancer.Net
         ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
         private HttpClient http;
         private NetHpidWriter hpidWrite;
-        
+
         public int LossPercent
         {
             get
@@ -63,7 +63,7 @@ namespace LibreLancer.Net
                 return 0;
             }
         }
-        
+
         public int BytesReceived
         {
             get
@@ -73,7 +73,15 @@ namespace LibreLancer.Net
                 return 0;
             }
         }
-        
+
+        public uint EstimateTickDelay()
+        {
+            const float TickMs = (1 / 60.0f) * 1000.0f;
+            var ticks = (int) Math.Ceiling(Ping / TickMs);
+            if (ticks < 2) return 2;
+            return (uint)ticks;
+        }
+
         public void Start()
         {
             if(running) throw new InvalidOperationException();
@@ -353,7 +361,7 @@ namespace LibreLancer.Net
                     }
 #if !DEBUG
                 }
-                
+
                 catch (Exception e)
                 {
                     FLLog.Error("Client", "Error reading packet");
@@ -365,7 +373,7 @@ namespace LibreLancer.Net
             {
                 var additional = new PacketReader(info.AdditionalData);
                 if (additional.TryGetDisconnectReason(out var reason) &&
-                    connecting && 
+                    connecting &&
                     reason == DisconnectReason.TokenRequired &&
                     additional.TryGetString(out var url))
                 {

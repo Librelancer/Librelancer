@@ -520,8 +520,6 @@ namespace InterfaceEdit
             }
         }
 
-
-
         public FakeKeyMap GetKeyMap() => new FakeKeyMap();
 
         public TraderFake Trader = new TraderFake();
@@ -535,7 +533,9 @@ namespace InterfaceEdit
 
         public string SelectionReputation() => "friendly";
 
-        public Vector2 SelectionPosition() => new Vector2(300,300);
+        public Vector2 SelectionPosition() => OverridePosition ?? new Vector2(300,300);
+
+        [WattleScriptHidden] public Vector2? OverridePosition = null;
 
         public TargetShipWireframe SelectionWireframe() => null;
 
@@ -544,6 +544,22 @@ namespace InterfaceEdit
         public void HotspotPressed(string hotspot)
         {
 
+        }
+
+        public void SetIndicatorLayer(Container container)
+        {
+        }
+
+        public void SetReticleTemplate(UiWidget template, Closure callback)
+        {
+        }
+
+        public void SetUnselectedArrowTemplate(UiWidget template, Closure callback)
+        {
+        }
+
+        public void SetSelectedArrowTemplate(UiWidget template, Closure callback)
+        {
         }
 
         public string ActiveNavbarButton()

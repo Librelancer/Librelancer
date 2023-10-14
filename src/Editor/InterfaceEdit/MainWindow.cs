@@ -16,6 +16,7 @@ using LibreLancer.Data;
 using LibreLancer.Dialogs;
 using LibreLancer.Interface;
 using LibreLancer.Render;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace InterfaceEdit
 {
@@ -90,13 +91,13 @@ namespace InterfaceEdit
                 File.WriteAllText(VariableFilePath, JSON.Serialize(Variables));
             }
             // ReSharper disable once EmptyGeneralCatchClause
-            catch 
+            catch
             {
             }
         }
 
         private TabControl tabControl = new TabControl();
-      
+
         private ResourceWindow resourceEditor;
         private ProjectWindow projectWindow;
         public FontManager Fonts;
@@ -120,7 +121,7 @@ namespace InterfaceEdit
             }
             return false;
         }
-        
+
         public void OpenXml(string path)
         {
             if (!SwitchToTab(path))
@@ -200,7 +201,7 @@ namespace InterfaceEdit
                 {
                     if (Theme.IconMenuItem(Icons.Save, $"Save '{saveable.Title}'",  true))
                     {
-                        saveable.Save();   
+                        saveable.Save();
                     }
                 }
                 else
@@ -239,7 +240,7 @@ namespace InterfaceEdit
                     }
                     ImGui.EndMenu();
                 }
-                
+
                 if (ImGui.BeginMenu("Room Actions"))
                 {
                     ImGui.MenuItem("Launch", "", ref TestApi.HasLaunchAction) ;
@@ -310,11 +311,11 @@ namespace InterfaceEdit
             ImGui.SetNextWindowSize(new Vector2(size.X, 25f * ImGuiHelper.Scale), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
             bool sbopened = true;
-            ImGui.Begin("statusbar", ref sbopened, 
-                ImGuiWindowFlags.NoTitleBar | 
-                ImGuiWindowFlags.NoSavedSettings | 
-                ImGuiWindowFlags.NoBringToFrontOnFocus | 
-                ImGuiWindowFlags.NoMove | 
+            ImGui.Begin("statusbar", ref sbopened,
+                ImGuiWindowFlags.NoTitleBar |
+                ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoBringToFrontOnFocus |
+                ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.NoResize);
             ImGui.Text($"InterfaceEdit{(Project != null ? " - Editing: " : "")}{(Project?.ProjectFile ?? "")}");
             if (playing)
@@ -382,7 +383,7 @@ namespace InterfaceEdit
                 CrashWindow.Run("Interface Edit", "Compile Error", detail.ToString());
             }
         }
-        
+
         void Tabs(double elapsed)
         {
             bool childopened = true;
@@ -455,6 +456,10 @@ namespace InterfaceEdit
                     _playContext.OnMouseWheel(ImGui.GetIO().MouseWheel);
                 }
                 _playContext.Update(null, TotalTime, mX, mY, false);
+                if (Keyboard.IsKeyDown(Keys.LeftAlt))
+                    TestApi.OverridePosition = new Vector2(_playContext.MouseX, _playContext.MouseY);
+                else
+                    TestApi.OverridePosition = null;
                 mouseWanted = _playContext.MouseWanted(mX, mY);
                 if (ImGui.IsItemClicked(0))
                 {
@@ -469,6 +474,7 @@ namespace InterfaceEdit
             }
             else
             {
+                TestApi.OverridePosition = null;
                 mouseWanted = false;
                 _playContext.Update(null, TotalTime, 0, 0, false);
                 _playContext.MouseLeftDown = false;

@@ -21,6 +21,7 @@ using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
@@ -85,12 +86,15 @@ World Time: {12:F2}
             sys = g.GameData.Systems.Get(session.PlayerSystem);
             ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
+            uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
             nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.OnUpdateInventory = session.OnUpdatePlayerShip = null; //we should clear these handlers better
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             loader.Init();
         }
+
+
 
         ChaseCamera _chaseCamera;
         TurretViewCamera _turretViewCamera;
@@ -339,17 +343,62 @@ World Time: {12:F2}
 
         }
 
+        public class WidgetTemplate
+        {
+            public UiWidget Template;
+            public Closure Callback;
+
+            public WidgetTemplate(UiWidget template, Closure cb)
+            {
+                Template = template;
+                Callback = cb;
+            }
+
+            public void Draw(UiContext context, RectangleF parentRectangle, float x, float y, params object[] args)
+            {
+                Callback?.Call(args);
+                Template.X = x;
+                Template.Y = y;
+                Template.Render(context, parentRectangle);
+            }
+        }
 
 
         private int frameCount = 0;
-        [WattleScript.Interpreter.WattleScriptUserData]
+        [WattleScriptUserData]
         public class LuaAPI
         {
             SpaceGameplay g;
+            public CallbackWidget IndicatorLayer;
+
             public LuaAPI(SpaceGameplay gameplay)
             {
                 this.g = gameplay;
+                IndicatorLayer = new CallbackWidget();
             }
+
+            private Container lastContainer;
+
+            public void SetIndicatorLayer(Container container)
+            {
+                if (lastContainer != null)
+                    lastContainer.Children.Remove(IndicatorLayer);
+                container.Children.Add(IndicatorLayer);
+            }
+
+            [WattleScriptHidden] public WidgetTemplate Reticle;
+            [WattleScriptHidden] public WidgetTemplate UnselectedArrow;
+            [WattleScriptHidden] public WidgetTemplate SelectedArrow;
+
+
+            public void SetReticleTemplate(UiWidget template, Closure callback) =>
+                Reticle = new(template, callback);
+
+            public void SetUnselectedArrowTemplate(UiWidget template, Closure callback) =>
+                UnselectedArrow = new(template, callback);
+
+            public void SetSelectedArrowTemplate(UiWidget template, Closure callback) =>
+                SelectedArrow = new(template, callback);
 
             public ContactList GetContactList() => g.contactList;
             public KeyMapTable GetKeyMap()
@@ -483,15 +532,11 @@ World Time: {12:F2}
             public Vector2 SelectionPosition()
             {
                 if (g.Selection.Selected == null) return new Vector2(-1000, -1000);
-                var (pos, visible) = g.ScreenPosition(g.Selection.Selected);
-                if (visible) {
-                    return new Vector2(
-                        g.ui.PixelsToPoints(pos.X),
-                        g.ui.PixelsToPoints(pos.Y)
-                    );
-                } else {
-                    return new Vector2(-1000, -1000);
-                }
+                var (pos, _) = g.ScreenPosition(g.Selection.Selected);
+                return new Vector2(
+                    g.ui.PixelsToPoints(pos.X),
+                    g.ui.PixelsToPoints(pos.Y)
+                );
             }
 
             public void PopulateNavmap(Navmap nav)
@@ -632,6 +677,33 @@ World Time: {12:F2}
         public bool RtcMusic = false;
         private bool musicTriggered = false;
 
+
+        private double accum = 0;
+        void TimeDilatedUpdate(double delta)
+        {
+            accum += delta;
+            double updateInterval = 1 / 60.0 * session.AdjustedInterval;
+            while (accum >= updateInterval)
+            {
+                accum -= updateInterval;
+                double FixedDelta = 1 / 60.0;
+
+                world.Update(paused ? 0 : FixedDelta);
+                if (session.Update()) return;
+                if (updateStartDelay == 0)
+                {
+                    session.GameplayUpdate(this, FixedDelta);
+                    if (!musicTriggered)
+                    {
+                        if (!RtcMusic) Game.Sound.PlayMusic(sys.MusicSpace, 0);
+                        musicTriggered = true;
+                    }
+                }
+
+                UpdateCamera(FixedDelta);
+            }
+        }
+
         public override void Update(double delta)
 		{
             if(loading)
@@ -653,18 +725,7 @@ World Time: {12:F2}
                 Game.EnableTextInput();
             else
                 Game.DisableTextInput();
-            steering.Tick = (int) Game.CurrentTick;
-            world.Update(paused ? 0 : delta);
-            if (session.Update()) return;
-            if (updateStartDelay == 0) {
-                session.GameplayUpdate(this, delta);
-                if (!musicTriggered)
-                {
-                    if (!RtcMusic) Game.Sound.PlayMusic(sys.MusicSpace, 0);
-                    musicTriggered = true;
-                }
-            }
-            UpdateCamera(delta);
+            TimeDilatedUpdate(delta);
             if (Thn != null && Thn.Running)
             {
                 sysrender.Camera = Thn.CameraHandle;
@@ -691,6 +752,7 @@ World Time: {12:F2}
             }
             if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; //Object has been blown up/despawned
 		}
+
 
 		bool thrust = false;
 
@@ -961,7 +1023,14 @@ World Time: {12:F2}
                 ((ndc.X + 1.0f) / 2.0f) * Game.Width,
                 ((1.0f - ndc.Y) / 2.0f) * Game.Height
             );
-            return (windowSpace, ndc.Z < 1);
+            bool visible =
+                windowSpace.X >= 0 &&
+                windowSpace.X <= Game.Width &&
+                windowSpace.Y >= 0 &&
+                windowSpace.Y <= Game.Height;
+            if (clipSpace.Z < 0)
+                windowSpace *= -1;
+            return (windowSpace, visible && ndc.Z < 1);
         }
 
         private GameObject missionWaypoint;
@@ -979,8 +1048,9 @@ World Time: {12:F2}
                 session.CurrentObjective.Kind == ObjectiveKind.NavMarker) &&
                 sys.Nickname.Equals(session.CurrentObjective.System, StringComparison.OrdinalIgnoreCase))
             {
+
                 var pos = session.CurrentObjective.Kind == ObjectiveKind.Object
-                    ? Vector3.Transform(Vector3.Zero, world.GetObject(session.CurrentObjective.Object).WorldTransform)
+                    ? Vector3.Transform(Vector3.Zero, world.GetObject(session.CurrentObjective.Object)?.WorldTransform ?? Matrix4x4.Identity)
                     : session.CurrentObjective.Position;
                 if (pos != Vector3.Zero)
                 {
@@ -1016,7 +1086,12 @@ World Time: {12:F2}
                 targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform).ClearTranslation();
             }
 
-            if (updateStartDelay > 0) updateStartDelay--;
+            if (updateStartDelay > 0)
+            {
+                updateStartDelay--;
+                if (updateStartDelay == 0)
+                    session.UpdateStart();
+            }
             if (waitObjectiveFrames > 0) waitObjectiveFrames--;
             world.RenderUpdate(delta);
             sysrender.DebugRenderer.StartFrame(Game.RenderContext);
@@ -1073,6 +1148,11 @@ World Time: {12:F2}
                     ImGui.Text($"selected compound children: {cvx.BepuChildCount}");
                 }
                 ImGui.Text($"input queue: {session.UpdateQueueCount}");
+                ImGui.Text($"tick offset: {session.LastTickOffset}");
+                ImGui.Text($"dropped inputs: {session.DroppedInputs}");
+                ImGui.Text($"average tick offset: {session.AverageTickOffset}");
+                ImGui.Text($"interval: {session.AdjustedInterval}");
+                ImGui.Text($"Client Tick: {session.WorldTick}");
                 if (session.Multiplayer)
                 {
                     var floats = new float[session.UpdatePacketSizes.Count];
@@ -1080,10 +1160,14 @@ World Time: {12:F2}
                         floats[i] = session.UpdatePacketSizes[i];
                     fixed (float* f = floats)
                     {
-                        ImGui.TextUnformatted($"last ack sent: {session.LastAck}");
+                        ImGui.TextUnformatted($"last ack received: {session.LastAck}");
                         ImGui.TextUnformatted($"update packet size: {floats[floats.Length - 1]}");
                         ImGui.PlotLines("update packet size", ref floats[0], floats.Length);
                     }
+                }
+                else
+                {
+                    ImGui.Text($"Server Tick: {session.EmbedddedServer.Server.CurrentTick}");
                 }
 
                 bool hasDebug = world.Physics.DebugRenderer != null;
@@ -1106,6 +1190,106 @@ World Time: {12:F2}
             }
             DoFade(delta);
 		}
+
+        (Vector2, float) ArrowPosition(Vector2 pos)
+        {
+            var screenCenter = new Vector2(ui.ScreenWidth, 480) / 2f;
+            pos -= screenCenter;
+
+            var angle = -(MathF.PI / 2) - MathF.Atan2(pos.Y, -pos.X);
+
+            var cos = MathF.Cos(angle);
+            var sin = -MathF.Sin(angle);
+            var m = cos / sin;
+            var screenBounds = screenCenter * 0.9f;
+
+            if(cos > 0) {
+                pos = new Vector2(screenBounds.Y/m, screenBounds.Y);
+            } else {
+                pos = new Vector2(-screenBounds.Y/m, -screenBounds.Y);
+            }
+
+            if(pos.X > screenBounds.X) {
+                pos = new Vector2(screenBounds.X, screenBounds.X * m);
+            } else if (pos.X < -screenBounds.X) {
+                pos = new Vector2(-screenBounds.X, -screenBounds.X * m);
+            }
+
+            pos = -pos;
+            pos += screenCenter;
+
+            return (pos, angle);
+        }
+
+        void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        {
+            var rep = GetRepToPlayer(obj) switch
+            {
+                RepAttitude.Friendly => "friendly",
+                RepAttitude.Hostile => "hostile",
+                _ => "neutral"
+            };
+            var (arrowPos, angle) = ArrowPosition(pos);
+            uiApi.SelectedArrow?.Draw(
+                context, parentRectangle, arrowPos.X, arrowPos.Y,
+                angle, rep, (obj.Flags & GameObjectFlags.Important) != 0
+            );
+        }
+
+        void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        {
+            var rep = GetRepToPlayer(obj) switch
+            {
+                RepAttitude.Friendly => "friendly",
+                RepAttitude.Hostile => "hostile",
+                _ => "neutral"
+            };
+            var (arrowPos, angle) = ArrowPosition(pos);
+            uiApi.UnselectedArrow?.Draw(
+                context, parentRectangle, arrowPos.X, arrowPos.Y,
+                angle, rep, 0.5f, (obj.Flags & GameObjectFlags.Important) != 0
+                );
+        }
+
+        void DrawShipReticle(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        {
+           // var rep = GetRepToPlayer(obj);
+
+        }
+
+        void IndicatorLayerOnRender(UiContext context, RectangleF parentRectangle)
+        {
+            foreach (var obj in world.Objects) {
+                if (obj == Selection.Selected)
+                { //Draw last
+                }
+                else if (obj.Kind == GameObjectKind.Ship)
+                {
+                    var (pos, visible) = ScreenPosition(obj);
+                    if (!visible && (
+                        (obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
+                        (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important))
+                        DrawUnselectedArrow(obj, pos, context, parentRectangle);
+                    if(visible)
+                        DrawShipReticle(obj, pos, context, parentRectangle);
+                }
+                else if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
+                         (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important)
+                {
+                    var (pos, visible) = ScreenPosition(obj);
+                    if (!visible)
+                        DrawUnselectedArrow(obj, pos, context, parentRectangle);
+                }
+            }
+
+            if (Selection.Selected != null)
+            {
+                var (pos, visible) = ScreenPosition(Selection.Selected);
+                if (!visible) {
+                    DrawSelectedArrow(Selection.Selected, pos, context, parentRectangle);
+                }
+            }
+        }
 
         public override void Exiting()
         {

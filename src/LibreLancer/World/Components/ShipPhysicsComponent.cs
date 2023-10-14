@@ -39,7 +39,6 @@ namespace LibreLancer.World.Components
         public float ChargePercent;
         public Vector3 Steering;
         public float CruiseAccelPct = 0;
-        public int Tick;
 
         public ShipPhysicsComponent(GameObject parent) : base(parent)
         {

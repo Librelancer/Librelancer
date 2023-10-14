@@ -61,6 +61,18 @@ namespace LibreLancer.Interface
         public Color4 Color;
         public InterfaceColorAnimation Animation;
 
+        [XmlIgnore]
+        float alphaFactor = 1;
+
+        public InterfaceColor SetAlpha(float factor)
+        {
+            return new InterfaceColor() {
+                Color = Color,
+                Animation = Animation,
+                alphaFactor = factor
+            };
+        }
+
         public Color4 GetColor(double time)
         {
             if (Animation != null)
@@ -71,11 +83,11 @@ namespace LibreLancer.Interface
                     MathHelper.Lerp(Animation.Color1.R, Animation.Color2.R, factor),
                     MathHelper.Lerp(Animation.Color1.G, Animation.Color2.G, factor),
                     MathHelper.Lerp(Animation.Color1.B, Animation.Color2.B, factor),
-                    MathHelper.Lerp(Animation.Color1.A, Animation.Color2.A, factor)
+                    MathHelper.Lerp(Animation.Color1.A * alphaFactor, Animation.Color2.A * alphaFactor, factor)
                 );
             }
             else
-                return Color;
+                return new Color4(Color.R, Color.G, Color.B, Color.A * alphaFactor);
         }
 
         public override string ToString()
@@ -84,7 +96,7 @@ namespace LibreLancer.Interface
             var r = (int) (Color.R * 255);
             var g = (int) (Color.G * 255);
             var b = (int) (Color.B * 255);
-            var a = (int) (Color.A * 255);
+            var a = (int) ((Color.A * alphaFactor) * 255);
             return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
         }
     }
@@ -103,6 +115,9 @@ namespace LibreLancer.Interface
         [XmlAttribute("texpath")] public string TexPath;
         [XmlAttribute("type")] public InterfaceImageKind Type;
         [XmlAttribute("rot")] public QuadRotation Rotation;
+        [XmlAttribute("originx")] public float OriginX;
+        [XmlAttribute("originy")] public float OriginY;
+        [XmlAttribute("angle")] public float Angle;
         [XmlAttribute("flip")] public bool Flip;
         [XmlElement("TexCoords")] public InterfacePoints TexCoords = new InterfacePoints();
         [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new InterfacePoints();
@@ -123,7 +138,7 @@ namespace LibreLancer.Interface
         public float X3 = 1;
         public float Y3 = 1;
     }
-    
+
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfaceColorAnimation
     {
@@ -142,5 +157,6 @@ namespace LibreLancer.Interface
         [XmlAttribute("y")] public float Y;
         [XmlAttribute("xscale")] public float XScale = 1;
         [XmlAttribute("yscale")] public float YScale = 1;
+        [XmlAttribute("xz-plane")] public bool XZPlane;
     }
 }

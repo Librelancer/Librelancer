@@ -87,7 +87,7 @@ namespace LibreLancer.Interface
 
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
-            if (Model == null) return;
+            if (!Enabled || Model == null) return;
             if (!CanRender(context)) return;
             var rect = context.PointsToPixels(clientRectangle);
             if (Clip) {
@@ -96,6 +96,8 @@ namespace LibreLancer.Interface
             }
             Matrix4x4 rotationMatrix = Matrix4x4.Identity;
             var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
+            if (Model.XZPlane)
+                rot = new Vector3(rot.X, rot.Z, rot.Y);
             if (rot != Vector3.Zero) {
                 rotationMatrix = Matrix4x4.CreateRotationX(rot.X) *
                       Matrix4x4.CreateRotationY(rot.Y) *
@@ -107,9 +109,14 @@ namespace LibreLancer.Interface
             {
                 scaleMult = BaseRadius / model.GetRadius();
             }
-            var transform = Matrix4x4.CreateScale(Model.XScale * scaleMult, Model.YScale * scaleMult, 1) *
-                            rotationMatrix *
-                            Matrix4x4.CreateTranslation(Model.X, Model.Y, 0);
+
+            var scale = Model.XZPlane
+                ? new Vector3(Model.XScale * scaleMult, 1, Model.YScale * scaleMult)
+                : new Vector3(Model.XScale * scaleMult, Model.YScale * scaleMult, 1);
+            var transform = rotationMatrix
+                            * (Matrix4x4.CreateScale(scale) *
+                               (Model.XZPlane ? Matrix4x4.CreateRotationX(MathF.PI / 2f) : Matrix4x4.Identity) *
+                               Matrix4x4.CreateTranslation(Model.X, Model.Y, 0));
             transform *= CreateTransform((int) context.ViewportWidth, (int) context.ViewportHeight, rect);
             context.RenderContext.Cull = false;
             if (DrawModel)

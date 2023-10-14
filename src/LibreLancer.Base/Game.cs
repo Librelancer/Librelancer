@@ -32,7 +32,7 @@ namespace LibreLancer
         ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         int mythread = -1;
         private uint wakeEvent;
-        
+
         public ScreenshotSaveHandler ScreenshotSave;
         public RenderContext RenderContext { get; private set; }
         public string Renderer
@@ -252,9 +252,7 @@ namespace LibreLancer
                 return frameTime;
             }
         }
-        
-        public long CurrentTick { get; private set; }
-        
+
         public IntPtr GetGLProcAddress(string name)
         {
             return SDL.SDL_GL_GetProcAddress(name);
@@ -277,7 +275,7 @@ namespace LibreLancer
         }
 
         public bool IsUiThread() =>  Thread.CurrentThread.ManagedThreadId == mythread;
-        
+
         string _screenshotpath;
         bool _screenshot;
         public void Screenshot(string filename)
@@ -342,7 +340,7 @@ namespace LibreLancer
             }
             Thread.Sleep(0);
         }
-        
+
         private bool waitForEvent = false;
         private int waitTimeout = 2000;
         public void WaitForEvent(int timeout = 2000)
@@ -357,11 +355,11 @@ namespace LibreLancer
             ev.type = (SDL.SDL_EventType) wakeEvent;
             SDL.SDL_PushEvent(ref ev);
         }
-        
+
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
         public event Action WillClose;
-        
+
         public static HeadlessContext CreateHeadless()
         {
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
@@ -411,10 +409,10 @@ namespace LibreLancer
             GL.GLES = true;
             return true;
         }
-        
+
         [DllImport("user32.dll", SetLastError=true)]
         static extern bool SetProcessDPIAware();
-        
+
         private TimeSpan accumulatedTime;
         private TimeSpan lastTime;
         TimeSpan TimeStep = TimeSpan.FromTicks(166667);
@@ -429,7 +427,7 @@ namespace LibreLancer
         }
 
         protected virtual bool UseSplash => false;
-        
+
         protected virtual Texture2D GetSplash()
         {
             return null;
@@ -449,14 +447,14 @@ namespace LibreLancer
             GL.LoadSDL();
             return glcontext;
         }
-        
+
         public void Run()
         {
             //Try to set DPI Awareness on Win32
             if (Platform.RunningOS == OS.Windows)
             {
                 try {
-                    SetProcessDPIAware(); 
+                    SetProcessDPIAware();
                 }
                 catch {
                 }
@@ -570,7 +568,7 @@ namespace LibreLancer
             }
             SDL.SDL_ShowWindow(sdlWin);
             //kill the value we set so it doesn't crash child processes
-            if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null); 
+            if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null);
             //Start game
             running = true;
             timer = new Stopwatch();
@@ -602,7 +600,7 @@ namespace LibreLancer
                 doRelease = 0;
                 bool eventWaited = false;
                 if (waitForEvent)
-                {                    
+                {
                     waitForEvent = false;
                     if (SDL.SDL_WaitEventTimeout(out e, waitTimeout) != 0)
                     {
@@ -707,7 +705,6 @@ namespace LibreLancer
                 Accumulate(timer);
                 while (accumulatedTime >= TimeStep)
                 {
-                    CurrentTick++;
                     Update(TimeStep.TotalSeconds);
                     accumulatedTime -= TimeStep;
                 }
@@ -744,7 +741,7 @@ namespace LibreLancer
         protected virtual void OnClipboardUpdate()
         {
         }
-        
+
         protected virtual void OnResize()
         {
         }
