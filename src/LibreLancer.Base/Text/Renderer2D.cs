@@ -211,7 +211,7 @@ namespace LibreLancer
         }
 
         public void DrawStringBaseline(string fontName, float size, string text, float x, float y,
-            Color4 color, bool underline = false, TextShadow shadow = default)
+            Color4 color, bool underline = false, OptionalColor shadow = default)
         {
             if (text == "" || size < 1) //skip empty str
                 return;
@@ -219,7 +219,7 @@ namespace LibreLancer
         }
 
         public void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
-            float x, float y, Color4 color, bool underline = false, TextShadow shadow = default,
+            float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default,
             TextAlignment alignment = TextAlignment.Left)
         {
             if (text == "" || size < 1) //skip empty str

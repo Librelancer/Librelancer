@@ -20,11 +20,13 @@ namespace LibreLancer.Text.DirectWrite
     class ColorDrawingEffect : ComObject
     {
         public Color4 Color { get; set; }
-        public TextShadow Shadow { get; set; }
-        public ColorDrawingEffect(Color4 color, TextShadow shadow)
+        public OptionalColor Shadow { get; set; }
+        public OptionalColor Background { get; set; }
+        public ColorDrawingEffect(Color4 color, OptionalColor shadow, OptionalColor background)
         {
             Color = color;
             Shadow = shadow;
+            Background = background;
         }
     }
 
@@ -32,6 +34,7 @@ namespace LibreLancer.Text.DirectWrite
     {
         float height = 1f;
         public List<TextLayout> Layout;
+        public Dictionary<int, (int layoutIndex, int offset)> Offsets;
         public int Width;
 
         public override float Height => height;
@@ -60,6 +63,8 @@ namespace LibreLancer.Text.DirectWrite
         }
 
         DirectWriteText engine;
+
+
         public DirectWriteBuiltText(DirectWriteText engine)
         {
             this.engine = engine;
@@ -79,6 +84,15 @@ namespace LibreLancer.Text.DirectWrite
             engine.Renderer.Quads = new List<DrawQuad>();
         }
 
+
+        public override Rectangle GetCaretPosition(int nodeIndex, int textPosition)
+        {
+            var (layoutIndex, textOffset) = Offsets[nodeIndex];
+            var metrics = Layout[layoutIndex].HitTestTextPosition(textOffset + textPosition, false, out var caretX, out var caretY);
+            int x = (int)Layout[layoutIndex].Metrics.Left;
+            int y = (int) Layout[layoutIndex].Metrics.Top;
+            return new Rectangle(x + (int) caretX, y + (int)caretY, 2, (int) metrics.Height);
+        }
     }
     class DirectWriteText : RichTextEngine
     {
@@ -138,6 +152,7 @@ namespace LibreLancer.Text.DirectWrite
             float lastSize = 0;
             //Format text
             var layouts = new List<TextLayout>();
+            var offsets = new Dictionary<int, (int layoutIndex, int offset)>();
             for (int j = 0; j < paragraphs.Count; j++)
             {
                 var p = paragraphs[j];
@@ -147,13 +162,13 @@ namespace LibreLancer.Text.DirectWrite
                     builder.Append(((RichTextTextNode)n).Contents);
                 }
                 var layout = new TextLayout(
-                    dwFactory, 
-                    builder.ToString(), 
+                    dwFactory,
+                    builder.ToString(),
                     new TextFormat(
-                    dwFactory, 
+                    dwFactory,
                     string.IsNullOrEmpty(lastFont) ? "Arial" : lastFont,
                     lastSize > 0 ? lastSize : (16 * sizeMultiplier)
-                    ), 
+                    ),
                     width,
                     float.MaxValue
                 );
@@ -163,6 +178,7 @@ namespace LibreLancer.Text.DirectWrite
                 foreach (var n in p)
                 {
                     var text = (RichTextTextNode)n;
+                    offsets[nodes.IndexOf(n)] = (layouts.Count, startIdx);
                     var range = new TextRange(startIdx, text.Contents.Length);
                     if (text.Bold) layout.SetFontWeight(FontWeight.Bold, range);
                     if (text.Italic) layout.SetFontStyle(FontStyle.Italic, range);
@@ -180,13 +196,13 @@ namespace LibreLancer.Text.DirectWrite
                         layout.SetFontSize(text.FontSize * sizeMultiplier, range);
                         lastSize = text.FontSize * sizeMultiplier;
                     }
-                    layout.SetDrawingEffect(new ColorDrawingEffect(text.Color, text.Shadow), range);
+                    layout.SetDrawingEffect(new ColorDrawingEffect(text.Color, text.Shadow, text.Background), range);
                     startIdx += text.Contents.Length;
                 }
                 layouts.Add(layout);
             }
             //Return
-            var built = new DirectWriteBuiltText(this) { Layout = layouts, Width = width };
+            var built = new DirectWriteBuiltText(this) { Layout = layouts, Offsets = offsets, Width = width };
             built.CacheQuads();
             return built;
         }
@@ -207,8 +223,8 @@ namespace LibreLancer.Text.DirectWrite
         {
             public float X;
             public Indent(float x)
-            { 
-                X = x; 
+            {
+                X = x;
             }
             public InlineObjectMetrics Metrics => new InlineObjectMetrics() { Width = X };
             public OverhangMetrics OverhangMetrics => new OverhangMetrics();
@@ -224,12 +240,12 @@ namespace LibreLancer.Text.DirectWrite
         {
             return size / 72 * 96;
         }
-        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, TextShadow shadow = default)
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default)
         {
             using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
             {
 
-                layout.SetDrawingEffect(new ColorDrawingEffect(color, shadow), new TextRange(0, text.Length));
+                layout.SetDrawingEffect(new ColorDrawingEffect(color, shadow, default), new TextRange(0, text.Length));
                 layout.Draw(Renderer, 0, 0);
                 foreach(var q in Renderer.Quads) {
                     var d = q.Destination;
@@ -269,7 +285,7 @@ namespace LibreLancer.Text.DirectWrite
                         layout.MaxWidth = layout.Metrics.Width;
                     }
                     layout.TextAlignment = CastAlignment(alignment);
-                    layout.SetDrawingEffect(new ColorDrawingEffect(Color4.White, new TextShadow()), new TextRange(0, text.Length));
+                    layout.SetDrawingEffect(new ColorDrawingEffect(Color4.White, new OptionalColor(), new OptionalColor()), new TextRange(0, text.Length));
                     layout.Draw(Renderer, 0, 0);
                     pc.quads = Renderer.Quads.ToArray();
                     Renderer.Quads = new List<DrawQuad>();
@@ -288,7 +304,7 @@ namespace LibreLancer.Text.DirectWrite
             return ((DirectWriteCachedText) cache).size;
         }
         public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
-            float x, float y, Color4 color, bool underline = false, TextShadow shadow = default,
+            float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default,
             TextAlignment alignment = TextAlignment.Left)
         {
             if (string.IsNullOrEmpty(text)) return;
@@ -316,7 +332,7 @@ namespace LibreLancer.Text.DirectWrite
                     render2d.Draw(q.Texture, q.Source, d, color);
             }
         }
-        
+
         public override float LineHeight(string fontName, float size)
         {
             using (var layout = new TextLayout(dwFactory, "", GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
@@ -533,12 +549,36 @@ namespace LibreLancer.Text.DirectWrite
             var positionX = (float)Math.Floor(baselineOriginX + 0.5f);
             var positionY = (float)Math.Floor(baselineOriginY + 0.5f);
 
+
             Color4 brushColor = Color4.White;
-            TextShadow shadow = new TextShadow();
+            OptionalColor shadow = new OptionalColor();
+            OptionalColor background = new OptionalColor();
             if (clientDrawingEffect != null && clientDrawingEffect is ColorDrawingEffect colorFx)
             {
                 brushColor = colorFx.Color;
                 shadow = colorFx.Shadow;
+                background = colorFx.Background;
+            }
+
+            if (background.Enabled)
+            {
+                float totalWidth = 0;
+                for (int i = 0; i < glyphRun.Indices.Length; i++)
+                    totalWidth += glyphRun.Advances[i];
+                var metrics =  glyphRun.FontFace.Metrics;
+                var adjust = glyphRun.FontSize / metrics.DesignUnitsPerEm;
+                var ascent = adjust * metrics.Ascent;
+                var descent = adjust * metrics.Descent;
+                Quads.Add(new DrawQuad()
+                {
+                    Texture = null,
+                    Color = background.Color,
+                    Destination = new Rectangle(
+                        (int)baselineOriginX,
+                        (int)(baselineOriginY - ascent),
+                        (int)totalWidth,
+                        (int) (ascent + descent))
+                });
             }
 
             for (int i = 0; i < glyphRun.Indices.Length; i++)
@@ -585,7 +625,7 @@ namespace LibreLancer.Text.DirectWrite
             )
         {
             Color4 brushColor = Color4.White;
-            TextShadow shadow = new TextShadow();
+            OptionalColor shadow = new OptionalColor();
             if (clientDrawingEffect != null && clientDrawingEffect is ColorDrawingEffect colorFx) {
                 brushColor = colorFx.Color;
                 shadow = colorFx.Shadow;

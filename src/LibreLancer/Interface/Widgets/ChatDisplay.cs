@@ -76,7 +76,7 @@ namespace LibreLancer.Interface
                             Color = ids[i].Color,
                             FontName = ids[i].Font,
                             FontSize = ids[i].Size,
-                            Shadow = new TextShadow(Color4.Black)
+                            Shadow = new OptionalColor(Color4.Black)
                         });
                         if(i > 0) nodes.Add(new RichTextParagraphNode());
                     }

@@ -14,7 +14,8 @@ namespace LibreLancer
         public string FontName;
         public float FontSize;
 		public Color4 Color = Color4.White;
-        public TextShadow Shadow;
+        public OptionalColor Shadow;
+        public OptionalColor Background;
 		public TextAlignment Alignment;
 		public string Contents;
 	}

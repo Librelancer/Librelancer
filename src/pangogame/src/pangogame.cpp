@@ -29,6 +29,8 @@ struct _PGRenderContext {
 	_PGPacking texa8;
 	_PGPacking texargb32;
 	std::map<uint64_t,CachedGlyph> glyphs;
+	PangoAttrType shadowType;
+	PangoAttrClass shadowClass;
 }; 
 
 static void pg_newtex(PGRenderContext *ctx, _PGPacking *pack, int color)
@@ -39,6 +41,20 @@ static void pg_newtex(PGRenderContext *ctx, _PGPacking *pack, int color)
 	pack->currentY = 0;
 	pack->lineMax = 0;
 	pack->pages[pack->curTex++] = tex;
+}
+
+static PangoAttribute * attr_shadow_new(PGRenderContext* ctx, guint16 red,
+                           guint16 green,
+                           guint16 blue)
+{
+
+    PangoAttrColor *result = g_slice_new (PangoAttrColor);
+    pango_attribute_init (&result->attr, &ctx->shadowClass);
+    result->color.red = red;
+    result->color.green = green;
+    result->color.blue = blue;
+
+    return (PangoAttribute *)result;
 }
 
 PGRenderContext *pg_createcontext(
@@ -55,10 +71,19 @@ PGRenderContext *pg_createcontext(
 	ctx->drawCb = draw;
 	ctx->pangoContext = pango_context_new();
 	ctx->fontMap = pango_cairo_font_map_new();
+	//Define our shadow type, copy vtable from other color.
+	ctx->shadowType = pango_attr_type_register("PG_SHADOW_ATTR");
+	PangoAttribute *colorAttr = pango_attr_foreground_new(0,0,0);
+	ctx->shadowClass = *(colorAttr->klass);
+	ctx->shadowClass.type = ctx->shadowType;
+	pango_attribute_destroy(colorAttr);
+	
+	
     pango_cairo_font_map_set_resolution(PANGO_CAIRO_FONT_MAP(ctx->fontMap), 72.0);
 	pango_context_set_font_map(ctx->pangoContext, ctx->fontMap);
 	pg_newtex(ctx, &ctx->texa8, 0);
 	pg_newtex(ctx, &ctx->texargb32, 1);
+	
 	return ctx;
 }
 
@@ -210,7 +235,8 @@ PGBuiltText *pg_buildtext(PGRenderContext *ctx,
                 pango_attr_list_insert(attrList, underlineAttr);
 		    }
 		    if(paragraphs[i].attributes[j].shadowEnabled) {
-		        PangoAttribute *shadowAttr = pango_attr_background_new(
+		        PangoAttribute *shadowAttr = attr_shadow_new(
+		            ctx,
                     PG_8To16(paragraphs[i].attributes[j].shadowColor, 24),
                     PG_8To16(paragraphs[i].attributes[j].shadowColor, 16),
                     PG_8To16(paragraphs[i].attributes[j].shadowColor, 8)
@@ -218,6 +244,16 @@ PGBuiltText *pg_buildtext(PGRenderContext *ctx,
                 shadowAttr->start_index = paragraphs[i].attributes[j].startIndex;
 		        shadowAttr->end_index = paragraphs[i].attributes[j].endIndex;
 		        pango_attr_list_insert(attrList, shadowAttr);
+		    }
+		    if(paragraphs[i].attributes[j].backgroundEnabled) {
+		        PangoAttribute *backgroundAttr = pango_attr_background_new(
+                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 24),
+                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 16),
+                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 8)
+                );
+                backgroundAttr->start_index = paragraphs[i].attributes[j].startIndex;
+		        backgroundAttr->end_index = paragraphs[i].attributes[j].endIndex;
+		        pango_attr_list_insert(attrList, backgroundAttr);
 		    }
 		    PangoAttribute *colorAttr = pango_attr_foreground_new(
                 PG_8To16(paragraphs[i].attributes[j].fgColor, 24),
@@ -264,6 +300,17 @@ PGBuiltText *pg_buildtext_markup(PGRenderContext* ctx, char **markups, PGAlign* 
 	return built;
 }
 
+void pg_get_caret_position(PGBuiltText *text, int paragraph, int textPosition, int *outX, int *outY, int *outW, int *outH)
+{
+    PangoRectangle result;
+    pango_layout_get_cursor_pos(text->layouts[paragraph], textPosition, &result, NULL);
+    pango_extents_to_pixels (&result, NULL);
+    *outX = result.x;
+    *outY = result.y;
+    *outW = 2; //no width from pango for caret
+    *outH = result.height;
+}
+
 void pg_updatewidth(PGBuiltText *text, int width)
 {
 	for(int i = 0; i < text->layoutCount; i++) {
@@ -271,6 +318,11 @@ void pg_updatewidth(PGBuiltText *text, int width)
 		pango_layout_set_width(layout, width * PANGO_SCALE);
 	}
 	pg_pango_calculatetext(text, NULL);
+}
+
+PangoAttrType pg_getshadowtype(PGRenderContext *ctx)
+{
+    return ctx->shadowType;
 }
 
 int pg_getheight(PGBuiltText *text)
@@ -302,7 +354,7 @@ void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, 
         pango_attr_list_insert(attrList, attribute);
     }
     if(shadow) {
-        PangoAttribute *attribute = pango_attr_background_new(
+        PangoAttribute *attribute = attr_shadow_new(ctx,
             MulColor(shadow[0]),
             MulColor(shadow[1]),
             MulColor(shadow[2])

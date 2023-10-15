@@ -23,14 +23,28 @@ namespace LibreLancer.Text.Pango
         [DllImport("pangogame")]
         static extern int pg_getheight(IntPtr text);
         [DllImport("pangogame")]
-        static extern void pg_updatewidth(IntPtr text, int width); 
-        internal PangoBuiltText(IntPtr ctx, IntPtr handle)
+        static extern void pg_updatewidth(IntPtr text, int width);
+
+        [DllImport("pangogame")]
+        static extern void pg_get_caret_position(IntPtr text, int paragraph, int textPosition, out int outX, out int outY, out int outW, out int outH);
+
+        private Dictionary<int, (int paragraph, int[] offsets)> offsetmap;
+        internal PangoBuiltText(IntPtr ctx, IntPtr handle, Dictionary<int, (int paragraph, int[] offsets)> offsetmap)
         {
             Handle = handle;
             height = pg_getheight(handle);
+            this.offsetmap = offsetmap;
         }
 
         private bool disposed = false;
+
+        public override Rectangle GetCaretPosition(int layoutIndex, int textPosition)
+        {
+            var map = offsetmap[layoutIndex];
+            pg_get_caret_position(Handle, map.paragraph, map.offsets[textPosition], out var x, out var y, out var w, out var h);
+            return new Rectangle(x, y, w, h);
+        }
+
         public override void Dispose()
         {
             disposed = true;
@@ -81,6 +95,8 @@ namespace LibreLancer.Text.Pango
         public IntPtr FontName;
         public int ShadowEnabled;
         public uint ShadowColor;
+        public int BackgroundEnabled;
+        public uint BackgroundColor;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -115,7 +131,7 @@ namespace LibreLancer.Text.Pango
             foreach(var p in allocated) Marshal.FreeHGlobal(p);
         }
     }
-    
+
 
     unsafe class PangoText : RichTextEngine
     {
@@ -136,7 +152,7 @@ namespace LibreLancer.Text.Pango
 
         [DllImport("pangogame")]
         static extern float pg_lineheight(IntPtr ctx, IntPtr fontName, float fontSize);
-        
+
         delegate void PGDrawCallback(PGQuad* quads, int count);
         delegate void PGAllocateTextureCallback(PGTexture* texture, int width, int height, int isColor);
         delegate void PGUpdateTextureCallback(PGTexture* texture, IntPtr buffer, int x, int y, int width, int height);
@@ -205,7 +221,7 @@ namespace LibreLancer.Text.Pango
                 GL.PixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
         }
 
-        
+
         public override unsafe BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1f)
         {
             //Sort into paragraphs
@@ -232,6 +248,7 @@ namespace LibreLancer.Text.Pango
             //Build markup
             using var pool = new HGlobalPool();
             PGParagraph[] native = new PGParagraph[paragraphs.Count];
+            var offsetmap = new Dictionary<int, (int paragraph, int[] offsets)>();
             for(int i = 0; i < paragraphs.Count; i++)
             {
                 PGAttribute* attrs = pool.Allocate<PGAttribute>(paragraphs[i].Count);
@@ -245,6 +262,25 @@ namespace LibreLancer.Text.Pango
                     var text = (RichTextTextNode)paragraphs[i][j];
                     a = text.Alignment;
                     attrs[j].StartIndex = idx;
+                    int coffset = idx;
+                    if (text.Contents.Length == 0)
+                    {
+                        offsetmap[nodes.IndexOf(paragraphs[i][j])] = (i, new int[] { coffset });
+                    }
+                    else
+                    {
+                        int[] offsets = new int[text.Contents.Length + 1];
+                        Span<char> span = stackalloc char[1];
+                        for (int k = 0; k < text.Contents.Length; k++)
+                        {
+                            offsets[k] = coffset;
+                            span[0] = text.Contents[k];
+                            coffset += Encoding.UTF8.GetByteCount(span);
+                        }
+                        offsets[^1] = coffset;
+                        offsetmap[nodes.IndexOf(paragraphs[i][j])] = (i, offsets);
+                    }
+
                     idx += Encoding.UTF8.GetByteCount(text.Contents);
                     attrs[j].EndIndex = idx;
                     builder.Append(text.Contents);
@@ -258,6 +294,13 @@ namespace LibreLancer.Text.Pango
                     }
                     else
                         attrs[j].ShadowEnabled = 0;
+                    if (text.Background.Enabled)
+                    {
+                        attrs[j].BackgroundEnabled = 1;
+                        attrs[j].BackgroundColor = (uint) text.Background.Color.ToRgba();
+                    }
+                    else
+                        attrs[j].BackgroundEnabled = 0;
                     attrs[j].FgColor = (uint) text.Color.ToRgba();
                     attrs[j].FontName = pool.Allocate(text.FontName);
                     attrs[j].FontSize = (int)(text.FontSize * sizeMultiplier);
@@ -269,7 +312,7 @@ namespace LibreLancer.Text.Pango
             PangoBuiltText txt;
             fixed(PGParagraph* pPtr = native)
             {
-                txt = new PangoBuiltText(ctx, pg_buildtext(ctx, (IntPtr)pPtr, native.Length, width));
+                txt = new PangoBuiltText(ctx, pg_buildtext(ctx, (IntPtr)pPtr, native.Length, width), offsetmap);
             }
             return txt;
         }
@@ -290,7 +333,7 @@ namespace LibreLancer.Text.Pango
             public float Size;
             public PGQuad[] Quads;
         }
-        
+
         struct MeasureResults
         {
             public string Text;
@@ -303,14 +346,14 @@ namespace LibreLancer.Text.Pango
                        Math.Abs(Size - size) < 0.001f && Font == font;
             }
         }
-        
+
         struct HeightResult
         {
             public int Hash;
             public float Size;
             public float LineHeight;
         }
-        
+
         CircularBuffer<MeasureResults> measures = new CircularBuffer<MeasureResults>(64);
         CircularBuffer<StringResults> cachedStrings = new CircularBuffer<StringResults>(64);
         CircularBuffer<HeightResult> lineHeights = new CircularBuffer<HeightResult>(64);
@@ -365,8 +408,8 @@ namespace LibreLancer.Text.Pango
             }
         }
 
-        
-        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, TextShadow shadow = default)
+
+        public override void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default)
         {
             if(string.IsNullOrEmpty(fontName)) throw new InvalidOperationException("fontName null");
             var pixels = size * (96.0f / 72.0f);
@@ -423,7 +466,7 @@ namespace LibreLancer.Text.Pango
             }
         }
 
-        
+
         public override Point MeasureString(string fontName, float size, string text)
         {
             if (string.IsNullOrEmpty(text)) return Point.Zero;
@@ -456,7 +499,7 @@ namespace LibreLancer.Text.Pango
             }
             using var fontConv = new UTF8ZHelper(stackalloc byte[256], fontName);
             fixed (byte* tF = &fontConv.ToUTF8Z().GetPinnableReference())
-               
+
             {
                 var retval = pg_lineheight(ctx, (IntPtr)tF, size * (96.0f / 72.0f));
                 lineHeights.Enqueue(new HeightResult() {Hash = fontHash, Size = size, LineHeight = retval});
@@ -496,7 +539,7 @@ namespace LibreLancer.Text.Pango
         }
 
         public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text, float x, float y,
-            Color4 color, bool underline = false, TextShadow shadow = default, TextAlignment alignment = TextAlignment.Left)
+            Color4 color, bool underline = false, OptionalColor shadow = default, TextAlignment alignment = TextAlignment.Left)
         {
             UpdateCache(ref cache, fontName, size, text, underline, alignment);
             var pc = (PangoRenderCache) cache;

@@ -10,9 +10,15 @@ struct CacheRenderer {
 	PangoRenderer parent;
 	PGRenderContext *ctx;
 	PGBuiltText *built;
+	PangoAttrType shadowType;
     int colorset;
     float red, green, blue;
     float alpha;
+    
+    int shadowEnabled;
+    float shadowRed;
+    float shadowGreen;
+    float shadowBlue;
 };
 
 struct CacheRendererClass {
@@ -25,7 +31,7 @@ G_DEFINE_TYPE(CacheRenderer, cacherenderer, PANGO_TYPE_RENDERER);
 
 void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y, int width, int height)
 {
-    if(part == PANGO_RENDER_PART_BACKGROUND) return; //background is repurposed as text shadow
+    if(part == PANGO_RENDER_PART_OVERLINE) return; //overline is repurposed as text shadow
 	CacheRenderer* ren = CACHERENDERER(renderer);
     float red, green, blue;
     if(ren->colorset) {
@@ -33,26 +39,22 @@ void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y
         green = ren->green;
         blue = ren->blue;
     } else {
-        PangoColor* fg = pango_renderer_get_color(renderer, PANGO_RENDER_PART_FOREGROUND);
+        PangoColor* fg = pango_renderer_get_color(renderer, part);
         red = !fg ? 0.0f : fg->red / 65536.0f;
         green = !fg ? 0.0f : fg->green / 65536.0f;
         blue = !fg ? 0.0f : fg->blue / 65536.0f;
     }
 	//shadow quad
-    PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
-    if(shadow) {
-        float shR = shadow->red / 65536.0f;
-        float shG = shadow->green / 65536.0f;
-        float shB = shadow->blue / 65536.0f;
+    if(part != PANGO_RENDER_PART_BACKGROUND && ren->shadowEnabled) {
         PGQuad shQ;
         shQ.tex = NULL;
         shQ.dstX = PANGO_PIXELS(x) + 2;
         shQ.dstY = PANGO_PIXELS(y) + 2;
         shQ.dstW = PANGO_PIXELS(width);
         shQ.dstH = PANGO_PIXELS(height);
-        shQ.r = shR;
-        shQ.g = shG;
-        shQ.b = shB;
+        shQ.r = ren->shadowRed;
+        shQ.g = ren->shadowGreen;
+        shQ.b = ren->shadowBlue;
         shQ.a = ren->alpha;
         stb_arr_push(ren->built->quads, shQ);
     }
@@ -157,13 +159,8 @@ void doDrawGlyphs(PangoRenderer* renderer, PangoFont* font, PangoGlyphString* gl
 	PangoFontDescription* desc = pango_font_describe(font);
 	uint32_t fontHash = (uint32_t)pango_font_description_hash(desc);
 	pango_font_description_free(desc);
-    PangoColor *shadow = pango_renderer_get_color(renderer, PANGO_RENDER_PART_BACKGROUND);
-    if(shadow) {
-        float shR, shG, shB;
-        shR = shadow->red / 65536.0f;
-        shG = shadow->green / 65536.0f;
-        shB = shadow->blue / 65536.0f;
-        drawGlyphRun(1, fontHash, shR, shG, shB, renderer, font, glyphs, px + 2 * PANGO_SCALE, py + (2 * PANGO_SCALE));
+    if(ren->shadowEnabled) {
+        drawGlyphRun(1, fontHash, ren->shadowRed, ren->shadowGreen, ren->shadowBlue, renderer, font, glyphs, px + 2 * PANGO_SCALE, py + (2 * PANGO_SCALE));
     }
     drawGlyphRun(0, fontHash, red, green, blue, renderer, font, glyphs, px, py);
 }
@@ -181,6 +178,29 @@ void cacherenderer_finalize(GObject* object)
 	G_OBJECT_CLASS(_pangoClass)->finalize(object);
 }
 
+void doPrepareRun (PangoRenderer  *renderer,
+                   PangoLayoutRun *run)
+{
+    CacheRenderer* ren = CACHERENDERER(renderer);
+    PangoAttrType shadowType = pg_getshadowtype(ren->ctx);
+    PANGO_RENDERER_CLASS(cacherenderer_parent_class)->prepare_run(renderer, run);
+    GSList *l;
+    ren->shadowEnabled = 0;
+    
+    for (l = run->item->analysis.extra_attrs; l; l = l->next)
+    {
+        PangoAttribute *attr = (PangoAttribute*)l->data;
+        if(attr->klass->type == shadowType) {
+            PangoColor* color = &((PangoAttrColor *)attr)->color;
+            ren->shadowEnabled = 1;
+            ren->shadowRed = color->red / 65536.0f;
+            ren->shadowGreen = color->green / 65536.0f;
+            ren->shadowBlue = color->blue / 65536.0f;
+            break;
+        }
+    }
+}
+
 void cacherenderer_class_init(CacheRendererClass* klass)
 {
 	GObjectClass* object_class = G_OBJECT_CLASS(klass);
@@ -189,9 +209,10 @@ void cacherenderer_class_init(CacheRendererClass* klass)
 	object_class->finalize = cacherenderer_finalize;
 	renderer_class->draw_glyphs = &doDrawGlyphs;
 	renderer_class->draw_rectangle = &doDrawRectangle;
+	renderer_class->prepare_run = &doPrepareRun;
 }
 
-PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts, int layoutCount)
+PGBuiltText *pg_pango_constructtext(PGRenderContext *ctx, PangoLayout **layouts, int layoutCount) 
 {
 	PGBuiltText *built = (PGBuiltText*)malloc(sizeof(PGBuiltText));
 	built->layouts = layouts;

@@ -98,9 +98,9 @@ namespace LibreLancer.Interface
                     drawY = drawRect.Y + (drawRect.Height / 2) - lineHeight / 2;
                     break;
             }
-            var shadow = new TextShadow();
+            var shadow = new OptionalColor();
             if (shadowColor != null) {
-                shadow = new TextShadow(shadowColor.Color);
+                shadow = new OptionalColor(shadowColor.Color);
                 shadow.Color.A *= alpha;
             }
             if (clip) {

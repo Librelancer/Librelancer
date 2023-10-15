@@ -50,6 +50,8 @@ typedef struct _PGAttribute {
   const char *fontName;
   int shadowEnabled;
   uint32_t shadowColor;
+  int backgroundEnabled;
+  uint32_t backgroundColor;
 } PGAttribute;
   
 typedef struct _PGParagraph {
@@ -90,6 +92,7 @@ float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize);
 void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text);
 void pg_updatewidth(PGBuiltText *text, int width);
 int pg_getheight(PGBuiltText *text);
+void pg_get_caret_position(PGBuiltText *text, int paragraph, int textPosition, int *outX, int *outY, int *outW, int *outH);
 void pg_destroytext(PGBuiltText *text);
 void pg_destroycontext(PGRenderContext *ctx);
 

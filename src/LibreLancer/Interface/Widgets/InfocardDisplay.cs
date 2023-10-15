@@ -62,7 +62,7 @@ namespace LibreLancer.Interface
                         FontSize = setSize < 1 ? 22 : setSize,
                         Alignment = TextAlignment.Left,
                         Color = context.Data.GetColor("text").Color,
-                        Shadow = new TextShadow(context.Data.GetColor("black").Color)
+                        Shadow = new OptionalColor(context.Data.GetColor("black").Color)
                     });
                     Infocard.Nodes.Add(new RichTextParagraphNode());
                 }

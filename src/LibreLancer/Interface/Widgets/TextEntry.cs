@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
+using SharpDX.MediaFoundation;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -20,15 +21,25 @@ namespace LibreLancer.Interface
             };
         }
 
-        public string CurrentText = "";
+        private TextEditBase editBase = new TextEditBase(false) {Focused = false, Wrap = false};
+
+        public string CurrentText
+        {
+            get => editBase.Text;
+            set => editBase.Text = value;
+        }
         public int MaxChars = 100;
         public float FontSize { get; set; } = 10f;
         public string Font { get; set; }
         public InterfaceColor TextColor { get; set; }
         public InterfaceColor TextShadow { get; set; }
         public UiRenderable FocusedBorder { get; set; }
-        
-        public bool Password { get; set; }
+
+        public bool Password
+        {
+            get => editBase.Mask;
+            set => editBase.Mask = value;
+        }
 
         private bool doSetFocus = false;
         private bool hasFocus = false;
@@ -78,24 +89,27 @@ namespace LibreLancer.Interface
 
         private CachedRenderString renderCache;
 
-        string GetCurrentText()
-        {
-            string text = CurrentText;
-            if (Password)
-                text = new string('*', CurrentText.Length);
-            if (hasFocus && cursorVisible) return text + "|";
-            else return text;
-        }
-        
         void DrawText(UiContext context, RectangleF myRect)
         {
             //Padding
             myRect.X += 2;
             myRect.Width -= 4;
             //Draw
-            DrawText(context, ref renderCache, myRect, FontSize, Font, TextColor, TextShadow, HorizontalAlignment.Left,
-                VerticalAlignment.Center,
-                true, GetCurrentText());
+            var size = context.TextSize(FontSize <= 0 ? 10 : FontSize);
+            editBase.FontSize = size;
+            if (TextShadow != null)
+                editBase.FontShadow = new OptionalColor(TextShadow.GetColor(context.GlobalTime));
+            else
+                editBase.FontShadow = new OptionalColor();
+            editBase.FontColor = (TextColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            editBase.FontName = context.Data.GetFont(Font);
+            var px = context.PointsToPixels(myRect);
+            //Vertical alignment hacky
+            px.Y += (int)((px.Height / 2f) -
+                    (context.RenderContext.Renderer2D.LineHeight(editBase.FontName, editBase.FontSize) / 2f));
+            editBase.SetRectangle(px);
+            editBase.Focused = hasFocus;
+            editBase.Draw(context.RenderContext, context.GlobalTime);
         }
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
@@ -105,33 +119,50 @@ namespace LibreLancer.Interface
             var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
             return myRect;
         }
+
         public override void OnKeyDown(UiContext context, Keys key, bool control)
         {
-            if (control && key == Keys.V)
+            switch (key)
             {
-                OnTextInput(context.GetClipboardText());
-            }
-            
-            if (key == Keys.Enter)
-            {
-                if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);
-            }
-
-            if (key == Keys.Backspace)
-            {
-                if(CurrentText.Length > 0)
-                    CurrentText = CurrentText.Substring(0, CurrentText.Length - 1);
+                case Keys.A when control:
+                    editBase.SelectAll();
+                    break;
+                case Keys.V when control:
+                    OnTextInput(context.GetClipboardText());
+                    break;
+                case Keys.C when control && editBase.Selected:
+                    context.SetClipboardText(editBase.Text);
+                    break;
+                case Keys.Enter:
+                    if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);
+                    editBase.Unselect();
+                    break;
+                case Keys.Left:
+                    editBase.CaretLeft();
+                    break;
+                case Keys.Right:
+                    editBase.CaretRight();
+                    break;
+                case Keys.Escape:
+                    editBase.Unselect();
+                    break;
+                case Keys.Delete:
+                    editBase.Delete();
+                    break;
+                case Keys.Backspace:
+                    editBase.Backspace();
+                    break;
             }
         }
 
         public bool NotEmpty => !string.IsNullOrWhiteSpace(CurrentText);
-        
+
         public override void OnTextInput(string text)
         {
             if (CurrentText.Length + text.Length > MaxChars)
                 return;
-            CurrentText += text;
+            editBase.TextEntered(text);
         }
-        
+
     }
 }

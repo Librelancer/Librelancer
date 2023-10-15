@@ -72,6 +72,9 @@ namespace LibreLancer.Interface
             return "";
         }
 
+        public void SetClipboardText(string text) =>
+            game?.SetClipboardText(text);
+
         private void MouseOnDoubleClick(MouseEventArgs e)
         {
             if (game.Debug.CaptureMouse) return;
