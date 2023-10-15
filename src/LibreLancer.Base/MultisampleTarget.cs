@@ -59,6 +59,7 @@ namespace LibreLancer
 			GL.DrawBuffer(GL.GL_BACK);
 			//blit
 			GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
         }
 
         public void BlitToRenderTarget(RenderTarget2D rTarget)
@@ -81,6 +82,7 @@ namespace LibreLancer
             GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
             //reset state
             GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
             GL.DrawBuffer(GL.GL_BACK);
         }
 
