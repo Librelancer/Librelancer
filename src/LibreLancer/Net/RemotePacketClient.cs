@@ -14,9 +14,8 @@ namespace LibreLancer.Net
     {
         public NetPeer Client;
         public NetHpidWriter Hpids;
-        Queue<IPacket> reliableSend = new Queue<IPacket>();
-        object reliableLock = new object();
-        public void SendPacket(IPacket packet, PacketDeliveryMethod method, bool force = false)
+
+        public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
             var m = new PacketWriter(new NetDataWriter(), Hpids);
@@ -30,7 +29,7 @@ namespace LibreLancer.Net
             pw.Put(reason);
             Client.Disconnect(pw);
         }
-        
+
 
         public void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method)
         {

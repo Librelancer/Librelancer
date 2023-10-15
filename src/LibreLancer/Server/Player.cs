@@ -17,15 +17,14 @@ using LibreLancer.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
-using LibreLancer.World.Components;
-using NetResponseHandler = LibreLancer.Net.Protocol.NetResponseHandler;
-using RemoteClientPlayer = LibreLancer.Net.Protocol.RemoteClientPlayer;
+
 
 namespace LibreLancer.Server
 {
-    public class Player : IServerPlayer, INetResponder
+    public class Player : IServerPlayer
     {
         //ID
         public int ID = 0;
@@ -65,7 +64,7 @@ namespace LibreLancer.Server
             this.playerGuid = playerGuid;
             ID = Interlocked.Increment(ref _gid);
             ResponseHandler = new NetResponseHandler();
-            rpcClient = new RemoteClientPlayer(this);
+            rpcClient = new RemoteClientPlayer(client, ResponseHandler);
         }
 
         public void SetObjective(NetObjective objective)
@@ -309,7 +308,7 @@ namespace LibreLancer.Server
                 World = world;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation, world.CurrentTick);
+                    rpcClient.SpawnPlayer(ID, System, Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -791,11 +790,6 @@ namespace LibreLancer.Server
             rpcClient.SpawnSolar(si.ToArray());
         }
 
-        public void SendDestroyPart(int id, string part)
-        {
-            rpcClient.DestroyPart(0, id, part);
-        }
-
         private BlockingCollection<IPacket> inputPackets = new BlockingCollection<IPacket>();
         private Task packetQueueTask;
 
@@ -830,7 +824,7 @@ namespace LibreLancer.Server
                 return;
             try
             {
-                var hsp = GeneratedProtocol.HandleServerPacket(packet, this, this);
+                var hsp = GeneratedProtocol.HandleIServerPlayer(packet, this, Client);
                 hsp.Wait();
                 if (hsp.Result)
                     return;
@@ -1117,7 +1111,7 @@ namespace LibreLancer.Server
         {
             rpcClient.RunMissionDialog(dialog);
         }
-        public void CallThorn(string thorn, int mainObject)
+        public void CallThorn(string thorn, ObjNetId mainObject)
         {
             rpcClient.CallThorn(thorn, mainObject);
         }
@@ -1152,7 +1146,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation, world.CurrentTick);
+                    rpcClient.SpawnPlayer(ID, System, Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -1200,7 +1194,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(System, Objective, Position, Orientation, world.CurrentTick);
+                    rpcClient.SpawnPlayer(ID, System, Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -1214,7 +1208,7 @@ namespace LibreLancer.Server
            worldActions.Enqueue(() =>
            {
                var self = World.Players[this];
-               var other = World.GameWorld.GetFromNetID(target);
+               var other = World.GameWorld.GetObject(  new ObjNetId() { Value = target });
                if (other != null)
                {
                    if (other.Formation != null) {
@@ -1240,12 +1234,6 @@ namespace LibreLancer.Server
                 var obj = World.Players[this];
                 obj.Formation?.Remove(obj);
             });
-        }
-
-
-        void INetResponder.SendResponse(IPacket packet)
-        {
-            Client.SendPacket(packet, PacketDeliveryMethod.ReliableOrdered);
         }
     }
 }

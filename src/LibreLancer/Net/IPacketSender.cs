@@ -2,14 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.Net
 {
-    public interface IPacketConnection : IPacketSender
+    public interface IPacketSender
     {
-        bool PollPacket(out IPacket packet);
-        uint EstimateTickDelay();
-        void Shutdown();
+        void SendPacket(IPacket packet, PacketDeliveryMethod method);
     }
 }

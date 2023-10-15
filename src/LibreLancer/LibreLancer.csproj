@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
     <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\LibreLancer.Net.Generator\LibreLancer.Net.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.Interpreter\WattleScript.Interpreter.csproj" />
     <ProjectReference Include="..\Editor\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
@@ -26,7 +27,7 @@
     <ProjectReference Include="..\LibreLancer.Physics\LibreLancer.Physics.csproj" />
     <ProjectReference Include="..\LibreLancer.Thorn\LibreLancer.Thorn.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\extern\bepuphysics2\BepuPhysics\BepuPhysics.csproj">
       <SetConfiguration>Configuration=$(ReferencedConfiguration)</SetConfiguration>
@@ -46,7 +47,7 @@
     <Folder Include="Interface\Default" />
     <Folder Include="Properties" />
   </ItemGroup>
-    
+
     <ItemGroup>
         <AdditionalFiles Include="Interface\ExtraHardwire.xml" />
     </ItemGroup>

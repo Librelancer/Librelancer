@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Fx;
 using LibreLancer.Media;
+using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Sounds;
 
@@ -115,8 +116,7 @@ namespace LibreLancer.World
                 missiles.Add(new MissileFireCmd()
                 {
                     Hardpoint = hardpoint,
-                    TargetIsCrc = target.NetID == 0,
-                    Target = target.NetID == 0 ? (int) target.NicknameCRC : target.NetID
+                    Target = target
                 });
             }
         }
@@ -127,7 +127,7 @@ namespace LibreLancer.World
             queued.Clear();
             return x;
         }
-        public void QueueProjectile(int owner, GameData.Items.GunEquipment gunDef, string hardpoint, Vector3 position, Vector3 heading)
+        public void QueueProjectile(ObjNetId owner, GameData.Items.GunEquipment gunDef, string hardpoint, Vector3 position, Vector3 heading)
         {
             queued.Add(new ProjectileSpawn()
             {

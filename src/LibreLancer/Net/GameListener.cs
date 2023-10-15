@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server;
 using LiteNetLib;
 using LiteNetLib.Utils;
@@ -21,7 +22,7 @@ namespace LibreLancer.Net
         {
             NetDebug.Logger = new NetDebugLogger();
         }
-        
+
         private GameServer game;
         private NetHpidWriter hpids;
         static readonly object TagConnecting = new object();
@@ -29,7 +30,7 @@ namespace LibreLancer.Net
         public int Port = LNetConst.DEFAULT_PORT;
         public int MaxConnections = 200;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
-        
+
         private bool running = false;
 		Thread netThread;
 		public NetManager Server;
@@ -61,7 +62,7 @@ namespace LibreLancer.Net
             hpids = new NetHpidWriter();
             listener.ConnectionRequestEvent += request =>
             {
-                
+
                 if (!new PacketReader(request.Data).TryGetString(out var key))
                 {
                     FLLog.Debug("Server", $"Connect with no key {request.RemoteEndPoint}");
@@ -106,7 +107,7 @@ namespace LibreLancer.Net
                             {
                                 var peer = request.Accept();
                                 var remote = new RemotePacketClient(peer, hpids);
-                                remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered, true);
+                                remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered);
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
@@ -199,13 +200,15 @@ namespace LibreLancer.Net
                             else
                             {
                                 var remote = new RemotePacketClient(peer, hpids);
-                                remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered, true);
+                                remote.SendPacket(new SetStringsPacket() {Data = hpids.GetData()},
+                                    PacketDeliveryMethod.ReliableOrdered);
                                 var p = new Player(remote, game, auth.Guid);
                                 peer.Tag = p;
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);
                                 }
+
                                 Task.Run(() => p.OnLoggedIn());
                             }
                         }
@@ -230,7 +233,7 @@ namespace LibreLancer.Net
                         player.EnqueuePacket(pkt);
                     }
                 }
-                #if !DEBUG
+#if !DEBUG
                 catch (Exception e)
                 {
                     FLLog.Warning("Server", $"Error when reading packet {e}");
@@ -239,6 +242,11 @@ namespace LibreLancer.Net
                     peer.Disconnect(dw);
                     if (peer.Tag is Player p)
                         p.Disconnected();
+                }
+#else
+                catch (Exception)
+                {
+                    throw;
                 }
                 #endif
                 finally
@@ -257,7 +265,7 @@ namespace LibreLancer.Net
                 {
                     if (p.Tag is Player player)
                     {
-                        (player.Client as RemotePacketClient)?.SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered, true);
+                        (player.Client as RemotePacketClient)?.SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered);
                     }
                 }
             };
@@ -278,7 +286,7 @@ namespace LibreLancer.Net
             Server.Stop();
             broadcastServer.Stop();
         }
-        
+
         void RequestPlayerGuid(NetPeer peer)
         {
             var msg = new PacketWriter();

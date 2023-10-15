@@ -59,7 +59,7 @@ namespace LibreLancer.World.Components
                 if (angle <= MathHelper.DegreesToRadians(40)) //TODO: MUZZLE_CONE_ANGLE constant
                 {
                     projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
-                    projectiles.QueueProjectile(Parent.Parent.NetID, Object, hp, pos, heading);
+                    projectiles.QueueProjectile(Parent.Parent, Object, hp, pos, heading);
                 }
             }
         }

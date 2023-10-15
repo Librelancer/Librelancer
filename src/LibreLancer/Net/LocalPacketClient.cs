@@ -11,7 +11,7 @@ namespace LibreLancer.Net
     public class LocalPacketClient : IPacketClient
     {
         public ConcurrentQueue<IPacket> Packets = new ConcurrentQueue<IPacket>();
-        public void SendPacket(IPacket packet, PacketDeliveryMethod method, bool force = false)
+        public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             #if DEBUG
             Net.Protocol.Packets.CheckRegistered(packet);

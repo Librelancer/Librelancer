@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.GameData.Items;
+using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -66,15 +67,13 @@ namespace LibreLancer.Server.Components
         {
             MostRecentAck = input.AckTick;
             //Select object immediately
-            if (input.SelectedIsCRC)
-                SelectedObject = Parent.World.GetObject((uint) input.SelectedObject);
-            else
-                SelectedObject = Parent.World.GetFromNetID(input.SelectedObject);
+            SelectedObject = Parent.World.GetObject( input.SelectedObject);
             Enqueue(input.HistoryC);
             Enqueue(input.HistoryB);
             Enqueue(input.HistoryA);
             Enqueue(input.Current);
             LatestReceived = input.Current.Tick;
+            FLLog.Debug("Server", $"Queue {LatestReceived}");
         }
 
         void Enqueue(NetInputControls controls)

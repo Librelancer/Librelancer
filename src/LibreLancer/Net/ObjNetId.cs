@@ -8,6 +8,11 @@ public struct ObjNetId
     public bool IsCRC;
     public int Value;
 
+    public ObjNetId(bool isCrc, int value)
+    {
+        IsCRC = isCrc;
+        Value = value;
+    }
 
     public static ObjNetId Read(PacketReader message)
     {
@@ -19,6 +24,16 @@ public struct ObjNetId
         return id;
     }
 
+    public static ObjNetId Read(ref BitReader message)
+    {
+        var id = new ObjNetId() {IsCRC = message.GetBool()};
+        if (id.IsCRC)
+            id.Value = (int) message.GetUInt();
+        else
+            id.Value = message.GetVarInt32();
+        return id;
+    }
+
     public void Put(PacketWriter message)
     {
         message.Put(IsCRC);
@@ -26,6 +41,15 @@ public struct ObjNetId
             message.Put((uint)Value);
         else
             message.PutVariableInt32(Value);
+    }
+
+    public void Put(BitWriter message)
+    {
+        message.PutBool(IsCRC);
+        if(IsCRC)
+            message.PutUInt((uint)Value, 32);
+        else
+            message.PutVarInt32(Value);
     }
 
     public static implicit operator ObjNetId(GameObject obj)

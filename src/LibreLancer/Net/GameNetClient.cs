@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Net.Protocol.RpcPackets;
 using LiteNetLib;
 using LiteNetLib.Utils;
 
@@ -105,11 +106,6 @@ namespace LibreLancer.Net
 
         public bool Connected =>
             (client?.FirstPeer != null && client.FirstPeer.ConnectionState == ConnectionState.Connected);
-
-        public void Shutdown()
-        {
-            if (running) Stop();
-        }
 
         private long localPeerRequests;
         public void DiscoverLocalPeers()
@@ -446,6 +442,12 @@ namespace LibreLancer.Net
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
             client.FirstPeer?.Send(om, ch, mt);
         }
+
+        public void Shutdown()
+        {
+            if (running) Stop();
+        }
+
         public bool PollPacket(out IPacket packet)
         {
             packet = null;

@@ -538,7 +538,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.CallThorn(null, 0);
+            runtime.Player.CallThorn(null, default);
         }
     }
 
@@ -559,11 +559,11 @@ namespace LibreLancer.Missions
             FLLog.Info("Act_CallThorn", Thorn);
             runtime.Player.WorldAction(() =>
             {
-                int mainObject = 0;
+                ObjNetId mainObject = default;
                 if (MainObject != null)
                 {
                     var gameObj = runtime.Player.World.GameWorld.GetObject(MainObject);
-                    mainObject = gameObj?.NetID ?? 0;
+                    mainObject = gameObj;
                 }
                 FLLog.Info("Server", $"Calling Thorn {Thorn} with mainObject `{mainObject}`");
                 runtime.Player.CallThorn(Thorn, mainObject);

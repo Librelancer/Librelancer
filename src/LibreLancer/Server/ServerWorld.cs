@@ -150,7 +150,7 @@ namespace LibreLancer.Server
         {
             foreach (var p in Players)
             {
-                p.Key.RemoteClient.UpdateEffects(obj.NetID, obj.GetComponent<SFuseRunnerComponent>().Effects.ToArray());
+                p.Key.RemoteClient.UpdateEffects(obj, obj.GetComponent<SFuseRunnerComponent>().Effects.ToArray());
             }
         }
 
@@ -220,7 +220,7 @@ namespace LibreLancer.Server
             actions.Enqueue(() =>
             {
                 for(int i = 0; i < projectiles.Length; i++)
-                    projectiles[i].Owner = owner.ID;
+                    projectiles[i].Owner = Players[owner];
                 foreach (var p in Players.Keys)
                 {
                     if (p == owner) continue;
@@ -234,18 +234,10 @@ namespace LibreLancer.Server
             });
         }
 
-        public GameObject GetObject(ObjNetId id) => GetObject(id.IsCRC, id.Value);
-        public GameObject GetObject(bool crc, int id)
+        public GameObject GetObject(ObjNetId id)
         {
-            if (id == 0) return null;
-            if (crc)
-            {
-                return GameWorld.GetObject((uint)id);
-            }
-            else
-            {
-                return GameWorld.GetFromNetID(id);
-            }
+            if (id.Value == 0) return null;
+            return GameWorld.GetObject(id);
         }
 
         public void FireMissiles(MissileFireCmd[] missiles, Player owner)
@@ -259,7 +251,7 @@ namespace LibreLancer.Server
                         c => m.Hardpoint.Equals(c.Attachment?.Name, StringComparison.OrdinalIgnoreCase));
                     if (x?.TryGetComponent<MissileLauncherComponent>(out var ml) ?? false)
                     {
-                        ml.Fire(Vector3.Zero, GetObject(m.TargetIsCrc, m.Target));
+                        ml.Fire(Vector3.Zero, GetObject(m.Target));
                     }
                 }
             });
@@ -283,16 +275,7 @@ namespace LibreLancer.Server
 
         void UpdateAnimations(GameObject obj, Player player)
         {
-            int id = 0;
-            bool sysObj = false;
-            if (!string.IsNullOrEmpty(obj.Nickname)) {
-                id = (int) obj.NicknameCRC;
-                sysObj = true;
-            }
-            else {
-                id = obj.NetID;
-            }
-            player.RemoteClient.UpdateAnimations(sysObj, id, obj.AnimationComponent.Serialize().ToArray());
+            player.RemoteClient.UpdateAnimations(obj, obj.AnimationComponent.Serialize().ToArray());
         }
 
         private List<GameObject> withAnimations = new List<GameObject>();
@@ -452,7 +435,7 @@ namespace LibreLancer.Server
         public void PartDisabled(GameObject obj, string part)
         {
             foreach (Player p in Players.Keys)
-                p.SendDestroyPart(obj.NetID, part);
+                p.RemoteClient.DestroyPart(obj, part);
         }
 
         public void LocalChatMessage(Player player, string message)

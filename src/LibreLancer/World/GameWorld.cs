@@ -9,6 +9,7 @@ using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
+using LibreLancer.Net;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Server;
@@ -172,9 +173,17 @@ namespace LibreLancer.World
             SpatialLookup.RemoveObject(obj);
         }
 
-        public GameObject GetFromNetID(int netId)
+        public GameObject GetNetObject(int id)
         {
-            netIDLookup.TryGetValue(netId, out var go);
+            netIDLookup.TryGetValue(id, out var go);
+            return go;
+        }
+
+        public GameObject GetObject(ObjNetId id)
+        {
+            if (id.IsCRC)
+                return GetObject((uint) id.Value);
+            netIDLookup.TryGetValue(id.Value, out var go);
             return go;
         }
 

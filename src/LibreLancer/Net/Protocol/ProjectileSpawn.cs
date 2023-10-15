@@ -8,7 +8,7 @@ namespace LibreLancer.Net.Protocol
 {
     public struct ProjectileSpawn
     {
-        public int Owner;
+        public ObjNetId Owner;
         public uint Gun;
         public string Hardpoint;
         public Vector3 Start;
@@ -17,7 +17,7 @@ namespace LibreLancer.Net.Protocol
         public static ProjectileSpawn Read(PacketReader message)
         {
             var p = new ProjectileSpawn();
-            p.Owner = message.GetVariableInt32();
+            p.Owner = ObjNetId.Read(message);
             p.Gun = message.GetUInt();
             p.Hardpoint = message.GetHpid();
             p.Start = message.GetVector3();
@@ -27,7 +27,7 @@ namespace LibreLancer.Net.Protocol
 
         public void Put(PacketWriter message)
         {
-            message.PutVariableInt32(Owner);
+            Owner.Put(message);
             message.Put(Gun);
             message.PutHpid(Hardpoint);
             message.Put(Start);

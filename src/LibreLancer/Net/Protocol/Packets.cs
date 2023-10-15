@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using LibreLancer.GameData.World;
+using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace LibreLancer.Net.Protocol
 {
@@ -333,8 +336,7 @@ namespace LibreLancer.Net.Protocol
 
     public class InputUpdatePacket : IPacket
     {
-        public bool SelectedIsCRC;
-        public int SelectedObject;
+        public ObjNetId SelectedObject;
         public uint AckTick;
         public NetInputControls Current;
         public NetInputControls HistoryA;
@@ -375,8 +377,7 @@ namespace LibreLancer.Net.Protocol
             var br = new BitReader(message.GetRemainingBytes(), 0);
             var p = new InputUpdatePacket();
             p.AckTick = br.GetVarUInt32();
-            p.SelectedIsCRC = br.GetBool();
-            p.SelectedObject = (int)br.GetUInt(32);
+            p.SelectedObject = ObjNetId.Read(ref br);
             p.Current.Tick = br.GetVarUInt32();
             p.Current.Steering = br.GetVector3();
             p.Current.Strafe = (StrafeControls) br.GetUInt(4);
@@ -399,8 +400,7 @@ namespace LibreLancer.Net.Protocol
         {
             var bw = new BitWriter();
             bw.PutVarUInt32(AckTick);
-            bw.PutBool(SelectedIsCRC);
-            bw.PutUInt((uint)SelectedObject, 32);
+            SelectedObject.Put(bw);
             bw.PutVarUInt32(Current.Tick);
             bw.PutVector3(Current.Steering);
             bw.PutUInt((uint)Current.Strafe, 4);

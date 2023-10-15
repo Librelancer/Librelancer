@@ -81,7 +81,7 @@ namespace LibreLancer.Net.Protocol
                 return new Quaternion(fa, fb, d, fc);
             return new Quaternion(fa, fb, fc, d);
         }
-        
+
         public static void PackQuaternion(Quaternion q, int precision, out uint maxIndex, out uint a, out uint b, out uint c)
         {
             maxIndex = 0;
@@ -129,8 +129,11 @@ namespace LibreLancer.Net.Protocol
                 b = QuantizeFloat(q.Y * sign, UNIT_MIN, UNIT_MAX, precision);
                 c = QuantizeFloat(q.Z * sign, UNIT_MIN, UNIT_MAX, precision);
             }
+            #if DEBUG
+            UnpackQuaternion(precision, maxIndex, a, b, c);
+            #endif
         }
-        
+
         static float WrapMinMax(float x, float min, float max)
         {
             var m = max - min;
@@ -149,7 +152,7 @@ namespace LibreLancer.Net.Protocol
 
         public static bool ApproxEqual(Vector3 a, Vector3 b) =>
             (a - b).Length() < 0.0001f;
-        
+
         public static bool QuantizedEqual(float a, float b, float min, float max, int bits)
         {
             return NetPacking.QuantizeFloat(a, min, max, bits) ==
@@ -170,7 +173,7 @@ namespace LibreLancer.Net.Protocol
                    aY == bY &&
                    aZ == bZ;
         }
-        
+
         public static readonly string[] DefaultHpidData = new[]
         {
             "internal",

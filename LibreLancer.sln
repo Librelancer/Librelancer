@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuUtilities", "extern\bep
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuPhysics", "extern\bepuphysics2\BepuPhysics\BepuPhysics.csproj", "{5D321AB5-DF7F-4988-B432-000E24EBE9F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Net.Generator", "src\LibreLancer.Net.Generator\LibreLancer.Net.Generator.csproj", "{BFC51CE0-4528-4417-8F44-92D334A200ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -383,6 +385,18 @@ Global
 		{5D321AB5-DF7F-4988-B432-000E24EBE9F2}.Release|x64.Build.0 = Release|Any CPU
 		{5D321AB5-DF7F-4988-B432-000E24EBE9F2}.Release|x86.ActiveCfg = Release|Any CPU
 		{5D321AB5-DF7F-4988-B432-000E24EBE9F2}.Release|x86.Build.0 = Release|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Debug|x64.Build.0 = Debug|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Debug|x86.Build.0 = Debug|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x64.ActiveCfg = Release|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x64.Build.0 = Release|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x86.ActiveCfg = Release|Any CPU
+		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

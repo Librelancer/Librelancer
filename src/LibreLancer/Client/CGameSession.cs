@@ -21,8 +21,7 @@ using LibreLancer.Server;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
-using NetResponseHandler = LibreLancer.Net.Protocol.NetResponseHandler;
-using RemoteServerPlayer = LibreLancer.Net.Protocol.RemoteServerPlayer;
+using LibreLancer.Net.Protocol.RpcPackets;
 
 namespace LibreLancer.Client
 {
@@ -39,7 +38,7 @@ namespace LibreLancer.Client
     }
 
 
-    public class CGameSession : IClientPlayer,  INetResponder
+    public class CGameSession : IClientPlayer
 	{
         public long Credits;
         public ulong ShipWorth;
@@ -51,6 +50,7 @@ namespace LibreLancer.Client
 		public FreelancerGame Game;
 		public string PlayerSystem;
         public ReputationCollection PlayerReputations = new ReputationCollection();
+        public int PlayerNetID;
         public string PlayerBase;
 		public Vector3 PlayerPosition;
 		public Matrix4x4 PlayerOrientation;
@@ -126,8 +126,8 @@ namespace LibreLancer.Client
 		{
 			Game = g;
             this.connection = connection;
-            rpcServer = new RemoteServerPlayer(connection, this);
             ResponseHandler = new NetResponseHandler();
+            rpcServer = new RemoteServerPlayer(connection, ResponseHandler);
         }
 
         public void AddRTC(string[] paths)
@@ -157,8 +157,6 @@ namespace LibreLancer.Client
         void SceneChangeRequired()
         {
             gameplayActions.Clear();
-            objects = new Dictionary<int, GameObject>();
-
             if (PlayerBase != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
@@ -175,7 +173,6 @@ namespace LibreLancer.Client
         }
 
         SpaceGameplay gp;
-        Dictionary<int, GameObject> objects = new Dictionary<int, GameObject>();
 
         public bool Update()
         {
@@ -243,7 +240,7 @@ namespace LibreLancer.Client
         public void UpdateStart()
         {
             var elapsed = (uint) ((Game.TotalTime - totalTimeForTick) / (1 / 60.0f));
-            FLLog.Debug("World", $"{elapsed} ticks elapsed after load");
+            FLLog.Info("Player", $"{elapsed} ticks elapsed after load");
             WorldTick += elapsed;
         }
 
@@ -284,8 +281,7 @@ namespace LibreLancer.Client
                 };
                 if (gp.Selection.Selected != null)
                 {
-                    ip.SelectedIsCRC = gp.Selection.Selected.SystemObject != null;
-                    ip.SelectedObject =ip.SelectedIsCRC ? (int)gp.Selection.Selected.NicknameCRC : gp.Selection.Selected.NetID;
+                    ip.SelectedObject = gp.Selection.Selected;
                 }
                 if (moveState.Count > 1) ip.HistoryA = FromMoveState(1);
                 if (moveState.Count > 2) ip.HistoryB = FromMoveState(2);
@@ -385,12 +381,6 @@ namespace LibreLancer.Client
             oldPackets.Enqueue(nsp);
             LastAck = mp.Tick;
             return nsp;
-        }
-
-        uint GetTick(IPacket p)
-        {
-            if (p is SPUpdatePacket sp) return sp.Tick;
-            return ((PackedUpdatePacket)p).Tick;
         }
 
         public DisplayFaction[] GetUIRelations()
@@ -570,8 +560,9 @@ namespace LibreLancer.Client
                 {
                     var x = Game.GameData.Equipment.Get(p.Gun) as GunEquipment;
                     var projdata = gp.world.Projectiles.GetData(x);
-                    gp.world.Projectiles.SpawnProjectile(objects[p.Owner], p.Hardpoint, projdata, p.Start, p.Heading);
-                    var o = objects[p.Owner].Children.FirstOrDefault(go =>
+                    var owner = gp.world.GetObject(p.Owner);
+                    gp.world.Projectiles.SpawnProjectile(owner, p.Hardpoint, projdata, p.Start, p.Heading);
+                    var o = owner.Children.FirstOrDefault(go =>
                         p.Hardpoint.Equals(go.Attachment?.Name));
                     if(o?.TryGetComponent<CMuzzleFlashComponent>(out var mz) ?? false)
                         mz.OnFired();
@@ -630,7 +621,6 @@ namespace LibreLancer.Client
                     go.Kind = GameObjectKind.Missile;
                     go.PhysicsComponent.Mass = 1;
                     go.World = gp.world;
-
                     if (mn.Def.ConstEffect != null)
                     {
                        var fx = Game.GameData.GetEffect(mn.Def.ConstEffect)?
@@ -641,7 +631,6 @@ namespace LibreLancer.Client
                     go.AddComponent(new CMissileComponent(go, mn));
                     go.Register(go.World.Physics);
                     gp.world.AddObject(go);
-                    objects.Add(id, go);
                 }
             });
         }
@@ -650,7 +639,8 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                if (objects.TryGetValue(id, out var despawn))
+                var despawn = gp.world.GetNetObject(id);
+                if (despawn != null)
                 {
                     if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
                         && ms.Missile?.ExplodeFx != null)
@@ -660,7 +650,6 @@ namespace LibreLancer.Client
                     }
                     despawn.Unregister(gp.world.Physics);
                     gp.world.RemoveObject(despawn);
-                    objects.Remove(id);
                     FLLog.Debug("Client", $"Destroyed missile {id}");
                 }
             });
@@ -678,7 +667,7 @@ namespace LibreLancer.Client
                 while (connection.PollPacket(out packet))
                 {
                     HandlePacket(packet);
-                    if (packet is ClientPacket_BaseEnter || packet is ClientPacket_SpawnPlayer)
+                    if (packet is IClientPlayer_BaseEnterPacket || packet is IClientPlayer_SpawnPlayerPacket)
                         started = true;
                 }
             }
@@ -760,19 +749,17 @@ namespace LibreLancer.Client
                     EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, Game.Sound, EquipmentType.LocalPlayer, eq.Hardpoint, equip);
                 }
                 newobj.Register(gp.world.Physics);
-
                 newobj.AddComponent(new WeaponControlComponent(newobj));
-                objects.Add(id, newobj);
-
                 gp.world.AddObject(newobj);
             });
         }
 
         private double totalTimeForTick = 0;
 
-        void IClientPlayer.SpawnPlayer(string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick)
+        void IClientPlayer.SpawnPlayer(int ID, string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick)
         {
             enterCount++;
+            PlayerNetID = ID;
             PlayerBase = null;
             CurrentObjective = objective;
             FLLog.Info("Client", $"Spawning in {system}");
@@ -780,21 +767,15 @@ namespace LibreLancer.Client
             PlayerPosition = position;
             PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
             SceneChangeRequired();
+            var delay = connection.EstimateTickDelay();
+            FLLog.Info("Player", $"Spawning at {tick} + delay {delay}");
             WorldTick = tick + connection.EstimateTickDelay();
             totalTimeForTick = Game.TotalTime;
         }
 
-        void IClientPlayer.UpdateAnimations(bool systemObject, int id, NetCmpAnimation[] animations)
+        void IClientPlayer.UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations)
         {
-            RunSync(() =>
-            {
-                GameObject obj;
-                if (systemObject)
-                    obj = gp.world.GetObject((uint) id);
-                else
-                    obj = objects[id];
-                obj?.AnimationComponent?.UpdateAnimations(animations);
-            });
+            RunSync(() => gp.world.GetObject(id)?.AnimationComponent?.UpdateAnimations(animations));
         }
 
         void IClientPlayer.SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Vector3 position, Quaternion orientation, float mass)
@@ -829,7 +810,6 @@ namespace LibreLancer.Client
                 go.NetID = id;
                 go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                 gp.world.AddObject(go);
-                objects.Add(id, go);
             });
         }
 
@@ -869,13 +849,13 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                if (objects.TryGetValue(id, out var despawn))
+                var despawn = gp.world.GetNetObject(id);
+                if (despawn != null)
                 {
                     if (explode)
                         gp.Explode(despawn);
                     despawn.Unregister(gp.world.Physics);
                     gp.world.RemoveObject(despawn);
-                    objects.Remove(id);
                     FLLog.Debug("Client", $"Despawned {id}");
                 }
                 else
@@ -890,9 +870,9 @@ namespace LibreLancer.Client
             audioActions.Enqueue(() => Game.Sound.PlayOneShot(sound));
         }
 
-        void IClientPlayer.DestroyPart(byte idtype, int id, string part)
+        void IClientPlayer.DestroyPart(ObjNetId id, string part)
         {
-            RunSync(() => { objects[id].DisableCmpPart(part); });
+            RunSync(() => { gp.world.GetObject(id)?.DisableCmpPart(part); });
         }
         void IClientPlayer.RunMissionDialog(NetDlgLine[] lines)
         {
@@ -907,7 +887,8 @@ namespace LibreLancer.Client
             {
                 foreach (var si in solars)
                 {
-                    if (!objects.ContainsKey(si.ID))
+                    var o = gp.world.GetNetObject(si.ID);
+                    if (o == null)
                     {
                         var arch = Game.GameData.GetSolarArchetype(si.Archetype);
                         var go = new GameObject(arch, Game.ResourceManager, true);
@@ -930,7 +911,6 @@ namespace LibreLancer.Client
                             });
                         }
                         gp.world.AddObject(go);
-                        objects.Add(si.ID, go);
                     }
                 }
             });
@@ -943,11 +923,11 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                if (!objects.TryGetValue(id, out var o))
-                {
+                var o = gp.world.GetNetObject(id);
+                if(o == null)
                     FLLog.Warning("Client", $"Could not find obj {id} to mark as important");
-                }
-                o.Flags |= GameObjectFlags.Important;
+                else
+                    o.Flags |= GameObjectFlags.Important;
             });
         }
 
@@ -985,18 +965,18 @@ namespace LibreLancer.Client
             }
         }
 
-        void IClientPlayer.UpdateEffects(int id, SpawnedEffect[] effect)
+        void IClientPlayer.UpdateEffects(ObjNetId id, SpawnedEffect[] effect)
         {
             RunSync(() =>
             {
-                if (objects.TryGetValue(id, out var obj))
+                var obj = gp.world.GetObject(id);
+                if (obj != null)
                 {
                     if (!obj.TryGetComponent<CNetEffectsComponent>(out var fx))
                     {
                         fx = new CNetEffectsComponent(obj);
                         obj.AddComponent(fx);
                     }
-
                     fx.UpdateEffects(effect);
                 }
             });
@@ -1024,7 +1004,7 @@ namespace LibreLancer.Client
             return null;
         }
 
-        void IClientPlayer.CallThorn(string thorn, int mainObject)
+        void IClientPlayer.CallThorn(string thorn, ObjNetId mainObject)
         {
             RunSync(() =>
             {
@@ -1035,7 +1015,7 @@ namespace LibreLancer.Client
                 else
                 {
                     var thn = new ThnScript(Game.GameData.ResolveDataPath(thorn));
-                    objects.TryGetValue(mainObject, out var mo);
+                    var mo = gp.world.GetObject(mainObject);
                     if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
                     else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");
                     gp.Thn = new Cutscene(new ThnScriptContext(null) {MainObject = mo}, gp);
@@ -1050,7 +1030,7 @@ namespace LibreLancer.Client
         {
             if (ResponseHandler.HandlePacket(pkt))
                 return;
-            var hcp = GeneratedProtocol.HandleClientPacket(pkt, this, this);
+            var hcp = GeneratedProtocol.HandleIClientPlayer(pkt, this, connection);
             hcp.Wait();
             if (hcp.Result)
                 return;
@@ -1074,14 +1054,9 @@ namespace LibreLancer.Client
 
         void UpdateObject(ObjectUpdate update, GameWorld world)
         {
-            GameObject obj;
-            if (update.IsCRC) {
-                obj = world.GetObject((uint) update.ID);
-            }
-            else {
-                if (!objects.TryGetValue(update.ID, out obj))
-                    return;
-            }
+            GameObject obj = world.GetObject(new ObjNetId(update.IsCRC, update.ID));
+            if (obj == null)
+                return;
             //Component only present in multiplayer
             if (obj.TryGetComponent<CEngineComponent>(out var eng))
             {
@@ -1216,7 +1191,7 @@ namespace LibreLancer.Client
         GameObject ObjOrPlayer(int id)
         {
             if (id == 0) return gp.player;
-            return objects[id];
+            return gp.world.GetNetObject(id);
         }
 
         void IClientPlayer.UpdateFormation(NetFormation form)
@@ -1257,6 +1232,5 @@ namespace LibreLancer.Client
             connection.Shutdown();
         }
 
-        void INetResponder.SendResponse(IPacket packet) => connection.SendPacket(packet, PacketDeliveryMethod.ReliableOrdered);
     }
 }
