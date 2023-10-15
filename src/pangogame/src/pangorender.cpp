@@ -31,7 +31,6 @@ G_DEFINE_TYPE(CacheRenderer, cacherenderer, PANGO_TYPE_RENDERER);
 
 void doDrawRectangle(PangoRenderer* renderer, PangoRenderPart part, int x, int y, int width, int height)
 {
-    if(part == PANGO_RENDER_PART_OVERLINE) return; //overline is repurposed as text shadow
 	CacheRenderer* ren = CACHERENDERER(renderer);
     float red, green, blue;
     if(ren->colorset) {
