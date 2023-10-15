@@ -248,16 +248,6 @@ namespace LibreLancer.Server.Components
 
         private StateGraphEntry currentState = StateGraphEntry.NULL;
 
-        void Transition(params StateGraphEntry[] possible) {
-            foreach (var e in possible) {
-                if (random.NextSingle() < GetStateValue(currentState, e)) {
-                    currentState = e;
-                    timeInState = 0;
-                    break;
-                }
-            }
-        }
-
         private double timeInState = 0;
 
         public string GetDebugInfo()
@@ -273,8 +263,64 @@ namespace LibreLancer.Server.Components
             return $"Shooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}";
         }
 
+
+        void Transition(params StateGraphEntry[] possible) {
+            foreach (var e in possible) {
+                if (random.NextSingle() < GetStateValue(currentState, e)) {
+                    EnterState(e);
+                    break;
+                }
+            }
+        }
+
+        private float evadeX = 0;
+        private float evadeY = 0;
+        private float evadeZ = 0;
+        private Vector3 buzzDirection;
+        private bool evadeThrust = false;
+
+
+        void EnterState(StateGraphEntry e)
+        {
+            currentState = e;
+            timeInState = 0;
+            if (e == StateGraphEntry.Evade)
+            {
+                var turnThrottle = Pilot?.EvadeBreak?.TurnThrottle ?? 1;
+                var rollThrottle = Pilot?.EvadeBreak?.RollThrottle ?? 1;
+                evadeX = turnThrottle * random.Next(-1, 2);
+                evadeY = turnThrottle * random.Next(-1, 2);
+                evadeZ = rollThrottle * random.Next(-1, 2);
+                evadeThrust = random.Next(0, 2) == 1;
+            }
+            else if (e == StateGraphEntry.Buzz)
+            {
+                buzzDirection = new Vector3(random.NextSingle(),
+                    random.NextSingle(), random.NextSingle()).Normalized();
+            }
+        }
+
+        private double damageTimer = 3;
+        private float damageTaken = 0;
+        public void TakingDamage(float amount)
+        {
+            damageTimer = 3;
+            damageTaken += amount;
+            if (damageTaken > 100 &&
+                currentState != StateGraphEntry.Evade &&
+                GetStateValue(currentState, StateGraphEntry.Evade) > 0)
+            {
+                EnterState(StateGraphEntry.Evade);
+            }
+        }
         public override void Update(double time)
         {
+            damageTimer -= time;
+            if (damageTimer < 0)
+            {
+                damageTimer = 0;
+                damageTaken = 0;
+            }
             CurrentDirective?.Update(Parent, this, time);
 
             var shootAt = GetHostileAndFire(time);
@@ -287,23 +333,56 @@ namespace LibreLancer.Server.Components
             }
 
             Parent.TryGetComponent<AutopilotComponent>(out var ap);
-            Parent.TryGetComponent<ShipPhysicsComponent>(out var si);
+            Parent.TryGetComponent<ShipSteeringComponent>(out var si);
             timeInState += time;
+
+            bool canTransition = false;
+
+            var mypos = Vector3.Transform(Vector3.Zero, Parent.WorldTransform);
+
+            si.InThrottle = 0;
+            si.InPitch = 0;
+            si.InYaw = 0;
+            si.InRoll = 0;
+            si.Cruise = false;
+            si.Thrust = false;
 
             switch (currentState) {
                 case StateGraphEntry.NULL:
-                    si.EnginePower = 0;
-                    si.CruiseEnabled = false;
-                    si.Steering = Vector3.Zero;
                     ap.Cancel();
+                    canTransition = true;
+                    break;
+                case StateGraphEntry.Evade:
+                    ap.Cancel();
+                    si.InThrottle = 1;
+                    si.Cruise = false;
+                    si.Thrust = evadeThrust;
+                    si.InPitch = evadeX;
+                    si.InYaw = evadeY;
+                    si.InRoll = evadeZ;
+                    canTransition = timeInState >= (Pilot?.EvadeBreak?.Time ?? 5);
                     break;
                 case StateGraphEntry.Buzz:
+                {
+                    var dist = Pilot?.BuzzPassBy?.DistanceToPassBy ?? 100;
+                    var dest = Vector3.Transform(buzzDirection * dist, shootAt.WorldTransform);
+                    ap.GotoVec(dest, false, 1, 0);
+                    canTransition = timeInState >= (Pilot?.BuzzPassBy?.PassByTime ?? 5) ||
+                                    Vector3.DistanceSquared(dest, mypos) < 16;
+                    break;
+                }
                 case StateGraphEntry.Face:
                 case StateGraphEntry.Trail:
-                    ap.GotoObject(shootAt, false, 1, 150);
+                    ap.GotoObject(shootAt, false, 1, Pilot?.Trail?.Distance ?? 150);
+                    canTransition = timeInState >= 5;
+                    break;
+                default:
+                    canTransition = true;
                     break;
             }
-            Transition(StateGraphEntry.Face, StateGraphEntry.Trail, StateGraphEntry.Buzz);
+
+            if (canTransition)
+                Transition(StateGraphEntry.Face, StateGraphEntry.Trail, StateGraphEntry.Buzz);
         }
 
         public void DockWith(GameObject tgt)

@@ -14,6 +14,9 @@ namespace LibreLancer.Server.Components
 {
     public class STradelaneMoveComponent : GameComponent
     {
+        private const float TRADELANE_SPEED = 2500;
+        private const float DISRUPTION_DISTANCE = 3000;
+
         GameObject currenttradelane;
         string lane;
 
@@ -123,7 +126,7 @@ namespace LibreLancer.Server.Components
         private void MoveShip(Vector3 sourcePoint, Vector3 targetPoint, Vector3 direction)
         {
             direction.Normalize();
-            var speed = Easing.Ease(EasingTypes.EaseIn, MathHelper.Clamp(totalTime, 0, 3), 0, 3, 0, 3000);
+            var speed = Easing.Ease(EasingTypes.EaseIn, MathHelper.Clamp(totalTime, 0, 3), 0, 3, 0, TRADELANE_SPEED);
             Parent.PhysicsComponent.Body.LinearVelocity = direction * speed;
             Parent.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
             var targetRot = QuaternionEx.LookAt(sourcePoint, targetPoint);
@@ -158,7 +161,7 @@ namespace LibreLancer.Server.Components
         }
 
         private static bool TradelaneDisrupted(float distance, GameObject tradelaneComponent) =>
-            distance < 3000 &&
+            distance < DISRUPTION_DISTANCE &&
             tradelaneComponent.GetChildComponents<SShieldComponent>()
                 .Any(c => c.Health == 0);
 

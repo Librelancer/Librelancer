@@ -26,10 +26,13 @@ namespace LibreLancer.Server.Components
             if (energyDamage <= 0) energyDamage = hullDamage / 2.0f;
 
             var shield = Parent.GetFirstChildComponent<SShieldComponent>();
+
             if (shield == null || !shield.Damage(energyDamage))
             {
                 if (InfiniteHealth) return;
                 CurrentHealth -= hullDamage;
+                if (Parent.TryGetComponent<SNPCComponent>(out var n))
+                    n.TakingDamage(hullDamage);
                 if (Invulnerable && CurrentHealth < (MaxHealth * 0.09f)) {
                     CurrentHealth = MaxHealth * 0.09f;
                 }

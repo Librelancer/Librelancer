@@ -12,11 +12,11 @@ namespace LibreLancer.Server.Components
         public float Health { get; set; }
 
         public ShieldEquipment Equip;
-        
+
         public double OfflineTimer { get; set; }
 
         private float MinHealth => Equip.Def.OfflineThreshold * Equip.Def.MaxCapacity;
-        
+
         public SShieldComponent(ShieldEquipment equip, GameObject parent) : base(parent)
         {
             this.Equip = equip;
@@ -33,7 +33,7 @@ namespace LibreLancer.Server.Components
                     OfflineTimer = 0;
                     Health = MinHealth;
                 }
-            } 
+            }
             else
             {
                 Health += (float)(time * Equip.Def.RegenerationRate);
@@ -52,6 +52,8 @@ namespace LibreLancer.Server.Components
                     Health = 0;
                     OfflineTimer = Equip.Def.OfflineRebuildTime;
                 }
+                if(Parent.TryGetComponent<SNPCComponent>(out var n))
+                    n.TakingDamage(incomingDamage);
                 return true;
             }
             return false;
