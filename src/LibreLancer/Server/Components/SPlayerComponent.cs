@@ -73,7 +73,6 @@ namespace LibreLancer.Server.Components
             Enqueue(input.HistoryA);
             Enqueue(input.Current);
             LatestReceived = input.Current.Tick;
-            FLLog.Debug("Server", $"Queue {LatestReceived}");
         }
 
         void Enqueue(NetInputControls controls)

@@ -3,8 +3,6 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
-using System.Net;
-using SharpDX.MediaFoundation;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -17,8 +15,8 @@ namespace LibreLancer.Interface
 
         private BuiltRichText builtText;
         private float builtMultiplier = 0;
-        private ChatSource.DisplayMessage[] buildMessges = Array.Empty<ChatSource.DisplayMessage>();
-        
+        private ChatSource.DisplayMessage[] buildMessages = Array.Empty<ChatSource.DisplayMessage>();
+
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
@@ -43,13 +41,13 @@ namespace LibreLancer.Interface
 
         bool IdChanged(ChatSource.DisplayMessage[] src)
         {
-            if (src.Length != buildMessges.Length) return true;
+            if (src.Length != buildMessages.Length) return true;
             for (int i = 0; i < src.Length; i++) {
-                if (src[i] != buildMessges[i]) return true;
+                if (src[i] != buildMessages[i]) return true;
             }
             return false;
         }
-        
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             var rect = GetMyRectangle(context, parentRectangle);
@@ -58,7 +56,7 @@ namespace LibreLancer.Interface
             for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--) {
                 Chat.Messages[i].TimeAlive -= (float)context.DeltaTime;
             }
-            
+
             if (ids.Length > 0)
             {
                 var textMultiplier = (context.ViewportHeight / 480) * 0.5f;
@@ -71,18 +69,12 @@ namespace LibreLancer.Interface
                     builtText?.Dispose();
                     var nodes = new List<RichTextNode>();
                     for (int i = ids.Length - 1; i >= 0; i--) {
-                        nodes.Add(new RichTextTextNode() {
-                            Contents = ids[i].Text,
-                            Color = ids[i].Color,
-                            FontName = ids[i].Font,
-                            FontSize = ids[i].Size,
-                            Shadow = new OptionalColor(Color4.Black)
-                        });
+                        nodes.AddRange(ids[i].Nodes);
                         if(i > 0) nodes.Add(new RichTextParagraphNode());
                     }
                     builtText = context.RenderContext.Renderer2D.CreateRichTextEngine().BuildText(nodes,
                         displayRect.Width, textMultiplier);
-                    buildMessges = ids;
+                    buildMessages = ids;
                     builtMultiplier = textMultiplier;
                 }
 
@@ -90,7 +82,7 @@ namespace LibreLancer.Interface
                 context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText,
                     displayRect.X, (int)(displayRect.Y + displayRect.Height - builtText.Height));
             }
-            
+
             Border?.Draw(context, rect);
         }
     }

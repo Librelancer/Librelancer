@@ -114,16 +114,6 @@ namespace LibreLancer.Server
         public void SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
         {
             Interlocked.Increment(ref PlayerCount);
-            foreach (var p in Players)
-            {
-                player.SpawnPlayer(p.Key);
-                p.Key.SpawnPlayer(player);
-            }
-            player.SendSolars(SpawnedSolars);
-            foreach(var npc in spawnedNPCs)
-                SpawnShip(npc, player);
-            foreach(var o in withAnimations)
-                UpdateAnimations(o, player);
             var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
             foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server, item.Hardpoint, item.Equipment);
@@ -140,9 +130,20 @@ namespace LibreLancer.Server
             obj.Flags |= GameObjectFlags.Player;
             GameWorld.AddObject(obj);
             obj.Register(GameWorld.Physics);
-            Players[player] = obj;
-            Players[player].SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
+            FLLog.Debug("Server", $"Spawning player with rotation {orientation}");
+            obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                               Matrix4x4.CreateTranslation(position));
+            foreach (var p in Players)
+            {
+                player.SpawnPlayer(p.Key);
+                p.Key.SpawnPlayer(player);
+            }
+            Players[player] = obj;
+            player.SendSolars(SpawnedSolars);
+            foreach(var npc in spawnedNPCs)
+                SpawnShip(npc, player);
+            foreach(var o in withAnimations)
+                UpdateAnimations(o, player);
             updatingObjects.Add(obj);
         }
 
@@ -438,17 +439,17 @@ namespace LibreLancer.Server
                 p.RemoteClient.DestroyPart(obj, part);
         }
 
-        public void LocalChatMessage(Player player, string message)
+        public void LocalChatMessage(Player player, BinaryChatMessage message)
         {
             actions.Enqueue(() =>
             {
                 var pObj = Players[player];
-                player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, player.Name, message);
+                player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name), message);
                 foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(pObj,
                              Vector3.Transform(Vector3.Zero, pObj.LocalTransform), 15000))
                 {
                     if (obj.TryGetComponent<SPlayerComponent>(out var other)) {
-                        other.Player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, player.Name, message);
+                        other.Player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name+": "), message);
                     }
                 }
             });

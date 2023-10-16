@@ -19,9 +19,9 @@ namespace LibreLancer.Entities.Character
         }
 
         public string Name { get; set; }
-        
+
         // Is this an admin character?
-        
+
         public bool IsAdmin { get; set; }
 
         public uint Rank { get; set; }
@@ -42,11 +42,17 @@ namespace LibreLancer.Entities.Character
 
         // Current base if docked
         public string Base { get; set; }
-        
+
         // Current position of ship
         public float X { get; set; }
         public float Y { get; set; }
         public float Z { get; set; }
+
+        // Current rotation of ship
+        public float RotationX { get; set; }
+        public float RotationY { get; set; }
+        public float RotationZ { get; set; }
+        public float RotationW { get; set; }
 
         // Current ship archetype
         public string Ship { get; set; }
@@ -85,7 +91,7 @@ namespace LibreLancer.Entities.Character
         // In vanilla, visit = hash of solar nickname, visit value. Vanilla visit values can be found here: https://the-starport.net/freelancer/forum/viewtopic.php?post_id=34251#forumpost34251
         // Should be a subtable with that information inside of it. Playername would be the primary key.
         public virtual ICollection<VisitEntry> VisitEntries { get; set; }
-        
+
         public virtual ICollection<CargoItem> Items { get; set; }
 
         public long AccountId { get; set; }

@@ -126,7 +126,8 @@ World Time: {12:F2}
             player.AddComponent(weapons);
             player.AddComponent(new CExplosionComponent(player, shp.Explosion));
             player.AddComponent(new CPlayerCargoComponent(player, session));
-            player.SetLocalTransform(session.PlayerOrientation * Matrix4x4.CreateTranslation(session.PlayerPosition));
+            FLLog.Debug("Client", $"Spawning self with rotation {session.PlayerOrientation}");
+            player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(session.PlayerOrientation) * Matrix4x4.CreateTranslation(session.PlayerPosition));
             playerHealth = new CHealthComponent(player);
             playerHealth.MaxHealth = shp.Hitpoints;
             playerHealth.CurrentHealth = shp.Hitpoints;

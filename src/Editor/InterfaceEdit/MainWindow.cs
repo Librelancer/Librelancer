@@ -251,6 +251,7 @@ namespace InterfaceEdit
                     ImGui.MenuItem("Ship Dealer", "", ref TestApi.HasShipDealerAction);
                     ImGui.EndMenu();
                 }
+                ImGui.MenuItem("Multiplayer", "", ref TestApi.Multiplayer);
                 ImGui.EndMenu();
             }
             if (Project != null && ImGui.BeginMenu("View"))

@@ -27,7 +27,8 @@ public interface IServerPlayer
     void RTCMissionAccepted();
     void RTCMissionRejected();
     void Respawn();
-    void ChatMessage(ChatCategory category, string message);
+    [Channel(1)]
+    void ChatMessage(ChatCategory category, BinaryChatMessage message);
     void EnterFormation(int ship);
     void LeaveFormation();
 }

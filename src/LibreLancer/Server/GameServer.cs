@@ -188,13 +188,13 @@ namespace LibreLancer.Server
             BaselineGoodPrices = bp.ToArray();
         }
 
-        public void SystemChatMessage(Player source, string message)
+        public void SystemChatMessage(Player source, BinaryChatMessage message)
         {
             var s = source.System;
             foreach (var p in GetPlayers())
             {
                 if (p.System.Equals(s, StringComparison.OrdinalIgnoreCase))
-                    p.RemoteClient.ReceiveChatMessage(ChatCategory.System, source.Name, message);
+                    p.RemoteClient.ReceiveChatMessage(ChatCategory.System, BinaryChatMessage.PlainText(source.Name+ ": "), message);
             }
         }
 

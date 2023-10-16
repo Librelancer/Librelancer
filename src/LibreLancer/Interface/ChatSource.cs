@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using LibreLancer.Infocards;
+using LibreLancer.Net.Protocol;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -7,26 +8,50 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ChatSource
     {
-        internal List<DisplayMessage> Messages = new List<DisplayMessage>(15);
-        private static int MsgId = 0;
+        internal CircularBuffer<DisplayMessage> Messages = new CircularBuffer<DisplayMessage>(1000);
         public class DisplayMessage
         {
-            public int ID;
-            public Color4 Color;
-            public string Text;
-            public string Font;
-            public float Size;
+            public List<RichTextNode> Nodes;
             public float TimeAlive = 20;
         }
-        
-        public void Append(string text, string font, float size, Color4 color)
+
+        [WattleScriptHidden]
+        public int Version = 0;
+
+        RichTextNode Convert(BinaryChatSegment msg, string fontName, Color4 defaultColor)
         {
-            
-            lock (Messages)
+            var size = msg.Size switch
             {
-                Messages.Add(new DisplayMessage()
-                    {Text = text, Font = font, Size = size, Color = color, ID = MsgId++});
+                ChatMessageSize.XLarge => 42,
+                ChatMessageSize.Large => 32,
+                ChatMessageSize.Regular => 26,
+                ChatMessageSize.Small => 18,
+                _ => 26
+            };
+            return new RichTextTextNode()
+            {
+                Bold = msg.Bold ?? false,
+                Italic = msg.Italic ?? false,
+                Underline = msg.Underline ?? false,
+                Color = msg.Color.Enabled ? msg.Color.Color : defaultColor,
+                Shadow = new OptionalColor(Color4.Black),
+                Contents = msg.Contents,
+                FontSize = size,
+                FontName = fontName
+            };
+        }
+        public void Append(BinaryChatMessage source, BinaryChatMessage msg, Color4 color, string font)
+        {
+            var nodes = new List<RichTextNode>();
+            if (source != null)
+            {
+                foreach (var n in source.Segments)
+                    nodes.Add(Convert(n, font, color));
             }
+            foreach(var n in msg.Segments)
+                nodes.Add(Convert(n,font,color));
+            Messages.Enqueue(new DisplayMessage() { Nodes = nodes });
+            Version++;
         }
     }
 }

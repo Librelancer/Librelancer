@@ -287,6 +287,40 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Selected>
 	</ButtonStyle>
+	<ButtonStyle Name="nn_chat" Width="22" Height="22">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_chat.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_chat.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_chat.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	<ButtonStyle Name="nn_request" Width="18" Height="23">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_request.3db" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_request.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nn_request.3db" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
 	<!-- Navmap buttons -->
     <ButtonStyle Name="nav_universebutton" Width="13" Height="13"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>

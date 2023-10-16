@@ -272,11 +272,11 @@ namespace LibreLancer.Net.Protocol
         public static PlayerAuthState Read(ref BitReader reader, PlayerAuthState src)
         {
             var pa = new PlayerAuthState();
-            pa.Position = reader.GetVector3();
+            pa.Position = DecodeVector3(ref reader, src.Position);
             //Extra precision
             pa.Orientation = reader.GetQuaternion(18);
-            pa.LinearVelocity = reader.GetVector3();
-            pa.AngularVelocity = reader.GetVector3();
+            pa.LinearVelocity = DecodeVector3(ref reader, src.LinearVelocity);
+            pa.AngularVelocity = DecodeVector3(ref reader, src.AngularVelocity);
             pa.Health = reader.GetBool() ? reader.GetFloat() : src.Health;
             pa.Shield = reader.GetBool() ? reader.GetFloat() : src.Shield;
             pa.CruiseChargePct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseChargePct;
@@ -284,14 +284,42 @@ namespace LibreLancer.Net.Protocol
             return pa;
         }
 
+        static void EncodeFloat(ref BitWriter writer, float old, float current)
+        {
+            var diff = current - old;
+            if (diff >= -64 && diff < 63) {
+                writer.PutBool(true);
+                writer.PutRangedFloat(diff, -32, 31, 24);
+            }
+            else {
+                writer.PutBool(false);
+                writer.PutFloat(current);
+            }
+        }
+
+        static void EncodeVec3(ref BitWriter writer, Vector3 old, Vector3 current)
+        {
+            EncodeFloat(ref writer, old.X, current.X);
+            EncodeFloat(ref writer, old.Y, current.Y);
+            EncodeFloat(ref writer, old.Z, current.Z);
+        }
+
+        static float DecodeFloat(ref BitReader reader, float old) =>
+            reader.GetBool()
+                ? old + reader.GetRangedFloat(-32, 31, 24)
+                : reader.GetFloat();
+
+        static Vector3 DecodeVector3(ref BitReader reader, Vector3 old) =>
+            new Vector3(DecodeFloat(ref reader, old.X), DecodeFloat(ref reader, old.Y), DecodeFloat(ref reader, old.Z));
+
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public void Write(ref BitWriter writer, PlayerAuthState prev)
         {
-            writer.PutVector3(Position);
+            EncodeVec3(ref writer, prev.Position, Position);
             //Extra precision
             writer.PutQuaternion(Orientation, 18);
-            writer.PutVector3(LinearVelocity);
-            writer.PutVector3(AngularVelocity);
+            EncodeVec3(ref writer, prev.LinearVelocity, LinearVelocity);
+            EncodeVec3(ref writer, prev.AngularVelocity, AngularVelocity);
 
             if (Health == prev.Health) {
                 writer.PutBool(false);

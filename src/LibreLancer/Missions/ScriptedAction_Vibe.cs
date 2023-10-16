@@ -23,7 +23,7 @@ namespace LibreLancer.Missions
 
         protected void SetVibe(MissionRuntime runtime, string target, string other, VibeSet vibe)
         {
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 var tgt = runtime.Player.World.GameWorld.GetObject(target);
                 var o = runtime.Player.World.GameWorld.GetObject(other);

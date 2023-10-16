@@ -8,6 +8,11 @@ indent_size = 4
 trim_trailing_whitespace = true
 charset = utf8
 
+# Generated code
+[*.g.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
+
 # C# files
 [*.cs]
 indent_size = 4

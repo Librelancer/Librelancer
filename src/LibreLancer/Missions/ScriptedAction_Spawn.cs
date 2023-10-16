@@ -25,7 +25,7 @@ namespace LibreLancer.Missions
         {
             var sol = script.Solars[Solar];
             var arch = sol.Archetype;
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 runtime.Player.World.SpawnSolar(
                     sol.Nickname,
@@ -104,7 +104,7 @@ namespace LibreLancer.Missions
                 }
             }
 
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 runtime.Player.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
                 var pilot = runtime.Player.World.Server.GameData.GetPilot(shipArch.Pilot);
@@ -215,7 +215,7 @@ namespace LibreLancer.Missions
                 script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
                 foreach (var lbl in ship.Labels)
                     runtime.LabelDecrement(lbl);
-                runtime.Player.WorldAction(() => { runtime.Player.World.NPCs.Despawn(runtime.Player.World.GameWorld.GetObject(Target), false); });
+                runtime.Player.MissionWorldAction(() => { runtime.Player.World.NPCs.Despawn(runtime.Player.World.GameWorld.GetObject(Target), false); });
             }
         }
     }

@@ -241,7 +241,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 var tgt = runtime.Player.World.GameWorld.GetObject(Object);
                 if (tgt != null && tgt.TryGetComponent<SHealthComponent>(out var health))
@@ -366,7 +366,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 var gameObj = runtime.Player.World.GameWorld.GetObject(Tradelane);
                 var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
@@ -406,7 +406,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 var fuse = runtime.Player.World.Server.GameData.GetFuse(Fuse);
                 var gameObj = runtime.Player.World.GameWorld.GetObject(Target);
@@ -464,7 +464,7 @@ namespace LibreLancer.Missions
             }
             if (Target.Equals("player", StringComparison.OrdinalIgnoreCase))
             {
-                runtime.Player.WorldAction(() => { ObjListForPlayer(runtime, script); });
+                runtime.Player.MissionWorldAction(() => { ObjListForPlayer(runtime, script); });
             }
             else
             {
@@ -557,7 +557,7 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             FLLog.Info("Act_CallThorn", Thorn);
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 ObjNetId mainObject = default;
                 if (MainObject != null)

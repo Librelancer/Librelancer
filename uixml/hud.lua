@@ -123,6 +123,19 @@ class hud : hud_Designer
 			loot = e.filter_loot,
 			all = e.filter_all
 		};
+
+		if(Game.IsMultiplayer()) {
+			this.Elements.nn_chat.Visible = true;
+			this.Elements.nn_request.Visible = true;
+			this.Elements.nnbox5.Visible = false;
+			this.Elements.nnbox7.Visible = true;
+		} else {
+			this.Elements.nn_chat.Visible = false;
+			this.Elements.nn_request.Visible = false;
+			this.Elements.nnbox5.Visible = true;
+			this.Elements.nnbox7.Visible = false;
+		}
+		
 		e.filter_important.OnClick(() => this.FilterSelected("important"));
 		e.filter_ship.OnClick(() => this.FilterSelected("ship"));
 		e.filter_station.OnClick(() => this.FilterSelected("station"));
@@ -149,12 +162,14 @@ class hud : hud_Designer
 		this.Map = new mapwindow()
 		this.InfoWindow = new infowindow()
 		this.PlayerStatus = new playerstatus()
+		this.ChatHistory = new chathistory()
 	    this.Map.InitMap()
 		
 		var windows = {
 			{ e.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
-			{ this.Elements.nn_playerstatus, this.PlayerStatus }
+			{ this.Elements.nn_playerstatus, this.PlayerStatus },
+			{ this.Elements.nn_chat, this.ChatHistory }
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
 

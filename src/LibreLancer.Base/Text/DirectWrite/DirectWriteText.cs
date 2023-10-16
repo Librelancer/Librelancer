@@ -127,6 +127,8 @@ namespace LibreLancer.Text.DirectWrite
 
         public override BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1)
         {
+            if(nodes.Count == 0)
+                return new EmptyRichText();
             if (!customLoader.Valid) CreateCustomCollection();
             var paragraphs = new List<List<RichTextNode>>();
             paragraphs.Add(new List<RichTextNode>());
@@ -350,6 +352,7 @@ namespace LibreLancer.Text.DirectWrite
         }
         public override void RenderText(BuiltRichText txt, int x, int y)
         {
+            if (txt is EmptyRichText) return;
             var dw = (DirectWriteBuiltText)txt;
             foreach(var q in dw.Quads) {
                 var d = q.Destination;

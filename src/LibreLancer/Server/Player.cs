@@ -278,6 +278,7 @@ namespace LibreLancer.Server
             }
             UpdateCurrentReputations();
             rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
+            rpcClient.ListPlayers(true);
             if (Base != null)
             {
                 InitStory(sg);
@@ -363,7 +364,7 @@ namespace LibreLancer.Server
             //update
             using (var c = Character.BeginTransaction())
             {
-                c.UpdatePosition(Base, System, Position);
+                c.UpdatePosition(Base, System, Position, Orientation);
             }
             MissionRuntime?.SpaceExit();
             MissionRuntime?.BaseEnter(Base);
@@ -699,7 +700,7 @@ namespace LibreLancer.Server
         }
 
         private Queue<Action> worldActions = new Queue<Action>();
-        public void WorldAction(Action a)
+        public void MissionWorldAction(Action a)
         {
             worldActions.Enqueue(a);
         }
@@ -890,8 +891,12 @@ namespace LibreLancer.Server
                 Base = Character.Base;
                 System = Character.System;
                 Position = Character.Position;
+                Orientation = Character.Orientation;
+                if(Orientation == Quaternion.Zero)
+                    Orientation = Quaternion.Identity;
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
                     player.RemoteClient.OnPlayerJoin(ID, Name);
+                rpcClient.ListPlayers(Character.Admin);
                 if (Base != null) {
                     PlayerEnterBase();
                 } else {
@@ -1026,6 +1031,7 @@ namespace LibreLancer.Server
             Base = Character.Base;
             System = Character.System;
             Position = Character.Position;
+            Orientation = Character.Orientation;
         }
 
         void IServerPlayer.Respawn()
@@ -1041,12 +1047,13 @@ namespace LibreLancer.Server
             }
         }
 
-        void IServerPlayer.ChatMessage(ChatCategory category, string message)
+        void IServerPlayer.ChatMessage(ChatCategory category, BinaryChatMessage message)
         {
-            if (message.Length >= 2 && message[0] == '/' && char.IsLetter(message[1]))
+            string msg0 = message.Segments.Count > 0 ? message.Segments[0].Contents : "";
+            if (msg0.Length >= 2 && msg0[0] == '/' && char.IsLetter(msg0[1]))
             {
                 FLLog.Info("Console", $"({DateTime.Now} {category}) {Name}: {message}");
-                ConsoleCommands.ConsoleCommands.Run(this, message.Substring(1));
+                ConsoleCommands.ConsoleCommands.Run(this, msg0.Substring(1));
             }
             else
             {
@@ -1069,7 +1076,7 @@ namespace LibreLancer.Server
             if (Character != null)
             {
                 using var c = Character.BeginTransaction();
-                c.UpdatePosition(Base, System, Position);
+                c.UpdatePosition(Base, System, Position, Orientation);
             }
         }
 
@@ -1078,7 +1085,7 @@ namespace LibreLancer.Server
             if (Character != null)
             {
                 using var c = Character.BeginTransaction();
-                c.UpdatePosition(Base, System, Position);
+                c.UpdatePosition(Base, System, Position, Orientation);
                 World?.RemovePlayer(this, false);
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
                     player.RemoteClient.OnPlayerLeave(ID, Name);
@@ -1134,6 +1141,7 @@ namespace LibreLancer.Server
                 System = system;
                 Base = null;
                 Position = Vector3.Zero;
+                Orientation = Quaternion.Identity;
                 if (obj == null) {
                     FLLog.Error("Server", $"Can't find target {target} to spawn player in {system}");
                 }
@@ -1205,7 +1213,7 @@ namespace LibreLancer.Server
 
         void IServerPlayer.EnterFormation(int target)
         {
-           worldActions.Enqueue(() =>
+           World.EnqueueAction(() =>
            {
                var self = World.Players[this];
                var other = World.GameWorld.GetObject(  new ObjNetId() { Value = target });
@@ -1229,7 +1237,7 @@ namespace LibreLancer.Server
 
         void IServerPlayer.LeaveFormation()
         {
-            worldActions.Enqueue(() =>
+            World.EnqueueAction(() =>
             {
                 var obj = World.Players[this];
                 obj.Formation?.Remove(obj);

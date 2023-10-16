@@ -569,7 +569,9 @@ namespace InterfaceEdit
             return btns[ActiveHotspotIndex].IDS;
         }
 
-        public bool IsMultiplayer() => false;
+        [WattleScriptHidden]
+        public bool Multiplayer = false;
+        public bool IsMultiplayer() => Multiplayer;
 
         public void NewGame() { }
 

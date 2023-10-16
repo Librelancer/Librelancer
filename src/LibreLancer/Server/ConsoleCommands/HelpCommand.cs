@@ -14,7 +14,7 @@ namespace LibreLancer.Server.ConsoleCommands
                     .Where(x => !x.Admin || (player.Character?.Admin ?? false))
                     .Select(x => x.Name)
                     .OrderBy(x => x));
-            player.RemoteClient.OnConsoleMessage($"Available Commands: pos, netstat, debug, {commandList}");
+            player.RemoteClient.OnConsoleMessage($"Available Commands: pos, ping, debug, {commandList}");
         }
     }
 }

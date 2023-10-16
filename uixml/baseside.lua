@@ -110,6 +110,18 @@ class baseside : baseside_Designer
             }
             navbox.PositionAction(obj, actionbox, index)
         }
+
+		if(Game.IsMultiplayer()) {
+			this.Elements.nn_chat.Visible = true;
+			this.Elements.nn_request.Visible = true;
+			this.Elements.nnbox5.Visible = false;
+			this.Elements.nnbox7.Visible = true;
+		} else {
+			this.Elements.nn_chat.Visible = false;
+			this.Elements.nn_request.Visible = false;
+			this.Elements.nnbox5.Visible = true;
+			this.Elements.nnbox7.Visible = false;
+		}
     
         this.Elements.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
 	    this.InfoWindow = new infowindow()
@@ -117,10 +129,12 @@ class baseside : baseside_Designer
 		this.PlayerStatus = new playerstatus()
 	    this.Map.InitMap()
 	    this.CommodityTrader = new commodity()
+		this.ChatHistory = new chathistory()
 	    local windows = {
 		    { this.Elements.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
-			{ this.Elements.nn_playerstatus, this.PlayerStatus }
+			{ this.Elements.nn_playerstatus, this.PlayerStatus },
+			{ this.Elements.nn_chat, this.ChatHistory }
 	    }
 	    if (has_news) {
 		    this.News = new news();

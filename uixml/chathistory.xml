@@ -1,0 +1,15 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+<Panel Anchor="Center" Width="588" Height="255" Y="-34" ID="background">
+	<Panel.Background>
+		<DisplayModel model="chat_background"/>
+	</Panel.Background>
+	<Panel Width="588" Height="255" ID="contents">
+		<Button id="close" Anchor="TopRight" X="12" Y="12" Style="xbutton"/>
+		<TextBlock X="264" Y="10" TextSize="12" Width="300" Height="24" TextColor="text" VerticalAlignment="Top" HorizontalAlignment="Left" InfoId="393266"></TextBlock>
+		<ChatHistory id="history" X="264" Y="33" Width="310" Height="208">
+		</ChatHistory>
+	</Panel>
+</Panel>
+</Panel>
+</Scene>

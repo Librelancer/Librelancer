@@ -28,17 +28,27 @@
 			<DisplayModel model="navbox4"/>
 		</Panel.Background>
 	</Panel>
+	<Panel Anchor="Center" Width="640" Height="480">
+		<ImageFile Fill="true" Path="mpchat.png" Visible="false"></ImageFile>
+	</Panel>
     <!-- neuralnet here-->
-    <Panel Anchor="TopRight" Height="34" Width="131" Y="-7" >
+    <Panel Anchor="TopRight" ID="nnbox5" Height="34" Width="131" Y="-7" Visible="false">
 		<Panel.Background>
-			<DisplayModel model="hud_nnbox5"/>
+			<DisplayModel model="hud_nnbox5" />
+		</Panel.Background>
+	</Panel>
+	<Panel Anchor="TopRight" ID="nnbox7" Height="34" Width="174" Y="-7">
+		<Panel.Background>
+			<DisplayModel model="hud_nnbox7"/>
 		</Panel.Background>
 	</Panel>
 	<Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2"/>
 	<Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2"/>
 	<Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6"/>
 	<Button Anchor="TopRight" Style="nn_map" ID="nn_map" X="76" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_storystar" ID="nn_storystar" X="103" Y="1"/>
+	<Button Anchor="TopRight" Style="nn_storystar" ID="nn_storystar" X="100" Y="1"/>
+	<Button Anchor="TopRight" Style="nn_chat" ID="nn_chat" X="121" Y="2"/>
+	<Button Anchor="TopRight" Style="nn_request" ID="nn_request" X="147" Y="1"/>
     <ChatBox Anchor="BottomCenter" Y="50" Width="250" Height="60" ID="chatbox">
         <ChatBox.Background>
             <DisplayColor color="rgba(0,0,255,0.25)"/>
@@ -50,4 +60,3 @@
     <ChatDisplay Anchor="BottomLeft" Y="150" Height="250" Width="510" X="10" id="chat"/>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
-

@@ -40,7 +40,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.WorldAction(() =>
+            runtime.Player.MissionWorldAction(() =>
             {
                 var obj = runtime.Player.World.GameWorld.GetObject(Target);
                 if (obj != null)
@@ -112,7 +112,7 @@ namespace LibreLancer.Missions
             }
             else if (script.Ships.ContainsKey(Ship))
             {
-                runtime.Player.WorldAction(() =>
+                runtime.Player.MissionWorldAction(() =>
                 {
                     var obj = runtime.Player.World.GameWorld.GetObject(Ship);
                     var quat = Orientation ?? obj.LocalTransform.ExtractRotation();

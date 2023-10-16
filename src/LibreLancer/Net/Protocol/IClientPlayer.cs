@@ -8,6 +8,7 @@ public interface IClientPlayer
 {
     void UpdateBaselinePrices(BaselinePrice[] prices);
     void CallThorn(string script, ObjNetId mainObject);
+    void ListPlayers(bool isAdmin);
     void SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout);
     void SpawnPlayer(int id, string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
     void UpdateEffects(ObjNetId id, SpawnedEffect[] effects);
@@ -39,9 +40,12 @@ public interface IClientPlayer
     void TradelaneActivate(uint id, bool left);
     void TradelaneDeactivate(uint id, bool left);
     void MarkImportant(int objId);
-    void ReceiveChatMessage(ChatCategory category, string player, string message);
+    [Channel(1)]
+    void ReceiveChatMessage(ChatCategory category, BinaryChatMessage player, BinaryChatMessage message);
     void PopupOpen(int title, int contents, string id);
+    [Channel(1)]
     void OnPlayerJoin(int id, string name);
+    [Channel(1)]
     void OnPlayerLeave(int id, string name);
     void StopShip();
 }

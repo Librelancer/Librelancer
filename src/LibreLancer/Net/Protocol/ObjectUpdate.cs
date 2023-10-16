@@ -24,20 +24,23 @@ public class PackedUpdatePacket : IPacket
     public uint Tick;
     public byte[] Updates;
 
+    public int DataSize { get; private set; }
+
     public void WriteContents(PacketWriter outPacket)
     {
-        outPacket.Put(Tick);
-        outPacket.Put(OldTick);
-        outPacket.Put(InputSequence);
+        outPacket.PutVariableUInt32(Tick);
+        outPacket.PutVariableInt32((int)((long)OldTick - Tick));
+        outPacket.PutVariableInt32((int)((long)InputSequence - Tick));
         outPacket.Put(Updates, 0, Updates.Length);
     }
 
     public static object Read(PacketReader message)
     {
         var p = new PackedUpdatePacket();
-        p.Tick = message.GetUInt();
-        p.OldTick = message.GetUInt();
-        p.InputSequence = message.GetUInt();
+        p.DataSize = message.Size;
+        p.Tick = message.GetVariableUInt32();
+        p.OldTick = (uint) (p.Tick + message.GetVariableInt32());
+        p.InputSequence = (uint) (p.Tick + message.GetVariableInt32());
         p.Updates = message.GetRemainingBytes();
         return p;
     }

@@ -64,7 +64,7 @@ namespace LibreLancer.Missions
             {
                 if (cond.Type == TriggerConditions.Cnd_ProjHit)
                 {
-                    Player.WorldAction(() =>
+                    Player.MissionWorldAction(() =>
                     {
                         var obj = Player.World.GameWorld.GetObject(cond.Entry[0].ToString());
                         if (obj != null)

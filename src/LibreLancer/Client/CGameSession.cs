@@ -53,7 +53,8 @@ namespace LibreLancer.Client
         public int PlayerNetID;
         public string PlayerBase;
 		public Vector3 PlayerPosition;
-		public Matrix4x4 PlayerOrientation;
+		public Quaternion PlayerOrientation;
+        public bool Admin = false;
         public NewsArticle[] News = new NewsArticle[0];
         public ChatSource Chats = new ChatSource();
         private IPacketConnection connection;
@@ -372,7 +373,8 @@ namespace LibreLancer.Client
                     return null;
                 }
             }
-            UpdatePacketSizes.Enqueue(mp.Updates.Length + 12);
+
+            UpdatePacketSizes.Enqueue(mp.DataSize);
             var nsp = new SPUpdatePacket();
             nsp.Tick = mp.Tick;
             nsp.InputSequence = mp.InputSequence;
@@ -677,7 +679,7 @@ namespace LibreLancer.Client
 
         void IClientPlayer.OnConsoleMessage(string text)
         {
-            Chats.Append(text, "Arial", 26, Color4.LimeGreen);
+            Chats.Append(null, BinaryChatMessage.PlainText(text), Color4.LimeGreen, "Arial");
         }
 
         void RunSync(Action gp) => gameplayActions.Enqueue(gp);
@@ -765,7 +767,7 @@ namespace LibreLancer.Client
             FLLog.Info("Client", $"Spawning in {system}");
             PlayerSystem = system;
             PlayerPosition = position;
-            PlayerOrientation = Matrix4x4.CreateFromQuaternion(orientation);
+            PlayerOrientation = orientation;
             SceneChangeRequired();
             var delay = connection.EstimateTickDelay();
             FLLog.Info("Player", $"Spawning at {tick} + delay {delay}");
@@ -1103,21 +1105,24 @@ namespace LibreLancer.Client
 
         public void Launch() => rpcServer.Launch();
 
+        void AppendBlue(string text)
+        {
+            Chats.Append(null, BinaryChatMessage.PlainText(text), Color4.CornflowerBlue, "Arial");
+        }
+
         public void OnChat(ChatCategory category, string str)
         {
-            if (str.TrimEnd() == "/netstat")
+            if (str.TrimEnd() == "/ping")
             {
                 if (connection is GameNetClient nc)
                 {
                     string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
-                    Chats.Append(stats, "Arial", 26, Color4.CornflowerBlue);
-                    Chats.Append(
-                        $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}",
-                        "Arial", 26, Color4.CornflowerBlue);
+                    AppendBlue(stats);
+                    AppendBlue($"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}");
                 }
                 else
                 {
-                    Chats.Append("Offline", "Arial", 26, Color4.CornflowerBlue);
+                    AppendBlue("Offline");
                 }
             }
             else if (str.TrimEnd() == "/debug")
@@ -1132,16 +1137,27 @@ namespace LibreLancer.Client
                 else
                     ((IClientPlayer) this).OnConsoleMessage("null");
             }
-            else {
-                rpcServer.ChatMessage(category, str);
+            else
+            {
+                BinaryChatMessage msg;
+                if (str[0] == '/' ||
+                    !Admin) {
+                    msg = BinaryChatMessage.PlainText(str);
+                }
+                else {
+                    msg = BinaryChatMessage.ParseBbCode(str);
+                }
+                rpcServer.ChatMessage(category, msg);
             }
         }
 
 
+        void IClientPlayer.ListPlayers(bool isAdmin) =>
+            Admin = isAdmin;
 
-        void IClientPlayer.ReceiveChatMessage(ChatCategory category, string player, string message)
+        void IClientPlayer.ReceiveChatMessage(ChatCategory category, BinaryChatMessage player, BinaryChatMessage message)
         {
-            Chats.Append($"{player}: {message}", "Arial", 26, category.GetColor());
+            Chats.Append(player, message, category.GetColor(), "Arial");
         }
 
         private static int NEW_PLAYER = 393298;
@@ -1154,14 +1170,14 @@ namespace LibreLancer.Client
         {
             if (newPlayerStr == null)
                 newPlayerStr = Game.GameData.GetInfocardText(NEW_PLAYER, Game.Fonts).TrimEnd('\n');
-            Chats.Append($"{newPlayerStr}{name}", "Arial", 26, Color4.DarkRed);
+            Chats.Append(null, BinaryChatMessage.PlainText($"{newPlayerStr}{name}"), Color4.DarkRed, "Arial");
         }
 
         void IClientPlayer.OnPlayerLeave(int id, string name)
         {
             if (departingPlayerStr == null)
                 departingPlayerStr = Game.GameData.GetInfocardText(DEPARTING_PLAYER, Game.Fonts).TrimEnd('\n');
-            Chats.Append($"{departingPlayerStr}{name}", "Arial", 26, Color4.DarkRed);
+            Chats.Append(null, BinaryChatMessage.PlainText($"{departingPlayerStr}{name}"), Color4.DarkRed, "Arial");
         }
 
         void IClientPlayer.TradelaneActivate(uint id, bool left)
@@ -1200,15 +1216,18 @@ namespace LibreLancer.Client
             {
                 if (!form.Exists)
                 {
+                    FLLog.Debug("Client", "Formation null");
                     gp.player.Formation = null;
                 }
                 else
                 {
+                    FLLog.Debug("Client", "Formation received");
                     gp.player.Formation = new ShipFormation(
                         ObjOrPlayer(form.LeadShip),
                         form.Followers.Select(ObjOrPlayer).ToArray()
                     );
                     if (gp.player.Formation.LeadShip != gp.player) {
+                        FLLog.Debug("Client", "Starting follow");
                         gp.pilotcomponent.StartFormation();
                     }
                 }

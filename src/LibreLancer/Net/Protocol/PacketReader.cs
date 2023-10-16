@@ -13,6 +13,8 @@ public struct PacketReader
 
     public NetHpidReader HpidReader => hpids;
 
+    public int Size => reader.RawDataSize;
+
     public PacketReader(NetDataReader reader, NetHpidReader hpids = null)
     {
         this.reader = reader;
@@ -129,14 +131,14 @@ public struct PacketReader
             return new ObjectName(ids);
         }
     }
-    
+
     public byte[] GetBytes(int count)
     {
         var buf = new byte[count];
         reader.GetBytes(buf, count);
         return buf;
     }
-    
+
     public Quaternion GetQuaternion()
     {
         var buf = new byte[4];
@@ -144,8 +146,8 @@ public struct PacketReader
         var pack = new BitReader(buf, 0);
         return pack.GetQuaternion();
     }
-    
-    
+
+
     public Vector3 GetNormal()
     {
         var buf = new byte[4];
@@ -153,17 +155,17 @@ public struct PacketReader
         var pack = new BitReader(buf, 0);
         return pack.GetNormal();
     }
-    
+
     public Vector3 GetVector3()
     {
         return new Vector3(reader.GetFloat(), reader.GetFloat(), reader.GetFloat());
     }
-    
+
     public uint GetVariableUInt32()
     {
         return (uint) GetVariableUInt64();
     }
-    
+
     public long GetVariableInt64()
     {
         return NetPacking.Zag64(GetVariableUInt64());
@@ -179,8 +181,8 @@ public struct PacketReader
         longs[1] = reader.GetULong();
         return g;
     }
-    
-    
+
+
     bool TryPeekByte(ref int o, out byte v)
     {
         v = 0;
@@ -188,7 +190,7 @@ public struct PacketReader
         v = reader.RawData[reader.Position + o++];
         return true;
     }
-    
+
     public bool TryPeekVariableUInt32(ref int offset, out uint len)
     {
         len = 0;
@@ -232,7 +234,7 @@ public struct PacketReader
         len = a;
         return true;
     }
-    
+
     public bool TryGetString(out string str, uint maxLength = 2048)
     {
         str = null;
@@ -266,7 +268,7 @@ public struct PacketReader
             str = Encoding.UTF8.GetString(bytes);
         return true;
     }
-    
+
     public string GetString()
     {
         var firstByte = reader.GetByte();

@@ -16,18 +16,19 @@ namespace LibreLancer.Server
     public class NetCharacter
     {
         public string Name;
-        
+
         public bool Admin;
         public string Base { get; private set; }
         public string System { get; private set; }
         public Vector3 Position { get; private set; }
+        public Quaternion Orientation { get; private set; } = Quaternion.Identity;
         public long Credits { get; private set; }
 
         public ReputationCollection Reputation = new ReputationCollection();
-        
+
         public GameData.Ship Ship { get; private set; }
         public List<NetCargo> Items = new List<NetCargo>();
-        
+
         private long charId;
         GameDataManager gData;
         private DatabaseCharacter dbChar;
@@ -35,7 +36,7 @@ namespace LibreLancer.Server
         public long ID => charId;
 
         private int transactionCount;
-        
+
         public CharacterTransaction BeginTransaction()
         {
             if (Interlocked.Increment(ref transactionCount) > 1)
@@ -50,19 +51,20 @@ namespace LibreLancer.Server
             private bool cargoDirty = false;
 
             internal CharacterTransaction(NetCharacter n) => nc = n;
-            
-            public void UpdatePosition(string _base, string sys, Vector3 pos)
+
+            public void UpdatePosition(string _base, string sys, Vector3 pos, Quaternion orient)
             {
                 nc.Base = _base;
                 nc.System = sys;
                 nc.Position = pos;
+                nc.Orientation = orient;
             }
 
             public void UpdateCredits(long credits)
             {
                 nc.Credits = credits;
             }
-            
+
             public void UpdateShip(GameData.Ship ship)
             {
                 nc.Ship = ship;
@@ -71,11 +73,11 @@ namespace LibreLancer.Server
             private List<long> cargoToDelete = new List<long>();
 
             public void CargoModified() => cargoDirty = true;
-            
+
             public void AddCargo(GameData.Items.Equipment equip, string hardpoint, int count)
             {
                 cargoDirty = true;
-                if (equip.Good?.Ini.Combinable ?? false) 
+                if (equip.Good?.Ini.Combinable ?? false)
                 {
                     if (!string.IsNullOrEmpty(hardpoint))
                     {
@@ -95,14 +97,14 @@ namespace LibreLancer.Server
                     nc.Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count });
                 }
             }
-            
+
             public void ClearAllCargo()
             {
                 foreach(var item in nc.Items.Where(x => x.DbItemId != 0))
                     cargoToDelete.Add(item.DbItemId);
                 nc.Items = new List<NetCargo>();
             }
-            
+
             public void RemoveCargo(NetCargo slot, int amount)
             {
                 cargoDirty = true;
@@ -126,6 +128,10 @@ namespace LibreLancer.Server
                     c.X = nc.Position.X;
                     c.Y = nc.Position.Y;
                     c.Z = nc.Position.Z;
+                    c.RotationX = nc.Orientation.X;
+                    c.RotationY = nc.Orientation.Y;
+                    c.RotationZ = nc.Orientation.Z;
+                    c.RotationW = nc.Orientation.W;
                     c.Money = nc.Credits;
                     c.Ship = nc.Ship?.Nickname;
                     if (cargoDirty)
@@ -178,6 +184,7 @@ namespace LibreLancer.Server
             nc.Base = c.Base;
             nc.System = c.System;
             nc.Position = new Vector3(c.X, c.Y, c.Z);
+            nc.Orientation = new Quaternion(c.RotationX, c.RotationY, c.RotationZ, c.RotationW);
             nc.Ship = game.GameData.Ships.Get(c.Ship);
             nc.Credits = c.Money;
             nc.Items = new List<NetCargo>();
@@ -187,10 +194,10 @@ namespace LibreLancer.Server
                 if (resolved == null) continue;
                 nc.Items.Add(new NetCargo()
                 {
-                    Count = (int)cargo.ItemCount, 
+                    Count = (int)cargo.ItemCount,
                     Hardpoint = cargo.Hardpoint,
                     Health = cargo.Health,
-                    Equipment = resolved, 
+                    Equipment = resolved,
                     DbItemId = cargo.Id
                 });
             }
@@ -206,7 +213,7 @@ namespace LibreLancer.Server
             {
                 sl.Items.Add(new NetShipCargo(
                     c.ID, c.Equipment.CRC,
-                    c.Hardpoint, (byte) (c.Health * 255f), 
+                    c.Hardpoint, (byte) (c.Health * 255f),
                     c.Count
                 ));
             }

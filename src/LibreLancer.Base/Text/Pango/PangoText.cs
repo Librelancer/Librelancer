@@ -224,6 +224,8 @@ namespace LibreLancer.Text.Pango
 
         public override unsafe BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1f)
         {
+            if(nodes.Count == 0)
+                return new EmptyRichText();
             //Sort into paragraphs
             var paragraphs = new List<List<RichTextNode>>();
             paragraphs.Add(new List<RichTextNode>());
@@ -320,6 +322,7 @@ namespace LibreLancer.Text.Pango
         int drawX, drawY;
         public override void RenderText(BuiltRichText txt, int x, int y)
         {
+            if (txt is EmptyRichText) return;
             drawX = x; drawY = y;
             pg_drawtext(ctx, ((PangoBuiltText)txt).Handle);
         }

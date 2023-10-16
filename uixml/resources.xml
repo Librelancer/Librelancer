@@ -211,6 +211,8 @@
   <Model name="relation_friendly" path="INTERFACE/NEURONET/INVENTORY/pstat_grandientlove.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
   <Model name="char_infowindow" path="INTERFACE/NEURONET/INVENTORY/char_infowindow.cmp" x="-0.01" y="0" xscale="2.25" yscale="3.55" xz-plane="false" />
   <Model name="targetarrow" path="INTERFACE/HUD/hud_targetarrow.3db" x="-1" y="1" xscale="44" yscale="19.6" xz-plane="true" />
+  <Model name="nn_request.3db" path="INTERFACE/NEURONET/ICONS/nn_request.3db" x="0" y="0" xscale="67" yscale="49" xz-plane="false" />
+  <Model name="chat_background" path="INTERFACE/NEURONET/CHAT/chat_background.cmp" x="0" y="0" xscale="2.125" yscale="4.9" xz-plane="false" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" type="Triangle" rot="None" originx="0" originy="0" angle="0" flip="false">
     <TexCoords>
       <X0>0.086419754</X0>
