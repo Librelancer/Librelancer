@@ -111,7 +111,7 @@ public class SystemEditorTab : GameContentTab
         }
         //Load system
         renderer = new SystemRenderer(camera, Data.Resources, win);
-        World = new GameWorld(renderer, Data.Resources, null, false);
+        World = new GameWorld(renderer, Data.Resources, null, true);
         CurrentSystem = system;
         systemInfocard = Data.GameData.GetInfocard(CurrentSystem.IdsInfo, Data.Fonts);
         if (icard != null) icard.SetInfocard(systemInfocard);

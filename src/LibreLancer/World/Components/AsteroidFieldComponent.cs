@@ -55,6 +55,8 @@ namespace LibreLancer.World.Components
         PhysicsWorld phys;
         public override void Register(PhysicsWorld physics)
         {
+            if (physics == null)
+                return;
             phys = physics;
             Dictionary<string, int> indexes = new Dictionary<string, int>();
             shape = new ConvexMeshCollider(phys);
@@ -78,12 +80,15 @@ namespace LibreLancer.World.Components
         public override void Unregister(PhysicsWorld physics)
         {
             if(shape != null) shape.Dispose();
-            phys = null;
-            var oldList = useA ? ref spawnedA : ref spawnedB;
-            for(int i = 0; i < oldList.Count; i++)
-                physics.RemoveUnmanagedStatic(ref oldList[i].Object);
-            spawnedA.Dispose(physics.BufferPool);
-            spawnedB.Dispose(physics.BufferPool);
+            if (phys != null)
+            {
+                phys = null;
+                var oldList = useA ? ref spawnedA : ref spawnedB;
+                for (int i = 0; i < oldList.Count; i++)
+                    physics.RemoveUnmanagedStatic(ref oldList[i].Object);
+                spawnedA.Dispose(physics.BufferPool);
+                spawnedB.Dispose(physics.BufferPool);
+            }
         }
 		const float COLLIDE_DISTANCE = 600;
 
@@ -121,7 +126,10 @@ namespace LibreLancer.World.Components
         }
 
 		public override void Update(double time)
-		{
+        {
+            if (phys == null)
+                return;
+
 			var world = Parent.GetWorld();
 
             int amountCubes = (int)Math.Floor((COLLIDE_DISTANCE / Field.CubeSize)) + 1;
