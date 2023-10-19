@@ -286,7 +286,8 @@ public static class SurfaceBuilder
             if (minRadius == 0)
                 minRadius = maxRadius;
             part.Radius = maxRadius;
-            part.Inertia = Vector3.UnitZ;
+            // Seems to generate objects that consistently work in vanilla FL
+            part.Inertia = new Vector3(0.2f * maxRadius * maxRadius);
             part.Scale = minRadius / maxRadius;
         }
         else
