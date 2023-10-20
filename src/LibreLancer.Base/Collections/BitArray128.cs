@@ -3,6 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace LibreLancer
 {
     public struct BitArray128
@@ -10,6 +13,20 @@ namespace LibreLancer
         public static int Capacity = 128;
         long a;
         long b;
+
+        public BitArray128(ReadOnlySpan<byte> bytes)
+        {
+            a = BitConverter.ToInt64(bytes.Slice(0, 8));
+            b = BitConverter.ToInt64(bytes.Slice(8, 8));
+        }
+
+        public void CopyTo(Span<byte> bytes)
+        {
+            var longs = MemoryMarshal.Cast<byte, long>(bytes);
+            longs[0] = a;
+            longs[1] = b;
+        }
+
         public bool this[int idx]
         {
             get
