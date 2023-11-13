@@ -32,6 +32,9 @@ namespace LibreLancer.GameData
         public float CameraVerticalTurnUpAngle;
         public float CameraVerticalTurnDownAngle;
 
+        public int MaxShieldBatteries;
+        public int MaxRepairKits;
+
         public List<DamageFuse> Fuses = new List<DamageFuse>();
 
         public Dictionary<string, List<HpType>> HardpointTypes = new (StringComparer.OrdinalIgnoreCase);

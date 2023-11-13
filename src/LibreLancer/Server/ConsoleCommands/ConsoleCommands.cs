@@ -38,12 +38,12 @@ namespace LibreLancer.Server.ConsoleCommands
             }
             if (!commands.TryGetValue(cmd, out var command))
             {
-                player.RemoteClient.OnConsoleMessage($"invalid command '{cmd}'");
+                player.RpcClient.OnConsoleMessage($"invalid command '{cmd}'");
                 return;
             }
             if (command.Admin && !(player.Character?.Admin ?? false))
             {
-                player.RemoteClient.OnConsoleMessage($"Permission denied.");
+                player.RpcClient.OnConsoleMessage($"Permission denied.");
                 return;
             }
             command.Run(player, args);

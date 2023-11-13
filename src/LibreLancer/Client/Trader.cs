@@ -46,7 +46,8 @@ namespace LibreLancer.Client
 
         static bool InternalFilter(Equipment equip)
         {
-            return false;
+            return equip is ShieldBatteryEquipment ||
+                   equip is RepairKitEquipment;
         }
         static Trader()
         {
@@ -59,7 +60,7 @@ namespace LibreLancer.Client
 
         public void Buy(string good, int count, Closure onSuccess)
         {
-            session.RpcServer.PurchaseGood(good, count).ContinueWith((x) =>
+            session.BaseRpc.PurchaseGood(good, count).ContinueWith((x) =>
             {
                 if (x.Result) session.EnqueueAction(() => onSuccess.Call());
             });
@@ -67,7 +68,7 @@ namespace LibreLancer.Client
 
         public void Sell(UIInventoryItem item, int count, Closure onSuccess)
         {
-            session.RpcServer.SellGood(item.ID, count).ContinueWith(x =>
+            session.BaseRpc.SellGood(item.ID, count).ContinueWith(x =>
                 {
                     FLLog.Info("Client", "Sold Item!");
                     if(x.Result) session.EnqueueAction(() => onSuccess.Call());
@@ -117,14 +118,14 @@ namespace LibreLancer.Client
         {
             if (item.Hardpoint != null)
             {
-                session.RpcServer.Unmount(item.Hardpoint).ContinueWith((x) =>
+                session.BaseRpc.Unmount(item.Hardpoint).ContinueWith((x) =>
                 {
                     if(x.Result) session.EnqueueAction(() => onsuccess.Call("unmount"));
                 });
             }
             else
             {
-                session.RpcServer.Mount(item.ID).ContinueWith((x) =>
+                session.BaseRpc.Mount(item.ID).ContinueWith((x) =>
                 {
                     if(x.Result) session.EnqueueAction(() => onsuccess.Call("mount"));
                 });
@@ -158,7 +159,8 @@ namespace LibreLancer.Client
                     IdsName = g.Equipment.IdsName,
                     Volume = g.Equipment.Volume,
                     PriceRank = rank,
-                    Price = price
+                    Price = price,
+                    Equipment = g.Equipment
                 });
             }
             SortGoods(session, traderGoods);
@@ -178,9 +180,8 @@ namespace LibreLancer.Client
 
         bool CanMount(string hpType)
         {
-            if(string.IsNullOrWhiteSpace(hpType)) return false;
-            var myShip = session.Game.GameData.Ships.Get(session.PlayerShip);
-            if (!myShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
+            if(string.IsNullOrWhiteSpace(hpType) || session.PlayerShip == null) return false;
+            if (!session.PlayerShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
                 return false;
             foreach (var hp in possible)
             {
@@ -193,7 +194,7 @@ namespace LibreLancer.Client
         public static UIInventoryItem FromNetCargo(NetCargo item, double price, bool canMount)
         {
             var rank = "neutral";
-            if (item.Equipment.Good.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price) 
+            if (item.Equipment.Good.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price)
                 rank = "good";
             if (item.Equipment.Good.Ini.BadSellPrice != 0 && price <= item.Equipment.Good.Ini.BadSellPrice * item.Equipment.Good.Ini.Price)
                 rank = "bad";
@@ -211,24 +212,31 @@ namespace LibreLancer.Client
                 MountIcon = !string.IsNullOrEmpty(item.Equipment.HpType),
                 Volume = item.Equipment.Volume,
                 Combinable = item.Equipment.Good.Ini.Combinable,
-                CanMount = canMount
+                CanMount = canMount,
+                Equipment = item.Equipment
             };
         }
 
-        public float GetHoldSize() => session.CargoSize;
+        public int GetPurchaseLimit(UIInventoryItem item)
+        {
+            var maxAmount = (int) Math.Floor(session.Credits / item.Price);
+            var holdLimit = CargoUtilities.GetItemLimit(session.Items, session.PlayerShip, item.Equipment);
+            return Math.Min(maxAmount, holdLimit);
+        }
+
+        public float GetHoldSize() => session.PlayerShip.HoldSize;
 
         public float GetUsedHoldSpace() => session.Items.Select(x => x.Count * x.Equipment.Volume).Sum();
-        
+
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
             if (session.PlayerShip == null) return Array.Empty<UIInventoryItem>();
-            
+
             List<UIInventoryItem> inventoryItems = new List<UIInventoryItem>();
             var filterfunc = GetFilter(filter);
-            var myShip = session.Game.GameData.Ships.Get(session.PlayerShip);
-            if (myShip != null)
+            if (session.PlayerShip != null)
             {
-                foreach (var hardpoint in myShip.HardpointTypes)
+                foreach (var hardpoint in session.PlayerShip.HardpointTypes)
                 {
                     var ui = new UIInventoryItem() {Hardpoint = hardpoint.Key};
                     var hptype = hardpoint.Value.OrderByDescending(x => x.Class).First();

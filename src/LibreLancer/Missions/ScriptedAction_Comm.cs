@@ -39,10 +39,10 @@ namespace LibreLancer.Missions
                     Hash = hash
                 };
             }
-            runtime.Player.PlayDialog(netdlg);
+            runtime.Player.RpcClient.RunMissionDialog(netdlg);
         }
     }
-    
+
     public class Act_SendComm : ScriptedAction
     {
         public string Source;
@@ -68,7 +68,7 @@ namespace LibreLancer.Missions
                 Voice = voice,
                 Hash = hash
             };
-            runtime.Player.PlayDialog(netdlg);
+            runtime.Player.RpcClient.RunMissionDialog(netdlg);
         }
     }
 
@@ -86,13 +86,13 @@ namespace LibreLancer.Missions
         {
             var hash = FLHash.CreateID(Line);
             runtime.EnqueueLine(hash, Line);
-            runtime.Player.PlayDialog(new NetDlgLine[] { new NetDlgLine()
+            runtime.Player.RpcClient.RunMissionDialog(new NetDlgLine[] { new NetDlgLine()
             {
                 Voice = Voice,
                 Hash = hash
             }});
         }
     }
-    
-    
+
+
 }

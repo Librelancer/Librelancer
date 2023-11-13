@@ -91,7 +91,7 @@ namespace LibreLancer.Server
             updatingObjects.Remove(obj);
             idGen.Free(obj.NetID);
             foreach (var p in Players)
-                p.Key.RemoteClient.DestroyMissile(obj.NetID, true);
+                p.Key.RpcClient.DestroyMissile(obj.NetID, true);
             if (missile.Missile.Explosion != null)
             {
                 foreach (var other in GameWorld.Physics.SphereTest(pos, missile.Missile.Explosion.Radius))
@@ -151,7 +151,7 @@ namespace LibreLancer.Server
         {
             foreach (var p in Players)
             {
-                p.Key.RemoteClient.UpdateEffects(obj, obj.GetComponent<SFuseRunnerComponent>().Effects.ToArray());
+                p.Key.RpcClient.UpdateEffects(obj, obj.GetComponent<SFuseRunnerComponent>().Effects.ToArray());
             }
         }
 
@@ -211,7 +211,7 @@ namespace LibreLancer.Server
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
                 foreach (var p in Players) {
-                    p.Key.RemoteClient.SpawnMissile(go.NetID, p.Value != owner, missile.CRC, Vector3.Transform(Vector3.Zero, transform), transform.ExtractRotation());
+                    p.Key.RpcClient.SpawnMissile(go.NetID, p.Value != owner, missile.CRC, Vector3.Transform(Vector3.Zero, transform), transform.ExtractRotation());
                 }
             });
         }
@@ -225,7 +225,7 @@ namespace LibreLancer.Server
                 foreach (var p in Players.Keys)
                 {
                     if (p == owner) continue;
-                    p.RemoteClient.SpawnProjectiles(projectiles);
+                    p.RpcClient.SpawnProjectiles(projectiles);
                 }
                 foreach (var p in projectiles)
                 {
@@ -262,7 +262,7 @@ namespace LibreLancer.Server
         {
             foreach (var p in Players)
             {
-                p.Key.RemoteClient.TradelaneActivate(obj.NicknameCRC, left);
+                p.Key.RpcClient.TradelaneActivate(obj.NicknameCRC, left);
             }
         }
 
@@ -270,13 +270,13 @@ namespace LibreLancer.Server
         {
             foreach (var p in Players)
             {
-                p.Key.RemoteClient.TradelaneDeactivate(obj.NicknameCRC, left);
+                p.Key.RpcClient.TradelaneDeactivate(obj.NicknameCRC, left);
             }
         }
 
         void UpdateAnimations(GameObject obj, Player player)
         {
-            player.RemoteClient.UpdateAnimations(obj, obj.AnimationComponent.Serialize().ToArray());
+            player.RpcClient.UpdateAnimations(obj, obj.AnimationComponent.Serialize().ToArray());
         }
 
         private List<GameObject> withAnimations = new List<GameObject>();
@@ -430,13 +430,13 @@ namespace LibreLancer.Server
             string affiliation = null;
             if (obj.TryGetComponent<SNPCComponent>(out var npc))
                 affiliation = npc.Faction?.Nickname;
-            p.RemoteClient.SpawnObject(obj.NetID, obj.Name, affiliation, pos, orient, obj.GetComponent<SNPCComponent>().Loadout);
+            p.RpcClient.SpawnObject(obj.NetID, obj.Name, affiliation, pos, orient, obj.GetComponent<SNPCComponent>().Loadout);
         }
 
         public void PartDisabled(GameObject obj, string part)
         {
             foreach (Player p in Players.Keys)
-                p.RemoteClient.DestroyPart(obj, part);
+                p.RpcClient.DestroyPart(obj, part);
         }
 
         public void LocalChatMessage(Player player, BinaryChatMessage message)
@@ -444,12 +444,12 @@ namespace LibreLancer.Server
             actions.Enqueue(() =>
             {
                 var pObj = Players[player];
-                player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name), message);
+                player.RpcClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name), message);
                 foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(pObj,
                              Vector3.Transform(Vector3.Zero, pObj.LocalTransform), 15000))
                 {
                     if (obj.TryGetComponent<SPlayerComponent>(out var other)) {
-                        other.Player.RemoteClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name+": "), message);
+                        other.Player.RpcClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name+": "), message);
                     }
                 }
             });
@@ -487,7 +487,7 @@ namespace LibreLancer.Server
             {
                 var queue = GameWorld.Projectiles.GetQueue();
                 foreach(var p in Players)
-                    p.Key.RemoteClient.SpawnProjectiles(queue);
+                    p.Key.RpcClient.SpawnProjectiles(queue);
             }
             //Network update tick
             SendWorldUpdates(currentTick);

@@ -130,19 +130,27 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public override bool TryConsume(Equipment item)
+        public override int TryConsume(Equipment item, int maxCount = 1)
         {
             var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment == item);
-            if (slot != null) {
-                if(slot.Count <= 1)
-                    Player.RemoteClient.DeleteSlot(slot.ID);
+            if (slot != null)
+            {
+                var c = slot.Count;
+                if(slot.Count <= maxCount)
+                    Player.RpcClient.DeleteSlot(slot.ID);
                 else
-                    Player.RemoteClient.UpdateSlotCount(slot.ID, slot.Count - 1);
+                    Player.RpcClient.UpdateSlotCount(slot.ID, slot.Count - maxCount);
                 using var t = Player.Character.BeginTransaction();
                 t.RemoveCargo(slot, 1);
-                return true;
+                return c > maxCount ? maxCount : c;
             }
-            return false;
+            return 0;
+        }
+
+        public override T FirstOf<T>()
+        {
+            var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment is T);
+            return (T)slot?.Equipment;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace LibreLancer.Server.ConsoleCommands
             }
             else
             {
-                player.RemoteClient.OnConsoleMessage($"Base does not exist '{baseName}'");
+                player.RpcClient.OnConsoleMessage($"Base does not exist '{baseName}'");
             }
         }
     }

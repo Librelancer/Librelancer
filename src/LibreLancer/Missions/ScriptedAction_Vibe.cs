@@ -25,8 +25,8 @@ namespace LibreLancer.Missions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var tgt = runtime.Player.World.GameWorld.GetObject(target);
-                var o = runtime.Player.World.GameWorld.GetObject(other);
+                var tgt = runtime.Player.Space.World.GameWorld.GetObject(target);
+                var o = runtime.Player.Space.World.GameWorld.GetObject(other);
                 if (tgt != null && o != null && tgt.TryGetComponent<SRepComponent>(out var rep)) {
                     FLLog.Debug("Mission", $"{tgt} rep to {o}: {vibe}");
                     if (vibe == VibeSet.REP_FRIEND_MAXIMUM ||

@@ -36,7 +36,7 @@ namespace LibreLancer.World.Components
             if (Object.Munition.Def.RequiresAmmo)
             {
                 if (!Parent.Parent.TryGetComponent<AbstractCargoComponent>(out var cargo) ||
-                    !cargo.TryConsume(Object.Munition))
+                    cargo.TryConsume(Object.Munition) == 0)
                 {
                     return;
                 }

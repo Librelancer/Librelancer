@@ -22,7 +22,7 @@ namespace LibreLancer.Client
     public class ShipDealer
     {
         private CGameSession session;
-        
+
         public ShipDealer(CGameSession session)
         {
             this.session = session;
@@ -45,8 +45,8 @@ namespace LibreLancer.Client
 
         public UISoldShip PlayerShip()
         {
-            if (string.IsNullOrWhiteSpace(session.PlayerShip)) return null;
-            return ShipInfo(session.Game.GameData.Ships.Get(session.PlayerShip));
+            if (session.PlayerShip == null) return null;
+            return ShipInfo(session.PlayerShip);
         }
 
         public UISoldShip[] SoldShips()
@@ -60,7 +60,7 @@ namespace LibreLancer.Client
                 return sold;
             }).ToArray();
         }
-      
+
 
         private ulong selectedHullPrice;
 
@@ -77,7 +77,7 @@ namespace LibreLancer.Client
         private List<ShipTradeItem> dealerItems;
         private int selectedCrc;
         private Ship selectedShip;
-        
+
         bool CanMount(string hpType, string hardpoint)
         {
             if(string.IsNullOrWhiteSpace(hpType)) return false;
@@ -119,7 +119,7 @@ namespace LibreLancer.Client
                     sellPlayer.Add(new SellCount() { Count = item.Amount, ID = item.Cargo.ID });
                 }
                 if (item.Include != null) {
-                    sellPackage.Add(new SellCount() { Count = item.Amount, ID = item.Include.ID });   
+                    sellPackage.Add(new SellCount() { Count = item.Amount, ID = item.Include.ID });
                 }
             }
             foreach (var item in playerItems) {
@@ -131,10 +131,10 @@ namespace LibreLancer.Client
                     if (item.Include != null) {
                         mountPackage.Add(new MountId() { Hardpoint = item.Hardpoint, ID = item.Include.ID });
                     }
-                }   
+                }
             }
 
-            session.RpcServer.PurchaseShip(selectedCrc,
+            session.BaseRpc.PurchaseShip(selectedCrc,
                 mountPlayer.ToArray(),
                 mountPackage.ToArray(),
                 sellPlayer.ToArray(),
@@ -146,7 +146,7 @@ namespace LibreLancer.Client
                 session.EnqueueAction(() => callback.Call(status));
             });
         }
-        
+
         double GetPrice(ResolvedGood good)
         {
             foreach (var sold in session.Goods)
@@ -157,7 +157,7 @@ namespace LibreLancer.Client
                 return good.Ini.Price;
             return p;
         }
-        
+
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
             List<UIInventoryItem> inventory = new List<UIInventoryItem>();
@@ -230,7 +230,7 @@ namespace LibreLancer.Client
             Trader.SortGoods(session, inventory);
             return inventory.ToArray();
         }
-        
+
         public UIInventoryItem[] GetDealerGoods(string filter)
         {
             List<UIInventoryItem> traderGoods = new List<UIInventoryItem>();
@@ -303,7 +303,7 @@ namespace LibreLancer.Client
                 dealerItems.Remove(src);
             onSuccess.Call();
         }
-        
+
         public void SellToDealer(UIInventoryItem item, int count, Closure onSuccess)
         {
             var src = playerItems[item.ID];
@@ -346,10 +346,10 @@ namespace LibreLancer.Client
                 playerItems.Remove(src);
             onSuccess.Call();
         }
-        
+
         public void StartPurchase(UISoldShip ship, Closure callback)
         {
-            session.RpcServer.GetShipPackage(ship.Server.PackageCRC).ContinueWith(task =>
+            session.BaseRpc.GetShipPackage(ship.Server.PackageCRC).ContinueWith(task =>
             {
                 if (task.Result != null) {
                     selectedHullPrice = ship.Server.HullPrice;
@@ -391,7 +391,7 @@ namespace LibreLancer.Client
                 session.EnqueueAction(() => callback.Call());
             });
         }
-        
+
         string FirstAvailableHardpoint(string hptype)
         {
             if(string.IsNullOrWhiteSpace(hptype)) return null;
@@ -429,7 +429,7 @@ namespace LibreLancer.Client
             }
             return 0;
         }
-        
+
         public double GetShipDisplayPrice()
         {
             var price = (long)selectedHullPrice;

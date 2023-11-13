@@ -2,8 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.Data;
+using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
 
 namespace LibreLancer.GameData.World
@@ -35,12 +38,22 @@ namespace LibreLancer.GameData.World
         public int MinMissionOffers;
         public int MaxMissionOffers; //not respected by vanilla (?)
         public List<BaseNpc> Npcs = new List<BaseNpc>();
-        
+
 		public Base()
 		{
 		}
+
+        public ulong GetUnitPrice(Equipment eq)
+        {
+            var g = SoldGoods.FirstOrDefault(x =>
+                x.Good.Equipment.Nickname.Equals(eq.Nickname, StringComparison.OrdinalIgnoreCase));
+            if (g == null) {
+                return (ulong) (eq.Good?.Ini?.Price ?? 0);
+            }
+            return g.Price;
+        }
 	}
-    
+
     public class BaseNpc
     {
         public string Nickname;
@@ -54,7 +67,7 @@ namespace LibreLancer.GameData.World
         public Faction Affiliation;
         public string Voice;
         public string Room;
-        
+
         public List<NpcKnow> Know = new List<NpcKnow>();
         public List<NpcRumor> Rumors = new List<NpcRumor>();
         public List<NpcBribe> Bribes = new List<NpcBribe>();

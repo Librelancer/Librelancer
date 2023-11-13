@@ -159,6 +159,9 @@ class hud : hud_Designer
 			e.targetwireframe.Visible = false;
 		});
 
+		e.usenanobots.OnClick(() => Game.UseRepairKits());
+		e.useshieldbats.OnClick(() => Game.UseShieldBatteries());
+
 		this.Map = new mapwindow()
 		this.InfoWindow = new infowindow()
 		this.PlayerStatus = new playerstatus()
@@ -238,6 +241,8 @@ class hud : hud_Designer
 	    local e = this.Elements
         e.speedText.Text = Game.Speed() + ""
         e.thrustText.Text = Game.ThrustPercent() + "%"
+		e.repairKitCount.Text = Game.RepairKitCount() + ""
+		e.shieldBatteryCount.Text = Game.ShieldBatteryCount() + ""
 	    e.hullgauge.PercentFilled = Game.GetPlayerHealth()
 	    e.powergauge.PercentFilled = Game.GetPlayerPower()
 	    e.shieldgauge.PercentFilled = Game.GetPlayerShield()

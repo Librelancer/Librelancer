@@ -66,7 +66,7 @@ namespace LibreLancer.Missions
                 {
                     Player.MissionWorldAction(() =>
                     {
-                        var obj = Player.World.GameWorld.GetObject(cond.Entry[0].ToString());
+                        var obj = Player.Space.World.GameWorld.GetObject(cond.Entry[0].ToString());
                         if (obj != null)
                         {
                             obj.GetComponent<SNPCComponent>().ProjectileHitHook = ProjectileHit;
@@ -90,15 +90,6 @@ namespace LibreLancer.Missions
             {
                 x.Deactivated = true;
             }
-        }
-
-
-        GameObject GetObject(string obj)
-        {
-            if (obj == "Player")
-                return Player.World.Players[Player];
-            else
-                return Player.World.GameWorld.GetObject(obj);
         }
 
         public void SpaceExit() =>  ProcessCondition(TriggerConditions.Cnd_SpaceExit, TruePredicate);
@@ -128,10 +119,10 @@ namespace LibreLancer.Missions
 
             if (cond == TriggerConditions.Cnd_DistVec)
             {
-                if (Player.World == null) return false;
+                if (Player.Space == null) return false;
 
                 bool inside = data.Entry[0].ToString() == "inside";
-                var objA = Player.World.GameWorld.GetObject(data.Entry[1].ToString());
+                var objA = Player.Space.World.GameWorld.GetObject(data.Entry[1].ToString());
                 if (objA == null) return false;
                 var point = new Vector3(data.Entry[2].ToSingle(), data.Entry[3].ToSingle(), data.Entry[4].ToSingle());
                 var d = data.Entry[5].ToSingle();
@@ -144,11 +135,11 @@ namespace LibreLancer.Missions
             }
             if (cond == TriggerConditions.Cnd_DistShip)
             {
-                if (Player.World == null) return false;
+                if (Player.Space == null) return false;
 
                 bool inside = data.Entry[0].ToString() == "inside";
-                var objA = Player.World.GameWorld.GetObject(data.Entry[1].ToString());
-                var objB = Player.World.GameWorld.GetObject(data.Entry[2].ToString());
+                var objA = Player.Space.World.GameWorld.GetObject(data.Entry[1].ToString());
+                var objB = Player.Space.World.GameWorld.GetObject(data.Entry[2].ToString());
                 if (objA == null || objB == null) return false;
 
                 var d = data.Entry[3].ToSingle();

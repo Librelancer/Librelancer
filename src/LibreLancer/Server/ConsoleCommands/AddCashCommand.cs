@@ -11,17 +11,17 @@ namespace LibreLancer.Server.ConsoleCommands
             {
                 var targetPlayer = player.Game.GetConnectedPlayer(target);
                 if (targetPlayer == null) {
-                    player.RemoteClient.OnConsoleMessage($"Player {target} is not online");
+                    player.RpcClient.OnConsoleMessage($"Player {target} is not online");
                 }
                 else {
                     targetPlayer.AddCash(credits);
                     targetPlayer.UpdateCurrentInventory();
-                    player.RemoteClient.OnConsoleMessage($"Added {credits} credits to {target}");
+                    player.RpcClient.OnConsoleMessage($"Added {credits} credits to {target}");
                 }
             } else if (ConsoleCommands.ParseString(args, out credits)) {
                 player.AddCash(credits);
                 player.UpdateCurrentInventory();
-                player.RemoteClient.OnConsoleMessage($"Added {credits} credits to {player.Name}");
+                player.RpcClient.OnConsoleMessage($"Added {credits} credits to {player.Name}");
             }
         }
     }

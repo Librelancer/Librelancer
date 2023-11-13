@@ -693,6 +693,18 @@ namespace LibreLancer
                     eqp.ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype);
                     equip = eqp;
                 }
+                if (val is ShieldBattery bat)
+                {
+                    var eqp = new ShieldBatteryEquipment();
+                    eqp.Def = bat;
+                    equip = eqp;
+                }
+                if (val is RepairKit rep)
+                {
+                    var eqp = new RepairKitEquipment();
+                    eqp.Def = rep;
+                    equip = eqp;
+                }
                 else if (val is Data.Equipment.Gun gn)
                 {
                     Equipment.TryGetValue(gn.ProjectileArchetype, out Equipment mnEquip);
@@ -1535,6 +1547,8 @@ namespace LibreLancer
                 ship.ShipType = orig.Type;
                 ship.Explosion = Explosions.Get(orig.ExplosionArch);
                 ship.CRC = FLHash.CreateID(ship.Nickname);
+                ship.MaxShieldBatteries = orig.ShieldBatteryLimit;
+                ship.MaxRepairKits = orig.NanobotLimit;
                 foreach (var fuse in orig.Fuses)
                 {
                     ship.Fuses.Add(new DamageFuse()

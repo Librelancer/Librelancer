@@ -17,18 +17,18 @@ namespace LibreLancer.Client.Components
     }
     public class CShieldComponent : GameComponent
     {
-        public float ShieldPercent => Health / equip.Def.MaxCapacity;
+        public float ShieldPercent => Health / Equip.Def.MaxCapacity;
 
         public float Health { get; private set; }
 
-        private ShieldEquipment equip;
-        
-        private float MinHealth => equip.Def.OfflineThreshold * equip.Def.MaxCapacity;
+        public ShieldEquipment Equip;
 
-        
+        private float MinHealth => Equip.Def.OfflineThreshold * Equip.Def.MaxCapacity;
+
+
         public CShieldComponent(ShieldEquipment equip, GameObject parent) : base(parent)
         {
-            this.equip = equip;
+            this.Equip = equip;
             this.Health = equip.Def.MaxCapacity;
         }
 

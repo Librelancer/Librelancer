@@ -9,6 +9,8 @@ public interface IClientPlayer
     void UpdateBaselinePrices(BaselinePrice[] prices);
     void CallThorn(string script, ObjNetId mainObject);
     void ListPlayers(bool isAdmin);
+    void UpdateWeaponGroups(NetWeaponGroup[] wg);
+
     void SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout);
     void SpawnPlayer(int id, string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
     void UpdateEffects(ObjNetId id, SpawnedEffect[] effects);

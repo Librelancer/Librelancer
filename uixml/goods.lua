@@ -11,7 +11,6 @@ local function good_icon_3db(name, control)
 	local elem = NewObject("DisplayModel")
 	elem.BaseRadius = 0.052
 	elem.Clip = true
-	elem.Tint = GetColor("text")
 	local model = NewObject("InterfaceModel")
 	model.Path = name
 	model.XScale = 28

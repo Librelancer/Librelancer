@@ -182,7 +182,7 @@ namespace LibreLancer
                 ShipDealer = new ShipDealer(g.session);
             }
 
-            public bool HasShip() => !string.IsNullOrWhiteSpace(g.session.PlayerShip);
+            public bool HasShip() => g.session.PlayerShip != null;
 
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
 
@@ -519,8 +519,7 @@ namespace LibreLancer
 
             if (session.PlayerShip != null)
             {
-                var shp = Game.GameData.Ships.Get(session.PlayerShip);
-                playerShip = new GameObject(shp.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true,
+                playerShip = new GameObject(session.PlayerShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true,
                     false);
                 CreatePlayerEquipment();
             }

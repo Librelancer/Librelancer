@@ -85,17 +85,17 @@ namespace LibreLancer.World
             }
             obj.Formation = null;
             if(obj.TryGetComponent<SPlayerComponent>(out var player))
-                player.Player.RemoteClient.UpdateFormation(new NetFormation());
+                player.Player.RpcClient.UpdateFormation(new NetFormation());
             UpdatePlayers();
         }
 
         void UpdatePlayers()
         {
             if(LeadShip.TryGetComponent<SPlayerComponent>(out var player))
-                player.Player.RemoteClient.UpdateFormation(ToNetFormation(LeadShip));
+                player.Player.RpcClient.UpdateFormation(ToNetFormation(LeadShip));
             foreach (var f in _followers) {
                 if(f.TryGetComponent<SPlayerComponent>(out player))
-                    player.Player.RemoteClient.UpdateFormation(ToNetFormation(f));
+                    player.Player.RpcClient.UpdateFormation(ToNetFormation(f));
             }
         }
 

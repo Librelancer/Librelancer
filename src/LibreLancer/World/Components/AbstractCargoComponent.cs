@@ -6,5 +6,7 @@ public abstract class AbstractCargoComponent : GameComponent
 {
     public AbstractCargoComponent(GameObject parent) : base(parent) { }
 
-    public abstract bool TryConsume(Equipment item);
+    public abstract int TryConsume(Equipment item, int maxCount = 1);
+
+    public abstract T FirstOf<T>() where T : Equipment;
 }

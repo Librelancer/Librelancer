@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.World;
@@ -13,23 +14,29 @@ public class SNPCCargoComponent : AbstractCargoComponent
 
     public SNPCCargoComponent(GameObject parent) : base(parent) { }
 
-    public override bool TryConsume(Equipment item)
+    public override int TryConsume(Equipment item, int maxCount = 1)
     {
         for (int i = 0; i < Cargo.Count; i++) {
             if (Cargo[i].Item == item)
             {
-                if (Cargo[i].Count <= 1)
+                if (Cargo[i].Count <= maxCount)
                 {
                     Cargo.RemoveAt(i);
-                    return true;
+                    return Cargo[i].Count;
                 }
                 else
                 {
-                    Cargo[i] = new BasicCargo(Cargo[i].Item, Cargo[i].Count - 1);
-                    return true;
+                    Cargo[i] = new BasicCargo(Cargo[i].Item, Cargo[i].Count - maxCount);
+                    return maxCount;
                 }
             }
         }
-        return false;
+        return 0;
+    }
+
+    public override T FirstOf<T>()
+    {
+        var slot = Cargo.FirstOrDefault(x => x.Item is T);
+        return (T) slot.Item;
     }
 }

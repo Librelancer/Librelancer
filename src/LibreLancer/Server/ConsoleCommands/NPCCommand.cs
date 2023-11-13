@@ -7,10 +7,10 @@ namespace LibreLancer.Server.ConsoleCommands
         public bool Admin => true;
         public void Run(Player player, string arguments)
         {
-            player.World?.NPCs.RunScript(arguments).ContinueWith((t) =>
+            player.Space.World?.NPCs.RunScript(arguments).ContinueWith((t) =>
             {
                 if(!string.IsNullOrWhiteSpace(t.Result))
-                    player.RemoteClient.OnConsoleMessage(t.Result);
+                    player.RpcClient.OnConsoleMessage(t.Result);
             });
         }
     }

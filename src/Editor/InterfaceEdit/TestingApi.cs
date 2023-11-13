@@ -529,11 +529,20 @@ namespace InterfaceEdit
         public bool SelectionVisible() => true;
 
         public float SelectionHealth() => 0.5f;
+
+        public void UseRepairKits() => FLLog.Info("Lua", "Use repair kits pressed!");
+
+        public void UseShieldBatteries() => FLLog.Info("Lua", "Use shield batteries pressed!");
+
         public float SelectionShield() => 0.75f;
 
         public string SelectionReputation() => "friendly";
 
         public Vector2 SelectionPosition() => OverridePosition ?? new Vector2(300,300);
+
+        public int RepairKitCount() => 10;
+
+        public int ShieldBatteryCount() => 12;
 
         [WattleScriptHidden] public Vector2? OverridePosition = null;
 

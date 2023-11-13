@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.GameData.Items;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -25,5 +26,8 @@ namespace LibreLancer.Interface
         public bool MountIcon;
         public bool CanMount;
         internal int HpSortIndex;
+
+        [WattleScriptHidden]
+        public Equipment Equipment;
     }
 }

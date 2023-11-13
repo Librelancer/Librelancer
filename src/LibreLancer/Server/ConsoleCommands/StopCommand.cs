@@ -9,7 +9,7 @@ namespace LibreLancer.Server.ConsoleCommands
         public bool Admin => true;
         public void Run(Player player, string arguments)
         {
-            player.RemoteClient.StopShip();
+            player.RpcClient.StopShip();
         }
     }
 }

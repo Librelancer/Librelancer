@@ -3,15 +3,7 @@ require 'goods.lua'
 
 local function get_max_amount(item)
 {
-	var maxAmount = math.floor(Game.GetCredits() / item.Price);
-	if(item.Volume > 0) {
-		var maxHold = Game.Trader.GetHoldSize() - Game.Trader.GetUsedHoldSpace();
-		if(maxHold < 0) maxHold = 0;
-		maxHold /= item.Volume;
-		return math.min(maxAmount, maxHold);
-	} else {
-		return maxAmount;
-	}
+    return Game.Trader.GetPurchaseLimit(item)
 }
 
 class commodity : commodity_Designer with ChildWindow
@@ -185,11 +177,13 @@ class commodity : commodity_Designer with ChildWindow
 
 	set_preview(item,state)
 	{
+	    local maxAmount = get_max_amount(item);
+
 		if(state == "buy" && !Game.HasShip())
 			this.set_buysell("error", STRID_NO_SHIP);
 		elseif (state == "buy" && item.Price > Game.GetCredits())
 			this.set_buysell("error", STRID_INSUFFICIENT_CREDITS);
-		elseif (state == "buy" && item.Volume > 0 && Game.Trader.GetUsedHoldSpace() + item.Volume > Game.Trader.GetHoldSize())
+		elseif (state == "buy" && maxAmount == 0)
 			this.set_buysell("error", STRID_INSUFFICIENT_SPACE);
 		elseif (item.Price == 0)
 			this.set_buysell("hidden");
@@ -206,11 +200,11 @@ class commodity : commodity_Designer with ChildWindow
 		preview.Enabled = false
 		x.Children.Add(preview)
 		e.quantitySlider.Min = 1
-		if(state == "sell") max = item.Count;
-		else max = get_max_amount(item);
-		if(!item.Combinable) max = 1;
-		e.quantitySlider.Visible = (max > 1)
-		e.quantitySlider.Max = max
+		if(state == "sell") maxAmount = item.Count;
+		else max = maxAmount;
+		if(!item.Combinable) maxAmount = 1;
+		e.quantitySlider.Visible = (maxAmount > 1)
+		e.quantitySlider.Max = maxAmount
 		e.quantitySlider.Value = e.quantitySlider.Max
 		e.quantitySlider.Smooth = false
 		e.unit_price.Text = StringFromID(STRID_CREDIT_SIGN) + NumberToStringCS(item.Price, "N0")

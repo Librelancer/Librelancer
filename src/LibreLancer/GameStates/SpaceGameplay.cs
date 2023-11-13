@@ -9,6 +9,7 @@ using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
@@ -65,6 +66,7 @@ World Time: {12:F2}
 		Cursor cur_reticle;
 		Cursor current_cur;
 		CGameSession session;
+        CPlayerCargoComponent cargo;
         bool loading = true;
         LoadingScreen loader;
         public Cutscene Thn;
@@ -104,13 +106,12 @@ World Time: {12:F2}
         void FinishLoad()
         {
             Game.Saves.Selected = -1;
-            var shp = Game.GameData.Ships.Get(session.PlayerShip);
             //Set up player object + camera
-            player = new GameObject(shp, Game.ResourceManager, true, true);
+            player = new GameObject(session.PlayerShip, Game.ResourceManager, true, true);
             player.Nickname = "player";
             player.NetID = session.PlayerNetID;
-            control = new ShipPhysicsComponent(player) {Ship = shp};
-            shipInput = new ShipInputComponent(player) {BankLimit = shp.MaxBankAngle};
+            control = new ShipPhysicsComponent(player) {Ship = session.PlayerShip};
+            shipInput = new ShipInputComponent(player) {BankLimit = session.PlayerShip.MaxBankAngle};
             weapons = new WeaponControlComponent(player);
             pilotcomponent = new AutopilotComponent(player);
             steering = new ShipSteeringComponent(player);
@@ -124,16 +125,17 @@ World Time: {12:F2}
             //takes input from steering
             player.AddComponent(control);
             player.AddComponent(weapons);
-            player.AddComponent(new CExplosionComponent(player, shp.Explosion));
-            player.AddComponent(new CPlayerCargoComponent(player, session));
+            player.AddComponent(new CExplosionComponent(player, session.PlayerShip.Explosion));
+            cargo = new CPlayerCargoComponent(player, session);
+            player.AddComponent(cargo);
             FLLog.Debug("Client", $"Spawning self with rotation {session.PlayerOrientation}");
             player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(session.PlayerOrientation) * Matrix4x4.CreateTranslation(session.PlayerPosition));
             playerHealth = new CHealthComponent(player);
-            playerHealth.MaxHealth = shp.Hitpoints;
-            playerHealth.CurrentHealth = shp.Hitpoints;
+            playerHealth.MaxHealth = session.PlayerShip.Hitpoints;
+            playerHealth.CurrentHealth = session.PlayerShip.Hitpoints;
             player.AddComponent(playerHealth);
             player.Flags |= GameObjectFlags.Player;
-            if(shp.Mass < 0)
+            if(session.PlayerShip.Mass < 0)
             {
                 FLLog.Error("Ship", "Mass < 0");
             }
@@ -147,18 +149,18 @@ World Time: {12:F2}
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
             _chaseCamera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
             _turretViewCamera = new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
-            _turretViewCamera.CameraOffset = new Vector3(0, 0, shp.ChaseOffset.Length());
+            _turretViewCamera.CameraOffset = new Vector3(0, 0, session.PlayerShip.ChaseOffset.Length());
             _chaseCamera.ChasePosition = session.PlayerPosition;
             _chaseCamera.ChaseOrientation = player.LocalTransform.ClearTranslation();
-            var offset = shp.ChaseOffset;
+            var offset = session.PlayerShip.ChaseOffset;
 
             _chaseCamera.DesiredPositionOffset = offset;
-            if (shp.CameraHorizontalTurnAngle > 0)
-                _chaseCamera.HorizontalTurnAngle = shp.CameraHorizontalTurnAngle;
-            if (shp.CameraVerticalTurnUpAngle > 0)
-                _chaseCamera.VerticalTurnUpAngle = shp.CameraVerticalTurnUpAngle;
-            if (shp.CameraVerticalTurnDownAngle > 0)
-                _chaseCamera.VerticalTurnDownAngle = shp.CameraVerticalTurnDownAngle;
+            if (session.PlayerShip.CameraHorizontalTurnAngle > 0)
+                _chaseCamera.HorizontalTurnAngle = session.PlayerShip.CameraHorizontalTurnAngle;
+            if (session.PlayerShip.CameraVerticalTurnUpAngle > 0)
+                _chaseCamera.VerticalTurnUpAngle = session.PlayerShip.CameraVerticalTurnUpAngle;
+            if (session.PlayerShip.CameraVerticalTurnDownAngle > 0)
+                _chaseCamera.VerticalTurnDownAngle = session.PlayerShip.CameraVerticalTurnDownAngle;
             _chaseCamera.Reset();
 
             activeCamera = _chaseCamera;
@@ -192,12 +194,79 @@ World Time: {12:F2}
             sysrender.Settings = Game.Config.Settings;
 
 
+
+        bool CanRecharge()
+        {
+            var first = cargo.FirstOf<ShieldBatteryEquipment>();
+            if (first == null)
+                return false;
+            var shield = player.GetFirstChildComponent<CShieldComponent>();
+            if (shield == null)
+                return false;
+            if (shield.Equip.Def.MaxCapacity - shield.Health < 100)
+                return false;
+            return true;
+        }
+        void UseShieldBatteries()
+        {
+            if (CanRecharge())
+            {
+                session.SpaceRpc.UseShieldBatteries();
+                Game.Sound.PlayOneShot("ui_use_shield_battery_success");
+            }
+            else
+            {
+                Game.Sound.PlayOneShot("ui_use_shield_battery_failure");
+            }
+        }
+
+        bool CanRepair()
+        {
+            var first = cargo.FirstOf<RepairKitEquipment>();
+            if (first == null)
+                return false;
+            if (playerHealth.MaxHealth - playerHealth.CurrentHealth < 100)
+                return false;
+            return true;
+        }
+
+        void UseRepairKits()
+        {
+            if (CanRepair())
+            {
+                session.SpaceRpc.UseRepairKits();
+                Game.Sound.PlayOneShot("ui_use_nanobots_success");
+            }
+            else
+            {
+                Game.Sound.PlayOneShot("ui_use_nanobots_failure");
+            }
+        }
+
+
         protected override void OnActionDown(InputAction obj)
         {
-            if(obj == InputAction.USER_SCREEN_SHOT) Game.Screenshots.TakeScreenshot();
-            if(obj == InputAction.USER_FULLSCREEN) Game.ToggleFullScreen();
-            if(!ui.KeyboardGrabbed && obj == InputAction.USER_CHAT)
-               ui.ChatboxEvent();
+            if (!ui.KeyboardGrabbed)
+            {
+                switch (obj)
+                {
+                    case InputAction.USER_SCREEN_SHOT:
+                        Game.Screenshots.TakeScreenshot();
+                        break;
+                    case InputAction.USER_FULLSCREEN:
+                        Game.ToggleFullScreen();
+                        break;
+                    case InputAction.USER_REPAIR_HEALTH:
+                        UseRepairKits();
+                        break;
+                    case InputAction.USER_REPAIR_SHIELD:
+                        UseShieldBatteries();
+                        break;
+                    case InputAction.USER_CHAT:
+                        ui.ChatboxEvent();
+                        break;
+                }
+            }
         }
 
         RepAttitude GetRepToPlayer(GameObject obj)
@@ -391,6 +460,16 @@ World Time: {12:F2}
             [WattleScriptHidden] public WidgetTemplate Reticle;
             [WattleScriptHidden] public WidgetTemplate UnselectedArrow;
             [WattleScriptHidden] public WidgetTemplate SelectedArrow;
+            [WattleScriptHidden] public int ShieldBatteries;
+            [WattleScriptHidden] public int RepairKits;
+
+            public int ShieldBatteryCount() => ShieldBatteries;
+
+            public int RepairKitCount() => RepairKits;
+
+            public void UseRepairKits() => g.UseRepairKits();
+
+            public void UseShieldBatteries() => g.UseShieldBatteries();
 
 
             public void SetReticleTemplate(UiWidget template, Closure callback) =>
@@ -658,7 +737,7 @@ World Time: {12:F2}
 					if ((d = Selection.Selected.GetComponent<CDockComponent>()) != null)
 					{
                         pilotcomponent.StartDock(Selection.Selected);
-                        session.RpcServer.RequestDock(Selection.Selected);
+                        session.SpaceRpc.RequestDock(Selection.Selected);
 						return true;
 					}
 					return false;
@@ -667,7 +746,7 @@ World Time: {12:F2}
                     pilotcomponent.GotoObject(Selection.Selected);
 					return true;
                 case "Formation":
-                    session.RpcServer.EnterFormation(Selection.Selected.NetID);
+                    session.SpaceRpc.EnterFormation(Selection.Selected.NetID);
                     return true;
 			}
 			return false;
@@ -721,6 +800,10 @@ World Time: {12:F2}
             if (ShowHud && (Thn == null || !Thn.Running))
             {
                 contactList.UpdateList();
+                uiApi.ShieldBatteries =
+                    session.Items.FirstOrDefault(x => x.Equipment is ShieldBatteryEquipment)?.Count ?? 0;
+                uiApi.RepairKits =
+                    session.Items.FirstOrDefault(x => x.Equipment is RepairKitEquipment)?.Count ?? 0;
                 ui.Update(Game);
             }
             if(ui.KeyboardGrabbed)
@@ -973,12 +1056,12 @@ World Time: {12:F2}
 
             if (world.Projectiles.HasQueued)
             {
-                session.RpcServer.FireProjectiles(world.Projectiles.GetQueue());
+                session.SpaceRpc.FireProjectiles(world.Projectiles.GetQueue());
             }
 
             if (world.Projectiles.HasMissilesQueued)
             {
-                session.RpcServer.FireMissiles(world.Projectiles.GetMissileQueue());
+                session.SpaceRpc.FireMissiles(world.Projectiles.GetMissileQueue());
             }
         }
 

@@ -200,7 +200,30 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Selected>
 	</ButtonStyle>
-	
+	<ButtonStyle Width="19" Height="18" Name="hud_nanobots">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_nanobots" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_nanobots" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
+	<ButtonStyle Width="20" Height="20" Name="hud_shieldbatteries">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_shieldbatteries" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_shieldbatteries" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+	</ButtonStyle>
 	<!-- Neuronet buttons -->
 	<ButtonStyle Width="21" Height="21" Name="nn_info">
 		<ButtonStyle.Normal>

@@ -11,6 +11,7 @@ using System.Numerics;
 using System.Text;
 using LibreLancer.Client.Components;
 using LibreLancer.Data.Missions;
+using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Missions;
@@ -42,8 +43,7 @@ namespace LibreLancer.Client
 	{
         public long Credits;
         public ulong ShipWorth;
-		public string PlayerShip;
-        public int CargoSize;
+		public Ship PlayerShip;
 		public List<string> PlayerComponents = new List<string>();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
@@ -59,8 +59,12 @@ namespace LibreLancer.Client
         public ChatSource Chats = new ChatSource();
         private IPacketConnection connection;
         private IServerPlayer rpcServer;
+        private ISpacePlayer spaceRpc;
+        private IBasesidePlayer baseRpc;
         public NetObjective CurrentObjective;
         public IServerPlayer RpcServer => rpcServer;
+        public IBasesidePlayer BaseRpc => baseRpc;
+        public ISpacePlayer SpaceRpc => spaceRpc;
         public double WorldTime => WorldTick * (1 / 60.0f);
 
         public bool Multiplayer => connection is GameNetClient;
@@ -76,7 +80,7 @@ namespace LibreLancer.Client
         {
             if (connection is EmbeddedServer es)
             {
-                es.Server.LocalPlayer.World?.Pause();
+                es.Server.LocalPlayer.Space?.World.Pause();
                 paused = true;
             }
         }
@@ -85,7 +89,7 @@ namespace LibreLancer.Client
         {
             if (connection is EmbeddedServer es)
             {
-                es.Server.LocalPlayer.World?.Resume();
+                es.Server.LocalPlayer.Space?.World.Resume();
                 paused = false;
             }
         }
@@ -129,6 +133,8 @@ namespace LibreLancer.Client
             this.connection = connection;
             ResponseHandler = new NetResponseHandler();
             rpcServer = new RemoteServerPlayer(connection, ResponseHandler);
+            spaceRpc = new RemoteSpacePlayer(connection, ResponseHandler);
+            baseRpc = new RemoteBasesidePlayer(connection, ResponseHandler);
         }
 
         public void AddRTC(string[] paths)
@@ -513,8 +519,7 @@ namespace LibreLancer.Client
         void SetSelfLoadout(NetShipLoadout ld)
         {
             var sh = ld.ShipCRC == 0 ? null : Game.GameData.Ships.Get(ld.ShipCRC);
-            PlayerShip = sh?.Nickname ?? null;
-            CargoSize = sh?.HoldSize ?? 0;
+            PlayerShip = sh;
 
             Items = new List<NetCargo>(ld.Items.Count);
             if (sh != null)
@@ -726,6 +731,10 @@ namespace LibreLancer.Client
         }
 
         public void EnqueueAction(Action a) => uiActions.Enqueue(a);
+
+        public void UpdateWeaponGroups(NetWeaponGroup[] wg)
+        {
+        }
 
         void IClientPlayer.SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
         {

@@ -24,7 +24,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.ForceMove(Position);
+            runtime.Player.MissionWorldAction(() => runtime.Player.Space.ForceMove(Position));
         }
     }
 
@@ -42,7 +42,7 @@ namespace LibreLancer.Missions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var obj = runtime.Player.World.GameWorld.GetObject(Target);
+                var obj = runtime.Player.Space.World.GameWorld.GetObject(Target);
                 if (obj != null)
                 {
                     FLLog.Debug("Mission", $"{obj} change cloaked to {Cloaked}");
@@ -82,7 +82,8 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.ForceMove(Position, Orientation);
+            runtime.Player.MissionWorldAction(() =>
+                runtime.Player.Space.ForceMove(Position, Orientation));
         }
     }
 
@@ -108,13 +109,13 @@ namespace LibreLancer.Missions
         {
             if (Ship.Equals("player", StringComparison.OrdinalIgnoreCase))
             {
-                runtime.Player.ForceMove(Position, Orientation);
+                runtime.Player.MissionWorldAction(() => runtime.Player.Space.ForceMove(Position, Orientation));
             }
             else if (script.Ships.ContainsKey(Ship))
             {
                 runtime.Player.MissionWorldAction(() =>
                 {
-                    var obj = runtime.Player.World.GameWorld.GetObject(Ship);
+                    var obj = runtime.Player.Space.World.GameWorld.GetObject(Ship);
                     var quat = Orientation ?? obj.LocalTransform.ExtractRotation();
                     obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat) * Matrix4x4.CreateTranslation(Position));
                 });

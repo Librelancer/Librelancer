@@ -50,12 +50,10 @@
 		<Panel.Background>
 			<DisplayModel model="shipinfobox" />
 		</Panel.Background>
-		<Button id="usenanobots" X="27" Y="4" Width="19" Height="18">
-			<Button.Background><DisplayModel model="hud_nanobots" tint="text" /></Button.Background>
-		</Button>
-		<Button id="useshieldbats" X="62" Y="3" Width="20" Height="20">
-			<Button.Background><DisplayModel model="hud_shieldbatteries" tint="text" /></Button.Background>
-		</Button>
+		<Button id="usenanobots" X="27" Y="4" style="hud_nanobots"/>
+		<TextBlock ID="repairKitCount" Height="22" Width="17" X="45" Y="2" Font="Agency FB" Text="0" TextColor="text" />
+		<TextBlock ID="shieldBatteryCount" Height="22" Width="17" X="82" Y="2" Font="Agency FB" Text="0" TextColor="text" />
+		<Button id="useshieldbats" X="62" Y="3" style="hud_shieldbatteries"/>
 		<ListBox id="weapons_list" X="14" Y="32" Width="142" Height="111" ItemHeight="11">
 
 	    </ListBox>
@@ -152,10 +150,3 @@
     <ChatDisplay Anchor="BottomLeft" Y="150" Height="250" Width="510" X="10" id="chat"></ChatDisplay>
     <TextBlock Y="70" Anchor="TopCenter" Width="640" Height="70" TextColor="text" TextSize="14" TextShadow="black" Strid="21810" AllCaps="true" id="nnobj" />
 </Scene>
-
-
-
-
-
-
-

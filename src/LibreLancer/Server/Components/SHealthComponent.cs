@@ -2,9 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System.Linq;
-using LibreLancer.GameData;
+using System;
+using LibreLancer.GameData.Items;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Server.Components
 {
@@ -20,6 +21,43 @@ namespace LibreLancer.Server.Components
         public SHealthComponent(GameObject parent) : base(parent) { }
 
         private bool isKilled = false;
+
+        public void UseRepairKits()
+        {
+            if (!Parent.TryGetComponent<AbstractCargoComponent>(out var cargo))
+                return;
+            var first = cargo.FirstOf<RepairKitEquipment>();
+            if (first == null)
+                return;
+            if (MaxHealth - CurrentHealth < 100)
+                return;
+            var amountToHeal = (MaxHealth - CurrentHealth);
+            var max = (int) Math.Ceiling(amountToHeal / first.Def.Hitpoints);
+            var healamount = cargo.TryConsume(first, max);
+            CurrentHealth += healamount * first.Def.Hitpoints;
+            if (CurrentHealth > MaxHealth)
+                CurrentHealth = MaxHealth;
+        }
+
+        public void UseShieldBatteries()
+        {
+            if (!Parent.TryGetComponent<AbstractCargoComponent>(out var cargo))
+                return;
+            var first = cargo.FirstOf<ShieldBatteryEquipment>();
+            if (first == null)
+                return;
+            var shield = Parent.GetFirstChildComponent<SShieldComponent>();
+            if (shield == null)
+                return;
+            if (shield.Equip.Def.MaxCapacity - shield.Health < 100)
+                return;
+            var amountToHeal = (shield.Equip.Def.MaxCapacity - shield.Health);
+            var max = (int) Math.Ceiling(amountToHeal / first.Def.Hitpoints);
+            var healamount = cargo.TryConsume(first, max);
+            shield.Health += healamount * first.Def.Hitpoints;
+            if (shield.Health > shield.Equip.Def.MaxCapacity)
+                shield.Health = shield.Equip.Def.MaxCapacity;
+        }
 
         public void Damage(float hullDamage, float energyDamage)
         {

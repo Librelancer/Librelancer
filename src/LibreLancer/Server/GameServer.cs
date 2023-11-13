@@ -194,7 +194,7 @@ namespace LibreLancer.Server
             foreach (var p in GetPlayers())
             {
                 if (p.System.Equals(s, StringComparison.OrdinalIgnoreCase))
-                    p.RemoteClient.ReceiveChatMessage(ChatCategory.System, BinaryChatMessage.PlainText(source.Name+ ": "), message);
+                    p.RpcClient.ReceiveChatMessage(ChatCategory.System, BinaryChatMessage.PlainText(source.Name+ ": "), message);
             }
         }
 
@@ -228,7 +228,7 @@ namespace LibreLancer.Server
             if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
                 a();
             //Update
-            if (!(LocalPlayer?.World?.Paused ?? false))
+            if (!(LocalPlayer?.Space?.World?.Paused ?? false))
             {
                 LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
             }

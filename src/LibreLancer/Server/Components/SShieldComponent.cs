@@ -9,11 +9,15 @@ namespace LibreLancer.Server.Components
 {
     public class SShieldComponent : GameComponent
     {
-        public float Health { get; set; }
+        public float Health
+        {
+            get => _health < MinHealth ? 0 : _health;
+            set => _health = value;
+        }
+
+        float _health;
 
         public ShieldEquipment Equip;
-
-        public double OfflineTimer { get; set; }
 
         private float MinHealth => Equip.Def.OfflineThreshold * Equip.Def.MaxCapacity;
 
@@ -25,32 +29,29 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time)
         {
-            if (OfflineTimer > 0)
+            if (_health < MinHealth)
             {
-                OfflineTimer -= time;
-                if (OfflineTimer <= 0)
-                {
-                    OfflineTimer = 0;
-                    Health = MinHealth;
-                }
+                var regenRate = MinHealth / Equip.Def.OfflineRebuildTime;
+                _health += (float) (time * regenRate);
+                if (_health > MinHealth)
+                    _health = MinHealth;
             }
             else
             {
-                Health += (float)(time * Equip.Def.RegenerationRate);
-                if (Health > Equip.Def.MaxCapacity) Health = Equip.Def.MaxCapacity;
+                _health += (float)(time * Equip.Def.RegenerationRate);
+                if (_health > Equip.Def.MaxCapacity) _health = Equip.Def.MaxCapacity;
             }
         }
 
 
         public bool Damage(float incomingDamage)
         {
-            if (Health > 0)
+            if (_health > MinHealth)
             {
-                Health -= incomingDamage;
-                if (Health <= 0)
+                _health -= incomingDamage;
+                if (_health <= MinHealth)
                 {
-                    Health = 0;
-                    OfflineTimer = Equip.Def.OfflineRebuildTime;
+                    _health = 0;
                 }
                 if(Parent.TryGetComponent<SNPCComponent>(out var n))
                     n.TakingDamage(incomingDamage);

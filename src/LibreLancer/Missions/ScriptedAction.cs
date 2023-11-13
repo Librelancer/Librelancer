@@ -243,7 +243,7 @@ namespace LibreLancer.Missions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var tgt = runtime.Player.World.GameWorld.GetObject(Object);
+                var tgt = runtime.Player.Space.World.GameWorld.GetObject(Object);
                 if (tgt != null && tgt.TryGetComponent<SHealthComponent>(out var health))
                 {
                     health.Invulnerable = Invulnerable;
@@ -314,7 +314,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.PlaySound(Effect);
+            runtime.Player.RpcClient.PlaySound(Effect);
         }
     }
 
@@ -336,7 +336,7 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             if(Music != null)
-                runtime.Player.PlayMusic(Music, Fade);
+                runtime.Player.RpcClient.PlayMusic(Music, Fade);
         }
     }
 
@@ -368,7 +368,7 @@ namespace LibreLancer.Missions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var gameObj = runtime.Player.World.GameWorld.GetObject(Tradelane);
+                var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Tradelane);
                 var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
                 if (firstChild != null)
                 {
@@ -408,8 +408,8 @@ namespace LibreLancer.Missions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var fuse = runtime.Player.World.Server.GameData.GetFuse(Fuse);
-                var gameObj = runtime.Player.World.GameWorld.GetObject(Target);
+                var fuse = runtime.Player.Space.World.Server.GameData.GetFuse(Fuse);
+                var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Target);
                 if (gameObj == null)
                 {
                     FLLog.Error("Mission", $"Act_LightFuse can't find target {Target}");
@@ -440,7 +440,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.RemoteClient.PopupOpen(Title, Contents, ID);
+            runtime.Player.RpcClient.PopupOpen(Title, Contents, ID);
         }
     }
 
@@ -471,14 +471,14 @@ namespace LibreLancer.Missions
                 var ol = script.ObjLists[List].AiState;
                 if (script.Ships.ContainsKey(Target))
                 {
-                    runtime.Player.World.NPCs.NpcDoAction(Target,
+                    runtime.Player.Space.World.NPCs.NpcDoAction(Target,
                         (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
                 }
                 else if (script.Formations.TryGetValue(Target, out var formation))
                 {
                     foreach (var s in formation.Ships)
                     {
-                        runtime.Player.World.NPCs.NpcDoAction(s,
+                        runtime.Player.Space.World.NPCs.NpcDoAction(s,
                             (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
                     }
                 }
@@ -488,8 +488,8 @@ namespace LibreLancer.Missions
         void ObjListForPlayer(MissionRuntime runtime, MissionScript script)
         {
             var ol = script.ObjLists[List];
-            var pObject = runtime.Player.World.Players[runtime.Player];
-            var world = runtime.Player.World;
+            var pObject = runtime.Player.Space.World.Players[runtime.Player];
+            var world = runtime.Player.Space.World;
             foreach (var a in ol.Ini.Commands)
             {
                 if (a.Command == ObjListCommands.BreakFormation)
@@ -538,7 +538,7 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.CallThorn(null, default);
+            runtime.Player.RpcClient.CallThorn(null, default);
         }
     }
 
@@ -562,11 +562,11 @@ namespace LibreLancer.Missions
                 ObjNetId mainObject = default;
                 if (MainObject != null)
                 {
-                    var gameObj = runtime.Player.World.GameWorld.GetObject(MainObject);
+                    var gameObj = runtime.Player.Space.World.GameWorld.GetObject(MainObject);
                     mainObject = gameObj;
                 }
                 FLLog.Info("Server", $"Calling Thorn {Thorn} with mainObject `{mainObject}`");
-                runtime.Player.CallThorn(Thorn, mainObject);
+                runtime.Player.RpcClient.CallThorn(Thorn, mainObject);
             });
         }
     }

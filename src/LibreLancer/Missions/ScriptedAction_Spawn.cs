@@ -27,7 +27,7 @@ namespace LibreLancer.Missions
             var arch = sol.Archetype;
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.World.SpawnSolar(
+                runtime.Player.Space.World.SpawnSolar(
                     sol.Nickname,
                     arch,
                     sol.Loadout,
@@ -60,10 +60,10 @@ namespace LibreLancer.Missions
             }
             if (script.Ships.TryGetValue(Object, out var ship))
             {
-                runtime.Player.World.NPCs.NpcDoAction(Object, (o) =>
+                runtime.Player.Space.World.NPCs.NpcDoAction(Object, (o) =>
                 {
                     o.Flags |= GameObjectFlags.Important;
-                    runtime.Player.RemoteClient.MarkImportant(o.NetID);
+                    runtime.Player.RpcClient.MarkImportant(o.NetID);
                 });
             }
             else
@@ -106,18 +106,18 @@ namespace LibreLancer.Missions
 
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
-                var pilot = runtime.Player.World.Server.GameData.GetPilot(shipArch.Pilot);
+                runtime.Player.Space.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
+                var pilot = runtime.Player.Space.World.Server.GameData.GetPilot(shipArch.Pilot);
                 ObjectName oName;
                 if (ship.RandomName)
                 {
-                    oName = runtime.Player.World.NPCs.RandomName(npcDef.Affiliation);
+                    oName = runtime.Player.Space.World.NPCs.RandomName(npcDef.Affiliation);
                 }
                 else
                 {
                     oName = new ObjectName(npcDef.IndividualName);
                 }
-                var obj = runtime.Player.World.NPCs.DoSpawn(oName, ship.Nickname, npcDef.Affiliation, shipArch?.StateGraph ?? "FIGHTER",ld, pilot, pos, orient, runtime);
+                var obj = runtime.Player.Space.World.NPCs.DoSpawn(oName, ship.Nickname, npcDef.Affiliation, shipArch?.StateGraph ?? "FIGHTER",ld, pilot, pos, orient, runtime);
                 var npcComp = obj.GetComponent<SNPCComponent>();
                 npcComp.OnKilled = () => {
                     runtime.NpcKilled(msnShip);
@@ -215,7 +215,7 @@ namespace LibreLancer.Missions
                 script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
                 foreach (var lbl in ship.Labels)
                     runtime.LabelDecrement(lbl);
-                runtime.Player.MissionWorldAction(() => { runtime.Player.World.NPCs.Despawn(runtime.Player.World.GameWorld.GetObject(Target), false); });
+                runtime.Player.MissionWorldAction(() => { runtime.Player.Space.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target), false); });
             }
         }
     }

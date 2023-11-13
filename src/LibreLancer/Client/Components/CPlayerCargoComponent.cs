@@ -13,5 +13,16 @@ public class CPlayerCargoComponent : AbstractCargoComponent
         this.session = session;
     }
 
-    public override bool TryConsume(Equipment item) => session.Items.Any(x => x.Count > 0 && x.Equipment == item);
+    public override int TryConsume(Equipment item, int maxCount = 1)
+    {
+        var slot = session.Items.FirstOrDefault(x => x.Equipment == item);
+        if (slot == null) return 0;
+        return slot.Count > maxCount ? maxCount : slot.Count;
+    }
+
+    public override T FirstOf<T>()
+    {
+        var slot = session.Items.FirstOrDefault(x => x.Equipment is T);
+        return (T) slot?.Equipment;
+    }
 }
