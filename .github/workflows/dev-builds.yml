@@ -1,6 +1,7 @@
 name: Development builds
 
 on:
+  pull_request:
   workflow_dispatch:
   push:
     branches: [ "main" ]
