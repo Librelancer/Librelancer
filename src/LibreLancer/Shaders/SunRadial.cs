@@ -35,7 +35,7 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling SunRadial");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(337817, 1021), sourceBundle.Substring(338838, 474));
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(337753, 1021), sourceBundle.Substring(338774, 474));
         }
     }
 }

@@ -44,8 +44,8 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling NebulaMaterial");
             variants = new ShaderVariables[2];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(329701, 549), sourceBundle.Substring(330250, 308));
-            variants[1] = ShaderVariables.Compile(sourceBundle.Substring(330558, 574), sourceBundle.Substring(330250, 308));
+            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(329637, 549), sourceBundle.Substring(330186, 308));
+            variants[1] = ShaderVariables.Compile(sourceBundle.Substring(330494, 574), sourceBundle.Substring(330186, 308));
         }
     }
 }

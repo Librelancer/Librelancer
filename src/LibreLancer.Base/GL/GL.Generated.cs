@@ -78,6 +78,7 @@ namespace LibreLancer
         private static delegate* unmanaged<uint,void> _glBindVertexArray;
         private static delegate* unmanaged<int,void> _glEnableVertexAttribArray;
         private static delegate* unmanaged<uint,int,int,int,int,IntPtr,void> _glVertexAttribPointer;
+        private static delegate* unmanaged<uint,int,int,int,IntPtr,void> _glVertexAttribIPointer;
         private static delegate* unmanaged<int,void> _glDrawBuffer;
         private static delegate* unmanaged<int,int*,void> _glDrawBuffers;
         private static delegate* unmanaged<uint,uint,IntPtr> _glMapBuffer;
@@ -106,7 +107,7 @@ namespace LibreLancer
         private static delegate* unmanaged<IntPtr,IntPtr,void> _glDebugMessageCallback;
         private static delegate* unmanaged<int,int,int,int,IntPtr,int,void> _glDebugMessageControl;
         private static delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, void> _glCopyBufferSubData;
-        
+
         public static void Load(Func<string,IntPtr> getProcAddress, bool isGles)
         {
             _glEnable = (delegate* unmanaged<int,void>)getProcAddress("glEnable");
@@ -180,6 +181,7 @@ namespace LibreLancer
             _glBindVertexArray = (delegate* unmanaged<uint,void>)getProcAddress("glBindVertexArray");
             _glEnableVertexAttribArray = (delegate* unmanaged<int,void>)getProcAddress("glEnableVertexAttribArray");
             _glVertexAttribPointer = (delegate* unmanaged<uint,int,int,int,int,IntPtr,void>)getProcAddress("glVertexAttribPointer");
+            _glVertexAttribIPointer = (delegate* unmanaged<uint,int,int,int,IntPtr,void>)getProcAddress("glVertexAttribIPointer");
             _glDrawBuffer = (delegate* unmanaged<int,void>)getProcAddress("glDrawBuffer");
             _glDrawBuffers = (delegate* unmanaged<int,int*,void>)getProcAddress("glDrawBuffers");
             _glMapBuffer = (delegate* unmanaged<uint,uint,IntPtr>)getProcAddress("glMapBuffer");
@@ -606,6 +608,11 @@ namespace LibreLancer
         public static void VertexAttribPointer(uint index, int size, int type, bool normalized, int stride, IntPtr data)
         {
             _glVertexAttribPointer(index, size, type, (normalized ? 1 : 0), stride, data);
+            ErrorCheck();
+        }
+        public static void VertexAttribIPointer(uint index, int size, int type, int stride, IntPtr data)
+        {
+            _glVertexAttribIPointer(index, size, type, stride, data);
             ErrorCheck();
         }
         public static IntPtr MapBuffer(uint target, uint access)

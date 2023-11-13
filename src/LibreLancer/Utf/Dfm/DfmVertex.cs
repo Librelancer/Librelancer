@@ -40,7 +40,7 @@ namespace LibreLancer.Utf.Dfm
 				new VertexElement(VertexSlots.Normal, 3, VertexElementType.Float, false, sizeof(float) * 3),
 				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 6),
 				new VertexElement(VertexSlots.BoneWeights, 4, VertexElementType.Float, false, sizeof(float) * 8),
-				new VertexElement(VertexSlots.BoneIds, 4, VertexElementType.UnsignedByte, false, sizeof(float) * 12)
+				new VertexElement(VertexSlots.BoneIds, 4, VertexElementType.UnsignedByte, false, sizeof(float) * 12, true)
 			);
 		}
 	}

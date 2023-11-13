@@ -14,14 +14,17 @@ namespace LibreLancer.Vertices
 		public bool Normalized;
 		public int Offset;
 
-		public VertexElement (int slot, int elems, VertexElementType type, bool normalized, int offset)
+        public bool Integer;
+
+		public VertexElement (int slot, int elems, VertexElementType type, bool normalized, int offset, bool integer = false)
 		{
 			Slot = slot;
 			Elements = elems;
 			Type = type;
 			Normalized = normalized;
 			Offset = offset;
-		}
+            Integer = integer;
+        }
 	}
 }
 

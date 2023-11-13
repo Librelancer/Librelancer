@@ -20,7 +20,10 @@ namespace LibreLancer.Vertices
 		{
 			foreach (var e in Elements) {
 				GL.EnableVertexAttribArray (e.Slot);
-				GL.VertexAttribPointer ((uint)e.Slot, e.Elements, (int)e.Type, e.Normalized, Stride, (IntPtr)(e.Offset));
+                if(e.Integer)
+                    GL.VertexAttribIPointer ((uint)e.Slot, e.Elements, (int)e.Type, Stride, (IntPtr)(e.Offset));
+                else
+				    GL.VertexAttribPointer ((uint)e.Slot, e.Elements, (int)e.Type, e.Normalized, Stride, (IntPtr)(e.Offset));
 			}
 		}
 

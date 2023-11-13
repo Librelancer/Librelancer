@@ -8,7 +8,7 @@ in vec3 vertex_position;
 in vec3 vertex_normal;
 in vec2 vertex_texture1;
 in vec4 vertex_boneweights;
-in vec4 vertex_boneids;
+in ivec4 vertex_boneids;
 
 out vec2 out_texcoord;
 out vec2 out_texcoord2;
@@ -30,18 +30,15 @@ layout(std140) uniform Bones
 
 void main()
 {
-    vec4 pos4 = vec4(vertex_position, 1.0);
-    vec3 skinnedPos =
-        (vertex_boneweights[0] * (BoneMats[int(vertex_boneids[0])] * pos4) + 
-        vertex_boneweights[1] * (BoneMats[int(vertex_boneids[1])] * pos4) + 
-        vertex_boneweights[2] * (BoneMats[int(vertex_boneids[2])] * pos4) + 
-        vertex_boneweights[3] * (BoneMats[int(vertex_boneids[3])] * pos4)).xyz;
-    vec4 norm4 = vec4(vertex_normal, 0.0);
-    vec3 skinnedNormal =
-            (vertex_boneweights[0] * (BoneMats[int(vertex_boneids[0])] * norm4) + 
-            vertex_boneweights[1] * (BoneMats[int(vertex_boneids[1])] * norm4) + 
-            vertex_boneweights[2] * (BoneMats[int(vertex_boneids[2])] * norm4) + 
-            vertex_boneweights[3] * (BoneMats[int(vertex_boneids[3])] * norm4)).xyz;
+    mat4 boneTransform = 
+        BoneMats[vertex_boneids[0]] * vertex_boneweights[0] +
+        BoneMats[vertex_boneids[1]] * vertex_boneweights[1] +
+        BoneMats[vertex_boneids[2]] * vertex_boneweights[2] +
+        BoneMats[vertex_boneids[3]] * vertex_boneweights[3];
+    
+    vec3 skinnedPos = (boneTransform * vec4(vertex_position, 1.0)).xyz;
+    vec3 skinnedNormal = (boneTransform * vec4(vertex_normal, 1.0)).xyz;
+           
     if(!SkinningEnabled) {
         skinnedPos = vertex_position;
         skinnedNormal = vertex_normal;
