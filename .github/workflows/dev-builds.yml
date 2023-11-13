@@ -1,5 +1,9 @@
 name: Development builds
 
+concurrency:
+  group: devbuilds
+  cancel-in-progress: true
+  
 on:
   pull_request:
   workflow_dispatch:
@@ -13,6 +17,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -21,3 +27,23 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev g++-mingw-w64-x86-64 cmake
     - name: Build
       run: ./build.sh -j$(nproc) LinuxDaily --with-win64
+    - name: Archive ubuntu amd64 build (Engine Only)
+      uses: actions/upload-artifact@v3
+      with:
+        name: librelancer-daily-ubuntu-amd64
+        path: packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz
+    - name: Archive ubuntu amd64 build (SDK)
+      uses: actions/upload-artifact@v3
+      with:
+        name: librelancer-sdk-daily-ubuntu-amd64
+        path: packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz
+    - name: Archive win64 build (Engine only)
+      uses: actions/upload-artifact@v3
+      with:
+        name: librelancer-daily-win64
+        path: packaging/packages/librelancer-daily-win64.zip
+    - name: Archive win64 build (SDK)
+      uses: actions/upload-artifact@v3
+      with:
+        name: librelancer-sdk-daily-win64
+        path: packaging/packages/librelancer-sdk-daily-win64.zip
