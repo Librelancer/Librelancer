@@ -221,8 +221,8 @@ namespace LibreLancer.World
             Projectiles?.Update(t);
             for (int i = 0; i < objects.Count; i++)
             {
-                objects[i].Update(t);
                 objects[i].PhysicsComponent?.SetOldTransform();
+                objects[i].Update(t);
             }
             Physics?.StepSimulation((float) t);
             for (int i = 0; i < objects.Count; i++) {
