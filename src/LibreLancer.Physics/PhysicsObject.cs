@@ -28,6 +28,8 @@ namespace LibreLancer.Physics
 
         public abstract Vector3 Position { get; protected set; }
 
+        public abstract Quaternion Orientation { get; protected set; }
+
         public abstract void SetTransform(Matrix4x4 transform);
 
         public abstract Vector3 AngularVelocity { get; set; }

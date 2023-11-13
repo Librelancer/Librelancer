@@ -220,11 +220,22 @@ namespace LibreLancer.World
         {
             Projectiles?.Update(t);
             for (int i = 0; i < objects.Count; i++)
+            {
                 objects[i].Update(t);
+                objects[i].PhysicsComponent?.SetOldTransform();
+            }
             Physics?.StepSimulation((float) t);
             for (int i = 0; i < objects.Count; i++) {
                 objects[i].PhysicsComponent?.Update(t);
                 SpatialLookup.UpdatePosition(objects[i], Vector3.Transform(Vector3.Zero, objects[i].WorldTransform));
+            }
+        }
+
+        public void UpdateInterpolation(float fraction)
+        {
+            for (int i = 0; i < objects.Count; i++)
+            {
+                objects[i].PhysicsComponent?.UpdateInterpolation(fraction);
             }
         }
 

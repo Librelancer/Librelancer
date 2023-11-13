@@ -780,9 +780,11 @@ World Time: {12:F2}
                         musicTriggered = true;
                     }
                 }
-
-                UpdateCamera(FixedDelta);
             }
+            var fraction = accum / updateInterval;
+
+            world.UpdateInterpolation((float)fraction);
+            UpdateCamera(delta);
         }
 
         public override void Update(double delta)

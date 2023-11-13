@@ -38,6 +38,31 @@ namespace LibreLancer.World.Components
             partRemoved = true;
         }
 
+        private bool isInterpolating = false;
+        public void UpdateInterpolation(float fraction)
+        {
+            if (Body.Active && SetTransform)
+            {
+                var pos = Body.Position + PredictionErrorPos;
+                var quat = Body.Orientation * PredictionErrorQuat;
+
+                var interpPos = lastPosition + (pos - lastPosition) * fraction;
+                var interpQuat = Quaternion.Slerp(lastOrientation, quat, fraction);
+                Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(interpQuat) *
+                                         Matrix4x4.CreateTranslation(interpPos), true);
+            }
+        }
+
+        private Vector3 lastPosition;
+        private Quaternion lastOrientation;
+
+        public void SetOldTransform()
+        {
+            lastPosition = Body.Position + PredictionErrorPos;
+            lastOrientation = Body.Orientation * PredictionErrorQuat;
+        }
+
+
         public override void Update(double time)
         {
             if (Body == null) return;
@@ -59,8 +84,9 @@ namespace LibreLancer.World.Components
                     if(MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) < 0.001)
                         PredictionErrorQuat = Quaternion.Identity;
                 }
+
                 var pos = Body.Position;
-                var quat = Body.Transform.ExtractRotation();
+                var quat = Body.Orientation;
 
                 Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat * PredictionErrorQuat) *
                     Matrix4x4.CreateTranslation(pos + PredictionErrorPos), true);

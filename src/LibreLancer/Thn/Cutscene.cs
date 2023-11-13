@@ -284,7 +284,7 @@ namespace LibreLancer.Thn
             }
         }
 
-        private const double TIMESTEP = 1.0 / 120.0;
+        private const double TIMESTEP = 1.0 / 500.0;
         private double accumTime = 0;
         private int lagCounter = 0;
         private int LAG_LIMIT = 5;

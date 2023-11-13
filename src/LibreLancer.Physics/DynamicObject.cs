@@ -31,6 +31,13 @@ internal class DynamicObject : PhysicsObject
         get => BepuObject.Pose.Position;
         protected set => BepuObject.Pose.Position = value;
     }
+
+    public override Quaternion Orientation
+    {
+        get => BepuObject.Pose.Orientation;
+        protected set => BepuObject.Pose.Orientation = value;
+    }
+
     public override void SetTransform(Matrix4x4 transform)
     {
         Transform = transform;

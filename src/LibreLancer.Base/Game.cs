@@ -413,19 +413,6 @@ namespace LibreLancer
         [DllImport("user32.dll", SetLastError=true)]
         static extern bool SetProcessDPIAware();
 
-        private TimeSpan accumulatedTime;
-        private TimeSpan lastTime;
-        TimeSpan TimeStep = TimeSpan.FromTicks(166667);
-
-        TimeSpan Accumulate(Stopwatch sw)
-        {
-            var current = sw.Elapsed;
-            var diff = (current - lastTime);
-            accumulatedTime += diff;
-            lastTime = current;
-            return diff;
-        }
-
         protected virtual bool UseSplash => false;
 
         protected virtual Texture2D GetSplash()
@@ -702,13 +689,7 @@ namespace LibreLancer
                 while (actions.TryDequeue(out Action work))
                     work();
                 totalTime = timer.Elapsed.TotalSeconds;
-                Accumulate(timer);
-                while (accumulatedTime >= TimeStep)
-                {
-                    Update(TimeStep.TotalSeconds);
-                    accumulatedTime -= TimeStep;
-                }
-
+                Update(elapsed);
                 if (!running)
                     break;
                 Draw(elapsed);

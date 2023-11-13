@@ -10,6 +10,8 @@ internal class StaticObject : PhysicsObject
     public override Matrix4x4 Transform { get; protected set; }
     public override Vector3 Position { get; protected set; }
 
+    public override Quaternion Orientation { get; protected set; }
+
     public override bool Collidable
     {
         get => world.collidableObjects[BepuObject.Handle];
@@ -25,7 +27,9 @@ internal class StaticObject : PhysicsObject
         this.world = world;
         this.Collider = col;
         Transform = transform;
-        Position = Vector3.Transform(Vector3.Zero, transform);
+        var pose = transform.ToPose();
+        Position = pose.Position;
+        Orientation = pose.Orientation;
     }
     public override void SetTransform(Matrix4x4 transform)
     {
