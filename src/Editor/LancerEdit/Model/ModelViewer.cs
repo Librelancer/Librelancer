@@ -102,9 +102,10 @@ namespace LancerEdit
             Name = name;
             this.drawable = drawable;
             this.parent = parent;
+            this.TabColor = parent.TabColor;
             this.hprefs = hprefs;
             rstate = win.RenderContext;
-            res = win.Resources;
+            res = parent.DetachedResources ?? win.Resources;
             buffer = win.Commands;
             _window = win;
             SaveStrategy = parent.SaveStrategy;
@@ -979,9 +980,9 @@ namespace LancerEdit
             {
                 SimpleMesh.Model exported = null;
                 if (drawable is ModelFile mdl) {
-                    exported = ModelExporter.Export(mdl, surFile, exportSettings, _window.Resources);
+                    exported = ModelExporter.Export(mdl, surFile, exportSettings, res);
                 } else if (drawable is CmpFile cmp) {
-                    exported = ModelExporter.Export(cmp, surFile, exportSettings, _window.Resources);
+                    exported = ModelExporter.Export(cmp, surFile, exportSettings, res);
                 }
                 if (exported != null)
                 {
@@ -1030,6 +1031,7 @@ namespace LancerEdit
             imageViewport.Dispose();
             previewViewport.Dispose();
             newHpBuffer.Dispose();
+            parent?.DereferenceDetached();
         }
     }
 }

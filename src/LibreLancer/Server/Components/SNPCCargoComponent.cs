@@ -21,8 +21,9 @@ public class SNPCCargoComponent : AbstractCargoComponent
             {
                 if (Cargo[i].Count <= maxCount)
                 {
+                    var removed = Cargo[i];
                     Cargo.RemoveAt(i);
-                    return Cargo[i].Count;
+                    return removed.Count;
                 }
                 else
                 {

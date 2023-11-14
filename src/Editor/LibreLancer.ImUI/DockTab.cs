@@ -5,10 +5,17 @@
 using System;
 namespace LibreLancer.ImUI
 {
+    public enum TabColor
+    {
+        Normal,
+        Alternate
+    }
 	public abstract class DockTab : IDisposable
 	{
         public string DocumentName = "document";
         string _title = "tab";
+
+        public TabColor TabColor = TabColor.Normal;
 
         public string Title
         {

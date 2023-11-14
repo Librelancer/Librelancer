@@ -29,6 +29,21 @@ namespace LancerEdit
         MainWindow main;
         PopupManager popups = new PopupManager();
         List<JointMapView> jointViews = new List<JointMapView>();
+
+        public GameResourceManager DetachedResources;
+        public int DetachedResourceCount;
+
+        public void ReferenceDetached()
+        {
+            DetachedResourceCount++;
+        }
+
+        public void DereferenceDetached()
+        {
+            DetachedResourceCount--;
+            if (DetachedResourceCount == 0)
+                DetachedResources?.Dispose();
+        }
         //generated parameter is used for utf generated internally, like from the collada exporter
         //saves a bunch of copies when opening a large UTF from disk
         public UtfTab(MainWindow main, EditableUtf utf, string title, bool generated = false)
@@ -46,6 +61,7 @@ namespace LancerEdit
             }
             SaveStrategy = new UtfSaveStrategy(main, this);
             RegisterPopups();
+            ReferenceDetached();
         }
         public void UpdateTitle()
         {
@@ -58,6 +74,7 @@ namespace LancerEdit
         public override void Dispose()
         {
             text.Dispose();
+            DereferenceDetached();
             main.Resources.RemoveResourcesForId(Unique.ToString());
         }
 
@@ -167,6 +184,7 @@ namespace LancerEdit
                     catch (Exception ex) { ErrorPopup("Could not open as model\n" + ex.Message + "\n" + ex.StackTrace); drawable = null; }
                     if (drawable != null)
                     {
+                        ReferenceDetached();
                         main.AddTab(new ModelViewer(DocumentName, drawable, main, this,hpn));
                     }
                 }
@@ -210,14 +228,28 @@ namespace LancerEdit
                 }
                 if(tb.ButtonItem("Reload Resources"))
                 {
+                    var res = DetachedResources ?? main.Resources;
+                    res.RemoveResourcesForId(Unique.ToString());
+                    res.AddResources(Utf.Export(), Unique.ToString());
+                }
+
+                const string TooltipDetached = "Resources already detached";
+                const string TooltipToDetach =
+                    "Detaches tab from shared resources\nViewers opened will have textures+materials unique to this file.";
+                string tooltip = DetachedResources == null ? TooltipToDetach : TooltipDetached;
+                if (tb.ButtonItem("Detach Resources", DetachedResources == null, tooltip))
+                {
+                    TabColor = TabColor.Alternate;
                     main.Resources.RemoveResourcesForId(Unique.ToString());
-                    main.Resources.AddResources(Utf.Export(), Unique.ToString());
+                    DetachedResources = new GameResourceManager(main.Resources);
+                    DetachedResources.AddResources(Utf.Export(), Unique.ToString());
                 }
             }
 
             Popups();
         }
 
+        private bool isDetached = false;
         unsafe int DummyCallback(ImGuiInputTextCallbackData* data)
         {
             return 0;

@@ -37,15 +37,24 @@ public class Toolbar : IDisposable
         return false;
     }
 
-    public bool ButtonItem(string name, bool enabled = true)
+    public bool ButtonItem(string name, bool enabled = true, string tooltip = null)
     {
         if (DoOverflow(name, 15))
         {
             if (isOverflowOpen)
-                return ImGui.MenuItem(name, enabled);
+            {
+                var rv = ImGui.MenuItem(name, enabled);
+                if(!string.IsNullOrEmpty(tooltip) && ImGui.IsItemHovered())
+                    ImGui.SetTooltip(tooltip);
+                return rv;
+            }
+
             return false;
         }
-        return ImGuiExt.Button(name, enabled);
+        var retval = ImGuiExt.Button(name, enabled);
+        if(!string.IsNullOrEmpty(tooltip) && ImGui.IsItemHovered())
+            ImGui.SetTooltip(tooltip);
+        return retval;
     }
 
     public void ToggleButtonItem(string name, ref bool isSelected)
