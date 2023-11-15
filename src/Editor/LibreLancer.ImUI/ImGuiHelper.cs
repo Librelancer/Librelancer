@@ -465,6 +465,9 @@ namespace LibreLancer.ImUI
                     case ImGuiMouseCursor.ResizeNS:
                         game.CursorKind = CursorKind.ResizeNS;
                         break;
+                    case ImGuiMouseCursor.ResizeEW:
+                        game.CursorKind = CursorKind.ResizeEW;
+                        break;
                     case ImGuiMouseCursor.ResizeNESW:
                         game.CursorKind = CursorKind.ResizeNESW;
                         break;
