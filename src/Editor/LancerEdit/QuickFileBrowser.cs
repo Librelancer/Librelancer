@@ -425,7 +425,8 @@ public class QuickFileBrowser
         ImGui.BeginChild("##directory", ImGui.GetContentRegionAvail() - new Vector2(0, 2 * ImGuiHelper.Scale));
         var selSize = 70 * ImGuiHelper.Scale;
 
-        var perRow = (int)(ImGui.GetContentRegionAvail().X / selSize) - 1;
+        var measureSize = selSize + (ImGui.GetStyle().ItemSpacing.X);
+        var perRow = (int)(ImGui.GetContentRegionAvail().X / measureSize);
         int j = 0;
         foreach (var item in currentDirectory.Items)
         {

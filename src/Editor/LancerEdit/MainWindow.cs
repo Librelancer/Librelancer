@@ -660,7 +660,7 @@ namespace LancerEdit
             if (Config.LogVisible || Config.FilesVisible)
             {
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 28 * ImGuiHelper.Scale, -1);
-                h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
+                h1 = totalH - h2 - 25f * ImGuiHelper.Scale;
                 if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
                 ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
             } else
