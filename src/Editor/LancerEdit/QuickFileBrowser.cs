@@ -502,7 +502,6 @@ public class QuickFileBrowser
                         else if (FileSelected != null)
                             FileSelected(item.Path);
                     }
-
                 }
                 else
                     selected = item;

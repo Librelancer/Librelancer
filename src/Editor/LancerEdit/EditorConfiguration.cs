@@ -51,6 +51,10 @@ namespace LancerEdit
         private string blenderPath;
         [Entry("lod_multiplier")]
         public float LodMultiplier = 1.3f;
+        [Entry("log_visible")]
+        public bool LogVisible;
+        [Entry("files_visible")]
+        public bool FilesVisible;
 
         public int SelectedAnisotropy => TextureFilter > 2 ? (int)Math.Pow(2, TextureFilter - 2) : 0;
 
@@ -117,6 +121,8 @@ namespace LancerEdit
                 if(!string.IsNullOrWhiteSpace(blenderPath))
                     writer.WriteLine($"blender_path = {blenderPath}");
                 writer.WriteLine($"lod_multiplier = {LodMultiplier.ToStringInvariant()}");
+                writer.WriteLine($"log_visible = {(LogVisible ? "true": "false" )}");
+                writer.WriteLine($"files_visible = {(FilesVisible ? "true": "false" )}");
                 foreach(var fav in Favorites)
                     writer.WriteLine($"favorite = {Encode(fav.Name)}, {Encode(fav.FullPath)}");
             }

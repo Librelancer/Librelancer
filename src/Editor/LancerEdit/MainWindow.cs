@@ -148,6 +148,8 @@ namespace LancerEdit
                 }
             }, ImGuiWindowFlags.AlwaysAutoResize, true);
             MinimumWindowSize = new Point(200, 200);
+            h1 *= ImGuiHelper.Scale;
+            h2 *= ImGuiHelper.Scale;
         }
 
         void Keyboard_KeyDown(KeyEventArgs e)
@@ -241,8 +243,6 @@ namespace LancerEdit
 
         private PopupManager popups = new PopupManager();
 
-        bool showLog = false;
-        bool showFiles = false;
         private int bottomTab = 0;
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
@@ -463,8 +463,8 @@ namespace LancerEdit
 			}
             if (ImGui.BeginMenu("View"))
             {
-                Theme.IconMenuToggle(Icons.Log, "Log", ref showLog, true);
-                Theme.IconMenuToggle(Icons.File, "Files", ref showFiles, true);
+                Theme.IconMenuToggle(Icons.Log, "Log", ref Config.LogVisible, true);
+                Theme.IconMenuToggle(Icons.File, "Files", ref Config.FilesVisible, true);
                 ImGui.EndMenu();
             }
 
@@ -657,9 +657,9 @@ namespace LancerEdit
 
             TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();
-            if (showLog || showFiles)
+            if (Config.LogVisible || Config.FilesVisible)
             {
-                ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
+                ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 28 * ImGuiHelper.Scale, -1);
                 h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
                 if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
                 ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
@@ -668,41 +668,41 @@ namespace LancerEdit
 
             TabControl.Selected?.Draw(elapsed);
 
+            var style = ImGui.GetStyle();
             ImGui.EndChild();
-            if(showLog || showFiles) {
+            if(Config.LogVisible || Config.FilesVisible) {
                 ImGui.BeginChild("###bottom", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
-                if (showLog && showFiles)
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding + new Vector2(0,2) * ImGuiHelper.Scale);
+                ImGui.BeginTabBar("##tabbar", ImGuiTabBarFlags.AutoSelectNewTabs);
+                if (!Config.FilesVisible) bottomTab = 0;
+                if (!Config.LogVisible) bottomTab = 1;
+                if (Config.LogVisible && ImGui.BeginTabItem("Log", ref Config.LogVisible , ImGuiTabItemFlags.None))
                 {
-                    if (ImGuiExt.ToggleButton("Log", bottomTab == 0))
-                        bottomTab = 0;
-                    ImGui.SameLine();
-                    if (ImGuiExt.ToggleButton("Files", bottomTab == 1))
-                        bottomTab = 1;
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0) && h2 < 29 * ImGuiHelper.Scale)
+                        h2 = 200 * ImGuiHelper.Scale;
+                    ImGui.EndTabItem();
                 }
-                else if (showLog)
-                    ImGui.Text("Log");
-                else if (showFiles)
-                    ImGui.Text("Files");
-                ImGui.SameLine();
-                var pos = ImGui.GetCursorPos();
-                ImGui.SameLine(ImGui.GetWindowWidth() - 30 * ImGuiHelper.Scale);
-                if (ImGui.Button(Icons.X))
+                if (Config.FilesVisible && ImGui.BeginTabItem("Files", ref Config.FilesVisible, ImGuiTabItemFlags.None))
                 {
-                    if (showLog && showFiles)
+                    if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0) && h2 < 29 * ImGuiHelper.Scale)
+                        h2 = 200 * ImGuiHelper.Scale;
+                    bottomTab = 1;
+                    ImGui.EndTabItem();
+                }
+                ImGui.EndTabBar();
+                ImGui.PopStyleVar();
+                if (h2 > 28 * ImGuiHelper.Scale) //Min Size
+                {
+                    if (bottomTab == 0)
                     {
-                        if (bottomTab == 0) showLog = false;
-                        if (bottomTab == 1) showFiles = false;
+                        logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale),
+                            ImGuiInputTextFlags.ReadOnly);
                     }
-                    else if (showLog)
-                        showLog = false;
-                    else if (showFiles)
-                        showFiles = false;
-                }
-                if((showLog && showFiles && bottomTab == 0) || (!showFiles && showLog))
-                    logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale), ImGuiInputTextFlags.ReadOnly);
-                else if ((showFiles && showLog && bottomTab == 1) || (showFiles && !showLog)) {
-                    ImGui.SetCursorPos(pos + new Vector2(2 * ImGuiHelper.Scale, 0));
-                    DrawQuickFiles();
+                    else if (bottomTab == 1)
+                    {
+                        ImGui.SameLine();
+                        DrawQuickFiles();
+                    }
                 }
                 ImGui.EndChild();
             }
