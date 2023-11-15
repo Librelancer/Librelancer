@@ -50,6 +50,8 @@ namespace LancerEdit
 
         public EditorConfiguration Config;
         OptionsWindow options;
+
+        private QuickFileBrowser quickFileBrowser;
         public MainWindow() : base(800,600,false)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -74,6 +76,8 @@ namespace LancerEdit
             };
             Config = EditorConfiguration.Load();
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+            quickFileBrowser = new QuickFileBrowser(Config, this);
+            quickFileBrowser.FileSelected += OpenFile;
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
         }
@@ -238,6 +242,8 @@ namespace LancerEdit
         private PopupManager popups = new PopupManager();
 
         bool showLog = false;
+        bool showFiles = false;
+        private int bottomTab = 0;
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
@@ -458,6 +464,7 @@ namespace LancerEdit
             if (ImGui.BeginMenu("View"))
             {
                 Theme.IconMenuToggle(Icons.Log, "Log", ref showLog, true);
+                Theme.IconMenuToggle(Icons.File, "Files", ref showFiles, true);
                 ImGui.EndMenu();
             }
 
@@ -650,7 +657,7 @@ namespace LancerEdit
 
             TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();
-            if (showLog)
+            if (showLog || showFiles)
             {
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
                 h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
@@ -662,14 +669,41 @@ namespace LancerEdit
             TabControl.Selected?.Draw(elapsed);
 
             ImGui.EndChild();
-            if(showLog) {
-                ImGui.BeginChild("###log", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
-                ImGui.Text("Log");
+            if(showLog || showFiles) {
+                ImGui.BeginChild("###bottom", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
+                if (showLog && showFiles)
+                {
+                    if (ImGuiExt.ToggleButton("Log", bottomTab == 0))
+                        bottomTab = 0;
+                    ImGui.SameLine();
+                    if (ImGuiExt.ToggleButton("Files", bottomTab == 1))
+                        bottomTab = 1;
+                }
+                else if (showLog)
+                    ImGui.Text("Log");
+                else if (showFiles)
+                    ImGui.Text("Files");
+                ImGui.SameLine();
+                var pos = ImGui.GetCursorPos();
                 ImGui.SameLine(ImGui.GetWindowWidth() - 30 * ImGuiHelper.Scale);
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-                if (ImGui.Button(Icons.X)) showLog = false;
-                ImGui.PopStyleVar();
-                logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale), ImGuiInputTextFlags.ReadOnly);
+                if (ImGui.Button(Icons.X))
+                {
+                    if (showLog && showFiles)
+                    {
+                        if (bottomTab == 0) showLog = false;
+                        if (bottomTab == 1) showFiles = false;
+                    }
+                    else if (showLog)
+                        showLog = false;
+                    else if (showFiles)
+                        showFiles = false;
+                }
+                if((showLog && showFiles && bottomTab == 0) || (!showFiles && showLog))
+                    logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale), ImGuiInputTextFlags.ReadOnly);
+                else if ((showFiles && showLog && bottomTab == 1) || (showFiles && !showLog)) {
+                    ImGui.SetCursorPos(pos + new Vector2(2 * ImGuiHelper.Scale, 0));
+                    DrawQuickFiles();
+                }
                 ImGui.EndChild();
             }
             ImGui.End();
@@ -744,6 +778,11 @@ namespace LancerEdit
                 TabControl.SetSelected(tab);
             }
             toAdd.Clear();
+        }
+
+        void DrawQuickFiles()
+        {
+            quickFileBrowser.Draw();
         }
 
         string confirmText;

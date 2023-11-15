@@ -11,6 +11,9 @@ public static class Icons
     //Icons straight from font
     public const char ArrowUp = '\uf062';
     public const char ArrowDown = '\uf063';
+    public const char ArrowLeft = '\uf060';
+    public const char ArrowRight = '\uf061';
+    public const char TurnUp = '\uf3bf';
     public const char BezierCurve = '\uf55b';
     public const char Book = '\uf02d';
     public const char BookOpen = '\uf518';
@@ -18,9 +21,11 @@ public static class Icons
     public const char Info = '\uf129';
     public const char File = '\uf15b';
     public const char Fire = '\uf06d';
+    public const char Grip = '\uf58d';
     public const char Export = '\uf56e';
     public const char Import = '\uf56f';
     public const char Keyboard = '\uf11c';
+    public const char List = '\uf03a';
     public const char Open = '\uf07c';
     public const char Save = '\uf0c7';
     public const char Quit = '\uf52b';
@@ -46,6 +51,7 @@ public static class Icons
     public const char Table = '\uf0ce';
     public const char UpRightFromSquare = '\uf35d';
     public const char Gift = '\uf06b';
+
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -74,12 +80,12 @@ public static class Icons
     private const char Tree = '\uf1bb';
     private const char SignInAlt = '\uf2f6';
     private const char ExclamationTriangle = '\uf071';
-    
+
     //Tinted icons
     public static readonly char Con_Pris;
     public static readonly char Con_Sph;
     public static readonly char Tree_DarkGreen;
-    
+
     public static readonly char Hardpoints;
 
     public static readonly char Cube_LightPink;
@@ -88,7 +94,7 @@ public static class Icons
     public static readonly char Cube_LightGreen;
     public static readonly char Cube_LightSkyBlue;
     public static readonly char Cube_Coral;
-    
+
     public static readonly char Rev_LightSeaGreen;
     public static readonly char Rev_LightGreen;
     public static readonly char Rev_LightCoral;
@@ -102,7 +108,7 @@ public static class Icons
         Tint(out Con_Sph, Globe, Color4.LightGreen);
         Tint(out Tree_DarkGreen, Tree, Color4.DarkGreen);
         Tint(out Hardpoints, SignInAlt, Color4.CornflowerBlue);
-        
+
         Tint(out Cube_Purple, Cube, Color4.Purple);
         Tint(out Cube_LightPink, Cube, Color4.LightPink);
         Tint(out Cube_LightGreen, Cube, Color4.LightGreen);
@@ -116,11 +122,14 @@ public static class Icons
         Tint(out Rev_LightGreen, SyncAlt, Color4.LightGreen);
         Tint(out Warning, ExclamationTriangle, Color4.Orange);
     }
-    
+
     public static IEnumerable<char> GetChars()
     {
         yield return ArrowUp;
+        yield return ArrowLeft;
+        yield return ArrowRight;
         yield return ArrowDown;
+        yield return TurnUp;
         yield return BezierCurve;
         yield return Book;
         yield return BookOpen;
@@ -128,9 +137,11 @@ public static class Icons
         yield return Info;
         yield return File;
         yield return Fire;
+        yield return Grip;
         yield return Export;
         yield return Import;
         yield return Keyboard;
+        yield return List;
         yield return Open;
         yield return Save;
         yield return Quit;
@@ -162,7 +173,7 @@ public static class Icons
         yield return PenSquare;
         yield return EyeSlash;
         yield return Video;
-        
+
         yield return Bolt;
         yield return Cloud;
         yield return Wind;
@@ -177,20 +188,20 @@ public static class Icons
         yield return Stop;
         yield return IceCream;
         yield return Gift;
-        
+
         yield return Cube_LightYellow;
         yield return Cube_Purple;
         yield return Cube_LightPink;
         yield return Cube_LightSkyBlue;
         yield return Cube_LightGreen;
         yield return Cube_Coral;
-        
+
         yield return Rev_LightSeaGreen;
         yield return Rev_LightCoral;
         yield return Rev_Coral;
         yield return Rev_LightGreen;
 
-        
+
         yield return Con_Pris;
         yield return Con_Sph;
         yield return Tree_DarkGreen;
@@ -199,7 +210,7 @@ public static class Icons
         yield return Warning;
     }
 
-    
+
     public static unsafe void TintGlyphs(byte* data, int atlasWidth, int atlasHeight, ImFontPtr font)
     {
         foreach (var t in tints)
@@ -237,7 +248,7 @@ public static class Icons
         tints.Add((dst,color));
         igMapGlyph((int)dst, (int)src);
     }
-    
+
     [DllImport("cimgui")]
     static extern void igMapGlyph(int glyph, int actual);
 }

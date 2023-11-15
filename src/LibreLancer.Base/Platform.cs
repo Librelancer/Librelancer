@@ -14,11 +14,29 @@ using LibreLancer.Dialogs;
 
 namespace LibreLancer
 {
-	public static class Platform
+    abstract class PlatformEvents : IDisposable
+    {
+        public virtual void WndProc(ref SDL.SDL_Event e)
+        {
+
+        }
+        public abstract void Dispose();
+    }
+
+    public record MountInfo(string Name, string Path);
+
+    public static class Platform
 	{
 		public static OS RunningOS;
 		static IPlatform RunningPlatform;
         public static string OSDescription;
+
+        public static event Action<MountInfo[]> MountsChanged;
+
+        internal static void OnMountsChanged(MountInfo[] mounts)
+        {
+            MountsChanged?.Invoke(mounts);
+        }
 
         static Platform ()
         {
@@ -60,6 +78,11 @@ namespace LibreLancer
 			}
             RegisterDllMap(typeof(Platform).Assembly);
 		}
+
+        internal static PlatformEvents SubscribeEvents(IUIThread mainThread) =>
+            RunningPlatform.SubscribeEvents(mainThread);
+
+        public static MountInfo[] GetMounts() => RunningPlatform.GetMounts();
 
         public static string GetBasePath()
         {
@@ -124,7 +147,7 @@ namespace LibreLancer
         {
             if (LoadLibrary(file) == IntPtr.Zero)
             {
-                CrashWindow.Run("Librelancer", "Missing Components", 
+                CrashWindow.Run("Librelancer", "Missing Components",
                     "LoadLibrary failed for " + file + ": " + Marshal.GetLastWin32Error() + "\n" + (IntPtr.Size == 8 ? errx64 : errx86));
                 return false;
             }

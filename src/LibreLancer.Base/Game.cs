@@ -497,6 +497,7 @@ namespace LibreLancer
                 SDL.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
             }
             SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
+            SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
             windowptr = sdlWin;
             var glContext = CreateGLContext(sdlWin);
             if (glContext == IntPtr.Zero)
@@ -554,6 +555,7 @@ namespace LibreLancer
                 Load();
             }
             SDL.SDL_ShowWindow(sdlWin);
+            using var events = Platform.SubscribeEvents(this);
             //kill the value we set so it doesn't crash child processes
             if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null);
             //Start game
@@ -657,6 +659,11 @@ namespace LibreLancer
                         case SDL.SDL_EventType.SDL_KEYUP:
                             {
                                 Keyboard.OnKeyUp((Keys)e.key.keysym.scancode, (KeyModifiers)e.key.keysym.mod);
+                                break;
+                            }
+                        case SDL.SDL_EventType.SDL_SYSWMEVENT:
+                            {
+                                events.WndProc(ref e);
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_KEYMAPCHANGED:

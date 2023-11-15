@@ -292,7 +292,7 @@ namespace LibreLancer
         /* Only available in SDL mercurial (pending release)*/
         public const string SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR =
             "SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR";
-        
+
 		public enum SDL_HintPriority
 		{
 			SDL_HINT_DEFAULT,
@@ -5835,6 +5835,18 @@ namespace LibreLancer
 		#endregion
 
 		#region SDL_syswm.h
+
+        //Callum: This is not the complete def
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_SysWMmsg_WINDOWS
+        {
+            public SDL_version version;
+            public SDL_SYSWM_TYPE subsystem;
+            public IntPtr hwnd;
+            public uint msg;
+            public nuint wParam;
+            public nint lParam;
+        }
 
 		public enum SDL_SYSWM_TYPE
 		{

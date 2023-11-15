@@ -83,7 +83,7 @@ namespace LibreLancer.ImUI
 			out_color = blendColor * texsample;
 		}
 		";
-		
+
 		Shader textShader;
 		Shader colorShader;
 		Texture2D fontTexture;
@@ -91,12 +91,18 @@ namespace LibreLancer.ImUI
 		public static int CheckerboardId;
 		Texture2D dot;
 		Texture2D checkerboard;
+
+        public static int FileId;
+        private Texture2D file;
+        public static int FolderId;
+        private Texture2D folder;
+
 		IntPtr ttfPtr;
         IntPtr context;
 		public static ImFontPtr Noto;
 		public static ImFontPtr Default;
         public static ImFontPtr SystemMonospace;
-        
+
         //Not shown in current version of ImGui.NET,
         //can probably remove when I update the dependencies
         [DllImport("cimgui")]
@@ -111,8 +117,17 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui")]
         static extern void igGuizmoSetImGuiContext(IntPtr ctx);
 
+        static (Texture2D, int) LoadTexture(string path)
+        {
+            using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream($"LibreLancer.ImUI.{path}"))
+            {
+                var tex = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+                return (tex, RegisterTexture(tex));
+            }
+        }
+
 		public unsafe ImGuiHelper(Game game, float scale)
-        { 
+        {
             ImGuiExt.igFtLoad();
             Scale = scale;
 			this.game = game;
@@ -186,7 +201,7 @@ namespace LibreLancer.ImUI
                 Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
                 io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
             }
-            
+
             using (var stream =
                    typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.empty-bullet.ttf"))
             {
@@ -203,11 +218,10 @@ namespace LibreLancer.ImUI
                 io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
             }
 
-            using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.checkerboard.png"))
-			{
-				checkerboard = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
-				CheckerboardId = RegisterTexture(checkerboard);
-			}
+            (checkerboard, CheckerboardId) = LoadTexture("checkerboard.png");
+            (file, FileId) = LoadTexture("file.png");
+            (folder, FolderId) = LoadTexture("folder.png");
+
             var monospace = Platform.GetMonospaceBytes();
             fixed (byte* mmPtr = monospace)
             {
@@ -239,7 +253,7 @@ namespace LibreLancer.ImUI
             instance = this;
             setTextDel = SetClipboardText;
             getTextDel = GetClipboardText;
-            
+
             io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
             io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
 		}
@@ -272,7 +286,7 @@ namespace LibreLancer.ImUI
 		{
 			int id = 0;
 			if (!textureIds.TryGetValue(tex, out id)) {
-				if (freeIds.Count > 0) 
+				if (freeIds.Count > 0)
 					id = freeIds.Dequeue();
 				else
 					id = nextId++;
@@ -306,7 +320,7 @@ namespace LibreLancer.ImUI
         public bool DoRender(double elapsed)
         {
             if (elapsed > 0.05) elapsed = 0;
-            if (game.EventsThisFrame || 
+            if (game.EventsThisFrame ||
                 (animating && !(PauseWhenUnfocused && !game.Focused))
                 || game.Keyboard.AnyKeyDown())
                 renderTimer = RENDER_TIME;
@@ -388,7 +402,7 @@ namespace LibreLancer.ImUI
             ImGui.GetWindowDrawList().AddCallback((IntPtr) 1, (IntPtr) BlendMode.Normal);
         }
 
-        
+
         // Draw over the the top to block input while a file dialog is showing
         // Needed as a separate method as stacked modals require you to call within the parent modal
         private static bool _modalDrawn = false;
@@ -423,7 +437,7 @@ namespace LibreLancer.ImUI
 
         public bool SetCursor = true;
         public bool HandleKeyboard = true;
-        
+
 		VertexBuffer vbo;
 		ElementBuffer ibo;
 		ushort[] ibuffer;

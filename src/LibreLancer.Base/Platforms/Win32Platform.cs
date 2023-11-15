@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
+using System.Linq;
 using LibreLancer.Platforms.Win32;
 
 namespace LibreLancer.Platforms
@@ -15,7 +17,7 @@ namespace LibreLancer.Platforms
 		}
 
         public string GetLocalConfigFolder() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        
+
         static bool GdiOpenFace(string face, out byte[] buffer)
         {
             int weight = GDI.FW_REGULAR;
@@ -59,9 +61,37 @@ namespace LibreLancer.Platforms
             throw new Exception("No system monospace font");
         }
 
+        public PlatformEvents SubscribeEvents(IUIThread mainThread) => new Win32Events();
+
+        public MountInfo[] GetMounts() => Directory.GetLogicalDrives().Select(x => new MountInfo(x, x)).ToArray();
+
         public void AddTtfFile(string file)
         {
             //Not implemented
+        }
+
+        class Win32Events : PlatformEvents
+        {
+            private const uint WM_DEVICECHANGE = 0x0219;
+            private const int DBT_DEVICEARRIVAL = 0x8000;
+            private const int DBT_DEVICEREMOVECOMPLETE = 0x8004;
+            private const int DBT_DEVNODES_CHANGED = 0x0007;
+
+            public override unsafe void WndProc(ref SDL.SDL_Event e)
+            {
+                SDL.SDL_SysWMmsg_WINDOWS* ev = (SDL.SDL_SysWMmsg_WINDOWS*) e.syswm.msg;
+                if (ev->msg == WM_DEVICECHANGE)
+                {
+                    if(ev->wParam == DBT_DEVICEARRIVAL ||
+                       ev->wParam == DBT_DEVICEREMOVECOMPLETE ||
+                       ev->wParam == DBT_DEVNODES_CHANGED)
+                        Platform.OnMountsChanged(Platform.GetMounts());
+                }
+            }
+
+            public override void Dispose()
+            {
+            }
         }
     }
 }

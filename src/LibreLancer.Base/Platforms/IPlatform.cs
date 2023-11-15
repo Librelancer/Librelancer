@@ -12,6 +12,9 @@ namespace LibreLancer.Platforms
 		bool IsDirCaseSensitive(string directory);
         void AddTtfFile(string path);
         byte[] GetMonospaceBytes();
+        PlatformEvents SubscribeEvents(IUIThread mainThread);
+
+        MountInfo[] GetMounts();
     }
 }
 

@@ -37,6 +37,10 @@
     <EmbeddedResource Include="empty-bullet.ttf" />
     <None Remove="bell.ogg" />
     <EmbeddedResource Include="bell.ogg" />
+    <None Remove="file.png" />
+    <EmbeddedResource Include="file.png" />
+    <None Remove="folder.png" />
+    <EmbeddedResource Include="folder.png" />
   </ItemGroup>
 
 </Project>

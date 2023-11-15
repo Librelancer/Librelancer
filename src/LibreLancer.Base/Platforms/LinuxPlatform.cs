@@ -72,6 +72,15 @@ namespace LibreLancer.Platforms
             else
                 throw new Exception("No system monospace font found");
         }
+
+        public PlatformEvents SubscribeEvents(IUIThread mainThread)
+        {
+            var ev = new GLib.GMountEvents(mainThread);
+            ev.Start();
+            return ev;
+        }
+
+        public MountInfo[] GetMounts() => GLib.GetMounts();
     }
 }
 

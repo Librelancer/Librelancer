@@ -13,7 +13,7 @@ namespace LancerEdit
 	{
         [STAThread]
         static void Main(string[] args)
-		{
+        {
             MainWindow mw = null;
             AppHandler.Run(() =>
             {
