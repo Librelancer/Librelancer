@@ -60,6 +60,33 @@
         <EmbeddedResource Include="DisplayMeshes\icosphere.glb" />
         <None Remove="DisplayMeshes\ring.glb" />
         <EmbeddedResource Include="DisplayMeshes\ring.glb" />
+        <None Update="Icons\3DB.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\ALE.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\ANM.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\CMP.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\MAT.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\SUR.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\TXM.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\UTF.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Icons\VMS.ico">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>
