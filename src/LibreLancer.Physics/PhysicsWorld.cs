@@ -70,7 +70,7 @@ namespace LibreLancer.Physics
             Simulation = Simulation.Create(BufferPool,
                 new ContactEventCallbacks(contactEvents, this, 300),
                 new LibrelancerPoseIntegratorCallbacks() {World = this},
-                new SolveDescription(8, 1)
+                new SolveDescription(1, 1)
             );
             bepuToLancer = new CollidableProperty<int>(Simulation);
             collidableObjects = new CollidableProperty<bool>(Simulation);
