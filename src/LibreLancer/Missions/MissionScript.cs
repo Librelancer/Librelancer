@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.Missions;
+using LibreLancer.GameData;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Ai.ObjList;
 
@@ -44,6 +46,37 @@ namespace LibreLancer.Missions
             new Dictionary<string, NNObjective>(StringComparer.OrdinalIgnoreCase);
 
         public List<string> InitTriggers = new List<string>();
+
+        public PreloadObject[] CalculatePreloads(GameDataManager gameData)
+        {
+            HashSet<string> ships = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> equipment = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var sh in Ships.Values)
+            {
+                NPCs.TryGetValue(sh.NPC, out var npc);
+                if (npc == null)
+                    continue;
+                NpcShips.TryGetValue(npc.NpcShipArch, out var shipArch);
+                if (shipArch == null)
+                    shipArch = gameData.Ini.NPCShips.ShipArches.FirstOrDefault(x =>
+                        x.Nickname.Equals(npc.NpcShipArch, StringComparison.OrdinalIgnoreCase));
+                if (shipArch == null)
+                    continue;
+                gameData.TryGetLoadout(shipArch.Loadout, out var ld);
+                if (ld == null)
+                    continue;
+                ships.Add(ld.Archetype);
+                foreach (var cargo in ld.Cargo)
+                    equipment.Add(cargo.Item.Nickname);
+                foreach (var item in ld.Items)
+                    equipment.Add(item.Equipment.Nickname);
+            }
+
+            var shipItems = ships.Chunk(PreloadObject.MaxValues).Select(x => new PreloadObject(PreloadType.Ship, x.Select(x => new HashValue(x)).ToArray()));
+            var equipItems = equipment.Chunk(PreloadObject.MaxValues).Select(x => new PreloadObject(PreloadType.Equipment, x.Select(x => new HashValue(x)).ToArray()));
+
+            return shipItems.Concat(equipItems).ToArray();
+        }
 
         //Set only the first one
         //Without this, order ships spawn in the wrong place in M01A

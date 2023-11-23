@@ -7,7 +7,7 @@ public struct HashValue : IEquatable<HashValue>
 {
     public uint Hash => h;
     public string String => s;
-    
+
     private uint h;
     private string s;
 
@@ -24,8 +24,8 @@ public struct HashValue : IEquatable<HashValue>
             h = FLHash.CreateID(s);
         }
     }
-    
-    
+
+
     public HashValue(string s)
     {
         this.s = s;
@@ -37,13 +37,13 @@ public struct HashValue : IEquatable<HashValue>
         this.s = null;
         this.h = h;
     }
-    
+
     public HashValue(int h)
     {
         this.s = null;
         this.h = (uint)h;
     }
-    
+
     public override string ToString()
     {
         if (s != null) return $"{s} ({h})";
@@ -60,6 +60,8 @@ public struct HashValue : IEquatable<HashValue>
         return new HashValue(i);
     }
 
+    public static implicit operator HashValue(string s) => new HashValue(s);
+
     public static implicit operator uint(HashValue sh)
     {
         return sh.h;
@@ -75,7 +77,7 @@ public struct HashValue : IEquatable<HashValue>
         if (!(obj is HashValue hash)) return false;
         return h == hash.h;
     }
-    
+
     public bool Equals(HashValue other)
     {
         return h == other.h;

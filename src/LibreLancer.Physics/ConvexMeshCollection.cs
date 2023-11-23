@@ -57,6 +57,8 @@ public class ConvexMeshCollection : IDisposable
         return id;
     }
 
+    public void CreateShape(uint fileId, uint meshId) => GetShapes(fileId, meshId);
+
     internal ConvexMeshItem GetShapes(uint fileId, uint meshId) =>
         shapes.GetOrAdd(
             (ulong) meshId | ((ulong) fileId << 32),

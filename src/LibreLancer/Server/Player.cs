@@ -10,6 +10,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Data.Save;
+using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Net;
@@ -32,6 +33,8 @@ namespace LibreLancer.Server
         public SpacePlayer Space;
         public BasesidePlayer Baseside;
         private MissionRuntime msnRuntime;
+
+        private PreloadObject[] msnPreload;
         //State
         public NetCharacter Character;
         public string Name = "Player";
@@ -207,7 +210,7 @@ namespace LibreLancer.Server
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
                 });
-            });
+            }, msnPreload);
         }
         bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
         {
@@ -309,6 +312,8 @@ namespace LibreLancer.Server
             if (currentMissionNumber != 0 && (currentMissionNumber - 1) < Game.GameData.Ini.MissionCount)
             {
                 msnRuntime = new MissionRuntime(Game.GameData.Ini.LoadMissionIni(currentMissionNumber - 1), this, loadTriggers);
+                msnPreload = msnRuntime.Script.CalculatePreloads(Game.GameData);
+                rpcClient.SetPreloads(msnPreload);
                 msnRuntime.Update(0.0);
             }
         }
@@ -673,7 +678,7 @@ namespace LibreLancer.Server
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
                 });
-            });
+            }, msnPreload);
         }
 
         void IServerPlayer.Launch()
@@ -716,7 +721,7 @@ namespace LibreLancer.Server
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
                 });
-            });
+            }, msnPreload);
         }
     }
 }

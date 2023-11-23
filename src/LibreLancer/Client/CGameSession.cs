@@ -47,6 +47,7 @@ namespace LibreLancer.Client
 		public List<string> PlayerComponents = new List<string>();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
+        public PreloadObject[] Preloads;
 		public FreelancerGame Game;
 		public string PlayerSystem;
         public ReputationCollection PlayerReputations = new ReputationCollection();
@@ -159,6 +160,8 @@ namespace LibreLancer.Client
         {
             rpcServer.OnLocationEnter(bse, room);
         }
+
+        void IClientPlayer.SetPreloads(PreloadObject[] preloadObjects) => Preloads = preloadObjects;
 
         private bool hasChanged = false;
         void SceneChangeRequired()

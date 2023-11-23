@@ -26,7 +26,7 @@ namespace LibreLancer.Render
         {
             beams = sys.Beams;
             renderCount = 0;
-            for(int i = 0; i < Projectiles.Projectiles.Length; i++) {
+            foreach(var i in Projectiles.Ids.GetAllocated()) {
                 if (Projectiles.Projectiles[i].Alive)
                 {
                     if (Projectiles.Projectiles[i].Effect != null)

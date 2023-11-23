@@ -602,6 +602,48 @@ namespace LibreLancer
             }
         }
 
+        void PreloadSur(IDrawable dr, ResourceManager res)
+        {
+            if (dr is not IRigidModelFile rm)
+                return;
+            var mdl = rm.CreateRigidModel(res is GameResourceManager, res);
+            var surpath = Path.ChangeExtension(mdl.Path, ".sur");
+            if (!File.Exists(surpath))
+                return;
+            var cvx = res.ConvexCollection.UseFile(surpath);
+            if(mdl.Source == RigidModelSource.SinglePart)
+                res.ConvexCollection.CreateShape(cvx, 0);
+            else
+            {
+                foreach(var p in mdl.AllParts)
+                    res.ConvexCollection.CreateShape(cvx, CrcTool.FLModelCrc(p.Name));
+            }
+        }
+
+        public void PreloadObjects(PreloadObject[] objs, ResourceManager resources = null)
+        {
+            resources ??= resource;
+            if (objs == null) return;
+            foreach(var o in objs) {
+                if (o.Type == PreloadType.Ship)
+                {
+                    foreach (var v in o.Values)
+                    {
+                        var sh = Ships.Get(v);
+                        PreloadSur(sh?.ModelFile?.LoadFile(resources), resources);
+                    }
+                }
+                else if (o.Type == PreloadType.Equipment)
+                {
+                    foreach (var v in o.Values)
+                    {
+                        var eq = Equipment.Get(v);
+                        PreloadSur(eq?.ModelFile?.LoadFile(resources), resources);
+                    }
+                }
+            }
+        }
+
         public GameItemCollection<GameData.Explosion> Explosions = new GameItemCollection<GameData.Explosion>();
 
         public GameItemCollection<Equipment> Equipment = new GameItemCollection<Equipment>();
@@ -882,7 +924,8 @@ namespace LibreLancer
                 foreach(var a in inisys.ArchetypeEquipment) p.Add(new PreloadObject(PreloadType.Equipment, a));
                 foreach(var a in inisys.ArchetypeSnd) p.Add(new PreloadObject(PreloadType.Sound, a));
                 foreach(var a in inisys.ArchetypeSolar) p.Add(new PreloadObject(PreloadType.Solar, a));
-                foreach(var a in inisys.ArchetypeVoice) p.Add(new PreloadObject(PreloadType.Voice, a));
+                foreach(var a in inisys.ArchetypeVoice) p.Add(
+                    new PreloadObject(PreloadType.Voice, a.Select(x => new HashValue(x)).ToArray()));
                 sys.Preloads = p.ToArray();
 
                 if (inisys.TexturePanels != null)

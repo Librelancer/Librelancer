@@ -16,7 +16,7 @@ namespace LibreLancer.World
     public class ProjectileManager
     {
         public Projectile[] Projectiles = new Projectile[16384];
-        private IdPool ids = new IdPool(16384 / 32, false);
+        public IdPool Ids = new IdPool(16384 / 32, false);
 
         GameWorld world;
         public ProjectileManager(GameWorld world)
@@ -27,7 +27,7 @@ namespace LibreLancer.World
         public void Update(double time)
         {
             var tFloat = (float)time;
-            foreach(var i in ids.GetAllocated()) {
+            foreach(var i in Ids.GetAllocated()) {
                 var length = Projectiles[i].Normal.Length() * tFloat;
                 var dir = Projectiles[i].Normal.Normalized();
                 if (world.Physics.PointRaycast(
@@ -45,7 +45,7 @@ namespace LibreLancer.World
                     {
                         world.Server?.ProjectileHit(go, Projectiles[i].Owner, Projectiles[i].Data.Munition);
                     }
-                    ids.Free(i);
+                    Ids.Free(i);
                 }
                 Projectiles[i].Position += (Projectiles[i].Normal * tFloat);
                 world.DrawDebug(Projectiles[i].Position);
@@ -53,7 +53,7 @@ namespace LibreLancer.World
                 if(Projectiles[i].Time >= Projectiles[i].Data.Lifetime) {
                     Projectiles[i].Alive = false;
                     Projectiles[i].Effect = null;
-                    ids.Free(i);
+                    Ids.Free(i);
                 }
             }
 
@@ -160,7 +160,7 @@ namespace LibreLancer.World
 
         public void SpawnProjectile(GameObject owner, string hardpoint, ProjectileData projectile, Vector3 position, Vector3 heading)
         {
-            if (!ids.TryAllocate(out int ptr))
+            if (!Ids.TryAllocate(out int ptr))
                 throw new Exception("Projectile overflow");
             Projectiles[ptr] = new Projectile() {
                 Data = projectile,

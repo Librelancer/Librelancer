@@ -1,4 +1,5 @@
 using System.Numerics;
+using LibreLancer.GameData;
 using LibreLancer.World;
 
 namespace LibreLancer.Net.Protocol;
@@ -10,6 +11,8 @@ public interface IClientPlayer
     void CallThorn(string script, ObjNetId mainObject);
     void ListPlayers(bool isAdmin);
     void UpdateWeaponGroups(NetWeaponGroup[] wg);
+
+    void SetPreloads(PreloadObject[] preloads);
 
     void SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout);
     void SpawnPlayer(int id, string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);

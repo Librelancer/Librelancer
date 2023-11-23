@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 
 namespace LibreLancer.Server;
@@ -29,12 +30,13 @@ public class WorldProvider
 
     private ConcurrentDictionary<StarSystem, WorldState> worlds = new ConcurrentDictionary<StarSystem, WorldState>();
 
-    void LoadWorld(StarSystem system, out WorldState ws)
+    void LoadWorld(StarSystem system, out WorldState ws, PreloadObject[] preloads)
     {
         var x = new WorldState();
         if (worlds.TryAdd(system, new WorldState()))
         {
             x.World = new ServerWorld(system, server);
+            server.GameData.PreloadObjects(preloads, server.Resources);
             x.Ready = true;
             server.WorldReady(x.World);
             worlds.AddOrUpdate(
@@ -45,17 +47,17 @@ public class WorldProvider
         }
         ws = x;
     }
-    public void RequestWorld(StarSystem system, Action<ServerWorld> spunUp)
+    public void RequestWorld(StarSystem system, Action<ServerWorld> spunUp, PreloadObject[] preloads)
     {
         Task.Run(async () =>
         {
             if (!worlds.TryGetValue(system, out var ws))
-                LoadWorld(system, out ws);
+                LoadWorld(system, out ws, preloads);
             while (!ws.Ready)
             {
                 await Task.Delay(33);
                 if (!worlds.TryGetValue(system, out ws))
-                    LoadWorld(system, out ws);
+                    LoadWorld(system, out ws, preloads);
             }
 
             spunUp(ws.World);

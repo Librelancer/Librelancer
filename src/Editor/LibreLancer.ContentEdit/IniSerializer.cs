@@ -22,7 +22,7 @@ public static class IniSerializer
         if (sys.FarClip != 20000)
             sb.AppendEntry("space_farclip", sys.FarClip);
         sb.AppendLine();
-        
+
         //Archetype
         if (sys.Preloads.Length > 0)
         {
@@ -39,11 +39,11 @@ public static class IniSerializer
                     PreloadType.Equipment => "equipment",
                     _ => "solar"
                 };
-                sb.AppendEntry(name, p.Values);
+                sb.AppendEntry(name, p.Values.Select(x => x.String ?? x.Hash.ToString()).ToArray());
             }
             sb.AppendLine();
         }
-        
+
         foreach (var ep in sys.EncounterParameters)
             sb.AppendSection("EncounterParameters")
                 .AppendEntry("nickname", ep.Nickname)
@@ -124,7 +124,7 @@ public static class IniSerializer
         {
             LightKind.Directional => "DIRECTIONAL",
             LightKind.PointAttenCurve => "DIRECTIONAL",
-            _ => "POINT"  
+            _ => "POINT"
         });
         if (!string.IsNullOrWhiteSpace(lt.AttenuationCurveName))
             sb.AppendEntry("atten_curve", lt.AttenuationCurveName);
@@ -345,12 +345,12 @@ public static class IniSerializer
         }
 
         sb.AppendSection("[Room_Sound]");
-        
+
 
         if (!string.IsNullOrWhiteSpace(room.PlayerShipPlacement))
             sb.AppendSection("PlayerShipPlacement")
                 .AppendEntry("name", room.PlayerShipPlacement);
-        
+
         if (!string.IsNullOrWhiteSpace(room.Camera))
             sb.AppendSection("Camera")
                 .AppendEntry("name", room.Camera)
@@ -386,7 +386,7 @@ public static class IniSerializer
         }
         return sb.ToString();
     }
-    
+
     public static string SerializeMBases(IEnumerable<Base> bases)
     {
         var sb = new StringBuilder();
