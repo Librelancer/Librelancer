@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using LibreLancer;
@@ -13,6 +14,8 @@ namespace Launcher
     static class Program
     {
         public static bool introForceDisable = false;
+        public static string startPath = null;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -23,10 +26,16 @@ namespace Launcher
             {
                 WindowsChecks();
                 new MainWindow().Run();
+                if (startPath == null)
+                    return;
+                using Process process = new Process();
+                process.StartInfo.FileName = startPath;
+                process.Start();
+                process.WaitForExit();
             });
         }
 
- 
+
         static void WindowsChecks()
         {
             if (Platform.RunningOS != OS.Windows) return;
@@ -40,4 +49,3 @@ namespace Launcher
         }
     }
 }
-    
