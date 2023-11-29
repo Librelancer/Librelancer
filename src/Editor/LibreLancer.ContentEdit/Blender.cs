@@ -49,7 +49,7 @@ public class Blender
             bytes[3] != 0x4E ||
             bytes[4] != 0x44 ||
             bytes[5] != 0x45 ||
-            bytes[6] != 0x52) 
+            bytes[6] != 0x52)
             return false;
         if (bytes[7] != 0x2D && bytes[7] != 0x5F) //- or _ pointer size
             return false;
@@ -72,7 +72,7 @@ public class Blender
     }
 
     static string EscapeCode(string s) => JsonValue.Create(s).ToJsonString();
-    
+
     public static EditResult<SimpleMesh.Model> LoadBlenderFile(string file, string blenderPath = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
@@ -83,14 +83,14 @@ public class Blender
         string tmpfile = "";
         string tmppython = "";
         string tmpblend = "";
-        string args = "";            
+        string args = "";
         tmppython = Path.GetTempFileName();
         tmpfile = Path.GetTempFileName();
         File.Delete(tmpfile);
         if (blenderPath == "FLATPAK")
         {
             name = "flatpak";
-            tmpblend = Path.GetTempFileName();                                               
+            tmpblend = Path.GetTempFileName();
             File.Copy(file, tmpblend, true);
             args = $"run --filesystem=/tmp org.blender.Blender \"{tmpblend}\" --background --python \"{tmppython}\"";
         }
@@ -102,11 +102,11 @@ public class Blender
 
         var exportCode =
             "import bpy\n"
-            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLTF_EMBEDDED', export_extras=True, use_mesh_edges=True)";
+            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True)";
         File.WriteAllText(tmppython, exportCode);
         var p = Process.Start(name, args);
         p.WaitForExit();
-        tmpfile += ".gltf";
+        tmpfile += ".glb";
         File.Delete(tmppython);
         if(!string.IsNullOrWhiteSpace(tmpblend)) File.Delete(tmpblend);
         if(File.Exists(tmpfile))
