@@ -72,6 +72,7 @@ public class ImportModelTab : EditorTab
         wireframeMaterial3db = new Material(win.Resources);
         wireframeMaterial3db.Dc = Color4.White;
         wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
+        wireframeMaterial3db.Initialize(win.Resources);
         lighting = Lighting.Create();
         lighting.Enabled = true;
         lighting.Ambient = Color3f.Black;
@@ -130,11 +131,11 @@ public class ImportModelTab : EditorTab
             FinishImport();
         }
     }
-    
-    
+
+
     void FinishImport()
     {
-        
+
         win.StartLoadingSpinner();
         Task.Run(() =>
         {
@@ -177,7 +178,7 @@ public class ImportModelTab : EditorTab
             });
         });
     }
-    
+
     private void DrawFLNodesPanel()
     {
         ImGui.Text("Tree");
@@ -221,13 +222,13 @@ public class ImportModelTab : EditorTab
                 ImGui.SameLine();
                 ImGui.Checkbox("Starsphere Mode", ref forceCompound);
                 ImGuiExt.Checkbox(
-                    "Import Textures", 
-                    ref importTextures, 
+                    "Import Textures",
+                    ref importTextures,
                     model.Images != null && model.Images.Count > 0,
                     "Model contains no textures to import");
-                ImGuiExt.Checkbox("Generate Sur", 
-                    ref generateSur, 
-                    canGenerateSur, 
+                ImGuiExt.Checkbox("Generate Sur",
+                    ref generateSur,
+                    canGenerateSur,
                     "Model has no collision hulls");
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Output Path:");
@@ -388,7 +389,7 @@ public class ImportModelTab : EditorTab
         modelViewport.ResetControls();
     }
 
-   
+
 
     private PreviewModel BuildPreviewNode(ImportedModelNode n, Matrix4x4 parent, ref float radius, int lodIndex)
     {
@@ -408,9 +409,9 @@ public class ImportModelTab : EditorTab
         if (d + r > radius) radius = d + r;
         var vertices = g.Vertices.Select(x =>
             new VertexPositionNormalDiffuseTexture(
-                x.Position, 
-                x.Normal, 
-                (uint)(new Color4(x.Diffuse).ToAbgr()), 
+                x.Position,
+                x.Normal,
+                (uint)(new Color4(x.Diffuse).ToAbgr()),
                 Vector2.One)
         ).ToArray();
         var elements = g.Indices.Indices16;
@@ -450,7 +451,7 @@ public class ImportModelTab : EditorTab
         foreach(var c in n.Children)
             FindMaterials(c);
     }
-    
+
 
     private void Import()
     {
