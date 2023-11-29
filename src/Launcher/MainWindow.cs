@@ -35,7 +35,7 @@ namespace Launcher
                 if (Platform.RunningOS == OS.Windows)
                 {
                     var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
-                    string flPathRegistry = IntPtr.Size == 8 
+                    string flPathRegistry = IntPtr.Size == 8
                         ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
                         : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
                     var actualPath = (string) Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
@@ -158,7 +158,7 @@ namespace Launcher
                 return;
             }
             config.Save();
-            Process.Start(Path.Combine(GetBasePath(), "lancer"));
+            Program.startPath = Path.Combine(GetBasePath(), "lancer");
             Exit();
         }
         static void SoundSlider(string text, ref float flt)
