@@ -61,6 +61,15 @@ public static class ModelExporter
         //Export model
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
         output.Roots = new[] {ProcessNode(rootModel, output, settings, resources, sur, false)};
+        if (cmp.Animation != null)
+        {
+            var animations = new List<Animation>();
+            foreach (var anm in cmp.Animation.Scripts.Values)
+            {
+                animations.Add(AnimationConversion.ExportAnimation(cmp, anm));
+            }
+            output.Animations = animations.ToArray();
+        }
         return output;
     }
 
