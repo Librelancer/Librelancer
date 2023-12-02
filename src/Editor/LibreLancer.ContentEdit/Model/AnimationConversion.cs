@@ -37,7 +37,10 @@ static class AnimationConversion
                 rot.Keyframes = new SM.RotationKeyframe[map.Channel.FrameCount];
                 for (int i = 0; i < rot.Keyframes.Length; i++)
                 {
-                    rot.Keyframes[i].Time = map.Channel.GetTime(i);
+                    if (map.Channel.Interval < 0)
+                        rot.Keyframes[i].Time = map.Channel.GetTime(i);
+                    else
+                        rot.Keyframes[i].Time = map.Channel.Interval * i;
                     cloned.Update(map.Channel.GetAngle(i), Quaternion.Identity);
                     rot.Keyframes[i].Rotation = cloned.LocalTransform.ExtractRotation();
                 }
