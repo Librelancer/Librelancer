@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using SimpleMesh;
 
 namespace LibreLancer.ContentEdit;
 
@@ -117,5 +118,60 @@ public class Blender
             return EditResult<SimpleMesh.Model>.TryCatch(() => SimpleMesh.Model.FromStream(ms));
         }
         return EditResult<SimpleMesh.Model>.Error("Failed to execute blender export");
+    }
+
+    private const string EXPORT_SCRIPT = @"
+import bpy
+
+bpy.ops.wm.read_homefile(use_empty=True)
+bpy.ops.import_scene.gltf(filepath={0})
+
+for obj in bpy.context.scene.objects:
+    obj.empty_display_size = 2
+    obj.empty_display_type = 'SINGLE_ARROW'
+
+bpy.ops.wm.save_as_mainfile(filepath={1})
+";
+
+    public static EditResult<bool> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null)
+    {
+        if (string.IsNullOrWhiteSpace(blenderPath))
+            blenderPath = AutodetectBlender();
+        if (string.IsNullOrWhiteSpace(blenderPath))
+            return EditResult<bool>.Error("Could not locate blender executable");
+        string name = "";
+        string tmpfile = "";
+        string tmppython = "";
+        string tmpblend = "";
+        string args = "";
+        tmppython = Path.GetTempFileName();
+        tmpblend = Path.GetTempFileName();
+        File.Delete(tmpblend);
+        tmpfile = Path.GetTempFileName();
+        using (var gltfStream = File.Create(tmpfile)) {
+            exported.SaveTo(gltfStream, ModelSaveFormat.GLTF2);
+        }
+        if (blenderPath == "FLATPAK")
+        {
+            name = "flatpak";
+            args = $"run --filesystem=/tmp org.blender.Blender --background --python \"{tmppython}\"";
+        }
+        else
+        {
+            name = blenderPath;
+            args = $"\"{file}\" --background --python \"{tmppython}\"";
+        }
+        File.WriteAllText(tmppython, string.Format(EXPORT_SCRIPT, EscapeCode(tmpfile), EscapeCode(tmpblend)));
+        using var p = Process.Start(name, args);
+        p.WaitForExit();
+        File.Delete(tmppython);
+        File.Delete(tmpfile);
+        if (File.Exists(tmpblend))
+        {
+            File.Move(tmpblend, file, true);
+            return new EditResult<bool>(true);
+        }
+
+        return EditResult<bool>.Error("Failed to execute blender import script");
     }
 }

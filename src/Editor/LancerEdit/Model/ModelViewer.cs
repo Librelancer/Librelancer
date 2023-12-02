@@ -16,6 +16,7 @@ using Anm = LibreLancer.Utf.Anm;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 using LibreLancer.Client.Components;
+using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Render;
 using LibreLancer.Sur;
@@ -56,6 +57,7 @@ namespace LancerEdit
         bool doBackground = true;
         bool doWireframe = false;
         bool drawNormals = false;
+        bool blenderEnabled = false;
         private bool doBounds = false;
         bool drawVMeshWire = false;
 
@@ -97,6 +99,7 @@ namespace LancerEdit
 
         public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
+            blenderEnabled = Blender.BlenderPathValid(win.Config.BlenderPath);
             selectedCam = win.Config.DefaultCameraMode;
             Title = string.Format("Model Viewer ({0})",name);
             Name = name;
@@ -1006,6 +1009,23 @@ namespace LancerEdit
                 Export(SimpleMesh.ModelSaveFormat.GLTF2, FileDialogFilters.GltfFilter);
             if (ImGui.Button("Export Collada"))
                 Export(SimpleMesh.ModelSaveFormat.Collada, FileDialogFilters.ColladaFilter);
+            if (ImGuiExt.Button("Export .blend", blenderEnabled))
+            {
+                FileDialog.Save(output =>
+                {
+                    SimpleMesh.Model exported = null;
+                    if (drawable is ModelFile mdl) {
+                        exported = ModelExporter.Export(mdl, surFile, exportSettings, res);
+                    } else if (drawable is CmpFile cmp) {
+                        exported = ModelExporter.Export(cmp, surFile, exportSettings, res);
+                    }
+                    if (exported != null)
+                    {
+                        var result = Blender.ExportBlenderFile(exported, output, _window.Config.BlenderPath);
+                        _window.ResultMessages(result);
+                    }
+                });
+            }
         }
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
