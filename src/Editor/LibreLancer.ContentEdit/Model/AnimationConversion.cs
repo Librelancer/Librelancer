@@ -66,6 +66,21 @@ static class AnimationConversion
         return channel;
     }
 
+    static float CalculateInterval(SM.RotationChannel rots)
+    {
+        if (rots.Keyframes.Length < 2)
+            return -1;
+        if (rots.Keyframes[0].Time != 0)
+            return -1;
+        var interval = rots.Keyframes[1].Time;
+        for (int i = 1; i < rots.Keyframes.Length; i++)
+        {
+            if (Math.Abs(rots.Keyframes[i].Time - (interval) * i) > 0.001f)
+                return -1.0f;
+        }
+        return interval;
+    }
+
     record struct RevProps(Vector3 axis, float min, float max);
 
     static (LUtfNode ch, RevProps props) QuatsToAngleChannel(SM.RotationChannel rots, Matrix4x4 target)
@@ -121,13 +136,15 @@ static class AnimationConversion
                 }
             }
         }
+        var interval = CalculateInterval(rots);
         var frames = new NodeWriter();
         for (int i = 0; i < rots.Keyframes.Length; i++)
         {
-            frames.Write(rots.Keyframes[i].Time);
+            if(interval < 0)
+                frames.Write(rots.Keyframes[i].Time);
             frames.Write(outputAngles[i]);
         }
-        return (ConstructChannel(frames, rots.Keyframes.Length, -1f, 0x1),
+        return (ConstructChannel(frames, rots.Keyframes.Length, interval, 0x1),
             new RevProps(rotationAxis ?? Vector3.Zero, outputAngles.Min(), outputAngles.Max()));
     }
 
