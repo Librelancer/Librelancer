@@ -83,6 +83,9 @@ static class AnimationConversion
 
     record struct RevProps(Vector3 axis, float min, float max);
 
+
+
+
     static (LUtfNode ch, RevProps props) QuatsToAngleChannel(SM.RotationChannel rots, Matrix4x4 target)
     {
         //Make relative to construct, imported animations only store final rotations.
@@ -148,6 +151,74 @@ static class AnimationConversion
             new RevProps(rotationAxis ?? Vector3.Zero, outputAngles.Min(), outputAngles.Max()));
     }
 
+    static float GetAngle(Quaternion a, Quaternion b)
+    {
+        var dotproduct = Quaternion.Dot(a, b);
+        return MathF.Acos(2 * dotproduct * dotproduct - 1);
+    }
+
+    const float TOLERANCE = 1e-4f;
+
+    static bool ApproxEqual(Quaternion a, Quaternion b) =>
+        MathF.Abs(a.X - b.X) < TOLERANCE &&
+        MathF.Abs(a.Y - b.Y) < TOLERANCE &&
+        MathF.Abs(a.Z - b.Z) < TOLERANCE &&
+        MathF.Abs(a.W - b.W) < TOLERANCE;
+
+    static int GetSigns(Quaternion q)
+    {
+        int sign = 0;
+        if (BitConverter.SingleToInt32Bits(q.X) < 0)
+            sign |= 0x1;
+        if (BitConverter.SingleToInt32Bits(q.Y) < 0)
+            sign |= 0x2;
+        if (BitConverter.SingleToInt32Bits(q.Z) < 0)
+            sign |= 0x4;
+        return sign;
+    }
+
+
+    // Optimize a linear set of keyframes from a SimpleMesh rotation channel
+    static SM.RotationChannel Resample(SM.RotationChannel input)
+    {
+        if (input.Keyframes.Length < 3)
+            return input;
+        var newChannel = new SM.RotationChannel();
+        newChannel.Target = input.Target;
+        var lastIndex = input.Keyframes.Length - 1;
+
+        List<SM.RotationKeyframe> keyframes = new List<SM.RotationKeyframe>();
+        keyframes.Add(input.Keyframes[0]);
+
+        for (int i = 1; i < lastIndex; i++)
+        {
+            var timePrev = input.Keyframes[i - 1].Time;
+            var time = input.Keyframes[i].Time;
+            var timeNext = input.Keyframes[i + 1].Time;
+            var t = (time - timePrev) / (timeNext - timePrev);
+
+            var sample =
+                Quaternion.Slerp(input.Keyframes[i - 1].Rotation, input.Keyframes[i + 1].Rotation, t);
+
+            var angle = GetAngle(input.Keyframes[i - 1].Rotation, input.Keyframes[i].Rotation) +
+                        GetAngle(input.Keyframes[i].Rotation, input.Keyframes[i + 1].Rotation);
+
+            //Preserve when a rotation flips
+            var signA = GetSigns(input.Keyframes[i].Rotation);
+            var signB = GetSigns(input.Keyframes[i + 1].Rotation);
+            var invSignA = (~signA) & 0x7;
+
+            if (!ApproxEqual(sample, input.Keyframes[i].Rotation) ||
+                (angle + float.Epsilon) >= MathF.PI ||
+                signB == invSignA)
+                keyframes.Add(input.Keyframes[i]);
+        }
+        keyframes.Add(input.Keyframes[^1]);
+        newChannel.Keyframes = keyframes.ToArray();
+        return newChannel;
+    }
+
+
     public static EditResult<LUtfNode> ImportAnimation(List<ImportedModelNode> allNodes, SM.Animation anim)
     {
         var n = new LUtfNode() {Name = anim.Name};
@@ -178,7 +249,8 @@ static class AnimationConversion
                     StringData = child.Construct.ParentName,
                     Parent = jm
                 });
-                var (ch, props) = QuatsToAngleChannel(rot, child.Construct.LocalTransform);
+                var resampled = Resample(rot);
+                var (ch, props) = QuatsToAngleChannel(resampled, child.Construct.LocalTransform);
 
                 if (ch == null)
                 {

@@ -4,6 +4,7 @@
 
 using LibreLancer.ImUI;
 using System;
+using LibreLancer.Dialogs;
 
 namespace LancerEdit
 {

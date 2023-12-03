@@ -47,7 +47,6 @@ namespace InterfaceEdit
             Title = "InterfaceEdit";
             TestApi = new TestingApi(this);
             guiHelper = new ImGuiHelper(this, DpiScale);
-            FileDialog.RegisterParent(this);
             RenderContext.PushViewport(0,0,Width,Height);
             new MaterialMap();
             Fonts = new FontManager();

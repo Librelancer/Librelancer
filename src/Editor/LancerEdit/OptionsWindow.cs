@@ -8,6 +8,7 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using LibreLancer.Dialogs;
 
 namespace LancerEdit
 {

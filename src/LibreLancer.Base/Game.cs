@@ -13,6 +13,7 @@ using System.Threading;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using LibreLancer.Dialogs;
 
 namespace LibreLancer
 {
@@ -555,6 +556,7 @@ namespace LibreLancer
                 Load();
             }
             SDL.SDL_ShowWindow(sdlWin);
+            NFD.NFD_Init();
             using var events = Platform.SubscribeEvents(this);
             //kill the value we set so it doesn't crash child processes
             if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread",null);
@@ -569,6 +571,7 @@ namespace LibreLancer
             MouseButtons doRelease = 0;
             while (running)
             {
+                events.Poll();
                 //Window State
                 var winFlags = (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(sdlWin);
                 Focused = (winFlags & SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS) ==
@@ -723,6 +726,7 @@ namespace LibreLancer
                 }
             }
             Cleanup();
+            NFD.NFD_Quit();
             SDL.SDL_Quit();
         }
 

@@ -25,7 +25,5 @@ namespace LibreLancer.Dialogs
             else if (Shell.HasCommand("zenity")) Backend = ZENITY;
             else Backend = SDL;
         }
-        
-        
     }
 }

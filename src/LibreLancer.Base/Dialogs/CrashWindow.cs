@@ -9,7 +9,7 @@ namespace LibreLancer.Dialogs
 {
     public static class CrashWindow
     {
-        [DllImport("win32dialogs.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("lancerdialogs", CallingConvention = CallingConvention.Cdecl)]
         static extern int Win32CrashDialog(
             [MarshalAs(UnmanagedType.LPWStr)]string title,
             [MarshalAs(UnmanagedType.LPWStr)]string message,

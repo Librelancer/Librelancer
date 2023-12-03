@@ -35,6 +35,5 @@ add_subdirectory(extern/lancerdecode lancerdecode)
 add_subdirectory(src/pangogame pangogame)
 add_subdirectory(src/crnlibglue crnlibglue)
 add_subdirectory(extern/thorncompiler thorncompiler)
-if (WIN32)
-  add_subdirectory(src/win32dialogs win32dialogs)
-endif()
+add_subdirectory(src/lancerdialogs lancerdialogs)
+

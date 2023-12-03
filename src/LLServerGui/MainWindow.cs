@@ -22,7 +22,7 @@ public class MainWindow : Game
     private AppLog log;
     private string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
     private ServerApp server;
-    
+
     protected override void Load()
     {
         log = new AppLog();
@@ -30,7 +30,6 @@ public class MainWindow : Game
         FLLog.AppendLine += LogAppendLine;
         guiRender = new ImGuiHelper(this, DpiScale);
         RenderContext.PushViewport(0, 0, Width, Height);
-        FileDialog.RegisterParent(this);
         if (File.Exists(configPath))
             config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
         else

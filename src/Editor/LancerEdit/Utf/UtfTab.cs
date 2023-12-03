@@ -14,6 +14,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Utf.Ale;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.Dialogs;
 using LibreLancer.ImageLib;
 using LibreLancer.Utf.Cmp;
 

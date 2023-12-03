@@ -18,6 +18,7 @@ using ImGuiNET;
 using LibreLancer.Client.Components;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.Dialogs;
 using LibreLancer.Render;
 using LibreLancer.Sur;
 using LibreLancer.World;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.Thn;
 
@@ -12,7 +13,7 @@ namespace LancerEdit;
 public class ThnPlayerTab : GameContentTab
 {
     private MainWindow win;
-    
+
     private DecompiledThn[] decompiled;
     private bool decompiledOpen = false;
 
@@ -29,7 +30,7 @@ public class ThnPlayerTab : GameContentTab
         public string Name;
         public string Text;
     }
-    
+
     public ThnPlayerTab(GameDataContext gameData, MainWindow mw)
     {
         Title = "Thn Player";
@@ -38,7 +39,7 @@ public class ThnPlayerTab : GameContentTab
         viewport = new Viewport3D(mw);
         viewport.EnableMSAA = false;
     }
-    
+
     void Open(params string[] files)
     {
         var lastFile = Path.GetFileName(files.Last());
@@ -53,7 +54,7 @@ public class ThnPlayerTab : GameContentTab
         cutscene = new Cutscene(ctx, gameData.GameData,  gameData.Resources, gameData.Sounds, new Rectangle(0,0,240,240), win);
         cutscene.BeginScene(files.Select(x => new ThnScript(x)));
     }
-    
+
     void Reload()
     {
         if (toReload != null) Open(toReload);
@@ -74,10 +75,10 @@ public class ThnPlayerTab : GameContentTab
             ImGui.OpenPopup("Open Multiple##" + Unique);
         }
         ImGui.SameLine();
-        if(ImGuiExt.ToggleButton("Decompiled", decompiledOpen, decompiled != null)) 
+        if(ImGuiExt.ToggleButton("Decompiled", decompiledOpen, decompiled != null))
             decompiledOpen = !decompiledOpen;
         ImGui.SameLine();
-        if(ImGuiExt.Button("Reload", cutscene != null)) 
+        if(ImGuiExt.Button("Reload", cutscene != null))
             Reload();
         viewport.Begin();
         if (cutscene != null)
@@ -87,7 +88,7 @@ public class ThnPlayerTab : GameContentTab
             cutscene.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
         }
         viewport.End();
-        
+
         bool popupopen = true;
         if (ImGui.BeginPopupModal("Open Multiple##" + Unique, ref popupopen, ImGuiWindowFlags.AlwaysAutoResize))
         {
@@ -110,7 +111,7 @@ public class ThnPlayerTab : GameContentTab
         }
         DrawDecompiled();
     }
-    
+
     void DrawDecompiled()
     {
         if (decompiled != null && decompiledOpen)

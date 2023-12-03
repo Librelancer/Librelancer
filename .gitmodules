@@ -20,9 +20,6 @@
 	path = extern/lua
 	url = https://github.com/lua/lua
 	branch = v5.3
-[submodule "extern/nativefiledialog"]
-	path = extern/nativefiledialog
-	url = https://github.com/mlabbe/nativefiledialog
 [submodule "extern/crunch"]
 	path = extern/crunch
 	url = https://github.com/DaemonEngine/crunch
@@ -50,3 +47,6 @@
 [submodule "extern/bepuphysics2"]
 	path = extern/bepuphysics2
 	url = https://github.com/bepu/bepuphysics2
+[submodule "extern/nativefiledialog-extended"]
+	path = extern/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended

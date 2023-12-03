@@ -10,6 +10,7 @@ using LibreLancer;
 using LibreLancer.Exceptions;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using LibreLancer.Dialogs;
 using Microsoft.Win32;
 
 namespace Launcher
@@ -27,7 +28,6 @@ namespace Launcher
             Title = "Librelancer";
             imGui = new ImGuiHelper(this, DpiScale);
             RenderContext.PushViewport(0, 0, Width, Height);
-            FileDialog.RegisterParent(this);
             freelancerFolder = new TextBuffer(512);
             config = GameConfig.Create();
             if (string.IsNullOrEmpty(config.FreelancerPath))

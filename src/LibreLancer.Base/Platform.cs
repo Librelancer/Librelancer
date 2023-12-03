@@ -20,6 +20,11 @@ namespace LibreLancer
         {
 
         }
+
+        public virtual void Poll()
+        {
+        }
+
         public abstract void Dispose();
     }
 

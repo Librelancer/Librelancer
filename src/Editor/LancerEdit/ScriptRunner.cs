@@ -11,6 +11,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 
 namespace LancerEdit
@@ -107,7 +108,7 @@ namespace LancerEdit
                         {
                             FileDialog.Open(StringArray.Add);
                         }
-                       
+
                         break;
                 }
                 ImGui.PopID();
@@ -117,11 +118,11 @@ namespace LancerEdit
         private static int _unique;
 
         private int unique = 0;
-        
+
         private EditScript script;
         private List<ScriptArgumentInstance> arguments = new List<ScriptArgumentInstance>();
         private MainWindow main;
-        
+
         public ScriptRunner(EditScript script, MainWindow main)
         {
             this.script = script;
@@ -129,7 +130,7 @@ namespace LancerEdit
             arguments = script.Arguments.Select(x => new ScriptArgumentInstance() { Argument = x }).ToList();
             this.main = main;
         }
-       
+
         private string GetBasePath()
         {
             using var processModule = Process.GetCurrentProcess().MainModule;

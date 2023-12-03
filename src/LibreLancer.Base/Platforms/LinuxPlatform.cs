@@ -10,13 +10,17 @@ namespace LibreLancer.Platforms
 {
 	class LinuxPlatform : IPlatform
 	{
+        [DllImport("libgtk-3.so.0")]
+        static extern bool gtk_init_check(IntPtr argc, IntPtr argv);
+
 		IntPtr fcconfig;
 
 		public LinuxPlatform()
         {
             fcconfig = LibFontConfig.FcInitLoadConfigAndFonts();
             LibFontConfig.FcConfigSetCurrent(fcconfig);
-		}
+            gtk_init_check(IntPtr.Zero, IntPtr.Zero);
+        }
 
         public string GetLocalConfigFolder()
         {

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Numerics;
 using ImGuiNET;
+using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 
 namespace LancerEdit;
@@ -19,7 +20,7 @@ public class TextDisplayWindow
         title = $"Text##{unique++}";
         this.Text = text;
     }
-    
+
     FileDialogFilters TextFilter = new FileDialogFilters(
         new FileFilter("Text Files",".txt")
     );

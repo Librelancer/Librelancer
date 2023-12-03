@@ -17,6 +17,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
 using LibreLancer.Data.Pilots;
+using LibreLancer.Dialogs;
 using LibreLancer.Render;
 using LibreLancer.Shaders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -104,7 +105,6 @@ namespace LancerEdit
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             Bell.Init(Audio);
-            FileDialog.RegisterParent(this);
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this);
 			Commands = new CommandBuffer();
