@@ -20,6 +20,7 @@ using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
 using LibreLancer.Sur;
 using LibreLancer.Thn;
+using SharpDX.MediaFoundation;
 
 namespace LancerEdit
 {
@@ -502,6 +503,7 @@ namespace LancerEdit
                             mat.Name = "FLAT PART MATERIAL";
                             mat.DtName = ResourceManager.WhiteTextureName;
                             mat.Dc = initialCmpColors[jColors++];
+                            mat.Initialize(res);
                             if (jColors >= initialCmpColors.Length) jColors = 0;
                             partMaterials.Add(i, mat);
                         }

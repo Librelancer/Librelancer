@@ -7,6 +7,8 @@ using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 using LibreLancer.World;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
@@ -16,6 +18,7 @@ public class ImportedModel
     public string Name;
     public ImportedModelNode Root;
     public Dictionary<string, ImageData> Images;
+    public Animation[] ImportAnimations;
 
     public static EditResult<ImportedModel> FromSimpleMesh(string name, SimpleMesh.Model input)
     {
@@ -23,7 +26,7 @@ public class ImportedModel
         foreach (var obj in input.Roots)
         {
             var res = GetLods(obj, autodetect);
-            if (res.IsError) 
+            if (res.IsError)
                 return new EditResult<ImportedModel>(null, res.Messages);
         }
         List<ImportedModelNode> nodes = new List<ImportedModelNode>();
@@ -45,6 +48,7 @@ public class ImportedModel
         m.Root.Construct = null;
         foreach (var child in m.Root.Children)
             child.Construct.ParentName = "Root";
+        m.ImportAnimations = input.Animations;
         return new EditResult<ImportedModel>(m);
     }
 
@@ -92,14 +96,17 @@ public class ImportedModel
         return true;
     }
 
-    static AbstractConstruct GetConstruct(ModelNode node, string childName, string parentName)
+    static (AbstractConstruct, bool) GetConstruct(ModelNode node, string childName, string parentName)
     {
         var rot = Matrix4x4.CreateFromQuaternion(node.Transform.ExtractRotation());
         var origin = Vector3.Transform(Vector3.Zero, node.Transform);
+        bool propsSet = false;
         if (!node.Properties.TryGetValue("construct", out var construct) ||
             !construct.AsString(out var contype))
         {
-            return new FixConstruct() {Rotation = rot, Origin = origin, ParentName = parentName, ChildName = childName};
+            return (
+                new FixConstruct() {Rotation = rot, Origin = origin, ParentName = parentName, ChildName = childName},
+                true);
         }
         PropertyValue pv;
         Vector3 axis;
@@ -110,18 +117,24 @@ public class ImportedModel
         {
             case "rev":
             {
-               
+
                 if(node.Properties.TryGetValue("offset", out pv))  pv.AsVector3(out offset);
                 if (!node.Properties.TryGetValue("axis_rotation", out pv) || !pv.AsVector3(out axis))
                     axis = Vector3.UnitY;
+                else
+                    propsSet = true;
                 if (!node.Properties.TryGetValue("min", out pv) || !pv.AsSingle(out min))
                     min = -90f;
+                else
+                    propsSet = true;
                 if (!node.Properties.TryGetValue("max", out pv) || !pv.AsSingle(out max))
                     max = 90f;
+                else
+                    propsSet = true;
                 if (min > max) {
                     (min, max) = (max, min);
                 }
-                return new RevConstruct()
+                return (new RevConstruct()
                 {
                     Rotation = rot, Origin = origin,
                     Min = MathHelper.DegreesToRadians(min),
@@ -130,21 +143,30 @@ public class ImportedModel
                     Offset = offset,
                     ParentName = parentName,
                     ChildName = node.Name,
-                };
+                }, propsSet);
             }
             case "pris":
             {
-                if(node.Properties.TryGetValue("offset", out pv))  pv.AsVector3(out offset);
+                if (node.Properties.TryGetValue("offset", out pv)) {
+                    propsSet = true;
+                    pv.AsVector3(out offset);
+                }
                 if (!node.Properties.TryGetValue("axis_translation", out pv) || !pv.AsVector3(out axis))
                     axis = Vector3.UnitY;
+                else
+                    propsSet = true;
                 if (!node.Properties.TryGetValue("min", out pv) || !pv.AsSingle(out min))
                     min = 0;
+                else
+                    propsSet = true;
                 if (!node.Properties.TryGetValue("max", out pv) || !pv.AsSingle(out max))
                     max = 1;
+                else
+                    propsSet = true;
                 if (min > max) {
                     (min, max) = (max, min);
                 }
-                return new PrisConstruct()
+                return (new PrisConstruct()
                 {
                     Rotation = rot, Origin = origin,
                     Min = min,
@@ -153,15 +175,25 @@ public class ImportedModel
                     Offset = offset,
                     ParentName = parentName,
                     ChildName = childName
-                };
+                }, propsSet);
             }
             case "sphere":
-                if(node.Properties.TryGetValue("offset", out pv))  pv.AsVector3(out offset);
-                if (!node.Properties.TryGetValue("min", out pv) || !pv.AsVector3(out var minaxis))
+                if (node.Properties.TryGetValue("offset", out pv)) {
+                    pv.AsVector3(out offset);
+                    propsSet = true;
+                }
+
+                if (!node.Properties.TryGetValue("min", out pv) || !pv.AsVector3(out var minaxis)) {
                     minaxis = new Vector3(-MathF.PI);
-                if (!node.Properties.TryGetValue("max", out pv) || !pv.AsVector3(out var maxaxis))
+                    propsSet = true;
+                }
+
+                if (!node.Properties.TryGetValue("max", out pv) || !pv.AsVector3(out var maxaxis)) {
                     maxaxis = new Vector3(MathF.PI);
-                return new SphereConstruct()
+                    propsSet = true;
+                }
+
+                return (new SphereConstruct()
                 {
                     Rotation = rot, Origin = origin,
                     Offset = offset,
@@ -169,10 +201,10 @@ public class ImportedModel
                     Max1 = maxaxis.X, Max2 = maxaxis.Y, Max3 = maxaxis.Z,
                     ParentName = parentName,
                     ChildName = childName
-                };
+                }, propsSet);
             case "fix":
             default:
-                return new FixConstruct() {Rotation = rot, Origin = origin, ParentName = parentName, ChildName = childName};
+                return (new FixConstruct() {Rotation = rot, Origin = origin, ParentName = parentName, ChildName = childName}, propsSet);
         }
     }
 
@@ -190,13 +222,13 @@ public class ImportedModel
         mdl.Name = obj.Name;
         if (obj.Name.EndsWith("$lod0", StringComparison.InvariantCultureIgnoreCase))
             mdl.Name = obj.Name.Remove(obj.Name.Length - 5, 5);
-        mdl.Construct = GetConstruct(obj, mdl.Name, parentName);
+        (mdl.Construct, mdl.ConstructPropertiesSet) = GetConstruct(obj, mdl.Name, parentName);
         mdl.Construct?.Reset();
         var geometry = autodetect[mdl.Name];
         foreach (var g in geometry)
             if (g != null) mdl.LODs.Add(g);
         foreach(var child in obj.Children) {
-            
+
             if(IsHull(child))
                 mdl.Hulls.Add(child);
             else if (IsWire(child))
@@ -232,14 +264,14 @@ public class ImportedModel
         }
         return true.AsResult();
     }
-    
+
     static bool CheckSuffix(string postfixfmt, string src, int count)
     {
         for (int i = 0; i < count; i++)
             if (src[src.Length - postfixfmt.Length + i] != postfixfmt[i]) return false;
         return true;
     }
-    
+
     //Autodetected LOD: object with geometry + suffix $lod[0-9]
     static int LodNumber(ModelNode obj, out string name)
     {
@@ -259,7 +291,7 @@ public class ImportedModel
             return false;
         return true;
     }
-    
+
     bool VerifyMaterials(ImportedModelNode r)
     {
         foreach (var l in r.LODs)
@@ -280,6 +312,7 @@ public class ImportedModel
         var expv = new LUtfNode() {Name = "Exporter Version", Parent = utf.Root};
         expv.StringData = "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>();
         utf.Root.Children.Add(expv);
+        List<EditMessage> warnings = new List<EditMessage>();
 
         if (string.IsNullOrWhiteSpace(Name))
             return EditResult<EditableUtf>.Error("Model name cannot be empty");
@@ -299,7 +332,33 @@ public class ImportedModel
             var cmpnd = new LUtfNode() {Name = "Cmpnd", Parent = utf.Root, Children = new List<LUtfNode>()};
             utf.Root.Children.Add(cmpnd);
             ExportModels(Name, utf.Root, suffix, vmslib, Root);
+            //Animations
+            if (ImportAnimations != null && ImportAnimations.Length > 0)
+            {
+                List<ImportedModelNode> allNodes = new List<ImportedModelNode>();
+                BuildNodeList(Root, allNodes);
+                List<LUtfNode> scriptNodes = new List<LUtfNode>();
+                foreach (var ani in ImportAnimations)
+                {
+                    var res = AnimationConversion.ImportAnimation(allNodes, ani);
+                    warnings.AddRange(res.Messages.Select(x => EditMessage.Warning(x.Message)));
+                    if(!res.IsError)
+                        scriptNodes.Add(res.Data);
+                }
+                if (scriptNodes.Count > 0)
+                {
+                    var anims = new LUtfNode() {Name = "Animation", Parent = utf.Root, Children = new List<LUtfNode>()};
+                    utf.Root.Children.Add(anims);
+                    var script = new LUtfNode() {Name = "Script", Parent = anims, Children = new List<LUtfNode>()};
+                    anims.Children.Add(script);
+                    foreach (var n in scriptNodes) {
+                        n.Parent = script;
+                        script.Children.Add(n);
+                    }
+                }
+            }
             int cmpndIndex = 1;
+            //Build compound nodes
             var consBuilder = new ConsBuilder();
             cmpnd.Children.Add(CmpndNode(cmpnd, "Root", Root.Name + suffix, "Root", 0));
             foreach (var child in Root.Children)
@@ -359,10 +418,9 @@ public class ImportedModel
             utf.Root.Children.Add(mats);
             utf.Root.Children.Add(txms);
         }
-
-        return utf.AsResult();
+        return new EditResult<EditableUtf>(utf, warnings);
     }
-    
+
     static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i)
     {
         var matnode = new LUtfNode() { Name = mat.Name, Parent = parent };
@@ -375,7 +433,7 @@ public class ImportedModel
         matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
         return matnode;
     }
-    
+
     static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data)
     {
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
@@ -383,7 +441,7 @@ public class ImportedModel
         texnode.Children.Add(TextureImport.ImportAsMIPSNode(data, texnode));
         return texnode;
     }
-    
+
     static LUtfNode DefaultTextureNode(LUtfNode parent, string name)
     {
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
@@ -418,6 +476,13 @@ public class ImportedModel
         public RevConstructor Rev;
         public PrisConstructor Pris;
         public SphereConstructor Sphere;
+    }
+
+    void BuildNodeList(ImportedModelNode node, List<ImportedModelNode> allNodes)
+    {
+        allNodes.Add(node);
+        foreach (var c in node.Children)
+            BuildNodeList(c, allNodes);
     }
 
     void ProcessConstruct(ImportedModelNode mdl, LUtfNode cmpnd, ConsBuilder cons, string suffix,
@@ -508,7 +573,7 @@ public class ImportedModel
         var writer = new BinaryWriter(ms);
         writer.Write(VMeshWire.HEADER_SIZE);
         writer.Write(crc);
-        writer.Write(vertexOffset); 
+        writer.Write(vertexOffset);
         writer.Write((ushort)(max - vertexOffset)); //vertex count
         writer.Write((ushort)(indices.Length)); //index count
         writer.Write(max); //max vertex
@@ -535,7 +600,7 @@ public class ImportedModel
                 {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry)});
             vms.Children.Add(n);
         }
-        
+
         if (vmeshlibrary == null)
             node3db.Children.Add(vms);
         if (mdl.LODs.Count > 1)
@@ -594,7 +659,7 @@ public class ImportedModel
             var hp = new ModelHpNode() {Node = node3db};
             hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x, null)).ToList());
         }
-        
+
         if (mdl.Wire != null)
         {
             ushort[] wireIndices = null;
