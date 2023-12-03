@@ -780,7 +780,7 @@ namespace LancerEdit
             }
 #endif
                 if (surFile != null) ProcessSur(surFile);
-            }, FileDialogFilters.SurFilters);
+            }, AppFilters.SurFilters);
         }
         void HierarchyPanel()
         {
@@ -1008,9 +1008,9 @@ namespace LancerEdit
                 ImGui.Checkbox("Include Hulls", ref exportSettings.IncludeHulls);
             }
             if (ImGui.Button("Export GLTF 2.0"))
-                Export(SimpleMesh.ModelSaveFormat.GLTF2, FileDialogFilters.GltfFilter);
+                Export(SimpleMesh.ModelSaveFormat.GLTF2, AppFilters.GltfFilter);
             if (ImGui.Button("Export Collada"))
-                Export(SimpleMesh.ModelSaveFormat.Collada, FileDialogFilters.ColladaFilter);
+                Export(SimpleMesh.ModelSaveFormat.Collada, AppFilters.ColladaFilter);
             if (ImGuiExt.Button("Export .blend", blenderEnabled))
             {
                 FileDialog.Save(output =>
@@ -1026,7 +1026,7 @@ namespace LancerEdit
                         var result = Blender.ExportBlenderFile(exported, output, _window.Config.BlenderPath);
                         _window.ResultMessages(result);
                     }
-                });
+                }, AppFilters.BlenderFilter);
             }
         }
 

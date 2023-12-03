@@ -445,7 +445,7 @@ namespace LancerEdit
 				}
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
 				{
-                    FileDialog.Open(OpenFile, FileDialogFilters.UtfFilters + FileDialogFilters.ThnFilters);
+                    FileDialog.Open(OpenFile, AppFilters.UtfFilters + AppFilters.ThnFilters);
                 }
 
                 recentFiles.Menu();
@@ -502,19 +502,19 @@ namespace LancerEdit
                 if(Theme.IconMenuItem(Icons.FileImport, "Import Model",true))
                 {
                     var filters = Blender.BlenderPathValid(Config.BlenderPath)
-                        ? FileDialogFilters.ImportModelFilters
-                        : FileDialogFilters.ImportModelFiltersNoBlender;
+                        ? AppFilters.ImportModelFilters
+                        : AppFilters.ImportModelFiltersNoBlender;
                     FileDialog.Open(TryImportModel, filters);
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
-                    FileDialog.Open(input => Make3dbDlg.Open(input), FileDialogFilters.ImageFilter);
+                    FileDialog.Open(input => Make3dbDlg.Open(input), AppFilters.ImageFilter);
                 }
                 if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
                     FileDialog.Open(
                         input => AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input))),
-                        FileDialogFilters.StateGraphFilter
+                        AppFilters.StateGraphFilter
                         );
                 }
 

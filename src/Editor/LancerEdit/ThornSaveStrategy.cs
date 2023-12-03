@@ -1,3 +1,4 @@
+using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 
@@ -46,7 +47,7 @@ namespace LancerEdit
                 FileDialog.Save(f =>
                 {
                     tab.Save(f);
-                }, FileDialogFilters.ThnFilters);
+                }, AppFilters.ThnFilters);
             }
         }
 
@@ -62,7 +63,7 @@ namespace LancerEdit
                 {
                     tab.ExportSource(f);
                 }
-            }, FileDialogFilters.ThnFilters);
+            }, AppFilters.ThnFilters);
         }
     }
 }

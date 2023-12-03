@@ -4,6 +4,7 @@
 
 using LibreLancer.ImUI;
 using System;
+using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 
 namespace LancerEdit
@@ -72,7 +73,7 @@ namespace LancerEdit
                     utfTab.UpdateTitle();
                     utfTab.FilePath = f;
                 }
-            }, FileDialogFilters.UtfFilters);
+            }, AppFilters.UtfFilters);
         }
     }
 }
