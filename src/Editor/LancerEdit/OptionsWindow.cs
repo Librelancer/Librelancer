@@ -121,6 +121,10 @@ namespace LancerEdit
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Default Camera");
+            Controls.DropdownButton("Default View", ref config.DefaultRenderMode, ModelViewer.ViewModes);
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Default View");
             var pastC = cFilter;
             ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
             if (cFilter != pastC)

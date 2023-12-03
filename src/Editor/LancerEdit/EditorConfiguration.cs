@@ -45,6 +45,8 @@ namespace LancerEdit
         public Color4 GridColor = Color4.CornflowerBlue * new Color4(0.5f, 0.5f, 0.5f, 1f);
         [Entry("default_camera_mode")]
         public int DefaultCameraMode = 0;
+        [Entry("default_render_mode")]
+        public int DefaultRenderMode = 0;
         [Entry("last_export_path")]
         private string lastExportPath;
         [Entry("blender_path")]
@@ -115,6 +117,7 @@ namespace LancerEdit
                 writer.WriteLine($"background_gradient = {(BackgroundGradient ? "true" : "false")}");
                 writer.WriteLine($"grid_color = {FormatColor(GridColor)}");
                 writer.WriteLine($"default_camera_mode = {DefaultCameraMode}");
+                writer.WriteLine($"default_render_mode = {DefaultRenderMode}");
                 writer.WriteLine(Invariant($"ui_scale = {UiScale:F4}"));
                 if(!string.IsNullOrWhiteSpace(lastExportPath))
                     writer.WriteLine($"last_export_path = {lastExportPath}");

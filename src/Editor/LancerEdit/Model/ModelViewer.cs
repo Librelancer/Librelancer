@@ -35,7 +35,7 @@ namespace LancerEdit
         ResourceManager res;
         public string Name;
         int viewMode = 0;
-        private static readonly DropdownOption[] viewModes = new[]
+        public static readonly DropdownOption[] ViewModes = new[]
         {
             new DropdownOption("Textured", Icons.Image),
             new DropdownOption("Lit", Icons.Lightbulb),
@@ -102,6 +102,7 @@ namespace LancerEdit
         {
             blenderEnabled = Blender.BlenderPathValid(win.Config.BlenderPath);
             selectedCam = win.Config.DefaultCameraMode;
+            viewMode = win.Config.DefaultRenderMode;
             Title = string.Format("Model Viewer ({0})",name);
             Name = name;
             this.drawable = drawable;
@@ -282,7 +283,7 @@ namespace LancerEdit
                 if (ImGuiExt.ToggleButton(Icons.Warning.ToString(), showWarnings)) showWarnings = !showWarnings;
                 ImGui.SameLine();
             }
-            Controls.DropdownButton("View Mode", ref viewMode, viewModes);
+            Controls.DropdownButton("View Mode", ref viewMode, ViewModes);
             ImGui.SameLine();
             using (var ct = Toolbar.Begin("#controls", true)) {
                 ct.CheckItem("Background", ref doBackground);
