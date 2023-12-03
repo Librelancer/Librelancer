@@ -968,15 +968,14 @@ public class SystemEditorTab : GameContentTab
 
         if (hk == Hotkeys.Copy && ObjectMode && objectList.Selection.Count > 0)
         {
-            win.Clipboard = objectList.Selection
+            win.SystemEditCopy(objectList.Selection
                 .Select(x => (GetEditData(x, false) ?? new ObjectEditData(x)).MakeCopy())
-                .ToArray();
+                .ToArray());
         }
 
-        if (hk == Hotkeys.Paste && ObjectMode && win.Clipboard is ObjectEditData[] objs)
+        if (hk == Hotkeys.Paste && ObjectMode && win.SystemEditClipboard is ObjectEditData[] objs)
         {
-            objectList.SetObjects(World);
-            objectList.Selection = new List<GameObject>();
+            var sel = new List<GameObject>();
             foreach (var o in objs)
             {
                 string n = o.SystemObject.Nickname;
@@ -991,8 +990,10 @@ public class SystemEditorTab : GameContentTab
                     newData.Loadout, newData.Archetype);
                 newData.Parent = newObject;
                 newObject.AddComponent(newData);
-                objectList.Selection.Add(newObject);
+                sel.Add(newObject);
             }
+            objectList.SetObjects(World);
+            objectList.Selection = sel;
 
             objectList.SelectedTransform = objectList.Selection[0].LocalTransform;
         }

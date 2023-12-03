@@ -598,8 +598,13 @@ namespace LancerEdit
         LUtfNode addNode;
         LUtfNode addParent;
 
+        private bool canPaste = false;
+
         void DoNodeMenu(string id, LUtfNode node, LUtfNode parent)
         {
+            if (ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right)) {
+                canPaste = main.ClipboardStatus() == ClipboardContents.Array;
+            }
             if (ImGui.BeginPopupContextItem(id))
             {
                 ImGui.MenuItem(node.Name, false);
@@ -676,46 +681,32 @@ namespace LancerEdit
                 if (Theme.IconMenuItem(Icons.Cut, "Cut", node != Utf.Root))
                 {
                     parent.Children.Remove(node);
-                    main.ClipboardCopy = false;
-                    main.Clipboard = node;
+                    main.SetClipboardArray(UtfClipboard.ToBytes(node));
                 }
                 if (Theme.IconMenuItem(Icons.Copy, "Copy", node != Utf.Root))
                 {
-                    main.ClipboardCopy = true;
-                    main.Clipboard = node.MakeCopy();
+                    main.SetClipboardArray(UtfClipboard.ToBytes(node));
                 }
-                if (main.Clipboard is LUtfNode utfNode)
+                if (canPaste)
                 {
                     if (Theme.BeginIconMenu(Icons.Paste, "Paste"))
                     {
                         if (ImGui.MenuItem("Before", node != Utf.Root))
                         {
-                            if (main.ClipboardCopy)
+                            var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
+                            if (cpy != null)
                             {
-                                var cpy = utfNode.MakeCopy();
                                 cpy.Parent = parent;
                                 parent.Children.Insert(parent.Children.IndexOf(node), cpy);
-                            }
-                            else
-                            {
-                                utfNode.Parent = parent;
-                                parent.Children.Insert(parent.Children.IndexOf(node), utfNode);
-                                main.Clipboard = null;
                             }
                         }
                         if (ImGui.MenuItem("After", node != Utf.Root))
                         {
-                            if (main.ClipboardCopy)
+                            var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
+                            if (cpy != null)
                             {
-                                var cpy = utfNode.MakeCopy();
                                 cpy.Parent = parent;
                                 parent.Children.Insert(parent.Children.IndexOf(node) + 1, cpy);
-                            }
-                            else
-                            {
-                                utfNode.Parent = parent;
-                                parent.Children.Insert(parent.Children.IndexOf(node) + 1, utfNode);
-                                main.Clipboard = null;
                             }
                         }
                         if (ImGui.MenuItem("Into"))
@@ -723,17 +714,11 @@ namespace LancerEdit
                             if (node.Data == null)
                             {
                                 if (node.Children == null) node.Children = new List<LUtfNode>();
-                                if (main.ClipboardCopy)
+                                var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
+                                if (cpy != null)
                                 {
-                                    var cpy = utfNode.MakeCopy();
                                     cpy.Parent = node;
                                     node.Children.Add(cpy);
-                                }
-                                else
-                                {
-                                    utfNode.Parent = node;
-                                    node.Children.Add(utfNode);
-                                    main.Clipboard = null;
                                 }
                             }
                             else
@@ -743,17 +728,11 @@ namespace LancerEdit
                                 {
                                     pasteInto.Data = null;
                                     pasteInto.Children = new List<LUtfNode>();
-                                    if (main.ClipboardCopy)
+                                    var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
+                                    if (cpy != null)
                                     {
-                                        var cpy = utfNode.MakeCopy();
                                         cpy.Parent = pasteInto;
                                         pasteInto.Children.Add(cpy);
-                                    }
-                                    else
-                                    {
-                                        utfNode.Parent = pasteInto;
-                                        pasteInto.Children.Add(utfNode);
-                                        main.Clipboard = null;
                                     }
                                 });
                             }

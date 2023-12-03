@@ -18,6 +18,14 @@ using LibreLancer.Dialogs;
 namespace LibreLancer
 {
     public delegate void ScreenshotSaveHandler(string filename, int width, int height, byte[] data);
+
+    public enum ClipboardContents
+    {
+        Text,
+        Array,
+        None
+    }
+
     public class Game : IUIThread, IGLWindow
     {
         int width;
@@ -149,13 +157,42 @@ namespace LibreLancer
             return true;
         }
 
+        public ClipboardContents ClipboardStatus()
+        {
+            if (SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE)
+            {
+                var text = SDL.SDL_GetClipboardText();
+                if (L85.IsL85String(text))
+                    return ClipboardContents.Array;
+                return ClipboardContents.Text;
+            }
+            return ClipboardContents.None;
+        }
+
         public string GetClipboardText()
         {
-            return SDL.SDL_GetClipboardText();
+            var text = SDL.SDL_GetClipboardText();
+            if (L85.IsL85String(text))
+                return null;
+            return text;
         }
+
         public void SetClipboardText(string text)
         {
             SDL.SDL_SetClipboardText(text);
+        }
+
+        public byte[] GetClipboardArray()
+        {
+            var text = SDL.SDL_GetClipboardText();
+            if (L85.IsL85String(text))
+                return L85.FromL85String(text);
+            return null;
+        }
+
+        public void SetClipboardArray(byte[] array)
+        {
+            SDL.SDL_SetClipboardText(L85.ToL85String(array));
         }
         IntPtr curArrow;
         IntPtr curMove;

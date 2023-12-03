@@ -181,19 +181,30 @@ namespace LancerEdit
                 editor.OnHotkey(hk, (mods & KeyModifiers.Shift) != 0);
         }
 
+        public object SystemEditClipboard { get; private set; }
 
-		bool openAbout = false;
+        private double onSet = 0;
+        public void SystemEditCopy(object obj)
+        {
+            SetClipboardText("[OBJECT]");
+            SystemEditClipboard = obj;
+            onSet = TimerTick;
+        }
+        protected override void OnClipboardUpdate()
+        {
+            if ((onSet + 0.25) < TimerTick)
+            {
+                SystemEditClipboard = null;
+                FLLog.Debug("LancerEdit", "OnClipboardUpdate");
+            }
+        }
+
+
+        bool openAbout = false;
         public TabControl TabControl = new TabControl();
 		public List<MissingReference> MissingResources = new List<MissingReference>();
 		public List<uint> ReferencedMaterials = new List<uint>();
 		public List<TextureReference> ReferencedTextures = new List<TextureReference>();
-		public bool ClipboardCopy = true;
-		public object Clipboard;
-
-        protected override void OnClipboardUpdate()
-        {
-            Clipboard = null;
-        }
 
         List<DockTab> toAdd = new List<DockTab>();
 		double frequency = 0;
