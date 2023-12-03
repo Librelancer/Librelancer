@@ -125,18 +125,20 @@ static unsafe class GLib
         private IntPtr monitor;
 
         delegate void MonitorCallback(IntPtr a, IntPtr b);
+
+        private MonitorCallback cb;
         public void Start()
         {
             //Asynchronously update mounts whenever they are changed
-            var del = (MonitorCallback) ((_, _) => dispatch.QueueUIThread(() =>
+            cb = (MonitorCallback) ((_, _) => dispatch.QueueUIThread(() =>
             {
                 Platform.OnMountsChanged(GetMounts());
             }));
-            var cb = Marshal.GetFunctionPointerForDelegate(del);
+            var ptr = Marshal.GetFunctionPointerForDelegate(cb);
             monitor = g_volume_monitor_get();
-            SignalConnect(monitor, "mount-added", cb, null);
-            SignalConnect(monitor, "mount-removed", cb, null);
-            SignalConnect(monitor, "mount-changed", cb, null);
+            SignalConnect(monitor, "mount-added", ptr, null);
+            SignalConnect(monitor, "mount-removed", ptr, null);
+            SignalConnect(monitor, "mount-changed", ptr, null);
         }
 
         public override void Poll()
