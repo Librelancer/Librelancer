@@ -18,7 +18,7 @@ namespace LancerEdit
             popups.AddPopup("Texture Import", TexImportDialog);
             popups.AddPopup("Confirm?##stringedit", StringConfirm, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("String Editor", StringEditor, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Hex Editor", HexEditor);
+            popups.AddPopup("Hex Editor", HexEditor, 0, false, new Vector2(300,200) * ImGuiHelper.Scale);
             popups.AddPopup("Color Picker", ColorPicker, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("New Node", AddPopup, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("Rename Node", Rename, ImGuiWindowFlags.AlwaysAutoResize);
@@ -185,13 +185,13 @@ namespace LancerEdit
         byte[] hexdata;
         void HexEditor(PopupData data)
         {
-            ImGui.SameLine(ImGui.GetWindowWidth() - 90);
+            ImGui.SameLine(ImGui.GetWindowWidth() - 90 * ImGuiHelper.Scale);
             if (ImGui.Button("Ok"))
             {
                 selectedNode.Data = hexdata;
                 ImGui.CloseCurrentPopup();
             }
-            ImGui.SameLine(ImGui.GetWindowWidth() - 60);
+            ImGui.SameLine(ImGui.GetWindowWidth() - 60 * ImGuiHelper.Scale);
             if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
             ImGui.PushFont(ImGuiHelper.Default);
             mem.DrawContents(hexdata, hexdata.Length);

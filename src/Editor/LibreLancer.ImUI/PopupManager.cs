@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 
@@ -25,6 +26,9 @@ namespace LibreLancer.ImUI
             public PopupData Data;
             public ImGuiWindowFlags Flags;
 
+            public override Vector2 InitSize => Size;
+
+            public Vector2 Size;
             public override bool NoClose => Data.NoClose;
 
             public override ImGuiWindowFlags WindowFlags => Flags;
@@ -51,7 +55,7 @@ namespace LibreLancer.ImUI
             toOpens.Add(popup.Title);
             openPopups.Add(popup);
         }
-        
+
         public void AddPopup<T>(string title, Action<PopupData, T> action, ImGuiWindowFlags flags = 0)
         {
             actionPopups.Add(title,
@@ -65,7 +69,7 @@ namespace LibreLancer.ImUI
             );
         }
 
-        public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0, bool noClose = false)
+        public void AddPopup(string title, Action<PopupData> action, ImGuiWindowFlags flags = 0, bool noClose = false, Vector2? initSize = null)
         {
             actionPopups.Add(title,
                 new PopupContext()
@@ -74,6 +78,7 @@ namespace LibreLancer.ImUI
                     DrawAction = action,
                     Flags = flags,
                     Data = new PopupData() { NoClose =  noClose },
+                    Size = initSize ?? Vector2.Zero,
                 }
             );
         }
@@ -83,7 +88,7 @@ namespace LibreLancer.ImUI
             actionPopups[title].Data.First = true;
             actionPopups[title].Data.DoFocus = true;
             toOpens.Add(title);
-            openPopups.Add(actionPopups[title]);        
+            openPopups.Add(actionPopups[title]);
         }
 
         public void OpenPopup<T>(string title, T args)

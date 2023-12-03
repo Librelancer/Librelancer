@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer.ContentEdit;
+using LibreLancer.ImUI;
 
 namespace LancerEdit
 {
@@ -13,6 +14,7 @@ namespace LancerEdit
 	{
 		public static void IntEditor(string title, ref int[] ints, ref bool intHex, LUtfNode selectedNode)
 		{
+            ImGui.SetNextWindowSize(new Vector2(300,200) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
 			if (ImGui.BeginPopupModal(title))
 			{
 				bool remove = false;
@@ -27,7 +29,7 @@ namespace LancerEdit
 				ImGui.Separator();
 				//Magic number 94px seems to fix the scrollbar thingy
 				var h = ImGui.GetWindowHeight();
-				ImGui.BeginChild("##scroll", new Vector2(0, h - 94), false, 0);
+				ImGui.BeginChild("##scroll", new Vector2(0, h - 94 * ImGuiHelper.Scale), false, 0);
 				ImGui.Columns(4, "##columns", true);
 					for (int i = 0; i < ints.Length; i++)
 					{
@@ -57,6 +59,7 @@ namespace LancerEdit
 		}
 		public static void FloatEditor(string title, ref float[] floats, LUtfNode selectedNode)
 		{
+            ImGui.SetNextWindowSize(new Vector2(300,200) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
 			if (ImGui.BeginPopupModal(title))
 			{
 				bool remove = false;
@@ -69,7 +72,7 @@ namespace LancerEdit
 				ImGui.Separator();
 				//Magic number 94px seems to fix the scrollbar thingy
 				var h = ImGui.GetWindowHeight();
-				ImGui.BeginChild("##scroll", new Vector2(0, h - 94), false, 0);
+				ImGui.BeginChild("##scroll", new Vector2(0, h - 94 * ImGuiHelper.Scale), false, 0);
 				ImGui.Columns(4, "##columns", true);
                 for (int i = 0; i < floats.Length; i++)
                 {
