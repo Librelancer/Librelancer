@@ -3,10 +3,8 @@
 // [Argument]
 // name = Type
 // type = dropdown
-// option = ship
-// option = ship_dxt
-// option = commodity
-// option = commodity_dxt
+// option = DXT
+// option = Uncompressed
 // [Argument]
 // name = Output Folder
 // type = folder
@@ -16,8 +14,8 @@
 if(Arguments.Length < 3) {
     Console.Error.WriteLine("usage: img2icon TYPE output-directory/ file.png ...");
     Console.Error.WriteLine("Types: ");
-    Console.Error.WriteLine("tga");
     Console.Error.WriteLine("dxt");
+    Console.Error.WriteLine("uncompressed");
 	return;
 }
 
@@ -39,7 +37,7 @@ for(int i = 2; i < Arguments.Length; i++) {
 
     var utfSave = utf.Save(outfile, 0);
     PrintMessages(utfSave);
-        
+
     if(utfSave.IsError) {
         Console.WriteLine($"Error writing 'outfile'.");
         continue;
