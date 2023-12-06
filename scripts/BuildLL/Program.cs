@@ -278,6 +278,11 @@ namespace BuildLL
             });
             Target("Test", DependsOn("GenerateVersion"), () => {
                 Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj");
+                Console.WriteLine("Testing compile of editor scripts");
+                foreach(var f in Directory.GetFiles("./src/Editor/LancerEdit/editorscripts", "*.cs-script")) {
+                    Console.WriteLine($"Compiling '{f}'");
+                    Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", $"--test-compile \"{f}\"");
+                }
             });
 
             static void TarDirectory(string file, string dir)

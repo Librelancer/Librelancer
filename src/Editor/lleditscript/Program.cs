@@ -14,6 +14,7 @@ using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
 using LibreLancer.Options;
+using Microsoft.CodeAnalysis;
 
 namespace lleditscript
 {
@@ -29,14 +30,14 @@ namespace lleditscript
 
         private string scriptName;
         private string usage = "";
-        
+
         public void ScriptUsage(string usage)
         {
             this.usage = usage;
         }
 
-        private OptionSet os = new OptionSet();        
-        
+        private OptionSet os = new OptionSet();
+
         public void PrintMessages<T>(EditResult<T> result)
         {
             foreach(var m in result.Messages)
@@ -97,9 +98,9 @@ namespace lleditscript
             foreach (var f in filenames)
                 AssertFileExists(f);
         }
-        
+
     }
-    
+
     class Program
     {
         private static readonly string[] Namespaces =
@@ -117,7 +118,7 @@ namespace lleditscript
         {
             return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "editorscripts");
         }
-        
+
         static string ModuleEditorScriptPath()
         {
             using var processModule = Process.GetCurrentProcess().MainModule;
@@ -132,11 +133,12 @@ namespace lleditscript
         static int Main(string[] args)
         {
             AppHandler.ConsoleInit(true);
-            
+
             bool argsStdin = false;
             bool modulePath = false;
+            bool testCompile = false;
             int argStart;
-            
+
             for (argStart = 0; argStart < args.Length; argStart++)
             {
                 var a = args[argStart];
@@ -145,7 +147,10 @@ namespace lleditscript
                 }
                 else if (a == "-m") {
                     modulePath = true;
-                } 
+                }
+                else if (a == "--test-compile") {
+                    testCompile = true;
+                }
                 else if (a == "--") {
                     argStart++;
                     break;
@@ -154,7 +159,7 @@ namespace lleditscript
                     break;
                 }
             }
-            
+
             if (args.Length <= argStart)
             {
                 Console.Error.WriteLine("Usage: lleditscript [--args-stdin] [-m] script.cs [arguments]");
@@ -188,7 +193,7 @@ namespace lleditscript
             {
                 scriptArguments = args.Skip(argStart + 1).ToArray();
             }
-            
+
             string scriptText = null;
             if (!File.Exists(filePath))
             {
@@ -209,15 +214,28 @@ namespace lleditscript
                     typeof(FreelancerGame).Assembly, typeof(string).Assembly,
                     typeof(EditableUtf).Assembly, typeof(Game).Assembly)
                     .WithImports(Namespaces).WithAllowUnsafe(true).WithFilePath(filePath);
-                var globals = new Globals(scriptArguments, 
+                var globals = new Globals(scriptArguments,
                     modulePath ? $"-m {args[argStart]}" : args[argStart]);
                 var script = CSharpScript.Create(scriptText, opts, typeof(Globals));
-                var tk = script.RunAsync(globals);
-                tk.Wait();
-                if (tk.Result.Exception != null)
+                if (testCompile)
                 {
-                    LogException(tk.Result.Exception);
-                    return 1;
+                    var result = script.Compile();
+                    foreach (var diag in result)
+                    {
+                        Console.WriteLine(diag);
+                    }
+                    if (result.Any(x => x.Severity == DiagnosticSeverity.Error))
+                        return 1;
+                }
+                else
+                {
+                    var tk = script.RunAsync(globals);
+                    tk.Wait();
+                    if (tk.Result.Exception != null)
+                    {
+                        LogException(tk.Result.Exception);
+                        return 1;
+                    }
                 }
             }
             catch (Exception e)
@@ -225,7 +243,7 @@ namespace lleditscript
                 LogException(e);
                 return 1;
             }
-        
+
             return 0;
         }
 
