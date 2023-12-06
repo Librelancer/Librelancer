@@ -152,7 +152,7 @@ public class SystemEditorTab : GameContentTab
         {
             if (ImGui.Button("New Zone"))
             {
-                popups.OpenPopup(new NicknameInputPopup("New Zone", "", ZoneList.ZoneExists, n =>
+                popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("New Zone", ZoneList.ZoneExists), "", n =>
                 {
                     var rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
                               Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
@@ -194,11 +194,14 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow("Nickname", sel.Nickname);
         if (ImGui.Button($"{Icons.Edit}##nickname"))
         {
-            popups.OpenPopup(new NicknameInputPopup("Rename", sel.Nickname, x => ZoneList.HasZone(x), x =>
-            {
-                sel.Nickname = x;
-                ZoneList.SetZonesDirty(ez);
-            }));
+            popups.OpenPopup(new NameInputPopup(
+                NameInputConfig.Nickname("Rename", x => ZoneList.HasZone(x)),
+                sel.Nickname,
+                x => {
+                    sel.Nickname = x;
+                    ZoneList.SetZonesDirty(ez);
+                }
+            ));
         }
 
         Controls.PropertyRow("Name", Data.Infocards.GetStringResource(sel.IdsName));
@@ -487,13 +490,14 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow("Nickname", sel.Nickname);
         if (ImGui.Button($"{Icons.Edit}##nickname"))
         {
-            popups.OpenPopup(new NicknameInputPopup("Rename", sel.Nickname, n => (World.GetObject(n) != null), x =>
-            {
-                GetEditData(sel);
-                sel.Nickname = x;
-                objectList.SetObjects(World);
-                objectList.ScrollToSelection();
-            }));
+            popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("Rename", n => World.GetObject(n) != null),
+                sel.Nickname, x =>
+                {
+                    GetEditData(sel);
+                    sel.Nickname = x;
+                    objectList.SetObjects(World);
+                    objectList.ScrollToSelection();
+                }));
         }
 
         Controls.PropertyRow("Name", ed == null

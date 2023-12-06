@@ -24,8 +24,8 @@ public class UniverseEditorTab : EditorTab
 
     private const string NAV_PRETTYMAP = "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db";
     private List<(Vector2, Vector2)> connections = new List<(Vector2, Vector2)>();
-    
-    
+
+
     public UniverseEditorTab(GameDataContext gameData, MainWindow win)
     {
         Title = "Universe Editor";
@@ -54,7 +54,7 @@ public class UniverseEditorTab : EditorTab
         connections = new List<(Vector2, Vector2)>();
         foreach (var sys in gameData.GameData.Systems) {
             foreach (var obj in sys.Objects) {
-                if(obj.Dock?.Kind == DockKinds.Jump && 
+                if(obj.Dock?.Kind == DockKinds.Jump &&
                    !obj.Dock.Target.Equals(sys.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
                     var conn = $"{sys.Nickname};{obj.Dock.Target}".ToLowerInvariant();
@@ -71,7 +71,7 @@ public class UniverseEditorTab : EditorTab
             }
         }
     }
-    
+
     public override void Draw(double elapsed)
     {
         ImGui.BeginTabBar("##universetabs");
@@ -96,7 +96,7 @@ public class UniverseEditorTab : EditorTab
     void DrawSystems()
     {
         if (ImGui.Button("New System")) {
-            popups.OpenPopup(new NicknameInputPopup("New System", "", gameData.GameData.Systems.Contains, NewSystem));
+            popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("New System", gameData.GameData.Systems.Contains), "", NewSystem));
         }
         ImGui.SameLine();
         if(ImGui.Button("Refresh Connections"))
@@ -117,7 +117,7 @@ public class UniverseEditorTab : EditorTab
         ImGui.NextColumn();
         var size = (int)Math.Min(ImGui.GetWindowHeight(), ImGui.GetColumnWidth()) - 10;
         var selected = UniverseMap.Draw(
-            universeBackgroundRegistered, 
+            universeBackgroundRegistered,
             gameData.GameData, connections, size, size,
             25
         );

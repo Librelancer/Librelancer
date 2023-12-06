@@ -77,7 +77,7 @@ namespace LancerEdit
             };
             Config = EditorConfiguration.Load();
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-            quickFileBrowser = new QuickFileBrowser(Config, this);
+            quickFileBrowser = new QuickFileBrowser(Config, this, popups);
             quickFileBrowser.FileSelected += OpenFile;
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);

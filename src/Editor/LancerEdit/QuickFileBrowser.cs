@@ -217,7 +217,18 @@ class DirectoryListing
 
 }
 
-public record BrowserFavorite(string Name, string FullPath);
+public class BrowserFavorite
+{
+    public string Name;
+    public string FullPath;
+
+    public BrowserFavorite(string name, string fullPath)
+    {
+        Name = name;
+        FullPath = fullPath;
+    }
+}
+
 
 
 public class QuickFileBrowser
@@ -249,13 +260,16 @@ public class QuickFileBrowser
         currentDirectory.Resort();
     }
 
-    public QuickFileBrowser(EditorConfiguration config, IUIThread uiThread)
+    private PopupManager popups;
+
+    public QuickFileBrowser(EditorConfiguration config, IUIThread uiThread, PopupManager popups)
     {
         drives = Platform.GetMounts();
         Platform.MountsChanged += MountsChanged;
         ResetToHome();
         this.config = config;
         this.uiThread = uiThread;
+        this.popups = popups;
     }
 
 
@@ -589,6 +603,14 @@ public class QuickFileBrowser
                 var d = config.Favorites[i];
                 if (ImGui.Selectable(ImGuiExt.IDWithExtra(d.Name, d.FullPath), fav == i) && fav != i)
                     ClickedDirectory(d.FullPath);
+                if (ImGui.BeginPopupContextItem($"##fav{i}"))
+                {
+                    if (ImGui.MenuItem("Rename"))
+                    {
+                        popups.OpenPopup(new NameInputPopup(NameInputConfig.Rename(), d.Name, x => d.Name = x));
+                    }
+                    ImGui.EndPopup();
+                }
             }
         }
         ImGui.PopStyleColor();
