@@ -13,12 +13,12 @@ public class SystemObjectList
 {
     public event Action<GameObject> OnMoveCamera;
     public event Action<GameObject> OnDelete;
-    
+
     public List<GameObject> Selection = new List<GameObject>();
     public Matrix4x4 SelectedTransform;
 
     public IEnumerable<GameObject> Objects => allObjects;
-    
+
     private GameObject[] allObjects = Array.Empty<GameObject>();
     private GameObject[] filteredObjects = Array.Empty<GameObject>();
     private string filterText = "";
@@ -29,7 +29,7 @@ public class SystemObjectList
         this.win = win;
         textCallback = OnTextChanged;
     }
-    
+
     public void SelectSingle(GameObject obj)
     {
         SelectedTransform = obj?.LocalTransform ?? Matrix4x4.Identity;
@@ -38,7 +38,7 @@ public class SystemObjectList
         if(obj != null)
             Selection.Add(obj);
     }
-    
+
     public void SetObjects(GameWorld world)
     {
         allObjects = world.Objects.Where(x => x.SystemObject != null)
@@ -47,13 +47,13 @@ public class SystemObjectList
     }
 
     private bool doScroll = false;
-    
+
     bool IsPrimarySelection(GameObject obj) =>
         Selection.Count > 0 && Selection[0] == obj;
-    
+
     bool ShouldAddSecondary() => Selection.Count > 0 && (win.Keyboard.IsKeyDown(Keys.LeftShift) ||
                                                          win.Keyboard.IsKeyDown(Keys.RightShift));
-    
+
     public void ScrollToSelection()
     {
         doScroll = true;
@@ -82,7 +82,9 @@ public class SystemObjectList
         ImGui.InputTextWithHint("##filter", "Filter", ref filterText, 250, ImGuiInputTextFlags.CallbackEdit, textCallback);
         ImGui.PopItemWidth();
         ImGui.BeginChild("##objlist");
+        int i = 0;
         foreach (var obj in filteredObjects) {
+            ImGui.PushID(i++);
             bool isPrimary = IsPrimarySelection(obj);
             bool isSelected = Selection.Contains(obj);
             bool addSecondary = ShouldAddSecondary();
@@ -123,6 +125,7 @@ public class SystemObjectList
                     OnDelete(obj);
                 ImGui.EndPopup();
             }
+            ImGui.PopID();
         }
         ImGui.EndChild();
         doScroll = false;

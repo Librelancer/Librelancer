@@ -20,10 +20,10 @@ public class ZoneList
     public List<EditZone> Zones = new List<EditZone>();
     public List<AsteroidField> AsteroidFields = new List<AsteroidField>();
     public List<Nebula> Nebulae = new List<Nebula>();
-    
+
     public EditZone Selected;
     public EditZone HoveredZone;
-    
+
     private bool dirtyOrder = false;
     private bool dirtyZones = false;
 
@@ -93,7 +93,7 @@ public class ZoneList
         Zones.Add(ez);
         return ez;
     }
-    
+
     public void SetZonesDirty(EditZone z)
     {
          dirtyZones = true;
@@ -119,8 +119,8 @@ public class ZoneList
 
         AsteroidFields = asteroidFields.Select(x => x.Clone(zoneDict)).ToList();
         Nebulae = nebulae.Select(x => x.Clone(zoneDict)).ToList();
-        
-        
+
+
         //asteroid fields
         foreach (var ast in AsteroidFields)
         {
@@ -173,7 +173,7 @@ public class ZoneList
         for (int i = 0; i < Zones.Count; i++)
         {
             var z = Zones[i];
-            ImGui.PushID(z.Current.Nickname);
+            ImGui.PushID(i);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.One);
             Controls.VisibleButton(z.Current.Nickname, ref z.Visible);
             ImGui.SameLine();
@@ -215,5 +215,5 @@ public class ZoneList
             dirtyOrder = true;
         }
     }
-    
+
 }
