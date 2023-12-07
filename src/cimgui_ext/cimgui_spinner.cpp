@@ -7,6 +7,11 @@
 #include "imgui_internal.h"
 #include <cmath>
 
+IGEXPORT const char* igExtGetVersion()
+{
+    return IMGUI_VERSION;
+}
+
 IGEXPORT bool igExtSpinner(const char* label, float radius, int thickness, int color) {
 	using namespace ImGui;
     ImGuiWindow* window = GetCurrentWindow();

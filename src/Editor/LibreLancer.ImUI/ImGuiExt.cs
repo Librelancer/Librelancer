@@ -17,7 +17,16 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui", EntryPoint = "igExtSplitterV", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool SplitterV(float thickness, ref float size1, ref float size2, float min_size1, float min_size2, float splitter_long_axis_size);
-        
+
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        static extern IntPtr igExtGetVersion();
+
+        public static readonly string Version;
+
+        static ImGuiExt()
+        {
+            Version = Marshal.PtrToStringUTF8(igExtGetVersion());
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct ImFontGlyph
@@ -30,7 +39,7 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         public static extern ImFontGlyph* igFontFindGlyph(ImFont* font, uint c);
-        
+
         public static unsafe bool BeginModalNoClose(string name, ImGuiWindowFlags flags)
         {
             byte* native_name;
@@ -83,7 +92,7 @@ namespace LibreLancer.ImUI
            ImGui.EndDisabled();
            return r;
         }
-        
+
         /// <summary>
         /// Button that can be disabled
         /// </summary>
@@ -167,7 +176,7 @@ namespace LibreLancer.ImUI
             ImGuiHelper.AnimatingElement();
             return _Spinner(label, radius, thickness, color);
         }
-        
+
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
         static extern bool _Spinner(string label, float radius, int thickness, uint color);
 	}
