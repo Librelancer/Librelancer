@@ -1,0 +1,86 @@
+// [Script]
+// name = Export textures from files
+// [Argument]
+// name = Output Folder
+// type = folder
+// [Argument]
+// name = Recursive
+// type = flag
+// flag = recursive
+// [Argument]
+// name = Files/Folders
+// type = filefolderarray
+// ; Copyright (c) 2022 Brian Hernandez
+using System.IO;
+using System.Linq;
+
+bool recursive = false;
+FlagOption("recursive", "Traverse directories recursively", v => recursive = v);
+
+ScriptUsage("outputdir/ file/directory ...");
+
+var args = ParseArguments(2);
+
+var directory = args[0];
+Directory.CreateDirectory(directory);
+
+int exportTotal = 0;
+
+string[] exts = { ".cmp", ".mat", ".3db", ".utf", ".ale", ".txm", ".vms" };
+
+for (int i = 1; i < args.Length; ++i)
+{
+    var file = args[i];
+
+    IEnumerable<string> mats = new string[] { file };
+
+    if(Directory.Exists(file)) {
+        mats = Directory.GetFiles(file, "*.*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+            .Where(t => exts.Any(x => t.EndsWith(x, StringComparison.OrdinalIgnoreCase)));
+    }
+    else if(!File.Exists(file)) {
+        Console.Error.WriteLine($"Could not open file or folder {file}");
+        continue;
+    }
+
+    foreach(var path in mats) {
+        EditableUtf mat = null;
+        try {
+            mat = new EditableUtf(path);
+        }
+        catch (Exception e) {
+            Console.Error.WriteLine("Error opening {path}");
+            Console.Error.WriteLine(e);
+            continue;
+        }
+        foreach(var node in mat.Root.IterateAll()) {
+            if(node.Name.Equals("texture library", StringComparison.OrdinalIgnoreCase)) {
+                Console.WriteLine($"\n{Path.GetFileName(path)}");
+                foreach(var t in node.Children) {
+                    var mips = t.Children.FirstOrDefault(x => x.Name.Equals("MIPS", StringComparison.OrdinalIgnoreCase));
+                    if(mips != null) {
+                        var fileName = Path.Combine(directory, t.Name + ".dds");
+                        File.WriteAllBytes(fileName, mips.Data);
+                        Console.WriteLine("  " + Path.GetFileName(fileName));
+                        exportTotal += 1;
+                    } else {
+                        var mip0 = t.Children.FirstOrDefault(x => x.Name.Equals("MIP0", StringComparison.OrdinalIgnoreCase));
+                        if (mip0 != null){
+                            var fileName = Path.Combine(directory, $"{t.Name}.tga");
+                            File.WriteAllBytes(fileName, mip0.Data);
+                            Console.WriteLine("  " + Path.GetFileName(fileName));
+                            exportTotal += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+if (exportTotal == 0){
+    Console.WriteLine($"\nNo textures found");
+}
+else {
+    Console.WriteLine($"\nExported {exportTotal} total textures");
+}

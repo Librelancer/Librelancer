@@ -30,9 +30,19 @@ namespace LancerEdit
             {
                 if (Argument.Type == ScriptArgumentType.Integer) return IntegerValue.ToString();
                 if (Argument.Type == ScriptArgumentType.Boolean) return BooleanValue.ToString();
+                if (Argument.Type == ScriptArgumentType.Flag)
+                {
+                    if (BooleanValue)
+                    {
+                        var n = Argument.Flag ?? Argument.Name;
+                        if (n.Length > 1) return $"--{n}";
+                        else return $"-{n}";
+                    }
+                    return "";
+                }
                 if (Argument.Type == ScriptArgumentType.Dropdown)
                     return Argument.Options[IntegerValue];
-                if (Argument.Type == ScriptArgumentType.FileArray)
+                if (Argument.Type == ScriptArgumentType.FileArray || Argument.Type == ScriptArgumentType.FileFolderArray)
                     return string.Join("\n", StringArray);
                 return StringValue.Trim();
             }
@@ -43,6 +53,7 @@ namespace LancerEdit
                 switch (Argument.Type)
                 {
                     case ScriptArgumentType.Boolean:
+                    case ScriptArgumentType.Flag:
                         ImGui.Checkbox(Argument.Name, ref BooleanValue);
                         break;
                     case ScriptArgumentType.Integer:
@@ -108,7 +119,41 @@ namespace LancerEdit
                         {
                             FileDialog.Open(StringArray.Add);
                         }
-
+                        break;
+                    case ScriptArgumentType.FileFolderArray:
+                        ImGui.Text(Argument.Name);
+                        ImGui.Separator();
+                        if (StringArray.Count == 0)
+                        {
+                            ImGui.Text("[empty]");
+                        }
+                        else
+                        {
+                            ImGui.Columns(2);
+                            List<string> toRemove = new List<string>();
+                            for (int j = 0; j < StringArray.Count; j++)
+                            {
+                                ImGui.Text(StringArray[j]);
+                                ImGui.NextColumn();
+                                if (ImGui.Button($"Remove##{j}"))
+                                {
+                                    toRemove.Add(StringArray[j]);
+                                }
+                                ImGui.NextColumn();
+                            }
+                            foreach (var f in toRemove) StringArray.Remove(f);
+                            ImGui.Columns(1);
+                        }
+                        ImGui.Separator();
+                        if (ImGui.Button("Add File"))
+                        {
+                            FileDialog.Open(StringArray.Add);
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button("Add Folder"))
+                        {
+                            FileDialog.ChooseFolder(StringArray.Add);
+                        }
                         break;
                 }
                 ImGui.PopID();
@@ -177,9 +222,14 @@ namespace LancerEdit
             if (arguments.Count > 0)
             {
                 proc.StandardInput.Write(arguments[0].GetValue());
-                for (int i = 1; i < arguments.Count; i++) {
-                    proc.StandardInput.WriteLine();
-                    proc.StandardInput.Write(arguments[i].GetValue());
+                for (int i = 1; i < arguments.Count; i++)
+                {
+                    var v = arguments[i].GetValue();
+                    if (!string.IsNullOrEmpty(v))
+                    {
+                        proc.StandardInput.WriteLine();
+                        proc.StandardInput.Write(v);
+                    }
                 }
                 proc.StandardInput.Close();
             }

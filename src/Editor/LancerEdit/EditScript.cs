@@ -18,15 +18,18 @@ namespace LancerEdit
         SaveFile,
         Folder,
         Boolean,
+        Flag,
         Integer,
         Dropdown,
-        FileArray
+        FileArray,
+        FileFolderArray,
     }
     public class EditScriptArgument
     {
         [Entry("name", Required = true)] public string Name;
         [Entry("type", Required = true)] public ScriptArgumentType Type;
         [Entry("option", Multiline = true)] public List<string> Options = new List<string>();
+        [Entry("flag")] public string Flag;
     }
 
     public class EditScript : IniFile
@@ -35,10 +38,10 @@ namespace LancerEdit
         {
             [Entry("name", Required = true)] public string Name;
         }
-        
+
         [Section("script")] public EditScriptSection Info;
         [Section("argument")] public List<EditScriptArgument> Arguments = new List<EditScriptArgument>();
-        
+
         public string Filename;
 
         public bool Validate()
@@ -52,7 +55,7 @@ namespace LancerEdit
             }
             return true;
         }
-        
+
         public EditScript(string filename)
         {
             Filename = filename;
@@ -61,7 +64,7 @@ namespace LancerEdit
                 ParseAndFill($"Frontmatter: {Path.GetFileName(filename)}", stream);
             }
         }
-        
+
         public static string GetFrontMatter(string src)
         {
             var lines = src.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
