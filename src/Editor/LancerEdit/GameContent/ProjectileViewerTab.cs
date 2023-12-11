@@ -74,38 +74,40 @@ public class ProjectileViewerTab : GameContentTab
         ImGui.SameLine();
         if (ImGui.Button("Reset Camera (Ctrl+R)"))
             viewport.ResetControls();
-        viewport.Begin();
-        var rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
-                  Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
-        var dirRot = Matrix4x4.CreateRotationX(viewport.ModelRotation.Y) *
-                     Matrix4x4.CreateRotationY(viewport.ModelRotation.X);
-        var norm = Vector3.TransformNormal(-Vector3.UnitZ, dirRot);
-        var dir = Vector3.Transform(-Vector3.UnitZ, rot);
-        var to = viewport.CameraOffset + dir * 10;
-        if (viewport.Mode == CameraModes.Arcball)
-            to = Vector3.Zero;
-        camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
-        mw.Commands.StartFrame(mw.RenderContext);
-        beams.Begin(mw.Commands, context.Resources, camera);
-        var position = Vector3.Zero;
-        if (spear != null)
-            beams.AddBeamSpear(position, norm, spear, float.MaxValue);
-        else if (bolt != null) beams.AddBeamBolt(position, norm, bolt, float.MaxValue);
-        beams.End();
-        mw.Commands.DrawOpaque(mw.RenderContext);
-        mw.RenderContext.DepthWrite = false;
-        mw.Commands.DrawTransparent(mw.RenderContext);
-        mw.RenderContext.DepthWrite = true;
-        if (constEffect != null)
+        if (viewport.Begin())
         {
-            var debugText = new StringBuilder();
-            debugText.AppendLine($"ConstEffect: {constEffect}");
-            if (bolt != null) debugText.AppendLine($"Bolt: {bolt.Nickname}");
-            if (spear != null) debugText.AppendLine($"Beam: {spear.Nickname}");
-            mw.RenderContext.Renderer2D.DrawString("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
+            var rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
+                      Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
+            var dirRot = Matrix4x4.CreateRotationX(viewport.ModelRotation.Y) *
+                         Matrix4x4.CreateRotationY(viewport.ModelRotation.X);
+            var norm = Vector3.TransformNormal(-Vector3.UnitZ, dirRot);
+            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+            var to = viewport.CameraOffset + dir * 10;
+            if (viewport.Mode == CameraModes.Arcball)
+                to = Vector3.Zero;
+            camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
+            mw.Commands.StartFrame(mw.RenderContext);
+            beams.Begin(mw.Commands, context.Resources, camera);
+            var position = Vector3.Zero;
+            if (spear != null)
+                beams.AddBeamSpear(position, norm, spear, float.MaxValue);
+            else if (bolt != null) beams.AddBeamBolt(position, norm, bolt, float.MaxValue);
+            beams.End();
+            mw.Commands.DrawOpaque(mw.RenderContext);
+            mw.RenderContext.DepthWrite = false;
+            mw.Commands.DrawTransparent(mw.RenderContext);
+            mw.RenderContext.DepthWrite = true;
+            if (constEffect != null)
+            {
+                var debugText = new StringBuilder();
+                debugText.AppendLine($"ConstEffect: {constEffect}");
+                if (bolt != null) debugText.AppendLine($"Bolt: {bolt.Nickname}");
+                if (spear != null) debugText.AppendLine($"Beam: {spear.Nickname}");
+                mw.RenderContext.Renderer2D.DrawString("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
+            }
+            viewport.End();
         }
 
-        viewport.End();
         ImGui.EndChild();
     }
 }

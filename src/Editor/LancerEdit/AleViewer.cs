@@ -126,10 +126,12 @@ namespace LancerEdit
             //Viewport
             ImGui.BeginChild("##renderchild");
             //Generate render target
-            aleViewport.Begin();
-            DrawGL(aleViewport.RenderWidth, aleViewport.RenderHeight);
-            //Display + Camera controls
-            aleViewport.End();
+            if (aleViewport.Begin())
+            {
+                DrawGL(aleViewport.RenderWidth, aleViewport.RenderHeight);
+                //Display + Camera controls
+                aleViewport.End();
+            }
             //Action Bar
             Controls.DropdownButton("Camera Mode", ref cameraMode, camModes);
             aleViewport.Mode = (CameraModes) camModes[cameraMode].Tag;

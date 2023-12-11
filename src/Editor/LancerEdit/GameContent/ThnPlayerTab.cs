@@ -80,15 +80,17 @@ public class ThnPlayerTab : GameContentTab
         ImGui.SameLine();
         if(ImGuiExt.Button("Reload", cutscene != null))
             Reload();
-        viewport.Begin();
-        if (cutscene != null)
+        if (viewport.Begin())
         {
-            ImGuiHelper.AnimatingElement();
-            cutscene.UpdateViewport(new Rectangle(0,0, viewport.RenderWidth, viewport.RenderHeight));
-            cutscene.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
-        }
-        viewport.End();
+            if (cutscene != null)
+            {
+                ImGuiHelper.AnimatingElement();
+                cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight));
+                cutscene.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
+            }
 
+            viewport.End();
+        }
         bool popupopen = true;
         if (ImGui.BeginPopupModal("Open Multiple##" + Unique, ref popupopen, ImGuiWindowFlags.AlwaysAutoResize))
         {

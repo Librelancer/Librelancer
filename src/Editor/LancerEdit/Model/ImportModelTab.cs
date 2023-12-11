@@ -352,19 +352,22 @@ public class ImportModelTab : EditorTab
         ImGui.SameLine(ImGui.GetWindowWidth() - 60);
         if (ImGui.Button("Finish"))
             FinishClicked();
-        modelViewport.Begin();
-        var lookAtCam = new LookAtCamera();
-        var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *
-                  Matrix4x4.CreateRotationY(modelViewport.CameraRotation.X);
-        var dir = Vector3.Transform(-Vector3.UnitZ, rot);
-        var to = modelViewport.CameraOffset + dir * 10;
-        if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
-        lookAtCam.Update(modelViewport.RenderWidth, modelViewport.RenderHeight, modelViewport.CameraOffset, to, rot);
-        win.RenderContext.ClearColor = Color4.Black;
-        win.RenderContext.ClearAll();
-        win.RenderContext.SetCamera(lookAtCam);
-        DrawModel(win.RenderContext);
-        modelViewport.End();
+        if (modelViewport.Begin())
+        {
+            var lookAtCam = new LookAtCamera();
+            var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *
+                      Matrix4x4.CreateRotationY(modelViewport.CameraRotation.X);
+            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+            var to = modelViewport.CameraOffset + dir * 10;
+            if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
+            lookAtCam.Update(modelViewport.RenderWidth, modelViewport.RenderHeight, modelViewport.CameraOffset, to,
+                rot);
+            win.RenderContext.ClearColor = Color4.Black;
+            win.RenderContext.ClearAll();
+            win.RenderContext.SetCamera(lookAtCam);
+            DrawModel(win.RenderContext);
+            modelViewport.End();
+        }
     }
 
     private void BuildPreview()

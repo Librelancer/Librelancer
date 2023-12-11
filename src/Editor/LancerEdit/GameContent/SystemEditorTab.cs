@@ -1058,9 +1058,11 @@ public class SystemEditorTab : GameContentTab
 
         renderer.BackgroundOverride = SystemData.SpaceColor;
         renderer.SystemLighting.Ambient = SystemData.Ambient;
-        viewport.Begin();
-        renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
-        viewport.End();
+        if (viewport.Begin())
+        {
+            renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
+            viewport.End();
+        }
         if (ManipulateObjects() || ManipulateZone())
         {
             viewport.SetInputsEnabled(false);

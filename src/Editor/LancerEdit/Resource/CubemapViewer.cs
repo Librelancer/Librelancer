@@ -33,21 +33,24 @@ namespace LancerEdit
         }
         public override void Draw(double elapsed)
         {
-            viewport.Begin();
-            var cam = new LookAtCamera();
-            Matrix4x4 rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
-                            Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
-            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
-            var to = Vector3.Zero;
-            cam.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
-            mw.RenderContext.SetCamera(cam);
-            material.Use(mw.RenderContext, new VertexPositionNormalTexture(), ref Lighting.Empty, 0);
-            for (int i = 0; i < 6; i++)
+            if (viewport.Begin())
             {
-                sphere.GetDrawParameters((CubeMapFace) i, out int start, out int count, out _);
-                sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
+                var cam = new LookAtCamera();
+                Matrix4x4 rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
+                                Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
+                var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+                var to = Vector3.Zero;
+                cam.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
+                mw.RenderContext.SetCamera(cam);
+                material.Use(mw.RenderContext, new VertexPositionNormalTexture(), ref Lighting.Empty, 0);
+                for (int i = 0; i < 6; i++)
+                {
+                    sphere.GetDrawParameters((CubeMapFace) i, out int start, out int count, out _);
+                    sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
+                }
+
+                viewport.End();
             }
-            viewport.End();
         }
 
         public override void Dispose()

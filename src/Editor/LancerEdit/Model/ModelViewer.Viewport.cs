@@ -225,9 +225,11 @@ namespace LancerEdit
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
             modelViewport.MarginH = (int) (4.25 * ImGui.GetFontSize());
-            modelViewport.Begin();
-            DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
-            modelViewport.End();
+            if (modelViewport.Begin())
+            {
+                DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
+                modelViewport.End();
+            }
             rotation = modelViewport.ModelRotation;
         }
 

@@ -32,12 +32,12 @@ namespace LancerEdit
         public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         public CameraModes Mode = CameraModes.Arcball;
         public bool EnableMSAA = true;
-        
+
         public int RenderWidth { get { return rw; }}
         public int RenderHeight { get { return rh; }}
-        
+
         MainWindow mw;
-        public Viewport3D(MainWindow mw) 
+        public Viewport3D(MainWindow mw)
         {
             this.mw = mw;
             rstate = mw.RenderContext;
@@ -53,8 +53,10 @@ namespace LancerEdit
             ModelRotation = CameraRotation = Vector2.Zero;
         }
         Color4 cc;
-        public void Begin(int fixWidth = -1, int fixHeight = -1)
+        public bool Begin(int fixWidth = -1, int fixHeight = -1)
         {
+            if (mw.Width <= 0 || mw.Height <= 0)
+                return false;
             ImGuiHelper.AnimatingElement();
             var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - MarginW);
             var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - MarginH);
@@ -95,6 +97,7 @@ namespace LancerEdit
             rstate.DepthEnabled = true;
             rstate.ClearColor = Background;
             rstate.ClearAll();
+            return true;
         }
 
         private bool inputsEnabled = true;
@@ -163,13 +166,13 @@ namespace LancerEdit
                             break;
                     }
                 }
-                
+
             }
         }
 
         public bool MouseInFrame;
         public Vector2 MousePos;
-        
+
         float GotoRadius => ModelScale * 5.2f;
 
         public void GoTop()

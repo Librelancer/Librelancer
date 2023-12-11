@@ -19,7 +19,7 @@ namespace LancerEdit
         private bool showErrorPopUp = false;
         private Cutscene cutscene = null;
         private bool showNotSourceMessage = true;
-        
+
         private string _filePath;
 
         public string FilePath {
@@ -27,12 +27,12 @@ namespace LancerEdit
             {
                 return _filePath;
             }
-            private set 
+            private set
             {
                 _filePath = value;
                 DocumentName = FilePath != null ? Path.GetFileName(FilePath) : "Untitled";
                 Title = DocumentName;
-            } 
+            }
         }
 
         public bool IsSourceCode { get; private set; }
@@ -84,17 +84,17 @@ namespace LancerEdit
             if (window.OpenDataContext != null)
             {
                 try
-                {                    
+                {
                     var source = colorTextEdit.GetText();
                     var compiledBytes = LuaCompiler.Compile(source, "");
                     lastError = null;
                     var thornScript = new ThnScript(compiledBytes);
                     var ctx = new ThnScriptContext(null);
                     cutscene?.Dispose();
-                    cutscene = new Cutscene(ctx, 
-                        window.OpenDataContext.GameData, 
-                        window.OpenDataContext.Resources, 
-                        window.OpenDataContext.Sounds, 
+                    cutscene = new Cutscene(ctx,
+                        window.OpenDataContext.GameData,
+                        window.OpenDataContext.Resources,
+                        window.OpenDataContext.Sounds,
                         new Rectangle(0, 0, 240, 240), window);
                     cutscene.BeginScene(thornScript);
                     cutscene.Update(0.1f);
@@ -104,7 +104,7 @@ namespace LancerEdit
                     lastError = lce.Message;
                     showErrorPopUp = true;
                 }
-            }            
+            }
         }
 
         public override void Draw(double elapsed)
@@ -124,7 +124,7 @@ namespace LancerEdit
 
             if (lastError != null && showErrorPopUp)
             {
-                ImGui.SetNextWindowSize(new Vector2(600, 300) * ImGuiHelper.Scale, 
+                ImGui.SetNextWindowSize(new Vector2(600, 300) * ImGuiHelper.Scale,
                     ImGuiCond.FirstUseEver);
                 if (ImGui.Begin("Compile Error"))
                 {
@@ -135,9 +135,9 @@ namespace LancerEdit
                     ImGui.SetNextItemWidth(-1);
                     var th = ImGui.GetWindowHeight() - 100;
                     ImGui.PushFont(ImGuiHelper.SystemMonospace);
-                    ImGui.InputTextMultiline("##lastError", 
-                        ref lastError, 
-                        uint.MaxValue, 
+                    ImGui.InputTextMultiline("##lastError",
+                        ref lastError,
+                        uint.MaxValue,
                         new Vector2(0, th),
                         ImGuiInputTextFlags.ReadOnly);
                     ImGui.PopFont();
@@ -156,14 +156,16 @@ namespace LancerEdit
             int rpanelHeight = Math.Min((int)(rpanelWidth * (3.0 / 4.0)), 4096);
             ImGui.Spacing();
             thornViewport.Background = cutscene == null ? window.Config.Background : Color4.Black;
-            thornViewport.Begin(rpanelWidth, rpanelHeight);
-            if (cutscene != null)
+            if (thornViewport.Begin(rpanelWidth, rpanelHeight))
             {
-                ImGuiHelper.AnimatingElement();
-                cutscene.UpdateViewport(new Rectangle(0, 0, thornViewport.RenderWidth, thornViewport.RenderHeight));
-                cutscene.Draw(ImGui.GetIO().DeltaTime, thornViewport.RenderWidth, thornViewport.RenderHeight);
+                if (cutscene != null)
+                {
+                    ImGuiHelper.AnimatingElement();
+                    cutscene.UpdateViewport(new Rectangle(0, 0, thornViewport.RenderWidth, thornViewport.RenderHeight));
+                    cutscene.Draw(ImGui.GetIO().DeltaTime, thornViewport.RenderWidth, thornViewport.RenderHeight);
+                }
+                thornViewport.End();
             }
-            thornViewport.End();
         }
 
         private void DrawThornEditor()
@@ -195,7 +197,7 @@ namespace LancerEdit
 
             colorTextEdit.Render("##ColorTextEditor");
         }
-        
+
         private const string COMPILED_THN_MESSAGE = "Compiled THN files do not support preservation of comments or formatting, consider exporting as source code.";
 
         private void CompileAndSave(string filePath)
@@ -254,7 +256,7 @@ namespace LancerEdit
             }
             FilePath = filePath;
         }
-        
+
         public override void Dispose()
         {
             cutscene?.Dispose();
