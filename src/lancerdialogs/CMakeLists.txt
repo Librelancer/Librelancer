@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 3.1)
 project(win32dialogs)
 set(CMAKE_BUILD_TYPE release)
 set(CMAKE_CXX_STANDARD 11)
-include_directories("../../extern/nativefiledialog/src/include")
 
 # Sources:
 # NFD for Linux/Windows, windows has different manifest requirements based on compiler
