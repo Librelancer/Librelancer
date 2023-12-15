@@ -31,6 +31,8 @@ namespace LibreLancer.Render
         private BoneInstance HeadBodyBone;
         private HardpointDefinition BodyHeadHp;
         private BoneInstance BodyHeadBone;
+        private HardpointDefinition BodyNeckHp;
+        private BoneInstance BodyNeckBone;
         //Connect Left Hand
         private HardpointDefinition LeftBodyHp;
         private BoneInstance LeftBodyBone;
@@ -171,6 +173,7 @@ namespace LibreLancer.Render
             {
                 HeadSkinning.GetHardpoint("hp_head", out HeadBodyHp, out HeadBodyBone);
                 BodySkinning.GetHardpoint("hp_head", out BodyHeadHp, out BodyHeadBone);
+                BodySkinning.GetHardpoint("hp_neck", out BodyNeckHp, out BodyNeckBone);
             }
             if (LeftHand != null)
             {
@@ -209,7 +212,10 @@ namespace LibreLancer.Render
             BodySkinning.SetBoneData(bonesBuffer, ref off);
             if (Head != null)
             {
-                HeadSkinning.SetBoneData(bonesBuffer, ref off);
+                var headTransform = GetAttachmentTransform(HeadBodyHp, HeadBodyBone, BodyHeadHp, BodyHeadBone);
+                Matrix4x4.Invert(headTransform, out Matrix4x4 inv);
+                Matrix4x4 missingBone = (BodyNeckHp.Transform * BodyNeckBone.LocalTransform() * inv);
+                HeadSkinning.SetBoneData(bonesBuffer, ref off, missingBone);
             }
             if (LeftHand != null)
             {
