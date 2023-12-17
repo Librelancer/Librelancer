@@ -917,6 +917,27 @@ namespace LancerEdit
             if(ImGui.Button("Open Anm")) {
                 FileDialog.Open((file) => anmFile = new Anm.AnmFile(file));
             }
+
+            ImGui.Separator();
+
+            var dfm = (DF.DfmFile)drawable;
+            if (ImGui.CollapsingHeader("Bones", ImGuiTreeNodeFlags.CollapsingHeader))
+            {
+                foreach(var inst in skel.BodySkinning.Bones)
+                {
+                    if(ImGui.Selectable(inst.Key))
+                        popups.OpenPopup(new DfmBoneInfo(inst.Value));
+                }
+            }
+            if (ImGui.CollapsingHeader("Hardpoints", ImGuiTreeNodeFlags.DefaultOpen))
+            {
+                foreach (var hp in dfm.GetHardpoints())
+                {
+                    if (ImGui.Selectable(hp.Hp.Name))
+                        popups.OpenPopup(new DfmHpInfo(hp));
+                }
+            }
+
             if(anmFile != null)
             {
                 ImGui.Separator();

@@ -371,11 +371,7 @@ namespace LancerEdit
         {
             var matrix = GetModelMatrix();
             _window.LineRenderer.StartFrame(_window.RenderContext);
-            var dfm = (DF.DfmFile) drawable;
-            foreach (var b in dfm.Bones)
-            {
-                GizmoRender.AddGizmo(_window.LineRenderer, gizmoScale, b.Value.BoneToRoot * matrix, Color4.Green);
-            }
+            skel.DebugDraw(_window.LineRenderer, matrix, DfmDrawMode.DebugBonesHardpoints);
             _window.LineRenderer.Render();
         }
 
