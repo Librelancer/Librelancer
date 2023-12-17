@@ -262,5 +262,14 @@ namespace LibreLancer.Render
             RunningScripts.Add(inst);
         }
 
+        public void DebugDraw(LineRenderer lines, Matrix4x4 world, DfmDrawMode mode)
+        {
+            GetTransforms(world, out var h, out var lh, out var rh);
+            HeadSkinning?.DebugDraw(lines, h, mode);
+            BodySkinning?.DebugDraw(lines, world, mode);
+            LeftHandSkinning?.DebugDraw(lines, world, mode);
+            RightHandSkinning?.DebugDraw(lines, world, mode);
+        }
+
     }
 }

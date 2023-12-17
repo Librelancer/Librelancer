@@ -6,6 +6,7 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
+using LibreLancer.Render;
 using LibreLancer.Thn;
 
 namespace LancerEdit;
@@ -65,6 +66,19 @@ public class ThnPlayerTab : GameContentTab
         cutscene?.Update(elapsed);
     }
 
+    DropdownOption[] dfmOptions = new DropdownOption[]
+    {
+        new DropdownOption("Mesh", Icons.Cube),
+        new DropdownOption("Mesh+Bones", Icons.Cube),
+        new DropdownOption("Mesh+Hardpoints", Icons.Cube),
+        new DropdownOption("Mesh+Bones+Hardpoints", Icons.Cube),
+        new DropdownOption("Bones", Icons.Cube),
+        new DropdownOption("Hardpoints", Icons.Cube),
+        new DropdownOption("Bones+Hardpoints", Icons.Cube),
+    };
+
+    private int selectedDfmMode = 0;
+
     public override void Draw(double elapsed)
     {
         if(ImGui.Button("Open"))
@@ -80,15 +94,19 @@ public class ThnPlayerTab : GameContentTab
         ImGui.SameLine();
         if(ImGuiExt.Button("Reload", cutscene != null))
             Reload();
+        ImGui.SameLine();
+        #if DEBUG
+        Controls.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
+        #endif
         if (viewport.Begin())
         {
             if (cutscene != null)
             {
                 ImGuiHelper.AnimatingElement();
                 cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight));
+                cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
                 cutscene.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
             }
-
             viewport.End();
         }
         bool popupopen = true;

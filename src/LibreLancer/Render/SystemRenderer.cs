@@ -51,6 +51,7 @@ namespace LibreLancer.Render
         public ParticleEffectPool FxPool;
         public BeamsBuffer Beams;
         public StaticBillboards StaticBillboards = new StaticBillboards();
+        public DfmDrawMode DfmMode = DfmDrawMode.Normal;
 		RenderContext rstate;
 		Game game;
 		Texture2D dot;

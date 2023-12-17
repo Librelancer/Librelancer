@@ -89,6 +89,8 @@ namespace LibreLancer.Render
 			rstate.Cull = false;
             rstate.DepthWrite = false;
             rstate.PolygonOffset = Vector2.One;
+            var bm = rstate.BlendMode;
+            rstate.BlendMode = BlendMode.Normal;
             var w = Matrix4x4.Identity;
             shader.SetWorld(ref w, ref w);
             shader.SetOc(0);
@@ -97,6 +99,7 @@ namespace LibreLancer.Render
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);
             rstate.PolygonOffset = Vector2.Zero;
             rstate.DepthWrite = true;
+            rstate.BlendMode = bm;
             rstate.Cull = true;
         }
 

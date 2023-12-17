@@ -21,6 +21,9 @@ namespace LibreLancer.Render
         {
             this.transform = transform;
         }
+
+        private SystemRenderer sysren;
+
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
             Skeleton.GetTransforms(transform,
@@ -28,28 +31,37 @@ namespace LibreLancer.Render
                 out var leftTransform,
                 out var rightTransform
                 );
-            Skeleton.UploadBoneData(commands.BonesBuffer);
-            var lighting = RenderHelpers.ApplyLights(
-                lights, LightGroup,
-                Vector3.Transform(Vector3.Zero, transform), RADIUS, nr,
-                LitAmbient, LitDynamic, NoFog
+            if (sysren.DfmMode < DfmDrawMode.DebugBones)
+            {
+                Skeleton.UploadBoneData(commands.BonesBuffer);
+                var lighting = RenderHelpers.ApplyLights(
+                    lights, LightGroup,
+                    Vector3.Transform(Vector3.Zero, transform), RADIUS, nr,
+                    LitAmbient, LitDynamic, NoFog
                 );
-            Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
-            Skeleton.Body.DrawBuffer(commands, transform, ref lighting);
-            if (Skeleton.Head != null)
-            {
-                Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
-                Skeleton.Head.DrawBuffer(commands, headTransform, ref lighting);
+                Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
+                Skeleton.Body.DrawBuffer(commands, transform, ref lighting);
+                if (Skeleton.Head != null)
+                {
+                    Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
+                    Skeleton.Head.DrawBuffer(commands, headTransform, ref lighting);
+                }
+
+                if (Skeleton.LeftHand != null)
+                {
+                    Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
+                    Skeleton.LeftHand.DrawBuffer(commands, leftTransform, ref lighting);
+                }
+
+                if (Skeleton.RightHand != null)
+                {
+                    Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
+                    Skeleton.RightHand.DrawBuffer(commands, rightTransform, ref lighting);
+                }
             }
-            if (Skeleton.LeftHand != null)
+            if (sysren.DfmMode != DfmDrawMode.Normal)
             {
-                Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
-                Skeleton.LeftHand.DrawBuffer(commands, leftTransform, ref lighting);
-            }
-            if (Skeleton.RightHand != null)
-            {
-                Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
-                Skeleton.RightHand.DrawBuffer(commands, rightTransform, ref lighting);
+                Skeleton.DebugDraw(sysren.DebugRenderer, transform, sysren.DfmMode);
             }
         }
         public override bool OutOfView(ICamera camera)
@@ -65,6 +77,7 @@ namespace LibreLancer.Render
             if (camera.FrustumCheck(bsphere))
             {
                 sys.AddObject(this);
+                this.sysren = sys;
                 return true;
             }
             else
