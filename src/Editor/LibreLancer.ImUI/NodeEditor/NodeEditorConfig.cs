@@ -4,12 +4,64 @@ namespace LibreLancer.ImUI.NodeEditor;
 
 using static NodeEditorNative;
 
+public delegate void ConfigSession(IntPtr userPointer);
+public delegate bool ConfigSaveSettings(IntPtr data, UIntPtr size, SaveReasonFlags reason, IntPtr userPointer);
+public delegate UIntPtr ConfigLoadSettings(IntPtr data, IntPtr userPointer);
+public delegate bool ConfigSaveNodeSettings(NodeId nodeId, IntPtr data, UIntPtr size, SaveReasonFlags reason,
+    IntPtr userPointer);
+public delegate UIntPtr ConfigLoadNodeSettings(NodeId nodeId, IntPtr data, IntPtr userPointer);
 public class NodeEditorConfig : NativeObject, IDisposable
 {
+    private ConfigSession beginSave;
+    private ConfigSession endSave;
+    private ConfigSaveSettings saveSettings;
+    private ConfigLoadSettings loadSettings;
+    private Func<IntPtr, IntPtr, UIntPtr, SaveReasonFlags, IntPtr, int> saveNodeSettings;
+    private Func<IntPtr, IntPtr, IntPtr, UIntPtr> loadNodeSettings;
+
+
     public NodeEditorConfig()
     {
         Handle = axConfigNew();
     }
+
+    public void SetBeginSaveSession(ConfigSession cb)
+    {
+        beginSave = cb;
+        axConfig_set_BeginSaveSession(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetEndSaveSession(ConfigSession cb)
+    {
+        endSave = cb;
+        axConfig_set_EndSaveSession(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetSaveSettings(ConfigSaveSettings cb)
+    {
+        saveSettings = cb;
+        axConfig_set_SaveSettings(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetLoadSettings(ConfigLoadSettings cb)
+    {
+        loadSettings = cb;
+        axConfig_set_LoadSettings(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetSaveNodeSettings(ConfigSaveNodeSettings cb)
+    {
+        saveNodeSettings = (a, b, c, d, e) =>
+            cb(a, b, c, d, e) ? 1 : 0;
+        axConfig_set_SaveNodeSettings(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetLoadNodeSettings(ConfigLoadNodeSettings cb)
+    {
+        loadNodeSettings = (a, b, c) => cb(a, b, c);
+        axConfig_set_LoadNodeSettings(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
 
     private IntPtr lastSet = IntPtr.Zero;
 
