@@ -22,6 +22,8 @@ struct BlueprintNodeBuilder : IDisposable
     public static int HeaderTextureHeight;
     public static void LoadTexture()
     {
+        if (HeaderTextureId != 0)
+            return;
         using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.BlueprintBackground.png"))
         {
             var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
