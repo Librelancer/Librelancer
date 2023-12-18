@@ -1,9 +1,11 @@
+using System;
 using System.Numerics;
 using ImGuiNET;
+using LibreLancer;
+using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit;
-
 public class MissionScriptEditorTab : GameContentTab
 {
     private GameDataContext gameData;
@@ -18,6 +20,7 @@ public class MissionScriptEditorTab : GameContentTab
         this.win = win;
         config = new NodeEditorConfig();
         context = new NodeEditorContext(config);
+        BlueprintNodeBuilder.LoadTexture();
     }
 
     public override void Draw(double elapsed)
@@ -25,16 +28,14 @@ public class MissionScriptEditorTab : GameContentTab
         NodeEditor.SetCurrentEditor(context);
         int uniqueId = 1;
         NodeEditor.Begin("My Editor", Vector2.Zero);
-        NodeEditor.BeginNode(uniqueId++);
-        ImGui.Text("Node A");
-        NodeEditor.BeginPin(uniqueId++, PinKind.Input);
-        ImGui.Text("-> In");
-        NodeEditor.EndPin();
-        ImGui.SameLine();
-        NodeEditor.BeginPin(uniqueId++, PinKind.Output);
-        ImGui.Text("Out ->");
-        NodeEditor.EndPin();
-        NodeEditor.EndNode();
+        using (var nb = BlueprintNodeBuilder.Begin(uniqueId++))
+        {
+            nb.Header(Color4.Red);
+            ImGui.Text("Header Text");
+            nb.EndHeader();
+            ImGui.Text("Node Content");
+            ImGui.Text("More blahs here");
+        }
         NodeEditor.End();
         NodeEditor.SetCurrentEditor(null);
     }
