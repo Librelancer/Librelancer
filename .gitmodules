@@ -50,3 +50,6 @@
 [submodule "extern/nativefiledialog-extended"]
 	path = extern/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended
+[submodule "extern/imgui-node-editor"]
+	path = extern/imgui-node-editor
+	url = https://github.com/thedmd/imgui-node-editor

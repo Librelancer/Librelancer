@@ -529,7 +529,13 @@ namespace LibreLancer.ImUI
                     var pcmd = cmd_list.CmdBuffer[cmd_i];
                     if (pcmd.UserCallback != IntPtr.Zero)
                     {
-                        rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
+                        if (pcmd.UserCallback > 8)
+                        {
+                            var cb = (delegate* unmanaged<IntPtr,IntPtr, void>)pcmd.UserCallback;
+                            cb((IntPtr)cmd_list.NativePtr, (IntPtr)pcmd.NativePtr);
+                        }
+                        else
+                            rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
                         continue;
                     }
 

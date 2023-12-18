@@ -18,6 +18,10 @@ public class AppFilters
             new FileFilter("Ale Files","ale")
         );
 
+        public static readonly FileDialogFilters IniFilters = new FileDialogFilters(
+            new FileFilter("Ini Files", "ini")
+        );
+
         public static readonly  FileDialogFilters ImportModelFiltersNoBlender = new FileDialogFilters(
             new FileFilter("Model Files","dae","gltf","glb","obj"),
             new FileFilter("Collada Files", "dae"),
