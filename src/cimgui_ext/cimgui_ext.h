@@ -20,6 +20,7 @@ IGEXPORT const char* igExtGetVersion();
 //custom controls
 IGEXPORT bool igExtSplitterV(float thickness, float* size1, float *size2, float min_size1, float min_size2, float splitter_long_axis_size);
 IGEXPORT bool igExtSpinner(const char* label, float radius, int thickness, int color);
+IGEXPORT bool igExtComboButton(const char* id, const char* preview_value);
 //font
 IGEXPORT bool igBuildFontAtlas(void* atlas);
 //memory editor

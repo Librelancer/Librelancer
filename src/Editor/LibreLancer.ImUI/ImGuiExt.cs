@@ -21,6 +21,9 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         static extern IntPtr igExtGetVersion();
 
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool igExtComboButton(IntPtr idstr, IntPtr preview_value);
+
         public static readonly string Version;
 
         static ImGuiExt()
@@ -66,6 +69,52 @@ namespace LibreLancer.ImUI
                 Util.Free(native_name);
             }
             return ret != 0;
+        }
+
+        public static unsafe bool ComboButton(string id, string preview)
+        {
+            byte* native_id;
+            int id_byteCount = 0;
+            if (id != null)
+            {
+                id_byteCount = Encoding.UTF8.GetByteCount(id);
+                if (id_byteCount > Util.StackAllocationSizeLimit)
+                {
+                    native_id = Util.Allocate(id_byteCount + 1);
+                }
+                else
+                {
+                    byte* native_id_stackBytes = stackalloc byte[id_byteCount + 1];
+                    native_id = native_id_stackBytes;
+                }
+                int native_id_offset = Util.GetUtf8(id, native_id, id_byteCount);
+                native_id[native_id_offset] = 0;
+            }
+            else { native_id = null; }
+            byte* native_preview;
+            int preview_byteCount = 0;
+            if (preview != null)
+            {
+                preview_byteCount = Encoding.UTF8.GetByteCount(preview);
+                if (preview_byteCount > Util.StackAllocationSizeLimit)
+                {
+                    native_preview = Util.Allocate(preview_byteCount + 1);
+                }
+                else
+                {
+                    byte* native_preview_stackBytes = stackalloc byte[preview_byteCount + 1];
+                    native_preview = native_preview_stackBytes;
+                }
+                int native_preview_offset = Util.GetUtf8(preview, native_preview, preview_byteCount);
+                native_preview[native_preview_offset] = 0;
+            }
+            else { native_preview = null; }
+            var retval = igExtComboButton((IntPtr)native_id, (IntPtr)native_preview);
+            if (id_byteCount > Util.StackAllocationSizeLimit)
+                Util.Free(native_id);
+            if (preview_byteCount > Util.StackAllocationSizeLimit)
+                Util.Free(native_preview);
+            return retval;
         }
         public static bool ToggleButton(string text, bool v, bool enabled = true)
         {

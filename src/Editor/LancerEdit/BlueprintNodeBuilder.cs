@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
@@ -43,6 +44,10 @@ struct BlueprintNodeBuilder : IDisposable
     public uint HeaderColor;
     public NodeId CurrentId;
     public NodeStage CurrentStage;
+    private string setTooltip;
+    private int comboIndex;
+    private ComboData[] combos;
+    record struct ComboData(bool Open, Action<int> Set, string Id, string[] Values);
 
     public static BlueprintNodeBuilder Begin(NodeId id)
     {
@@ -52,7 +57,8 @@ struct BlueprintNodeBuilder : IDisposable
         var bp = new BlueprintNodeBuilder()
         {
             CurrentId = id,
-            HeaderColor = ImGui.GetColorU32(Color4.Blue)
+            HeaderColor = ImGui.GetColorU32(Color4.Blue),
+            combos = ArrayPool<ComboData>.Shared.Rent(16),
         };
         bp.SetStage(NodeStage.Begin);
         return bp;
@@ -107,6 +113,18 @@ struct BlueprintNodeBuilder : IDisposable
         SetStage(NodeStage.Content);
     }
 
+    public void Tooltip(string tooltip)
+    {
+        setTooltip = tooltip;
+    }
+
+    public void Combo(string title, int selectedValue, Action<int> set, string[] values)
+    {
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(title);
+        ImGui.SameLine();
+        combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
+    }
     public void Dispose() => End();
     public unsafe void End()
     {
@@ -146,5 +164,31 @@ struct BlueprintNodeBuilder : IDisposable
         ImGui.PopID();
         NodeEditor.PopStyleVar();
         SetStage(NodeStage.Invalid);
+
+        NodeEditor.Suspend();
+        if(!string.IsNullOrWhiteSpace(setTooltip))
+            ImGui.SetTooltip(setTooltip);
+        ImGui.PushID((int)CurrentId);
+        for (int i = 0; i < comboIndex; i++)
+        {
+            var c = combos[i];
+            combos[i] = default;
+            if(c.Open)
+                ImGui.OpenPopup(c.Id);
+            if (ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
+            {
+                for (int j = 0; j < c.Values.Length; j++)
+                {
+                    ImGui.PushID(j);
+                    if (ImGui.MenuItem(c.Values[j]))
+                        c.Set(j);
+                    ImGui.PopID();
+                }
+                ImGui.EndPopup();
+            }
+        }
+        ImGui.PopID();
+        ArrayPool<ComboData>.Shared.Return(combos);
+        NodeEditor.Resume();
     }
 }
