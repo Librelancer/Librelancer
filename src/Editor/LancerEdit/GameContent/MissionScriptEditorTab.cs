@@ -35,6 +35,14 @@ public class MissionScriptEditorTab : GameContentTab
             nb.EndHeader();
             ImGui.Text("Node Content");
             ImGui.Text("More blahs here");
+            for (int i = 0; i <= (int)VectorIcon.Diamond; i++)
+            {
+                ImGui.Text(((VectorIcon)i).ToString());
+                VectorIcons.Icon(new Vector2(16), (VectorIcon)i, false);
+                ImGui.SameLine();
+                VectorIcons.Icon(new Vector2(16), (VectorIcon)i, true);
+
+            }
         }
         NodeEditor.End();
         NodeEditor.SetCurrentEditor(null);
