@@ -1,6 +1,8 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -124,6 +126,16 @@ struct BlueprintNodeBuilder : IDisposable
         ImGui.Text(title);
         ImGui.SameLine();
         combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
+    }
+
+    private static readonly Dictionary<Type, string[]> _enums = new Dictionary<Type, string[]>();
+    public void Combo<T>(string title, T selectedValue, Action<T> set) where T : struct, Enum
+    {
+        if (!_enums.TryGetValue(typeof(T), out var values)) {
+            values = Enum.GetNames<T>();
+            _enums[typeof(T)] = values;
+        }
+        Combo(title, Unsafe.As<T, int>(ref selectedValue), x => set(Unsafe.As<int, T>(ref x)), values);
     }
     public void Dispose() => End();
     public unsafe void End()

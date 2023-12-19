@@ -72,6 +72,7 @@ public class MissionScriptEditorTab : GameContentTab
     }
 
     private int selectedItem = 0;
+    private VectorIcon selectedIcon;
     public override void Draw(double elapsed)
     {
         NodeEditor.SetCurrentEditor(context);
@@ -112,6 +113,7 @@ public class MissionScriptEditorTab : GameContentTab
             ImGui.Button("Hello World!");
             ImGui.Text("Some text");
             nb.Combo("Hello", selectedItem, x => selectedItem = x, new string[] { "a", "b", "c", "d" });
+            nb.Combo<VectorIcon>("VectorIcon", selectedIcon, x => selectedIcon = x);
             ImGui.Selectable("Hover me");
             if(ImGui.IsItemHovered())
                 nb.Tooltip("Tooltip!");
