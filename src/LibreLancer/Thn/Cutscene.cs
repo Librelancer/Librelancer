@@ -192,6 +192,8 @@ namespace LibreLancer.Thn
             SceneSetup(new[] { scene }, false);
         }
 
+        private int frameDelay = 0;
+
         void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
         {
             hasScene = false;
@@ -261,9 +263,9 @@ namespace LibreLancer.Thn
                 World.RegisterAll();
             }
 
+            frameDelay = 2;
             lagCounter = 0;
             //Init
-            _Update(0);
             running = true;
         }
 
@@ -296,12 +298,24 @@ namespace LibreLancer.Thn
                 lagCounter++;
                 return;
             }
-
-            accumTime += delta;
-            if (accumTime >= TIMESTEP)
+            if (frameDelay > 0)
             {
-                _Update(accumTime);
+                frameDelay--;
+            }
+            else if (frameDelay == 0)
+            {
+                _Update(0);
                 accumTime = 0;
+                frameDelay = -1;
+            }
+            else
+            {
+                accumTime += delta;
+                if (accumTime >= TIMESTEP)
+                {
+                    _Update(accumTime);
+                    accumTime = 0;
+                }
             }
         }
 
