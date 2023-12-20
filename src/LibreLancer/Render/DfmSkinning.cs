@@ -100,6 +100,9 @@ namespace LibreLancer.Render
             new Vector3(1, -1, -1),
             //Top
             new Vector3(0,0, 1.8f),
+            //Arrow
+            new Vector3(0,0, 0),
+            new Vector3(0,1.8f, 0),
         };
 
         private static readonly int[] cubeIndices = new[]
@@ -111,7 +114,9 @@ namespace LibreLancer.Render
             //Join
             0,4, 1,5, 2,6, 3,7,
             //Point
-            0,8, 1,8, 2,8, 3,8
+            0,8, 1,8, 2,8, 3,8,
+            //Arrow
+            9,10
         };
 
         void DrawCube(LineRenderer lines, Matrix4x4 world, float scale, Color4 color)
@@ -139,7 +144,8 @@ namespace LibreLancer.Render
                     if (instanceArray[i] == null)
                         continue;
                     var tr = instanceArray[i].LocalTransform();
-                    DrawCube(lines, tr * world, scale, Color4.Red);
+                    var color = instanceArray[i].Name == lines.SkeletonHighlight ? Color4.White : Color4.Red;
+                    DrawCube(lines, tr * world, scale, color);
                 }
             }
 
@@ -154,7 +160,8 @@ namespace LibreLancer.Render
                     if (Bones.TryGetValue(hp.Part.objectName, out BoneInstance bi))
                     {
                         var tr = (hp.Hp.Transform * bi.LocalTransform()) * world;
-                        DrawCube(lines, tr, scale, Color4.Green);
+                        var color = hp.Hp.Name == lines.SkeletonHighlight ? Color4.White : Color4.Green;
+                        DrawCube(lines, tr, scale, color);
                     }
                 }
             }
