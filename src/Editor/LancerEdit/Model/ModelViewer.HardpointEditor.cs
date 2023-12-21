@@ -265,12 +265,12 @@ namespace LancerEdit
                 {
                     hpEditOpen = false;
                 }
-                editingGizmo.Override = MathHelper.MatrixFromEulerDegrees(HPpitch, HPyaw, HProll) * 
+                editingGizmo.Override = MathHelper.MatrixFromEulerDegrees(HPpitch, HPyaw, HProll) *
                                         Matrix4x4.CreateTranslation(HPx, HPy, HPz);
                 editingGizmo.EditingMin = MathHelper.DegreesToRadians(HPmin);
                 editingGizmo.EditingMax = MathHelper.DegreesToRadians(HPmax);
-                ImGui.End();
             }
+            ImGui.End();
             if (hpEditOpen == false)
             {
                 hpEditing = null;
