@@ -40,28 +40,39 @@ namespace LibreLancer.Render
             private readonly BoneInstance connectionBone;
             private readonly Matrix4x4 invBindPose;
 
+            public Matrix4x4 Transform { get; private set; }
+            public Matrix4x4 Bone { get; private set; }
+
             public Connection(DfmSkinning parent, DfmSkinning child,
                 string parentHpName, string childHpName, string connectionHpName)
             {
                 parent.GetHardpoint(parentHpName, out parentHp, out parentBone);
                 child.GetHardpoint(childHpName, out childHp, out childBone);
                 parent.GetHardpoint(connectionHpName, out connectionHp, out connectionBone);
-                Matrix4x4.Invert(GetTransform(), out Matrix4x4 invConn);
+                CalculateTransform();
+                CalculateBone();
+                Matrix4x4.Invert(Transform, out Matrix4x4 invConn);
                 Matrix4x4.Invert(connectionHp.Transform * connectionBone.LocalTransform * invConn, out invBindPose);
             }
 
-            public Matrix4x4 GetTransform()
+            private void CalculateTransform()
             {
                 var child = childHp.Transform * childBone.LocalTransform;
                 Matrix4x4.Invert(child, out child);
                 var parent = parentHp.Transform * parentBone.LocalTransform;
-                return child * parent;
+                Transform = child * parent;
             }
 
-            public Matrix4x4 GetBone()
+            private void CalculateBone()
             {
-                Matrix4x4.Invert(GetTransform(), out Matrix4x4 invConn);
-                return invBindPose * connectionHp.Transform * connectionBone.LocalTransform * invConn;
+                Matrix4x4.Invert(Transform, out Matrix4x4 invConn);
+                Bone = invBindPose * connectionHp.Transform * connectionBone.LocalTransform * invConn;
+            }
+
+            public void Update()
+            {
+                CalculateTransform();
+                CalculateBone();
             }
         }
 
@@ -195,42 +206,44 @@ namespace LibreLancer.Render
         {
             _rootMotionInstance = null;
             List<ScriptInstance> toRemove = new List<ScriptInstance>();
-            bool updateBones = RunningScripts.Count > 0;
             foreach (var sc in RunningScripts)
             {
                 if(!sc.RunScript(delta)) toRemove.Add(sc);
             }
-            foreach(var sc in toRemove) RunningScripts.Remove(sc);
-            if (updateBones)
+            if (RunningScripts.Count > 0)
             {
                 BodySkinning.UpdateBones();
                 HeadSkinning?.UpdateBones();
                 LeftHandSkinning?.UpdateBones();
                 RightHandSkinning?.UpdateBones();
+                HeadConnection?.Update();
+                LeftHandConnection?.Update();
+                RightHandConnection?.Update();
             }
+            foreach(var sc in toRemove) RunningScripts.Remove(sc);
         }
 
         public void UploadBoneData(UniformBuffer bonesBuffer)
         {
             int off = 0;
             BodySkinning.SetBoneData(bonesBuffer, ref off);
-            HeadSkinning?.SetBoneData(bonesBuffer, ref off, HeadConnection.GetBone());
-            LeftHandSkinning?.SetBoneData(bonesBuffer, ref off, LeftHandConnection.GetBone());
-            RightHandSkinning?.SetBoneData(bonesBuffer, ref off, RightHandConnection.GetBone());
+            HeadSkinning?.SetBoneData(bonesBuffer, ref off, HeadConnection.Bone);
+            LeftHandSkinning?.SetBoneData(bonesBuffer, ref off, LeftHandConnection.Bone);
+            RightHandSkinning?.SetBoneData(bonesBuffer, ref off, RightHandConnection.Bone);
         }
 
         public void GetTransforms(Matrix4x4 source, out Matrix4x4 head, out Matrix4x4 leftHand, out Matrix4x4 rightHand)
         {
             if (Head != null)
-                head = HeadConnection.GetTransform() * source;
+                head = HeadConnection.Transform * source;
             else
                 head = source;
             if (LeftHand != null)
-                leftHand = LeftHandConnection.GetTransform() * source;
+                leftHand = LeftHandConnection.Transform * source;
             else
                 leftHand = source;
             if (RightHand != null)
-                rightHand = RightHandConnection.GetTransform() * source;
+                rightHand = RightHandConnection.Transform * source;
             else
                 rightHand = source;
         }
