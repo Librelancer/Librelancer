@@ -28,10 +28,7 @@ namespace LibreLancer.Render
 
             foreach (var kv in dfm.Parts)
             {
-                var inst = new BoneInstance();
-                inst.Name = kv.Value.objectName;
-                Matrix4x4.Invert(kv.Value.Bone.BoneToRoot, out inst.InvBindPose);
-                inst.BoneMatrix = inst.InvBindPose;
+                var inst = new BoneInstance(kv.Value.objectName, kv.Value.Bone.BoneToRoot);
                 instanceArray[kv.Key] = inst;
                 Bones.Add(inst.Name, inst);
             }
@@ -71,10 +68,14 @@ namespace LibreLancer.Render
             return false;
         }
 
+        public void UpdateBones()
+        {
+            foreach (var s in starts)
+                s.Update(Matrix4x4.Identity);
+        }
+
         public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, Matrix4x4? missingBone = null)
         {
-            for(int i = 0; i < starts.Count; i++)
-                starts[i].Update(Matrix4x4.Identity);
             for (int i = 0; i < boneMatrices.Length; i++)
             {
                 if (instanceArray[i] != null) boneMatrices[i] = instanceArray[i].BoneMatrix;
@@ -143,7 +144,7 @@ namespace LibreLancer.Render
                 {
                     if (instanceArray[i] == null)
                         continue;
-                    var tr = instanceArray[i].LocalTransform();
+                    var tr = instanceArray[i].LocalTransform;
                     var color = instanceArray[i].Name == lines.SkeletonHighlight ? Color4.White : Color4.Red;
                     DrawCube(lines, tr * world, scale, color);
                 }
@@ -159,7 +160,7 @@ namespace LibreLancer.Render
                 {
                     if (Bones.TryGetValue(hp.Part.objectName, out BoneInstance bi))
                     {
-                        var tr = (hp.Hp.Transform * bi.LocalTransform()) * world;
+                        var tr = (hp.Hp.Transform * bi.LocalTransform) * world;
                         var color = hp.Hp.Name == lines.SkeletonHighlight ? Color4.White : Color4.Green;
                         DrawCube(lines, tr, scale, color);
                     }
