@@ -26,33 +26,44 @@ namespace LibreLancer.Render
         public DfmSkinning LeftHandSkinning;
         public DfmSkinning RightHandSkinning;
 
-        //Connect Head
-        private HardpointDefinition HeadBodyHp;
-        private BoneInstance HeadBodyBone;
-        private HardpointDefinition BodyHeadHp;
-        private BoneInstance BodyHeadBone;
+        private Connection HeadConnection;
+        private Connection LeftHandConnection;
+        private Connection RightHandConnection;
 
-        private HardpointDefinition BodyNeckHp;
-        private BoneInstance BodyNeckBone;
-        private Matrix4x4 NeckInvBindPose;
+        class Connection
+        {
+            private readonly HardpointDefinition parentHp;
+            private readonly BoneInstance parentBone;
+            private readonly HardpointDefinition childHp;
+            private readonly BoneInstance childBone;
+            private readonly HardpointDefinition connectionHp;
+            private readonly BoneInstance connectionBone;
+            private readonly Matrix4x4 invBindPose;
 
-        //Connect Left Hand
-        private HardpointDefinition LeftBodyHp;
-        private BoneInstance LeftBodyBone;
-        private HardpointDefinition BodyLeftHp;
-        private BoneInstance BodyLeftBone;
+            public Connection(DfmSkinning parent, DfmSkinning child,
+                string parentHpName, string childHpName, string connectionHpName)
+            {
+                parent.GetHardpoint(parentHpName, out parentHp, out parentBone);
+                child.GetHardpoint(childHpName, out childHp, out childBone);
+                parent.GetHardpoint(connectionHpName, out connectionHp, out connectionBone);
+                Matrix4x4.Invert(GetTransform(), out Matrix4x4 invConn);
+                Matrix4x4.Invert(connectionHp.Transform * connectionBone.LocalTransform * invConn, out invBindPose);
+            }
 
-        private HardpointDefinition BodyLeftConHp;
-        private BoneInstance BodyLeftConBone;
+            public Matrix4x4 GetTransform()
+            {
+                var child = childHp.Transform * childBone.LocalTransform;
+                Matrix4x4.Invert(child, out child);
+                var parent = parentHp.Transform * parentBone.LocalTransform;
+                return child * parent;
+            }
 
-        //Connect Right Hand
-        private HardpointDefinition RightBodyHp;
-        private BoneInstance RightBodyBone;
-        private HardpointDefinition BodyRightHp;
-        private BoneInstance BodyRightBone;
-
-        private HardpointDefinition BodyRightConHp;
-        private BoneInstance BodyRightConBone;
+            public Matrix4x4 GetBone()
+            {
+                Matrix4x4.Invert(GetTransform(), out Matrix4x4 invConn);
+                return invBindPose * connectionHp.Transform * connectionBone.LocalTransform * invConn;
+            }
+        }
 
         //Scripting
         List<ScriptInstance> RunningScripts = new List<ScriptInstance>();
@@ -164,51 +175,20 @@ namespace LibreLancer.Render
             {
                 Head = head;
                 HeadSkinning = new DfmSkinning(head);
+                HeadConnection = new(BodySkinning, HeadSkinning, "hp_head", "hp_head", "hp_neck");
             }
             if (leftHand != null)
             {
                 LeftHand = leftHand;
                 LeftHandSkinning = new DfmSkinning(leftHand);
+                LeftHandConnection = new(BodySkinning, LeftHandSkinning, "hp_left b", "hp_left b", "hp_left a");
             }
             if (rightHand != null)
             {
                 RightHand = rightHand;
                 RightHandSkinning = new DfmSkinning(rightHand);
+                RightHandConnection = new(BodySkinning, RightHandSkinning, "hp_right b", "hp_right b", "hp_right a");
             }
-            ConnectBones();
-        }
-
-        void ConnectBones()
-        {
-            if (Head != null)
-            {
-                HeadSkinning.GetHardpoint("hp_head", out HeadBodyHp, out HeadBodyBone);
-                BodySkinning.GetHardpoint("hp_head", out BodyHeadHp, out BodyHeadBone);
-                BodySkinning.GetHardpoint("hp_neck", out BodyNeckHp, out BodyNeckBone);
-                var headTr = GetAttachmentTransform(HeadBodyHp, HeadBodyBone, BodyHeadHp, BodyHeadBone);
-                Matrix4x4.Invert(headTr, out Matrix4x4 invHead);
-                Matrix4x4.Invert(BodyNeckHp.Transform * BodyNeckBone.LocalTransform * invHead, out NeckInvBindPose);
-            }
-            if (LeftHand != null)
-            {
-                LeftHandSkinning.GetHardpoint("hp_left b", out LeftBodyHp, out LeftBodyBone);
-                BodySkinning.GetHardpoint("hp_left b", out BodyLeftHp, out BodyLeftBone);
-                BodySkinning.GetHardpoint("hp_left a", out BodyLeftConHp, out BodyLeftConBone);
-            }
-            if (RightHand != null)
-            {
-                RightHandSkinning.GetHardpoint("hp_right b", out RightBodyHp, out RightBodyBone);
-                BodySkinning.GetHardpoint("hp_right b", out BodyRightHp, out BodyRightBone);
-                BodySkinning.GetHardpoint("hp_right a", out BodyRightConHp, out BodyRightConBone);
-            }
-        }
-        //A - attaching object, B - attaching to
-        Matrix4x4 GetAttachmentTransform(HardpointDefinition hpA, BoneInstance boneA, HardpointDefinition hpB, BoneInstance boneB)
-        {
-            var child = hpA.Transform * boneA.LocalTransform;
-            Matrix4x4.Invert(child, out child);
-            var parent = hpB.Transform * boneB.LocalTransform;
-            return child * parent;
         }
 
         public void UpdateScripts(double delta)
@@ -234,35 +214,23 @@ namespace LibreLancer.Render
         {
             int off = 0;
             BodySkinning.SetBoneData(bonesBuffer, ref off);
-            if (Head != null)
-            {
-                var headTr = GetAttachmentTransform(HeadBodyHp, HeadBodyBone, BodyHeadHp, BodyHeadBone);
-                Matrix4x4.Invert(headTr, out Matrix4x4 invHead);
-                Matrix4x4 missingBone = (NeckInvBindPose * BodyNeckHp.Transform * BodyNeckBone.LocalTransform * invHead);
-                HeadSkinning.SetBoneData(bonesBuffer, ref off, missingBone);
-            }
-            if (LeftHand != null)
-            {
-                LeftHandSkinning.SetBoneData(bonesBuffer, ref off);
-            }
-            if (RightHand != null)
-            {
-                RightHandSkinning.SetBoneData(bonesBuffer, ref off);
-            }
+            HeadSkinning?.SetBoneData(bonesBuffer, ref off, HeadConnection.GetBone());
+            LeftHandSkinning?.SetBoneData(bonesBuffer, ref off, LeftHandConnection.GetBone());
+            RightHandSkinning?.SetBoneData(bonesBuffer, ref off, RightHandConnection.GetBone());
         }
 
         public void GetTransforms(Matrix4x4 source, out Matrix4x4 head, out Matrix4x4 leftHand, out Matrix4x4 rightHand)
         {
             if (Head != null)
-                head = GetAttachmentTransform(HeadBodyHp, HeadBodyBone, BodyHeadHp, BodyHeadBone) * source;
+                head = HeadConnection.GetTransform() * source;
             else
                 head = source;
             if (LeftHand != null)
-                leftHand = GetAttachmentTransform(LeftBodyHp, LeftBodyBone, BodyLeftHp, BodyLeftBone) * source;
+                leftHand = LeftHandConnection.GetTransform() * source;
             else
                 leftHand = source;
             if (RightHand != null)
-                rightHand = GetAttachmentTransform(RightBodyHp, RightBodyBone, BodyRightHp, BodyRightBone) * source;
+                rightHand = RightHandConnection.GetTransform() * source;
             else
                 rightHand = source;
         }
@@ -300,6 +268,5 @@ namespace LibreLancer.Render
             LeftHandSkinning?.DebugDraw(lines, world, mode);
             RightHandSkinning?.DebugDraw(lines, world, mode);
         }
-
     }
 }

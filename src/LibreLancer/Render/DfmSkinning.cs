@@ -74,12 +74,12 @@ namespace LibreLancer.Render
                 s.Update(Matrix4x4.Identity);
         }
 
-        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, Matrix4x4? missingBone = null)
+        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, Matrix4x4? connectionBone = null)
         {
             for (int i = 0; i < boneMatrices.Length; i++)
             {
                 if (instanceArray[i] != null) boneMatrices[i] = instanceArray[i].BoneMatrix;
-                else if (missingBone.HasValue) boneMatrices[i] = missingBone.Value;
+                else if (connectionBone.HasValue) boneMatrices[i] = connectionBone.Value;
             }
             BufferOffset = offset;
             bonesBuffer.SetData(boneMatrices, offset);
