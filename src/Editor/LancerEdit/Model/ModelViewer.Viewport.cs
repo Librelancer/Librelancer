@@ -308,9 +308,13 @@ namespace LancerEdit
             buffer.Camera = cam;
             rstate.SetCamera(cam);
             _window.LineRenderer.StartFrame(rstate);
+
             if (drawable is DF.DfmFile dfm)
             {
-                skel.UploadBoneData(buffer.BonesBuffer);
+                buffer.BonesBuffer.BeginStreaming();
+                int a = 0, b = 0;
+                skel.UploadBoneData(buffer.BonesBuffer, ref a, ref b);
+                buffer.BonesBuffer.EndStreaming(b);
                 dfm.SetSkinning(skel.BodySkinning);
             }
             if (vmsModel != null) {

@@ -100,13 +100,13 @@ namespace LibreLancer.Render
             this.game = game;
             Settings = game.GetService<IRendererSettings>();
             billboards = game.GetService<Billboards>();
-            commands = game.GetService<CommandBuffer>();
+            Commands = game.GetService<CommandBuffer>();
             this.camera = camera;
             AsteroidFields = new List<AsteroidFieldRenderer>();
             Nebulae = new List<NebulaRenderer>();
             StarSphereModels = new RigidModel[0];
-            Polyline = new PolylineRender(commands);
-            FxPool = new ParticleEffectPool(commands);
+            Polyline = new PolylineRender(Commands);
+            FxPool = new ParticleEffectPool(Commands);
             rstate = resources.GLWindow.RenderContext;
             resman = resources;
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
@@ -241,7 +241,7 @@ namespace LibreLancer.Render
 
 		MultisampleTarget msaa;
 		int _mwidth = -1, _mheight = -1;
-        private CommandBuffer commands;
+        public CommandBuffer Commands;
 		int _twidth = -1, _theight = -1;
 		int _dwidth = -1, _dheight = -1;
 		DepthMap depthMap;
@@ -294,7 +294,7 @@ namespace LibreLancer.Render
             rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
             rstate.SetCamera(camera);
-            commands.Camera = camera;
+            Commands.Camera = camera;
 			bool transitioned = false;
 			if (nr != null)
 				transitioned = nr.FogTransitioned() && DrawNebulae;
@@ -307,6 +307,8 @@ namespace LibreLancer.Render
 				if (nr != null && nr.DoLightning(out p2))
 					pointLights.Add(p2);
 			}
+            Commands.BonesMax = Commands.BonesOffset = 0;
+            Commands.BonesBuffer.BeginStreaming();
             foreach (var obj in tempFx)
             {
                 obj.Render.PrepareRender(camera, nr, this, false);
@@ -315,6 +317,7 @@ namespace LibreLancer.Render
             {
                 World.Objects[i].PrepareRender(camera, nr, this);
             }
+            Commands.BonesBuffer.EndStreaming(Commands.BonesMax);
 			if (transitioned)
 			{
 				//Fully in fog. Skip Starsphere
@@ -330,13 +333,13 @@ namespace LibreLancer.Render
                 rstate.ClearAll();
             }
 			DebugRenderer.StartFrame(rstate);
-			commands.StartFrame(rstate);
+			Commands.StartFrame(rstate);
             FxPool.StartFrame(camera, Polyline);
 			rstate.DepthEnabled = true;
 			//Optimisation for dictionary lookups
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
-			billboards.Begin(camera, commands);
+			billboards.Begin(camera, Commands);
 			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete
 			if (GLExtensions.Features430 && ExtraLights)
 			{
@@ -411,24 +414,24 @@ namespace LibreLancer.Render
 			}
 			//Actual Drawing
 
-            Beams.Begin(commands, resman, camera);
-			foreach (var obj in objects) obj.Draw(camera, commands, SystemLighting, nr);
+            Beams.Begin(Commands, resman, camera);
+			foreach (var obj in objects) obj.Draw(camera, Commands, SystemLighting, nr);
             Beams.End();
-			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, commands, nr);
+			for (int i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, Commands, nr);
             if (DrawNebulae)
             {
                 if (nr == null)
                 {
-                    for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(commands);
+                    for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(Commands);
                 }
                 else
-                    nr.Draw(commands);
+                    nr.Draw(Commands);
             }
             billboards.End();
 			FxPool.EndFrame();
 			//Opaque Pass
 			rstate.DepthEnabled = true;
-			commands.DrawOpaque(rstate);
+			Commands.DrawOpaque(rstate);
             if ((!transitioned || !DrawNebulae) && DrawStarsphere)
             {
                 //Starsphere
@@ -471,7 +474,7 @@ namespace LibreLancer.Render
             GridHook?.Invoke();
             //Transparent Pass
             rstate.DepthWrite = false;
-			commands.DrawTransparent(rstate);
+			Commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
             rstate.DepthEnabled = true;
             PhysicsHook?.Invoke();

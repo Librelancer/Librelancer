@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
 {
     [UiLoadable]
     [WattleScriptUserData]
-    public class CharacterView : Widget3D    
+    public class CharacterView : Widget3D
     {
         DfmSkeletonManager Skeleton;
         private string _costume;
@@ -33,7 +33,7 @@ namespace LibreLancer.Interface
             }
             if (_costume != setCostume)
             {
-                   
+
             }
         }
         public override void Render(UiContext context, RectangleF parentRectangle)
@@ -55,13 +55,16 @@ namespace LibreLancer.Interface
             context.RenderContext.SetCamera(cam);
             context.CommandBuffer.Camera = cam;
             context.CommandBuffer.StartFrame(context.RenderContext);
-            Skeleton.GetTransforms(Matrix4x4.Identity, 
-                out var headTransform, 
-                out var leftTransform, 
+            Skeleton.GetTransforms(Matrix4x4.Identity,
+                out var headTransform,
+                out var leftTransform,
                 out var rightTransform
             );
             var lighting = Lighting.Empty;
-            Skeleton.UploadBoneData(context.CommandBuffer.BonesBuffer);
+            context.CommandBuffer.BonesBuffer.BeginStreaming();
+            int a = 0, b = 0;
+            Skeleton.UploadBoneData(context.CommandBuffer.BonesBuffer, ref a, ref b);
+            context.CommandBuffer.BonesBuffer.EndStreaming(b);
             Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
             Skeleton.Body.DrawBuffer(context.CommandBuffer, Matrix4x4.Identity, ref lighting);
             if (Skeleton.Head != null)

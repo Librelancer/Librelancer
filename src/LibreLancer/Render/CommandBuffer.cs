@@ -21,12 +21,13 @@ namespace LibreLancer.Render
 		int transparentCommand = 0;
         RenderContext rstate;
         public UniformBuffer BonesBuffer;
+        public int BonesMax;
+        public int BonesOffset;
         public WorldMatrixBuffer WorldBuffer;
         public ICamera Camera;
         public CommandBuffer()
         {
-            //TODO: This needs to be managed a lot better, leaks memory right now
-            BonesBuffer = new UniformBuffer(800, 64, typeof(Matrix4x4));
+            BonesBuffer = new UniformBuffer(65536, 64, typeof(Matrix4x4), true);
             WorldBuffer = new WorldMatrixBuffer();
         }
         public void StartFrame(RenderContext rstate)

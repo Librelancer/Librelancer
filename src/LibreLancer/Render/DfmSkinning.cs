@@ -14,7 +14,6 @@ namespace LibreLancer.Render
     public class DfmSkinning
     {
         DfmFile dfm;
-        Matrix4x4[] boneMatrices;
         private BoneInstance[] instanceArray;
         List<BoneInstance> starts = new List<BoneInstance>();
         public Dictionary<string, BoneInstance> Bones = new Dictionary<string, BoneInstance>(StringComparer.OrdinalIgnoreCase);
@@ -23,7 +22,6 @@ namespace LibreLancer.Render
         {
             this.dfm = dfm;
             int length = (dfm.Parts.Keys.Max() + 1);
-            boneMatrices = new Matrix4x4[length];
             instanceArray = new BoneInstance[length];
 
             foreach (var kv in dfm.Parts)
@@ -50,8 +48,6 @@ namespace LibreLancer.Render
             {
                 if(b.Parent == null) starts.Add(b);
             }
-            for (int j = 0; j < boneMatrices.Length; j++)
-                boneMatrices[j] = Matrix4x4.Identity;
         }
 
         public bool GetHardpoint(string hp, out HardpointDefinition def, out BoneInstance bone)
@@ -74,16 +70,17 @@ namespace LibreLancer.Render
                 s.Update(Matrix4x4.Identity);
         }
 
-        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, Matrix4x4? connectionBone = null)
+        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet, Matrix4x4? connectionBone = null)
         {
-            for (int i = 0; i < boneMatrices.Length; i++)
+            var cb = connectionBone ?? Matrix4x4.Identity;
+            for (int i = 0; i < instanceArray.Length; i++)
             {
-                if (instanceArray[i] != null) boneMatrices[i] = instanceArray[i].BoneMatrix;
-                else if (connectionBone.HasValue) boneMatrices[i] = connectionBone.Value;
+                if (instanceArray[i] != null) bonesBuffer.Data<Matrix4x4>(i+ offset) = instanceArray[i].BoneMatrix;
+                else bonesBuffer.Data<Matrix4x4>(i + offset) = cb;
             }
             BufferOffset = offset;
-            bonesBuffer.SetData(boneMatrices, offset);
-            offset += boneMatrices.Length;
+            offset += instanceArray.Length;
+            lastSet = offset;
             offset = bonesBuffer.GetAlignedIndex(offset);
         }
 

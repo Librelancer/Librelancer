@@ -33,7 +33,6 @@ namespace LibreLancer.Render
                 );
             if (sysren.DfmMode < DfmDrawMode.DebugBones)
             {
-                Skeleton.UploadBoneData(commands.BonesBuffer);
                 var lighting = RenderHelpers.ApplyLights(
                     lights, LightGroup,
                     Vector3.Transform(Vector3.Zero, transform), RADIUS, nr,
@@ -78,6 +77,10 @@ namespace LibreLancer.Render
             {
                 sys.AddObject(this);
                 this.sysren = sys;
+                if (sysren.DfmMode < DfmDrawMode.DebugBones)
+                {
+                    Skeleton.UploadBoneData(sys.Commands.BonesBuffer, ref sys.Commands.BonesOffset, ref sys.Commands.BonesMax);
+                }
                 return true;
             }
             else

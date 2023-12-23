@@ -223,13 +223,12 @@ namespace LibreLancer.Render
             foreach(var sc in toRemove) RunningScripts.Remove(sc);
         }
 
-        public void UploadBoneData(UniformBuffer bonesBuffer)
+        public void UploadBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet)
         {
-            int off = 0;
-            BodySkinning.SetBoneData(bonesBuffer, ref off);
-            HeadSkinning?.SetBoneData(bonesBuffer, ref off, HeadConnection.Bone);
-            LeftHandSkinning?.SetBoneData(bonesBuffer, ref off, LeftHandConnection.Bone);
-            RightHandSkinning?.SetBoneData(bonesBuffer, ref off, RightHandConnection.Bone);
+            BodySkinning.SetBoneData(bonesBuffer,  ref offset, ref lastSet);
+            HeadSkinning?.SetBoneData(bonesBuffer, ref offset, ref lastSet, HeadConnection.Bone);
+            LeftHandSkinning?.SetBoneData(bonesBuffer, ref offset, ref lastSet, LeftHandConnection.Bone);
+            RightHandSkinning?.SetBoneData(bonesBuffer, ref offset, ref lastSet, RightHandConnection.Bone);
         }
 
         public void GetTransforms(Matrix4x4 source, out Matrix4x4 head, out Matrix4x4 leftHand, out Matrix4x4 rightHand)
