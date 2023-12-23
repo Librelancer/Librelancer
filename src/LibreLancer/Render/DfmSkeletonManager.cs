@@ -50,9 +50,9 @@ namespace LibreLancer.Render
                 child.GetHardpoint(childHpName, out childHp, out childBone);
                 parent.GetHardpoint(connectionHpName, out connectionHp, out connectionBone);
                 CalculateTransform();
-                CalculateBone();
                 Matrix4x4.Invert(Transform, out Matrix4x4 invConn);
                 Matrix4x4.Invert(connectionHp.Transform * connectionBone.LocalTransform * invConn, out invBindPose);
+                CalculateBone();
             }
 
             private void CalculateTransform()
