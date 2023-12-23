@@ -911,6 +911,7 @@ namespace LancerEdit
 
         bool drawSkeleton = false;
         Anm.AnmFile anmFile;
+        private string skeletonHighlight;
         void SkeletonPanel()
         {
             ImGui.Checkbox("Draw Skeleton", ref drawSkeleton);
@@ -921,12 +922,15 @@ namespace LancerEdit
             ImGui.Separator();
 
             var dfm = (DF.DfmFile)drawable;
+            skeletonHighlight = null;
             if (ImGui.CollapsingHeader("Bones", ImGuiTreeNodeFlags.CollapsingHeader))
             {
                 foreach(var inst in skel.BodySkinning.Bones)
                 {
                     if(ImGui.Selectable(inst.Key))
                         popups.OpenPopup(new DfmBoneInfo(inst.Value));
+                    if(ImGui.IsItemHovered())
+                        skeletonHighlight = inst.Key;
                 }
             }
             if (ImGui.CollapsingHeader("Hardpoints", ImGuiTreeNodeFlags.DefaultOpen))
@@ -935,6 +939,8 @@ namespace LancerEdit
                 {
                     if (ImGui.Selectable(hp.Hp.Name))
                         popups.OpenPopup(new DfmHpInfo(hp));
+                    if(ImGui.IsItemHovered())
+                        skeletonHighlight = hp.Hp.Name;
                 }
             }
 

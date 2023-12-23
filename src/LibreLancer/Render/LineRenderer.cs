@@ -15,6 +15,7 @@ namespace LibreLancer.Render
 		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
 		VertexBuffer linebuffer;
 		int lineVertices = 0;
+        public string SkeletonHighlight;
 
 		Shaders.ShaderVariables shader;
 		public LineRenderer()

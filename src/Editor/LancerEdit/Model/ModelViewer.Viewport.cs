@@ -370,6 +370,7 @@ namespace LancerEdit
         void DrawSkeleton(ICamera cam)
         {
             var matrix = GetModelMatrix();
+            _window.LineRenderer.SkeletonHighlight = skeletonHighlight;
             _window.LineRenderer.StartFrame(_window.RenderContext);
             skel.DebugDraw(_window.LineRenderer, matrix, DfmDrawMode.DebugBonesHardpoints);
             _window.LineRenderer.Render();
