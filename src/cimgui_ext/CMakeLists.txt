@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.8.12)
 project (cimgui)
-set(CMAKE_BUILD_TYPE release)
 set(CMAKE_CXX_STANDARD 11)
 include_directories("./freetypeshim" "../../extern/cimgui/imgui" "../../extern/ImGuiColorTextEdit")
 add_library(cimgui SHARED

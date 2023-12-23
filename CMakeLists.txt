@@ -9,6 +9,7 @@ MESSAGE(STATUS "Library Type: " ${LIB_TYPE})
 MESSAGE(STATUS "Compiler flags:" ${CMAKE_CXX_COMPILE_FLAGS})
 MESSAGE(STATUS "Compiler cxx release (debug info )flags:" ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
 MESSAGE(STATUS "Compiler cxx min size flags:" ${CMAKE_CXX_FLAGS_MINSIZEREL})
+MESSAGE(STATUS "Compiler cxx debug flags": ${CMAKE_CXX_FLAGS_DEBUG})
 MESSAGE(STATUS "Compiler cxx flags:" ${CMAKE_CXX_FLAGS})
 # get the correct naming across MSVC and mingw
 if (WIN32)

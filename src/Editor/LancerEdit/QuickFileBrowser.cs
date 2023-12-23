@@ -477,7 +477,7 @@ public class QuickFileBrowser
             ImGuiTableFlags.Sortable |
             ImGuiTableFlags.ScrollY |
             ImGuiTableFlags.NoHostExtendY |
-            ImGuiTableFlags.RowBg, sz);
+            ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchSame, sz);
         ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort, 0.5f);
         ImGui.TableSetupColumn("Last Modified", ImGuiTableColumnFlags.None, 0.3f);
         ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.None, 0.2f);
@@ -580,7 +580,7 @@ public class QuickFileBrowser
         ImGui.Text(currentDirectory.FullPath);
         ImGui.Separator();
         var region = ImGui.GetContentRegionAvail() - new Vector2(0, 2 * ImGuiHelper.Scale);
-        ImGui.BeginTable("##main", 2, ImGuiTableFlags.Resizable | ImGuiTableFlags.NoHostExtendY, region);
+        ImGui.BeginTable("##main", 2, ImGuiTableFlags.Resizable | ImGuiTableFlags.NoHostExtendY | ImGuiTableFlags.SizingStretchSame, region);
         ImGui.TableSetupColumn("##fav", ImGuiTableColumnFlags.None, 0.2f);
         ImGui.TableSetupColumn("##stuff", ImGuiTableColumnFlags.None, 0.8f);
         ImGui.TableNextRow();

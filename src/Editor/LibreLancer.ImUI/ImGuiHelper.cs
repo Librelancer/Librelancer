@@ -379,7 +379,7 @@ namespace LibreLancer.ImUI
 			ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new Vector2(game.Width, game.Height);
 			io.DisplayFramebufferScale = new Vector2(1, 1);
-			io.DeltaTime = elapsed > 1 ? 0 : (float)elapsed;
+			io.DeltaTime = elapsed > 1 ? 1 : (float)elapsed;
 			//Update input
 			io.MousePos = new Vector2(game.Mouse.X, game.Mouse.Y);
 			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);

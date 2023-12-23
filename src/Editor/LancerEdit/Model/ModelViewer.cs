@@ -717,21 +717,23 @@ namespace LancerEdit
         }
         ContextActions EditDeleteHpMenu(string n)
         {
+            ContextActions act = ContextActions.None;
             if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 ImGui.OpenPopup(n + "_HardpointEditCtx");
-            if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx")) {
-                if(Theme.IconMenuItem(Icons.Edit, "Edit",true)) return ContextActions.Edit;
-                if(Theme.IconMenuItem(Icons.TrashAlt, "Delete",true)) return ContextActions.Delete;
+            if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx"))
+            {
+                if(Theme.IconMenuItem(Icons.Edit, "Edit",true)) act = ContextActions.Edit;
+                if(Theme.IconMenuItem(Icons.TrashAlt, "Delete",true)) act = ContextActions.Delete;
                 if(Theme.BeginIconMenu(Icons.Clone, "Duplicate"))
                 {
-                    if (ImGui.MenuItem("Mirror X")) return ContextActions.MirrorX;
-                    if (ImGui.MenuItem("Mirror Y")) return ContextActions.MirrorY;
-                    if (ImGui.MenuItem("Mirror Z")) return ContextActions.MirrorZ;
+                    if (ImGui.MenuItem("Mirror X")) act = ContextActions.MirrorX;
+                    if (ImGui.MenuItem("Mirror Y")) act = ContextActions.MirrorY;
+                    if (ImGui.MenuItem("Mirror Z")) act = ContextActions.MirrorZ;
                     ImGui.EndMenu();
                 }
                 ImGui.EndPopup();
             }
-            return ContextActions.None;
+            return act;
         }
         int level = 0;
         string[] levels;

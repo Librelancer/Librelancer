@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.8.12)
 project (crnlibglue)
-set(CMAKE_BUILD_TYPE release)
 set(CMAKE_CXX_STANDARD 11)
 set(CRUNCH_DIR "../../extern/crunch")
 include_directories(${CRUNCH_DIR}/inc ${CRUNCH_DIR}/crnlib)
