@@ -24,6 +24,14 @@ namespace LibreLancer.Media
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern void alcCloseDevice(IntPtr device);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void alcGetIntegerv(IntPtr device, int param, IntPtr size, ref int values);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr alcGetProcAddress(IntPtr dev, [MarshalAs(UnmanagedType.LPUTF8Str)]string proc);
+
+        public const int ALC_CONNECTED = 0x313;
 	}
 }
 

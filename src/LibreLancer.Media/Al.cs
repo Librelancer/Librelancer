@@ -71,6 +71,9 @@ namespace LibreLancer.Media
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alDopplerFactor(float factor);
 
+            [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+            public static extern void alDisable(int name);
+
         }
 
         //CONSTANTS
@@ -104,11 +107,21 @@ namespace LibreLancer.Media
         public const int AL_STOPPED = 0x1014;
 
         public const int AL_NO_ERROR = 0;
+
+        //OpenAL SOFT extensions
+        public const int AL_STOP_SOURCES_ON_DISCONNECT_SOFT = 0x19AB;
+
         //FUNCTIONS
 
         public static void alListenerf(int param, float value)
         {
             Native.alListenerf(param, value);
+            CheckErrors();
+        }
+
+        public static void alDisable(int param)
+        {
+            Native.alDisable(param);
             CheckErrors();
         }
 

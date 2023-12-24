@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace LibreLancer.Media
 {
-	public class AudioManager
+	public unsafe class AudioManager
 	{
 		//TODO: Heuristics to determine max number of sources
 		const int MAX_SOURCES = 31;
@@ -47,8 +47,10 @@ namespace LibreLancer.Media
                 Platform.RegisterDllMap(typeof(AudioManager).Assembly);
                 //Init context
                 dev = Alc.alcOpenDevice(null);
+                alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.alcGetProcAddress(dev, "alcReopenDeviceSOFT");
                 ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
                 Alc.alcMakeContextCurrent(ctx);
+                Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
                 //Matches Freelancer (verified with dsoal)
                 Al.alDopplerFactor(0.1f);
                 
@@ -66,7 +68,7 @@ namespace LibreLancer.Media
                 }
                 
                 Music = new MusicPlayer(Al.GenSource(), Al.GenSource(), Al.GenSource());
-
+                DeviceEvents.Init();
                 FLLog.Debug("Audio", "Audio initialised");
                 Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
                 Ready = true;
@@ -75,12 +77,21 @@ namespace LibreLancer.Media
 
         public void WaitReady() => initTask.Wait();
 
+        static delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool> alcReopenDeviceSOFT;
+        int defaultDeviceCounter = 0;
+
         public Task UpdateAsync()
         {
             return Task.Run(() =>
             {
                 if (running)
                 {
+                    int connected = 1;
+                    Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
+                    if(connected == 0 || DeviceEvents.DefaultDeviceChange > defaultDeviceCounter) {
+                        defaultDeviceCounter = DeviceEvents.DefaultDeviceChange;
+                        alcReopenDeviceSOFT(dev, IntPtr.Zero, IntPtr.Zero);
+                    }
                     //Run actions
                     Action toRun;
                     while (actions.TryDequeue(out toRun)) toRun();
@@ -281,6 +292,7 @@ namespace LibreLancer.Media
         
         public void Dispose()
 		{
+            DeviceEvents.Deinit();
 			running = false;
             Music.Timer.Dispose();
             Music.Task.Wait();
