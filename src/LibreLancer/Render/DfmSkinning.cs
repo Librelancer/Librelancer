@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
 
@@ -18,17 +19,84 @@ namespace LibreLancer.Render
         List<BoneInstance> starts = new List<BoneInstance>();
         public Dictionary<string, BoneInstance> Bones = new Dictionary<string, BoneInstance>(StringComparer.OrdinalIgnoreCase);
         public int BufferOffset;
+
+        private static Regex splineRx = new(@"^B_SplineBone (\d+)([A-Z]+)$", RegexOptions.Compiled | RegexOptions.Compiled);
+        private List<BoneSpline> boneSplines = new();
+        private class BoneSpline
+        {
+            private BoneInstance[] bones;
+            private Matrix4x4 start, end;
+
+            public BoneSpline(IEnumerable<BoneInstance> boneInstances)
+            {
+                this.bones = boneInstances.ToArray();
+                start = bones[0].LocalTransform;
+                end = bones[^1].LocalTransform;
+            }
+
+            public void UpdateSpline()
+            {
+                var controlPoints = new Matrix4x4[bones.Length + 2];
+                controlPoints[0] = start;
+                controlPoints[bones.Length + 1] = end;
+                for (int i = 0; i < bones.Length; i++)
+                    controlPoints[i + 1] = bones[i].LocalTransform;
+
+                double step = 1.0 / (bones.Length + 1.0);
+                double t = step;
+                for(int i = 0; i < bones.Length; i++)
+                {
+                    bones[i].LocalTransform = EvaluateBezier(controlPoints, t);
+                    bones[i].BoneMatrix = bones[i].InvBindPose * bones[i].LocalTransform;
+                    t += step;
+                }
+            }
+
+            private Matrix4x4 EvaluateBezier(Matrix4x4[] controlPoints, double t)
+            {
+                Matrix4x4[] tmp = new Matrix4x4[controlPoints.Length];
+                Array.Copy(controlPoints, tmp, tmp.Length);
+                int i = tmp.Length - 1;
+                while (i > 0)
+                {
+                    for (int k = 0; k < i; k++)
+                        tmp[k] = tmp[k] + (tmp[k + 1] - tmp[k]) * (float)t;
+                    i--;
+                }
+                return tmp[0];
+            }
+        }
+
         public DfmSkinning(DfmFile dfm)
         {
             this.dfm = dfm;
             int length = (dfm.Parts.Keys.Max() + 1);
             instanceArray = new BoneInstance[length];
 
+            Dictionary<string, SortedList<int, BoneInstance>> splinesDict = new();
             foreach (var kv in dfm.Parts)
             {
                 var inst = new BoneInstance(kv.Value.objectName, kv.Value.Bone.BoneToRoot);
                 instanceArray[kv.Key] = inst;
                 Bones.Add(inst.Name, inst);
+
+                var m = splineRx.Match(inst.Name);
+                if (m.Success)
+                {
+                    string splineId = m.Groups[2].Value;
+                    if (!splinesDict.TryGetValue(splineId, out SortedList<int, BoneInstance> splineSequence))
+                    {
+                        splineSequence = new();
+                        splinesDict.Add(splineId, splineSequence);
+                    }
+
+                    splineSequence.Add(int.Parse(m.Groups[1].Value), inst);
+                }
+            }
+
+            foreach (var v in splinesDict)
+            {
+                boneSplines.Add(new(v.Value.Values));
             }
 
             foreach (var con in dfm.Constructs.Constructs)
@@ -68,6 +136,8 @@ namespace LibreLancer.Render
         {
             foreach (var s in starts)
                 s.Update(Matrix4x4.Identity);
+            foreach (var s in boneSplines)
+                s.UpdateSpline();
         }
 
         public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet, Matrix4x4? connectionBone = null)
@@ -140,6 +210,8 @@ namespace LibreLancer.Render
                 for (int i = 0; i < instanceArray.Length; i++)
                 {
                     if (instanceArray[i] == null)
+                        continue;
+                    if (!instanceArray[i].Name.Contains("SplineBone")) // TODO: for debbuging splines. Remove.
                         continue;
                     var tr = instanceArray[i].LocalTransform;
                     var color = instanceArray[i].Name == lines.SkeletonHighlight ? Color4.White : Color4.Red;
