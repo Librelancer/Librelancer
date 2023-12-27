@@ -38,7 +38,8 @@ namespace LibreLancer.Media
         private IntPtr dev;
 
         private Task initTask;
-       
+        private bool tryRecoverAudio = false;
+
 		public AudioManager(IUIThread uithread)
 		{
 			UIThread = uithread;
@@ -50,15 +51,24 @@ namespace LibreLancer.Media
                 alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.alcGetProcAddress(dev, "alcReopenDeviceSOFT");
                 ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
                 Alc.alcMakeContextCurrent(ctx);
-                Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
+                try
+                {
+                    Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
+                    tryRecoverAudio = alcReopenDeviceSOFT != null;
+                }
+                // ReSharper disable once EmptyGeneralCatchClause
+                catch
+                {
+                }
+
                 //Matches Freelancer (verified with dsoal)
                 Al.alDopplerFactor(0.1f);
-                
+
                 for (int i = 0; i < (MAX_SOURCES - 3); i++)
                 {
                     freeSources.Enqueue(Al.GenSource());
                 }
-                
+
 
                 Instances = new InstanceInfo[MAX_INSTANCES];
                 for (int i = 0; i < MAX_INSTANCES; i++)
@@ -66,7 +76,7 @@ namespace LibreLancer.Media
                     Instances[i].Source = uint.MaxValue;
                     freeInstances.Enqueue((uint) i);
                 }
-                
+
                 Music = new MusicPlayer(Al.GenSource(), Al.GenSource(), Al.GenSource());
                 DeviceEvents.Init();
                 FLLog.Debug("Audio", "Audio initialised");
@@ -86,11 +96,14 @@ namespace LibreLancer.Media
             {
                 if (running)
                 {
-                    int connected = 1;
-                    Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
-                    if(connected == 0 || DeviceEvents.DefaultDeviceChange > defaultDeviceCounter) {
-                        defaultDeviceCounter = DeviceEvents.DefaultDeviceChange;
-                        alcReopenDeviceSOFT(dev, IntPtr.Zero, IntPtr.Zero);
+                    if (tryRecoverAudio) {
+                        int connected = 1;
+                        Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
+                        if (connected == 0 || DeviceEvents.DefaultDeviceChange > defaultDeviceCounter)
+                        {
+                            defaultDeviceCounter = DeviceEvents.DefaultDeviceChange;
+                            alcReopenDeviceSOFT(dev, IntPtr.Zero, IntPtr.Zero);
+                        }
                     }
                     //Run actions
                     Action toRun;
@@ -148,7 +161,7 @@ namespace LibreLancer.Media
                 return false;
             }
 		}
-        
+
 		public SoundData AllocateData()
         {
             while (!Ready) {
@@ -156,7 +169,7 @@ namespace LibreLancer.Media
             }
             return new SoundData(this);
         }
-        
+
         public void ReleaseAllSfx()
         {
             actions.Enqueue(() =>
@@ -188,7 +201,7 @@ namespace LibreLancer.Media
             Instances[id].Instance = null;
             freeInstances.Enqueue(id);
         }
-        
+
         public void PlayStream(Stream stream)
         {
             var soundData = AllocateData();
@@ -245,7 +258,7 @@ namespace LibreLancer.Media
         {
             return type == SoundType.Voice ? _voiceVolumeGain : _sfxVolumeGain;
         }
-        
+
         internal uint AM_GetInstanceSource(uint instance, bool alloc)
         {
             if (instance == uint.MaxValue) return uint.MaxValue;
@@ -289,7 +302,7 @@ namespace LibreLancer.Media
             ori[1] = up;
             Al.alListenerfv(Al.AL_ORIENTATION, (IntPtr)ori);
         }
-        
+
         public void Dispose()
 		{
             DeviceEvents.Deinit();
