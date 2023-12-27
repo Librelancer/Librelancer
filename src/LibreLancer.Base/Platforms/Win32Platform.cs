@@ -16,6 +16,10 @@ namespace LibreLancer.Platforms
 			return false;
 		}
 
+        public void Init(string sdlBackend)
+        {
+        }
+
         public string GetLocalConfigFolder() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         static bool GdiOpenFace(string face, out byte[] buffer)

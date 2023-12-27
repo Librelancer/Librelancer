@@ -84,6 +84,8 @@ namespace LibreLancer
             RegisterDllMap(typeof(Platform).Assembly);
 		}
 
+        internal static void Init(string sdlBackend) => RunningPlatform.Init(sdlBackend);
+
         internal static PlatformEvents SubscribeEvents(IUIThread mainThread) =>
             RunningPlatform.SubscribeEvents(mainThread);
 

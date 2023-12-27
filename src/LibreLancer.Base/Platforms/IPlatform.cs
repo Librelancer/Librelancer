@@ -8,6 +8,7 @@ namespace LibreLancer.Platforms
 {
 	interface IPlatform
     {
+        void Init(string sdlBackend);
         string GetLocalConfigFolder();
 		bool IsDirCaseSensitive(string directory);
         void AddTtfFile(string path);

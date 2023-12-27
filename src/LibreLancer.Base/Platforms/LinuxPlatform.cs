@@ -13,12 +13,21 @@ namespace LibreLancer.Platforms
         [DllImport("libgtk-3.so.0")]
         static extern bool gtk_init_check(IntPtr argc, IntPtr argv);
 
+        [DllImport("libX11.so.6")]
+        static extern int XInitThreads();
+
 		IntPtr fcconfig;
 
 		public LinuxPlatform()
         {
             fcconfig = LibFontConfig.FcInitLoadConfigAndFonts();
             LibFontConfig.FcConfigSetCurrent(fcconfig);
+        }
+
+        public void Init(string sdlBackend)
+        {
+            if ("x11".Equals(sdlBackend, StringComparison.OrdinalIgnoreCase))
+                XInitThreads();
             gtk_init_check(IntPtr.Zero, IntPtr.Zero);
         }
 

@@ -515,6 +515,7 @@ namespace LibreLancer
                              height,
                              flags
                          );
+            Platform.Init(SDL.SDL_GetCurrentVideoDriver());
             //Cursors
             curArrow = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
             curMove = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR);
