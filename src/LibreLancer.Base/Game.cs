@@ -684,7 +684,7 @@ namespace LibreLancer
                             }
                         case SDL.SDL_EventType.SDL_MOUSEWHEEL:
                             {
-                                Mouse.Wheel += e.wheel.y;
+                                Mouse.OnMouseWheel(e.wheel.y);
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_TEXTINPUT:

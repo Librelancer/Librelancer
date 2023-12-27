@@ -17,7 +17,9 @@ namespace LibreLancer
 		public event MouseEventHandler MouseMove;
 		public event MouseEventHandler MouseDown;
 		public event MouseEventHandler MouseUp;
-        
+
+        public event MouseWheelEventHandler MouseWheel;
+
         public event MouseEventHandler MouseDoubleClick;
 
 		public float Wheel = 0;
@@ -36,6 +38,11 @@ namespace LibreLancer
 				MouseMove (new MouseEventArgs (X, Y, Buttons));
 		}
 
+        internal void OnMouseWheel(int amount)
+        {
+            if (MouseWheel != null)
+                MouseWheel(amount);
+        }
 		internal void OnMouseDown(MouseButtons b)
 		{
 			if (MouseDown != null)
@@ -54,7 +61,7 @@ namespace LibreLancer
 				MouseUp (new MouseEventArgs (X, Y, b));
 		}
 
-		
+
 	}
 }
 

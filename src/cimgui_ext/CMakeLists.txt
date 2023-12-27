@@ -3,7 +3,6 @@ project (cimgui)
 set(CMAKE_CXX_STANDARD 14)
 include_directories("./freetypeshim" "../../extern/cimgui/imgui" "../../extern/ImGuiColorTextEdit" "../../extern/imgui-node-editor")
 
->>>>>>> 0f38fd2a (Bind imgui-node-editor)
 add_library(cimgui SHARED
     ../../extern/cimgui/imgui/imgui.cpp
     ../../extern/cimgui/imgui/imgui_draw.cpp
