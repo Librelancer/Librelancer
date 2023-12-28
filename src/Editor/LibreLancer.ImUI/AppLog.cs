@@ -4,9 +4,8 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
-using LibreLancer.ImUI;
 
-namespace LLServer;
+namespace LibreLancer.ImUI;
 
 public class AppLog : IDisposable
 {
@@ -27,6 +26,7 @@ public class AppLog : IDisposable
 
     public unsafe void AppendText(string s)
     {
+        if (s == null) return;
         var byteSize = Encoding.UTF8.GetByteCount(s);
         if (bufferSize + byteSize >= bufferCapacity)
         {
@@ -44,18 +44,22 @@ public class AppLog : IDisposable
         bufferSize += byteSize;
     }
 
-    public unsafe void Draw()
+    public unsafe void Draw(bool buttons = true, Vector2 size = default)
     {
-        ImGui.Checkbox("Autoscroll", ref autoScroll);
-        ImGui.SameLine();
-        if (ImGui.Button("Clear"))
+        if (buttons)
         {
-            bufferSize = 0;
-            lineOffsets = new List<int> {0};
+            ImGui.Checkbox("Autoscroll", ref autoScroll);
+            ImGui.SameLine();
+            if (ImGui.Button("Clear"))
+            {
+                bufferSize = 0;
+                lineOffsets = new List<int> { 0 };
+            }
+
+            ImGui.Separator();
         }
-        ImGui.Separator();
         IntPtr bufferEnd = buffer + bufferSize;
-        if (ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.HorizontalScrollbar))
+        if (ImGui.BeginChild("scrolling", size, false, ImGuiWindowFlags.HorizontalScrollbar))
         {
             ImGui.PushFont(ImGuiHelper.SystemMonospace);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
@@ -83,5 +87,4 @@ public class AppLog : IDisposable
         Marshal.FreeHGlobal(buffer);
         listClipper.Dispose();
     }
-    
 }

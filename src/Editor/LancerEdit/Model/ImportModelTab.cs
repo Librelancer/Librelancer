@@ -61,7 +61,7 @@ public class ImportModelTab : EditorTab
 
     private bool importTextures = true;
 
-    public ImportModelTab(Model model, string fname, MainWindow win)
+    public ImportModelTab(Model model, string fname, MainWindow win, TaskRunPopup popup)
     {
         this.model = model;
         Title = string.Format("Model Importer ({0})", fname);
@@ -101,7 +101,7 @@ public class ImportModelTab : EditorTab
         lighting.Lights.SourceEnabled[1] = true;
         lighting.NumberOfTilesX = -1;
         CloneModel();
-        Import();
+        Import(popup);
     }
 
     private void CloneModel()
@@ -136,7 +136,6 @@ public class ImportModelTab : EditorTab
 
     void FinishImport()
     {
-
         win.StartLoadingSpinner();
         Task.Run(() =>
         {
@@ -299,7 +298,12 @@ public class ImportModelTab : EditorTab
             CloneModel();
         ImGui.SameLine(ImGui.GetWindowWidth() - 70);
         if (ImGui.Button("Import"))
-            Import();
+        {
+            var popup = new TaskRunPopup("Reimporting", false);
+            win.Popups.OpenPopup(popup);
+            Import(popup);
+        }
+
         ImGui.Separator();
         if (ImGui.TreeNode("Source/"))
         {
@@ -457,14 +461,15 @@ public class ImportModelTab : EditorTab
     }
 
 
-    private void Import()
+    private void Import(TaskRunPopup popup)
     {
         var o = ImportedModel.FromSimpleMesh(Path.GetFileNameWithoutExtension(modelNameDefault), editModel.Clone());
-        win.ResultMessages(o);
+        win.ResultMessages(o, popup.Log);
         if (o.IsError)
         {
             output = new ImportedModel {Name = Path.GetFileNameWithoutExtension(modelNameDefault)};
             DisposePreview();
+            popup.Log("Failed to import\n");
         }
         else
         {
@@ -474,7 +479,9 @@ public class ImportModelTab : EditorTab
             allMaterials = new ();
             FindMaterials(output.Root);
             canGenerateSur = SurfaceBuilder.HasHulls(output);
+            popup.Log("Imported\n");
         }
+        popup.Finish();
     }
 
     public override void Draw(double elapsed)

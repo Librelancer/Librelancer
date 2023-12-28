@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LibreLancer.ContentEdit;
 
@@ -33,8 +35,20 @@ public class EditResult<T>
         new(default, other.Append(EditMessage.Error(error)));
 
     public bool IsError => Messages.Any(x => x.Kind == EditorMessageKind.Error);
-    
+
     public bool IsSuccess => Messages.All(x => x.Kind != EditorMessageKind.Error);
+
+    public static async Task<EditResult<T>> RunBackground(Func<EditResult<T>> func, CancellationToken cancellation = default)
+    {
+        try
+        {
+            return await Task.Run(func, cancellation);
+        }
+        catch (TaskCanceledException)
+        {
+            return Error("Operation cancelled");
+        }
+    }
 
     public static EditResult<T> TryCatch(Func<T> create)
     {

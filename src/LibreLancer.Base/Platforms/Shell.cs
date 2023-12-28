@@ -17,7 +17,13 @@ namespace LibreLancer
             return p.ExitCode == 0;
         }
 
-        public static string GetString(string cmd, string args)
+        public static void TryKill(this Process p)
+        {
+            // ReSharper disable once EmptyGeneralCatchClause
+            try { p.Kill(); } catch { }
+        }
+
+        public static string GetString(string cmd, string args, int timeout = 0)
         {
             try
             {
@@ -29,7 +35,17 @@ namespace LibreLancer
                     RedirectStandardError = true
                 };
                 using var p = Process.Start(startInfo);
-                p.WaitForExit();
+                if (timeout > 0)
+                {
+                    if (!p.WaitForExit(timeout))
+                    {
+                        FLLog.Warning("Shell", $"Timeout of {timeout}ms exceeded for: {cmd} {args}");
+                        p.TryKill();
+                        return "";
+                    }
+                }
+                else
+                    p.WaitForExit();
                 return p.StandardOutput.ReadToEnd().Trim();
             }
             catch (Exception e)
@@ -38,7 +54,7 @@ namespace LibreLancer
                 return "";
             }
         }
-        
+
         public static void OpenCommand(string path)
         {
             if(Platform.RunningOS == OS.Windows)

@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Threading;
+using System.Threading.Tasks;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit;
@@ -66,15 +68,15 @@ public class Blender
         if (string.IsNullOrWhiteSpace(blenderPath))
             return false;
         if (blenderPath == "FLATPAK")
-            return Shell.GetString("flatpak", "run org.blender.Blender --version")
+            return Shell.GetString("flatpak", "run org.blender.Blender --version", 10000)
                 .StartsWith("Blender");
-        return Shell.GetString(blenderPath, "--version")
+        return Shell.GetString(blenderPath, "--version", 10000)
                 .StartsWith("Blender");
     }
 
     static string EscapeCode(string s) => JsonValue.Create(s).ToJsonString();
 
-    public static EditResult<SimpleMesh.Model> LoadBlenderFile(string file, string blenderPath = null)
+    public static async Task<EditResult<SimpleMesh.Model>> LoadBlenderFile(string file, CancellationToken cancellation = default, Action<string> log = null, string blenderPath = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();
@@ -105,17 +107,53 @@ public class Blender
             "import bpy\n"
             + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True)";
         File.WriteAllText(tmppython, exportCode);
-        var p = Process.Start(name, args);
-        p.WaitForExit();
+        var psi = new ProcessStartInfo(name, args)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = log != null,
+            RedirectStandardError = log != null
+        };
+        log?.Invoke($"Running {name} {args}\n");
+        var p = Process.Start(psi);
+        if (log != null)
+        {
+            p.OutputDataReceived += (o, e) =>
+            {
+                if (e.Data != null) log(e.Data + "\n");
+            };
+            p.ErrorDataReceived += (o, e) =>
+            {
+                if (e.Data != null) log(e.Data + "\n");
+            };
+            p.BeginErrorReadLine();
+            p.BeginOutputReadLine();
+        }
+
+        try
+        {
+            await p.WaitForExitAsync(cancellation);
+        }
+        catch (TaskCanceledException)
+        {
+            p.CancelErrorRead();
+            p.CancelOutputRead();
+            p.TryKill();
+            File.Delete(tmppython);
+            if(!string.IsNullOrWhiteSpace(tmpblend)) File.Delete(tmpblend);
+            return EditResult<SimpleMesh.Model>.Error("Blender import cancelled");
+        }
         tmpfile += ".glb";
         File.Delete(tmppython);
         if(!string.IsNullOrWhiteSpace(tmpblend)) File.Delete(tmpblend);
         if(File.Exists(tmpfile))
         {
-            var bytes = File.ReadAllBytes(tmpfile);
-            File.Delete(tmpfile);
-            using var ms = new MemoryStream(bytes);
-            return EditResult<SimpleMesh.Model>.TryCatch(() => SimpleMesh.Model.FromStream(ms));
+            return await EditResult<SimpleMesh.Model>.RunBackground(() =>
+            {
+                var bytes = File.ReadAllBytes(tmpfile);
+                File.Delete(tmpfile);
+                using var ms = new MemoryStream(bytes);
+                return EditResult<SimpleMesh.Model>.TryCatch(() => SimpleMesh.Model.FromStream(ms));
+            }, cancellation);
         }
         return EditResult<SimpleMesh.Model>.Error("Failed to execute blender export");
     }
@@ -133,7 +171,7 @@ for obj in bpy.context.scene.objects:
 bpy.ops.wm.save_as_mainfile(filepath={1})
 ";
 
-    public static EditResult<bool> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null)
+    public static EditResult<bool> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null, Action<string> logLine = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();
@@ -162,6 +200,10 @@ bpy.ops.wm.save_as_mainfile(filepath={1})
             args = $"\"{file}\" --background --python \"{tmppython}\"";
         }
         File.WriteAllText(tmppython, string.Format(EXPORT_SCRIPT, EscapeCode(tmpfile), EscapeCode(tmpblend)));
+        var psi = new ProcessStartInfo(name, args);
+        psi.RedirectStandardError = true;
+        psi.RedirectStandardOutput = true;
+        psi.UseShellExecute = false;
         using var p = Process.Start(name, args);
         p.WaitForExit();
         File.Delete(tmppython);

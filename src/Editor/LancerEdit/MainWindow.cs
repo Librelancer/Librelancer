@@ -77,7 +77,7 @@ namespace LancerEdit
             };
             Config = EditorConfiguration.Load();
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-            quickFileBrowser = new QuickFileBrowser(Config, this, popups);
+            quickFileBrowser = new QuickFileBrowser(Config, this, Popups);
             quickFileBrowser.FileSelected += OpenFile;
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
@@ -138,7 +138,7 @@ namespace LancerEdit
             Services.Add(Config);
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();
-            popups.AddPopup("Loading##systemviewer", _ =>
+            Popups.AddPopup("Loading##systemviewer", _ =>
             {
                 ImGui.Text("Loading Universe Editor...");
                 if (this.OpenDataContext.RenderAllArchetypePreviews()) {
@@ -252,7 +252,7 @@ namespace LancerEdit
             }
         }
 
-        private PopupManager popups = new PopupManager();
+        public PopupManager Popups = new PopupManager();
 
         private int bottomTab = 0;
         float h1 = 200, h2 = 200;
@@ -337,31 +337,36 @@ namespace LancerEdit
 
         void TryImportModel(string filename)
         {
-            StartLoadingSpinner();
-            Task.Run(() =>
+            var popup = new TaskRunPopup("Loading Model");
+            popup.Log($"Loading {filename}\n");
+            Popups.OpenPopup(popup);
+            async void Action()
             {
                 EditResult<SimpleMesh.Model> model = null;
                 if (Blender.FileIsBlender(filename))
                 {
-                    model = Blender.LoadBlenderFile(filename, Config.BlenderPath);
+                    model = await Blender.LoadBlenderFile(filename, popup.Token, popup.Log, Config.BlenderPath);
                 }
                 else
                 {
-                    using var stream = File.OpenRead(filename);
-                    model = EditResult<SimpleMesh.Model>.TryCatch(() =>
-                        SimpleMesh.Model.FromStream(stream));
+                    model = await EditResult<SimpleMesh.Model>.RunBackground(() =>
+                    {
+                        using var stream = File.OpenRead(filename);
+                        return EditResult<SimpleMesh.Model>.TryCatch(() => SimpleMesh.Model.FromStream(stream));
+                    }, popup.Token);
                 }
-
-                QueueUIThread(() => ResultMessages(model));
+                ResultMessages(model, popup.Log);
                 if (model.IsSuccess)
                 {
                     var mdl = model.Data.AutoselectRoot(out _).ApplyScale();
                     var x = Vector3.Transform(Vector3.Zero, mdl.Roots[0].Transform);
                     bool modelWarning = x.Length() > 0.0001;
                     mdl = mdl.ApplyRootTransforms(false).CalculateBounds();
-                    QueueUIThread(() => FinishImporterLoad(mdl, modelWarning, Path.GetFileName(filename)));
+                    QueueUIThread(() => FinishImporterLoad(mdl, modelWarning, Path.GetFileName(filename), popup));
                 }
-            });
+                popup.Log("Loaded\n");
+            }
+            Task.Run(Action);
         }
 
         void OpenGameData()
@@ -494,7 +499,7 @@ namespace LancerEdit
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
                     AddTab(new ProjectileViewerTab(this, OpenDataContext));
                 if (Theme.IconMenuItem(Icons.Globe, "Universe Editor", OpenDataContext != null))
-                    popups.OpenPopup("Loading##systemviewer");
+                    Popups.OpenPopup("Loading##systemviewer");
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));
                 ImGui.EndMenu();
@@ -600,7 +605,7 @@ namespace LancerEdit
             }
             bool pOpen = true;
 
-            popups.Run();
+            Popups.Run();
             recentFiles.DrawErrors();
             pOpen = true;
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
@@ -816,21 +821,38 @@ namespace LancerEdit
             ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
             ImGui.Text(text);
         }
-        void FinishImporterLoad(SimpleMesh.Model model, bool warnOffCenter, string tabName)
+        void FinishImporterLoad(SimpleMesh.Model model, bool warnOffCenter, string tabName, TaskRunPopup popup)
         {
-           FinishLoadingSpinner();
            if (warnOffCenter)
            {
-               Confirm("Model root is off-center, consider re-exporting.\n\nImport anyway?", () =>
+               popup.Confirm("Model root is off-center, consider re-exporting.\n\nImport anyway?", () =>
                {
-                   AddTab(new ImportModelTab(model, tabName, this));
+                   AddTab(new ImportModelTab(model, tabName, this, popup));
                });
            }
            else
            {
-               AddTab(new ImportModelTab(model, tabName, this));
+               AddTab(new ImportModelTab(model, tabName, this, popup));
            }
 
+        }
+
+        public void ResultMessages<T>(EditResult<T> result, Action<string> logMessages)
+        {
+            if (result.Messages.Count == 0) return;
+            string text;
+            if (result.Messages.Count == 1)
+            {
+                text = result.Messages[0].Message + "\n";
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (var msg in result.Messages)
+                    sb.Append(msg.Kind).Append(": ").AppendLine(msg.Message);
+                text = sb.ToString();
+            }
+            logMessages(text);
         }
 
         public void ResultMessages<T>(EditResult<T> result)
@@ -848,10 +870,10 @@ namespace LancerEdit
                     sb.Append(msg.Kind).Append(": ").AppendLine(msg.Message);
                 text = sb.ToString();
             }
-            popups.MessageBox(result.IsError ? "Error" : "Warning", text);
+            Popups.MessageBox(result.IsError ? "Error" : "Warning", text);
         }
 
-        public void ErrorDialog(string text) =>  popups.MessageBox("Error", text);
+        public void ErrorDialog(string text) =>  Popups.MessageBox("Error", text);
 
         protected override void OnDrop(string file) => OpenFile(file);
 
