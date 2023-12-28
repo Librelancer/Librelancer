@@ -16,6 +16,8 @@ using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
+using LancerEdit.GameContent;
+using LancerEdit.GameContent.MissionEditor;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Render;

@@ -1,7 +1,7 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -31,7 +31,7 @@ namespace LibreLancer.Data.Missions
         [Entry("voice")]
         public string Voice;
         [Entry("costume")]
-        public string[] Costume;
+        public string[] Costume = new string[3];
         [Entry("loadout")]
         public string Loadout;
         [Entry("string_id")]

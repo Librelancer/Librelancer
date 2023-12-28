@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
@@ -10,7 +11,7 @@ using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit;
 
-enum NodeStage
+public enum NodeStage
 {
     Invalid,
     Begin,
@@ -18,7 +19,8 @@ enum NodeStage
     Content,
     End
 }
-struct BlueprintNodeBuilder : IDisposable
+
+public struct NodeBuilder : IDisposable
 {
     public static int HeaderTextureId;
     public static int HeaderTextureWidth;
@@ -27,13 +29,12 @@ struct BlueprintNodeBuilder : IDisposable
     {
         if (HeaderTextureId != 0)
             return;
-        using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.BlueprintBackground.png"))
-        {
-            var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
-            HeaderTextureId = ImGuiHelper.RegisterTexture(icon);
-            HeaderTextureWidth = icon.Width;
-            HeaderTextureHeight = icon.Height;
-        }
+
+        using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.BlueprintBackground.png");
+        var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+        HeaderTextureId = ImGuiHelper.RegisterTexture(icon);
+        HeaderTextureWidth = icon.Width;
+        HeaderTextureHeight = icon.Height;
     }
 
     public bool HasHeader;
@@ -51,17 +52,23 @@ struct BlueprintNodeBuilder : IDisposable
     private ComboData[] combos;
     record struct ComboData(bool Open, Action<int> Set, string Id, string[] Values);
 
-    public static BlueprintNodeBuilder Begin(NodeId id)
+    private StringComboData[] strCombos;
+    private int strComboIndex;
+    record struct StringComboData(bool Open, Action<string> Set, string Id, IEnumerable<string> Values);
+
+    public static NodeBuilder Begin(NodeId id)
     {
         NodeEditor.PushStyleVar(StyleVar.NodePadding, new Vector4(8,4,8,8));
         NodeEditor.BeginNode(id);
         ImGui.PushID(id);
-        var bp = new BlueprintNodeBuilder()
+        var bp = new NodeBuilder()
         {
             CurrentId = id,
             HeaderColor = ImGui.GetColorU32(Color4.Blue),
             combos = ArrayPool<ComboData>.Shared.Rent(16),
         };
+
+        bp.strCombos = ArrayPool<StringComboData>.Shared.Rent(16);
         bp.SetStage(NodeStage.Begin);
         return bp;
     }
@@ -128,6 +135,16 @@ struct BlueprintNodeBuilder : IDisposable
         combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
     }
 
+    public void StringCombo(string title, string selectedValue, Action<string> set, IEnumerable<string> values)
+    {
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(title);
+        ImGui.SameLine();
+
+        var enumerable = values as string[] ?? values.ToArray();
+        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, enumerable.First(x => x == selectedValue)), set, title, enumerable);
+    }
+
     private static readonly Dictionary<Type, string[]> _enums = new Dictionary<Type, string[]>();
     public void Combo<T>(string title, T selectedValue, Action<T> set) where T : struct, Enum
     {
@@ -173,34 +190,62 @@ struct BlueprintNodeBuilder : IDisposable
                 }
             }
         }
+
         ImGui.PopID();
         NodeEditor.PopStyleVar();
-        SetStage(NodeStage.Invalid);
 
+        SetStage(NodeStage.Invalid);
         NodeEditor.Suspend();
+
         if(!string.IsNullOrWhiteSpace(setTooltip))
             ImGui.SetTooltip(setTooltip);
+
         ImGui.PushID((int)CurrentId);
-        for (int i = 0; i < comboIndex; i++)
+
+        for (var i = 0; i < comboIndex; i++)
         {
             var c = combos[i];
             combos[i] = default;
             if(c.Open)
                 ImGui.OpenPopup(c.Id);
-            if (ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
+            if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
+                continue;
+
+            for (var j = 0; j < c.Values.Length; j++)
             {
-                for (int j = 0; j < c.Values.Length; j++)
-                {
-                    ImGui.PushID(j);
-                    if (ImGui.MenuItem(c.Values[j]))
-                        c.Set(j);
-                    ImGui.PopID();
-                }
-                ImGui.EndPopup();
+                ImGui.PushID(j);
+                if (ImGui.MenuItem(c.Values[j]))
+                    c.Set(j);
+                ImGui.PopID();
             }
+            ImGui.EndPopup();
         }
+
+        for (var i = 0; i < strComboIndex; i++)
+        {
+            var c = strCombos[i];
+            strCombos[i] = default;
+            if(c.Open)
+                ImGui.OpenPopup(c.Id);
+            if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
+            {
+                continue;
+            }
+
+            var j = 0;
+            foreach(var v in c.Values)
+            {
+                ImGui.PushID(j++);
+                if (ImGui.MenuItem(v))
+                    c.Set(v);
+                ImGui.PopID();
+            }
+            ImGui.EndPopup();
+        }
+
         ImGui.PopID();
         ArrayPool<ComboData>.Shared.Return(combos);
+        ArrayPool<StringComboData>.Shared.Return(strCombos);
         NodeEditor.Resume();
     }
 }
