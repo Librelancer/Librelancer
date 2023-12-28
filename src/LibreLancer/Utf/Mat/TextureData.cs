@@ -35,7 +35,7 @@ namespace LibreLancer.Utf.Mat
 
 		public void Initialize ()
 		{
-			if (data != null && Texture == null)
+			if (data != null && data.Value.Count > 0 && Texture == null)
             {
 				using (Stream stream = data.Value.GetReadStream()) {
 					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
