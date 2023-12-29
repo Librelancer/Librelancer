@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Physics;
 
 namespace LibreLancer.World.Components
 {
@@ -36,25 +37,31 @@ namespace LibreLancer.World.Components
             }
         }
 
+        public WeaponComponent[] NetOrderWeapons;
+
+        public void UpdateNetWeapons()
+        {
+            NetOrderWeapons = Parent.GetChildComponents<WeaponComponent>()
+                .OrderBy(x => x.Parent.Attachment.Name.ToLowerInvariant())
+                .ToArray();
+        }
+
+        public override void Register(PhysicsWorld physics)
+        {
+            UpdateNetWeapons();
+        }
+
         public void SetRotations(GunOrient[] orients)
         {
-            foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
-            {
-                foreach (var o in orients) {
-                    if (o.Hardpoint.Equals(wp.Parent.Attachment.Name,StringComparison.OrdinalIgnoreCase))
-                    {
-                        wp.RotateTowards(o.AngleRot, o.AnglePitch);
-                        break;
-                    }
-                }
+            for (int i = 0; i < orients.Length; i++) {
+                NetOrderWeapons[i].RotateTowards(orients[i].AngleRot, orients[i].AnglePitch);
             }
         }
 
         public GunOrient[] GetRotations()
         {
-            return Parent.GetChildComponents<WeaponComponent>().Select(x => new GunOrient()
+            return NetOrderWeapons.Select(x => new GunOrient()
             {
-                Hardpoint = x.Parent.Attachment.Name,
                 AngleRot = x.Angles.X,
                 AnglePitch = x.Angles.Y
             }).ToArray();

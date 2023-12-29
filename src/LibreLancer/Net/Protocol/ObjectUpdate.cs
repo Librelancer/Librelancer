@@ -74,11 +74,9 @@ public class PackedUpdatePacket : IPacket
 #endif
             while (moreLength-- > 0)
             {
-                var isCrc = reader.GetBool();
-                var id = isCrc ? reader.GetInt() : reader.GetVarInt32();
+                var id =  reader.GetVarInt32();
                 var u = ObjectUpdate.ReadDelta(ref reader, blankUpdate);
-                u.IsCRC = isCrc;
-                u.ID = id;
+                u.ID = new ObjNetId(id);
                 updates.Add(u);
             }
         }
@@ -110,7 +108,7 @@ public class PackedUpdatePacket : IPacket
         var sentUpdates = new List<ObjectUpdate>();
         for (var i = 0; i < origUpdate.Length; i++)
         {
-            var x = pendingUpdates.FindIndex(u => u.IsCRC == origUpdate[i].IsCRC && u.ID == origUpdate[i].ID);
+            var x = pendingUpdates.FindIndex(u => u.ID == origUpdate[i].ID);
             if (x != -1)
             {
                 writer.PutBool(true);
@@ -134,11 +132,7 @@ public class PackedUpdatePacket : IPacket
             writer.PutVarUInt32((uint) pendingUpdates.Count);
             foreach (var u in pendingUpdates)
             {
-                writer.PutBool(u.IsCRC);
-                if (u.IsCRC)
-                    writer.PutInt(u.ID);
-                else
-                    writer.PutVarInt32(u.ID);
+                writer.PutVarInt32(u.ID.Value);
                 u.WriteDelta(blankUpdate, ref writer);
             }
 
@@ -158,7 +152,6 @@ public class PackedUpdatePacket : IPacket
 
 public struct GunOrient
 {
-    public string Hardpoint;
     private uint pitch;
     private uint rot;
     public float AnglePitch
@@ -175,7 +168,6 @@ public struct GunOrient
 
     public void ReadDelta(ref BitReader message, GunOrient src)
     {
-        Hardpoint = message.GetBool() ? message.GetHpid() : src.Hardpoint;
         if(message.GetBool())
         {
             pitch = message.GetBool()
@@ -200,15 +192,6 @@ public struct GunOrient
 
     public void WriteDelta(GunOrient src, ref BitWriter message)
     {
-        if (Hardpoint == src.Hardpoint)
-        {
-            message.PutBool(false);
-        }
-        else
-        {
-            message.PutBool(true);
-            message.PutHpid(Hardpoint);
-        }
         if (pitch == src.pitch)
         {
             message.PutBool(false);
@@ -409,10 +392,9 @@ public class ObjectUpdate
 
     public long HullValue;
 
-    public int ID;
+    public ObjNetId ID;
 
     //Identifier
-    public bool IsCRC;
     public UpdateVector LinearVelocity = new(Vector3.Zero, 24, -32768, 32767);
     public UpdateQuaternion Orientation = Quaternion.Identity;
     public Vector3 Position;
@@ -458,7 +440,7 @@ public class ObjectUpdate
     public void WriteDelta(ObjectUpdate src, ref BitWriter msg)
     {
         //ID
-        if (src.ID != 0 && (IsCRC != src.IsCRC || src.ID != ID))
+        if (src.ID != new ObjNetId(0) && src.ID != ID)
             throw new InvalidOperationException("Cannot delta from different object");
         //Position
         if (NetPacking.ApproxEqual(src.Position, Position))
@@ -576,7 +558,6 @@ public class ObjectUpdate
     {
         var p = new ObjectUpdate();
         p.ID = source.ID;
-        p.IsCRC = source.IsCRC;
         var posKind = msg.GetUInt(2);
         if (posKind == 0)
             p.Position = source.Position;

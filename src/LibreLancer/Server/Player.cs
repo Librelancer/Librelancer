@@ -204,7 +204,7 @@ namespace LibreLancer.Server
                 Space = new SpacePlayer(world, this);
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(ID, System, Objective, Position, Orientation, world.CurrentTick);
+                    rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -426,9 +426,10 @@ namespace LibreLancer.Server
                 {
                     await ProcessPacketDirect(pkt);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     FLLog.Error("Player", $"Exception thrown while processing packets. Force disconnect {Character?.Name ?? "null"}");
+                    FLLog.Error("Exception", ex.ToString());
                     Client.Disconnect(DisconnectReason.ConnectionError);
                     Disconnected();
                     break;
@@ -511,9 +512,10 @@ namespace LibreLancer.Server
             {
                 FLLog.Info("Player", $"New char: {name}");
                 SelectableCharacter sel = null;
-                Game.Database.AddCharacter(playerGuid, (db) => {
-                    sel = NetCharacter.FromSaveGame(Game, Game.NewCharacter(name, index), db).ToSelectable();
+                long id = Game.Database.AddCharacter(playerGuid, (db) => {
+                    NetCharacter.FromSaveGame(Game, Game.NewCharacter(name, index), db);
                 });
+                sel = NetCharacter.FromDb(id, Game).ToSelectable();
                 CharacterList.Add(sel);
                 Client.SendPacket(new AddCharacterPacket()
                 {
@@ -672,7 +674,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(ID, System, Objective, Position, Orientation, world.CurrentTick);
+                    rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
@@ -715,7 +717,7 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    rpcClient.SpawnPlayer(ID, System, Objective, Position, Orientation, world.CurrentTick);
+                    rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();

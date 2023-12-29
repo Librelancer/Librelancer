@@ -5,7 +5,6 @@ namespace LibreLancer.Net.Protocol;
 public interface ISpacePlayer
 {
     void RequestDock(ObjNetId id);
-    void FireProjectiles(ProjectileSpawn[] projectiles);
     void FireMissiles(MissileFireCmd[] missiles);
     void EnterFormation(int ship);
     void LeaveFormation();

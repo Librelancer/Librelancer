@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Fx;
 using LibreLancer.Media;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Sounds;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
@@ -93,9 +95,12 @@ namespace LibreLancer.World
             return pdata;
         }
 
-        private List<ProjectileSpawn> queued = new List<ProjectileSpawn>();
+        private List<(ObjNetId NetId, int Index, Vector3 Target)> spawns =
+            new List<(ObjNetId NetId, int Index, Vector3 Target)>();
+        private List<(int Index, Vector3 Target)> requests = new List<(int, Vector3)>();
+
         private List<MissileFireCmd> missiles = new List<MissileFireCmd>();
-        public bool HasQueued => queued.Count > 0;
+        public bool HasQueued => spawns.Count > 0;
         public bool HasMissilesQueued => missiles.Count > 0;
 
         public MissileFireCmd[] GetMissileQueue()
@@ -121,18 +126,76 @@ namespace LibreLancer.World
             }
         }
 
-        public ProjectileSpawn[] GetQueue()
+        public ProjectileSpawn[] GetSpawnQueue()
         {
-            var x = queued.ToArray();
-            queued.Clear();
-            return x;
+            var result = spawns.GroupBy(x => x.NetId)
+                .Select(x =>
+                {
+                    var spawn = new ProjectileSpawn();
+                    bool first = true;
+                    List<Vector3> targets = null;
+                    foreach (var v in x) {
+                        if (first) {
+                            spawn.Owner = v.NetId;
+                            spawn.Target = v.Target;
+                            first = false;
+                        } else {
+                            if (spawn.Target != v.Target) {
+                                targets ??= new List<Vector3>();
+                                targets.Add(spawn.Target);
+                                spawn.Unique |= (1UL << v.Index);
+                            }
+                        }
+                        spawn.Guns |= (1UL << v.Index);
+                    }
+                    spawn.OtherTargets = targets == null
+                        ? Array.Empty<Vector3>() :
+                        targets.ToArray();
+                    return spawn;
+                }).ToArray();
+            spawns.Clear();
+            return result;
         }
-        public void QueueProjectile(ObjNetId owner, GameData.Items.GunEquipment gunDef, string hardpoint, Vector3 position, Vector3 heading)
+
+
+
+        public ProjectileFireCommand? GetQueuedRequest()
         {
-            queued.Add(new ProjectileSpawn()
+            if(requests.Count <= 0)
+                return null;
+            requests.Sort((x,y) => x.Index.CompareTo(y.Index));
+            var fireRequest = new ProjectileFireCommand()
             {
-                Owner = owner, Gun = gunDef.CRC, Hardpoint = hardpoint, Heading = heading, Start = position
-            });
+                Target = requests[0].Target
+            };
+            List<Vector3> otherTargets = new List<Vector3>();
+            for (int i = 0; i < requests.Count; i++)
+            {
+                fireRequest.Guns |= (1UL << requests[i].Index);
+                if (requests[i].Target != fireRequest.Target) {
+                    fireRequest.Unique |= (1UL << requests[i].Index);
+                    otherTargets.Add(requests[i].Target);
+                }
+            }
+            if (otherTargets.Count > 0)
+                fireRequest.OtherTargets = otherTargets.ToArray();
+            requests.Clear();
+            return fireRequest;
+        }
+
+        public GameObject Player;
+
+        public void QueueFire(GameObject owner, WeaponComponent component, Vector3 target)
+        {
+            if (!owner.TryGetComponent<WeaponControlComponent>(out var wc))
+                return;
+            int wpIdx = Array.IndexOf(wc.NetOrderWeapons, component);
+            if (wpIdx == -1)
+                return;
+            if (owner == Player)
+                requests.Add((wpIdx, target));
+            else
+                spawns.Add((owner, wpIdx, target));
         }
 
         private Dictionary<ulong, SoundInstance> _instances = new Dictionary<ulong, SoundInstance>();

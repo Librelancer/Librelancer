@@ -30,7 +30,7 @@ namespace LibreLancer.World.Components
 
         private Hardpoint hpFire;
         private ProjectileManager projectiles;
-        protected override void OnFire(Vector3 point, GameObject target)
+        protected override bool OnFire(Vector3 point, GameObject target, bool fromServer)
         {
             //Consume ammo
             if (Object.Munition.Def.RequiresAmmo)
@@ -38,7 +38,7 @@ namespace LibreLancer.World.Components
                 if (!Parent.Parent.TryGetComponent<AbstractCargoComponent>(out var cargo) ||
                     cargo.TryConsume(Object.Munition) == 0)
                 {
-                    return;
+                    return false;
                 }
             }
             //
@@ -51,7 +51,7 @@ namespace LibreLancer.World.Components
             }
             if (world.Server != null)
             {
-                if (hpFire == null) return;
+                if (hpFire == null) return false;
                 var tr = hpFire.Transform * (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
                 world.Server.FireMissile(tr, Object.Munition, Object.Def.MuzzleVelocity,Parent.Parent, target ?? GetTarget());
             }
@@ -77,6 +77,7 @@ namespace LibreLancer.World.Components
                 }
             }
             CurrentCooldown = Object.Def.RefireDelay;
+            return true;
         }
     }
 }

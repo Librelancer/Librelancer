@@ -22,6 +22,7 @@ using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using WattleScript.Interpreter;
 
 namespace LibreLancer
@@ -174,6 +175,7 @@ World Time: {12:F2}
             player.World = world;
             world.AddObject(player);
             player.Register(world.Physics);
+            world.Projectiles.Player = player; //For sending projectile spawns over the network
             cur_arrow = Game.ResourceManager.GetCursor("arrow");
             cur_cross = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
@@ -1057,11 +1059,6 @@ World Time: {12:F2}
                     weapons.FireIndex(i);
             }
 
-            if (world.Projectiles.HasQueued)
-            {
-                session.SpaceRpc.FireProjectiles(world.Projectiles.GetQueue());
-            }
-
             if (world.Projectiles.HasMissilesQueued)
             {
                 session.SpaceRpc.FireMissiles(world.Projectiles.GetMissileQueue());
@@ -1178,7 +1175,7 @@ World Time: {12:F2}
             {
                 updateStartDelay--;
                 if (updateStartDelay == 0)
-                    session.UpdateStart();
+                    session.UpdateStart(this);
             }
             if (waitObjectiveFrames > 0) waitObjectiveFrames--;
             world.RenderUpdate(delta);

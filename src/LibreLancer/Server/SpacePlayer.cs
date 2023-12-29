@@ -37,8 +37,6 @@ public class SpacePlayer : ISpacePlayer
 
     public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
 
-    public void FireProjectiles(ProjectileSpawn[] projectiles) => world.FireProjectiles(projectiles, player);
-
     public void FireMissiles(MissileFireCmd[] missiles) => world.FireMissiles(missiles, player);
 
     public void EnterFormation(int ship)

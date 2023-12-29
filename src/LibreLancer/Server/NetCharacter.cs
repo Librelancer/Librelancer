@@ -227,6 +227,7 @@ namespace LibreLancer.Server
         public static NetCharacter FromSaveGame(GameServer game, SaveGame sg, Character db = null)
         {
             var nc = new NetCharacter();
+            nc.gData = game.GameData;
             nc.Admin = db == null;
             nc.transactionCount++;
             using (var c = new CharacterTransaction(nc, db))

@@ -16,7 +16,7 @@ namespace LibreLancer.World.Components
         protected WeaponComponent(GameObject parent) : base(parent) { }
 
         protected abstract float TurnRate { get; }
-        
+
         public abstract float MaxRange { get; }
 
         public abstract int IdsName { get; }
@@ -75,7 +75,7 @@ namespace LibreLancer.World.Components
                 Parent.RigidModel.UpdateTransform();
             }
         }
-        
+
         private float _targetX = -1000;
         private float _targetY = -1000;
         public void RotateTowards(float x, float y)
@@ -83,7 +83,7 @@ namespace LibreLancer.World.Components
             _targetX = x;
             _targetY = y;
         }
-        
+
         public void AimTowards(Vector3 point, double time)
         {
             var hp = Parent.Attachment;
@@ -97,7 +97,7 @@ namespace LibreLancer.World.Components
             var y = localProper.Y * (float) Math.PI;
             DoRotation(x, y, time);
         }
-        
+
         static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
         {
             return new Vector3(
@@ -105,23 +105,23 @@ namespace LibreLancer.World.Components
                 position.X * matrix.M12 + position.Y * matrix.M22 + position.Z * matrix.M32 + matrix.M42,
                 position.X * matrix.M13 + position.Y * matrix.M23 + position.Z * matrix.M33 + matrix.M43);
         }
-        
+
         protected static float GetAngle(Vector3 pointA, Vector3 pointB)
         {
             var angle = MathF.Acos(Vector3.Dot(pointA.Normalized(), pointB.Normalized()));
             return angle;
         }
 
-        protected abstract void OnFire(Vector3 point, GameObject target);
-        
-        public void Fire(Vector3 point, GameObject target = null)
+        protected abstract bool OnFire(Vector3 point, GameObject target, bool server);
+
+        public bool Fire(Vector3 point, GameObject target = null, bool fromServer = false)
         {
-            if (Parent.Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
+            if (!fromServer && Parent.Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
                 (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
-                return;
-            if (CurrentCooldown > 0) return;
-            OnFire(point, target);
-            
+                return false;
+            if (CurrentCooldown > 0 && !fromServer) return false;
+            return OnFire(point, target, fromServer);
+
         }
     }
 }

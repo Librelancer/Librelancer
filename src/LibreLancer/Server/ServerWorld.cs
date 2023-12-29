@@ -29,7 +29,7 @@ namespace LibreLancer.Server
         public NPCManager NPCs;
         object _idLock = new object();
 
-        private NetIDGenerator idGen = new NetIDGenerator();
+        public NetIDGenerator IdGenerator = new NetIDGenerator();
 
         public bool Paused => paused;
 
@@ -89,7 +89,7 @@ namespace LibreLancer.Server
             obj.Unregister(GameWorld.Physics);
             GameWorld.RemoveObject(obj);
             updatingObjects.Remove(obj);
-            idGen.Free(obj.NetID);
+            IdGenerator.Free(obj.NetID);
             foreach (var p in Players)
                 p.Key.RpcClient.DestroyMissile(obj.NetID, true);
             if (missile.Missile.Explosion != null)
@@ -118,6 +118,7 @@ namespace LibreLancer.Server
             foreach(var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server, item.Hardpoint, item.Equipment);
             obj.AddComponent(new SPlayerComponent(player, obj));
+            obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SHealthComponent(obj)
             {
                 CurrentHealth = player.Character.Ship.Hitpoints,
@@ -199,7 +200,7 @@ namespace LibreLancer.Server
                 var go = new GameObject(missile.ModelFile.LoadFile(Server.Resources), Server.Resources, false, true);
                 go.SetLocalTransform(transform);
                 go.Kind = GameObjectKind.Missile;
-                go.NetID = idGen.Allocate();
+                go.NetID = IdGenerator.Allocate();
                 go.World = GameWorld;
                 go.PhysicsComponent.Mass = 1;
                 go.AddComponent(new SMissileComponent(go, missile)
@@ -216,21 +217,25 @@ namespace LibreLancer.Server
             });
         }
 
-        public void FireProjectiles(ProjectileSpawn[] projectiles, Player owner)
+        public void FireProjectiles(ProjectileFireCommand projectiles, Player owner)
         {
             actions.Enqueue(() =>
             {
-                for(int i = 0; i < projectiles.Length; i++)
-                    projectiles[i].Owner = Players[owner];
-                foreach (var p in Players.Keys)
+                var go = Players[owner];
+                if (go.TryGetComponent<WeaponControlComponent>(out var wo))
                 {
-                    if (p == owner) continue;
-                    p.RpcClient.SpawnProjectiles(projectiles);
-                }
-                foreach (var p in projectiles)
-                {
-                    var pdata = GameWorld.Projectiles.GetData(Server.GameData.Equipment.Get(p.Gun) as GunEquipment);
-                    GameWorld.Projectiles.SpawnProjectile(Players[owner], p.Hardpoint, pdata, p.Start, p.Heading);
+                    int tgtUnique = 0;
+                    for (int i = 0; i < wo.NetOrderWeapons.Length; i++)
+                    {
+                        if ((projectiles.Guns & (1UL << i)) == 0)
+                            continue;
+                        var target = projectiles.Target;
+                        if ((projectiles.Unique & (1UL << i)) != 0)
+                            target = projectiles.OtherTargets[tgtUnique++];
+                        if (!wo.NetOrderWeapons[i].Fire(target)) {
+                            FLLog.Debug("Server", $"Request failed firing {wo.NetOrderWeapons[i].Parent.Attachment}");
+                        }
+                    }
                 }
             });
         }
@@ -317,7 +322,7 @@ namespace LibreLancer.Server
             {
                 RemoveObjectInternal(obj);
                 spawnedNPCs.Remove(obj);
-                idGen.Free(obj.NetID);
+                IdGenerator.Free(obj.NetID);
                 foreach (var p in Players) p.Key.Despawn(obj.NetID, exploded);
             });
         }
@@ -345,7 +350,7 @@ namespace LibreLancer.Server
                 var arch = Server.GameData.GetSolarArchetype(archetype);
                 var gameobj = new GameObject(arch, Server.Resources, false);
                 gameobj.ArchetypeName = archetype;
-                gameobj.NetID = idGen.Allocate();
+                gameobj.NetID = IdGenerator.Allocate();
                 if (idsName != 0)
                     gameobj.Name = new ObjectName(idsName);
                 gameobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
@@ -392,7 +397,7 @@ namespace LibreLancer.Server
                     MaterialAnims = mdl.MaterialAnims,
                     Path = mdl.Path,
                 };
-                var id = idGen.Allocate();
+                var id = IdGenerator.Allocate();
                 var go = new GameObject($"debris{id}", newmodel, Server.Resources, part, mass, false);
                 go.NetID = id;
                 go.SetLocalTransform(transform);
@@ -411,7 +416,7 @@ namespace LibreLancer.Server
 
         public void OnNPCSpawn(GameObject obj)
         {
-            obj.NetID = idGen.Allocate();
+            obj.NetID = IdGenerator.Allocate();
             obj.World = GameWorld;
             obj.Register(GameWorld.Physics);
             GameWorld.AddObject(obj);
@@ -485,7 +490,7 @@ namespace LibreLancer.Server
             //projectiles
             if (GameWorld.Projectiles.HasQueued)
             {
-                var queue = GameWorld.Projectiles.GetQueue();
+                var queue = GameWorld.Projectiles.GetSpawnQueue();
                 foreach(var p in Players)
                     p.Key.RpcClient.SpawnProjectiles(queue);
             }
@@ -561,18 +566,7 @@ namespace LibreLancer.Server
                         continue;
                     //Update object
                     var update = new ObjectUpdate();
-                    if (obj.SystemObject == null)
-                    {
-                        update.ID = obj.NetID;
-                        update.IsCRC = false;
-                    }
-                    else
-                    {
-                        //Static Solar
-                        update.ID = (int) obj.NicknameCRC;
-                        update.IsCRC = true;
-                    }
-
+                    update.ID = new ObjNetId(obj.NetID);
                     var tr = obj.WorldTransform;
                     update.Position = Vector3.Transform(Vector3.Zero, tr);
                     update.Orientation = tr.ExtractRotation();

@@ -108,8 +108,10 @@ namespace LibreLancer.Server.Components
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
             {
+                var wpc = Parent.GetComponent<WeaponControlComponent>();
                 if (GetInput(out var input))
                 {
+                    wpc.AimPoint = input.AimPoint;
                     if (Player.InTradelane)
                     {
                         phys.Steering = Vector3.Zero;
@@ -125,6 +127,8 @@ namespace LibreLancer.Server.Components
                         phys.EnginePower = input.Throttle;
                         phys.ThrustEnabled = input.Thrust;
                         phys.CruiseEnabled = input.Cruise;
+                        if(input.FireCommand != null)
+                            Parent.GetWorld().Server.FireProjectiles(input.FireCommand.Value, Player);
                     }
                 }
             }

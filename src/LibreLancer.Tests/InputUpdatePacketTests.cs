@@ -14,7 +14,7 @@ public class InputUpdatePacketTests
     {
         var pkt = new InputUpdatePacket();
         pkt.AckTick = 97;
-        pkt.SelectedObject = new ObjNetId(true, 1673);
+        pkt.SelectedObject = new ObjNetId(1673);
         pkt.Current = new NetInputControls()
         {
             Cruise = true,

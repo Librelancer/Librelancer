@@ -25,14 +25,17 @@ namespace LibreLancer.World.Components
         ProjectileData toSpawn;
         Hardpoint[] hpfires;
 
-        protected override void OnFire(Vector3 point, GameObject target)
+        protected override bool OnFire(Vector3 point, GameObject target, bool fromServer)
         {
-            CurrentCooldown = Object.Def.RefireDelay;
-            if (Parent.Parent.TryGetComponent<PowerCoreComponent>(out var powercore))
+            if (!fromServer)
             {
-                if (powercore.CurrentEnergy < Object.Def.PowerUsage)
-                    return;
-                powercore.CurrentEnergy -= Object.Def.PowerUsage;
+                CurrentCooldown = Object.Def.RefireDelay;
+                if (Parent.Parent.TryGetComponent<PowerCoreComponent>(out var powercore))
+                {
+                    if (powercore.CurrentEnergy < Object.Def.PowerUsage)
+                        return false;
+                    powercore.CurrentEnergy -= Object.Def.PowerUsage;
+                }
             }
             if (projectiles == null)
             {
@@ -49,6 +52,7 @@ namespace LibreLancer.World.Components
 
             var tr = (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
             var hp = Parent.Attachment.Name;
+            bool retval = false;
             for (int i = 0; i < hpfires.Length; i++)
             {
                 var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
@@ -56,12 +60,15 @@ namespace LibreLancer.World.Components
                 var heading = (point - pos).Normalized();
 
                 var angle = GetAngle(normal, heading);
-                if (angle <= MathHelper.DegreesToRadians(40)) //TODO: MUZZLE_CONE_ANGLE constant
+                if (fromServer || angle <= MathHelper.DegreesToRadians(40)) //TODO: MUZZLE_CONE_ANGLE constant
                 {
+                    retval = true;
                     projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
-                    projectiles.QueueProjectile(Parent.Parent, Object, hp, pos, heading);
+                    if (!fromServer)
+                        projectiles.QueueFire(Parent.Parent, this, point);
                 }
             }
+            return retval;
         }
     }
 }

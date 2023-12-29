@@ -125,7 +125,7 @@ namespace LibreLancer.Server
             }
         }
 
-        
+
         public async Task AdminCharacter(long character)
         {
             using (var ctx = CreateDbContext())
@@ -138,7 +138,7 @@ namespace LibreLancer.Server
                 }
             }
         }
-        
+
         public async Task DeadminCharacter(long character)
         {
             using (var ctx = CreateDbContext())
@@ -161,7 +161,7 @@ namespace LibreLancer.Server
                 return c?.Account?.AccountIdentifier;
             }
         }
-        
+
         public bool PlayerLogin(Guid playerGuid, out List<SelectableCharacter> characters)
         {
             using (var ctx = CreateDbContext())
@@ -225,7 +225,7 @@ namespace LibreLancer.Server
                 return ctx.Characters.Any(x => x.Name.Equals(name));
             }
         }
-        
+
         public DatabaseCharacter GetCharacter(long id)
         {
             var ctx = CreateDbContext();
@@ -237,7 +237,7 @@ namespace LibreLancer.Server
             return new DatabaseCharacter(character, this);
         }
 
-        public void AddCharacter(Guid playerGuid, Action<Character> fillCharacter)
+        public long AddCharacter(Guid playerGuid, Action<Character> fillCharacter)
         {
             using (var ctx = CreateDbContext())
             {
@@ -251,8 +251,9 @@ namespace LibreLancer.Server
                 //Add
                 ctx.Characters.Add(c);
                 ctx.SaveChanges();
+                return c.Id;
             }
         }
-        
+
     }
 }

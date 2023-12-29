@@ -356,11 +356,24 @@ namespace LibreLancer.Net.Protocol
     {
         public uint Tick;
         public Vector3 Steering;
+        public Vector3 AimPoint;
         public StrafeControls Strafe;
         public float Throttle;
         public bool Cruise;
         public bool Thrust;
+        public ProjectileFireCommand? FireCommand;
     }
+
+    public struct ProjectileFireCommand
+    {
+        public Vector3 Target;
+        //1 bit set for each gun on owner that fired
+        public ulong Guns;
+        //1 bit set for each gun not firing at Target
+        public ulong Unique;
+        public Vector3[] OtherTargets;
+    }
+
 
     public class InputUpdatePacket : IPacket
     {
@@ -380,10 +393,60 @@ namespace LibreLancer.Net.Protocol
             writer.PutBool(cur.Thrust);
             writer.PutBool(cur.Throttle != baseline.Throttle);
             writer.PutBool(cur.Steering != baseline.Steering);
+            writer.PutBool(cur.AimPoint != baseline.AimPoint);
             if(cur.Throttle != baseline.Throttle)
                 writer.PutFloat(cur.Throttle);
             if(cur.Steering != baseline.Steering)
                 writer.PutVector3(cur.Steering);
+            if(cur.AimPoint != baseline.AimPoint)
+                writer.PutVector3(cur.AimPoint);
+            WriteFireCommand(ref writer, ref cur);
+        }
+
+        static ProjectileFireCommand? ReadFireCommand(ref BitReader reader, ref NetInputControls controls)
+        {
+            if (!reader.GetBool())
+                return null;
+            var fc = new ProjectileFireCommand();
+            if (reader.GetBool())
+                fc.Target = reader.GetVector3();
+            else
+                fc.Target = controls.AimPoint;
+            fc.Guns = reader.GetVarUInt64();
+            fc.Unique = reader.GetVarUInt64();
+            if (fc.Unique > 0) {
+                var c = BitOperations.PopCount(fc.Unique);
+                fc.OtherTargets = new Vector3[c];
+                for (int i = 0; i < c; i++)
+                    fc.OtherTargets[i] = reader.GetVector3();
+            } else {
+                fc.OtherTargets = Array.Empty<Vector3>();
+            }
+            return fc;
+        }
+
+        static void WriteFireCommand(ref BitWriter writer, ref NetInputControls controls)
+        {
+            if (controls.FireCommand == null) {
+                writer.PutBool(false);
+                return;
+            }
+            var fc = controls.FireCommand.Value;
+            writer.PutBool(true);
+            if (fc.Target != controls.AimPoint) {
+                writer.PutBool(true);
+                writer.PutVector3(fc.Target);
+            }
+            else {
+                writer.PutBool(false);
+            }
+            writer.PutVarUInt64(fc.Guns);
+            writer.PutVarUInt64(fc.Unique);
+            if (fc.OtherTargets is { Length: > 0 })
+            {
+                for(int i = 0; i < fc.OtherTargets.Length; i++)
+                    writer.PutVector3(fc.OtherTargets[i]);
+            }
         }
 
         static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
@@ -395,8 +458,11 @@ namespace LibreLancer.Net.Protocol
             nc.Thrust = reader.GetBool();
             bool readThrottle = reader.GetBool();
             bool readSteering = reader.GetBool();
+            bool readAimPoint = reader.GetBool();
             nc.Throttle = readThrottle ? reader.GetFloat() : baseline.Throttle;
             nc.Steering = readSteering ? reader.GetVector3() : baseline.Steering;
+            nc.AimPoint = readAimPoint ? reader.GetVector3() : baseline.AimPoint;
+            nc.FireCommand = ReadFireCommand(ref reader, ref nc);
             return nc;
         }
 
@@ -408,6 +474,7 @@ namespace LibreLancer.Net.Protocol
             p.SelectedObject = ObjNetId.Read(ref br);
             p.Current.Tick = br.GetVarUInt32();
             p.Current.Steering = br.GetVector3();
+            p.Current.AimPoint = br.GetVector3();
             p.Current.Strafe = (StrafeControls) br.GetUInt(4);
             p.Current.Cruise = br.GetBool();
             p.Current.Thrust = br.GetBool();
@@ -417,6 +484,7 @@ namespace LibreLancer.Net.Protocol
             else {
                 p.Current.Throttle = br.GetFloat();
             }
+            p.Current.FireCommand = ReadFireCommand(ref br, ref p.Current);
             p.HistoryA = ReadDelta(ref br, ref p.Current);
             p.HistoryB = ReadDelta(ref br, ref p.HistoryA);
             p.HistoryC = ReadDelta(ref br, ref p.HistoryB);
@@ -431,6 +499,7 @@ namespace LibreLancer.Net.Protocol
             SelectedObject.Put(bw);
             bw.PutVarUInt32(Current.Tick);
             bw.PutVector3(Current.Steering);
+            bw.PutVector3(Current.AimPoint);
             bw.PutUInt((uint)Current.Strafe, 4);
             bw.PutBool(Current.Cruise);
             bw.PutBool(Current.Thrust);
@@ -442,7 +511,7 @@ namespace LibreLancer.Net.Protocol
                 bw.PutUInt(2, 2);
                 bw.PutFloat(Current.Throttle);
             }
-
+            WriteFireCommand(ref bw, ref Current);
             WriteDelta(ref bw, ref Current, ref HistoryA);
             WriteDelta(ref bw, ref HistoryA, ref HistoryB);
             WriteDelta(ref bw, ref HistoryB, ref HistoryC);

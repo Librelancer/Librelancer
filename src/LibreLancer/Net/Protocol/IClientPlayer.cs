@@ -15,7 +15,7 @@ public interface IClientPlayer
     void SetPreloads(PreloadObject[] preloads);
 
     void SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout);
-    void SpawnPlayer(int id, string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
+    void SpawnPlayer(int id, string system, CrcIdMap[] crcMap, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
     void UpdateEffects(ObjNetId id, SpawnedEffect[] effects);
     void SpawnProjectiles(ProjectileSpawn[] projectiles);
     void UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations);

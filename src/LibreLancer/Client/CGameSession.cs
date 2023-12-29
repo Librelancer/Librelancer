@@ -217,16 +217,13 @@ namespace LibreLancer.Client
             public uint Tick;
             public Vector3 Position;
             public Quaternion Orientation;
-            public Vector3 AngularVelocity;
-            public Vector3 LinearVelocity;
             public Vector3 Steering;
+            public Vector3 AimPoint;
             public float Throttle;
             public StrafeControls Strafe;
             public bool Thrust;
             public bool CruiseEnabled;
-            public EngineStates EngineState;
-            public float CruiseAccelPct;
-            public float ChargePct;
+            public ProjectileFireCommand? FireCommand;
         }
 
         NetInputControls FromMoveState(int i)
@@ -236,10 +233,12 @@ namespace LibreLancer.Client
             {
                 Tick =  moveState[^i].Tick,
                 Steering = moveState[^i].Steering,
+                AimPoint = moveState[^i].AimPoint,
                 Strafe = moveState[^i].Strafe,
                 Throttle = moveState[^i].Throttle,
                 Cruise = moveState[^i].CruiseEnabled,
-                Thrust = moveState[^i].Thrust
+                Thrust = moveState[^i].Thrust,
+                FireCommand = moveState[^i].FireCommand,
             };
         }
 
@@ -247,11 +246,12 @@ namespace LibreLancer.Client
 
         public int LastTickOffset = 0;
 
-        public void UpdateStart()
+        public void UpdateStart(SpaceGameplay gp)
         {
             var elapsed = (uint) ((Game.TotalTime - totalTimeForTick) / (1 / 60.0f));
             FLLog.Info("Player", $"{elapsed} ticks elapsed after load");
             WorldTick += elapsed;
+            gp.world.SetCrcTranslation(crcMap);
         }
 
         public void GameplayUpdate(SpaceGameplay gp, double delta)
@@ -265,22 +265,19 @@ namespace LibreLancer.Client
                 var player = gp.player;
                 var phys = player.GetComponent<ShipPhysicsComponent>();
                 var steering = player.GetComponent<ShipSteeringComponent>();
-
+                var wp = player.GetComponent<WeaponControlComponent>();
                 moveState.Enqueue(new PlayerMoveState()
                 {
                     Tick = WorldTick,
                     Position = player.PhysicsComponent.Body.Position,
                     Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
-                    AngularVelocity = MathHelper.ApplyEpsilon(player.PhysicsComponent.Body.AngularVelocity),
-                    LinearVelocity = player.PhysicsComponent.Body.LinearVelocity,
                     Steering = steering.OutputSteering,
+                    AimPoint = wp.AimPoint,
                     Strafe = phys.CurrentStrafe,
                     Throttle = phys.EnginePower,
                     Thrust = steering.Thrust,
                     CruiseEnabled = steering.Cruise,
-                    EngineState = phys.EngineState,
-                    CruiseAccelPct = phys.CruiseAccelPct,
-                    ChargePct = phys.ChargePercent
+                    FireCommand = gp.world.Projectiles.GetQueuedRequest(),
                 });
 
                 //Store multiple updates for redundancy.
@@ -568,14 +565,21 @@ namespace LibreLancer.Client
             {
                 foreach (var p in projectiles)
                 {
-                    var x = Game.GameData.Equipment.Get(p.Gun) as GunEquipment;
-                    var projdata = gp.world.Projectiles.GetData(x);
                     var owner = gp.world.GetObject(p.Owner);
-                    gp.world.Projectiles.SpawnProjectile(owner, p.Hardpoint, projdata, p.Start, p.Heading);
-                    var o = owner.Children.FirstOrDefault(go =>
-                        p.Hardpoint.Equals(go.Attachment?.Name));
-                    if(o?.TryGetComponent<CMuzzleFlashComponent>(out var mz) ?? false)
-                        mz.OnFired();
+                    if (owner == gp.player)
+                        continue;
+                    if (owner != null && owner.TryGetComponent<WeaponControlComponent>(out var wc))
+                    {
+                        int tgtUnique = 0;
+                        for (int i = 0; i < wc.NetOrderWeapons.Length; i++) {
+                            if ((p.Guns & (1UL << i)) == 0)
+                                continue;
+                            var target = p.Target;
+                            if ((p.Unique & (1UL << i)) != 0)
+                                target = p.OtherTargets[tgtUnique++];
+                            wc.NetOrderWeapons[i].Fire(target, null, true);
+                        }
+                    }
                 }
             });
         }
@@ -770,7 +774,9 @@ namespace LibreLancer.Client
 
         private double totalTimeForTick = 0;
 
-        void IClientPlayer.SpawnPlayer(int ID, string system, NetObjective objective, Vector3 position, Quaternion orientation, uint tick)
+        CrcIdMap[] crcMap;
+
+        void IClientPlayer.SpawnPlayer(int ID, string system, CrcIdMap[] crcMap, NetObjective objective, Vector3 position, Quaternion orientation, uint tick)
         {
             enterCount++;
             PlayerNetID = ID;
@@ -785,6 +791,7 @@ namespace LibreLancer.Client
             FLLog.Info("Player", $"Spawning at {tick} + delay {delay}");
             WorldTick = tick + connection.EstimateTickDelay();
             totalTimeForTick = Game.TotalTime;
+            this.crcMap = crcMap;
         }
 
         void IClientPlayer.UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations)
@@ -1068,7 +1075,7 @@ namespace LibreLancer.Client
 
         void UpdateObject(ObjectUpdate update, GameWorld world)
         {
-            GameObject obj = world.GetObject(new ObjNetId(update.IsCRC, update.ID));
+            GameObject obj = world.GetObject(update.ID);
             if (obj == null)
                 return;
             //Component only present in multiplayer
@@ -1088,6 +1095,8 @@ namespace LibreLancer.Client
             }
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
             {
+                if(weapons.NetOrderWeapons == null)
+                    weapons.UpdateNetWeapons();
                 weapons.SetRotations(update.Guns);
             }
             if (obj.SystemObject == null)

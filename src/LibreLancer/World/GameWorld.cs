@@ -10,6 +10,7 @@ using LibreLancer.Client.Components;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Server;
@@ -55,7 +56,7 @@ namespace LibreLancer.World
         }
 
         public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
-            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null)
+            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null, Func<int> netId = null)
         {
             var arch = changedArch ?? obj.Star ?? obj.Archetype;
             var loadout = changeLoadout ? newLoadout : obj.Loadout;
@@ -105,6 +106,10 @@ namespace LibreLancer.World
                 g.AddComponent(new SHealthComponent(g) {InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100});
                 if (arch.IsUpdatableSolar() || obj.Faction != null)
                     g.AddComponent(new SSolarComponent(g) { Faction = obj.Faction });
+                if (netId != null) {
+                    g.NetID = netId();
+                    CrcTranslation.Add(new CrcIdMap(g.NetID, g.NicknameCRC));
+                }
             }
 
             g.Register(Physics);
@@ -126,9 +131,26 @@ namespace LibreLancer.World
                 AddObject((new GameObject()
                     {Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles)}));
 
+            Func<int> netId = null;
+            List<int> toFree = null;
+            // Allocate netIds for system objects, use even numbers only
+            // so that NPCs can be encoded in fewer bytes
+            if (server) {
+                toFree = new List<int>();
+                netId = () => {
+                    toFree.Add(Server.IdGenerator.Allocate());
+                    return Server.IdGenerator.Allocate();
+                };
+            }
+
             foreach (var obj in sys.Objects)
             {
-                NewObject(obj, res, server);
+                NewObject(obj, res, server, false, null, null, netId);
+            }
+
+            if (server) {
+                foreach(var id in toFree)
+                    Server.IdGenerator.Free(id);
             }
 
             foreach (var field in sys.AsteroidFields)
@@ -154,6 +176,17 @@ namespace LibreLancer.World
 #else
         public void DrawDebug(Vector3 point) {}
 #endif
+
+        public List<CrcIdMap> CrcTranslation = new List<CrcIdMap>();
+
+        public void SetCrcTranslation(IEnumerable<CrcIdMap> translation)
+        {
+            CrcTranslation = new List<CrcIdMap>(translation);
+            foreach (var tr in CrcTranslation) {
+                var obj = GetObject(tr.CRC);
+                netIDLookup[tr.NetID] = obj;
+            }
+        }
 
         public void AddObject(GameObject obj)
         {
@@ -181,8 +214,6 @@ namespace LibreLancer.World
 
         public GameObject GetObject(ObjNetId id)
         {
-            if (id.IsCRC)
-                return GetObject((uint) id.Value);
             netIDLookup.TryGetValue(id.Value, out var go);
             return go;
         }
