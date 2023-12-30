@@ -9,6 +9,8 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
     private Dictionary<string, T> nicknameCollection = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
     private Dictionary<uint, T> crcCollection = new Dictionary<uint, T>();
 
+    public IEnumerable<uint> Crcs => crcCollection.Keys;
+
     public bool TryGetValue(string nickname, out T value)
     {
         if (string.IsNullOrEmpty(nickname)) {
