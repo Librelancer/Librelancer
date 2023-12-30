@@ -358,13 +358,19 @@ namespace LancerEdit
                 ResultMessages(model, popup.Log);
                 if (model.IsSuccess)
                 {
+                    popup.Log("Loaded\n");
                     var mdl = model.Data.AutoselectRoot(out _).ApplyScale();
                     var x = Vector3.Transform(Vector3.Zero, mdl.Roots[0].Transform);
                     bool modelWarning = x.Length() > 0.0001;
                     mdl = mdl.ApplyRootTransforms(false).CalculateBounds();
                     QueueUIThread(() => FinishImporterLoad(mdl, modelWarning, Path.GetFileName(filename), popup));
                 }
-                popup.Log("Loaded\n");
+                else
+                {
+                    popup.Log("Opening model file failed\n");
+                    popup.Finish();
+                }
+
             }
             Task.Run(Action);
         }

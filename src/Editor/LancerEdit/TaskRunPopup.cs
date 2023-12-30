@@ -43,7 +43,7 @@ public class TaskRunPopup : PopupWindow
     public void Confirm(string text, Action onConfirm)
     {
         this.onConfirm = onConfirm;
-        this.confirmText = confirmText;
+        this.confirmText = text;
     }
 
     void Loading()
