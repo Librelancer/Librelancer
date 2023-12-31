@@ -54,6 +54,11 @@ namespace lleditscript
             os.Add(prototype, description, action);
         }
 
+        public void IntegerOption(string prototype, string description, Action<int> action)
+        {
+            os.Add(prototype, description, action);
+        }
+
         void PrintUsage()
         {
             if (!string.IsNullOrEmpty(usage))
