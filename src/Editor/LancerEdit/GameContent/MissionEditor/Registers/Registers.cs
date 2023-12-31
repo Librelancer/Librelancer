@@ -13,6 +13,10 @@ internal static partial class Registers
         {
             _ when type == typeof(MissionShip) => RegisterMissionShipIo(node, ref pinId),
             _ when type == typeof(MissionSolar) => RegisterMissionSolarIo(node, ref pinId),
+            _ when type == typeof(MissionFormation) => RegisterMissionFormationIo(node, ref pinId),
+            _ when type == typeof(MissionDialog) => RegisterDialogFormationIo(node, ref pinId),
+            _ when type == typeof(MissionLoot) => RegisterMissionLootIo(node, ref pinId),
+            _ when type == typeof(NNObjective) => RegisterMissionNNObjectiveIo(node, ref pinId),
             _ => throw new InvalidOperationException("A type that has not been setup has been registered.")
         };
     }

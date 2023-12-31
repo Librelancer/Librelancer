@@ -150,37 +150,40 @@ namespace LibreLancer.Missions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if (script.Objectives.TryGetValue(Objective, out var v)) {
-                if (v.Type[0].Equals("ids", StringComparison.OrdinalIgnoreCase))
-                {
-                    runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])));
-                }
-                else if (v.Type[0].Equals("navmarker", StringComparison.OrdinalIgnoreCase))
-                {
-                    runtime.Player.SetObjective(
-                        new NetObjective(
-                            int.Parse(v.Type[2]),
-                            int.Parse(v.Type[3]),
-                            v.Type[1],
-                            new Vector3(
-                                float.Parse(v.Type[4], CultureInfo.InvariantCulture),
-                                float.Parse(v.Type[5], CultureInfo.InvariantCulture),
-                                float.Parse(v.Type[6], CultureInfo.InvariantCulture)
-                            )
+            if (!script.Objectives.TryGetValue(Objective, out var v))
+            {
+                return;
+            }
+
+            if (v.Type[0].Equals("ids", StringComparison.OrdinalIgnoreCase))
+            {
+                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])));
+            }
+            else if (v.Type[0].Equals("navmarker", StringComparison.OrdinalIgnoreCase))
+            {
+                runtime.Player.SetObjective(
+                    new NetObjective(
+                        int.Parse(v.Type[2]),
+                        int.Parse(v.Type[3]),
+                        v.Type[1],
+                        new Vector3(
+                            float.Parse(v.Type[4], CultureInfo.InvariantCulture),
+                            float.Parse(v.Type[5], CultureInfo.InvariantCulture),
+                            float.Parse(v.Type[6], CultureInfo.InvariantCulture)
                         )
-                    );
-                }
-                else if (v.Type[0].Equals("rep_inst", StringComparison.OrdinalIgnoreCase))
-                {
-                    runtime.Player.SetObjective(
-                        new NetObjective(
-                            int.Parse(v.Type[2]),
-                            int.Parse(v.Type[3]),
-                            v.Type[1],
-                            v.Type[7]
-                        )
-                    );
-                }
+                    )
+                );
+            }
+            else if (v.Type[0].Equals("rep_inst", StringComparison.OrdinalIgnoreCase))
+            {
+                runtime.Player.SetObjective(
+                    new NetObjective(
+                        int.Parse(v.Type[2]),
+                        int.Parse(v.Type[3]),
+                        v.Type[1],
+                        v.Type[7]
+                    )
+                );
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -16,32 +17,33 @@ using Reg = LancerEdit.GameContent.MissionEditor.Registers.Registers;
 namespace LancerEdit.GameContent.MissionEditor;
 public sealed class MissionScriptEditorTab : GameContentTab
 {
-    private GameDataContext gameData;
+    private readonly GameDataContext gameData;
     private MainWindow win;
 
     private readonly NodeEditorConfig config;
     private readonly NodeEditorContext context;
 
-    private List<Node> nodes;
-    private List<NodeLink> links;
+    private readonly List<Node> nodes;
+    private readonly List<NodeLink> links;
 
-    private int nodeId = 0;
-    private int pinId = 0;
+    private int nextId;
 
     private NodePin newLinkPin = null;
     private NodePin newNodeLinkPin = null;
 
-    private static bool registeredNodeValueRenderers = false;
+    private static bool _registeredNodeValueRenderers = false;
 
-    private MissionScript missionScript;
+    private readonly MissionScript missionScript;
 
     public MissionScriptEditorTab(GameDataContext gameData, MainWindow win, string file)
     {
-        Title = "Mission Script Editor";
+        Title = $"Mission Script Editor - {Path.GetFileName(file)}";
         this.gameData = gameData;
         this.win = win;
+
         config = new NodeEditorConfig();
         context = new NodeEditorContext(config);
+
         NodeBuilder.LoadTexture();
 
         RegisterNodeValues();
@@ -52,17 +54,45 @@ public sealed class MissionScriptEditorTab : GameContentTab
 
         foreach (var ship in missionScript.Ships)
         {
-            nodes.Add(new BlueprintNode<MissionShip>(ref nodeId, "Mission Ship", ship.Value, Color4.FromRgba((uint)NodeColours.MissionShip)));
+            nodes.Add(new BlueprintNode<MissionShip>(ref nextId, "Mission Ship", ship.Value, Color4.FromRgba((uint)NodeColours.MissionShip)));
         }
 
         foreach (var solar in missionScript.Solars)
         {
-            nodes.Add(new BlueprintNode<MissionSolar>(ref nodeId, "Mission Solar", solar.Value, Color4.FromRgba((uint)NodeColours.MissionSolar)));
+            nodes.Add(new BlueprintNode<MissionSolar>(ref nextId, "Mission Solar", solar.Value, Color4.FromRgba((uint)NodeColours.MissionSolar)));
         }
+
+        foreach (var formation in missionScript.Formations)
+        {
+            nodes.Add(new BlueprintNode<MissionFormation>(ref nextId, "Mission Formation", formation.Value, Color4.FromRgba((uint)NodeColours.MissionFormation)));
+        }
+
+        foreach (var dialog in missionScript.Dialogs)
+        {
+            nodes.Add(new BlueprintNode<MissionDialog>(ref nextId, "Dialog", dialog.Value, Color4.FromRgba((uint)NodeColours.Dialog)));
+        }
+
+        foreach (var objective in missionScript.Objectives)
+        {
+            nodes.Add(new BlueprintNode<NNObjective>(ref nextId, "NN Objective", objective.Value, Color4.FromRgba((uint)NodeColours.NNObjective)));
+        }
+
+        foreach (var objective in missionScript.Loot)
+        {
+            nodes.Add(new BlueprintNode<MissionLoot>(ref nextId, "Mission Loot", objective.Value, Color4.FromRgba((uint)NodeColours.MissionLoot)));
+        }
+
+        /*foreach (var objList in missionScript.ObjLists)
+        {
+            nodes.Add(new BlueprintNode<ScriptAiCommands>(ref nextId, "", objList.Value, Color4.FromRgba((uint)NodeColours.CommandList)));
+
+            foreach (var command in objList.Value.Ini.Commands)
+            {
+                nodes.Add(new Blue);
+            }
+        }*/
     }
 
-    private int selectedItem = 0;
-    private VectorIcon selectedIcon;
     public override void Draw(double elapsed)
     {
         ImGuiHelper.AnimatingElement();
@@ -149,7 +179,7 @@ public sealed class MissionScriptEditorTab : GameContentTab
                         ShowLabel("+ Create Link", new Color4(32, 45, 32, 180));
                         if (NodeEditor.AcceptNewItem(new Color4(128, 255, 128, 255), 4.0f))
                         {
-                            var nodeLink = new NodeLink(pinId++, startPin, endPin)
+                            var nodeLink = new NodeLink(nextId++, startPin, endPin)
                             {
                                 Color = startPin.OwnerNode.Color
                             };
@@ -170,7 +200,6 @@ public sealed class MissionScriptEditorTab : GameContentTab
                 if (NodeEditor.AcceptNewItem())
                 {
                     // TODO createNewNode = true;
-                    newNodeLinkPin = FindPin(pinId);
                     newLinkPin = null;
                     NodeEditor.Suspend();
                     ImGui.OpenPopup("Create New Node");
@@ -188,15 +217,19 @@ public sealed class MissionScriptEditorTab : GameContentTab
 
     private void RegisterNodeValues()
     {
-        if (registeredNodeValueRenderers)
+        if (_registeredNodeValueRenderers)
         {
             return;
         }
 
-        registeredNodeValueRenderers = true;
+        _registeredNodeValueRenderers = true;
 
         Node.RegisterNodeValueRenderer<MissionShip>(Reg.MissionShipContent);
         Node.RegisterNodeValueRenderer<MissionSolar>(Reg.MissionSolarContent);
+        Node.RegisterNodeValueRenderer<MissionFormation>(Reg.MissionFormationContent);
+        Node.RegisterNodeValueRenderer<MissionDialog>(Reg.MissionDialogContent);
+        Node.RegisterNodeValueRenderer<MissionLoot>(Reg.MissionLootContent);
+        Node.RegisterNodeValueRenderer<NNObjective>(Reg.MissionNNObjectiveContent);
     }
 
     private NodePin FindPin(PinId id)

@@ -1,7 +1,7 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Numerics;
 using LibreLancer.Ini;
@@ -18,9 +18,9 @@ namespace LibreLancer.Data.Missions
         [Entry("position")]
         public Vector3 Position;
         [Entry("rel_pos_obj")]
-        public string[] RelPosObj;
+        public string RelPosObj;
         [Entry("rel_pos_offset")]
-        public string[] RelPosOffset;
+        public string[] RelPosOffset = new string[3];
         [Entry("velocity")]
         public Vector3 Velocity;
         [Entry("equip_amount")]
