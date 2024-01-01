@@ -620,7 +620,9 @@ namespace LancerEdit
                 ImGui.Image((IntPtr) logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
                 CenterText(Version);
                 CenterText($"ImGui version: {ImGuiExt.Version}");
-				CenterText("Callum McGing 2018-2023");
+                CenterText("Callum McGing");
+                CenterText("Librelancer Contributors");
+                CenterText("2018-2024");
                 ImGui.Separator();
                 var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
                 ImGui.Dummy(Vector2.One);
