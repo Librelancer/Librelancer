@@ -30,7 +30,7 @@ public struct ObjNetId
 
     public static implicit operator ObjNetId(GameObject obj)
     {
-        return new ObjNetId() {Value = obj.NetID};
+        return new ObjNetId() {Value = obj?.NetID ?? 0};
     }
 
     public override string ToString() => Value == 0 ? "NULL" : $"[ObjId: {Value}]";
