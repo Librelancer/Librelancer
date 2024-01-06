@@ -39,19 +39,6 @@ internal static partial class Registers
             }
         }
 
-        if (ImGui.Button(Icons.PlusCircle))
-        {
-            obj.Lines.Add(new DialogLine());
-            return;
-        }
-
-        ImGui.SameLine();
-        ImGui.BeginDisabled(obj.Lines.Count is 0);
-        if (ImGui.Button(Icons.X))
-        {
-            obj.Lines.RemoveAt(obj.Lines.Count - 1);
-        }
-
-        ImGui.EndDisabled();
+        MissionEditorHelpers.AddRemoveListButtons(obj.Lines);
     }
 }

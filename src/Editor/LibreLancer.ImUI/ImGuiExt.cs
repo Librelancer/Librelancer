@@ -228,5 +228,35 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
         static extern bool _Spinner(string label, float radius, int thickness, uint color);
+
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        static extern bool igExtSeparatorText(IntPtr text);
+
+        public static void SeparatorText(string text)
+        {
+            byte* native_name;
+            int name_byteCount = 0;
+            if (text != null)
+            {
+                name_byteCount = Encoding.UTF8.GetByteCount(text);
+                if (name_byteCount > Util.StackAllocationSizeLimit)
+                {
+                    native_name = Util.Allocate(name_byteCount + 1);
+                }
+                else
+                {
+                    byte* native_name_stackBytes = stackalloc byte[name_byteCount + 1];
+                    native_name = native_name_stackBytes;
+                }
+                int native_name_offset = Util.GetUtf8(text, native_name, name_byteCount);
+                native_name[native_name_offset] = 0;
+            }
+            else { native_name = null; }
+            igExtSeparatorText((IntPtr)native_name);
+            if (name_byteCount > Util.StackAllocationSizeLimit)
+            {
+                Util.Free(native_name);
+            }
+        }
 	}
 }

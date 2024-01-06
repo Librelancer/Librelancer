@@ -7,18 +7,21 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.Data.Missions;
+using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
-
+using ImGui = ImGuiNET.ImGui;
 using Reg = LancerEdit.GameContent.MissionEditor.Registers.Registers;
 
 namespace LancerEdit.GameContent.MissionEditor;
-public sealed class MissionScriptEditorTab : GameContentTab
+public sealed partial class MissionScriptEditorTab : GameContentTab
 {
     private readonly GameDataContext gameData;
     private MainWindow win;
+    private PopupManager popup;
 
     private readonly NodeEditorConfig config;
     private readonly NodeEditorContext context;
@@ -40,6 +43,7 @@ public sealed class MissionScriptEditorTab : GameContentTab
         Title = $"Mission Script Editor - {Path.GetFileName(file)}";
         this.gameData = gameData;
         this.win = win;
+        popup = new PopupManager();
 
         config = new NodeEditorConfig();
         context = new NodeEditorContext(config);
@@ -52,7 +56,13 @@ public sealed class MissionScriptEditorTab : GameContentTab
         links = new List<NodeLink>();
         missionScript = new MissionScript(new MissionIni(file, null));
 
-        foreach (var ship in missionScript.Ships)
+        var npcPath = gameData.GameData.TryResolveData(missionScript.Ini.Info.NpcShipFile);
+        if (npcPath is not null)
+        {
+            missionScript.Ini.ShipIni = new NPCShipIni(npcPath, null);
+        }
+
+        /*foreach (var ship in missionScript.Ships)
         {
             nodes.Add(new BlueprintNode<MissionShip>(ref nextId, "Mission Ship", ship.Value, Color4.FromRgba((uint)NodeColours.MissionShip)));
         }
@@ -82,7 +92,7 @@ public sealed class MissionScriptEditorTab : GameContentTab
             nodes.Add(new BlueprintNode<MissionLoot>(ref nextId, "Mission Loot", objective.Value, Color4.FromRgba((uint)NodeColours.MissionLoot)));
         }
 
-        /*foreach (var objList in missionScript.ObjLists)
+        foreach (var objList in missionScript.ObjLists)
         {
             nodes.Add(new BlueprintNode<ScriptAiCommands>(ref nextId, "", objList.Value, Color4.FromRgba((uint)NodeColours.CommandList)));
 
@@ -96,6 +106,32 @@ public sealed class MissionScriptEditorTab : GameContentTab
     public override void Draw(double elapsed)
     {
         ImGuiHelper.AnimatingElement();
+        if (!ImGui.BeginTable("ME Table", 3, ImGuiTableFlags.None))
+        {
+            return;
+        }
+
+        ImGui.TableSetupColumn("ME Left Sidebar", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("ME Node Editor", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("ME Right Sidebar", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableNextRow();
+
+        ImGui.TableNextColumn();
+        RenderLeftSidebar();
+
+        ImGui.TableNextColumn();
+        RenderNodeEditor();
+
+        ImGui.TableNextColumn();
+        RenderRightSidebar();
+
+        ImGui.EndTable();
+
+        popup.Run();
+    }
+
+    private void RenderNodeEditor()
+    {
         NodeEditor.SetCurrentEditor(context);
         NodeEditor.Begin("Node Editor", Vector2.Zero);
 
