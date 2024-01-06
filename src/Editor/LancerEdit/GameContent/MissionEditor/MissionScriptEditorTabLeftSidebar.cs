@@ -72,9 +72,9 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        ImGui.PushID(selectedNpc.Nickname ?? "New Npc");
+        ImGui.PushID(selectedNpcIndex);
 
-        Controls.InputTextId("NPC Nickname", ref selectedNpc.Nickname);
+        Controls.InputTextId("NPC Nickname##ID", ref selectedNpc.Nickname);
         Controls.InputTextId("Archetype##ID", ref selectedNpc.NpcShipArch);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             ini.ShipIni.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch)
@@ -138,9 +138,9 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        ImGui.PushID(selectedArch.Nickname ?? "New Npc Archs");
+        ImGui.PushID(selectedArchIndex);
 
-        Controls.InputTextId("Arch Nickname", ref selectedArch.Nickname);
+        Controls.InputTextId("Arch Nickname##ID", ref selectedArch.Nickname);
         Controls.InputTextId("Loadout##ID", ref selectedArch.Loadout);
         MissionEditorHelpers.AlertIfInvalidRef(() => gameData.GameData.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));
 
