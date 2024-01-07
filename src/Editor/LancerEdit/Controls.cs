@@ -32,10 +32,10 @@ public class DropdownOption
 }
 public static class Controls
 {
-    public static void InputTextId(string name, ref string value)
+    public static void InputTextId(string label, ref string value)
     {
         value ??= "";
-        ImGui.InputText(name, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
+        ImGui.InputText(label, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
     }
 
     public static bool SmallButton(string text)
@@ -51,9 +51,9 @@ public static class Controls
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
         ImGui.PushID(name);
         var push = !visible;
-        if(push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
+        if (push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
         if (ImGui.Button(Icons.Eye)) visible = !visible;
-        if(push) ImGui.PopStyleColor();
+        if (push) ImGui.PopStyleColor();
         ImGui.PopID();
         ImGui.PopStyleVar(1);
     }
@@ -61,7 +61,7 @@ public static class Controls
     private static unsafe ImGuiInputTextCallback callback = HandleTextEditCallback;
     static unsafe int HandleTextEditCallback(ImGuiInputTextCallbackData* data)
     {
-        var ch = (char) data->EventChar;
+        var ch = (char)data->EventChar;
         if ((ch >= '0' && ch <= '9') ||
             (ch >= 'a' && ch <= 'z') ||
             (ch >= 'A' && ch <= 'Z') ||
@@ -93,7 +93,7 @@ public static class Controls
             return ImGui.ColorButton(id, colA, ImGuiColorEditFlags.NoAlpha, size);
         ImGui.PushID(id);
         var img = ImGuiHelper.RenderGradient(colA, colB);
-        var retval = ImGui.ImageButton((IntPtr) img, size, new Vector2(0, 1), new Vector2(0, 0), 0);
+        var retval = ImGui.ImageButton((IntPtr)img, size, new Vector2(0, 1), new Vector2(0, 0), 0);
         ImGui.PopID();
         return retval;
     }
@@ -112,13 +112,13 @@ public static class Controls
         Theme.TinyTriangle(tPos.X, tPos.Y);
         if (clicked)
             ImGui.OpenPopup(id + "#popup");
-        if(ImGui.BeginPopup(id + "#popup"))
+        if (ImGui.BeginPopup(id + "#popup"))
         {
             ImGui.MenuItem(id, false);
             for (int i = 0; i < options.Count; i++)
             {
                 var opt = options[i];
-                if(Theme.IconMenuItem(opt.Icon, opt.Name, true))
+                if (Theme.IconMenuItem(opt.Icon, opt.Name, true))
                     selected = i;
             }
             ImGui.EndPopup();
@@ -126,11 +126,12 @@ public static class Controls
         ImGui.PopID();
     }
 
-    private static readonly string[] columnNames = new string[] {"A", "B", "C", "D", "E", "F", "G", "H"};
+    private static readonly string[] columnNames = new string[] { "A", "B", "C", "D", "E", "F", "G", "H" };
     public static void BeginPropertyTable(string name, params bool[] columns)
     {
         ImGui.BeginTable(name, columns.Length, ImGuiTableFlags.Borders);
-        for (int i = 0; i < columns.Length; i++) {
+        for (int i = 0; i < columns.Length; i++)
+        {
             ImGui.TableSetupColumn(columnNames[i], columns[i] ? ImGuiTableColumnFlags.WidthFixed : ImGuiTableColumnFlags.WidthStretch);
         }
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);

@@ -34,7 +34,8 @@ public static class MissionEditorHelpers
 
     private static void AddRemoveListButtonsInternal<T>(IList<T> list, Func<T> defaultValue)
     {
-        if (ImGui.Button(Icons.PlusCircle))
+        ImGui.PushID(list.Count);
+        if (ImGui.Button(Icons.PlusCircle + "##Plus"))
         {
             list.Add(defaultValue());
             return;
@@ -42,11 +43,13 @@ public static class MissionEditorHelpers
 
         ImGui.SameLine();
         ImGui.BeginDisabled(list.Count is 0);
-        if (ImGui.Button(Icons.X))
+        if (ImGui.Button(Icons.X + "##Cross"))
         {
             list.RemoveAt(list.Count - 1);
         }
 
         ImGui.EndDisabled();
+
+        ImGui.PopID();
     }
 }
