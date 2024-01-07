@@ -84,8 +84,11 @@ namespace LancerEdit
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
 
-            var c = new GameDataContext();
-            QueueUIThread(() => c.Load(this, "/mnt/Ubuntu/Freelancer", () => OpenDataContext = c, e => ErrorDialog(GetExceptionText(e))));
+            if (!string.IsNullOrWhiteSpace(Config.AutoLoadPath))
+            {
+                var c = new GameDataContext();
+                QueueUIThread(() => c.Load(this, Config.AutoLoadPath, () => OpenDataContext = c, e => ErrorDialog(GetExceptionText(e))));
+            }
         }
         double errorTimer = 0;
         private int logoTexture;
