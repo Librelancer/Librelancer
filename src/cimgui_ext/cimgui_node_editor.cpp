@@ -2,6 +2,14 @@
 #include "imgui_node_editor.h"
 #include <stdlib.h>
 
+#ifdef _MSC_VER
+#include <malloc.h>
+#define ig_alloca _alloca
+#else
+#include <alloca.h>
+#define ig_alloca alloca
+#endif
+
 namespace ed = ax::NodeEditor;
 
 static ed::NodeId NodeFromPtr(axNodeId ptr) { return ed::NodeId(ptr); }
@@ -598,9 +606,10 @@ IGEXPORT int axGetSelectedObjectCount()
 {
     return ed::GetSelectedObjectCount();
 }
+
 IGEXPORT int axGetSelectedNodes(axNodeId* nodes, int size)
 {
-    ed::NodeId ids[size];
+    ed::NodeId* ids = (ed::NodeId*)ig_alloca(sizeof(ed::NodeId) * size);
     int retval = ed::GetSelectedNodes(ids, size);
     for(int i = 0; i < size && i < retval; i++)
         nodes[i] = PtrFromNode(ids[i]);
@@ -608,7 +617,7 @@ IGEXPORT int axGetSelectedNodes(axNodeId* nodes, int size)
 }
 IGEXPORT int axGetSelectedLinks(axLinkId* links, int size)
 {
-    ed::LinkId ids[size];
+    ed::LinkId* ids = (ed::LinkId*)ig_alloca(sizeof(ed::LinkId) * size);
     int retval = ed::GetSelectedLinks(ids, size);
     for(int i = 0; i < size && i < retval; i++)
         links[i] = PtrFromLink(ids[i]);
@@ -751,7 +760,7 @@ IGEXPORT int axGetActionContextSize()
 }
 IGEXPORT int axGetActionContextNodes(axNodeId* nodes, int size)
 {
-    ed::NodeId ids[size];
+    ed::NodeId* ids = (ed::NodeId*)ig_alloca(sizeof(ed::NodeId) * size);
     int retval = ed::GetActionContextNodes(ids, size);
     for(int i = 0; i < size && i < retval; i++)
         nodes[i] = PtrFromNode(ids[i]);
@@ -760,7 +769,7 @@ IGEXPORT int axGetActionContextNodes(axNodeId* nodes, int size)
 
 IGEXPORT int axGetActionContextLinks(axLinkId* links, int size)
 {
-    ed::LinkId ids[size];
+    ed::LinkId* ids = (ed::LinkId*)ig_alloca(sizeof(ed::LinkId) * size);
     int retval = ed::GetActionContextLinks(ids, size);
     for(int i = 0; i < size && i < retval; i++)
         links[i] = PtrFromLink(ids[i]);
@@ -865,7 +874,7 @@ IGEXPORT int axGetNodeCount()
 
 IGEXPORT int axGetOrderedNodeIds(axNodeId* nodes, int size)
 {
-    ed::NodeId ids[size];
+    ed::NodeId* ids = (ed::NodeId*)ig_alloca(sizeof(ed::NodeId) * size);
     int retval = ed::GetOrderedNodeIds(ids, size);
     for(int i = 0; i < size && i < retval; i++)
         nodes[i] = PtrFromNode(ids[i]);
