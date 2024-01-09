@@ -111,6 +111,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             return;
         }
 
+        CheckIndexes();
+
         ImGui.TableSetupColumn("ME Left Sidebar", ImGuiTableColumnFlags.WidthFixed);
         ImGui.TableSetupColumn("ME Node Editor", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn("ME Right Sidebar", ImGuiTableColumnFlags.WidthFixed);
@@ -128,6 +130,34 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         ImGui.EndTable();
 
         popup.Run();
+    }
+
+    private void CheckIndexes()
+    {
+        if (selectedShipIndex is -1 && missionScript.Ini.Ships.Count is not 0)
+        {
+            selectedShipIndex = 0;
+        }
+
+        if (selectedArchIndex is -1 && missionScript.Ini.ShipIni.ShipArches.Count is not 0)
+        {
+            selectedArchIndex = 0;
+        }
+
+        if (selectedNpcIndex is -1 && missionScript.Ini.NPCs.Count is not 0)
+        {
+            selectedNpcIndex = 0;
+        }
+
+        if (selectedSolarIndex is -1 && missionScript.Ini.Solars.Count is not 0)
+        {
+            selectedSolarIndex = 0;
+        }
+
+        if (selectedFormationIndex is -1 && missionScript.Ini.Formations.Count is not 0)
+        {
+            selectedFormationIndex = 0;
+        }
     }
 
     private void RenderNodeEditor()

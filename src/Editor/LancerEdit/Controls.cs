@@ -32,8 +32,13 @@ public class DropdownOption
 }
 public static class Controls
 {
-    public static void InputTextId(string label, ref string value)
+    public static void InputTextId(string label, ref string value, float width = 0.0f)
     {
+        if (width != 0.0f)
+        {
+            ImGui.SetNextItemWidth(width);
+        }
+
         value ??= "";
         ImGui.InputText(label, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
     }
@@ -184,13 +189,14 @@ public static class Controls
         value = new Quaternion(swizzle.X, swizzle.Y, swizzle.Z, swizzle.W);
     }
 
-    public static void InputStringList(string label, List<string> list)
+    public static void InputStringList(string label, List<string> list, bool rmButtonOnEveryElement = true)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(label);
 
         void AddListControls()
         {
+            ImGui.SameLine();
             if (ImGui.Button(Icons.PlusCircle))
             {
                 list.Add("");
@@ -219,17 +225,26 @@ public static class Controls
             ImGui.PushID(str);
 
             ImGui.SetNextItemWidth(150f);
-            ImGui.InputText("##ID", ref str, 32);
+            ImGui.InputText("###", ref str, 32);
             list[index] = str;
-
-            ImGui.PopID();
 
             if (index + 1 != list.Count)
             {
+
+                if (rmButtonOnEveryElement)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button(Icons.X + "##"))
+                    {
+                        list.RemoveAt(index);
+                    }
+                }
+
+                ImGui.PopID();
                 continue;
             }
+            ImGui.PopID();
 
-            ImGui.SameLine();
             AddListControls();
         }
     }
@@ -259,11 +274,13 @@ public static class Controls
     }
 
     public static void IdsInputString(string label, GameDataContext gameData, PopupManager popup, ref int ids, Action<int> setIds,
-        bool showTooltipOnHover = true)
+        bool showTooltipOnHover = true, float inputWidth = 100f)
     {
         var infocard = gameData.Infocards.GetStringResource(ids);
 
+        ImGui.PushItemWidth(inputWidth);
         IdsInput(label, infocard, ref ids, showTooltipOnHover);
+        ImGui.PopItemWidth();
 
         ImGui.PushID(label);
         ImGui.SameLine();
