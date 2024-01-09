@@ -158,6 +158,11 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         {
             selectedFormationIndex = 0;
         }
+
+        if (selectedLootIndex is -1 && missionScript.Ini.Loots.Count is not 0)
+        {
+            selectedLootIndex = 0;
+        }
     }
 
     private void RenderNodeEditor()
@@ -294,7 +299,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         Node.RegisterNodeValueRenderer<MissionSolar>(Reg.MissionSolarContent);
         Node.RegisterNodeValueRenderer<MissionFormation>(Reg.MissionFormationContent);
         Node.RegisterNodeValueRenderer<MissionDialog>(Reg.MissionDialogContent);
-        Node.RegisterNodeValueRenderer<MissionLoot>(Reg.MissionLootContent);
         Node.RegisterNodeValueRenderer<NNObjective>(Reg.MissionNNObjectiveContent);
     }
 

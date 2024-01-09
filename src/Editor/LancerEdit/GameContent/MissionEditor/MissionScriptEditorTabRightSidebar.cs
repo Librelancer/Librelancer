@@ -26,9 +26,95 @@ public sealed partial class MissionScriptEditorTab
             RenderMissionSolarManager();
         }
 
+        ImGui.NewLine();
+        if (ImGui.CollapsingHeader("Loot Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            RenderLootManager();
+        }
+
         ImGui.PopStyleColor();
 
         ImGui.EndChild();
+    }
+
+    private int selectedLootIndex = -1;
+    private void RenderLootManager()
+    {
+        var ini = missionScript.Ini;
+
+        if (ImGui.Button("Create New Loot"))
+        {
+            selectedLootIndex = ini.Loots.Count;
+            ini.Loots.Add(new MissionLoot());
+        }
+
+        ImGui.BeginDisabled(selectedLootIndex == -1);
+        if (ImGui.Button("Delete Loot"))
+        {
+            win.Confirm("Are you sure you want to delete this loot?", () =>
+            {
+                ini.Loots.RemoveAt(selectedLootIndex--);
+            });
+        }
+
+        ImGui.EndDisabled();
+
+        var selectedLoot = selectedLootIndex != -1 ? ini.Loots[selectedLootIndex] : null;
+        ImGui.SetNextItemWidth(150f);
+        if (ImGui.BeginCombo("Loots", selectedLoot is not null ? selectedLoot.Nickname : ""))
+        {
+            for (var index = 0; index < ini.Loots.Count; index++)
+            {
+                var arch = ini.Loots[index];
+                var selected = arch == selectedLoot;
+                if (!ImGui.Selectable(arch?.Nickname, selected))
+                {
+                    continue;
+                }
+
+                selectedLootIndex = index;
+                selectedLoot = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+
+        if (selectedLoot is null)
+        {
+            return;
+        }
+
+        ImGui.PushID(selectedLootIndex);
+
+        Controls.InputTextId("Nickname##Loot", ref selectedLoot.Nickname, 150f);
+        Controls.InputTextId("Archetype##Loot", ref selectedLoot.Archetype, 150f);
+        Controls.IdsInputString("Name##Loot", gameData, popup, ref selectedLoot.StringId, x => selectedLoot.StringId = x, inputWidth: 150f);
+
+        ImGui.BeginDisabled(!string.IsNullOrEmpty(selectedLoot.RelPosObj) && selectedLoot.RelPosOffset != Vector3.Zero);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.InputFloat3("Position##Loot", ref selectedLoot.Position);
+        ImGui.EndDisabled();
+
+        ImGui.Text("Relative Position");
+        ImGui.BeginDisabled(selectedLoot.Position != Vector3.Zero);
+
+        Controls.InputTextId("Object##LootRel", ref selectedLoot.RelPosObj, 150f);
+
+        ImGui.SetNextItemWidth(200f);
+        ImGui.InputFloat3("Position##LootRel", ref selectedLoot.RelPosOffset);
+
+        ImGui.EndDisabled();
+
+        ImGui.NewLine();
+        ImGui.SetNextItemWidth(200f);
+        ImGui.InputInt("Equip Amount##Loot", ref selectedLoot.EquipAmount);
+
+        ImGui.SetNextItemWidth(200f);
+        ImGui.SliderFloat("Health##Loot", ref selectedLoot.Health, 0f, 1f);
+
+        ImGui.Checkbox("Can Jettison##Loot", ref selectedLoot.CanJettison);
+
+        ImGui.PopID();
     }
 
     private int selectedSolarIndex = -1;

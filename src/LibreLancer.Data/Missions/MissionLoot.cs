@@ -20,7 +20,7 @@ namespace LibreLancer.Data.Missions
         [Entry("rel_pos_obj")]
         public string RelPosObj;
         [Entry("rel_pos_offset")]
-        public string[] RelPosOffset = new string[3];
+        public Vector3 RelPosOffset;
         [Entry("velocity")]
         public Vector3 Velocity;
         [Entry("equip_amount")]
