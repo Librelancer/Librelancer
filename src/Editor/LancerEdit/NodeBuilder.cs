@@ -47,14 +47,8 @@ public struct NodeBuilder : IDisposable
     public uint HeaderColor;
     public NodeId CurrentId;
     public NodeStage CurrentStage;
-    private string setTooltip;
-    private int comboIndex;
-    private ComboData[] combos;
-    record struct ComboData(bool Open, Action<int> Set, string Id, string[] Values);
 
-    private StringComboData[] strCombos;
-    private int strComboIndex;
-    record struct StringComboData(bool Open, Action<string> Set, string Id, IEnumerable<string> Values);
+    public NodePopups Popups;
 
     public static NodeBuilder Begin(NodeId id)
     {
@@ -65,10 +59,9 @@ public struct NodeBuilder : IDisposable
         {
             CurrentId = id,
             HeaderColor = ImGui.GetColorU32(Color4.Blue),
-            combos = ArrayPool<ComboData>.Shared.Rent(16),
         };
 
-        bp.strCombos = ArrayPool<StringComboData>.Shared.Rent(16);
+        bp.Popups = NodePopups.Begin(id);
         bp.SetStage(NodeStage.Begin);
         return bp;
     }
@@ -122,38 +115,6 @@ public struct NodeBuilder : IDisposable
         SetStage(NodeStage.Content);
     }
 
-    public void Tooltip(string tooltip)
-    {
-        setTooltip = tooltip;
-    }
-
-    public void Combo(string title, int selectedValue, Action<int> set, string[] values)
-    {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(title);
-        ImGui.SameLine();
-        combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
-    }
-
-    public void StringCombo(string title, string selectedValue, Action<string> set, IEnumerable<string> values)
-    {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(title);
-        ImGui.SameLine();
-
-        var enumerable = values as string[] ?? values.ToArray();
-        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, enumerable.First(x => x == selectedValue)), set, title, enumerable);
-    }
-
-    private static readonly Dictionary<Type, string[]> _enums = new Dictionary<Type, string[]>();
-    public void Combo<T>(string title, T selectedValue, Action<T> set) where T : struct, Enum
-    {
-        if (!_enums.TryGetValue(typeof(T), out var values)) {
-            values = Enum.GetNames<T>();
-            _enums[typeof(T)] = values;
-        }
-        Combo(title, Unsafe.As<T, int>(ref selectedValue), x => set(Unsafe.As<int, T>(ref x)), values);
-    }
     public void Dispose() => End();
     public unsafe void End()
     {
@@ -195,57 +156,6 @@ public struct NodeBuilder : IDisposable
         NodeEditor.PopStyleVar();
 
         SetStage(NodeStage.Invalid);
-        NodeEditor.Suspend();
-
-        if(!string.IsNullOrWhiteSpace(setTooltip))
-            ImGui.SetTooltip(setTooltip);
-
-        ImGui.PushID((int)CurrentId);
-
-        for (var i = 0; i < comboIndex; i++)
-        {
-            var c = combos[i];
-            combos[i] = default;
-            if(c.Open)
-                ImGui.OpenPopup(c.Id);
-            if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
-                continue;
-
-            for (var j = 0; j < c.Values.Length; j++)
-            {
-                ImGui.PushID(j);
-                if (ImGui.MenuItem(c.Values[j]))
-                    c.Set(j);
-                ImGui.PopID();
-            }
-            ImGui.EndPopup();
-        }
-
-        for (var i = 0; i < strComboIndex; i++)
-        {
-            var c = strCombos[i];
-            strCombos[i] = default;
-            if(c.Open)
-                ImGui.OpenPopup(c.Id);
-            if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
-            {
-                continue;
-            }
-
-            var j = 0;
-            foreach(var v in c.Values)
-            {
-                ImGui.PushID(j++);
-                if (ImGui.MenuItem(v))
-                    c.Set(v);
-                ImGui.PopID();
-            }
-            ImGui.EndPopup();
-        }
-
-        ImGui.PopID();
-        ArrayPool<ComboData>.Shared.Return(combos);
-        ArrayPool<StringComboData>.Shared.Return(strCombos);
-        NodeEditor.Resume();
+        Popups.End();
     }
 }

@@ -17,7 +17,7 @@ internal static partial class Registers
         return true;
     }
 
-    internal static void MissionNNObjectiveContent(GameDataContext context, MissionScript script, ref NodeBuilder builder,
+    internal static void MissionNNObjectiveContent(GameDataContext context, MissionScript script, ref NodePopups popups,
         NNObjective obj)
     {
         using var value = NodeValue.Begin(obj.Nickname);
@@ -34,7 +34,7 @@ internal static partial class Registers
         };
 
         var types = new[] { "IDS", "Nav Marker", "Rep Inst" };
-        builder.Combo("Type##ID", index, i => obj.TypeData.Type = types[i], types);
+        popups.Combo("Type##ID", index, i => obj.TypeData.Type = types[i], types);
 
         switch (index)
         {

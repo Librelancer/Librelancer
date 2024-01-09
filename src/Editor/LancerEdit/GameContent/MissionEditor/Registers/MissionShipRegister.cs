@@ -16,7 +16,7 @@ internal static partial class Registers
         return true;
     }
 
-    internal static void MissionShipContent(GameDataContext context, MissionScript script, ref NodeBuilder builder, MissionShip ship)
+    internal static void MissionShipContent(GameDataContext context, MissionScript script, ref NodePopups popups, MissionShip ship)
     {
         using var value = NodeValue.Begin(ship.Nickname);
 
@@ -30,6 +30,6 @@ internal static partial class Registers
         Controls.InputTextId("Arrival Object##ID", ref ship.ArrivalObj);
 
         ImGui.NewLine();
-        builder.StringCombo("NPCs", ship.NPC, x => ship.NPC = x, script.NPCs.Keys);
+        popups.StringCombo("NPCs", ship.NPC, x => ship.NPC = x, script.NPCs.Keys);
     }
 }

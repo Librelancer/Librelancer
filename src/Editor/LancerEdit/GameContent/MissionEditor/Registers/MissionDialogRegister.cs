@@ -17,7 +17,7 @@ internal static partial class Registers
         return true;
     }
 
-    internal static void MissionDialogContent(GameDataContext context, MissionScript script, ref NodeBuilder builder, MissionDialog obj)
+    internal static void MissionDialogContent(GameDataContext context, MissionScript script, ref NodePopups popups, MissionDialog obj)
     {
         using var value = NodeValue.Begin(obj.Nickname);
 

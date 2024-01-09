@@ -13,7 +13,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 public abstract class Node
 {
     public NodeId Id { get; }
-    public string Name  { get; }
+    public string Name  { get; protected set; }
     public List<NodePin> Inputs  { get; }
     public List<NodePin> Outputs  { get; }
     public Color4 Color  { get; }
@@ -21,11 +21,11 @@ public abstract class Node
 
     protected static readonly Dictionary<Type, NodeValueRenderer<object>> NodeValueRenders = new();
 
-    public delegate void NodeValueRenderer<in T>(GameDataContext context, MissionScript script, ref NodeBuilder builder, T item);
+    public delegate void NodeValueRenderer<in T>(GameDataContext context, MissionScript script, ref NodePopups popups, T item);
     public static void RegisterNodeValueRenderer<T>(NodeValueRenderer<T> values)
     {
-        NodeValueRenders[typeof(T)] = (GameDataContext context, MissionScript script, ref NodeBuilder builder, object obj)
-            => values(context, script, ref builder, (T)obj);
+        NodeValueRenders[typeof(T)] = (GameDataContext context, MissionScript script, ref NodePopups popups, object obj)
+            => values(context, script, ref popups, (T)obj);
     }
 
     protected Node(int id, string name, object data, Color4? color = null)

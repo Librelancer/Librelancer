@@ -14,7 +14,7 @@ internal static partial class Registers
         return true;
     }
 
-    internal static void MissionSolarContent(GameDataContext context, MissionScript script, ref NodeBuilder builder, MissionSolar solar)
+    internal static void MissionSolarContent(GameDataContext context, MissionScript script, ref NodePopups popups, MissionSolar solar)
     {
         using var value = NodeValue.Begin(solar.Nickname);
 

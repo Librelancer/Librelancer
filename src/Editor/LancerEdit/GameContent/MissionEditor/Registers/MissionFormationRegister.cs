@@ -15,7 +15,7 @@ internal static partial class Registers
         return true;
     }
 
-    internal static void MissionFormationContent(GameDataContext context, MissionScript script, ref NodeBuilder builder, MissionFormation obj)
+    internal static void MissionFormationContent(GameDataContext context, MissionScript script, ref NodePopups popups, MissionFormation obj)
     {
         using var value = NodeValue.Begin(obj.Nickname);
 

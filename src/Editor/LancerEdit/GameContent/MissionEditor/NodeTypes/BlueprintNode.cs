@@ -51,7 +51,7 @@ public class BlueprintNode<T> : Node where T : class
         StartFixed();
         if (NodeValueRenders.TryGetValue(Data.GetType(), out var renderer))
         {
-            renderer(gameData, missionScript, ref nb, Data);
+            renderer(gameData, missionScript, ref nb.Popups, Data);
         }
 
         EndNodeLayout();
