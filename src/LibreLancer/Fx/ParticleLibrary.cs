@@ -89,6 +89,7 @@ namespace LibreLancer.Fx
 
         static FxNode NodeFromAle(AlchemyNode ale) => ale.Name switch
         {
+            "FxNode" => new FxNode(ale),
             "FLBeamAppearance" => new FLBeamAppearance(ale),
             "FxBasicAppearance" => new FxBasicAppearance(ale),
             "FxMeshAppearance" => new FxMeshAppearance(ale),
