@@ -20,7 +20,7 @@ namespace LibreLancer.Data.Universe
     public class StarSystem : UniverseElement
     {
         public bool MultiUniverse { get; private set; }
-        
+
         //TODO: Entry should clarify which self section it's in
         [Entry("pos")]
         public Vector2? Pos;
@@ -30,7 +30,7 @@ namespace LibreLancer.Data.Universe
         public int Visit;
         [Entry("ids_info")]
         public int IdsInfo;
-        [Entry("navmapscale")] 
+        [Entry("navmapscale")]
         public float NavMapScale = 1;
         [Entry("file")]
         string systemFile;
@@ -40,7 +40,7 @@ namespace LibreLancer.Data.Universe
         public string LocalFaction;
         [Entry("rpop_solar_detection")]
         public bool RpopSolarDetection;
-        [Entry("space_farclip")] 
+        [Entry("space_farclip")]
         public float? SpaceFarClip;
         [Entry("space")]
         public string MusicSpace;
@@ -66,17 +66,17 @@ namespace LibreLancer.Data.Universe
         public string BackgroundComplexStarsPath;
         [Entry("nebulae")]
         public string BackgroundNebulaePath;
-        [Entry("dust")] 
+        [Entry("dust")]
         [Entry("spacedust")]
         public string Spacedust;
-        [Entry("spacedust_maxparticles")] 
+        [Entry("spacedust_maxparticles")]
         public int SpacedustMaxParticles;
         [Entry("color")]
         public Color4 AmbientColor = Color4.Black;
-        
+
         [Section("nebula")]
         public List<Nebula> Nebulae = new List<Nebula>();
-        [Section("asteroids")] 
+        [Section("asteroids")]
         public List<AsteroidField> Asteroids = new List<AsteroidField>();
         [Section("lightsource")]
         public List<LightSource> LightSources = new List<LightSource>();
@@ -84,22 +84,21 @@ namespace LibreLancer.Data.Universe
         public List<SystemObject> Objects = new List<SystemObject>();
         [Section("encounterparameters")]
         public List<EncounterParameter> EncounterParameters = new List<EncounterParameter>();
-        [Section("texturepanels")] 
+        [Section("texturepanels")]
         public TexturePanelsRef TexturePanels;
         [Section("zone")]
         public List<Zone> Zones = new List<Zone>();
-        //[Section("field")] 
+        //[Section("field")]
         //public Field Field;
-        //[Section("asteroidbillboards")] 
+        //[Section("asteroidbillboards")]
         //public AsteroidBillboards AsteroidBillboards;
-        
+
         public string SourceFile { get; private set; }
 
 
-        public StarSystem(UniverseIni universe, Section section, FreelancerData data)
+        public StarSystem(string universePath, Section section, FreelancerData data)
             : base(data)
         {
-            if (universe == null) throw new ArgumentNullException("universe");
             if (section == null) throw new ArgumentNullException("section");
             SelfFromSection(section);
 
@@ -111,7 +110,7 @@ namespace LibreLancer.Data.Universe
 
             SourceFile = systemFile;
 
-            ParseAndFill(data.Freelancer.DataPath + "universe\\" + systemFile, data.Freelancer.DataPath, data.VFS);
+            ParseAndFill(universePath + systemFile, data.Freelancer.DataPath, data.VFS);
         }
     }
 }

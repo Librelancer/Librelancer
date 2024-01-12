@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Ini;
- 
+
 namespace LibreLancer.Data.Universe
 {
 	public class UniverseIni : IniFile
@@ -52,10 +53,11 @@ namespace LibreLancer.Data.Universe
 				}
 			}
 
+
             foreach (var b in baseSections)
                 Bases.Add(new Base(b, freelancerIni));
             foreach(var s in systemSections)
-                Systems.Add(new StarSystem(this, s, freelancerIni));
+                Systems.Add(new StarSystem(freelancerIni.VFS.RemovePathComponent(path), s, freelancerIni));
         }
     }
 }

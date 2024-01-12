@@ -20,6 +20,17 @@ namespace LibreLancer.Data
             FileProviders = new List<IFileProvider>();
         }
 
+        private static readonly char[] seps = new[] { '/', '\\' };
+        public string RemovePathComponent(string path)
+        {
+            var idx = path.LastIndexOfAny(seps);
+            string iniFolder;
+            if (idx == -1)
+                return "";
+            else
+                return path.Substring(0, idx + 1);
+        }
+
         public FileSystem(params IFileProvider[] providers)
         {
             FileProviders = new List<IFileProvider>(providers);
@@ -184,9 +195,9 @@ namespace LibreLancer.Data
     {
         private bool caseSensitive;
         private string baseFolder;
-        
+
         Dictionary<string, (string, string[])> fileDict;
-        
+
         public SysFolder(string path)
         {
             caseSensitive = Platform.IsDirCaseSensitive(path);
@@ -201,7 +212,7 @@ namespace LibreLancer.Data
                 WalkDir(baseFolder);
             }
         }
-        
+
         void WalkDir(string dir, bool recurse = true)
         {
             var f = Directory.EnumerateFiles(dir).Select(x => Path.GetFileName(x)).ToArray();
@@ -246,7 +257,7 @@ namespace LibreLancer.Data
                         }
                     }
                 }
-                if (!fileDict.TryGetValue(dirname.Substring(baseFolder.Length), out files)) return null; 
+                if (!fileDict.TryGetValue(dirname.Substring(baseFolder.Length), out files)) return null;
                 var fname = Path.GetFileName(p);
                 var retval = files.Item2.FirstOrDefault(x => x.Equals(fname, StringComparison.CurrentCultureIgnoreCase));
 
