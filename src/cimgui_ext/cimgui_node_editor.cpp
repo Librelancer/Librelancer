@@ -2,7 +2,7 @@
 #include "imgui_node_editor.h"
 #include <stdlib.h>
 
-#ifdef _MSC_VER
+#if defined(WIN32) || defined(__WIN32) || defined(__WIN32__)
 #include <malloc.h>
 #define ig_alloca _alloca
 #else
