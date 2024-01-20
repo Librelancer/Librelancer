@@ -373,7 +373,7 @@ namespace LibreLancer.Net
                     reason == DisconnectReason.TokenRequired &&
                     additional.TryGetString(out var url))
                 {
-                    loginEndpoint = peer.EndPoint;
+                    loginEndpoint = new IPEndPoint(peer.Address, peer.Port);
                     Task.Run(async () =>
                     {
                         loginServer = await http.LoginServerInfo(url);

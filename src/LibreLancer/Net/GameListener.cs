@@ -127,11 +127,11 @@ namespace LibreLancer.Net
             };
             listener.PeerConnectedEvent += peer =>
             {
-                FLLog.Info("Server", $"Connected: {peer.EndPoint}");
+                FLLog.Info("Server", $"Connected: {peer.Address}");
             };
             listener.PeerDisconnectedEvent += (peer, info) =>
             {
-                FLLog.Info("Server", $"Disconnected: {peer.EndPoint}. Reason: {info.Reason}");
+                FLLog.Info("Server", $"Disconnected: {peer.Address}. Reason: {info.Reason}");
                 if (peer.Tag is Player player)
                 {
                     player.Disconnected();

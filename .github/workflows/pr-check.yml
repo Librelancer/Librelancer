@@ -19,7 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
     - name: Install native dependencies
       run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev g++-mingw-w64-x86-64 cmake
     - name: Build and Test

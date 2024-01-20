@@ -241,9 +241,9 @@ namespace BuildLL
             Target("Clean", () =>
             {
                 if (withWin32)
-                    Clean("win7-x86");
+                    Clean("win-x86");
                 if (IsWindows || withWin64)
-                    Clean("win7-x64");
+                    Clean("win-x64");
                 if(!IsWindows)
                     Clean(GetLinuxRid());
             });
@@ -252,27 +252,27 @@ namespace BuildLL
             Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives"), async () =>
             {
                 if(withWin32)
-                    await FullBuild("win7-x86", false);
+                    await FullBuild("win-x86", false);
                 if(IsWindows || withWin64)
-                    await FullBuild("win7-x64", false);
+                    await FullBuild("win-x64", false);
                 if(!IsWindows)
                     await FullBuild(GetLinuxRid(), false);
             });
             Target("BuildDocumentation", DependsOn("GenerateVersion"), () =>
             {
                 if (withWin32)
-                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win7-x86/lib/Docs/", VersionString);
+                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win-x86/lib/Docs/", VersionString);
                 if(IsWindows || withWin64)
-                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win7-x64/lib/Docs/", VersionString);
+                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win-x64/lib/Docs/", VersionString);
                 if(!IsWindows)
                     DocumentationBuilder.BuildDocs("./docs/", $"./bin/librelancer-sdk-{GetLinuxRid()}/lib/Docs/", VersionString);
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives"), async () =>
             {
                 if(withWin32)
-                    await FullBuild("win7-x86", true);
+                    await FullBuild("win-x86", true);
                 if(IsWindows || withWin64)
-                    await FullBuild("win7-x64", true);
+                    await FullBuild("win-x64", true);
                 if(!IsWindows)
                     await FullBuild(GetLinuxRid(), true);
             });
@@ -338,18 +338,18 @@ namespace BuildLL
                     Directory.CreateDirectory("packaging/packages/c");
                     Directory.CreateDirectory("packaging/packages/d");
                     //Engine
-                    name = $"{engineNamePrefix}-win7-x64";
+                    name = $"{engineNamePrefix}-win-x64";
                     var winEngine = Task.Run(() =>
                     {
-                        CopyDirContents("bin/librelancer-win7-x64", "packaging/packages/c/" + name, true);
+                        CopyDirContents("bin/librelancer-win-x64", "packaging/packages/c/" + name, true);
                         ZipDirectory("packaging/packages/librelancer-daily-win64.zip", "packaging/packages/c");
                         RmDir("packaging/packages/c");
                     });
                     //Sdk
-                    name = $"{sdkNamePrefix}-win7-x64";
+                    name = $"{sdkNamePrefix}-win-x64";
                     var winSdk = Task.Run(() =>
                     {
-                        CopyDirContents("bin/librelancer-sdk-win7-x64", "packaging/packages/d/" + name, true);
+                        CopyDirContents("bin/librelancer-sdk-win-x64", "packaging/packages/d/" + name, true);
                         ZipDirectory("packaging/packages/librelancer-sdk-daily-win64.zip", "packaging/packages/d");
                         RmDir("packaging/packages/d");
                     });

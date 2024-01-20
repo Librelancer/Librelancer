@@ -3,7 +3,7 @@
     <Import Project="../CommonVersion.props" />
   </ImportGroup>
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
