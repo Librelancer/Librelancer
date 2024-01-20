@@ -8,7 +8,7 @@ static class Utils
     public static RigidPose ToPose(this Matrix4x4 mat)
     {
         var p = Vector3.Transform(Vector3.Zero, mat);
-        var q = mat.ExtractRotation();
+        var q = Quaternion.Normalize(mat.ExtractRotation());
         return new RigidPose(p, q);
     }
 

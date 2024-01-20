@@ -184,6 +184,7 @@ namespace LibreLancer.World
             CrcTranslation = new List<CrcIdMap>(translation);
             foreach (var tr in CrcTranslation) {
                 var obj = GetObject(tr.CRC);
+                obj.NetID = tr.NetID;
                 netIDLookup[tr.NetID] = obj;
             }
         }
