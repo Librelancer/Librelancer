@@ -134,6 +134,11 @@ namespace LibreLancer.ImUI
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
 			game.Keyboard.KeyUp += Keyboard_KeyUp;
 			game.Keyboard.TextInput += Keyboard_TextInput;
+            game.Mouse.MouseDown += MouseOnMouseDown;
+            game.Mouse.MouseUp += MouseOnMouseUp;
+            game.Mouse.MouseMove += MouseOnMouseMove;
+            game.Mouse.MouseWheel += MouseOnMouseWheel;
+
             context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             igGuizmoSetImGuiContext(context);
@@ -257,6 +262,49 @@ namespace LibreLancer.ImUI
             io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
             io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
 		}
+
+        private void MouseOnMouseWheel(int amount)
+        {
+            ImGui.GetIO().AddMouseWheelEvent(0, amount);
+        }
+
+        private void MouseOnMouseMove(MouseEventArgs e)
+        {
+            ImGui.GetIO().AddMousePosEvent(e.X, e.Y);
+        }
+
+        static bool Translate(MouseButtons buttons, out ImGuiMouseButton translated)
+        {
+            switch (buttons)
+            {
+                case MouseButtons.Left:
+                    translated = ImGuiMouseButton.Left;
+                    return true;
+                case MouseButtons.Middle:
+                    translated = ImGuiMouseButton.Middle;
+                    return true;
+                case MouseButtons.Right:
+                    translated = ImGuiMouseButton.Right;
+                    return true;
+                default:
+                    translated = ImGuiMouseButton.COUNT;
+                    return false;
+            }
+        }
+        private void MouseOnMouseDown(MouseEventArgs e)
+        {
+            var io = ImGui.GetIO();
+            if (Translate(e.Buttons, out var mb))
+                io.AddMouseButtonEvent((int)mb, true);
+        }
+
+        void MouseOnMouseUp(MouseEventArgs e)
+        {
+            var io = ImGui.GetIO();
+            if (Translate(e.Buttons, out var mb))
+                io.AddMouseButtonEvent((int)mb, false);
+        }
+
         static ImGuiHelper instance;
         static IntPtr utf8buf;
         static GetClipboardTextType getTextDel;
@@ -381,11 +429,11 @@ namespace LibreLancer.ImUI
 			io.DisplayFramebufferScale = new Vector2(1, 1);
 			io.DeltaTime = elapsed > 1 ? 1 : (float)elapsed;
 			//Update input
-			io.MousePos = new Vector2(game.Mouse.X, game.Mouse.Y);
+			/*io.MousePos = new Vector2(game.Mouse.X, game.Mouse.Y);
 			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);
 			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
 			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
-            io.MouseWheel = game.Mouse.Wheel;
+            io.MouseWheel = game.Mouse.Wheel;*/
             if(HandleKeyboard)
                 game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
@@ -529,7 +577,13 @@ namespace LibreLancer.ImUI
                     var pcmd = cmd_list.CmdBuffer[cmd_i];
                     if (pcmd.UserCallback != IntPtr.Zero)
                     {
-                        rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
+                        if (pcmd.UserCallback > 8)
+                        {
+                            var cb = (delegate* unmanaged<IntPtr,IntPtr, void>)pcmd.UserCallback;
+                            cb((IntPtr)cmd_list.NativePtr, (IntPtr)pcmd.NativePtr);
+                        }
+                        else
+                            rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
                         continue;
                     }
 
@@ -565,7 +619,7 @@ namespace LibreLancer.ImUI
                     rstate.ScissorRectangle = new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
                         (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
                         (int) (pcmd.ClipRect.W - pcmd.ClipRect.Y));
-                    vbo.Draw(PrimitiveTypes.TriangleList, 0, (int)pcmd.IdxOffset, (int)pcmd.ElemCount / 3);
+                    vbo.Draw(PrimitiveTypes.TriangleList, (int)pcmd.VtxOffset, (int)pcmd.IdxOffset, (int)pcmd.ElemCount / 3);
                     rstate.ScissorEnabled = false;
 				}
 			}

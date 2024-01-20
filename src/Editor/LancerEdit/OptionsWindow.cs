@@ -14,6 +14,7 @@ namespace LancerEdit
 {
     public class OptionsWindow
     {
+        private MainWindow win;
         private EditorConfiguration config;
         private RenderContext rstate;
         private ImGuiHelper guiHelper;
@@ -39,6 +40,7 @@ namespace LancerEdit
 
         public OptionsWindow(MainWindow win)
         {
+            this.win = win;
             config = win.Config;
             rstate = win.RenderContext;
             guiHelper = win.guiHelper;
@@ -216,8 +218,29 @@ namespace LancerEdit
             ImGui.Text("Ui Scale (Requires Restart)");
             ImGui.SameLine();
             ImGui.SliderFloat("##uiscale", ref config.UiScale, 1, 2.5f);
-            if(Platform.RunningOS == OS.Windows && ImGui.Button("Set File Assocations"))
+            if (Platform.RunningOS == OS.Windows && ImGui.Button("Set File Assocations"))
+            {
                 Win32Integration.FileTypes();
+            }
+
+            ImGui.Text("Auto Load Path");
+            ImGui.SameLine();
+            ImGui.InputText("##autoloadPath", ref config.AutoLoadPath, 255, ImGuiInputTextFlags.ReadOnly);
+            ImGui.SameLine();
+            if (ImGui.Button("Browse##autoloadPath"))
+            {
+                FileDialog.ChooseFolder((path) =>
+                {
+                    if (!GameConfig.CheckFLDirectory(path))
+                    {
+                        win.ErrorDialog("The provided path was not a valid Freelancer installation.");
+                        return;
+                    }
+
+                    config.AutoLoadPath = path;
+                });
+            }
+
             guiHelper.PauseWhenUnfocused = config.PauseWhenUnfocused;
         }
 

@@ -16,6 +16,8 @@ using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
+using LancerEdit.GameContent;
+using LancerEdit.GameContent.MissionEditor;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Render;
@@ -81,6 +83,12 @@ namespace LancerEdit
             quickFileBrowser.FileSelected += OpenFile;
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
+
+            if (!string.IsNullOrWhiteSpace(Config.AutoLoadPath))
+            {
+                var c = new GameDataContext();
+                QueueUIThread(() => c.Load(this, Config.AutoLoadPath, () => OpenDataContext = c, e => ErrorDialog(GetExceptionText(e))));
+            }
         }
         double errorTimer = 0;
         private int logoTexture;
@@ -511,6 +519,13 @@ namespace LancerEdit
                     Popups.OpenPopup("Loading##systemviewer");
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));
+                /*if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
+                {
+                    FileDialog.Open(x =>
+                    {
+                        AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
+                    }, AppFilters.IniFilters);
+                }*/
                 ImGui.EndMenu();
             }
 			if (ImGui.BeginMenu("Tools"))

@@ -11,16 +11,20 @@ namespace LibreLancer
 	{
 		public static readonly Color3f White = new Color3f(1, 1, 1);
 		public static readonly Color3f Black = new Color3f(0, 0, 0);
+
 		public float R;
 		public float G;
 		public float B;
+
 		public Color3f(float r, float g, float b)
 		{
 			R = r;
 			G = g;
 			B = b;
 		}
+
 		public Color3f(Vector3 val) : this(val.X, val.Y, val.Z) {}
+        public Color4 ToColor4() => new Color4(R, G, B, 1.0f);
 
 		public override string ToString ()
 		{

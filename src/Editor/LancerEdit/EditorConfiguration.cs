@@ -58,6 +58,15 @@ namespace LancerEdit
         [Entry("files_visible")]
         public bool FilesVisible;
 
+        public string AutoLoadPath = "";
+
+        [EntryHandler("auto_load_path", MinComponents = 1)]
+        void HandleAutoLoadPath(Entry entry)
+        {
+            var pathBase64 = entry[0].ToString()!;
+            AutoLoadPath = Decode(pathBase64);
+        }
+
         public int SelectedAnisotropy => TextureFilter > 2 ? (int)Math.Pow(2, TextureFilter - 2) : 0;
 
         public TextureFiltering SelectedFiltering => TextureFilter switch
@@ -128,6 +137,7 @@ namespace LancerEdit
                 writer.WriteLine($"files_visible = {(FilesVisible ? "true": "false" )}");
                 foreach(var fav in Favorites)
                     writer.WriteLine($"favorite = {Encode(fav.Name)}, {Encode(fav.FullPath)}");
+                writer.WriteLine($"auto_load_path = {Encode(AutoLoadPath)}");
             }
         }
 

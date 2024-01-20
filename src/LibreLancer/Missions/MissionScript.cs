@@ -18,34 +18,18 @@ namespace LibreLancer.Missions
     {
         public MissionIni Ini;
 
-        public Dictionary<string, NPCShipArch> NpcShips =
-            new Dictionary<string, NPCShipArch>(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, NPCShipArch> NpcShips = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, MissionShip> Ships = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, MissionSolar> Solars = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, MissionNPC> NPCs = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, MissionFormation> Formations = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptedTrigger> AvailableTriggers = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptAiCommands> ObjLists = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, MissionDialog> Dialogs = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, NNObjective> Objectives = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, MissionLoot> Loot = new(StringComparer.OrdinalIgnoreCase);
 
-        public Dictionary<string, MissionShip> Ships =
-            new Dictionary<string, MissionShip>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, MissionSolar> Solars =
-            new Dictionary<string, MissionSolar>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, MissionNPC> NPCs =
-            new Dictionary<string, MissionNPC>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, MissionFormation> Formations =
-                new Dictionary<string, MissionFormation>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, ScriptedTrigger> AvailableTriggers =
-            new Dictionary<string, ScriptedTrigger>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, ScriptAiCommands> ObjLists =
-            new Dictionary<string, ScriptAiCommands>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, MissionDialog> Dialogs =
-            new Dictionary<string, MissionDialog>(StringComparer.OrdinalIgnoreCase);
-
-        public Dictionary<string, NNObjective> Objectives =
-            new Dictionary<string, NNObjective>(StringComparer.OrdinalIgnoreCase);
-
-        public List<string> InitTriggers = new List<string>();
+        public readonly List<string> InitTriggers = new();
 
         public PreloadObject[] CalculatePreloads(GameDataManager gameData)
         {
@@ -101,26 +85,56 @@ namespace LibreLancer.Missions
 
         public MissionScript(MissionIni ini)
         {
-            this.Ini = ini;
+            Ini = ini;
+
             foreach (var s in ini.Solars)
+            {
                 Set(Solars, s.Nickname, s);
+            }
+
             foreach (var s in ini.Ships)
+            {
                 Set(Ships, s.Nickname, s);
+            }
+
             foreach (var n in ini.NPCs)
+            {
                 Set(NPCs, n.Nickname, n);
+            }
+
             foreach (var f in ini.Formations)
+            {
                 Set(Formations, f.Nickname, f);
+            }
+
             foreach(var o in ini.Objectives)
+            {
                 Set(Objectives, o.Nickname, o);
+            }
+
             foreach (var ol in ini.ObjLists)
+            {
                 Set(ObjLists, ol.Nickname, new ScriptAiCommands(ol.Nickname, ol));
+            }
+
             foreach (var dlg in ini.Dialogs)
+            {
                 Set(Dialogs, dlg.Nickname, dlg);
+            }
+
+            foreach (var loot in ini.Loots)
+            {
+                Set(Loot, loot.Nickname, loot);
+            }
+
             if (ini.ShipIni != null)
             {
                 foreach (var s in ini.ShipIni.ShipArches)
+                {
                     NpcShips[s.Nickname] = s;
+                }
             }
+
             foreach (var tr in ini.Triggers)
             {
                 AvailableTriggers[tr.Nickname] = new ScriptedTrigger() {
@@ -140,7 +154,7 @@ namespace LibreLancer.Missions
     public class ScriptAiCommands
     {
         public string Nickname;
-        public ObjList Ini;
+        public readonly ObjList Ini;
 
         public AiObjListState AiState { get; private set; }
 

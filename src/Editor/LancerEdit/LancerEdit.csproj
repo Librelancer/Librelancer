@@ -90,6 +90,8 @@
         <None Update="editorscripts\export-textures.cs-script">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Remove="BlueprintBackground.png" />
+        <EmbeddedResource Include="BlueprintBackground.png" />
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>
