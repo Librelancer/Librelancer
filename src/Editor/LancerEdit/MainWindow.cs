@@ -505,13 +505,13 @@ namespace LancerEdit
                     popups.OpenPopup("Loading##systemviewer");
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));
-                if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
+                /*if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
                 {
                     FileDialog.Open(x =>
                     {
                         AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
                     }, AppFilters.IniFilters);
-                }
+                }*/
                 ImGui.EndMenu();
             }
 			if (ImGui.BeginMenu("Tools"))
