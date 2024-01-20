@@ -18,9 +18,9 @@ Download compiled binaries from https://librelancer.net/downloads.html
 ### Windows
 **Prerequisites:**
 
-* 64-bit Windows 7 or newer
+* 64-bit Windows 10 or newer
 * Visual Studio 2022 with:
-* * .NET 7.0 SDK
+* * .NET 8.0 SDK
 * *  Desktop C++ Development Workflow
 * [CMake](https://cmake.org/)
 
@@ -38,12 +38,12 @@ Powershell security issues can be troubleshooted [here](https://cakebuild.net/do
 
 **Prerequisites:**
 
-* .NET 7.0 SDK
+* .NET 8.0 SDK
 * SDL2
 * OpenAL
 * gcc and g++
 * CMake
-* Pango and Cairo headers
+* GTK3, Pango and Cairo headers
 
 
 **Steps:**
