@@ -247,6 +247,9 @@ namespace LancerEdit
                     case FileType.Other:
                         TryImportModel(f);
                         break;
+                    case FileType.Error:
+                        ErrorDialog($"File `{f}` is empty (0 bytes)");
+                        break;
                 }
 
             }
