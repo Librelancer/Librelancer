@@ -251,6 +251,11 @@ namespace LancerEdit
                         recentFiles.FileOpened(f);
                         AddTab(lt);
                         break;
+                    case FileType.SaveGame:
+                        var st = new SaveGameTab(f);
+                        recentFiles.FileOpened(f);
+                        AddTab(st);
+                        break;
                     case FileType.Blender:
                     case FileType.Other:
                         TryImportModel(f);
