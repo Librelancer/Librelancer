@@ -42,6 +42,7 @@ namespace LibreLancer.Data.Missions
         [Entry("mission_text_id")] public int MissionTextId;
         [Entry("nooffer_text_id")] public int NoOfferTextId;
         [Entry("relocate_player")] public string RelocatePlayer;
+        [Entry("start_room")] public string StartRoom;
     }
     public class StoryChar
     {
@@ -50,5 +51,5 @@ namespace LibreLancer.Data.Missions
         [Entry("fidget")] public string Fidget;
         [Entry("spot")] public string Spot;
     }
-    
+
 }

@@ -105,8 +105,9 @@ namespace LibreLancer.Server
 
         public void MissionSuccess()
         {
-            currentMissionNumber++;
             loadTriggers = Array.Empty<uint>();
+            MissionTransitions.NextMission(this);
+            currentMissionNumber++;
             LoadMission();
         }
 
@@ -300,6 +301,8 @@ namespace LibreLancer.Server
 
         private int currentMissionNumber;
         private uint[] loadTriggers;
+
+        public int CurrentMissionNumber => currentMissionNumber;
 
         void MissionNumber(string str, ref int num)
         {

@@ -181,13 +181,12 @@ namespace LibreLancer.Server.Components
                 ctrl.EnginePower = 0.4f;
                 ctrl.Active = true;
             }
-
             if (Parent.TryGetComponent<SPlayerComponent>(out var player))
                 player.Player.EndTradelane();
-
+            if(Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                ap.Cancel();
             if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
                 msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
-
             Parent.RemoveComponent(this);
         }
     }

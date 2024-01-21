@@ -286,6 +286,7 @@ namespace LibreLancer.Missions
         void ProjectileHit(GameObject victim, GameObject attacker)
         {
             ProcessCondition(TriggerConditions.Cnd_ProjHit, (c) =>
+                c.Entry.Count > 2 && //Need to include projectile hit counter for other form
                 IdEquals(c.Entry[0].ToString(), victim.Nickname) &&
                     IdEquals(c.Entry[2].ToString(), attacker.Nickname)
             );

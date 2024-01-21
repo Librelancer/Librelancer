@@ -53,7 +53,7 @@ namespace LibreLancer.World.Components
 
         public void SetRotations(GunOrient[] orients)
         {
-            for (int i = 0; i < orients.Length; i++) {
+            for (int i = 0; i < orients.Length && i < NetOrderWeapons.Length; i++) {
                 NetOrderWeapons[i].RotateTowards(orients[i].AngleRot, orients[i].AnglePitch);
             }
         }

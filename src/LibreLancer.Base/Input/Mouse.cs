@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer
 {
-	public delegate void MouseWheelEventHandler(int amount);
+	public delegate void MouseWheelEventHandler(int amountx, int amounty);
 	public delegate void MouseEventHandler(MouseEventArgs e);
 	public class Mouse
 	{
@@ -38,10 +38,11 @@ namespace LibreLancer
 				MouseMove (new MouseEventArgs (X, Y, Buttons));
 		}
 
-        internal void OnMouseWheel(int amount)
+        internal void OnMouseWheel(int amountx, int amounty)
         {
+            Wheel += amounty;
             if (MouseWheel != null)
-                MouseWheel(amount);
+                MouseWheel(amountx, amounty);
         }
 		internal void OnMouseDown(MouseButtons b)
 		{

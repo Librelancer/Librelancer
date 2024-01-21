@@ -337,15 +337,24 @@ namespace LibreLancer
 
         private HashSet<string> processedPaths = new HashSet<string>();
         private Queue<StoryCutsceneIni> toPlay = new Queue<StoryCutsceneIni>();
-        void ProcessCutscenes()
+        bool ProcessCutscenes()
         {
             foreach (var ct in session.ActiveCutscenes)
             {
                 if (processedPaths.Contains(ct.RefPath.ToLowerInvariant())) continue;
                 if (ct.Encounters.Count != 1) continue;
                 var n = ct.Encounters[0].Location;
-                if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
-                    n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
+                //Force player to new room
+                if (ct.Encounters[0].StartRoom != null &&
+                    n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
+                    !ct.Encounters[0].StartRoom.Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
+                {
+                    var rm = currentBase.Rooms.Find((o) => o.Nickname == ct.Encounters[0].StartRoom);
+                    Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+                    return true;
+                }
+                else if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
+                         n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
                     processedPaths.Add(ct.RefPath.ToLowerInvariant());
                     if (ct.Encounters[0].Autoplay) {
@@ -355,11 +364,11 @@ namespace LibreLancer
                     }
                 }
             }
-
             if (currentCutscene == null && toPlay.Count > 0)
             {
                 ProcessNextCutscene();
             }
+            return false;
         }
 
         enum CutsceneState
@@ -646,9 +655,17 @@ namespace LibreLancer
                         if (cState == CutsceneState.Regular)
                         {
                             session.FinishCutscene(currentCutscene);
-                            currentCutscene = null;
-                            if (toPlay.Count > 0) {
-                                ProcessNextCutscene();
+                            if (currentCutscene.Encounters[0].RelocatePlayer != null) {
+                                var rm = currentBase.Rooms.Find((o) => o.Nickname == currentCutscene.Encounters[0].RelocatePlayer);
+                                Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+                            }
+                            else
+                            {
+                                currentCutscene = null;
+                                if (toPlay.Count > 0)
+                                {
+                                    ProcessNextCutscene();
+                                }
                             }
                         }
                         else if (cState == CutsceneState.Offer)
@@ -758,7 +775,8 @@ namespace LibreLancer
             waitObjectiveFrames--;
             if (waitObjectiveFrames < 0) waitObjectiveFrames = 0;
             session.Update();
-            ProcessCutscenes();
+            if (ProcessCutscenes())
+                return;
             if (scene != null) {
                 scene.UpdateViewport(Game.RenderContext.CurrentViewport);
                 if(paused)

@@ -263,9 +263,9 @@ namespace LibreLancer.ImUI
             io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
 		}
 
-        private void MouseOnMouseWheel(int amount)
+        private void MouseOnMouseWheel(int amountx, int amounty)
         {
-            ImGui.GetIO().AddMouseWheelEvent(0, amount);
+            ImGui.GetIO().AddMouseWheelEvent(amountx, amounty);
         }
 
         private void MouseOnMouseMove(MouseEventArgs e)
