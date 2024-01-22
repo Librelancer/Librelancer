@@ -74,7 +74,7 @@ namespace LibreLancer.Render
             shader.SetWorld(ref world, ref world);
             shader.SetDc(color);
             shader.SetOc(1);
-            shader.UseProgram();
+            rstate.Shader = shader;
             resource.VertexBuffer.DrawImmediateElements(
                 PrimitiveTypes.LineList,
                 wire.VertexOffset + resource.BaseVertex,
@@ -97,7 +97,7 @@ namespace LibreLancer.Render
             var w = Matrix4x4.Identity;
             shader.SetWorld(ref w, ref w);
             shader.SetOc(0);
-            shader.UseProgram();
+            rstate.Shader = shader;
 			linebuffer.SetData(lines, lineVertices);
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);
             rstate.PolygonOffset = Vector2.Zero;

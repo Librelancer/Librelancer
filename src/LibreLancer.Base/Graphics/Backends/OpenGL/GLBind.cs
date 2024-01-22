@@ -7,8 +7,6 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 	static class GLBind
 	{
 		static uint programBound = 0;
-
-        public static uint LastProgram => programBound;
 		public static void UseProgram(uint prg)
 		{
 			if (programBound != prg) {

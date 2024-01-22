@@ -40,16 +40,16 @@ namespace LibreLancer.Render.Materials
 			sh.SetDm1Sampler(1);
             BindTexture(rstate, 1, Dm1Sampler, 1, Dm1Flags, ResourceManager.GreyTextureName);
 			SetLights(sh, ref lights, rstate.FrameNumber);
-            sh.UseProgram ();
-		}
+            rstate.Shader = sh;
+        }
 
 		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
             var sh = Shaders.DepthPass_Normal.Get(rstate);
             sh.SetWorld(World);
-            sh.UseProgram();
-		}
+            rstate.Shader = sh;
+        }
 
 		public override bool IsTransparent
 		{

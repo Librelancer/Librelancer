@@ -349,6 +349,16 @@ namespace LancerEdit
                     rstate.DepthWrite = true;
                 }
             }
+            else
+            {
+                if (showGrid && viewport &&
+                    !(drawable is SphFile) &&
+                    modelViewport.Mode != CameraModes.Starsphere)
+                {
+                    var d = Math.Abs(modelViewport.CameraOffset.Y);
+                    GridRender.Draw(rstate, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
+                }
+            }
             if (doWireframe)
             {
                 buffer.StartFrame(rstate);

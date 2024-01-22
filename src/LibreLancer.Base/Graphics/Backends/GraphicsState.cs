@@ -20,4 +20,5 @@ internal struct GraphicsState
     public Rectangle Viewport;
     public Vector2 PolygonOffset;
     public IRenderTarget RenderTarget;
+    public IShader Shader;
 }

@@ -45,8 +45,8 @@ namespace LibreLancer.Render.Materials
             normalmat = Matrix4x4.Transpose(normalmat);
 			SetLights(sh, ref lights, rstate.FrameNumber);
             sh.SetWorld(ref w, ref normalmat);
-            sh.UseProgram ();
-		}
+            rstate.Shader = sh;
+        }
 
 		public override void ApplyDepthPrepass(RenderContext rstate)
 		{

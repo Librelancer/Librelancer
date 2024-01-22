@@ -41,7 +41,7 @@ namespace LibreLancer.Render.Materials
             shader.SetDc(Dc);
             //Dt
             shader.SetTileRate0(RadiusRatio);
-            shader.UseProgram();
+            rstate.Shader = shader;
         }
     }
 }

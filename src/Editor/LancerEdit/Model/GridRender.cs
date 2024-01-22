@@ -157,7 +157,7 @@ void main() {
             shader.SetFloat(far, farPlane);
             shader.SetFloat(gridScale, scale);
             shader.SetColor4(gridColor, color);
-            shader.UseProgram();
+            rstate.Shader = shader;
             rstate.DepthWrite = false;
             vertices.Draw(PrimitiveTypes.TriangleList, 2);
             rstate.DepthWrite = true;

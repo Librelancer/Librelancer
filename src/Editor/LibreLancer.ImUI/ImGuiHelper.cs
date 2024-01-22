@@ -529,12 +529,11 @@ namespace LibreLancer.ImUI
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);
 
 			var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
-			Shader lastShader = textShader;
 			textShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
 			textShader.SetInteger(textShader.GetLocation("tex"), 0);
 			colorShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
 			colorShader.SetInteger(textShader.GetLocation("tex"), 0);
-			textShader.UseProgram();
+            rstate.Shader = textShader;
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
 			rstate.DepthEnabled = false;
@@ -594,21 +593,13 @@ namespace LibreLancer.ImUI
 					var tid = pcmd.TextureId.ToInt32();
 					Texture2D tex;
 					if (tid == FONT_TEXTURE_ID)
-					{
-						if (lastShader != textShader)
-						{
-							textShader.UseProgram();
-							lastShader = textShader;
-						}
+                    {
+                        rstate.Shader = textShader;
 						fontTexture.BindTo(0);
                     }
 					else if (textures.TryGetValue(tid, out tex))
-					{
-						if (lastShader != colorShader)
-						{
-							colorShader.UseProgram();
-							lastShader = colorShader;
-						}
+                    {
+                        rstate.Shader = colorShader;
 						tex.BindTo(0);
 					}
 					else

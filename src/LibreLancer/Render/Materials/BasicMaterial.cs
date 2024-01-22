@@ -119,8 +119,8 @@ namespace LibreLancer.Render.Materials
 			}
 			//Set lights
             SetLights(shader, ref lights, rstate.FrameNumber);
-            shader.UseProgram();
-		}
+            rstate.Shader = shader;
+        }
 
 		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
@@ -129,8 +129,8 @@ namespace LibreLancer.Render.Materials
 			var shader = DepthPass_AlphaTest.Get(rstate);
             BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			shader.SetWorld(World);
-			shader.UseProgram();
-		}
+            rstate.Shader = shader;
+        }
 
         bool GetDxt1()
         {

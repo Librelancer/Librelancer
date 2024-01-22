@@ -38,7 +38,7 @@ public class SunRadialMaterial : RenderMaterial
         shader.SetDtSampler(0);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);
         rstate.BlendMode = Additive ? BlendMode.Additive : BlendMode.Normal;
-        shader.UseProgram();
+        rstate.Shader = shader;
     }
 
     public override bool IsTransparent => true;

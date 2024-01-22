@@ -15,8 +15,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         uint programID = 0;
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
         int[] cachedObjects = new int[MAX_UNIFORM_LOC];
-		public GLShader(string vertex_source, string fragment_source, string geometry_source = null)
+        private GLRenderContext context;
+		public GLShader(GLRenderContext context, string vertex_source, string fragment_source, string geometry_source = null)
         {
+            this.context = context;
 			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
 			var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
             GL.ShaderSource(vertexHandle, vertex_source);
@@ -88,7 +90,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
         public unsafe void SetMatrix(int loc, ref Matrix4x4 mat)
         {
-            GLBind.UseProgram(programID);
+            context.ApplyShader(this);
             fixed (Matrix4x4* ptr = &mat) {
                 GL.UniformMatrix4fv(loc, 1, false, (IntPtr)ptr);
             }
@@ -96,13 +98,13 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
         public void SetMatrix(int loc, IntPtr mat)
         {
-            GLBind.UseProgram(programID);
+            context.ApplyShader(this);
             GL.UniformMatrix4fv(loc, 1, false, mat);
         }
 
 		public void SetInteger(int loc, int value, int index = 0)
 		{
-			GLBind.UseProgram(programID);
+			context.ApplyShader(this);
 			if (NeedUpdate (loc + index, value)) {
 				GL.Uniform1i (loc + index, value);
                 cachedObjects[loc + index] = value;
@@ -118,7 +120,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         }
         public void SetFloat(int loc, float value, int index = 0)
         {
-            GLBind.UseProgram(programID);
+            context.ApplyShader(this);
             var ibits = (new Float2Int() { f = value }).i;
 			if (NeedUpdate (loc + index, ibits)) {
 				GL.Uniform1f (loc + index, value);
@@ -128,7 +130,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
 		public void SetColor4(int loc, Color4 value, int index = 0)
 		{
-			GLBind.UseProgram(programID);
+			context.ApplyShader(this);
             var hash = value.GetHashCode();
 			if (NeedUpdate (loc + index, hash)) {
 				GL.Uniform4f (loc + index, value.R, value.G, value.B, value.A);
@@ -138,7 +140,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
 		public void SetVector4(int loc, Vector4 value, int index = 0)
 		{
-			GLBind.UseProgram(programID);
+			context.ApplyShader(this);
             var hash = value.GetHashCode();
 			if (NeedUpdate(loc + index, hash))
 			{
@@ -149,18 +151,18 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
         public unsafe void SetVector4Array(int loc, Vector4 *values, int count)
         {
-            GLBind.UseProgram(programID);
+            context.ApplyShader(this);
             GL.Uniform4fv(loc, count, (IntPtr) values);
         }
 
         public unsafe void SetVector3Array(int loc, Vector3* values, int count)
         {
-            GLBind.UseProgram(programID);
+            context.ApplyShader(this);
             GL.Uniform3fv(loc, count, (IntPtr) values);
         }
         public void SetVector4i(int loc, Vector4i value, int index = 0)
         {
-            GLBind.UseProgram(programID);
+            context.ApplyShader(this);
             var hash = value.GetHashCode();
             if (NeedUpdate(loc + index, hash))
             {
@@ -171,7 +173,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
 		public void SetVector3(int loc, Vector3 vector, int index = 0)
 		{
-			GLBind.UseProgram (programID);
+			context.ApplyShader(this);
             var hash = vector.GetHashCode();
 			if (NeedUpdate (loc + index, hash)) {
 				GL.Uniform3f (loc + index, vector.X, vector.Y, vector.Z);
@@ -181,7 +183,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
 		public void SetVector2(int loc, Vector2 vector, int index = 0)
 		{
-			GLBind.UseProgram(programID);
+			context.ApplyShader(this);
             var hash = vector.GetHashCode();
 			if (NeedUpdate(loc + index, hash))
 			{

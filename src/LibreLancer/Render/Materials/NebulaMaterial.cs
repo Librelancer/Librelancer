@@ -39,8 +39,8 @@ namespace LibreLancer.Render.Materials
 			//Dt
 			shader.SetDtSampler(0);
 			BindTexture (rstate, 0, DtSampler, 0, DtFlags);
-			shader.UseProgram ();
-		}
+            rstate.Shader = shader;
+        }
 
 		public override void ApplyDepthPrepass(RenderContext rstate)
 		{

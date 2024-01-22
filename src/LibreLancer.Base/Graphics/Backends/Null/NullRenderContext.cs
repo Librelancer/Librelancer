@@ -60,6 +60,10 @@ class NullRenderContext : IRenderContext
     {
     }
 
+    public void ApplyShader(IShader shader)
+    {
+    }
+
     public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>
         new NullShader();
 

@@ -25,7 +25,7 @@ namespace LancerEdit.Materials
             rstate.BlendMode = BlendMode.Opaque;
             //Dt
             sh.SetWorld(World);
-            sh.UseProgram();
+            rstate.Shader = sh;
         }
 
         public override void ApplyDepthPrepass(RenderContext rstate)

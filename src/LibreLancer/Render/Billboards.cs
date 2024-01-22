@@ -310,7 +310,7 @@ namespace LibreLancer.Render
 
         void DrawCommands(RenderContext rs, int start, int count)
         {
-            shaderBasic.UseProgram();
+            rs.Shader = shaderBasic;
             rs.Cull = false;
 
             rs.BlendMode = rendat[datindex].BlendMode;

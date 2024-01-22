@@ -14,6 +14,8 @@ interface IRenderContext
 
     void ApplyRenderTarget(ref GraphicsState requested);
 
+    void ApplyShader(IShader shader);
+
     void Set2DState(bool cull, bool depth, bool scissor);
 
     void SetBlendMode(BlendMode mode);

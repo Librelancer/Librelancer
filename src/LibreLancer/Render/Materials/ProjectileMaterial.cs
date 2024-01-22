@@ -18,7 +18,7 @@ public class ProjectileMaterial : RenderMaterial
         shader.SetDtSampler(0);
         BindTexture(rstate, 0, "code_beam", 0, SamplerFlags.ClampToEdgeU | SamplerFlags.ClampToEdgeV);
         rstate.BlendMode = BlendMode.Additive;
-        shader.UseProgram();
+        rstate.Shader = shader;
     }
 
     public override bool IsTransparent => true;

@@ -37,7 +37,7 @@ public class ParticleMaterial : RenderMaterial
         rstate.BlendMode = (BlendMode)(parameters[userData].Flags & 0xFFFF);
         shader.SetFlipU((parameters[userData].Flags & 0x40000000) != 0 ? 1 : 0);
         shader.SetFlipV((parameters[userData].Flags & 0x20000000) != 0 ? 1 : 0);
-        shader.UseProgram();
+        rstate.Shader = shader;
     }
 
     public override bool IsTransparent => true;

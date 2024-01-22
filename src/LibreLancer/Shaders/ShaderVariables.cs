@@ -81,10 +81,6 @@ namespace LibreLancer.Shaders
             skinningEnabledPosition = sh.GetLocation("SkinningEnabled");
 		}
 
-		public void UseProgram()
-		{
-			shader.UseProgram();
-		}
         public Shader Shader
 		{
 			get
@@ -299,5 +295,8 @@ namespace LibreLancer.Shaders
                 return new ShaderVariables(new Shader(context, prelude + vertex, prelude + fragment, prelude + geometry));
             return new ShaderVariables(new Shader(context, prelude + vertex, prelude + fragment));
         }
-	}
+
+        public static implicit operator Shader(ShaderVariables sh) =>
+            sh.shader;
+    }
 }

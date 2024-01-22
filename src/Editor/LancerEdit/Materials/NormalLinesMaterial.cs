@@ -110,7 +110,7 @@ void main() {
         InitShader(rstate);
         shader.SetMatrix(worldLoc, (IntPtr) World.Source);
         shader.SetFloat(sizeLoc, Size);
-        shader.UseProgram();
+        rstate.Shader = shader;
     }
 
     public override bool IsTransparent => false;

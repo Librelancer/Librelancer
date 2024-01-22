@@ -18,5 +18,4 @@ interface IShader
     void SetVector3(int loc, Vector3 vector, int index = 0);
     void SetVector2(int loc, Vector2 vector, int index = 0);
     void UniformBlockBinding(string uniformBlock, int index);
-    void UseProgram();
 }

@@ -153,6 +153,19 @@ namespace LibreLancer.Graphics
             }
         }
 
+        private Shader requestedShader;
+
+        public Shader Shader
+        {
+            get => requestedShader;
+            set
+            {
+                Renderer2D.Flush();
+                requestedShader = value;
+                requested.Shader = value.Backing;
+            }
+        }
+
         public CullFaces CullFace
         {
             get => requested.CullFaces;

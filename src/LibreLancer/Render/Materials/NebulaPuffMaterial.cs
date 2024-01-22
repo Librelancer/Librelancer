@@ -32,7 +32,7 @@ public class NebulaPuffMaterial : RenderMaterial
         shader.Shader.SetFloat(_fogFactor, *(float*)&userData);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);
         rstate.BlendMode = BlendMode.Normal;
-        shader.UseProgram();
+        rstate.Shader = shader;
     }
 
     public override bool IsTransparent => true;

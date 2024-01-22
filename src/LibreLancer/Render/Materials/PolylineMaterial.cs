@@ -20,7 +20,7 @@ public class PolylineMaterial : RenderMaterial
         shader.SetDtSampler(0);
         Parameters[userData].texture.BindTo(0);
         rstate.BlendMode = Parameters[userData].blendMode;
-        shader.UseProgram();
+        rstate.Shader = shader;
     }
 
     public override bool IsTransparent => true;

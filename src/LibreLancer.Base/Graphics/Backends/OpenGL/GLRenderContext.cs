@@ -112,8 +112,18 @@ class GLRenderContext : IRenderContext
         requested = applied;
     }
 
+    public void ApplyShader(IShader shader)
+    {
+        if (applied.Shader != shader && shader != null)
+        {
+            ((GLShader)shader).UseProgram();
+            applied.Shader = shader;
+        }
+    }
     public void ApplyState(ref GraphicsState requested)
     {
+        ApplyShader(requested.Shader);
+
         if (requested.ClearColor != applied.ClearColor)
         {
             GL.ClearColor(requested.ClearColor.R, requested.ClearColor.G, requested.ClearColor.B,
@@ -356,7 +366,7 @@ class GLRenderContext : IRenderContext
     }
 
     public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>
-        new GLShader(vertex_source, fragment_source, geometry_source);
+        new GLShader(this, vertex_source, fragment_source, geometry_source);
 
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>
         new GLElementBuffer(this, count, isDynamic);

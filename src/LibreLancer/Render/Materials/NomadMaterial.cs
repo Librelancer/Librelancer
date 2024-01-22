@@ -60,7 +60,7 @@ namespace LibreLancer.Render.Materials
 
 			//Disable MaterialAnim
 			shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
-			shader.UseProgram();
-		}
+            rstate.Shader = shader;
+        }
 	}
 }

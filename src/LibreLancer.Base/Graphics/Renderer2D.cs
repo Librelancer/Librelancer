@@ -802,7 +802,7 @@ namespace LibreLancer.Graphics
             else
                 imgShader.SetFloat(blendLocation, 0f);
             imgShader.SetInteger(circleLocation, isCircle ? 1 : 0);
-            imgShader.UseProgram();
+            rs.Backend.ApplyShader(imgShader.Backing);
             vbo.EndStreaming(vertexCount);
 			vbo.DrawNoApply (PrimitiveTypes.TriangleList, primitiveCount);
             vertices = (Vertex2D*)0;
