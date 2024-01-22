@@ -15,7 +15,7 @@
 	url = https://github.com/cimgui/cimgui
 [submodule "extern/ImGuiColorTextEdit"]
 	path = extern/ImGuiColorTextEdit
-	url = https://github.com/DomRe/ImGuiColorTextEdit
+	url = https://github.com/pthom/ImGuiColorTextEdit
 [submodule "extern/lua"]
 	path = extern/lua
 	url = https://github.com/lua/lua
@@ -53,3 +53,6 @@
 [submodule "extern/imgui-node-editor"]
 	path = extern/imgui-node-editor
 	url = https://github.com/thedmd/imgui-node-editor
+[submodule "extern/imgui_test_engine"]
+	path = extern/imgui_test_engine
+	url = https://github.com/ocornut/imgui_test_engine

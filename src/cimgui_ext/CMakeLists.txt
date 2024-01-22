@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 2.8.12)
 project (cimgui)
 set(CMAKE_CXX_STANDARD 14)
-include_directories("./freetypeshim" "../../extern/cimgui/imgui" "../../extern/ImGuiColorTextEdit" "../../extern/imgui-node-editor")
-
+include_directories("." "./freetypeshim" "../../extern/cimgui/imgui" "../../extern/ImGuiColorTextEdit" "../../extern/imgui-node-editor" "../../extern/imgui_test_engine/imgui_test_engine")
+file(GLOB IMTE_SRC ../../extern/imgui_test_engine/imgui_test_engine/*.cpp)
 add_library(cimgui SHARED
     ../../extern/cimgui/imgui/imgui.cpp
     ../../extern/cimgui/imgui/imgui_draw.cpp
@@ -11,10 +11,13 @@ add_library(cimgui SHARED
     ../../extern/cimgui/imgui/imgui_tables.cpp
     ../../extern/cimgui/cimgui.cpp
 	../../extern/ImGuiColorTextEdit/TextEditor.cpp
+	../../extern/ImGuiColorTextEdit/LanguageDefinitions.cpp
+	../../extern/ImGuiColorTextEdit/ImGuiDebugPanel.cpp
 	../../extern/imgui-node-editor/crude_json.cpp
 	../../extern/imgui-node-editor/imgui_canvas.cpp
 	../../extern/imgui-node-editor/imgui_node_editor_api.cpp
 	../../extern/imgui-node-editor/imgui_node_editor.cpp
+	${IMTE_SRC}
     cimgui_dock.cpp
 	cimgui_colortextedit.cpp
 	cimgui_freetype.cpp
@@ -26,4 +29,4 @@ add_library(cimgui SHARED
     ImGuizmo.cpp
     cimgui_guizmo.cpp
 )
-target_compile_definitions(cimgui PUBLIC -DIMGUI_ENABLE_FREETYPE -DCIMGUI_FREETYPE -DIMGUI_ENABLE_STB_TRUETYPE)
+target_compile_definitions(cimgui PUBLIC -DIMGUI_ENABLE_FREETYPE -DCIMGUI_FREETYPE -DIMGUI_ENABLE_STB_TRUETYPE -DIMGUI_USER_CONFIG=<imconfig_ext.h>)

@@ -125,7 +125,7 @@ namespace LancerEdit
                 ImGui.Dummy(Vector2.One);
                 ImGui.SameLine();
                 var cpos = ImGui.GetCursorScreenPos();
-                MousePos = ImGui.GetIO().MousePos - cpos;
+                MousePos = ImGui.GetMousePos() - cpos;
                 ImGuizmo.SetRect(cpos.X, cpos.Y, rw, rh);
                 ImGuizmo.SetDrawlist();
                 ImGuiHelper.DisableAlpha();
@@ -259,6 +259,7 @@ namespace LancerEdit
                 var mouseZoomStep = ModelScale / 56f;
                 zoom -= delta.Y * mouseZoomStep;
             }
+
             float wheel = ImGui.GetIO().MouseWheel;
             var zoomStep = ModelScale * 1.05f;
             if (io.KeyShift)

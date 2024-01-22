@@ -10,30 +10,32 @@ using ImGuiNET;
 namespace LibreLancer.ImUI
 {
 	public partial class ImGuiHelper
-	{
+    {
+        private static Dictionary<Keys, ImGuiKey> keyMapping = new Dictionary<Keys, ImGuiKey>();
 
         static void SetKeyMappings()
 		{
 			var io = ImGui.GetIO();
-			io.KeyMap[(int)ImGuiKey.Tab] = (int)Keys.Tab;
-            io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Keys.Left;
-            io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Keys.Right;
-            io.KeyMap[(int) ImGuiKey.UpArrow] = (int) Keys.Up;
-            io.KeyMap[(int) ImGuiKey.DownArrow] = (int) Keys.Down;
-            io.KeyMap[(int) ImGuiKey.PageUp] = (int) Keys.NavPageUp;
-            io.KeyMap[(int) ImGuiKey.PageDown] = (int) Keys.NavPageDown;
-            io.KeyMap[(int) ImGuiKey.Home] = (int) Keys.NavHome;
-            io.KeyMap[(int) ImGuiKey.End] = (int) Keys.NavEnd;
-            io.KeyMap[(int) ImGuiKey.Delete] = (int) Keys.Delete;
-            io.KeyMap[(int) ImGuiKey.Backspace] = (int) Keys.Backspace;
-            io.KeyMap[(int) ImGuiKey.Enter] = (int) Keys.Enter;
-            io.KeyMap[(int) ImGuiKey.Escape] = (int) Keys.Escape;
-            io.KeyMap[(int) ImGuiKey.A] = (int) Keys.A.Map();
-            io.KeyMap[(int) ImGuiKey.C] = (int) Keys.C.Map();
-            io.KeyMap[(int) ImGuiKey.V] = (int) Keys.V.Map();
-            io.KeyMap[(int) ImGuiKey.X] = (int) Keys.X.Map();
-            io.KeyMap[(int) ImGuiKey.Y] = (int) Keys.Y.Map();
-            io.KeyMap[(int) ImGuiKey.Z] = (int) Keys.Z.Map();
+            keyMapping = new Dictionary<Keys, ImGuiKey>();
+            keyMapping[Keys.Tab] = ImGuiKey.Tab;
+            keyMapping[Keys.Left] = ImGuiKey.LeftArrow;
+            keyMapping[Keys.Right] = ImGuiKey.RightArrow;
+            keyMapping[Keys.Up] = ImGuiKey.UpArrow;
+            keyMapping[Keys.Down] = ImGuiKey.DownArrow;
+            keyMapping[Keys.NavPageUp] = ImGuiKey.PageUp;
+            keyMapping[Keys.NavPageDown] = ImGuiKey.PageDown;
+            keyMapping[Keys.NavHome] = ImGuiKey.Home;
+            keyMapping[Keys.NavEnd] = ImGuiKey.End;
+            keyMapping[Keys.Delete] = ImGuiKey.Delete;
+            keyMapping[Keys.Backspace] = ImGuiKey.Backspace;
+            keyMapping[Keys.Enter] = ImGuiKey.Enter;
+            keyMapping[Keys.Escape] = ImGuiKey.Escape;
+            keyMapping[Keys.A.Map()] = ImGuiKey.A;
+            keyMapping[Keys.C.Map()] = ImGuiKey.C;
+            keyMapping[Keys.V.Map()] = ImGuiKey.V;
+            keyMapping[Keys.X.Map()] = ImGuiKey.X;
+            keyMapping[Keys.Y.Map()] = ImGuiKey.Y;
+            keyMapping[Keys.Z.Map()] = ImGuiKey.Z;
         }
 	}
 }

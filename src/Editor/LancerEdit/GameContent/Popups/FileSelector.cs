@@ -69,7 +69,7 @@ namespace LancerEdit
             directoryNames = Directory.GetDirectories(path).Select(Path.GetFileName).OrderBy(x => x).ToArray();
             fileNames = Directory.GetFiles(path).Where(Filter).Select(Path.GetFileName).OrderBy(x => x).ToArray();
         }
-        
+
         string BuildFullPath(string file)
         {
             if (pathBar.Count < 1) return file;
@@ -119,7 +119,7 @@ namespace LancerEdit
             }
 
             ImGui.Dummy(new Vector2(1, 1));
-            ImGui.BeginChild("##currentDir", new Vector2(-1, -1), true);
+            ImGui.BeginChild("##currentDir", new Vector2(-1, -1), ImGuiChildFlags.Border);
             for (int i = 0; i < directoryNames.Length; i++)
             {
                 IconSelectable(

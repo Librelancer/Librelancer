@@ -71,7 +71,7 @@ public class IdsSearch : PopupWindow
         dlg.onSearchResult = onSelect;
         return dlg;
     }
-    
+
     public override void Draw()
     {
         if (searchResultsOpen) SearchResults();
@@ -158,7 +158,7 @@ public class IdsSearch : PopupWindow
     private void SearchResults()
     {
         ImGui.TextUnformatted(resultTitle);
-        ImGui.BeginChild("##results", new Vector2(200, 200), true);
+        ImGui.BeginChild("##results", new Vector2(200, 200), ImGuiChildFlags.Border);
         for (var i = 0; i < searchResults.Length; i++)
         {
             if (ImGui.Selectable(searchResults[i].ToString()))

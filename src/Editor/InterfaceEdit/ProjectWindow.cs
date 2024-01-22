@@ -20,7 +20,7 @@ namespace InterfaceEdit
         private string[] files;
         private MainWindow window;
         private FileSystemWatcher watcher;
-        
+
         public ProjectWindow(string folder, MainWindow window)
         {
             this.folder = folder;
@@ -48,7 +48,7 @@ namespace InterfaceEdit
         {
             watcher.Dispose();
         }
-        
+
         bool FileFilter(string x)
         {
             if(!x.EndsWith(".xml", true, CultureInfo.InvariantCulture) &&
@@ -84,7 +84,7 @@ namespace InterfaceEdit
                     openNew = true;
                     newFileBuffer = new byte[48];
                 }
-                ImGui.BeginChild("##files", Vector2.Zero, true);
+                ImGui.BeginChild("##files", Vector2.Zero, ImGuiChildFlags.Border);
                 for (int i = 0; i < files.Length; i++)
                 {
                     ImGui.Selectable(ImGuiExt.IDWithExtra(files[i], i));
@@ -131,7 +131,7 @@ namespace InterfaceEdit
                                     break;
                                 }
                             }
-                            if(create) 
+                            if(create)
                                 File.WriteAllText(Path.Combine(folder, str), "");
                             ImGui.CloseCurrentPopup();
                         }

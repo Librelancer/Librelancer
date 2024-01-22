@@ -67,7 +67,7 @@ IGEXPORT void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x, i
 IGEXPORT void igExtTextEditorRender(texteditor_t textedit, const char *id)
 {
 	TextEditor *editor = (TextEditor*)textedit;
-	editor->Render(id, ImVec2(0,0), false);
+	editor->Render(id, false, ImVec2(0,0), false);
 }
 
 IGEXPORT void igExtTextEditorFree(texteditor_t textedit)

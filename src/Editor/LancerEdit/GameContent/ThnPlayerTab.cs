@@ -116,7 +116,7 @@ public class ThnPlayerTab : GameContentTab
             {
                 FileDialog.Open(file => openFiles.Add(file));
             }
-            ImGui.BeginChild("##files", new Vector2(200, 200), true, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("##files", new Vector2(200, 200), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
             int j = 0;
             foreach (var f in openFiles)
                 ImGui.Selectable(ImGuiExt.IDWithExtra(f, j++));

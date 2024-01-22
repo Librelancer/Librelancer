@@ -59,7 +59,7 @@ public class AppLog : IDisposable
             ImGui.Separator();
         }
         IntPtr bufferEnd = buffer + bufferSize;
-        if (ImGui.BeginChild("scrolling", size, false, ImGuiWindowFlags.HorizontalScrollbar))
+        if (ImGui.BeginChild("scrolling", size, ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar))
         {
             ImGui.PushFont(ImGuiHelper.SystemMonospace);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);

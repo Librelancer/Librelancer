@@ -29,7 +29,7 @@ namespace LancerEdit
 				ImGui.Separator();
 				//Magic number 94px seems to fix the scrollbar thingy
 				var h = ImGui.GetWindowHeight();
-				ImGui.BeginChild("##scroll", new Vector2(0, h - 94 * ImGuiHelper.Scale), false, 0);
+				ImGui.BeginChild("##scroll", new Vector2(0, h - 94 * ImGuiHelper.Scale), ImGuiChildFlags.Border);
 				ImGui.Columns(4, "##columns", true);
 					for (int i = 0; i < ints.Length; i++)
 					{
@@ -72,7 +72,7 @@ namespace LancerEdit
 				ImGui.Separator();
 				//Magic number 94px seems to fix the scrollbar thingy
 				var h = ImGui.GetWindowHeight();
-				ImGui.BeginChild("##scroll", new Vector2(0, h - 94 * ImGuiHelper.Scale), false, 0);
+				ImGui.BeginChild("##scroll", new Vector2(0, h - 94 * ImGuiHelper.Scale));
 				ImGui.Columns(4, "##columns", true);
                 for (int i = 0; i < floats.Length; i++)
                 {

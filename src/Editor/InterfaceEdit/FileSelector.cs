@@ -89,7 +89,7 @@ namespace InterfaceEdit
                 ImGui.SameLine();
                 if (ImGui.Button("Cancel"))
                 {
-                    ImGui.CloseCurrentPopup();   
+                    ImGui.CloseCurrentPopup();
                 }
                 ImGui.Separator();
                 if (ImGui.Button("/"))
@@ -109,12 +109,12 @@ namespace InterfaceEdit
                     ImGui.SameLine();
                 }
                 ImGui.Dummy(new Vector2(1, 1));
-                ImGui.BeginChild("##currentDir", new Vector2(-1, -1), true);
+                ImGui.BeginChild("##currentDir", new Vector2(-1, -1), ImGuiChildFlags.Border);
                 for (int i = 0; i < directoryNames.Length; i++)
                 {
                     IconSelectable(
                         Icons.Open,
-                        ImGuiExt.IDWithExtra(directoryNames[i], i), 
+                        ImGuiExt.IDWithExtra(directoryNames[i], i),
                         false,
                         out bool doubleClicked
                         );

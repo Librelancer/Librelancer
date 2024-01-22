@@ -14,7 +14,7 @@ public class ArchetypeSelection : PopupWindow
     public override Vector2 InitSize => new Vector2(600, 400);
 
     public Archetype[] Archetypes;
-    
+
     private Action<Archetype> onSelect;
 
     private Archetype initial;
@@ -42,7 +42,7 @@ public class ArchetypeSelection : PopupWindow
     static bool SelectableImageButton(int image, Vector2 size, bool selected)
     {
         if(selected) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetColorU32(ImGuiCol.ButtonActive));
-        var retval = ImGui.ImageButton((IntPtr) image, size, new Vector2(0, 1),
+        var retval = ImGui.ImageButton(image.ToString(), (IntPtr) image, size, new Vector2(0, 1),
             new Vector2(1, 0));
         if(selected) ImGui.PopStyleColor();
         return retval;
@@ -83,5 +83,5 @@ public class ArchetypeSelection : PopupWindow
         ImGui.EndTable();
         return null;
     }
-    
+
 }

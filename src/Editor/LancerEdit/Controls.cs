@@ -96,10 +96,8 @@ public static class Controls
     {
         if (!gradient)
             return ImGui.ColorButton(id, colA, ImGuiColorEditFlags.NoAlpha, size);
-        ImGui.PushID(id);
         var img = ImGuiHelper.RenderGradient(colA, colB);
-        var retval = ImGui.ImageButton((IntPtr)img, size, new Vector2(0, 1), new Vector2(0, 0), 0);
-        ImGui.PopID();
+        var retval = ImGui.ImageButton(id, (IntPtr)img, size, new Vector2(0, 1), new Vector2(0, 0));
         return retval;
     }
 

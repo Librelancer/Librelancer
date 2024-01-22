@@ -111,14 +111,14 @@ namespace InterfaceEdit
             var totalH = ImGui.GetWindowHeight();
             ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
             h1 = totalH - h2 - 24f;
-            ImGui.BeginChild("###viewport",new Vector2(-1,h1),false,ImGuiWindowFlags.None);
+            ImGui.BeginChild("###viewport",new Vector2(-1,h1));
             if(validXml)
                 DoViewport(mainWindow.RenderDelta);
             else
                 ImGui.Text(exceptionText);
             ImGui.EndChild();
             //Text
-            ImGui.BeginChild("###text", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
+            ImGui.BeginChild("###text", new Vector2(-1, h2));
 
             xmlEditor.Render("##texteditor");
             if (xmlEditor.TextChanged())

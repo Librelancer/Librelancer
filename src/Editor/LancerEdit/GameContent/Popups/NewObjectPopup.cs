@@ -15,7 +15,7 @@ public class NewObjectPopup : PopupWindow
     public override Vector2 InitSize => new Vector2(600, 400);
 
     public Archetype[] Archetypes;
-    
+
     private GameDataContext gd;
 
     private string nickname = "";
@@ -40,8 +40,8 @@ public class NewObjectPopup : PopupWindow
         ImGui.Text("Nickname: ");
         ImGui.InputText("##nickname", ref nickname, 100);
         ImGui.Separator();
-        ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth(), 
-            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), true);
+        ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth(),
+            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Border);
         var a = ArchetypeSelection.DrawTable(Archetypes, gd, selectedArchetype);
         if (a != null) selectedArchetype = a;
         ImGui.EndChild();

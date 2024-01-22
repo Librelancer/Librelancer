@@ -69,7 +69,7 @@ namespace LancerEdit
                 ImGui.EndPopup();
             }
             ImGuiNative.igSetNextWindowContentSize(new Vector2(sz.X, 0));
-            ImGui.BeginChild("##scroll", new Vector2(-1), false, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("##scroll", new Vector2(-1), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
             var pos = ImGui.GetCursorScreenPos();
             var windowH = ImGui.GetWindowHeight();
             var windowW = ImGui.GetWindowWidth();

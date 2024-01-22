@@ -407,20 +407,27 @@ namespace LibreLancer.ImUI
 		void Keyboard_KeyDown(KeyEventArgs e)
 		{
 			var io = ImGui.GetIO();
-			io.KeysDown[(int)e.Key] = true;
-			io.KeyAlt = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
-			io.KeyCtrl = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
-			io.KeyShift = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
+            UpdateKeyMods(e);
+            if (keyMapping.TryGetValue(e.Key, out var imk))
+                io.AddKeyEvent(imk, true);
 		}
+
+        void UpdateKeyMods(KeyEventArgs e)
+        {
+            var io = ImGui.GetIO();
+            io.AddKeyEvent(ImGuiKey.ModCtrl, (e.Modifiers & KeyModifiers.Control) != 0);
+            io.AddKeyEvent(ImGuiKey.ModAlt, (e.Modifiers & KeyModifiers.Alt) != 0);
+            io.AddKeyEvent(ImGuiKey.ModShift, (e.Modifiers & KeyModifiers.Shift) != 0);
+            io.AddKeyEvent(ImGuiKey.ModSuper, (e.Modifiers & KeyModifiers.GUI) != 0);
+        }
 
 		void Keyboard_KeyUp(KeyEventArgs e)
 		{
 			var io = ImGui.GetIO();
-            io.KeysDown[(int) e.Key] = false;
-			io.KeyAlt = ((e.Modifiers & KeyModifiers.LeftAlt) == KeyModifiers.LeftAlt);
-			io.KeyCtrl = ((e.Modifiers & KeyModifiers.LeftControl) == KeyModifiers.LeftControl);
-			io.KeyShift = ((e.Modifiers & KeyModifiers.LeftShift) == KeyModifiers.LeftShift);
-		}
+            UpdateKeyMods(e);
+            if (keyMapping.TryGetValue(e.Key, out var imk))
+                io.AddKeyEvent(imk, false);
+        }
 
 
 		public void NewFrame(double elapsed)
@@ -539,7 +546,7 @@ namespace LibreLancer.ImUI
 			rstate.DepthEnabled = false;
 			for (int n = 0; n < draw_data.CmdListsCount; n++)
 			{
-                var cmd_list = draw_data.CmdListsRange[n];
+                var cmd_list = draw_data.CmdLists[n];
                 byte* vtx_buffer = (byte*)cmd_list.VtxBuffer.Data;
 				ushort* idx_buffer = (ushort*)cmd_list.IdxBuffer.Data;
 				var vtxCount = cmd_list.VtxBuffer.Size;

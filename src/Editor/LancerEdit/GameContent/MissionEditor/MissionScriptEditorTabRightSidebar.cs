@@ -10,7 +10,7 @@ public sealed partial class MissionScriptEditorTab
 {
     private void RenderRightSidebar()
     {
-        ImGui.BeginChild("NavbarRight", new Vector2(300f, ImGui.GetContentRegionMax().Y), false, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+        ImGui.BeginChild("NavbarRight", new Vector2(300f, ImGui.GetContentRegionMax().Y), ImGuiChildFlags.None, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
 

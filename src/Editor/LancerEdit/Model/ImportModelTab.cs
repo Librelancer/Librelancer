@@ -196,7 +196,7 @@ public class ImportModelTab : EditorTab
         var totalH = ImGui.GetWindowHeight();
         ImGuiExt.SplitterV(2f, ref fl_h1, ref fl_h2, 8, 8, -1);
         fl_h1 = totalH - fl_h2 - 6f;
-        ImGui.BeginChild("1", new Vector2(-1, fl_h1), false, ImGuiWindowFlags.None);
+        ImGui.BeginChild("1", new Vector2(-1, fl_h1));
         ImGui.Separator();
         //3DB list
         if (ImGui.TreeNodeEx("Model/"))
@@ -207,7 +207,7 @@ public class ImportModelTab : EditorTab
         }
 
         ImGui.EndChild();
-        ImGui.BeginChild("2", new Vector2(-1, fl_h2), false, ImGuiWindowFlags.None);
+        ImGui.BeginChild("2", new Vector2(-1, fl_h2));
         if (ImGuiExt.ToggleButton("Options", curTab == 0)) curTab = 0;
         ImGui.SameLine();
         if (ImGuiExt.ToggleButton("Materials", curTab == 1)) curTab = 1;

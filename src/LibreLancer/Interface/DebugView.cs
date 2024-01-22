@@ -35,7 +35,7 @@ namespace LibreLancer.Interface
                 int i = 0;
                 foreach (var t in triggers)
                 {
-                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 250), true);
+                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 250), ImGuiChildFlags.Border);
                     ImGui.PushFont(ImGuiHelper.SystemMonospace);
                     ImGui.Text(t.Name);
                     ImGui.PopFont();

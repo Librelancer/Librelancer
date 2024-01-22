@@ -146,7 +146,7 @@ namespace InterfaceEdit
         void ColorPickerSimple(InterfaceColor clr)
         {
             var v4 = (Vector4) clr.Color;
-            ImGui.BeginChild("##limiter", new Vector2(250, 235), false);
+            ImGui.BeginChild("##limiter", new Vector2(250, 235));
             ImGui.ColorPicker4("##colorpicker", ref v4, ImGuiColorEditFlags.None);
             ImGui.EndChild();
             clr.Color = new Color4(v4.X, v4.Y, v4.Z, v4.W);
@@ -160,13 +160,13 @@ namespace InterfaceEdit
             ImGui.InputFloat("##speed", ref clr.Animation.Speed, 0, 0);
             ImGui.Text("Color 1");
             var v4 = (Vector4) clr.Animation.Color1;
-            ImGui.BeginChild("##limiter", new Vector2(250, 235), false);
+            ImGui.BeginChild("##limiter", new Vector2(250, 235));
             ImGui.ColorPicker4("##colorpicker", ref v4, ImGuiColorEditFlags.None);
             ImGui.EndChild();
             clr.Animation.Color1 = v4;
             v4 = clr.Animation.Color2;
             ImGui.Text("Color 2");
-            ImGui.BeginChild("##limiter2", new Vector2(250, 235), false);
+            ImGui.BeginChild("##limiter2", new Vector2(250, 235));
             ImGui.ColorPicker4("##colorpicker", ref v4, ImGuiColorEditFlags.None);
             ImGui.EndChild();
             clr.Animation.Color2 = v4;

@@ -712,7 +712,7 @@ namespace LancerEdit
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 28 * ImGuiHelper.Scale, -1);
                 h1 = totalH - h2 - 25f * ImGuiHelper.Scale;
                 if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
-                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1),false,ImGuiWindowFlags.None);
+                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1));
             } else
                 ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""));
 
@@ -721,7 +721,7 @@ namespace LancerEdit
             var style = ImGui.GetStyle();
             ImGui.EndChild();
             if(Config.LogVisible || Config.FilesVisible) {
-                ImGui.BeginChild("###bottom", new Vector2(-1, h2), false, ImGuiWindowFlags.None);
+                ImGui.BeginChild("###bottom", new Vector2(-1, h2));
                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding + new Vector2(0,2) * ImGuiHelper.Scale);
                 ImGui.BeginTabBar("##tabbar", ImGuiTabBarFlags.AutoSelectNewTabs);
                 if (!Config.FilesVisible) bottomTab = 0;

@@ -41,7 +41,7 @@ namespace LancerEdit
         }
 
         private int typeIndex = 0;
-        private PCurveType[] types = 
+        private PCurveType[] types =
         {
             PCurveType.FreeForm,
             PCurveType.Linear,
@@ -87,14 +87,14 @@ namespace LancerEdit
                     RecreateCurve();
                 }
                 var height = ImGui.GetWindowHeight() - (95 * ImGuiHelper.Scale);
-                ImGui.BeginChild("##points", new Vector2(-1, height), true);
+                ImGui.BeginChild("##points", new Vector2(-1, height), ImGuiChildFlags.Border);
                 int ik = 0;
                 foreach (var p in points)
                 {
                     ImGui.Selectable(ImGuiExt.IDWithExtra(p.ToString(), ik++));
                 }
                 ImGui.EndChild();
-               
+
 
                 ImGui.EndTabItem();
             }
