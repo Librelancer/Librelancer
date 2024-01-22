@@ -18,7 +18,7 @@ public class SunSpineMaterial : RenderMaterial
 
     static void Init(RenderContext rstate)
     {
-        if (shader == null) return;
+        if (shader != null) return;
         shader = Shaders.SunSpine.Get(rstate);
         _sizeMultiplier = shader.Shader.GetLocation("SizeMultiplier");
     }

@@ -23,7 +23,7 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Install native dependencies
-      run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev g++-mingw-w64-x86-64 cmake
+      run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev g++-mingw-w64-x86-64 cmake libopenal1
     - name: Build
       run: ./build.sh -j$(nproc) LinuxDaily --with-win64
     - name: Archive ubuntu amd64 build (Engine Only)

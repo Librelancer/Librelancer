@@ -269,19 +269,29 @@ namespace LibreLancer
         App1 = 283,
         App2 = 284,
 
-       
+
         NumKeys = 512
     }
     public static class KeysExtensions
     {
-        static Dictionary<Keys, string> keyNames = new Dictionary<Keys, string>();
+        internal static Dictionary<Keys, string> KeyNames = new Dictionary<Keys, string>();
+        private static bool UseSDL = false;
+        internal static void FillKeyNamesSDL()
+        {
+            UseSDL = true;
+            foreach (var k in Enum.GetValues<Keys>())
+            {
+                KeyNames[k] = SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode((SDL.SDL_Scancode)k));
+            }
+        }
+
         public static string GetDisplayName(this Keys k)
         {
             string n;
-            if (!keyNames.TryGetValue(k, out n))
+            if (!KeyNames.TryGetValue(k, out n))
             {
                 n = SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode((SDL.SDL_Scancode)k));
-                keyNames.Add(k, n);
+                KeyNames.Add(k, n);
             }
             return n;
         }
@@ -308,12 +318,15 @@ namespace LibreLancer
         /// <param name="input">The symbol to map</param>
         public static Keys Map(this Keys input)
         {
-            var mp = defaultMapping[(int) input];
-            return (Keys)SDL.SDL_GetScancodeFromKey(defaultMapping[(int)input]);
+            if (UseSDL)
+            {
+                return (Keys)SDL.SDL_GetScancodeFromKey(defaultMapping[(int)input]);
+            }
+            return input;
         }
         internal static void ResetKeyNames() //Keyboard layout changed
         {
-            keyNames = new Dictionary<Keys, string>();
+            KeyNames = new Dictionary<Keys, string>();
         }
     }
 }

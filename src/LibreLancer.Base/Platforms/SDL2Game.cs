@@ -376,6 +376,7 @@ namespace LibreLancer
                 FLLog.Error("SDL", "SDL_Init failed, exiting.");
                 return;
             }
+            KeysExtensions.FillKeyNamesSDL();
 
             wakeEvent = SDL.SDL_RegisterEvents(1);
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");

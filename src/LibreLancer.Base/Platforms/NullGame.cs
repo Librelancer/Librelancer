@@ -40,6 +40,8 @@ class NullGame : IGame
     private bool running = false;
     public void Run(Game loop)
     {
+        var prevDrivers = Environment.GetEnvironmentVariable("ALSOFT_DRIVERS");
+        Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
         mythread = Thread.CurrentThread.ManagedThreadId;
         running = true;
         loop.OnLoad();
@@ -57,6 +59,7 @@ class NullGame : IGame
             TotalTime += 1 / 60.0;
             OnTick?.Invoke();
         }
+        Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", prevDrivers);
     }
 
     public void Exit()
