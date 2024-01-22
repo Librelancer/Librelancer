@@ -9,12 +9,12 @@ using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
-using LibreLancer.Primitives;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Primitives;
 using LibreLancer.Render.Materials;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {
@@ -64,7 +64,7 @@ namespace LibreLancer.Render
             cubes = new CalculatedCube[4000];
             if (field.Cube.Count > 0)
             {
-                cubeMesh = new AsteroidCubeMeshBuilder().CreateMesh(field, sys.ResourceManager);
+                cubeMesh = new AsteroidCubeMeshBuilder().CreateMesh(sys.RenderContext, field, sys.ResourceManager);
             }
             //Set up band
             if (field.Band == null ||

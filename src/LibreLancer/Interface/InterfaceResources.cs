@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface

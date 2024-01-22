@@ -1,3 +1,5 @@
+using LibreLancer.Graphics;
+
 namespace LibreLancer;
 
 public interface IGLWindow

@@ -11,6 +11,7 @@ using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
 using LibreLancer.Utf.Mat;
 using ImGuiNET;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 
@@ -45,7 +46,7 @@ namespace LancerEdit
             cameraMode = main.Config.DefaultCameraMode;
             plib = new ParticleLibrary(main.Resources, ale);
             res = main.Resources;
-            pool = new ParticleEffectPool(main.Commands);
+            pool = new ParticleEffectPool(main.RenderContext, main.Commands);
             effectNames = new string[plib.Effects.Count];
             for (int i = 0; i < effectNames.Length; i++)
                 effectNames[i] = string.Format("{0} (0x{1:X})", plib.Effects[i].Name, plib.Effects[i].CRC);

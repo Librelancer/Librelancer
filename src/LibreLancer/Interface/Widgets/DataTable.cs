@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -15,7 +16,7 @@ namespace LibreLancer.Interface
         string GetContentString(int row, string column);
         bool ValidSelection();
     }
-    
+
     [UiLoadable]
     [WattleScriptUserData]
     public class TableColumn
@@ -44,7 +45,7 @@ namespace LibreLancer.Interface
 
         public string GetLabel(UiContext context) => txtAccess.GetText(context);
     }
-    
+
     [UiLoadable]
     [WattleScriptUserData]
     public class DataTable : UiWidget
@@ -102,9 +103,9 @@ namespace LibreLancer.Interface
             int c = data.Count - DisplayRowCount;
             return c <= 0 ? 0 : c;
         }
-        
+
         private int childOffset = 0;
-        
+
         private int dragging = -1;
 
         RectangleF GetDividerRect(int index, RectangleF rect)
@@ -167,14 +168,14 @@ namespace LibreLancer.Interface
             if (dividerPositions == null) return false;
             return true;
         }
-        
+
         public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
         {
             var rect = GetMyRectangle(context, parentRectangle);
             if(rect.Contains(context.MouseX, context.MouseY))
                 Scrollbar.OnMouseWheel(delta);
         }
-        
+
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!CanInteract()) return;
@@ -197,7 +198,7 @@ namespace LibreLancer.Interface
                 }
             }
         }
-        
+
         public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
         {
             if (!CanInteract()) return;
@@ -231,7 +232,7 @@ namespace LibreLancer.Interface
         {
             onDoubleClicked = (row,column) => c.Call(row,column);
         }
-        
+
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
             var rect = GetMyRectangle(context, parentRectangle);
@@ -257,7 +258,7 @@ namespace LibreLancer.Interface
                 x = dividerPositions[column - 1] * parentRect.Width;
             }
             if (column == (Columns.Count - 1)) {
-                return new RectangleF(parentRect.X + x + 1, y + 1, parentRect.Width - x - 2, lineHeight - 2);   
+                return new RectangleF(parentRect.X + x + 1, y + 1, parentRect.Width - x - 2, lineHeight - 2);
             }
             var width = (dividerPositions[column] * parentRect.Width) - x;
             return new RectangleF(parentRect.X + x + 1, y + 1, width - 2, lineHeight - 2);

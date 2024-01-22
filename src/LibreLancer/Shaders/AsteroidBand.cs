@@ -15,17 +15,17 @@ namespace LibreLancer.Shaders
     {
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
-        public static ShaderVariables Get(ShaderFeatures features)
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device, ShaderFeatures features)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[0];
         }
-        public static ShaderVariables Get()
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[0];
         }
-        internal static void Compile(string sourceBundle)
+        internal static void Compile(LibreLancer.Graphics.RenderContext device, string sourceBundle)
         {
             if (iscompiled)
             {
@@ -34,13 +34,13 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling AsteroidBand");
             variants = new ShaderVariables[1];
-            if (GLExtensions.Features430)
+            if (device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430))
             {
-                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(0, 727), sourceBundle.Substring(4985, 6863));
+                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(0, 727), sourceBundle.Substring(4985, 6863));
             }
             else
             {
-                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(0, 727), sourceBundle.Substring(727, 4258));
+                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(0, 727), sourceBundle.Substring(727, 4258));
             }
         }
     }

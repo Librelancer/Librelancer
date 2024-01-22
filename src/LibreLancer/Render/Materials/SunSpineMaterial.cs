@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials;
 
@@ -15,9 +16,10 @@ public class SunSpineMaterial : RenderMaterial
     public string Texture;
 
 
-    static SunSpineMaterial()
+    static void Init(RenderContext rstate)
     {
-        shader = Shaders.SunSpine.Get();
+        if (shader == null) return;
+        shader = Shaders.SunSpine.Get(rstate);
         _sizeMultiplier = shader.Shader.GetLocation("SizeMultiplier");
     }
 
@@ -26,6 +28,7 @@ public class SunSpineMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        Init(rstate);
         shader.Shader.SetVector2(_sizeMultiplier, SizeMultiplier);
         shader.SetDtSampler(0);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);

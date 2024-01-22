@@ -306,7 +306,7 @@ namespace LibreLancer.Shaders
 125, 46, 101, 154, 237, 41, 131, 250, 29, 226, 105, 107, 205, 120, 154, 236, 242, 159, 222, 113, 191, 79, 179, 60, 205, 104, 42, 68, 206, 232,
 62, 27, 67, 205, 80, 113, 6, 160, 0
 };
-        public static void Compile()
+        public static void Compile(LibreLancer.Graphics.RenderContext device)
         {
             if (iscompiled)
             {
@@ -316,34 +316,34 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling all shaders");
             string shadersrc;
             shadersrc = ShCompHelper.FromArray(shader_bytes);
-            AsteroidBand.Compile(shadersrc);
-            Atmosphere.Compile(shadersrc);
-            Basic_PositionColor.Compile(shadersrc);
-            Basic_PositionNormalColorTexture.Compile(shadersrc);
-            Basic_PositionNormalTexture.Compile(shadersrc);
-            Basic_PositionNormalTextureTwo.Compile(shadersrc);
-            Basic_PositionTexture.Compile(shadersrc);
-            Basic_Skinned.Compile(shadersrc);
-            Billboard.Compile(shadersrc);
-            DepthPass_AlphaTest.Compile(shadersrc);
-            DepthPass_Normal.Compile(shadersrc);
-            DetailMap2Dm1Msk2PassMaterial.Compile(shadersrc);
-            DetailMapMaterial.Compile(shadersrc);
-            EnvMapTest.Compile(shadersrc);
-            IllumDetailMapMaterial.Compile(shadersrc);
-            Masked2DetailMapMaterial.Compile(shadersrc);
-            NebulaExtPuff.Compile(shadersrc);
-            NebulaInterior.Compile(shadersrc);
-            NebulaMaterial.Compile(shadersrc);
-            Nomad.Compile(shadersrc);
-            Normals.Compile(shadersrc);
-            Particle.Compile(shadersrc);
-            PhysicsDebug.Compile(shadersrc);
-            Polyline.Compile(shadersrc);
-            Projectile.Compile(shadersrc);
-            SunRadial.Compile(shadersrc);
-            SunSpine.Compile(shadersrc);
-            ZoneVolume.Compile(shadersrc);
+            AsteroidBand.Compile(device, shadersrc);
+            Atmosphere.Compile(device, shadersrc);
+            Basic_PositionColor.Compile(device, shadersrc);
+            Basic_PositionNormalColorTexture.Compile(device, shadersrc);
+            Basic_PositionNormalTexture.Compile(device, shadersrc);
+            Basic_PositionNormalTextureTwo.Compile(device, shadersrc);
+            Basic_PositionTexture.Compile(device, shadersrc);
+            Basic_Skinned.Compile(device, shadersrc);
+            Billboard.Compile(device, shadersrc);
+            DepthPass_AlphaTest.Compile(device, shadersrc);
+            DepthPass_Normal.Compile(device, shadersrc);
+            DetailMap2Dm1Msk2PassMaterial.Compile(device, shadersrc);
+            DetailMapMaterial.Compile(device, shadersrc);
+            EnvMapTest.Compile(device, shadersrc);
+            IllumDetailMapMaterial.Compile(device, shadersrc);
+            Masked2DetailMapMaterial.Compile(device, shadersrc);
+            NebulaExtPuff.Compile(device, shadersrc);
+            NebulaInterior.Compile(device, shadersrc);
+            NebulaMaterial.Compile(device, shadersrc);
+            Nomad.Compile(device, shadersrc);
+            Normals.Compile(device, shadersrc);
+            Particle.Compile(device, shadersrc);
+            PhysicsDebug.Compile(device, shadersrc);
+            Polyline.Compile(device, shadersrc);
+            Projectile.Compile(device, shadersrc);
+            SunRadial.Compile(device, shadersrc);
+            SunSpine.Compile(device, shadersrc);
+            ZoneVolume.Compile(device, shadersrc);
         }
     }
 }

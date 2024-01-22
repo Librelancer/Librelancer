@@ -5,7 +5,8 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using LibreLancer.Vertices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Utf.Dfm
 {

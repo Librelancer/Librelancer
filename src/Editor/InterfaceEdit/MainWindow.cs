@@ -14,6 +14,7 @@ using LibreLancer.ImUI;
 using ImGuiNET;
 using LibreLancer.Data;
 using LibreLancer.Dialogs;
+using LibreLancer.Graphics;
 using LibreLancer.Interface;
 using LibreLancer.Render;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -50,14 +51,14 @@ namespace InterfaceEdit
             RenderContext.PushViewport(0,0,Width,Height);
             new MaterialMap();
             Fonts = new FontManager();
-            LibreLancer.Shaders.AllShaders.Compile();
+            LibreLancer.Shaders.AllShaders.Compile(RenderContext);
             Keyboard.KeyDown += args =>
             {
                 if (playing && args.Key == Keys.F1)
                     _playContext.Event("Pause");
             };
-            CommandBuffer = new CommandBuffer();
-            LineRenderer = new LineRenderer();
+            CommandBuffer = new CommandBuffer(RenderContext);
+            LineRenderer = new LineRenderer(RenderContext);
             LoadVariables();
             variableEditor = new DictionaryWindow("Variables", Variables);
         }
@@ -427,7 +428,7 @@ namespace InterfaceEdit
                     ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
-                renderTarget = new RenderTarget2D(rtX, rtY);
+                renderTarget = new RenderTarget2D(RenderContext, rtX, rtY);
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
             RenderContext.RenderTarget = renderTarget;

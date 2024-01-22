@@ -5,10 +5,11 @@
 using System;
 using System.Numerics;
 using System.Threading;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {

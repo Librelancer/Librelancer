@@ -3,9 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials
 {
@@ -15,17 +16,17 @@ namespace LibreLancer.Render.Materials
 		public SamplerFlags DtFlags;
         public NebulaMaterial(ResourceManager library) : base(library) { }
 
-		ShaderVariables GetShader(IVertexType vtype)
+		ShaderVariables GetShader(RenderContext rstate, IVertexType vtype)
 		{
             if (vtype is VertexPositionNormalDiffuseTexture ||
                 vtype is VertexPositionNormalDiffuseTextureTwo)
             {
-                return Shaders.NebulaMaterial.Get(ShaderFeatures.VERTEX_DIFFUSE);
+                return Shaders.NebulaMaterial.Get(rstate, ShaderFeatures.VERTEX_DIFFUSE);
             }
             if (vtype is VertexPositionNormalTexture ||
                        vtype is VertexPositionNormalTextureTwo)
             {
-                return Shaders.NebulaMaterial.Get();
+                return Shaders.NebulaMaterial.Get(rstate);
             }
             throw new NotImplementedException(vtype.GetType().ToString());
         }
@@ -33,7 +34,7 @@ namespace LibreLancer.Render.Materials
 		{
             //fragment shader you multiply tex sampler rgb by vertex color and alpha the same (that is should texture have alpha of its own, sometimes they may as well)
 			rstate.BlendMode = BlendMode.Additive;
-			var shader = GetShader(vertextype);
+			var shader = GetShader(rstate, vertextype);
 			shader.SetWorld(World);
 			//Dt
 			shader.SetDtSampler(0);

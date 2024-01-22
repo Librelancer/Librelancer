@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Xml.Schema;
 using LibreLancer;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -20,7 +21,7 @@ namespace LibreLancer.Interface
         public string FontFamily { get; set; }
 
         public float MarginLeft { get; set; }
-        
+
         public float MarginRight { get; set; }
 
         InfoTextAccessor txtAccess = new InfoTextAccessor();
@@ -45,9 +46,9 @@ namespace LibreLancer.Interface
         public VerticalAlignment VerticalAlignment { get; set; }
         public InterfaceColor TextColor { get; set; }
         public InterfaceColor TextShadow { get; set; }
-        
+
         public bool DebugTextFrame { get; set; }
-        
+
         private ButtonStyle style;
         private bool styleSetManual = false;
         public void SetStyle(ButtonStyle style)
@@ -95,7 +96,7 @@ namespace LibreLancer.Interface
                 lastFrameMouseInside = false;
             }
             if (Dragging) {
-                DragOffset = new Vector2(context.MouseX, context.MouseY) - DragStart;   
+                DragOffset = new Vector2(context.MouseX, context.MouseY) - DragStart;
             }
             if (HeldDown) {
                 if (!myRectangle.Contains(context.MouseX, context.MouseY)) {

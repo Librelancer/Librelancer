@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -38,7 +39,7 @@ namespace LibreLancer.Interface
             get => txtAccess.AllCaps;
             set => txtAccess.AllCaps = value;
         }
-    
+
         public HorizontalAlignment HorizontalAlignment { get; set; }
         public VerticalAlignment VerticalAlignment { get; set; }
         public InterfaceColor TextColor { get; set; }
@@ -53,7 +54,7 @@ namespace LibreLancer.Interface
 
         private bool fading = true;
         private float fadeStep = 0;
-        
+
         public void FadeIn(float duration)
         {
             if (!Visible) {
@@ -62,7 +63,7 @@ namespace LibreLancer.Interface
                 fadeStep = 1.0f / duration;
             }
         }
-        
+
         public void FadeOut(float duration)
         {
             if (Visible && fadeStep <= 0) {
@@ -73,7 +74,7 @@ namespace LibreLancer.Interface
                 }
             }
         }
-        
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (fading) {

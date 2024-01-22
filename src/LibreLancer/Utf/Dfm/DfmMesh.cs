@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
 
@@ -150,7 +151,7 @@ namespace LibreLancer.Utf.Dfm
 
         private ResourceManager res;
 
-		public void Initialize(ResourceManager cache)
+		public void Initialize(ResourceManager cache, RenderContext rstate)
         {
             res = cache;
 			List<DfmVertex> vertices = new List<DfmVertex>();
@@ -186,7 +187,7 @@ namespace LibreLancer.Utf.Dfm
                 vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], uv, weights, (byte)id1, (byte)id2, (byte)id3, (byte)id4));
 			}
 
-			vertexBuffer = new VertexBuffer(typeof(DfmVertex), vertices.Count);
+			vertexBuffer = new VertexBuffer(rstate, typeof(DfmVertex), vertices.Count);
 			vertexBuffer.SetData<DfmVertex>(vertices.ToArray());
 
 			int indexCount = 0;
@@ -196,7 +197,7 @@ namespace LibreLancer.Utf.Dfm
 				indexCount += faceGroup.TriangleStripIndices.Length;
 			}
 			var indices = new ushort[indexCount];
-			elementBuffer = new ElementBuffer(indexCount);
+			elementBuffer = new ElementBuffer(rstate, indexCount);
 			indexCount = 0;
 			foreach (FaceGroup faceGroup in FaceGroups)
 			{

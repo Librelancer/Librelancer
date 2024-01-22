@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 
@@ -25,13 +26,13 @@ public struct NodeBuilder : IDisposable
     public static int HeaderTextureId;
     public static int HeaderTextureWidth;
     public static int HeaderTextureHeight;
-    public static void LoadTexture()
+    public static void LoadTexture(RenderContext context)
     {
         if (HeaderTextureId != 0)
             return;
 
         using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.BlueprintBackground.png");
-        var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+        var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(context, stream);
         HeaderTextureId = ImGuiHelper.RegisterTexture(icon);
         HeaderTextureWidth = icon.Width;
         HeaderTextureHeight = icon.Height;

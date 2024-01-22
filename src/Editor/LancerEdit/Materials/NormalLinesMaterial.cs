@@ -1,8 +1,9 @@
 using System;
 using LibreLancer;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LancerEdit;
 
@@ -83,27 +84,30 @@ void main() {
     private static int worldLoc;
     private static int sizeLoc;
 
-    static void InitShader()
+    static void InitShader(RenderContext context)
     {
         if (shader == null)
         {
             string prelude = "";
-            if (RenderContext.GLES)
+            if (context.HasFeature(GraphicsFeature.GLES))
                 prelude = "#version 310 es\nprecision highp float;\nprecision highp int;\n";
             else
                 prelude = "#version 150\n";
-            shader = new Shader(prelude + VERTEX, prelude + FRAGMENT, prelude + GEOMETRY);
+            shader = new Shader(context, prelude + VERTEX, prelude + FRAGMENT, prelude + GEOMETRY);
             worldLoc = shader.GetLocation("World");
             sizeLoc = shader.GetLocation("Size");
         }
     }
 
-    public NormalLinesMaterial(ResourceManager library) : base(library) => InitShader();
+    public NormalLinesMaterial(ResourceManager library) : base(library)
+    {
+    }
 
     public float Size { get; set; } = 2;
 
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        InitShader(rstate);
         shader.SetMatrix(worldLoc, (IntPtr) World.Source);
         shader.SetFloat(sizeLoc, Size);
         shader.UseProgram();

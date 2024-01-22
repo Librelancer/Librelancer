@@ -11,6 +11,7 @@
     <PackageProjectUrl>https://librelancer.net/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/Librelancer/Librelancer/blob/main/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/Librelancer/Librelancer</RepositoryUrl>
+    <RootNamespace>LibreLancer</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

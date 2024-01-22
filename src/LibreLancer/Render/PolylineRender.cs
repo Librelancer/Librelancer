@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render.Materials;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {
@@ -18,13 +19,13 @@ namespace LibreLancer.Render
 		VertexBuffer vbo;
         CommandBuffer buffer;
         private PolylineMaterial material;
-		public PolylineRender(CommandBuffer buffer)
+		public PolylineRender(RenderContext rstate, CommandBuffer buffer)
         {
             material = new PolylineMaterial(null);
-			vbo = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_VERTICES, true);
+			vbo = new VertexBuffer(rstate, typeof(VertexPositionColorTexture), MAX_VERTICES, true);
 			this.buffer = buffer;
 		}
-        
+
         public void StartFrame()
         {
             material.Parameters.Clear();
@@ -69,7 +70,7 @@ namespace LibreLancer.Render
 			}
 
 			int startPos = vertexCount - (pointsCount * 2);
-            
+
 			buffer.AddCommand(
                 material, null, buffer.WorldBuffer.Identity, Lighting.Empty,
 				vbo,
@@ -90,7 +91,7 @@ namespace LibreLancer.Render
             vertices = (VertexPositionColorTexture*) 0;
             vertexCount = 0;
 		}
-        
+
         public void Dispose()
 		{
 			vbo.Dispose();

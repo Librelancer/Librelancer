@@ -5,7 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Vertices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Render
 {
@@ -63,9 +64,12 @@ namespace LibreLancer.Render
         private List<VertexResource> resources = new List<VertexResource>();
         private List<IndexResource> indexResources = new List<IndexResource>();
 
-        public VertexResourceAllocator()
+        private RenderContext context;
+
+        public VertexResourceAllocator(RenderContext context)
         {
-            elementBuffer = new ElementBuffer(INITIAL_ELEMENT_BUFFER_SIZE);
+            this.context = context;
+            elementBuffer = new ElementBuffer(context, INITIAL_ELEMENT_BUFFER_SIZE);
             indexFree.AddItem(0, INITIAL_ELEMENT_BUFFER_SIZE);
         }
 
@@ -81,7 +85,7 @@ namespace LibreLancer.Render
             elementBuffer.SetData(indices, indices.Length, startIndex);
             if (!buffersByType.TryGetValue(typeof(T), out var buffer))
             {
-                buffer = new VertexResourceBuffer(typeof(T), elementBuffer);
+                buffer = new VertexResourceBuffer(context, typeof(T), elementBuffer);
                 buffersByType[typeof(T)] = buffer;
             }
             buffer.Allocate(vertices, out int baseVertex);
@@ -217,8 +221,11 @@ namespace LibreLancer.Render
             private Type type;
             private int chunkSize;
 
-            public VertexResourceBuffer(Type type, ElementBuffer elementBuffer)
+            private RenderContext context;
+
+            public VertexResourceBuffer(RenderContext context, Type type, ElementBuffer elementBuffer)
             {
+                this.context = context;
                 this.type = type;
                 this.elementBuffer = elementBuffer;
                 var ivert = (IVertexType)Activator.CreateInstance(type);
@@ -232,7 +239,7 @@ namespace LibreLancer.Render
                 if (VertexBuffer == null)
                 {
                     FLLog.Debug("Vertices", $"Allocating GPU resource for {type.Name}");
-                    VertexBuffer = new VertexBuffer(type, chunkSize, false);
+                    VertexBuffer = new VertexBuffer(context, type, chunkSize, false);
                     VertexBuffer.SetElementBuffer(elementBuffer);
                     freeList.AddItem(0, chunkSize);
                 }

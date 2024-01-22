@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface;

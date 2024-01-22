@@ -17,6 +17,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics;
 using LibreLancer.Interface;
 using LibreLancer.Render;
 using LibreLancer.Thn;

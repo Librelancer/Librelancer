@@ -11,7 +11,8 @@ using System.Xml;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
-using LibreLancer.Interface; 
+using LibreLancer.Graphics;
+using LibreLancer.Interface;
 namespace InterfaceEdit
 {
     public class DesignerTab : SaveableTab
@@ -38,7 +39,7 @@ namespace InterfaceEdit
             context.GameApi = mainWindow.TestApi;
             TextChanged();
         }
-        
+
         public override void Save()
         {
             File.WriteAllText(savePath, xmlEditor.GetText());
@@ -149,7 +150,7 @@ namespace InterfaceEdit
                     ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
-                renderTarget = new RenderTarget2D(rtX, rtY);
+                renderTarget = new RenderTarget2D(mainWindow.RenderContext, rtX, rtY);
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
 
@@ -219,8 +220,8 @@ namespace InterfaceEdit
             var stringReader = new StringReader(scanText);
             var reader = new XmlTextReader(stringReader);
             reader.MoveToContent();
-            int startDepth = reader.Depth; 
-            if (!reader.IsEmptyElement) { 
+            int startDepth = reader.Depth;
+            if (!reader.IsEmptyElement) {
                 reader.Read();
                 while (!reader.EOF && (reader.Depth > startDepth))
                     reader.Read();
@@ -269,7 +270,7 @@ namespace InterfaceEdit
             {
                 objectMaps = new List<XmlObjectMap>();
                 widget = (UiWidget) mainWindow.Project.XmlLoader.FromString(text, objectMaps);
-                if(mainWindow.Project.UiData.Stylesheet != null) widget.ApplyStylesheet(mainWindow.Project.UiData.Stylesheet); 
+                if(mainWindow.Project.UiData.Stylesheet != null) widget.ApplyStylesheet(mainWindow.Project.UiData.Stylesheet);
                 context.SetWidget(widget);
                 validXml = true;
             }

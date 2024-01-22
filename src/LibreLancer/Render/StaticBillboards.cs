@@ -6,7 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using LibreLancer.Vertices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Render
 {
@@ -26,7 +27,7 @@ namespace LibreLancer.Render
             TextureCoordinate = tex;
             Dimensions = new Vector3(x, y, angle);
         }
-        
+
         public VertexBillboardColor2(Vector3 position, Vector2 tex)
         {
             Position = position;
@@ -34,7 +35,7 @@ namespace LibreLancer.Render
             TextureCoordinate = tex;
             Dimensions = Vector3.Zero;
         }
-        
+
         public VertexDeclaration GetVertexDeclaration()
         {
             return new VertexDeclaration(
@@ -60,10 +61,10 @@ namespace LibreLancer.Render
         }
         List<SunVtx> vertexPtrs = new List<SunVtx>();
         int vertexOffset = 0;
-        public StaticBillboards()
+        public StaticBillboards(RenderContext rstate)
         {
-            VertexBuffer = new VertexBuffer(typeof(VertexBillboardColor2), MAX_QUADS * 4);
-            ibo = new ElementBuffer(MAX_QUADS * 6);
+            VertexBuffer = new VertexBuffer(rstate, typeof(VertexBillboardColor2), MAX_QUADS * 4);
+            ibo = new ElementBuffer(rstate, MAX_QUADS * 6);
             var indices = new ushort[MAX_QUADS * 6];
             int iptr = 0;
             for (int i = 0; i < (MAX_QUADS * 4); i += 4)
@@ -106,7 +107,7 @@ namespace LibreLancer.Render
                 new(new Vector3(+1, 0, 1), new Vector2(0, 1)),
             });
         }
-        
+
         int idCounter = 0;
         public int DoVertices(ref int id, VertexBillboardColor2[] vertices)
         {

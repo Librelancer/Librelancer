@@ -2,9 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials
 {
@@ -27,7 +28,7 @@ namespace LibreLancer.Render.Materials
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-			var sh = Shaders.DetailMap2Dm1Msk2PassMaterial.Get (RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
+			var sh = Shaders.DetailMap2Dm1Msk2PassMaterial.Get (rstate, rstate.HasFeature(GraphicsFeature.GLES) ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetWorld (World);
             sh.SetAc(Ac);
 			sh.SetDc(Dc);
@@ -45,7 +46,7 @@ namespace LibreLancer.Render.Materials
 		public override void ApplyDepthPrepass(RenderContext rstate)
 		{
 			rstate.BlendMode = BlendMode.Normal;
-            var sh = Shaders.DepthPass_Normal.Get();
+            var sh = Shaders.DepthPass_Normal.Get(rstate);
             sh.SetWorld(World);
             sh.UseProgram();
 		}

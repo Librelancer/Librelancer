@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Graphics;
 using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Media;
@@ -124,12 +125,12 @@ namespace LibreLancer
             GameDataLoaderThread.Start();
             //
             Fonts = new FontManager();
-			Billboards = new Billboards ();
+			Billboards = new Billboards (RenderContext);
 			RenderContext.PushViewport(0, 0, Width, Height);
 			Screenshots = new ScreenshotManager(this);
             Typewriter = new Typewriter(this);
-            Lines = new LineRenderer();
-            Commands = new CommandBuffer();
+            Lines = new LineRenderer(RenderContext);
+            Commands = new CommandBuffer(RenderContext);
             Services.Add(Commands);
             Services.Add(Billboards);
             Services.Add(ResourceManager);

@@ -20,6 +20,8 @@ using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Render;
 using LibreLancer.Shaders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -55,7 +57,7 @@ namespace LancerEdit
         OptionsWindow options;
 
         private QuickFileBrowser quickFileBrowser;
-        public MainWindow() : base(800,600,false)
+        public MainWindow(GameConfiguration configuration = null) : base(800,600,false, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();
@@ -77,7 +79,7 @@ namespace LancerEdit
                     Bell.Play();
                 }*/
             };
-            Config = EditorConfiguration.Load();
+            Config = EditorConfiguration.Load(configuration == null || configuration.IsSDL);
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
             quickFileBrowser = new QuickFileBrowser(Config, this, Popups);
             quickFileBrowser.FileSelected += OpenFile;
@@ -99,15 +101,15 @@ namespace LancerEdit
         {
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.splash.png"))
             {
-                return (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+                return (Texture2D)LibreLancer.ImageLib.Generic.FromStream(RenderContext, stream);
             }
         }
 
         protected override void Load()
         {
-            AllShaders.Compile();
+            AllShaders.Compile(RenderContext);
             DefaultMaterialMap.Init();
-            ZoneRenderer.Load();
+            ZoneRenderer.Load(RenderContext);
 			Title = "LancerEdit";
             guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
@@ -115,9 +117,9 @@ namespace LancerEdit
             Bell.Init(Audio);
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this);
-			Commands = new CommandBuffer();
-			Polyline = new PolylineRender(Commands);
-			LineRenderer = new LineRenderer();
+			Commands = new CommandBuffer(RenderContext);
+			Polyline = new PolylineRender(RenderContext, Commands);
+			LineRenderer = new LineRenderer(RenderContext);
             RenderContext.ReplaceViewport(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
             //TODO: Icon-setting code very messy
@@ -128,7 +130,7 @@ namespace LancerEdit
             }
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_128.png"))
             {
-                var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+                var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(RenderContext, stream);
                 logoTexture = ImGuiHelper.RegisterTexture(icon);
             }
             //Open passed in files!
@@ -139,7 +141,7 @@ namespace LancerEdit
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);
-            Billboards = new Billboards();
+            Billboards = new Billboards(RenderContext);
             Config.Validate(RenderContext);
             Services.Add(Commands);
             Services.Add(Billboards);
@@ -810,7 +812,7 @@ namespace LancerEdit
                     lastFrame.Height != Height)
                 {
                     if (lastFrame != null) lastFrame.Dispose();
-                    lastFrame = new RenderTarget2D(Width, Height);
+                    lastFrame = new RenderTarget2D(RenderContext, Width, Height);
                 }
 
                 RenderContext.RenderTarget = lastFrame;

@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials;
 
@@ -18,9 +19,10 @@ public class SunRadialMaterial : RenderMaterial
     public string Texture;
 
 
-    static SunRadialMaterial()
+    static void Init(RenderContext rstate)
     {
-        shader = Shaders.SunRadial.Get();
+        if (shader != null) return;
+        shader = Shaders.SunRadial.Get(rstate);
         _sizeMultiplier = shader.Shader.GetLocation("SizeMultiplier");
         _outerAlpha = shader.Shader.GetLocation("outerAlpha");
     }
@@ -30,6 +32,7 @@ public class SunRadialMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        Init(rstate);
         shader.Shader.SetVector2(_sizeMultiplier, SizeMultiplier);
         shader.Shader.SetFloat(_outerAlpha, OuterAlpha);
         shader.SetDtSampler(0);

@@ -8,13 +8,14 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using LibreLancer;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 using LancerEdit.Materials;
 using LibreLancer.Data;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
@@ -82,7 +83,7 @@ namespace LancerEdit
             lighting.NumberOfTilesX = -1;
             if (drawable is DF.DfmFile d)
             {
-                d.Initialize(res);
+                d.Initialize(res, _window.RenderContext);
                 skel = new DfmSkeletonManager(d);
             }
         }
@@ -180,9 +181,9 @@ namespace LancerEdit
                 verts.AddRange(m.Vertices.Select(x => new VertexPositionColor(x, color)));
                 indices.AddRange(m.Indices.Select(x => (short)x));
             }
-            mdl.Vertices = new VertexBuffer(typeof(VertexPositionColor), verts.Count);
+            mdl.Vertices = new VertexBuffer(_window.RenderContext,typeof(VertexPositionColor), verts.Count);
             mdl.Vertices.SetData(verts.ToArray());
-            mdl.Elements = new ElementBuffer(indices.Count);
+            mdl.Elements = new ElementBuffer(_window.RenderContext, indices.Count);
             mdl.Elements.SetData(indices.ToArray());
             mdl.Vertices.SetElementBuffer(mdl.Elements);
             return mdl;

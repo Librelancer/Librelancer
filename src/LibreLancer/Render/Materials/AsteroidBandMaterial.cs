@@ -1,4 +1,5 @@
-using LibreLancer.Vertices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 
@@ -15,9 +16,10 @@ public class AsteroidBandMaterial : RenderMaterial
     public float TextureAspect;
     public string Texture;
 
-    static AsteroidBandMaterial()
+    static void Init(RenderContext rstate)
     {
-        shader = AsteroidBand.Get();
+        if (shader != null) return;
+        shader = AsteroidBand.Get(rstate);
         _colorShift = shader.Shader.GetLocation("ColorShift");
         _textureAspect = shader.Shader.GetLocation("TextureAspect");
     }
@@ -26,6 +28,7 @@ public class AsteroidBandMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        Init(rstate);
         shader.Shader.SetColor4(_colorShift, ColorShift);
         shader.Shader.SetFloat(_textureAspect, TextureAspect);
         shader.SetWorld(World);

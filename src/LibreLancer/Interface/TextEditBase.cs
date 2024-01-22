@@ -1,4 +1,6 @@
 using ImGuiNET;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Text;
 
 namespace LibreLancer.Interface;
 

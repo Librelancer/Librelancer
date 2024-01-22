@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using LibreLancer.Graphics;
+
 namespace LibreLancer.ImageLib
 {
     public static class DDS
@@ -73,7 +75,7 @@ namespace LibreLancer.ImageLib
             DXT5 = 0x35545844
         }
 
-        public static Texture FromStream(Stream stream)
+        public static Texture FromStream(RenderContext context, Stream stream)
         {
             var reader = new BinaryReader(stream);
             if (reader.ReadUInt32() != DDS_MAGIC)
@@ -91,31 +93,31 @@ namespace LibreLancer.ImageLib
                 throw new Exception("3D textures not supported");
 
             if (CheckFlag(header.dwCaps2, DDSCAPS2_CUBEMAP))
-                return GetTextureCube(ref header, reader);
+                return GetTextureCube(context, ref header, reader);
 
-            return GetTexture2D(ref header, reader);
+            return GetTexture2D(context, ref header, reader);
         }
 
-        static Texture2D GetTexture2D(ref DDS_HEADER header, BinaryReader reader)
+        static Texture2D GetTexture2D(RenderContext context, ref DDS_HEADER header, BinaryReader reader)
         {
             SurfaceFormat fmt;
             int w, h;
             var surface = LoadSurface(ref header, reader, out fmt, out w, out h);
-            var tex = new Texture2D(w, h, surface.Length > 1, fmt);
+            var tex = new Texture2D(context, w, h, surface.Length > 1, fmt);
             for (int i = 0; i < surface.Length; i++)
                 tex.SetData(i, null, surface[i], 0, surface[i].Length);
             return tex;
         }
-        static TextureCube GetTextureCube(ref DDS_HEADER header, BinaryReader reader)
+        static TextureCube GetTextureCube(RenderContext context, ref DDS_HEADER header, BinaryReader reader)
         {
             SurfaceFormat fmt;
             int w, h;
             var sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
-            var tex = new TextureCube(w, sfc.Length > 1, fmt);
+            var tex = new TextureCube(context, w, sfc.Length > 1, fmt);
             //Positive X
             for (int i = 0; i < sfc.Length; i++)
                 tex.SetData(CubeMapFace.PositiveX, i, null, sfc[i], 0, sfc[i].Length);
-            //Negative 
+            //Negative
             sfc = LoadSurface(ref header, reader, out fmt, out w, out h);
             for (int i = 0; i < sfc.Length; i++)
                 tex.SetData(CubeMapFace.NegativeX, i, null, sfc[i], 0, sfc[i].Length);

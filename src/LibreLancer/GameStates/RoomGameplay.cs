@@ -14,6 +14,7 @@ using LibreLancer.GameData;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;

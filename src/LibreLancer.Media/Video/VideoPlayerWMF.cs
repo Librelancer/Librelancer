@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.Media
 {
@@ -66,11 +67,11 @@ namespace LibreLancer.Media
             }
         }
 
-        public override void Draw(RenderContext rstate)
+        public override void Draw()
         {
             if(Playing)
             {
-               
+
                 if (videoSampler.Changed)
                 {
                     _texture.SetData(videoSampler.TextureData);
@@ -88,14 +89,17 @@ namespace LibreLancer.Media
             return dot;
         }
         static bool _started = false;
-        public override bool Init()
+
+        private RenderContext rcontext;
+        public override bool Init(RenderContext rcontext)
         {
+            this.rcontext = rcontext;
             FLLog.Info("Video", "Opening Windows Media Foundation backend");
             try
             {
                if(dot == null)
                 {
-                    dot = new Texture2D(1, 1);
+                    dot = new Texture2D(rcontext, 1, 1);
                     dot.SetData(new uint[] { 0x000000FF });
                 }
                 if (!_started)
@@ -182,7 +186,7 @@ namespace LibreLancer.Media
                         //retrieve size of video
                         long sz = desc.MediaTypeHandler.CurrentMediaType.Get<long>(new Guid("{1652c33d-d6b2-4012-b834-72030849a37d}"));
                         int height = (int)(sz & uint.MaxValue), width = (int)(sz >> 32);
-                        _texture = new Texture2D(width, height, false, SurfaceFormat.Color);
+                        _texture = new Texture2D(rcontext, width, height, false, SurfaceFormat.Color);
                         mt = new MediaType();
 
                         mt.Set(MediaTypeAttributeKeys.MajorType, MediaTypeGuids.Video);
@@ -220,7 +224,7 @@ namespace LibreLancer.Media
             session.SetTopology(SessionSetTopologyFlags.Immediate, topology);
             // Get the clock
             clock = session.Clock.QueryInterface<PresentationClock>();
-           
+
             // Start playing.
             Playing = true;
         }

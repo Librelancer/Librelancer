@@ -9,6 +9,7 @@ using LibreLancer;
 using LibreLancer.Interface;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 
 namespace LancerEdit
@@ -74,7 +75,7 @@ namespace LancerEdit
                     ImGuiHelper.DeregisterTexture(rtarget.Texture);
                     rtarget.Dispose();
                 }
-                rtarget = new RenderTarget2D(width, height);
+                rtarget = new RenderTarget2D(ctx.RenderContext, width, height);
                 rw = width;
                 rh = height;
                 rt = ImGuiHelper.RegisterTexture(rtarget.Texture);

@@ -6,8 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Primitives;
-
 using LibreLancer.Ini;
 
 using LibreLancer.Data.Solar;
@@ -17,69 +15,69 @@ namespace LibreLancer.Data.Universe
 {
 	public class SystemObject : SystemPart
     {
-        [Entry("ambient_color")] 
+        [Entry("ambient_color")]
         [Entry("ambient")]
         public Color4? AmbientColor;
 
-        [Entry("archetype")] 
+        [Entry("archetype")]
         public string Archetype;
 
         [Entry("star")]
         public string Star;
 
-        [Entry("atmosphere_range")] 
+        [Entry("atmosphere_range")]
         public int? AtmosphereRange;
-        
-        [Entry("burn_color")] 
+
+        [Entry("burn_color")]
         public Color4? BurnColor;
 
-        [Entry("base")] 
+        [Entry("base")]
         public string Base;
 
-        [Entry("msg_id_prefix")] 
+        [Entry("msg_id_prefix")]
         public string MsgIdPrefix;
-        
-        [Entry("jump_effect")] 
+
+        [Entry("jump_effect")]
         public string JumpEffect;
 
         [Entry("behavior")]
         public string Behavior;
 
-        [Entry("difficulty_level")] 
+        [Entry("difficulty_level")]
         public int? DifficultyLevel;
 		public JumpReference Goto { get; private set; }
 
-        [Entry("loadout")] 
+        [Entry("loadout")]
         public string Loadout;
 
-        [Entry("pilot")] 
+        [Entry("pilot")]
         public string Pilot;
 
-        [Entry("dock_with")] 
+        [Entry("dock_with")]
         public string DockWith;
 
-        [Entry("voice")] 
+        [Entry("voice")]
         public string Voice;
 
-        [Entry("space_costume")] 
+        [Entry("space_costume")]
         public string[] SpaceCostume;
 
-        [Entry("faction")] 
+        [Entry("faction")]
         public string Faction;
 
-        [Entry("prev_ring")] 
+        [Entry("prev_ring")]
         public string PrevRing;
 
-        [Entry("next_ring")] 
+        [Entry("next_ring")]
         public string NextRing;
 
-        [Entry("tradelane_space_name")] 
+        [Entry("tradelane_space_name")]
         public int TradelaneSpaceName;
 
-        [Entry("parent")] 
+        [Entry("parent")]
         public string Parent;
 
-        [Entry("comment")] 
+        [Entry("comment")]
         public string Comment;
 
         public string RingZone;

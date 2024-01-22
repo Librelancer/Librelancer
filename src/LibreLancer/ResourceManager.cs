@@ -10,9 +10,10 @@ using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
-using LibreLancer.Vertices;
-using LibreLancer.Primitives;
 using LibreLancer.Fx;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Primitives;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Sur;
@@ -133,7 +134,7 @@ namespace LibreLancer
         Dictionary<int, QuadSphere> quadSpheres = new Dictionary<int, QuadSphere>();
         Dictionary<int, OpenCylinder> cylinders = new Dictionary<int, OpenCylinder>();
 
-        private VertexResourceAllocator vertexResourceAllocator = new VertexResourceAllocator();
+        private VertexResourceAllocator vertexResourceAllocator;
 
         public override VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
         {
@@ -145,7 +146,7 @@ namespace LibreLancer
         public override QuadSphere GetQuadSphere(int slices) {
             QuadSphere sph;
             if(!quadSpheres.TryGetValue(slices, out sph)) {
-                sph = new QuadSphere(slices);
+                sph = new QuadSphere(GLWindow.RenderContext, slices);
                 quadSpheres.Add(slices, sph);
             }
             return sph;
@@ -156,7 +157,7 @@ namespace LibreLancer
             OpenCylinder cyl;
             if (!cylinders.TryGetValue(slices, out cyl))
             {
-                cyl = new OpenCylinder(slices);
+                cyl = new OpenCylinder(GLWindow.RenderContext, slices);
                 cylinders.Add(slices, cyl);
             }
             return cyl;
@@ -177,12 +178,24 @@ namespace LibreLancer
 		}
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => frameanims;
 
-        public GameResourceManager(IGLWindow g) : this()
+        public GameResourceManager(IGLWindow g)
 		{
 			GLWindow = g;
+            vertexResourceAllocator = new VertexResourceAllocator(g.RenderContext);
 			DefaultMaterial = new Material(this);
 			DefaultMaterial.Name = "$LL_DefaultMaterialName";
             DefaultMaterial.Initialize(this);
+
+            NullTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Color);
+            NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
+
+            WhiteTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Color);
+            WhiteTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
+
+            GreyTexture = new Texture2D(g.RenderContext, 1,1, false, SurfaceFormat.Color);
+            GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF});
+
+            ConvexCollection = new ConvexMeshCollection(GetSur);
 		}
 
         public GameResourceManager(GameResourceManager src) : this(src.GLWindow)
@@ -194,20 +207,6 @@ namespace LibreLancer
                 materials[mat] = null;
             foreach (var tex in src.textures.Keys)
                 textures[tex] = null;
-        }
-
-        public GameResourceManager()
-		{
-			NullTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
-			NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
-
-			WhiteTexture = new Texture2D(1, 1, false, SurfaceFormat.Color);
-			WhiteTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
-
-            GreyTexture = new Texture2D(1,1, false, SurfaceFormat.Color);
-            GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF});
-
-            ConvexCollection = new ConvexMeshCollection(GetSur);
         }
 
 		public void Preload()
@@ -256,7 +255,7 @@ namespace LibreLancer
 
 		public void AddTexture(string name,string filename)
 		{
-			var dat = ImageLib.Generic.FromFile(filename);
+			var dat = ImageLib.Generic.FromFile(GLWindow.RenderContext, filename);
 			textures.Add(name, dat);
 			texturefiles.Add(name, filename);
             EstimatedTextureMemory += dat.EstimatedTextureMemory;
@@ -450,7 +449,7 @@ namespace LibreLancer
 				if (!textures.TryGetValue(tex.Key, out var existing) || existing == null)
 				{
 					var v = tex.Value;
-					v.Initialize();
+					v.Initialize(GLWindow.RenderContext);
                     if (v.Texture != null)
                     {
                         EstimatedTextureMemory += v.Texture.EstimatedTextureMemory;
@@ -537,7 +536,7 @@ namespace LibreLancer
 				if (drawable is DfmFile)
 				{
 					var dfm = (DfmFile)drawable;
-                    dfm.Initialize(this);
+                    dfm.Initialize(this, GLWindow.RenderContext);
 					if (dfm.MaterialLibrary != null) AddMaterials(dfm.MaterialLibrary, filename);
 					if (dfm.TextureLibrary != null) AddTextures(dfm.TextureLibrary, filename);
                 }

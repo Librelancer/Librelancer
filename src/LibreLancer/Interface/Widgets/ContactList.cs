@@ -1,4 +1,5 @@
 using System;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -10,11 +11,11 @@ namespace LibreLancer.Interface
         public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };
         public string Font { get; set; } = "$ListText";
         public int TextSize { get; set; }
-        
+
         public InterfaceColor FriendlyColor { get; set; }
-        
+
         public InterfaceColor HostileColor { get; set; }
-        
+
         public InterfaceColor NeutralColor { get; set; }
         public InterfaceColor HoverColor { get; set; }
         public InterfaceColor SelectedColor { get; set; }
@@ -22,7 +23,7 @@ namespace LibreLancer.Interface
         public int DisplayRowCount { get; set; } = 5;
 
         private IContactListData data;
-        
+
         public void SetData(IContactListData data)
         {
             this.data = data;
@@ -34,15 +35,15 @@ namespace LibreLancer.Interface
             int c = data.Count - DisplayRowCount;
             return c <= 0 ? 0 : c;
         }
-        
+
         private int childOffset = 0;
-        
+
         public override void ApplyStylesheet(Stylesheet sheet)
         {
             base.ApplyStylesheet(sheet);
             Scrollbar.ApplyStyle(sheet);
         }
-        
+
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
@@ -51,7 +52,7 @@ namespace LibreLancer.Interface
             var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
             return myRect;
         }
-        
+
         RectangleF GetCell(RectangleF parentRect, int row)
         {
             var lineHeight = parentRect.Height / DisplayRowCount;
@@ -59,7 +60,7 @@ namespace LibreLancer.Interface
             var width = parentRect.Width;
             return new RectangleF(parentRect.X + 1, y + 1, width - 2, lineHeight - 2);
         }
-        
+
         bool CanRender()
         {
             return Width > 0 && Height > 0 &&
@@ -73,7 +74,7 @@ namespace LibreLancer.Interface
             if(rect.Contains(context.MouseX, context.MouseY))
                 Scrollbar.OnMouseWheel(delta);
         }
-        
+
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!CanRender() || data == null) return;
@@ -102,7 +103,7 @@ namespace LibreLancer.Interface
                 Scrollbar.OnMouseDown(context, rect);
             }
         }
-        
+
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
             if (!CanRender() || data == null) return;
@@ -114,7 +115,7 @@ namespace LibreLancer.Interface
 
         private int _lastScroll = 0;
         private CachedRenderString[] rowStrings;
-        
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!CanRender()) return;
@@ -158,13 +159,13 @@ namespace LibreLancer.Interface
                     }
                     InterfaceColor textColor = null;
                     switch (data.GetAttitude(row + childOffset)) {
-                        case RepAttitude.Friendly: 
+                        case RepAttitude.Friendly:
                             textColor = FriendlyColor;
                             break;
-                        case RepAttitude.Hostile: 
+                        case RepAttitude.Hostile:
                             textColor = HostileColor;
                             break;
-                        case RepAttitude.Neutral: 
+                        case RepAttitude.Neutral:
                             textColor = NeutralColor;
                             break;
                     }

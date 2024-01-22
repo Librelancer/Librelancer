@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
 
 namespace LibreLancer.ContentEdit
@@ -13,7 +14,7 @@ namespace LibreLancer.ContentEdit
     {
         Uncompressed = 11,
         DXT1 = CrnglueFormat.DXT1,
-        DXT1a = CrnglueFormat.DXT1A, 
+        DXT1a = CrnglueFormat.DXT1A,
         DXT3 = CrnglueFormat.DXT3,
         DXT5 = CrnglueFormat.DXT5
     }
@@ -41,7 +42,7 @@ namespace LibreLancer.ContentEdit
         public TexLoadType Type;
         public Texture2D Texture;
     }
-    
+
     public class TextureImport
     {
         public static string LoadErrorString(TexLoadType type, string filename)
@@ -54,7 +55,7 @@ namespace LibreLancer.ContentEdit
                 default: throw new InvalidOperationException();
             }
         }
-        public static AnalyzedTexture OpenFile(string input)
+        public static AnalyzedTexture OpenFile(string input, RenderContext context)
         {
             try
             {
@@ -65,7 +66,7 @@ namespace LibreLancer.ContentEdit
                         return new AnalyzedTexture()
                         {
                             Type = TexLoadType.DDS,
-                            Texture = (Texture2D)DDS.FromStream(file)
+                            Texture = (Texture2D)DDS.FromStream(context, file)
                         };
                     }
                 }
@@ -93,7 +94,7 @@ namespace LibreLancer.ContentEdit
                        opaque = false;
                    }
                }
-               var tex = new Texture2D(lr.Width, lr.Height);
+               var tex = new Texture2D(context, lr.Width, lr.Height);
                tex.SetData(lr.Data);
                return new AnalyzedTexture()
                {
@@ -175,7 +176,7 @@ namespace LibreLancer.ContentEdit
                 }
             }
         }
-        
+
         public static byte[] CreateDDS(string input, DDSFormat format, MipmapMethod mipm, bool slow, bool flip)
         {
             var raw = ReadFile(input, flip);

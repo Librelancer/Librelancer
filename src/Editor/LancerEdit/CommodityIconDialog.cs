@@ -10,6 +10,7 @@ using System.Threading;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 
 namespace LancerEdit
@@ -42,7 +43,7 @@ namespace LancerEdit
                 teximportprev = null;
             }
 
-            var src = TextureImport.OpenFile(filename);
+            var src = TextureImport.OpenFile(filename, win.RenderContext);
             loadType = src.Type;
             teximportprev = src.Texture;
             if (loadType == TexLoadType.ErrorLoad ||

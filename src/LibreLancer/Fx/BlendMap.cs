@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Graphics;
+
 namespace LibreLancer.Fx
 {
 	//Map D3DBLEND pairs to internal blend modes
@@ -20,13 +22,13 @@ namespace LibreLancer.Fx
 				throw new ArgumentException("Ale Blend_Info source out of range");
 			if (ale.Item2 < 1 || ale.Item2 > 17)
 				throw new ArgumentException("Ale Blend_Info destination out of range");
-			
+
 			BlendMode mode;
 			if (!_map.TryGetValue(ale, out mode))
 				throw new NotImplementedException("Ale Blend_Info Not Implemented: " + ale.Item1 + "," + ale.Item2);
 			return mode;
 		}
-        /* typedef enum D3DBLEND { 
+        /* typedef enum D3DBLEND {
   D3DBLEND_ZERO             = 1,
   D3DBLEND_ONE              = 2,
   D3DBLEND_SRCCOLOR         = 3,

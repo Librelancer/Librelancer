@@ -15,17 +15,17 @@ namespace LibreLancer.Shaders
     {
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
-        public static ShaderVariables Get(ShaderFeatures features)
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device, ShaderFeatures features)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[0];
         }
-        public static ShaderVariables Get()
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[0];
         }
-        internal static void Compile(string sourceBundle)
+        internal static void Compile(LibreLancer.Graphics.RenderContext device, string sourceBundle)
         {
             if (iscompiled)
             {
@@ -35,7 +35,7 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling Polyline");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(336801, 486), sourceBundle.Substring(244636, 236));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(336801, 486), sourceBundle.Substring(244636, 236));
         }
     }
 }

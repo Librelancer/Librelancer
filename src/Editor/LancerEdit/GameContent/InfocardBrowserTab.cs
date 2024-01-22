@@ -10,6 +10,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
 
@@ -211,7 +212,7 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.SameLine();
         if (ImGuiExt.ToggleButton("Dll List", showDllList)) showDllList = !showDllList;
         ImGui.Separator();
-        if (showDllList && ImGui.Begin("Dll List", ref showDllList)) 
+        if (showDllList && ImGui.Begin("Dll List", ref showDllList))
         {
             ImGui.PushFont(ImGuiHelper.SystemMonospace);
             for (int i = 0; i < manager.Dlls.Count; i++) {

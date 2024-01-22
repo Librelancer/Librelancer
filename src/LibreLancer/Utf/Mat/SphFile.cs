@@ -6,9 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Utf.Vms;
-
-using LibreLancer.Primitives;
 using LibreLancer.Render;
 using LibreLancer.World;
 
@@ -164,7 +163,7 @@ namespace LibreLancer.Utf.Mat
             vmesh.BoundingBox = BoundingBox.CreateFromSphere(new BoundingSphere(Vector3.Zero, Radius));;
             if (drawable && SideMaterials.Length >= 6)
             {
-                var sphere = resources.GetQuadSphere(RenderContext.GLES ? 26 : 32);
+                var sphere = resources.GetQuadSphere(26);
                 for (int i = 0; i < 6; i++)
                 {
                     int start, count;

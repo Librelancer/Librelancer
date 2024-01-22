@@ -8,6 +8,8 @@ using System.Numerics;
 using LibreLancer.Fx;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Backends.OpenGL;
 using LibreLancer.Thn;
 using LibreLancer.World;
 
@@ -50,8 +52,9 @@ namespace LibreLancer.Render
 		public SystemLighting SystemLighting = new SystemLighting();
         public ParticleEffectPool FxPool;
         public BeamsBuffer Beams;
-        public StaticBillboards StaticBillboards = new StaticBillboards();
+        public StaticBillboards StaticBillboards;
         public DfmDrawMode DfmMode = DfmDrawMode.Normal;
+        public RenderContext RenderContext => rstate;
 		RenderContext rstate;
 		Game game;
 		Texture2D dot;
@@ -105,18 +108,19 @@ namespace LibreLancer.Render
             AsteroidFields = new List<AsteroidFieldRenderer>();
             Nebulae = new List<NebulaRenderer>();
             StarSphereModels = new RigidModel[0];
-            Polyline = new PolylineRender(Commands);
-            FxPool = new ParticleEffectPool(Commands);
+            FxPool = new ParticleEffectPool(resources.GLWindow.RenderContext, Commands);
             rstate = resources.GLWindow.RenderContext;
             resman = resources;
+            Polyline = new PolylineRender(rstate, Commands);
+            StaticBillboards = new StaticBillboards(rstate);
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
-            DebugRenderer = new LineRenderer();
-            Beams = new BeamsBuffer(resources);
-            if (GLExtensions.Features430)
+            DebugRenderer = new LineRenderer(rstate);
+            Beams = new BeamsBuffer(resources, rstate);
+            if (rstate.HasFeature(GraphicsFeature.Features430))
             {
-                pointLightBuffer = new ShaderStorageBuffer(MAX_POINTS * (16 * sizeof(float)));
+                pointLightBuffer = new ShaderStorageBuffer(rstate, MAX_POINTS * (16 * sizeof(float)));
                 if (pointLightCull == null)
-                    pointLightCull = new ComputeShader(Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
+                    pointLightCull = new ComputeShader(rstate, Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
             }
 		}
 
@@ -226,7 +230,7 @@ namespace LibreLancer.Render
 		//TODO: Allow for cubic / IGraph attenuation
 		public void PointLightDX(Vector3 position, float range, Color4 color, Vector3 attenuation)
 		{
-			if (!GLExtensions.Features430 || !ExtraLights)
+			if (!rstate.HasFeature(GraphicsFeature.Features430) || !ExtraLights)
 				return;
 			var lt = new PointLight();
 			lt.Position = new Vector4(position, 1);
@@ -286,7 +290,7 @@ namespace LibreLancer.Render
                     _mheight = renderHeight;
 					if (msaa != null)
 						msaa.Dispose();
-					msaa = new MultisampleTarget(renderWidth, renderHeight, Settings.SelectedMSAA);
+					msaa = new MultisampleTarget(rstate, renderWidth, renderHeight, Settings.SelectedMSAA);
 				}
                 rstate.RenderTarget = msaa;
 			}
@@ -300,7 +304,7 @@ namespace LibreLancer.Render
 				transitioned = nr.FogTransitioned() && DrawNebulae;
 			rstate.DepthEnabled = true;
 			//Add Nebula light
-			if (GLExtensions.Features430 && ExtraLights)
+			if (rstate.HasFeature(GraphicsFeature.Features430) && ExtraLights)
 			{
 				//TODO: Re-add [LightSource] to the compute shader, it shouldn't regress.
 				PointLight p2;
@@ -341,7 +345,7 @@ namespace LibreLancer.Render
 			//Clear depth buffer for game objects
 			billboards.Begin(camera, Commands);
 			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete
-			if (GLExtensions.Features430 && ExtraLights)
+			if (rstate.HasFeature(GraphicsFeature.Features430) && ExtraLights)
 			{
 				//Forward+ heck yeah!
 				//(WORKED AROUND) Lights being culled too aggressively - Pittsburgh planet light, intro_planet_chunks
@@ -367,7 +371,7 @@ namespace LibreLancer.Render
 					//if (opaqueLightBuffer != null) opaqueLightBuffer.Dispose();
 					if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
 					//opaqueLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int));
-					transparentLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int));
+					transparentLightBuffer = new ShaderStorageBuffer(rstate, (tilesW * tilesH) * 512 * sizeof(int));
 				}
 				//Depth
 				if (_dwidth != Game.Width || _dheight != Game.Height)
@@ -375,7 +379,7 @@ namespace LibreLancer.Render
 					_dwidth = Game.Width;
 					_dheight = Game.Height;
 					if (depthMap != null) depthMap.Dispose();
-					depthMap = new DepthMap(Game.Width, game.Height);
+					depthMap = new DepthMap(rstate, Game.Width, game.Height);
 				}
 				depthMap.BindFramebuffer();
 				rstate.ClearDepth();

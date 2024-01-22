@@ -1,28 +1,23 @@
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials;
 
 public class NebulaInteriorMaterial : RenderMaterial
 {
-    private static ShaderVariables shader;
-
     public string Texture;
     public Color4 Dc;
 
     public NebulaInteriorMaterial(ResourceManager library) : base(library) { }
 
 
-    static NebulaInteriorMaterial()
-    {
-        shader = Shaders.NebulaInterior.Get();
-    }
-
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        var shader = Shaders.NebulaInterior.Get(rstate);
         shader.SetWorld(World);
         shader.SetDtSampler(0);
         shader.SetDc(Dc);

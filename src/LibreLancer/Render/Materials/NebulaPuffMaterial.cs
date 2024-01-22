@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials;
 
@@ -13,9 +14,10 @@ public class NebulaPuffMaterial : RenderMaterial
 
     public string Texture;
 
-    static NebulaPuffMaterial()
+    static void Init(RenderContext rstate)
     {
-        shader = Shaders.NebulaExtPuff.Get();
+        if (shader != null) return;
+        shader = Shaders.NebulaExtPuff.Get(rstate);
         _fogFactor = shader.Shader.GetLocation("FogFactor");
     }
 
@@ -24,6 +26,7 @@ public class NebulaPuffMaterial : RenderMaterial
 
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        Init(rstate);
         shader.SetWorld(World);
         shader.SetDtSampler(0);
         shader.Shader.SetFloat(_fogFactor, *(float*)&userData);

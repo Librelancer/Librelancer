@@ -24,17 +24,17 @@ namespace LibreLancer.Shaders
             }
             return 0;
         }
-        public static ShaderVariables Get(ShaderFeatures features)
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device, ShaderFeatures features)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[GetIndex(features)];
         }
-        public static ShaderVariables Get()
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[0];
         }
-        internal static void Compile(string sourceBundle)
+        internal static void Compile(LibreLancer.Graphics.RenderContext device, string sourceBundle)
         {
             if (iscompiled)
             {
@@ -44,8 +44,8 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling NebulaMaterial");
             variants = new ShaderVariables[2];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(sourceBundle.Substring(329637, 549), sourceBundle.Substring(330186, 308));
-            variants[1] = ShaderVariables.Compile(sourceBundle.Substring(330494, 574), sourceBundle.Substring(330186, 308));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(329637, 549), sourceBundle.Substring(330186, 308));
+            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(330494, 574), sourceBundle.Substring(330186, 308));
         }
     }
 }

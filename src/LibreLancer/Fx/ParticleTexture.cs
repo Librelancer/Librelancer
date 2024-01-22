@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
 
@@ -53,7 +54,7 @@ namespace LibreLancer.Fx
             if (Texture == null || Texture.IsDisposed)
             {
                 if (shape == null && frameanim == null && Texture != null)
-                { 
+                {
                     Texture = res.FindTexture(name) as Texture2D;
                 }
                 else if (shape == null && frameanim == null)

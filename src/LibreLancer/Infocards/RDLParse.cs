@@ -8,13 +8,14 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using LibreLancer.Graphics.Text;
 
 namespace LibreLancer.Infocards
 {
 	public static class RDLParse
 	{
 		//Constants and tables
-		static readonly string[] SkipElements = new string[] 
+		static readonly string[] SkipElements = new string[]
 		{
 			"RDL", "PUSH", "POP"
 		};

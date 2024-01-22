@@ -4,16 +4,17 @@
 
 using System;
 using System.IO;
+using LibreLancer.Graphics;
 using StbImageSharp;
 
 namespace LibreLancer.ImageLib
 {
     public static class Generic
     {
-        public static Texture2D FromFile(string file)
+        public static Texture2D FromFile(RenderContext context, string file)
         {
             using(var stream = File.OpenRead(file)) {
-                return (Texture2D)FromStream (stream);
+                return (Texture2D)FromStream (context, stream);
             }
         }
 
@@ -42,11 +43,11 @@ namespace LibreLancer.ImageLib
                 Width = image.Width, Height = image.Height, Data = image.Data
             };
         }
-        
-        public static unsafe Texture FromStream(Stream stream, bool flip = true)
+
+        public static unsafe Texture FromStream(RenderContext context, Stream stream, bool flip = true)
         {
             if (DDS.StreamIsDDS (stream)) {
-                return DDS.FromStream(stream);
+                return DDS.FromStream(context, stream);
             } else {
                 /* Read full stream */
                 int len = (int)stream.Length;
@@ -77,7 +78,7 @@ namespace LibreLancer.ImageLib
                     data[j++] = R;
                     data[j++] = A;
                 }
-                var t = new Texture2D(x, y, false, SurfaceFormat.Color);
+                var t = new Texture2D(context, x, y, false, SurfaceFormat.Color);
                 t.SetData(data);
                 return t;
             }

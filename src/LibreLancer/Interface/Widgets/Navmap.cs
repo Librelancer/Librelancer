@@ -8,6 +8,8 @@ using System.Linq;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -15,7 +17,7 @@ namespace LibreLancer.Interface
     [UiLoadable]
     [WattleScriptUserData]
     public class Navmap : UiWidget
-    { 
+    {
         class DrawObject
         {
             public UiRenderable Renderable;
@@ -51,8 +53,8 @@ namespace LibreLancer.Interface
 
         public bool MapBorder { get; set; } = false;
 
-        
-        
+
+
         public void PopulateIcons(UiContext ctx, StarSystem sys)
         {
             foreach(var l in ctx.Data.NavmapIcons.Libraries())
@@ -218,7 +220,7 @@ namespace LibreLancer.Interface
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
                     false, renNum);
             }
-            
+
             var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
             var background = context.Data.NavmapIcons.GetBackground();
             background.DrawWithClip(context, rect, rect);
@@ -257,7 +259,7 @@ namespace LibreLancer.Interface
                     center, dimensions, zone.Angle, zone.Tint);
             }
             context.RenderContext.ScissorEnabled = false;
-            
+
             //System Name
             if (!string.IsNullOrWhiteSpace(systemName))
             {
@@ -287,7 +289,7 @@ namespace LibreLancer.Interface
                 if (!string.IsNullOrWhiteSpace(obj.Name))
                 {
                     var measured = context.RenderContext.Renderer2D.MeasureString(font, fontSize, obj.Name);
-                    DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White, 
+                    DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White,
                         new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Top, false,
                         obj.Name);
                 }
@@ -305,9 +307,9 @@ namespace LibreLancer.Interface
                 var pRect = context.PointsToPixels(rect);
                 context.RenderContext.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }
-           
+
         }
-        
+
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);

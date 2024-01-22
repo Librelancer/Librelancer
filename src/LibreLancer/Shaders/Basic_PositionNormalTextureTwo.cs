@@ -80,17 +80,17 @@ namespace LibreLancer.Shaders
             }
             return 0;
         }
-        public static ShaderVariables Get(ShaderFeatures features)
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device, ShaderFeatures features)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[GetIndex(features)];
         }
-        public static ShaderVariables Get()
+        public static ShaderVariables Get(LibreLancer.Graphics.RenderContext device)
         {
-            AllShaders.Compile();
+            AllShaders.Compile(device);
             return variants[0];
         }
-        internal static void Compile(string sourceBundle)
+        internal static void Compile(LibreLancer.Graphics.RenderContext device, string sourceBundle)
         {
             if (iscompiled)
             {
@@ -99,43 +99,43 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling Basic_PositionNormalTextureTwo");
             variants = new ShaderVariables[16];
-            if (GLExtensions.Features430)
+            if (device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430))
             {
-                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(45618, 6700));
-                variants[1] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(56467, 6754));
-                variants[2] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(73919, 2644));
-                variants[3] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(78920, 2698));
-                variants[4] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(85757, 6744));
-                variants[5] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(96694, 6798));
-                variants[6] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(105839, 2688));
-                variants[7] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(110928, 2742));
-                variants[8] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(117959, 6894));
-                variants[9] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(129196, 6948));
-                variants[10] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(138641, 2838));
-                variants[11] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(144030, 2892));
-                variants[12] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(151255, 6938));
-                variants[13] = ShaderVariables.Compile(sourceBundle.Substring(205740, 1759), sourceBundle.Substring(162580, 6992));
-                variants[14] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(172113, 2882));
-                variants[15] = ShaderVariables.Compile(sourceBundle.Substring(211844, 4686), sourceBundle.Substring(177590, 2936));
+                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(45618, 6700));
+                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(56467, 6754));
+                variants[2] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(73919, 2644));
+                variants[3] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(78920, 2698));
+                variants[4] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(85757, 6744));
+                variants[5] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(96694, 6798));
+                variants[6] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(105839, 2688));
+                variants[7] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(110928, 2742));
+                variants[8] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(117959, 6894));
+                variants[9] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(129196, 6948));
+                variants[10] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(138641, 2838));
+                variants[11] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(144030, 2892));
+                variants[12] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(151255, 6938));
+                variants[13] = ShaderVariables.Compile(device, sourceBundle.Substring(205740, 1759), sourceBundle.Substring(162580, 6992));
+                variants[14] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(172113, 2882));
+                variants[15] = ShaderVariables.Compile(device, sourceBundle.Substring(211844, 4686), sourceBundle.Substring(177590, 2936));
             }
             else
             {
-                variants[0] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(40082, 4095));
-                variants[1] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(52318, 4149));
-                variants[2] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(67248, 2303));
-                variants[3] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(76563, 2357));
-                variants[4] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(81618, 4139));
-                variants[5] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(92501, 4193));
-                variants[6] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(103492, 2347));
-                variants[7] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(108527, 2401));
-                variants[8] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(113670, 4289));
-                variants[9] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(124853, 4343));
-                variants[10] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(136144, 2497));
-                variants[11] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(141479, 2551));
-                variants[12] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(146922, 4333));
-                variants[13] = ShaderVariables.Compile(sourceBundle.Substring(204322, 1418), sourceBundle.Substring(158193, 4387));
-                variants[14] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(169572, 2541));
-                variants[15] = ShaderVariables.Compile(sourceBundle.Substring(207499, 4345), sourceBundle.Substring(174995, 2595));
+                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(40082, 4095));
+                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(52318, 4149));
+                variants[2] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(67248, 2303));
+                variants[3] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(76563, 2357));
+                variants[4] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(81618, 4139));
+                variants[5] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(92501, 4193));
+                variants[6] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(103492, 2347));
+                variants[7] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(108527, 2401));
+                variants[8] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(113670, 4289));
+                variants[9] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(124853, 4343));
+                variants[10] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(136144, 2497));
+                variants[11] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(141479, 2551));
+                variants[12] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(146922, 4333));
+                variants[13] = ShaderVariables.Compile(device, sourceBundle.Substring(204322, 1418), sourceBundle.Substring(158193, 4387));
+                variants[14] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(169572, 2541));
+                variants[15] = ShaderVariables.Compile(device, sourceBundle.Substring(207499, 4345), sourceBundle.Substring(174995, 2595));
             }
         }
     }

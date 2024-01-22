@@ -5,15 +5,16 @@
 using System;
 using System.Numerics;
 using LibreLancer.Data.Effects;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render.Materials;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {
     public unsafe class BeamsBuffer : IDisposable
     {
         public int MAX_BEAMS = 500;
-        
+
         VertexBuffer bufferSpear;
         private VertexBuffer bufferBolt;
         private CommandBuffer commands;
@@ -37,7 +38,7 @@ namespace LibreLancer.Render
          */
         static readonly ushort[] spearIndices =
         {
-            0,1,2, 
+            0,1,2,
             0,1,3,
             0,2,4,
             0,3,4,
@@ -72,7 +73,7 @@ namespace LibreLancer.Render
          */
         static readonly ushort[] boltIndices =
         {
-            0,1,2, 
+            0,1,2,
             0,1,3,
             0,2,4,
             0,3,4,
@@ -110,16 +111,16 @@ namespace LibreLancer.Render
             }
             return indices;
         }
-        public BeamsBuffer(ResourceManager res)
+        public BeamsBuffer(ResourceManager res, RenderContext context)
         {
             var idx1 = ConstructIndices(spearIndices, 12, MAX_BEAMS);
-            bufferSpear = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BEAMS * 12, true);
-            var el1 = new ElementBuffer(idx1.Length);
+            bufferSpear = new VertexBuffer(context ,typeof(VertexPositionColorTexture), MAX_BEAMS * 12, true);
+            var el1 = new ElementBuffer(context, idx1.Length);
             el1.SetData(idx1);
             bufferSpear.SetElementBuffer(el1);
             var idx2 = ConstructIndices(boltIndices, 17, MAX_BEAMS);
-            bufferBolt = new VertexBuffer(typeof(VertexPositionColorTexture), MAX_BEAMS * 17, true);
-            var el2 = new ElementBuffer(idx2.Length);
+            bufferBolt = new VertexBuffer(context, typeof(VertexPositionColorTexture), MAX_BEAMS * 17, true);
+            var el2 = new ElementBuffer(context, idx2.Length);
             el2.SetData(idx2);
             bufferBolt.SetElementBuffer(el2);
             material = new ProjectileMaterial(res);
@@ -209,7 +210,7 @@ namespace LibreLancer.Render
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p -(right * cRad), bolt.CoreColor, br);
             //Mid-Right
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (right * cRad), bolt.CoreColor, br);
-            
+
             //sec
             var coreLen = Math.Min(maxTrailLen, bolt.CoreLength);
             var p2 = p - (normal * coreLen);
@@ -223,7 +224,7 @@ namespace LibreLancer.Render
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 -(right * secRad), bolt.SecOuterColor, br);
             //Sec-Right
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 + (right * secRad), bolt.SecOuterColor, br);
-           
+
             //Tip
             verticesBolt[vertexCountBolt++] =
                 new VertexPositionColorTexture(p + (normal * bolt.TipLength), bolt.TipColor, tr);

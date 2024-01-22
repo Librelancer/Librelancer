@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Infocards;
 using WattleScript.Interpreter;
 
@@ -94,14 +95,14 @@ namespace LibreLancer.Interface
                     } else {
                         scrollbarVisible = false;
                     }
-                   
+
                 }
                 if(scrollbarVisible)
                     scrollbar.Render(context, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
                 context.RenderContext.ScissorEnabled = true;
                 context.RenderContext.ScissorRectangle = myRect;
                 int y = myRect.Y;
-                if (scrollbarVisible) { 
+                if (scrollbarVisible) {
                     y -= (int) (scrollbar.ScrollOffset * (richText.Height - myRect.Height));
                 }
                 rte.RenderText(richText, myRect.X, y);

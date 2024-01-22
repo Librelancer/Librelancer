@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.GameData.Archetypes;
+using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
 
 namespace LibreLancer.Render
@@ -104,7 +105,7 @@ namespace LibreLancer.Render
                 glowMaterial = new SunRadialMaterial(sys.ResourceManager);
                 glowMaterial.Texture = Sun.GlowSprite;
             }
-            
+
             sysr = sys;
             sys.AddObject(this);
             return true;

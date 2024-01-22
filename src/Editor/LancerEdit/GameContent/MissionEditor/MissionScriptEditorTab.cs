@@ -48,7 +48,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         config = new NodeEditorConfig();
         context = new NodeEditorContext(config);
 
-        NodeBuilder.LoadTexture();
+        NodeBuilder.LoadTexture(win.RenderContext);
 
         RegisterNodeValues();
 

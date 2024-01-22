@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;

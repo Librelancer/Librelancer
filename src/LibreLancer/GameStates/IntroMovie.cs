@@ -14,7 +14,7 @@ namespace LibreLancer
 		public IntroMovie(FreelancerGame game, int index) : base(game)
         {
             player = new VideoPlayer(game);
-			if ((inited = player.Init()) && game.IntroMovies.Count > 0)
+			if ((inited = player.Init(game.RenderContext)) && game.IntroMovies.Count > 0)
             {
                 idx = index;
                 game.Keyboard.KeyDown += HandleKeyDown;
@@ -30,7 +30,7 @@ namespace LibreLancer
 		{
 			if (idx != int.MaxValue)
 			{
-				player.Draw(Game.RenderContext);
+				player.Draw();
 				if (!player.Playing)
 				{
 					Leave();
@@ -62,7 +62,7 @@ namespace LibreLancer
 
 		public override void Update(double delta)
 		{
-			
+
 		}
 	}
 }

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.Utf.Mat
 {
@@ -28,20 +29,16 @@ namespace LibreLancer.Utf.Mat
 				levels = new Dictionary<int, byte[]>();
 		}
 
-		public TextureData(string filename)
-		{
-			Texture = ImageLib.Generic.FromFile(filename);
-		}
 
-		public void Initialize ()
+		public void Initialize (RenderContext context)
 		{
 			if (data != null && data.Value.Count > 0 && Texture == null)
             {
 				using (Stream stream = data.Value.GetReadStream()) {
 					if (type.Equals ("mips", StringComparison.OrdinalIgnoreCase)) {
-                        Texture = ImageLib.DDS.FromStream(stream);
+                        Texture = ImageLib.DDS.FromStream(context, stream);
 					} else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase)) {;
-						var tga = ImageLib.TGA.FromStream(stream, levels != null);
+						var tga = ImageLib.TGA.FromStream(context, stream, levels != null);
                         if(tga == null) {
                             FLLog.Error("Mat","Texture " + texname + "\\MIP0" + " is bad");
                             if (Bitch) throw new Exception("Your texture data is bad, fix it!\n" +
@@ -54,14 +51,14 @@ namespace LibreLancer.Utf.Mat
 							foreach (var lv in levels)
 							{
 								using (var s2 = new MemoryStream(lv.Value)) {
-									ImageLib.TGA.FromStream(s2, true, tga, lv.Key);
+									ImageLib.TGA.FromStream(context, s2, true, tga, lv.Key);
 								}
 							}
 						}
 						Texture = tga;
 						levels = null;
 					} else if (type.Equals ("cube", StringComparison.OrdinalIgnoreCase)) {
-						Texture = ImageLib.DDS.FromStream (stream);
+						Texture = ImageLib.DDS.FromStream (context, stream);
 					}
 				}
 			} else

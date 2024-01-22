@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
@@ -156,18 +157,18 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				}
 			}
-			
+
 		}
 
-		public void Initialize(ResourceManager cache)
+		public void Initialize(ResourceManager cache, RenderContext rstate)
 		{
 			if (Levels.ContainsKey (0))
-				Levels [0].Initialize (cache);
+				Levels [0].Initialize (cache, rstate);
 		}
-        
+
         public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material overrideMat = null)
 		{
-			Levels[0].DrawBuffer(buffer, world, light,overrideMat);		
+			Levels[0].DrawBuffer(buffer, world, light,overrideMat);
 		}
 
         public void SetSkinning(DfmSkinning skinning)

@@ -4,7 +4,8 @@
 
 using System.Numerics;
 using System.Runtime.InteropServices;
-using LibreLancer.Vertices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Render
 {
@@ -20,13 +21,13 @@ namespace LibreLancer.Render
         ElementBuffer iboBasic;
         ushort[] indicesBasic = new ushort[MAX_BILLBOARDS * 6];
 
-		public Billboards()
+		public Billboards(RenderContext context)
         {
-            shaderBasic = Shaders.Billboard.Get();
+            shaderBasic = Shaders.Billboard.Get(context);
 			shaderBasic.Shader.SetInteger(shaderBasic.Shader.GetLocation("tex0"), 0);
 			rendat = new RenderData[MAX_BILLBOARDS];
-			vboBasic = new VertexBuffer(typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
-			iboBasic = new ElementBuffer(MAX_BILLBOARDS * 6, true);
+			vboBasic = new VertexBuffer(context, typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
+			iboBasic = new ElementBuffer(context, MAX_BILLBOARDS * 6, true);
 			vboBasic.SetElementBuffer(iboBasic);
 		}
 
@@ -86,7 +87,7 @@ namespace LibreLancer.Render
 				}
 			}
 		}
-        
+
         public ICamera Camera
 		{
 			get
@@ -121,7 +122,7 @@ namespace LibreLancer.Render
 			var ptB = new Vector3 (-rOn2 * sin120, -rOn2 * cos120, angle);
 			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); //triangle is half as tall as it is wide
 
-			verticesBasic [vertexCountBasic++] = new BillboardVert () 
+			verticesBasic [vertexCountBasic++] = new BillboardVert ()
 			{
 				Position = position,
 				Color = color,
@@ -129,7 +130,7 @@ namespace LibreLancer.Render
 				Dimensions = ptA
 			};
 
-			verticesBasic [vertexCountBasic++] = new BillboardVert () 
+			verticesBasic [vertexCountBasic++] = new BillboardVert ()
 			{
 				Position = position,
 				Color = color,
@@ -137,7 +138,7 @@ namespace LibreLancer.Render
 				Dimensions = ptB
 			};
 
-			verticesBasic [vertexCountBasic++] = new BillboardVert () 
+			verticesBasic [vertexCountBasic++] = new BillboardVert ()
 			{
 				Position = position,
 				Color = color,
@@ -267,7 +268,7 @@ namespace LibreLancer.Render
         int indexCountBasic = 0;
         int fillCountBasic = 0;
         int vertexCountBasic = 0;
-        
+
         public void AddIndices(int index)
         {
             var dat = rendat[index];
@@ -295,7 +296,7 @@ namespace LibreLancer.Render
             indexCountBasic += dat.Triangle == 1 ? 3 : 6;
         }
 
-     
+
 
 		public void FillIbo()
 		{

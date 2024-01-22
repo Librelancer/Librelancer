@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Graphics;
+
 namespace LibreLancer.Media
 {
 	public class VideoPlayer : IDisposable
@@ -27,21 +29,21 @@ namespace LibreLancer.Media
 		{
 			player = new VideoPlayerWMF();
 		}
-		public bool Init()
+		public bool Init(RenderContext context)
 		{
 			if (player == null)
 				return false;
-			return player.Init();
+			return player.Init(context);
 		}
 		public void PlayFile(string filename)
 		{
             if (player != null)
                 player.PlayFile(filename);
 		}
-		public void Draw(RenderContext rstate)
+		public void Draw()
 		{
             if (player != null)
-                player.Draw(rstate);
+                player.Draw();
 		}
 		public void Dispose()
 		{

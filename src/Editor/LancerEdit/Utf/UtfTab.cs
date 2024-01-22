@@ -15,6 +15,7 @@ using LibreLancer.Utf.Ale;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Dialogs;
+using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
 using LibreLancer.Utf.Cmp;
 
@@ -433,9 +434,9 @@ namespace LancerEdit
                         using (var stream = new MemoryStream(selectedNode.Data))
                         {
                             if (DDS.StreamIsDDS(stream))
-                                tex = DDS.FromStream(stream);
+                                tex = DDS.FromStream(main.RenderContext, stream);
                             else
-                                tex = TGA.FromStream(stream);
+                                tex = TGA.FromStream(main.RenderContext, stream);
                         }
                         var title = string.Format("{0} ({1})", selectedNode.Name, Title);
                         if (tex is Texture2D tex2d)
@@ -563,7 +564,7 @@ namespace LancerEdit
         {
             FileDialog.Open(path =>
             {
-                var src = TextureImport.OpenFile(path);
+                var src = TextureImport.OpenFile(path, main.RenderContext);
                 if (src.Type == TexLoadType.ErrorLoad ||
                     src.Type == TexLoadType.ErrorNonSquare ||
                     src.Type == TexLoadType.ErrorNonPowerOfTwo)

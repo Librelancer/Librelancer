@@ -3,8 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Vertices;
 using LibreLancer;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Render;
 
@@ -23,11 +24,11 @@ namespace LancerEdit.Materials
             vertextype is VertexPosition ||
                 vertextype is VertexPositionColor || vertextype is VertexPositionTexture)
             {
-                sh = DepthPass_Normal.Get();
+                sh = DepthPass_Normal.Get(rstate);
             }
             else
             {
-                sh = Normals.Get();
+                sh = Normals.Get(rstate);
             }
             rstate.BlendMode = BlendMode.Opaque;
 			//Dt

@@ -4,8 +4,10 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Utf.Cmp;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render
 {
@@ -18,10 +20,10 @@ namespace LibreLancer.Render
         public string SkeletonHighlight;
 
 		Shaders.ShaderVariables shader;
-		public LineRenderer()
+		public LineRenderer(RenderContext rstate)
         {
-            shader = Shaders.PhysicsDebug.Get();
-			linebuffer = new VertexBuffer(typeof(VertexPositionColor), MAX_LINES * 2, true);
+            shader = Shaders.PhysicsDebug.Get(rstate);
+			linebuffer = new VertexBuffer(rstate, typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 
 		RenderContext rstate;

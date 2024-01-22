@@ -11,6 +11,7 @@ using System.Text;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Graphics;
 using LibreLancer.Ini;
 using LibreLancer.Render;
 using static System.FormattableString;
@@ -114,6 +115,8 @@ namespace LancerEdit
         }
         public void Save()
         {
+            if (!canSave)
+                return;
             using(var writer = new StreamWriter(configPath))
             {
                 writer.WriteLine("[Config]");
@@ -155,25 +158,36 @@ namespace LancerEdit
             }
         }
 
-        public static EditorConfiguration Load()
+        private bool canSave;
+        private EditorConfiguration(bool isFile)
         {
+            canSave = !isFile;
+        }
+        public static EditorConfiguration Load(bool isFile)
+        {
+            if (!isFile)
+            {
+                FLLog.Info("Config", "TESTING MODE");
+                return new EditorConfiguration(false);
+            }
+
             try
             {
                 if (File.Exists(configPath))
                 {
-                    var ec = new EditorConfiguration();
+                    var ec = new EditorConfiguration(true);
                     ec.ParseAndFill(configPath, null);
                     if (ec.UiScale < 1 || ec.UiScale > 2.5f)
                         ec.UiScale = 1;
                     return ec;
                 }
                 else
-                    return new EditorConfiguration();
+                    return new EditorConfiguration(true);
             }
             catch (Exception)
             {
                 FLLog.Error("Config", "Error loading lanceredit.ini");
-                return new EditorConfiguration();
+                return new EditorConfiguration(true);
             }
         }
 

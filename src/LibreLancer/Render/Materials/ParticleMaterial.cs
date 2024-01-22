@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials;
 
 public class ParticleMaterial : RenderMaterial
 {
-    private static ShaderVariables shader;
-
     List<(Texture texture, int Flags)> parameters = new List<(Texture texture, int Flags)>();
 
     public int ParameterCount => parameters.Count;
@@ -27,16 +26,12 @@ public class ParticleMaterial : RenderMaterial
     }
 
 
-    static ParticleMaterial()
-    {
-        shader = Shaders.Particle.Get();
-    }
-
     public ParticleMaterial(ResourceManager library) : base(library) { }
 
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        var shader = Shaders.Particle.Get(rstate);
         shader.SetDtSampler(0);
         parameters[userData].texture.BindTo(0);
         rstate.BlendMode = (BlendMode)(parameters[userData].Flags & 0xFFFF);

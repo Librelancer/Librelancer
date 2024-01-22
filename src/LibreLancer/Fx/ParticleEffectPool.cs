@@ -5,9 +5,10 @@
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Fx
 {
@@ -92,11 +93,11 @@ namespace LibreLancer.Fx
             };
         }
 
-        public ParticleEffectPool(CommandBuffer commands)
+        public ParticleEffectPool(RenderContext context, CommandBuffer commands)
         {
             cmd = commands;
             //Set up vertices
-            vbo = new VertexBuffer(typeof(ParticleVertex), MAX_PARTICLES, true);
+            vbo = new VertexBuffer(context, typeof(ParticleVertex), MAX_PARTICLES, true);
         }
 
         ICamera camera;

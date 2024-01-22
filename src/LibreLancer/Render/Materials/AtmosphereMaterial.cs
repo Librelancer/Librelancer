@@ -4,9 +4,10 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials
 {
@@ -29,7 +30,7 @@ namespace LibreLancer.Render.Materials
 		{
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Normal;
-            var sh = Shaders.Atmosphere.Get(RenderContext.GLES ? ShaderFeatures.VERTEX_LIGHTING : 0);
+            var sh = Shaders.Atmosphere.Get(rstate, rstate.HasFeature(GraphicsFeature.GLES) ? ShaderFeatures.VERTEX_LIGHTING : 0);
 			sh.SetAc(Ac);
 			sh.SetDc(Dc);
 			sh.SetOc(Alpha);

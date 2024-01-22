@@ -9,6 +9,7 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
 using LibreLancer.Dialogs;
+using LibreLancer.Graphics;
 
 namespace LancerEdit
 {

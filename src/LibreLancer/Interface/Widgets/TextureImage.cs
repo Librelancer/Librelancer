@@ -4,6 +4,7 @@
 
 using System;
 using LibreLancer;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface

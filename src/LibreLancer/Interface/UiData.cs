@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibreLancer.Data;
+using LibreLancer.Graphics;
 using LibreLancer.Sounds;
 
 namespace LibreLancer.Interface
@@ -83,7 +84,7 @@ namespace LibreLancer.Interface
                 var file = DataResolve(filename);
                 if (!loadedFiles.ContainsKey(file))
                 {
-                    loadedFiles.Add(file, LibreLancer.ImageLib.Generic.FromFile(file));
+                    loadedFiles.Add(file, LibreLancer.ImageLib.Generic.FromFile(ResourceManager.GLWindow.RenderContext, file));
                 }
                 return loadedFiles[file];
             }

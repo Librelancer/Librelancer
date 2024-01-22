@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
-using LibreLancer.Vertices;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Vms
@@ -31,7 +31,7 @@ namespace LibreLancer.Utf.Vms
         /// </summary>
 
         public VMeshResource Resource;
-        
+
         public VertexPosition[] verticesVertexPosition { get; private set; }
         public VertexPositionNormal[] verticesVertexPositionNormal { get; private set; }
         public VertexPositionTexture[] verticesVertexPositionTexture { get; private set; }
@@ -201,7 +201,7 @@ namespace LibreLancer.Utf.Vms
                     break;
             }
         }
-        
+
         public override string ToString()
         {
             return FlexibleVertexFormat.ToString();

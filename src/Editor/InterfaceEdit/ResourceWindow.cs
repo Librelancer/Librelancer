@@ -11,6 +11,8 @@ using LibreLancer.Interface;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using ImGuiNET;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Text;
 
 namespace InterfaceEdit
 {
@@ -341,7 +343,7 @@ namespace InterfaceEdit
                     ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
-                renderTarget = new RenderTarget2D(rtX, rtY);
+                renderTarget = new RenderTarget2D(mainWindow.RenderContext, rtX, rtY);
                 renderTargetImage = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
             mainWindow.RenderContext.RenderTarget = renderTarget;

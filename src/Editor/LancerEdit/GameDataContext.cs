@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.GameData;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Sounds;
@@ -58,7 +59,7 @@ public class GameDataContext : IDisposable
 
 
     private int renderCounter = 0;
-    
+
 
     public bool RenderAllArchetypePreviews()
     {
@@ -81,13 +82,13 @@ public class GameDataContext : IDisposable
     }
 
     private Dictionary<string, (Texture2D, int)> renderedArchetypes = new Dictionary<string, (Texture2D, int)>();
-    
+
     public int GetArchetypePreview(Archetype archetype, ArchetypePreviews renderer = null)
     {
         if (renderedArchetypes.TryGetValue(archetype.Nickname, out var arch))
             return arch.Item2;
         Texture2D tx;
-        if(renderer != null) 
+        if(renderer != null)
             tx = renderer.RenderPreview(archetype, 128, 128);
         else
         {
@@ -98,7 +99,7 @@ public class GameDataContext : IDisposable
         renderedArchetypes[archetype.Nickname] = arch;
         return arch.Item2;
     }
-    
+
     public void Dispose()
     {
         Sounds.Dispose();

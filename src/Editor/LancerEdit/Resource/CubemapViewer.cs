@@ -5,10 +5,11 @@
 using System.Numerics;
 using LancerEdit.Materials;
 using LibreLancer;
-using LibreLancer.Primitives;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Primitives;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
-using LibreLancer.Vertices;
 
 namespace LancerEdit
 {
@@ -22,7 +23,7 @@ namespace LancerEdit
         {
             Title = title;
             material = new CubemapMaterial(mw.Resources) {Texture = texture};
-            sphere = new QuadSphere(32);
+            sphere = new QuadSphere(mw.RenderContext, 32);
             viewport = new Viewport3D(mw);
             viewport.DefaultOffset = new Vector3(0, 0, 4);
             viewport.ModelScale = 0.01f;

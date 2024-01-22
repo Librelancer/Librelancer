@@ -5,6 +5,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Interface;
 using WattleScript.Interpreter;
 

@@ -5,6 +5,7 @@
 using System.Globalization;
 using System.IO;
 using System.Xml.Serialization;
+using LibreLancer.Graphics;
 using LibreLancer.Ini;
 using LibreLancer.Render;
 using WattleScript.Interpreter;
@@ -26,7 +27,7 @@ namespace LibreLancer
         public int Anisotropy = 0;
         [Entry("msaa")]
         public int MSAA = 0;
-        [Entry("lod_multiplier")] 
+        [Entry("lod_multiplier")]
         public float LodMultiplier = 1.3f;
 
         float IRendererSettings.LodMultiplier => LodMultiplier;
@@ -35,7 +36,7 @@ namespace LibreLancer
         TextureFiltering IRendererSettings.SelectedFiltering =>
             Anisotropy == 0 ? TextureFiltering.Trilinear : TextureFiltering.Anisotropic;
         int IRendererSettings.SelectedMSAA => MSAA;
-        
+
         public int[] AnisotropyLevels() => RenderContext.GetAnisotropyLevels();
         public int MaxMSAA() => RenderContext.MaxSamples;
 
@@ -52,10 +53,10 @@ namespace LibreLancer
             writer.WriteLine($"msaa = {MSAA}");
             writer.WriteLine($"lod_multiplier = {Fmt(LodMultiplier)}");
         }
-        
-        [WattleScriptHidden] 
+
+        [WattleScriptHidden]
         public RenderContext RenderContext;
-        
+
         [WattleScriptHidden]
         public GameSettings MakeCopy()
         {

@@ -13,13 +13,14 @@ using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Dialogs;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
 using LibreLancer.Shaders;
 using LibreLancer.Sur;
-using LibreLancer.Vertices;
 using SimpleMesh;
 using Material = LibreLancer.Utf.Mat.Material;
 
@@ -423,8 +424,8 @@ public class ImportModelTab : EditorTab
                 Vector2.One)
         ).ToArray();
         var elements = g.Indices.Indices16;
-        pm.Vertices = new VertexBuffer(typeof(VertexPositionNormalDiffuseTexture), vertices.Length);
-        pm.Elements = new ElementBuffer(elements.Length);
+        pm.Vertices = new VertexBuffer(win.RenderContext, typeof(VertexPositionNormalDiffuseTexture), vertices.Length);
+        pm.Elements = new ElementBuffer(win.RenderContext, elements.Length);
         pm.Vertices.SetData(vertices);
         pm.Elements.SetData(elements);
         pm.Vertices.SetElementBuffer(pm.Elements);

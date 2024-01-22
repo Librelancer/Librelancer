@@ -50,7 +50,7 @@ public class ProjectileViewerTab : GameContentTab
         viewport.DefaultOffset = viewport.CameraOffset = new Vector3(0, 0, 20);
         viewport.ModelScale = 10f;
         viewport.ResetControls();
-        beams = new BeamsBuffer(context.Resources);
+        beams = new BeamsBuffer(context.Resources, mw.RenderContext);
     }
 
     public override void Draw(double elapsed)

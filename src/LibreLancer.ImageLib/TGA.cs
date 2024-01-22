@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.ImageLib
 {
@@ -52,7 +53,7 @@ namespace LibreLancer.ImageLib
         private const int RGB = 2;
         private const int BW = 3;
 
-        public static Texture2D FromStream(Stream stream, bool hasMipMaps = false, Texture2D target = null,
+        public static Texture2D FromStream(RenderContext context, Stream stream, bool hasMipMaps = false, Texture2D target = null,
             int mipLevel = -1)
         {
             var reader = new BinaryReader(stream);
@@ -242,7 +243,7 @@ namespace LibreLancer.ImageLib
             }
             if (target == null)
             {
-                var tex = new Texture2D(header.Width, header.Height, hasMipMaps, bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Color);
+                var tex = new Texture2D(context, header.Width, header.Height, hasMipMaps, bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Color);
                 tex.SetData(targetData);
                 if (bytesPerPixel != 4 || imageType == 1)
                     tex.WithAlpha = false;

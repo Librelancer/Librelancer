@@ -22,6 +22,7 @@ public class CodeGenOptions
     public string ShaderCompileMethod = "Shader.Compile";
     public string ShaderType = "Shader";
     public string GL430Check;
+    public string DeviceParameter;
 }
 
 internal class Program
@@ -31,6 +32,7 @@ internal class Program
         var shouldShowHelp = false;
         var codeOpts = new CodeGenOptions();
         var imports = new List<string>();
+
         var options = new OptionSet
         {
             {"o|output=", "output directory", n => codeOpts.OutputDirectory = n},
@@ -43,7 +45,8 @@ internal class Program
             {"n|namespace=", "generated code namespace", n => codeOpts.Namespace = n.Trim()},
             {"c|compilemethod=", "shader compile method name", c => codeOpts.ShaderCompileMethod = c.Trim()},
             {"p|private", "generate internal classes", p => codeOpts.Public = p == null},
-            {"h|help", "show this message and exit", h => shouldShowHelp = h != null}
+            {"h|help", "show this message and exit", h => shouldShowHelp = h != null},
+            {"d|device=", "device parameter", d => codeOpts.DeviceParameter = d.Trim()}
         };
         List<string> input = null;
         try

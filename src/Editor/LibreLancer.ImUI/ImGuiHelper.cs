@@ -8,8 +8,9 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using LibreLancer.Vertices;
 using ImGuiNET;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.ImUI
 {
@@ -117,11 +118,11 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui")]
         static extern void igGuizmoSetImGuiContext(IntPtr ctx);
 
-        static (Texture2D, int) LoadTexture(string path)
+        static (Texture2D, int) LoadTexture(RenderContext context, string path)
         {
             using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream($"LibreLancer.ImUI.{path}"))
             {
-                var tex = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(stream);
+                var tex = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(context, stream);
                 return (tex, RegisterTexture(tex));
             }
         }
@@ -223,9 +224,9 @@ namespace LibreLancer.ImUI
                 io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
             }
 
-            (checkerboard, CheckerboardId) = LoadTexture("checkerboard.png");
-            (file, FileId) = LoadTexture("file.png");
-            (folder, FolderId) = LoadTexture("folder.png");
+            (checkerboard, CheckerboardId) = LoadTexture(game.RenderContext, "checkerboard.png");
+            (file, FileId) = LoadTexture(game.RenderContext, "file.png");
+            (folder, FolderId) = LoadTexture(game.RenderContext, "folder.png");
 
             var monospace = Platform.GetMonospaceBytes();
             fixed (byte* mmPtr = monospace)
@@ -239,17 +240,17 @@ namespace LibreLancer.ImUI
             io.Fonts.GetTexDataAsRGBA32(out fontBytes, out fontWidth, out fontHeight);
             io.Fonts.TexUvWhitePixel = new Vector2(10, 10);
             Icons.TintGlyphs(fontBytes, fontWidth, fontHeight, Noto);
-            fontTexture = new Texture2D(fontWidth,fontHeight, false, SurfaceFormat.Color);
+            fontTexture = new Texture2D(game.RenderContext, fontWidth,fontHeight, false, SurfaceFormat.Color);
 			var bytes = new byte[fontWidth * fontHeight * 4];
             Marshal.Copy((IntPtr)fontBytes, bytes, 0, fontWidth * fontHeight * 4);
 			fontTexture.SetData(bytes);
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
 			io.Fonts.ClearTexData();
-            string glslVer = RenderContext.GLES ? "300 es\nprecision mediump float;" : "140";
-			textShader = new Shader(vertex_source.Replace("{0}", glslVer), text_fragment_source.Replace("{0}", glslVer));
-			colorShader = new Shader(vertex_source.Replace("{0}", glslVer), color_fragment_source.Replace("{0}", glslVer));
-			dot = new Texture2D(1, 1, false, SurfaceFormat.Color);
+            string glslVer = game.RenderContext.HasFeature(GraphicsFeature.GLES) ? "300 es\nprecision mediump float;" : "140";
+			textShader = new Shader(game.RenderContext, vertex_source.Replace("{0}", glslVer), text_fragment_source.Replace("{0}", glslVer));
+			colorShader = new Shader(game.RenderContext, vertex_source.Replace("{0}", glslVer), color_fragment_source.Replace("{0}", glslVer));
+			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Color);
 			var c = new Color4b[] { Color4b.White };
 			dot.SetData(c);
             Theme.Apply(scale);
@@ -351,7 +352,7 @@ namespace LibreLancer.ImUI
 
         int RenderGradientInternal(Color4 top, Color4 bottom)
         {
-            var target = new RenderTarget2D(128,128);
+            var target = new RenderTarget2D(game.RenderContext, 128,128);
             var r2d = game.RenderContext.Renderer2D;
             game.RenderContext.RenderTarget = target;
             game.RenderContext.PushViewport(0, 0, 128, 128);
@@ -550,8 +551,8 @@ namespace LibreLancer.ImUI
 					if (ibo != null) ibo.Dispose();
 					vboSize = Math.Max(vboSize, vtxCount);
 					iboSize = Math.Max(iboSize, idxCount);
-					vbo = new VertexBuffer(typeof(Vertex2D), vboSize, true);
-					ibo = new ElementBuffer(iboSize, true);
+					vbo = new VertexBuffer(game.RenderContext, typeof(Vertex2D), vboSize, true);
+					ibo = new ElementBuffer(game.RenderContext, iboSize, true);
 					vbo.SetElementBuffer(ibo);
 					vbuffer = new Vertex2D[vboSize];
 					ibuffer = new ushort[iboSize];

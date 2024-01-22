@@ -4,7 +4,8 @@
 
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.Vertices;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LancerEdit
 {
@@ -21,7 +22,7 @@ namespace LancerEdit
         private static int near;
         private static int far;
         private const string VertexShader = @"#version {0}
-layout(std140) uniform Camera_Matrices 
+layout(std140) uniform Camera_Matrices
 {
     mat4 View;
     mat4 Projection;
@@ -106,11 +107,11 @@ void main() {
     outColor.a *= fading;
 }
 ";
-        static void Load()
+        static void Load(RenderContext context)
         {
             if (loaded) return;
             loaded = true;
-            vertices = new VertexBuffer(typeof(VertexPosition), 6);
+            vertices = new VertexBuffer(context, typeof(VertexPosition), 6);
             vertices.SetData(new[]
             {
                 new VertexPosition(new Vector3(1,1,0)),
@@ -120,8 +121,8 @@ void main() {
                 new VertexPosition(new Vector3(1,1,0)),
                 new VertexPosition(new Vector3(1, -1, 0)),
             });
-            string glslVer = RenderContext.GLES ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
-            shader = new Shader(VertexShader.Replace("{0}", glslVer), FragmentShader.Replace("{0}", glslVer));
+            string glslVer = context.HasFeature(GraphicsFeature.GLES) ? "310 es\nprecision mediump float;\nprecision mediump int;" : "140";
+            shader = new Shader(context, VertexShader.Replace("{0}", glslVer), FragmentShader.Replace("{0}", glslVer));
             near = shader.GetLocation("near");
             far = shader.GetLocation("far");
             gridScale = shader.GetLocation("gridScale");
@@ -148,7 +149,7 @@ void main() {
 
         public static void Draw(RenderContext rstate, float scale, Color4 color, float nearPlane, float farPlane)
         {
-            Load();
+            Load(rstate);
             rstate.Cull = false;
             rstate.BlendMode = BlendMode.Normal;
             //Draw

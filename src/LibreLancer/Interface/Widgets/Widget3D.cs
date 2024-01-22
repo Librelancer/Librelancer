@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Render.Cameras;
 
 namespace LibreLancer.Interface
@@ -20,11 +21,11 @@ namespace LibreLancer.Interface
             var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
             return myRect;
         }
-        
+
         protected Vector2 OrbitPan;
         Vector2 dragStart = Vector2.Zero;
         private bool dragging = false;
-        
+
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
             var myRect = GetMyRectangle(context, parentRectangle);
@@ -67,7 +68,7 @@ namespace LibreLancer.Interface
             var pxRect = context.PointsToPixels(rect);
             if(pxRect.Width <= 0 || pxRect.Height <= 0) return;
             //setup
-            var rTarget = new RenderTarget2D(pxRect.Width, pxRect.Height);
+            var rTarget = new RenderTarget2D(context.RenderContext, pxRect.Width, pxRect.Height);
             var prevRt = context.RenderContext.RenderTarget;
             context.RenderContext.RenderTarget = rTarget;
             context.RenderContext.PushViewport(0,0, pxRect.Width, pxRect.Height);

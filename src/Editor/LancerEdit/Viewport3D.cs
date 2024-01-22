@@ -7,6 +7,7 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using LibreLancer.Graphics;
 
 namespace LancerEdit
 {
@@ -70,7 +71,7 @@ namespace LancerEdit
                     ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
                     RenderTarget.Dispose();
                 }
-                RenderTarget = new RenderTarget2D(renderWidth, renderHeight);
+                RenderTarget = new RenderTarget2D(rstate, renderWidth, renderHeight);
                 rid = ImGuiHelper.RegisterTexture(RenderTarget.Texture);
                 rw = renderWidth;
                 rh = renderHeight;
@@ -78,7 +79,7 @@ namespace LancerEdit
             if (EnableMSAA && mw.Config.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.Config.MSAA)))
             {
                 if (msaa != null) msaa.Dispose();
-                msaa = new MultisampleTarget(rw, rh, mw.Config.MSAA);
+                msaa = new MultisampleTarget(rstate, rw, rh, mw.Config.MSAA);
 
             } else if(msaa != null)
             {

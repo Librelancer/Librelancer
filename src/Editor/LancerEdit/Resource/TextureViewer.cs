@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Mat;
 namespace LancerEdit
@@ -105,7 +106,7 @@ namespace LancerEdit
             }
             ImGui.Image((IntPtr)tid, sz, tl,br,
                         Vector4.One, Vector4.Zero);
-          
+
             ImGui.EndChild();
         }
 

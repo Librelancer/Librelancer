@@ -4,6 +4,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.GameData;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.World;
@@ -70,7 +71,7 @@ public class ArchetypePreviews : IDisposable
         world.AddObject(obj);
         obj.Register(world.Physics); //no physics but register method called
         var restoreTarget = win.RenderContext.RenderTarget;
-        var renderTarget = new RenderTarget2D(width, height);
+        var renderTarget = new RenderTarget2D(win.RenderContext, width, height);
         win.RenderContext.RenderTarget = renderTarget;
         win.RenderContext.PushViewport(0, 0, width, height);
         win.RenderContext.Cull = true;

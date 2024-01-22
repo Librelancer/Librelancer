@@ -1,3 +1,5 @@
+using LibreLancer.Graphics;
+
 namespace LibreLancer.Render;
 
 public interface IRendererSettings

@@ -4,10 +4,11 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials
 {
@@ -32,23 +33,23 @@ namespace LibreLancer.Render.Materials
 			Type = type;
 		}
 
-		static ShaderVariables GetShader(IVertexType vertextype, ShaderFeatures caps)
+		static ShaderVariables GetShader(RenderContext rstate, IVertexType vertextype, ShaderFeatures caps)
         {
             if (vertextype is Utf.Dfm.DfmVertex)
-                return Basic_Skinned.Get(caps);
+                return Basic_Skinned.Get(rstate, caps);
             if (vertextype is VertexPositionNormalTexture ||
                     vertextype is VertexPositionNormal)
-                return Basic_PositionNormalTexture.Get(caps);
+                return Basic_PositionNormalTexture.Get(rstate, caps);
 			if (vertextype is VertexPositionNormalTextureTwo)
-                return Basic_PositionNormalTextureTwo.Get(caps);
+                return Basic_PositionNormalTextureTwo.Get(rstate, caps);
             if (vertextype is VertexPositionNormalDiffuseTexture)
-                return Basic_PositionNormalColorTexture.Get(caps);
+                return Basic_PositionNormalColorTexture.Get(rstate, caps);
             if (vertextype is VertexPositionTexture)
-                return Basic_PositionTexture.Get(caps);
+                return Basic_PositionTexture.Get(rstate, caps);
             if (vertextype is VertexPosition)
-                return Basic_PositionTexture.Get(caps);
+                return Basic_PositionTexture.Get(rstate, caps);
             if(vertextype is VertexPositionColor)
-                return Basic_PositionColor.Get(caps);
+                return Basic_PositionColor.Get(rstate, caps);
             throw new NotImplementedException(vertextype.GetType().Name);
 		}
 
@@ -68,7 +69,7 @@ namespace LibreLancer.Render.Materials
                 //Don't change any of this stuff unless you can verify it works
                 //in all places! (Check Li01 shipyards, Bw10 tradelanes)
             }
-			var shader = GetShader(vertextype, caps);
+			var shader = GetShader(rstate, vertextype, caps);
 			shader.SetWorld(World);
             //Dt
 			shader.SetDtSampler(0);
@@ -125,7 +126,7 @@ namespace LibreLancer.Render.Materials
 		{
 			rstate.BlendMode = BlendMode.Normal;
             //TODO: This is screwy - Re-do DXT1 test if need be for perf
-			var shader = DepthPass_AlphaTest.Get();
+			var shader = DepthPass_AlphaTest.Get(rstate);
             BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			shader.SetWorld(World);
 			shader.UseProgram();

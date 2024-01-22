@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Render
@@ -25,9 +26,9 @@ namespace LibreLancer.Render
         public int BonesOffset;
         public WorldMatrixBuffer WorldBuffer;
         public ICamera Camera;
-        public CommandBuffer()
+        public CommandBuffer(RenderContext context)
         {
-            BonesBuffer = new UniformBuffer(65536, 64, typeof(Matrix4x4), true);
+            BonesBuffer = new UniformBuffer(context, 65536, 64, typeof(Matrix4x4), true);
             WorldBuffer = new WorldMatrixBuffer();
         }
         public void StartFrame(RenderContext rstate)

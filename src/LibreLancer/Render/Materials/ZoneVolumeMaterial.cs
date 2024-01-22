@@ -4,8 +4,9 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials
 {
@@ -34,7 +35,7 @@ namespace LibreLancer.Render.Materials
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
             rstate.BlendMode = BlendMode.Normal;
-            var shader = Shaders.ZoneVolume.Get();
+            var shader = Shaders.ZoneVolume.Get(rstate);
             shader.SetWorld(World);
             //Colors
             shader.SetDc(Dc);

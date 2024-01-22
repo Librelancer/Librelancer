@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render;
 
@@ -39,7 +40,7 @@ public class AsteroidCubeMeshBuilder
     private List<CubeDrawcall> cubeDrawCalls;
     private float radius = 0;
 
-    public AsteroidCubeMesh CreateMesh(AsteroidField field, ResourceManager resources)
+    public AsteroidCubeMesh CreateMesh(RenderContext context, AsteroidField field, ResourceManager resources)
     {
         verts = new List<VertexPositionNormalDiffuseTexture>();
         indices = new List<ushort>();
@@ -89,8 +90,8 @@ public class AsteroidCubeMeshBuilder
                 {BaseVertex = min, MaterialCrc = mat, StartIndex = start, Count = count});
         }
 
-        var cube_vbo = new VertexBuffer(typeof(VertexPositionNormalDiffuseTexture), verts.Count);
-        var cube_ibo = new ElementBuffer(indices.Count);
+        var cube_vbo = new VertexBuffer(context, typeof(VertexPositionNormalDiffuseTexture), verts.Count);
+        var cube_ibo = new ElementBuffer(context, indices.Count);
         cube_ibo.SetData(indices.ToArray());
         cube_vbo.SetData(verts.ToArray());
         cube_vbo.SetElementBuffer(cube_ibo);

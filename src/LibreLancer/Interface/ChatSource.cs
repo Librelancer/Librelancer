@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Infocards;
 using LibreLancer.Net.Protocol;
 using WattleScript.Interpreter;

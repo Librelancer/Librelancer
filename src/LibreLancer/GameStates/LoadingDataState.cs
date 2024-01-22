@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Graphics;
 using LibreLancer.Interface;
 
 namespace LibreLancer
@@ -25,7 +26,7 @@ namespace LibreLancer
             DoFade(delta);
             if (!shadersCompiled && (xCnt >= 3))
             {
-                Shaders.AllShaders.Compile();
+                Shaders.AllShaders.Compile(Game.RenderContext);
                 shadersCompiled = true;
             }
             if (xCnt >= 3&& Game.InisLoaded && !uiLoaded)

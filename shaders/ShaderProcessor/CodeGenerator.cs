@@ -29,7 +29,7 @@ public class CodeGenerator
         iscompiled.Attributes = MemberAttributes.Private | MemberAttributes.Static;
         iscompiled.InitExpression = new CodePrimitiveExpression(false);
         genclass.Members.Add(iscompiled);
-        
+
         var vsrc = new CodeMemberField(typeof(byte[]), "shader_bytes");
         vsrc.Attributes = MemberAttributes.Private | MemberAttributes.Static;
         vsrc.InitExpression = ByteArray(Compress.GetBytes(codeBuilder.ToString(), opts.Brotli));
@@ -38,6 +38,10 @@ public class CodeGenerator
         var compile = new CodeMemberMethod();
         compile.Name = "Compile";
         compile.Attributes = MemberAttributes.Public | MemberAttributes.Static;
+        if (opts.DeviceParameter != null)
+        {
+            compile.Parameters.Add(new CodeParameterDeclarationExpression(opts.DeviceParameter, "device"));
+        }
         //Once only
         compile.Statements.Add(new CodeConditionStatement(new CodeFieldReferenceExpression(null, "iscompiled"),
             new CodeMethodReturnStatement()));
@@ -60,7 +64,19 @@ public class CodeGenerator
             )
         );
         //Compile
-        foreach (var fx in files) compile.Statements.Add(new CodeMethodInvokeExpression(null, $"{fx.Name}.Compile", new CodeVariableReferenceExpression("shadersrc")));
+        foreach (var fx in files)
+        {
+            CodeExpression[] compileParams;
+            if (opts.DeviceParameter != null)
+                compileParams = new[]
+                {
+                    new CodeVariableReferenceExpression("device"),
+                    new CodeVariableReferenceExpression("shadersrc")
+                };
+            else
+                compileParams = new[] { new CodeVariableReferenceExpression("shadersrc") };
+            compile.Statements.Add(new CodeMethodInvokeExpression(null, $"{fx.Name}.Compile", compileParams));
+        }
         genclass.Members.Add(compile);
         return GenCodeUnit(compileUnit);
     }
@@ -162,17 +178,23 @@ public class CodeGenerator
 
             getIdx.Statements.Add(new CodeMethodReturnStatement(new CodePrimitiveExpression(0)));
             genclass.Members.Add(getIdx);
-            
+
             var getShader = new CodeMemberMethod();
             getShader.ReturnType = new CodeTypeReference(opts.ShaderType);
             getShader.Name = "Get";
             getShader.Attributes = MemberAttributes.Public | MemberAttributes.Static;
             getShader.ReturnType = new CodeTypeReference(opts.ShaderType);
+            CodeExpression[] compileParams = new CodeExpression[0];
+            if (opts.DeviceParameter != null)
+            {
+                getShader.Parameters.Add(new CodeParameterDeclarationExpression(opts.DeviceParameter, "device"));
+                compileParams = new[] { new CodeVariableReferenceExpression("device") };
+            }
             getShader.Parameters.Add(new CodeParameterDeclarationExpression("ShaderFeatures", "features"));
             var retval = new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                 new CodeMethodInvokeExpression(new CodeMethodReferenceExpression(null, "GetIndex"),
                     new CodeArgumentReferenceExpression("features")));
-            getShader.Statements.Add(new CodeMethodInvokeExpression(null, "AllShaders.Compile"));
+            getShader.Statements.Add(new CodeMethodInvokeExpression(null, "AllShaders.Compile", compileParams));
             getShader.Statements.Add(new CodeMethodReturnStatement(retval));
             genclass.Members.Add(getShader);
         }
@@ -183,26 +205,42 @@ public class CodeGenerator
             getShader.Name = "Get";
             getShader.Attributes = MemberAttributes.Public | MemberAttributes.Static;
             getShader.ReturnType = new CodeTypeReference(opts.ShaderType);
+            CodeExpression[] compileParams = new CodeExpression[0];
+            if (opts.DeviceParameter != null)
+            {
+                getShader.Parameters.Add(new CodeParameterDeclarationExpression(opts.DeviceParameter, "device"));
+                compileParams = new[] { new CodeVariableReferenceExpression("device") };
+            }
             getShader.Parameters.Add(new CodeParameterDeclarationExpression("ShaderFeatures", "features"));
-            getShader.Statements.Add(new CodeMethodInvokeExpression(null, "AllShaders.Compile"));
+            getShader.Statements.Add(new CodeMethodInvokeExpression(null, "AllShaders.Compile", compileParams));
             var retval = new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                 new CodePrimitiveExpression(0));
             getShader.Statements.Add(new CodeMethodReturnStatement(retval));
             genclass.Members.Add(getShader);
         }
-        
+
         var getZero = new CodeMemberMethod();
         getZero.Name = "Get";
         getZero.Attributes = MemberAttributes.Public | MemberAttributes.Static;
         getZero.ReturnType = new CodeTypeReference(opts.ShaderType);
+        CodeExpression[] compileZeroParams = new CodeExpression[0];
+        if (opts.DeviceParameter != null)
+        {
+            getZero.Parameters.Add(new CodeParameterDeclarationExpression(opts.DeviceParameter, "device"));
+            compileZeroParams = new[] { new CodeVariableReferenceExpression("device") };
+        }
         var zeroRet = new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
             new CodePrimitiveExpression(0));
-        getZero.Statements.Add(new CodeMethodInvokeExpression(null, "AllShaders.Compile"));
+        getZero.Statements.Add(new CodeMethodInvokeExpression(null, "AllShaders.Compile", compileZeroParams));
         getZero.Statements.Add(new CodeMethodReturnStatement(zeroRet));
         genclass.Members.Add(getZero);
 
         var compile = new CodeMemberMethod();
         compile.Name = "Compile";
+        if (opts.DeviceParameter != null)
+        {
+            compile.Parameters.Add(new CodeParameterDeclarationExpression(opts.DeviceParameter, "device"));
+        }
         compile.Parameters.Add(new CodeParameterDeclarationExpression("System.String", "sourceBundle"));
         compile.Attributes = MemberAttributes.Assembly | MemberAttributes.Static;
         //Once only
@@ -227,7 +265,7 @@ public class CodeGenerator
 
         var gl3src = new StringBuilder();
         var gl4src = new StringBuilder();
-        
+
         CodeExpression StringBuilderExpression(string src, bool gl3)
         {
             int vOff;
@@ -257,9 +295,12 @@ public class CodeGenerator
         CodeExpression[] ShaderCompile(string defs, bool gl3)
         {
             var ls = new List<CodeExpression>();
+            if (opts.DeviceParameter != null) {
+                ls.Add(new CodeVariableReferenceExpression("device"));
+            }
             ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, defs, ShaderCompiler.ShaderKind.Vertex), gl3));
             ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, defs, ShaderCompiler.ShaderKind.Fragment), gl3));
-            if (!string.IsNullOrWhiteSpace(fx.GeometrySource)) { 
+            if (!string.IsNullOrWhiteSpace(fx.GeometrySource)) {
                 ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.GeometrySource, fx.Name, defs, ShaderCompiler.ShaderKind.Geometry), gl3));
             }
             return ls.ToArray();
@@ -318,8 +359,8 @@ public class CodeGenerator
                 gl3Statements.ToArray()
             ));
         }
-        
-        
+
+
 
         genclass.Members.Add(compile);
         return GenCodeUnit(compileUnit);

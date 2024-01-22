@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -44,9 +45,9 @@ namespace LibreLancer.Interface
         protected void DrawText(
             UiContext context,
             ref CachedRenderString cache,
-            RectangleF myRectangle, 
-            float textSize, 
-            string font, 
+            RectangleF myRectangle,
+            float textSize,
+            string font,
             InterfaceColor textColor,
             InterfaceColor shadowColor,
             HorizontalAlignment horizontalAlign,
@@ -70,7 +71,7 @@ namespace LibreLancer.Interface
             var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
             //workaround for font substitution causing layout issues - e.g. CJK
             //TODO: How to get max lineheight of fonts in string?
-            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y; 
+            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y;
             float drawX, drawY;
             switch (horizontalAlign) {
                 case HorizontalAlignment.Left:
@@ -171,7 +172,7 @@ namespace LibreLancer.Interface
                 return CurrentAnimation.CurrentPosition;
             return animSetPos ?? myPos;
         }
-        
+
         public void Animate(string name, float offsetTime, float duration)
         {
             switch (name.ToLowerInvariant())
@@ -228,9 +229,9 @@ namespace LibreLancer.Interface
         public virtual void OnEscapePressed()
         {
             if(Visible)
-                escapePressed?.Invoke();    
+                escapePressed?.Invoke();
         }
-        
+
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }
 
         public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle) {}

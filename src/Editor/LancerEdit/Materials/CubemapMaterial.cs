@@ -3,8 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Vertices;
 using LibreLancer;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Render;
 
@@ -18,7 +19,7 @@ namespace LancerEdit.Materials
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
-            var sh = EnvMapTest.Get();
+            var sh = EnvMapTest.Get(rstate);
             sh.SetDtSampler(0);
             Texture.BindTo(0);
             rstate.BlendMode = BlendMode.Opaque;

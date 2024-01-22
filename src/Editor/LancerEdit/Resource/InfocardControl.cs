@@ -8,6 +8,9 @@ using LibreLancer.Infocards;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Text;
+
 namespace LancerEdit
 {
     public class InfocardControl : IDisposable
@@ -44,7 +47,7 @@ namespace LancerEdit
                     ImGuiHelper.DeregisterTexture(renderTarget.Texture);
                     renderTarget.Dispose();
                 }
-                renderTarget = new RenderTarget2D(renderWidth, renderHeight);
+                renderTarget = new RenderTarget2D(window.RenderContext, renderWidth, renderHeight);
                 rid = ImGuiHelper.RegisterTexture(renderTarget.Texture);
             }
 

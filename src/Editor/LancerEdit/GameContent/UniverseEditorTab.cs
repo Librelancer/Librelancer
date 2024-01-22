@@ -8,6 +8,7 @@ using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 
 namespace LancerEdit;

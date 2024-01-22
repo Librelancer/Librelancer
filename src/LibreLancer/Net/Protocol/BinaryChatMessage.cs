@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Interface;
 
 namespace LibreLancer.Net.Protocol;

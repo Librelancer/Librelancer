@@ -1,4 +1,5 @@
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 
@@ -40,9 +41,9 @@ public class ModelRenderer
     {
         //Set up state
         var renderContext = resources.GLWindow.RenderContext;
-        var commandBuffer = new CommandBuffer();
+        var commandBuffer = new CommandBuffer(renderContext);
         var restoreTarget = renderContext.RenderTarget;
-        var renderTarget = new RenderTarget2D(width, height);
+        var renderTarget = new RenderTarget2D(resources.GLWindow.RenderContext, width, height);
         renderContext.RenderTarget = renderTarget;
         renderContext.PushViewport(0,0,width,height);
         renderContext.ClearColor = Color4.Transparent;

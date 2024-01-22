@@ -1,25 +1,20 @@
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Vertices;
 
 namespace LibreLancer.Render.Materials;
 
 public class ProjectileMaterial : RenderMaterial
 {
-    private static ShaderVariables shader;
-
-    static ProjectileMaterial()
-    {
-        shader = Shaders.Projectile.Get();
-    }
-
     public ProjectileMaterial(ResourceManager library) : base(library) { }
 
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
+        var shader = Shaders.Projectile.Get(rstate);
         shader.SetDtSampler(0);
         BindTexture(rstate, 0, "code_beam", 0, SamplerFlags.ClampToEdgeU | SamplerFlags.ClampToEdgeV);
         rstate.BlendMode = BlendMode.Additive;
