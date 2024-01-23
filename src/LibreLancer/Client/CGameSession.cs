@@ -571,6 +571,8 @@ namespace LibreLancer.Client
                     if (owner != null && owner.TryGetComponent<WeaponControlComponent>(out var wc))
                     {
                         int tgtUnique = 0;
+                        if(wc.NetOrderWeapons == null)
+                            wc.UpdateNetWeapons();
                         for (int i = 0; i < wc.NetOrderWeapons.Length; i++) {
                             if ((p.Guns & (1UL << i)) == 0)
                                 continue;
