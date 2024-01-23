@@ -287,7 +287,7 @@ namespace LibreLancer.Net.Protocol
         static void EncodeFloat(ref BitWriter writer, float old, float current)
         {
             var diff = current - old;
-            if (diff >= -64 && diff < 63) {
+            if (diff >= -32 && diff < 31) {
                 writer.PutBool(true);
                 writer.PutRangedFloat(diff, -32, 31, 24);
             }

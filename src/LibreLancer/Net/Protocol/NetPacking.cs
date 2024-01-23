@@ -29,6 +29,9 @@ namespace LibreLancer.Net.Protocol
 
         public static uint QuantizeFloat(float f, float min, float max, int bits)
         {
+            #if DEBUG
+            if (f < min || f > max) throw new ArgumentOutOfRangeException();
+            #endif
             var intMax = (1 << bits) - 1;
             float unit = ((f - min) / (max - min));
             return (uint) (intMax * unit);
