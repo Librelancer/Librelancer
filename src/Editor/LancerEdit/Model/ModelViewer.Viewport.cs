@@ -44,7 +44,8 @@ namespace LancerEdit
             previewViewport = new Viewport3D(_window);
             imageViewport = new Viewport3D(_window);
             gizmoScale = 5;
-            if (vmsModel != null) {
+            if (vmsModel != null)
+            {
                 gizmoScale = vmsModel.GetRadius() / RADIUS_ONE;
             }
             else if (drawable is DF.DfmFile dfm) {

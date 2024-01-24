@@ -13,19 +13,29 @@ namespace LibreLancer.Utf
 		public static IDrawable GetDrawable(IntermediateNode root, ResourceManager resources, string path = "/")
 		{
 			bool cmpnd = false;
-			bool multilevel = false;
+			bool model = false;
 			foreach (var node in root)
 			{
-				var l = node.Name.ToLowerInvariant();
-                if (l == "sphere") return new SphFile(root, resources, path);
-				if (l == "vmeshpart") return new ModelFile(root);
-				if (l == "cmpnd") cmpnd = true;
-				if (l == "multilevel") multilevel = true;
-				if (l == "skeleton") return new DfmFile(root);
+                switch (node.Name.ToLowerInvariant())
+                {
+                    case "sphere":
+                        return new SphFile(root, resources, path);
+                    case "vmeshpart":
+                        return new ModelFile(root);
+                    case "cmpnd":
+                        cmpnd = true;
+                        break;
+                    case "multilevel":
+                    case "hardpoints":
+                        model = true;
+                        break;
+                    case "skeleton":
+                        return new DfmFile(root);
+                }
 			}
 			if (cmpnd)
 				return new CmpFile(root);
-			if (multilevel)
+			if (model)
 				return new ModelFile(root);
             return null;
 		}

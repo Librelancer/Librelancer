@@ -145,10 +145,15 @@ namespace LancerEdit
             else if (drawable is ModelFile)
             {
                 vmsModel = (drawable as ModelFile).CreateRigidModel(true, res);
-                levels = new string[vmsModel.AllParts[0].Mesh.Levels.Length];
-                for (int i = 0; i < levels.Length; i++)
-                    levels[i] = i.ToString();
-                if (vmsModel.Root.Mesh.Switch2 != null)
+                if (vmsModel.AllParts[0].Mesh == null)
+                    levels = new string[] { "No Mesh" };
+                else
+                {
+                    levels = new string[vmsModel.AllParts[0].Mesh.Levels.Length];
+                    for (int i = 0; i < levels.Length; i++)
+                        levels[i] = i.ToString();
+                }
+                if (vmsModel.Root.Mesh?.Switch2 != null)
                 {
                     foreach (var d in vmsModel.Root.Mesh.Switch2)
                         maxDistance = Math.Max(d, maxDistance);

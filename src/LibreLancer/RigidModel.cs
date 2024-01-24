@@ -192,7 +192,7 @@ namespace LibreLancer
         }
         public float GetRadius()
         {
-            if (Mesh == null) return 0;
+            if (Mesh == null) return 1;
             return Mesh.Radius;
         }
         public void UpdateTransform(Matrix4x4 parent)
@@ -257,7 +257,7 @@ namespace LibreLancer
 
         public float GetRadius()
         {
-            if (Root == null) return 0;
+            if (Root == null) return 1;
             if (AllParts.Length == 1) return Root.GetRadius();
             var f = float.MinValue;
             for (int i = 0; i < AllParts.Length; i++)
