@@ -80,6 +80,8 @@ namespace LancerEdit
             {
                 if (msaa != null) msaa.Dispose();
                 msaa = new MultisampleTarget(rstate, rw, rh, mw.Config.MSAA);
+                mrw = rw;
+                mrh = rh;
 
             } else if(msaa != null)
             {

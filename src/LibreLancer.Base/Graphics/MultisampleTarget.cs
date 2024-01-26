@@ -9,9 +9,6 @@ namespace LibreLancer.Graphics
 {
 	public class MultisampleTarget : RenderTarget
 	{
-		uint texID;
-		uint fbo;
-		uint depthID;
         public int Width => impl.Width;
         public int Height => impl.Height;
 
@@ -28,11 +25,6 @@ namespace LibreLancer.Graphics
         public void BlitToRenderTarget(RenderTarget2D rTarget) =>
             impl.BlitToRenderTarget(rTarget.Backing);
 
-        public override void Dispose()
-		{
-            GL.DeleteFramebuffer(fbo);
-			GL.DeleteRenderbuffer(depthID);
-			GL.DeleteTexture(texID);
-        }
-	}
+        public override void Dispose() => impl.Dispose();
+    }
 }
