@@ -25,9 +25,9 @@ namespace LibreLancer.Net
             Server.ConnectedPlayers.Add(Server.LocalPlayer);
         }
 
-        public void StartFromSave(string path)
+        public void StartFromSave(string path, byte[] save)
         {
-            var sg = Data.Save.SaveGame.FromFile(path);
+            var sg = Data.Save.SaveGame.FromBytes(path, save);
             //This starts the simulation + packet sending
             Server.Start();
             Server.LocalPlayer.OpenSaveGame(sg);

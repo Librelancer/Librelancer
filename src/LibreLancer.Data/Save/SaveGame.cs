@@ -21,7 +21,7 @@ namespace LibreLancer.Data.Save
         [Section("storyinfo")]
         public StoryInfo StoryInfo;
 
-        [Section("TriggerSave")] 
+        [Section("TriggerSave")]
         public List<TriggerSave> TriggerSave = new List<TriggerSave>();
 
         [Section("time")]
@@ -33,7 +33,7 @@ namespace LibreLancer.Data.Save
         [Section("locked_gates")]
         public LockedGates LockedGates;
 
-        [Section("nnobjective")] 
+        [Section("nnobjective")]
         public List<SavedObjective> Objectives = new List<SavedObjective>();
 
         public override string ToString()
@@ -58,10 +58,10 @@ namespace LibreLancer.Data.Save
             }
             return sg;
         }
-        public static SaveGame FromFile(string path)
+        public static SaveGame FromBytes(string path, byte[] bytes)
         {
             var sg = new SaveGame();
-            using (var stream = new MemoryStream(FlCodec.ReadFile(path)))
+            using (var stream = new MemoryStream(FlCodec.DecodeBytes(bytes)))
             {
                 sg.ParseAndFill(path, stream, false);
             }

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 
 namespace LibreLancer.Utf.Ale
 {
@@ -10,7 +11,7 @@ namespace LibreLancer.Utf.Ale
 	{
 		public ALEffectLib FxLib;
 		public AlchemyNodeLibrary NodeLib;
-		public AleFile(string file) : this(parseFile(file))
+		public AleFile(string file, Stream stream) : this(parseFile(file, stream))
 		{
 
 		}

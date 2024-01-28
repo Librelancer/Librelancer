@@ -43,8 +43,8 @@ namespace InterfaceEdit
                 ImGui.SetNextWindowSize(new Vector2(550,350), ImGuiCond.FirstUseEver);
                 ImGui.Begin("Resources", ref IsOpen);
                 if (ImGui.Button("Save")) {
-                    var path = context.FileSystem.Resolve(Path.Combine(context.XInterfacePath, "resources.xml"));
-                    File.WriteAllText(path, resources.ToXml());
+                   var path = context.FileSystem.GetBackingFileName(Path.Combine(context.XInterfacePath, "resources.xml"));
+                   File.WriteAllText(path, resources.ToXml());
                 }
                 ImGui.BeginTabBar("##tabbar", ImGuiTabBarFlags.None);
                 if (ImGui.BeginTabItem("Colors"))

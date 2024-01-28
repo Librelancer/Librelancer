@@ -116,7 +116,7 @@ namespace LancerEdit
             Audio = new AudioManager(this);
             Bell.Init(Audio);
             options = new OptionsWindow(this);
-            Resources = new GameResourceManager(this);
+            Resources = new GameResourceManager(this, null);
 			Commands = new CommandBuffer(RenderContext);
 			Polyline = new PolylineRender(RenderContext, Commands);
 			LineRenderer = new LineRenderer(RenderContext);

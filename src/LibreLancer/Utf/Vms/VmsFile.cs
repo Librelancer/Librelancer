@@ -21,23 +21,6 @@ namespace LibreLancer.Utf.Vms
             Meshes = new Dictionary<uint, VMeshData>();
         }
 
-        public VmsFile(string path)
-            : this()
-        {
-            foreach (IntermediateNode node in parseFile(path))
-            {
-                switch (node.Name.ToLowerInvariant())
-                {
-                    case "vmeshlibrary":
-                        IntermediateNode vMeshLibrary = node as IntermediateNode;
-                        setMeshes(vMeshLibrary);
-                        break;
-                    default:
-                        throw new Exception("Invalid node in vms root: " + node.Name);
-                }
-            }
-        }
-
         public VmsFile(IntermediateNode vMeshLibrary)
             : this()
         {

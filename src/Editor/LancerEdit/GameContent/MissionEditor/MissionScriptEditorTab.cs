@@ -56,7 +56,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         links = new List<NodeLink>();
         missionScript = new MissionScript(new MissionIni(file, null));
 
-        var npcPath = gameData.GameData.TryResolveData(missionScript.Ini.Info.NpcShipFile);
+        var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionScript.Ini.Info.NpcShipFile));
         if (npcPath is not null)
         {
             missionScript.Ini.ShipIni = new NPCShipIni(npcPath, null);

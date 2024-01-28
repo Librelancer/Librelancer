@@ -25,7 +25,7 @@ using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
 using Archetype = LibreLancer.GameData.Archetype;
 using DockSphere = LibreLancer.GameData.World.DockSphere;
-using FileSystem = LibreLancer.Data.FileSystem;
+using FileSystem = LibreLancer.Data.IO.FileSystem;
 using Spine = LibreLancer.GameData.World.Spine;
 
 namespace LibreLancer
@@ -38,26 +38,25 @@ namespace LibreLancer
         GameResourceManager glResource;
         List<GameData.IntroScene> IntroScenes;
         public FileSystem VFS;
-        public GameDataManager(string path, ResourceManager resman)
+        public GameDataManager(FileSystem vfs, ResourceManager resman)
         {
             resource = resman;
             glResource = (resource as GameResourceManager);
-            VFS = FileSystem.FromFolder(path);
+            VFS = vfs;
             var flini = new Data.FreelancerIni(VFS);
             fldata = new Data.FreelancerData(flini, VFS);
         }
         public string DataVersion => fldata.DataVersion;
 
-        public string ResolveDataPath(string input)
+        public string DataPath(string input)
         {
-            return VFS.Resolve(fldata.Freelancer.DataPath + input);
-        }
-
-        public string TryResolveData(string input)
-        {
-            var v =  VFS.Resolve(fldata.Freelancer.DataPath + input, false);
-            if(v == null) FLLog.Error("GameData", $"File {fldata.Freelancer.DataPath}{input} not found");
-            return v;
+            if (input == null) return null;
+            var path = fldata.Freelancer.DataPath + input;
+            if (!VFS.FileExists(path)) {
+                FLLog.Error("GameData", $"File {fldata.Freelancer.DataPath}{input} not found");
+                return null;
+            }
+            return path;
         }
 
         public Dictionary<string, string> GetBaseNavbarIcons()
@@ -70,7 +69,7 @@ namespace LibreLancer
             var movies = new List<string>();
             foreach (var file in fldata.Freelancer.StartupMovies)
             {
-                var path = TryResolveData(file);
+                var path = DataPath(file);
                 if (path != null)
                     movies.Add(path);
             }
@@ -86,24 +85,29 @@ namespace LibreLancer
                 var stringTable = new StringDeduplication();
                 foreach (var file in fldata.Bodyparts.Animations)
                 {
-                    AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, ResolveDataPath(file));
+                    var path = DataPath(file);
+                    using var stream = VFS.Open(path);
+                    AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, stream, path);
                 }
                 characterAnimations.Buffer.Shrink();
             }
             return characterAnimations;
         }
+
+        DfmFile GetBodypart(string part)
+        {
+            if (string.IsNullOrEmpty(part)) return null;
+            var p = fldata.Bodyparts.FindBodypart(part);
+            if (p == null) return null;
+            return (DfmFile)resource.GetDrawable(DataPath(p.Mesh)).Drawable;
+        }
         public bool GetCostume(string costume, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand)
         {
             var cs = fldata.Costumes.FindCostume(costume);
-            body = head = leftHand = rightHand = null;
-            if(cs.Head != null)
-                head = (DfmFile)resource.GetDrawable(VFS.Resolve(cs.Head.MeshPath));
-            if(cs.Body != null)
-                body = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.Body.MeshPath));
-            if(cs.LeftHand != null)
-                leftHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.LeftHand.MeshPath));
-            if(cs.RightHand != null)
-                rightHand = (DfmFile) resource.GetDrawable(VFS.Resolve(cs.RightHand.MeshPath));
+            head = GetBodypart(cs.Head);
+            body = GetBodypart(cs.Body);
+            leftHand = GetBodypart(cs.LeftHand);
+            rightHand = GetBodypart(cs.RightHand);
             return true;
         }
 
@@ -117,10 +121,10 @@ namespace LibreLancer
         {
             r = null;
             if (path == null) return false;
-            var resolved = TryResolveData(path);
-            if (resolved != null)
+            var resolved = DataPath(path);
+            if (VFS.FileExists(resolved))
             {
-                r = new ResolvedThn() {SourcePath = path, ResolvedPath = resolved};
+                r = new ResolvedThn() {SourcePath = path, VFS = VFS, DataPath = resolved};
                 return true;
             }
             return false;
@@ -129,7 +133,7 @@ namespace LibreLancer
         ResolvedThn ResolveThn(string path)
         {
             if (path == null) return null;
-            return new() {SourcePath = path, ResolvedPath = ResolveDataPath(path)};
+            return new() {SourcePath = path, VFS = VFS, DataPath = DataPath(path)};
         }
 
         IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)
@@ -259,7 +263,7 @@ namespace LibreLancer
                 {
                     case Data.Goods.GoodCategory.ShipHull:
                         hulls.Add(g.Nickname, g);
-                        shipToIcon[g.Ship] = TryResolveData(g.ItemIcon);
+                        shipToIcon[g.Ship] = DataPath(g.ItemIcon);
                         shipPrices[g.Ship] = g.Price;
                         break;
                     case Data.Goods.GoodCategory.Ship:
@@ -411,7 +415,7 @@ namespace LibreLancer
             if (glResource != null && ui != null)
             {
                 glResource.AddPreload(
-                    fldata.EffectShapes.Files.Select(txmfile => ResolveDataPath(txmfile))
+                    fldata.EffectShapes.Files.Select(txmfile => DataPath(txmfile))
                 );
                 foreach (var shape in fldata.EffectShapes.Shapes)
                 {
@@ -489,7 +493,7 @@ namespace LibreLancer
             cursorsDone = true;
 
             resource.LoadResourceFile(
-                ResolveDataPath(fldata.Mouse.TxmFile)
+                DataPath(fldata.Mouse.TxmFile)
             );
             foreach (var lc in fldata.Mouse.Cursors)
             {
@@ -511,14 +515,16 @@ namespace LibreLancer
         {
             return fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
         }
-        public string GetAudioPath(string id)
+        public Stream GetAudioStream(string id)
         {
             var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
-            return VFS.Resolve(fldata.Freelancer.DataPath + audio.File, false);
+            if (VFS.FileExists(DataPath(audio.File)))
+                return VFS.Open(DataPath(audio.File));
+            return null;
         }
         public string GetVoicePath(string id)
         {
-            return ResolveDataPath("AUDIO\\" + id + ".utf");
+            return DataPath("AUDIO\\" + id + ".utf");
         }
 
         public string GetInfocardText(int id, FontManager fonts)
@@ -568,13 +574,13 @@ namespace LibreLancer
                 {
                     glResource.AddTexture(
                         "__startupscreen_1280.tga",
-                        ResolveDataPath("INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
+                        DataPath("INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
                     );
                 } else if (VFS.FileExists(fldata.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga"))
                 {
                     glResource.AddTexture(
                         "__startupscreen_1280.tga",
-                        ResolveDataPath("INTERFACE/INTRO/IMAGES/startupscreen.tga")
+                        DataPath("INTERFACE/INTRO/IMAGES/startupscreen.tga")
                     );
                 }
                 else
@@ -589,7 +595,6 @@ namespace LibreLancer
 
         public IEnumerable<Maneuver> GetManeuvers()
         {
-            var p = fldata.Freelancer.DataPath.Replace('\\', Path.DirectorySeparatorChar);
             foreach (var m in fldata.Hud.Maneuvers)
             {
                 yield return new Maneuver()
@@ -597,8 +602,8 @@ namespace LibreLancer
                     Action = m.Action,
                     InfocardA = fldata.Infocards.GetStringResource(m.InfocardA),
                     InfocardB = fldata.Infocards.GetStringResource(m.InfocardB),
-                    ActiveModel = Path.Combine(p,m.ActiveModel),
-                    InactiveModel = Path.Combine(p,m.InactiveModel)
+                    ActiveModel = m.ActiveModel,
+                    InactiveModel = m.InactiveModel,
                 };
             }
         }
@@ -631,7 +636,7 @@ namespace LibreLancer
                     foreach (var v in o.Values)
                     {
                         var sh = Ships.Get(v);
-                        PreloadSur(sh?.ModelFile?.LoadFile(resources), resources);
+                        sh?.ModelFile?.LoadFile(resources);
                     }
                 }
                 else if (o.Type == PreloadType.Equipment)
@@ -639,7 +644,7 @@ namespace LibreLancer
                     foreach (var v in o.Values)
                     {
                         var eq = Equipment.Get(v);
-                        PreloadSur(eq?.ModelFile?.LoadFile(resources), resources);
+                        eq?.ModelFile?.LoadFile(resources);
                     }
                 }
             }
@@ -1147,7 +1152,7 @@ namespace LibreLancer
             if (fldata.Stars != null)
             {
                 foreach (var txmfile in fldata.Stars.TextureFiles)
-                    resource.LoadResourceFile(ResolveDataPath(txmfile));
+                    resource.LoadResourceFile(DataPath(txmfile));
             }
             yield return null;
             sys.StarsBasic?.LoadFile(resource);
@@ -1196,7 +1201,7 @@ namespace LibreLancer
                 if (!tpanels.TryGetValue(f, out pnl))
                 {
                     pnl = new CachedTexturePanels() {ID = tpId++, P = new Data.Universe.TexturePanels(f, VFS)};
-                    pnl.ResourceFiles = pnl.P.Files.Select(ResolveDataPath).ToArray();
+                    pnl.ResourceFiles = pnl.P.Files.Select(DataPath).ToArray();
                     tpanels.Add(f, pnl);
                 }
                 return pnl;
@@ -1218,7 +1223,7 @@ namespace LibreLancer
             {
                 foreach (var f in ast.TexturePanels.Files)
                 {
-                    var pnlref = TexturePanelFile(ResolveDataPath(f));
+                    var pnlref = TexturePanelFile(DataPath(f));
                     var pf = pnlref.P;
                     panels.TextureShapes.AddRange(pf.TextureShapes);
                     foreach (var sh in pf.Shapes)
@@ -1329,7 +1334,7 @@ namespace LibreLancer
             var panels = new Data.Universe.TexturePanels();
             foreach(var f in nbl.TexturePanels.Files)
             {
-                var pnlref = TexturePanelFile(ResolveDataPath(f));
+                var pnlref = TexturePanelFile(DataPath(f));
                 var pf = pnlref.P;
                 panels.TextureShapes.AddRange(pf.TextureShapes);
                 foreach (var sh in pf.Shapes)
@@ -1478,11 +1483,11 @@ namespace LibreLancer
         {
             if (string.IsNullOrWhiteSpace(file)) return null;
             var mdl = new ResolvedModel() {
-                ModelFile = TryResolveData(file),
+                ModelFile = DataPath(file),
                 SourcePath = file,
             };
             if (libs != null)
-                mdl.LibraryFiles = libs.Select(x => TryResolveData(x)).Where(x => x != null).ToArray();
+                mdl.LibraryFiles = libs.Select(x => DataPath(x)).Where(x => x != null).ToArray();
             return mdl;
         }
 
@@ -1678,17 +1683,17 @@ namespace LibreLancer
             }
         }
 
-        public (IDrawable, float[]) GetSolar(string solar)
+        public (ModelResource, float[]) GetSolar(string solar)
         {
             var at = Archetypes.Get(solar);
             return (at.ModelFile.LoadFile(resource), at.LODRanges);
         }
 
-        public IDrawable GetAsteroid(string asteroid)
+        public ModelResource GetAsteroid(string asteroid)
         {
             var ast = fldata.Asteroids.FindAsteroid(asteroid);
-            resource.LoadResourceFile(ResolveDataPath(ast.MaterialLibrary));
-            return resource.GetDrawable(ResolveDataPath(ast.DaArchetype));
+            resource.LoadResourceFile(DataPath(ast.MaterialLibrary));
+            return resource.GetDrawable(DataPath(ast.DaArchetype));
         }
 
         public IDrawable GetProp(string prop)
@@ -1696,7 +1701,7 @@ namespace LibreLancer
             string f;
             if (fldata.PetalDb.Props.TryGetValue(prop, out f))
             {
-                return resource.GetDrawable(ResolveDataPath(f));
+                return resource.GetDrawable(DataPath(f)).Drawable;
             }
             else
             {
@@ -1707,12 +1712,12 @@ namespace LibreLancer
 
         public IDrawable GetCart(string cart)
         {
-            return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Carts[cart]));
+            return resource.GetDrawable(DataPath(fldata.PetalDb.Carts[cart])).Drawable;
         }
 
         public IDrawable GetRoom(string room)
         {
-            return resource.GetDrawable(ResolveDataPath(fldata.PetalDb.Rooms[room]));
+            return resource.GetDrawable(DataPath(fldata.PetalDb.Rooms[room])).Drawable;
         }
 
         Dictionary<string, ObjectLoadout> _loadouts = new Dictionary<string, ObjectLoadout>(StringComparer.OrdinalIgnoreCase);
@@ -1896,13 +1901,13 @@ namespace LibreLancer
             }
             if (visfx == null) return null;
             if(string.IsNullOrWhiteSpace(visfx.AlchemyPath)) return null;
-            var alepath = TryResolveData(visfx.AlchemyPath);
+            var alepath = DataPath(visfx.AlchemyPath);
             if (alepath == null) return null;
             return new ResolvedFx()
             {
                 AlePath = alepath,
                 VisFxCrc = (uint)visfx.EffectCrc,
-                LibraryFiles = visfx.Textures.Select(TryResolveData).Where(x => x != null).ToArray()
+                LibraryFiles = visfx.Textures.Select(DataPath).Where(x => x != null).ToArray()
             };
         }
 

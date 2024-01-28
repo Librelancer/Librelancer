@@ -32,8 +32,9 @@ public class UniverseEditorTab : EditorTab
         Title = "Universe Editor";
         this.win = win;
         this.gameData = gameData;
-        if(gameData.GameData.TryResolveData(NAV_PRETTYMAP) != null)
-            gameData.Resources.LoadResourceFile(gameData.GameData.ResolveDataPath(NAV_PRETTYMAP));
+        var pmap = this.gameData.GameData.DataPath(NAV_PRETTYMAP);
+        if (gameData.GameData.VFS.FileExists(pmap))
+            gameData.Resources.LoadResourceFile(pmap);
         universeBackgroundTex = (gameData.Resources.FindTexture("fancymap.tga") as Texture2D);
         if (universeBackgroundTex != null)
             universeBackgroundRegistered = ImGuiHelper.RegisterTexture(universeBackgroundTex);
@@ -129,7 +130,7 @@ public class UniverseEditorTab : EditorTab
 
     void NewSystem(string nickname)
     {
-        var systemsFolder = gameData.GameData.ResolveDataPath("UNIVERSE/SYSTEMS/");
+        var systemsFolder = gameData.GameData.DataPath("UNIVERSE/SYSTEMS/");
         var newFolder = Path.Combine(systemsFolder, nickname);
         Directory.CreateDirectory(newFolder);
         var system = new StarSystem()
@@ -144,7 +145,7 @@ public class UniverseEditorTab : EditorTab
             Preloads = Array.Empty<PreloadObject>(),
         };
         gameData.GameData.Systems.Add(system);
-        var universePath = gameData.GameData.VFS.Resolve(gameData.GameData.Ini.Freelancer.UniversePath);
+        var universePath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Ini.Freelancer.UniversePath);
         File.WriteAllText(Path.Combine(newFolder, $"{nickname}.ini"), IniSerializer.SerializeStarSystem(system));
         File.WriteAllText(universePath, IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases));
         gameData.GameData.VFS.Refresh();

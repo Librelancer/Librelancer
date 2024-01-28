@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Data.Save;
 using LibreLancer.Database;
 using LibreLancer.GameData;
@@ -60,16 +61,16 @@ namespace LibreLancer.Server
             debugInfoForFrame = info;
         }
 
-        public GameServer(string fldir)
+        public GameServer(FileSystem vfs)
         {
-            Resources = new ServerResourceManager(null);
-            GameData = new GameDataManager(fldir, Resources);
+            Resources = new ServerResourceManager(null, vfs);
+            GameData = new GameDataManager(vfs, Resources);
             Listener = new GameListener(this);
         }
 
         public GameServer(GameDataManager gameData, ConvexMeshCollection convexCollection)
         {
-            Resources = new ServerResourceManager(convexCollection);
+            Resources = new ServerResourceManager(convexCollection, gameData.VFS);
             GameData = gameData;
             needLoadData = false;
         }
@@ -85,7 +86,7 @@ namespace LibreLancer.Server
             //does this have any effect in FL?
 
             var src = new StringBuilder(
-                Encoding.UTF8.GetString(FlCodec.ReadFile(GameData.VFS.Resolve("EXE\\mpnewcharacter.fl"))));
+                Encoding.UTF8.GetString(FlCodec.DecodeBytes(GameData.VFS.ReadAllBytes("EXE\\mpnewcharacter.fl"))));
 
             src.Replace("%%NAME%%", SavePlayer.EncodeName(name));
             src.Replace("%%BASE_COSTUME%%", pilot.Body);

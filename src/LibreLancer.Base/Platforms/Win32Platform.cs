@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibreLancer.Platforms.Win32;
@@ -69,9 +70,11 @@ namespace LibreLancer.Platforms
 
         public MountInfo[] GetMounts() => Directory.GetLogicalDrives().Select(x => new MountInfo(x, x)).ToArray();
 
-        public void AddTtfFile(string file)
+        public List<byte[]> TtfFiles = new List<byte[]>();
+        
+        public void AddTtfFile(byte[] file)
         {
-            //Not implemented
+            TtfFiles.Add(file);
         }
 
         class Win32Events : PlatformEvents

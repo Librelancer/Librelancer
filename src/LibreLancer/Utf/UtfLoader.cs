@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
@@ -39,14 +40,14 @@ namespace LibreLancer.Utf
 				return new ModelFile(root);
             return null;
 		}
-		public static IDrawable LoadDrawable(string file, ResourceManager resources)
+		public static IDrawable LoadDrawable(Stream file, string filename, ResourceManager resources)
 		{
-			var root = parseFile(file);
-            var dr = GetDrawable(root, resources, file);
-			if (dr is ModelFile) ((ModelFile)dr).Path = file;
-			if (dr is CmpFile) ((CmpFile)dr).Path = file;
+			var root = parseFile(filename, file);
+            var dr = GetDrawable(root, resources, filename);
+			if (dr is ModelFile) ((ModelFile)dr).Path = filename;
+			if (dr is CmpFile) ((CmpFile)dr).Path = filename;
             if (dr == null)
-                FLLog.Error("Utf", file + " is not valid IDrawable");
+                FLLog.Error("Utf", filename + " is not valid IDrawable");
 			return dr;
 		}
 		public static bool LoadResourceNode(IntermediateNode root, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
@@ -92,12 +93,12 @@ namespace LibreLancer.Utf
             }
             return true;
 		}
-		public static void LoadResourceFile(string file, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static void LoadResourceFile(Stream stream, string file, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
 		{
 			materials = null;
 			textures = null;
 			vms = null;
-			var root = parseFile(file);
+			var root = parseFile(file, stream);
 			LoadResourceNode(root, library, out materials, out textures, out vms);
 		}
 	}

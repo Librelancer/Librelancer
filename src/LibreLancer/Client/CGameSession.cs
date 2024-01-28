@@ -805,17 +805,17 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                RigidModel mdl;
+                ModelResource src;
                 if (kind == GameObjectKind.Ship)
                 {
-                    var ship = Game.GameData.Ships.Get(archetype);
-                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true, Game.ResourceManager);
+                    src = Game.GameData.Ships.Get(archetype).ModelFile.LoadFile(Game.ResourceManager);
                 }
                 else
                 {
-                    var arch = Game.GameData.GetSolarArchetype(archetype);
-                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Game.ResourceManager)).CreateRigidModel(true, Game.ResourceManager);
+                    src = Game.GameData.GetSolarArchetype(archetype).ModelFile.LoadFile(Game.ResourceManager);
                 }
+                var collider = src.Collision;
+                var mdl = ((IRigidModelFile) src).CreateRigidModel(true, Game.ResourceManager);
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
                 {
@@ -824,7 +824,7 @@ namespace LibreLancer.Client
                     MaterialAnims = mdl.MaterialAnims,
                     Path = mdl.Path,
                 };
-                var go = new GameObject($"debris{id}", newmodel, Game.ResourceManager, part, mass, true);
+                var go = new GameObject(newmodel, collider, Game.ResourceManager, part, mass, true);
                 go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
                                      Matrix4x4.CreateTranslation(position));
                 go.Kind = GameObjectKind.Debris;
@@ -1037,7 +1037,7 @@ namespace LibreLancer.Client
                 }
                 else
                 {
-                    var thn = new ThnScript(Game.GameData.ResolveDataPath(thorn));
+                    var thn = new ThnScript(Game.GameData.DataPath(thorn));
                     var mo = gp.world.GetObject(mainObject);
                     if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
                     else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");

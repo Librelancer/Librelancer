@@ -46,10 +46,10 @@ namespace LibreLancer.Data.Characters
 				case "head":
 				case "righthand":
 				case "lefthand":
-					Bodyparts.Add(new Bodypart(s, gdata));
+                    Bodyparts.Add(FromSection<Bodypart>(s));
 					break;
 				case "accessory":
-					Accessories.Add(new Accessory(s, gdata));
+                    Accessories.Add(FromSection<Accessory>(s));
 					break;
 				default: throw new Exception("Invalid Section in " + path + ": " + s.Name);
 				}

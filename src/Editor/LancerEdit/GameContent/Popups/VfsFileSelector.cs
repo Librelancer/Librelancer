@@ -9,11 +9,12 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.IO;
 using LibreLancer.ImUI;
 
 namespace LancerEdit
 {
-    public class FileSelector : PopupWindow
+    public class VfsFileSelector : PopupWindow
     {
         private static int _unique = 9;
         private int unique = _unique++;
@@ -23,20 +24,24 @@ namespace LancerEdit
         private int fileNameSelected = -1;
         List<string> pathBar = new List<string>();
         public Func<string, bool> Filter = AnyFilter;
+        private FileSystem vfs;
 
         private Action<string> onSelect;
 
         public override string Title { get; set; }
         public override Vector2 InitSize => new (300);
 
-        public FileSelector(string title, string baseDir, Action<string> onSelect, Func<string,bool> filter = null)
+        public VfsFileSelector(string title, FileSystem fs, string baseDir, Action<string> onSelect, Func<string,bool> filter)
         {
             this.baseDir = baseDir;
+            this.vfs = fs;
             this.onSelect = onSelect;
             this.Filter = filter ?? AnyFilter;
             this.Title = title;
             Populate();
         }
+
+        public static Func<string, bool> NoFilter = (_) => true;
 
         public static Func<string, bool> MakeFilter(params string[] extensions)
         {
@@ -66,8 +71,8 @@ namespace LancerEdit
                 path = Path.Combine(path, p);
             }
 
-            directoryNames = Directory.GetDirectories(path).Select(Path.GetFileName).OrderBy(x => x).ToArray();
-            fileNames = Directory.GetFiles(path).Where(Filter).Select(Path.GetFileName).OrderBy(x => x).ToArray();
+            directoryNames = vfs.GetDirectories(path).OrderBy(x => x).ToArray();
+            fileNames = vfs.GetFiles(path).Where(Filter).OrderBy(x => x).ToArray();
         }
 
         string BuildFullPath(string file)

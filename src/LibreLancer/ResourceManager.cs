@@ -6,6 +6,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
@@ -43,7 +45,7 @@ namespace LibreLancer
         public abstract Material FindMaterial(uint materialId);
         public abstract VMeshResource FindMesh(uint vMeshLibId);
         public abstract VMeshData FindMeshData(uint vMeshLibId);
-        public abstract IDrawable GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
+        public abstract ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
         public abstract void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
         public abstract Fx.ParticleLibrary GetParticleLibrary(string filename);
 
@@ -52,12 +54,18 @@ namespace LibreLancer
 
         public ConvexMeshCollection ConvexCollection { get; protected set; }
 
-        public SurFile GetSur(string filename)
+        protected FileSystem VFS;
+        protected ResourceManager(FileSystem vfs)
+        {
+            VFS = vfs;
+        }
+
+        protected SurFile GetSur(string filename)
         {
             SurFile sur;
             if (!surs.TryGetValue(filename, out sur))
             {
-                using (var stream = File.OpenRead(filename))
+                using (var stream = VFS.Open(filename))
                 {
                     sur = SurFile.Read(stream);
                 }
@@ -69,7 +77,7 @@ namespace LibreLancer
 
     public class ServerResourceManager : ResourceManager
     {
-        Dictionary<string, IDrawable> drawables = new Dictionary<string, IDrawable>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, ModelResource> drawables = new Dictionary<string, ModelResource>(StringComparer.OrdinalIgnoreCase);
         public override Dictionary<string, Texture> TextureDictionary => throw new InvalidOperationException();
         public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => throw new InvalidOperationException();
@@ -79,7 +87,7 @@ namespace LibreLancer
             throw new InvalidOperationException();
         }
 
-        public ServerResourceManager(ConvexMeshCollection collection)
+        public ServerResourceManager(ConvexMeshCollection collection, FileSystem vfs) : base(vfs)
         {
             ConvexCollection = collection ?? new ConvexMeshCollection(GetSur);
         }
@@ -96,16 +104,22 @@ namespace LibreLancer
         public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
         public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
 
-        public override IDrawable GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
+        public override ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
         {
-            IDrawable drawable;
-            if (!drawables.TryGetValue(filename, out drawable))
+            if (!drawables.TryGetValue(filename, out var item))
             {
-                drawable = Utf.UtfLoader.LoadDrawable(filename, this);
+                using var stream = VFS.Open(filename);
+                var drawable = Utf.UtfLoader.LoadDrawable(stream, filename, this);
                 drawable?.ClearResources();
-                drawables.Add(filename, drawable);
+                CollisionMeshHandle handle = default;
+                var surPath = Path.ChangeExtension(filename, "sur");
+                if (VFS.FileExists(surPath))
+                    handle = new CollisionMeshHandle()
+                        { Sur = GetSur(surPath), FileId = ConvexCollection.UseFile(surPath) };
+                item = new ModelResource(drawable, handle);
+                drawables.Add(filename, item);
             }
-            return drawable;
+            return item;
         }
 
         public override void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU) { }
@@ -122,7 +136,7 @@ namespace LibreLancer
 		Dictionary<uint, string> materialfiles = new();
 		Dictionary<string, Texture> textures = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, string> texturefiles = new(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, IDrawable> drawables = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, ModelResource> drawables = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TextureShape> shapes = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, Cursor> cursors = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TexFrameAnimation> frameanims = new(StringComparer.OrdinalIgnoreCase);
@@ -178,7 +192,7 @@ namespace LibreLancer
 		}
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => frameanims;
 
-        public GameResourceManager(IGLWindow g)
+        public GameResourceManager(IGLWindow g, FileSystem vfs) : base(vfs)
 		{
 			GLWindow = g;
             vertexResourceAllocator = new VertexResourceAllocator(g.RenderContext);
@@ -198,7 +212,7 @@ namespace LibreLancer
             ConvexCollection = new ConvexMeshCollection(GetSur);
 		}
 
-        public GameResourceManager(GameResourceManager src) : this(src.GLWindow)
+        public GameResourceManager(GameResourceManager src) : this(src.GLWindow, src.VFS)
         {
             texturefiles = new Dictionary<string, string>(src.texturefiles, StringComparer.OrdinalIgnoreCase);
             shapes = new Dictionary<string, TextureShape>(src.shapes, StringComparer.OrdinalIgnoreCase);
@@ -254,8 +268,9 @@ namespace LibreLancer
 		}
 
 		public void AddTexture(string name,string filename)
-		{
-			var dat = ImageLib.Generic.FromFile(GLWindow.RenderContext, filename);
+        {
+            using var stream = VFS.Open(filename);
+			var dat = ImageLib.Generic.FromStream(GLWindow.RenderContext, stream);
 			textures.Add(name, dat);
 			texturefiles.Add(name, filename);
             EstimatedTextureMemory += dat.EstimatedTextureMemory;
@@ -418,7 +433,7 @@ namespace LibreLancer
             Fx.ParticleLibrary lib;
             if (!particlelibs.TryGetValue(filename, out lib))
             {
-                var ale = new Utf.Ale.AleFile(filename);
+                var ale = new Utf.Ale.AleFile(filename, VFS.Open(filename));
                 lib = new Fx.ParticleLibrary(this, ale);
                 particlelibs.Add(filename, lib);
             }
@@ -430,11 +445,11 @@ namespace LibreLancer
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
             var fn = filename.ToLowerInvariant();
             if (loadedResFiles.Contains(fn)) return;
-
+            using var stream = VFS.Open(filename);
             MatFile mat;
             TxmFile txm;
             VmsFile vms;
-            Utf.UtfLoader.LoadResourceFile(filename, this, out mat, out txm, out vms);
+            Utf.UtfLoader.LoadResourceFile(stream, filename, this, out mat, out txm, out vms);
             if (mat != null) AddMaterials(mat, filename);
             if (txm != null) AddTextures(txm, filename);
             if (vms != null) AddMeshes(vms, meshMode, filename);
@@ -503,16 +518,27 @@ namespace LibreLancer
                 }
             }
 		}
-		public override IDrawable GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
+		public override ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
-			IDrawable drawable;
-			if (!drawables.TryGetValue(filename, out drawable))
-			{
-				drawable = Utf.UtfLoader.LoadDrawable(filename, this);
+			ModelResource res;
+			if (!drawables.TryGetValue(filename, out res))
+            {
+                using var stream = VFS.Open(filename);
+				var drawable = Utf.UtfLoader.LoadDrawable(stream,filename, this);
+                CollisionMeshHandle handle = default;
                 if(drawable == null) {
                     drawables.Add(filename, null);
                     return null;
+                }
+                if (drawable is not DfmFile)
+                {
+                    var surpath = Path.ChangeExtension(filename, "sur");
+                    if (VFS.FileExists(surpath))
+                    {
+                        handle = new CollisionMeshHandle()
+                            { Sur = GetSur(surpath), FileId = ConvexCollection.UseFile(surpath) };
+                    }
                 }
 				if (drawable is CmpFile) /* Get Resources */
 				{
@@ -547,10 +573,11 @@ namespace LibreLancer
 					if (sph.TextureLibrary != null) AddTextures(sph.TextureLibrary, filename);
 					if (sph.VMeshLibrary != null) AddMeshes(sph.VMeshLibrary, loadMode, filename);
                 }
+                res = new ModelResource(drawable, handle);
                 drawable.ClearResources();
-				drawables.Add(filename, drawable);
+				drawables.Add(filename, res);
 			}
-			return drawable;
+			return res;
 		}
 
         private bool isDisposed = false;

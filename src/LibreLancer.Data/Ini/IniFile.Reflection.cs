@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer.Ini
 {
@@ -548,7 +549,7 @@ namespace LibreLancer.Ini
                 ProcessDeferred(kv.Key, kv.Value);
         }
 
-        public void ParseAndFill(string filename, string datapath, LibreLancer.Data.FileSystem vfs)
+        public void ParseAndFill(string filename, string datapath, FileSystem vfs)
         {
             var sections = GetContainerInfo(GetType());
             var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();
@@ -561,7 +562,7 @@ namespace LibreLancer.Ini
                 ProcessDeferred(kv.Key, kv.Value, datapath, vfs);
         }
 
-        public void ParseAndFill(IEnumerable<string> filenames, LibreLancer.Data.FileSystem vfs)
+        public void ParseAndFill(IEnumerable<string> filenames, FileSystem vfs)
         {
             var sections = GetContainerInfo(GetType());
             var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();
@@ -577,7 +578,7 @@ namespace LibreLancer.Ini
                 ProcessDeferred(kv.Key, kv.Value);
         }
 
-        public void ParseAndFill(string filename, LibreLancer.Data.FileSystem vfs)
+        public void ParseAndFill(string filename, FileSystem vfs)
         {
             var sections = GetContainerInfo(GetType());
             var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();

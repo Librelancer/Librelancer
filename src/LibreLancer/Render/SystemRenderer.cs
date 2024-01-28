@@ -154,7 +154,7 @@ namespace LibreLancer.Render
             void AddModel(ResolvedModel mdl)
             {
                 if (mdl == null) return;
-                var loaded = (mdl.LoadFile(resman) as IRigidModelFile);
+                var loaded = (mdl.LoadFile(resman)?.Drawable as IRigidModelFile);
                 if (loaded == null) return;
                 starSphereRenderData.Add(loaded.CreateRigidModel(true, resman));
             }

@@ -58,19 +58,14 @@ namespace LibreLancer.World.Components
             if (physics == null)
                 return;
             phys = physics;
-            Dictionary<string, int> indexes = new Dictionary<string, int>();
             shape = new ConvexMeshCollider(phys);
+            var rm = GetResourceManager();
             foreach (var asteroid in Field.Cube)
             {
-                var path = Path.ChangeExtension(asteroid.Drawable.ModelFile, "sur");
-                if (File.Exists(path))
+                var sur = asteroid.Drawable.LoadFile(rm, MeshLoadMode.CPU).Collision;
+                if (sur.Valid)
                 {
-                    var id = physics.ConvexCollection.UseFile(path);
-                    shape.AddPart(id, 0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * Field.CubeSize), null);
-                }
-                else
-                {
-                    FLLog.Error("Sur", "Hitbox not found " + path);
+                    shape.AddPart(sur.FileId, 0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * Field.CubeSize), null);
                 }
             }
 

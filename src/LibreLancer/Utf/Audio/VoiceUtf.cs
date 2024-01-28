@@ -1,18 +1,20 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+
 namespace LibreLancer.Utf.Audio
 {
     public class VoiceUtf : UtfFile
     {
         public Dictionary<uint, byte[]> AudioFiles = new Dictionary<uint, byte[]>();
-        public VoiceUtf(string path)
+        public VoiceUtf(string path, Stream stream)
         {
-            foreach(var child in parseFile(path))
+            foreach(var child in parseFile(path, stream))
             {
                 if(!(child is LeafNode))
                 {

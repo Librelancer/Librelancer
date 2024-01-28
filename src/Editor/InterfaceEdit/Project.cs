@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
 
@@ -23,7 +24,7 @@ namespace InterfaceEdit
             ProjectVariables(),
             Path.Combine(XmlFolder, "out", "interface.json")
         );
-            
+
 
         public string ProjectFile;
 
@@ -49,17 +50,17 @@ namespace InterfaceEdit
         void Load()
         {
             UiData.FlDirectory = FlFolder;
-            UiData.ResourceManager = new GameResourceManager(window);
-            UiData.FileSystem = FileSystem.FromFolder(FlFolder);
+            UiData.FileSystem = FileSystem.FromPath(FlFolder);
+            UiData.ResourceManager = new GameResourceManager(window, UiData.FileSystem);
             UiData.Fonts = window.Fonts;
             var flIni = new FreelancerIni(UiData.FileSystem);
-            var dataPath = UiData.FileSystem.Resolve(flIni.DataPath) + "/";
+            var dataPath = "/";
             ResolvedDataDir = dataPath;
             UiData.DataPath = flIni.DataPath;
             //TODO: Fix to work with custom game
             UiData.NavmapIcons = new NavmapIcons();
             UiData.OpenFolder(XmlFolder);
-            
+
             try
             {
                 var navbarIni = new LibreLancer.Data.BaseNavBarIni(dataPath, UiData.FileSystem);
@@ -91,7 +92,7 @@ namespace InterfaceEdit
             {
                 window.TestApi.ManeuverData = null;
             }
-            
+
             UiData.Infocards = new InfocardManager(flIni.Resources);
             XmlLoader = new UiXmlLoader(UiData.Resources);
             try
@@ -118,7 +119,7 @@ namespace InterfaceEdit
             Load();
             return true;
         }
-        
+
         public void Create(string folder, string projectpath)
         {
             UiData = new UiData();
@@ -131,7 +132,7 @@ namespace InterfaceEdit
             Configuration.Write(projectpath);
             Load();
         }
-        
+
         public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), UiData.Resources.ToXml());
 
         void WriteBlankFiles()

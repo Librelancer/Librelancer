@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using LibreLancer.Data.IO;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Missions

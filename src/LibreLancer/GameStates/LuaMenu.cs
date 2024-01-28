@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using LibreLancer.Client;
 using LibreLancer.GameData;
+using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Net;
@@ -71,7 +73,7 @@ namespace LibreLancer
             {
                 try
                 {
-                    intro.Add(new ThnScript(s.ResolvedPath));
+                    intro.Add(new ThnScript(s.Load()));
                 }
                 catch (Exception e)
                 {
@@ -214,7 +216,7 @@ namespace LibreLancer
                 {
                     var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager);
                     var session = new CGameSession(state.Game, embeddedServer);
-                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile);
+                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile, File.ReadAllBytes(state.Game.Saves.SelectedFile));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }
@@ -225,7 +227,7 @@ namespace LibreLancer
                 {
                     var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager);
                     var session = new CGameSession(state.Game, embeddedServer);
-                    embeddedServer.StartFromSave(state.Game.GameData.VFS.Resolve("EXE\\newplayer.fl"));
+                    embeddedServer.StartFromSave("EXE\\newplayer.fl", state.Game.GameData.VFS.ReadAllBytes("EXE\\newplayer.fl"));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }

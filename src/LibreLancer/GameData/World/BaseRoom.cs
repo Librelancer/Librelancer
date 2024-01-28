@@ -27,23 +27,23 @@ namespace LibreLancer.GameData.World
         public ResolvedThn LandScript;
         public ResolvedThn LaunchScript;
         public ResolvedThn GoodscartScript;
-        //Populated from mbases        
+        //Populated from mbases
         public int MaxCharacters;
         public List<BaseFixedNpc> FixedNpcs = new List<BaseFixedNpc>();
-        
+
         public IEnumerable<ThnScript> OpenScene()
         {
-            foreach (var p in SceneScripts) yield return new ThnScript(p.Thn.ResolvedPath);
+            foreach (var p in SceneScripts) yield return new ThnScript(p.Thn.Load());
         }
         public ThnScript OpenSet()
         {
             if(SetScript != null)
-                return new ThnScript(SetScript.ResolvedPath);
+                return new ThnScript(SetScript.Load());
             return null;
         }
         public ThnScript OpenGoodscart()
         {
-            if (GoodscartScript != null) return new ThnScript(GoodscartScript.ResolvedPath);
+            if (GoodscartScript != null) return new ThnScript(GoodscartScript.Load());
             return null;
         }
 

@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Ini;
 using LibreLancer.Data.Interface;
+using LibreLancer.Data.IO;
+
 namespace LibreLancer.Data
 {
 	public class HudIni : IniFile

@@ -144,9 +144,9 @@ namespace InterfaceEdit
             Project = new Project(this);
             if(Project.Open(path)) {
                 Project.UiData.ResourceManager.LoadResourceFile(
-                Project.UiData.DataResolve(@"ships\rheinland\rh_playerships.mat"));
+                Project.UiData.DataPath + (@"ships\rheinland\rh_playerships.mat"));
                 Project.UiData.ResourceManager.LoadResourceFile(
-                Project.UiData.DataResolve(@"ships\liberty\li_playerships.mat"));
+                Project.UiData.DataPath + (@"ships\liberty\li_playerships.mat"));
                 recentFiles.FileOpened(path);
                 resourceEditor = new ResourceWindow(this, Project.UiData);
                 resourceEditor.IsOpen = true;

@@ -16,12 +16,6 @@ namespace LibreLancer.Utf
         const int TAG_LEN = 4;
         public const int FILE_VERSION = 257;
 
-        protected static IntermediateNode parseFile(string path)
-        {
-            if (path == null) throw new ArgumentNullException("path");
-            return parseFile(path, File.OpenRead(path));
-        }
-
         protected static IntermediateNode ParseV2(string path, BinaryReader reader)
         {
             byte ver = reader.ReadByte();
@@ -134,7 +128,7 @@ namespace LibreLancer.Utf
 
             return root;
         }
-        
-        
+
+
     }
 }

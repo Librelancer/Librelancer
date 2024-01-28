@@ -20,6 +20,7 @@ using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.InitialWorld;
 using LibreLancer.Data.Interface;
+using LibreLancer.Data.IO;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.NewCharDB;
 using LibreLancer.Data.Pilots;
@@ -365,7 +366,7 @@ namespace LibreLancer.Data
             }));
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))
-                ContentDll.Load(VFS.Resolve("DLLS\\BIN\\content.dll"));
+                ContentDll.Load(VFS.ReadAllBytes("DLLS\\BIN\\content.dll"));
             if (!string.IsNullOrEmpty(Freelancer.DataVersion))
                 DataVersion = Freelancer.DataVersion;
             else

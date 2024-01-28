@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Graphics;
 using LibreLancer.Sounds;
 
@@ -81,10 +82,17 @@ namespace LibreLancer.Interface
         {
             try
             {
-                var file = DataResolve(filename);
+                var file = DataPath + filename;
                 if (!loadedFiles.ContainsKey(file))
                 {
-                    loadedFiles.Add(file, LibreLancer.ImageLib.Generic.FromFile(ResourceManager.GLWindow.RenderContext, file));
+                    var f = ImageLib.Generic.FromStream(ResourceManager.GLWindow.RenderContext, FileSystem.Open(file));
+                    if (f is Texture2D t2d)
+                        loadedFiles[file] = t2d;
+                    else
+                    {
+                        f?.Dispose();
+                        loadedFiles[file] = null;
+                    }
                 }
                 return loadedFiles[file];
             }
@@ -99,7 +107,7 @@ namespace LibreLancer.Interface
             if(string.IsNullOrEmpty(path)) return null;
             try
             {
-                return ((IRigidModelFile) ResourceManager.GetDrawable(DataResolve(path))).CreateRigidModel(true, ResourceManager);
+                return ((IRigidModelFile) ResourceManager.GetDrawable(DataPath + path).Drawable).CreateRigidModel(true, ResourceManager);
             }
             catch (Exception e)
             {
@@ -149,8 +157,7 @@ namespace LibreLancer.Interface
         {
             if (uibundle == null && !string.IsNullOrEmpty(XInterfacePath))
             {
-                var path = FileSystem.Resolve(Path.Combine(XInterfacePath, file));
-                return File.ReadAllText(path);
+                return FileSystem.ReadAllText(Path.Combine(XInterfacePath, file));
             }
             else
             {
@@ -163,8 +170,7 @@ namespace LibreLancer.Interface
         {
             if (!string.IsNullOrEmpty(XInterfacePath))
             {
-                var path = FileSystem.Resolve(Path.Combine(XInterfacePath, file), false);
-                return path != null;
+                return FileSystem.FileExists(Path.Combine(XInterfacePath, file));
             }
             else
             {
@@ -173,26 +179,15 @@ namespace LibreLancer.Interface
             }
         }
 
-        //some info is using fully-qualified paths instead of data-relative paths.
-        //maybe fix? but not likely
-        public string DataResolve(string file)
-        {
-            string path;
-            if((path = FileSystem.Resolve(file, false)) != null) {
-                return path;
-            }
-            return FileSystem.Resolve(DataPath + file);
-        }
-
         public void LoadLibraries()
         {
             foreach (var file in Resources.LibraryFiles)
             {
-                ResourceManager.LoadResourceFile(DataResolve(file));
+                ResourceManager.LoadResourceFile(DataPath + file);
             }
             foreach (var file in NavmapIcons.Libraries())
             {
-                ResourceManager.LoadResourceFile(DataResolve(file));
+                ResourceManager.LoadResourceFile(DataPath + file);
             }
         }
     }

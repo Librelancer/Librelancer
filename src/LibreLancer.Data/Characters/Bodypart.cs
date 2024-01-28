@@ -9,33 +9,11 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Characters
 {
 	public class Bodypart
-	{
-		public string Nickname { get; private set; }
-		FreelancerData gameData;
-		public string MeshPath = null;
+    {
+        [Entry("nickname", Required = true)]
+        public string Nickname;
 
-		public Bodypart(Section s, FreelancerData gdata)
-		{
-			gameData = gdata;
-			foreach (Entry e in s)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-				case "nickname":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + s.Name);
-					Nickname = e[0].ToString();
-					break;
-				case "mesh":
-					if (e.Count != 1)
-						throw new Exception ("Invalid number of values in " + s.Name + " Entry " + e.Name + ": " + e.Count);
-					if (MeshPath != null)
-						throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
-                    MeshPath = gdata.VFS.Resolve(gdata.Freelancer.DataPath + e[0].ToString(), false) ?? e[0].ToString(); //Fix crash in demo
-					break;
-				default: throw new Exception("Invalid Entry in " + s.Name + ": " + e.Name);
-				}
-			}
-		}
+        [Entry("mesh")]
+        public string Mesh;
 	}
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using LibreLancer.Platforms;
 using SharpDX;
 using SharpDX.DirectWrite;
 
@@ -15,9 +16,8 @@ namespace LibreLancer.Graphics.Text.DirectWrite
         public CustomFontLoader(Factory factory)
         {
             _factory = factory;
-            foreach(var file in Platform.LoadedTTFs)
+            foreach(var bytes in ((Win32Platform)Platform.RunningPlatform).TtfFiles)
             {
-                var bytes = File.ReadAllBytes(file);
                 var stream = new DataStream(bytes.Length, true, true);
                 stream.Write(bytes, 0, bytes.Length);
                 stream.Position = 0;

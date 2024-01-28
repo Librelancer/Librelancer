@@ -14,7 +14,7 @@ namespace LibreLancer.World.Components
         public PhysicsObject Body;
         public float Mass; //0 mass means it can't move
         public Vector3? Inertia = null;
-        public string SurPath;
+        public CollisionMeshHandle SurPath;
         public float SphereRadius = -1;
         Collider collider;
         ConvexMeshCollider _convexMesh;
@@ -98,11 +98,10 @@ namespace LibreLancer.World.Components
             if (pworld == physics) return;
             pworld = physics;
             Collider cld = null;
-            if(SurPath == null) { //sphere
+            if(!SurPath.Valid) { //sphere
                 cld = new SphereCollider(SphereRadius);
             } else {
-                var mr = (ModelRenderer)Parent.RenderComponent;
-                var meshId = physics.ConvexCollection.UseFile(SurPath);
+                var meshId = SurPath.FileId;
                 _convexMesh = new ConvexMeshCollider(physics);
                 cld = _convexMesh;
                 if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
@@ -125,6 +124,7 @@ namespace LibreLancer.World.Components
             Body.Tag = Parent;
             collider = cld;
         }
+
 
         public void UpdateParts()
         {

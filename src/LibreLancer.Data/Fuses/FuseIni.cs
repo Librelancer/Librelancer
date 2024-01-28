@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.IO;
 using LibreLancer.Ini;
 namespace LibreLancer.Data.Fuses
 {

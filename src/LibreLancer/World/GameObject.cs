@@ -290,7 +290,7 @@ namespace LibreLancer.World
             }
 			else
 			{
-				InitWithDrawable(arch.ModelFile.LoadFile(res), res, draw, phys);
+				InitWithModel(arch.ModelFile.LoadFile(res), res, draw, phys);
 			}
 		}
 		public GameObject()
@@ -300,16 +300,16 @@ namespace LibreLancer.World
         public static GameObject WithModel(ResolvedModel modelFile, bool draw, ResourceManager res)
         {
             var go = new GameObject();
-            go.InitWithDrawable(modelFile.LoadFile(res), res, draw,  false);
+            go.InitWithModel(modelFile.LoadFile(res), res, draw,  false);
             return go;
         }
-		public GameObject(IDrawable drawable, ResourceManager res, bool draw = true,  bool phys = true)
+		public GameObject(ModelResource model, ResourceManager res, bool draw = true,  bool phys = true)
 		{
-            InitWithDrawable(drawable, res, draw,  phys);
+            InitWithModel(model, res, draw,  phys);
         }
         public GameObject(Ship ship, ResourceManager res, bool draw = true, bool phys = false)
         {
-            InitWithDrawable(ship.ModelFile.LoadFile(res), res, draw, phys);
+            InitWithModel(ship.ModelFile.LoadFile(res), res, draw, phys);
             ArchetypeName = ship.Nickname;
             Kind = GameObjectKind.Ship;
             if (RenderComponent is ModelRenderer mr)
@@ -323,7 +323,7 @@ namespace LibreLancer.World
             }
         }
 
-        public GameObject(string name, RigidModel model, ResourceManager res, string partName, float mass, bool draw)
+        public GameObject(RigidModel model, CollisionMeshHandle collider, ResourceManager res, string partName, float mass, bool draw)
         {
             RigidModel = model;
             Resources = res;
@@ -332,15 +332,13 @@ namespace LibreLancer.World
             {
                 RenderComponent = new ModelRenderer(RigidModel);
             }
-            var path = Path.ChangeExtension(RigidModel.Path, "sur");
-            name = Path.GetFileNameWithoutExtension(RigidModel.Path);
             uint plainCrc = 0;
             if (!string.IsNullOrEmpty(partName)) plainCrc = CrcTool.FLModelCrc(partName);
-            if (File.Exists(path))
+            if (collider.Valid)
             {
                 PhysicsComponent = new PhysicsComponent(this)
                 {
-                    SurPath = path,
+                    SurPath = collider,
                     Mass = mass,
                     PlainCrc = plainCrc
                 };
@@ -408,10 +406,10 @@ namespace LibreLancer.World
             }
         }
         public ResourceManager Resources;
-        void InitWithDrawable(IDrawable drawable, ResourceManager res, bool draw, bool havePhys = true)
+        void InitWithModel(ModelResource drawable, ResourceManager res, bool draw, bool havePhys = true)
 		{
 			Resources = res;
-			dr = drawable;
+			dr = drawable.Drawable;
             PhysicsComponent phys = null;
 			bool isCmp = false;
             string name = "";
@@ -426,14 +424,8 @@ namespace LibreLancer.World
 			{
 				//var mdl = dr as ModelFile;
                 RigidModel = mdl.CreateRigidModel(draw, res);
-				var path = Path.ChangeExtension(RigidModel.Path, "sur");
-                name = Path.GetFileNameWithoutExtension(RigidModel.Path);
-                if (File.Exists(path))
-                    phys = new PhysicsComponent(this) { SurPath = path, Collidable = Kind != GameObjectKind.Waypoint };
-                else if (havePhys)
-                {
-                    FLLog.Error("Sur", $"Could not load sur file {path}");
-                }
+                if (drawable.Collision.Valid)
+                    phys = new PhysicsComponent(this) { SurPath = drawable.Collision, Collidable = Kind != GameObjectKind.Waypoint };
                 if (RigidModel.Animation != null)
                 {
                     AnimationComponent = new AnimationComponent(this, RigidModel.Animation);

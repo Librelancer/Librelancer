@@ -12,23 +12,13 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Characters
 {
 	public class CostumesIni : IniFile
-	{
-		public List<Costume> Costumes { get; private set; }
+    {
+        [Section("costume")]
+        public List<Costume> Costumes = new List<Costume>();
 
 		public CostumesIni(string path, FreelancerData gdata)
-		{
-			Costumes = new List<Costume>();
-
-			foreach (Section s in ParseFile(path, gdata.VFS))
-			{
-				switch (s.Name.ToLowerInvariant())
-				{
-				case "costume":
-					Costumes.Add(new Costume(s, gdata));
-					break;
-				default: throw new Exception("Invalid Section in " + path + ": " + s.Name);
-				}
-			}
+        {
+            ParseAndFill(path, gdata.VFS);
 		}
 
 		public Costume FindCostume(string nickname)

@@ -2,6 +2,7 @@ using System;
 using LibreLancer;
 using System.Numerics;
 using Xunit;
+namespace LibreLancer.Tests;
 
 public class EulerValueTests
 {
@@ -30,7 +31,7 @@ public class EulerValueTests
           0, 0, 0, 1
         ), 3);
     }
-    
+
     static void RoundtripMatrix(Matrix4x4 mat, int index)
     {
         var euler = mat.GetEulerDegrees();

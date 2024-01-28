@@ -65,11 +65,9 @@ public class SystemEditorTab : GameContentTab
         };
 
         //Extract nav_prettymap texture
-        string navPrettyMap;
-        if ((navPrettyMap = gameData.GameData.VFS.Resolve(
-                gameData.GameData.Ini.Freelancer.DataPath + "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db",
-                false)) !=
-            null)
+        string navPrettyMap = gameData.GameData.DataPath("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db");
+
+        if (gameData.GameData.VFS.FileExists(navPrettyMap))
         {
             gameData.Resources.LoadResourceFile(navPrettyMap);
         }
@@ -742,13 +740,13 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow(name, modelName ?? "(none)");
         if (ImGui.Button($"{Icons.Edit}##{name}"))
         {
-            popups.OpenPopup(new FileSelector(name, Data.GetDataFolder(), file =>
+            popups.OpenPopup(new VfsFileSelector(name, Data.GameData.VFS, Data.GameData.Ini.Freelancer.DataPath, file =>
             {
-                var modelFile = Data.GameData.ResolveDataPath(file);
+                var modelFile = Data.GameData.DataPath(file);
                 var sourcePath = file.Replace('/', '\\');
                 onSet(new ResolvedModel() {ModelFile = modelFile, SourcePath = sourcePath});
                 ReloadStarspheres();
-            }, FileSelector.MakeFilter(".cmp")));
+            }, VfsFileSelector.MakeFilter(".cmp")));
         }
 
         ImGui.TableNextColumn();

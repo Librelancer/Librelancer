@@ -55,12 +55,12 @@ namespace LibreLancer.Platforms
         [DllImport("pangogame")]
         static extern void pg_addttfglobal(IntPtr file);
 
-        public void AddTtfFile(string file)
+        public void AddTtfFile(byte[] ttf)
         {
-            if(string.IsNullOrEmpty(file)) throw new InvalidOperationException();
-            var str = UnsafeHelpers.StringToHGlobalUTF8(file);
-            pg_addttfglobal(str);
-            Marshal.FreeHGlobal(str);
+            //if(string.IsNullOrEmpty(file)) throw new InvalidOperationException();
+            //var str = UnsafeHelpers.StringToHGlobalUTF8(file);
+            //pg_addttfglobal(str);
+            //Marshal.FreeHGlobal(str);
         }
 
         static LibFontConfig.FcResult GetString(IntPtr pattern, string obj, int n, ref string val)

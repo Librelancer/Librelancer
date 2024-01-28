@@ -1,5 +1,7 @@
 using System.Linq;
 using LibreLancer;
+using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Net;
 using LibreLancer.Server;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +40,7 @@ public class ServerApp
                 ctx.Database.Migrate();
             }
         }
-        Server = new GameServer(Config.FreelancerPath);
+        Server = new GameServer(FileSystem.FromPath(Config.FreelancerPath));
         Server.DbContextFactory = ctxFactory;
         Server.ServerName = Config.ServerName;
         Server.ServerDescription = Config.ServerDescription;

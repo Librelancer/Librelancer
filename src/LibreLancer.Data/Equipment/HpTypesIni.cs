@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.IO;
 using LibreLancer.Ini;
 using static LibreLancer.Data.Equipment.HpCategory;
 namespace LibreLancer.Data.Equipment

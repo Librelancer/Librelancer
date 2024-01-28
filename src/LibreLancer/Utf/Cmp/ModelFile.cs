@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using LibreLancer.Utf.Mat;
@@ -29,10 +30,10 @@ namespace LibreLancer.Utf.Cmp
         public float[] Switch2 { get; private set; }
         public VMeshWire VMeshWire { get; private set; }
 
-        public ModelFile(string path)
+        public ModelFile(string path, Stream stream)
         {
             Path = path;
-            load(parseFile(path));
+            load(parseFile(path, stream));
         }
 
         public ModelFile(IntermediateNode root)

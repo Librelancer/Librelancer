@@ -16,15 +16,15 @@ namespace LibreLancer.Media
     {
         StreamingSource sound;
         StreamingSource oldSound;
-        
+
         float _volume = 1.0f;
         private float currentAttenuation = 0;
         private float oldAttenuation = 0;
 
         private float crossFadeTime = 0;
         private float crossFadeDuration = 0;
-        
-        
+
+
 
         public float Volume
         {
@@ -99,7 +99,7 @@ namespace LibreLancer.Media
             } while (await Timer.WaitForNextTickAsync());
         }
 
-        public void Play(string filename, float crossFade, float attenuation = 0, bool loop = false)
+        public void Play(Stream stream, float crossFade, float attenuation = 0, bool loop = false)
         {
             State = PlayState.Playing;
             actions.Enqueue(() =>
@@ -125,9 +125,8 @@ namespace LibreLancer.Media
                     oldSound = sound;
                     oldAttenuation = currentAttenuation;
                 }
-                var stream = File.OpenRead(filename);
                 var data = SoundLoader.Open(stream);
-                sound = new StreamingSource(this, data, GetSource(), filename);
+                sound = new StreamingSource(this, data, GetSource(), "Music Stream");
                 currentAttenuation = attenuation;
                 UpdateGain();
                 sound.Begin(loop);
@@ -138,7 +137,7 @@ namespace LibreLancer.Media
         {
             return ALUtils.LinearToAlGain(amount * _volume) * ALUtils.DbToAlGain(attenuation);
         }
-        
+
         void UpdateGain()
         {
             if (crossFadeDuration > 0) {

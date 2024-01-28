@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using LibreLancer.Utf.Vms;
@@ -31,7 +32,7 @@ namespace LibreLancer.Utf.Cmp
         public Dictionary<string, ModelFile> Models { get; private set; }
         public Dictionary<string, CmpCameraInfo> Cameras { get; private set; }
 
-        public CmpFile(string path) : this(parseFile(path))
+        public CmpFile(string path, Stream stream) : this(parseFile(path, stream))
 		{
 			Path = path;
 		}

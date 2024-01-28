@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LibreLancer.Data.IO;
 using LibreLancer.Ini;
 using LibreLancer.Dll;
 
@@ -126,9 +127,7 @@ namespace LibreLancer.Data
             NoNavmapSystems = new List<string>(NoNavmaps);
             HiddenFactions = new List<string>(NoShowFactions);
 
-            var fullPath = vfs.Resolve(path);
-
-            foreach (Section s in ParseFile(fullPath, vfs)) {
+            foreach (Section s in ParseFile(path, vfs)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
 					foreach (Entry e in s) {
@@ -153,22 +152,33 @@ namespace LibreLancer.Data
                     //NOTE: Freelancer hardcodes resources.dll
                     //Not hardcoded for librelancer.ini as it will break
                     string start = IsLibrelancer ? "" : "EXE\\";
-                    string pathStr;
+                    string resdll = start + "resources.dll";
                     if (!IsLibrelancer) {
-                        if ((pathStr = vfs.Resolve(start + "resources.dll", false)) != null)
-                            Resources.Add(ResourceDll.FromFile(pathStr, vfs));
+                        if (vfs.FileExists(resdll))
+                        {
+                            using var stream = vfs.Open(resdll);
+                            Resources.Add(ResourceDll.FromStream(stream, vfs.GetBackingFileName(resdll)));
+                        }
                         else
+                        {
                             FLLog.Warning("Dll", "resources.dll not found");
+                        }
                     }
                     foreach (Entry e in s)
 					{
 						if (e.Name.ToLowerInvariant () != "dll")
 							continue;
-                        if ((pathStr = vfs.Resolve(start + e[0].ToString(), false)) != null)
-                            Resources.Add( ResourceDll.FromFile(pathStr, vfs));
+                        string dllname = start + e[0].ToString();
+                        if (vfs.FileExists(dllname))
+                        {
+                            using var stream = vfs.Open(dllname);
+                            Resources.Add(ResourceDll.FromStream(stream, vfs.GetBackingFileName(dllname)));
+                        }
                         else
+                        {
                             FLLog.Warning("Dll", e[0].ToString());
-					}
+                        }
+                    }
 					break;
 				case "startup":
 					foreach (Entry e in s) {

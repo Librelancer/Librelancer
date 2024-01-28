@@ -33,11 +33,11 @@ public class StarSystemSaveStrategy : ISaveStrategy
         foreach (var o in tab.DeletedObjects)
             tab.CurrentSystem.Objects.Remove(o);
         tab.DeletedObjects = new List<SystemObject>();
-        var resolved = tab.Data.GameData.ResolveDataPath("universe/" + tab.CurrentSystem.SourceFile);
+        var resolved = tab.Data.GameData.DataPath("universe/" + tab.CurrentSystem.SourceFile);
         File.WriteAllText(resolved, IniSerializer.SerializeStarSystem(tab.CurrentSystem));
         if (writeUniverse)
         {
-            var path = tab.Data.GameData.VFS.Resolve(tab.Data.GameData.Ini.Freelancer.UniversePath);
+            var path = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Ini.Freelancer.UniversePath);
             File.WriteAllText(path,
                 IniSerializer.SerializeUniverse(tab.Data.GameData.Systems, tab.Data.GameData.Bases));
         }

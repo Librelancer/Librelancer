@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using System.Linq;
 using ImGuiNET;
@@ -15,6 +16,7 @@ using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics.Text;
+using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
@@ -225,7 +227,7 @@ namespace LibreLancer
                     g.session.OnExit();
                     var embeddedServer = new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager);
                     var session = new CGameSession(g.Game, embeddedServer);
-                    embeddedServer.StartFromSave(g.Game.Saves.SelectedFile);
+                    embeddedServer.StartFromSave(g.Game.Saves.SelectedFile, File.ReadAllBytes(g.Game.Saves.SelectedFile));
                     g.Game.ChangeState(new NetWaitState(session, g.Game));
                 });
             }
@@ -407,7 +409,7 @@ namespace LibreLancer
                     cState = state;
                     break;
             }
-            var script = new ThnScript(session.Game.GameData.ResolveDataPath(scName));
+            var script = new ThnScript(session.Game.GameData.DataPath(scName));
             currentCutscene = ct;
             RoomDoSceneScript(script, ScriptState.Cutscene);
         }
@@ -417,9 +419,9 @@ namespace LibreLancer
         private bool didLaunch = false;
         public void Launch()
         {
-            if (!string.IsNullOrEmpty(currentRoom.LaunchScript?.ResolvedPath))
+            if (!string.IsNullOrEmpty(currentRoom.LaunchScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.ResolvedPath), ScriptState.Launch);
+                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.Load()), ScriptState.Launch);
             }
             else
             {
@@ -556,12 +558,12 @@ namespace LibreLancer
             scene = new Cutscene(ctx, Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
             scene.ScriptFinished += SceneOnScriptFinished;
             sceneScripts = currentRoom.OpenScene().ToArray();
-            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.ResolvedPath))
+            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LandScript.ResolvedPath), ScriptState.Enter);
-            } else if (!string.IsNullOrEmpty(currentRoom.StartScript?.ResolvedPath))
+                RoomDoSceneScript(new ThnScript(currentRoom.LandScript.Load()), ScriptState.Enter);
+            } else if (!string.IsNullOrEmpty(currentRoom.StartScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.StartScript.ResolvedPath), ScriptState.Enter);
+                RoomDoSceneScript(new ThnScript(currentRoom.StartScript.Load()), ScriptState.Enter);
             }
             else
             {
@@ -631,7 +633,7 @@ namespace LibreLancer
                 thnObj.Translate = pos;
                 thnObj.Object = obj;
                 scene.AddObject(thnObj);
-                scene.FidgetScript(new ThnScript(session.Game.GameData.ResolveDataPath(npc.Fidget)));
+                scene.FidgetScript(new ThnScript(session.Game.GameData.DataPath(npc.Fidget)));
                 if(i == 0) hotspots.Add(new RTCHotspot() { ini = ct, obj = thnObj, npc = npc.Npc });
                 i++;
             }

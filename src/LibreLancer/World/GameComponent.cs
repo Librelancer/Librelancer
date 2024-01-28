@@ -41,8 +41,11 @@ namespace LibreLancer.World
 
         protected ResourceManager GetResourceManager()
         {
-            if(Parent.GetWorld().Renderer != null)
+            var w = Parent.GetWorld();
+            if(w.Renderer != null)
                 return Parent.GetWorld().Renderer.Game.GetService<ResourceManager>();
+            else if (w.Server != null)
+                return w.Server.Server.Resources;
             return null;
         }
 	}

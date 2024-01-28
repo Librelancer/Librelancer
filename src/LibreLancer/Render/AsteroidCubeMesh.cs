@@ -53,7 +53,7 @@ public class AsteroidCubeMeshBuilder
         {
             foreach (var ast in field.Cube)
             {
-                var f = (ModelFile) ast.Drawable.LoadFile(resources, MeshLoadMode.CPU);
+                var f = (ModelFile)ast.Drawable.LoadFile(resources, MeshLoadMode.CPU).Drawable;
                 var l0 = f.Levels[0];
                 var vms = resources.FindMeshData(l0.MeshCrc);
                 for (int i = l0.StartMesh; i < l0.StartMesh + l0.MeshCount; i++)
@@ -66,7 +66,7 @@ public class AsteroidCubeMeshBuilder
         }
         else
         {
-            var f = (ModelFile) field.Cube[0].Drawable.LoadFile(resources, MeshLoadMode.CPU);
+            var f = (ModelFile)field.Cube[0].Drawable.LoadFile(resources, MeshLoadMode.CPU).Drawable;
             var l0 = f.Levels[0];
             var vms = resources.FindMeshData(l0.MeshCrc);
             matCrcs.Add(vms.Meshes[l0.StartMesh].MaterialCrc);
@@ -158,7 +158,7 @@ public class AsteroidCubeMeshBuilder
     void AddAsteroidToBuffer(StaticAsteroid ast, uint matCrc, bool singleMat, List<int> newIndices,
         ResourceManager resources, float cubeSize)
     {
-        var model = (ModelFile) ast.Drawable.LoadFile(resources, MeshLoadMode.CPU);
+        var model = (ModelFile)ast.Drawable.LoadFile(resources, MeshLoadMode.CPU).Drawable;
         var l0 = model.Levels[0];
         var vms = resources.FindMeshData(l0.MeshCrc);
         var transform = ast.RotationMatrix * Matrix4x4.CreateTranslation(ast.Position * cubeSize);

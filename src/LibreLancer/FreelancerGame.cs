@@ -14,6 +14,8 @@ using LibreLancer.Interface;
 using LibreLancer.Media;
 using LibreLancer.Render;
 using LibreLancer.Sounds;
+using LibreLancer.Data;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer
 {
@@ -92,7 +94,8 @@ namespace LibreLancer
 			uithread = Thread.CurrentThread.ManagedThreadId;
 			useintromovies = _cfg.IntroMovies;
             //Cache
-			ResourceManager = new GameResourceManager(this);
+            var vfs = FileSystem.FromPath(_cfg.FreelancerPath);
+			ResourceManager = new GameResourceManager(this, vfs);
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
@@ -101,7 +104,7 @@ namespace LibreLancer
             Audio.Music.Volume = _cfg.Settings.MusicVolume;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
-			GameData = new GameDataManager(_cfg.FreelancerPath, ResourceManager);
+			GameData = new GameDataManager(vfs, ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
             Saves = new SaveGameFolder();
             InputMap = new InputMap(Path.Combine(GetSaveFolder(), "keymap.ini"));

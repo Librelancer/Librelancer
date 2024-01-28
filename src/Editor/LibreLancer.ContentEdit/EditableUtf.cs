@@ -25,7 +25,7 @@ namespace LibreLancer.ContentEdit
 
 		public EditableUtf(string filename) : this()
         {
-            Source = parseFile(filename);
+            Source = parseFile(filename, File.OpenRead(filename));
 			foreach (var node in Source)
 			{
 				Root.Children.Add(ConvertNode(node, Root));
@@ -45,7 +45,7 @@ namespace LibreLancer.ContentEdit
         {
             return ExportNode(node) as LL.IntermediateNode;
         }
-        
+
 		static LL.Node ExportNode(LUtfNode n)
 		{
 			if (n.Data != null)
@@ -91,7 +91,7 @@ namespace LibreLancer.ContentEdit
             public unsafe SmallData(byte[] src)
             {
                 Length = src.Length;
-                Data1 = Data2 = Data3 = Data4 = 
+                Data1 = Data2 = Data3 = Data4 =
                     Data5 = Data6 = Data7 = Data8 = 0;
                 Offset = 0;
                 fixed(long *ptr = &Data1) {
@@ -135,7 +135,7 @@ namespace LibreLancer.ContentEdit
             {
                 if(node.Children == null && node.Data == null)
                 {
-                    
+
                     return EditResult<bool>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
                 }
             }
@@ -156,7 +156,7 @@ namespace LibreLancer.ContentEdit
                 return mem.ToArray();
             }
         }
-        
+
         EditResult<bool> SaveV2(string filename)
         {
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
@@ -205,7 +205,7 @@ namespace LibreLancer.ContentEdit
                                 {
                                     node.CompressedData = compressed;
                                     currentDataOffset += node.CompressedData.Length;
-                                } 
+                                }
                                 else
                                 {
                                     currentDataOffset += node.Data.Length;
@@ -456,7 +456,7 @@ namespace LibreLancer.ContentEdit
                 writer.Write(dataAlloc); //allocatedSize (?)
 				writer.Write(node.Data.Length); //usedSize
 				writer.Write(node.Data.Length); //uncompressedSize
-    
+
                 writer.Write(-2037297339);
                 writer.Write(-2037297339);
                 writer.Write(-2037297339);
@@ -466,7 +466,7 @@ namespace LibreLancer.ContentEdit
             if(node.Children == null ||
                node.Children.Count == 0)
                 return EditResult<bool>.Error("Cannot save empty node " + node.Name);
-            
+
 			long startPos = writer.BaseStream.Position;
 			writer.Write((int)0); //peerOffset
 			writer.Write(strOff[node.Name]);
@@ -506,7 +506,7 @@ namespace LibreLancer.ContentEdit
 		public byte[] Data;
         internal byte[] CompressedData;
         internal bool Write = true;
-        
+
         public string StringData
         {
             get
@@ -520,7 +520,7 @@ namespace LibreLancer.ContentEdit
                 Data = Encoding.ASCII.GetBytes(value + "\0");
             }
         }
-        
+
 		public IEnumerable<LUtfNode> IterateAll()
 		{
 			yield return this;

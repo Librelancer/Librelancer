@@ -378,17 +378,17 @@ namespace LibreLancer.Server
         {
             actions.Enqueue(() =>
             {
-                RigidModel mdl;
+                ModelResource src;
                 if (kind == GameObjectKind.Ship)
                 {
-                    var ship = Server.GameData.Ships.Get(archetype);
-                    mdl = ((IRigidModelFile) ship.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false, Server.Resources);
+                    src = Server.GameData.Ships.Get(archetype).ModelFile.LoadFile(Server.Resources);
                 }
                 else
                 {
-                    var arch = Server.GameData.GetSolarArchetype(archetype);
-                    mdl = ((IRigidModelFile) arch.ModelFile.LoadFile(Server.Resources)).CreateRigidModel(false, Server.Resources);
+                    src = Server.GameData.GetSolarArchetype(archetype).ModelFile.LoadFile(Server.Resources);
                 }
+                var collider = src.Collision;
+                var mdl = ((IRigidModelFile) src).CreateRigidModel(true, Server.Resources);
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
                 {
@@ -398,7 +398,7 @@ namespace LibreLancer.Server
                     Path = mdl.Path,
                 };
                 var id = IdGenerator.Allocate();
-                var go = new GameObject($"debris{id}", newmodel, Server.Resources, part, mass, false);
+                var go = new GameObject(newmodel, collider, Server.Resources, part, mass, false);
                 go.NetID = id;
                 go.SetLocalTransform(transform);
                 GameWorld.AddObject(go);

@@ -52,7 +52,7 @@ public class ArchetypePreviews : IDisposable
     }
     public Texture2D RenderPreview(Archetype archetype, int width, int height)
     {
-        var mdl = archetype.ModelFile?.LoadFile(resources);
+        var mdl = archetype.ModelFile?.LoadFile(resources).Drawable;
         var radius = 10f;
         if (mdl is IRigidModelFile rmf)
         {

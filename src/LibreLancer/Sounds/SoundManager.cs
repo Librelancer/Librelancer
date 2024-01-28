@@ -19,12 +19,12 @@ namespace LibreLancer.Sounds
 		GameDataManager data;
 		AudioManager audio;
         private bool isDisposed = false;
-        
+
         private LRUCache<string, LoadedSound> soundCache;
-     
+
 
         private IUIThread ui;
-        
+
         public SoundManager(GameDataManager gameData, AudioManager audio, IUIThread ui)
 		{
 			data = gameData;
@@ -123,11 +123,11 @@ namespace LibreLancer.Sounds
             }
             else
             {
-                var path = data.GetAudioPath(name);
+                var path = data.GetAudioStream(name);
                 var snd = audio.AllocateData();
                 loaded.LoadTask = Task.Run(() =>
                 {
-                    snd.LoadFile(path);
+                    snd.LoadStream(path);
                     loaded.Data = snd;
                 });
             }
@@ -198,7 +198,7 @@ namespace LibreLancer.Sounds
             Task.Run(() =>
             {
                 var path = data.GetVoicePath(voice);
-                var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s));
+                var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s, data.VFS.Open(path)));
                 var file = v.AudioFiles[hash];
                 var sn = audio.AllocateData();
                 using var ms = new MemoryStream(file);
@@ -219,8 +219,8 @@ namespace LibreLancer.Sounds
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
             var entry = data.GetAudioEntry(name);
-            var path = data.GetAudioPath(name);
-            if (File.Exists(path))
+            var path = data.GetAudioStream(name);
+            if (path != null)
             {
                 audio.Music.Play(path, fadeTime, entry.Attenuation, !oneshot);
             }
@@ -229,7 +229,7 @@ namespace LibreLancer.Sounds
                 FLLog.Error("Music", "Can't find file for " + name);
             }
         }
-        
+
         public void StopMusic(float fadeOut = 0)
 		{
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));

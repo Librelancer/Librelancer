@@ -8,7 +8,8 @@ using LibreLancer.ContentEdit;
 using LibreLancer.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
-using LibreLancer.Render.Cameras;
+using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Sounds;
 
 namespace LancerEdit;
@@ -26,18 +27,17 @@ public class GameDataContext : IDisposable
 
     public string Folder;
 
-    public string GetDataFolder() => GameData.VFS.Resolve(GameData.Ini.Freelancer.DataPath);
-
     public void Load(MainWindow win, string folder, Action onComplete, Action<Exception> onError)
     {
         Folder = folder;
-        Resources = new GameResourceManager(win);
+        var vfs = FileSystem.FromPath(folder);
+        Resources = new GameResourceManager(win, vfs);
         this.win = win;
         Task.Run(() =>
         {
             try
             {
-                GameData = new GameDataManager(folder, Resources);
+                GameData = new GameDataManager(vfs, Resources);
                 GameData.LoadData(win);
                 //Replace infocard manager with editable version
                 GameData.Ini.Infocards = new EditableInfocardManager(GameData.Ini.Infocards.Dlls);
@@ -83,7 +83,7 @@ public class GameDataContext : IDisposable
 
     private Dictionary<string, (Texture2D, int)> renderedArchetypes = new Dictionary<string, (Texture2D, int)>();
 
-    public int GetArchetypePreview(Archetype archetype, ArchetypePreviews renderer = null)
+    public int GetArchetypePreview(LibreLancer.GameData.Archetype archetype, ArchetypePreviews renderer = null)
     {
         if (renderedArchetypes.TryGetValue(archetype.Nickname, out var arch))
             return arch.Item2;

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using LibreLancer.Data;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer
 {
@@ -33,15 +34,15 @@ namespace LibreLancer
             if (nicknames.TryGetValue(identifier, out string o)) return o;
             return nicknames["normal"];
         }
-        
+
         void LoadFonts(FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
         {
             foreach(var f in fonts.FontFiles)
             {
-                var path = fs.Resolve(dataPath + f, false);
-                if(path == null)
+                if (fs.FileExists(dataPath + f))
+                    Platform.AddTtfFile(f, fs.ReadAllBytes(dataPath + f));
+                else
                     FLLog.Error("Fonts", "Could not find ttf file " + dataPath + f);
-                Platform.AddTtfFile(path);
             }
             nicknames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var id in fonts.UIFonts)

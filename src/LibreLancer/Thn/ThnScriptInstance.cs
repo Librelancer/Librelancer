@@ -114,13 +114,15 @@ namespace LibreLancer.Thn
                         switch (kv.Value.MeshCategory.ToLowerInvariant())
                         {
                             case "solar":
-                                (drawable, lodranges) = gameData.GetSolar(template);
+                                ModelResource mr;
+                                (mr, lodranges) = gameData.GetSolar(template);
+                                drawable = mr.Drawable;
                                 break;
                             case "ship":
                             case "spaceship":
                                 getHpMount = true;
                                 var sh = gameData.Ships.Get(template);
-                                drawable = sh.ModelFile.LoadFile(resman);
+                                drawable = sh.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             case "prop":
                                 drawable = gameData.GetProp(template);
@@ -133,10 +135,10 @@ namespace LibreLancer.Thn
                                 break;
                             case "equipment":
                                 var eq = gameData.Equipment.Get(template);
-                                drawable = eq?.ModelFile.LoadFile(resman);
+                                drawable = eq?.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             case "asteroid":
-                                drawable = gameData.GetAsteroid(kv.Value.Template);
+                                drawable = gameData.GetAsteroid(kv.Value.Template).Drawable;
                                 break;
                             default:
                                 throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);
@@ -154,7 +156,7 @@ namespace LibreLancer.Thn
                     }
                     else
                     {
-                        obj.Object = new GameObject(drawable, Cutscene.ResourceManager, true, false);
+                        obj.Object = new GameObject(new ModelResource(drawable, default), Cutscene.ResourceManager, true, false);
                         obj.Object.Name = new ObjectName(kv.Value.Name);
                         if (getHpMount)
                             obj.HpMount = obj.Object.GetHardpoint("HpMount");

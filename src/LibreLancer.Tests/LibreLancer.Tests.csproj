@@ -26,4 +26,15 @@
       <ProjectReference Include="..\LibreLancer\LibreLancer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="TestAssets\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="TestAssets\plainzip.zip" />
+      <EmbeddedResource Include="TestAssets\plainzip.zip" />
+      <None Remove="TestAssets\zipwithextra.dat" />
+      <EmbeddedResource Include="TestAssets\zipwithextra.dat" />
+    </ItemGroup>
+
 </Project>

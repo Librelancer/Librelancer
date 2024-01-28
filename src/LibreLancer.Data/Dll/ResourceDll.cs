@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using LibreLancer.Data;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer.Dll
 {
@@ -73,23 +74,13 @@ namespace LibreLancer.Dll
 
         public string SavePath;
 
-        public static ResourceDll FromFile(string path, FileSystem vfs = null)
+        public static ResourceDll FromFile(string path)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
-            if (vfs == null)
+            using (var file = File.OpenRead(path))
             {
-                using (var file = File.OpenRead(path))
-                {
-                    return FromStream(file, path);
-                }
-            }
-            else
-            {
-                using (var file = vfs.Open(path))
-                {
-                    return FromStream(file, vfs.Resolve(path));
-                }
+                return FromStream(file, path);
             }
         }
 

@@ -33,7 +33,7 @@ namespace LibreLancer
     public static class Platform
 	{
 		public static OS RunningOS;
-		static IPlatform RunningPlatform;
+		internal static IPlatform RunningPlatform;
         public static string OSDescription;
 
         public static event Action<MountInfo[]> MountsChanged;
@@ -128,12 +128,11 @@ namespace LibreLancer
 
         internal static List<string> LoadedTTFs = new List<string>();
         internal static event Action FontLoaded;
-        public static void AddTtfFile(string file)
+        public static void AddTtfFile(string id, byte[] ttf)
         {
-            if (LoadedTTFs.Contains(file)) return;
-            if (!File.Exists(file)) throw new FileNotFoundException(file);
-            LoadedTTFs.Add(file);
-            RunningPlatform.AddTtfFile(file);
+            if (LoadedTTFs.Contains(id)) return;
+            LoadedTTFs.Add(id);
+            RunningPlatform.AddTtfFile(ttf);
             FontLoaded?.Invoke();
         }
 

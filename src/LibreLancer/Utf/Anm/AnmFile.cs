@@ -14,11 +14,11 @@ namespace LibreLancer.Utf.Anm
     {
         public AnmBuffer Buffer = new AnmBuffer();
         //Optimisation to avoid some copying
-        public static void ParseToTable(Dictionary<string, Script> table, AnmBuffer buffer, StringDeduplication strings, string path)
+        public static void ParseToTable(Dictionary<string, Script> table, AnmBuffer buffer, StringDeduplication strings, Stream stream, string path)
         {
             var anm = new AnmFile() {Buffer = buffer};
             anm.Scripts = table;
-            foreach (IntermediateNode node in parseFile(path))
+            foreach (IntermediateNode node in parseFile(path, stream))
             {
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -31,10 +31,10 @@ namespace LibreLancer.Utf.Anm
         }
         public Dictionary<string, Script> Scripts { get; private set; }
 
-        public AnmFile(string path)
+        public AnmFile(string path, Stream stream)
         {
             var table = new StringDeduplication();
-            foreach (IntermediateNode node in parseFile(path))
+            foreach (IntermediateNode node in parseFile(path, stream))
             {
                 switch (node.Name.ToLowerInvariant())
                 {

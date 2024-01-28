@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Data.IO;
 using LibreLancer.Data.Voices;
 namespace LancerEdit
 {
@@ -16,7 +17,7 @@ namespace LancerEdit
         public IDTable(string fldir)
         {
             UtfNicknameTable = new Dictionary<uint, string>();
-            var fs = FileSystem.FromFolder(fldir, true);
+            var fs = FileSystem.FromPath(fldir, true);
             var flini = new FreelancerIni(fs);
             var voices = new VoicesIni();
             foreach(var path in flini.VoicePaths)
