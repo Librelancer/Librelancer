@@ -77,75 +77,77 @@ public class Blender
 
     static string EscapeCode(string s) => JsonValue.Create(s).ToJsonString();
 
+    private const int CANCELLED = -255;
+    static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null)
+    {
+        var processName = blenderPath;
+        var processArgs = $"{args} --background --factory-startup --python-console";
+        if (blenderPath == "FLATPAK")
+        {
+            processName = "flatpak";
+            processArgs = $"run --filesystem=/tmp org.blender.Blender {processArgs}";
+        }
+
+        var psi = new ProcessStartInfo(processName, processArgs)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = log != null,
+            RedirectStandardError = log != null,
+            RedirectStandardInput = true
+        };
+        log?.Invoke($"Running {processName} {processArgs}\n");
+        var process = Process.Start(psi);
+        process.BeginErrorReadLine();
+        process.BeginOutputReadLine();
+        await process.StandardInput.WriteAsync(pythonCode);
+        process.StandardInput.Close();
+        try
+        {
+            await process.WaitForExitAsync(cancellation);
+        }
+        catch (TaskCanceledException)
+        {
+            process.CancelErrorRead();
+            process.CancelOutputRead();
+            process.TryKill();
+            return CANCELLED;
+        }
+        return process.ExitCode;
+    }
+
+    static void DeleteIfExists(string file)
+    {
+        if(!string.IsNullOrEmpty(file) && File.Exists(file))
+            File.Delete(file);
+    }
+
     public static async Task<EditResult<SimpleMesh.Model>> LoadBlenderFile(string file, CancellationToken cancellation = default, Action<string> log = null, string blenderPath = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();
         if (string.IsNullOrWhiteSpace(blenderPath))
             return EditResult<SimpleMesh.Model>.Error("Could not locate blender executable");
-        string name = "";
-        string tmpfile = "";
-        string tmppython = "";
-        string tmpblend = "";
-        string args = "";
-        tmppython = Path.GetTempFileName();
-        tmpfile = Path.GetTempFileName();
+        string tmpblend = null;
+        string tmpfile = Path.GetTempFileName();
         File.Delete(tmpfile);
         if (blenderPath == "FLATPAK")
         {
-            name = "flatpak";
             tmpblend = Path.GetTempFileName();
             File.Copy(file, tmpblend, true);
-            args = $"run --filesystem=/tmp org.blender.Blender \"{tmpblend}\" --background --factory-startup --python \"{tmppython}\"";
         }
-        else
-        {
-            name = blenderPath;
-            args = $"\"{file}\" --background --factory-startup --python \"{tmppython}\"";
-        }
-
         var exportCode =
             "import bpy\n"
             + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True)";
-        File.WriteAllText(tmppython, exportCode);
-        var psi = new ProcessStartInfo(name, args)
+        var result = await RunBlender(blenderPath, tmpblend ?? file, exportCode, cancellation, log);
+        if (result == CANCELLED)
         {
-            UseShellExecute = false,
-            RedirectStandardOutput = log != null,
-            RedirectStandardError = log != null
-        };
-        log?.Invoke($"Running {name} {args}\n");
-        var p = Process.Start(psi);
-        if (log != null)
-        {
-            p.OutputDataReceived += (o, e) =>
-            {
-                if (e.Data != null) log(e.Data + "\n");
-            };
-            p.ErrorDataReceived += (o, e) =>
-            {
-                if (e.Data != null) log(e.Data + "\n");
-            };
-            p.BeginErrorReadLine();
-            p.BeginOutputReadLine();
+            DeleteIfExists(tmpblend);
+            DeleteIfExists(tmpfile);
+            return EditResult<SimpleMesh.Model>.Error("Operation was cancelled");
         }
-
-        try
-        {
-            await p.WaitForExitAsync(cancellation);
-        }
-        catch (TaskCanceledException)
-        {
-            p.CancelErrorRead();
-            p.CancelOutputRead();
-            p.TryKill();
-            File.Delete(tmppython);
-            if(!string.IsNullOrWhiteSpace(tmpblend)) File.Delete(tmpblend);
-            return EditResult<SimpleMesh.Model>.Error("Blender import cancelled");
-        }
+        log?.Invoke($"Exit Code: {result}");
+        DeleteIfExists(tmpblend);
         tmpfile += ".glb";
-        File.Delete(tmppython);
-        if(!string.IsNullOrWhiteSpace(tmpblend)) File.Delete(tmpblend);
         if(File.Exists(tmpfile))
         {
             return await EditResult<SimpleMesh.Model>.RunBackground(() =>
@@ -172,60 +174,36 @@ for obj in bpy.context.scene.objects:
 bpy.ops.wm.save_as_mainfile(filepath={1})
 ";
 
-    public static EditResult<bool> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null, Action<string> logLine = null)
+    public static async Task<EditResult<bool>> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null, CancellationToken cancellation = default, Action<string> logLine = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();
         if (string.IsNullOrWhiteSpace(blenderPath))
             return EditResult<bool>.Error("Could not locate blender executable");
-        string name = "";
-        string tmpfile = "";
-        string tmppython = "";
-        string tmpblend = "";
-        string args = "";
-        tmppython = Path.GetTempFileName();
-        tmpblend = Path.GetTempFileName();
+        var tmpblend = Path.GetTempFileName();
         File.Delete(tmpblend);
-        tmpfile = Path.GetTempFileName();
+        var tmpfile = Path.GetTempFileName();
         using (var gltfStream = File.Create(tmpfile)) {
             exported.SaveTo(gltfStream, ModelSaveFormat.GLTF2);
         }
-        if (blenderPath == "FLATPAK")
-        {
-            name = "flatpak";
-            args = $"run --filesystem=/tmp org.blender.Blender --background --factory-startup --python \"{tmppython}\"";
-        }
-        else
-        {
-            name = blenderPath;
-            args = $"\"{file}\" --background --factory-startup --python \"{tmppython}\"";
-        }
-        File.WriteAllText(tmppython, string.Format(EXPORT_SCRIPT, EscapeCode(tmpfile), EscapeCode(tmpblend)));
-        var psi = new ProcessStartInfo(name, args);
-        psi.RedirectStandardError = true;
-        psi.RedirectStandardOutput = true;
-        psi.UseShellExecute = false;
-        using var p = Process.Start(psi);
-        var builder = new StringBuilder();
-        p.OutputDataReceived += (o, e) =>
-        {
-            if (e.Data != null) builder.AppendLine(e.Data);
-        };
-        p.ErrorDataReceived += (o, e) =>
-        {
-            if (e.Data != null) builder.AppendLine(e.Data);
-        };
-        p.BeginErrorReadLine();
-        p.BeginOutputReadLine();
-        p.WaitForExit();
-        File.Delete(tmppython);
+        var result = await RunBlender(
+            blenderPath,
+            "",
+            string.Format(EXPORT_SCRIPT, EscapeCode(tmpfile), EscapeCode(tmpblend)),
+            cancellation,
+            logLine
+        );
+        if(result != CANCELLED)
+            logLine?.Invoke($"Exit Code: {result}\n");
         File.Delete(tmpfile);
         if (File.Exists(tmpblend))
         {
             File.Move(tmpblend, file, true);
-            return new EditResult<bool>(true);
+            return true.AsResult();
         }
-
-        return EditResult<bool>.Error($"Failed to execute blender import script\nExit Code: {p.ExitCode}\nLog: {builder.ToString()}");
+        else
+        {
+            return false.AsResult();
+        }
     }
 }

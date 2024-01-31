@@ -1066,8 +1066,14 @@ namespace LancerEdit
                         _window.ResultMessages(exported);
                     if (exported != null && !exported.IsError)
                     {
-                        var result = Blender.ExportBlenderFile(exported.Data, output, _window.Config.BlenderPath);
-                        _window.ResultMessages(result);
+                        var popup = new TaskRunPopup("Blender");
+                        _window.Popups.OpenPopup(popup);
+                        Blender.ExportBlenderFile(exported.Data, output, _window.Config.BlenderPath, popup.Token, popup.Log)
+                            .ContinueWith(x =>
+                            {
+                                popup.Log(x.Result.Data ? "Export complete" : "Export failed");
+                                popup.Finish();
+                            });
                     }
                 }, AppFilters.BlenderFilter);
             }
