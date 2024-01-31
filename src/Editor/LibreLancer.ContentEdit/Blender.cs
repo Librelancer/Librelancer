@@ -96,12 +96,12 @@ public class Blender
             name = "flatpak";
             tmpblend = Path.GetTempFileName();
             File.Copy(file, tmpblend, true);
-            args = $"run --filesystem=/tmp org.blender.Blender \"{tmpblend}\" --background --python \"{tmppython}\"";
+            args = $"run --filesystem=/tmp org.blender.Blender \"{tmpblend}\" --background --factory-startup --python \"{tmppython}\"";
         }
         else
         {
             name = blenderPath;
-            args = $"\"{file}\" --background --python \"{tmppython}\"";
+            args = $"\"{file}\" --background --factory-startup --python \"{tmppython}\"";
         }
 
         var exportCode =
@@ -193,12 +193,12 @@ bpy.ops.wm.save_as_mainfile(filepath={1})
         if (blenderPath == "FLATPAK")
         {
             name = "flatpak";
-            args = $"run --filesystem=/tmp org.blender.Blender --background --python \"{tmppython}\"";
+            args = $"run --filesystem=/tmp org.blender.Blender --background --factory-startup --python \"{tmppython}\"";
         }
         else
         {
             name = blenderPath;
-            args = $"\"{file}\" --background --python \"{tmppython}\"";
+            args = $"\"{file}\" --background --factory-startup --python \"{tmppython}\"";
         }
         File.WriteAllText(tmppython, string.Format(EXPORT_SCRIPT, EscapeCode(tmpfile), EscapeCode(tmpblend)));
         var psi = new ProcessStartInfo(name, args);
