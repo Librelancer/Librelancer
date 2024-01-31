@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -204,7 +205,18 @@ bpy.ops.wm.save_as_mainfile(filepath={1})
         psi.RedirectStandardError = true;
         psi.RedirectStandardOutput = true;
         psi.UseShellExecute = false;
-        using var p = Process.Start(name, args);
+        using var p = Process.Start(psi);
+        var builder = new StringBuilder();
+        p.OutputDataReceived += (o, e) =>
+        {
+            if (e.Data != null) builder.AppendLine(e.Data);
+        };
+        p.ErrorDataReceived += (o, e) =>
+        {
+            if (e.Data != null) builder.AppendLine(e.Data);
+        };
+        p.BeginErrorReadLine();
+        p.BeginOutputReadLine();
         p.WaitForExit();
         File.Delete(tmppython);
         File.Delete(tmpfile);
@@ -214,6 +226,6 @@ bpy.ops.wm.save_as_mainfile(filepath={1})
             return new EditResult<bool>(true);
         }
 
-        return EditResult<bool>.Error("Failed to execute blender import script");
+        return EditResult<bool>.Error($"Failed to execute blender import script\nExit Code: {p.ExitCode}\nLog: {builder.ToString()}");
     }
 }

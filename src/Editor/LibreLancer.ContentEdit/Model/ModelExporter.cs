@@ -14,7 +14,7 @@ namespace LibreLancer.ContentEdit.Model;
 
 public static class ModelExporter
 {
-    public static SimpleMesh.Model Export(CmpFile cmp, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
+    public static EditResult<SimpleMesh.Model> Export(CmpFile cmp, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
     {
         //Build tree
         ExportModelNode rootModel = null;
@@ -56,11 +56,14 @@ public static class ModelExporter
             if (enqueue)
                 q.Enqueue(part);
             infiniteDetect++;
-            if (infiniteDetect > 100000) throw new Exception("Infinite cmp loop detected");
+            if (infiniteDetect > 100000) return EditResult<SimpleMesh.Model>.Error("Infinite cmp loop detected");
         }
         //Export model
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
-        output.Roots = new[] {ProcessNode(rootModel, output, settings, resources, sur, false)};
+        var processed = ProcessNode(rootModel, output, settings, resources, sur, false);
+        if (processed.IsError)
+            return new EditResult<SimpleMesh.Model>(null, processed.Messages);
+        output.Roots = new[] { processed.Data };
         if (cmp.Animation != null)
         {
             var animations = new List<Animation>();
@@ -70,10 +73,11 @@ public static class ModelExporter
             }
             output.Animations = animations.ToArray();
         }
-        return output;
+
+        return output.AsResult();
     }
 
-    public static SimpleMesh.Model Export(ModelFile mdl, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
+    public static EditResult<SimpleMesh.Model> Export(ModelFile mdl, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
     {
         var exportNode = new ExportModelNode()
         {
@@ -82,8 +86,11 @@ public static class ModelExporter
             Construct = null,
         };
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
-        output.Roots = new[] {ProcessNode(exportNode, output, settings, resources, sur, true)};
-        return output;
+        var processed = ProcessNode(exportNode, output, settings, resources, sur, true);
+        if (processed.IsError)
+            return new EditResult<SimpleMesh.Model>(null, processed.Messages);
+        output.Roots = new[] { processed.Data };
+        return output.AsResult();
     }
 
     static SimpleMesh.ModelNode FromHardpoint(HardpointDefinition def)
@@ -106,7 +113,7 @@ public static class ModelExporter
         return n;
     }
 
-    static ModelNode ProcessNode(ExportModelNode node, SimpleMesh.Model dest, ModelExporterSettings settings, ResourceManager res, SurFile sur, bool is3db)
+    static EditResult<ModelNode> ProcessNode(ExportModelNode node, SimpleMesh.Model dest, ModelExporterSettings settings, ResourceManager res, SurFile sur, bool is3db)
     {
         var sm = new ModelNode();
         sm.Name = node.Name;
@@ -145,13 +152,20 @@ public static class ModelExporter
         {
             sm.Properties["construct"] = "loose";
         }
-        sm.Geometry = GeometryFromRef(node.Name, 0, node.Model.Levels[0], dest.Materials, res);
+        var l0 = GeometryFromRef(node.Name, 0, node.Model.Levels[0], dest.Materials, res);
+        if (l0.IsError)
+            return EditResult<ModelNode>.Error($"Unable to export node {node.Name} (Level 0)", l0.Messages);
+        sm.Geometry = l0.Data;
         if (settings.IncludeLods)
         {
             for (int i = 1; i < node.Model.Levels.Length; i++)
             {
                 var lod = new ModelNode() {Name = node.Name + "$lod" + i};
-                lod.Geometry = GeometryFromRef(node.Name, i, node.Model.Levels[i], dest.Materials, res);
+                var lodRes = GeometryFromRef(node.Name, i, node.Model.Levels[i], dest.Materials, res);
+                if (lodRes.IsError)
+                    return EditResult<ModelNode>.Error($"Unable to export node {node.Name} (Level {i})",
+                        lodRes.Messages);
+                lod.Geometry = lodRes.Data;
                 sm.Children.Add(lod);
             }
         }
@@ -191,9 +205,12 @@ public static class ModelExporter
         }
         foreach (var n in node.Children)
         {
-            sm.Children.Add(ProcessNode(n, dest, settings, res, sur, is3db));
+            var child = ProcessNode(n, dest, settings, res, sur, is3db);
+            if (child.IsError)
+                return child;
+            sm.Children.Add(child.Data);
         }
-        return sm;
+        return sm.AsResult();
     }
 
     static int HashVert(ref Vertex vert)
@@ -333,10 +350,12 @@ public static class ModelExporter
     }
 
     // Get just the referenced geometry from the VMeshData
-    static Geometry GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, ResourceManager resources)
+    static EditResult<Geometry> GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, ResourceManager resources)
     {
         var geo = new Geometry();
         var mesh = resources.FindMeshData(vms.MeshCrc);
+        if ((mesh == null))
+            return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
         geo.Name = name + "." + (int) mesh.OriginalFVF + ".level" + level;
         List<Vertex> verts = new List<Vertex>();
         List<int> hashes = new List<int>();
@@ -456,7 +475,7 @@ public static class ModelExporter
         }
         geo.Indices = Indices.FromBuffer(indices.ToArray());
         geo.Groups = groups.ToArray();
-        return geo;
+        return geo.AsResult();
     }
 
     private class ExportModelNode

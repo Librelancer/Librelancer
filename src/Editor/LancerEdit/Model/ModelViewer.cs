@@ -1022,16 +1022,18 @@ namespace LancerEdit
             if (drawable == null) return;
             FileDialog.Save(output =>
             {
-                SimpleMesh.Model exported = null;
+                EditResult<SimpleMesh.Model> exported = null;
                 if (drawable is ModelFile mdl) {
                     exported = ModelExporter.Export(mdl, surFile, exportSettings, res);
                 } else if (drawable is CmpFile cmp) {
                     exported = ModelExporter.Export(cmp, surFile, exportSettings, res);
                 }
-                if (exported != null)
+                if(exported != null)
+                    _window.ResultMessages(exported);
+                if (exported != null && !exported.IsError)
                 {
                     using var os = File.Create(output);
-                    exported.SaveTo(os, fmt);
+                    exported.Data.SaveTo(os, fmt);
                 }
             }, filters);
         }
@@ -1054,15 +1056,17 @@ namespace LancerEdit
             {
                 FileDialog.Save(output =>
                 {
-                    SimpleMesh.Model exported = null;
+                    EditResult<SimpleMesh.Model> exported = null;
                     if (drawable is ModelFile mdl) {
                         exported = ModelExporter.Export(mdl, surFile, exportSettings, res);
                     } else if (drawable is CmpFile cmp) {
                         exported = ModelExporter.Export(cmp, surFile, exportSettings, res);
                     }
-                    if (exported != null)
+                    if(exported != null)
+                        _window.ResultMessages(exported);
+                    if (exported != null && !exported.IsError)
                     {
-                        var result = Blender.ExportBlenderFile(exported, output, _window.Config.BlenderPath);
+                        var result = Blender.ExportBlenderFile(exported.Data, output, _window.Config.BlenderPath);
                         _window.ResultMessages(result);
                     }
                 }, AppFilters.BlenderFilter);
