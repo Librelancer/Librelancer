@@ -72,6 +72,10 @@ public class TaskRunPopup : PopupWindow
                 source.Cancel();
             }
         }
+        ImGui.SameLine();
+        if (ImGuiExt.Button("Copy Log", finished)) {
+            ImGui.SetClipboardText(log.GetLogString());
+        }
     }
     public override void Draw()
     {

@@ -44,6 +44,12 @@ public class AppLog : IDisposable
         bufferSize += byteSize;
     }
 
+    public unsafe string GetLogString()
+    {
+        var span = new Span<byte>((void*)buffer, bufferSize);
+        return Encoding.UTF8.GetString(span);
+    }
+
     public unsafe void Draw(bool buttons = true, Vector2 size = default)
     {
         if (buttons)

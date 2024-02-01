@@ -96,9 +96,21 @@ public class Blender
             RedirectStandardInput = true
         };
         log?.Invoke($"Running {processName} {processArgs}\n");
+        log?.Invoke("Python:\n" + pythonCode + "\n");
         var process = Process.Start(psi);
-        process.BeginErrorReadLine();
-        process.BeginOutputReadLine();
+        if (log != null)
+        {
+            process.OutputDataReceived += (o, e) =>
+            {
+                if (e.Data != null) log(e.Data + "\n");
+            };
+            process.ErrorDataReceived += (o, e) =>
+            {
+                if (e.Data != null) log(e.Data + "\n");
+            };
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
+        }
         await process.StandardInput.WriteAsync(pythonCode);
         process.StandardInput.Close();
         try
@@ -145,7 +157,7 @@ public class Blender
             DeleteIfExists(tmpfile);
             return EditResult<SimpleMesh.Model>.Error("Operation was cancelled");
         }
-        log?.Invoke($"Exit Code: {result}");
+        log?.Invoke($"Exit Code: {result}\n");
         DeleteIfExists(tmpblend);
         tmpfile += ".glb";
         if(File.Exists(tmpfile))
