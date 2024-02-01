@@ -36,7 +36,7 @@ namespace LibreLancer.Utf.Cmp
             }
         }
         public RevoluteHardpointDefinition(string name) : base(name) {
-            Axis = Vector3.UnitZ;
+            Axis = Vector3.UnitY;
         }
     }
 }
