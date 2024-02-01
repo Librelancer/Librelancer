@@ -14,6 +14,33 @@ namespace LibreLancer.ContentEdit.Model;
 
 static class AnimationConversion
 {
+    public static SM.Animation DefaultAnimation(CmpFile cmp)
+    {
+        var anm = new SM.Animation();
+        anm.Name = "<Default>";
+        var translations = new List<SM.TranslationChannel>();
+        var rotations = new List<SM.RotationChannel>();
+        foreach (var p in cmp.Parts.Where(x => x.Construct != null))
+        {
+            var con = p.Construct.Clone();
+            var tr = new SM.TranslationChannel();
+            tr.Target = p.ObjectName;
+            tr.Keyframes = [
+                new (0, con.Origin)
+            ];
+            translations.Add(tr);
+            var rot = new SM.RotationChannel();
+            rot.Target = p.ObjectName;
+            rot.Keyframes = [
+                new SM.RotationKeyframe(0, Quaternion.Normalize(con.Rotation.ExtractRotation()))
+            ];
+            rotations.Add(rot);
+        }
+        anm.Translations = translations.ToArray();
+        anm.Rotations = rotations.ToArray();
+        return anm;
+    }
+
     public static SM.Animation ExportAnimation(CmpFile cmp, Script script)
     {
         var anm = new SM.Animation();
@@ -46,7 +73,7 @@ static class AnimationConversion
                     else
                         rot.Keyframes[i].Time = map.Channel.Interval * i;
                     cloned.Update(map.Channel.GetAngle(i), Quaternion.Identity);
-                    rot.Keyframes[i].Rotation = cloned.LocalTransform.ExtractRotation();
+                    rot.Keyframes[i].Rotation = Quaternion.Normalize(cloned.LocalTransform.ExtractRotation());
                 }
                 rotations.Add(rot);
             }
@@ -157,7 +184,7 @@ static class AnimationConversion
     static (LUtfNode ch, PrisRevProps props) QuatsToAngleChannel(SM.RotationChannel rots, Matrix4x4 target)
     {
         //Make relative to construct, imported animations only store final rotations.
-        var invRotate = target.ExtractRotation();
+        var invRotate = Quaternion.Normalize(target.ExtractRotation());
         invRotate = Quaternion.Inverse(invRotate);
         Quaternion[] transformed = new Quaternion[rots.Keyframes.Length];
         for (int i = 0; i < rots.Keyframes.Length; i++)

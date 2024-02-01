@@ -48,8 +48,36 @@ public class ImportedModel
         m.Root.Construct = null;
         foreach (var child in m.Root.Children)
             child.Construct.ParentName = "Root";
-        m.ImportAnimations = input.Animations;
+        if (input.Animations != null) {
+            m.ImportAnimations = input.Animations.Where(x => !"<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
+            var defAnim =
+                input.Animations.FirstOrDefault(x => "<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase));
+            if (defAnim != null)
+            {
+                foreach (var child in m.Root.Children)
+                    ApplyDefaultPose(defAnim, child);
+            }
+        }
         return new EditResult<ImportedModel>(m);
+    }
+
+    static void ApplyDefaultPose(Animation anm, ImportedModelNode node)
+    {
+        var tr = anm.Translations.FirstOrDefault(x => x.Target.Equals(node.Name, StringComparison.OrdinalIgnoreCase));
+        var rot = anm.Rotations.FirstOrDefault(x => x.Target.Equals(node.Name, StringComparison.OrdinalIgnoreCase));
+        if (tr != null || rot != null)
+        {
+            var con = node.Construct.Clone();
+            var p = tr != null ? tr.Keyframes[0].Translation : con.Origin;
+            var r = rot != null
+                ? Matrix4x4.CreateFromQuaternion(rot.Keyframes[0].Rotation)
+                : con.Rotation;
+            con.Rotation = r;
+            con.Origin = p;
+            node.Construct = con;
+        }
+        foreach(var child in node.Children)
+            ApplyDefaultPose(anm, child);
     }
 
     static bool IsHull(ModelNode node)

@@ -64,9 +64,12 @@ public static class ModelExporter
         if (processed.IsError)
             return new EditResult<SimpleMesh.Model>(null, processed.Messages);
         output.Roots = new[] { processed.Data };
-        if (cmp.Animation != null)
+        if (cmp.Animation != null && settings.IncludeAnimations)
         {
             var animations = new List<Animation>();
+            if (cmp.Animation.Scripts.Count > 0) {
+                animations.Add(AnimationConversion.DefaultAnimation(cmp));
+            }
             foreach (var anm in cmp.Animation.Scripts.Values)
             {
                 animations.Add(AnimationConversion.ExportAnimation(cmp, anm));

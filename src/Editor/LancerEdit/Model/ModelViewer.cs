@@ -1041,6 +1041,12 @@ namespace LancerEdit
         {
             ImGui.Checkbox("Include Hardpoints", ref exportSettings.IncludeHardpoints);
             ImGui.Checkbox("Include LODs", ref exportSettings.IncludeLods);
+            var hasAnim = (drawable is CmpFile cmp) && cmp.Animation != null;
+            ImGui.BeginDisabled(!hasAnim);
+            ImGui.Checkbox("Include Animations", ref exportSettings.IncludeAnimations);
+            ImGui.EndDisabled();
+            if(!hasAnim)
+                ImGui.SetItemTooltip("Model has no animations");
             if (surFile == null) {
                 ImGui.TextDisabled("Sur file not loaded");
                 if(ImGui.Button("Open Sur")) OpenSur();
