@@ -927,7 +927,7 @@ namespace LancerEdit
                 FileDialog.Open((file) =>
                 {
                     using var stream = File.OpenRead(file);
-                    anmFile = new Anm.AnmFile(stream);
+                    anmFile = new Anm.AnmFile(file, stream);
                 });
             }
 
