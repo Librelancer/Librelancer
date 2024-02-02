@@ -549,7 +549,7 @@ namespace LibreLancer.Server
 
         public void ForceLand(string target)
         {
-            Space.Leave(false);
+            Space?.Leave(false);
             Space = null;
             Base = target;
             PlayerEnterBase();
