@@ -955,6 +955,54 @@ World Time: {12:F2}
             shipInput.Reverse = false;
             steering.Cruise = false;
         }
+
+        bool GetCrosshair(out Vector2 screenPos, out Vector3 worldPos)
+        {
+            screenPos = Vector2.Zero;
+            worldPos = Vector3.Zero;
+            if (Selection.Selected?.PhysicsComponent == null)
+                return false;
+            if (Selection.Selected.Kind != GameObjectKind.Ship ||
+                (Selection.Selected.Flags & GameObjectFlags.Exists) != GameObjectFlags.Exists)
+                return false;
+            var myPos = player.PhysicsComponent.Body.Position;
+            var myVel = player.PhysicsComponent.Body.LinearVelocity;
+            var otherPos = Selection.Selected.PhysicsComponent.Body.Position;
+            var otherVel = Selection.Selected.PhysicsComponent.Body.LinearVelocity;
+            var speed = weapons.GetAverageGunSpeed();
+            Aiming.GetTargetLeading(otherPos - myPos, otherVel - myVel, speed, out var t);
+            worldPos = (otherPos + otherVel * t);
+            bool vis;
+            (screenPos, vis) = ScreenPosition(worldPos);
+            return vis;
+        }
+
+        private bool crosshairHit = false;
+        Vector3 GetAimPoint()
+        {
+            crosshairHit = false;
+            var m = new Vector2(Game.Mouse.X, Game.Mouse.Y);
+            if (GetCrosshair(out var crosshairScreen, out var crosshairAim))
+            {
+                if (Vector2.Distance(m, crosshairScreen) < CrosshairSize())
+                {
+                    crosshairHit = true;
+                    return crosshairAim;
+                }
+            }
+            GetCameraMatrices(out var cameraView, out var cameraProjection);
+
+            var end = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 1f), cameraProjection, cameraView, new Vector2(Game.Width, Game.Height));
+            var start = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0), cameraProjection, cameraView, new Vector2(Game.Width, Game.Height));
+            var dir = (end - start).Normalized();
+            var tgt = start + (dir * 400);
+
+            if (world.Physics.PointRaycast(player.PhysicsComponent.Body, start, dir, 1000, out var contactPoint, out var po)) {
+                return contactPoint;
+            }
+            return tgt;
+        }
+
 		void ProcessInput(double delta)
         {
             if (Dead) {
@@ -1031,7 +1079,6 @@ World Time: {12:F2}
             }
 			control.CurrentStrafe = strafe;
 
-            GetCameraMatrices(out var cameraView, out var cameraProjection);
 
             var obj = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
             if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
@@ -1039,15 +1086,8 @@ World Time: {12:F2}
             else {
                 current_cur = obj == null ? cur_cross : cur_reticle;
             }
-            var end = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 1f), cameraProjection, cameraView, new Vector2(Game.Width, Game.Height));
-            var start = Vector3Ex.UnProject(new Vector3(Game.Mouse.X, Game.Mouse.Y, 0), cameraProjection, cameraView, new Vector2(Game.Width, Game.Height));
-            var dir = (end - start).Normalized();
-            var tgt = start + (dir * 400);
-            weapons.AimPoint = tgt;
 
-            if (world.Physics.PointRaycast(player.PhysicsComponent.Body, start, dir, 1000, out var contactPoint, out var po)) {
-                weapons.AimPoint = contactPoint;
-            }
+            weapons.AimPoint = GetAimPoint();
 
 
             if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
@@ -1097,11 +1137,9 @@ World Time: {12:F2}
             vp = activeCamera.ViewProjection;
         }
 
-
-        (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
+        (Vector2 pos, bool visible) ScreenPosition(Vector3 worldPos)
         {
             GetViewProjection(out var vp);
-            var worldPos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
             var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), vp);
             var ndc = clipSpace / clipSpace.W;
             var viewSize = new Vector2(Game.Width, Game.Height);
@@ -1117,6 +1155,12 @@ World Time: {12:F2}
             if (clipSpace.Z < 0)
                 windowSpace *= -1;
             return (windowSpace, visible && ndc.Z < 1);
+        }
+
+        (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
+        {
+            var worldPos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
+            return ScreenPosition(worldPos);
         }
 
         private GameObject missionWaypoint;
@@ -1153,6 +1197,13 @@ World Time: {12:F2}
 
         private TargetShipWireframe targetWireframe = new TargetShipWireframe();
 
+        int CrosshairSize()
+        {
+            float size = 14;
+            float ratio = (Game.Height / 480f);
+            return (int)(size * ratio);
+        }
+
 		//RigidBody debugDrawBody;
         private int waitObjectiveFrames = 120;
 		public override unsafe void Draw(double delta)
@@ -1186,6 +1237,15 @@ World Time: {12:F2}
 
             sysrender.DebugRenderer.Render();
 
+            if (GetCrosshair(out var crosshairScreen, out _))
+            {
+                var sz = CrosshairSize();
+                var r0 = new Rectangle((int)(crosshairScreen.X - (sz / 2)), (int)crosshairScreen.Y, sz, 1);
+                var r1 = new Rectangle((int)crosshairScreen.X, (int)crosshairScreen.Y - (sz / 2), 1, sz);
+                Game.RenderContext.Renderer2D.FillRectangle(r0, Color4.Red);
+                Game.RenderContext.Renderer2D.FillRectangle(r1, Color4.Red);
+            }
+
             if ((Thn == null || !Thn.Running) && ShowHud)
             {
                 ui.Visible = true;
@@ -1201,6 +1261,7 @@ World Time: {12:F2}
             {
                 ui.Visible = false;
             }
+
 
             if (Thn != null && Thn.Running)
             {
@@ -1226,6 +1287,7 @@ World Time: {12:F2}
                     sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, sel_obj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
+                ImGui.Text($"crosshairHit: {crosshairHit}");
                 var dbgT = session.GetSelectedDebugInfo();
                 if(!string.IsNullOrWhiteSpace(dbgT))
                     ImGui.Text(dbgT);

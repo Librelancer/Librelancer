@@ -65,8 +65,6 @@ struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
         BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt,
         ref BodyVelocityWide velocity)
     {
-        float dtNarrow = dt[0];
-
         Span<float> linearDampingValues = stackalloc float[Vector<float>.Count];
         Span<float> angularDampingValues = stackalloc float[Vector<float>.Count];
         for (int bundleSlotIndex = 0; bundleSlotIndex < Vector<int>.Count; ++bundleSlotIndex)
@@ -76,8 +74,8 @@ struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
             if (bodyIndex >= 0)
             {
                 var bodyHandle = World.Simulation.Bodies.ActiveSet.IndexToHandle[bodyIndex];
-                linearDampingValues[bundleSlotIndex] = MathF.Pow(1.0f - World.dampings[bodyHandle].X, dtNarrow);
-                angularDampingValues[bundleSlotIndex] = MathF.Pow(1.0f - World.dampings[bodyHandle].Y, dtNarrow);
+                linearDampingValues[bundleSlotIndex] = MathF.Pow(1.0f - World.dampings[bodyHandle].X, dt[bundleSlotIndex]);
+                angularDampingValues[bundleSlotIndex] = MathF.Pow(1.0f - World.dampings[bodyHandle].Y, dt[bundleSlotIndex]);
             }
         }
 

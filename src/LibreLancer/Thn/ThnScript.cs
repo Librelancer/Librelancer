@@ -101,11 +101,6 @@ namespace LibreLancer.Thn
 		public Dictionary<string, ThnEntity> Entities = new Dictionary<string, ThnEntity>(StringComparer.OrdinalIgnoreCase);
 		public List<ThnEvent> Events = new List<ThnEvent>();
 
-		public ThnScript (string scriptfile)
-		{
-			var runner = new LuaRunner (ThnEnv);
-            Initialize(runner.DoFile(scriptfile));
-		}
 
         public ThnScript(byte[] bytes)
         {
@@ -255,7 +250,7 @@ namespace LibreLancer.Thn
 			{
 				e.LightGroup = (int)(float)table["lt_grp"];
 			}
-			
+
 			Vector3 tmp;
 			if (table.TryGetVector3("ambient", out tmp))
 			{

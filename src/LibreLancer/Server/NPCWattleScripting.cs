@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using LibreLancer.GameData;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -15,7 +16,7 @@ namespace LibreLancer.Server
     {
         NPCManager manager;
         Script script;
-        
+
         public NPCWattleScripting(NPCManager manager)
         {
             this.manager = manager;
@@ -51,7 +52,7 @@ namespace LibreLancer.Server
                 throw ScriptRuntimeException.BadArgument(argIndex, funcName, DataType.String, id.Type, false);
             }
         }
-        
+
         //Meant to be called from WattleScript
         public NPCWattleInstance getnpc(DynValue id)
         {
@@ -62,12 +63,15 @@ namespace LibreLancer.Server
 
         private int spawnCount = 0;
 
-        public NPCWattleInstance spawnnpc(string loadout, float x, float y, float z)
+        public NPCWattleInstance spawnnpc(string loadout, string pilot, float x, float y, float z)
         {
             if (!manager.World.Server.GameData.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
+            Pilot p = null;
+            if (pilot != null)
+                p = manager.World.Server.GameData.GetPilot(pilot);
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null, "FIGHTER", resolved, null, position, Quaternion.Identity);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null, "FIGHTER", resolved, p, position, Quaternion.Identity);
             return new NPCWattleInstance(obj, this);
         }
     }
@@ -78,7 +82,7 @@ namespace LibreLancer.Server
         [WattleScriptHidden]
         internal GameObject Object;
 
-        [WattleScriptHidden] 
+        [WattleScriptHidden]
         internal NPCWattleScripting Scripting;
 
         internal NPCWattleInstance(GameObject obj, NPCWattleScripting scripting)
@@ -103,7 +107,7 @@ namespace LibreLancer.Server
             var tgt = Scripting.LookupObject(obj, "attack", 1);
             if (tgt == null) throw new ScriptRuntimeException($"Could not find object {obj}");
             if (Object.TryGetComponent<SNPCComponent>(out var n))
-                n.Attack(tgt);
+                n.SetAttitude(tgt, RepAttitude.Hostile);
         }
 
         void PrintState(AiState state, StringBuilder builder)

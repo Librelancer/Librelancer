@@ -679,7 +679,7 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
     public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold,
         out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
     {
-        pairMaterial.FrictionCoefficient = 1f;
+        pairMaterial.FrictionCoefficient = 0f;
         pairMaterial.MaximumRecoveryVelocity = MaximumRecoveryVelocity;
         pairMaterial.SpringSettings = new SpringSettings(5, 0f);
         events.HandleManifold(workerIndex, pair, ref manifold);

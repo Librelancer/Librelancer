@@ -212,6 +212,11 @@ namespace LibreLancer.Server
         public Player GetConnectedPlayer(string name) =>
             GetPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
+        public void LoadSaveGame(SaveGame sg) => worldRequests.Enqueue(() =>
+        {
+            LocalPlayer.OpenSaveGame(sg);
+        });
+
 
         private FixedTimestepLoop processingLoop;
 
@@ -277,9 +282,9 @@ namespace LibreLancer.Server
                 GameData.LoadData(null);
                 FLLog.Info("Server", "Finished Loading Game Data");
             }
+            InitBaselinePrices();
             Worlds = new WorldProvider(this);
             serverTiming = Stopwatch.StartNew();
-            InitBaselinePrices();
             Database = new ServerDatabase(this);
             Listener?.Start();
             double lastTime = 0;

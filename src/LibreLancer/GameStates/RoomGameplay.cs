@@ -409,7 +409,7 @@ namespace LibreLancer
                     cState = state;
                     break;
             }
-            var script = new ThnScript(session.Game.GameData.DataPath(scName));
+            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(scName)));
             currentCutscene = ct;
             RoomDoSceneScript(script, ScriptState.Cutscene);
         }
@@ -633,7 +633,7 @@ namespace LibreLancer
                 thnObj.Translate = pos;
                 thnObj.Object = obj;
                 scene.AddObject(thnObj);
-                scene.FidgetScript(new ThnScript(session.Game.GameData.DataPath(npc.Fidget)));
+                scene.FidgetScript(new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(npc.Fidget))));
                 if(i == 0) hotspots.Add(new RTCHotspot() { ini = ct, obj = thnObj, npc = npc.Npc });
                 i++;
             }

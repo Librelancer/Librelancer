@@ -53,7 +53,7 @@ public class ThnPlayerTab : GameContentTab
         }).ToArray();
         var ctx = new ThnScriptContext(null);
         cutscene = new Cutscene(ctx, gameData.GameData,  gameData.Resources, gameData.Sounds, new Rectangle(0,0,240,240), win);
-        cutscene.BeginScene(files.Select(x => new ThnScript(x)));
+        cutscene.BeginScene(files.Select(x => new ThnScript(File.ReadAllBytes(x))));
     }
 
     void Reload()

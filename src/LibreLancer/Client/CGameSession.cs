@@ -815,7 +815,7 @@ namespace LibreLancer.Client
                     src = Game.GameData.GetSolarArchetype(archetype).ModelFile.LoadFile(Game.ResourceManager);
                 }
                 var collider = src.Collision;
-                var mdl = ((IRigidModelFile) src).CreateRigidModel(true, Game.ResourceManager);
+                var mdl = ((IRigidModelFile) src.Drawable).CreateRigidModel(true, Game.ResourceManager);
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
                 {
@@ -1037,7 +1037,7 @@ namespace LibreLancer.Client
                 }
                 else
                 {
-                    var thn = new ThnScript(Game.GameData.DataPath(thorn));
+                    var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.DataPath(thorn)));
                     var mo = gp.world.GetObject(mainObject);
                     if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
                     else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");

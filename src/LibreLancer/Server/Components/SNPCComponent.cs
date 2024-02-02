@@ -178,7 +178,38 @@ namespace LibreLancer.Server.Components
             return retVal;
         }
 
+        Vector3 AddInaccuracy(Vector3 target, Vector3 local)
+        {
+            //This is not correct, but it's a small amount of inaccuracy at least
+            if(Pilot?.Gun == null)
+                return target;
+            var coneAngle = Pilot.Gun.FireAccuracyConeAngle / 2;
+
+            var offset = new Vector3(
+                random.NextFloat(-coneAngle, coneAngle),
+                random.NextFloat(-coneAngle, coneAngle),
+                  random.NextFloat(-coneAngle, coneAngle)
+            );
+            return target + offset;
+        }
+
         private GameObject lastShootAt;
+
+        Vector3 GetAimPosition(GameObject other, WeaponControlComponent weapons)
+        {
+            if(other.PhysicsComponent == null)
+                return Vector3.Transform(Vector3.Zero, other.WorldTransform);
+            var myPos = Parent.PhysicsComponent.Body.Position;
+            var myVelocity = Parent.PhysicsComponent.Body.LinearVelocity;
+            var otherPos = other.PhysicsComponent.Body.Position;
+            var otherVelocity = other.PhysicsComponent.Body.LinearVelocity;
+            var avgSpeed = weapons.GetAverageGunSpeed();
+            if (Aiming.GetTargetLeading((otherPos - myPos), (otherVelocity - myVelocity), avgSpeed, out var t))
+            {
+                return AddInaccuracy(otherPos + otherVelocity * t, myPos);
+            }
+            return AddInaccuracy(otherPos, myPos);
+        }
 
         GameObject GetHostileAndFire(double time)
         {
@@ -214,7 +245,7 @@ namespace LibreLancer.Server.Components
                 var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
 
                 var gunRange = weapons.GetMaxRange() * 0.95f;
-                weapons.AimPoint = Vector3.Transform(Vector3.Zero, shootAt.WorldTransform);
+                weapons.AimPoint = GetAimPosition(shootAt, weapons);
 
                 var missileRange = Pilot?.Missile?.LaunchRange ?? gunRange;
                 //Fire Missiles

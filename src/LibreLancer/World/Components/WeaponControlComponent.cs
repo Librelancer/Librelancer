@@ -67,6 +67,17 @@ namespace LibreLancer.World.Components
             }).ToArray();
         }
 
+        public float GetAverageGunSpeed()
+        {
+            float accum = 0;
+            int count = 0;
+            foreach (var wp in Parent.GetChildComponents<GunComponent>())
+            {
+                accum += wp.Object.Def.MuzzleVelocity;
+                count++;
+            }
+            return accum / count;
+        }
         public float GetMaxRange()
         {
             float range = 0;

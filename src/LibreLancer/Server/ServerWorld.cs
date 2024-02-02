@@ -388,7 +388,7 @@ namespace LibreLancer.Server
                     src = Server.GameData.GetSolarArchetype(archetype).ModelFile.LoadFile(Server.Resources);
                 }
                 var collider = src.Collision;
-                var mdl = ((IRigidModelFile) src).CreateRigidModel(true, Server.Resources);
+                var mdl = ((IRigidModelFile) src.Drawable).CreateRigidModel(false, Server.Resources);
                 var newpart = mdl.Parts[part].Clone();
                 var newmodel = new RigidModel()
                 {
