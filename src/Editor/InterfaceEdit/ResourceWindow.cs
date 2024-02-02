@@ -23,15 +23,11 @@ namespace InterfaceEdit
         private MainWindow mainWindow;
         TextBuffer colorName = new TextBuffer();
         TextBuffer modelName = new TextBuffer();
-        private FileSelector librarySelector;
-        private FileSelector modelSelector;
 
         public ResourceWindow(MainWindow mainWindow, UiData context)
         {
             this.resources = context.Resources;
             this.context = context;
-            librarySelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
-            modelSelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
             this.mainWindow = mainWindow;
         }
 
@@ -171,23 +167,29 @@ namespace InterfaceEdit
             ImGui.EndChild();
             clr.Animation.Color2 = v4;
         }
+
+        private static Func<string, bool> resourceFilter =
+            VfsFileSelector.MakeFilter(".utf", ".vms", ".mat", ".txm", ".3db", ".cmp");
+
+        private static Func<string, bool> modelFilter =
+            VfsFileSelector.MakeFilter(".3db", ".cmp");
         public void LibraryFilesTab()
         {
             ImGui.BeginChild("##libtabinner");
             {
                 if (ImGui.Button("Add"))
                 {
-                    librarySelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
-                    librarySelector.Filter = FileSelector.MakeFilter(".utf", ".vms", ".mat", ".txm", ".3db", ".cmp");
-                    librarySelector.Open();
+                    mainWindow.Popups.OpenPopup(new VfsFileSelector("Add",
+                        mainWindow.Project.UiData.FileSystem,
+                        mainWindow.Project.UiData.DataPath,
+                        newfile =>
+                        {
+                            resources.LibraryFiles.Add(newfile);
+                            context.LoadLibraries();
+                        }, resourceFilter));
                 }
+
                 ImGui.Separator();
-                string newfile;
-                if ((newfile = librarySelector.Draw()) != null)
-                {
-                    resources.LibraryFiles.Add(newfile);
-                    context.LoadLibraries();
-                }
                 ImGui.BeginChild("##items");
                 foreach (var file in resources.LibraryFiles)
                     ImGui.Selectable(file);
@@ -203,18 +205,17 @@ namespace InterfaceEdit
             ImGui.BeginChild("##tabinner");
             if (ImGui.Button("Add"))
             {
-                modelSelector = new FileSelector(mainWindow.Project.ResolvedDataDir);
-                modelSelector.Filter = FileSelector.MakeFilter(".3db", ".cmp");
-                modelSelector.Open();
-            }
-            string newfile;
-            if ((newfile = modelSelector.Draw()) != null)
-            {
-                var name = Path.GetFileName(newfile);
-                resources.Models.Add(new InterfaceModel()
-                {
-                    Name = name, Path = newfile
-                });
+                mainWindow.Popups.OpenPopup(new VfsFileSelector("Add",
+                    mainWindow.Project.UiData.FileSystem,
+                    mainWindow.Project.UiData.DataPath,
+                    newfile =>
+                    {
+                        var name = Path.GetFileName(newfile);
+                        resources.Models.Add(new InterfaceModel()
+                        {
+                            Name = name, Path = newfile
+                        });
+                    }, modelFilter));
             }
             ImGui.Columns(2);
             ImGui.BeginChild("##items");

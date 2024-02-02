@@ -25,6 +25,8 @@ namespace InterfaceEdit
     {
         ImGuiHelper guiHelper;
         private RecentFilesHandler recentFiles;
+        public PopupManager Popups = new PopupManager();
+
         public MainWindow() : base(950,600,false)
         {
             recentFiles = new RecentFilesHandler(OpenGui);
@@ -341,6 +343,8 @@ namespace InterfaceEdit
                 if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
+
+            Popups.Run();
             //Finish Render
             ImGui.PopFont();
             guiHelper.Render(RenderContext);

@@ -8,11 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer;
 using LibreLancer.Data.IO;
-using LibreLancer.ImUI;
 
-namespace LancerEdit
+namespace LibreLancer.ImUI
 {
     public class VfsFileSelector : PopupWindow
     {
