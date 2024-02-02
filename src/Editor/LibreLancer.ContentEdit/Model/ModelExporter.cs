@@ -357,6 +357,8 @@ public static class ModelExporter
     {
         var geo = new Geometry();
         var mesh = resources.FindMeshData(vms.MeshCrc);
+        if (vms.MeshCrc == 0)
+            return new EditResult<Geometry>(null);
         if ((mesh == null))
             return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
         geo.Name = name + "." + (int) mesh.OriginalFVF + ".level" + level;

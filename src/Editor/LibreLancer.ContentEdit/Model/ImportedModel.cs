@@ -243,7 +243,7 @@ public class ImportedModel
     {
         //Skip detected lods & hulls
         var num = LodNumber(obj, out _);
-        if (num != 0) return true.AsResult();
+        if (num != 0 && num != NULL_GEOMETRY) return true.AsResult();
         if (IsHull(obj)) return true.AsResult();
         //Build tree
         var mdl = new ImportedModelNode();
@@ -252,9 +252,12 @@ public class ImportedModel
             mdl.Name = obj.Name.Remove(obj.Name.Length - 5, 5);
         (mdl.Construct, mdl.ConstructPropertiesSet) = GetConstruct(obj, mdl.Name, parentName);
         mdl.Construct?.Reset();
-        var geometry = autodetect[mdl.Name];
-        foreach (var g in geometry)
-            if (g != null) mdl.LODs.Add(g);
+        if (num != NULL_GEOMETRY) {
+            var geometry = autodetect[mdl.Name];
+            foreach (var g in geometry)
+                if (g != null)
+                    mdl.LODs.Add(g);
+        }
         foreach(var child in obj.Children) {
 
             if(IsHull(child))
@@ -277,7 +280,7 @@ public class ImportedModel
     {
         string objn;
         var num = LodNumber(obj, out objn);
-        if(num != -1) {
+        if(num >= 0) {
             ModelNode[] lods;
             if(!autodetect.TryGetValue(objn, out lods)) {
                 lods = new ModelNode[10];
@@ -300,12 +303,14 @@ public class ImportedModel
         return true;
     }
 
+    private const int NULL_GEOMETRY = -2;
+    private const int LINE_GEOMETRY = -1;
     //Autodetected LOD: object with geometry + suffix $lod[0-9]
     static int LodNumber(ModelNode obj, out string name)
     {
         name = obj.Name;
-        if (obj.Geometry == null) return -1;
-        if (obj.Geometry.Kind == GeometryKind.Lines) return -1;
+        if (obj.Geometry == null) return NULL_GEOMETRY;
+        if (obj.Geometry.Kind == GeometryKind.Lines) return LINE_GEOMETRY;
         if (obj.Name.Length < 6) return 0;
         if (!char.IsDigit(obj.Name, obj.Name.Length - 1)) return 0;
         if (!CheckSuffix("$lodX", obj.Name, 4)) return 0;
@@ -315,7 +320,7 @@ public class ImportedModel
 
     bool VerifyModelMaterials(ModelNode mn)
     {
-        if (mn.Geometry.Groups.Any(x => string.IsNullOrWhiteSpace(x.Material.Name)))
+        if (mn != null && mn.Geometry.Groups.Any(x => string.IsNullOrWhiteSpace(x.Material.Name)))
             return false;
         return true;
     }
@@ -614,23 +619,24 @@ public class ImportedModel
 
     static void Export3DB(string mdlName, LUtfNode node3db, ImportedModelNode mdl, LUtfNode vmeshlibrary = null)
     {
+
         var vms = vmeshlibrary ?? new LUtfNode()
-            {Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>()};
+            { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
         for (int i = 0; i < mdl.LODs.Count; i++)
         {
             var n = new LUtfNode()
             {
-                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(mdl.LODs[i].Geometry)}.vms",
+                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int)GeometryWriter.FVF(mdl.LODs[i].Geometry)}.vms",
                 Parent = vms
             };
             n.Children = new List<LUtfNode>();
             n.Children.Add(new LUtfNode()
-                {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry)});
+                    { Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry) });
             vms.Children.Add(n);
         }
-
-        if (vmeshlibrary == null)
+        if (vmeshlibrary == null && mdl.LODs.Count > 0)
             node3db.Children.Add(vms);
+
         if (mdl.LODs.Count > 1)
         {
             var multilevel = new LUtfNode() {Name = "MultiLevel", Parent = node3db};
@@ -666,6 +672,18 @@ public class ImportedModel
             mlfloats[mlfloats.Length - 1] = 1000000;
             switch2.Data = UnsafeHelpers.CastArray(mlfloats);
             node3db.Children.Add(multilevel);
+        }
+        else if (mdl.LODs.Count == 0)
+        {
+            var part = new LUtfNode() {Name = "VMeshPart", Parent = node3db};
+            part.Children = new List<LUtfNode>();
+            part.Children.Add(new LUtfNode()
+            {
+                Name = "VMeshRef",
+                Parent = part,
+                Data = GeometryWriter.NullVMeshRef()
+            });
+            node3db.Children.Add(part);
         }
         else
         {
@@ -722,6 +740,8 @@ public class ImportedModel
                 n.Children.Add(new LUtfNode()
                     {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(wireLod, D3DFVF.XYZ)});
                 vms.Children.Add(n);
+                if(vmeshlibrary == null && mdl.LODs.Count == 0)
+                    node3db.Children.Add(vms);
                 node3db.Children.Add(GetVMeshWireNode(node3db, CrcTool.FLModelCrc(nodeName), wireLod.Indices.Indices16));
             }
         }

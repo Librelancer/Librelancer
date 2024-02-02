@@ -10,8 +10,14 @@ using LibreLancer.Utf.Vms;
 namespace LibreLancer.ContentEdit.Model
 {
 
-    public class GeometryWriter 
+    public class GeometryWriter
     {
+        public static byte[] NullVMeshRef()
+        {
+            var bytes = new byte[60];
+            BitConverter.TryWriteBytes(bytes, (uint)60);
+            return bytes;
+        }
         public static byte[] VMeshRef(Geometry g, string nodename)
         {
             using(var stream = new MemoryStream())
@@ -124,5 +130,5 @@ namespace LibreLancer.ContentEdit.Model
         }
     }
 
-    
+
 }

@@ -180,8 +180,12 @@ bpy.ops.wm.read_homefile(use_empty=True)
 bpy.ops.import_scene.gltf(filepath={0})
 
 for obj in bpy.context.scene.objects:
-    obj.empty_display_size = 2
-    obj.empty_display_type = 'SINGLE_ARROW'
+    if 'construct' in obj:
+        obj.empty_display_size = 0.5
+        obj.empty_display_type = 'CONE'
+    else:
+        obj.empty_display_size = 2
+        obj.empty_display_type = 'SINGLE_ARROW'
 
 bpy.ops.wm.save_as_mainfile(filepath={1})
 ";
