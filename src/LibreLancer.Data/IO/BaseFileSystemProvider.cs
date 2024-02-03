@@ -42,11 +42,35 @@ public abstract class BaseFileSystemProvider : IFileProvider
             filename = file.GetBackingFilename();
             return true;
         }
+        else if (it is VfsDirectory dir)
+        {
+            return GetDirectoryBackingPath(dir, out filename);
+        }
         else
         {
             filename = null;
             return false;
         }
+    }
+
+    protected string GetDirectoryPath(VfsDirectory dir)
+    {
+        if (dir.Parent == null)
+            return "";
+        List<string> components = new List<string>();
+        var d = dir;
+        while (d?.Parent != null) {
+            components.Add(d.Name);
+            d = d.Parent;
+        }
+        components.Reverse();
+        return string.Join('/', components);
+    }
+
+    protected virtual bool GetDirectoryBackingPath(VfsDirectory dir, out string filename)
+    {
+        filename = null;
+        return false;
     }
 
     protected VfsItem GetItem(string filename)

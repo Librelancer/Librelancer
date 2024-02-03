@@ -275,6 +275,7 @@ namespace LibreLancer.Data.IO
         {
             if(caseSensitive) {
                 Root = WalkDir(baseFolder, null);
+                Root.Name = "";
             }
         }
 
@@ -313,7 +314,7 @@ namespace LibreLancer.Data.IO
         public override bool GetBackingFileName(string path, out string filename)
         {
             var fullPath = Path.Combine(baseFolder, path.Replace('\\', Path.DirectorySeparatorChar));
-            if (File.Exists(fullPath)) {
+            if (File.Exists(fullPath) || Directory.Exists(fullPath)) {
                 filename = fullPath;
                 return true;
             }
@@ -321,6 +322,12 @@ namespace LibreLancer.Data.IO
                 return base.GetBackingFileName(path, out filename);
             filename = null;
             return false;
+        }
+
+        protected override bool GetDirectoryBackingPath(VfsDirectory dir, out string filename)
+        {
+            filename = Path.Combine(baseFolder, GetDirectoryPath(dir));
+            return true;
         }
 
         VfsDirectory WalkDir(string dir, VfsDirectory parent, bool recurse = true)

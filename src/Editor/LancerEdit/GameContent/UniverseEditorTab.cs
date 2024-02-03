@@ -130,7 +130,8 @@ public class UniverseEditorTab : EditorTab
 
     void NewSystem(string nickname)
     {
-        var systemsFolder = gameData.GameData.DataPath("UNIVERSE/SYSTEMS/");
+        var systemsFolder =
+            gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Ini.Freelancer.DataPath + "/UNIVERSE/SYSTEMS");
         var newFolder = Path.Combine(systemsFolder, nickname);
         Directory.CreateDirectory(newFolder);
         var system = new StarSystem()
