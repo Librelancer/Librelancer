@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Numerics;
+using LibreLancer.GameData;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using WattleScript.Interpreter;
@@ -15,6 +16,8 @@ namespace LibreLancer.Interface
     public class CharacterView : Widget3D
     {
         DfmSkeletonManager Skeleton;
+        private Accessory accessory;
+        private RigidModel accessoryModel;
         public void SetCharacter(CommAppearance comm)
         {
             if (comm == null)
@@ -24,6 +27,8 @@ namespace LibreLancer.Interface
                 Skeleton = new DfmSkeletonManager(comm.Body, comm.Head);
                 foreach (var sc in comm.Scripts)
                     Skeleton.StartScript(sc, 0, 1, 0, true);
+                accessory = comm.Accessory;
+                accessoryModel = comm.AccessoryModel;
             }
         }
 
@@ -78,16 +83,29 @@ namespace LibreLancer.Interface
                 Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
                 Skeleton.Head.DrawBuffer(context.CommandBuffer, headTransform, ref lighting);
             }
+
             if (Skeleton.LeftHand != null)
             {
                 Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
                 Skeleton.LeftHand.DrawBuffer(context.CommandBuffer, leftTransform, ref lighting);
             }
+
             if (Skeleton.RightHand != null)
             {
                 Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
                 Skeleton.RightHand.DrawBuffer(context.CommandBuffer, rightTransform, ref lighting);
             }
+
+            if (accessoryModel != null && Skeleton.GetAccessoryTransform(
+                    accessoryModel,
+                    accessory.Hardpoint,
+                    accessory.BodyHardpoint,
+                    Matrix4x4.Identity,
+                        out var accessoryTransform)) {
+                accessoryModel.Update(context.GlobalTime);
+                accessoryModel.DrawBuffer(0, context.CommandBuffer, context.Data.ResourceManager, accessoryTransform, ref lighting);
+            }
+
             context.CommandBuffer.DrawOpaque(context.RenderContext);
             context.RenderContext.DepthWrite = false;
             context.CommandBuffer.DrawTransparent(context.RenderContext);

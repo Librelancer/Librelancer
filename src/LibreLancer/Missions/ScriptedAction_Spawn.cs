@@ -120,16 +120,19 @@ namespace LibreLancer.Missions
 
                 string commHead = null;
                 string commBody = null;
+                string commHelmet = null;
                 if (npcDef.SpaceCostume != null && npcDef.SpaceCostume.Length > 0)
                     commHead = npcDef.SpaceCostume[0];
                 if (npcDef.SpaceCostume != null && npcDef.SpaceCostume.Length > 1)
                     commBody = npcDef.SpaceCostume[1];
+                if (npcDef.SpaceCostume != null && npcDef.SpaceCostume.Length > 2)
+                    commHelmet = npcDef.SpaceCostume[2];
                 var obj = runtime.Player.Space.World.NPCs.DoSpawn(
                     oName,
                     ship.Nickname,
                     npcDef.Affiliation,
                     shipArch?.StateGraph ?? "FIGHTER",
-                    commHead, commBody,
+                    commHead, commBody, commHelmet,
                     ld, pilot, pos, orient, runtime);
                 var npcComp = obj.GetComponent<SNPCComponent>();
                 npcComp.OnKilled = () => {

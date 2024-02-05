@@ -77,6 +77,7 @@ namespace LibreLancer.Server
             string stateGraph,
             string head,
             string body,
+            string helmet,
             ObjectLoadout loadout,
             GameData.Pilot pilot,
             Vector3 position,
@@ -113,6 +114,7 @@ namespace LibreLancer.Server
             npcComponent.SetPilot(pilot);
             npcComponent.CommHead = World.Server.GameData.Bodyparts.Get(head);
             npcComponent.CommBody = World.Server.GameData.Bodyparts.Get(body);
+            npcComponent.CommHelmet = World.Server.GameData.Accessories.Get(helmet);
             obj.AddComponent(new SelectedTargetComponent(obj));
             obj.AddComponent(npcComponent);
             obj.AddComponent(new AutopilotComponent(obj));

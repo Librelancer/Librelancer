@@ -1130,10 +1130,20 @@ World Time: {12:F2}
                 if(canim.Scripts.TryGetValue(s, out var sc))
                     scripts.Add(sc);
             }
+
+            Accessory acc = costume.Helmet;
+            RigidModel accModel = null;
+            if (acc != null)
+            {
+                accModel = (costume.Helmet?.ModelFile.LoadFile(Game.ResourceManager).Drawable as IRigidModelFile)
+                    ?.CreateRigidModel(true, Game.ResourceManager);
+            }
             var app = new CommAppearance()
             {
                 Head = costume.Head?.LoadModel(Game.ResourceManager),
                 Body = costume.Body?.LoadModel(Game.ResourceManager),
+                Accessory = acc,
+                AccessoryModel = accModel,
                 Scripts = scripts
             };
             string factionName = null;

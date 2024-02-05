@@ -15,6 +15,7 @@ namespace LibreLancer.Server.Components
     {
         public Bodypart CommHead;
         public Bodypart CommBody;
+        public Accessory CommHelmet;
 
         public AiState CurrentDirective;
         public NetShipLoadout Loadout;

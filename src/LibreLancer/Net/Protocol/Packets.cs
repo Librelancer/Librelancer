@@ -207,6 +207,7 @@ namespace LibreLancer.Net.Protocol
         public Quaternion Orientation;
         public uint CommHead;
         public uint CommBody;
+        public uint CommHelmet;
         public uint Affiliation;
         public NetShipLoadout Loadout;
 
@@ -217,6 +218,7 @@ namespace LibreLancer.Net.Protocol
             Orientation = message.GetQuaternion(),
             CommHead = message.GetUInt(),
             CommBody = message.GetUInt(),
+            CommHelmet = message.GetUInt(),
             Affiliation = message.GetUInt(),
             Loadout = NetShipLoadout.Read(message)
         };
@@ -228,6 +230,7 @@ namespace LibreLancer.Net.Protocol
             message.Put(Orientation);
             message.Put(CommHead);
             message.Put(CommBody);
+            message.Put(CommHelmet);
             message.Put(Affiliation);
             Loadout.Put(message);
         }

@@ -9,6 +9,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
+using LibreLancer.World;
 
 namespace LibreLancer.Render
 {
@@ -178,6 +179,52 @@ namespace LibreLancer.Render
                 else
                     return running;
             }
+        }
+
+        public bool GetAccessoryTransform(RigidModel model, string hpAccessory, string hpSkel, Matrix4x4 world, out Matrix4x4 result)
+        {
+            result = Matrix4x4.Identity;
+            //Invert source hardpoint
+            Hardpoint srcHardpoint = null;
+            foreach (var part in model.AllParts)
+            {
+                foreach (var hp in part.Hardpoints)
+                {
+                    if (hp.Name.Equals(hpAccessory, StringComparison.OrdinalIgnoreCase))
+                    {
+                        srcHardpoint = hp;
+                        break;
+                    }
+                }
+            }
+            if (srcHardpoint == null)
+            {
+                return false;
+            }
+
+            Matrix4x4.Invert(srcHardpoint.Transform, out var invAccessory);
+
+            if (HeadSkinning != null && HeadSkinning.GetHardpoint(hpSkel, out var hpDef, out var boneDef))
+            {
+                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * HeadConnection.Transform * world;
+                return true;
+            }
+            if (LeftHandSkinning != null && LeftHandSkinning.GetHardpoint(hpSkel, out hpDef, out boneDef))
+            {
+                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * LeftHandConnection.Transform * world;
+                return true;
+            }
+            if (RightHandSkinning != null && RightHandSkinning.GetHardpoint(hpSkel, out hpDef, out boneDef))
+            {
+                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * RightHandConnection.Transform * world;
+                return true;
+            }
+            if(BodySkinning != null && BodySkinning.GetHardpoint(hpSkel, out hpDef, out boneDef))
+            {
+                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * world;
+                return true;
+            }
+            return false;
         }
 
         public DfmSkeletonManager(DfmFile body, DfmFile head = null, DfmFile leftHand = null, DfmFile rightHand = null)

@@ -655,7 +655,20 @@ namespace LibreLancer
                 b.Path = DataPath(p.Mesh);
                 Bodyparts.Add(b);
             }
+
+            foreach (var src in fldata.Bodyparts.Accessories)
+            {
+                var a = new Accessory();
+                a.Nickname = src.Nickname;
+                a.CRC = FLHash.CreateID(src.Nickname);
+                a.BodyHardpoint = src.BodyHardpoint;
+                a.Hardpoint = src.Hardpoint;
+                a.ModelFile = ResolveDrawable(src.Mesh);
+                Accessories.Add(a);
+            }
         }
+
+        public GameItemCollection<GameData.Accessory> Accessories = new GameItemCollection<Accessory>();
 
         public GameItemCollection<GameData.Bodypart> Bodyparts = new GameItemCollection<Bodypart>();
 

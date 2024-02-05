@@ -439,6 +439,7 @@ namespace LibreLancer.Server
                 Affiliation = npcInfo.Faction?.CRC ?? 0,
                 CommHead = npcInfo.CommHead?.CRC ?? 0,
                 CommBody = npcInfo.CommBody?.CRC ?? 0,
+                CommHelmet = npcInfo.CommHelmet?.CRC ?? 0,
                 Loadout = npcInfo.Loadout,
             };
             p.RpcClient.SpawnShip(obj.NetID, spawnInfo);

@@ -761,11 +761,13 @@ namespace LibreLancer.Client
                 newobj.AddComponent(new CExplosionComponent(newobj, shp.Explosion));
                 var head = Game.GameData.Bodyparts.Get(spawn.CommHead);
                 var body = Game.GameData.Bodyparts.Get(spawn.CommBody);
+                var helmet = Game.GameData.Accessories.Get(spawn.CommHelmet);
                 if (head != null || body != null) {
                     newobj.AddComponent(new CostumeComponent(newobj)
                     {
                         Head = head,
-                        Body = body
+                        Body = body,
+                        Helmet = helmet
                     });
                 }
 
