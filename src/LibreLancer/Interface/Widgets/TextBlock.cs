@@ -46,6 +46,8 @@ namespace LibreLancer.Interface
         public InterfaceColor TextShadow { get; set; }
         public bool Clip { get; set; } = true;
 
+        public bool Wrap { get; set; } = false;
+
         public bool Fill { get; set; } = false;
 
         public float TextAlpha { get; set; } = 1;
@@ -107,7 +109,7 @@ namespace LibreLancer.Interface
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
                 DrawText(context, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow, HorizontalAlignment, VerticalAlignment, Clip,
-                    txt, TextAlpha);
+                    txt, TextAlpha, Wrap);
         }
     }
 }

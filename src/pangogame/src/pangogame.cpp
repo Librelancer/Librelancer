@@ -337,11 +337,14 @@ void pg_drawtext(PGRenderContext* ctx, PGBuiltText *text)
 }
 
 #define MulColor(x) ((guint16)((x) * 65535))
-void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, PGAlign align, int underline, float r, float g, float b, float a, float *shadow, float *oWidth, float *oHeight)
+void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, float fontSize, PGAlign align, float maxWidth, int underline, float r, float g, float b, float a, float *shadow, float *oWidth, float *oHeight)
 {
     //Layout
     PangoLayout *layout = pango_layout_new(ctx->pangoContext);
     pango_layout_set_alignment(layout, convert_alignment(align));
+    if(maxWidth > 0) {
+        pango_layout_set_width(layout, (int)(maxWidth * PANGO_SCALE));
+    }
     pango_layout_set_text(layout, str, strlen(str));
     PangoFontDescription *font = pango_font_description_new();
     pango_font_description_set_family(font, fontName);
@@ -386,9 +389,12 @@ void pg_drawstring(PGRenderContext* ctx, const char *str, const char* fontName, 
 	g_object_unref(layout);
 }
 
-void pg_measurestring(PGRenderContext* ctx, const char* str, const char* fontName, float fontSize, float *width, float *height)
+void pg_measurestring(PGRenderContext* ctx, const char* str, const char* fontName, float fontSize, float maxWidth, float *width, float *height)
 {
     PangoLayout *layout = pango_layout_new(ctx->pangoContext);
+    if(maxWidth > 0) {
+        pango_layout_set_width(layout, (int)(maxWidth * PANGO_SCALE));
+    }
     pango_layout_set_text(layout, str, strlen(str));
     PangoFontDescription *font = pango_font_description_new();
     pango_font_description_set_family(font, fontName);

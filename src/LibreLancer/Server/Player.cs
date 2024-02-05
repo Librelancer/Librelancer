@@ -383,7 +383,14 @@ namespace LibreLancer.Server
         {
             var lO = p.Character.EncodeLoadout();
             lO.Health = p.Character.Ship.Hitpoints;
-            rpcClient.SpawnObject(p.ID, new ObjectName(p.Name), null, p.Position, p.Orientation, lO);
+            var info = new ShipSpawnInfo()
+            {
+                Name = new ObjectName(p.Name),
+                Position = p.Position,
+                Orientation = p.Orientation,
+                Loadout = lO
+            };
+            rpcClient.SpawnShip(p.ID, info);
         }
 
         public void SendSolars(Dictionary<string, GameObject> solars)

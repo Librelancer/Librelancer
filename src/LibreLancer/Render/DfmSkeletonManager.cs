@@ -134,12 +134,13 @@ namespace LibreLancer.Render
                 {
                     ref var ch = ref Script.JointMaps[j.JointMapIndex].Channel;
                     var cht = ft;
-                    if (Duration > 0 && Loop) cht = ft % ch.Duration;
+                    if (Loop && ft > ch.Duration)
+                        cht = ft % ch.Duration;
                     if (ch.HasOrientation)
                         j.Bone.Rotation = ch.QuaternionAtTime(cht);
                     if (ch.HasPosition)
                         j.Bone.Translation = ch.PositionAtTime(cht);
-                    if (ft < ch.Duration)
+                    if (ft < ch.Duration || Loop)
                         running = true;
                 }
 

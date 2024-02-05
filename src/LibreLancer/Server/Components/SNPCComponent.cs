@@ -13,6 +13,9 @@ namespace LibreLancer.Server.Components
 {
     public class SNPCComponent : SRepComponent
     {
+        public Bodypart CommHead;
+        public Bodypart CommBody;
+
         public AiState CurrentDirective;
         public NetShipLoadout Loadout;
         private NPCManager manager;

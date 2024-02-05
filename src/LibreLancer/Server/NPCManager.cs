@@ -70,7 +70,19 @@ namespace LibreLancer.Server
 
         }
 
-        public GameObject DoSpawn(ObjectName name, string nickname, string affiliation, string stateGraph, ObjectLoadout loadout, GameData.Pilot pilot, Vector3 position, Quaternion orient, MissionRuntime msn = null)
+        public GameObject DoSpawn(
+            ObjectName name,
+            string nickname,
+            string affiliation,
+            string stateGraph,
+            string head,
+            string body,
+            ObjectLoadout loadout,
+            GameData.Pilot pilot,
+            Vector3 position,
+            Quaternion orient,
+            MissionRuntime msn = null
+            )
         {
             NetShipLoadout netLoadout = new NetShipLoadout();
             netLoadout.Items = new List<NetShipCargo>();
@@ -99,6 +111,8 @@ namespace LibreLancer.Server
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
             var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
+            npcComponent.CommHead = World.Server.GameData.Bodyparts.Get(head);
+            npcComponent.CommBody = World.Server.GameData.Bodyparts.Get(body);
             obj.AddComponent(new SelectedTargetComponent(obj));
             obj.AddComponent(npcComponent);
             obj.AddComponent(new AutopilotComponent(obj));

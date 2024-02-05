@@ -13,7 +13,7 @@ namespace LibreLancer.Graphics.Text
         internal float FontSize;
         internal bool Underline;
         internal TextAlignment Alignment;
-
+        internal float MaxWidth;
 
         //Bail out on long strings
         static bool FastCompare(string a, string b)
@@ -26,20 +26,23 @@ namespace LibreLancer.Graphics.Text
         internal bool Update(
             string font,
             string text, float size,
-            bool underline, TextAlignment alignment
+            bool underline, TextAlignment alignment,
+            float maxWidth
         )
         {
             if (!FastCompare(font, FontName) ||
                 !FastCompare(text, Text) ||
                 Math.Abs(size - FontSize) > float.Epsilon ||
                 underline != Underline ||
-                Alignment != alignment)
+                Alignment != alignment ||
+                Math.Abs(maxWidth - MaxWidth) > float.Epsilon)
             {
                 FontName = font;
                 Text = text;
                 FontSize = size;
                 Underline = underline;
                 Alignment = alignment;
+                MaxWidth = maxWidth;
                 return true;
             }
             return false;

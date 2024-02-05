@@ -17,6 +17,8 @@ using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Interface;
 using LibreLancer.Render;
+using LibreLancer.Utf.Anm;
+using LibreLancer.Utf.Dfm;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace InterfaceEdit
@@ -156,6 +158,21 @@ namespace InterfaceEdit
                 projectWindow.IsOpen = true;
                 tabControl.Tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
                 TestApi._Infocard = Project.TestingInfocard;
+                var str = new StringDeduplication();
+                var anm = new AnmFile();
+                using(var f = Project.UiData.FileSystem.Open(Project.UiData.DataPath + @"characters\animations\bodygenericmale.anm"))
+                    AnmFile.ParseToTable(anm.Scripts, anm.Buffer, str, f, @"characters\animations\bodygenericmale.anm");
+                using(var f = Project.UiData.FileSystem.Open(Project.UiData.DataPath + @"characters\animations\facialmale.anm"))
+                    AnmFile.ParseToTable(anm.Scripts, anm.Buffer, str, f, @"characters\animations\facialmale.anm");
+                CommApp = new CommAppearance()
+                {
+                    Head = Project.UiData.ResourceManager.GetDrawable(
+                        Project.UiData.DataPath + @"characters\heads\br_brighton_head.dfm").Drawable as DfmFile,
+                    Body = Project.UiData.ResourceManager.GetDrawable(
+                        Project.UiData.DataPath + @"characters\bodies\br_brighton_body.dfm").Drawable as DfmFile,
+                };
+                CommApp.Scripts.Add(anm.Scripts["SC_MLHEAD_MOTION_WALLA_CASL_000LV_XA_%"]);
+                CommApp.Scripts.Add(anm.Scripts["SC_MLBODY_CHRB_IDLE_SMALL_000LV_XA_07"]);
             }
             else
             {
@@ -169,6 +186,8 @@ namespace InterfaceEdit
             new FileDialogFilters(new FileFilter("Project Files", "librelancer-uiproj"));
 
         public double RenderDelta;
+        private bool commOn = false;
+        private CommAppearance CommApp;
         protected override void Draw(double elapsed)
         {
             var delta = elapsed;
@@ -284,8 +303,21 @@ namespace InterfaceEdit
             if (Project != null && playing && ImGui.MenuItem("Stop"))
             {
                 playing = false;
+                commOn = false;
                 _playContext = null;
                 _playData = null;
+            }
+            if (Project != null && playing && ImGui.MenuItem("Toggle Comm"))
+            {
+                _playContext.Event("Comm", commOn
+                    ? new CommData()
+                    {
+                        Appearance = CommApp,
+                        Source = "Hello World",
+                        Affiliation = "Evil Faction"
+                    }
+                    : null);
+                commOn = !commOn;
             }
             var menu_height = ImGui.GetWindowSize().Y;
             ImGui.EndMainMenuBar();

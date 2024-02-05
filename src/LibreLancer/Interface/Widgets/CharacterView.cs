@@ -4,6 +4,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Render;
+using LibreLancer.Render.Cameras;
 using WattleScript.Interpreter;
 
 //TODO: Implement
@@ -14,52 +15,56 @@ namespace LibreLancer.Interface
     public class CharacterView : Widget3D
     {
         DfmSkeletonManager Skeleton;
-        private string _costume;
-        private string _idle;
-
-        string setCostume = null;
-        public void LoadCostume(string costume, string idle)
+        public void SetCharacter(CommAppearance comm)
         {
-            _costume = costume;
-            _idle = idle;
-        }
-
-        void LoadCostumeInternal()
-        {
-            if (string.IsNullOrWhiteSpace(_costume) || string.IsNullOrWhiteSpace(_idle)) {
+            if (comm == null)
                 Skeleton = null;
-                setCostume = null;
-                return;
-            }
-            if (_costume != setCostume)
+            else
             {
-
+                Skeleton = new DfmSkeletonManager(comm.Body, comm.Head);
+                foreach (var sc in comm.Scripts)
+                    Skeleton.StartScript(sc, 0, 1, 0, true);
             }
         }
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
             if (Width < 2 || Height < 2) return;
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
-            LoadCostumeInternal();
             if (Skeleton != null) {
                 Draw3DViewport(context, rect);
             }
             Border?.Draw(context, rect);
         }
 
+        public bool HeadOnly { get; set; } = true;
+
+        ICamera View(UiContext context, RectangleF rect, Matrix4x4 headTransform)
+        {
+            if (!HeadOnly)
+                return GetCamera(3f, context, rect);
+            var headPos = Vector3.Transform(new Vector3(0, 0.05f, 0), headTransform);
+            var lookFrom = Vector3.Transform(new Vector3(0, 0.05f, 0.5f), headTransform);
+            var lookAt = new LookAtCamera();
+            var pxRect = context.PointsToPixels(rect);
+            lookAt.Update(pxRect.Width, pxRect.Height, lookFrom, headPos);
+            return lookAt;
+        }
+
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
-            var cam = GetCamera(3f, context, rect);
-            context.RenderContext.SetCamera(cam);
-            context.CommandBuffer.Camera = cam;
+            Skeleton.UpdateScripts(context.DeltaTime);
             context.CommandBuffer.StartFrame(context.RenderContext);
             Skeleton.GetTransforms(Matrix4x4.Identity,
                 out var headTransform,
                 out var leftTransform,
                 out var rightTransform
             );
+            var cam = View(context, rect, headTransform);
+            context.RenderContext.SetCamera(cam);
+            context.CommandBuffer.Camera = cam;
             var lighting = Lighting.Empty;
             context.CommandBuffer.BonesBuffer.BeginStreaming();
             int a = 0, b = 0;
@@ -67,6 +72,7 @@ namespace LibreLancer.Interface
             context.CommandBuffer.BonesBuffer.EndStreaming(b);
             Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
             Skeleton.Body.DrawBuffer(context.CommandBuffer, Matrix4x4.Identity, ref lighting);
+
             if (Skeleton.Head != null)
             {
                 Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);

@@ -25,16 +25,21 @@ namespace LibreLancer.Missions
             {
                 var d = dlg.Lines[i];
                 string voice = "trent_voice";
+                int sourceId = 0;
                 if (!d.Source.Equals("Player", StringComparison.OrdinalIgnoreCase))
                 {
                     var src = script.Ships[d.Source];
                     var npc = script.NPCs[src.NPC];
                     voice = npc.Voice;
+                    var o = runtime.Player.Space.World.GameWorld.GetObject(d.Source);
+                    sourceId = o?.NetID ?? 0;
                 }
 
                 var hash = FLHash.CreateID(d.Line);
                 runtime.EnqueueLine(hash, d.Line);
                 netdlg[i] = new NetDlgLine() {
+                    Source = sourceId,
+                    TargetIsPlayer = d.Target.Equals("Player", StringComparison.OrdinalIgnoreCase),
                     Voice = voice,
                     Hash = hash
                 };
@@ -63,8 +68,13 @@ namespace LibreLancer.Missions
             var voice = npc.Voice;
             var hash = FLHash.CreateID(Line);
             runtime.EnqueueLine(hash, Line);
+            int sourceId = 0;
+            var o = runtime.Player.Space.World.GameWorld.GetObject(Source);
+            sourceId = o?.NetID ?? 0;
             netdlg[0] = new NetDlgLine()
             {
+                Source = sourceId,
+                TargetIsPlayer = Destination.Equals("Player", StringComparison.OrdinalIgnoreCase),
                 Voice = voice,
                 Hash = hash
             };
@@ -88,6 +98,8 @@ namespace LibreLancer.Missions
             runtime.EnqueueLine(hash, Line);
             runtime.Player.RpcClient.RunMissionDialog(new NetDlgLine[] { new NetDlgLine()
             {
+                Source = 0,
+                TargetIsPlayer = true,
                 Voice = Voice,
                 Hash = hash
             }});

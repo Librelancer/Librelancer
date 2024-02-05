@@ -237,9 +237,9 @@ namespace LibreLancer.Thn
                     if (string.IsNullOrEmpty(kv.Value.Actor) || !objects.ContainsKey(kv.Value.Actor))
                     {
                         obj.Object = new GameObject();
-                        gameData.GetCostume(template, out DfmFile body, out DfmFile head, out DfmFile leftHand,
-                            out DfmFile rightHand);
-                        var skel = new DfmSkeletonManager(body, head, leftHand, rightHand);
+                        gameData.GetCostume(template, out var body, out var head, out var leftHand,
+                            out var rightHand);
+                        var skel = new DfmSkeletonManager(body?.LoadModel(resman), head?.LoadModel(resman), leftHand?.LoadModel(resman), rightHand?.LoadModel(resman));
                         obj.Object.RenderComponent = new CharacterRenderer(skel);
                         var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
                         obj.Object.AnimationComponent = anmComponent;

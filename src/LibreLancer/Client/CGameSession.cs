@@ -745,24 +745,34 @@ namespace LibreLancer.Client
         {
         }
 
-        void IClientPlayer.SpawnObject(int id, ObjectName name, string affiliation, Vector3 position, Quaternion orientation, NetShipLoadout loadout)
+        void IClientPlayer.SpawnShip(int id, ShipSpawnInfo spawn)
         {
             RunSync(() =>
             {
-                var shp = Game.GameData.Ships.Get((int) loadout.ShipCRC);
+                var shp = Game.GameData.Ships.Get((int) spawn.Loadout.ShipCRC);
                 var newobj = new GameObject(shp, Game.ResourceManager, true, true) {
                     World = gp.world
                 };
-                newobj.Name = name;
+                newobj.Name = spawn.Name;
                 newobj.NetID = id;
-                newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                         Matrix4x4.CreateTranslation(position));
-                newobj.AddComponent(new CHealthComponent(newobj) { CurrentHealth = loadout.Health, MaxHealth = shp.Hitpoints });
+                newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(spawn.Orientation) *
+                                         Matrix4x4.CreateTranslation(spawn.Position));
+                newobj.AddComponent(new CHealthComponent(newobj) { CurrentHealth = spawn.Loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.AddComponent(new CExplosionComponent(newobj, shp.Explosion));
-                var fac = Game.GameData.Factions.Get(affiliation);
+                var head = Game.GameData.Bodyparts.Get(spawn.CommHead);
+                var body = Game.GameData.Bodyparts.Get(spawn.CommBody);
+                if (head != null || body != null) {
+                    newobj.AddComponent(new CostumeComponent(newobj)
+                    {
+                        Head = head,
+                        Body = body
+                    });
+                }
+
+                var fac = Game.GameData.Factions.Get(spawn.Affiliation);
                 if(fac != null)
                     newobj.AddComponent(new CFactionComponent(newobj, fac));
-                foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+                foreach (var eq in spawn.Loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 {
                     var equip = Game.GameData.Equipment.Get(eq.EquipCRC);
                     if (equip == null) continue;
@@ -970,10 +980,20 @@ namespace LibreLancer.Client
         void RunDialog(NetDlgLine[] lines, int index = 0)
         {
             if (index >= lines.Length) return;
+            if (lines[index].TargetIsPlayer)
+            {
+                var obj = gp.world.GetObject(new ObjNetId(lines[index].Source));
+                if(obj != null)
+                    gp.OpenComm(obj, lines[index].Voice);
+            }
             Game.Sound.PlayVoiceLine(lines[index].Voice, lines[index].Hash, () =>
             {
-                rpcServer.LineSpoken(lines[index].Hash);
-                RunDialog(lines, index + 1);
+                RunSync(() =>
+                {
+                    if(lines[index].TargetIsPlayer)
+                        gp.ClearComm();
+                    RunDialog(lines, index + 1);
+                });
             });
         }
 

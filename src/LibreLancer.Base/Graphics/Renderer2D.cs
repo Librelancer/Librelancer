@@ -219,18 +219,18 @@ namespace LibreLancer.Graphics
 
         public void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
             float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default,
-            TextAlignment alignment = TextAlignment.Left)
+            TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
         {
             if (text == "" || size < 1) //skip empty str
                 return;
-            CreateRichTextEngine().DrawStringCached(ref cache, fontName, size, text, x, y, color, underline, shadow, alignment);
+            CreateRichTextEngine().DrawStringCached(ref cache, fontName, size, text, x, y, color, underline, shadow, alignment, maxWidth);
         }
 
-        public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, TextAlignment alignment = TextAlignment.Left)
+        public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
         {
             if (text == "" || size < 1) //skip empty str
                 return Point.Zero;
-            return CreateRichTextEngine().MeasureStringCached(ref cache, fontName, size, text, underline, alignment);
+            return CreateRichTextEngine().MeasureStringCached(ref cache, fontName, size, maxWidth, text, underline, alignment);
         }
 
         public void FillRectangle(Rectangle rect, Color4 color)

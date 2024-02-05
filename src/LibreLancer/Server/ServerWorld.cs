@@ -142,7 +142,7 @@ namespace LibreLancer.Server
             Players[player] = obj;
             player.SendSolars(SpawnedSolars);
             foreach(var npc in spawnedNPCs)
-                SpawnShip(npc, player);
+                SpawnNpcShip(npc, player);
             foreach(var o in withAnimations)
                 UpdateAnimations(o, player);
             updatingObjects.Add(obj);
@@ -424,18 +424,24 @@ namespace LibreLancer.Server
             spawnedNPCs.Add(obj);
             foreach (Player p in Players.Keys)
             {
-                SpawnShip(obj, p);
+                SpawnNpcShip(obj, p);
             }
         }
 
-        void SpawnShip(GameObject obj, Player p)
+        void SpawnNpcShip(GameObject obj, Player p)
         {
-            var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
-            var orient = obj.LocalTransform.ExtractRotation();
-            string affiliation = null;
-            if (obj.TryGetComponent<SNPCComponent>(out var npc))
-                affiliation = npc.Faction?.Nickname;
-            p.RpcClient.SpawnObject(obj.NetID, obj.Name, affiliation, pos, orient, obj.GetComponent<SNPCComponent>().Loadout);
+            var npcInfo = obj.GetComponent<SNPCComponent>();
+            var spawnInfo = new ShipSpawnInfo()
+            {
+                Name = obj.Name,
+                Position = Vector3.Transform(Vector3.Zero, obj.LocalTransform),
+                Orientation = obj.LocalTransform.ExtractRotation(),
+                Affiliation = npcInfo.Faction?.CRC ?? 0,
+                CommHead = npcInfo.CommHead?.CRC ?? 0,
+                CommBody = npcInfo.CommBody?.CRC ?? 0,
+                Loadout = npcInfo.Loadout,
+            };
+            p.RpcClient.SpawnShip(obj.NetID, spawnInfo);
         }
 
         public void PartDisabled(GameObject obj, string part)

@@ -94,20 +94,14 @@ namespace LibreLancer
             return characterAnimations;
         }
 
-        DfmFile GetBodypart(string part)
-        {
-            if (string.IsNullOrEmpty(part)) return null;
-            var p = fldata.Bodyparts.FindBodypart(part);
-            if (p == null) return null;
-            return (DfmFile)resource.GetDrawable(DataPath(p.Mesh)).Drawable;
-        }
-        public bool GetCostume(string costume, out DfmFile body, out DfmFile head, out DfmFile leftHand, out DfmFile rightHand)
+
+        public bool GetCostume(string costume, out Bodypart body, out Bodypart head, out Bodypart leftHand, out Bodypart rightHand)
         {
             var cs = fldata.Costumes.FindCostume(costume);
-            head = GetBodypart(cs.Head);
-            body = GetBodypart(cs.Body);
-            leftHand = GetBodypart(cs.LeftHand);
-            rightHand = GetBodypart(cs.RightHand);
+            head = Bodyparts.Get(cs.Head);
+            body = Bodyparts.Get(cs.Body);
+            leftHand = Bodyparts.Get(cs.LeftHand);
+            rightHand = Bodyparts.Get(cs.RightHand);
             return true;
         }
 
@@ -472,6 +466,7 @@ namespace LibreLancer
             var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
             var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
+            tasks.Begin(InitBodyParts);
             tasks.Begin(() => InitSystems(tasks),
                 baseTask,
                 archetypesTask,
@@ -649,6 +644,20 @@ namespace LibreLancer
                 }
             }
         }
+
+        void InitBodyParts()
+        {
+            foreach (var p in fldata.Bodyparts.Bodyparts)
+            {
+                var b = new Bodypart();
+                b.Nickname = p.Nickname;
+                b.CRC = FLHash.CreateID(b.Nickname);
+                b.Path = DataPath(p.Mesh);
+                Bodyparts.Add(b);
+            }
+        }
+
+        public GameItemCollection<GameData.Bodypart> Bodyparts = new GameItemCollection<Bodypart>();
 
         public GameItemCollection<GameData.Explosion> Explosions = new GameItemCollection<GameData.Explosion>();
 

@@ -21,6 +21,18 @@
 		</Panel.Background>
 	</Panel>
     </Scene>
+    <Panel Width="90" Height="100" id="comms" Visible="false">
+    	<CharacterView Anchor="TopCenter" Y="43" Width="58" Height="58" id = "commhead">
+    		<CharacterView.Background>
+    			<DisplayImage image="commbackdrop" tint="text"/>
+    		</CharacterView.Background>
+    		<CharacterView.Border>
+    			<DisplayImage image="commstatic" tint="rgba(255,255,255,0.15)"/>
+    			<DisplayRectangle color="text"/>
+    		</CharacterView.Border>
+    	</CharacterView>
+    	<TextBlock id="commname" text="COMM Character Name" Anchor="TopCenter" Y="102" TextColor="text" TextShadow="black" Height="90" Width="90" TextSize="10" Clip="false" Wrap="true" HorizontalAlignment="Center" Color="text" VerticalAlignment="Top" />
+    </Panel>
 	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
 		<Panel.Background>
 			<DisplayModel model="contactlistbox"  Rotate="0,0,0" />

@@ -54,7 +54,8 @@ namespace LibreLancer.Interface
             VerticalAlignment verticalAlign,
             bool clip,
             string text,
-            float alpha = 1f
+            float alpha = 1f,
+            bool wrap = false
          )
         {
             if (string.IsNullOrEmpty(text)) return;
@@ -68,25 +69,34 @@ namespace LibreLancer.Interface
             var size = context.TextSize(textSize);
             var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
-            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign));
+            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign),
+                wrap ? drawRect.Width : 0);
             //workaround for font substitution causing layout issues - e.g. CJK
             //TODO: How to get max lineheight of fonts in string?
             if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y;
             float drawX, drawY;
-            switch (horizontalAlign) {
-                case HorizontalAlignment.Left:
-                    drawX = drawRect.X;
-                    break;
-                case HorizontalAlignment.Right:
+            if (!wrap)
+            {
+                switch (horizontalAlign)
                 {
-                    drawX = drawRect.X + drawRect.Width - sz.X;
-                    break;
+                    case HorizontalAlignment.Left:
+                        drawX = drawRect.X;
+                        break;
+                    case HorizontalAlignment.Right:
+                    {
+                        drawX = drawRect.X + drawRect.Width - sz.X;
+                        break;
+                    }
+                    default: // Center
+                    {
+                        drawX = drawRect.X + (drawRect.Width / 2f) - (sz.X / 2f);
+                        break;
+                    }
                 }
-                default: // Center
-                {
-                    drawX = drawRect.X + (drawRect.Width / 2f) - (sz.X / 2f);
-                    break;
-                }
+            }
+            else
+            {
+                drawX = drawRect.X;
             }
             switch (verticalAlign) {
                 case VerticalAlignment.Top:
@@ -108,7 +118,8 @@ namespace LibreLancer.Interface
                 context.RenderContext.ScissorEnabled = true;
                 context.RenderContext.ScissorRectangle = drawRect;
             }
-            context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign));
+            context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign),
+                wrap ? drawRect.Width : 0);
             if (clip) {
                 context.RenderContext.ScissorEnabled = false;
             }

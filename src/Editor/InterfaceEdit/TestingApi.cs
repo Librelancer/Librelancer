@@ -312,7 +312,6 @@ namespace InterfaceEdit
             };
         }
 
-
         public bool ConnectAddress(string address)
         {
             return false;

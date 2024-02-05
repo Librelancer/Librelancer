@@ -200,6 +200,40 @@ namespace LibreLancer.Net.Protocol
         }
     }
 
+    public struct ShipSpawnInfo
+    {
+        public ObjectName Name;
+        public Vector3 Position;
+        public Quaternion Orientation;
+        public uint CommHead;
+        public uint CommBody;
+        public uint Affiliation;
+        public NetShipLoadout Loadout;
+
+        public static ShipSpawnInfo Read(PacketReader message) => new ShipSpawnInfo()
+        {
+            Name = message.GetObjectName(),
+            Position = message.GetVector3(),
+            Orientation = message.GetQuaternion(),
+            CommHead = message.GetUInt(),
+            CommBody = message.GetUInt(),
+            Affiliation = message.GetUInt(),
+            Loadout = NetShipLoadout.Read(message)
+        };
+
+        public void Put(PacketWriter message)
+        {
+            message.Put(Name);
+            message.Put(Position);
+            message.Put(Orientation);
+            message.Put(CommHead);
+            message.Put(CommBody);
+            message.Put(Affiliation);
+            Loadout.Put(message);
+        }
+    }
+
+
     public class NetShipCargo
     {
         public int ID;
@@ -522,12 +556,16 @@ namespace LibreLancer.Net.Protocol
 
     public class NetDlgLine
     {
+        public int Source;
+        public bool TargetIsPlayer;
         public string Voice;
         public uint Hash;
         public static NetDlgLine Read(PacketReader message) => new NetDlgLine()
-            {Voice = message.GetString(), Hash = message.GetUInt()};
+            {Source = message.GetVariableInt32(), TargetIsPlayer = message.GetBool(), Voice = message.GetString(), Hash = message.GetUInt()};
         public void Put(PacketWriter message)
         {
+            message.PutVariableInt32(Source);
+            message.Put(TargetIsPlayer);
             message.Put(Voice);
             message.Put(Hash);
         }

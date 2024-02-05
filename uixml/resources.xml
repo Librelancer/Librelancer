@@ -653,8 +653,53 @@
       <Y3>1</Y3>
     </DisplayCoords>
   </Image>
+  <Image name="commstatic" texname="static" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
+  <Image name="commbackdrop" texname="backdrop" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true">
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
+  </Image>
   <LibraryFile>INTERFACE/interface.generic.vms</LibraryFile>
   <LibraryFile>INTERFACE/UI/uitextures.txm</LibraryFile>
   <LibraryFile>INTERFACE/NEURONET/NEWSVENDOR/newsvendor.txm</LibraryFile>
   <LibraryFile>INTERFACE/buttontextures.txm</LibraryFile>
+  <LibraryFile>INTERFACE/HUD/hud.txm</LibraryFile>
 </InterfaceResources>

@@ -267,23 +267,25 @@ namespace LibreLancer.Graphics.Text.DirectWrite
             public Point size;
         }
 
-        void UpdateCache(ref CachedRenderString cache, string fontName, float size, string text, bool underline, TextAlignment alignment)
+        void UpdateCache(ref CachedRenderString cache, string fontName, float size, string text, bool underline, TextAlignment alignment, float maxWidth)
         {
             if (cache == null)
             {
                 cache = new DirectWriteCachedText()
                 {
                     FontName = fontName, FontSize = size, Text = text, Underline = underline,
+                    MaxWidth = maxWidth,
                     Alignment = alignment
                 };
             }
             if (cache is not DirectWriteCachedText pc) throw new ArgumentException("cache");
-            if (pc.quads == null || pc.Update(fontName, text, size, underline, alignment))
+            if (pc.quads == null || pc.Update(fontName, text, size, underline, alignment, maxWidth))
             {
-                using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), float.MaxValue, float.MaxValue))
+                using (var layout = new TextLayout(dwFactory, text, GetFormat(fontName, ConvertSize(size)), maxWidth > 0 ? maxWidth : float.MaxValue, float.MaxValue))
                 {
-                    if (alignment != TextAlignment.Left) {
-                        layout.MaxWidth = layout.Metrics.Width;
+                    if (alignment != TextAlignment.Left ||
+                        maxWidth > 0) {
+                        layout.MaxWidth = maxWidth > 0 ? maxWidth : layout.Metrics.Width;
                     }
                     layout.TextAlignment = CastAlignment(alignment);
                     layout.SetDrawingEffect(new ColorDrawingEffect(Color4.White, new OptionalColor(), new OptionalColor()), new TextRange(0, text.Length));
@@ -296,20 +298,20 @@ namespace LibreLancer.Graphics.Text.DirectWrite
             }
         }
 
-        public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size,
+        public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, float maxWidth,
             string text,
             bool underline, TextAlignment alignment)
         {
             if (string.IsNullOrEmpty(text)) return Point.Zero;
-            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            UpdateCache(ref cache, fontName, size, text, underline, alignment, maxWidth);
             return ((DirectWriteCachedText) cache).size;
         }
         public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
             float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default,
-            TextAlignment alignment = TextAlignment.Left)
+            TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
         {
             if (string.IsNullOrEmpty(text)) return;
-            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            UpdateCache(ref cache, fontName, size, text, underline, alignment, maxWidth);
             var pc = (DirectWriteCachedText) cache;
             if (shadow.Enabled)
             {

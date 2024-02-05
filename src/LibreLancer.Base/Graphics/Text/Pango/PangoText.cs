@@ -144,10 +144,10 @@ namespace LibreLancer.Graphics.Text.Pango
 
         [DllImport("pangogame")]
         static extern void pg_drawstring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, TextAlignment align,
-            int underline, float r, float g, float b, float a, Color4* shadow, float *oWidth, float *oHeight);
+            float maxWidth, int underline, float r, float g, float b, float a, Color4* shadow, float *oWidth, float *oHeight);
 
         [DllImport("pangogame")]
-        static extern void pg_measurestring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, out float width,
+        static extern void pg_measurestring(IntPtr ctx, IntPtr str, IntPtr fontName, float fontSize, float maxWidth, out float width,
             out float height);
 
         [DllImport("pangogame")]
@@ -434,7 +434,7 @@ namespace LibreLancer.Graphics.Text.Pango
                 fixed(byte *tC = &textConv.ToUTF8Z().GetPinnableReference(),
                       tF = &fontConv.ToUTF8Z().GetPinnableReference())
                 {
-                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, TextAlignment.Left, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0,
+                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, TextAlignment.Left, 0, underline ? 1 : 0,  1, 1, 1, 1, (Color4*) 0,
                         (float*)0, (float*)0);
                 }
                 quads = lastQuads;
@@ -481,7 +481,7 @@ namespace LibreLancer.Graphics.Text.Pango
             fixed (byte* tC = &textConv.ToUTF8Z().GetPinnableReference(),
                 tF = &fontConv.ToUTF8Z().GetPinnableReference())
             {
-                pg_measurestring(ctx, (IntPtr)tC, (IntPtr)tF, size * (96.0f / 72.0f), out var width, out var height);
+                pg_measurestring(ctx, (IntPtr)tC, (IntPtr)tF, size * (96.0f / 72.0f), 0, out var width, out var height);
                 var p =  new Point((int)width, (int)height);
                 measures.Enqueue(new MeasureResults() {Text = text, Font = fontHash, Size = size, Measured = p});
                 return p;
@@ -507,18 +507,18 @@ namespace LibreLancer.Graphics.Text.Pango
         }
 
         void UpdateCache(ref CachedRenderString cache, string fontName, float size, string text, bool underline,
-            TextAlignment alignment)
+            TextAlignment alignment, float maxWidth)
         {
             if (cache == null)
             {
                 cache = new PangoRenderCache()
                 {
                     FontName = fontName, FontSize = size, Text = text, Underline = underline,
-                    Alignment = alignment
+                    Alignment = alignment, MaxWidth = maxWidth
                 };
             }
             if (cache is not PangoRenderCache pc) throw new ArgumentException("cache");
-            if (pc.quads == null || pc.Update(fontName, text, size, underline, alignment))
+            if (pc.quads == null || pc.Update(fontName, text, size, underline, alignment, maxWidth))
             {
                 var pixels = size * (96.0f / 72.0f);
                 drawX = int.MaxValue;
@@ -529,7 +529,7 @@ namespace LibreLancer.Graphics.Text.Pango
                 fixed(byte *tC = &textConv.ToUTF8Z().GetPinnableReference(),
                     tF = &fontConv.ToUTF8Z().GetPinnableReference())
                 {
-                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, alignment, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0, &szX, &szY);
+                    pg_drawstring(ctx, (IntPtr)tC, (IntPtr)tF, pixels, alignment, maxWidth, underline ? 1 : 0, 1, 1, 1, 1, (Color4*) 0, &szX, &szY);
                 }
                 pc.quads = lastQuads;
                 pc.size = new Point((int) szX, (int) szY);
@@ -538,9 +538,9 @@ namespace LibreLancer.Graphics.Text.Pango
         }
 
         public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text, float x, float y,
-            Color4 color, bool underline = false, OptionalColor shadow = default, TextAlignment alignment = TextAlignment.Left)
+            Color4 color, bool underline = false, OptionalColor shadow = default, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
         {
-            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            UpdateCache(ref cache, fontName, size, text, underline, alignment, maxWidth);
             var pc = (PangoRenderCache) cache;
             drawX = (int) x;
             drawY = (int) y;
@@ -565,10 +565,10 @@ namespace LibreLancer.Graphics.Text.Pango
             }
         }
 
-        public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline,
+        public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, float maxWidth, string text, bool underline,
             TextAlignment alignment)
         {
-            UpdateCache(ref cache, fontName, size, text, underline, alignment);
+            UpdateCache(ref cache, fontName, size, text, underline, alignment, maxWidth);
             var pc = (PangoRenderCache) cache;
             return pc.size;
         }

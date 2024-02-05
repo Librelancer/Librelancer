@@ -76,14 +76,13 @@ namespace InterfaceEdit
                 var hud = new HudIni();
                 hud.AddIni(flIni.HudPath, UiData.FileSystem);
                 var maneuvers = new List<Maneuver>();
-                var p = flIni.DataPath.Replace('\\', Path.DirectorySeparatorChar);
                 foreach (var m in hud.Maneuvers)
                 {
                     maneuvers.Add(new Maneuver()
                     {
                         Action = m.Action,
-                        ActiveModel = Path.Combine(p,m.ActiveModel),
-                        InactiveModel = Path.Combine(p,m.InactiveModel)
+                        ActiveModel = m.ActiveModel,
+                        InactiveModel = m.InactiveModel
                     });
                 }
                 window.TestApi.ManeuverData = maneuvers.ToArray();

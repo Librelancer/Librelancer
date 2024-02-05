@@ -235,6 +235,21 @@ class hud : hud_Designer
 		}
 	}
 
+	Comm(data)
+	{
+		local e = this.Elements;
+		if(data == nil) {
+			e.comms.Visible = false;
+		} else {
+			local name = data.Source ?? "";
+			if(data.Affiliation != nil)
+				name += "\n" + data.Affiliation;
+			e.commhead.SetCharacter(data.Appearance);
+			e.commname.Text = name;
+			e.comms.Visible = true;
+		}
+	}
+
     Update(delta)
     {
         this.UpdateManeuverState()
@@ -310,23 +325,3 @@ class hud : hud_Designer
     Chatbox() => this.Elements.chatbox.Visible = true;
     Popup(title,contents,id) => OpenModal(new popup(title,contents,'ok', () => Game.PopupFinish(id)));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

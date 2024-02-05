@@ -616,7 +616,11 @@ namespace LibreLancer
                 var obj = new GameObject() {Nickname = npc.Actor};
                 var costumeName = Game.GameData.GetCostumeForNPC(npc.Npc);
                 Game.GameData.GetCostume(costumeName, out var body, out var head, out var lh, out var rh);
-                var skel = new DfmSkeletonManager(body, head, lh, rh);
+                var skel = new DfmSkeletonManager(
+                    body?.LoadModel(Game.ResourceManager),
+                    head?.LoadModel(Game.ResourceManager),
+                    lh?.LoadModel(Game.ResourceManager),
+                    rh?.LoadModel(Game.ResourceManager));
                 obj.RenderComponent = new CharacterRenderer(skel);
                 var anmComponent = new AnimationComponent(obj, Game.GameData.GetCharacterAnimations());
                 obj.AnimationComponent = anmComponent;

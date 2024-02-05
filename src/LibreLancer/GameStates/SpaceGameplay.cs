@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -19,11 +20,12 @@ using LibreLancer.Net;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Server.Components;
 using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
+using AnmScript = LibreLancer.Utf.Anm.Script;
 using LibreLancer.World;
 using LibreLancer.World.Components;
-using Microsoft.EntityFrameworkCore.Proxies.Internal;
 using WattleScript.Interpreter;
 
 namespace LibreLancer
@@ -1104,6 +1106,48 @@ World Time: {12:F2}
             {
                 session.SpaceRpc.FireMissiles(world.Projectiles.GetMissileQueue());
             }
+        }
+
+        public void ClearComm()
+        {
+            ui.Event("Comm", new object[] { null });
+        }
+
+        public void OpenComm(GameObject obj, string voice)
+        {
+            if (!obj.TryGetComponent<CostumeComponent>(out var costume)) {
+                ClearComm();
+                return;
+            }
+            if (!Game.GameData.Ini.Voices.Voices.TryGetValue(voice, out var voiceData)) {
+                ClearComm();
+                return;
+            }
+            var scripts = new List<AnmScript>();
+            var canim = Game.GameData.GetCharacterAnimations();
+            foreach (var s in voiceData.Scripts)
+            {
+                if(canim.Scripts.TryGetValue(s, out var sc))
+                    scripts.Add(sc);
+            }
+            var app = new CommAppearance()
+            {
+                Head = costume.Head?.LoadModel(Game.ResourceManager),
+                Body = costume.Body?.LoadModel(Game.ResourceManager),
+                Scripts = scripts
+            };
+            string factionName = null;
+            if (obj.TryGetComponent<CFactionComponent>(out var fac) &&
+                fac?.Faction != null)
+            {
+                factionName = Game.GameData.GetString(fac.Faction.IdsName);
+            }
+            ui.Event("Comm", new CommData()
+            {
+                Source = obj.Name.GetName(Game.GameData, Vector3.Zero),
+                Affiliation = factionName,
+                Appearance = app
+            });
         }
 
         public void StartTradelane()
