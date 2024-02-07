@@ -257,7 +257,7 @@ namespace LibreLancer.Render
 				return;
             if (ex.ShellModel == null)
             {
-                var file = (IRigidModelFile) ex.Shell.LoadFile(sysr.ResourceManager);
+                var file = (IRigidModelFile) (ex.Shell.LoadFile(sysr.ResourceManager).Drawable);
                 ex.ShellModel = file.CreateRigidModel(true, sysr.ResourceManager);
             }
 			Vector3 sz = Vector3.Zero;

@@ -1088,10 +1088,10 @@ public class SystemEditorTab : GameContentTab
             var mode = ImGui.GetIO().KeyCtrl ? GuizmoMode.WORLD : GuizmoMode.LOCAL;
             fixed (Matrix4x4* tr = &objectList.SelectedTransform)
             {
-                Matrix4x4 delta;
+                Matrix4x4 delta = Matrix4x4.Identity;
                 if (ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS,
                         mode,
-                        tr, &delta))
+                        tr, &delta) && !delta.IsIdentity)
                 {
                     ObjectsDirty = true;
                     GetEditData(objectList.Selection[0]);

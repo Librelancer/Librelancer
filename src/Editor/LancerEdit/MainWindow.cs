@@ -192,20 +192,25 @@ namespace LancerEdit
         }
 
         public object SystemEditClipboard { get; private set; }
+        private string clipboardMarkerString;
 
         private double onSet = 0;
         public void SystemEditCopy(object obj)
         {
-            SetClipboardText("[OBJECT]");
+            clipboardMarkerString = $"[OBJECT {IdSalt.New()}]";
+            SetClipboardText(clipboardMarkerString);
             SystemEditClipboard = obj;
             onSet = TimerTick;
         }
         protected override void OnClipboardUpdate()
         {
-            if ((onSet + 0.25) < TimerTick)
+            if ((onSet + 0.25) < TimerTick && SystemEditClipboard != null)
             {
-                SystemEditClipboard = null;
-                FLLog.Debug("LancerEdit", "OnClipboardUpdate");
+                if (GetClipboardText() != clipboardMarkerString)
+                {
+                    SystemEditClipboard = null;
+                    clipboardMarkerString = null;
+                }
             }
         }
 
