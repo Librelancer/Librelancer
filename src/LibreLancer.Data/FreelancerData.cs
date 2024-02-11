@@ -154,7 +154,10 @@ namespace LibreLancer.Data
             });
             Run(() =>
             {
-                Solar = new SolararchIni(Freelancer.SolarPath, this);
+                Solar = new SolararchIni();
+                foreach (var file in Freelancer.SolarPaths) {
+                    Solar.AddSolararchIni(file, this);
+                }
                 if (Freelancer.StarsPath != null)
                     Stars = new StararchIni(Freelancer.StarsPath, VFS);
                 else

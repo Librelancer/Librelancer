@@ -19,7 +19,7 @@ namespace LibreLancer.Data
 		public List<string> StartupMovies { get; private set; }
 
 		public string DataPath { get; private set; }
-		public string SolarPath { get; private set; }
+		public List<string> SolarPaths { get; private set; }
 		public string UniversePath { get; private set; }
 		public string HudPath { get; private set; }
         public string XInterfacePath { get; private set; }
@@ -122,6 +122,8 @@ namespace LibreLancer.Data
             FusePaths = new List<string>();
             NewCharDBPaths = new List<string>();
             VoicePaths = new List<string>();
+            SolarPaths = new List<string>();
+
             bool extNoNavmaps = false;
             bool extHideFac = false;
             NoNavmapSystems = new List<string>(NoNavmaps);
@@ -218,7 +220,7 @@ namespace LibreLancer.Data
 					foreach (Entry e in s) {
 						switch (e.Name.ToLowerInvariant ()) {
 						case "solar":
-							SolarPath = DataPath + e [0].ToString ();
+                            SolarPaths.Add(DataPath + e[0].ToString());
 							break;
 						case "universe":
 							UniversePath = DataPath + e [0].ToString ();

@@ -13,7 +13,7 @@ namespace LibreLancer.Data.Solar
     {
         public Dictionary<string, Archetype> Solars = new Dictionary<string, Archetype>(StringComparer.OrdinalIgnoreCase);
 
-        public SolararchIni(string path, FreelancerData gameData)
+        public void AddSolararchIni(string path, FreelancerData gameData)
         {
             //Solars = new List<Archetype>();
             Archetype current = null;
@@ -35,7 +35,7 @@ namespace LibreLancer.Data.Solar
             }
         }
 
-        public Archetype FindSolar(string nickname) 
+        public Archetype FindSolar(string nickname)
         {
             Archetype a;
             Solars.TryGetValue(nickname, out a);

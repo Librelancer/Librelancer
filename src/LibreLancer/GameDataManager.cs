@@ -995,7 +995,7 @@ namespace LibreLancer
                 var objDict = new Dictionary<string, LibreLancer.Data.Universe.SystemObject>(StringComparer.OrdinalIgnoreCase);
                 foreach (var obj in inisys.Objects)
                 {
-                    var o = GetSystemObject(obj);
+                    var o = GetSystemObject(inisys.Nickname, obj);
                     objDict[o.Nickname] = obj;
                     sys.Objects.Add(o);
                 }
@@ -1761,7 +1761,7 @@ namespace LibreLancer
             return _loadouts.TryGetValue(name, out l);
         }
 
-        public SystemObject GetSystemObject(Data.Universe.SystemObject o)
+        public SystemObject GetSystemObject(string system, Data.Universe.SystemObject o)
         {
             var obj = new SystemObject();
             obj.Nickname = o.Nickname;
@@ -1807,7 +1807,7 @@ namespace LibreLancer
             else if (o.PrevRing != null && o.TradelaneSpaceName != 0) {
                 obj.IdsRight = o.TradelaneSpaceName;
             }
-            if (obj.Archetype.Type == Data.Solar.ArchetypeType.sun)
+            if (obj.Archetype?.Type == Data.Solar.ArchetypeType.sun)
             {
                 if (o.Star != null) //Not sure what to do if there's no star?
                 {
@@ -1851,17 +1851,17 @@ namespace LibreLancer
                     obj.Star = sun;
                 }
             }
-            else
+            else if (obj.Archetype?.Type == Data.Solar.ArchetypeType.tradelane_ring)
             {
-                if (obj.Archetype.Type == Data.Solar.ArchetypeType.tradelane_ring)
+                obj.Dock = new DockAction()
                 {
-                    obj.Dock = new DockAction()
-                    {
-                        Kind = DockKinds.Tradelane,
-                        Target = o.NextRing,
-                        TargetLeft = o.PrevRing
-                    };
-                }
+                    Kind = DockKinds.Tradelane,
+                    Target = o.NextRing,
+                    TargetLeft = o.PrevRing
+                };
+            }
+            else if (obj.Archetype == null) {
+                FLLog.Error("Systems", $"Object {obj.Nickname} in {system} has bad archetype '{o.Archetype ?? "NULL"}'");
             }
 
             obj.Loadout = GetLoadout(o.Loadout);
