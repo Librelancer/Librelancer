@@ -11,94 +11,94 @@ namespace LibreLancer.Data.Universe
 {
 	public class Zone : SystemPart
     {
-        [Entry("shape")] 
+        [Entry("shape")]
         public ZoneShape? Shape;
-        
+
         [Entry("attack_ids")]
         public string[] AttackIds;
-        
-        [Entry("tradelane_attack")] 
+
+        [Entry("tradelane_attack")]
         public int TradelaneAttack;
-        
-        [Entry("property_flags")] 
+
+        [Entry("property_flags")]
         public int PropertyFlags;
 
-        [Entry("property_fog_color")] 
+        [Entry("property_fog_color")]
         public Color4? PropertyFogColor;
 
-        [Entry("music")] 
+        [Entry("music")]
         public string Music;
 
-        [Entry("edge_fraction")] 
+        [Entry("edge_fraction")]
         public float? EdgeFraction;
 
-        [Entry("spacedust")] 
+        [Entry("spacedust")]
         public string Spacedust;
 
-        [Entry("spacedust_maxparticles")] 
+        [Entry("spacedust_maxparticles")]
         public int SpacedustMaxParticles;
 
-        [Entry("interference")] 
+        [Entry("interference")]
         public float Interference;
 
-        [Entry("power_modifier")] 
+        [Entry("power_modifier")]
         public float PowerModifier;
 
-        [Entry("drag_modifier")] 
+        [Entry("drag_modifier")]
         public float DragModifier;
 
-        [Entry("comment")] 
+        [Entry("comment")]
         public string Comment;
 
-        [Entry("lane_id")] 
+        [Entry("lane_id")]
         public int LaneId;
 
-        [Entry("tradelane_down")] 
+        [Entry("tradelane_down")]
         public int TradelaneDown;
 
         [Entry("damage")]
         public float Damage;
 
-        [Entry("mission_type")] 
+        [Entry("mission_type")]
         public string[] MissionType;
 
-        [Entry("sort")] 
+        [Entry("sort")]
         public float? Sort;
 
-        [Entry("vignette_type")] 
+        [Entry("vignette_type")]
         public string VignetteType;
 
-        [Entry("toughness")] 
+        [Entry("toughness")]
         public int Toughness;
 
-        [Entry("density")] 
+        [Entry("density")]
         public int Density;
 
-        [Entry("population_additive")] 
+        [Entry("population_additive")]
         public bool? PopulationAdditive;
 
-        [Entry("zone_creation_distance")] 
+        [Entry("zone_creation_distance")]
         public string ZoneCreationDistance;
 
-        [Entry("repop_time")] 
+        [Entry("repop_time")]
         public int RepopTime;
-        
-        [Entry("max_battle_size")] 
+
+        [Entry("max_battle_size")]
         public int MaxBattleSize;
-        
+
         [Entry("pop_type")]
         public string[] PopType;
 
-        [Entry("relief_time")] 
+        [Entry("relief_time")]
         public int ReliefTime;
-        
+
         [Entry("path_label")]
         public string[] PathLabel;
-        
-        [Entry("usage")] 
+
+        [Entry("usage")]
         public string[] Usage;
 
-        [Entry("mission_eligible")] 
+        [Entry("mission_eligible")]
         public bool MissionEligible;
 
         public List<Encounter> Encounters { get; private set; } = new List<Encounter>();
@@ -112,7 +112,7 @@ namespace LibreLancer.Data.Universe
         void HandleFaction(Entry e)
         {
             if (Encounters.Count == 0) {
-                FLLog.Warning("Ini", $"faction entry without matching encounter at {e.File}:{e.Line}");
+                //FLLog.Warning("Ini", $"faction entry without matching encounter at {e.File}:{e.Line}");
             }
             else {
                 Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle("chance")));

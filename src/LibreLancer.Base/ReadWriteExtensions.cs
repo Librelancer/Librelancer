@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text;
 
-namespace LibreLancer.ContentEdit;
+namespace LibreLancer;
 
 public static class ReadWriteExtensions
 {

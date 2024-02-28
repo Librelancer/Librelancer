@@ -27,4 +27,8 @@
     <Folder Include="Properties" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ZstdNet" Version="1.4.5" />
+  </ItemGroup>
+
 </Project>

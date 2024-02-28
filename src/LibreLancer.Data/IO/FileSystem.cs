@@ -49,6 +49,8 @@ namespace LibreLancer.Data.IO
                 using var stream = File.OpenRead(folder);
                 if (ZipFileSystem.IsZip(stream))
                     return new FileSystem(new ZipFileSystem(folder));
+                if (LrpkFileSystem.IsLrpk(stream))
+                    return new FileSystem(new LrpkFileSystem(folder));
             }
             throw new DirectoryNotFoundException(folder);
         }

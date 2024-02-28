@@ -1,14 +1,11 @@
 XUTF
 All values are little endian
 
-HEADER (19 bytes)
+HEADER (17 bytes)
 =====
 
 fourCC signature = "XUTF"
 byte version = 1
-ushort flags
-    0x1 - String Block is Deflate Compressed
-    Others - Reserved
 uint32 string block length
 uint32 node block length
 uint32 data block length
@@ -29,7 +26,7 @@ NODE BLOCK
 
 Immediately after string block.
 Struct size: 17 bytes Fixed.
-Calculate offset of node data with: (19 + string block length + index * 17)
+Calculate offset of node data with: (17 + string block length + index * 17)
 Embedded data padded out to full 8 bytes on write
 
 uint32 nameOffset

@@ -26,7 +26,8 @@ namespace LancerEdit
             {
                 foreach (var msg in voice.Messages)
                 {
-                    UtfNicknameTable[FLHash.CreateID(msg.Message)] = msg.Message;
+                    if(msg.Message != null)
+                        UtfNicknameTable[FLHash.CreateID(msg.Message)] = msg.Message;
                 }
             }
         }

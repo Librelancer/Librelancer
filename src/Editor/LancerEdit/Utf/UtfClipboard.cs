@@ -1,6 +1,8 @@
 using System;
+
 using System.Collections.Generic;
 using System.IO;
+using LibreLancer;
 using LibreLancer.ContentEdit;
 
 namespace LancerEdit;

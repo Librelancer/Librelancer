@@ -21,27 +21,10 @@ namespace LibreLancer.Utf
             byte ver = reader.ReadByte();
             if (ver != 1)
                 throw new FileVersionException(path, "XUTF", ver, 1);
-            var flags = reader.ReadUInt16();
-            bool stringsCompressed = (flags & 0x1) == 0x1; //0x1 if deflate compressed string table
             uint stringBlockLength = reader.ReadUInt32();
             uint nodeBlockLength = reader.ReadUInt32();
             uint dataBlockLength = reader.ReadUInt32();
             var stringBlock = reader.ReadBytes((int)stringBlockLength);
-            //Decompress strings
-            if (stringsCompressed)
-            {
-                using (var output = new MemoryStream())
-                {
-                    using (var mem = new MemoryStream(stringBlock))
-                    {
-                        using (var deflate = new DeflateStream(mem, CompressionMode.Decompress, true))
-                        {
-                            deflate.CopyTo(output);
-                        }
-                    }
-                    stringBlock = output.ToArray();
-                }
-            }
             //Node block
             var nodeBlock = reader.ReadBytes((int) nodeBlockLength);
             var dataBlock = reader.ReadBytes((int) dataBlockLength);

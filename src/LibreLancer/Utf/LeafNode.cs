@@ -205,28 +205,12 @@ namespace LibreLancer.Utf
 
         internal static LeafNode LeafV2(int siblingIndex, string name, BinaryReader reader, byte type, byte[] dataBlock)
         {
-            if (type == 10) //Compressed
-            {
-                int start = reader.ReadInt32();
-                int len = reader.ReadInt32();
-                using (var input = new MemoryStream(dataBlock, start, len, false))
-                {
-                    using (var output = new MemoryStream())
-                    {
-                        using (var deflate = new DeflateStream(input, CompressionMode.Decompress, true))
-                        {
-                            deflate.CopyTo(output);
-                        }
-                        return new LeafNode(name, output.ToArray()) {PeerOffset = siblingIndex};
-                    }
-                }
-            } 
-            else if (type == 1) //Raw
+            if (type == 1) //Data block
             {
                 int start = reader.ReadInt32();
                 int len = reader.ReadInt32();
                 return new LeafNode(name, dataBlock, start, len) { PeerOffset = siblingIndex };
-            } 
+            }
             else if (type >= 2 && type <= 9) //Embedded
             {
                 var dataLen = (type - 1);
@@ -253,7 +237,7 @@ namespace LibreLancer.Utf
             reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
 
             this.dataStart = dataOffset;
-            
+
             int size = reader.ReadInt32();
             int size2 = reader.ReadInt32();
             dataArray = dataBlock;

@@ -8,6 +8,7 @@ class SlicedStream : Stream
     public long SliceLength;
     public long SliceStart;
     public Stream BaseStream;
+    public bool CloseBaseStream = true;
 
     public SlicedStream(long sliceStart, long sliceLength, Stream baseStream)
     {
@@ -15,6 +16,12 @@ class SlicedStream : Stream
         SliceLength = sliceLength;
         BaseStream = baseStream;
         baseStream.Seek(sliceStart, SeekOrigin.Begin);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if(disposing && CloseBaseStream)
+            BaseStream.Dispose();
     }
 
     public override void Flush() { }

@@ -160,13 +160,10 @@ namespace LibreLancer.ContentEdit
         EditResult<bool> SaveV2(string filename)
         {
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
-            Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
+            var dataSection = new DataSection(true);
             List<string> strings = new List<string>();
             using (var writer = new BinaryWriter(File.Create(filename)))
             {
-                int currentDataOffset = 0;
-                int bytesSaved = 0;
-                List<SmallData> smallDatas = new List<SmallData>();
                 int nodeCount = 0;
                 foreach (var node in Root.IterateAll())
                 {
@@ -175,47 +172,8 @@ namespace LibreLancer.ContentEdit
                     if (node.Data != null)
                     {
                         node.Write = node.Data.Length > 8;
-                        if (node.Data.Length > 8 && node.Data.Length <= 64)
-                        {
-                            var small = new SmallData(node.Data);
-                            int idx = -1;
-                            for (int i = 0; i < smallDatas.Count; i++) {
-                                if(smallDatas[i].Match(ref small)) {
-                                    idx = i;
-                                    break;
-                                }
-                            }
-                            if(idx == -1) {
-                                small.Offset = currentDataOffset;
-                                smallDatas.Add(small);
-                                dataOffsets.Add(node, currentDataOffset);
-                                currentDataOffset += node.Data.Length;
-                            } else {
-                                node.Write = false;
-                                bytesSaved += smallDatas[idx].Length;
-                                dataOffsets.Add(node, smallDatas[idx].Offset);
-                            }
-                        } else if (node.Data.Length > 8)
-                        {
-                            dataOffsets.Add(node, currentDataOffset);
-                            if (node.Data.Length > 128)
-                            {
-                                var compressed = CompressDeflate(node.Data);
-                                if (compressed.Length < (node.Data.Length * 0.9))
-                                {
-                                    node.CompressedData = compressed;
-                                    currentDataOffset += node.CompressedData.Length;
-                                }
-                                else
-                                {
-                                    currentDataOffset += node.Data.Length;
-                                }
-                            }
-                            else
-                            {
-                                currentDataOffset += node.Data.Length;
-                            }
-                        }
+                        if (node.Data.Length > 8)
+                            dataSection.AddNode(node);
                     }
                 }
                 //string block
@@ -235,13 +193,6 @@ namespace LibreLancer.ContentEdit
                     strings = null;
                     stringBlock = mem.ToArray();
                 }
-                ushort flags = 0;
-                var stringsComp = CompressDeflate(stringBlock);
-                if (stringsComp.Length < (stringBlock.Length / 2))
-                {
-                    flags = 0x1; //deflate compress strings
-                    stringBlock = stringsComp;
-                }
                 //sig
                 writer.Write((byte)'X');
                 writer.Write((byte)'U');
@@ -249,25 +200,22 @@ namespace LibreLancer.ContentEdit
                 writer.Write((byte)'F');
                 //v1
                 writer.Write((byte) 1);
-                //no flags
-                writer.Write(flags);
                 //sizes
                 writer.Write(stringBlock.Length);
                 writer.Write(nodeCount * 17);
-                writer.Write(currentDataOffset);
+                writer.Write(dataSection.Length);
                 //write strings
                 writer.Write(stringBlock);
                 stringBlock = null;
                 //node block
                 int index = 0;
-                WriteNodeV2(Root, writer, stringOffsets, dataOffsets, ref index, true);
+                WriteNodeV2(Root, writer, stringOffsets, dataSection, ref index, true);
                 //data block
                 foreach (var node in Root.IterateAll())
                 {
-                    if (node.Write && node.Data != null)
+                    if (node.Write && node.Data != null && node.Data.Length > 8)
                     {
-                        writer.Write(node.CompressedData ?? node.Data);
-                        node.CompressedData = null;
+                        writer.Write(node.Data);
                     }
                 }
             }
@@ -275,7 +223,7 @@ namespace LibreLancer.ContentEdit
         }
 
         static void WriteNodeV2(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff,
-            Dictionary<LUtfNode, int> datOff, ref int myIdx, bool last)
+            DataSection data, ref int myIdx, bool last)
         {
             writer.Write(strOff[node.Name]); //nameOffset
             if (node.Data != null)
@@ -285,16 +233,10 @@ namespace LibreLancer.ContentEdit
                     writer.Write(myIdx);
                 else
                     writer.Write((uint) 0);
-                if (node.CompressedData != null)
-                {
-                    writer.Write((byte) 10); //Type 10: compressed deflate
-                    writer.Write(datOff[node]);
-                    writer.Write(node.CompressedData.Length);
-                }
-                else if (node.Data.Length > 8)
+                if (node.Data.Length > 8)
                 {
                     writer.Write((byte) 1); //Type 1: Data Offset + Size
-                    writer.Write(datOff[node]);
+                    writer.Write(data.GetOffset(node));
                     writer.Write(node.Data.Length);
                 }
                 else
@@ -317,7 +259,7 @@ namespace LibreLancer.ContentEdit
                 writer.Write((uint) 0); //padding
                 for (int i = 0; i < node.Children.Count; i++)
                 {
-                    WriteNodeV2(node.Children[i], writer, strOff, datOff,ref myIdx, i == (node.Children.Count - 1));
+                    WriteNodeV2(node.Children[i], writer, strOff, data,ref myIdx, i == (node.Children.Count - 1));
                 }
                 if (!last)
                 {
@@ -329,51 +271,87 @@ namespace LibreLancer.ContentEdit
                 }
             }
         }
+
+
+
+        class DataSection
+        {
+            public int BytesSaved = 0;
+
+            private Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
+            private int currentDataOffset = 0;
+
+            public int Length => currentDataOffset;
+
+            private List<(byte[] Data, ulong Hash, int Offset)> allocated =
+                new List<(byte[] Data, ulong Hash, int Offset)>();
+
+            private bool v2;
+            public DataSection(bool v2)
+            {
+                this.v2 = v2;
+            }
+
+            static ulong FNV1A64(byte[] bytes)
+            {
+                ulong hash = 14695981039346656037;
+                for (var i = 0; i < bytes.Length; i++)
+                    hash = (hash ^ bytes[i]) * 0x100000001b3;
+                return hash;
+            }
+
+            public void AddNode(LUtfNode node)
+            {
+                if (node.Data == null)
+                    return;
+                int dataAlloc = v2 ? node.Data.Length : node.Data.Length + 3 & ~3;
+                node.Write = true;
+                var hash = FNV1A64(node.Data);
+                int i;
+                for (i = 0; i < allocated.Count; i++)
+                {
+                    if (allocated[i].Data == node.Data) //Compare by reference first
+                        break;
+                    if (allocated[i].Hash == hash && node.Data.Length == allocated[i].Data.Length)
+                    {
+                        int j;
+                        for (j = 0; j < node.Data.Length; j++)
+                        {
+                            if (node.Data[j] != allocated[i].Data[j])
+                                break;
+                        }
+                        if (j == node.Data.Length)
+                            break;
+                    }
+                }
+                if (i == allocated.Count) {
+                    allocated.Add(( node.Data, hash, currentDataOffset));
+                    dataOffsets[node] = currentDataOffset;
+                    currentDataOffset += dataAlloc;
+                }
+                else
+                {
+                    dataOffsets[node] = allocated[i].Offset;
+                    BytesSaved += node.Data.Length;
+                    node.Write = false;
+                }
+            }
+
+            public int GetOffset(LUtfNode node) => dataOffsets[node];
+        }
+
+
         EditResult<bool> SaveV1(string filename)
 		{
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
-			Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
 			List<string> strings = new List<string>();
 			using (var writer = new BinaryWriter(File.Create(filename)))
 			{
-				int currentDataOffset = 0;
-                int bytesSaved = 0;
-                List<SmallData> smallDatas = new List<SmallData>();
+                var dataSection = new DataSection(false);
 				foreach (var node in Root.IterateAll())
 				{
 					if (!strings.Contains(node.Name)) strings.Add(node.Name);
-					if (node.Data != null)
-					{
-                        int dataAlloc = node.Data.Length + 3 & ~3;
-                        node.Write = true;
-                        //De-duplicate data up to 64 bytes
-                        if (node.Data.Length <= 64)
-                        {
-                            var small = new SmallData(node.Data);
-                            int idx = -1;
-                            for (int i = 0; i < smallDatas.Count; i++) {
-                                if(smallDatas[i].Match(ref small)) {
-                                    idx = i;
-                                    break;
-                                }
-                            }
-                            if(idx == -1) {
-                                small.Offset = currentDataOffset;
-                                smallDatas.Add(small);
-                                dataOffsets.Add(node, currentDataOffset);
-                                currentDataOffset += dataAlloc;
-                            } else {
-                                node.Write = false;
-                                bytesSaved += smallDatas[idx].Length;
-                                dataOffsets.Add(node, smallDatas[idx].Offset);
-                            }
-                        }
-                        else
-                        {
-                            dataOffsets.Add(node, currentDataOffset);
-                            currentDataOffset += dataAlloc;
-                        }
-					}
+					dataSection.AddNode(node);
 				}
 				byte[] stringBlock;
 				using (var mem = new MemoryStream())
@@ -395,7 +373,7 @@ namespace LibreLancer.ContentEdit
                 byte[] nodeBlock;
                 using(var mem = new MemoryStream())
                 {
-                    var res = WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataOffsets, true);
+                    var res = WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataSection, true);
                     if (res.IsError)
                         return res;
                     nodeBlock = mem.ToArray();
@@ -440,7 +418,7 @@ namespace LibreLancer.ContentEdit
 			}
             return true.AsResult();
 		}
-		EditResult<bool> WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, Dictionary<LUtfNode, int> datOff, bool last)
+		EditResult<bool> WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, DataSection dataSection, bool last)
 		{
 			if (node.Data != null)
 			{
@@ -451,7 +429,7 @@ namespace LibreLancer.ContentEdit
 				writer.Write(strOff[node.Name]); //nameOffset
 				writer.Write((int)LL.NodeFlags.Leaf); //leafNode
                 writer.Write((int)0); //padding
-				writer.Write(datOff[node]); //dataOffset
+				writer.Write(dataSection.GetOffset(node)); //dataOffset
                 int dataAlloc = node.Data.Length + 3 & ~3;
                 writer.Write(dataAlloc); //allocatedSize (?)
 				writer.Write(node.Data.Length); //usedSize
@@ -482,7 +460,7 @@ namespace LibreLancer.ContentEdit
             //There should be 3 more DWORDS here but we can safely not write them for FL
 			for (int i = 0; i < node.Children.Count; i++)
 			{
-				var res = WriteNode(node.Children[i], writer, strOff, datOff, i == (node.Children.Count - 1));
+				var res = WriteNode(node.Children[i], writer, strOff, dataSection, i == (node.Children.Count - 1));
                 if (res.IsError)
                     return res;
             }

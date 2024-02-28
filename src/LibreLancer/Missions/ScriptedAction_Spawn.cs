@@ -175,6 +175,7 @@ namespace LibreLancer.Missions
                       Matrix4x4.CreateTranslation(fpos);
             var formDef = runtime.Player.Game.GameData.GetFormation(form.Formation);
             IReadOnlyList<Vector3> positions = formDef?.Positions ?? nullOffsets;
+
             for (int i = 0; i < form.Ships.Count; i++)
             {
                 var pos = Vector3.Transform(positions[i], mat);
