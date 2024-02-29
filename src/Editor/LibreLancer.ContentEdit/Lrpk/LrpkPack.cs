@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ZstdNet;
+using ZstdSharp;
 
 namespace LibreLancer.ContentEdit;
 
@@ -147,7 +147,7 @@ public class LrpkPack
             else if (item.Method == PackMethod.Auto)
             {
                 var mem = new WriteStatisticsStream();
-                using (var comp = new CompressionStream(mem, CompressionOptions.Default))
+                using (var comp = new CompressionStream(mem, 3))
                     f.CopyTo(comp);
                 var ratio = (double)mem.Length / f.Length;
                 item.TestRatio = (ratio * 100);
@@ -158,7 +158,7 @@ public class LrpkPack
                     //Try harder
                     f.Position = 0;
                     mem.Reset();
-                    using (var comp = new CompressionStream(mem, new CompressionOptions(18)))
+                    using (var comp = new CompressionStream(mem, 18))
                         f.CopyTo(comp);
                     ratio = (double)mem.Length / f.Length;
                     item.Method = ratio <= 0.80 ? PackMethod.Zstandard : PackMethod.Uncompressed;
@@ -244,7 +244,7 @@ public class LrpkPack
         }
 
         long fileOff = 0;
-        using (var comp = new CompressionStream(outputStream, new CompressionOptions(22))) {
+        using (var comp = new CompressionStream(outputStream, 22)) {
             foreach (var toComp in blk)
             {
                 if(Verbose)
@@ -323,7 +323,7 @@ public class LrpkPack
             {
                 using var src = File.OpenRead(toComp.Item.SourcePath);
                 var mem = new UnmanagedWriteStream();
-                using (var comp = new CompressionStream(mem, new CompressionOptions(22)))
+                using (var comp = new CompressionStream(mem, 22))
                     await src.CopyToAsync(comp);
                 compWriteItems.Add((toComp.FullPath, toComp.Item, mem));
             });

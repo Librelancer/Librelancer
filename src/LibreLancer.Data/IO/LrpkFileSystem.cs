@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using ZstdSharp;
 
 namespace LibreLancer.Data.IO;
 
@@ -48,7 +49,7 @@ public sealed class LrpkFileSystem : BaseFileSystemProvider
     static byte[] Decompress(Stream stream, long offset, long length)
     {
         using var wrapped = new SlicedStream(offset, length, stream);
-        using var decomp = new ZstdNet.DecompressionStream(wrapped);
+        using var decomp = new DecompressionStream(wrapped);
         var output = new MemoryStream();
         decomp.CopyTo(output);
         return output.ToArray();
