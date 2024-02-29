@@ -992,6 +992,7 @@ namespace LibreLancer.Client
             {
                 RunSync(() =>
                 {
+                    rpcServer.LineSpoken(lines[index].Hash);
                     if(lines[index].TargetIsPlayer)
                         gp.ClearComm();
                     RunDialog(lines, index + 1);
