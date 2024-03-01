@@ -459,22 +459,17 @@ namespace LancerEdit
                         #endif
                     }
                 }
-                if (ImGui.Button("Play Audio"))
+
+                if (main.PlayingBuffer)
                 {
-                    try
-                    {
-                        var data = main.Audio.AllocateData();
-                        using (var stream = new MemoryStream(selectedNode.Data))
-                        {
-                            main.Audio.PlayStream(stream);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        FLLog.Error("Audio", ex.ToString());
-                        ErrorPopup("Error:\n" + ex.Message);
-                    }
+                    if (ImGui.Button("Stop Audio"))
+                        main.StopBuffer();
                 }
+                else if (ImGui.Button("Play Audio"))
+                {
+                    main.PlayBuffer(selectedNode.Data);
+                }
+
                 if (ImGui.Button("Import Data"))
                     ImGui.OpenPopup("importactions");
                 if (ImGui.BeginPopup("importactions"))

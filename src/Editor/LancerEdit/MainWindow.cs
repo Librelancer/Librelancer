@@ -105,6 +105,43 @@ namespace LancerEdit
             }
         }
 
+        private SoundInstance bufferInstance;
+
+        public bool PlayingBuffer => bufferInstance != null && bufferInstance.Playing;
+        public void PlayBuffer(byte[] buffer)
+        {
+            StopBuffer();
+            SoundData soundData;
+            try
+            {
+                soundData = Audio.AllocateData();
+                using(var stream = new MemoryStream(buffer))
+                    soundData.LoadStream(stream);
+            }
+            catch (Exception ex)
+            {
+                FLLog.Error("Audio", ex.ToString());
+                ErrorDialog("Error:\n" + ex.Message);
+                return;
+            }
+            bufferInstance = Audio.CreateInstance(soundData, SoundType.Sfx);
+            if (bufferInstance != null)
+            {
+                bufferInstance.DisposeOnStop = true;
+                bufferInstance.OnStop = () => soundData.Dispose();
+                bufferInstance.Play();
+            }
+        }
+
+        public void StopBuffer()
+        {
+            if (bufferInstance != null && !bufferInstance.Disposed)
+            {
+                bufferInstance.Stop();
+                bufferInstance = null;
+            }
+        }
+
         protected override void Load()
         {
             AllShaders.Compile(RenderContext);
