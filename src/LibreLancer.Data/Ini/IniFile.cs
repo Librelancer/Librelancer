@@ -14,9 +14,10 @@ namespace LibreLancer.Ini
 {
 	public abstract partial class IniFile
 	{
-		public const string FileType = "BINI", IniFileType = "INI";
-		public const int FileVersion = 1;
-        static int ParseEquals(string line, string[] part, bool allowmaps)
+		private const string FileType = "BINI", IniFileType = "INI";
+		private const int FileVersion = 1;
+
+        private static int ParseEquals(string line, string[] part, bool allowmaps)
         {
             var idx0 = line.IndexOf('=');
             if (idx0 == -1)
@@ -60,7 +61,7 @@ namespace LibreLancer.Ini
             Section currentSection = null;
             if (fileType == FileType) // Binary Ini
             {
-                BinaryReader reader = new BinaryReader(stream);
+                var reader = new BinaryReader(stream);
 
                 int formatVersion = reader.ReadInt32();
                 if (formatVersion != FileVersion) throw new FileVersionException(path, fileType, formatVersion, FileVersion);
@@ -81,7 +82,7 @@ namespace LibreLancer.Ini
             else // Text Ini
             {
                 stream.Seek(0, SeekOrigin.Begin);
-                StreamReader reader = new StreamReader(stream);
+                var reader = new StreamReader(stream);
 
                 int currentLine = 0;
                 bool inSection = false;
@@ -132,13 +133,10 @@ namespace LibreLancer.Ini
                                 string val = parts[1];
                                 string[] valParts = val.Split(',');
 
-                                List<IValue> values = new List<IValue>(valParts.Length);
+                                var values = new List<IValue>(valParts.Length);
                                 foreach (string part in valParts)
                                 {
                                     string s = part.Trim();
-                                    bool tempBool;
-                                    float tempFloat;
-                                    long tempLong;
                                     if (s.Length == 0)
                                     {
                                         values.Add(new StringValue("", currentSection.Name, path, currentLine));
@@ -146,21 +144,21 @@ namespace LibreLancer.Ini
                                     }
                                     if (preparse && (s[0] == '-' || s[0] >= '0' && s[0] <= '9'))
                                     {
-                                        if (long.TryParse(s, out tempLong))
+                                        if (long.TryParse(s, out long tempLong))
                                         {
                                             if (tempLong >= int.MinValue && tempLong <= int.MaxValue)
                                                 values.Add(new Int32Value((int)tempLong));
                                             else
                                                 values.Add(new SingleValue(tempLong, tempLong));
                                         }
-                                        else if (float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out tempFloat))
+                                        else if (float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out float tempFloat))
                                         {
                                             values.Add(new SingleValue(tempFloat, null));
                                         }
                                         else
                                             values.Add(new StringValue(s, currentSection.Name, path, currentLine));
                                     }
-                                    else if (preparse && bool.TryParse(s, out tempBool))
+                                    else if (preparse && bool.TryParse(s, out bool tempBool))
                                         values.Add(new BooleanValue(tempBool));
                                     else
                                         values.Add(new StringValue(s, currentSection.Name, path, currentLine));
@@ -186,6 +184,7 @@ namespace LibreLancer.Ini
             }
             if (currentSection != null) yield return currentSection;
         }
+
 		protected IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
 		{
 			if (path == null) throw new ArgumentNullException("path");
