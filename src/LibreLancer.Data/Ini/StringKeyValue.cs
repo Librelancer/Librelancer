@@ -5,45 +5,44 @@ using System;
 
 namespace LibreLancer.Ini
 {
-	public class StringKeyValue : IValue
+	public class StringKeyValue : ValueBase
 	{
-		public string Key;
-		public string Value;
-		public StringKeyValue (string k, string v)
+        public string Key { get; init; }
+		public string Value { get; init; }
+
+		public StringKeyValue (string key, string value)
 		{
-			Key = k;
-			Value = v;
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+			Key = key;
+			Value = value;
 		}
 
-		public bool ToBoolean()
-		{
-			throw new NotImplementedException();
-		}
-
-		public int ToInt32()
-		{
-			throw new NotImplementedException();
-		}
-
-        public bool TryToInt32(out int value)
+        public override bool TryToBoolean(out bool result)
         {
-            value = 0;
+            throw new InvalidCastException();
+        }
+
+        public override bool TryToInt32(out int result)
+        {
+            result = 0;
             return false;
         }
 
-        public long ToInt64()
+        public override bool TryToInt64(out long result)
         {
-            throw new NotImplementedException();
+            throw new InvalidCastException();
         }
 
-        public StringKeyValue ToKeyValue()
+        public override bool TryToSingle(out float result)
+        {
+            throw new InvalidCastException();
+        }
+
+        public override StringKeyValue ToKeyValue()
 		{
 			return this;
-		}
-
-		public float ToSingle(string propertyName = null)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

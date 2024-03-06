@@ -95,18 +95,18 @@ namespace LibreLancer.Ini
                     else
                     {
                         partCount = ParseEquals(line, parts, allowmaps);
+                        var entry = new Entry(currentSection, parts[0].Trim()) { Line = currentLine,  };
                         if (partCount == 2)
                         {
                             string val = parts[1];
                             string[] valParts = val.Split(',');
 
-                            var values = new List<IValue>(valParts.Length);
                             foreach (string part in valParts)
                             {
                                 string s = part.Trim();
                                 if (s.Length == 0)
                                 {
-                                    values.Add(new StringValue("", currentSection.Name, path, currentLine));
+                                    entry.Add(new StringValue("") { Entry = entry, Line = currentLine});
                                     continue;
                                 }
                                 if (preparse && (s[0] == '-' || s[0] >= '0' && s[0] <= '9'))
@@ -114,34 +114,34 @@ namespace LibreLancer.Ini
                                     if (long.TryParse(s, out long tempLong))
                                     {
                                         if (tempLong >= int.MinValue && tempLong <= int.MaxValue)
-                                            values.Add(new Int32Value((int)tempLong));
+                                            entry.Add(new Int32Value((int)tempLong) { Entry = entry, Line = currentLine });
                                         else
-                                            values.Add(new SingleValue(tempLong, tempLong));
+                                            entry.Add(new SingleValue(tempLong, tempLong) { Entry = entry, Line = currentLine });
                                     }
                                     else if (float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out float tempFloat))
                                     {
-                                        values.Add(new SingleValue(tempFloat, null));
+                                        entry.Add(new SingleValue(tempFloat, null) { Entry = entry , Line = currentLine });
                                     }
                                     else
-                                        values.Add(new StringValue(s, currentSection.Name, path, currentLine));
+                                        entry.Add(new StringValue(s) { Entry = entry, Line = currentLine });
                                 }
                                 else if (preparse && bool.TryParse(s, out bool tempBool))
-                                    values.Add(new BooleanValue(tempBool));
+                                    entry.Add(new BooleanValue(tempBool) { Entry = entry, Line = currentLine });
                                 else
-                                    values.Add(new StringValue(s, currentSection.Name, path, currentLine));
+                                    entry.Add(new StringValue(s) { Entry = entry, Line = currentLine });
                             }
-
-                            currentSection.Add(new Entry(parts[0].Trim(), values) { File = path, Line = currentLine });
+                            currentSection.Add(entry);
                         }
                         else if (partCount == 3 && allowmaps)
                         {
                             string k = parts[1].Trim();
                             string v = parts[2].Trim();
-                            currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k, v) }) { File = path, Line = currentLine });
+                            entry.Add(new StringKeyValue(k, v) { Entry = entry, Line = currentLine });
+                            currentSection.Add(entry);
                         }
                         else if (partCount == 1)
                         {
-                            currentSection.Add(new Entry(parts[0].Trim(), new List<IValue>()) { File = path, Line = currentLine });
+                            currentSection.Add(entry);
                         }
                     }
                 }

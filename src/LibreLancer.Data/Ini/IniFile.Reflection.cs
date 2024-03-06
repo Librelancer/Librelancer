@@ -243,10 +243,10 @@ namespace LibreLancer.Ini
         {
             if (min == -1) min = c;
             if (e.Count > c)
-                FLLog.Warning("Ini", "Too many components for " + e.Name + FormatLine(e.File, e.Line, s.Name));
+                FLLog.Warning("Ini", "Too many components for " + e.Name + FormatLine(s.File, e.Line, s.Name));
             if (e.Count >= min)
                 return true;
-            FLLog.Error("Ini", "Not enough components for " + e.Name + FormatLine(e.File, e.Line, s.Name));
+            FLLog.Error("Ini", "Not enough components for " + e.Name + FormatLine(s.File, e.Line, s.Name));
             return false;
         }
         private static object GetFromSection(Section s, ReflectionInfo type, object obj = null, string datapath = null, FileSystem vfs = null, bool checkRequired = true)
@@ -331,7 +331,7 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(float))
                 {
-                    if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToSingle(e.Name));
+                    if (ComponentCheck(1, s, e)) field.Field.SetValue(obj, e[0].ToSingle());
                 }
                 else if (ftype == typeof(int))
                 {
@@ -343,7 +343,7 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(ValueRange<float>))
                 {
-                    if (ComponentCheck(2, s, e)) field.Field.SetValue(obj, new ValueRange<float>(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name)));
+                    if (ComponentCheck(2, s, e)) field.Field.SetValue(obj, new ValueRange<float>(e[0].ToSingle(), e[1].ToSingle()));
 
                 }
                 else if (ftype == typeof(long))
@@ -357,28 +357,28 @@ namespace LibreLancer.Ini
                 }
                 else if (ftype == typeof(Vector3))
                 {
-                    if(e.Count == 1 && e[0].ToSingle(e.Name) == 0)
+                    if(e.Count == 1 && e[0].ToSingle() == 0)
                         field.Field.SetValue(obj, Vector3.Zero);
                     else if (field.Attr.Mode == Vec3Mode.None) {
-                        if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Vector3(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), e[2].ToSingle(e.Name)));
+                        if (ComponentCheck(3, s, e)) field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
                     } else if (ComponentCheck(3, s, e, 1))
                     {
                         if (field.Attr.Mode == Vec3Mode.Size)
                         {
                             if(e.Count == 1)
-                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(e.Name)));
+                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle()));
                             else if(e.Count == 2)
-                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), 0));
+                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), 0));
                             else
-                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), e[2].ToSingle(e.Name)));
+                                field.Field.SetValue(obj, new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
                         }
                         else
                         {
                             //optional components
                             var v3 = Vector3.Zero;
-                            v3.X = e[0].ToSingle(e.Name);
-                            if (e.Count > 1) v3.Y = e[1].ToSingle(e.Name);
-                            if (e.Count > 2) v3.Z = e[2].ToSingle(e.Name);
+                            v3.X = e[0].ToSingle();
+                            if (e.Count > 1) v3.Y = e[1].ToSingle();
+                            if (e.Count > 2) v3.Z = e[2].ToSingle();
                             field.Field.SetValue(obj, v3);
                         }
                     }
@@ -389,22 +389,22 @@ namespace LibreLancer.Ini
                     if (ComponentCheck(3, s, e))
                     {
                         var v = (List<Vector3>)field.Field.GetValue(obj);
-                        v.Add(new Vector3(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), e[2].ToSingle(e.Name)));
+                        v.Add(new Vector3(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
                     }
                 }
                 else if(ftype == typeof(Quaternion))
                 {
-                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[1].ToSingle(e.Name), e[2].ToSingle(e.Name), e[3].ToSingle(e.Name), e[0].ToSingle(e.Name)));
+                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Quaternion(e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle(), e[0].ToSingle()));
                 }
                 else if(ftype == typeof(Vector4))
                 {
-                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Vector4(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), e[2].ToSingle(e.Name), e[3].ToSingle(e.Name)));
+                    if (ComponentCheck(4, s, e)) field.Field.SetValue(obj, new Vector4(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle()));
                 }
                 else if (ftype == typeof(Vector2))
                 {
                     if (e.Count == 1 && field.Attr.MinMax)
-                        field.Field.SetValue(obj, new Vector2(-1, e[0].ToSingle(e.Name)));
-                    else if (ComponentCheck(2, s, e)) field.Field.SetValue(obj, new Vector2(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name)));
+                        field.Field.SetValue(obj, new Vector2(-1, e[0].ToSingle()));
+                    else if (ComponentCheck(2, s, e)) field.Field.SetValue(obj, new Vector2(e[0].ToSingle(), e[1].ToSingle()));
                 }
                 else if (ftype == typeof(Color4))
                 {
@@ -424,11 +424,11 @@ namespace LibreLancer.Ini
                     {
                         if (field.Attr.FloatColor)
                         {
-                            field.Field.SetValue(obj, new Color3f(e[0].ToSingle(e.Name), e[1].ToSingle(e.Name), e[2].ToSingle(e.Name)));
+                            field.Field.SetValue(obj, new Color3f(e[0].ToSingle(), e[1].ToSingle(), e[2].ToSingle()));
                         }
                         else
                         {
-                            field.Field.SetValue(obj, new Color3f(e[0].ToSingle(e.Name) / 255f, e[1].ToSingle(e.Name) / 255f, e[2].ToSingle(e.Name) / 255f));
+                            field.Field.SetValue(obj, new Color3f(e[0].ToSingle() / 255f, e[1].ToSingle() / 255f, e[2].ToSingle() / 255f));
                         }
                     }
                 }
@@ -463,7 +463,7 @@ namespace LibreLancer.Ini
                 {
                     if(ComponentCheck(int.MaxValue,s,e,1)) {
                         var floats = new float[e.Count];
-                        for (int i = 0; i < e.Count; i++) floats[i] = e[i].ToSingle(e.Name);
+                        for (int i = 0; i < e.Count; i++) floats[i] = e[i].ToSingle();
                         field.Field.SetValue(obj, floats);
                     }
                 }
@@ -499,7 +499,7 @@ namespace LibreLancer.Ini
                         if (Guid.TryParse(e[0].ToString(), out var g))
                             field.Field.SetValue(obj, g);
                         else
-                            FLLog.Warning("Ini", "Unable to parse GUID" + FormatLine(e.File, e.Line, s.Name));
+                            FLLog.Warning("Ini", "Unable to parse GUID" + FormatLine(s.File, e.Line, s.Name));
                     }
                 }
                 else if (ftype.IsEnum)
@@ -513,7 +513,7 @@ namespace LibreLancer.Ini
                         }
                         catch (Exception)
                         {
-                            FLLog.Error("Ini", "Invalid value for enum " + e[0].ToString() + FormatLine(e.File, e.Line, s.Name));
+                            FLLog.Error("Ini", "Invalid value for enum " + e[0].ToString() + FormatLine(s.File, e.Line, s.Name));
                         }
                     }
                 }
@@ -775,7 +775,7 @@ namespace LibreLancer.Ini
                 if (currentSection != null)
                     currentSection.Add(e);
                 else
-                    FLLog.Warning("Ini", $"Entry without object '{e.Name}' {FormatLine(e.File, e.Line, parent.Name)}");
+                    FLLog.Warning("Ini", $"Entry without object '{e.Name}' {FormatLine(parent.File, e.Line, parent.Name)}");
             }
             if (currentSection != null) yield return currentSection;
         }

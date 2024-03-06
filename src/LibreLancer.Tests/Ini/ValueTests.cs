@@ -70,13 +70,13 @@ namespace LibreLancer.Tests.Ini
         [InlineData("0",           true, true,  0,            0,            0,            0,            "0")]
         [InlineData("-2147483648", true, true,  int.MinValue, int.MinValue, int.MinValue, int.MinValue, "-2147483648")]
         [InlineData("2147483647",  true, true,  int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue, "2147483647")]
-        [InlineData("6566123.22",  true, false, 0,            -1,           -1,           6566123.22,   "6566123.22")]
-        [InlineData("NaN",         true, false, 0,            -1,           -1,           float.NaN,    "NaN")]
-        [InlineData("Nothing",     true, false, 0,            -1,           -1,           0,            "Nothing")]
+        [InlineData("6566123.22",  true, false, -1,           -1,           -1,           6566123.22,   "6566123.22")]
+        [InlineData("NaN",         true, false, -1,           -1,           -1,           float.NaN,    "NaN")]
+        [InlineData("Nothing",     true, false, -1,           -1,           -1,           0,            "Nothing")]
         public void StringValueConversions(string testValue,
             bool toBoolean, bool tryInt32Return, int tryToInt32, int toInt32, long toInt64, float toSingle, string toString)
         {
-            var value = new StringValue(testValue, null, null, -1);
+            var value = new StringValue(testValue);
 
             value.ToBoolean().Should().Be(toBoolean);
             value.TryToInt32(out int i).Should().Be(tryInt32Return);

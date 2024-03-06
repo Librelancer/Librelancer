@@ -6,11 +6,16 @@ namespace LibreLancer.Ini
 {
 	public interface IValue
 	{
-		bool ToBoolean();
-		int ToInt32();
+        bool TryToBoolean(out bool result);
         bool TryToInt32(out int result);
+        bool TryToInt64(out long result);
+        bool TryToSingle(out float result);
+
+        bool ToBoolean();
+		int ToInt32(); 
         long ToInt64();
-        float ToSingle(string propertyName = null);
+        float ToSingle();
+
 		StringKeyValue ToKeyValue();
 	}
 }

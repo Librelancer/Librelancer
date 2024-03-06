@@ -25,7 +25,7 @@ namespace LibreLancer.Data.Missions
                     Type = EmpathyEventType.RandomMissionAbort;
                     break;
                 default:
-                    FLLog.Error("Ini", $"Bad empathy event {e[0]} at {e.File}:{e.Line}");
+                    FLLog.Error("Ini", $"Bad empathy event {e[0]} at {e.Section.File}:{e.Line}");
                     Type = EmpathyEventType.None;
                     break;
             }

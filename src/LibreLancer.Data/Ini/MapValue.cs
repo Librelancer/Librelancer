@@ -5,43 +5,38 @@ using System;
 
 namespace LibreLancer.Ini
 {
-	public class MapValue : IValue
+	public class MapValue : ValueBase
 	{
-		public StringKeyValue Value;
+		public readonly StringKeyValue value;
 
-		public MapValue (string k, string v)
+		public MapValue(string k, string v)
 		{
-			Value = new StringKeyValue (k, v);
+			value = new StringKeyValue(k, v);
 		}
 
-		public bool ToBoolean ()
+		public override bool TryToBoolean(out bool result)
 		{
-			throw new InvalidCastException ();
+			throw new InvalidCastException();
 		}
 
-        public bool TryToInt32(out int result)
-        {
-            result = 0;
-            return false;
-        }
-
-		public int ToInt32 ()
-		{
-			throw new InvalidCastException ();
-		}
-        public long ToInt64()
+        public override bool TryToInt32(out int result)
         {
             throw new InvalidCastException();
         }
 
-        public float ToSingle (string propertyName = null)
+        public override bool TryToInt64(out long result)
+        {
+            throw new InvalidCastException();
+        }
+
+        public override bool TryToSingle(out float result)
 		{
 			throw new InvalidCastException ();
 		}
 
-		public StringKeyValue ToKeyValue()
+		public override StringKeyValue ToKeyValue()
 		{
-			return Value;
+			return value;
 		}
 	}
 }

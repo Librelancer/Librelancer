@@ -47,6 +47,8 @@ namespace LibreLancer.Ini
                     var entryNameOffset = reader.ReadInt16();
                     var entryName = stringBlock.Get(entryNameOffset);
 
+                    var entry = new Entry(section, entryName);
+
                     var valueCount = reader.ReadByte();
                     var values = new List<IValue>(valueCount);
 
@@ -56,22 +58,21 @@ namespace LibreLancer.Ini
                         switch (valueType)
                         {
                             case IniValueType.Boolean:
-                                values.Add(new BooleanValue(reader));
+                                entry.Add(new BooleanValue(reader) { Entry = entry });
                                 break;
                             case IniValueType.Int32:
-                                values.Add(new Int32Value(reader));
+                                entry.Add(new Int32Value(reader) { Entry = entry });
                                 break;
                             case IniValueType.Single:
-                                values.Add(new SingleValue(reader));
+                                entry.Add(new SingleValue(reader) { Entry = entry });
                                 break;
                             case IniValueType.String:
-                                values.Add(new StringValue(reader, stringBlock, sectionName, path, -1));
+                                entry.Add(new StringValue(reader, stringBlock) { Entry = entry });
                                 break;
                             default:
                                 throw new FileContentException(FileType, "Unknown BINI value type: " + valueType);
                         }
                     }
-                    var entry = new Entry(entryName, values) { File = path };
                     section.Add(entry);
                 }
 

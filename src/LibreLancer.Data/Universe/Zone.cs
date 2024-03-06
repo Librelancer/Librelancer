@@ -112,10 +112,10 @@ namespace LibreLancer.Data.Universe
         void HandleFaction(Entry e)
         {
             if (Encounters.Count == 0) {
-                //FLLog.Warning("Ini", $"faction entry without matching encounter at {e.File}:{e.Line}");
+                //FLLog.Warning("Ini", $"faction entry without matching encounter at {e.Section.File}:{e.Line}");
             }
             else {
-                Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle("chance")));
+                Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle()));
             }
         }
 

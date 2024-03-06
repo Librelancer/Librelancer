@@ -12,20 +12,22 @@ namespace LibreLancer.Ini
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
 	public class Entry : ICollection<IValue>
 	{
-		public string Name { get; private set; }
+        private readonly IList<IValue> values;
 
-		private List<IValue> values;
+        public string Name { get; init; }
 
-        public string File = "[Null]";
-        public int Line = -1;
+        public Section Section { get; init; }
 
-		public Entry(string name, ICollection<IValue> values)
+		public int Line { get; init; } = -1;
+
+		public Entry(Section section, string name)
 		{
+            if (section == null) throw new ArgumentNullException(nameof(section));
 			if (name == null) throw new ArgumentNullException(nameof(name));
-			if (values == null) throw new ArgumentNullException(nameof(values));
 
-			this.Name = name;
-			this.values = new List<IValue>(values);
+            Section = section;
+			Name = name;
+			values = new List<IValue>();
 		}
 
 		public IValue this[int index]
