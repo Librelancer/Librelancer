@@ -650,6 +650,7 @@ namespace LibreLancer
                 }
             }
             loop.OnCleanup();
+            Platform.Shutdown();
             NFD.NFD_Quit();
             SDL.SDL_Quit();
         }

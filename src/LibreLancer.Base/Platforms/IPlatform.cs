@@ -16,6 +16,8 @@ namespace LibreLancer.Platforms
         PlatformEvents SubscribeEvents(IUIThread mainThread);
 
         MountInfo[] GetMounts();
+
+        void Shutdown();
     }
 }
 

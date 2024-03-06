@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using LibreLancer.Platforms.Linux;
 
@@ -18,10 +19,13 @@ namespace LibreLancer.Platforms
 
 		IntPtr fcconfig;
 
+        private string tempFontsDirectory;
+
 		public LinuxPlatform()
         {
             fcconfig = LibFontConfig.FcInitLoadConfigAndFonts();
             LibFontConfig.FcConfigSetCurrent(fcconfig);
+            tempFontsDirectory = Directory.CreateTempSubdirectory("librelancer").FullName;
         }
 
         public void Init(string sdlBackend)
@@ -57,10 +61,14 @@ namespace LibreLancer.Platforms
 
         public void AddTtfFile(byte[] ttf)
         {
-            //if(string.IsNullOrEmpty(file)) throw new InvalidOperationException();
-            //var str = UnsafeHelpers.StringToHGlobalUTF8(file);
-            //pg_addttfglobal(str);
-            //Marshal.FreeHGlobal(str);
+            if (!string.IsNullOrWhiteSpace(tempFontsDirectory))
+            {
+                var path = Path.Combine(tempFontsDirectory, Path.GetRandomFileName() + ".ttf");
+                File.WriteAllBytes(path, ttf);
+                var str = UnsafeHelpers.StringToHGlobalUTF8(path);
+                pg_addttfglobal(str);
+                Marshal.FreeHGlobal(str);
+            }
         }
 
         static LibFontConfig.FcResult GetString(IntPtr pattern, string obj, int n, ref string val)
@@ -94,6 +102,21 @@ namespace LibreLancer.Platforms
         }
 
         public MountInfo[] GetMounts() => GLib.GetMounts();
+
+        public void Shutdown()
+        {
+            try
+            {
+                if(!string.IsNullOrWhiteSpace(tempFontsDirectory))
+                    Directory.Delete(tempFontsDirectory, true);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+
+            tempFontsDirectory = null;
+        }
     }
 }
 

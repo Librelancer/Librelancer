@@ -136,6 +136,11 @@ namespace LibreLancer
             FontLoaded?.Invoke();
         }
 
+        internal static void Shutdown()
+        {
+            RunningPlatform.Shutdown();
+        }
+
         public static string GetInformationalVersion<T>()
         {
             return ((AssemblyInformationalVersionAttribute)Assembly

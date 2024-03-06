@@ -21,6 +21,10 @@ namespace LibreLancer.Platforms
         {
         }
 
+        public void Shutdown()
+        {
+        }
+
         public string GetLocalConfigFolder() => Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         static bool GdiOpenFace(string face, out byte[] buffer)
@@ -71,7 +75,7 @@ namespace LibreLancer.Platforms
         public MountInfo[] GetMounts() => Directory.GetLogicalDrives().Select(x => new MountInfo(x, x)).ToArray();
 
         public List<byte[]> TtfFiles = new List<byte[]>();
-        
+
         public void AddTtfFile(byte[] file)
         {
             TtfFiles.Add(file);
