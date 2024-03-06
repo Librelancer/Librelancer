@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace LibreLancer.Ini
@@ -13,9 +12,6 @@ namespace LibreLancer.Ini
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
 	public class Entry : ICollection<IValue>
 	{
-		private const string BINI = "BINI";
-		private const int N_LEN = 2, C_LEN = 1, T_LEN = 1;
-
 		public string Name { get; private set; }
 
 		private List<IValue> values;
@@ -23,46 +19,10 @@ namespace LibreLancer.Ini
         public string File = "[Null]";
         public int Line = -1;
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Entry(string file, BinaryReader reader, BiniStringBlock stringBlock, string section)
-		{
-			if (reader == null) throw new ArgumentNullException("reader");
-			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
-            
-            File = file;
-			short nameOffset = reader.ReadInt16();
-            Name = stringBlock.Get(nameOffset);
-
-			byte count = reader.ReadByte();
-			values = new List<IValue>(count);
-
-			for (int i = 0; i < count; i++)
-			{
-				IniValueType valueType = (IniValueType)reader.ReadByte();
-				switch (valueType)
-				{
-				case IniValueType.Boolean:
-					values.Add(new BooleanValue(reader));
-					break;
-				case IniValueType.Int32:
-					values.Add(new Int32Value(reader));
-					break;
-				case IniValueType.Single:
-					values.Add(new SingleValue(reader));
-					break;
-				case IniValueType.String:
-					values.Add(new StringValue(reader, stringBlock, section, file, -1));
-					break;
-				default:
-					throw new FileContentException(BINI, "Unknown BINI value type: " + valueType);
-				}
-			}
-		}
-
 		public Entry(string name, ICollection<IValue> values)
 		{
-			if (name == null) throw new ArgumentNullException("name");
-			if (values == null) throw new ArgumentNullException("values");
+			if (name == null) throw new ArgumentNullException(nameof(name));
+			if (values == null) throw new ArgumentNullException(nameof(values));
 
 			this.Name = name;
 			this.values = new List<IValue>(values);

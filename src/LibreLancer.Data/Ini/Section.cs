@@ -20,27 +20,9 @@ namespace LibreLancer.Ini
 
 		private List<Entry> entries;
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Section(string file, BinaryReader reader, BiniStringBlock stringBlock)
-		{
-			if (reader == null) throw new ArgumentNullException("reader");
-			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
-
-            File = file;
-            
-			short nameOffset = reader.ReadInt16();
-            Name = stringBlock.Get(nameOffset);
-
-			short count = reader.ReadInt16();
-			entries = new List<Entry>(count);
-
-			for (int i = 0; i < count; i++)
-				entries.Add(new Entry(file, reader, stringBlock, Name));
-		}
-
 		public Section(string name)
 		{
-			if (name == null) throw new ArgumentNullException("name");
+			if (name == null) throw new ArgumentNullException(nameof(name));
 
 			entries = new List<Entry>();
 			this.Name = name;

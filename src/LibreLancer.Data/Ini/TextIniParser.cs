@@ -1,0 +1,152 @@
+﻿// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
+
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+
+namespace LibreLancer.Ini
+{
+    public class TextIniParser : IIniParser
+    {
+        private const string FileType = "INI";
+
+        private static int ParseEquals(string line, string[] part, bool allowmaps)
+        {
+            var idx0 = line.IndexOf('=');
+            if (idx0 == -1)
+            {
+                part[0] = line;
+                return 1;
+            }
+
+            part[0] = line.Substring(0, idx0);
+            if ((idx0 + 1) >= line.Length) return 1;
+            var idx1 = line.IndexOf('=', idx0 + 1);
+            if (idx1 != -1 && !allowmaps)
+            {
+                //Skip duplicate equals
+                for (int i = idx0; i < line.Length; i++)
+                {
+                    if (line[i] != '=' && line[i] != ' ' && line[i] != '\t')
+                    {
+                        idx0 = i - 1;
+                        break;
+                    }
+                }
+            }
+            else if (idx1 != -1)
+            {
+                part[1] = line.Substring(idx0 + 1, idx1 - (idx0 + 1));
+                part[2] = line.Substring(idx1 + 1);
+                return 3;
+            }
+            part[1] = line.Substring(idx0 + 1);
+            return 2;
+        }
+
+        public IEnumerable<Section> ParseIniFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
+        {
+            Section currentSection = null;
+            var reader = new StreamReader(stream);
+
+            int currentLine = 0;
+            bool inSection = false;
+            string[] parts = new string[3];
+            while (!reader.EndOfStream)
+            {
+                currentLine++;
+                string line = reader.ReadLine().Trim();
+
+                if (string.IsNullOrWhiteSpace(line)
+                    || line[0] == ';'
+                    || line[0] == '@')
+                    continue;
+
+                if (line[0] == '[')
+                {
+                    if (currentSection != null) yield return currentSection;
+                    int indexComment = line.IndexOf(';');
+                    int indexClose = line.IndexOf(']');
+                    if (indexComment != -1 && indexComment < indexClose)
+                    {
+                        inSection = false;
+                        currentSection = null;
+                        continue;
+                    }
+                    if (indexClose == -1) throw new FileContentException(path, FileType, "Invalid section header: " + line);
+                    string name = line.Substring(1, indexClose - 1).Trim();
+                    currentSection = new Section(name) { File = path, Line = currentLine };
+
+                    inSection = true;
+                    continue;
+                }
+                else
+                {
+                    if (!inSection) continue;
+                    int indexComment = line.IndexOf(';');
+                    if (indexComment != -1) line = line.Remove(indexComment);
+                    int partCount;
+                    if (!char.IsLetterOrDigit(line[0]) && line[0] != '_')
+                    {
+                        FLLog.Warning("Ini", "Invalid line in file: " + path + " at line " + currentLine + '"' + line + '"');
+                    }
+                    else
+                    {
+                        partCount = ParseEquals(line, parts, allowmaps);
+                        if (partCount == 2)
+                        {
+                            string val = parts[1];
+                            string[] valParts = val.Split(',');
+
+                            var values = new List<IValue>(valParts.Length);
+                            foreach (string part in valParts)
+                            {
+                                string s = part.Trim();
+                                if (s.Length == 0)
+                                {
+                                    values.Add(new StringValue("", currentSection.Name, path, currentLine));
+                                    continue;
+                                }
+                                if (preparse && (s[0] == '-' || s[0] >= '0' && s[0] <= '9'))
+                                {
+                                    if (long.TryParse(s, out long tempLong))
+                                    {
+                                        if (tempLong >= int.MinValue && tempLong <= int.MaxValue)
+                                            values.Add(new Int32Value((int)tempLong));
+                                        else
+                                            values.Add(new SingleValue(tempLong, tempLong));
+                                    }
+                                    else if (float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out float tempFloat))
+                                    {
+                                        values.Add(new SingleValue(tempFloat, null));
+                                    }
+                                    else
+                                        values.Add(new StringValue(s, currentSection.Name, path, currentLine));
+                                }
+                                else if (preparse && bool.TryParse(s, out bool tempBool))
+                                    values.Add(new BooleanValue(tempBool));
+                                else
+                                    values.Add(new StringValue(s, currentSection.Name, path, currentLine));
+                            }
+
+                            currentSection.Add(new Entry(parts[0].Trim(), values) { File = path, Line = currentLine });
+                        }
+                        else if (partCount == 3 && allowmaps)
+                        {
+                            string k = parts[1].Trim();
+                            string v = parts[2].Trim();
+                            currentSection.Add(new Entry(parts[0].Trim(), new IValue[] { new StringKeyValue(k, v) }) { File = path, Line = currentLine });
+                        }
+                        else if (partCount == 1)
+                        {
+                            currentSection.Add(new Entry(parts[0].Trim(), new List<IValue>()) { File = path, Line = currentLine });
+                        }
+                    }
+                }
+            }
+            if (currentSection != null) yield return currentSection;
+        }
+    }
+}
