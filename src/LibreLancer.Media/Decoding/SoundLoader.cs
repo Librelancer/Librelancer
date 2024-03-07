@@ -82,7 +82,7 @@ namespace LibreLancer.Media
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate IntPtr ReadFn(byte* buffer, IntPtr size1, IntPtr size2, ld_stream* stream);
+        delegate IntPtr ReadFn(byte* buffer, IntPtr size, ld_stream* stream);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int SeekFn(ld_stream* stream, int offset, LdSeek seek);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -137,9 +137,9 @@ namespace LibreLancer.Media
         private IntPtr csbuffer = IntPtr.Zero;
         private int csbufferLength = -1;
 
-        IntPtr StreamRead(byte* buffer, IntPtr size1, IntPtr size2, ld_stream* stream)
+        IntPtr StreamRead(byte* buffer, IntPtr size, ld_stream* stream)
         {
-            var sz = (int)size1 * (int)size2;
+            var sz = (int)size;
 
             if (csbufferLength < sz)
             {
@@ -212,7 +212,7 @@ namespace LibreLancer.Media
         {
             fixed(byte* b = buffer)
             {
-                return (int)decoderRead(&b[offset], (IntPtr)1, (IntPtr)count, decoder->stream);
+                return (int)decoderRead(&b[offset], count, decoder->stream);
             }
         }
 
