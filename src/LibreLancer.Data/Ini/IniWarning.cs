@@ -4,7 +4,7 @@ public static class IniWarning
 {
     public static void UnknownEntry(Entry e, Section s)
     {
-        FLLog.Warning("Ini", "Unknown entry " + e.Name + FormatLine(e.File, e.Line, s));
+        FLLog.Warning("Ini", "Unknown entry " + e.Name + FormatLine(s.File, e.Line, s));
     }
 
     public static void UnknownSection(Section section)
@@ -14,12 +14,12 @@ public static class IniWarning
 
     public static void DuplicateEntry(Entry e, Section s)
     {
-        FLLog.Warning("Ini", "Duplicate of " + e.Name + FormatLine(e.File, e.Line, s));
+        FLLog.Warning("Ini", "Duplicate of " + e.Name + FormatLine(s.File, e.Line, s));
     }
 
-    public static void Warn(string warning, Entry e, Section? s = null)
+    public static void Warn(string warning, Entry e)
     {
-        FLLog.Warning("Ini", warning + " " + FormatLine(e.File, e.Line, s));
+        FLLog.Warning("Ini", warning + " " + FormatLine(e.Section.File, e.Line, e.Section));
     }
     
     static string FormatLine(string file, int line)

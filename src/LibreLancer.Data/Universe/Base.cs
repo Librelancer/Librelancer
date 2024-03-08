@@ -97,7 +97,7 @@ namespace LibreLancer.Data.Universe
 						AutosaveForbidden = e[0].ToBoolean();
 						break;
 					default:
-                        FLLog.Warning("Ini", $"Invalid Entry `{e.Name}` in {section.Name}: {e.File}:{e.Line}");
+                        FLLog.Warning("Ini", $"Invalid Entry `{e.Name}` in {section.Name}: {e.Section.File}:{e.Line}");
                         break;
 				}
 			}
@@ -130,7 +130,7 @@ namespace LibreLancer.Data.Universe
                                         FLLog.Error("Base", "Unimplemented: price_variance");
                                         break;
                                     default:
-                                        FLLog.Warning("Ini", $"Invalid Entry `{e.Name}` in {section.Name}: {e.File}:{e.Line}");
+                                        FLLog.Warning("Ini", $"Invalid Entry `{e.Name}` in {section.Name}: {section.File}:{e.Line}");
                                         break;
                                 }
                             }

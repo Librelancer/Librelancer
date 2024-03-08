@@ -8,18 +8,18 @@ using System.IO;
 
 namespace LibreLancer.Ini
 {
-	public class Int32Value : IValue
+	public class Int32Value : ValueBase
 	{
-		private int value;
+		private readonly int value;
 
 		public Int32Value(BinaryReader reader)
 		{
-			if (reader == null) throw new ArgumentNullException("reader");
+			if (reader == null) throw new ArgumentNullException(nameof(reader));
 
 			value = reader.ReadInt32();
 		}
 
-		public Int32Value(int value)
+		public Int32Value(int value) 
 		{
 			this.value = value;
 		}
@@ -30,41 +30,33 @@ namespace LibreLancer.Ini
 			else return operand.value;
 		}
 
-		public bool ToBoolean()
+		public override bool TryToBoolean(out bool result)
 		{
-			return value != 0;
+			result = value != 0;
+            return true;
 		}
 
-        public bool TryToInt32(out int result)
+        public override bool TryToInt32(out int result)
         {
             result = value;
             return true;
         }
 
-		public int ToInt32()
+		public override bool TryToInt64(out long result)
 		{
-			return value;
-		}
+            result = value;
+			return true;
+		}        
 
-        public long ToInt64()
-        {
-            return value;
-        }
-        
-
-        public float ToSingle(string propertyName = null)
+        public override bool TryToSingle(out float result)
 		{
-			return value;
+			result = value;
+            return true;
 		}
 
 		public override string ToString()
 		{
 			return value.ToString(CultureInfo.InvariantCulture);
-		}
-
-		public StringKeyValue ToKeyValue()
-		{
-			throw new InvalidCastException ();
 		}
 	}
 }

@@ -8,19 +8,19 @@ using System.IO;
 
 namespace LibreLancer.Ini
 {
-	public class SingleValue : IValue
+	public class SingleValue : ValueBase
 	{
 		private float value;
 		private long? longvalue;
+
 		public SingleValue(BinaryReader reader)
 		{
-			if (reader == null) throw new ArgumentNullException("reader");
-
+			if (reader == null) throw new ArgumentNullException(nameof(reader));
 			value = reader.ReadSingle();
 		}
 
 		public SingleValue(float value, long? templong)
-		{
+        {
 			longvalue = templong;
 			this.value = value;
 		}
@@ -30,47 +30,39 @@ namespace LibreLancer.Ini
             return operand.value;
 		}
 
-		public bool ToBoolean()
+		public override bool TryToBoolean(out bool result)
 		{
-			return value != 0;
+			result = value != 0;
+            return true;
 		}
 
-        public bool TryToInt32(out int result)
+        public override bool TryToInt32(out int result)
         {
-            result = ToInt32();
+            if (longvalue != null)
+            {
+                result = unchecked((int)longvalue.Value);
+                return true;
+            }
+            result = (int)value;
             return true;
         }
 
-		public int ToInt32()
-		{
-			if (longvalue != null)
-			{
-				return unchecked((int)longvalue.Value);
-			}
-			return (int)value;
-		}
-
-        public long ToInt64()
+        public override bool TryToInt64(out long result)
         {
-            if (longvalue != null) return longvalue.Value;
-            return (int)value;
-        }
-
-        public bool TryGetSingle(out float f)
-        {
-            f = value;
+            if (longvalue != null)
+            {
+                result = longvalue.Value;
+                return true;
+            }
+            result = (int)value;
             return true;
         }
 
-        public float ToSingle(string propertyName = null)
-		{
-			return value;
-		}
-
-		public StringKeyValue ToKeyValue()
-		{
-			throw new InvalidCastException ();
-		}
+        public override bool TryToSingle(out float result)
+        {
+            result = value;
+            return true;
+        }
 
 		public override string ToString()
 		{

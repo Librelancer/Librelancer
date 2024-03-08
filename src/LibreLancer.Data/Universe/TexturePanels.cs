@@ -27,7 +27,7 @@ namespace LibreLancer.Data.Universe
         string shapeTexName = "";
         public TexturePanels(string filename, FileSystem vfs)
 		{
-			var parsed = ParseFile (filename, vfs);
+			var parsed = ParseFile(filename, vfs);
 
             Shapes = new Dictionary<string, TextureShape>(StringComparer.InvariantCultureIgnoreCase);
 			Files = new List<string>();
@@ -127,7 +127,7 @@ namespace LibreLancer.Data.Universe
                         shapeTexName = e[0].ToString();
                         break;
                     default:
-                        FLLog.Warning("Ini", "Invalid entry " + e.Name + " in " + e.File);
+                        FLLog.Warning("Ini", "Invalid entry " + e.Name + " in " + section.File);
                     break;
 				}
 			}

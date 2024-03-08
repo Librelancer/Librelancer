@@ -8,32 +8,22 @@ using System.IO;
 
 namespace LibreLancer.Ini
 {
-	public class StringValue : IValue
+	public class StringValue : ValueBase
 	{
-		private string value;
-        private string section;
-        private string file;
-        private int line;
+		private readonly string value;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public StringValue(BinaryReader reader, BiniStringBlock stringBlock, string section, string file, int line)
+		public StringValue(BinaryReader reader, BiniStringBlock stringBlock)
 		{
-			if (reader == null) throw new ArgumentNullException("reader");
-			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
-
-            this.value = stringBlock.Get(reader.ReadInt32());
-            this.section = section;
-            this.file = file;
-            this.line = line;
+			if (reader == null) throw new ArgumentNullException(nameof(reader));
+			if (stringBlock == null) throw new ArgumentNullException(nameof(stringBlock));
+            value = stringBlock.Get(reader.ReadInt32());
         }
 
-		public StringValue(string value, string section, string file, int line)
+		public StringValue(string value)
 		{
-			if (value == null) throw new ArgumentNullException("value");
+			if (value == null) throw new ArgumentNullException(nameof(value));
 			this.value = value;
-            this.section = section;
-            this.file = file;
-            this.line = line;
         }
 
 		public static implicit operator string(StringValue operand)
@@ -42,64 +32,54 @@ namespace LibreLancer.Ini
 			else return operand.value;
 		}
 
-		public bool ToBoolean()
-		{
-			bool result;
-			if (bool.TryParse(value, out result)) return result;
-			else return !string.IsNullOrEmpty(value);
-		}
-
-        public bool TryToInt32(out int result)
+        public override bool TryToBoolean(out bool result)
         {
-            if (int.TryParse(value, out result)) 
+            if (bool.TryParse(value, out result)) return true;
+            result = !string.IsNullOrEmpty(value);
+            return true;
+        }
+
+        public override bool TryToInt32(out int result)
+        {
+            if (int.TryParse(value, out result))
                 return true;
             if (uint.TryParse(value, out var result2))
             {
-                result = unchecked((int) result2);
+                result = unchecked((int)result2);
                 return true;
             }
-            result = 0;
+            result = -1;
             return false;
         }
 
-		public int ToInt32()
-		{
-			int result;
-            uint result2;
-			if (int.TryParse(value, out result)) return result;
-			else if (uint.TryParse(value, out result2)) return (int) result2;
-            else return -1;
-		}
-
-        public long ToInt64()
+        public override bool TryToInt64(out long result)
         {
-            long result;
-            if (long.TryParse(value, out result)) return result;
-            else return -1;
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                if (long.TryParse(value, out result))
+                    return true;
+            }
+            result = -1;
+            return false;
         }
 
-        public float ToSingle(string propertyName = null)
+        public override bool TryToSingle(out float result)
         {
-            if (string.IsNullOrWhiteSpace(value)) return 0;
-			float result;
-            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return result;
-            else
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                var lineInfo = line >= 0 ? ":" + line : " (line not available)";
-                var nameInfo = string.IsNullOrWhiteSpace(propertyName) ? "" : $" for {propertyName}";
-                FLLog.Error("Ini", 
-                    $"Failed to parse float '{value}'{nameInfo} in section {section}: {file}{lineInfo}");
-                return 0;
+                if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return true;
             }
+            var lineInfo = Line >= 0 ? ":" + Line : " (line not available)";
+            var nameInfo = string.IsNullOrWhiteSpace(Entry?.Name) ? "" : $" for {Entry?.Name}";
+            FLLog.Error("Ini",
+              $"Failed to parse float '{value}'{nameInfo} in section {Entry?.Section.Name}: {Entry?.Section.File}{lineInfo}");
+            result = 0;
+            return false;
         }
 
 		public override string ToString()
 		{
 			return value;
-		}
-		public StringKeyValue ToKeyValue()
-		{
-			throw new InvalidCastException ();
 		}
 	}
 }

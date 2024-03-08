@@ -13,37 +13,20 @@ namespace LibreLancer.Ini
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
 	public class Section : ICollection<Entry>
 	{
-		public string Name { get; private set; }
+        private List<Entry> entries;
 
-        public string File = "[Null]";
-        public int Line = -1;
+        public string Name { get; init; }
 
-		private List<Entry> entries;
+        public string File { get; init; } = "[Null]";
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
-		public Section(string file, BinaryReader reader, BiniStringBlock stringBlock)
-		{
-			if (reader == null) throw new ArgumentNullException("reader");
-			if (stringBlock == null) throw new ArgumentNullException("stringBlock");
-
-            File = file;
-            
-			short nameOffset = reader.ReadInt16();
-            Name = stringBlock.Get(nameOffset);
-
-			short count = reader.ReadInt16();
-			entries = new List<Entry>(count);
-
-			for (int i = 0; i < count; i++)
-				entries.Add(new Entry(file, reader, stringBlock, Name));
-		}
+        public int Line { get; init; } = -1;
 
 		public Section(string name)
 		{
-			if (name == null) throw new ArgumentNullException("name");
+			if (name == null) throw new ArgumentNullException(nameof(name));
 
 			entries = new List<Entry>();
-			this.Name = name;
+			Name = name;
 		}
 
 		public Entry this[int index]

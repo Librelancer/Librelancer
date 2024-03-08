@@ -25,7 +25,7 @@ namespace LibreLancer.Data.Universe
             if(e.Count > 1)
                 Difficulty = e[1].ToInt32();
             if (e.Count > 2)
-                Chance = e[2].ToSingle("chance");
+                Chance = e[2].ToSingle();
         }
 
         object ICloneable.Clone()

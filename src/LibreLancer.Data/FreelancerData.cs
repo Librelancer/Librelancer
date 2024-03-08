@@ -345,8 +345,7 @@ namespace LibreLancer.Data
             });
             Run(() =>
             {
-                Cameras = new CameraIni();
-                Cameras.ParseAndFill(Freelancer.CamerasPath, VFS);
+                Cameras = new CameraIni(Freelancer.CamerasPath, VFS);
             });
             Run(() =>
             {
