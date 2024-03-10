@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LibreLancer;
@@ -25,17 +27,18 @@ public static class ReadWriteExtensions
 
     public static unsafe void WriteStruct<T>(this BinaryWriter writer, T value) where T : unmanaged
     {
-        Span<byte> bytes = new Span<byte>(&value, sizeof(T));
+        Span<byte> bytes = stackalloc byte[Marshal.SizeOf<T>()];
+        fixed (byte* ptr = &bytes.GetPinnableReference())
+            Marshal.StructureToPtr<T>(value, (IntPtr)ptr, false);
         writer.Write(bytes);
     }
 
     public static unsafe T ReadStruct<T>(this BinaryReader reader) where T : unmanaged
     {
-        T value = new T();
-        Span<byte> bytes = new Span<byte>(&value, sizeof(T));
-        if (reader.Read(bytes) != sizeof(T))
-            throw new EndOfStreamException();
-        return value;
+        Span<byte> spanBytes = stackalloc byte[Marshal.SizeOf<T>()];
+        reader.Read(spanBytes);
+        fixed (byte* ptr = &spanBytes.GetPinnableReference())
+            return Marshal.PtrToStructure<T>((IntPtr)ptr);
     }
 
     public static uint ReadUInt24(this BinaryReader reader)
