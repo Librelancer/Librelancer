@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 
@@ -5,6 +6,43 @@ namespace LibreLancer;
 
 public static class ReadWriteExtensions
 {
+    public static void WriteInt32BE(this BinaryWriter writer, int val)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            var bytes = BitConverter.GetBytes(val);
+            for (int i = 3; i >= 0; i--)
+                writer.Write(bytes[i]);
+        }
+        else
+            writer.Write(val);
+    }
+
+    public static void Skip(this BinaryReader reader, int size)
+    {
+        reader.BaseStream.Seek(size, SeekOrigin.Current);
+    }
+
+    public static unsafe void WriteStruct<T>(this BinaryWriter writer, T value) where T : unmanaged
+    {
+        Span<byte> bytes = new Span<byte>(&value, sizeof(T));
+        writer.Write(bytes);
+    }
+
+    public static unsafe T ReadStruct<T>(this BinaryReader reader) where T : unmanaged
+    {
+        T value = new T();
+        Span<byte> bytes = new Span<byte>(&value, sizeof(T));
+        if (reader.Read(bytes) != sizeof(T))
+            throw new EndOfStreamException();
+        return value;
+    }
+
+    public static uint ReadUInt24(this BinaryReader reader)
+    {
+        return (uint)reader.ReadByte() + ((uint)reader.ReadByte() << 8) + ((uint)reader.ReadByte() << 16);
+    }
+
     public static void WriteStringUTF8(this BinaryWriter writer, string s)
     {
         if (s == null)
