@@ -4,14 +4,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using LL = LibreLancer.Utf;
 using System.IO;
-using System.IO.Compression;
 using System.Text;
 
 namespace LibreLancer.ContentEdit
 {
+    public record struct UtfStatistics(
+        int NodeCount,
+        int StringBlockSize,
+        int NodeBlockSize,
+        int DataBlockSize,
+        int DeduplicatedSize)
+    {
+        public override string ToString() =>
+            $"Node Count: {NodeCount}, String Block: {DebugDrawing.SizeSuffix(StringBlockSize)}, Node Block: {DebugDrawing.SizeSuffix(NodeBlockSize)}, Data Block: {DebugDrawing.SizeSuffix(DataBlockSize)}, Deduplicated: {DebugDrawing.SizeSuffix(DeduplicatedSize)}";
+    }
+
 	public class EditableUtf : LL.UtfFile
 	{
 		public LUtfNode Root;
@@ -75,45 +84,7 @@ namespace LibreLancer.ContentEdit
 			}
 			return n;
 		}
-        [StructLayout(LayoutKind.Sequential)]
-        struct SmallData
-        {
-            public int Length;
-            public long Data1;
-            public long Data2;
-            public long Data3;
-            public long Data4;
-            public long Data5;
-            public long Data6;
-            public long Data7;
-            public long Data8;
-            public int Offset;
-            public unsafe SmallData(byte[] src)
-            {
-                Length = src.Length;
-                Data1 = Data2 = Data3 = Data4 =
-                    Data5 = Data6 = Data7 = Data8 = 0;
-                Offset = 0;
-                fixed(long *ptr = &Data1) {
-                    var bytes = (byte*)ptr;
-                    for (int i = 0; i < src.Length; i++)
-                        bytes[i] = src[i];
-                }
-            }
-            public bool Match(ref SmallData b)
-            {
-                if (Length != b.Length) return false;
-                if (Data1 != b.Data1) return false;
-                if (Data2 != b.Data2) return false;
-                if (Data3 != b.Data3) return false;
-                if (Data4 != b.Data4) return false;
-                if (Data5 != b.Data5) return false;
-                if (Data6 != b.Data6) return false;
-                if (Data7 != b.Data7) return false;
-                if (Data8 != b.Data8) return false;
-                return true;
-            }
-        }
+
         string GetUtfPath(LUtfNode n)
         {
             List<string> strings = new List<string>();
@@ -127,16 +98,17 @@ namespace LibreLancer.ContentEdit
             var path = "/" + string.Join("/", strings);
             return path;
         }
+
 		//Write the nodes out to a file
 
-        public EditResult<bool> Save(string filename, int version)
+        public EditResult<UtfStatistics> Save(string filename, int version)
         {
             foreach (var node in Root.IterateAll())
             {
                 if(node.Children == null && node.Data == null)
                 {
 
-                    return EditResult<bool>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
+                    return EditResult<UtfStatistics>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
                 }
             }
             if (version == 0)
@@ -145,19 +117,7 @@ namespace LibreLancer.ContentEdit
                 return SaveV2(filename);
         }
 
-        static byte[] CompressDeflate(byte[] input)
-        {
-            using (var mem = new MemoryStream())
-            {
-                using (var comp = new DeflateStream(mem, CompressionLevel.Optimal, true))
-                {
-                    comp.Write(input);
-                }
-                return mem.ToArray();
-            }
-        }
-
-        EditResult<bool> SaveV2(string filename)
+        EditResult<UtfStatistics> SaveV2(string filename)
         {
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
             var dataSection = new DataSection(true);
@@ -170,11 +130,7 @@ namespace LibreLancer.ContentEdit
                     nodeCount++;
                     if(!strings.Contains(node.Name)) strings.Add(node.Name);
                     if (node.Data != null)
-                    {
-                        node.Write = node.Data.Length > 8;
-                        if (node.Data.Length > 8)
-                            dataSection.AddNode(node);
-                    }
+                        dataSection.AddNode(node);
                 }
                 //string block
                 byte[] stringBlock;
@@ -202,89 +158,60 @@ namespace LibreLancer.ContentEdit
                 writer.Write((byte) 1);
                 //sizes
                 writer.Write(stringBlock.Length);
-                writer.Write(nodeCount * 17);
+                var nodeLenPos = writer.BaseStream.Position;
+                writer.Write((int)0);
                 writer.Write(dataSection.Length);
                 //write strings
                 writer.Write(stringBlock);
-                stringBlock = null;
                 //node block
-                int index = 0;
-                WriteNodeV2(Root, writer, stringOffsets, dataSection, ref index, true);
+                var nodeLen = writer.BaseStream.Position;
+                WriteNodeV2(Root, writer, stringOffsets, dataSection);
+                nodeLen = writer.BaseStream.Position - nodeLen;
                 //data block
                 foreach (var node in Root.IterateAll())
                 {
-                    if (node.Write && node.Data != null && node.Data.Length > 8)
+                    if (node.Write && node.Data != null)
                     {
                         writer.Write(node.Data);
                     }
                 }
+                writer.BaseStream.Seek(nodeLenPos, SeekOrigin.Begin);
+                writer.Write((int)nodeLen);
+                return new UtfStatistics(nodeCount, stringBlock.Length, (int)nodeLen, dataSection.Length,
+                    dataSection.BytesSaved).AsResult();
             }
-            return true.AsResult();
         }
 
-        static void WriteNodeV2(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff,
-            DataSection data, ref int myIdx, bool last)
+        static void WriteNodeV2(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, DataSection data)
         {
-            writer.Write(strOff[node.Name]); //nameOffset
+            writer.WriteVarUInt64((ulong)strOff[node.Name]); //nameOffset
             if (node.Data != null)
             {
-                myIdx++;
-                if (!last)
-                    writer.Write(myIdx);
-                else
-                    writer.Write((uint) 0);
-                if (node.Data.Length > 8)
-                {
-                    writer.Write((byte) 1); //Type 1: Data Offset + Size
-                    writer.Write(data.GetOffset(node));
-                    writer.Write(node.Data.Length);
-                }
-                else
-                {
-                    writer.Write((byte)(node.Data.Length + 1)); //Type 2-9: Embedded Data
-                    writer.Write(node.Data);
-                    for (int i = node.Data.Length; i < 8; i++)
-                    {
-                        writer.Write((byte) 0); //padding
-                    }
-                }
+                writer.Write((byte)0);
+                writer.WriteVarUInt64((ulong)data.GetOffset(node));
+                writer.WriteVarUInt64((ulong)node.Data.Length);
             }
             else
             {
-                long indexPos = writer.BaseStream.Position;
-                writer.Write((uint) 0); //sibling index
-                writer.Write((byte) 0); //folder
-                myIdx++;
-                writer.Write(myIdx);
-                writer.Write((uint) 0); //padding
+                writer.Write((byte)1);
+                writer.WriteVarUInt64((ulong)node.Children.Count);
                 for (int i = 0; i < node.Children.Count; i++)
                 {
-                    WriteNodeV2(node.Children[i], writer, strOff, data,ref myIdx, i == (node.Children.Count - 1));
-                }
-                if (!last)
-                {
-                    //write sibling index
-                    var mPos = writer.BaseStream.Position;
-                    writer.BaseStream.Seek(indexPos, SeekOrigin.Begin);
-                    writer.Write(myIdx);
-                    writer.BaseStream.Seek(mPos, SeekOrigin.Begin);
+                    WriteNodeV2(node.Children[i], writer, strOff, data);
                 }
             }
         }
-
-
 
         class DataSection
         {
             public int BytesSaved = 0;
 
-            private Dictionary<LUtfNode, int> dataOffsets = new Dictionary<LUtfNode, int>();
+            private Dictionary<LUtfNode, int> dataOffsets = new();
+            private Dictionary<ulong, List<(byte[] Data, int Offset)>> allocated = new();
             private int currentDataOffset = 0;
 
             public int Length => currentDataOffset;
 
-            private List<(byte[] Data, ulong Hash, int Offset)> allocated =
-                new List<(byte[] Data, ulong Hash, int Offset)>();
 
             private bool v2;
             public DataSection(bool v2)
@@ -307,33 +234,35 @@ namespace LibreLancer.ContentEdit
                 int dataAlloc = v2 ? node.Data.Length : node.Data.Length + 3 & ~3;
                 node.Write = true;
                 var hash = FNV1A64(node.Data);
-                int i;
-                for (i = 0; i < allocated.Count; i++)
+                if (allocated.TryGetValue(hash, out var nodeList))
                 {
-                    if (allocated[i].Data == node.Data) //Compare by reference first
-                        break;
-                    if (allocated[i].Hash == hash && node.Data.Length == allocated[i].Data.Length)
+                    int i;
+                    for (i = 0; i < nodeList.Count; i++)
                     {
-                        int j;
-                        for (j = 0; j < node.Data.Length; j++)
-                        {
-                            if (node.Data[j] != allocated[i].Data[j])
-                                break;
-                        }
-                        if (j == node.Data.Length)
+                        if (nodeList[i].Data == node.Data ||
+                            node.Data.AsSpan().SequenceEqual(nodeList[i].Data.AsSpan()))
                             break;
                     }
-                }
-                if (i == allocated.Count) {
-                    allocated.Add(( node.Data, hash, currentDataOffset));
-                    dataOffsets[node] = currentDataOffset;
-                    currentDataOffset += dataAlloc;
+                    if (i == nodeList.Count)
+                    {
+                        nodeList.Add((node.Data, currentDataOffset));
+                        dataOffsets[node] = currentDataOffset;
+                        currentDataOffset += dataAlloc;
+                    }
+                    else
+                    {
+                        dataOffsets[node] = nodeList[i].Offset;
+                        BytesSaved += node.Data.Length;
+                        node.Write = false;
+                    }
                 }
                 else
                 {
-                    dataOffsets[node] = allocated[i].Offset;
-                    BytesSaved += node.Data.Length;
-                    node.Write = false;
+                    nodeList = new List<(byte[] Data, int Offset)>();
+                    allocated.Add(hash, nodeList);
+                    nodeList.Add((node.Data, currentDataOffset));
+                    dataOffsets[node] = currentDataOffset;
+                    currentDataOffset += dataAlloc;
                 }
             }
 
@@ -341,15 +270,17 @@ namespace LibreLancer.ContentEdit
         }
 
 
-        EditResult<bool> SaveV1(string filename)
+        EditResult<UtfStatistics> SaveV1(string filename)
 		{
             Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
 			List<string> strings = new List<string>();
 			using (var writer = new BinaryWriter(File.Create(filename)))
 			{
                 var dataSection = new DataSection(false);
+                int nodeCount = 0;
 				foreach (var node in Root.IterateAll())
-				{
+                {
+                    nodeCount++;
 					if (!strings.Contains(node.Name)) strings.Add(node.Name);
 					dataSection.AddNode(node);
 				}
@@ -375,7 +306,7 @@ namespace LibreLancer.ContentEdit
                 {
                     var res = WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataSection, true);
                     if (res.IsError)
-                        return res;
+                        return new EditResult<UtfStatistics>(default, res.Messages);
                     nodeBlock = mem.ToArray();
                 }
 
@@ -402,8 +333,6 @@ namespace LibreLancer.ContentEdit
 				writer.Write(stringBlock);
                 for(int i = 0; i < (strAlloc - stringBlock.Length); i++)
                     writer.Write((byte)0);
-                stringBlock = null;
-                nodeBlock = null;
 				//write out data block
 				foreach (var node in Root.IterateAll())
 				{
@@ -415,8 +344,9 @@ namespace LibreLancer.ContentEdit
                             writer.Write((byte)0);
 					}
 				}
+                return new UtfStatistics(nodeCount, stringBlock.Length, (int)nodeBlock.Length, dataSection.Length,
+                    dataSection.BytesSaved).AsResult();
 			}
-            return true.AsResult();
 		}
 		EditResult<bool> WriteNode(LUtfNode node, BinaryWriter writer, Dictionary<string, int> strOff, DataSection dataSection, bool last)
 		{
@@ -441,16 +371,12 @@ namespace LibreLancer.ContentEdit
 				return true.AsResult();
 			}
 
-            if(node.Children == null ||
-               node.Children.Count == 0)
-                return EditResult<bool>.Error("Cannot save empty node " + node.Name);
-
 			long startPos = writer.BaseStream.Position;
 			writer.Write((int)0); //peerOffset
 			writer.Write(strOff[node.Name]);
 			writer.Write((int)LL.NodeFlags.Intermediate); //intermediateNode
 			writer.Write((int)0); //padding
-			writer.Write((int)(writer.BaseStream.Position + 28)); //children start immediately after node
+			writer.Write(node.Children.Count == 0 ? 0 : (int)(writer.BaseStream.Position + 28)); //children start immediately after node
             writer.Write((int)0); //allocatedSize
             writer.Write((int)0); //usedSize
             writer.Write((int)0); //uncompressedSize
@@ -482,7 +408,6 @@ namespace LibreLancer.ContentEdit
 		public List<LUtfNode> Children;
 		public LUtfNode Parent;
 		public byte[] Data;
-        internal byte[] CompressedData;
         internal bool Write = true;
 
         public string StringData

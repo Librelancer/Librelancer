@@ -151,7 +151,7 @@ public class LrpkPack
                     f.CopyTo(comp);
                 var ratio = (double)mem.Length / f.Length;
                 item.TestRatio = (ratio * 100);
-                if (ratio <= 0.80)
+                if (ratio <= 0.95)
                     item.Method = PackMethod.Zstandard;
                 else
                 {
@@ -161,7 +161,7 @@ public class LrpkPack
                     using (var comp = new CompressionStream(mem, 18))
                         f.CopyTo(comp);
                     ratio = (double)mem.Length / f.Length;
-                    item.Method = ratio <= 0.80 ? PackMethod.Zstandard : PackMethod.Uncompressed;
+                    item.Method = ratio <= 0.95 ? PackMethod.Zstandard : PackMethod.Uncompressed;
                     item.TestRatio = (ratio * 100);
                 }
             }
@@ -174,8 +174,8 @@ public class LrpkPack
                 else
                 {
                     var rstring = item.Method == PackMethod.Uncompressed
-                        ? $"{item.TestRatio:F2}% > 80%"
-                        : $"{item.TestRatio:F2}% <= 80%";
+                        ? $"{item.TestRatio:F2}% > 95%"
+                        : $"{item.TestRatio:F2}% <= 95%";
                     Log($"{item.Method.ToString().ToUpper()}: {fullPath} (auto-detected {rstring})");
                 }
             }
@@ -266,7 +266,7 @@ public class LrpkPack
         {
             writer.Write((byte)0);
             writer.WriteStringUTF8(item.Name);
-            writer.Write7BitEncodedInt(item.Children.Count);
+            writer.WriteVarUInt64((ulong)item.Children.Count);
             foreach(var child in item.Children)
                 WriteTree(writer, child);
         }
@@ -284,8 +284,8 @@ public class LrpkPack
             writer.WriteStringUTF8(item.Name);
             if (type != 1)
             {
-                writer.Write7BitEncodedInt64(item.Offset);
-                writer.Write7BitEncodedInt64(item.Length);
+                writer.WriteVarUInt64((ulong)item.Offset);
+                writer.WriteVarUInt64((ulong)item.Length);
             }
         }
     }
@@ -330,7 +330,6 @@ public class LrpkPack
         compressTask.Wait();
         compWriteItems.CompleteAdding();
         compWriteTask.Wait();
-
         Log?.Invoke("Adding uncompressed files");
         // Copying is fast
         foreach(var toCopy in IteratePack(sourceRoot, "").Where(x => x.Item.Method == PackMethod.Uncompressed))
@@ -351,8 +350,8 @@ public class LrpkPack
         outputStream.Seek(fullLength, SeekOrigin.Begin);
         if (hasBlock0) {
             outputWriter.Write((byte)1);
-            outputWriter.Write7BitEncodedInt64(block0Offset);
-            outputWriter.Write7BitEncodedInt64(block0Length);
+            outputWriter.WriteVarUInt64((ulong)block0Offset);
+            outputWriter.WriteVarUInt64((ulong)block0Length);
         }
         else {
             outputWriter.Write((byte)0);

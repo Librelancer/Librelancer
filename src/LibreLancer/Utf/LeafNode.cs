@@ -203,24 +203,11 @@ namespace LibreLancer.Utf
 
         private static readonly byte[] empty = new byte[0];
 
-        internal static LeafNode LeafV2(int siblingIndex, string name, BinaryReader reader, byte type, byte[] dataBlock)
+        internal static LeafNode LeafV2(string name, BinaryReader reader, byte[] dataBlock)
         {
-            if (type == 1) //Data block
-            {
-                int start = reader.ReadInt32();
-                int len = reader.ReadInt32();
-                return new LeafNode(name, dataBlock, start, len) { PeerOffset = siblingIndex };
-            }
-            else if (type >= 2 && type <= 9) //Embedded
-            {
-                var dataLen = (type - 1);
-                var data = reader.ReadBytes(dataLen);
-                return new LeafNode(name, data) { PeerOffset = siblingIndex };
-            }
-            else
-            {
-                throw new Exception("Invalid node type!");
-            }
+            int start = (int)reader.ReadVarUInt64();
+            int len = (int)reader.ReadVarUInt64();
+            return new LeafNode(name, dataBlock, start, len);
         }
         public LeafNode(int peerOffset, string name, BinaryReader reader, byte[] dataBlock)
             : base(peerOffset, name)

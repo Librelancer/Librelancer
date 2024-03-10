@@ -40,7 +40,7 @@ public sealed class LrpkFileSystem : BaseFileSystemProvider
         var blockCount = reader.ReadByte();
         BlockInfo[] blocks = new BlockInfo[blockCount];
         for (int i = 0; i < blockCount; i++)
-            blocks[i] = new BlockInfo(reader.Read7BitEncodedInt64(), reader.Read7BitEncodedInt64());
+            blocks[i] = new BlockInfo((long)reader.ReadVarUInt64(), (long)reader.ReadVarUInt64());
         var cache = new BlockCache(blocks, openStream);
         //Read VFS Tree
         Root = (VfsDirectory)ReadEntry(reader, openStream, cache, null);
@@ -149,7 +149,7 @@ public sealed class LrpkFileSystem : BaseFileSystemProvider
         var name = reader.ReadStringUTF8();
         if (kind == 0)
         {
-            var count = reader.Read7BitEncodedInt();
+            var count = (int)reader.ReadVarUInt64();
             var dir = new VfsDirectory() { Parent = parent };
             dir.Name = name;
             for (int i = 0; i < count; i++)
@@ -165,21 +165,21 @@ public sealed class LrpkFileSystem : BaseFileSystemProvider
         }
         else if (kind == 2)
         {
-            var off = reader.Read7BitEncodedInt64();
-            var length = reader.Read7BitEncodedInt64();
+            var off = (long)reader.ReadVarUInt64();
+            var length = (long)reader.ReadVarUInt64();
             return new LrpkOffsetFile() { Name = name, Offset = off, Length = length, GetFileStream = getFileStream };
         }
         else if (kind == 3)
         {
-            var off = reader.Read7BitEncodedInt64();
-            var length = reader.Read7BitEncodedInt64();
+            var off = (long)reader.ReadVarUInt64();
+            var length = (long)reader.ReadVarUInt64();
             return new LrpkZstdFile() { Name = name, Offset = off, Length = length, GetFileStream = getFileStream };
         }
         else
         {
             var blockIndex = kind - 4;
-            var off = reader.Read7BitEncodedInt64();
-            var length = reader.Read7BitEncodedInt64();
+            var off = (long)reader.ReadVarUInt64();
+            var length = (long)reader.ReadVarUInt64();
             return new LrpkBlockFile()
                 { Name = name, Block = blockIndex, Offset = off, Length = length, Cache = blockCache };
         }

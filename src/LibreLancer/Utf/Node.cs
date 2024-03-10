@@ -24,19 +24,15 @@ namespace LibreLancer.Utf
             this.Name = name;
         }
 
-        public static Node FromStreamV2(BinaryReader reader, int index, StringBlock stringBlock, byte[] dataBlock)
+        public static Node FromStreamV2(BinaryReader reader, StringBlock stringBlock, byte[] dataBlock)
         {
-            reader.BaseStream.Seek(index * 17, SeekOrigin.Begin);
-            var nameOffset = reader.ReadInt32();
-            var siblingIndex = reader.ReadInt32();
+            var nameOffset = (int)reader.ReadVarUInt64();
             var name = stringBlock.GetString(nameOffset);
             var type = reader.ReadByte();
             if (type == 0)
-                return IntermediateNode.IntermediateV2(siblingIndex, name, reader, stringBlock, dataBlock);
+                return LeafNode.LeafV2(name, reader, dataBlock);
             else
-            {
-                return LeafNode.LeafV2(siblingIndex, name, reader, type, dataBlock);
-            }
+                return IntermediateNode.IntermediateV2(name, reader, stringBlock, dataBlock);
         }
         public static Node FromStream(BinaryReader reader, int offset, StringBlock stringBlock, byte[] dataBlock)
         {

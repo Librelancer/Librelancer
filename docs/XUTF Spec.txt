@@ -10,6 +10,105 @@ uint32 string block length
 uint32 node block length
 uint32 data block length
 
+VARINT ENCODING
+=====
+To enable a unique bit pattern for each integer,
+each new byte in the variable int encoding represents
+the previous minimum value + the new bit encoding
+
+Example Encode:
+
+if (u <= 127)
+{
+    PutByte((byte) u);
+}
+else if (u <= 16511)
+{
+    u -= 128;
+    PutByte((byte) ((u & 0x7f) | 0x80));
+    PutByte((byte) ((u >> 7) & 0x7f));
+}
+else if (u <= 2113662)
+{
+    u -= 16512;
+    PutByte((byte) ((u & 0x7f) | 0x80));
+    PutByte((byte) (((u >> 7) & 0x7f) | 0x80));
+    PutByte((byte) ((u >> 14) & 0x7f));
+}
+else if (u <= 270549118)
+{
+    u -= 2113663;
+    PutByte((byte) ((u & 0x7f) | 0x80));
+    PutByte((byte) (((u >> 7) & 0x7f) | 0x80));
+    PutByte((byte) (((u >> 14) & 0x7f) | 0x80));
+    PutByte((byte) ((u >> 21) & 0x7f));
+}
+else
+{
+    u -= 270549119;
+    PutByte((byte) ((u & 0x7f) | 0x80));
+    PutByte((byte) (((u >> 7) & 0x7f) | 0x80));
+    PutByte((byte) (((u >> 14) & 0x7f) | 0x80));
+    PutByte((byte) (((u >> 21) & 0x7f) | 0x80));
+    PutByte((byte) ((u >> 28) & 0x7f));
+}
+
+Example Decode:
+
+int b = GetByte();
+uint a = (uint) (b & 0x7f);
+int extraCount = 0;
+//first extra
+if ((b & 0x80) == 0x80)
+{
+    b = GetByte();
+    a |= (uint) ((b & 0x7f) << 7);
+    extraCount++;
+}
+
+//second extra
+if ((b & 0x80) == 0x80)
+{
+    b = GetByte();
+    a |= (uint) ((b & 0x7f) << 14);
+    extraCount++;
+}
+
+//third extra
+if ((b & 0x80) == 0x80)
+{
+    b = GetByte();
+    a |= (uint) ((b & 0x7f) << 21);
+    extraCount++;
+}
+
+//fourth extra
+if ((b & 0x80) == 0x80)
+{
+    b = GetByte();
+    a |= (uint) ((b & 0x7f) << 28);
+    extraCount++;
+}
+
+switch (extraCount)
+{
+    case 1:
+        a += 128;
+        break;
+    case 2:
+        a += 16512;
+        break;
+    case 3:
+        a += 2113663;
+        break;
+    case 4:
+        a += 270549119;
+        break;
+}
+return a;
+
+
+
 
 STRING BLOCK
 ======
@@ -24,30 +123,16 @@ byte[length] utf8data
 NODE BLOCK
 =====
 
-Immediately after string block.
-Struct size: 17 bytes Fixed.
-Calculate offset of node data with: (17 + string block length + index * 17)
-Embedded data padded out to full 8 bytes on write
+varint nameOffset - refers to the start of a string in the string block
+byte type - 0 for file, 1 for directory
 
-uint32 nameOffset
-uint32 siblingIndex
-byte enum nodetype
-    0 - Folder
-    1 - File (Data Offset/Size)
-    2-9 - File (Embedded Data 1-8 bytes in size)
-    10 - Deflate Compressed File (Data Offset/Size)
-    11-255 - Reserved
-union {
-    uint32 childIndex
-    uint32 dataOffset
-    uint32 embeddedData
-}
-union {
-    uint32 padding
-    uint32 dataSize
-    uint32 embeddedData2
-}
+type 0:
+varint data offset - from start of data block
+varint data length
 
+type 1:
+varint node count
+node[node count] children
 
 DATA BLOCK
 =====

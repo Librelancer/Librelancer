@@ -93,6 +93,9 @@
         </None>
         <None Remove="BlueprintBackground.png" />
         <EmbeddedResource Include="BlueprintBackground.png" />
+        <None Update="editorscripts\lrpk-pack.cs-script">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>
