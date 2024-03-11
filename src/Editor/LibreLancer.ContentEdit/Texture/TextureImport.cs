@@ -70,10 +70,10 @@ namespace LibreLancer.ContentEdit
                         };
                     }
                 }
-                Generic.LoadResult lr;
+                Image lr;
                 using (var file = File.OpenRead(input))
                 {
-                    lr = Generic.BytesFromStream(file);
+                    lr = Generic.ImageFromStream(file);
                 }
                 if (lr.Width != lr.Height)
                     return new AnalyzedTexture() {Type = TexLoadType.ErrorNonSquare};
@@ -107,11 +107,11 @@ namespace LibreLancer.ContentEdit
                 return new AnalyzedTexture() {Type = TexLoadType.ErrorLoad};
             }
         }
-        static Generic.LoadResult ReadFile(string input, bool flip)
+        static Image ReadFile(string input, bool flip)
         {
             using (var file = File.OpenRead(input))
             {
-                return Generic.BytesFromStream(file, flip);
+                return Generic.ImageFromStream(file, flip);
             }
         }
         static byte[] TargaRGBA(byte[] data, int width, int height)
@@ -170,7 +170,7 @@ namespace LibreLancer.ContentEdit
                     return new LUtfNode() {Name = "MIPS", Data = data, Parent = parent};
                 else
                 {
-                    var raw =  Generic.BytesFromStream(ms, false);
+                    var raw =  Generic.ImageFromStream(ms, false);
                     data =  Crunch.CompressDDS(raw.Data, raw.Width, raw.Height, CrnglueFormat.DXT5, CrnglueMipmaps.LANCZOS4, false);
                     return new LUtfNode() {Name = "MIPS", Data = data, Parent = parent };
                 }

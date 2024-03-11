@@ -11,22 +11,11 @@ namespace LibreLancer.ImageLib
 {
     public static class Generic
     {
-        public static Texture2D FromFile(RenderContext context, string file)
+        public static Image ImageFromStream(Stream stream, bool flip = false)
         {
-            using(var stream = File.OpenRead(file)) {
-                return (Texture2D)FromStream (context, stream);
-            }
-        }
+            if (LIF.StreamIsLIF(stream))
+                return LIF.ImagesFromStream(stream)[0];
 
-        public struct LoadResult
-        {
-            public int Width;
-            public int Height;
-            public byte[] Data;
-        }
-
-        public static LoadResult BytesFromStream(Stream stream, bool flip = false)
-        {
             int len = (int)stream.Length;
             byte[] b = new byte[len];
             int pos = 0;
@@ -38,17 +27,23 @@ namespace LibreLancer.ImageLib
             /* stb_image it */
             StbImage.stbi_set_flip_vertically_on_load(flip ? 1 : 0);
             ImageResult image = ImageResult.FromMemory(b, ColorComponents.RedGreenBlueAlpha);
-            return new LoadResult()
+            return new Image()
             {
                 Width = image.Width, Height = image.Height, Data = image.Data
             };
         }
 
-        public static unsafe Texture FromStream(RenderContext context, Stream stream, bool flip = true)
+        public static unsafe Texture TextureFromStream(RenderContext context, Stream stream, bool flip = true)
         {
-            if (DDS.StreamIsDDS (stream)) {
+            if (DDS.StreamIsDDS(stream))
+            {
                 return DDS.FromStream(context, stream);
-            } else {
+            }
+            else if (LIF.StreamIsLIF(stream))
+            {
+                return LIF.TextureFromStream(context, stream);
+            }
+            else {
                 /* Read full stream */
                 int len = (int)stream.Length;
                 byte[] b = new byte[len];

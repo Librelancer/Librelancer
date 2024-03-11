@@ -435,8 +435,10 @@ namespace LancerEdit
                         {
                             if (DDS.StreamIsDDS(stream))
                                 tex = DDS.FromStream(main.RenderContext, stream);
+                            else if (LIF.StreamIsLIF(stream))
+                                tex = LIF.TextureFromStream(main.RenderContext, stream);
                             else
-                                tex = TGA.FromStream(main.RenderContext, stream);
+                                tex = TGA.TextureFromStream(main.RenderContext, stream);
                         }
                         var title = string.Format("{0} ({1})", selectedNode.Name, Title);
                         if (tex is Texture2D tex2d)

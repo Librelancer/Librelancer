@@ -85,7 +85,7 @@ namespace LibreLancer.Interface
                 var file = DataPath + filename;
                 if (!loadedFiles.ContainsKey(file))
                 {
-                    var f = ImageLib.Generic.FromStream(ResourceManager.GLWindow.RenderContext, FileSystem.Open(file));
+                    var f = ImageLib.Generic.TextureFromStream(ResourceManager.GLWindow.RenderContext, FileSystem.Open(file));
                     if (f is Texture2D t2d)
                         loadedFiles[file] = t2d;
                     else

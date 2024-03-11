@@ -32,7 +32,7 @@ public struct NodeBuilder : IDisposable
             return;
 
         using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.BlueprintBackground.png");
-        var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(context, stream);
+        var icon = (Texture2D)LibreLancer.ImageLib.Generic.TextureFromStream(context, stream);
         HeaderTextureId = ImGuiHelper.RegisterTexture(icon);
         HeaderTextureWidth = icon.Width;
         HeaderTextureHeight = icon.Height;

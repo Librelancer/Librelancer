@@ -270,7 +270,7 @@ namespace LibreLancer
 		public void AddTexture(string name,string filename)
         {
             using var stream = VFS.Open(filename);
-			var dat = ImageLib.Generic.FromStream(GLWindow.RenderContext, stream);
+			var dat = ImageLib.Generic.TextureFromStream(GLWindow.RenderContext, stream);
 			textures.Add(name, dat);
 			texturefiles.Add(name, filename);
             EstimatedTextureMemory += dat.EstimatedTextureMemory;

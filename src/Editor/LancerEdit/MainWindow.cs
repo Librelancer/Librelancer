@@ -101,7 +101,7 @@ namespace LancerEdit
         {
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.splash.png"))
             {
-                return (Texture2D)LibreLancer.ImageLib.Generic.FromStream(RenderContext, stream);
+                return (Texture2D)LibreLancer.ImageLib.Generic.TextureFromStream(RenderContext, stream);
             }
         }
 
@@ -162,12 +162,12 @@ namespace LancerEdit
             //TODO: Icon-setting code very messy
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png"))
             {
-                var icon = LibreLancer.ImageLib.Generic.BytesFromStream(stream);
+                var icon = LibreLancer.ImageLib.Generic.ImageFromStream(stream);
                 SetWindowIcon(icon.Width, icon.Height, icon.Data);
             }
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_128.png"))
             {
-                var icon = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(RenderContext, stream);
+                var icon = (Texture2D)LibreLancer.ImageLib.Generic.TextureFromStream(RenderContext, stream);
                 logoTexture = ImGuiHelper.RegisterTexture(icon);
             }
             //Open passed in files!

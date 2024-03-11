@@ -1,6 +1,6 @@
 using System;
+using System.Buffers.Binary;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -11,13 +11,16 @@ public static class ReadWriteExtensions
     public static void WriteInt32BE(this BinaryWriter writer, int val)
     {
         if (BitConverter.IsLittleEndian)
-        {
-            var bytes = BitConverter.GetBytes(val);
-            for (int i = 3; i >= 0; i--)
-                writer.Write(bytes[i]);
-        }
+            writer.Write(BinaryPrimitives.ReverseEndianness(val));
         else
             writer.Write(val);
+    }
+
+    public static int ReadInt32BE(this BinaryReader reader)
+    {
+        return BitConverter.IsLittleEndian
+            ? BinaryPrimitives.ReverseEndianness(reader.ReadInt32())
+            : reader.ReadInt32();
     }
 
     public static void Skip(this BinaryReader reader, int size)

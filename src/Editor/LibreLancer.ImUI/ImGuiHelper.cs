@@ -122,7 +122,7 @@ namespace LibreLancer.ImUI
         {
             using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream($"LibreLancer.ImUI.{path}"))
             {
-                var tex = (Texture2D)LibreLancer.ImageLib.Generic.FromStream(context, stream);
+                var tex = (Texture2D)LibreLancer.ImageLib.Generic.TextureFromStream(context, stream);
                 return (tex, RegisterTexture(tex));
             }
         }

@@ -107,7 +107,6 @@ namespace LibreLancer.ContentEdit
             {
                 if(node.Children == null && node.Data == null)
                 {
-
                     return EditResult<UtfStatistics>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
                 }
             }

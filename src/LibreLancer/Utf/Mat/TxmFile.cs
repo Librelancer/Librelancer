@@ -46,7 +46,6 @@ namespace LibreLancer.Utf.Mat
 				}
 				else
 				{
-					//TODO: Mipmapping
 					foreach (var node in textureNode)
 					{
 						var n = node.Name.ToLowerInvariant().Trim();
@@ -61,6 +60,13 @@ namespace LibreLancer.Utf.Mat
 							isTgaMips = false;
 							break;
 						}
+
+                        if (n == "mipu")
+                        {
+                            child = node as LeafNode;
+                            isTgaMips = false;
+                            break;
+                        }
 						if (n == "fps")
 						{
 							isTexture = false;
@@ -84,7 +90,7 @@ namespace LibreLancer.Utf.Mat
 					if (Textures.ContainsKey(key))
 					{
 						FLLog.Error("Txm", "Duplicate texture " + key + " in texture library");
-					} else 
+					} else
 						Textures.Add(key, data);
 				}
 				else {

@@ -53,8 +53,29 @@ namespace LibreLancer.ImageLib
         private const int RGB = 2;
         private const int BW = 3;
 
-        public static Texture2D FromStream(RenderContext context, Stream stream, bool hasMipMaps = false, Texture2D target = null,
+        public static Texture2D TextureFromStream(RenderContext context, Stream stream, bool hasMipMaps = false,
+            Texture2D target = null,
             int mipLevel = -1)
+        {
+            int channels = 0;
+            if (target != null)
+                channels = target.Format == SurfaceFormat.Bgra5551 ? 2 : 4;
+            var image = ImageFromStream(stream, channels);
+            if (target == null)
+            {
+                var tex = new Texture2D(context, image.Width, image.Height, hasMipMaps, image.Format);
+                tex.SetData(image.Data);
+                tex.WithAlpha = image.Alpha;
+                return tex;
+            }
+            else
+            {
+                target.SetData(mipLevel, null, image.Data, 0, image.Data.Length);
+                return null;
+            }
+        }
+
+        public static Image ImageFromStream(Stream stream, int channels = 0)
         {
             var reader = new BinaryReader(stream);
             var header = reader.ReadStruct<TGAHeader>();
@@ -185,8 +206,8 @@ namespace LibreLancer.ImageLib
 
             //Conversion of texture data - if necessary
             int targetBytesPerPixel = 0;
-            if (target != null)
-                targetBytesPerPixel = target.Format == SurfaceFormat.Color ? 4 : 2;
+            if (channels != 0)
+                targetBytesPerPixel = channels;
             else if (bytesPerPixel == 3)
                 targetBytesPerPixel = 4;
             else
@@ -241,19 +262,13 @@ namespace LibreLancer.ImageLib
                     throw new NotImplementedException($"Convert from {bytesPerPixel} bytes to {targetBytesPerPixel}");
                 }
             }
-            if (target == null)
+
+            return new Image()
             {
-                var tex = new Texture2D(context, header.Width, header.Height, hasMipMaps, bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Color);
-                tex.SetData(targetData);
-                if (bytesPerPixel != 4 || imageType == 1)
-                    tex.WithAlpha = false;
-                return tex;
-            }
-            else
-            {
-                target.SetData(mipLevel, null, targetData, 0, targetData.Length);
-                return null;
-            }
+                Alpha = bytesPerPixel == 4 && imageType != 1, Data = targetData,
+                Format = bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Color,
+                Width = header.Width, Height = header.Height
+            };
         }
     }
 }
