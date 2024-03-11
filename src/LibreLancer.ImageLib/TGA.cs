@@ -257,6 +257,22 @@ namespace LibreLancer.ImageLib
                         dst[i] = 0xFF000000 | (b << 16) | (g << 8) | r;
                     }
                 }
+                else if ((bytesPerPixel == 3 || bytesPerPixel == 4) && targetBytesPerPixel == 2)
+                {
+                    var dst = MemoryMarshal.Cast<byte, ushort>(targetData);
+                    for (int i = 0; i < header.Width * header.Height; i++)
+                    {
+                        var j = i * bytesPerPixel;
+                        var r = (uint) tgaData[j];
+                        var g = (uint) tgaData[j + 1];
+                        var b = (uint) tgaData[j + 2];
+
+                        dst[i] = (ushort)(32768 |
+                                          ((r >> 3) << 10) |
+                                          ((g >> 3) << 5) |
+                                          ((b >> 3)));
+                    }
+                }
                 else
                 {
                     throw new NotImplementedException($"Convert from {bytesPerPixel} bytes to {targetBytesPerPixel}");
