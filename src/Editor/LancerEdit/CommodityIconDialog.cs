@@ -19,6 +19,7 @@ namespace LancerEdit
     {
         private string texFilename;
         private string iconName = "";
+        private string warning = "";
         private Texture2D teximportprev;
         private int teximportid;
         private bool compress = false;
@@ -44,15 +45,14 @@ namespace LancerEdit
             }
 
             var src = TextureImport.OpenFile(filename, win.RenderContext);
-            loadType = src.Type;
-            teximportprev = src.Texture;
-            if (loadType == TexLoadType.ErrorLoad ||
-                loadType == TexLoadType.ErrorNonSquare ||
-                loadType == TexLoadType.ErrorNonPowerOfTwo)
+            if (src.IsError)
             {
                 win.ErrorDialog(TextureImport.LoadErrorString(loadType, filename));
                 return;
             }
+            loadType = src.Data.Type;
+            teximportprev = src.Data.Texture;
+            warning = src.AllMessages();
             teximportid = ImGuiHelper.RegisterTexture(teximportprev);
             doOpen = true;
             this.tmp = tmp;
@@ -77,6 +77,11 @@ namespace LancerEdit
                 ImGui.Image((IntPtr)teximportid, new Vector2(128, 128),
                     new Vector2(0, dds ? 1 : 0), new Vector2(1, dds ? 0 : 1), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
+                if (warning != null) {
+                    ImGui.PushStyleColor(ImGuiCol.Text, Color4.Orange);
+                    ImGui.TextWrapped(warning);
+                    ImGui.PopStyleColor();
+                }
                 if (dds)
                 {
                     ImGui.Text("Input file is .dds");

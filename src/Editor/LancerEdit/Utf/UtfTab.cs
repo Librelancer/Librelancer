@@ -429,8 +429,10 @@ namespace LancerEdit
                 if (ImGui.Button("Texture Viewer"))
                 {
                     Texture tex = null;
+                    #if !DEBUG
                     try
                     {
+                    #endif
                         using (var stream = new MemoryStream(selectedNode.Data))
                         {
                             if (DDS.StreamIsDDS(stream))
@@ -451,15 +453,13 @@ namespace LancerEdit
                             var tab = new CubemapViewer(title, texcube, main);
                             main.AddTab(tab);
                         }
+                    #if !DEBUG
                     }
                     catch (Exception ex)
                     {
-                        #if DEBUG
-                        throw;
-                        #else
                         ErrorPopup("Node data couldn't be opened as texture:\n" + ex.Message);
-                        #endif
                     }
+                    #endif
                 }
 
                 if (main.PlayingBuffer)
@@ -562,21 +562,20 @@ namespace LancerEdit
             FileDialog.Open(path =>
             {
                 var src = TextureImport.OpenFile(path, main.RenderContext);
-                if (src.Type == TexLoadType.ErrorLoad ||
-                    src.Type == TexLoadType.ErrorNonSquare ||
-                    src.Type == TexLoadType.ErrorNonPowerOfTwo)
+                if(src.IsError)
                 {
-                    main.ErrorDialog(TextureImport.LoadErrorString(src.Type, path));
+                    main.ResultMessages(src);
                 }
-                else if (src.Type == TexLoadType.DDS)
+                else if (src.Data.Type == TexLoadType.DDS)
                 {
-                    src.Texture.Dispose();
+                    src.Data.Texture.Dispose();
                     selectedNode.Children = null;
                     selectedNode.Data = File.ReadAllBytes(path);
                 }
                 else
                 {
-                    teximportprev = src.Texture;
+                    teximportprev = src.Data.Texture;
+                    teximportwarn = src.AllMessages();
                     teximportpath = path;
                     teximportid = ImGuiHelper.RegisterTexture(teximportprev);
                     popups.OpenPopup("Texture Import");

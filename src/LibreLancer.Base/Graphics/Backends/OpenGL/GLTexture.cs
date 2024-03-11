@@ -79,7 +79,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             int i = 0;
             while (i < level) {
                 width /= 2;
+                if (width < 1) width = 1;
                 height /= 2;
+                if (height < 1) height = 1;
                 i++;
             }
         }

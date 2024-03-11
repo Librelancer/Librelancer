@@ -55,7 +55,7 @@ namespace LibreLancer.ContentEdit
                 default: throw new InvalidOperationException();
             }
         }
-        public static AnalyzedTexture OpenFile(string input, RenderContext context)
+        public static EditResult<AnalyzedTexture> OpenFile(string input, RenderContext context)
         {
             try
             {
@@ -63,11 +63,11 @@ namespace LibreLancer.ContentEdit
                 {
                     if (DDS.StreamIsDDS(file))
                     {
-                        return new AnalyzedTexture()
+                        return (new AnalyzedTexture()
                         {
                             Type = TexLoadType.DDS,
                             Texture = (Texture2D)DDS.FromStream(context, file)
-                        };
+                        }).AsResult();
                     }
                 }
                 Image lr;
@@ -75,36 +75,40 @@ namespace LibreLancer.ContentEdit
                 {
                     lr = Generic.ImageFromStream(file);
                 }
+
+                EditMessage[] warning = Array.Empty<EditMessage>();
                 if (lr.Width != lr.Height)
-                    return new AnalyzedTexture() {Type = TexLoadType.ErrorNonSquare};
-               if(!MathHelper.IsPowerOfTwo(lr.Width) ||
-                  !MathHelper.IsPowerOfTwo(lr.Height))
-                   return new AnalyzedTexture() { Type = TexLoadType.ErrorNonPowerOfTwo};
-               bool opaque = true;
-               //Swap channels + check alpha
-               for (int i = 0; i < lr.Data.Length; i += 4)
-               {
-                   var R = lr.Data[i];
-                   var B = lr.Data[i + 2];
-                   var A = lr.Data[i + 3];
-                   lr.Data[i + 2] = R;
-                   lr.Data[i] = B;
-                   if (A != 255)
-                   {
-                       opaque = false;
-                   }
-               }
-               var tex = new Texture2D(context, lr.Width, lr.Height);
-               tex.SetData(lr.Data);
-               return new AnalyzedTexture()
-               {
-                   Type = opaque ? TexLoadType.Opaque : TexLoadType.Alpha,
-                   Texture = tex
-               };
+                {
+                    warning = new[] { EditMessage.Warning($"Dimensions of {input} are not square") };
+                }
+                if (!MathHelper.IsPowerOfTwo(lr.Width) ||
+                    !MathHelper.IsPowerOfTwo(lr.Height))
+                    return EditResult<AnalyzedTexture>.Error($"Dimensions of {input} are not powers of two");
+                var opaque = true;
+                //Swap channels + check alpha
+                for (int i = 0; i < lr.Data.Length; i += 4)
+                {
+                    var R = lr.Data[i];
+                    var B = lr.Data[i + 2];
+                    var A = lr.Data[i + 3];
+                    lr.Data[i + 2] = R;
+                    lr.Data[i] = B;
+                    if (A != 255)
+                    {
+                        opaque = false;
+                    }
+                }
+                var tex = new Texture2D(context, lr.Width, lr.Height);
+                tex.SetData(lr.Data);
+                return new EditResult<AnalyzedTexture>(new AnalyzedTexture()
+                {
+                    Type = opaque ? TexLoadType.Opaque : TexLoadType.Alpha,
+                    Texture = tex
+                }, warning);
             }
             catch (Exception e)
             {
-                return new AnalyzedTexture() {Type = TexLoadType.ErrorLoad};
+                return EditResult<AnalyzedTexture>.Error($"Could not load file {input}");
             }
         }
         static Image ReadFile(string input, bool flip)

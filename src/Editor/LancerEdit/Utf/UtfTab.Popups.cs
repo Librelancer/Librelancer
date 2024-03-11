@@ -26,6 +26,7 @@ namespace LancerEdit
         }
 
         string teximportpath = "";
+        private string teximportwarn = "";
         Texture2D teximportprev;
         int teximportid;
         volatile bool texImportWaiting = false;
@@ -82,6 +83,12 @@ namespace LancerEdit
                 ImGui.Image((IntPtr)teximportid, new Vector2(64, 64),
                             new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
+                if (!string.IsNullOrWhiteSpace(teximportwarn))
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, Color4.Orange);
+                    ImGui.TextWrapped(teximportwarn);
+                    ImGui.PopStyleColor();
+                }
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Format");
                 ImGui.SameLine();
