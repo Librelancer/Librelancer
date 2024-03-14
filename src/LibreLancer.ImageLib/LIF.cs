@@ -276,7 +276,7 @@ public static class LIF
 
                 if (j == paletteCount)
                 {
-                    if (paletteCount == 256)
+                    if (paletteCount == 255)
                         paletteCount = -1;
                     else
                         palette[paletteCount++] = px;
@@ -409,7 +409,6 @@ public static class LIF
                     continue;
                 if (newColorIndex == 48)
                 {
-                    Console.WriteLine("Too many palette changes");
                     return false;
                 }
 
@@ -437,7 +436,6 @@ public static class LIF
             var idx = MaxUnused(ref used);
             if (idx == -1)
             {
-                Console.WriteLine("Too many colors for palette");
                 modificationCount = 0;
                 return false;
             }
