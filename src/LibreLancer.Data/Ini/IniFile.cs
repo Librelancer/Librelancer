@@ -25,7 +25,7 @@ namespace LibreLancer.Ini
             return fileType;
         }
 
-        protected IEnumerable<Section> ParseFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
+        public static IEnumerable<Section> ParseFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
         {
             if (string.IsNullOrEmpty(path)) path = "[Memory]";
             
@@ -45,7 +45,7 @@ namespace LibreLancer.Ini
             return parser.ParseIniFile(path, stream, preparse, allowmaps);
         }
 
-		protected IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
+		protected static IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
 			if (!path.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
