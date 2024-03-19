@@ -433,16 +433,22 @@ namespace InterfaceEdit
                 ImGui.SliderFloat("Angle", ref angle, 0, 360);
                 ImGui.SliderFloat("Origin X", ref mdl.OriginX, 0, 1);
                 ImGui.SliderFloat("Origin Y", ref mdl.OriginY, 0, 1);
+                ImGui.SliderFloat("Animate U", ref mdl.AnimU, 0, 10);
+                ImGui.SliderFloat("Animate V", ref mdl.AnimV, 0, 10);
                 mdl.Angle = MathHelper.DegreesToRadians(angle);
+
+                var aX = (float)mainWindow.TotalTime * (mdl.AnimU * (mdl.TexCoords.X3 - mdl.TexCoords.X0));
+                var aY = (float)mainWindow.TotalTime * (mdl.AnimV * (mdl.TexCoords.Y3 - mdl.TexCoords.Y0));
+                var anim = new Vector2(aX, aY);
                 //res
                 var x0 = mdl.TexCoords.X0;
                 var x1 = mdl.TexCoords.X0 + mdl.TexCoords.X3;
                 var y0 = mdl.TexCoords.Y0;
                 var y1 = mdl.TexCoords.Y0 + mdl.TexCoords.Y3;
-                var a = new Vector2(x0, y0);
-                var b = new Vector2(x1, y0);
-                var c = new Vector2(x0, y1);
-                var d = new Vector2(x1, y1);
+                var a = new Vector2(x0, y0) + anim;
+                var b = new Vector2(x1, y0) + anim;
+                var c = new Vector2(x0, y1) + anim;
+                var d = new Vector2(x1, y1) + anim;
                 if (mdl.Flip)
                 {
                     a.Y = b.Y = y1;

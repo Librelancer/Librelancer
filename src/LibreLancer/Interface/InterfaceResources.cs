@@ -122,6 +122,8 @@ namespace LibreLancer.Interface
         [XmlAttribute("flip")] public bool Flip;
         [XmlElement("TexCoords")] public InterfacePoints TexCoords = new InterfacePoints();
         [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new InterfacePoints();
+        [XmlAttribute("animu")] public float AnimU;
+        [XmlAttribute("animv")] public float AnimV;
     }
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfacePoints

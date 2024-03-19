@@ -22,6 +22,8 @@ namespace LibreLancer.Interface
         public float OffsetX { get; set; }
         public float OffsetY { get; set; }
 
+        public bool OneInvSrcColor { get; set; } = false;
+
         private Texture2D texture;
 
         public override void Render(UiContext context, RectangleF clientRectangle)
@@ -29,10 +31,11 @@ namespace LibreLancer.Interface
             if (!Enabled || Image == null) return;
             if (!CanRender(context)) return;
             var color = (Tint ?? InterfaceColor.White).GetColor(context.GlobalTime);
-
+            var blendMode = OneInvSrcColor ? BlendMode.OneInvSrcColor : BlendMode.Normal;
             clientRectangle.Width *= ScaleX;
             clientRectangle.Height *= ScaleY;
             var rect = context.PointsToPixels(clientRectangle);
+
             if (Image.Type == InterfaceImageKind.Triangle)
             {
                 var x = rect.X;
@@ -52,11 +55,14 @@ namespace LibreLancer.Interface
             }
             else
             {
-                var src = new Rectangle(
-                    (int) (Image.TexCoords.X0 * texture.Width),
-                    (int) (Image.TexCoords.Y0 * texture.Height),
-                    (int) (Image.TexCoords.X3 * texture.Width),
-                    (int) (Image.TexCoords.Y3 * texture.Height)
+                var animX = (float)(context.GlobalTime * (Image.AnimU * (Image.TexCoords.X3 - Image.TexCoords.X0)));
+                var animY = (float)(context.GlobalTime * (Image.AnimV * (Image.TexCoords.Y3 - Image.TexCoords.Y0)));
+                var anim = new Vector2(animX, animY);
+                var src = new TexSource(
+                    new Vector2(Image.TexCoords.X0, Image.TexCoords.Y0) + anim,
+                    new Vector2(Image.TexCoords.X0 + Image.TexCoords.X3, Image.TexCoords.Y0) + anim,
+                    new Vector2(Image.TexCoords.X0, Image.TexCoords.Y0 + Image.TexCoords.Y3) + anim,
+                    new Vector2(Image.TexCoords.X0 + Image.TexCoords.X3, Image.TexCoords.Y0 + Image.TexCoords.Y3) + anim
                 );
                 var a = Angle + Image.Angle;
                 if (Math.Abs(a) > float.Epsilon)
@@ -70,14 +76,14 @@ namespace LibreLancer.Interface
                     rect.X += (int)px;
                     rect.Y += (int)py;
                     context.RenderContext.Renderer2D.DrawRotated(
-                        texture, src, rect, new Vector2(Image.OriginX * rect.Width, Image.OriginY * rect.Height), color, BlendMode.Normal,
+                        texture, src, rect, new Vector2(Image.OriginX * rect.Width, Image.OriginY * rect.Height), color, blendMode,
                         a, Image.Flip, Image.Rotation);
                 }
                 else
                 {
                     rect.X += context.PointsToPixels(OffsetX);
                     clientRectangle.Y += context.PointsToPixels(OffsetY);
-                    context.RenderContext.Renderer2D.Draw(texture, src, rect, color, BlendMode.Normal, Image.Flip,
+                    context.RenderContext.Renderer2D.Draw(texture, src, rect, color, blendMode, Image.Flip,
                         Image.Rotation);
                 }
             }

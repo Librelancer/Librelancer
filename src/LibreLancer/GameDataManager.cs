@@ -653,6 +653,7 @@ namespace LibreLancer
                 b.Nickname = p.Nickname;
                 b.CRC = FLHash.CreateID(b.Nickname);
                 b.Path = DataPath(p.Mesh);
+                b.Sex = p.Sex;
                 Bodyparts.Add(b);
             }
 

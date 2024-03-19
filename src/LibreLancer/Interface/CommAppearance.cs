@@ -19,4 +19,6 @@ public class CommAppearance
     public RigidModel AccessoryModel;
     [WattleScriptHidden]
     public List<Script> Scripts = new List<Script>();
+    [WattleScriptHidden]
+    public bool Male = true;
 }

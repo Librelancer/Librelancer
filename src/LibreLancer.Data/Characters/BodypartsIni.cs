@@ -22,6 +22,8 @@ namespace LibreLancer.Data.Characters
 			Bodyparts = new List<Bodypart>();
 			Accessories = new List<Accessory>();
 
+            string currentSkeletonSex = "";
+
 			foreach (Section s in ParseFile(path, gdata.VFS))
 			{
 				switch (s.Name.ToLowerInvariant())
@@ -40,6 +42,13 @@ namespace LibreLancer.Data.Characters
 					// TODO: Bodyparts PetalAnimations
 					break;
 				case "skeleton":
+                    foreach (var e in s)
+                    {
+                        if (e.Name.Equals("sex", StringComparison.OrdinalIgnoreCase))
+                        {
+                            currentSkeletonSex = e[0].ToString();
+                        }
+                    }
 					// TODO: Bodyparts Skeleton
 					break;
 				case "body":
@@ -47,6 +56,7 @@ namespace LibreLancer.Data.Characters
 				case "righthand":
 				case "lefthand":
                     Bodyparts.Add(FromSection<Bodypart>(s));
+                    Bodyparts[^1].Sex = currentSkeletonSex;
 					break;
 				case "accessory":
                     Accessories.Add(FromSection<Accessory>(s));

@@ -170,6 +170,7 @@ namespace InterfaceEdit
                         Project.UiData.DataPath + @"characters\heads\br_brighton_head.dfm").Drawable as DfmFile,
                     Body = Project.UiData.ResourceManager.GetDrawable(
                         Project.UiData.DataPath + @"characters\bodies\br_brighton_body.dfm").Drawable as DfmFile,
+                    Male = true,
                 };
                 CommApp.Scripts.Add(anm.Scripts["SC_MLHEAD_MOTION_WALLA_CASL_000LV_XA_%"]);
                 CommApp.Scripts.Add(anm.Scripts["SC_MLBODY_CHRB_IDLE_SMALL_000LV_XA_07"]);
@@ -309,12 +310,12 @@ namespace InterfaceEdit
             }
             if (Project != null && playing && ImGui.MenuItem("Toggle Comm"))
             {
-                _playContext.Event("Comm", commOn
+                _playContext.Event("Comm", !commOn
                     ? new CommData()
                     {
                         Appearance = CommApp,
                         Source = "Hello World",
-                        Affiliation = "Evil Faction"
+                        Affiliation = "Evil Faction",
                     }
                     : null);
                 commOn = !commOn;

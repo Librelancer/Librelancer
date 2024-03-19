@@ -15,5 +15,7 @@ namespace LibreLancer.Data.Characters
 
         [Entry("mesh")]
         public string Mesh;
-	}
+
+        public string Sex;
+    }
 }

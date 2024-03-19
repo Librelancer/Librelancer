@@ -27,7 +27,7 @@
     			<DisplayImage image="commbackdrop" tint="text"/>
     		</CharacterView.Background>
     		<CharacterView.Border>
-    			<DisplayImage image="commstatic" tint="rgba(255,255,255,0.15)"/>
+    			<DisplayImage image="commstatic" oneinvsrccolor="true"/>
     			<DisplayRectangle color="text"/>
     		</CharacterView.Border>
     	</CharacterView>

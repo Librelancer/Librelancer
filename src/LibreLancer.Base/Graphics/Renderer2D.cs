@@ -10,6 +10,49 @@ using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics
 {
+    public struct TexSource
+    {
+        public Rectangle? Rectangle;
+        public Vector2 TL;
+        public Vector2 TR;
+        public Vector2 BL;
+        public Vector2 BR;
+
+        public TexSource(Vector2 tl, Vector2 tr, Vector2 bl, Vector2 br)
+        {
+            Rectangle = null;
+            TL = tl;
+            TR = tr;
+            BL = bl;
+            BR = br;
+        }
+
+        internal TexSource Normalize(Texture2D tex)
+        {
+            if (Rectangle != null)
+            {
+                var srcX = Rectangle.Value.X;
+                var srcY = Rectangle.Value.Y;
+                var srcW = Rectangle.Value.Width;
+                var srcH = Rectangle.Value.Height;
+
+                Vector2 ta = new Vector2(srcX / (float) tex.Width,
+                    srcY / (float) tex.Height);
+                Vector2 tb = new Vector2((srcX + srcW) / (float) tex.Width,
+                    srcY / (float) tex.Height);
+                Vector2 tc = new Vector2(srcX / (float) tex.Width,
+                    (srcY + srcH) / (float) tex.Height);
+                Vector2 td = new Vector2((srcX + srcW) / (float) tex.Width,
+                    (srcY + srcH) / (float) tex.Height);
+
+                return new TexSource(ta, tb, tc, td);
+            }
+            return this;
+        }
+
+        public static implicit operator TexSource(Rectangle r) =>
+            new TexSource() { Rectangle = r };
+    }
 	public unsafe class Renderer2D : IDisposable
 	{
 		const int MAX_GLYPHS = 2048; //2048 rendered quads/drawcall
@@ -244,7 +287,7 @@ namespace LibreLancer.Graphics
         private const int C_BR = 1 << 16 | 1;
 
 
-        public void DrawRotated(Texture2D tex, Rectangle source, Rectangle dest, Vector2 origin, Color4 color, BlendMode mode, float angle, bool flip = false, QuadRotation orient = QuadRotation.None)
+        public void DrawRotated(Texture2D tex, TexSource source, Rectangle dest, Vector2 origin, Color4 color, BlendMode mode, float angle, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             if (rs.ScissorEnabled && !scissorUsed) {
                 Flush();
@@ -258,10 +301,7 @@ namespace LibreLancer.Graphics
             float dx = -origin.X;
             float dy = -origin.Y;
 
-            float srcX = (float)source.X;
-            float srcY = (float)source.Y;
-            float srcW = (float)source.Width;
-            float srcH = (float)source.Height;
+            source = source.Normalize(tex);
 
 
             var cos = MathF.Cos(angle);
@@ -283,14 +323,10 @@ namespace LibreLancer.Graphics
                 y+(dx+w)*sin+(dy+h)*cos
             );
 
-            Vector2 ta = new Vector2(srcX / (float) tex.Width,
-                srcY / (float) tex.Height);
-            Vector2 tb = new Vector2((srcX + srcW) / (float) tex.Width,
-                srcY / (float) tex.Height);
-            Vector2 tc = new Vector2(srcX / (float) tex.Width,
-                (srcY + srcH) / (float) tex.Height);
-            Vector2 td = new Vector2((srcX + srcW) / (float) tex.Width,
-                (srcY + srcH) / (float) tex.Height);
+            Vector2 ta = source.TL;
+            Vector2 tb = source.TR;
+            Vector2 tc = source.BL;
+            Vector2 td = source.BR;
 
             var topLeftCoord = ta;
             var topRightCoord = tb;
@@ -545,7 +581,7 @@ namespace LibreLancer.Graphics
 			b = temp;
 		}
 
-		public void Draw(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false, QuadRotation orient = QuadRotation.None)
+		public void Draw(Texture2D tex, TexSource source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             DrawQuad(tex, source, dest, color, mode, flip, orient);
         }
@@ -637,7 +673,7 @@ namespace LibreLancer.Graphics
             primitiveCount += 2;
         }
 
-        void DrawQuad(Texture2D tex, Rectangle source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false, QuadRotation orient = QuadRotation.None)
+        void DrawQuad(Texture2D tex, TexSource source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             if (rs.ScissorEnabled && !dest.Intersects(rs.ScissorRectangle)) return;
             Prepare(mode, tex, false);
@@ -646,10 +682,9 @@ namespace LibreLancer.Graphics
 			float y = (float)dest.Y;
 			float w = (float)dest.Width;
 			float h = (float)dest.Height;
-			float srcX = (float)source.X;
-			float srcY = (float)source.Y;
-			float srcW = (float)source.Width;
-			float srcH = (float)source.Height;
+
+
+            source = source.Normalize(tex);
 
             var p1 = new Vector2(x, y);
             var p2 = new Vector2(x + w, y);
@@ -690,14 +725,10 @@ namespace LibreLancer.Graphics
             Vector2 bottomRightCoord;
             if (tex != dot)
             {
-                Vector2 ta = new Vector2(srcX / (float) tex.Width,
-                    srcY / (float) tex.Height);
-                Vector2 tb = new Vector2((srcX + srcW) / (float) tex.Width,
-                    srcY / (float) tex.Height);
-                Vector2 tc = new Vector2(srcX / (float) tex.Width,
-                    (srcY + srcH) / (float) tex.Height);
-                Vector2 td = new Vector2((srcX + srcW) / (float) tex.Width,
-                    (srcY + srcH) / (float) tex.Height);
+                Vector2 ta = source.TL;
+                Vector2 tb = source.TR;
+                Vector2 tc = source.BL;
+                Vector2 td = source.BR;
                 topLeftCoord = ta;
                 topRightCoord = tb;
                 bottomLeftCoord = tc;

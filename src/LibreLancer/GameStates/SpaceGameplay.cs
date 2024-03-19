@@ -1144,6 +1144,7 @@ World Time: {12:F2}
                 Body = costume.Body?.LoadModel(Game.ResourceManager),
                 Accessory = acc,
                 AccessoryModel = accModel,
+                Male = string.Equals(costume.Body?.Sex, "male", StringComparison.OrdinalIgnoreCase),
                 Scripts = scripts
             };
             string factionName = null;
