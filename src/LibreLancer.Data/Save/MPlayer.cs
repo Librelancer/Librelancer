@@ -1,10 +1,11 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using System.Text;
+using LibreLancer.Data.Universe.Rooms;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Save
@@ -24,7 +25,7 @@ namespace LibreLancer.Data.Save
         public float TotalTimePlayed;
         [Entry("sys_visited", Multiline = true)]
         public List<int> SysVisited = new List<int>();
-        [Entry("base_visited", Multiline = true)] 
+        [Entry("base_visited", Multiline = true)]
         public List<int> BaseVisited = new List<int>();
         [Entry("holes_visited", Multiline = true)]
         public List<int> HolesVisited = new List<int>();
@@ -41,45 +42,39 @@ namespace LibreLancer.Data.Save
 
         [EntryHandler("ship_type_killed", MinComponents = 2, Multiline = true)]
         void HandleShipKill(Entry e) => ShipTypeKilled.Add(new SaveItemCount(new HashValue(e[0]), e[1].ToInt32()));
-        
+
         [EntryHandler("rm_completed", MinComponents = 2, Multiline = true)]
         void HandleRm(Entry e) => RmCompleted.Add(new SaveItemCount(new HashValue(e[0]), e[1].ToInt32()));
 
 
-        public void WriteTo(StringBuilder builder)
+        public void WriteTo(IniBuilder builder)
         {
-            builder.AppendLine("[mPlayer]");
+            var sec = builder.Section("mPlayer");
             foreach (var gate in LockedGates)
-                builder.AppendEntry("locked_gate", (uint) gate);
-            builder.AppendEntry("can_dock", CanDock);
-            builder.AppendEntry("can_tl", CanTl);
+                sec.Entry("locked_gate", (uint) gate);
+            sec.Entry("can_dock", CanDock);
+            sec.Entry("can_tl", CanTl);
             foreach (var s in ShipTypeKilled)
             {
-                builder.Append("ship_type_killed = ")
-                    .Append((uint) s.Item)
-                    .Append(", ")
-                    .AppendLine(s.Count.ToString());
+                sec.Entry("ship_type_killed", (uint)s.Item, s.Count);
             }
             foreach (var r in RmCompleted)
             {
-                builder.Append("rm_completed = ")
-                    .Append((uint) r.Item)
-                    .Append(", ")
-                    .AppendLine(r.Count.ToString());
+                sec.Entry("rm_completed", (uint)r.Item, r.Count);
             }
             foreach(var v in VNPCs)
             {
-                builder.AppendLine($"vnpc = {(uint)v.ItemA}, {(uint)v.ItemB}, {v.Unknown1}, {v.Unknown2}");
+                sec.Entry("vnpc", (uint)v.ItemA, (uint)v.ItemB, v.Unknown1, v.Unknown2);
             }
-            builder.AppendEntry("total_cash_earned", TotalCashEarned);
-            builder.AppendEntry("total_time_played", TotalTimePlayed);
+
+            sec.Entry("total_cash_earned", TotalCashEarned);
+            sec.Entry("total_time_played", TotalTimePlayed);
             foreach (var s in SysVisited)
-                builder.AppendEntry("sys_visited", (uint) s);
+               sec.Entry("sys_visited", (uint) s);
             foreach (var b in BaseVisited)
-                builder.AppendEntry("base_visited", (uint) b);
+                sec.Entry("base_visited", (uint) b);
             foreach (var h in HolesVisited)
-                builder.AppendEntry("holes_visited", (uint) h);
-            builder.AppendLine();
+                sec.Entry("holes_visited", (uint) h);
         }
     }
 }

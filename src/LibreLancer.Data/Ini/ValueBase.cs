@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Data;
 
 namespace LibreLancer.Ini
 {
@@ -48,5 +49,21 @@ namespace LibreLancer.Ini
         {
             throw new InvalidCastException();
         }
+
+        public static implicit operator ValueBase(HashValue hv) =>
+            hv.String != null
+                ? new StringValue(hv.String)
+                : new Int32Value((int)hv.Hash);
+        public static implicit operator ValueBase(string s) =>
+            new StringValue(s);
+
+        public static implicit operator ValueBase(int i) =>
+            new Int32Value(i);
+
+        public static implicit operator ValueBase(float f) =>
+            new SingleValue(f, null);
+
+        public static implicit operator ValueBase(bool b) =>
+            new BooleanValue(b);
     }
 }

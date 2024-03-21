@@ -17,16 +17,15 @@ namespace LibreLancer.Data.Save
 
         [EntryHandler("rep", Multiline = true, MinComponents = 2)]
         void HandleRep(Entry e) => Rep.Add(new SaveRep(e));
-        
-        public void WriteTo(StringBuilder builder)
+
+        public void WriteTo(IniBuilder builder)
         {
-            builder.AppendLine("[Group]")
-                .AppendEntry("nickname", Nickname);
+            var section = builder.Section("Group")
+                .Entry("nickname", Nickname);
             foreach (var rep in Rep)
             {
-                builder.AppendEntry("rep", rep.Reputation, rep.Group);
+                section.Entry("rep", rep.Reputation, rep.Group);
             }
-            builder.AppendLine();
         }
     }
 }

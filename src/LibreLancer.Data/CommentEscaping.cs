@@ -45,7 +45,7 @@ public class CommentEscaping
                         break;
                     case 'x' when i + 3 < comment.Length:
                         if (int.TryParse(
-                                comment.AsSpan().Slice(i + 2, 2), 
+                                comment.AsSpan().Slice(i + 2, 2),
                                 NumberStyles.HexNumber, null, out int uchar))
                         {
                             sb.Append((char) uchar);
@@ -72,7 +72,7 @@ public class CommentEscaping
     {
         if (comment == null) return null;
         if (string.IsNullOrWhiteSpace(comment)) return "";
-        bool needsEscape = false;
+        bool needsEscape = comment.AsSpan().Trim().Length != comment.Length;
         for (int i = 0; i < comment.Length; i++)
         {
             switch (comment[i])
@@ -80,7 +80,6 @@ public class CommentEscaping
                 case '\\':
                 case '=':
                 case ';':
-                case ' ':
                 case '\n':
                 case '\t':
                 case ',':

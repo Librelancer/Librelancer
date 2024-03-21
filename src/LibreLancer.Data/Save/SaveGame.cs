@@ -36,9 +36,9 @@ namespace LibreLancer.Data.Save
         [Section("nnobjective")]
         public List<SavedObjective> Objectives = new List<SavedObjective>();
 
-        public override string ToString()
+        public List<Section> ToIni()
         {
-            var builder = new StringBuilder();
+            var builder = new IniBuilder();
             Player?.WriteTo(builder);
             MPlayer?.WriteTo(builder);
             foreach(var ts in TriggerSave) ts.WriteTo(builder);
@@ -46,7 +46,7 @@ namespace LibreLancer.Data.Save
             Time?.WriteTo(builder);
             foreach(var g in Groups) g.WriteTo(builder);
             LockedGates?.WriteTo(builder);
-            return builder.ToString();
+            return builder.Sections;
         }
 
         public static SaveGame FromString(string name, string str)

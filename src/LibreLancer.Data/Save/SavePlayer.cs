@@ -84,8 +84,6 @@ namespace LibreLancer.Data.Save
 
     public class SavePlayer : IWriteSection
     {
-
-
         [Entry("descrip_strid")] public int DescripStrid;
 
         public string Description;
@@ -179,6 +177,8 @@ namespace LibreLancer.Data.Save
 
         public static string EncodeName(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
             var bytes = Encoding.BigEndianUnicode.GetBytes(name);
             var builder = new StringBuilder();
             foreach (var b in bytes)
@@ -188,66 +188,60 @@ namespace LibreLancer.Data.Save
 
 
 
-        public void WriteTo(StringBuilder builder)
+        public void WriteTo(IniBuilder builder)
         {
-            builder.AppendLine("[Player]");
-            if (DescripStrid != 0)
-                builder.AppendEntry("descrip_strid", DescripStrid);
-            if (!string.IsNullOrWhiteSpace(Description))
-                builder.AppendEntry("description", EncodeName(Description));
-            builder.AppendLine();
-            //Timestamp
-            var fileTime = TimeStamp?.ToFileTime();
-            builder.Append("tstamp = ");
-            builder.Append((fileTime >> 32).ToString());
-            builder.Append(", ");
-            builder.AppendLine((fileTime & 0xFFFFFFFF).ToString());
-            //
-            if (!string.IsNullOrWhiteSpace(Name))
-                builder.AppendEntry("name", EncodeName(Name));
-            builder.AppendEntry("rank", Rank);
+            var fileTime = TimeStamp?.ToFileTime() ?? 0;
+
+            var sec = builder.Section("Player")
+                .OptionalEntry("descrip_strid", DescripStrid)
+                .OptionalEntry("description", EncodeName(Description))
+                .Entry("tstamp", (int)(fileTime >> 32), (int)(fileTime & 0xFFFFFFFF))
+                .OptionalEntry("name", EncodeName(Name))
+                .Entry("rank", Rank);
+
             foreach (var h in House) {
-                builder.AppendEntry("house", h.Reputation, h.Group);
+               sec.Entry("house", h.Reputation, h.Group);
             }
 
-            builder.AppendEntry("money", Money);
-            builder.AppendEntry("num_kills", NumKills);
-            builder.AppendEntry("num_misn_successes", NumMissionSuccesses);
-            builder.AppendEntry("num_misn_failures", NumMissionFailures);
-            builder.AppendLine();
-            builder.AppendEntry("voice", Voice);
-            builder.AppendEntry("com_body", ComBody);
-            builder.AppendEntry("com_head", ComHead);
-            builder.AppendEntry("com_lefthand", ComLeftHand);
-            builder.AppendEntry("com_righthand", ComRightHand);
-            builder.AppendEntry("body", Body);
-            builder.AppendEntry("head", Head);
-            builder.AppendEntry("lefthand", LeftHand);
-            builder.AppendEntry("righthand", RightHand);
-            builder.AppendLine();
-            builder.AppendEntry("system", System);
-            builder.AppendEntry("base", Base);
+            sec.Entry("money", Money)
+                .Entry("num_kills", NumKills)
+                .Entry("num_misn_successes", NumMissionSuccesses)
+                .Entry("num_misn_failures", NumMissionFailures)
+                .OptionalEntry("voice", Voice)
+                .OptionalEntry("com_body", ComBody)
+                .OptionalEntry("com_head", ComHead)
+                .OptionalEntry("com_lefthand", ComLeftHand)
+                .OptionalEntry("com_righthand", ComRightHand)
+                .OptionalEntry("body", Body)
+                .OptionalEntry("head", Head)
+                .OptionalEntry("lefthand", LeftHand)
+                .OptionalEntry("righthand", RightHand)
+                .OptionalEntry("system", System)
+                .OptionalEntry("base", Base);
             if (string.IsNullOrWhiteSpace(Base))
             {
-                builder.AppendEntry("pos", Position);
-                builder.AppendEntry("rot", Rotate);
+                sec.Entry("pos", Position)
+                    .Entry("rot", Rotate);
             }
-            builder.AppendEntry("location", (uint)Location, false);
-            builder.AppendEntry("ship_archetype", ShipArchetype, false);
-            builder.AppendLine();
+            sec.OptionalEntry("location", (uint)Location)
+                .OptionalEntry("ship_archetype", ShipArchetype);
             foreach (var e in Equip)
-                builder.AppendLine(e.ToString());
+                sec.Entry("equip", e.Item, (e.Hardpoint ?? ""), e.Unknown);
             foreach (var c in Cargo)
-                builder.AppendLine(c.ToString());
-            builder.AppendLine();
+            {
+                ValueBase hstr = c.PercentageHealth < 1
+                    ? new SingleValue(c.PercentageHealth, null)
+                    : "";
+                sec.Entry("cargo", c.Item, c.Count, hstr, "", (c.IsMissionCargo ? 1 : 0));
+            }
+
             foreach (var v in Visit)
-                builder.Append("visit = ").Append((uint) v.Obj).Append(", ").AppendLine(v.Visit.ToString());
-            builder.AppendLine();
+                sec.Entry("visit", v.Obj, v.Visit);
+
             foreach (var l in Log)
-                builder.Append("log = ").AppendJoin(", ", l.Data).AppendLine();
-            builder.AppendLine();
-            builder.AppendEntry("interface", Interface);
-            builder.AppendLine();
+                sec.Entry("log", l.Data.Select(x => (ValueBase)new Int32Value(x)).ToArray());
+
+            sec.Entry("interface", Interface);
         }
     }
 }

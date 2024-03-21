@@ -10,6 +10,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
+using LibreLancer.Ini;
 
 namespace LancerEdit;
 
@@ -147,8 +148,16 @@ public class UniverseEditorTab : EditorTab
         };
         gameData.GameData.Systems.Add(system);
         var universePath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Ini.Freelancer.UniversePath);
-        File.WriteAllText(Path.Combine(newFolder, $"{nickname}.ini"), IniSerializer.SerializeStarSystem(system));
-        File.WriteAllText(universePath, IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases));
+        using (var stream = File.Create(Path.Combine(newFolder, $"{nickname}.ini")))
+        {
+            var sections = IniSerializer.SerializeStarSystem(system);
+            IniWriter.WriteIni(stream, sections);
+        }
+        using (var stream = File.Create(universePath))
+        {
+            var sections = IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases);
+            IniWriter.WriteIni(stream, sections);
+        }
         gameData.GameData.VFS.Refresh();
         win.AddTab(new SystemEditorTab(gameData, win, system));
         RefreshSystemList();

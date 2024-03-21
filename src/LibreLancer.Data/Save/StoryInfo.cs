@@ -1,7 +1,7 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Text;
 using LibreLancer.Ini;
@@ -20,15 +20,14 @@ namespace LibreLancer.Data.Save
         [Entry("debug")]
         public int Debug;
 
-        public void WriteTo(StringBuilder builder)
+        public void WriteTo(IniBuilder builder)
         {
-            builder.AppendLine("[StoryInfo]")
-                .AppendEntry("ship_bought", ShipBought)
-                .AppendEntry("Mission", Mission)
-                .AppendEntry("MissionNum", MissionNum)
-                .AppendEntry("delta_worth", DeltaWorth)
-                .AppendEntry("debug", Debug)
-                .AppendLine();
+            builder.Section("StoryInfo")
+                .Entry("ship_bought", ShipBought)
+                .Entry("Mission", Mission)
+                .Entry("MissionNum", MissionNum)
+                .Entry("delta_worth", DeltaWorth)
+                .Entry("debug", Debug);
         }
     }
 }

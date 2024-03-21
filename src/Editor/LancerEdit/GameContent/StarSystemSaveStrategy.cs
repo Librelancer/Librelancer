@@ -4,6 +4,7 @@ using System.Linq;
 using LibreLancer.ContentEdit;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
+using LibreLancer.Ini;
 
 namespace LancerEdit;
 
@@ -34,12 +35,19 @@ public class StarSystemSaveStrategy : ISaveStrategy
             tab.CurrentSystem.Objects.Remove(o);
         tab.DeletedObjects = new List<SystemObject>();
         var resolved = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Ini.Freelancer.DataPath + "/universe/" + tab.CurrentSystem.SourceFile);
-        File.WriteAllText(resolved, IniSerializer.SerializeStarSystem(tab.CurrentSystem));
+        using (var stream = File.Create(resolved))
+        {
+            var sections = IniSerializer.SerializeStarSystem(tab.CurrentSystem);
+            IniWriter.WriteIni(stream, sections);
+        }
         if (writeUniverse)
         {
             var path = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Ini.Freelancer.UniversePath);
-            File.WriteAllText(path,
-                IniSerializer.SerializeUniverse(tab.Data.GameData.Systems, tab.Data.GameData.Bases));
+            using (var stream = File.Create(path))
+            {
+                var sections = IniSerializer.SerializeUniverse(tab.Data.GameData.Systems, tab.Data.GameData.Bases);
+                IniWriter.WriteIni(stream, sections);
+            }
         }
 
         tab.ObjectsDirty = false;

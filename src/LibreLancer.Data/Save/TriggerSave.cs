@@ -7,11 +7,10 @@ public class TriggerSave : IWriteSection
 {
     [Entry("trigger")]
     public int Trigger;
-    
-    public void WriteTo(StringBuilder builder)
+
+    public void WriteTo(IniBuilder builder)
     {
-        builder.AppendLine("[TriggerSave]")
-            .AppendEntry("trigger", (uint) Trigger)
-            .AppendLine();
+        builder.Section("TriggerSave")
+            .Entry("trigger", (uint)Trigger);
     }
 }

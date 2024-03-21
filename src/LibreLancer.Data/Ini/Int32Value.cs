@@ -5,6 +5,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using LibreLancer.Data;
 
 namespace LibreLancer.Ini
 {
@@ -19,7 +20,7 @@ namespace LibreLancer.Ini
 			value = reader.ReadInt32();
 		}
 
-		public Int32Value(int value) 
+		public Int32Value(int value)
 		{
 			this.value = value;
 		}
@@ -46,7 +47,7 @@ namespace LibreLancer.Ini
 		{
             result = value;
 			return true;
-		}        
+		}
 
         public override bool TryToSingle(out float result)
 		{

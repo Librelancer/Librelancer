@@ -17,14 +17,14 @@ namespace LibreLancer.Data.Save
         public List<int> PlayerLockedGates = new List<int>();
 
 
-        public void WriteTo(StringBuilder builder)
+        public void WriteTo(IniBuilder builder)
         {
-            builder.AppendLine("[locked_gates]");
+            var sec = builder.Section("locked_gates");
             foreach (var g in NpcLockedGates)
-                builder.AppendEntry("npc_locked_gate", (uint) g);
+                sec.Entry("npc_locked_gate", (uint) g);
             foreach (var g in PlayerLockedGates)
-                builder.AppendEntry("locked_gate", (uint) g);
-            builder.AppendLine();
+                sec.Entry("locked_gate", (uint) g);
+            sec.RemoveIfEmpty();
         }
     }
 }

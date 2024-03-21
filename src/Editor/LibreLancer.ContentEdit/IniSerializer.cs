@@ -6,27 +6,25 @@ using System.Text;
 using LibreLancer.Data;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
+using LibreLancer.Ini;
 using LibreLancer.Render;
 
 namespace LibreLancer.ContentEdit;
 
 public static class IniSerializer
 {
-    public static string SerializeStarSystem(StarSystem sys)
+    public static List<Section> SerializeStarSystem(StarSystem sys)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("SystemInfo")
-            .AppendEntry("space_color", sys.BackgroundColor)
-            .AppendEntry("local_faction", sys.LocalFaction.Nickname);
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (sys.FarClip != 20000)
-            sb.AppendEntry("space_farclip", sys.FarClip);
-        sb.AppendLine();
+        var ib = new IniBuilder();
+        ib.Section("SystemInfo")
+            .Entry("space_color", sys.BackgroundColor)
+            .Entry("local_faction", sys.LocalFaction.Nickname)
+            .OptionalEntry("space_farclip", sys.FarClip, 20000);
 
         //Archetype
         if (sys.Preloads.Length > 0)
         {
-            sb.AppendSection("Archetype");
+            var section = ib.Section("Archetype");
             foreach (var p in sys.Preloads)
             {
                 var name = p.Type switch
@@ -39,443 +37,394 @@ public static class IniSerializer
                     PreloadType.Equipment => "equipment",
                     _ => "solar"
                 };
-                sb.AppendEntry(name, p.Values.Select(x => x.String ?? x.Hash.ToString()).ToArray());
+                section.Entry(name, p.Values.Select(x => x.String ?? x.Hash.ToString()).ToArray());
             }
-            sb.AppendLine();
         }
 
         foreach (var ep in sys.EncounterParameters)
-            sb.AppendSection("EncounterParameters")
-                .AppendEntry("nickname", ep.Nickname)
-                .AppendEntry("filename", ep.SourceFile)
-                .AppendLine();
+            ib.Section("EncounterParameters")
+                .Entry("nickname", ep.Nickname)
+                .Entry("filename", ep.SourceFile);
 
 
         //TexturePanels
         if (sys.TexturePanelsFiles.Count > 0)
         {
-            sb.AppendSection("TexturePanels");
+            var section = ib.Section("TexturePanels");
             foreach (var f in sys.TexturePanelsFiles)
-                sb.AppendEntry("file", f);
-            sb.AppendLine();
+                section.Entry("file", f);
         }
 
         //Music
-        sb.AppendSection("Music")
-            .AppendEntry("space", sys.MusicSpace)
-            .AppendEntry("danger", sys.MusicDanger)
-            .AppendEntry("battle", sys.MusicBattle)
-            .AppendLine();
+        ib.Section("Music")
+            .OptionalEntry("space", sys.MusicSpace)
+            .OptionalEntry("danger", sys.MusicDanger)
+            .OptionalEntry("battle", sys.MusicBattle)
+            .RemoveIfEmpty();
 
         //Dust
-        sb.AppendSection("Dust")
-            .AppendEntry("spacedust", sys.Spacedust)
-            .AppendEntry("spacedust_maxparticles", sys.SpacedustMaxParticles, false)
-            .AppendLine();
+        ib.Section("Dust")
+            .OptionalEntry("spacedust", sys.Spacedust)
+            .OptionalEntry("spacedust_maxparticles", sys.SpacedustMaxParticles)
+            .RemoveIfEmpty();
 
 
         foreach (var nebula in sys.Nebulae)
-            sb.AppendSection("Nebula")
-                .AppendEntry("file", nebula.SourceFile)
-                .AppendEntry("zone", nebula.Zone?.Nickname)
-                .AppendLine();
+            ib.Section("Nebula")
+                .Entry("file", nebula.SourceFile)
+                .OptionalEntry("zone", nebula.Zone?.Nickname);
 
         foreach (var ast in sys.AsteroidFields)
-            sb.AppendSection("Asteroids")
-                .AppendEntry("file", ast.SourceFile)
-                .AppendEntry("zone", ast.Zone?.Nickname)
-                .AppendLine();
+            ib.Section("Asteroids")
+                .Entry("file", ast.SourceFile)
+                .OptionalEntry("zone", ast.Zone?.Nickname);
 
         //Ambient Color
-        sb.AppendSection("Ambient")
-            .AppendEntry("color", sys.AmbientColor)
-            .AppendLine();
+        ib.Section("Ambient")
+            .Entry("color", sys.AmbientColor);
 
         //Background
-        sb.AppendSection("Background")
-            .AppendEntry("basic_stars", sys.StarsBasic?.SourcePath)
-            .AppendEntry("complex_stars", sys.StarsComplex?.SourcePath)
-            .AppendEntry("nebulae", sys.StarsNebula?.SourcePath)
-            .AppendLine();
+        ib.Section("Background")
+            .OptionalEntry("basic_stars", sys.StarsBasic?.SourcePath)
+            .OptionalEntry("complex_stars", sys.StarsComplex?.SourcePath)
+            .OptionalEntry("nebulae", sys.StarsNebula?.SourcePath)
+            .RemoveIfEmpty();
 
         foreach (var lt in sys.LightSources)
-            sb.AppendLine(SerializeLightSource(lt));
+            SerializeLightSource(lt, ib);
 
         foreach (var zn in sys.Zones)
-            sb.AppendLine(SerializeZone(zn));
+            SerializeZone(zn, ib);
 
         foreach (var obj in sys.Objects)
-            sb.AppendLine(SerializeSystemObject(obj));
+            SerializeSystemObject(obj, ib);
 
-        return sb.ToString();
+        return ib.Sections;
     }
 
-    public static string SerializeLightSource(LightSource lt)
+    static void SerializeLightSource(LightSource lt, IniBuilder builder)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("LightSource")
-            .AppendEntry("nickname", lt.Nickname)
-            .AppendEntry("pos", lt.Light.Position)
-            .AppendEntry("color", lt.Light.Color)
-            .AppendEntry("range", lt.Light.Range);
+        var sb = builder.Section("LightSource")
+            .Entry("nickname", lt.Nickname)
+            .Entry("pos", lt.Light.Position)
+            .Entry("color", lt.Light.Color)
+            .Entry("range", lt.Light.Range);
         if (lt.Light.Direction != Vector3.UnitZ)
-            sb.AppendEntry("direction", lt.Light.Direction);
-        sb.AppendEntry("type", lt.Light.Kind switch
+            sb.Entry("direction", lt.Light.Direction);
+        sb.Entry("type", lt.Light.Kind switch
         {
             LightKind.Directional => "DIRECTIONAL",
             LightKind.PointAttenCurve => "DIRECTIONAL",
             _ => "POINT"
         });
         if (!string.IsNullOrWhiteSpace(lt.AttenuationCurveName))
-            sb.AppendEntry("atten_curve", lt.AttenuationCurveName);
+            sb.Entry("atten_curve", lt.AttenuationCurveName);
         else
-            sb.AppendEntry("attenuation", lt.Light.Attenuation);
-        return sb.ToString();
+            sb.Entry("attenuation", lt.Light.Attenuation);
     }
 
-    static void SerializeRotation(StringBuilder sb, Matrix4x4? matrix)
+    static void SerializeRotation(IniBuilder.IniSectionBuilder sb, Matrix4x4? matrix)
     {
         if (matrix == null) return;
         var euler = matrix.Value.GetEulerDegrees();
         var ln = euler.Length();
         if (!float.IsNaN(ln) && ln > 0)
-            sb.AppendEntry("rotate", euler);
+            sb.Entry("rotate", euler);
     }
 
-    public static string SerializeZone(Zone z)
+    static void SerializeZone(Zone z, IniBuilder builder)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("Zone");
-        sb.AppendEntry("nickname", z.Nickname);
-        sb.AppendEntry("ids_name", z.IdsName, false);
+        var sb = builder.Section("Zone")
+            .Entry("nickname", z.Nickname)
+            .OptionalEntry("ids_name", z.IdsName);
         foreach (var info in z.IdsInfo)
-            sb.AppendEntry("ids_info", info);
-        sb.AppendEntry("comment", CommentEscaping.Escape(z.Comment));
-        sb.AppendEntry("pos", z.Position);
+            sb.Entry("ids_info", info);
+        sb.OptionalEntry("comment", CommentEscaping.Escape(z.Comment));
+        sb.Entry("pos", z.Position);
         SerializeRotation(sb, z.RotationMatrix);
         switch (z.Shape)
         {
             case ZoneBox box:
-                sb.AppendEntry("shape", "BOX")
-                    .AppendEntry("size", box.Size);
+                sb.Entry("shape", "BOX")
+                    .Entry("size", box.Size);
                 break;
             case ZoneSphere sphere:
-                sb.AppendEntry("shape", "SPHERE")
-                    .AppendEntry("size", sphere.Radius);
+                sb.Entry("shape", "SPHERE")
+                    .Entry("size", sphere.Radius);
                 break;
             case ZoneCylinder cylinder:
-                sb.AppendEntry("shape", "CYLINDER")
-                    .AppendEntry("size", new Vector2(cylinder.Radius, cylinder.Height));
+                sb.Entry("shape", "CYLINDER")
+                    .Entry("size", new Vector2(cylinder.Radius, cylinder.Height));
                 break;
             case ZoneEllipsoid ellipsoid:
-                sb.AppendEntry("shape", "ELLIPSOID")
-                    .AppendEntry("size", ellipsoid.Size);
+                sb.Entry("shape", "ELLIPSOID")
+                    .Entry("size", ellipsoid.Size);
                 break;
             case ZoneRing ring:
-                sb.AppendEntry("shape", "RING")
-                    .AppendEntry("size", new Vector3(ring.OuterRadius, ring.InnerRadius, ring.Height));
+                sb.Entry("shape", "RING")
+                    .Entry("size", new Vector3(ring.OuterRadius, ring.InnerRadius, ring.Height));
                 break;
         }
-
-        sb.AppendEntry("property_flags", (uint) z.PropertyFlags, false);
+        sb.OptionalEntry("property_flags", (uint) z.PropertyFlags);
         if (z.PropertyFogColor != null)
-            sb.AppendEntry("property_fog_color", z.PropertyFogColor.Value);
-        sb.AppendEntry("damage", z.Damage, false);
-        sb.AppendEntry("visit", (int) z.VisitFlags, false);
-        sb.AppendEntry("spacedust", z.Spacedust);
-        sb.AppendEntry("spacedust_maxparticles", z.SpacedustMaxParticles, false);
-        sb.AppendEntry("interference", z.Interference, false);
-        sb.AppendEntry("drag_modifier", z.DragModifier, false);
-        sb.AppendEntry("power_modifier", z.PowerModifier, false);
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (z.EdgeFraction != 0.25f)
-            sb.AppendEntry("edge_fraction", z.EdgeFraction);
-        sb.AppendEntry("attack_ids", z.AttackIds);
-        sb.AppendEntry("mission_type", z.MissionType);
-        sb.AppendEntry("lane_id", z.LaneId, false);
-        sb.AppendEntry("tradelane_attack", z.TradelaneAttack, false);
-        sb.AppendEntry("tradelane_down", z.TradelaneDown, false);
-        sb.AppendEntry("sort", z.Sort);
-        sb.AppendEntry("vignette_type", z.VignetteType);
-        sb.AppendEntry("toughness", z.Toughness, false);
-        sb.AppendEntry("density", z.Density, false);
-        sb.AppendEntry("repop_time", z.RepopTime, false);
-        sb.AppendEntry("max_battle_size", z.MaxBattleSize, false);
-        sb.AppendEntry("pop_type", z.PopType);
+            sb.Entry("property_fog_color", z.PropertyFogColor.Value);
+        sb.OptionalEntry("damage", z.Damage)
+            .OptionalEntry("visit", (int)z.VisitFlags)
+            .OptionalEntry("spacedust", z.Spacedust)
+            .OptionalEntry("spacedust_maxparticles", z.SpacedustMaxParticles)
+            .OptionalEntry("interference", z.Interference)
+            .OptionalEntry("drag_modifier", z.DragModifier)
+            .OptionalEntry("power_modifier", z.PowerModifier)
+            .OptionalEntry("edge_fraction", z.EdgeFraction, 0.25f)
+            .OptionalEntry("attack_ids", z.AttackIds)
+            .OptionalEntry("mission_type", z.MissionType)
+            .OptionalEntry("lane_id", z.LaneId)
+            .OptionalEntry("tradelane_attack", z.TradelaneAttack)
+            .OptionalEntry("tradelane_down", z.TradelaneDown)
+            .OptionalEntry("sort", z.Sort)
+            .OptionalEntry("vignette_type", z.VignetteType)
+            .OptionalEntry("toughness", z.Toughness)
+            .OptionalEntry("density", z.Density)
+            .OptionalEntry("repop_time", z.RepopTime)
+            .OptionalEntry("max_battle_size", z.MaxBattleSize)
+            .OptionalEntry("pop_type", z.PopType);
         if (z.PopulationAdditive.HasValue)
-            sb.AppendEntry("population_additive", z.PopulationAdditive.Value);
-        sb.AppendEntry("relief_time", z.ReliefTime, false);
-        //population_additive
-        sb.AppendEntry("path_label", z.PathLabel);
-        sb.AppendEntry("usage", z.Usage);
+            sb.Entry("population_additive", z.PopulationAdditive.Value);
+        sb.OptionalEntry("relief_time", z.ReliefTime)
+            .OptionalEntry("path_label", z.PathLabel)
+            .OptionalEntry("usage", z.Usage);
         foreach (var dr in z.DensityRestrictions)
         {
-            sb.AppendEntry("density_restriction", new[] {dr.Count.ToString(), dr.Type});
+            sb.Entry("density_restriction", dr.Count, dr.Type);
         }
 
         foreach (var e in z.Encounters)
         {
-            sb.AppendEntry("encounter", new[] {e.Archetype, e.Difficulty.ToString(), e.Chance.ToStringInvariant()});
+            sb.Entry("encounter", e.Archetype, e.Difficulty, e.Chance);
             foreach (var f in e.FactionSpawns)
             {
-                sb.AppendEntry("faction", new[] {f.Faction, f.Chance.ToStringInvariant()});
+                sb.Entry("faction", f.Faction, f.Chance);
             }
         }
 
-        if (z.MissionEligible)
-            sb.AppendLine("mission_eligible = true");
-        sb.AppendEntry("Music", z.Music);
-        return sb.ToString();
+        sb.OptionalEntry("mission_eligible", z.MissionEligible)
+            .OptionalEntry("Music", z.Music);
     }
 
-    public static string SerializeSystemObject(SystemObject obj)
+    static void SerializeSystemObject(SystemObject obj, IniBuilder builder)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("Object")
-            .AppendEntry("nickname", obj.Nickname)
-            .AppendEntry("comment", CommentEscaping.Escape(obj.Comment))
-            .AppendEntry("ids_name", obj.IdsName, false);
+        var sb = builder.Section("Object")
+            .Entry("nickname", obj.Nickname)
+            .OptionalEntry("comment", CommentEscaping.Escape(obj.Comment))
+            .OptionalEntry("ids_name", obj.IdsName);
         if (obj.Position != Vector3.Zero)
-            sb.AppendEntry("pos", obj.Position);
+            sb.Entry("pos", obj.Position);
         SerializeRotation(sb, obj.Rotation);
         if (obj.AmbientColor != null)
-            sb.AppendEntry("ambient_color", obj.AmbientColor.Value);
-        sb.AppendEntry( "Archetype", obj.Archetype?.Nickname);
-        sb.AppendEntry("star", obj.Star?.Nickname);
-        sb.AppendEntry("msg_id_prefix", obj.MsgIdPrefix);
+            sb.Entry("ambient_color", obj.AmbientColor.Value);
+        sb.OptionalEntry( "Archetype", obj.Archetype?.Nickname)
+            .OptionalEntry("star", obj.Star?.Nickname)
+            .OptionalEntry("msg_id_prefix", obj.MsgIdPrefix);
         foreach (var i in obj.IdsInfo)
-            sb.AppendEntry("ids_info", i);
+            sb.Entry("ids_info", i);
         if (obj.Spin != Vector3.Zero)
-            sb.AppendEntry("spin", obj.Spin);
-        sb.AppendEntry("atmosphere_range", obj.AtmosphereRange, false);
+            sb.Entry("spin", obj.Spin);
+        sb.OptionalEntry("atmosphere_range", obj.AtmosphereRange);
         if (obj.BurnColor != null)
-            sb.AppendEntry("burn_color", obj.BurnColor.Value);
-        sb.AppendEntry("base", obj.Base?.Nickname);
+            sb.Entry("burn_color", obj.BurnColor.Value);
+        sb.OptionalEntry("base", obj.Base?.Nickname);
         if (obj.Dock != null)
         {
             if (obj.Dock.Kind == DockKinds.Base)
             {
-                sb.AppendEntry("dock_with", obj.Dock.Target);
+                sb.Entry("dock_with", obj.Dock.Target);
             }
             else if (obj.Dock.Kind == DockKinds.Jump)
             {
-                sb.Append("goto = ")
-                    .Append(obj.Dock.Target)
-                    .Append(", ")
-                    .Append(obj.Dock.Exit)
-                    .Append(", ")
-                    .AppendLine(obj.Dock.Tunnel);
+                sb.Entry("goto", obj.Dock.Target, obj.Dock.Exit, obj.Dock.Tunnel);
             }
             else if (obj.Dock.Kind == DockKinds.Tradelane)
             {
-                sb.AppendEntry("prev_ring", obj.Dock.TargetLeft);
-                sb.AppendEntry("next_ring", obj.Dock.Target);
+                sb.OptionalEntry("prev_ring", obj.Dock.TargetLeft);
+                sb.OptionalEntry("next_ring", obj.Dock.Target);
             }
         }
 
-        sb.AppendEntry("behavior", obj.Behavior);
-        sb.AppendEntry("voice", obj.Voice);
-        sb.AppendEntry("space_costume", obj.SpaceCostume);
-        sb.AppendEntry("faction", obj.Faction?.Nickname);
-        sb.AppendEntry("difficulty_level", obj.DifficultyLevel, false);
-        sb.AppendEntry("loadout", obj.Loadout?.Nickname);
-        sb.AppendEntry("pilot", obj.Pilot?.Nickname);
-        sb.AppendEntry("reputation", obj.Reputation?.Nickname);
-        sb.AppendEntry("tradelane_space_name", obj.TradelaneSpaceName, false);
-        sb.AppendEntry("parent", obj.Parent);
-        sb.AppendEntry("visit", (int) obj.Visit, false);
-        return sb.ToString();
+        sb.OptionalEntry("behavior", obj.Behavior)
+        .OptionalEntry("voice", obj.Voice)
+        .OptionalEntry("space_costume", obj.SpaceCostume)
+        .OptionalEntry("faction", obj.Faction?.Nickname)
+        .OptionalEntry("difficulty_level", obj.DifficultyLevel)
+        .OptionalEntry("loadout", obj.Loadout?.Nickname)
+        .OptionalEntry("pilot", obj.Pilot?.Nickname)
+        .OptionalEntry("reputation", obj.Reputation?.Nickname)
+        .OptionalEntry("tradelane_space_name", obj.TradelaneSpaceName)
+        .OptionalEntry("parent", obj.Parent)
+        .OptionalEntry("visit", (int) obj.Visit);
     }
 
-    public static string SerializeUniverse(IEnumerable<StarSystem> systems, IEnumerable<Base> bases)
+    public static List<Section> SerializeUniverse(IEnumerable<StarSystem> systems, IEnumerable<Base> bases)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("Time")
-            .AppendEntry("seconds_per_day", 1800)
-            .AppendLine();
+        var ib = new IniBuilder();
+
+        ib.Section("Time")
+            .Entry("seconds_per_day", 1800);
+
         foreach (var b in bases)
         {
-            sb.AppendSection("Base")
-                .AppendEntry("nickname", b.Nickname)
-                .AppendEntry("system", b.System)
-                .AppendEntry("strid_name", b.IdsName)
-                .AppendEntry("file", b.SourceFile)
-                .AppendEntry("BGCS_base_run_by", b.BaseRunBy)
-                .AppendEntry("terrain_tiny", b.TerrainTiny)
-                .AppendEntry("terrain_sml", b.TerrainSml)
-                .AppendEntry("terrain_mdm", b.TerrainMdm)
-                .AppendEntry("terrain_lrg", b.TerrainLrg)
-                .AppendEntry("terrain_dyna_01", b.TerrainDyna1)
-                .AppendEntry("terrain_dyna_02", b.TerrainDyna2);
-            if (b.AutosaveForbidden)
-                sb.AppendEntry("autosave_forbidden", true);
-            sb.AppendLine();
+            ib.Section("Base")
+                .Entry("nickname", b.Nickname)
+                .Entry("system", b.System)
+                .OptionalEntry("strid_name", b.IdsName)
+                .Entry("file", b.SourceFile)
+                .OptionalEntry("BGCS_base_run_by", b.BaseRunBy)
+                .OptionalEntry("terrain_tiny", b.TerrainTiny)
+                .OptionalEntry("terrain_sml", b.TerrainSml)
+                .OptionalEntry("terrain_lrg", b.TerrainLrg)
+                .OptionalEntry("terrain_dyna_01", b.TerrainDyna1)
+                .OptionalEntry("terrain_dyna_02", b.TerrainDyna2)
+                .OptionalEntry("autosave_forbidden", b.AutosaveForbidden);
         }
+
         foreach (var s in systems)
         {
-            sb.AppendSection("system")
-                .AppendEntry("nickname", s.Nickname)
-                .AppendEntry("file", s.SourceFile)
-                .AppendEntry("pos", s.UniversePosition)
-                .AppendEntry("msg_id_prefix", s.MsgIdPrefix)
-                .AppendEntry("visit", (int) s.Visit)
-                .AppendEntry("strid_name", s.IdsName)
-                .AppendEntry("ids_info", s.IdsInfo)
-                .AppendEntry("NavMapScale", s.NavMapScale, false)
-                .AppendLine();
+            ib.Section("System")
+                .Entry("nickname", s.Nickname)
+                .Entry("file", s.SourceFile)
+                .Entry("pos", s.UniversePosition)
+                .OptionalEntry("msg_id_prefix", s.MsgIdPrefix)
+                .OptionalEntry("visit", (int)s.Visit)
+                .OptionalEntry("strid_name", s.IdsName)
+                .OptionalEntry("ids_info", s.IdsInfo)
+                .OptionalEntry("NavMapScale", s.NavMapScale);
         }
-        return sb.ToString();
+
+        return ib.Sections;
     }
 
-    public static string SerializeRoom(BaseRoom room)
+    public static List<Section> SerializeRoom(BaseRoom room)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("Room_Info")
-            .AppendEntry("set_script", room.SetScript?.SourcePath);
+        var ib = new IniBuilder();
+        var section = ib.Section("Room_Info")
+            .Entry("set_script", room.SetScript?.SourcePath);
         foreach (var scene in room.SceneScripts)
         {
-            sb.Append("scene = ");
-            if (scene.AllAmbient)
-                sb.Append("all, ");
-            sb.Append("ambient, ");
-            sb.Append(scene.Thn.SourcePath);
             if (scene.TrafficPriority)
-                sb.Append(", TRAFFIC_PRIORITY");
-            sb.AppendLine();
+            {
+                section.Entry("scene", scene.AllAmbient ? "all" : "ambient", scene.Thn.SourcePath, "TRAFFIC_PRIORITY");
+            }
+            else
+            {
+                section.Entry("scene", scene.AllAmbient ? "all" : "ambient", scene.Thn.SourcePath);
+            }
         }
 
-        sb.AppendSection("[Room_Sound]");
+        ib.Section("[Room_Sound]");
 
 
         if (!string.IsNullOrWhiteSpace(room.PlayerShipPlacement))
-            sb.AppendSection("PlayerShipPlacement")
-                .AppendEntry("name", room.PlayerShipPlacement);
+            ib.Section("PlayerShipPlacement")
+                .Entry("name", room.PlayerShipPlacement);
 
         if (!string.IsNullOrWhiteSpace(room.Camera))
-            sb.AppendSection("Camera")
-                .AppendEntry("name", room.Camera)
-                .AppendLine();
+            ib.Section("Camera")
+                .Entry("name", room.Camera);
 
         foreach (var hotspot in room.Hotspots)
         {
-            sb.AppendSection("Hotspot")
-                .AppendEntry("name", hotspot.Name)
-                .AppendEntry("behavior", hotspot.Behavior)
-                .AppendEntry("room_switch", hotspot.Room)
-                .AppendEntry("virtual_room", hotspot.VirtualRoom)
-                .AppendEntry("set_virtual_room", hotspot.SetVirtualRoom);
+            ib.Section("Hotspot")
+                .Entry("name", hotspot.Name)
+                .OptionalEntry("behavior", hotspot.Behavior)
+                .OptionalEntry("room_switch", hotspot.Room)
+                .OptionalEntry("virtual_room", hotspot.VirtualRoom)
+                .OptionalEntry("set_virtual_room", hotspot.SetVirtualRoom);
         }
-
-        return sb.ToString();
+        return ib.Sections;
     }
 
-    public static string SerializeBase(Base b)
+    public static List<Section> SerializeBase(Base b)
     {
-        var sb = new StringBuilder();
-        sb.AppendSection("BaseInfo")
-            .AppendEntry("nickname", b.Nickname)
-            .AppendEntry("start_room", b.StartRoom.Nickname)
-            .AppendLine();
+        var ib = new IniBuilder();
+        ib.Section("BaseInfo")
+            .Entry("nickname", b.Nickname)
+            .OptionalEntry("start_room", b.StartRoom.Nickname);
 
         foreach (var r in b.Rooms)
         {
-            sb.AppendSection("Room")
-                .AppendEntry("nickname", r.Nickname)
-                .AppendEntry("file", r.SourceFile)
-                .AppendLine();
+            ib.Section("Room")
+                .Entry("nickname", r.Nickname)
+                .Entry("file", r.SourceFile);
         }
-        return sb.ToString();
+
+        return ib.Sections;
     }
 
-    public static string SerializeMBases(IEnumerable<Base> bases)
+    public static List<Section> SerializeMBases(IEnumerable<Base> bases)
     {
-        var sb = new StringBuilder();
+        var ib = new IniBuilder();
         foreach (var b in bases)
         {
-            sb.AppendSection("MBase")
-                .AppendEntry("nickname", b.Nickname)
-                .AppendEntry("local_faction", b.LocalFaction?.Nickname)
-                .AppendEntry("diff", b.Diff)
-                .AppendEntry("msg_id_prefix", b.MsgIdPrefix)
-                .AppendLine();
+            ib.Section("MBase")
+                .Entry("nickname", b.Nickname)
+                .OptionalEntry("local_faction", b.LocalFaction?.Nickname)
+                .OptionalEntry("diff", b.Diff)
+                .OptionalEntry("msg_id_prefix", b.MsgIdPrefix);
 
             if (b.MinMissionOffers != 0 || b.MaxMissionOffers != 0)
-                sb.AppendSection("MVendor")
-                    .AppendEntry("num_offers", new[] {b.MinMissionOffers.ToString(), b.MaxMissionOffers.ToString()})
-                    .AppendLine();
+                ib.Section("MVendor")
+                    .Entry("num_offers", b.MinMissionOffers, b.MaxMissionOffers);
 
             foreach (var npc in b.Npcs)
             {
-                sb.AppendSection("GF_NPC")
-                    .AppendEntry("nickname", npc.Nickname)
-                    .AppendEntry("base_appr", npc.BaseAppr)
-                    .AppendEntry("body", npc.Body)
-                    .AppendEntry("head", npc.Head)
-                    .AppendEntry("lefthand", npc.LeftHand)
-                    .AppendEntry("righthand", npc.RightHand)
-                    .AppendEntry("individual_name", npc.IndividualName)
-                    .AppendEntry("affiliation", npc.Affiliation?.Nickname)
-                    .AppendEntry("voice", npc.Voice);
+                var section = ib.Section("GF_NPC")
+                    .Entry("nickname", npc.Nickname)
+                    .OptionalEntry("base_appr", npc.BaseAppr)
+                    .OptionalEntry("body", npc.Body)
+                    .OptionalEntry("head", npc.Head)
+                    .OptionalEntry("lefthand", npc.LeftHand)
+                    .OptionalEntry("righthand", npc.RightHand)
+                    .OptionalEntry("individual_name", npc.IndividualName)
+                    .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
+                    .OptionalEntry("voice", npc.Voice);
                 if (npc.Mission != null)
-                    sb.AppendEntry("misn", new[]
-                    {
-                        npc.Mission.Kind,
-                        npc.Mission.Min.ToStringInvariant(),
-                        npc.Mission.Max.ToStringInvariant()
-                    });
-                sb.AppendEntry("room", npc.Room);
+                    section.Entry("misn", npc.Mission.Kind, npc.Mission.Min, npc.Mission.Max);
+                section.OptionalEntry("room", npc.Room);
                 foreach (var br in npc.Bribes)
                 {
-                    sb.AppendEntry("bribe", new[]
-                    {
-                        br.Faction, br.Ids1.ToString(), br.Ids2.ToString()
-                    });
+                    section.Entry("bribe", br.Faction, br.Ids1, br.Ids2);
                 }
                 foreach (var r in npc.Rumors.Where(x => !x.Type2))
                 {
-                    sb.AppendEntry("rumor", new[]
-                    {
-                        r.Start, r.End, r.Unknown.ToString(), r.Ids.ToString()
-                    });
+                    section.Entry("rumor", r.Start, r.End, r.Unknown, r.Ids);
                     if (r.Objects != null)
-                        sb.AppendEntry("rumorknowdb", r.Objects);
+                        section.Entry("rumorknowdb", r.Objects);
                 }
                 foreach (var r2 in npc.Rumors.Where(x => x.Type2))
                 {
-                    sb.AppendEntry("rumor_type2", new[]
-                    {
-                        r2.Start, r2.End, r2.Unknown.ToString(), r2.Ids.ToString()
-                    });
+                    section.Entry("rumor_type2", r2.Start, r2.End, r2.Unknown, r2.Ids);
                     if (r2.Objects != null)
-                        sb.AppendEntry("rumorknowdb", r2.Objects);
+                        section.Entry("rumorknowdb", r2.Objects);
                 }
                 foreach (var k in npc.Know)
                 {
-                    sb.AppendEntry("know", new[]
-                    {
-                        k.Ids1.ToString(), k.Ids2.ToString(), k.Price.ToString(), k.Unknown.ToString()
-                    });
+                    section.Entry("know", k.Ids1, k.Ids2, k.Price, k.Unknown);
                     if (k.Objects != null)
-                        sb.AppendEntry("knowdb", k.Objects);
+                        section.Entry("knowdb", k.Objects);
                 }
-                sb.AppendLine();
             }
 
             foreach (var room in b.Rooms)
             {
-                sb.AppendSection("MRoom")
-                    .AppendEntry("nickname", room.Nickname)
-                    .AppendEntry("character_density", room.MaxCharacters);
+                var section = ib.Section("MRoom")
+                    .Entry("nickname", room.Nickname)
+                    .OptionalEntry("character_density", room.MaxCharacters);
                 foreach (var npc in room.FixedNpcs)
                 {
-                    sb.AppendEntry("fixture", new[]
-                    {
-                        npc.Npc.Nickname, npc.Placement, npc.FidgetScript.SourcePath, npc.Action
-                    });
+                    section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript.SourcePath, npc.Action);
                 }
-                sb.AppendLine();
             }
         }
-        return sb.ToString();
+
+        return ib.Sections;
     }
 }
