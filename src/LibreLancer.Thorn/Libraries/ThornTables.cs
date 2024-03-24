@@ -48,6 +48,20 @@ static class ThornTables
             return new ThornTuple(pair.Value.Key, pair.Value.Value);
     }
 
+    public static object setglobal(object[] args, ThornRuntime runtime)
+    {
+        var index = args[0].ToString();
+        runtime.Env[index] = args[1];
+        return args[1];
+    }
+
+    public static object getglobal(object[] args, ThornRuntime runtime)
+    {
+        var index = args[0].ToString();
+        return runtime.Env[index];
+    }
+
+
 
 
     public static void SetBuiltins(Dictionary<string, object> Env, ThornRuntime runtime)
@@ -55,5 +69,7 @@ static class ThornTables
         Env["getn"] = (ThornRuntimeFunction)getn;
         Env["next"] = (ThornRuntimeFunction)next;
         Env["tremove"] = (ThornRuntimeFunction)tremove;
+        Env["getglobal"] = (ThornRuntimeFunction)((e) => getglobal(e, runtime));
+        Env["setglobal"] = (ThornRuntimeFunction)((e) => setglobal(e, runtime));
     }
 }

@@ -66,6 +66,7 @@ namespace LibreLancer.Thorn.VM
             ThornMath.SetBuiltins(Env, this);
             ThornString.SetBuiltins(Env, this);
             ThornTables.SetBuiltins(Env, this);
+            ThornOS.SetBuiltins(Env, this);
             Env["tostring"] = (ThornRuntimeFunction)((e) => e[0] == null ? "nil" : e[0].ToString());
             Env["type"] = (ThornRuntimeFunction)((e) => e[0] switch
             {
