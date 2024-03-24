@@ -11,7 +11,7 @@ namespace LibreLancer.Thn.Events
     public class StartPSysEvent : ThnEvent
     {
         public StartPSysEvent() { }
-        public StartPSysEvent(LuaTable table) : base(table) { }
+        public StartPSysEvent(ThornTable table) : base(table) { }
 
         public override void Run(ThnScriptInstance instance)
         {

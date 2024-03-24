@@ -9,6 +9,6 @@ namespace LibreLancer.Thn.Events
     public class StartSubSceneEvent : ThnEvent
     {
         public StartSubSceneEvent() { }
-        public StartSubSceneEvent(LuaTable table) : base(table) { }
+        public StartSubSceneEvent(ThornTable table) : base(table) { }
     }
 }

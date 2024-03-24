@@ -33,17 +33,17 @@ namespace LibreLancer.GameData.World
 
         public IEnumerable<ThnScript> OpenScene()
         {
-            foreach (var p in SceneScripts) yield return new ThnScript(p.Thn.Load());
+            foreach (var p in SceneScripts) yield return new ThnScript(p.Thn.Load(), p.Thn.ReadCallback);
         }
         public ThnScript OpenSet()
         {
             if(SetScript != null)
-                return new ThnScript(SetScript.Load());
+                return new ThnScript(SetScript.Load(), SetScript.ReadCallback);
             return null;
         }
         public ThnScript OpenGoodscart()
         {
-            if (GoodscartScript != null) return new ThnScript(GoodscartScript.Load());
+            if (GoodscartScript != null) return new ThnScript(GoodscartScript.Load(), GoodscartScript.ReadCallback);
             return null;
         }
 

@@ -21,6 +21,8 @@ using LibreLancer.Graphics;
 using LibreLancer.Interface;
 using LibreLancer.Render;
 using LibreLancer.Thn;
+using LibreLancer.Thorn;
+using LibreLancer.Thorn.VM;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
 using Archetype = LibreLancer.GameData.Archetype;
@@ -32,6 +34,7 @@ namespace LibreLancer
 {
     public class GameDataManager
     {
+        public ThornReadFile ThornReadCallback;
         public Data.FreelancerData Ini => fldata;
         Data.FreelancerData fldata;
         ResourceManager resource;
@@ -45,6 +48,7 @@ namespace LibreLancer
             VFS = vfs;
             var flini = new Data.FreelancerIni(VFS);
             fldata = new Data.FreelancerData(flini, VFS);
+            ThornReadCallback = (file) => VFS.ReadAllBytes("EXE/" + file);
         }
         public string DataVersion => fldata.DataVersion;
 
@@ -127,7 +131,7 @@ namespace LibreLancer
         ResolvedThn ResolveThn(string path)
         {
             if (path == null) return null;
-            return new() {SourcePath = path, VFS = VFS, DataPath = DataPath(path)};
+            return new() {SourcePath = path, VFS = VFS, DataPath = DataPath(path), ReadCallback = ThornReadCallback};
         }
 
         IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)

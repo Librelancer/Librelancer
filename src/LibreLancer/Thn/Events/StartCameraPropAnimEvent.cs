@@ -26,11 +26,11 @@ namespace LibreLancer.Thn.Events
         public float NearPlane;
         public float FarPlane;
 
-        public StartCameraPropAnimEvent(LuaTable table) : base(table)
+        public StartCameraPropAnimEvent(ThornTable table) : base(table)
         {
             if (GetProps(table, out var props))
             {
-                if (!GetValue(props, "cameraprops", out LuaTable cameraprops))
+                if (!GetValue(props, "cameraprops", out ThornTable cameraprops))
                     return;
                 if (GetValue(cameraprops, "fovh", out FovH)) SetFlags |= AnimFlags.FovH;
                 if (GetValue(cameraprops, "hvaspect", out HVAspect)) SetFlags |= AnimFlags.HVAspect;

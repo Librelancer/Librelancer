@@ -10,7 +10,7 @@ namespace LibreLancer.Thn.Events
     {
         public StartAudioPropAnimEvent() { }
 
-        public StartAudioPropAnimEvent(LuaTable table) : base(table)
+        public StartAudioPropAnimEvent(ThornTable table) : base(table)
         {
         }
     }

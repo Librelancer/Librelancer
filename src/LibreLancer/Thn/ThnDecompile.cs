@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using LibreLancer.Data;
 using LibreLancer.Thorn;
+using LibreLancer.Thorn.VM;
 
 namespace LibreLancer.Thn
 {
@@ -9,88 +11,89 @@ namespace LibreLancer.Thn
     {
         static ThnDecompile()
         {
-            LuaTable.EnumReverse = new Dictionary<string, string>();
+            ThornTable.EnumReverse = new Dictionary<string, string>();
             //ThnObjectFlags
-            LuaTable.EnumReverse.Add("LitDynamic", "LIT_DYNAMIC");
-            LuaTable.EnumReverse.Add("LitAmbient", "LIT_AMBIENT");
-            LuaTable.EnumReverse.Add("Hidden", "HIDDEN");
-            LuaTable.EnumReverse.Add("Reference", "REFERENCE");
-            LuaTable.EnumReverse.Add("SoundSpatial", "SPATIAL");
-            LuaTable.EnumReverse.Add("Spatial", "SPATIAL");
+            ThornTable.EnumReverse.Add("LitDynamic", "LIT_DYNAMIC");
+            ThornTable.EnumReverse.Add("LitAmbient", "LIT_AMBIENT");
+            ThornTable.EnumReverse.Add("Hidden", "HIDDEN");
+            ThornTable.EnumReverse.Add("Reference", "REFERENCE");
+            ThornTable.EnumReverse.Add("SoundSpatial", "SPATIAL");
+            ThornTable.EnumReverse.Add("Spatial", "SPATIAL");
             //EventFlags
-            LuaTable.EnumReverse.Add("Loop", "LOOP");
-            LuaTable.EnumReverse.Add("Stream", "STREAM");
+            ThornTable.EnumReverse.Add("Loop", "LOOP");
+            ThornTable.EnumReverse.Add("Stream", "STREAM");
             //LightTypes
-            LuaTable.EnumReverse.Add("Direct", "L_DIRECT");
-            LuaTable.EnumReverse.Add("Point", "L_POINT");
-            LuaTable.EnumReverse.Add("Spotlight", "L_SPOT");
+            ThornTable.EnumReverse.Add("Direct", "L_DIRECT");
+            ThornTable.EnumReverse.Add("Point", "L_POINT");
+            ThornTable.EnumReverse.Add("Spotlight", "L_SPOT");
             //TargetTypes
-            LuaTable.EnumReverse.Add("Hardpoint", "HARDPOINT");
-            LuaTable.EnumReverse.Add("Part", "PART");
-            LuaTable.EnumReverse.Add("Root", "ROOT");
+            ThornTable.EnumReverse.Add("Hardpoint", "HARDPOINT");
+            ThornTable.EnumReverse.Add("Part", "PART");
+            ThornTable.EnumReverse.Add("Root", "ROOT");
             //AttachFlags
-            LuaTable.EnumReverse.Add("Position", "POSITION");
-            LuaTable.EnumReverse.Add("Orientation", "ORIENTATION");
-            LuaTable.EnumReverse.Add("LookAt", "LOOK_AT");
-            LuaTable.EnumReverse.Add("EntityRelative", "ENTITY_RELATIVE");
-            LuaTable.EnumReverse.Add("OrientationRelative", "ORIENTATION_RELATIVE");
-            LuaTable.EnumReverse.Add("ParentChild", "PARENT_CHILD");
+            ThornTable.EnumReverse.Add("Position", "POSITION");
+            ThornTable.EnumReverse.Add("Orientation", "ORIENTATION");
+            ThornTable.EnumReverse.Add("LookAt", "LOOK_AT");
+            ThornTable.EnumReverse.Add("EntityRelative", "ENTITY_RELATIVE");
+            ThornTable.EnumReverse.Add("OrientationRelative", "ORIENTATION_RELATIVE");
+            ThornTable.EnumReverse.Add("ParentChild", "PARENT_CHILD");
             //EntityTypes
-            LuaTable.EnumReverse.Add("Camera", "CAMERA");
-            LuaTable.EnumReverse.Add("PSys", "PSYS");
-            LuaTable.EnumReverse.Add("Monitor", "MONITOR");
-            LuaTable.EnumReverse.Add("Scene", "SCENE");
-            LuaTable.EnumReverse.Add("Marker", "MARKER");
-            LuaTable.EnumReverse.Add("Compound", "COMPOUND");
-            LuaTable.EnumReverse.Add("Light", "LIGHT");
-            LuaTable.EnumReverse.Add("MotionPath", "MOTION_PATH");
-            LuaTable.EnumReverse.Add("Deformable", "DEFORMABLE");
-            LuaTable.EnumReverse.Add("Sound", "SOUND");
-            LuaTable.EnumReverse.Add("UnknownEntity", "UNKNOWN_ENTITY");
-            LuaTable.EnumReverse.Add("Deleted", "DELETED");
-            LuaTable.EnumReverse.Add("SubScene", "SUB_SCENE");
+            ThornTable.EnumReverse.Add("Camera", "CAMERA");
+            ThornTable.EnumReverse.Add("PSys", "PSYS");
+            ThornTable.EnumReverse.Add("Monitor", "MONITOR");
+            ThornTable.EnumReverse.Add("Scene", "SCENE");
+            ThornTable.EnumReverse.Add("Marker", "MARKER");
+            ThornTable.EnumReverse.Add("Compound", "COMPOUND");
+            ThornTable.EnumReverse.Add("Light", "LIGHT");
+            ThornTable.EnumReverse.Add("MotionPath", "MOTION_PATH");
+            ThornTable.EnumReverse.Add("Deformable", "DEFORMABLE");
+            ThornTable.EnumReverse.Add("Sound", "SOUND");
+            ThornTable.EnumReverse.Add("UnknownEntity", "UNKNOWN_ENTITY");
+            ThornTable.EnumReverse.Add("Deleted", "DELETED");
+            ThornTable.EnumReverse.Add("SubScene", "SUB_SCENE");
             //FogModes
-            LuaTable.EnumReverse.Add("None", "F_NONE");
-            LuaTable.EnumReverse.Add("Exp2", "F_EXP2");
-            LuaTable.EnumReverse.Add("Exp", "F_EXP");
-            LuaTable.EnumReverse.Add("Linear", "F_LINEAR");
+            ThornTable.EnumReverse.Add("None", "F_NONE");
+            ThornTable.EnumReverse.Add("Exp2", "F_EXP2");
+            ThornTable.EnumReverse.Add("Exp", "F_EXP");
+            ThornTable.EnumReverse.Add("Linear", "F_LINEAR");
             //EventTypes
-            LuaTable.EnumReverse.Add("SetCamera", "SET_CAMERA");
-            LuaTable.EnumReverse.Add("AttachEntity", "ATTACH_ENTITY");
-            LuaTable.EnumReverse.Add("StartSpatialPropAnim", "START_SPATIAL_PROP_ANIM");
-            LuaTable.EnumReverse.Add("StartLightPropAnim", "START_LIGHT_PROP_ANIM");
-            LuaTable.EnumReverse.Add("StartPSys", "START_PSYS");
-            LuaTable.EnumReverse.Add("StartPSysPropAnim", "START_PSYS_PROP_ANIM");
-            LuaTable.EnumReverse.Add("StartPathAnimation", "START_PATH_ANIMATION");
-            LuaTable.EnumReverse.Add("StartMotion", "START_MOTION");
-            LuaTable.EnumReverse.Add("StartFogPropAnim", "START_FOG_PROP_ANIM");
-            LuaTable.EnumReverse.Add("StartCameraPropAnim", "START_CAMERA_PROP_ANIM");
-            LuaTable.EnumReverse.Add("StartSound", "START_SOUND");
-            LuaTable.EnumReverse.Add("StartAudioPropAnim", "START_AUDIO_PROP_ANIM");
-            LuaTable.EnumReverse.Add("ConnectHardpoints", "CONNECT_HARDPOINTS");
-            LuaTable.EnumReverse.Add("StartFloorHeightAnim", "START_FLR_HEIGHT_ANIM");
-            LuaTable.EnumReverse.Add("StartIK","START_IK");
-            LuaTable.EnumReverse.Add("StartSubScene", "START_SUB_SCENE");
-            LuaTable.EnumReverse.Add("UndefinedEvent", "UNDEFINED_EVENT");
-            LuaTable.EnumReverse.Add("UserEvent", "USER_EVENT");
-            LuaTable.EnumReverse.Add("StartReverbPropAnim", "START_REVERB_PROP_ANIM");
-            LuaTable.EnumReverse.Add("Subtitle", "SUBTITLE");
+            ThornTable.EnumReverse.Add("SetCamera", "SET_CAMERA");
+            ThornTable.EnumReverse.Add("AttachEntity", "ATTACH_ENTITY");
+            ThornTable.EnumReverse.Add("StartSpatialPropAnim", "START_SPATIAL_PROP_ANIM");
+            ThornTable.EnumReverse.Add("StartLightPropAnim", "START_LIGHT_PROP_ANIM");
+            ThornTable.EnumReverse.Add("StartPSys", "START_PSYS");
+            ThornTable.EnumReverse.Add("StartPSysPropAnim", "START_PSYS_PROP_ANIM");
+            ThornTable.EnumReverse.Add("StartPathAnimation", "START_PATH_ANIMATION");
+            ThornTable.EnumReverse.Add("StartMotion", "START_MOTION");
+            ThornTable.EnumReverse.Add("StartFogPropAnim", "START_FOG_PROP_ANIM");
+            ThornTable.EnumReverse.Add("StartCameraPropAnim", "START_CAMERA_PROP_ANIM");
+            ThornTable.EnumReverse.Add("StartSound", "START_SOUND");
+            ThornTable.EnumReverse.Add("StartAudioPropAnim", "START_AUDIO_PROP_ANIM");
+            ThornTable.EnumReverse.Add("ConnectHardpoints", "CONNECT_HARDPOINTS");
+            ThornTable.EnumReverse.Add("StartFloorHeightAnim", "START_FLR_HEIGHT_ANIM");
+            ThornTable.EnumReverse.Add("StartIK","START_IK");
+            ThornTable.EnumReverse.Add("StartSubScene", "START_SUB_SCENE");
+            ThornTable.EnumReverse.Add("UndefinedEvent", "UNDEFINED_EVENT");
+            ThornTable.EnumReverse.Add("UserEvent", "USER_EVENT");
+            ThornTable.EnumReverse.Add("StartReverbPropAnim", "START_REVERB_PROP_ANIM");
+            ThornTable.EnumReverse.Add("Subtitle", "SUBTITLE");
         }
-        
-        public static string Decompile(string file)
+
+        public static string Decompile(string file, ThornReadFile readCallback = null)
         {
             var builder = new StringBuilder();
-            var runner = new LuaRunner(ThnScript.ThnEnv);
-            var output = runner.DoFile(file);
+            var runner = new ThornRunner(ThnScript.ThnEnv, readCallback);
+            runner.Log = false;
+            var output = runner.DoBytes(File.ReadAllBytes(file), file);
             foreach (var kv in output)
             {
                 switch (kv.Key.ToLowerInvariant())
                 {
                     case "events":
-                        ProcessEvents((LuaTable)kv.Value);
+                        ProcessEvents((ThornTable)kv.Value);
                         break;
                     case "entities":
-                        ProcessEntities((LuaTable)kv.Value);
+                        ProcessEntities((ThornTable)kv.Value);
                         break;
                 }
                 if (kv.Value is float f)
@@ -100,37 +103,37 @@ namespace LibreLancer.Thn
             }
             return builder.ToString();
         }
-        static void ProcessEntities(LuaTable t)
+        static void ProcessEntities(ThornTable t)
         {
             //Make sure flags aren't integers
             object o;
-            for (int ti = 0; ti < t.Capacity; ti++)
+            for (int ti = 1; ti <= t.Length; ti++)
             {
-                var ent = (LuaTable)t[ti];
+                var ent = (ThornTable)t[ti];
                 ent["type"] = ThnTypes.Convert<EntityTypes>(ent["type"]);
                 if (ent.TryGetValue("lightprops", out o))
                 {
-                    var lp = (LuaTable)o;
+                    var lp = (ThornTable)o;
                     if (lp.ContainsKey("type")) lp["type"] = ThnTypes.Convert<LightTypes>(lp["type"]);
                 }
                 if (ent.ContainsKey("flags")) ent["flags"] = ConvertFlags((EntityTypes)ent["type"], ent);
             }
         }
-        static ThnObjectFlags ConvertFlags(EntityTypes type, LuaTable table)
+        static ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
         {
             if (!(table["flags"] is float)) return (ThnObjectFlags)table["flags"];
             var val = (int)(float)table["flags"];
             return ThnTypes.Convert<ThnObjectFlags>(val);
         }
-        static void ProcessEvents(LuaTable t)
+        static void ProcessEvents(ThornTable t)
         {
-            for (int ti = 0; ti < t.Capacity; ti++)
+            for (int ti = 1; ti <= t.Length; ti++)
             {
-                var ev = (LuaTable)t[ti];
+                var ev = (ThornTable)t[ti];
                 ev[1] = ThnTypes.Convert<EventTypes>(ev[1]);
-                if (ev.Capacity >= 4)
+                if (ev.Length >= 4)
                 {
-                    var props = (LuaTable)ev[3];
+                    var props = (ThornTable)ev[3];
                     //TODO: Property flags
                 }
             }

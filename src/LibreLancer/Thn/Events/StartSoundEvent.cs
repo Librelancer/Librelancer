@@ -13,7 +13,7 @@ namespace LibreLancer.Thn.Events
         public SoundFlags Flags;
         public float StartTime;
 
-        public StartSoundEvent(LuaTable table) : base(table)
+        public StartSoundEvent(ThornTable table) : base(table)
         {
             if (GetProps(table, out var props))
             {

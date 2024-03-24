@@ -2,11 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-
-namespace LibreLancer.Thorn
+namespace LibreLancer.Thorn.Bytecode
 {
-	public enum LuaTypes
+    enum LuaTypes
 	{
 		UserData = 0,
 		Number = -1,

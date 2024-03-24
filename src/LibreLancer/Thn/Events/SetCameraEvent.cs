@@ -10,7 +10,7 @@ namespace LibreLancer.Thn.Events
     {
         public SetCameraEvent() { }
 
-        public SetCameraEvent(LuaTable table) : base(table) { }
+        public SetCameraEvent(ThornTable table) : base(table) { }
 
         public override void Run(ThnScriptInstance instance)
         {

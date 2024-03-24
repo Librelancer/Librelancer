@@ -37,7 +37,7 @@ namespace LibreLancer.Thn
             Points = points.ToList();
             Period = -1;
         }
-		public ParameterCurve(LuaTable table)
+		public ParameterCurve(ThornTable table)
 		{
 			CLSID = (string)table["CLSID"];
 			switch (CLSID.ToLowerInvariant())
@@ -73,11 +73,11 @@ namespace LibreLancer.Thn
 					Type = PCurveType.CatmullRom;
 					break;
 			}
-			var points = (LuaTable)table["points"];
+			var points = (ThornTable)table["points"];
 			Points = new List<Vector4>();
-			for (int i = 0; i < points.Capacity; i++) {
-				var p = (LuaTable)points[i];
-				var v = new Vector4((float)p[0], (float)p[1], (float)p[2], (float)p[3]);
+			for (int i = 1; i <= points.Length; i++) {
+				var p = (ThornTable)points[i];
+				var v = new Vector4((float)p[1], (float)p[2], (float)p[3], (float)p[4]);
 				Points.Add(v);
 			}
 		}
@@ -96,9 +96,9 @@ namespace LibreLancer.Thn
             var _3x2 = 3 * x2;
             var _2x3 = 2 * x3;
             var _2x2 = 2 * x2;
-            return (_3x2 - _2x3) * bval 
-                   + (_2x3 - _3x2 + 1) * aval 
-                   + (x3 - x2) * bcontrol1 * period 
+            return (_3x2 - _2x3) * bval
+                   + (_2x3 - _3x2 + 1) * aval
+                   + (x3 - x2) * bcontrol1 * period
                    + (x3 - _2x2 + x) * acontrol2 * period;
         }
 

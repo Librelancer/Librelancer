@@ -2,11 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-
-namespace LibreLancer.Thorn
+namespace LibreLancer.Thorn.VM
 {
-	public class LuaStack
+    class ThornStack
 	{
 		object[] stack;
 		int stackPtr = -1;
@@ -17,6 +15,25 @@ namespace LibreLancer.Thorn
 			stackPtr--;
 			return obj;
 		}
+
+        public void MoveUp()
+        {
+            if (stackPtr == -1) {
+                Push(null);
+                return;
+            }
+            for (int i = stackPtr + 1; i > 0; i--) {
+                stack[i] = stack[i - 1];
+            }
+            stack[0] = null;
+            stackPtr++;
+        }
+        public void Pop(int n)
+        {
+            for(int i = 0; i < n; i++) {
+                stack[stackPtr--] = null;
+            }
+        }
 		public void Push(object obj)
 		{
 			stackPtr++;
@@ -26,7 +43,7 @@ namespace LibreLancer.Thorn
 		{
 			return stack[stackPtr];
 		}
-		public LuaStack(int size)
+		public ThornStack(int size)
 		{
 			stack = new object[size];
 		}
@@ -34,6 +51,10 @@ namespace LibreLancer.Thorn
 			get {
 				return stack[idx];
 			}
+            set
+            {
+                stack[idx] = value;
+            }
 		}
 		public int Count {
 			get {

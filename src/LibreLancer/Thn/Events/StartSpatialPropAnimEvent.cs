@@ -38,20 +38,20 @@ namespace LibreLancer.Thn.Events
 
         public StartSpatialPropAnimEvent() { }
 
-        public StartSpatialPropAnimEvent(LuaTable table) : base(table)
+        public StartSpatialPropAnimEvent(ThornTable table) : base(table)
         {
             if (!GetProps(table, out var props)) return;
-            if (!GetValue(props, "spatialprops", out LuaTable sp)) return;
+            if (!GetValue(props, "spatialprops", out ThornTable sp)) return;
             if (GetValue(sp, "q_orient", out Q_Orient)) SetFlags |= AnimVars.QOrient;
             if (GetValue(sp, "orient", out Orient)) SetFlags |= AnimVars.Orient;
-            if (GetValue(sp, "axisrot", out LuaTable axisrot))
+            if (GetValue(sp, "axisrot", out ThornTable axisrot))
             {
                 SetFlags |= AnimVars.AxisRot;
-                if (!axisrot.TryGetVector3(1, out AxisRot.Axis)) {
+                if (!axisrot.TryGetVector3(2, out AxisRot.Axis)) {
                     FLLog.Error("Thn", "START_SPATIAL_PROP_ANIM axisrot missing axis");
                     AxisRot.Axis = Vector3.UnitY;
                 }
-                AxisRot.Degrees = (float) axisrot[0];
+                AxisRot.Degrees = (float) axisrot[1];
             }
             if (GetValue(sp, "pos", out Pos)) SetFlags |= AnimVars.Pos;
         }
@@ -63,7 +63,7 @@ namespace LibreLancer.Thn.Events
             bool hasPos = (SetFlags & AnimVars.Pos) == AnimVars.Pos;
             bool hasQuat = (SetFlags & AnimVars.Orient) == AnimVars.Orient ||
                            (SetFlags & AnimVars.QOrient) == AnimVars.QOrient;
-            
+
             Quaternion quat = Q_Orient;
             if ((SetFlags & AnimVars.Orient) == AnimVars.Orient)
                 quat = Orient.ExtractRotation();
@@ -142,11 +142,11 @@ namespace LibreLancer.Thn.Events
             public ThnObject This;
 
             private double time;
-            
+
             public override bool Run(double delta)
             {
                 time = MathHelper.Clamp(time + delta, 0, Event.Duration);
-                
+
                 if (HasPos) This.Translate = GetPosition(delta);
                 if (HasQuat) This.Rotate = Matrix4x4.CreateFromQuaternion(GetOrientation(delta));
                 if ((Event.SetFlags & AnimVars.AxisRot) == AnimVars.AxisRot)

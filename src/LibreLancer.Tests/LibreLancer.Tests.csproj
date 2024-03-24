@@ -29,12 +29,14 @@
 
     <ItemGroup>
       <Folder Include="TestAssets\" />
+      <Folder Include="Thorn\Scripts\" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="TestAssets\plainzip.zip" />
+      <Content Include="Thorn\Scripts\**\*.*" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+    <ItemGroup>
       <EmbeddedResource Include="TestAssets\plainzip.zip" />
-      <None Remove="TestAssets\zipwithextra.dat" />
       <EmbeddedResource Include="TestAssets\zipwithextra.dat" />
     </ItemGroup>
 

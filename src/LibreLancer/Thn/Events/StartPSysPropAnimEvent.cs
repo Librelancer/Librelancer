@@ -13,11 +13,11 @@ namespace LibreLancer.Thn.Events
 
         public float SParam;
         public bool Set;
-        public StartPSysPropAnimEvent(LuaTable table) : base(table)
+        public StartPSysPropAnimEvent(ThornTable table) : base(table)
         {
             if (GetProps(table, out var props))
             {
-                if (!GetValue(props, "psysprops", out LuaTable psys))
+                if (!GetValue(props, "psysprops", out ThornTable psys))
                     return;
                 Set = GetValue(psys, "sparam", out SParam);
             }

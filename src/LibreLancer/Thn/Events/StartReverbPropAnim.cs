@@ -9,6 +9,6 @@ namespace LibreLancer.Thn.Events
     public class StartReverbPropAnim : ThnEvent
     {
         public StartReverbPropAnim() { }
-        public StartReverbPropAnim(LuaTable table) : base(table) {}
+        public StartReverbPropAnim(ThornTable table) : base(table) {}
     }
 }

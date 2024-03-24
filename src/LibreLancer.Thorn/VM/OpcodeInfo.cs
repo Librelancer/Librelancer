@@ -2,18 +2,18 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
+using LibreLancer.Thorn.Bytecode;
 
-namespace LibreLancer.Thorn
+namespace LibreLancer.Thorn.VM
 {
-	partial class LuaBinaryRuntime
+	public partial class ThornRuntime
 	{
-		OpcodeInfo[] Info = new OpcodeInfo[] {
+		static readonly OpcodeInfo[] Info = new OpcodeInfo[] {
 			new OpcodeInfo(LuaOpcodes.EndCode, LuaOpcodes.EndCode, Arguments.None),
 			new OpcodeInfo(LuaOpcodes.RetCode, LuaOpcodes.RetCode, Arguments.Byte),
 			new OpcodeInfo(LuaOpcodes.Call, LuaOpcodes.Call, Arguments.ByteByte),
 			new OpcodeInfo(LuaOpcodes.TailCall, LuaOpcodes.TailCall, Arguments.ByteByte),
-			new OpcodeInfo (LuaOpcodes.PushNill, LuaOpcodes.PushNill, Arguments.Byte),
+			new OpcodeInfo (LuaOpcodes.PushNil, LuaOpcodes.PushNil, Arguments.Byte),
 			new OpcodeInfo (LuaOpcodes.Pop, LuaOpcodes.Pop, Arguments.Byte),
 			new OpcodeInfo (LuaOpcodes.PushNumberW, LuaOpcodes.PushNumber, Arguments.Word),
 			new OpcodeInfo (LuaOpcodes.PushNumber, LuaOpcodes.PushNumber, Arguments.Byte),
@@ -64,6 +64,8 @@ namespace LibreLancer.Thorn
 			new OpcodeInfo (LuaOpcodes.IffJmp, LuaOpcodes.IffJmp, Arguments.Byte),
 			new OpcodeInfo (LuaOpcodes.IftUpJmpW, LuaOpcodes.IftUpJmp, Arguments.Word),
 			new OpcodeInfo (LuaOpcodes.IftUpJmp, LuaOpcodes.IftUpJmp, Arguments.Byte),
+            new OpcodeInfo (LuaOpcodes.IffUpJmpW, LuaOpcodes.IffUpJmp, Arguments.Word),
+            new OpcodeInfo (LuaOpcodes.IffUpJmp, LuaOpcodes.IffUpJmp, Arguments.Byte),
 			new OpcodeInfo (LuaOpcodes.ClosureW, LuaOpcodes.Closure, Arguments.WordByte),
 			new OpcodeInfo (LuaOpcodes.Closure, LuaOpcodes.Closure, Arguments.ByteByte),
 			new OpcodeInfo (LuaOpcodes.SetLineW, LuaOpcodes.SetLine, Arguments.Word),
@@ -80,7 +82,7 @@ namespace LibreLancer.Thorn
 			ByteByte,
 			WordByte
 		}
-		class OpcodeInfo 
+		class OpcodeInfo
 		{
 			public string DisplayName;
 			public LuaOpcodes Value;

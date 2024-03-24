@@ -18,7 +18,7 @@ namespace LibreLancer.Thn.Events
         {
         }
 
-        public StartPathAnimationEvent(LuaTable table) : base(table)
+        public StartPathAnimationEvent(ThornTable table) : base(table)
         {
             if (GetProps(table, out var props))
             {

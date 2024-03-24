@@ -71,9 +71,10 @@ namespace LibreLancer
             scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
             foreach (var s in thnScripts)
             {
+                #if !DEBUG
                 try
                 {
-                    intro.Add(new ThnScript(s.Load()));
+                    intro.Add(new ThnScript(s.Load(), s.ReadCallback));
                 }
                 catch (Exception e)
                 {
@@ -81,6 +82,9 @@ namespace LibreLancer
                     scene = null;
                     return;
                 }
+                #else
+                intro.Add(new ThnScript(s.Load(), s.ReadCallback));
+                #endif
             }
             scene.BeginScene(intro);
         }

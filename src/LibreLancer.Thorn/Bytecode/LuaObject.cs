@@ -4,9 +4,9 @@
 
 using System;
 
-namespace LibreLancer.Thorn
+namespace LibreLancer.Thorn.Bytecode
 {
-	public class LuaObject
+    class LuaObject
 	{
 		public LuaTypes Type;
 		public object Value;

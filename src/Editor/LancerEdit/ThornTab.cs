@@ -86,9 +86,9 @@ namespace LancerEdit
                 try
                 {
                     var source = colorTextEdit.GetText();
-                    var compiledBytes = LuaCompiler.Compile(source, "");
+                    var compiledBytes = ThornCompiler.Compile(source, "");
                     lastError = null;
-                    var thornScript = new ThnScript(compiledBytes);
+                    var thornScript = new ThnScript(compiledBytes, null);
                     var ctx = new ThnScriptContext(null);
                     cutscene?.Dispose();
                     cutscene = new Cutscene(ctx,
@@ -99,7 +99,7 @@ namespace LancerEdit
                     cutscene.BeginScene(thornScript);
                     cutscene.Update(0.1f);
                 }
-                catch (LuaCompileException lce)
+                catch (ThornCompileException lce)
                 {
                     lastError = lce.Message;
                     showErrorPopUp = true;
@@ -205,11 +205,11 @@ namespace LancerEdit
             var source = colorTextEdit.GetText();
             try
             {
-                var compiledBytes = LuaCompiler.Compile(source, "");
+                var compiledBytes = ThornCompiler.Compile(source, "");
                 File.WriteAllBytes(filePath, compiledBytes);
                 lastError = null;
             }
-            catch (LuaCompileException lce)
+            catch (ThornCompileException lce)
             {
                 lastError = lce.Message;
                 showErrorPopUp = true;
@@ -221,11 +221,11 @@ namespace LancerEdit
             var source = colorTextEdit.GetText();
             try
             {
-                var compiledBytes = LuaCompiler.Compile(source, "");
+                var compiledBytes = ThornCompiler.Compile(source, "");
                 File.WriteAllBytes(filePath, compiledBytes);
                 lastError = null;
             }
-            catch (LuaCompileException lce)
+            catch (ThornCompileException lce)
             {
                 lastError = lce.Message;
                 showErrorPopUp = true;

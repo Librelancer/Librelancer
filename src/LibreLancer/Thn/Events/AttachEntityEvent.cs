@@ -84,7 +84,7 @@ namespace LibreLancer.Thn.Events
         public string TargetPart;
         public Vector3 Offset;
         
-        public AttachEntityEvent(LuaTable table) : base(table)
+        public AttachEntityEvent(ThornTable table) : base(table)
         {
             if (GetProps(table, out var props))
             {

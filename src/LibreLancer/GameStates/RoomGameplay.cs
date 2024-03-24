@@ -409,7 +409,7 @@ namespace LibreLancer
                     cState = state;
                     break;
             }
-            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(scName)));
+            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(scName)), session.Game.GameData.ThornReadCallback);
             currentCutscene = ct;
             RoomDoSceneScript(script, ScriptState.Cutscene);
         }
@@ -421,7 +421,7 @@ namespace LibreLancer
         {
             if (!string.IsNullOrEmpty(currentRoom.LaunchScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.Load()), ScriptState.Launch);
+                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.Load(), currentRoom.LaunchScript.ReadCallback), ScriptState.Launch);
             }
             else
             {
@@ -560,10 +560,10 @@ namespace LibreLancer
             sceneScripts = currentRoom.OpenScene().ToArray();
             if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LandScript.Load()), ScriptState.Enter);
+                RoomDoSceneScript(new ThnScript(currentRoom.LandScript.Load(), currentRoom.LandScript.ReadCallback), ScriptState.Enter);
             } else if (!string.IsNullOrEmpty(currentRoom.StartScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.StartScript.Load()), ScriptState.Enter);
+                RoomDoSceneScript(new ThnScript(currentRoom.StartScript.Load(), currentRoom.StartScript.ReadCallback), ScriptState.Enter);
             }
             else
             {
@@ -637,7 +637,9 @@ namespace LibreLancer
                 thnObj.Translate = pos;
                 thnObj.Object = obj;
                 scene.AddObject(thnObj);
-                scene.FidgetScript(new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(npc.Fidget))));
+                scene.FidgetScript(new ThnScript(
+                    session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(npc.Fidget)),
+                    session.Game.GameData.ThornReadCallback));
                 if(i == 0) hotspots.Add(new RTCHotspot() { ini = ct, obj = thnObj, npc = npc.Npc });
                 i++;
             }

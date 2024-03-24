@@ -14,7 +14,7 @@ namespace LibreLancer.Thn.Events
         public int Flags;
         public StartMotionEvent() { }
 
-        public StartMotionEvent(LuaTable table) : base(table)
+        public StartMotionEvent(ThornTable table) : base(table)
         {
             if (!GetProps(table, out var props)) return;
 

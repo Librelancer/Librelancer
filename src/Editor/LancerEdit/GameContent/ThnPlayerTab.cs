@@ -49,11 +49,11 @@ public class ThnPlayerTab : GameContentTab
         decompiled = files.Select(x => new DecompiledThn()
         {
             Name = Path.GetFileName(x),
-            Text = ThnDecompile.Decompile(x)
+            Text = ThnDecompile.Decompile(x, gameData.GameData.ThornReadCallback)
         }).ToArray();
         var ctx = new ThnScriptContext(null);
         cutscene = new Cutscene(ctx, gameData.GameData,  gameData.Resources, gameData.Sounds, new Rectangle(0,0,240,240), win);
-        cutscene.BeginScene(files.Select(x => new ThnScript(File.ReadAllBytes(x))));
+        cutscene.BeginScene(files.Select(x => new ThnScript(File.ReadAllBytes(x), gameData.GameData.ThornReadCallback)));
     }
 
     void Reload()

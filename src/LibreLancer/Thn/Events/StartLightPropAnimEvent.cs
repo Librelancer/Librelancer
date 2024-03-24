@@ -25,11 +25,11 @@ namespace LibreLancer.Thn.Events
         public Color3f Ambient;
         public StartLightPropAnimEvent() { }
 
-        public StartLightPropAnimEvent(LuaTable table) : base(table)
+        public StartLightPropAnimEvent(ThornTable table) : base(table)
         {
             //Get Tables
             if (!GetProps(table, out var props)) return;
-            if (!GetValue(props, "lightprops", out LuaTable lights)) return;
+            if (!GetValue(props, "lightprops", out ThornTable lights)) return;
             //Set Properties
             if (GetValue(lights, "on", out On)) SetFlags |= AnimVars.On;
             if (GetValue(lights, "diffuse", out Diffuse)) SetFlags |= AnimVars.Diffuse;

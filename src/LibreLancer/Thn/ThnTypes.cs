@@ -18,7 +18,7 @@ namespace LibreLancer.Thn
             if (o is T o1) return o1;
             if (typeof(T) == typeof(Matrix4x4))
             {
-                return (T)(object)GetMatrix((LuaTable) o);
+                return (T)(object)GetMatrix((ThornTable) o);
             }
             if (typeof(T) == typeof(float))
             {
@@ -34,15 +34,15 @@ namespace LibreLancer.Thn
             if (o is string) return (T)ThnScript.ThnEnv[(string)o];
             if (typeof(T) == typeof(Vector3))
             {
-                if (o is LuaTable tb) return (T)(object)tb.ToVector3();
+                if (o is ThornTable tb) return (T)(object)tb.ToVector3();
             }
             if (typeof(T) == typeof(Color3f))
             {
-                if (o is LuaTable tb) return (T) (object) new Color3f(tb.ToVector3());
+                if (o is ThornTable tb) return (T) (object) new Color3f(tb.ToVector3());
             }
             if (typeof(T) == typeof(Quaternion))
             {
-                if (o is LuaTable tb) return (T) (object) new Quaternion((float) tb[1], (float) tb[2], (float) tb[3], (float) tb[0]);
+                if (o is ThornTable tb) return (T) (object) new Quaternion((float) tb[2], (float) tb[3], (float) tb[4], (float) tb[1]);
             }
             int integer = 0;
             if (o is float f) integer = (int) f;
@@ -52,19 +52,19 @@ namespace LibreLancer.Thn
             return (T) System.Convert.ChangeType(integer, Enum.GetUnderlyingType(typeof(T)));
         }
 
-        static Matrix4x4 GetMatrix(LuaTable orient)
+        static Matrix4x4 GetMatrix(ThornTable orient)
         {
-            var m11 = (float) ((LuaTable) orient[0])[0];
-            var m12 = (float) ((LuaTable) orient[0])[1];
-            var m13 = (float) ((LuaTable) orient[0])[2];
+            var m11 = (float) ((ThornTable) orient[0])[0];
+            var m12 = (float) ((ThornTable) orient[0])[1];
+            var m13 = (float) ((ThornTable) orient[0])[2];
 
-            var m21 = (float) ((LuaTable) orient[1])[0];
-            var m22 = (float) ((LuaTable) orient[1])[1];
-            var m23 = (float) ((LuaTable) orient[1])[2];
+            var m21 = (float) ((ThornTable) orient[1])[0];
+            var m22 = (float) ((ThornTable) orient[1])[1];
+            var m23 = (float) ((ThornTable) orient[1])[2];
 
-            var m31 = (float) ((LuaTable) orient[2])[0];
-            var m32 = (float) ((LuaTable) orient[2])[1];
-            var m33 = (float) ((LuaTable) orient[2])[2];
+            var m31 = (float) ((ThornTable) orient[2])[0];
+            var m32 = (float) ((ThornTable) orient[2])[1];
+            var m33 = (float) ((ThornTable) orient[2])[2];
             return new Matrix4x4(
                 m11, m12, m13, 0,
                 m21, m22, m23, 0,

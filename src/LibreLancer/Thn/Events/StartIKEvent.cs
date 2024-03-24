@@ -10,6 +10,6 @@ namespace LibreLancer.Thn.Events
     {
         public StartIKEvent() { }
 
-        public StartIKEvent(LuaTable table) : base(table) { }
+        public StartIKEvent(ThornTable table) : base(table) { }
     }
 }

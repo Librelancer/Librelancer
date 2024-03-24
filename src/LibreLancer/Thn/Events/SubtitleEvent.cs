@@ -9,6 +9,6 @@ namespace LibreLancer.Thn.Events
     public class SubtitleEvent : ThnEvent
     {
         public SubtitleEvent() { }
-        public SubtitleEvent(LuaTable table) : base(table) { }
+        public SubtitleEvent(ThornTable table) : base(table) { }
     }
 }

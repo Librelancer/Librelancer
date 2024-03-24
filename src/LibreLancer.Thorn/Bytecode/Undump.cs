@@ -3,11 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Globalization;
 
-namespace LibreLancer.Thorn
+namespace LibreLancer.Thorn.Bytecode
 {
 	static class Undump
 	{
@@ -175,7 +175,8 @@ namespace LibreLancer.Thorn
 			native = sizeofR != 0;
 			if (native) {
 				var testnumber = LoadNumber (stream, native);
-				if (testnumber != TESTNUMBER)
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (testnumber != TESTNUMBER)
 					throw new Exception ("Bad number format");
 			}
 			return native;

@@ -10,7 +10,7 @@ namespace LibreLancer.Thn.Events
     {
         public StartFloorHeightAnimEvent() {}
 
-        public StartFloorHeightAnimEvent(LuaTable table) : base(table)
+        public StartFloorHeightAnimEvent(ThornTable table) : base(table)
         {
         }
     }

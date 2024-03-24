@@ -37,27 +37,27 @@ namespace LibreLancer.Thn
             }
         }
 
-        protected ThnEvent(LuaTable table)
+        protected ThnEvent(ThornTable table)
         {
-            Time = (float) table[0];
-            Type = ThnTypes.Convert<EventTypes>(table[1]);
+            Time = (float) table[1];
+            Type = ThnTypes.Convert<EventTypes>(table[2]);
             if (GetProps(table, out var props))
             {
-                if (GetValue(props, "param_curve", out LuaTable pcurve))
+                if (GetValue(props, "param_curve", out ThornTable pcurve))
                 {
                     ParamCurve = new ParameterCurve(pcurve);
                     GetValue(props, "pcurve_period", out ParamCurve.Period);
                 }
                 GetValue(props, "duration", out Duration);
             }
-            var targetTable = (LuaTable) table[2];
-            Targets = new string[targetTable.Count];
-            for (int i = 0; i < Targets.Length; i++) {
-                Targets[i] = (string)targetTable[i];
+            var targetTable = (ThornTable) table[3];
+            Targets = new string[targetTable.Length];
+            for (int i = 1; i <= Targets.Length; i++) {
+                Targets[i-1] = (string)targetTable[i];
             }
         }
-        
-        protected static bool GetValue<T>(LuaTable table, string key, out T result, T def = default(T))
+
+        protected static bool GetValue<T>(ThornTable table, string key, out T result, T def = default(T))
         {
             result = default;
             if (table.TryGetValue(key, out var tmp))
@@ -68,17 +68,17 @@ namespace LibreLancer.Thn
             return false;
         }
 
-        protected static bool GetProps(LuaTable table, out LuaTable props)
+        protected static bool GetProps(ThornTable table, out ThornTable props)
         {
             props = null;
-            if (table.Capacity >= 4)
+            if (table.Length >= 4)
             {
-                props = (LuaTable) table[3];
+                props = (ThornTable) table[4];
                 return true;
             }
             return false;
         }
-        
+
     }
 }
 

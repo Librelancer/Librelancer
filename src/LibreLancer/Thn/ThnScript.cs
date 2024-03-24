@@ -9,6 +9,7 @@ using System.Numerics;
 using LibreLancer.Render;
 using LibreLancer.Thn.Events;
 using LibreLancer.Thorn;
+using LibreLancer.Thorn.VM;
 
 namespace LibreLancer.Thn
 {
@@ -102,19 +103,19 @@ namespace LibreLancer.Thn
 		public List<ThnEvent> Events = new List<ThnEvent>();
 
 
-        public ThnScript(byte[] bytes)
+        public ThnScript(byte[] bytes, ThornReadFile readFile)
         {
-            var runner = new LuaRunner(ThnEnv);
+            var runner = new ThornRunner(ThnEnv, readFile);
             Initialize(runner.DoBytes(bytes));
         }
 
         private void Initialize(IDictionary<string, object> output)
         {
             Duration = (float)output["duration"];
-            var entities = (LuaTable)output["entities"];
-            for (int i = 0; i < entities.Capacity; i++)
+            var entities = (ThornTable)output["entities"];
+            for (int i = 1; i <= entities.Length; i++)
             {
-                var ent = (LuaTable)entities[i];
+                var ent = (ThornTable)entities[i];
                 var e = GetEntity(ent);
                 if (Entities.ContainsKey(e.Name))
                 {
@@ -124,19 +125,19 @@ namespace LibreLancer.Thn
                 else
                     Entities.Add(e.Name, e);
             }
-            var events = (LuaTable)output["events"];
-            for (int i = 0; i < events.Capacity; i++)
+            var events = (ThornTable)output["events"];
+            for (int i = 1; i <= events.Length; i++)
             {
-                var ev = (LuaTable)events[i];
+                var ev = (ThornTable)events[i];
                 var e = GetEvent(ev);
                 Events.Add(e);
             }
             Events.Sort((x, y) => x.Time.CompareTo(y.Time));
         }
 
-		ThnEvent GetEvent(LuaTable table)
+		ThnEvent GetEvent(ThornTable table)
 		{
-            var t = ThnTypes.Convert<EventTypes>(table[1]);
+            var t = ThnTypes.Convert<EventTypes>(table[2]);
             switch (t)
             {
                 case EventTypes.SetCamera:
@@ -179,7 +180,7 @@ namespace LibreLancer.Thn
             throw new ArgumentException($"event type {t}");
         }
 		//Flags are stored differently internally between Freelancer and Librelancer
-		ThnObjectFlags ConvertFlags(EntityTypes type, LuaTable table)
+		ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
 		{
 			var val = (int)(float)table["flags"];
 			if (val == 0) return ThnObjectFlags.None;
@@ -199,19 +200,19 @@ namespace LibreLancer.Thn
 
 
 
-		public static Matrix4x4 GetMatrix(LuaTable orient)
+		public static Matrix4x4 GetMatrix(ThornTable orient)
 		{
-			var m11 = (float)((LuaTable)orient[0])[0];
-			var m12 = (float)((LuaTable)orient[0])[1];
-			var m13 = (float)((LuaTable)orient[0])[2];
+			var m11 = (float)((ThornTable)orient[1])[1];
+			var m12 = (float)((ThornTable)orient[1])[2];
+			var m13 = (float)((ThornTable)orient[1])[3];
 
-			var m21 = (float)((LuaTable)orient[1])[0];
-			var m22 = (float)((LuaTable)orient[1])[1];
-			var m23 = (float)((LuaTable)orient[1])[2];
+			var m21 = (float)((ThornTable)orient[2])[1];
+			var m22 = (float)((ThornTable)orient[2])[2];
+			var m23 = (float)((ThornTable)orient[2])[3];
 
-			var m31 = (float)((LuaTable)orient[2])[0];
-			var m32 = (float)((LuaTable)orient[2])[1];
-			var m33 = (float)((LuaTable)orient[2])[2];
+			var m31 = (float)((ThornTable)orient[3])[1];
+			var m32 = (float)((ThornTable)orient[3])[2];
+			var m33 = (float)((ThornTable)orient[3])[3];
 			return new Matrix4x4(
 				m11, m12, m13, 0,
 				m21, m22, m23, 0,
@@ -231,7 +232,7 @@ namespace LibreLancer.Thn
 
         static int FuzzyInt(object o) => (int) FuzzyFloat(o);
 
-		ThnEntity GetEntity(LuaTable table)
+		ThnEntity GetEntity(ThornTable table)
 		{
 			object o;
 
@@ -282,7 +283,7 @@ namespace LibreLancer.Thn
 			}
 			if (table.TryGetValue("userprops", out o))
 			{
-				var usrprops = (LuaTable)o;
+				var usrprops = (ThornTable)o;
 				if (usrprops.TryGetValue("category", out o))
 				{
 					e.MeshCategory = (string)o;
@@ -310,7 +311,7 @@ namespace LibreLancer.Thn
 			}
             if(table.TryGetValue("audioprops", out o))
             {
-                var aprops = (LuaTable)o;
+                var aprops = (ThornTable)o;
                 e.AudioProps = new ThnAudioProps();
                 if (aprops.TryGetValue("rmix", out o)) e.AudioProps.Rmix = (float)o;
                 if (aprops.TryGetValue("ain", out o)) e.AudioProps.Ain = (float)o;
@@ -323,20 +324,20 @@ namespace LibreLancer.Thn
             }
             if (table.TryGetValue("spatialprops", out o))
 			{
-				var spatialprops = (LuaTable)o;
+				var spatialprops = (ThornTable)o;
 				if (spatialprops.TryGetVector3("pos", out tmp))
 				{
 					e.Position = tmp;
 				}
 				if (spatialprops.TryGetValue("orient", out o))
 				{
-					e.RotationMatrix = GetMatrix((LuaTable)o);
+					e.RotationMatrix = GetMatrix((ThornTable)o);
 				}
 			}
 
 			if (table.TryGetValue("cameraprops", out o))
 			{
-				var cameraprops = (LuaTable)o;
+				var cameraprops = (ThornTable)o;
 				if (cameraprops.TryGetValue("fovh", out o))
 				{
 					e.FovH = (float)o;
@@ -356,7 +357,7 @@ namespace LibreLancer.Thn
 			}
 			if (table.TryGetValue("lightprops", out o))
 			{
-				var lightprops = (LuaTable)o;
+				var lightprops = (ThornTable)o;
 				e.LightProps = new ThnLightProps();
 				if (lightprops.TryGetValue("on", out o))
 				{
@@ -399,7 +400,7 @@ namespace LibreLancer.Thn
 			}
 			if (table.TryGetValue("pathprops", out o))
 			{
-				var pathprops = (LuaTable)o;
+				var pathprops = (ThornTable)o;
                 if (pathprops.TryGetValue("path_data", out o))
 				{
 					e.Path = new MotionPath((string)o);

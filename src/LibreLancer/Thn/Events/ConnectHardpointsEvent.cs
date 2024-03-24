@@ -10,6 +10,6 @@ namespace LibreLancer.Thn.Events
     {
         public ConnectHardpointsEvent() { }
 
-        public ConnectHardpointsEvent(LuaTable table) : base(table) { }
+        public ConnectHardpointsEvent(ThornTable table) : base(table) { }
     }
 }

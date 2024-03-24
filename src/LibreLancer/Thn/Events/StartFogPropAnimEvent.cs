@@ -33,11 +33,11 @@ namespace LibreLancer.Thn.Events
         
         public StartFogPropAnimEvent() { }
 
-        public StartFogPropAnimEvent(LuaTable table) : base(table)
+        public StartFogPropAnimEvent(ThornTable table) : base(table)
         {
             //Get Tables
             if (!GetProps(table, out var props)) return;
-            if (!GetValue(props, "fogprops", out LuaTable fog)) return;
+            if (!GetValue(props, "fogprops", out ThornTable fog)) return;
             //Set Properties
             if (GetValue(fog, "fogon", out FogOn)) SetFlags |= AnimVars.FogOn;
             if (GetValue(fog, "fogmode", out FogMode)) SetFlags |= AnimVars.FogMode;

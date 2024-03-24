@@ -36,14 +36,14 @@ namespace LibreLancer.Thn
 
         Vector3 GetVec(object o)
         {
-            var tab = (LuaTable)o;
-            return new Vector3((float)tab[0], (float)tab[1], (float)tab[2]);
+            var tab = (ThornTable)o;
+            return new Vector3((float)tab[1], (float)tab[2], (float)tab[3]);
         }
 
         Quaternion GetQuat(object o)
         {
-            var tab = (LuaTable)o;
-            return new Quaternion((float)tab[1], (float)tab[2], (float)tab[3], (float)tab[0]);
+            var tab = (ThornTable)o;
+            return new Quaternion((float)tab[2], (float)tab[3], (float)tab[4], (float)tab[1]);
         }
 
         private Vector3 startPoint, endPoint;
@@ -53,20 +53,20 @@ namespace LibreLancer.Thn
         public MotionPath(string pathdescriptor)
         {
             //Abuse the Lua runtime to parse the path descriptor for us
-            var rt = new LuaRunner(env);
-            var path = (LuaTable)(rt.DoString("path = {" + pathdescriptor + "}")["path"]);
-            var type = (int)path[0];
+            var rt = new ThornRunner(env, null);
+            var path = (ThornTable)(rt.DoString("path = {" + pathdescriptor + "}")["path"]);
+            var type = (int)path[1];
             loop = type == CLOSED;
             //detect if orientations are present
-            var orient = (LuaTable)path[2];
-            if (orient.Capacity >= 4) {
+            var orient = (ThornTable)path[3];
+            if (orient.Length >= 4) {
                 HasOrientation = true;
             }
             var points = new List<Vector3>();
             var quaternions = new List<Quaternion>();
             //Construct path
-            for (int i = 1; i < path.Capacity; i++) {
-                if (HasOrientation && i % 2 == 0)
+            for (int i = 2; i <= path.Length; i++) {
+                if (HasOrientation && i % 2 != 0)
                     quaternions.Add(GetQuat(path[i]));
                 else
                     points.Add(GetVec(path[i]));
@@ -91,7 +91,7 @@ namespace LibreLancer.Thn
                 BuildSegments(points);
             }
         }
-        
+
         private CubicPolynomial[] segments;
         private float[] segmentLengths;
         private float[] lengthPercents;
@@ -238,9 +238,9 @@ namespace LibreLancer.Thn
 
             return CubicPolynomial.Create(p1, t1, p2, t2);
         }
-        
+
         struct CubicPolynomial {
-            
+
             private readonly Vector3 c0;
             private readonly Vector3 c1;
             private readonly Vector3 c2;
