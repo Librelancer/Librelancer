@@ -122,7 +122,7 @@ namespace LibreLancer
             var resolved = DataPath(path);
             if (VFS.FileExists(resolved))
             {
-                r = new ResolvedThn() {SourcePath = path, VFS = VFS, DataPath = resolved};
+                r = new ResolvedThn() {SourcePath = path, VFS = VFS, DataPath = resolved, ReadCallback = ThornReadCallback};
                 return true;
             }
             return false;
