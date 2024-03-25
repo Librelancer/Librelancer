@@ -98,6 +98,8 @@ namespace LibreLancer.Thn
                 }
                 if (kv.Value is float f)
                     builder.AppendLine($"{kv.Key} = {f.ToStringInvariant()}");
+                else if (kv.Value is ThornTable table)
+                    builder.AppendLine($"{kv.Key} = {table.Dump(false, 0, false)}");
                 else
                     builder.AppendLine($"{kv.Key} = {kv.Value}");
             }
@@ -107,9 +109,9 @@ namespace LibreLancer.Thn
         {
             //Make sure flags aren't integers
             object o;
-            for (int ti = 1; ti <= t.Length; ti++)
+            foreach(var e in t.Values)
             {
-                var ent = (ThornTable)t[ti];
+                var ent = (ThornTable)e;
                 ent["type"] = ThnTypes.Convert<EntityTypes>(ent["type"]);
                 if (ent.TryGetValue("lightprops", out o))
                 {
@@ -127,10 +129,10 @@ namespace LibreLancer.Thn
         }
         static void ProcessEvents(ThornTable t)
         {
-            for (int ti = 1; ti <= t.Length; ti++)
+            foreach(var e in t.Values)
             {
-                var ev = (ThornTable)t[ti];
-                ev[1] = ThnTypes.Convert<EventTypes>(ev[1]);
+                var ev = (ThornTable)e;
+                ev[2] = ThnTypes.Convert<EventTypes>(ev[2]);
                 if (ev.Length >= 4)
                 {
                     var props = (ThornTable)ev[3];

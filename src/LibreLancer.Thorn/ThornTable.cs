@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json.Nodes;
+using LibreLancer.Thorn.Bytecode;
+using LibreLancer.Thorn.VM;
 
 namespace LibreLancer.Thorn
 {
@@ -448,24 +452,113 @@ namespace LibreLancer.Thorn
             return v != null;
         }
 
-
-        /*IEnumerable<object> IteratePairsReverse()
+        static StringBuilder Tab(StringBuilder builder, int tabCount)
         {
-            if (arrayPart != null) {
-                for (int i = 0; i < arrayPart.Length; i++)
-                {
-                    if (arrayPart[i] != null)
-                        yield return object.NewTuple( arrayPart[i], (object)(i));
-                }
-            }
-            foreach (var x in valueList)
-                yield return object.NewTuple(x.Value, x.Key);
+            for (int i = 0; i < tabCount; i++)
+                builder.Append("  ");
+            return builder;
         }
 
-        /// <summary>
-        /// Enumerates value, key
-        /// </summary>
+        static string Rev(string s)
+        {
+            string tmp;
+            if (EnumReverse.TryGetValue(s, out tmp)) return tmp;
+            return s;
+        }
+        string DumpEnum(object o)
+        {
+            var t = o.GetType();
+            var full = Convert.ToUInt32(o);
+            foreach (var v in Enum.GetValues(t))
+            {
+                if (full == Convert.ToUInt32(v)) return Rev(o.ToString());
+            }
+            var sb = new StringBuilder();
+            int count = 0;
+            foreach(var fl in Enum.GetValues(t)) {
+                var a = Convert.ToUInt32(fl);
+                if (a == 0) continue;
+                if((full & a) == a)
+                {
+                    if (count == 0) sb.Append(Rev(fl.ToString()));
+                    else sb.Append(" + ").Append(Rev(fl.ToString()));
+                    count++;
+                }
+            }
+            return sb.ToString();
+        }
+        static string FNice(float f) => f.ToString("0.##########################");
 
-        public IEnumerable<object> ReversePair => IteratePairsReverse();*/
+        string DumpValue(object value, int tabCount, bool firstTab) => value switch
+        {
+            string s => JsonValue.Create(s).ToJsonString(),
+            Enum => DumpEnum(value),
+            ThornTable t => t.Dump(true, tabCount, firstTab),
+            bool b => b ? "Y" : "N",
+            float f => FNice(f),
+            Vector3 v => $"{{ {FNice(v.X)}, {FNice(v.Y)}, {FNice(v.Z)} }}",
+            LuaPrototype => "FUNCTION",
+            ThornClosure => "FUNCTION",
+            _ => value.ToString()
+        };
+
+        public string Dump(bool singleLine, int tabCount = 0, bool firstTab = true)
+        {
+            var builder = new StringBuilder();
+            bool sameLine = valueMap.Count == 0 && singleLine;
+            if (sameLine)
+            {
+                Tab(builder, firstTab ? tabCount : 0).Append("{ ");
+                bool first = true;
+                foreach(var val in IterateValues())
+                {
+                    if (!first)
+                        builder.Append(", ");
+                    first = false;
+                    builder.Append(DumpValue(val, tabCount + 1, firstTab));
+                }
+                builder.Append(" }");
+            }
+            else
+            {
+                Tab(builder, firstTab ? tabCount : 0).AppendLine("{");
+                if (valueMap.Count == 0)
+                {
+                    bool first = true;
+                    foreach (var val in IterateValues())
+                    {
+                        if (!first)
+                            builder.AppendLine(",");
+                        first = false;
+                        Tab(builder, tabCount + 1).Append(DumpValue(val, tabCount + 1, true));
+                    }
+                    builder.AppendLine();
+                    Tab(builder, tabCount).Append("}");
+                }
+                else
+                {
+                    bool first = true;
+                    foreach (var kv in Pairs)
+                    {
+                        if (!first)
+                            builder.AppendLine(",");
+                        first = false;
+                        string k = kv.Key switch
+                        {
+                            string s => s,
+                            float f => FNice(f),
+                            int i => i.ToString(),
+                            _ => $"[{kv.Key.GetType()}]"
+                        };
+                        Tab(builder, tabCount + 1).Append(k).Append(" = ").Append(DumpValue(kv.Value, tabCount + 1, false));
+                    }
+                    builder.AppendLine();
+                    Tab(builder, tabCount).Append("}");
+                }
+            }
+            return builder.ToString();
+        }
+
+        public override string ToString() => Dump(true);
     }
 }

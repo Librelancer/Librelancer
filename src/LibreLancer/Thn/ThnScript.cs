@@ -113,9 +113,9 @@ namespace LibreLancer.Thn
         {
             Duration = (float)output["duration"];
             var entities = (ThornTable)output["entities"];
-            for (int i = 1; i <= entities.Length; i++)
+            foreach(var val in entities.Values)
             {
-                var ent = (ThornTable)entities[i];
+                var ent = (ThornTable)val;
                 var e = GetEntity(ent);
                 if (Entities.ContainsKey(e.Name))
                 {
@@ -126,9 +126,9 @@ namespace LibreLancer.Thn
                     Entities.Add(e.Name, e);
             }
             var events = (ThornTable)output["events"];
-            for (int i = 1; i <= events.Length; i++)
+            foreach(var val in events.Values)
             {
-                var ev = (ThornTable)events[i];
+                var ev = (ThornTable)val;
                 var e = GetEvent(ev);
                 Events.Add(e);
             }
