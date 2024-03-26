@@ -140,7 +140,8 @@ namespace LancerEdit
                 writer.WriteLine($"files_visible = {(FilesVisible ? "true": "false" )}");
                 foreach(var fav in Favorites)
                     writer.WriteLine($"favorite = {Encode(fav.Name)}, {Encode(fav.FullPath)}");
-                writer.WriteLine($"auto_load_path = {Encode(AutoLoadPath)}");
+                if(!string.IsNullOrWhiteSpace(AutoLoadPath))
+                    writer.WriteLine($"auto_load_path = {Encode(AutoLoadPath)}");
             }
         }
 
@@ -161,7 +162,7 @@ namespace LancerEdit
         private bool canSave;
         private EditorConfiguration(bool isFile)
         {
-            canSave = !isFile;
+            canSave = isFile;
         }
         public static EditorConfiguration Load(bool isFile)
         {
