@@ -39,17 +39,7 @@ namespace LibreLancer.Render
             this.field = field;
             this.sys = sys;
             //Set up renderDistSq
-            float rdist = 0f;
-            if (field.Zone.Shape is ZoneSphere)
-                rdist = ((ZoneSphere)field.Zone.Shape).Radius;
-            else if (field.Zone.Shape is ZoneEllipsoid) {
-                var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
-                rdist = Math.Max (Math.Max (s.X, s.Y), s.Z);
-            }
-            else if (field.Zone.Shape is ZoneBox) {
-                var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
-                rdist = Math.Max (Math.Max (s.X, s.Y), s.Z);
-            }
+            float rdist = Math.Max (Math.Max (field.Zone.Size.X, field.Zone.Size.Y), field.Zone.Size.Z);
 
             if (field.BillboardCount != -1)
             {
@@ -68,7 +58,7 @@ namespace LibreLancer.Render
             }
             //Set up band
             if (field.Band == null ||
-                field.Zone.Shape is not (ZoneSphere or ZoneEllipsoid))
+                (field.Zone.Shape != ShapeKind.Sphere && field.Zone.Shape != ShapeKind.Ellipsoid))
                 return;
             bandMaterial = new AsteroidBandMaterial(sys.ResourceManager);
             bandMaterial.Texture = field.Band.Shape;
@@ -104,7 +94,7 @@ namespace LibreLancer.Render
         {
             for (int i = 0; i < field.ExclusionZones.Count; i++) {
                 var f = field.ExclusionZones [i];
-                if (f.Zone.Shape.ContainsPoint (pt))
+                if (f.Zone.ContainsPoint (pt))
                     return f;
             }
             return null;
@@ -158,7 +148,7 @@ namespace LibreLancer.Render
                         //early bail for billboards too far
                         if (Vector3.Distance(position, center) - checkRad > field.FillDist) continue;
                         //bail billboards outside of zone - avoids popping
-                        if (field.Zone.Shape.ScaledDistance(center) > 1.1f) continue;
+                        if (field.Zone.ScaledDistance(center) > 1.1f) continue;
                         //rotate
                         var rotation =
                             AsteroidCubeRotation.Default.GetRotation((int)(AsteroidFieldShared.PositionHash(center) * 63));
@@ -217,7 +207,7 @@ namespace LibreLancer.Render
                         var center = close + new Vector3(x,y,z) * field.CubeSize;
                         var closestDistance = (Vector3.Distance(center, position) - cubeMesh.Radius);
                         if (closestDistance >= field.FillDist || closestDistance >= lastFog) continue;
-                        if (!field.Zone.Shape.ContainsPoint(center)) {
+                        if (!field.Zone.ContainsPoint(center)) {
                             continue;
                         }
 
@@ -356,10 +346,10 @@ namespace LibreLancer.Render
         void CalculateBandTransform()
         {
             Vector3 sz = Vector3.Zero;
-            if (field.Zone.Shape is ZoneSphere s)
-                sz = new Vector3(s.Radius);
-            else if (field.Zone.Shape is ZoneEllipsoid e)
-                sz = e.Size;
+            if (field.Zone.Shape == ShapeKind.Sphere)
+                sz = new Vector3(field.Zone.Size.X);
+            else
+                sz = field.Zone.Size;
             sz.X -= field.Band.OffsetDistance;
             sz.Z -= field.Band.OffsetDistance;
             lightingRadius = Math.Max(sz.X, sz.Z);

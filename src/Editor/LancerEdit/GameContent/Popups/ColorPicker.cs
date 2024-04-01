@@ -3,7 +3,7 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class ColorPicker : PopupWindow
 {

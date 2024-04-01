@@ -9,12 +9,12 @@ namespace LibreLancer.Render
 	public struct RenderLight
 	{
 		public LightKind Kind;
-		public Vector3 Position; 
+		public Vector3 Position;
 		public Vector3 Direction;
 		public Vector3 Attenuation;
 		public Color3f Color;
         public Color3f Ambient;
-		public int Range;
+		public float Range;
 
 		public float Falloff;
 		public float Theta;

@@ -125,13 +125,13 @@ namespace LibreLancer.Interface
                     Math.Abs(zone.RotationAngles.X + Math.PI) < 0.001f)
                     rotSign = 1;
                 float angle = rotSign * zone.RotationAngles.Y;
-                if (zone.Shape is ZoneSphere sph)
+                if (zone.Shape == ShapeKind.Sphere)
                 {
-                    dimensions = new Vector2(sph.Radius * 2);
+                    dimensions = new Vector2(zone.Size.X * 2);
                 }
-                else if (zone.Shape is ZoneEllipsoid elp)
+                else if (zone.Shape == ShapeKind.Ellipsoid)
                 {
-                    dimensions = new Vector2(elp.Size.X, elp.Size.Z) * 2;
+                    dimensions = new Vector2(zone.Size.X, zone.Size.Z) * 2;
                 }
                 else
                     continue;

@@ -10,7 +10,7 @@ namespace LibreLancer
 		//Standard equation of an ellipsoid: (x/a)^2 + (y/b)^2 + (z/c)^2 = 1
 		public static bool EllipsoidContains(Vector3 center, Vector3 size, Vector3 point)
 		{
-			return EllipsoidFunction(center, size, point) < 1;
+			return EllipsoidFunction(center, size, point) <= 1;
 		}
 		public static float EllipsoidFunction(Vector3 center, Vector3 size, Vector3 point)
 		{
@@ -27,8 +27,8 @@ namespace LibreLancer
 			var z = Math.Sin(angle) * r;
 			//map to ellipsoid:
 			return new Vector3(
-				(float)(x * (size.X / size.Y)), 
-				y, 
+				(float)(x * (size.X / size.Y)),
+				y,
 				(float)(z * (size.Z / size.Y))
 			);
 		}

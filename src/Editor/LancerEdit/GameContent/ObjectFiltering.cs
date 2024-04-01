@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public abstract class ObjectFiltering<T>
 {

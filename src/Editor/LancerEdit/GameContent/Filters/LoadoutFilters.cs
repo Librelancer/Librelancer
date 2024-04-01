@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.GameData.World;
 
-namespace LancerEdit.Filters;
+namespace LancerEdit.GameContent.Filters;
 
 public class LoadoutFilters : ObjectFiltering<ObjectLoadout>
 {

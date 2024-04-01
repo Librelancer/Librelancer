@@ -2,12 +2,11 @@ using System;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LancerEdit.Filters;
+using LancerEdit.GameContent.Filters;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
-using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class LoadoutSelection : PopupWindow
 {

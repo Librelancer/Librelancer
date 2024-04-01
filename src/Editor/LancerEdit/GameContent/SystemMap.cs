@@ -6,13 +6,12 @@ using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.Interface;
-using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
+using LibreLancer.Interface;
 
-namespace LancerEdit
+namespace LancerEdit.GameContent
 {
     public class SystemMap
     {

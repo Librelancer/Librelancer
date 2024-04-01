@@ -6,7 +6,7 @@ using LibreLancer.GameData;
 using LibreLancer.ImUI;
 using LibreLancer.World;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class NewObjectPopup : PopupWindow
 {
@@ -20,18 +20,21 @@ public class NewObjectPopup : PopupWindow
 
     private string nickname = "";
 
-    private Action<string, Archetype> onCreate;
+    private Action<string, Archetype, Vector3?> onCreate;
 
     private Archetype selectedArchetype;
 
     private GameWorld world;
 
-    public NewObjectPopup(GameDataContext gd, GameWorld world, Action<string, Archetype> onCreate)
+    public Vector3? Position;
+
+    public NewObjectPopup(GameDataContext gd, GameWorld world, Vector3? position, Action<string, Archetype, Vector3?> onCreate)
     {
         Archetypes = gd.GameData.Archetypes.OrderBy(x => x.Nickname).ToArray();
         this.gd = gd;
         this.world = world;
         this.onCreate = onCreate;
+        this.Position = position;
     }
 
     public override void Draw()
@@ -50,7 +53,7 @@ public class NewObjectPopup : PopupWindow
         if (ImGuiExt.Button("Create", !string.IsNullOrWhiteSpace(n) && selectedArchetype != null &&
                                   world.GetObject(n) == null))
         {
-            onCreate(nickname, selectedArchetype);
+            onCreate(nickname, selectedArchetype, Position);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();

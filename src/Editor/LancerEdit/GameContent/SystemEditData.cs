@@ -3,12 +3,15 @@ using LibreLancer;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class SystemEditData
 {
+
     private StarSystem sys;
-    
+
+    public string Nickname => sys.Nickname;
+
     public SystemEditData(StarSystem sys)
     {
         this.sys = sys;
@@ -21,11 +24,13 @@ public class SystemEditData
         this.StarsComplex = sys.StarsComplex;
         this.StarsNebula = sys.StarsNebula;
         this.IdsName = sys.IdsName;
+        this.NavMapScale = sys.NavMapScale;
     }
 
     //Universe
     public int IdsName;
     //System Ini
+    public float NavMapScale;
     public Color4 SpaceColor;
     public Color4 Ambient;
     public string MusicSpace;
@@ -50,6 +55,7 @@ public class SystemEditData
         MusicSpace != sys.MusicSpace ||
         MusicBattle != sys.MusicBattle ||
         MusicDanger != sys.MusicDanger ||
+        NavMapScale != sys.NavMapScale ||
         !ModelsEqual(StarsBasic, sys.StarsBasic) ||
         !ModelsEqual(StarsComplex, sys.StarsComplex) ||
         !ModelsEqual(StarsNebula, sys.StarsNebula);
@@ -69,5 +75,6 @@ public class SystemEditData
         sys.StarsBasic = StarsBasic;
         sys.StarsComplex = StarsComplex;
         sys.StarsNebula = StarsNebula;
+        sys.NavMapScale = NavMapScale;
     }
 }

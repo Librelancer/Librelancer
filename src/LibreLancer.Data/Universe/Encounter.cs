@@ -8,9 +8,60 @@ using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-    public record FactionSpawn(string Faction, float Chance);
-	public class Encounter : ICloneable
+    public record struct FactionSpawn(string Faction, float Chance);
+	public class Encounter : ICloneable, IEquatable<Encounter>
     {
+        static bool ListEqual<T>(List<T> a, List<T> b)
+        {
+            if (a == b) return true;
+            if (a == null || b == null) return false;
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (!Equals(a[i], b[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public bool Equals(Encounter other)
+        {
+            if (ReferenceEquals(null, other))
+                return false;
+            if (ReferenceEquals(this, other))
+                return true;
+            return Archetype == other.Archetype
+                   && Difficulty == other.Difficulty
+                   && Chance.Equals(other.Chance)
+                   && ListEqual(FactionSpawns, other.FactionSpawns);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            return Equals((Encounter)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Archetype, Difficulty, Chance, FactionSpawns);
+        }
+
+        public static bool operator ==(Encounter left, Encounter right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(Encounter left, Encounter right)
+        {
+            return !Equals(left, right);
+        }
+
         public string Archetype;
         public int Difficulty;
         public float Chance;

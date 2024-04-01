@@ -4,7 +4,7 @@ using ImGuiNET;
 using LibreLancer.GameData;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class FactionSelection : PopupWindow
 {

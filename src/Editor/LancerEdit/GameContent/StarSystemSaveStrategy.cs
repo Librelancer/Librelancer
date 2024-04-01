@@ -6,7 +6,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 using LibreLancer.Ini;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class StarSystemSaveStrategy : ISaveStrategy
 {

@@ -146,7 +146,7 @@ namespace LancerEdit
         {
             AllShaders.Compile(RenderContext);
             DefaultMaterialMap.Init();
-            ZoneRenderer.Load(RenderContext);
+            DisplayMesh.LoadAll(RenderContext);
 			Title = "LancerEdit";
             guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
@@ -208,6 +208,7 @@ namespace LancerEdit
             if (TabControl.Selected is not EditorTab editor)
                 return;
             bool control = (mods & KeyModifiers.Control) != 0;
+            bool shift = (mods & KeyModifiers.Shift) != 0;
             bool popupOrTextEditing =  ImGui.GetIO().WantCaptureKeyboard;
             if(e.Key == Keys.S && control){
                 editor.SaveStrategy.Save();
@@ -221,6 +222,8 @@ namespace LancerEdit
                 Keys.G when control => Hotkeys.ToggleGrid,
                 Keys.D when control => Hotkeys.Deselect,
                 Keys.D0 when control => Hotkeys.ClearRotation,
+                Keys.Z when (control && shift) => Hotkeys.Redo,
+                Keys.Z when control => Hotkeys.Undo,
                 Keys.F6 => Hotkeys.ChangeSystem,
                 _ => 0
             };

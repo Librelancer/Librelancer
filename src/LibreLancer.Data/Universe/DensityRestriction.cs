@@ -1,3 +1,3 @@
 namespace LibreLancer.Data.Universe;
 
-public record DensityRestriction(int Count, string Type);
+public record struct DensityRestriction(int Count, string Type);

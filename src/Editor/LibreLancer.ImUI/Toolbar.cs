@@ -81,6 +81,25 @@ public class Toolbar : IDisposable
         }
     }
 
+    public void FloatSliderItem(string text, ref float value, float min, float max, string format)
+    {
+        if (DoOverflow(text, 250))
+        {
+            if (isOverflowOpen)
+            {
+                ImGui.MenuItem($"{text} {value}");
+            }
+        }
+        else
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(text);
+            ImGui.SameLine();
+            ImGui.PushItemWidth(230);
+            ImGui.SliderFloat($"##{text}", ref value, min, max, format);
+            ImGui.PopItemWidth();
+        }
+    }
     public void TextItem(string text)
     {
         if (DoOverflow(text, 2))

@@ -12,7 +12,7 @@ using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Ini;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class UniverseEditorTab : EditorTab
 {

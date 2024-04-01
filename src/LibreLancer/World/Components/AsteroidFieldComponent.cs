@@ -22,17 +22,16 @@ namespace LibreLancer.World.Components
 		{
 			Field = field;
 			float rdist = 0f;
-			if (field.Zone.Shape is ZoneSphere)
-				rdist = ((ZoneSphere)field.Zone.Shape).Radius;
-			else if (field.Zone.Shape is ZoneEllipsoid)
-			{
-				var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
+			if (field.Zone.Shape == ShapeKind.Ellipsoid ||
+                     field.Zone.Shape == ShapeKind.Box)
+            {
+                var s = field.Zone.Size;
 				rdist = Math.Max(Math.Max(s.X, s.Y), s.Z);
 			}
-			else if (field.Zone.Shape is ZoneBox)
+			else
 			{
-				var s = ((ZoneEllipsoid)field.Zone.Shape).Size;
-				rdist = Math.Max(Math.Max(s.X, s.Y), s.Z);
+                //Radius
+                rdist = field.Zone.Size.X;
 			}
 			rdist += COLLIDE_DISTANCE;
 			activateDist = rdist * rdist;
@@ -46,7 +45,7 @@ namespace LibreLancer.World.Components
 			for (int i = 0; i < Field.ExclusionZones.Count; i++)
 			{
 				var f = Field.ExclusionZones[i];
-				if (f.Zone.Shape.ContainsPoint(pt))
+				if (f.Zone.ContainsPoint(pt))
 					return f;
 			}
 			return null;
@@ -238,7 +237,7 @@ namespace LibreLancer.World.Components
                             if (present[Index(box.Dims, x, y, z)]) //Already added, skip checks
                                 continue;
                             var center = box.Bb.Min + new Vector3(x, y, z) * new Vector3(Field.CubeSize);
-                            if (!Field.Zone.Shape.ContainsPoint(center))
+                            if (!Field.Zone.ContainsPoint(center))
                                 continue;
                             if (!AsteroidFieldShared.CubeExists(center, Field.EmptyCubeFrequency, out int tval))
                                 continue;

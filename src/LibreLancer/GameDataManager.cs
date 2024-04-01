@@ -1103,45 +1103,12 @@ namespace LibreLancer
                             z.RotationMatrix = Matrix4x4.Identity;
                             z.RotationAngles = Vector3.Zero;
                         }
-                        switch (zne.Shape.Value)
-                        {
-                            case Data.Universe.ZoneShape.ELLIPSOID:
-                                z.Shape = new ZoneEllipsoid(z,
-                                    zne.Size.Value.X,
-                                    zne.Size.Value.Y,
-                                    zne.Size.Value.Z
-                                );
-                                break;
-                            case Data.Universe.ZoneShape.SPHERE:
-                                z.Shape = new ZoneSphere(z,
-                                    (zne.Size ?? Vector3.One).X //bug
-                                );
-                                break;
-                            case Data.Universe.ZoneShape.BOX:
-                                z.Shape = new ZoneBox(z,
-                                    zne.Size.Value.X,
-                                    zne.Size.Value.Y,
-                                    zne.Size.Value.Z
-                                );
-                                break;
-                            case Data.Universe.ZoneShape.CYLINDER:
-                                z.Shape = new ZoneCylinder(z,
-                                    zne.Size.Value.X,
-                                    zne.Size.Value.Y
-                                );
-                                break;
-                            case Data.Universe.ZoneShape.RING:
-                                z.Shape = new ZoneRing(z,
-                                    zne.Size.Value.X,
-                                    zne.Size.Value.Y,
-                                    zne.Size.Value.Z
-                                );
-                                break;
-                            default:
-                                Console.WriteLine(zne.Nickname);
-                                Console.WriteLine(zne.Shape.Value);
-                                throw new NotImplementedException();
-                        }
+                        z.Shape = (ShapeKind)(int)(zne.Shape ?? Data.Universe.ZoneShape.SPHERE);
+                        var sz = zne.Size ?? Vector3.One;
+                        if (z.Shape == ShapeKind.Ring)
+                            z.Size = new Vector3(sz.X, sz.Z, sz.Y); //outer, height, inner
+                        else
+                            z.Size = sz;
                         sys.Zones.Add(z);
                         sys.ZoneDict[z.Nickname] = z;
                     }

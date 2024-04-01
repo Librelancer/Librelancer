@@ -9,6 +9,8 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
+using Microsoft.EntityFrameworkCore;
+using ZoneShape = LibreLancer.Data.Universe.ZoneShape;
 
 namespace LibreLancer.Render
 {
@@ -45,15 +47,16 @@ namespace LibreLancer.Render
 		{
 			if (Math.Abs(Nebula.Zone.EdgeFraction) < 0.000000001) //basically == 0. Instant transition
 				return true;
-			var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
-			return scaled.ContainsPoint(sysr.Camera.Position);
+            return (1 - Nebula.Zone.ScaledDistance(sysr.Camera.Position)) >= Nebula.Zone.EdgeFraction;
+			//var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
+			//return scaled.ContainsPoint(sysr.Camera.Position);
 		}
 
 		float CalculateTransition(Zone zone)
 		{
 			//Find transitional value based on how far into the zone we are
 			//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
-			var sd = 1 - MathHelper.Clamp(zone.Shape.ScaledDistance(sysr.Camera.Position), 0f, 1f);
+			var sd = 1 - MathHelper.Clamp(zone.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			return MathHelper.Clamp(sd / zone.EdgeFraction, 0, 1);
 		}
 
@@ -74,7 +77,7 @@ namespace LibreLancer.Render
 
 		public void Update(double elapsed)
 		{
-			if (Nebula.Zone.Shape.ContainsPoint(sysr.Camera.Position))
+			if (Nebula.Zone.ContainsPoint(sysr.Camera.Position))
 			{
 				UpdateBackgroundLightning(elapsed);
 				UpdateDynamicLightning(elapsed);
@@ -227,7 +230,7 @@ namespace LibreLancer.Render
 			if (Nebula.ExclusionZones != null)
 			{
 				foreach (var zone in Nebula.ExclusionZones)
-					if (zone.Zone.Shape.ContainsPoint(position))
+					if (zone.Zone.ContainsPoint(position))
 						return zone;
 			}
 			return null;
@@ -235,7 +238,7 @@ namespace LibreLancer.Render
 
 		public void Draw(CommandBuffer buffer)
 		{
-			bool inside = Nebula.Zone.Shape.ContainsPoint(sysr.Camera.Position);
+			bool inside = Nebula.Zone.ContainsPoint(sysr.Camera.Position);
 			if (!inside || !FogTransitioned())
 				RenderFill(buffer, inside);
 			DrawPuffRing(inside, buffer);
@@ -262,10 +265,10 @@ namespace LibreLancer.Render
             }
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape is ZoneEllipsoid)
-				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
-			else if (Nebula.Zone.Shape is ZoneSphere)
-				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+			if (Nebula.Zone.Shape == ShapeKind.Sphere)
+				sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+			else if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
+				sz = new Vector3(Nebula.Zone.Size.X);
 			else
 				return;
 			sz *= (1 / ex.ShellModel.GetRadius());
@@ -330,10 +333,10 @@ namespace LibreLancer.Render
             /* Skip rendering puff rings */
             if(!inside) {
                 Vector3 sz;
-                if (Nebula.Zone.Shape is ZoneEllipsoid)
-                    sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
-                else if (Nebula.Zone.Shape is ZoneSphere)
-                    sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+                if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
+                    sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+                else if (Nebula.Zone.Shape == ShapeKind.Sphere)
+                    sz = new Vector3(Nebula.Zone.Size.X);
                 else
                     return;
                 var bitRadius = Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation);
@@ -345,7 +348,7 @@ namespace LibreLancer.Render
             var world = Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(Nebula.Zone.Position);
             var wh = buffer.WorldBuffer.SubmitMatrix(ref world);
             /* Actually Render */
-			var sd = 1 - MathHelper.Clamp(Nebula.Zone.Shape.ScaledDistance(sysr.Camera.Position), 0f, 1f);
+			var sd = 1 - MathHelper.Clamp(Nebula.Zone.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
             int idx = GetPuffsIdx();
             for (int i = 0; i < Exterior.Count; i++)
@@ -373,10 +376,10 @@ namespace LibreLancer.Render
 		{
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape is ZoneEllipsoid)
-				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
-			else if (Nebula.Zone.Shape is ZoneSphere)
-				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+			if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
+				sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+			else if (Nebula.Zone.Shape == ShapeKind.Sphere)
+				sz = new Vector3(Nebula.Zone.Size.X);
 			else
 				return;
 			var yval = ypct * sz.Y;
@@ -511,10 +514,10 @@ namespace LibreLancer.Render
 			if (Nebula.ExteriorFill == null) return;
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape is ZoneEllipsoid)
-				sz = ((ZoneEllipsoid)Nebula.Zone.Shape).Size / 2; //we want radius instead of diameter
-			else if (Nebula.Zone.Shape is ZoneSphere)
-				sz = new Vector3(((ZoneSphere)Nebula.Zone.Shape).Radius);
+			if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
+				sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+			else if (Nebula.Zone.Shape == ShapeKind.Sphere)
+				sz =  new Vector3(Nebula.Zone.Size.X);
 			else
 				return;
 			var p = Nebula.Zone.Position;

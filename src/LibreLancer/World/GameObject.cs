@@ -126,14 +126,44 @@ namespace LibreLancer.World
 
 	public class GameObject
 	{
-        //
+        //Static
         private static int _unique = 0;
+        public static object ClientPlayerTag = new object();
 
+        //Public Fields
         public readonly int Unique = Interlocked.Increment(ref _unique);
-		//Object data
 		public ObjectName Name;
+        public GameObjectFlags Flags;
+        public ShipFormation Formation = null;
+        public GameObjectKind Kind = GameObjectKind.None;
+        public object Tag;
+        public string ArchetypeName;
+        public int NetID;
+        public Hardpoint _attachment;
+        public SystemObject SystemObject;
+        public RigidModel RigidModel;
+        public ResourceManager Resources;
+        public GameWorld World;
+        public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();
 
+        //Private Fields
+        private HashSet<string> disabledParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        Matrix4x4 _localTransform = Matrix4x4.Identity;
         private string _nickname;
+        private bool transformDirty = false;
+        Matrix4x4 worldTransform = Matrix4x4.Identity;
+        private GameObject _parent;
+        IDrawable dr;
+        Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
+        public List<GameObject> Children = new List<GameObject>();
+        public Data.Solar.CollisionGroup[] CollisionGroups;
+        private Dictionary<Type, GameComponent> componentLookup = new Dictionary<Type, GameComponent>();
+        private List<GameComponent> components = new List<GameComponent>();
+        //Components
+        public ObjectRenderer RenderComponent { get; set; }
+        public PhysicsComponent PhysicsComponent { get; private set; }
+        public AnimationComponent AnimationComponent { get; set; }
+        //Properties
         public uint NicknameCRC { get; private set; }
         public string Nickname
         {
@@ -151,15 +181,6 @@ namespace LibreLancer.World
             }
         }
 
-        public GameObjectFlags Flags;
-        public ShipFormation Formation = null;
-        public static object ClientPlayerTag = new object();
-        public GameObjectKind Kind = GameObjectKind.None;
-        public object Tag;
-        public string ArchetypeName;
-        public int NetID;
-		public Hardpoint _attachment;
-		Matrix4x4 _localTransform = Matrix4x4.Identity;
 		public Matrix4x4 LocalTransform
 		{
 			get
@@ -194,9 +215,6 @@ namespace LibreLancer.World
             return tr;
         }
 
-        private bool transformDirty = false;
-        Matrix4x4 worldTransform = Matrix4x4.Identity;
-
         public Matrix4x4 WorldTransform
         {
             get {
@@ -209,20 +227,6 @@ namespace LibreLancer.World
             }
         }
 
-
-        private GameObject _parent;
-		IDrawable dr;
-		Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
-		//Components
-		public List<GameObject> Children = new List<GameObject>();
-        public Data.Solar.CollisionGroup[] CollisionGroups;
-		public ObjectRenderer RenderComponent { get; set; }
-		public PhysicsComponent PhysicsComponent { get; private set; }
-		public AnimationComponent AnimationComponent { get; set; }
-
-
-        private Dictionary<Type, GameComponent> componentLookup = new Dictionary<Type, GameComponent>();
-        private List<GameComponent> components = new List<GameComponent>();
         public void AddComponent<T>(T component) where T: GameComponent
         {
             componentLookup.TryAdd(typeof(T), component);
@@ -260,9 +264,6 @@ namespace LibreLancer.World
             }
         }
 
-		public SystemObject SystemObject;
-        public RigidModel RigidModel;
-
         public GameObject Parent
         {
             get => _parent;
@@ -283,16 +284,22 @@ namespace LibreLancer.World
 
         public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool phys = true)
         {
-            Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
-			if (arch is Archs.Sun)
-			{
-				RenderComponent = new SunRenderer((Archs.Sun)arch);
-            }
-			else
-			{
-				InitWithModel(arch.ModelFile.LoadFile(res), res, draw, phys);
-			}
+            InitWithArchetype(arch, res, draw, phys);
 		}
+
+        public void InitWithArchetype(Archetype arch, ResourceManager res, bool draw = true, bool phys = true)
+        {
+            Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
+            if (arch is Archs.Sun)
+            {
+                RenderComponent = new SunRenderer((Archs.Sun)arch);
+            }
+            else
+            {
+                InitWithModel(arch.ModelFile.LoadFile(res), res, draw, phys);
+            }
+        }
+
 		public GameObject()
 		{
 
@@ -352,8 +359,6 @@ namespace LibreLancer.World
             PhysicsComponent.UpdateParts();
         }
 
-        private HashSet<string> disabledParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
         public bool DisableCmpPart(string part)
         {
             if(RigidModel != null && RigidModel.Parts.TryGetValue(part, out var p))
@@ -405,8 +410,7 @@ namespace LibreLancer.World
                 World.Server.SpawnDebris(Kind, ArchetypeName, part, tr, mass, vec * initialforce);
             }
         }
-        public ResourceManager Resources;
-        void InitWithModel(ModelResource drawable, ResourceManager res, bool draw, bool havePhys = true)
+        public void InitWithModel(ModelResource drawable, ResourceManager res, bool draw, bool havePhys = true)
 		{
 			Resources = res;
 			dr = drawable.Drawable;
@@ -559,7 +563,6 @@ namespace LibreLancer.World
             Flags |= GameObjectFlags.Exists;
 		}
 
-		public GameWorld World;
 
 		public GameWorld GetWorld()
 		{
@@ -585,7 +588,37 @@ namespace LibreLancer.World
                 child.PrepareRender(camera, nr, sys, false);
         }
 
-        public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();
+
+        public void ClearAll(PhysicsWorld physics)
+        {
+            Unregister(physics);
+            ExtraRenderers.Clear();
+            componentLookup.Clear();
+            components.Clear();
+            Children.Clear();
+            hardpoints.Clear();
+            disabledParts.Clear();
+            CollisionGroups = null;
+            _parent = null;
+            transformDirty = true;
+            _localTransform = Matrix4x4.Identity;
+            Nickname = null;
+            Name = null;
+            Flags = 0;
+            Formation = null;
+            World = null;
+            Kind = GameObjectKind.None;
+            NetID = 0;
+            Tag = null;
+            ArchetypeName = null;
+            _attachment = null;
+            SystemObject = null;
+            RigidModel = null;
+            Resources = null;
+            RenderComponent = null;
+            PhysicsComponent = null;
+            AnimationComponent = null;
+        }
 
 		public void Unregister(PhysicsWorld physics)
         {

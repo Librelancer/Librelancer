@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LancerEdit.Filters;
+using LancerEdit.GameContent.Filters;
 using LibreLancer;
 using LibreLancer.World;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class SystemObjectList
 {
@@ -39,8 +39,17 @@ public class SystemObjectList
             Selection.Add(obj);
     }
 
+    private GameWorld prevWorld;
+
+    public void Refresh()
+    {
+        SetObjects(prevWorld);
+        ScrollToSelection();
+    }
+
     public void SetObjects(GameWorld world)
     {
+        prevWorld = world;
         allObjects = world.Objects.Where(x => x.SystemObject != null)
             .OrderBy(x => x.Nickname).ToArray();
         ApplyFilter();

@@ -4,7 +4,7 @@ using ImGuiNET;
 using LibreLancer.Data.Save;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class SaveGameTab : EditorTab
 {

@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer;
 using ImGuiNET;
-using LibreLancer.ImUI;
+using LibreLancer;
 
-namespace LancerEdit
+namespace LancerEdit.GameContent
 {
     public class UniverseMap
     {

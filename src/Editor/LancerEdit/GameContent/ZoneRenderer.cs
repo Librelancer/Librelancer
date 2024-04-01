@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
@@ -11,19 +10,10 @@ using LibreLancer.Render.Materials;
 using SimpleMesh;
 using Material = LibreLancer.Utf.Mat.Material;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class ZoneRenderer
 {
-    private static VertexBuffer Cube;
-    private static int CubeTris;
-    private static VertexBuffer Cylinder;
-    private static int CylinderTris;
-    private static VertexBuffer Sphere;
-    private static int SphereTris;
-    private static VertexBuffer Ring;
-    private static int RingTris;
-
     static (VertexBuffer, int) LoadMesh(RenderContext context, string name)
     {
         using (var stream = typeof(ZoneRenderer).Assembly.GetManifestResourceStream(name))
@@ -46,15 +36,6 @@ public class ZoneRenderer
         }
     }
 
-    public static void Load(RenderContext context)
-    {
-        if (Cube != null) return;
-        (Cube, CubeTris) = LoadMesh(context, "LancerEdit.DisplayMeshes.cube.glb");
-        (Cylinder, CylinderTris) = LoadMesh(context, "LancerEdit.DisplayMeshes.cylinder.glb");
-        (Sphere, SphereTris) = LoadMesh(context, "LancerEdit.DisplayMeshes.icosphere.glb");
-        (Ring, RingTris) = LoadMesh(context, "LancerEdit.DisplayMeshes.ring.glb");
-    }
-
     private static RenderContext rstate;
     private static Material material;
     private static WorldMatrixBuffer buf = new WorldMatrixBuffer();
@@ -64,7 +45,9 @@ public class ZoneRenderer
     {
         public WorldMatrixHandle W;
         public VertexBuffer VBO;
-        public int Triangles;
+        public int BaseVertex;
+        public int Start;
+        public int Count;
         public Color4 Color;
         public float Ring;
         public bool FlipNormals;
@@ -87,10 +70,8 @@ public class ZoneRenderer
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
-        draws.Add(new ZoneToDraw() {
-            W = b, VBO = Cube, Triangles = CubeTris, Color = color,
-            FlipNormals = inZone
-        });
+        Mesh(DisplayMesh.Cube, b, color, inZone, 0);
+
     }
 
     public static void DrawCylinder(
@@ -105,10 +86,20 @@ public class ZoneRenderer
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
-        draws.Add(new ZoneToDraw() {
-            W = b, VBO = Cylinder, Triangles = CylinderTris, Color = color,
-            FlipNormals = inZone,
-        });
+        Mesh(DisplayMesh.Cylinder, b, color, inZone, 0);
+    }
+
+    static void Mesh(DisplayMesh mesh, WorldMatrixHandle w, Color4 color, bool flipNormals, float ring)
+    {
+        foreach (var x in mesh.Drawcalls)
+        {
+            draws.Add(new ZoneToDraw()
+            {
+                W = w, VBO = mesh.VertexBuffer,
+                BaseVertex = x.BaseVertex, Start = x.Start, Count = x.Count, Color = color, FlipNormals = flipNormals,
+                Ring = ring
+            });
+        }
     }
 
     public static void DrawRing(
@@ -128,10 +119,7 @@ public class ZoneRenderer
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
-        draws.Add(new ZoneToDraw() {
-            W = b, VBO = Ring, Triangles = RingTris, Color = color,
-            Ring = innerRadius / outerRadius, FlipNormals = inZone,
-        });
+        Mesh(DisplayMesh.Ring, b, color, inZone, innerRadius / outerRadius);
     }
 
     public static void DrawSphere(
@@ -145,10 +133,7 @@ public class ZoneRenderer
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
-        draws.Add(new ZoneToDraw() {
-            W = b, VBO = Sphere, Triangles = SphereTris, Color = color,
-            FlipNormals = inZone
-        });
+        Mesh(DisplayMesh.Sphere, b, color, inZone, 0);
     }
 
     public static void DrawEllipsoid(
@@ -162,10 +147,7 @@ public class ZoneRenderer
                 rotation *
                 Matrix4x4.CreateTranslation(position);
         var b = buf.SubmitMatrix(ref w);
-        draws.Add(new ZoneToDraw() {
-            W = b, VBO = Sphere, Triangles = SphereTris, Color = color,
-            FlipNormals = inZone
-        });
+        Mesh(DisplayMesh.Sphere, b, color, inZone, 0);
     }
 
     public static void Finish(ResourceManager rs)
@@ -180,7 +162,7 @@ public class ZoneRenderer
             r.RadiusRatio = draw.Ring;
             r.Use(rstate, new VertexPositionNormal(), ref Lighting.Empty, 0);
             rstate.CullFace = draw.FlipNormals ? CullFaces.Front : CullFaces.Back;
-            draw.VBO.Draw(PrimitiveTypes.TriangleList, 0, 0, draw.Triangles);
+            draw.VBO.Draw(PrimitiveTypes.TriangleList, draw.BaseVertex, draw.Start, draw.Count);
         }
         rstate.CullFace = CullFaces.Back;
         buf.Reset();

@@ -3,7 +3,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class Vector3Popup : PopupWindow
 {

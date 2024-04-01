@@ -46,7 +46,7 @@ namespace LibreLancer.Render
 		public Matrix4x4[] StarSphereWorlds;
         public Lighting[] StarSphereLightings;
 		public LineRenderer DebugRenderer;
-        public Action GridHook;
+        public Action OpaqueHook;
         public Action PhysicsHook;
 		public PolylineRender Polyline;
 		public SystemLighting SystemLighting = new SystemLighting();
@@ -208,7 +208,7 @@ namespace LibreLancer.Render
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
-				if (n.Nebula.Zone.Shape.ContainsPoint(position))
+				if (n.Nebula.Zone.ContainsPoint(position))
 					return n;
 			}
 			return null;
@@ -220,7 +220,7 @@ namespace LibreLancer.Render
 			for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
-				if (n.Nebula.Zone.Shape.ContainsPoint(camera.Position))
+				if (n.Nebula.Zone.ContainsPoint(camera.Position))
 					return n;
 			}
 			return null;
@@ -475,7 +475,7 @@ namespace LibreLancer.Render
 
                 rstate.DepthRange = new Vector2(0, 1);
             }
-            GridHook?.Invoke();
+            OpaqueHook?.Invoke();
             //Transparent Pass
             rstate.DepthWrite = false;
 			Commands.DrawTransparent(rstate);

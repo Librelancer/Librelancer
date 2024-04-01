@@ -55,12 +55,18 @@ namespace LibreLancer.World
                 Projectiles = new ProjectileManager(this);
         }
 
-        public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
-            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null, Func<int> netId = null)
+        public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, bool server,
+            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null,
+            Func<int> netId = null)
         {
+            if (reinit)
+            {
+                RemoveObject(g);
+                g.ClearAll(Physics);
+            }
             var arch = changedArch ?? obj.Star ?? obj.Archetype;
             var loadout = changeLoadout ? newLoadout : obj.Loadout;
-            var g = new GameObject(changedArch ?? obj.Star ?? arch, res, Renderer != null);
+            g.InitWithArchetype(changedArch ?? obj.Star ?? arch, res, Renderer != null);
             if (obj.IdsLeft != 0 && obj.IdsRight != 0)
                 g.Name = new TradelaneName(g, obj.IdsLeft, obj.IdsRight);
             else
@@ -79,7 +85,6 @@ namespace LibreLancer.World
                 mr.LODRanges = arch.LODRanges;
                 mr.Spin = obj.Spin;
             }
-
             if (obj.Dock != null)
             {
                 if (arch.DockSpheres.Count > 0) //Dock with no DockSphere?
@@ -114,6 +119,13 @@ namespace LibreLancer.World
 
             g.Register(Physics);
             AddObject(g);
+        }
+
+        public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
+            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null, Func<int> netId = null)
+        {
+            var g = new GameObject();
+            InitObject(g, false, obj, res, server, changeLoadout, newLoadout, changedArch, netId);
             return g;
         }
 

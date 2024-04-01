@@ -10,7 +10,7 @@ using LibreLancer.Data;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class IdsSearch : PopupWindow
 {

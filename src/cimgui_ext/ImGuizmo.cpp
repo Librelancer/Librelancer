@@ -2507,7 +2507,7 @@ namespace IMGUIZMO_NAMESPACE
      gContext.mPlaneLimit = value;
    }
 
-   bool Manipulate(const float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float* deltaMatrix, const float* snap, const float* localBounds, const float* boundsSnap)
+   APPLIEDOP Manipulate(const float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float* deltaMatrix, const float* snap, const float* localBounds, const float* boundsSnap)
    {
       // Scale is always local or matrix will be skewed when applying world scale or oriented matrix
       ComputeContext(view, projection, matrix, (operation & SCALE) ? LOCAL : mode);
@@ -2523,19 +2523,25 @@ namespace IMGUIZMO_NAMESPACE
       camSpacePosition.TransformPoint(makeVect(0.f, 0.f, 0.f), gContext.mMVP);
       if (!gContext.mIsOrthographic && camSpacePosition.z < 0.001f)
       {
-         return false;
+         return OP_NOTHING;
       }
 
       // --
       int type = MT_NONE;
-      bool manipulated = false;
+      APPLIEDOP manipulated = OP_NOTHING;
       if (gContext.mbEnable)
       {
          if (!gContext.mbUsingBounds)
          {
-            manipulated = HandleTranslation(matrix, deltaMatrix, operation, type, snap) ||
-                          HandleScale(matrix, deltaMatrix, operation, type, snap) ||
-                          HandleRotation(matrix, deltaMatrix, operation, type, snap);
+            manipulated = 
+                HandleTranslation(matrix, deltaMatrix, operation, type, snap)
+                ? OP_TRANSLATE 
+                : HandleScale(matrix, deltaMatrix, operation, type, snap)
+                ? OP_SCALE
+                : HandleRotation(matrix, deltaMatrix, operation, type, snap)
+                ? OP_ROTATE
+                : OP_NOTHING;
+                          
          }
       }
 

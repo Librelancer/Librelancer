@@ -35,6 +35,15 @@ public enum GuizmoMode
     LOCAL,
     WORLD
 };
+
+public enum GuizmoOp
+{
+    Nothing,
+    Translate,
+    Rotate,
+    Scale
+}
+
 public class ImGuizmo
 {
     [DllImport("cimgui", EntryPoint = "igGuizmoBeginFrame")]
@@ -56,8 +65,37 @@ public class ImGuizmo
     public static extern void SetRect(float x, float y, float width, float height);
 
     [DllImport("cimgui", EntryPoint = "igGuizmoManipulate")]
-    public static unsafe extern bool Manipulate(ref Matrix4x4 view, ref Matrix4x4 projection, GuizmoOperation operation,
+    static unsafe extern GuizmoOp igGuizmoManipulate(ref Matrix4x4 view, ref Matrix4x4 projection, GuizmoOperation operation,
         GuizmoMode mode, Matrix4x4* matrix, Matrix4x4* delta);
+
+    //Precision workaround - hacky
+    public static Matrix4x4 ApplyDelta(Matrix4x4 matrix, Matrix4x4 delta, GuizmoOp op)
+    {
+        switch (op)
+        {
+            case GuizmoOp.Nothing:
+                return matrix;
+            case GuizmoOp.Scale:
+            case GuizmoOp.Translate:
+                return matrix * delta;
+            case GuizmoOp.Rotate:
+                var rot = (matrix * delta).ExtractRotation();
+                return Matrix4x4.CreateFromQuaternion(rot) *
+                       Matrix4x4.CreateTranslation(Vector3.Transform(Vector3.Zero, matrix));
+            default:
+                throw new InvalidOperationException();
+        }
+    }
+
+
+    public static unsafe GuizmoOp Manipulate(ref Matrix4x4 view, ref Matrix4x4 projection,
+        GuizmoOperation operation, GuizmoMode mode, ref Matrix4x4 matrix, out Matrix4x4 delta)
+    {
+        fixed (Matrix4x4* m = &matrix, d = &delta)
+        {
+            return igGuizmoManipulate(ref view, ref projection, operation, mode, m, d);
+        }
+    }
 
     [DllImport("cimgui", EntryPoint = "igGuizmoSetDrawlist")]
     public static extern void SetDrawlist();

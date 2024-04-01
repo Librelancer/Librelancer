@@ -144,25 +144,25 @@ public static class IniSerializer
         SerializeRotation(sb, z.RotationMatrix);
         switch (z.Shape)
         {
-            case ZoneBox box:
+            case ShapeKind.Box:
                 sb.Entry("shape", "BOX")
-                    .Entry("size", box.Size);
+                    .Entry("size", z.Size);
                 break;
-            case ZoneSphere sphere:
+            case ShapeKind.Sphere:
                 sb.Entry("shape", "SPHERE")
-                    .Entry("size", sphere.Radius);
+                    .Entry("size", z.Size.X);
                 break;
-            case ZoneCylinder cylinder:
+            case ShapeKind.Cylinder:
                 sb.Entry("shape", "CYLINDER")
-                    .Entry("size", new Vector2(cylinder.Radius, cylinder.Height));
+                    .Entry("size", z.Size.X, z.Size.Y);
                 break;
-            case ZoneEllipsoid ellipsoid:
+            case ShapeKind.Ellipsoid:
                 sb.Entry("shape", "ELLIPSOID")
-                    .Entry("size", ellipsoid.Size);
+                    .Entry("size", z.Size);
                 break;
-            case ZoneRing ring:
+            case ShapeKind.Ring:
                 sb.Entry("shape", "RING")
-                    .Entry("size", new Vector3(ring.OuterRadius, ring.InnerRadius, ring.Height));
+                    .Entry("size", z.Size.X, z.Size.Z, z.Size.Y);
                 break;
         }
         sb.OptionalEntry("property_flags", (uint) z.PropertyFlags);

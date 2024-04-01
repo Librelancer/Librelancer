@@ -2,19 +2,19 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class InfocardBrowserTab : GameContentTab
 {

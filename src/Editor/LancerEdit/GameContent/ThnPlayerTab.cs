@@ -9,7 +9,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Thn;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class ThnPlayerTab : GameContentTab
 {

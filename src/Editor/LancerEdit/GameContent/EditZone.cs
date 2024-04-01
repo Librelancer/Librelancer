@@ -1,12 +1,11 @@
 using LibreLancer.GameData.World;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class EditZone
 {
     public bool Visible = false;
-    public bool Dirty = false;
-    
+
     public Zone Original;
     public Zone Current;
 
@@ -18,9 +17,6 @@ public class EditZone
         Current = og.Clone();
     }
 
-    public void Reset()
-    {
-        Original.CopyTo(Current);
-        Dirty = false;
-    }
+    public bool CheckDirty() => !Original.ZonesEqual(Current);
+
 }

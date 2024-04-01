@@ -338,7 +338,7 @@ namespace LibreLancer
             };
         }
 
-        public void GetCorners(Vector3[] corners)
+        public void GetCorners(Span<Vector3> corners)
         {
             if (corners == null)
             {
@@ -346,7 +346,7 @@ namespace LibreLancer
             }
             if (corners.Length < 8)
             {
-                throw new ArgumentOutOfRangeException("corners", "Not Enought Corners");
+                throw new ArgumentOutOfRangeException("corners", "Not Enough Corners");
             }
             corners[0].X = this.Min.X;
             corners[0].Y = this.Max.Y;

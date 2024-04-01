@@ -32,70 +32,21 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="defaulttexture.dds" />
-        <None Remove="grid.dds" />
-        <None Update="editorscripts\img2icon.cs-script">
+        <None Update="editorscripts\**\*.cs-script">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Remove="reactor_128.png" />
         <EmbeddedResource Include="reactor_128.png" />
         <None Remove="reactor_64.png" />
         <EmbeddedResource Include="reactor_64.png" />
-        <None Update="editorscripts\thorn2lua.cs-script">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="editorscripts\importmodel.cs-script">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
         <None Remove="splash.png" />
         <EmbeddedResource Include="splash.png" />
-        <None Remove="DisplayMeshes\cube.obj" />
-        <None Remove="DisplayMeshes\cylinder.obj" />
-        <None Remove="DisplayMeshes\icosphere.obj" />
-        <None Remove="DisplayMeshes\ring.obj" />
-        <None Remove="DisplayMeshes\cube.glb" />
-        <EmbeddedResource Include="DisplayMeshes\cube.glb" />
-        <None Remove="DisplayMeshes\cylinder.glb" />
-        <EmbeddedResource Include="DisplayMeshes\cylinder.glb" />
-        <None Remove="DisplayMeshes\icosphere.glb" />
-        <EmbeddedResource Include="DisplayMeshes\icosphere.glb" />
-        <None Remove="DisplayMeshes\ring.glb" />
-        <EmbeddedResource Include="DisplayMeshes\ring.glb" />
-        <None Update="Icons\3DB.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\ALE.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\ANM.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\CMP.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\MAT.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\SUR.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\TXM.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\UTF.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Icons\VMS.ico">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="editorscripts\export-textures.cs-script">
+        <EmbeddedResource Include="DisplayMeshes\**\*.glb" />
+        <None Update="Icons\**\*.ico">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Remove="BlueprintBackground.png" />
         <EmbeddedResource Include="BlueprintBackground.png" />
-        <None Update="editorscripts\lrpk-pack.cs-script">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

@@ -4,7 +4,7 @@ using System.Linq;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
 
-namespace LancerEdit.Filters;
+namespace LancerEdit.GameContent.Filters;
 
 public class GameObjectFilters : ObjectFiltering<GameObject>
 {

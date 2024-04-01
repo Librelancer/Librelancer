@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
+using LancerEdit.GameContent;
+using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Media;

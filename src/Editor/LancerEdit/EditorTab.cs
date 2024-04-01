@@ -16,10 +16,12 @@ public enum Hotkeys
     Copy,
     Paste,
     ClearRotation,
+    Undo,
+    Redo,
 }
 
 public abstract class EditorTab : DockTab
-{ 
+{
     public ISaveStrategy SaveStrategy { get; set; } = new NoSaveStrategy();
 
     public override bool UnsavedDocument => SaveStrategy.ShouldSave;

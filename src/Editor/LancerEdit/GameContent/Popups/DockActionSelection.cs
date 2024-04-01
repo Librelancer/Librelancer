@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using ImGuiNET;
 using LibreLancer.Data.Solar;
@@ -7,7 +6,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class DockActionSelection : PopupWindow
 {

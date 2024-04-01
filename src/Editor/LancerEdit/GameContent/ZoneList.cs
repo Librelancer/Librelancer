@@ -6,7 +6,7 @@ using ImGuiNET;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public enum ZoneDisplayKind
 {
@@ -40,7 +40,6 @@ public class ZoneList
         {
             var cloned = z.Current.Clone();
             z.Original = cloned;
-            z.Dirty = false;
             system.Zones.Add(cloned);
             system.ZoneDict[cloned.Nickname] = cloned;
         }
@@ -94,16 +93,18 @@ public class ZoneList
         return ez;
     }
 
-    public void SetZonesDirty(EditZone z)
-    {
-         dirtyZones = true;
-         z.Dirty = true;
-    }
 
     public void CheckDirty()
     {
         if (dirtyOrder) return;
-        dirtyZones = Zones.Any(x => x.Dirty);
+        dirtyZones = false;
+        foreach (var z in Zones)
+        {
+            if (z.CheckDirty()) {
+                dirtyZones = true;
+                break;
+            }
+        }
     }
 
     public bool HasZone(string nickname) =>

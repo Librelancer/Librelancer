@@ -1,11 +1,10 @@
 using System;
-using System.Numerics;
 using System.Text;
 using ImGuiNET;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class VisitFlagEditor : PopupWindow
 {

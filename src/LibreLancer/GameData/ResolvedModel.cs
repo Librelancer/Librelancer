@@ -20,5 +20,7 @@ namespace LibreLancer.GameData
             }
             return res.GetDrawable(ModelFile, loadMode);
         }
+
+        public override string ToString() => $"{ModelFile} ({LibraryFiles?.Length ?? 0} resources)";
     }
 }

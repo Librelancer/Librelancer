@@ -3,7 +3,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public static class XmlFormatter
 {

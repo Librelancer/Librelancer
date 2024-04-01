@@ -1,11 +1,10 @@
 using System;
 using System.Linq;
 using ImGuiNET;
-using LibreLancer;
 using LibreLancer.Data.Audio;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent.Popups;
 
 public class MusicSelection : PopupWindow
 {

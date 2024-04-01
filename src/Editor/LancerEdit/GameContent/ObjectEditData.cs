@@ -1,4 +1,3 @@
-
 using System.Linq;
 using System.Numerics;
 using LibreLancer;
@@ -6,7 +5,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public interface IObjectData
 {
@@ -49,13 +48,32 @@ public static class GameObjectExtensions
         if (go.SystemObject == null) return null;
         return new SystemObjectAccessor(go.SystemObject);
     }
+
+    public static ObjectEditData GetEditData(this GameObject go)
+    {
+        if (!go.TryGetComponent<ObjectEditData>(out var d))
+        {
+            d = new ObjectEditData(go);
+            go.AddComponent(d);
+        }
+        return d;
+    }
+
+    public static void UpdateDirty(this GameObject go)
+    {
+        if (go.TryGetComponent<ObjectEditData>(out var ed))
+        {
+            if (!ed.CheckDirty())
+                go.RemoveComponent(ed);
+        }
+    }
 }
 
 
 public class ObjectEditData : GameComponent, IObjectData
 {
     public bool IsNewObject { get; set; }
-    
+
     public int IdsName { get; set; }
     public int[] IdsInfo { get; set; }
     public int IdsLeft { get; set; }
@@ -66,13 +84,13 @@ public class ObjectEditData : GameComponent, IObjectData
     public Faction Reputation { get; set; }
     public Base Base { get; set; }
     public DockAction Dock { get; set; }
-    
+
     public string Comment { get; set; }
 
     private SystemObject sysobj;
 
     public SystemObject SystemObject => sysobj;
-    
+
     public ObjectEditData(GameObject parent) : base(parent)
     {
         sysobj = parent.SystemObject;
@@ -101,15 +119,59 @@ public class ObjectEditData : GameComponent, IObjectData
         return o;
     }
 
-    public void Apply()
+    static bool ArrayEqual<T>(T[] a, T[] b)
+    {
+        if (a == b) return true;
+        if ((a?.Length ?? -1) != (b?.Length ?? -1)) return false;
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (!Equals(a[i], b[i]))
+                return false;
+        }
+        return true;
+    }
+
+    public bool CheckDirty()
     {
         var pos = Vector3.Transform(Vector3.Zero, Parent.LocalTransform);
         var r = Parent.LocalTransform.ExtractRotation();
         var d = MathHelper.QuatError(r, Quaternion.Identity);
 
-        sysobj.Nickname = Parent.Nickname;
+        Matrix4x4? tgtRot = d > 0.0001f ? Matrix4x4.CreateFromQuaternion(r) : null;
+
+        return
+            sysobj.Nickname != Parent.Nickname ||
+            sysobj.Position != pos ||
+            sysobj.Rotation != tgtRot ||
+            sysobj.IdsName != IdsName ||
+            !ArrayEqual(sysobj.IdsInfo, IdsInfo.ToArray()) ||
+            sysobj.IdsLeft != IdsLeft ||
+            sysobj.IdsRight != IdsRight ||
+            sysobj.Archetype != Archetype ||
+            sysobj.Loadout != Loadout ||
+            sysobj.Visit != Visit ||
+            sysobj.Reputation != Reputation ||
+            sysobj.Base != Base ||
+            sysobj.Dock != Dock ||
+            sysobj.Comment != Comment;
+    }
+
+    public void ApplyTransform(Matrix4x4 localTransform)
+    {
+        var pos = Vector3.Transform(Vector3.Zero, localTransform);
+        var r = localTransform.ExtractRotation();
+        var d = MathHelper.QuatError(r, Quaternion.Identity);
         sysobj.Position = pos;
         sysobj.Rotation = d > 0.0001f ? Matrix4x4.CreateFromQuaternion(r) : null;
+    }
+
+    public void Apply()
+    {
+        if (Parent != null)
+        {
+            sysobj.Nickname = Parent.Nickname;
+            ApplyTransform(Parent.LocalTransform);
+        }
 
         sysobj.IdsName = IdsName;
         sysobj.IdsInfo = IdsInfo.ToArray();
@@ -122,10 +184,12 @@ public class ObjectEditData : GameComponent, IObjectData
         sysobj.Base = Base;
         sysobj.Dock = Dock;
         sysobj.Comment = Comment;
-        
-        if (IdsLeft != 0 && IdsRight != 0)
-            Parent.Name = new TradelaneName(Parent, IdsLeft, IdsRight);
-        else
-            Parent.Name = new ObjectName(IdsName);
+        if (Parent != null)
+        {
+            if (IdsLeft != 0 && IdsRight != 0)
+                Parent.Name = new TradelaneName(Parent, IdsLeft, IdsRight);
+            else
+                Parent.Name = new ObjectName(IdsName);
+        }
     }
 }

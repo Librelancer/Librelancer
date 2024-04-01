@@ -8,13 +8,12 @@ using System.Text;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data.Effects;
-using LibreLancer.Fx;
 using LibreLancer.GameData.Items;
 using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 
-namespace LancerEdit;
+namespace LancerEdit.GameContent;
 
 public class ProjectileViewerTab : GameContentTab
 {
