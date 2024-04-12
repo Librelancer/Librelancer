@@ -10,6 +10,8 @@ class GLRenderContext : IRenderContext
     private GraphicsState applied;
     private IntPtr glContext;
 
+    public bool SupportsWireframe => !GL.GLES;
+
     public int MaxSamples { get; private set; }
     public int MaxAnisotropy { get; private set; }
 

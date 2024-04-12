@@ -296,28 +296,28 @@ namespace LibreLancer.Render
             ex.ShellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
         }
 
-        void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2,
+        void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2, float angle,
             Vector2 tl,Vector2 tr, Vector2 bl, Vector2 br)
         {
             vx.Add(new VertexBillboardColor2(
-                pos, -0.5f * size.X, -0.5f * size.Y, 0,
+                pos, -0.5f * size.X, -0.5f * size.Y, angle,
                 c1, c2,
-                new Vector2(0, 0)
+                tl
             ));
             vx.Add(new VertexBillboardColor2(
-                pos, 0.5f * size.X, -0.5f * size.Y, 0,
+                pos, 0.5f * size.X, -0.5f * size.Y, angle,
                 c1, c2,
-                new Vector2(1, 0)
+                tr
             ));
             vx.Add(new VertexBillboardColor2(
-                pos, -0.5f * size.X, 0.5f * size.Y, 0,
+                pos, -0.5f * size.X, 0.5f * size.Y, angle,
                 c1, c2,
-                new Vector2(0, 1)
+                bl
             ));
             vx.Add(new VertexBillboardColor2(
-                pos, 0.5f * size.X, 0.5f * size.Y, 0,
+                pos, 0.5f * size.X, 0.5f * size.Y, angle,
                 c1, c2,
-                new Vector2(1, 1)
+                br
             ));
         }
 
@@ -400,7 +400,8 @@ namespace LibreLancer.Render
 				);
                 var puffSize = new Vector2(radius * 2);
                 var shape = Nebula.ExteriorCloudShapes.GetNext();
-                AddPuffQuad(verts, puffPos, puffSize, Nebula.ExteriorColor, Nebula.FogColor,
+                var angle = rn.NextFloat(-MathF.PI, MathF.PI);
+                AddPuffQuad(verts, puffPos, puffSize, Nebula.ExteriorColor, Nebula.FogColor, angle,
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y),
                     new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y),
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),

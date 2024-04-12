@@ -41,6 +41,8 @@ namespace LibreLancer.Graphics
             set => requested.ClearColor = value;
         }
 
+        public bool SupportsWireframe => impl.SupportsWireframe;
+
 		public bool Wireframe
         {
             get => requested.Wireframe;

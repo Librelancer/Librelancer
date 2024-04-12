@@ -393,10 +393,14 @@ public class SystemEditorTab : GameContentTab
     }
 
 
+    private bool drawWireframe = false;
     void ViewPanel()
     {
         ImGui.Checkbox("Nebulae", ref renderer.DrawNebulae);
         ImGui.Checkbox("Starspheres", ref renderer.DrawStarsphere);
+        ImGui.BeginDisabled(!win.RenderContext.SupportsWireframe);
+        ImGui.Checkbox("Wireframe", ref drawWireframe);
+        ImGui.EndDisabled();
     }
 
 
@@ -1241,8 +1245,10 @@ public class SystemEditorTab : GameContentTab
                 LightsList.Sources.Select(x => new DynamicLight() { Light = x.Light }).ToList();
             if (viewport.Begin())
             {
+                win.RenderContext.Wireframe = drawWireframe;
                 renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
                 viewport.End();
+                win.RenderContext.Wireframe = false;
             }
 
             if (ManipulateObjects() || ManipulateZone() || ManipulateLight())

@@ -6,6 +6,7 @@ interface IRenderContext
 {
     int MaxSamples { get; }
     int MaxAnisotropy { get; }
+    bool SupportsWireframe { get; }
     void Init(ref GraphicsState requested);
     void ApplyState(ref GraphicsState requested);
     void ApplyViewport(ref GraphicsState requested);

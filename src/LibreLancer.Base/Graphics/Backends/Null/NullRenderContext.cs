@@ -8,6 +8,7 @@ class NullRenderContext : IRenderContext
 {
     public int MaxSamples => 0;
     public int MaxAnisotropy => 0;
+    public bool SupportsWireframe => false;
     public void Init(ref GraphicsState requested)
     {
         FLLog.Info("Graphics", "NULL backend requested");
