@@ -8,7 +8,6 @@ namespace LibreLancer
 {
 	public class WeightedRandomCollection<T>
 	{
-		Random random;
 		T[] items;
 		float[] weights;
 		float max;
@@ -18,7 +17,6 @@ namespace LibreLancer
 			{
 				throw new InvalidOperationException();
 			}
-			random = new Random();
 			max = weights.Sum();
 			float current = 0;
 			this.weights = new float[weights.Length];
@@ -34,7 +32,7 @@ namespace LibreLancer
         {
         }
 
-        public T GetNext()
+        public T GetNext(Random random)
 		{
 			var val = (float)(random.NextDouble() * max);
 			for (int i = 0; i < weights.Length; i++)
@@ -47,7 +45,6 @@ namespace LibreLancer
 
         public WeightedRandomCollection<T> Clone() => new WeightedRandomCollection<T>()
         {
-            random = new Random(),
             items = items.ShallowCopy(),
             weights = weights.ShallowCopy(),
             max = max,
