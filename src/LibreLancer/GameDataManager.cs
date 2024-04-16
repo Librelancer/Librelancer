@@ -972,8 +972,16 @@ namespace LibreLancer
                     foreach (var src in inisys.LightSources)
                     {
                         var lt = new RenderLight();
-                        var srcCol = src.Color.Value;
-                        lt.Color = new Color3f(srcCol.R, srcCol.G, srcCol.B);
+                        if (src.Color.HasValue)
+                        {
+                            var srcCol = src.Color.Value;
+                            lt.Color = new Color3f(srcCol.R, srcCol.G, srcCol.B);
+                        }
+                        else
+                        {
+                            lt.Color = Color3f.White;
+                            FLLog.Warning("Light", $"{inisys.Nickname}: Light Source {src.Nickname} missing color");
+                        }
                         if(src.Pos.HasValue)
                             lt.Position = src.Pos.Value;
                         else
