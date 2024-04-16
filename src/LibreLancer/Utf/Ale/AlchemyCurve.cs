@@ -33,7 +33,7 @@ namespace LibreLancer.Utf.Ale
             return max;
         }
         public float GetValue(float time) {
-			if (Keyframes == null)
+			if (Keyframes == null || Keyframes.Count == 0)
 				return Value;
 			if (Keyframes.Count == 1)
 				return Keyframes [0].Value;
