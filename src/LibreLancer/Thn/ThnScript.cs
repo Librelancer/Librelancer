@@ -190,7 +190,9 @@ namespace LibreLancer.Thn
 				switch (val)
 				{
 					case 2:
-						return ThnObjectFlags.SoundSpatial;
+                        return ThnObjectFlags.SoundSpatial;
+                    case 3:
+                        return ThnObjectFlags.Reference | ThnObjectFlags.SoundSpatial;
 					default:
 						throw new NotImplementedException();
 				}
