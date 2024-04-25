@@ -28,6 +28,8 @@ class NullGame : IGame
     {
     }
 
+    public bool RelativeMouseMode { get; set; }
+
     public bool Focused => true;
     public string Title { get; set; }
     public Point MinimumWindowSize { get; set; }

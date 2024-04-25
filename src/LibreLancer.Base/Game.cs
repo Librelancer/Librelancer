@@ -49,6 +49,12 @@ namespace LibreLancer
             impl = configuration.GetGame(w, h, fullscreen);
         }
 
+        public bool RelativeMouseMode
+        {
+            get => impl.RelativeMouseMode;
+            set => impl.RelativeMouseMode = value;
+        }
+
         protected string GetSaveDirectory(string OrgName, string GameName)
         {
             string platform = SDL.SDL_GetPlatform();

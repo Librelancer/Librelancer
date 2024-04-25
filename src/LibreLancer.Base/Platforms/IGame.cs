@@ -29,6 +29,7 @@ interface IGame : IUIThread
     double RenderFrequency { get; }
     double FrameTime { get; }
     //Hardware
+    bool RelativeMouseMode { get; set; }
     string Renderer { get; }
     RenderContext RenderContext { get; }
     Mouse Mouse { get; }

@@ -49,6 +49,19 @@ namespace LibreLancer
             mythread = Thread.CurrentThread.ManagedThreadId;
         }
 
+        private bool _relativeMouseMode = false;
+
+        public bool RelativeMouseMode
+        {
+            get => _relativeMouseMode;
+            set
+            {
+                if (value != _relativeMouseMode)
+                    SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
+                _relativeMouseMode = value;
+            }
+        }
+
         public float DpiScale { get; set; } = 1;
         protected string GetSaveDirectory(string OrgName, string GameName)
         {
@@ -539,10 +552,12 @@ namespace LibreLancer
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_MOUSEMOTION:
-                            {
+                        {
+                            var x = RelativeMouseMode ? e.motion.xrel : e.motion.x;
+                            var y = RelativeMouseMode ? e.motion.yrel : e.motion.y;
                                 Mouse.X = (int) (scaleW * e.motion.x);
                                 Mouse.Y = (int) (scaleH * e.motion.y);
-                                Mouse.OnMouseMove();
+                                Mouse.OnMouseMove((int)(scaleW * x),(int)(scaleH * y));
                                 break;
                             }
                         case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
