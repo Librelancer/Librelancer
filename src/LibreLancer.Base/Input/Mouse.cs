@@ -32,10 +32,10 @@ namespace LibreLancer
 		{
 			return (Buttons & b) == b;
 		}
-		internal void OnMouseMove()
+		internal void OnMouseMove(int x, int y)
 		{
 			if (MouseMove != null)
-				MouseMove (new MouseEventArgs (X, Y, Buttons));
+				MouseMove (new MouseEventArgs (x, y, Buttons));
 		}
 
         internal void OnMouseWheel(int amountx, int amounty)
