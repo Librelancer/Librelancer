@@ -10,15 +10,9 @@ public enum LinkType
     None,
     Command = 1 << 0,
     CommandList = 1 << 1,
-    MissionShip = 1 << 2,
-    MissionFormation = 1 << 3,
-    MissionLoot = 1 << 4,
-    MissionSolar = 1 << 5,
-    MissionRandEnc = 1 << 6,
-    NNObjective = 1 << 7,
-    Dialogue = 1 << 8,
-    TriggerAction = 1 << 9,
-    TriggerCondition = 1 << 10,
+    TriggerAction = 1 << 2,
+    Condition = 1 << 3,
+    Action = 1 << 4,
 }
 
 public class NodeLink

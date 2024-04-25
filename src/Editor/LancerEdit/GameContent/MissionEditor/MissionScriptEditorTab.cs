@@ -52,8 +52,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         RegisterNodeValues();
 
-        nodes = new List<Node>();
-        links = new List<NodeLink>();
+        nodes = [];
+        links = [];
         missionScript = new MissionScript(new MissionIni(file, null));
 
         var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionScript.Ini.Info.NpcShipFile));
@@ -62,45 +62,11 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             missionScript.Ini.ShipIni = new NPCShipIni(npcPath, null);
         }
 
-        /*foreach (var ship in missionScript.Ships)
+        foreach (var trigger in missionScript.Ini.Triggers)
         {
-            nodes.Add(new BlueprintNode<MissionShip>(ref nextId, "Mission Ship", ship.Value, Color4.FromRgba((uint)NodeColours.MissionShip)));
+            nodes.Add(new BlueprintNode<MissionTrigger>(ref nextId, "Trigger", trigger,
+                Color4.FromRgba((uint)NodeColours.Trigger)));
         }
-
-        foreach (var solar in missionScript.Solars)
-        {
-            nodes.Add(new BlueprintNode<MissionSolar>(ref nextId, "Mission Solar", solar.Value, Color4.FromRgba((uint)NodeColours.MissionSolar)));
-        }
-
-        foreach (var formation in missionScript.Formations)
-        {
-            nodes.Add(new BlueprintNode<MissionFormation>(ref nextId, "Mission Formation", formation.Value, Color4.FromRgba((uint)NodeColours.MissionFormation)));
-        }
-
-        foreach (var dialog in missionScript.Dialogs)
-        {
-            nodes.Add(new BlueprintNode<MissionDialog>(ref nextId, "Dialog", dialog.Value, Color4.FromRgba((uint)NodeColours.Dialog)));
-        }
-
-        foreach (var objective in missionScript.Objectives)
-        {
-            nodes.Add(new BlueprintNode<NNObjective>(ref nextId, "NN Objective", objective.Value, Color4.FromRgba((uint)NodeColours.NNObjective)));
-        }
-
-        foreach (var objective in missionScript.Loot)
-        {
-            nodes.Add(new BlueprintNode<MissionLoot>(ref nextId, "Mission Loot", objective.Value, Color4.FromRgba((uint)NodeColours.MissionLoot)));
-        }
-
-        foreach (var objList in missionScript.ObjLists)
-        {
-            nodes.Add(new BlueprintNode<ScriptAiCommands>(ref nextId, "", objList.Value, Color4.FromRgba((uint)NodeColours.CommandList)));
-
-            foreach (var command in objList.Value.Ini.Commands)
-            {
-                nodes.Add(new Blue);
-            }
-        }*/
     }
 
     public override void Draw(double elapsed)
@@ -295,11 +261,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         _registeredNodeValueRenderers = true;
 
-        Node.RegisterNodeValueRenderer<MissionShip>(Reg.MissionShipContent);
-        Node.RegisterNodeValueRenderer<MissionSolar>(Reg.MissionSolarContent);
-        Node.RegisterNodeValueRenderer<MissionFormation>(Reg.MissionFormationContent);
-        Node.RegisterNodeValueRenderer<MissionDialog>(Reg.MissionDialogContent);
-        Node.RegisterNodeValueRenderer<NNObjective>(Reg.MissionNNObjectiveContent);
+        Node.RegisterNodeValueRenderer<MissionTrigger>(Reg.MissionTriggerContent);
     }
 
     private NodePin FindPin(PinId id)

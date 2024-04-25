@@ -12,12 +12,12 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class Node
 {
-    public NodeId Id { get; }
-    public string Name  { get; protected set; }
+    protected NodeId Id { get; }
+    protected string Name  { get; set; }
     public List<NodePin> Inputs  { get; }
     public List<NodePin> Outputs  { get; }
     public Color4 Color  { get; }
-    public object Data { get; }
+    protected object Data { get; }
 
     protected static readonly Dictionary<Type, NodeValueRenderer<object>> NodeValueRenders = new();
 
@@ -35,8 +35,8 @@ public abstract class Node
         Data = data;
         Color = color ?? Color4.White;
 
-        Inputs = new List<NodePin>();
-        Outputs = new List<NodePin>();
+        Inputs = [];
+        Outputs = [];
     }
 
     public abstract void Render(GameDataContext gameData, MissionScript missionScript);
