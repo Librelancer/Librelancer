@@ -32,9 +32,89 @@ public sealed partial class MissionScriptEditorTab
             RenderLootManager();
         }
 
+        ImGui.NewLine();
+        if (ImGui.CollapsingHeader("Dialog Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            RenderDialogManager();
+        }
+
         ImGui.PopStyleColor();
 
         ImGui.EndChild();
+    }
+
+    private int selectedDialogIndex = -1;
+    private void RenderDialogManager()
+    {
+        var ini = missionScript.Ini;
+
+        if (ImGui.Button("Create New Dialog"))
+        {
+            selectedDialogIndex = ini.Dialogs.Count;
+            ini.Dialogs.Add(new MissionDialog());
+        }
+
+        ImGui.BeginDisabled(selectedDialogIndex == -1);
+        if (ImGui.Button("Delete Dialog"))
+        {
+            win.Confirm("Are you sure you want to delete this dialog?", () =>
+            {
+                ini.Dialogs.RemoveAt(selectedDialogIndex--);
+            });
+        }
+
+        ImGui.EndDisabled();
+
+        var selectedDialog = selectedDialogIndex != -1 ? ini.Dialogs[selectedDialogIndex] : null;
+        ImGui.SetNextItemWidth(150f);
+        if (ImGui.BeginCombo("Dialogs", selectedDialog is not null ? selectedDialog.Nickname : ""))
+        {
+            for (var index = 0; index < ini.Dialogs.Count; index++)
+            {
+                var arch = ini.Dialogs[index];
+                var selected = arch == selectedDialog;
+                if (!ImGui.Selectable(arch?.Nickname, selected))
+                {
+                    continue;
+                }
+
+                selectedDialogIndex = index;
+                selectedDialog = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+
+        if (selectedDialog is null)
+        {
+            return;
+        }
+
+        ImGui.PushID(selectedDialogIndex);
+
+        Controls.InputTextId("Nickname##Dialog", ref selectedDialog.Nickname, 150f);
+        Controls.InputTextId("System##Dialog", ref selectedDialog.System, 150f);
+        MissionEditorHelpers.AlertIfInvalidRef(() => selectedDialog.System.Length is 0 ||
+                                                     gameData.GameData.Systems.Any(x => x.Nickname == selectedDialog.System));
+
+        for (var index = 0; index < selectedDialog.Lines.Count; index++)
+        {
+            var line = selectedDialog.Lines[index];
+            ImGui.PushID(line.GetHashCode());
+            Controls.InputTextId("Source##ID", ref line.Source);
+            Controls.InputTextId("Target##ID", ref line.Target);
+            Controls.InputTextId("Line##ID", ref line.Line);
+            ImGui.PopID();
+
+            if (index + 1 != selectedDialog.Lines.Count)
+            {
+                ImGui.NewLine();
+            }
+        }
+
+        MissionEditorHelpers.AddRemoveListButtons(selectedDialog.Lines);
+
+        ImGui.PopID();
     }
 
     private int selectedLootIndex = -1;
