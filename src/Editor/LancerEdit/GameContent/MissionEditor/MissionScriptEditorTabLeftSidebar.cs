@@ -330,12 +330,15 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PopItemWidth();
 
-        popup.OpenPopup(new VfsFileSelector("Change Ship File",
-            gameData.GameData.VFS,
-            gameData.GameData.Ini.Freelancer.DataPath, x =>
-            {
-                info.NpcShipFile = x;
-                ini.ShipIni = new NPCShipIni(info.NpcShipFile, null);
-            }, VfsFileSelector.MakeFilter("ini")));
+        if (ImGui.Button("Change Ship File"))
+        {
+            popup.OpenPopup(new VfsFileSelector("Change Ship File",
+                gameData.GameData.VFS,
+                gameData.GameData.Ini.Freelancer.DataPath, x =>
+                {
+                    info.NpcShipFile = gameData.GameData.Ini.Freelancer.DataPath + x;
+                    ini.ShipIni = new NPCShipIni(info.NpcShipFile, gameData.GameData.VFS);
+                }, VfsFileSelector.MakeFilter(".ini")));
+        }
     }
 }
