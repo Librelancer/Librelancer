@@ -25,6 +25,7 @@ namespace LibreLancer
         int height;
         double totalTime;
         bool fullscreen;
+        private bool allowScreensaver;
         bool running = false;
         string title = "LibreLancer";
         IntPtr windowptr;
@@ -42,11 +43,12 @@ namespace LibreLancer
             get; private set;
         }
 
-        public SDL2Game(int w, int h, bool fullscreen)
+        public SDL2Game(int w, int h, bool fullscreen, bool allowScreensaver)
         {
             width = w;
             height = h;
             mythread = Thread.CurrentThread.ManagedThreadId;
+            this.allowScreensaver = allowScreensaver;
         }
 
         private bool _relativeMouseMode = false;
@@ -394,6 +396,7 @@ namespace LibreLancer
             wakeEvent = SDL.SDL_RegisterEvents(1);
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
             //Set GL states
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window

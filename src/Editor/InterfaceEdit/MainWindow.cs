@@ -29,7 +29,7 @@ namespace InterfaceEdit
         private RecentFilesHandler recentFiles;
         public PopupManager Popups = new PopupManager();
 
-        public MainWindow() : base(950,600,false)
+        public MainWindow() : base(950,600,false, true)
         {
             recentFiles = new RecentFilesHandler(OpenGui);
         }

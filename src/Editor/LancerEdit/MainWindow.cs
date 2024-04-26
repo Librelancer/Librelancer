@@ -57,7 +57,7 @@ namespace LancerEdit
         OptionsWindow options;
 
         private QuickFileBrowser quickFileBrowser;
-        public MainWindow(GameConfiguration configuration = null) : base(800,600,false, configuration)
+        public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();

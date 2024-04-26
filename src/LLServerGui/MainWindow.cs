@@ -15,7 +15,7 @@ namespace LLServer;
 public class MainWindow : Game
 {
     private ImGuiHelper guiRender;
-    public MainWindow() : base(800,600,false)
+    public MainWindow() : base(800,600,false, true)
     {
     }
 

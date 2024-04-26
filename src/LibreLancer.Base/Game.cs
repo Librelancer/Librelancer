@@ -43,10 +43,10 @@ namespace LibreLancer
         public RenderContext RenderContext => impl.RenderContext;
         public string Renderer => impl.Renderer;
 
-        public Game(int w, int h, bool fullscreen, GameConfiguration configuration = null)
+        public Game(int w, int h, bool fullscreen, bool allowScreensaver, GameConfiguration configuration = null)
         {
             configuration ??= GameConfiguration.SDL();
-            impl = configuration.GetGame(w, h, fullscreen);
+            impl = configuration.GetGame(w, h, fullscreen, allowScreensaver);
         }
 
         public bool RelativeMouseMode
