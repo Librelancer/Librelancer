@@ -372,6 +372,7 @@ namespace LibreLancer
 
         public void Run(Game loop)
         {
+            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
             //Try to set DPI Awareness on Win32
             if (Platform.RunningOS == OS.Windows)
             {
@@ -396,7 +397,6 @@ namespace LibreLancer
             wakeEvent = SDL.SDL_RegisterEvents(1);
             SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
             SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
-            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
             //Set GL states
             SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window

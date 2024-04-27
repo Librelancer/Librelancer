@@ -26,7 +26,7 @@ namespace LancerEdit
             public bool BooleanValue = false;
             public int IntegerValue = 0;
 
-            public string GetValue()
+            string GetString()
             {
                 if (Argument.Type == ScriptArgumentType.Integer) return IntegerValue.ToString();
                 if (Argument.Type == ScriptArgumentType.Boolean) return BooleanValue.ToString();
@@ -45,6 +45,17 @@ namespace LancerEdit
                 if (Argument.Type == ScriptArgumentType.FileArray || Argument.Type == ScriptArgumentType.FileFolderArray)
                     return string.Join("\n", StringArray);
                 return StringValue.Trim();
+            }
+
+            public string GetValue()
+            {
+                var v = GetString();
+                if (Argument.Type != ScriptArgumentType.Flag && !string.IsNullOrWhiteSpace(v) &&
+                    !string.IsNullOrWhiteSpace(Argument.Flag))
+                {
+                    return $"--{Argument.Flag}={v}";
+                }
+                return v;
             }
 
             public void Draw(int i)
@@ -202,13 +213,14 @@ namespace LancerEdit
             var proc = Process.Start(pi);
             proc.EnableRaisingEvents = true;
             doUpdate = true;
+            static string S(string s) => s?.Replace("%", "%%") ?? "";
             proc.OutputDataReceived += (sender, eventArgs) =>
             {
-                main.QueueUIThread(() => lines.Add(eventArgs.Data ?? ""));
+                main.QueueUIThread(() => lines.Add(S(eventArgs.Data)));
             };
             proc.ErrorDataReceived += (sender, eventArgs) =>
             {
-                main.QueueUIThread(() => lines.Add(eventArgs.Data ?? ""));
+                main.QueueUIThread(() => lines.Add(S(eventArgs.Data)));
             };
             proc.Exited += (sender, eventArgs) =>
             {

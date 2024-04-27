@@ -308,11 +308,19 @@ public class LrpkPack
         var compWriteTask = Task.Run(async () =>
         {
             int i = 0;
+            double lastpct = -1.0;
             foreach(var comp in compWriteItems.GetConsumingEnumerable())
             {
                 i++;
+                var pct = ((double)i / compTasks.Length) * 100.0;
                 if(Verbose)
-                    Log?.Invoke($"Compressed: {comp.FullPath} ({i}/{compTasks.Length})");
+                    Log?.Invoke($"Compressed: {comp.FullPath} ({i}/{compTasks.Length}) ({pct:F2}%)");
+                else if ((pct - lastpct) >= 0.1)
+                {
+                    Log?.Invoke($"{pct:F2}%");
+                    lastpct = pct;
+                }
+
                 comp.Item.Offset = outputStream.Position;
                 comp.Item.Length = comp.Data.Length;
                 comp.Data.WriteAndDispose(outputStream);

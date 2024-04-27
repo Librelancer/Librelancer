@@ -2,13 +2,25 @@
 // name = Pack to Lrpk
 // [Argument]
 // name = Input Directory
-// type = directory
+// type = folder
+// [Argument]
+// name = Max Threads
+// type = integer
+// flag = maxthreads
+// [Argument]
+// name = Verbose
+// type = flag
+// flag = v
+// [Argument]
+// name = Rules file
+// type = file
+// flag = rules
 // [Argument]
 // name = Output File
 // type = savefile
 
 string rulesFile = "";
-int maxThreads = -1;
+int maxThreads = 0;
 bool verbose = false;
 StringOption("rules=", "Rules file", r => rulesFile = r);
 IntegerOption("maxthreads=", "Maximum threads for compression (defaults to CPU count)", t => maxThreads = t);
@@ -19,7 +31,7 @@ ScriptUsage("inputdir/ output.lrpk");
 var args = ParseArguments(2);
 Console.WriteLine("lrpk-pack");
 
-if(maxThreads != -1)
+if(maxThreads != 0)
     Console.WriteLine($"Using {maxThreads} threads");
 else
     Console.WriteLine($"Using {Environment.ProcessorCount} threads");
@@ -33,7 +45,7 @@ else {
 }
 pack.Log += Console.WriteLine;
 pack.Verbose = verbose;
-pack.MaxThreads = maxThreads;
+pack.MaxThreads = maxThreads > 0 ? maxThreads : Environment.ProcessorCount;
 
 pack.ReadSource(args[0]);
 pack.Pack(args[1]);
