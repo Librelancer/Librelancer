@@ -3,9 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using SharpDX.DirectWrite;
 using ZstdSharp;
 
 namespace LibreLancer.ContentEdit;
@@ -47,6 +49,7 @@ public class LrpkPack
         Uncompressed,
         Zstandard,
         Block0,
+        Reference
     }
 
     static Regex TranslateWildcard(string pattern)
@@ -97,12 +100,15 @@ public class LrpkPack
         public bool IsDirectory = false;
         public string SourcePath;
         public string Name;
+        public string FullPath;
         public PackMethod Method;
         public List<PackItem> Children;
         public MatchRule Matched;
         public long Offset;
         public long Length;
         public double TestRatio;
+
+        public PackItem Referenced;
     }
 
     static void ApplyRules(PackItem item, MatchRule[] rules, string directoryPath)
@@ -126,7 +132,70 @@ public class LrpkPack
         }
     }
 
-    void AutodetectCompress(PackItem item, string path)
+    static string ComputeSHA256(Stream data)
+    {
+        // Create a SHA256
+        using (SHA256 sha256Hash = SHA256.Create())
+        {
+            // ComputeHash - returns byte array
+            byte[] bytes = sha256Hash.ComputeHash(data);
+            data.Position = 0;
+            // Convert byte array to a string
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+    }
+
+    void ResolveDuplicates(Dictionary<string, List<PackItem>> potentialDuplicates)
+    {
+        //Clear dictionary of all non-duplicates
+        foreach (var k in potentialDuplicates.Keys.ToArray())
+        {
+            if (potentialDuplicates[k].Count <= 1)
+                potentialDuplicates.Remove(k);
+        }
+        Span<byte> buffer1 = stackalloc byte[8192];
+        Span<byte> buffer2 = stackalloc byte[8192];
+        foreach (var kv in potentialDuplicates)
+        {
+            using var s1 = File.OpenRead(kv.Value[0].SourcePath);
+            using var s2 = File.OpenRead(kv.Value[1].SourcePath);
+
+            if (s1.Length != s2.Length)
+                continue;
+            int ret1 = 0;
+            int ret2 = 0;
+            bool equal = true;
+            while ((ret1 = s1.Read(buffer1)) != 0)
+            {
+                ret2 = s2.Read(buffer2);
+                if (ret2 != ret1) {
+                    equal = false;
+                    break;
+                }
+                if (!buffer1.SequenceEqual(buffer2)) {
+                    equal = false;
+                    break;
+                }
+            }
+            if (equal) {
+                for (int i = 1; i < kv.Value.Count; i++)
+                {
+                    if(Verbose)
+                        Log?.Invoke($"DUP: {kv.Value[i].FullPath} == {kv.Value[0].FullPath}");
+                    kv.Value[i].Method = PackMethod.Reference;
+                    kv.Value[i].Referenced = kv.Value[0];
+                }
+            }
+        }
+
+    }
+
+    void AutodetectCompress(Dictionary<string, List<PackItem>> potentialDuplicates, PackItem item, string path)
     {
         var fullPath = path == "" ? item.Name : path + "/" + item.Name;
 
@@ -137,11 +206,20 @@ public class LrpkPack
                 Log($"Directory: {fullPath}");
             }
             foreach (var child in item.Children)
-                AutodetectCompress(child, fullPath);
+                AutodetectCompress(potentialDuplicates, child, fullPath);
         }
         else
         {
             using var f = File.OpenRead(item.SourcePath);
+            if (f.Length != 0)
+            {
+                var hash = ComputeSHA256(f);
+                if (!potentialDuplicates.TryGetValue(hash, out var lst)) {
+                    lst = new List<PackItem>();
+                    potentialDuplicates[hash] = lst;
+                }
+                lst.Add(item);
+            }
             if (f.Length == 0)
                 item.Method = PackMethod.ZeroLength;
             else if (item.Method == PackMethod.Auto)
@@ -183,28 +261,28 @@ public class LrpkPack
     }
 
 
-    IEnumerable<(string FullPath, PackItem Item)> IteratePack(PackItem item, string path)
+    IEnumerable<PackItem> IteratePack(PackItem item)
     {
-        var fullPath = path == "" ? item.Name : path + "/" + item.Name;
-        yield return (fullPath, item);
+        yield return item;
         if (item.IsDirectory) {
             foreach (var child in item.Children)
             {
-                foreach (var x in IteratePack(child, fullPath))
+                foreach (var x in IteratePack(child))
                     yield return x;
             }
         }
     }
 
-    PackItem Iterate(DirectoryInfo info)
+    PackItem Iterate(DirectoryInfo info, string path = null)
     {
         var pk = new PackItem();
         pk.IsDirectory = true;
         pk.Children = new List<PackItem>();
         pk.Name = info.Name;
+        pk.FullPath = path == null ? "" : $"{path}{info.Name}/";
         foreach (var d in info.EnumerateDirectories())
         {
-            pk.Children.Add(Iterate(d));
+            pk.Children.Add(Iterate(d, pk.FullPath));
         }
         foreach (var f in info.EnumerateFiles())
         {
@@ -212,6 +290,7 @@ public class LrpkPack
             child.IsDirectory = false;
             child.SourcePath = f.FullName;
             child.Name = f.Name;
+            child.FullPath = $"{pk.FullPath}{f.Name}";
             pk.Children.Add(child);
         }
         return pk;
@@ -229,7 +308,9 @@ public class LrpkPack
         var rules = Rules.Select(x => new MatchRule(x.Method, TranslateWildcard(x.Wildcard), x.Wildcard)).ToArray();
         ApplyRules(items, rules, "");
         Log?.Invoke("Analyzing");
-        AutodetectCompress(items, "");
+        var potentialDuplicate = new Dictionary<string, List<PackItem>>();
+        AutodetectCompress(potentialDuplicate, items, "");
+        ResolveDuplicates(potentialDuplicate);
         sourceRoot = items;
     }
 
@@ -237,7 +318,7 @@ public class LrpkPack
     {
         Log?.Invoke("Compressing Block0...");
         offset = outputStream.Position;
-        var blk = IteratePack(sourceRoot, "").Where(x => x.Item.Method == blockIdx).ToArray();
+        var blk = IteratePack(sourceRoot).Where(x => x.Method == blockIdx).ToArray();
         if (blk.Length == 0) {
             length = 0;
             return false;
@@ -249,9 +330,9 @@ public class LrpkPack
             {
                 if(Verbose)
                     Log?.Invoke(toComp.FullPath);
-                using var src = File.OpenRead(toComp.Item.SourcePath);
-                toComp.Item.Offset = fileOff;
-                toComp.Item.Length = src.Length;
+                using var src = File.OpenRead(toComp.SourcePath);
+                toComp.Offset = fileOff;
+                toComp.Length = src.Length;
                 fileOff += src.Length;
                 src.CopyTo(comp);
             }
@@ -269,6 +350,24 @@ public class LrpkPack
             writer.WriteVarUInt64((ulong)item.Children.Count);
             foreach(var child in item.Children)
                 WriteTree(writer, child);
+        }
+        else if (item.Method == PackMethod.Reference)
+        {
+            var type = item.Referenced.Method switch
+            {
+                PackMethod.ZeroLength => 1,
+                PackMethod.Uncompressed => 2,
+                PackMethod.Zstandard => 3,
+                PackMethod.Block0 => 4,
+                _ => throw new Exception("Internal pack error"),
+            };
+            writer.Write((byte)type);
+            writer.WriteStringUTF8(item.Name);
+            if (type != 1)
+            {
+                writer.WriteVarUInt64((ulong)item.Referenced.Offset);
+                writer.WriteVarUInt64((ulong)item.Referenced.Length);
+            }
         }
         else
         {
@@ -303,7 +402,7 @@ public class LrpkPack
 
         Log?.Invoke("Compressing files...");
         // Use threads for ZSTD, level 22 compression is very slow
-        var compTasks = IteratePack(sourceRoot, "").Where(x => x.Item.Method == PackMethod.Zstandard).ToArray();
+        var compTasks = IteratePack(sourceRoot).Where(x => x.Method == PackMethod.Zstandard).ToArray();
         BlockingCollection<(string FullPath, PackItem Item, UnmanagedWriteStream Data)> compWriteItems = new();
         var compWriteTask = Task.Run(async () =>
         {
@@ -329,24 +428,24 @@ public class LrpkPack
         var compressTask = Parallel.ForEachAsync(compTasks, new ParallelOptions { MaxDegreeOfParallelism = MaxThreads <= 0 ? Environment.ProcessorCount : MaxThreads },
             async (toComp, token) =>
             {
-                using var src = File.OpenRead(toComp.Item.SourcePath);
+                using var src = File.OpenRead(toComp.SourcePath);
                 var mem = new UnmanagedWriteStream();
                 using (var comp = new CompressionStream(mem, 22))
                     await src.CopyToAsync(comp);
-                compWriteItems.Add((toComp.FullPath, toComp.Item, mem));
+                compWriteItems.Add((toComp.FullPath, toComp, mem));
             });
         compressTask.Wait();
         compWriteItems.CompleteAdding();
         compWriteTask.Wait();
         Log?.Invoke("Adding uncompressed files");
         // Copying is fast
-        foreach(var toCopy in IteratePack(sourceRoot, "").Where(x => x.Item.Method == PackMethod.Uncompressed))
+        foreach(var toCopy in IteratePack(sourceRoot).Where(x => x.Method == PackMethod.Uncompressed))
         {
             if(Verbose)
                 Log?.Invoke($"Copying {toCopy.FullPath}");
-            using var src = File.OpenRead(toCopy.Item.SourcePath);
-            toCopy.Item.Offset = outputStream.Position;
-            toCopy.Item.Length = src.Length;
+            using var src = File.OpenRead(toCopy.SourcePath);
+            toCopy.Offset = outputStream.Position;
+            toCopy.Length = src.Length;
             src.CopyTo(outputStream);
         }
 

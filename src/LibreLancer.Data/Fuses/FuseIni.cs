@@ -14,13 +14,13 @@ namespace LibreLancer.Data.Fuses
         public void AddFuseIni(string path, FileSystem vfs)
         {
             Fuse current = null;
-            foreach(var section in ParseFile(path, vfs)) 
-            { 
+            foreach(var section in ParseFile(path, vfs))
+            {
                 switch(section.Name.ToLowerInvariant())
                 {
                     case "fuse":
                         current = FromSection<Fuse>(section);
-                        Fuses.Add(current.Name, current);
+                        Fuses[current.Name] = current;
                         break;
                     case "start_effect":
                         current.Actions.Add(FromSection<FuseStartEffect>(section));
