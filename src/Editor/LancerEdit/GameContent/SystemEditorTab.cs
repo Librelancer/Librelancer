@@ -899,21 +899,21 @@ public class SystemEditorTab : GameContentTab
         if (SystemData.StarsBasic != null)
         {
             var mdl = SystemData.StarsBasic.LoadFile(Data.Resources);
-            if (mdl is IRigidModelFile rm)
+            if (mdl?.Drawable is IRigidModelFile rm)
                 models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
         if (SystemData.StarsComplex != null)
         {
             var mdl = SystemData.StarsComplex.LoadFile(Data.Resources);
-            if (mdl is IRigidModelFile rm)
+            if (mdl?.Drawable is IRigidModelFile rm)
                 models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
         if (SystemData.StarsNebula != null)
         {
             var mdl = SystemData.StarsNebula.LoadFile(Data.Resources);
-            if (mdl is IRigidModelFile rm)
+            if (mdl?.Drawable is IRigidModelFile rm)
                 models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 

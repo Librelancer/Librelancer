@@ -116,6 +116,12 @@ namespace LibreLancer.World.Components
                     }
                 }
             }
+            if (_convexMesh != null && _convexMesh.BepuChildCount == 0)
+            {
+                cld.Dispose();
+                cld = new SphereCollider(1); //TODO: Bad
+                FLLog.Error("Sur", $"Hull load failure for object {Parent.Nickname ?? Parent.NetID.ToString()}");
+            }
             if(Mass < float.Epsilon) {
                 Body = physics.AddStaticObject(Parent.WorldTransform, cld);
             } else {
