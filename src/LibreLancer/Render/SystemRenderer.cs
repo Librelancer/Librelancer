@@ -10,6 +10,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Backends.OpenGL;
+using LibreLancer.Render.Materials;
 using LibreLancer.Thn;
 using LibreLancer.World;
 
@@ -459,7 +460,7 @@ namespace LibreLancer.Render
                         var w = p.LocalTransform * ssworld;
                         var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
                         if (camera.FrustumCheck(bsphere))
-                            p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims); ;
+                            p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims, BasicMaterial.ForceAlpha);
                     }
                 }
                 if (camera is ThnCamera thn2 && !ZOverride) {

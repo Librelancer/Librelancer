@@ -435,7 +435,7 @@ namespace LancerEdit
                 var lvl = GetLevel(part.Mesh.Switch2);
                 part.Mesh.DrawImmediate(lvl, res, _window.RenderContext, part.LocalTransform * matrix,
                     ref Lighting.Empty,
-                    null, mat);
+                    null, 0, mat);
             }
         }
 
@@ -488,6 +488,10 @@ namespace LancerEdit
                 matrix = Matrix4x4.CreateTranslation(cam.Position);
             else
                 matrix = GetModelMatrix();
+            int userData = modelViewport.Mode == CameraModes.Starsphere &&
+                           (viewMode == M_TEXTURED || viewMode == M_LIT)
+                ? BasicMaterial.ForceAlpha
+                : 0;
             if (viewMode == M_NORMALS)
             {
                 mat = normalsDebugMaterial;
@@ -526,22 +530,22 @@ namespace LancerEdit
                         var lvl = GetLevel(part.Mesh.Switch2);
                         part.Mesh.DrawBuffer(lvl, res, buffer, part.LocalTransform * matrix,
                             ref Lighting.Empty,
-                            null, mat);
+                            null, userData, mat);
                     }
                 }
                 else if (viewMode == M_LIT)
                 {
                     if (useDistance)
-                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, res, matrix, ref lighting);
+                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, res, matrix, ref lighting, userData);
                     else
-                        vmsModel.DrawBuffer(level, buffer, res, matrix, ref lighting);
+                        vmsModel.DrawBuffer(level, buffer, res, matrix, ref lighting, userData);
                 }
                 else
                 {
                     if(useDistance)
-                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, res, matrix, ref Lighting.Empty);
+                        vmsModel.DrawBufferSwitch2(levelDistance, buffer, res, matrix, ref Lighting.Empty, userData);
                     else
-                        vmsModel.DrawBuffer(level, buffer, res, matrix, ref Lighting.Empty, mat);
+                        vmsModel.DrawBuffer(level, buffer, res, matrix, ref Lighting.Empty, userData, mat);
                 }
             }
         }

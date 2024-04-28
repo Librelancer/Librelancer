@@ -62,7 +62,7 @@ namespace LibreLancer
         public MeshLevel[] Levels;
         public float[] Switch2;
 
-        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, int userData = 0, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length <= level) return;
             var l = Levels[level];
@@ -103,7 +103,7 @@ namespace LibreLancer
                     l.Resource.VertexResource.StartIndex + dc.StartIndex,
                     dc.PrimitiveCount,
                     SortLayers.OBJECT,
-                    z
+                    z, null, 0, userData
                 );
             }
         }
@@ -116,7 +116,7 @@ namespace LibreLancer
         }
 
         private ulong drawN = ulong.MaxValue;
-        public unsafe void DrawImmediate(int level, ResourceManager res, RenderContext renderContext, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, Material overrideMat = null)
+        public unsafe void DrawImmediate(int level, ResourceManager res, RenderContext renderContext, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, int userData = 0, Material overrideMat = null)
         {
             if (Levels == null || Levels.Length < level) return;
             var l = Levels[level];
@@ -146,7 +146,7 @@ namespace LibreLancer
                 handle.ID = ulong.MaxValue;
                 mat.Render.World = handle;
                 mat.Render.MaterialAnim = ma;
-                mat.Render.Use(renderContext, l.Resource.VertexResource.VertexBuffer.VertexType, ref lights, 0);
+                mat.Render.Use(renderContext, l.Resource.VertexResource.VertexBuffer.VertexType, ref lights, userData);
                 l.Resource.VertexResource.VertexBuffer.Draw(
                     PrimitiveTypes.TriangleList,
                     dc.BaseVertex + l.Resource.VertexResource.BaseVertex,
@@ -271,26 +271,26 @@ namespace LibreLancer
             return f;
         }
 
-        public void DrawImmediate(RenderContext rstate, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
+        public void DrawImmediate(RenderContext rstate, ResourceManager res, Matrix4x4 world, ref Lighting lights, int userData = 0, Material overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
                     var w = AllParts[i].LocalTransform * world;
-                    AllParts[i].Mesh.DrawImmediate(0, res, rstate, w, ref lights, MaterialAnims, overrideMat);
+                    AllParts[i].Mesh.DrawImmediate(0, res, rstate, w, ref lights, MaterialAnims, userData, overrideMat);
                 }
             }
         }
 
-        public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
+        public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, int userData = 0, Material overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
                     var w = AllParts[i].LocalTransform * world;
-                    AllParts[i].Mesh.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, overrideMat);
+                    AllParts[i].Mesh.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, userData, overrideMat);
                 }
             }
         }
@@ -306,14 +306,14 @@ namespace LibreLancer
             return int.MaxValue;
         }
 
-        public void DrawBufferSwitch2(float dist, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, Material overrideMat = null)
+        public void DrawBufferSwitch2(float dist, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, int userData = 0, Material overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
                     var w = AllParts[i].LocalTransform * world;
-                    AllParts[i].Mesh.DrawBuffer(GetLevel(AllParts[i].Mesh.Switch2, dist), res, buffer, w, ref lights, MaterialAnims, overrideMat);
+                    AllParts[i].Mesh.DrawBuffer(GetLevel(AllParts[i].Mesh.Switch2, dist), res, buffer, w, ref lights, MaterialAnims, userData, overrideMat);
                 }
             }
         }

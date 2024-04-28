@@ -13,7 +13,9 @@ using LibreLancer.Utf.Mat;
 namespace LibreLancer.Render.Materials
 {
 	public class BasicMaterial : RenderMaterial
-	{
+    {
+        public const int ForceAlpha = (1 << 31);
+
 		public string Type;
 
 		public Color4 Dc = Color4.White;
@@ -78,7 +80,7 @@ namespace LibreLancer.Render.Materials
 			shader.SetDc(Dc);
 			//Oc
 			shader.SetOc(Oc);
-			if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest)
+			if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest || (userData & ForceAlpha) == ForceAlpha)
 			{
 				rstate.BlendMode = BlendMode.Normal;
 			}
