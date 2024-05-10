@@ -16,27 +16,47 @@ namespace LibreLancer.Tests.Ini
 {
     public class TextIniParserTests
     {
-        private static IList<Section> Parse(string ini)
+        private static IList<Section> ParseAsAscii(string ini, bool preparse = true, bool allowmaps = false)
         {
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(ini));
-            var parser = new TextIniParser();
-            return parser.ParseIniFile(null, stream).ToList();
+            var stream = new MemoryStream(Encoding.ASCII.GetBytes(ini));
+            var parser = new LancerTextIniParser();
+            return parser.ParseIniFile(null, stream, preparse, allowmaps).ToList();
+        }
+
+        private static IList<Section> ParseAsUTF8(string ini, bool preparse = true, bool allowmaps = false)
+        {
+            var stream = new MemoryStream([.. Encoding.UTF8.GetPreamble(), .. Encoding.UTF8.GetBytes(ini)]);
+            var parser = new LancerTextIniParser();
+            return parser.ParseIniFile(null, stream, preparse, allowmaps).ToList();
         }
 
         [Fact]
         public void ParseEmptyIniSucceeds()
         {
-            var ini = Parse("");
+            var ini = ParseAsAscii("");
             ini.Should().BeEmpty();
         }
 
         [Theory]
         [InlineData("[MySection]", "MySection")]
         [InlineData("[=*MySection*=]", "=*MySection*=")]
-        [InlineData("[!£$%^&*()#':/?\\|]", "!£$%^&*()#':/?\\|")]
         public void ParseSectionSucceeds(string iniString, string result)
         {
-            var ini = Parse(iniString).ToList();
+            var ini = ParseAsAscii(iniString).ToList();
+            ini.Should().HaveCount(1);
+            var section = ini[0];
+            section.Should().HaveCount(0);
+            section.Name.Should().Be(result);
+        }
+
+        // The UK pound sign is a unicode character and cannot be encoded to ASCII using
+        // .NET standard ASCII encoding. By representing it in UTF8 and encoding a BOM in
+        // start of the data stream the ini parser should interpret it correctly. 
+        [Theory]
+        [InlineData("[!£$%^&*()#':/?\\|]", "!£$%^&*()#':/?\\|")]
+        public void ParseSectionUtf8Succeeds(string iniString, string result)
+        {
+            var ini = ParseAsUTF8(iniString).ToList();
             ini.Should().HaveCount(1);
             var section = ini[0];
             section.Should().HaveCount(0);
@@ -46,7 +66,7 @@ namespace LibreLancer.Tests.Ini
         [Fact]
         public void ParseEmptyEntryValueSucceeds()
         {
-            var ini = Parse("[MySection]\nMyKey =").ToList();
+            var ini = ParseAsAscii("[MySection]\nMyKey =").ToList();
             ini.Should().HaveCount(1);
             var section = ini[0];
             section.Should().HaveCount(1);
@@ -57,28 +77,29 @@ namespace LibreLancer.Tests.Ini
         }
 
         [Theory]
-        [InlineData("[MySection")]
-        //[InlineData("MySection]")]
-        //[InlineData("[\"MySection]")]
-        //[InlineData("[MySection\"]")]
-        public void ParseIncompleteSectionThrows(string ini)
+        [InlineData("[MySection", "MySection")]
+        [InlineData("[\"MySection]", "\"MySection")]
+        [InlineData("[MySection\"]", "MySection\"")]
+        public void ParseIncompleteSectionSucceeds(string iniString, string result)
         {
-            Action act = () => { Parse(ini); };
-            act.Should().Throw<FileContentException>().WithMessage("*Invalid section header*");
+            var ini = ParseAsAscii(iniString);
+            var section = ini[0];
+            section.Name.Should().Be(result);
         }
 
         [Theory]
         [InlineData("[A]\nK=0.0", 0)]
         [InlineData("[A]\nK=1.1", 1.1)]
         [InlineData("[A]\nK=1.11E4", 11100.0)]
+        [InlineData("[A]\nK=1.11E+4", 11100.0)]
         [InlineData("[A]\nK=1.11E-4", 0.000111)]
-        [InlineData("[A]\nK=-2147483649", -2147483649)]
-        [InlineData("[A]\nK=2147483648", 2147483648)]
+        [InlineData("[A]\nK=-3.4028235E+38", -3.4028235E+38)]
+        [InlineData("[A]\nK=3.4028235E+38", 3.4028235E+38)]
         public void ParseSingleValueSucceeds(string iniString, float result)
         {
-            var ini = Parse(iniString);
+            var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeOfType<SingleValue>();
+            value.Should().BeAssignableTo<SingleValue>();
             value.ToSingle().Should().Be(result);
         }
 
@@ -89,9 +110,9 @@ namespace LibreLancer.Tests.Ini
         [InlineData("[A]\nK=2147483647", 2147483647)]
         public void ParseIntegerValueSucceeds(string iniString, int result)
         {
-            var ini = Parse(iniString);
+            var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeOfType<Int32Value>();
+            value.Should().BeAssignableTo<Int32Value>();
             value.ToInt32().Should().Be(result);
         }
 
@@ -104,9 +125,9 @@ namespace LibreLancer.Tests.Ini
         [InlineData("[A]\nK=FALSE", false)]
         public void ParseBooleanValueSucceeds(string iniString, bool result)
         {
-            var ini = Parse(iniString);
+            var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeOfType<BooleanValue>();
+            value.Should().BeAssignableTo<BooleanValue>();
             value.ToBoolean().Should().Be(result);
         }
 
@@ -120,16 +141,16 @@ namespace LibreLancer.Tests.Ini
         [InlineData("[A]\nK=f", "f")]
         public void ParseStringValueSucceeds(string iniString, string result)
         {
-            var ini = Parse(iniString);
+            var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeOfType<StringValue>();
+            value.Should().BeAssignableTo<StringValue>();
             value.ToString().Should().Be(result);
         }
 
         [Fact]
         public void ParseIncompleteEntryValueIsIgnored()
         {
-            var ini = Parse("[MySection]\nMyKey");
+            var ini = ParseAsAscii("[MySection]\nMyKey");
             ini.Should().HaveCount(1);
             ini[0].Should().HaveCount(1);
             ini[0][0].Should().HaveCount(0);
@@ -138,7 +159,7 @@ namespace LibreLancer.Tests.Ini
         [Fact]
         public void ParseMultipleValueTypesSucceeds()
         {
-            var ini = Parse("[Commodities]\niron = 1.42, 300, icons\\iron.bmp, \"+1\"");
+            var ini = ParseAsAscii("[Commodities]\niron = 1.42, 300, icons\\iron.bmp, \"+1\"");
             ini.Should().HaveCount(1);
             var section = ini[0];
             section.Name.Should().Be("Commodities");
@@ -146,14 +167,35 @@ namespace LibreLancer.Tests.Ini
             var entry = section[0];
             entry.Name.Should().Be("iron");
             entry.Should().HaveCount(4);
-            entry[0].Should().BeOfType<SingleValue>();
+            entry[0].Should().BeAssignableTo<SingleValue>();
             entry[0].ToSingle().Should().Be((float)1.42);
-            entry[1].Should().BeOfType<Int32Value>();
+            entry[1].Should().BeAssignableTo<Int32Value>();
             entry[1].ToInt32().Should().Be(300);
-            entry[2].Should().BeOfType<StringValue>();
+            entry[2].Should().BeAssignableTo<StringValue>();
             entry[2].ToString().Should().Be("icons\\iron.bmp");
-            entry[3].Should().BeOfType<StringValue>();
+            entry[3].Should().BeAssignableTo<StringValue>();
             entry[3].ToString().Should().Be("\"+1\"");
+        }
+
+        [Fact]
+        public void ParseMapValueNoAllowMapSucceeds()
+        {
+            var ini = ParseAsAscii("[A]\nname = texture = MaterialNoBendy", preparse: true, allowmaps: false);
+            var section = ini[0];
+            section[0].Name.Should().Be("name");
+            section[0][0].Should().BeAssignableTo<StringValue>();
+            section[0][0].ToString().Should().Be("texture = MaterialNoBendy");
+        }
+
+        [Fact]
+        public void ParseMapValueAllowMapSucceeds()
+        {
+            var ini = ParseAsAscii("[A]\nname = texture = MaterialNoBendy", preparse: true, allowmaps: true);
+            var section = ini[0];
+            section[0].Name.Should().Be("name");
+            section[0][0].Should().BeAssignableTo<StringKeyValue>();
+            section[0][0].ToKeyValue().Key.Should().Be("texture");
+            section[0][0].ToKeyValue().Value.Should().Be("MaterialNoBendy");
         }
     }
 }

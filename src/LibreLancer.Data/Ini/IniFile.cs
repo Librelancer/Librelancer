@@ -18,7 +18,7 @@ namespace LibreLancer.Ini
             IIniParser parser = new BinaryIniParser();
             if (!parser.CanParse(stream)) 
             {
-                parser = new TextIniParser();
+                parser = new LancerTextIniParser();
             }
             return parser.ParseIniFile(path, stream, preparse, allowmaps);
         }
@@ -45,7 +45,7 @@ namespace LibreLancer.Ini
                         file.CopyTo(stream);
                     }
                 }
-
+                stream.Seek(0, SeekOrigin.Begin);
                 foreach (var s in ParseFile(path, stream, true, allowmaps)) yield return s;
             }
 		}
