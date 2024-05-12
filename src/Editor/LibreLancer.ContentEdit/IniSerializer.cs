@@ -8,6 +8,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 using LibreLancer.Ini;
 using LibreLancer.Render;
+using LibreLancer.Data.Missions;
 
 namespace LibreLancer.ContentEdit;
 
@@ -391,23 +392,23 @@ public static class IniSerializer
                 section.OptionalEntry("room", npc.Room);
                 foreach (var br in npc.Bribes)
                 {
-                    section.Entry("bribe", br.Faction, br.Ids1, br.Ids2);
+                    section.Entry("bribe", br.Faction, br.Price, br.Ids);
                 }
                 foreach (var r in npc.Rumors.Where(x => !x.Type2))
                 {
-                    section.Entry("rumor", r.Start, r.End, r.Unknown, r.Ids);
+                    section.Entry("rumor", r.Start, r.End, r.RepRequired, r.Ids);
                     if (r.Objects != null)
                         section.Entry("rumorknowdb", r.Objects);
                 }
                 foreach (var r2 in npc.Rumors.Where(x => x.Type2))
                 {
-                    section.Entry("rumor_type2", r2.Start, r2.End, r2.Unknown, r2.Ids);
+                    section.Entry("rumor_type2", r2.Start, r2.End, r2.RepRequired, r2.Ids);
                     if (r2.Objects != null)
                         section.Entry("rumorknowdb", r2.Objects);
                 }
                 foreach (var k in npc.Know)
                 {
-                    section.Entry("know", k.Ids1, k.Ids2, k.Price, k.Unknown);
+                    section.Entry("know", k.Ids1, k.Ids2, k.Price, k.RepRequired);
                     if (k.Objects != null)
                         section.Entry("knowdb", k.Objects);
                 }
@@ -422,6 +423,31 @@ public static class IniSerializer
                 {
                     section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript.SourcePath, npc.Action);
                 }
+            }
+        }
+
+        return ib.Sections;
+    }
+
+    public static List<Section> SerializeNews(IEnumerable<NewsItem> news, GameDataManager gameData)
+    {
+        var ib = new IniBuilder();
+        foreach (var article in news)
+        {
+            var section = ib.Section("NewsItem")
+                .Entry($"; {gameData.GetString(article.Headline)}")
+                .Entry("rank", article.Rank)
+                .Entry("icon", article.Icon)
+                .Entry("logo", article.Logo)
+                .Entry("category", article.Category)
+                .Entry("headline", article.Headline)
+                .Entry("text", article.Text)
+                .OptionalEntry("autoselect", article.Autoselect)
+                .OptionalEntry("audio", article.Audio);
+
+            foreach (var b in article.Base)
+            {
+                section.Entry("base", b);
             }
         }
 

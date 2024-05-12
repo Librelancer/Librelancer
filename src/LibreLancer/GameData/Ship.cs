@@ -17,6 +17,7 @@ namespace LibreLancer.GameData
         public float[] LODRanges;
         public int NameIds;
         public int Infocard;
+        public int[] IdsInfo;
 		public ResolvedModel ModelFile;
 		public Vector3 SteeringTorque;
 		public Vector3 AngularDrag;

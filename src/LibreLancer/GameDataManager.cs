@@ -161,9 +161,31 @@ namespace LibreLancer
                 {
                     b.MsgIdPrefix = mbase.MsgIdPrefix;
                     b.Diff = mbase.Diff;
+                    b.LocalFaction = Factions.Get(mbase.LocalFaction);
                     if (mbase.MVendor != null) {
                         b.MinMissionOffers = (int)mbase.MVendor.NumOffers.X;
                         b.MaxMissionOffers = (int)mbase.MVendor.NumOffers.Y;
+                    }
+                    foreach (var npc in mbase.Npcs)
+                    {
+                        b.Npcs.Add(new BaseNpc
+                        {
+                            Nickname = npc.Nickname,
+                            BaseAppr = npc.BaseAppr,
+                            Body = npc.Body,
+                            Head = npc.Head,
+                            LeftHand = npc.LeftHand,
+                            RightHand = npc.RightHand,
+                            Accessory = npc.Accessory,
+                            IndividualName = npc.IndividualName,
+                            Affiliation = Factions.Get(npc.Affiliation),
+                            Voice = npc.Voice,
+                            Room = npc.Room,
+                            Know = npc.Know,
+                            Rumors = npc.Rumors,
+                            Bribes = npc.Bribes,
+                            Mission = npc.Mission,
+                        });
                     }
                 }
                 foreach (var room in inibase.Rooms)
@@ -207,14 +229,13 @@ namespace LibreLancer
                     {
                         foreach (var npc in mroom.NPCs)
                         {
-                            /*var newnpc = new GameData.BaseNpc();
-                            newnpc.StandingPlace = npc.StandMarker;
-                            var gfnpc = mbase.FindNpc(npc.Npc);
-                            newnpc.HeadMesh = fldata.Bodyparts.FindBodypart(gfnpc.Head).MeshPath;
-                            newnpc.BodyMesh = fldata.Bodyparts.FindBodypart(gfnpc.Body).MeshPath;
-                            newnpc.LeftHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.LeftHand).MeshPath;
-                            newnpc.RightHandMesh = fldata.Bodyparts.FindBodypart(gfnpc.RightHand).MeshPath;
-                            nr.Npcs.Add(newnpc);*/
+                            nr.FixedNpcs.Add(new BaseFixedNpc
+                            {
+                                Placement = npc.StandMarker,
+                                FidgetScript = ResolveThn(npc.Script),
+                                Action = npc.Action,
+                                Npc = b.Npcs.Find(n => n.Nickname == npc.Npc)
+                            });
                         }
                     }
                     b.Rooms.Add(nr);
@@ -834,6 +855,22 @@ namespace LibreLancer
                     };
                     eqp.ModelFile = ResolveDrawable(sh.MaterialLibrary, sh.DaArchetype);
                     equip = eqp;
+                }
+                if (val is Data.Equipment.Scanner sc)
+                {
+                    var eq = new GameData.Items.ScannerEquipment
+                    {
+                        Def = sc
+                    };
+                    equip = eq;
+                }
+                if (val is Data.Equipment.Tractor tc)
+                {
+                    var eq = new GameData.Items.TractorEquipment
+                    {
+                        Def = tc
+                    };
+                    equip = eq;
                 }
 
 
@@ -1595,6 +1632,7 @@ namespace LibreLancer
                 ship.Nickname = orig.Nickname;
                 ship.NameIds = orig.IdsName;
                 ship.Infocard = orig.IdsInfo;
+                ship.IdsInfo = [orig.IdsInfo1, orig.IdsInfo2, orig.IdsInfo3];
                 ship.ShipType = orig.Type;
                 ship.Explosion = Explosions.Get(orig.ExplosionArch);
                 ship.CRC = FLHash.CreateID(ship.Nickname);
