@@ -8,6 +8,7 @@ using System.Linq;
 using LibreLancer.Ini;
 namespace LibreLancer.Data
 {
+
 	public class GfNpc
 	{
         [Entry("nickname")]
@@ -83,50 +84,51 @@ namespace LibreLancer.Data
 
     public record NpcMission(string Kind, float Min, float Max);
 
-    public class NpcKnow
+    public class RepInfo
+    {
+        public int RepRequired;
+        public float RepThreshold => RepRequired switch
+        {
+            2 => 0.4f,
+            3 => 0.6f,
+            _ => 0.2f,
+        };
+    }
+
+    public class NpcKnow : RepInfo
     {
         public int Ids1;
         public int Ids2;
         public int Price;
-        public int Unknown;
 
         public string[] Objects;
-        
-        public NpcKnow()
-        {
-        }
 
-        public NpcKnow(int ids1, int ids2, int price, int unknown)
+        public NpcKnow(int ids1, int ids2, int price, int rep)
         {
             Ids1 = ids1;
             Ids2 = ids2;
             Price = price;
-            Unknown = unknown;
+            RepRequired = rep;
         }
     }
 
-    public record NpcBribe(string Faction, int Ids1, int Ids2);
+    public record NpcBribe(string Faction, int Price, int Ids);
 
-    public class NpcRumor
+    public class NpcRumor : RepInfo
     {
         public string Start;
         public string End;
-        public int Unknown;
         public int Ids;
 
         public bool Type2;
 
         public string[] Objects;
 
-        public NpcRumor()
-        {
-        }
-
-        public NpcRumor(string start, string end, int unknown, int ids, bool type2)
+        public NpcRumor(string start, string end, int rep, int ids, bool type2)
         {
             Start = start;
             End = end;
-            Unknown = unknown;
+            RepRequired = rep;
             Ids = ids;
         }
     }
