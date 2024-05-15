@@ -10,6 +10,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System.Numerics;
+using System.Reflection;
+using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
@@ -142,6 +144,7 @@ namespace lleditscript
             bool argsStdin = false;
             bool modulePath = false;
             bool testCompile = false;
+            bool compile = false;
             int argStart;
 
             for (argStart = 0; argStart < args.Length; argStart++)
@@ -155,6 +158,9 @@ namespace lleditscript
                 }
                 else if (a == "--test-compile") {
                     testCompile = true;
+                }
+                else if (a == "--compile" || a == "-c") {
+                    compile = true;
                 }
                 else if (a == "--") {
                     argStart++;
@@ -205,6 +211,30 @@ namespace lleditscript
                 Console.Error.WriteLine("Script file {1}'{0}' not found", filePath, modulePath ? "(or module) " : "");
                 return 2;
             }
+
+            if (IsPEFile(filePath))
+            {
+                if (compile || testCompile)
+                {
+                    Console.Error.WriteLine($"Cannot compile binary file '{filePath}'");
+                    return 2;
+                }
+                var scriptAssembly = Assembly.Load(File.ReadAllBytes(filePath));
+                var type = scriptAssembly.GetType("Submission#0");
+                var factory = type.GetMethod("<Factory>");
+                var submissionArray = new object[2];
+                submissionArray[0] = new Globals(scriptArguments,
+                    modulePath ? $"-m {args[argStart]}" : args[argStart]);
+                var tk = (Task<object>)factory.Invoke(null, new object[] { submissionArray });
+                tk.Wait();
+                if (tk.Exception != null)
+                {
+                    LogException(tk.Exception);
+                    return 1;
+                }
+                return 0;
+            }
+
             scriptText = File.ReadAllText(filePath);
 
             if (scriptText.StartsWith("#!"))
@@ -232,6 +262,28 @@ namespace lleditscript
                     if (result.Any(x => x.Severity == DiagnosticSeverity.Error))
                         return 1;
                 }
+                else if (compile)
+                {
+                    if (args.Length <= argStart + 1)
+                    {
+                        Console.WriteLine("Output file must be specified for compilation");
+                        return 2;
+                    }
+                    var result = script.Compile();
+                    foreach (var diag in result)
+                    {
+                        Console.WriteLine(diag);
+                    }
+                    if (result.Any(x => x.Severity == DiagnosticSeverity.Error))
+                        return 1;
+                    var compilation = script.GetCompilation();
+                    using var output = File.Create(args[argStart + 1]);
+                    var emitResult = compilation.Emit(output);
+                    if (!emitResult.Success) {
+                        Console.WriteLine("Emit failed");
+                        return 1;
+                    }
+                }
                 else
                 {
                     var tk = script.RunAsync(globals);
@@ -250,6 +302,16 @@ namespace lleditscript
             }
 
             return 0;
+        }
+
+        static bool IsPEFile(string path)
+        {
+            using var stream = File.OpenRead(path);
+            Span<byte> mz = stackalloc byte[2];
+            stream.Read(mz);
+            if (mz[0] != (byte)'M' || mz[1] != (byte)'Z')
+                return false;
+            return true;
         }
 
         static void LogException(Exception ex)
