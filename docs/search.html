@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LancerEdit Documentation</title>
+        <link rel="shortcut icon" href="assets/reactor.ico" type="image/x-icon">
+        <link href="assets/reset.css" rel="stylesheet"/>
+        <link href="assets/main.css" rel="stylesheet"/>
+        <link href="assets/open-sans.css" rel="stylesheet"/>
+        <link href="assets/code.css" rel="stylesheet" />
+        <link href="assets/source-code-pro.css" rel="stylesheet"/>
+        <link href="assets/search.css" rel="stylesheet"/>
+        <script type="text/javascript" src="assets/lunr.js"></script>
+        <script>
+            $(INDEX)
+        </script>
+        <script type="text/javascript" src="assets/search.js"></script>
+    </head>
+    <body>
+    <div><a href="index.html">« Home</a></div>
+<div id="site-search">
+  <h1> Search</h1>
+  <div class="search-flex">
+    <form id="search-form" name="searchForm" role="form" onsubmit="return false">
+      <div class="search-wrapper">
+        <div class="search-container">
+          <img class="fa-search" src="assets/search.svg"></img>
+          <input autocomplete="off" placeholder="" id="search" class="search-input" aria-label="Search site" type="text" name="q">
+        </div>
+        <div class="search-error hide-element"><span class="search-error-message"></span></div>
+      </div>
+    </form>
+    <section class="search-results hide-element">
+        <div id="search-header">
+            <div class="search-query search-query-left">search term: <span id="query"></span></div>
+            <div class="search-query search-query-right"><span id="results-count"></span><span id="results-count-text"></span></div>
+        </div>
+        <ul></ul>
+    </section>
+  </div>
+</div>
+    </body>
+</html>

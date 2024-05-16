@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Syntax.Inlines;
+using Microsoft.VisualBasic;
 using Pek.Markdig.HighlightJs;
 using XmlDocMarkdown.Core;
 
@@ -58,7 +61,11 @@ namespace BuildLL
             return link.Url;
         }
 
-        static void Convert(string infile, string outfile, string versionString, string root, bool api = false)
+        record Document(string title, string href, string content);
+
+        private static Regex xmlRegex = new Regex("<!--(.*)-->");
+
+        static void Convert(string infile, string lnk, string outfile, string versionString, string root, List<Document> documents, bool api = false)
         {
             var pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
@@ -82,15 +89,18 @@ namespace BuildLL
                 : "";
             var prefixHTML = !Path.GetFileNameWithoutExtension(infile)
                 .Equals("index", StringComparison.OrdinalIgnoreCase)
-                ? $"<div><a href=\"{root}index.html\">« Home</a>{apiHTML}</div>"
-                : "";
+                ? $"<div><a href=\"{root}index.html\">« Home</a> | <a href=\"{root}search.html\">Search<a>{apiHTML}</div>"
+                : $"<a href=\"{root}search.html\">Search</a>";
             var innerHTML = prefixHTML + Markdown.ToHtml(input, pipeline);
+            var content = Markdown.ToPlainText(xmlRegex.Replace(input, ""));
+            var title = Path.GetFileNameWithoutExtension(lnk);
+            documents.Add(new(title, lnk, content));
             var template = ResourceText("BuildLL.template.html");
             File.WriteAllText(outfile, template.Replace("$(MARKDOWN)", innerHTML)
                 .Replace("$(ROOT)", root));
         }
 
-        static void GenerateApiDocs(string sourceDir, string output, string version, IEnumerable<string> dlls)
+        static void GenerateApiDocs(string sourceDir, string output, string version, List<Document> alldocs, IEnumerable<string> dlls)
         {
             var settings = new XmlDocMarkdownSettings();
             string objfolder = "./obj/docs";
@@ -110,30 +120,41 @@ namespace BuildLL
             builder.AppendLine(File.ReadAllText(Path.Combine(sourceDir, "api/api.txt")));
             File.WriteAllText(Path.Combine(objfolder, "reference.md"), builder.ToString());
             Directory.CreateDirectory(Path.Combine(output, "api"));
-            RecurseBuildMd("/home/cmcging/src/Librelancer/obj/docs", "../",
-                Path.Combine(output, "api"), version);
+            RecurseBuildMd("/home/cmcging/src/Librelancer/obj/docs", "api", "../",
+                Path.Combine(output, "api"), version, alldocs);
         }
 
-        static void RecurseBuildMd(string folder, string root, string outdir, string version, bool api = true)
+        static string LnkCombine(string a, string b)
+        {
+            if (a == "")
+                return b;
+            return a + "/" + b;
+        }
+
+        static void RecurseBuildMd(string folder, string lnkPath, string root, string outdir, string version, List<Document> alldocs, bool api = true)
         {
             foreach (var file in Directory.GetFiles(folder, "*.md"))
             {
-                string outPath = Path.Combine(outdir, Path.ChangeExtension(Path.GetFileName(file), ".html"));
+                string ashtml = Path.ChangeExtension(Path.GetFileName(file), ".html");
+                string outPath = Path.Combine(outdir, ashtml);
                 Console.WriteLine($"{file} -> {outPath}");
-                Convert(file, outPath, version, root, api);
+                Convert(file, LnkCombine(lnkPath, ashtml),outPath, version, root, alldocs, api);
             }
             root += "../";
             foreach (var dir in Directory.GetDirectories(folder))
             {
+                var f = Path.GetFileName(dir);
                 var d = Path.Combine(outdir, Path.GetFileName(dir));
                 Directory.CreateDirectory(d);
-                RecurseBuildMd(dir, root, d, version, api);
+                RecurseBuildMd(dir, LnkCombine(lnkPath, f), root, d, version, alldocs, api);
             }
         }
 
         public static void BuildDocs(string sourceDir, string output, string version, IEnumerable<string> dlls)
         {
+            var docs = new List<Document>();
             Directory.CreateDirectory(Path.Combine(output, "assets"));
+            Directory.CreateDirectory("obj/docs");
             //Copy project assets
             Console.WriteLine("Copying documentation assets");
             if (Directory.Exists(Path.Combine(sourceDir, "assets")))
@@ -142,8 +163,16 @@ namespace BuildLL
             }
             Console.WriteLine("Generating HTML");
 
-            GenerateApiDocs(sourceDir, output, version, dlls);
-            RecurseBuildMd(sourceDir, "", output, version, false);
+            GenerateApiDocs(sourceDir, output, version, docs, dlls);
+            RecurseBuildMd(sourceDir, "", "", output, version, docs, false);
+
+            var searchPage = File.ReadAllText(Path.Combine(sourceDir, "search.html"));
+            var builder = new StringBuilder();
+            builder.Append("pagesIndex = ");
+            builder.Append(JsonSerializer.Serialize(docs));
+            builder.Append(";");
+            searchPage = searchPage.Replace("$(INDEX)", builder.ToString());
+            File.WriteAllText(Path.Combine(output, "search.html"), searchPage);
         }
     }
 }
