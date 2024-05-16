@@ -10,10 +10,21 @@ namespace LibreLancer.Ini
 {
     public class BinaryIniParser : IIniParser
     {
-        private const string FileType = "BINI";
-        private const int FileVersion = 1;
+        private const string BINI = "BINI";
+        private const int Version = 1;
 
-        public IEnumerable<Section> ParseIniFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
+        public bool CanParse(Stream stream)
+        {
+            var buffer = new byte[4];
+            stream.Read(buffer, 0, 4);
+            stream.Seek(0, SeekOrigin.Begin);
+            return Encoding.ASCII.GetString(buffer) == BINI;
+        }
+
+        public IEnumerable<Section> ParseIniFile(string path,
+            Stream stream,
+            bool preparse = true,
+            bool allowmaps = false)
         {
             var reader = new BinaryReader(stream);
 
@@ -21,15 +32,18 @@ namespace LibreLancer.Ini
             reader.ReadInt32();
 
             int formatVersion = reader.ReadInt32();
-            if (formatVersion != FileVersion) throw new FileVersionException(path, FileType, formatVersion, FileVersion);
+            if (formatVersion != Version)
+                throw new FileVersionException(path, BINI, formatVersion, Version);
 
             int stringBlockOffset = reader.ReadInt32();
-            if (stringBlockOffset > reader.BaseStream.Length) throw new FileContentException(path, FileType, "The string block offset was out of range: " + stringBlockOffset);
+            if (stringBlockOffset > reader.BaseStream.Length)
+                throw new FileContentException(path,
+                    BINI, "The string block offset was out of range: " + stringBlockOffset);
 
             long sectionBlockOffset = reader.BaseStream.Position;
 
             reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
-            byte[] stringBuffer = new byte[reader.BaseStream.Length - stringBlockOffset];
+            var stringBuffer = new byte[reader.BaseStream.Length - stringBlockOffset];
             reader.Read(stringBuffer, 0, stringBuffer.Length);
             var stringBlock = new BiniStringBlock(Encoding.ASCII.GetString(stringBuffer));
 
@@ -70,7 +84,7 @@ namespace LibreLancer.Ini
                                 entry.Add(new StringValue(reader, stringBlock) { Entry = entry });
                                 break;
                             default:
-                                throw new FileContentException(FileType, "Unknown BINI value type: " + valueType);
+                                throw new FileContentException(path, BINI, "Unknown BINI value type: " + valueType);
                         }
                     }
                     section.Add(entry);

@@ -10,7 +10,7 @@ namespace LibreLancer.Ini
 {
 	public class StringValue : ValueBase
 	{
-		private readonly string value;
+		protected readonly string value;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string")]
 		public StringValue(BinaryReader reader, BiniStringBlock stringBlock)
@@ -81,5 +81,5 @@ namespace LibreLancer.Ini
 		{
 			return value;
 		}
-	}
+    }
 }

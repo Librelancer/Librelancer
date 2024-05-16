@@ -9,6 +9,9 @@ namespace LibreLancer.Ini
 {
     public interface IIniParser
     {
+        bool CanParse(Stream stream);
+
         IEnumerable<Section> ParseIniFile(string path, Stream stream, bool preparse = true, bool allowmaps = false);
+
     }
 }
