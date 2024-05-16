@@ -120,7 +120,7 @@ namespace BuildLL
             builder.AppendLine(File.ReadAllText(Path.Combine(sourceDir, "api/api.txt")));
             File.WriteAllText(Path.Combine(objfolder, "reference.md"), builder.ToString());
             Directory.CreateDirectory(Path.Combine(output, "api"));
-            RecurseBuildMd("/home/cmcging/src/Librelancer/obj/docs", "api", "../",
+            RecurseBuildMd(objfolder, "api", "../",
                 Path.Combine(output, "api"), version, alldocs);
         }
 
