@@ -14,6 +14,8 @@
         <PackageReference Include="MarkdigExtensions.UrlRewriter" Version="1.0.0" />
         <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Pek.Markdig.HighlightJs" Version="0.5.1" />
+        <PackageReference Include="XmlDocMarkdown.Core" Version="2.9.0" />
     </ItemGroup>
 
     <ItemGroup>

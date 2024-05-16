@@ -48,3 +48,5 @@ Valid types for arguments include: `string`, `integer`, `boolean`, `dropdown`, `
 `filearray` arguments pass each file as a separate argument, and thus are required to be at the end of the list of defined Arguments to be useful.
 
 Please see the built-in script files in `lib/editorscripts/` as working examples.
+
+See the [API Reference](api/reference.md) for further details.

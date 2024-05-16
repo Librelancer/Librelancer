@@ -27,7 +27,7 @@ namespace BuildLL
                 }
             }
         }
-        static void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target, List<string> copiedFiles = null) {
+        public static void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target, List<string> copiedFiles = null) {
             foreach (DirectoryInfo dir in source.GetDirectories())
                 CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name), copiedFiles);
             foreach (FileInfo file in source.GetFiles()) {
@@ -44,7 +44,7 @@ namespace BuildLL
             var splitRID = rid.Split('-');
             var win32 = splitRID[0].ToLowerInvariant() == "win7";
             var arch = splitRID[splitRID.Length - 1].ToLowerInvariant();
-            
+
             var hashes = new Dictionary<string,string>();
 
             bool valid = true;
@@ -74,7 +74,7 @@ namespace BuildLL
             Directory.CreateDirectory(outputDir);
             var output = new DirectoryInfo(outputDir);
             var copiedFiles = new List<string>();
-            
+
             foreach(var dir in new DirectoryInfo(sourceDir).GetDirectories()) {
                 if (!directories.Contains(Path.GetFileNameWithoutExtension(dir.Name))) continue;
                 Console.WriteLine($"Copying {dir}");
@@ -106,15 +106,15 @@ namespace BuildLL
                                 });
                             }
                         }
-                        
+
                     }
                     File.WriteAllText(file, parent.ToString());
                 }
             }
-            
+
             Console.WriteLine("Publish Complete");
         }
-        
+
         static void DeleteFilesGlob(string dir, params string[] globs)
         {
             var inf = new DirectoryInfo(dir);
@@ -124,7 +124,7 @@ namespace BuildLL
                 }
             }
         }
-        
+
         static int FindBytes(byte[] bytes, byte[] pattern) {
             int idx = 0;
             var first = pattern[0];

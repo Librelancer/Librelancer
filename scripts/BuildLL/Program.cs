@@ -27,7 +27,7 @@ namespace BuildLL
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
         }
-        
+
         static readonly string[] sdkProjects = {
             "src/lancer/lancer.csproj",
             "src/LLServer/LLServer.csproj",
@@ -73,6 +73,13 @@ namespace BuildLL
             }
             await CustomPublish.Merge(objDir + rid, binDir + rid, rid,
                 projs.Select(x => Path.GetFileNameWithoutExtension(x)).ToArray());
+            if (sdk)
+            {
+                var docsdir = Path.Combine(outdir, "lib/Docs");
+                Directory.CreateDirectory(docsdir);
+                CustomPublish.CopyFilesRecursively(new DirectoryInfo("./bin/docs"),
+                    new DirectoryInfo(docsdir));
+            }
             CopyFile("Credits.txt", outdir);
             if (IsWindows) {
                 CopyFile("deps/openal-soft-license.txt", outdir);
@@ -100,7 +107,7 @@ namespace BuildLL
             /* webhook things */
             Target("default", DependsOn("BuildAll"));
             Target("BuildAll", DependsOn("BuildEngine", "BuildSdk"));
-            
+
             Target("GenerateVersion", () =>
             {
                 var version = versionSetting;
@@ -153,7 +160,7 @@ namespace BuildLL
                 var args =  $"-d LibreLancer.Graphics.RenderContext -b -g \"device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430)\" -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
                 Dotnet.Run("./shaders/ShaderProcessor/ShaderProcessor.csproj", args);
             });
-            
+
             Target("BuildNatives", () =>
             {
                 if (buildDebug) Console.WriteLine("Building natives with debug info");
@@ -198,7 +205,7 @@ namespace BuildLL
                 {
                     string args = "";
                     if (parallel > 0) args = "-j" + parallel;
-                    
+
                     if (withWin32) {
                         Directory.CreateDirectory("obj/x86-mingw");
                         CopyDirContents("./deps/x86/", "./bin/natives/x86", false, "*.dll");
@@ -247,8 +254,8 @@ namespace BuildLL
                 if(!IsWindows)
                     Clean(GetLinuxRid());
             });
-            
-            
+
+
             Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives"), async () =>
             {
                 if(withWin32)
@@ -260,12 +267,14 @@ namespace BuildLL
             });
             Target("BuildDocumentation", DependsOn("GenerateVersion"), () =>
             {
-                if (withWin32)
-                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win-x86/lib/Docs/", VersionString);
-                if(IsWindows || withWin64)
-                    DocumentationBuilder.BuildDocs("./docs/", "./bin/librelancer-sdk-win-x64/lib/Docs/", VersionString);
-                if(!IsWindows)
-                    DocumentationBuilder.BuildDocs("./docs/", $"./bin/librelancer-sdk-{GetLinuxRid()}/lib/Docs/", VersionString);
+                string[] apiDlls = new string[]
+                {
+                    "LibreLancer.ContentEdit.dll"
+                };
+                Dotnet.BuildRelease("./src/Editor/LancerEdit/LancerEdit.csproj");
+
+                DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString,
+                    apiDlls.Select(x => Path.Combine("./src/Editor/LancerEdit/bin/Release/net8.0", x)));
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives"), async () =>
             {
@@ -294,7 +303,7 @@ namespace BuildLL
             {
                 Bash($"cd {Quote(dir)} && zip -qq -r -9 - . > {Quote(Path.GetFullPath(file))}", true);
             }
-            
+
             Target("BuildAndTest", DependsOn("BuildAll", "Test"));
 
             Target("LinuxDaily", DependsOn("BuildEngine", "BuildSdk", "Test"), async () =>

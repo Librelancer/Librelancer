@@ -7,7 +7,7 @@ namespace BuildLL
     public class Dotnet
     {
         public static int CPUCount = 0;
-        
+
         static string P(string path)
         {
             return Quote(Path.GetFullPath(path));
@@ -20,7 +20,12 @@ namespace BuildLL
         {
             RunCommand("dotnet", $"restore {M()} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
-        
+
+        public static void BuildRelease(string project)
+        {
+            RunCommand("dotnet", $"build -c Release {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+        }
+
         public static void Clean(string project)
         {
             RunCommand("dotnet", $"clean {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
@@ -31,7 +36,7 @@ namespace BuildLL
             if (!string.IsNullOrWhiteSpace(args)) a = $" -- {args}";
             RunCommand("dotnet", $"run --project {P(project)}{a}");
         }
-        
+
         public static void Test(string project)
         {
             RunCommand("dotnet", $"test {P(project)}");
