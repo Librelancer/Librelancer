@@ -9,8 +9,8 @@ public class ZipFileSystemTests
     [Fact]
     public static void CanDetectZipStream()
     {
-        using var normal = TestAsset.Open("plainzip.zip");
-        using var withextra = TestAsset.Open("zipwithextra.dat");
+        using var normal = TestAsset.Open<ZipFileSystemTests>("plainzip.zip");
+        using var withextra = TestAsset.Open<ZipFileSystemTests>("zipwithextra.dat");
         Assert.True(ZipFileSystem.IsZip(normal));
         Assert.True(ZipFileSystem.IsZip(withextra));
     }
@@ -18,7 +18,7 @@ public class ZipFileSystemTests
     [Fact]
     public static void CanReadWithExtra()
     {
-        var withextra = new ZipFileSystem(() => TestAsset.Open("zipwithextra.dat"));
+        var withextra = new ZipFileSystem(() => TestAsset.Open<ZipFileSystemTests>("zipwithextra.dat"));
         AssertFileContents("abc.txt", "12345", withextra);
     }
 
@@ -31,7 +31,7 @@ public class ZipFileSystemTests
     [Fact]
     public static void CanReadFile()
     {
-        var fs = new ZipFileSystem(() => TestAsset.Open("plainzip.zip"));
+        var fs = new ZipFileSystem(() => TestAsset.Open<ZipFileSystemTests>("plainzip.zip"));
         AssertFileContents("abc.txt", "12345", fs);
         AssertFileContents("def/file2.txt", "abcdefg", fs);
     }
@@ -39,7 +39,7 @@ public class ZipFileSystemTests
     [Fact]
     public static void CanListDirectory()
     {
-        var fs = new ZipFileSystem(() => TestAsset.Open("plainzip.zip"));
+        var fs = new ZipFileSystem(() => TestAsset.Open<ZipFileSystemTests>("plainzip.zip"));
         Assert.Single(fs.GetDirectories("/"));
         Assert.Single(fs.GetFiles("/"));
     }
@@ -47,20 +47,20 @@ public class ZipFileSystemTests
     [Fact]
     public static void CanFoldCase()
     {
-        var fs = new ZipFileSystem(() => TestAsset.Open("plainzip.zip"));
+        var fs = new ZipFileSystem(() => TestAsset.Open<ZipFileSystemTests>("plainzip.zip"));
         AssertFileContents("DEF/NESTED/fIlE3.txt", "hello", fs);
     }
     [Fact]
     public static void CanTraverse()
     {
-        var fs = new ZipFileSystem(() => TestAsset.Open("plainzip.zip"));
+        var fs = new ZipFileSystem(() => TestAsset.Open<ZipFileSystemTests>("plainzip.zip"));
         AssertFileContents("def/../abc.txt", "12345", fs);
     }
 
     [Fact]
     public static void CanHandleWeirdPath()
     {
-        var fs = new ZipFileSystem(() => TestAsset.Open("plainzip.zip"));
+        var fs = new ZipFileSystem(() => TestAsset.Open<ZipFileSystemTests>("plainzip.zip"));
         AssertFileContents("/def\\.././\\abc.txt", "12345", fs);
     }
 }

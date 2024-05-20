@@ -10,7 +10,7 @@ namespace LibreLancer.Ini
 {
     public class TextIniParser : IIniParser
     {
-        private const string FileType = "INI";
+        private const string INI = "INI";
 
         private static int ParseEquals(string line, string[] part, bool allowmaps)
         {
@@ -46,7 +46,24 @@ namespace LibreLancer.Ini
             return 2;
         }
 
-        public IEnumerable<Section> ParseIniFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
+        public bool CanParse(Stream stream)
+        {
+            var buffer = new byte[16];
+            var length = stream.Read(buffer, 0, buffer.Length);
+            stream.Seek(0, SeekOrigin.Begin);
+            for (var i = 0; i < length; i++)
+            {
+                var c = buffer[i];
+                if (!(c < 0x80 && (c >= 0x32 || c == 0xd || c == 0xa)))
+                    return false;
+            }
+            return true;
+        }
+
+        public IEnumerable<Section> ParseIniFile(string path,
+            Stream stream,
+            bool preparse = true,
+            bool allowmaps = false)
         {
             Section currentSection = null;
             var reader = new StreamReader(stream);
@@ -75,7 +92,8 @@ namespace LibreLancer.Ini
                         currentSection = null;
                         continue;
                     }
-                    if (indexClose == -1) throw new FileContentException(path, FileType, "Invalid section header: " + line);
+                    if (indexClose == -1)
+                        throw new FileContentException(path, INI, "Invalid section header: " + line);
                     string name = line.Substring(1, indexClose - 1).Trim();
                     currentSection = new Section(name) { File = path, Line = currentLine };
 

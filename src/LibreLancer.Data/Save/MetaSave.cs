@@ -23,7 +23,7 @@ public class MetaSave : IniFile
         var c = FlCodec.ReadFile(filename);
         using var stream = new MemoryStream(c);
         var sg = new MetaSave() {Filename = filename};
-        foreach (var sec in sg.ParseFile(filename, stream, false))
+        foreach (var sec in ParseFile(filename, stream, false))
         {
             bool tsSet = false;
             bool descSet = false;
