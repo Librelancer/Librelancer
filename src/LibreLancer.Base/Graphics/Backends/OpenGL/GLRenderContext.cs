@@ -293,6 +293,9 @@ class GLRenderContext : IRenderContext
                 case BlendMode.DestColorSrcColor:
                     GL.BlendFunc(GL.GL_DST_COLOR, GL.GL_SRC_COLOR);
                     break;
+                case BlendMode.OneInvSrcAlpha:
+                    GL.BlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
+                    break;
             }
 
             applied.BlendMode = mode;

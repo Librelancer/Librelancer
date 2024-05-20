@@ -56,6 +56,7 @@ namespace LibreLancer.Fx
             Add(9, 3, BlendMode.DestColorSrcColor);
 			Add(5, 6, BlendMode.Normal);
 			Add(2, 4, BlendMode.OneInvSrcColor);
-		}
+            Add(2, 6, BlendMode.OneInvSrcAlpha);
+        }
 	}
 }

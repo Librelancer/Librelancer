@@ -12,7 +12,8 @@ namespace LibreLancer.Graphics
 		OneInvSrcColor,
         SrcAlphaInvDestColor,
         InvDestColorSrcAlpha,
-        DestColorSrcColor
+        DestColorSrcColor,
+        OneInvSrcAlpha
 	}
 }
 
