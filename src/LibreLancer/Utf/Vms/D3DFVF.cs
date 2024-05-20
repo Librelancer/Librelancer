@@ -50,7 +50,7 @@ namespace LibreLancer.Utf.Vms
         /// </summary>
         TEX2 = 0x0200,
 
-        //TEX3 = 0x0300,
+        TEX3 = 0x0300,
 
         /// <summary>
         /// Number of texture coordinate sets for this vertex. The actual values for these flags are not sequential.

@@ -95,6 +95,7 @@ namespace LibreLancer.Utf.Vms
 						FlexibleVertexFormat |= D3DFVF.NORMAL;
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1: //(D3DFVF)0x0112:
+                    case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX3: //(D3DFVF)0x0312 (dunno ?)
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX4: //(D3DFVF)0x0412: (Tangent binormal - ignore)
                         verticesVertexPositionNormalTexture = new VertexPositionNormalTexture[VertexCount];
                         for (int i = 0; i < VertexCount; i++)
@@ -102,8 +103,10 @@ namespace LibreLancer.Utf.Vms
                             Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                             Vector3 normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
+                            if ((FlexibleVertexFormat & D3DFVF.TEX3) == D3DFVF.TEX3)
+                                reader.BaseStream.Seek(4 * sizeof(float), SeekOrigin.Current);
                             if ((FlexibleVertexFormat & D3DFVF.TEX4) == D3DFVF.TEX4)
-                                reader.BaseStream.Seek(6 * sizeof(float), SeekOrigin.Begin);
+                                reader.BaseStream.Seek(6 * sizeof(float), SeekOrigin.Current);
                             verticesVertexPositionNormalTexture[i] = new VertexPositionNormalTexture(position, normal, textureCoordinate);
                         }
                         FlexibleVertexFormat = D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1;
