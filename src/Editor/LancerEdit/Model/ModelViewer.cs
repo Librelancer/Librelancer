@@ -1045,6 +1045,8 @@ namespace LancerEdit
             ImGui.BeginDisabled(!hasAnim);
             ImGui.Checkbox("Include Animations", ref exportSettings.IncludeAnimations);
             ImGui.EndDisabled();
+            ImGui.Checkbox("Include Textures", ref exportSettings.IncludeTextures);
+            ImGui.Checkbox("Include Wireframes", ref exportSettings.IncludeWireframes);
             if(!hasAnim)
                 ImGui.SetItemTooltip("Model has no animations");
             if (surFile == null) {

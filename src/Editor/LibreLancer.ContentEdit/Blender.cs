@@ -81,7 +81,7 @@ public class Blender
     static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null)
     {
         var processName = blenderPath;
-        var processArgs = $"{args} --background --factory-startup --python-console";
+        var processArgs = $"{args} --background --factory-startup --python-console --debug-all --log-level -1";
         if (blenderPath == "FLATPAK")
         {
             processName = "flatpak";
@@ -149,7 +149,7 @@ public class Blender
         }
         var exportCode =
             "import bpy\n"
-            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True)";
+            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True, export_image_format='AUTO')";
         var result = await RunBlender(blenderPath, tmpblend ?? file, exportCode, cancellation, log);
         if (result == CANCELLED)
         {

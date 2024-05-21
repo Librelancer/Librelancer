@@ -258,7 +258,8 @@ namespace LancerEdit
                 data[i + 2] = data[i];
                 data[i] = x;
             }
-            LibreLancer.ImageLib.PNG.Save(output, imageWidth, imageHeight, data);
+            using var of = File.Create(output);
+            LibreLancer.ImageLib.PNG.Save(of, imageWidth, imageHeight, data, true);
         }
 
         private LookAtCamera lookAtCam = new LookAtCamera();

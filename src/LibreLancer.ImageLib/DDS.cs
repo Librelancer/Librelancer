@@ -75,6 +75,51 @@ namespace LibreLancer.ImageLib
             DXT5 = 0x35545844
         }
 
+        public static Image[] ImageFromStream(Stream stream)
+        {
+            var reader = new BinaryReader(stream);
+            if (reader.ReadUInt32() != DDS_MAGIC)
+            {
+                throw new Exception("Not a DDS file");
+            }
+            var header = reader.ReadStruct<DDS_HEADER>();
+            if (header.ddspf.dwFourCC == (FourCC)DX10)
+                throw new Exception("DX10+ DDS not supported");
+            if (header.dwSize != HEADER_SIZE ||
+                header.ddspf.dwSize != PFORMAT_SIZE)
+                FLLog.Warning("DDS", "Bad DDS header, loading may fail.");
+
+            if (CheckFlag(header.dwFlags, DDSD_DEPTH) || CheckFlag(header.dwCaps2, DDSCAPS2_VOLUME))
+                throw new Exception("3D textures not supported");
+
+            if (CheckFlag(header.dwCaps2, DDSCAPS2_CUBEMAP))
+                return null; //Cubemaps not supported
+
+            return GetImage2D(ref header, reader);
+        }
+
+        static Image[] GetImage2D(ref DDS_HEADER header, BinaryReader reader)
+        {
+            SurfaceFormat fmt;
+            int w, h;
+            var surface = LoadSurface(ref header, reader, out fmt, out w, out h);
+            var images = new Image[surface.Length];
+            for (int i = 0; i < surface.Length; i++)
+            {
+                images[i] = new Image()
+                {
+                    Format = fmt,
+                    Data = surface[i],
+                    Width = w,
+                    Height = h
+                };
+                w /= 2;
+                h /= 2;
+                if (w < 1) w = 1;
+                if (h < 1) h = 1;
+            }
+            return images;
+        }
         public static Texture FromStream(RenderContext context, Stream stream)
         {
             var reader = new BinaryReader(stream);

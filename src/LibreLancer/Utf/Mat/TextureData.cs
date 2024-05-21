@@ -30,6 +30,20 @@ namespace LibreLancer.Utf.Mat
 		}
 
 
+        public ImageResource GetImageResource()
+        {
+            if (data != null && data.Value.Count > 0)
+            {
+                if (type.Equals("mips", StringComparison.OrdinalIgnoreCase))
+                    return new ImageResource(ImageType.DDS, data.Value.ToArray());
+                else if (type.Equals("mipu", StringComparison.OrdinalIgnoreCase))
+                    return new ImageResource(ImageType.LIF, data.Value.ToArray());
+                else if (type.StartsWith("mip", StringComparison.OrdinalIgnoreCase))
+                    return new ImageResource(ImageType.TGA, data.Value.ToArray());
+            }
+            return null;
+        }
+
 		public void Initialize (RenderContext context)
 		{
 			if (data != null && data.Value.Count > 0 && Texture == null)

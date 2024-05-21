@@ -1,3 +1,4 @@
+using System.IO;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
@@ -79,7 +80,9 @@ public class ModelRenderer
             data[i + 2] = data[i];
             data[i] = x;
         }
-        ImageLib.PNG.Save(outfile, width, height, data);
+
+        using var of = File.Create(outfile);
+        ImageLib.PNG.Save(of, width, height, data, true);
         renderTarget.Dispose();
     }
 }

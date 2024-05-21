@@ -42,6 +42,7 @@ namespace LibreLancer
         public const string WhiteTextureName = "$$LIBRELANCER.White";
         public const string GreyTextureName = "$$LIBRELANCER.Grey";
         public abstract Texture FindTexture(string name);
+        public abstract ImageResource FindImage(string name);
         public abstract Material FindMaterial(uint materialId);
         public abstract VMeshResource FindMesh(uint vMeshLibId);
         public abstract VMeshData FindMeshData(uint vMeshLibId);
@@ -100,6 +101,7 @@ namespace LibreLancer
         public override VMeshResource FindMesh(uint vMeshLibId) => throw new InvalidOperationException();
         public override VMeshData FindMeshData(uint vMeshLibId) => throw new InvalidOperationException();
         public override Texture FindTexture(string name) => throw new InvalidOperationException();
+        public override ImageResource FindImage(string name) => throw new InvalidOperationException();
 
         public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
         public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
@@ -135,6 +137,7 @@ namespace LibreLancer
 		Dictionary<uint, Material> materials = new();
 		Dictionary<uint, string> materialfiles = new();
 		Dictionary<string, Texture> textures = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, ImageResource> images = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, string> texturefiles = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, ModelResource> drawables = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TextureShape> shapes = new(StringComparer.OrdinalIgnoreCase);
@@ -309,6 +312,12 @@ namespace LibreLancer
             }
         }
 
+        public override ImageResource FindImage(string name)
+        {
+            images.TryGetValue(name, out var outimage);
+            return outimage;
+        }
+
 		public override Texture FindTexture (string name)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
@@ -380,7 +389,11 @@ namespace LibreLancer
 			VmsFile vms;
 			Utf.UtfLoader.LoadResourceNode(node, this, out mat, out txm, out vms);
 			if (mat != null) AddMaterials(mat, id);
-			if (txm != null) AddTextures(txm, id);
+            if (txm != null)
+            {
+                AddTextures(txm, id);
+                AddImages(txm, id);
+            }
 			if (vms != null) AddMeshes(vms, MeshLoadMode.All, id);
 		}
 
@@ -397,7 +410,11 @@ namespace LibreLancer
 					removeTex.Add(tex.Key);
 				}
 			}
-			foreach (var key in removeTex) textures.Remove(key);
+            foreach (var key in removeTex)
+            {
+                textures.Remove(key);
+                images.Remove(key);
+            }
 			List<uint> removeMats = new List<uint>();
 			foreach (var mat in materials)
 			{
@@ -456,6 +473,19 @@ namespace LibreLancer
             if (vms == null && mat == null && txm == null)
                 FLLog.Warning("Resources", $"Could not load resources from file '{filename}'");
             loadedResFiles.Add(fn);
+        }
+
+        void AddImages(TxmFile t, string filename)
+        {
+            foreach (var tex in t.Textures)
+            {
+                if (!images.TryGetValue(tex.Key, out var existing) || existing == null)
+                {
+                    var img = tex.Value.GetImageResource();
+                    if(img != null)
+                        images[tex.Key] = img;
+                }
+            }
         }
 
 		void AddTextures(TxmFile t, string filename)

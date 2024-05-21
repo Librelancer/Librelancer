@@ -62,9 +62,9 @@ SOFTWARE.
 using System;
 using LibreLancer.Graphics.Backends.OpenGL;
 
-namespace LibreLancer.Graphics.Backends
+namespace LibreLancer.Graphics
 {
-    static unsafe class S3TC
+    public static unsafe class S3TC
     {
         static uint PackRGBA(int r, int g, int b, int a)
         {
@@ -228,7 +228,7 @@ namespace LibreLancer.Graphics.Backends
             DecompressBlockBC1Internal (blockStorage, image.Slice( (int)(x * sizeof (uint) + (y * stride))), stride, const_alpha);
         }
 
-        public static void BlockDecompressImageDXT1(int width, int height, Span<byte> blockStorage, Span<byte> image)
+        static void BlockDecompressImageDXT1(int width, int height, Span<byte> blockStorage, Span<byte> image)
         {
             int blockCountX = (width + 3) / 4;
             int blockCountY = (height + 3) / 4;
@@ -362,7 +362,7 @@ namespace LibreLancer.Graphics.Backends
             }
         }
 
-        public static void BlockDecompressImageDXT5(int width, int height, Span<byte> blockStorage, Span<byte> image)
+        static void BlockDecompressImageDXT5(int width, int height, Span<byte> blockStorage, Span<byte> image)
         {
             int blockCountX = (width + 3) / 4;
             int blockCountY = (height + 3) / 4;
@@ -430,7 +430,7 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
                 image.Slice( (int)(x * sizeof (uint) + (y * stride))), stride, alphaValues);
         }
 
-        public static void BlockDecompressImageDXT3(int width, int height, Span<byte> blockStorage, Span<byte> image)
+        static void BlockDecompressImageDXT3(int width, int height, Span<byte> blockStorage, Span<byte> image)
         {
             int blockCountX = (width + 3) / 4;
             int blockCountY = (height + 3) / 4;
@@ -463,7 +463,27 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
             }
         }
 
-        public static void CompressedTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int imageSize, IntPtr data)
+        public static byte[] Decompress(SurfaceFormat format, int width, int height, byte[] input)
+        {
+            byte[] rgba = new byte[width * height * 4];
+            switch (format)
+            {
+                case SurfaceFormat.Dxt1:
+                    BlockDecompressImageDXT1(width, height, input, rgba);
+                    break;
+                case SurfaceFormat.Dxt3:
+                    BlockDecompressImageDXT3(width, height, input, rgba);
+                    break;
+                case SurfaceFormat.Dxt5:
+                    BlockDecompressImageDXT5(width, height, input, rgba);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Cannot convert {format}");
+            }
+            return rgba;
+        }
+
+        internal static void CompressedTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int imageSize, IntPtr data)
         {
             if (GLExtensions.S3TC)
             {

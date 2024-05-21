@@ -12,15 +12,17 @@ using System.Text;
 namespace LibreLancer.ImageLib
 {
 
+    public record PNGAncillaryChunk(string FourCC, byte[] Data);
+
     class ZlibCompress : IDisposable
     {
         private DeflateStream deflate;
         private Stream outputStream;
-        
+
         private const int ADLER_MOD = 65521;
         private uint checksum_a = 1;
         private uint checksum_b = 0;
-        
+
         public ZlibCompress(Stream outputStream)
         {
             this.outputStream = outputStream;
@@ -29,7 +31,7 @@ namespace LibreLancer.ImageLib
             outputStream.WriteByte(0xDA);
             deflate = new DeflateStream(outputStream, CompressionLevel.Optimal, true);
         }
-        
+
         public void WriteByte(byte b)
         {
             deflate.WriteByte(b);
@@ -77,14 +79,14 @@ namespace LibreLancer.ImageLib
 		}
 
 		static readonly byte[] IEND = {
-			0x00, 0x00, 0x00, 0x00, 
+			0x00, 0x00, 0x00, 0x00,
 			0x49, 0x45, 0x4E, 0x44,
 			0xAE, 0x42, 0x60, 0x82
 		};
 
-		public static void Save(string filename, int width, int height, byte[] data)
+		public static void Save(Stream output, int width, int height, byte[] data, bool flip, params PNGAncillaryChunk[] ancillaryChunks)
 		{
-			using (var writer = new BinaryWriter(File.Create(filename)))
+			using (var writer = new BinaryWriter(output))
 			{
 				writer.Write(PNG_SIGNATURE);
 				WriteChunk("IHDR", writer, (chnk) =>
@@ -104,22 +106,37 @@ namespace LibreLancer.ImageLib
 					byte[] buf = new byte[width * 4];
                     using (var compress = new ZlibCompress(chnk.BaseStream))
                     {
+
                         //First line
                         compress.WriteByte((byte) 0);
                         for (int x = 0; x < width * 4; x++)
                         {
-                            var b = data[width * (height - 1) * 4 + x];
+                            var b = flip
+                                ? data[width * (height - 1) * 4 + x]
+                                : data[x];
                             compress.WriteByte(b);
                         }
                         //Filtered lines
-                        for (int y = height - 2; y >= 0; y--)
+                        for (int y = 1; y < height; y++)
                         {
-                            ApplyPaeth(data, (y + 1) * width * 4, y * width * 4, width * 4, buf);
+                            var line = flip
+                                ? (height - 1 - y)
+                                : y;
+                            ApplyPaeth(data, (line + (flip ? 1 : -1)) * width * 4, line * width * 4, width * 4, buf);
                             compress.WriteByte((byte) 4); //paeth filter
                             compress.Write(buf, 0, buf.Length);
                         }
                     }
                 });
+                if (ancillaryChunks != null)
+                {
+                    foreach (var ac in ancillaryChunks)
+                    {
+                        if (ac.FourCC is not { Length: 4 })
+                            throw new Exception("Invalid ancillary FourCC, length must == 4");
+                        WriteChunk(ac.FourCC, writer, (chnk) => chnk.Write(ac.Data));
+                    }
+                }
 				writer.Write(IEND);
 			}
 		}

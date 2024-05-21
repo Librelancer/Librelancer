@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.ContentEdit.Texture;
 using LibreLancer.Physics;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
@@ -76,8 +77,31 @@ public static class ModelExporter
             }
             output.Animations = animations.ToArray();
         }
-
+        if(settings.IncludeTextures)
+            output.Images = ExportImages(resources, output.Materials);
         return output.AsResult();
+    }
+
+    static Dictionary<string, ImageData> ExportImages(ResourceManager resources, Dictionary<string, Material> materials)
+    {
+        HashSet<string> attempted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, ImageData>();
+        foreach (var m in materials.Values)
+        {
+            if(string.IsNullOrWhiteSpace(m.DiffuseTexture) || attempted.Contains(m.DiffuseTexture))
+                continue;
+            var img = resources.FindImage(m.DiffuseTexture);
+            if (img != null)
+            {
+                var exported = TextureExporter.ExportTexture(img, true);
+                if (exported != null)
+                {
+                    result[m.DiffuseTexture] = new ImageData(m.DiffuseTexture, exported, "image/png");
+                }
+            }
+            attempted.Add(m.DiffuseTexture);
+        }
+        return result;
     }
 
     public static EditResult<SimpleMesh.Model> Export(ModelFile mdl, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
@@ -93,6 +117,8 @@ public static class ModelExporter
         if (processed.IsError)
             return new EditResult<SimpleMesh.Model>(null, processed.Messages);
         output.Roots = new[] { processed.Data };
+        if(settings.IncludeTextures)
+            output.Images = ExportImages(resources, output.Materials);
         return output.AsResult();
     }
 
@@ -197,7 +223,7 @@ public static class ModelExporter
             }
         }
 
-        if (node.Model.VMeshWire != null)
+        if (node.Model.VMeshWire != null && settings.IncludeWireframes)
         {
             var meshNode = new ModelNode
             {
@@ -252,19 +278,22 @@ public static class ModelExporter
         LibreLancer.Utf.Mat.Material mat;
         Color4 dc;
         string name;
+        string dt;
         if ((mat = resources.FindMaterial(crc)) != null)
         {
             name = mat.Name;
             dc = mat.Dc;
+            dt = mat.DtName;
         }
         else
         {
             name = $"material_0x{crc:X8}";
             dc = Color4.White;
+            dt = null;
         }
         if (!materials.TryGetValue(name, out var m))
         {
-            m = new Material() {Name = name, DiffuseColor = dc};
+            m = new Material() {Name = name, DiffuseColor = dc, DiffuseTexture = dt};
             materials[name] = m;
         }
         return m;

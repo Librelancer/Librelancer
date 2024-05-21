@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
 
@@ -55,6 +58,50 @@ namespace LibreLancer.ContentEdit
                 default: throw new InvalidOperationException();
             }
         }
+
+        static byte[] GetEmbeddedDDS(Image lr, Stream input)
+        {
+            try
+            {
+                using var reader = new BinaryReader(input);
+                if (reader.ReadUInt64() != 0xA1A0A0D474E5089) //Not PNG
+                    return null;
+                Span<byte> fourcc = stackalloc byte[4];
+                byte[] ddszChunk;
+                while (true)
+                {
+                    var len = reader.ReadInt32BE();
+                    int ret = reader.Read(fourcc);
+                    if (ret == 0)
+                        return null;
+                    if (fourcc[0] == 'd' &&
+                        fourcc[1] == 'd' &&
+                        fourcc[2] == 's' &&
+                        fourcc[3] == 'z')
+                    {
+                        ddszChunk = reader.ReadBytes(len);
+                        break;
+                    }
+                    else
+                    {
+                        reader.Skip(len + 4);
+                    }
+                }
+                byte[] hash = SHA256.HashData(lr.Data);
+                if (!hash.AsSpan().SequenceEqual(ddszChunk.AsSpan().Slice(0, hash.Length)))
+                {
+                    FLLog.Info("Texture Import", "ddsz chunk detected, but hash mismatched");
+                    return null;
+                }
+                FLLog.Info("Texture Import", "Importing embedded dds from ddsz chunk");
+                return ddszChunk.AsSpan().Slice(hash.Length).ToArray();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public static EditResult<AnalyzedTexture> OpenFile(string input, RenderContext context)
         {
             try
@@ -74,6 +121,18 @@ namespace LibreLancer.ContentEdit
                 using (var file = File.OpenRead(input))
                 {
                     lr = Generic.ImageFromStream(file);
+                }
+                using (var file = File.OpenRead(input))
+                {
+                    byte[] embedded;
+                    if ((embedded = GetEmbeddedDDS(lr, file)) != null)
+                    {
+                        return (new AnalyzedTexture()
+                        {
+                            Type = TexLoadType.DDS,
+                            Texture = (Texture2D)DDS.FromStream(context, new MemoryStream(embedded))
+                        }).AsResult();
+                    }
                 }
 
                 EditMessage[] warning = Array.Empty<EditMessage>();
@@ -175,6 +234,11 @@ namespace LibreLancer.ContentEdit
                 else
                 {
                     var raw =  Generic.ImageFromStream(ms, false);
+                    byte[] embedded;
+                    if ((embedded = GetEmbeddedDDS(raw, new MemoryStream(input.ToArray()))) != null)
+                    {
+                        return new LUtfNode() { Name = "MIPS", Data = embedded, Parent = parent };
+                    }
                     data =  Crunch.CompressDDS(raw.Data, raw.Width, raw.Height, CrnglueFormat.DXT5, CrnglueMipmaps.LANCZOS4, false);
                     return new LUtfNode() {Name = "MIPS", Data = data, Parent = parent };
                 }

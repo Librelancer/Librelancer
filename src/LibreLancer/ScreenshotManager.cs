@@ -51,8 +51,9 @@ namespace LibreLancer
 				{
 					SaveCommand s;
 					if (toSave.TryDequeue(out s))
-					{
-						ImageLib.PNG.Save(s.Filename, s.Width, s.Height, s.Data);
+                    {
+                        using var output = File.Create(s.Filename);
+						ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
 					}
 				}
 				Thread.Sleep(100);
