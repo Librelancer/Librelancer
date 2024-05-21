@@ -218,7 +218,7 @@ namespace LibreLancer.Graphics
 		int vertexCount = 0;
 		int primitiveCount = 0;
 		Texture2D currentTexture = null;
-		BlendMode currentMode = BlendMode.Normal;
+		ushort currentMode = BlendMode.Normal;
         private bool isCircle = false;
         private int cVpW = 0, cVpH = 0;
 
@@ -287,7 +287,7 @@ namespace LibreLancer.Graphics
         private const int C_BR = 1 << 16 | 1;
 
 
-        public void DrawRotated(Texture2D tex, TexSource source, Rectangle dest, Vector2 origin, Color4 color, BlendMode mode, float angle, bool flip = false, QuadRotation orient = QuadRotation.None)
+        public void DrawRotated(Texture2D tex, TexSource source, Rectangle dest, Vector2 origin, Color4 color, ushort mode, float angle, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             if (rs.ScissorEnabled && !scissorUsed) {
                 Flush();
@@ -488,7 +488,7 @@ namespace LibreLancer.Graphics
 
             primitiveCount += 2;
         }
-        void Prepare(BlendMode mode, Texture2D tex, bool circle)
+        void Prepare(ushort mode, Texture2D tex, bool circle)
         {
             if (currentMode != mode ||
                 isCircle != circle ||
@@ -581,7 +581,7 @@ namespace LibreLancer.Graphics
 			b = temp;
 		}
 
-		public void Draw(Texture2D tex, TexSource source, Rectangle dest, Color4 color, BlendMode mode = BlendMode.Normal, bool flip = false, QuadRotation orient = QuadRotation.None)
+		public void Draw(Texture2D tex, TexSource source, Rectangle dest, Color4 color, ushort mode = BlendMode.Normal, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             DrawQuad(tex, source, dest, color, mode, flip, orient);
         }
@@ -673,7 +673,7 @@ namespace LibreLancer.Graphics
             primitiveCount += 2;
         }
 
-        void DrawQuad(Texture2D tex, TexSource source, Rectangle dest, Color4 color, BlendMode mode, bool flip = false, QuadRotation orient = QuadRotation.None)
+        void DrawQuad(Texture2D tex, TexSource source, Rectangle dest, Color4 color, ushort mode, bool flip = false, QuadRotation orient = QuadRotation.None)
         {
             if (rs.ScissorEnabled && !dest.Intersects(rs.ScissorRectangle)) return;
             Prepare(mode, tex, false);

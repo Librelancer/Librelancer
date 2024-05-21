@@ -45,7 +45,7 @@ class NullRenderContext : IRenderContext
     {
     }
 
-    public void SetBlendMode(BlendMode mode)
+    public void SetBlendMode(ushort mode)
     {
     }
 

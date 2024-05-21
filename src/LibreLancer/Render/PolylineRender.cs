@@ -33,14 +33,14 @@ namespace LibreLancer.Render
         }
 
 
-        public void StartLine(Texture2D tex, BlendMode blend)
+        public void StartLine(Texture2D tex, ushort blend)
 		{
 			if (pointsCount != 0)
 				throw new Exception("Polyline bad state");
 			texture = tex;
 			this.blend = blend;
 		}
-		BlendMode blend;
+		ushort blend;
 		Texture2D texture;
 		int vertexCount = 0;
 		int pointsCount = 0;

@@ -7,7 +7,7 @@ internal struct GraphicsState
     public bool DepthEnabled;
     public bool Wireframe;
     public Color4 ClearColor;
-    public BlendMode BlendMode;
+    public ushort BlendMode;
     public bool BlendEnabled;
     public bool CullEnabled;
     public CullFaces CullFaces;

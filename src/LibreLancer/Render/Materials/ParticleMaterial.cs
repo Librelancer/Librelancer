@@ -16,7 +16,7 @@ public class ParticleMaterial : RenderMaterial
 
     public void ResetParameters() => parameters.Clear();
 
-    public int AddParameters(Texture texture, BlendMode blendMode, bool flipU, bool flipV)
+    public int AddParameters(Texture texture, ushort blendMode, bool flipU, bool flipV)
     {
         int flags = (int) blendMode;
         if (flipU) flags |= 0x40000000;
@@ -34,7 +34,7 @@ public class ParticleMaterial : RenderMaterial
         var shader = Shaders.Particle.Get(rstate);
         shader.SetDtSampler(0);
         parameters[userData].texture.BindTo(0);
-        rstate.BlendMode = (BlendMode)(parameters[userData].Flags & 0xFFFF);
+        rstate.BlendMode = (ushort)(parameters[userData].Flags & 0xFFFF);
         shader.SetFlipU((parameters[userData].Flags & 0x40000000) != 0 ? 1 : 0);
         shader.SetFlipV((parameters[userData].Flags & 0x20000000) != 0 ? 1 : 0);
         rstate.Shader = shader;

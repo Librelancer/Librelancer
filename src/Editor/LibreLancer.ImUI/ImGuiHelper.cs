@@ -590,7 +590,7 @@ namespace LibreLancer.ImUI
                             cb((IntPtr)cmd_list.NativePtr, (IntPtr)pcmd.NativePtr);
                         }
                         else
-                            rstate.BlendMode = (BlendMode)pcmd.UserCallbackData;
+                            rstate.BlendMode = (ushort)pcmd.UserCallbackData;
                         continue;
                     }
 

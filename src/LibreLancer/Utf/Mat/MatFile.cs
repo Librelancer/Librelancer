@@ -42,7 +42,7 @@ namespace LibreLancer.Utf.Mat
                         }
                         catch (Exception e)
                         {
-                            FLLog.Error("Mat", $"Error loading material {materialNode.Name}: {e.Message}");
+                            FLLog.Error("Mat", $"Error loading material {materialNode.Name}: {e}");
                         }
                     }
 				}

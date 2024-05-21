@@ -50,7 +50,7 @@ namespace LibreLancer.Render
 			}
 		}
 
-        public BlendMode GetBlendMode(int index)
+        public ushort GetBlendMode(int index)
         {
             return rendat[index].BlendMode;
         }
@@ -61,18 +61,18 @@ namespace LibreLancer.Render
 		struct RenderData
 		{
 			public Texture Texture;
-			public BlendMode BlendMode;
+			public ushort BlendMode;
 			public ushort IndexStart;
             public byte Triangle;
 
-            public RenderData(Texture tex, BlendMode blend, ushort idxStart)
+            public RenderData(Texture tex, ushort blend, ushort idxStart)
             {
                 Texture = tex;
                 BlendMode = blend;
                 IndexStart = idxStart;
                 Triangle = 0;
             }
-            public static RenderData CreateTri(Texture tex, BlendMode blend, ushort idxStart)
+            public static RenderData CreateTri(Texture tex, ushort blend, ushort idxStart)
 			{
                 return new RenderData(tex, blend, idxStart) { Triangle = 1 };
 			}
@@ -193,7 +193,7 @@ namespace LibreLancer.Render
 			Vector2 texc,
 			float angle,
 			int layer,
-			BlendMode blend = BlendMode.Normal
+			ushort blend = BlendMode.Normal
 		)
 		{
 			rendat[billboardCount] = RenderData.CreateTri(
@@ -232,7 +232,7 @@ namespace LibreLancer.Render
 			Vector2 bottomright,
 			float angle,
 			int layer,
-			BlendMode blend = BlendMode.Normal
+			ushort blend = BlendMode.Normal
 		)
 		{
 			rendat[billboardCount] = new RenderData(

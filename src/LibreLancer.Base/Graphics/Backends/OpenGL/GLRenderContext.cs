@@ -257,10 +257,27 @@ class GLRenderContext : IRenderContext
         }
     }
 
-    public void SetBlendMode(BlendMode mode)
+    private static readonly int[] BlendTable =
+    {
+        0,
+        GL.GL_ZERO,
+        GL.GL_ONE,
+        GL.GL_SRC_COLOR,
+        GL.GL_ONE_MINUS_SRC_COLOR,
+        GL.GL_SRC_ALPHA,
+        GL.GL_ONE_MINUS_SRC_ALPHA,
+        GL.GL_DST_ALPHA,
+        GL.GL_ONE_MINUS_DST_ALPHA,
+        GL.GL_DST_COLOR,
+        GL.GL_ONE_MINUS_DST_COLOR,
+        GL.GL_SRC_ALPHA_SATURATE
+    };
+
+    public void SetBlendMode(ushort mode)
     {
         if (mode != applied.BlendMode)
         {
+            BlendMode.Validate(mode);
             if (!applied.BlendEnabled && mode != BlendMode.Opaque)
             {
                 GL.Enable(GL.GL_BLEND);
@@ -273,31 +290,7 @@ class GLRenderContext : IRenderContext
                 applied.BlendEnabled = false;
             }
 
-            switch (mode)
-            {
-                case BlendMode.Normal:
-                    GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-                    break;
-                case BlendMode.Additive:
-                    GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE);
-                    break;
-                case BlendMode.OneInvSrcColor:
-                    GL.BlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_COLOR);
-                    break;
-                case BlendMode.SrcAlphaInvDestColor:
-                    GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_DST_COLOR);
-                    break;
-                case BlendMode.InvDestColorSrcAlpha:
-                    GL.BlendFunc(GL.GL_ONE_MINUS_DST_COLOR, GL.GL_SRC_ALPHA);
-                    break;
-                case BlendMode.DestColorSrcColor:
-                    GL.BlendFunc(GL.GL_DST_COLOR, GL.GL_SRC_COLOR);
-                    break;
-                case BlendMode.OneInvSrcAlpha:
-                    GL.BlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
-                    break;
-            }
-
+            GL.BlendFunc(BlendTable[(mode >> 8) & 0xFF],BlendTable[(mode & 0xFF)]);
             applied.BlendMode = mode;
         }
     }

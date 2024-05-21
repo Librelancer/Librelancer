@@ -120,6 +120,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		public const int GL_SCISSOR_TEST = 0x0C11;
 		public const int GL_SRC_ALPHA = 0x0302;
 		public const int GL_ONE_MINUS_SRC_ALPHA = 0x0303;
+        public const int GL_DST_ALPHA = 0x304;
+        public const int GL_ONE_MINUS_DST_ALPHA = 0x305;
+        public const int GL_SRC_ALPHA_SATURATE = 0x308;
 		public const int GL_CULL_FACE = 0x0B44;
 		public const int GL_ZERO = 0;
 		public const int GL_ONE = 1;

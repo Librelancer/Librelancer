@@ -18,7 +18,7 @@ namespace LibreLancer.Fx
         public AlchemyFloatAnimation HToVAspect;
         public AlchemyFloatAnimation Rotate;
         public AlchemyFloatAnimation Size;
-        public BlendMode BlendInfo = BlendMode.Normal;
+        public ushort BlendInfo = BlendMode.Normal;
         public string Texture;
         public bool UseCommonAnimation = false;
         public AlchemyFloatAnimation Animation;

@@ -94,7 +94,7 @@ namespace LibreLancer.Graphics
             get => requested.DepthWrite;
             set => requested.DepthWrite = value;
         }
-		public BlendMode BlendMode
+		public ushort BlendMode
         {
             get => requested.BlendMode;
             set => requested.BlendMode = value;
@@ -289,7 +289,7 @@ namespace LibreLancer.Graphics
 
         internal void ApplyRenderTarget() => impl.ApplyRenderTarget(ref requested);
 
-        internal void SetBlendMode(BlendMode mode) => impl.SetBlendMode(mode);
+        internal void SetBlendMode(ushort mode) => impl.SetBlendMode(mode);
         internal void Set2DState(bool depth, bool cull, bool scissor) => impl.Set2DState(depth, cull, scissor);
 
 		public void Apply()

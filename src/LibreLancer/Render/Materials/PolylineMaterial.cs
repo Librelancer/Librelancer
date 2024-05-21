@@ -10,7 +10,7 @@ namespace LibreLancer.Render.Materials;
 
 public class PolylineMaterial : RenderMaterial
 {
-    public List<(Texture texture, BlendMode blendMode)> Parameters = new List<(Texture texture, BlendMode blendMode)>();
+    public List<(Texture texture, ushort blendMode)> Parameters = new List<(Texture texture, ushort blendMode)>();
 
     public PolylineMaterial(ResourceManager library) : base(library) { }
 

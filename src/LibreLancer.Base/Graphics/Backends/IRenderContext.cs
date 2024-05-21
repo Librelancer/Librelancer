@@ -19,7 +19,7 @@ interface IRenderContext
 
     void Set2DState(bool cull, bool depth, bool scissor);
 
-    void SetBlendMode(BlendMode mode);
+    void SetBlendMode(ushort mode);
 
     void ClearAll();
     void ClearDepth();
