@@ -1056,9 +1056,9 @@ namespace LancerEdit
             else {
                 ImGui.Checkbox("Include Hulls", ref exportSettings.IncludeHulls);
             }
-            if (ImGui.Button("Export GLTF 2.0"))
-                Export(SimpleMesh.ModelSaveFormat.GLTF2, AppFilters.GltfFilter);
-            if (ImGui.Button("Export Collada"))
+            if (ImGui.Button("Export GLTF 2.0 (.glb)"))
+                Export(SimpleMesh.ModelSaveFormat.GLB, AppFilters.GlbFilter);
+            if (ImGui.Button("Export Collada (.dae)"))
                 Export(SimpleMesh.ModelSaveFormat.Collada, AppFilters.ColladaFilter);
             if (ImGuiExt.Button("Export .blend", blenderEnabled))
             {

@@ -43,8 +43,8 @@ public class AppFilters
             new FileFilter("Blender Files", "blend")
         );
 
-        public static readonly FileDialogFilters GltfFilter = new FileDialogFilters(
-            new FileFilter("glTF 2.0 Files", "gltf")
+        public static readonly FileDialogFilters GlbFilter = new FileDialogFilters(
+            new FileFilter("glTF 2.0 Binary Files", "glb")
         );
 
         public static readonly FileDialogFilters ColladaFilter = new FileDialogFilters(

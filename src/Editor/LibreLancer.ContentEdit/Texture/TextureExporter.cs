@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
+using SharpDX.MediaFoundation;
 
 namespace LibreLancer.ContentEdit.Texture;
 
@@ -107,7 +108,8 @@ public static class TextureExporter
                 {
                     ms.Write(sha256Hash.ComputeHash(converted));
                 }
-                ms.Write(resource.Data);
+                using var comp = new ZstdSharp.Compressor();
+                ms.Write(comp.Wrap(resource.Data));
                 var ancillary = new PNGAncillaryChunk("ddsz", ms.ToArray());
                 PNG.Save(output, surface[0].Width, surface[0].Height, converted, false, ancillary);
             }

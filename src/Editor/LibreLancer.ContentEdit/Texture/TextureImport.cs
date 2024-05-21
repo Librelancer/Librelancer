@@ -79,6 +79,7 @@ namespace LibreLancer.ContentEdit
                         fourcc[2] == 's' &&
                         fourcc[3] == 'z')
                     {
+
                         ddszChunk = reader.ReadBytes(len);
                         break;
                     }
@@ -94,7 +95,8 @@ namespace LibreLancer.ContentEdit
                     return null;
                 }
                 FLLog.Info("Texture Import", "Importing embedded dds from ddsz chunk");
-                return ddszChunk.AsSpan().Slice(hash.Length).ToArray();
+                using var decomp = new ZstdSharp.Decompressor();
+                return decomp.Unwrap(ddszChunk.AsSpan().Slice(hash.Length)).ToArray();
             }
             catch (Exception)
             {
