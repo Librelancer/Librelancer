@@ -16,8 +16,6 @@ public class TaskRunPopup : PopupWindow
 
     public override string Title { get; set; }
     public override bool NoClose => true;
-    public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
-
     public CancellationToken Token => source.Token;
 
     public void Log(string text)
