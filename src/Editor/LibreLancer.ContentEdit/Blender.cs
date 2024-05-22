@@ -81,7 +81,7 @@ public class Blender
     static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null)
     {
         var processName = blenderPath;
-        var processArgs = $"{args} --background --factory-startup --python-console --debug-all --log-level -1";
+        var processArgs = $"{args} --background --factory-startup --python-console";
         if (blenderPath == "FLATPAK")
         {
             processName = "flatpak";
