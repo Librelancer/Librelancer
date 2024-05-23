@@ -102,7 +102,7 @@ namespace LibreLancer.ContentEdit.Model
                 {
                     writer.Write(",     {0}", vms.GetDiffuse(i).ToString("X8"));
                 }
-                for (int u = 0; i < vms.VertexFormat.TexCoords; u++)
+                for (int u = 0; u < vms.VertexFormat.TexCoords; u++)
                 {
                     var t = vms.GetTexCoord(i, u);
                     writer.Write(",    {0},   {1}", FmtNorm(t.X), FmtNorm(t.Y));
