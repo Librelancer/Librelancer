@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Text;
+using LibreLancer.Data;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 
@@ -33,11 +34,11 @@ namespace LibreLancer.ContentEdit.Model
             builder.AppendLine($"Radius: {FmtFloat(vms.Radius)}");
             return builder.ToString();
         }
-        
+
         static string FmtFloat(float f) => f.ToString("#0.########");
         static string FmtNorm(float x) => x.ToString("0.00000").PadLeft(9);
 
-        
+
         //TODO: This breaks due to the engine adding extra normals where they shouldn't be
         public static string DumpVmeshData(VMeshData vms)
         {
@@ -45,7 +46,7 @@ namespace LibreLancer.ContentEdit.Model
             writer.WriteLine("---- HEADER ----\n");
             writer.WriteLine("Number of Meshes          = {0}", vms.Meshes.Length);
             writer.WriteLine("Total referenced vertices = {0}", vms.Indices.Length);
-            writer.WriteLine("Flexible Vertex Format    = 0x{0}", ((int)vms.OriginalFVF).ToString("X"));
+            writer.WriteLine("Flexible Vertex Format    = 0x{0}", ((int)vms.VertexFormat.FVF).ToString("X"));
             writer.WriteLine("Total number of vertices  = {0}", vms.VertexCount);
             writer.WriteLine("\n---- MESHES ----\n");
             writer.WriteLine("Mesh Number  MaterialID  Start Vertex  End Vertex  Start Triangle  NumRefVertex");
@@ -72,92 +73,42 @@ namespace LibreLancer.ContentEdit.Model
             }
             writer.WriteLine("\n---- Vertices ----\n");
             //Heading
-            if (vms.verticesVertexPosition != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----");
-            if (vms.verticesVertexPositionTexture != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    ----U----,   ----V----");
-            if (vms.verticesVertexPositionNormal != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z");
-            if (vms.verticesVertexPositionNormalTexture != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    ----U----,   ----V----");
-            if (vms.verticesVertexPositionNormalTextureTwo != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    ----U----,   ----V----,    ----U2---,    ----V2---");
-            if (vms.verticesVertexPositionNormalDiffuseTexture != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    -Diffuse-,    ----U----,   ----V----");
-            if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null)
-                writer.WriteLine("Vertex    ----X----,   ----Y----,   ----Z----,    Normal X,    Normal Y,    Normal Z,    -Diffuse-,    ----U----,   ----V----,    ----U2---,    ----V2---");
+            writer.Write("Vertex    ----X----,   ----Y----,   ----Z----");
+            if (vms.VertexFormat.Normal) {
+                writer.Write(",    Normal X,    Normal Y,    Normal Z");
+            }
+            if (vms.VertexFormat.Diffuse) {
+                writer.Write("    -Diffuse-,");
+            }
+            for (int i = 0; i < vms.VertexFormat.TexCoords; i++) {
+                writer.Write($",    ----U{i + 1}---,    ----V{i + 1}---");
+            }
+            writer.WriteLine();
             //Table
             for (int i = 0; i < vms.VertexCount; i++)
             {
-                if (vms.verticesVertexPosition != null)
-                    writer.WriteLine("{0}{1},{2},{3}",
-                        i.ToString().PadLeft(6),
-                        vms.verticesVertexPosition[i].Position.X.ToString().PadLeft(13),
-                        vms.verticesVertexPosition[i].Position.Y.ToString().PadLeft(12),
-                        vms.verticesVertexPosition[i].Position.Z.ToString().PadLeft(12));
-                if (vms.verticesVertexPositionTexture != null)
-                    writer.WriteLine("{0}{1},{2},{3},    {4},   {5}",
-                        i.ToString().PadLeft(6),
-                        vms.verticesVertexPositionTexture[i].Position.X.ToString().PadLeft(13),
-                        vms.verticesVertexPositionTexture[i].Position.Y.ToString().PadLeft(12),
-                        vms.verticesVertexPositionTexture[i].Position.Z.ToString().PadLeft(12),
-                        FmtNorm(vms.verticesVertexPositionTexture[i].TextureCoordinate.X),
-                        FmtNorm(vms.verticesVertexPositionTexture[i].TextureCoordinate.Y));
-                if (vms.verticesVertexPositionNormal != null) { }
-                if (vms.verticesVertexPositionNormalTexture != null)
-                    writer.WriteLine("{0}{1},{2},{3},  {4},     {5},    {6},     {7},    {8}",
-                        i.ToString().PadLeft(6),
-                        vms.verticesVertexPositionNormalTexture[i].Position.X.ToString().PadLeft(13),
-                        vms.verticesVertexPositionNormalTexture[i].Position.Y.ToString().PadLeft(12),
-                        vms.verticesVertexPositionNormalTexture[i].Position.Z.ToString().PadLeft(12),
-                        FmtNorm(vms.verticesVertexPositionNormalTexture[i].Normal.X),
-                        FmtNorm(vms.verticesVertexPositionNormalTexture[i].Normal.Y),
-                        FmtNorm(vms.verticesVertexPositionNormalTexture[i].Normal.Z),
-                        FmtNorm(vms.verticesVertexPositionNormalTexture[i].TextureCoordinate.X),
-                        FmtNorm(vms.verticesVertexPositionNormalTexture[i].TextureCoordinate.Y));
-                if (vms.verticesVertexPositionNormalTextureTwo != null)
-                    writer.WriteLine("{0}{1},{2},{3},    {4},    {5},   {6},    {7},   {8}    {9},   {10}",
-                        i.ToString().PadLeft(6),
-                        vms.verticesVertexPositionNormalTextureTwo[i].Position.X.ToString().PadLeft(13),
-                        vms.verticesVertexPositionNormalTextureTwo[i].Position.Y.ToString().PadLeft(12),
-                        vms.verticesVertexPositionNormalTextureTwo[i].Position.Z.ToString().PadLeft(12),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].Normal.X),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].Normal.Y),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].Normal.Z),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinate.X),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinate.Y),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinateTwo.X),
-                        FmtNorm(vms.verticesVertexPositionNormalTextureTwo[i].TextureCoordinateTwo.Y));
-                if (vms.verticesVertexPositionNormalDiffuseTexture != null)
-                    writer.WriteLine("{0}{1},{2},{3},    {4},    {5},   {6},    {7},    {8},   {9}",
-                        i.ToString().PadLeft(6),
-                        vms.verticesVertexPositionNormalDiffuseTexture[i].Position.X.ToString().PadLeft(13),
-                        vms.verticesVertexPositionNormalDiffuseTexture[i].Position.Y.ToString().PadLeft(12),
-                        vms.verticesVertexPositionNormalDiffuseTexture[i].Position.Z.ToString().PadLeft(12),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.X),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.Y),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].Normal.Z),
-                        " " + vms.verticesVertexPositionNormalDiffuseTexture[i].Diffuse.ToString("XXXXXXXX"),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].TextureCoordinate.X),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTexture[i].TextureCoordinate.Y));
-                if (vms.verticesVertexPositionNormalDiffuseTextureTwo != null)
+                var pos = vms.GetPosition(i);
+                writer.Write("{0}{1},{2},{3}",
+                    i.ToString().PadLeft(6),
+                    pos.X.ToStringInvariant().PadLeft(13),
+                    pos.Y.ToStringInvariant().PadLeft(12),
+                    pos.Z.ToStringInvariant().PadLeft(12));
+                if (vms.VertexFormat.Normal)
                 {
-                    writer.WriteLine("{0}{1},{2},{3},    {4},    {5},   {6},    {7},    {8},   {9},   {10},   {11}",
-                        i.ToString().PadLeft(6),
-                        vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Position.X.ToString().PadLeft(13),
-                        vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Position.Y.ToString().PadLeft(12),
-                        vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Position.Z.ToString().PadLeft(12),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Normal.X),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Normal.Y),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Normal.Z),
-                        " " + vms.verticesVertexPositionNormalDiffuseTextureTwo[i].Diffuse.ToString("XXXXXXXX"),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinate.X),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinate.Y),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinateTwo.X),
-                        FmtNorm(vms.verticesVertexPositionNormalDiffuseTextureTwo[i].TextureCoordinateTwo.Y));
+                    var n = vms.GetNormal(i);
+                    writer.Write(",    {0},    {1},   {2}", FmtNorm(n.X), FmtNorm(n.Y), FmtNorm(n.Z));
                 }
+                if (vms.VertexFormat.Diffuse)
+                {
+                    writer.Write(",     {0}", vms.GetDiffuse(i).ToString("X8"));
+                }
+                for (int u = 0; i < vms.VertexFormat.TexCoords; u++)
+                {
+                    var t = vms.GetTexCoord(i, u);
+                    writer.Write(",    {0},   {1}", FmtNorm(t.X), FmtNorm(t.Y));
+                }
+                writer.WriteLine();
             }
-
             return writer.ToString();
         }
     }

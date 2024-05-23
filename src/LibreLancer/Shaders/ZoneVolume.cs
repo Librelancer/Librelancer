@@ -35,7 +35,7 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling ZoneVolume");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(339625, 984), sourceBundle.Substring(340609, 442));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(339421, 984), sourceBundle.Substring(340405, 442));
         }
     }
 }

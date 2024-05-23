@@ -178,13 +178,11 @@ namespace LibreLancer.Utf.Dfm
                     weights.W = BoneWeightChain[first + 3];
                 }
                 if (count > 4) throw new NotImplementedException();
-                var uv = UV0[UV0Indices[i]];
-                uv.Y = 1 - uv.Y;
                 if (id1 < 0 || id2 < 0 || id3 < 0 || id4 < 0 | id1 > 255 || id2 > 255 || id3 > 255 || id4 > 255)
                 {
                     throw new IndexOutOfRangeException("Bone index is out of range (<0 or >255)");
                 }
-                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], uv, weights, (byte)id1, (byte)id2, (byte)id3, (byte)id4));
+                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]], weights, (byte)id1, (byte)id2, (byte)id3, (byte)id4));
 			}
 
 			vertexBuffer = new VertexBuffer(rstate, typeof(DfmVertex), vertices.Count);

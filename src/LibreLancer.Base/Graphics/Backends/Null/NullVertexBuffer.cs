@@ -31,11 +31,23 @@ class NullVertexBuffer : IVertexBuffer
         this.isStream = isStream;
     }
 
+    public NullVertexBuffer(IVertexType type, int length, bool isStream = false)
+    {
+        VertexType = type;
+        decl = VertexType.GetVertexDeclaration();
+        if(isStream)
+            buffer = Marshal.AllocHGlobal(length * decl.Stride);
+        VertexCount = length;
+        this.isStream = isStream;
+    }
+
+
     private VertexDeclaration decl;
 
     public IVertexType VertexType { get; set;  }
     public int VertexCount { get; set;  }
-    public void SetData<T>(T[] data, int? length = null, int? start = null) where T : struct
+
+    public unsafe void SetData<T>(ReadOnlySpan<T> data, int offset = 0) where T : unmanaged
     {
     }
 

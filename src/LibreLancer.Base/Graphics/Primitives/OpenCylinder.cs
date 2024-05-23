@@ -66,7 +66,7 @@ namespace LibreLancer.Graphics.Primitives
             );
             //upload
             VertexBuffer = new VertexBuffer(context, typeof(VertexPositionNormalTexture), vertices.Length);
-            VertexBuffer.SetData(vertices);
+            VertexBuffer.SetData<VertexPositionNormalTexture>(vertices);
             elemBuffer = new ElementBuffer(context, indices.Length);
             elemBuffer.SetData(indices);
             VertexBuffer.SetElementBuffer(elemBuffer);

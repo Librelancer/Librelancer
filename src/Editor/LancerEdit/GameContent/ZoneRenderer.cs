@@ -30,7 +30,7 @@ public class ZoneRenderer
             var elementBuf = new ElementBuffer(context, indices.Length);
             elementBuf.SetData(indices);
             var vbo = new VertexBuffer(context, typeof(VertexPositionNormal), vertices.Length);
-            vbo.SetData(vertices);
+            vbo.SetData<VertexPositionNormal>(vertices);
             vbo.SetElementBuffer(elementBuf);
             return (vbo, indices.Length / 3);
         }

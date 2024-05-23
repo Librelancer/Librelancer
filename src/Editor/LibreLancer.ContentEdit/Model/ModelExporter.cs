@@ -7,8 +7,6 @@ using LibreLancer.Physics;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
-using LibreLancer.Utf.Vms;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
@@ -318,28 +316,6 @@ public static class ModelExporter
         return geo;
     }
 
-    static Vector3 GetPosition(VMeshData vms, int index)
-    {
-        switch (vms.FlexibleVertexFormat)
-        {
-            case D3DFVF.XYZ:
-                return vms.verticesVertexPosition[index].Position;
-            case D3DFVF.XYZ | D3DFVF.NORMAL:
-                return vms.verticesVertexPositionNormal[index].Position;
-            case D3DFVF.XYZ | D3DFVF.TEX1:
-                return vms.verticesVertexPositionTexture[index].Position;
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1:
-                return vms.verticesVertexPositionNormalDiffuseTexture[index].Position;
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1:
-                return vms.verticesVertexPositionNormalTexture[index].Position;
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2:
-                return vms.verticesVertexPositionNormalTextureTwo[index].Position;
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX2:
-                return vms.verticesVertexPositionNormalDiffuseTextureTwo[index].Position;
-            default:
-                throw new Exception($"D3DFVF {vms.FlexibleVertexFormat} not supported");
-        }
-    }
 
     static Geometry GeometryFromVMeshWire(string name, VMeshWire wire, ResourceManager resources,
         Dictionary<string, Material> materials)
@@ -354,7 +330,7 @@ public static class ModelExporter
         for (int i = 0; i < wire.NumIndices; i++)
         {
             var idx = wire.VertexOffset + wire.Indices[i];
-            var vert = new Vertex() {Position = GetPosition(mesh, idx)};
+            var vert = new Vertex() {Position = mesh.GetPosition(idx)};
             var hash = HashVert(ref vert);
             int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
             if (newIndex == -1)
@@ -390,11 +366,20 @@ public static class ModelExporter
             return new EditResult<Geometry>(null);
         if ((mesh == null))
             return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
-        geo.Name = name + "." + (int) mesh.OriginalFVF + ".level" + level;
+        geo.Name = name + "." + (int) mesh.VertexFormat.FVF + ".level" + level;
         List<Vertex> verts = new List<Vertex>();
         List<int> hashes = new List<int>();
         List<uint> indices = new List<uint>();
         List<TriangleGroup> groups = new List<TriangleGroup>();
+        geo.Attributes = VertexAttributes.Position;
+        if (mesh.VertexFormat.Normal)
+            geo.Attributes |= VertexAttributes.Normal;
+        if (mesh.VertexFormat.Diffuse)
+            geo.Attributes |= VertexAttributes.Diffuse;
+        if (mesh.VertexFormat.TexCoords > 1)
+            geo.Attributes |= VertexAttributes.Texture2;
+        else if (mesh.VertexFormat.TexCoords == 1)
+            geo.Attributes |= VertexAttributes.Texture1;
         for (int meshi = vms.StartMesh; meshi < vms.StartMesh + vms.MeshCount; meshi++)
         {
             var m = mesh.Meshes[meshi];
@@ -405,82 +390,20 @@ public static class ModelExporter
             for (int i = m.TriangleStart; i < m.TriangleStart + m.NumRefVertices; i++)
             {
                 int idx = mesh.Indices[i] + m.StartVertex + vms.StartVertex;
-                Vertex vert;
-                if (mesh.verticesVertexPosition != null)
-                    vert = new Vertex()
-                        {Position = mesh.verticesVertexPosition[idx].Position};
-                else if (mesh.verticesVertexPositionNormal != null)
+                Vertex vert = new Vertex() { Position = mesh.GetPosition(idx) };
+                if (mesh.VertexFormat.Normal)
+                    vert.Normal = mesh.GetNormal(i);
+                if (mesh.VertexFormat.Diffuse)
+                    vert.Diffuse = (Color4)mesh.GetDiffuse(i);
+                if (mesh.VertexFormat.TexCoords > 1)
                 {
-                    geo.Attributes = VertexAttributes.Position | VertexAttributes.Normal;
-                    vert = new Vertex()
-                    {
-                        Position = mesh.verticesVertexPositionNormal[idx].Position,
-                        Normal = mesh.verticesVertexPositionNormal[idx].Normal
-                    };
+                    vert.Texture2 = mesh.GetTexCoord(i, 1);
+                    vert.Texture1 = mesh.GetTexCoord(i, 0);
                 }
-                else if (mesh.verticesVertexPositionTexture != null)
+                else if (mesh.VertexFormat.TexCoords == 1)
                 {
-                    geo.Attributes = VertexAttributes.Position | VertexAttributes.Texture1;
-                    vert = new Vertex()
-                    {
-                        Position = mesh.verticesVertexPositionTexture[idx].Position,
-                        Texture1 = mesh.verticesVertexPositionTexture[idx].TextureCoordinate
-                    };
+                    vert.Texture1 = mesh.GetTexCoord(i, 0);
                 }
-                else if (mesh.verticesVertexPositionNormalTexture != null)
-                {
-                    geo.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Texture1;
-                    vert = new Vertex()
-                    {
-                        Position = mesh.verticesVertexPositionNormalTexture[idx].Position,
-                        Normal = mesh.verticesVertexPositionNormalTexture[idx].Normal,
-                        Texture1 = mesh.verticesVertexPositionNormalTexture[idx].TextureCoordinate
-                    };
-                }
-                else if (mesh.verticesVertexPositionNormalTextureTwo != null)
-                {
-                    geo.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Texture1 |
-                                   VertexAttributes.Texture2;
-                    vert = new Vertex()
-                    {
-                        Position = mesh.verticesVertexPositionNormalTextureTwo[idx].Position,
-                        Normal = mesh.verticesVertexPositionNormalTextureTwo[idx].Normal,
-                        Texture1 = mesh.verticesVertexPositionNormalTextureTwo[idx].TextureCoordinate,
-                        Texture2 = mesh.verticesVertexPositionNormalTextureTwo[idx]
-                            .TextureCoordinateTwo
-                    };
-                }
-                else if (mesh.verticesVertexPositionNormalDiffuseTexture != null)
-                {
-                    geo.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Diffuse |
-                                   VertexAttributes.Texture1;
-                    vert = new Vertex()
-                    {
-                        Position = mesh.verticesVertexPositionNormalDiffuseTexture[idx].Position,
-                        Normal = mesh.verticesVertexPositionNormalDiffuseTexture[idx].Normal,
-                        Diffuse = (Color4)mesh.verticesVertexPositionNormalDiffuseTexture[idx].Diffuse,
-                        Texture1 = mesh.verticesVertexPositionNormalDiffuseTexture[idx]
-                            .TextureCoordinate
-                    };
-                }
-                else if (mesh.verticesVertexPositionNormalDiffuseTextureTwo != null)
-                {
-                    geo.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Diffuse |
-                                   VertexAttributes.Texture1 | VertexAttributes.Texture2;
-                    vert = new Vertex()
-                    {
-                        Position = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Position,
-                        Normal = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Normal,
-                        Diffuse = (Color4)mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Diffuse,
-                        Texture1 = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].TextureCoordinate,
-                        Texture2 = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].TextureCoordinateTwo,
-                    };
-                }
-                else
-                    throw new Exception("something in state is real bad"); //Never called
-                //Internal stored OpenGL, flip to DX
-                vert.Texture1.Y = 1 - vert.Texture1.Y;
-                vert.Texture2.Y = 1 - vert.Texture2.Y;
                 var hash = HashVert(ref vert);
                 int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
                 if (newIndex == -1)

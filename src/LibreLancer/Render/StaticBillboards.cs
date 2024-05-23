@@ -119,7 +119,7 @@ namespace LibreLancer.Render
             }
             var idxOffset = (vertexOffset / 4) * 6;
             if (vertexOffset + vertices.Length >= (MAX_QUADS * 4)) return -1;
-            VertexBuffer.SetData(vertices, null, vertexOffset);
+            VertexBuffer.SetData<VertexBillboardColor2>(vertices.AsSpan(), vertexOffset);
             vertexOffset += vertices.Length;
             var vtx = new SunVtx() { ID = id, IndexStart = idxOffset };
             vertexPtrs.Add(vtx);

@@ -183,7 +183,7 @@ namespace LancerEdit
                 indices.AddRange(m.Indices.Select(x => (short)x));
             }
             mdl.Vertices = new VertexBuffer(_window.RenderContext,typeof(VertexPositionColor), verts.Count);
-            mdl.Vertices.SetData(verts.ToArray());
+            mdl.Vertices.SetData<VertexPositionColor>(verts.ToArray());
             mdl.Elements = new ElementBuffer(_window.RenderContext, indices.Count);
             mdl.Elements.SetData(indices.ToArray());
             mdl.Vertices.SetElementBuffer(mdl.Elements);

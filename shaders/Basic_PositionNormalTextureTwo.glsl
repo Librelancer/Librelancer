@@ -29,9 +29,9 @@ void main()
 	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz;
 	out_texcoord = vec2(
 		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
-		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
+		(vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
 	);
 	out_vertexcolor = vec4(1);
-	out_texcoord2 = vec2(vertex_texture2.x, 1. - vertex_texture2.y);
+	out_texcoord2 = vec2(vertex_texture2.x, vertex_texture2.y);
     light_vert(world_position, view_position, out_normal);
 } 

@@ -27,8 +27,7 @@ namespace LibreLancer
     {
         Dictionary<string, SurFile> surs = new Dictionary<string, SurFile>(StringComparer.OrdinalIgnoreCase);
 
-        public abstract VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
-            where T : struct, IVertexType;
+        public abstract VertexResource AllocateVertices(FVFVertex format, byte[] vertices, ushort[] indices);
         public abstract QuadSphere GetQuadSphere(int slices);
         public abstract OpenCylinder GetOpenCylinder(int slices);
         public abstract Dictionary<string, Texture> TextureDictionary { get; }
@@ -83,7 +82,7 @@ namespace LibreLancer
         public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
         public override Dictionary<string, TexFrameAnimation> AnimationDictionary => throw new InvalidOperationException();
 
-        public override VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
+        public override VertexResource AllocateVertices(FVFVertex format, byte[] vertices, ushort[] indices)
         {
             throw new InvalidOperationException();
         }
@@ -153,11 +152,11 @@ namespace LibreLancer
 
         private VertexResourceAllocator vertexResourceAllocator;
 
-        public override VertexResource AllocateVertices<T>(T[] vertices, ushort[] indices)
+        public override VertexResource AllocateVertices(FVFVertex format, byte[] vertices, ushort[] indices)
         {
             if (!GLWindow.IsUiThread()) throw new InvalidOperationException();
             if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));
-            return vertexResourceAllocator.Allocate(vertices, indices);
+            return vertexResourceAllocator.Allocate(format, vertices, indices);
         }
 
         public override QuadSphere GetQuadSphere(int slices) {

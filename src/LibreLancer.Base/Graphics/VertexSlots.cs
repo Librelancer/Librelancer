@@ -11,11 +11,13 @@ namespace LibreLancer.Graphics
 		public const int Normal = 2;
         public const int Texture1 = 3;
 		public const int Texture2 = 4;
-		public const int Dimensions = 5;
-		public const int Right = 6;
-		public const int Up = 7;
-		public const int BoneIds = 8;
-		public const int BoneWeights = 9;
-        public const int Color2 = 10;
+        public const int Texture3 = 5;
+        public const int Texture4 = 6;
+		public const int Dimensions = 7;
+		public const int Right = 8;
+		public const int Up = 9;
+		public const int BoneIds = 10;
+		public const int BoneWeights = 11;
+        public const int Color2 = 12;
     }
 }

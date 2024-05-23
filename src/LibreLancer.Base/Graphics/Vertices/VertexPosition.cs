@@ -13,12 +13,6 @@ namespace LibreLancer.Graphics.Vertices
     {
         public Vector3 Position;
 
-        public VertexPosition(BinaryReader reader)
-            : this()
-        {
-            this.Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-        }
-
         public VertexPosition(Vector3 position)
             : this()
         {

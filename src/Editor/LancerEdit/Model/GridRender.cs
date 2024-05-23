@@ -112,7 +112,7 @@ void main() {
             if (loaded) return;
             loaded = true;
             vertices = new VertexBuffer(context, typeof(VertexPosition), 6);
-            vertices.SetData(new[]
+            vertices.SetData<VertexPosition>(new[]
             {
                 new VertexPosition(new Vector3(1,1,0)),
                 new VertexPosition(new Vector3(-1,-1,0)),

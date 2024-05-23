@@ -93,7 +93,7 @@ public class AsteroidCubeMeshBuilder
         var cube_vbo = new VertexBuffer(context, typeof(VertexPositionNormalDiffuseTexture), verts.Count);
         var cube_ibo = new ElementBuffer(context, indices.Count);
         cube_ibo.SetData(indices.ToArray());
-        cube_vbo.SetData(verts.ToArray());
+        cube_vbo.SetData<VertexPositionNormalDiffuseTexture>(verts.ToArray());
         cube_vbo.SetElementBuffer(cube_ibo);
         var dcs = cubeDrawCalls.ToArray();
         verts = null;
@@ -110,45 +110,11 @@ public class AsteroidCubeMeshBuilder
 
     VertexPositionNormalDiffuseTexture GetVertex(VMeshData vms, int index, ref Matrix4x4 world, ref Matrix4x4 normal)
     {
-        VertexPositionNormalDiffuseTexture vert;
-        switch (vms.FlexibleVertexFormat)
-        {
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX1:
-                vert = vms.verticesVertexPositionNormalDiffuseTexture[index];
-                break;
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX1:
-            {
-                var v = vms.verticesVertexPositionNormalTexture[index];
-                vert = new VertexPositionNormalDiffuseTexture(
-                    v.Position,
-                    v.Normal,
-                    (VertexDiffuse)0xFFFFFFFF,
-                    v.TextureCoordinate);
-                break;
-            }
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2:
-            {
-                var v = vms.verticesVertexPositionNormalTextureTwo[index];
-                vert = new VertexPositionNormalDiffuseTexture(
-                    v.Position,
-                    v.Normal,
-                    (VertexDiffuse)0xFFFFFFFF,
-                    v.TextureCoordinate);
-                break;
-            }
-            case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.DIFFUSE | D3DFVF.TEX2:
-            {
-                var v = vms.verticesVertexPositionNormalDiffuseTextureTwo[index];
-                vert = new VertexPositionNormalDiffuseTexture(
-                    v.Position,
-                    v.Normal,
-                    v.Diffuse,
-                    v.TextureCoordinate);
-                break;
-            }
-            default:
-                throw new Exception($"D3DFVF {vms.FlexibleVertexFormat} not supported");
-        }
+        VertexPositionNormalDiffuseTexture vert = new VertexPositionNormalDiffuseTexture();
+        vert.Position = vms.GetPosition(index);
+        vert.Normal = vms.VertexFormat.Normal ? vms.GetNormal(index) : Vector3.UnitY;
+        vert.Diffuse = vms.VertexFormat.Diffuse ? vms.GetDiffuse(index) : (VertexDiffuse)0xFFFFFFFF;
+        vert.TextureCoordinate = vms.VertexFormat.TexCoords > 0 ? vms.GetTexCoord(index, 0) : Vector2.Zero;
 
         vert.Position = Vector3.Transform(vert.Position, world);
         vert.Normal = Vector3.TransformNormal(vert.Normal, normal);

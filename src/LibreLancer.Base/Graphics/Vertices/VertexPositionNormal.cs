@@ -14,13 +14,6 @@ namespace LibreLancer.Graphics.Vertices
         public Vector3 Position;
         public Vector3 Normal;
 
-        public VertexPositionNormal(BinaryReader reader)
-            : this()
-        {
-            this.Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            this.Normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-        }
-
         public VertexPositionNormal(Vector3 position, Vector3 normal)
         {
             this.Position = position;

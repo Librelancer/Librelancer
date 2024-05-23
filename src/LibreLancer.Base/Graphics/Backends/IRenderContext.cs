@@ -1,4 +1,5 @@
 using System;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends;
 
@@ -28,6 +29,7 @@ interface IRenderContext
     IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null);
     IElementBuffer CreateElementBuffer(int count, bool isDynamic = false);
     IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false);
+    IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false);
 
     ITexture2D CreateTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format);
 

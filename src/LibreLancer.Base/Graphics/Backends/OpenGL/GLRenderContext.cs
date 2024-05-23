@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
@@ -370,6 +371,9 @@ class GLRenderContext : IRenderContext
         new GLElementBuffer(this, count, isDynamic);
 
     public IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false) =>
+        new GLVertexBuffer(type, length, isStream);
+
+    public IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false) =>
         new GLVertexBuffer(type, length, isStream);
 
     public IComputeShader CreateComputeShader(string shaderCode) =>

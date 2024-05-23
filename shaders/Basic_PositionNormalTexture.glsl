@@ -28,7 +28,7 @@ void main()
 	out_normal = (NormalMatrix * vec4(vertex_normal,0)).xyz;
 	out_texcoord = vec2(
 		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
-		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
+		(vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
 	);
 	out_texcoord2 = out_texcoord;
 	out_vertexcolor = vec4(1,1,1,1);

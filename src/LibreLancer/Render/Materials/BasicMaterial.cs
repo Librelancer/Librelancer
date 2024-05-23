@@ -9,6 +9,7 @@ using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Utf.Mat;
+using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Render.Materials
 {
@@ -39,20 +40,33 @@ namespace LibreLancer.Render.Materials
         {
             if (vertextype is Utf.Dfm.DfmVertex)
                 return Basic_Skinned.Get(rstate, caps);
+            else if (vertextype is FVFVertex fvf)
+            {
+                if (fvf.Diffuse && fvf.Normal) {
+                    return Basic_PositionNormalColorTexture.Get(rstate, caps);
+                }
+                else if (fvf.Normal)
+                {
+                    if(fvf.TexCoords > 1)
+                        return Basic_PositionNormalTextureTwo.Get(rstate, caps);
+                    else
+                        return Basic_PositionNormalTexture.Get(rstate, caps);
+                }
+                if (fvf.Diffuse)
+                    return Basic_PositionColor.Get(rstate, caps);
+                return Basic_PositionTexture.Get(rstate, caps);
+            }
             if (vertextype is VertexPositionNormalTexture ||
                     vertextype is VertexPositionNormal)
                 return Basic_PositionNormalTexture.Get(rstate, caps);
-			if (vertextype is VertexPositionNormalTextureTwo)
-                return Basic_PositionNormalTextureTwo.Get(rstate, caps);
             if (vertextype is VertexPositionNormalDiffuseTexture)
                 return Basic_PositionNormalColorTexture.Get(rstate, caps);
             if (vertextype is VertexPositionTexture)
                 return Basic_PositionTexture.Get(rstate, caps);
             if (vertextype is VertexPosition)
                 return Basic_PositionTexture.Get(rstate, caps);
-            if(vertextype is VertexPositionColor)
-                return Basic_PositionColor.Get(rstate, caps);
-            throw new NotImplementedException(vertextype.GetType().Name);
+
+            return Basic_PositionColor.Get(rstate, caps);
 		}
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

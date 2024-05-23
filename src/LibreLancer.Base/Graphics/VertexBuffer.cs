@@ -35,8 +35,14 @@ namespace LibreLancer.Graphics
             impl = context.Backend.CreateVertexBuffer(type, length, isStream);
         }
 
-        public void SetData<T>(T[] data, int? length = null, int? start = null) where T : struct
-            => impl.SetData(data, length, start);
+        public VertexBuffer(RenderContext context, IVertexType type, int length, bool isStream = false)
+        {
+            TotalBuffers++;
+            impl = context.Backend.CreateVertexBuffer(type, length, isStream);
+        }
+
+        public void SetData<T>(ReadOnlySpan<T> data, int offset = 0) where T : unmanaged
+            => impl.SetData(data, offset);
 
         public void Expand(int newSize)
             => impl.Expand(newSize);

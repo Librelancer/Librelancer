@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Graphics.Backends.OpenGL;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends.Null;
 
@@ -72,6 +73,9 @@ class NullRenderContext : IRenderContext
         new NullElementBuffer(count);
 
     public IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false) =>
+        new NullVertexBuffer(type, length, isStream);
+
+    public IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false) =>
         new NullVertexBuffer(type, length, isStream);
 
     public ITexture2D CreateTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format) =>

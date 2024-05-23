@@ -577,7 +577,7 @@ namespace LibreLancer.ImUI
 					var r = unint & 0xFF;
 					vbuffer[i] = new Vertex2D(ptr[i].pos, ptr[i].uv, new Color4(r / 255f, g / 255f, b / 255f, a / 255f));
 				}
-				vbo.SetData(vbuffer, cmd_list.VtxBuffer.Size);
+				vbo.SetData<Vertex2D>(vbuffer.AsSpan().Slice(0, cmd_list.VtxBuffer.Size));
 				ibo.SetData(ibuffer, cmd_list.IdxBuffer.Size);
 				for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
 				{

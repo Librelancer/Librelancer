@@ -370,7 +370,8 @@ namespace LibreLancer.Utf.Mat
 					bm.DoubleSided = true;
 				if (type.Contains("Et"))
 					bm.EtEnabled = true;
-                if(Name.StartsWith("alpha_mask", StringComparison.OrdinalIgnoreCase))
+                if(Name.StartsWith("alpha_mask", StringComparison.OrdinalIgnoreCase) ||
+                   type.Equals("BtDetailMapMaterial", StringComparison.OrdinalIgnoreCase))
                     bm.AlphaTest = true;
 			}
 			else

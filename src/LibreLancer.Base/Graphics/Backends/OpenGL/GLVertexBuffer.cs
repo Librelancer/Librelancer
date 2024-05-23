@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Vertices;
 
@@ -26,40 +27,52 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
 		public GLVertexBuffer(Type type, int length, bool isStream = false)
         {
-            VBO = GL.GenBuffer();
-			var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
-            streaming = isStream;
             this.type = type;
             try
             {
 				vertextype = (IVertexType)Activator.CreateInstance (type);
-				decl = vertextype.GetVertexDeclaration();
             }
             catch (Exception)
             {
                 throw new Exception(string.Format("{0} is not a valid IVertexType", type.FullName));
             }
-			GL.GenVertexArrays (1, out VAO);
-            GLBind.VertexArray(VAO);
-            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
-			GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
-            if(isStream)
-                buffer = Marshal.AllocHGlobal(length * decl.Stride);
-			SetPointers ();
-			VertexCount = length;
+            Create(length, isStream);
         }
 
-		public void SetData<T>(T[] data, int? length = null, int? start = null) where T : struct
+        public GLVertexBuffer(IVertexType type, int length, bool isStream = false)
+        {
+            this.type = type.GetType();
+            vertextype = type;
+            Create(length, isStream);
+        }
+
+        void Create(int length, bool isStream)
+        {
+            decl = vertextype.GetVertexDeclaration();
+            VBO = GL.GenBuffer();
+            var usageHint = isStream ? GL.GL_STREAM_DRAW : GL.GL_STATIC_DRAW;
+            streaming = isStream;
+            GL.GenVertexArrays (1, out VAO);
+            GLBind.VertexArray(VAO);
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
+            GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
+            if(isStream)
+                buffer = Marshal.AllocHGlobal(length * decl.Stride);
+            SetPointers ();
+            VertexCount = length;
+        }
+
+		public unsafe void SetData<T>(ReadOnlySpan<T> data, int offset = 0) where T : unmanaged
         {
             if (typeof(T) != type && typeof(T) != typeof(byte))
                 throw new Exception("Data must be of type " + type.FullName);
-			int len = length ?? data.Length;
-            int s = start ?? 0;
 			GLBind.VertexArray(VAO);
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
-			var handle = GCHandle.Alloc (data, GCHandleType.Pinned);
-			GL.BufferSubData (GL.GL_ARRAY_BUFFER, (IntPtr)(s * decl.Stride), (IntPtr)(len * decl.Stride), handle.AddrOfPinnedObject());
-			handle.Free ();
+            int sz = Unsafe.SizeOf<T>() * data.Length;
+            fixed (T* ptr = &data.GetPinnableReference())
+            {
+                GL.BufferSubData (GL.GL_ARRAY_BUFFER, (IntPtr)(offset * decl.Stride), (IntPtr)(sz), (IntPtr)ptr);
+            }
         }
 
         public void Expand(int newSize)

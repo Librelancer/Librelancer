@@ -7,7 +7,7 @@ interface IVertexBuffer : IDisposable
 {
     IVertexType VertexType { get; }
     int VertexCount { get; }
-    void SetData<T>(T[] data, int? length = null, int? start = null) where T : struct;
+    public void SetData<T>(ReadOnlySpan<T> data, int offset = 0) where T : unmanaged;
     void Expand(int newSize);
     void Draw(PrimitiveTypes primitiveType, int baseVertex, int startIndex, int primitiveCount);
     unsafe void DrawImmediateElements(PrimitiveTypes primitiveTypes, int baseVertex, ReadOnlySpan<ushort> elements);

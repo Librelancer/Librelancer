@@ -28,7 +28,7 @@ void main()
 	gl_Position = pos;
 	out_texcoord = vec2(
 		(vertex_texture1.x + MaterialAnim.x) * MaterialAnim.z, 
-		1. - (vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
+		(vertex_texture1.y + MaterialAnim.y) * MaterialAnim.w
 	);
 }
 

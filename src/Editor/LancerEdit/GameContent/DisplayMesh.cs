@@ -48,7 +48,7 @@ public class DisplayMesh
             var elementBuf = new ElementBuffer(context, indices.Length);
             elementBuf.SetData(indices);
             var vbo = new VertexBuffer(context, typeof(VertexPositionNormal), vertices.Length);
-            vbo.SetData(vertices);
+            vbo.SetData<VertexPositionNormal>(vertices);
             vbo.SetElementBuffer(elementBuf);
 
             List<Drawcall> dcs = new List<Drawcall>();

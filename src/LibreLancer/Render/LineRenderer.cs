@@ -98,7 +98,7 @@ namespace LibreLancer.Render
             shader.SetWorld(ref w, ref w);
             shader.SetOc(0);
             rstate.Shader = shader;
-			linebuffer.SetData(lines, lineVertices);
+			linebuffer.SetData<VertexPositionColor>(lines.AsSpan().Slice(0, lineVertices));
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);
             rstate.PolygonOffset = Vector2.Zero;
             rstate.DepthWrite = true;

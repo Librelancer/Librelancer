@@ -426,7 +426,7 @@ public class ImportModelTab : EditorTab
         var elements = g.Indices.Indices16;
         pm.Vertices = new VertexBuffer(win.RenderContext, typeof(VertexPositionNormalDiffuseTexture), vertices.Length);
         pm.Elements = new ElementBuffer(win.RenderContext, elements.Length);
-        pm.Vertices.SetData(vertices);
+        pm.Vertices.SetData<VertexPositionNormalDiffuseTexture>(vertices);
         pm.Elements.SetData(elements);
         pm.Vertices.SetElementBuffer(pm.Elements);
         foreach (var child in n.Children)

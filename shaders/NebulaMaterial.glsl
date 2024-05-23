@@ -17,7 +17,7 @@ void main()
 {
 	gl_Position = (ViewProjection * World) * vec4(vertex_position, 1.0);
 
-	vec2 texcoord = vec2(vertex_texture1.x, 1. - vertex_texture1.y);
+	vec2 texcoord = vec2(vertex_texture1.x, vertex_texture1.y);
 	#ifdef VERTEX_DIFFUSE
 	frag_vertexcolor = vertex_color;
 	#else

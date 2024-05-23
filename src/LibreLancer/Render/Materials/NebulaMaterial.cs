@@ -7,6 +7,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
+using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Render.Materials
 {
@@ -18,17 +19,9 @@ namespace LibreLancer.Render.Materials
 
 		ShaderVariables GetShader(RenderContext rstate, IVertexType vtype)
 		{
-            if (vtype is VertexPositionNormalDiffuseTexture ||
-                vtype is VertexPositionNormalDiffuseTextureTwo)
-            {
+            if (vtype is FVFVertex fvf && fvf.Diffuse)
                 return Shaders.NebulaMaterial.Get(rstate, ShaderFeatures.VERTEX_DIFFUSE);
-            }
-            if (vtype is VertexPositionNormalTexture ||
-                       vtype is VertexPositionNormalTextureTwo)
-            {
-                return Shaders.NebulaMaterial.Get(rstate);
-            }
-            throw new NotImplementedException(vtype.GetType().ToString());
+            return Shaders.NebulaMaterial.Get(rstate);
         }
 		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
