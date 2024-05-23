@@ -284,7 +284,7 @@ namespace LibreLancer.ImageLib
 
                 sub[i] = (byte)((curr[i] - p) & 0xFF);
                 up[i] = (byte)((curr[i] - prev[i]) & 0xFF);
-                average[i] = (byte)((curr[i] - ((p + prev[i]) >> 2)) & 0xFF);
+                average[i] = (byte)((curr[i] - ((p + prev[i]) >> 1)) & 0xFF);
                 paeth[i] = (byte)((curr[i] - PaethPredictor(p, prev[i], pl)) & 0xFF);
 
                 subDiff += Math.Abs((int)(sbyte)sub[i]);

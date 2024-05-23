@@ -392,17 +392,17 @@ public static class ModelExporter
                 int idx = mesh.Indices[i] + m.StartVertex + vms.StartVertex;
                 Vertex vert = new Vertex() { Position = mesh.GetPosition(idx) };
                 if (mesh.VertexFormat.Normal)
-                    vert.Normal = mesh.GetNormal(i);
+                    vert.Normal = mesh.GetNormal(idx);
                 if (mesh.VertexFormat.Diffuse)
-                    vert.Diffuse = (Color4)mesh.GetDiffuse(i);
+                    vert.Diffuse = (Color4)mesh.GetDiffuse(idx);
                 if (mesh.VertexFormat.TexCoords > 1)
                 {
-                    vert.Texture2 = mesh.GetTexCoord(i, 1);
-                    vert.Texture1 = mesh.GetTexCoord(i, 0);
+                    vert.Texture2 = mesh.GetTexCoord(idx, 1);
+                    vert.Texture1 = mesh.GetTexCoord(idx, 0);
                 }
                 else if (mesh.VertexFormat.TexCoords == 1)
                 {
-                    vert.Texture1 = mesh.GetTexCoord(i, 0);
+                    vert.Texture1 = mesh.GetTexCoord(idx, 0);
                 }
                 var hash = HashVert(ref vert);
                 int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
