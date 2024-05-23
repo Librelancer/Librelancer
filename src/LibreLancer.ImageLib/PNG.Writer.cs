@@ -85,6 +85,68 @@ namespace LibreLancer.ImageLib
 			0xAE, 0x42, 0x60, 0x82
 		};
 
+        static (ColorType, int bytes) Analyze(ReadOnlySpan<Bgra8> data)
+        {
+            bool alpha = false;
+            bool gray = true;
+            for (int i = 0; i < data.Length; i++) {
+                if (data[i].R != data[i].G ||
+                    data[i].G != data[i].B)
+                    gray = false;
+                if (data[i].A != 255)
+                    alpha = true;
+                if (alpha && !gray)
+                    break;
+            }
+
+            if (gray && !alpha) return (ColorType.Grayscale, 1);
+            if (gray) return (ColorType.GrayscaleAlpha, 2);
+            if (!alpha) return (ColorType.Rgb, 3);
+            return (ColorType.Rgba, 4);
+        }
+
+        static void CopyLine(Span<byte> source, Span<byte> dest, ColorType type, int width)
+        {
+            switch (type)
+            {
+                case ColorType.Grayscale:
+                    for (int i = 0; i < width; i++)
+                    {
+                        dest[i] = source[i * 4];
+                    }
+                    break;
+                case ColorType.GrayscaleAlpha:
+                    for (int i = 0; i < width; i++)
+                    {
+                        dest[i * 2] = source[i * 4];
+                        dest[i * 2 + 1] = source[i * 4 + 3];
+                    }
+                    break;
+                case ColorType.Rgb:
+                    for (int i = 0; i < width; i++)
+                    {
+                        int s = i * 4;
+                        int d = i * 3;
+                        dest[d] = source[s];
+                        dest[d + 1] = source[s + 1];
+                        dest[d + 2] = source[s + 2];
+                    }
+                    break;
+                default:
+                    source.CopyTo(dest);
+                    break;
+            }
+        }
+
+        enum FilterType : byte
+        {
+            None = 0,
+            Sub = 1,
+            Up =  2,
+            Average = 3,
+            Paeth = 4
+        }
+
 		public static void Save(Stream output, int width, int height, ReadOnlySpan<Bgra8> bgraData, bool flip, params PNGAncillaryChunk[] ancillaryChunks)
         {
             var buffer = new Bgra8[bgraData.Length];
@@ -101,6 +163,7 @@ namespace LibreLancer.ImageLib
                 bgraData.CopyTo(buffer.AsSpan());
             }
             Bgra8.ConvertFromRgba(buffer); //Reverse the swap, make it Rgba
+            var (colorType, bpp) = Analyze(buffer);
             var data = MemoryMarshal.Cast<Bgra8, byte>(buffer);
 
 			using (var writer = new BinaryWriter(output))
@@ -111,7 +174,7 @@ namespace LibreLancer.ImageLib
 					ihdr.Writer.WriteInt32BE(width);
                     ihdr.Writer.WriteInt32BE(height);
                     ihdr.Writer.Write((byte)8);
-                    ihdr.Writer.Write((byte)ColorType.Rgba);
+                    ihdr.Writer.Write((byte)colorType);
                     ihdr.Writer.Write((byte)0); //Compression method
                     ihdr.Writer.Write((byte)0); //Filter method
                     ihdr.Writer.Write((byte)0); //Interlacing
@@ -121,25 +184,28 @@ namespace LibreLancer.ImageLib
 				{
 					//zlib header
 					//deflate compression
-					Span<byte> buf = stackalloc byte[width * 4];
+                    Span<byte> prev = stackalloc byte[width * bpp];
+					Span<byte> buf = stackalloc byte[width * bpp];
+                    byte[] filterCombos = new byte[width * bpp * 4];
                     using (var compress = new ZlibCompress(idat.Writer.BaseStream))
                     {
-
                         //First line
+                        CopyLine(data.Slice(0, width * 4), prev, colorType, width);
                         compress.WriteByte((byte) 0);
-                        for (int x = 0; x < width * 4; x++)
+                        for (int x = 0; x < prev.Length; x++)
                         {
-                            compress.WriteByte(data[x]);
+                            compress.WriteByte(prev[x]);
                         }
                         //Filtered lines
                         for (int y = 1; y < height; y++)
                         {
-                            var line = flip
-                                ? (height - 1 - y)
-                                : y;
-                            ApplyPaeth(data, (y - 1) * width * 4, y * width * 4, width * 4, buf);
-                            compress.WriteByte((byte) 4); //paeth filter
-                            compress.Write(buf);
+                            CopyLine(data.Slice(y * width * 4), buf, colorType, width);
+                            var filtered = ApplyFilters(prev, buf, width, bpp, filterCombos, out var filter);
+                            compress.WriteByte((byte) filter); //paeth filter
+                            compress.Write(filtered);
+                            Span<byte> temp = prev;
+                            prev = buf;
+                            buf = temp;
                         }
                     }
                     idat.WriteTo(writer);
@@ -196,19 +262,58 @@ namespace LibreLancer.ImageLib
             public void Dispose() => stream.Dispose();
         }
 
-		static void ApplyPaeth(Span<byte> data, int prev, int curr, int count, Span<byte> buf)
-		{
-			int j = 0;
-			int last = 0;
-			for (int i = 0; i < count; i++)
-			{
-				var p = (i - 4 >= 0) ? data[curr + (i - 4)] : (byte)0;
-				var pl = (i - 4 >= 0) ? data[prev + (i - 4)] : (byte)0;
-				var r = (byte)((data[curr + i] - PaethPredictor(p, data[prev + i], pl)) % 256);
-				last = r;
-				buf[j++] = r;
-			}
-		}
+        static Span<byte> ApplyFilters(Span<byte> prev, Span<byte> curr, int width, int bpp, byte[] buffer, out FilterType filter)
+        {
+            int stride = width * bpp;
+
+            Span<byte> sub = buffer.AsSpan().Slice(0, stride);
+            Span<byte> up = buffer.AsSpan().Slice(stride, stride);
+            Span<byte> average = buffer.AsSpan().Slice(stride * 2, stride);
+            Span<byte> paeth = buffer.AsSpan().Slice(stride * 3, stride);
+
+            long subDiff = 0;
+            long upDiff = 0;
+            long avgDiff = 0;
+            long paethDiff = 0;
+
+            for (int i = 0; i < curr.Length; i++)
+            {
+                var p = (i - bpp >= 0) ? curr[i - bpp] : (byte)0;
+                var pl = (i - bpp >= 0) ? prev[i - bpp] : (byte)0;
+
+
+                sub[i] = (byte)((curr[i] - p) & 0xFF);
+                up[i] = (byte)((curr[i] - prev[i]) & 0xFF);
+                average[i] = (byte)((curr[i] - ((p + prev[i]) >> 2)) & 0xFF);
+                paeth[i] = (byte)((curr[i] - PaethPredictor(p, prev[i], pl)) & 0xFF);
+
+                subDiff += Math.Abs((int)(sbyte)sub[i]);
+                upDiff += Math.Abs((int)(sbyte)up[i]);
+                avgDiff += Math.Abs((int)(sbyte)average[i]);
+                paethDiff += Math.Abs((int)(sbyte)paeth[i]);
+            }
+
+            long c = subDiff;
+            filter = FilterType.Sub;
+            Span<byte> ret = sub;
+            if (upDiff < c) {
+                c = upDiff;
+                filter = FilterType.Up;
+                ret = up;
+            }
+            if (avgDiff < c) {
+                c = avgDiff;
+                filter = FilterType.Average;
+                ret = average;
+            }
+            if (paethDiff < c)
+            {
+                filter = FilterType.Paeth;
+                ret = paeth;
+            }
+            return ret;
+        }
+
 
 		static byte PaethPredictor(byte a, byte b, byte c)
 		{

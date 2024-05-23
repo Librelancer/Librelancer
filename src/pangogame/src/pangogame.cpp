@@ -249,7 +249,7 @@ PGBuiltText *pg_buildtext(PGRenderContext *ctx,
 		        PangoAttribute *backgroundAttr = pango_attr_background_new(
                     PG_8To16(paragraphs[i].attributes[j].backgroundColor, 8),
                     PG_8To16(paragraphs[i].attributes[j].backgroundColor, 16),
-                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 26)
+                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 24)
                 );
                 backgroundAttr->start_index = paragraphs[i].attributes[j].startIndex;
 		        backgroundAttr->end_index = paragraphs[i].attributes[j].endIndex;

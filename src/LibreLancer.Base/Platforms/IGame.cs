@@ -38,6 +38,7 @@ interface IGame : IUIThread
     void EnableTextInput();
     void DisableTextInput();
     void ToggleFullScreen();
+    ScreenshotSaveHandler OnScreenshotSave { get; set; }
     void Screenshot(string filename);
     //Clipboard
     ClipboardContents ClipboardStatus();

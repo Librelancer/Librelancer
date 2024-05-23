@@ -37,7 +37,7 @@ static class EnumConversions
         switch (format)
         {
             case SurfaceFormat.Bgra8:
-                glInternalFormat = GL.GLES ? GL.GL_BGRA : GL.GL_RGBA;
+                glInternalFormat = GL.GL_RGBA;
                 glFormat = GL.GL_BGRA;
                 glType = GL.GL_UNSIGNED_BYTE;
                 break;

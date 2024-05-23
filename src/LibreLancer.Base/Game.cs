@@ -47,6 +47,11 @@ namespace LibreLancer
         {
             configuration ??= GameConfiguration.SDL();
             impl = configuration.GetGame(w, h, fullscreen, allowScreensaver);
+            impl.OnScreenshotSave = (filename, width, height, data) =>
+            {
+                if (ScreenshotSave != null)
+                    ScreenshotSave(filename, width, height, data);
+            };
         }
 
         public bool RelativeMouseMode

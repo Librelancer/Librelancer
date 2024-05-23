@@ -245,6 +245,7 @@ namespace LibreLancer.Render
 		}
 
 		MultisampleTarget msaa;
+        private RenderTarget2D msaaResolve;
 		int _mwidth = -1, _mheight = -1;
         public CommandBuffer Commands;
 		int _twidth = -1, _theight = -1;
@@ -289,10 +290,13 @@ namespace LibreLancer.Render
 				{
 					_mwidth = renderWidth;
                     _mheight = renderHeight;
-					if (msaa != null)
-						msaa.Dispose();
-					msaa = new MultisampleTarget(rstate, renderWidth, renderHeight, Settings.SelectedMSAA);
-				}
+                    if (msaa != null) {
+                        msaa.Dispose();
+                        msaaResolve.Dispose();
+                    }
+                    msaa = new MultisampleTarget(rstate, renderWidth, renderHeight, Settings.SelectedMSAA);
+                    msaaResolve = new RenderTarget2D(rstate, renderWidth, renderHeight);
+                }
                 rstate.RenderTarget = msaa;
 			}
             rstate.PreferredFilterLevel = Settings.SelectedFiltering;
@@ -499,8 +503,10 @@ namespace LibreLancer.Render
 			DebugRenderer.Render();
 			if (Settings.SelectedMSAA > 0)
 			{
-                if(restoreTarget == null)
-				    msaa.BlitToScreen();
+                if (restoreTarget == null) {
+                    msaa.BlitToRenderTarget(msaaResolve);
+                    msaaResolve.BlitToScreen();
+                }
                 else
                     msaa.BlitToRenderTarget(restoreTarget as RenderTarget2D);
                 rstate.RenderTarget = restoreTarget;
@@ -513,7 +519,10 @@ namespace LibreLancer.Render
 		{
 			if (pointLightBuffer != null) pointLightBuffer.Dispose();
 			if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
-			if (msaa != null) msaa.Dispose();
+            if (msaa != null) {
+                msaa.Dispose();
+                msaaResolve.Dispose();
+            }
 			if (depthMap != null) depthMap.Dispose();
 			Polyline.Dispose();
             FxPool.Dispose();

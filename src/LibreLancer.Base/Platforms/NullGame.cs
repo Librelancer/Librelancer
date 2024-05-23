@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Text.Encodings.Web;
 using System.Threading;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Backends.Null;
@@ -27,6 +28,8 @@ class NullGame : IGame
     public void SetWindowIcon(int width, int height, ReadOnlySpan<Bgra8> data)
     {
     }
+
+    public ScreenshotSaveHandler OnScreenshotSave { get; set; }
 
     public bool RelativeMouseMode { get; set; }
 

@@ -36,7 +36,8 @@ namespace LibreLancer
         int mythread = -1;
         private uint wakeEvent;
 
-        public ScreenshotSaveHandler ScreenshotSave;
+        public ScreenshotSaveHandler OnScreenshotSave { get; set; }
+
         public RenderContext RenderContext { get; private set; }
         public string Renderer
         {
@@ -292,19 +293,14 @@ namespace LibreLancer
 
         unsafe void TakeScreenshot()
         {
-            if (ScreenshotSave != null)
-            {
-                GL.ReadBuffer(GL.GL_BACK);
-                var colordata = new Bgra8[width * height];
-                fixed (Bgra8* ptr = colordata)
-                    GL.ReadPixels(0, 0, width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, (IntPtr)ptr);
-                var c = RenderContext.ClearColor;
-                for (int i = 0; i < colordata.Length; i++) {
+            GL.ReadBuffer(GL.GL_BACK);
+            var colordata = new Bgra8[width * height];
+            fixed (Bgra8* ptr = colordata)
+                GL.ReadPixels(0, 0, width, height, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, (IntPtr)ptr);
+            for (int i = 0; i < colordata.Length; i++) {
                     colordata[i].A = 0xFF;
-                }
-                ScreenshotSave(_screenshotpath, width, height, colordata);
             }
-
+            OnScreenshotSave(_screenshotpath, width, height, colordata);
         }
 
         private bool isVsync = false;
