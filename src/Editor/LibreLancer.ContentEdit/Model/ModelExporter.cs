@@ -458,7 +458,7 @@ public static class ModelExporter
                     {
                         Position = mesh.verticesVertexPositionNormalDiffuseTexture[idx].Position,
                         Normal = mesh.verticesVertexPositionNormalDiffuseTexture[idx].Normal,
-                        Diffuse = Color4.FromRgba(mesh.verticesVertexPositionNormalDiffuseTexture[idx].Diffuse),
+                        Diffuse = (Color4)mesh.verticesVertexPositionNormalDiffuseTexture[idx].Diffuse,
                         Texture1 = mesh.verticesVertexPositionNormalDiffuseTexture[idx]
                             .TextureCoordinate
                     };
@@ -471,7 +471,7 @@ public static class ModelExporter
                     {
                         Position = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Position,
                         Normal = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Normal,
-                        Diffuse = Color4.FromRgba(mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Diffuse),
+                        Diffuse = (Color4)mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].Diffuse,
                         Texture1 = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].TextureCoordinate,
                         Texture2 = mesh.verticesVertexPositionNormalDiffuseTextureTwo[idx].TextureCoordinateTwo,
                     };

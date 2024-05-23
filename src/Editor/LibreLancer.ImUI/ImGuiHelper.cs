@@ -240,7 +240,7 @@ namespace LibreLancer.ImUI
             io.Fonts.GetTexDataAsRGBA32(out fontBytes, out fontWidth, out fontHeight);
             io.Fonts.TexUvWhitePixel = new Vector2(10, 10);
             Icons.TintGlyphs(fontBytes, fontWidth, fontHeight, Noto);
-            fontTexture = new Texture2D(game.RenderContext, fontWidth,fontHeight, false, SurfaceFormat.Color);
+            fontTexture = new Texture2D(game.RenderContext, fontWidth,fontHeight, false, SurfaceFormat.Bgra8);
 			var bytes = new byte[fontWidth * fontHeight * 4];
             Marshal.Copy((IntPtr)fontBytes, bytes, 0, fontWidth * fontHeight * 4);
 			fontTexture.SetData(bytes);
@@ -250,8 +250,8 @@ namespace LibreLancer.ImUI
             string glslVer = game.RenderContext.HasFeature(GraphicsFeature.GLES) ? "300 es\nprecision mediump float;" : "140";
 			textShader = new Shader(game.RenderContext, vertex_source.Replace("{0}", glslVer), text_fragment_source.Replace("{0}", glslVer));
 			colorShader = new Shader(game.RenderContext, vertex_source.Replace("{0}", glslVer), color_fragment_source.Replace("{0}", glslVer));
-			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Color);
-			var c = new Color4b[] { Color4b.White };
+			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
+			var c = new Bgra8[] { Bgra8.White };
 			dot.SetData(c);
             Theme.Apply(scale);
             //Required for clipboard function on non-Windows platforms

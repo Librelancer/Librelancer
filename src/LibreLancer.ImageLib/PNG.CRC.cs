@@ -33,7 +33,7 @@ namespace LibreLancer.ImageLib
 				crcTable[n] = c;
 			}
 		}
-		static uint Crc(byte[] bytesA, byte[] bytesB)
+		static uint Crc(Span<byte> bytesA, Span<byte> bytesB)
 		{
 			if (crcTable == null)
 				BuildCrcTable();

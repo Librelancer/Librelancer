@@ -13,9 +13,9 @@ namespace LibreLancer.Graphics.Vertices
 	{
 		public Vector3 Position;
 		public Vector3 Normal;
-		public uint Diffuse;
+		public VertexDiffuse Diffuse;
 		public Vector2 TextureCoordinate;
-		public VertexPositionNormalDiffuseTexture(Vector3 pos, Vector3 normal, uint diffuse, Vector2 texcoord)
+		public VertexPositionNormalDiffuseTexture(Vector3 pos, Vector3 normal, VertexDiffuse diffuse, Vector2 texcoord)
 		{
 			Position = pos;
 			Normal = normal;

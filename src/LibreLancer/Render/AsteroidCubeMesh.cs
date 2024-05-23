@@ -122,7 +122,7 @@ public class AsteroidCubeMeshBuilder
                 vert = new VertexPositionNormalDiffuseTexture(
                     v.Position,
                     v.Normal,
-                    (uint) Color4.White.ToAbgr(),
+                    (VertexDiffuse)0xFFFFFFFF,
                     v.TextureCoordinate);
                 break;
             }
@@ -132,7 +132,7 @@ public class AsteroidCubeMeshBuilder
                 vert = new VertexPositionNormalDiffuseTexture(
                     v.Position,
                     v.Normal,
-                    (uint) Color4.White.ToAbgr(),
+                    (VertexDiffuse)0xFFFFFFFF,
                     v.TextureCoordinate);
                 break;
             }

@@ -41,7 +41,7 @@ namespace LibreLancer.Fx
             public Vector4 TextureCoordinates;
             public Vector3s Right;
             public Vector3s Up;
-            public int Color;
+            public VertexDiffuse Color;
             public VertexDeclaration GetVertexDeclaration()
             {
                 return new VertexDeclaration(
@@ -85,7 +85,7 @@ namespace LibreLancer.Fx
             vertices[nextParticle++] = new ParticleVertex()
             {
                 Position = position,
-                Color = color.ToAbgr(),
+                Color = (VertexDiffuse)color,
                 TextureCoordinates = texture.GetCoordinates(frameNo),
                 Dimensions = sz,
                 Right = PackNormal(src_right),

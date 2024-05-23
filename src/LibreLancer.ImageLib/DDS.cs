@@ -198,7 +198,7 @@ namespace LibreLancer.ImageLib
                 case SurfaceFormat.Bgr565:
                 case SurfaceFormat.Bgra4444:
                     return width * height * 2;
-                case SurfaceFormat.Color:
+                case SurfaceFormat.Bgra8:
                     return width * height * 4;
                 default:
                     throw new NotSupportedException(header.ddspf.dwFourCC.ToString());
@@ -250,7 +250,7 @@ namespace LibreLancer.ImageLib
                     (header.ddspf.dwRGBBitCount == 0x20 || header.ddspf.dwRGBBitCount == 0x18) &&
                     header.ddspf.dwFourCC == 0 &&
                     header.ddspf.dwABitMask != 0xc0000000) //Exclude A2B10G10R10
-                return SurfaceFormat.Color;
+                return SurfaceFormat.Bgra8;
             throw new NotSupportedException("Pixel Format (FourCC " + header.ddspf.dwFourCC.ToString() + ")");
         }
 
@@ -271,7 +271,7 @@ namespace LibreLancer.ImageLib
 
                 var bytes = GetSurfaceBytes(ref header, w, h);
                 byte[] data;
-                if (fmt == SurfaceFormat.Color && header.ddspf.dwRGBBitCount == 24)
+                if (fmt == SurfaceFormat.Bgra8 && header.ddspf.dwRGBBitCount == 24)
                 {
                     data = new byte[bytes];
                     for (int j = 0; j < bytes; j += 4)
@@ -284,7 +284,7 @@ namespace LibreLancer.ImageLib
                 else
                     data = reader.ReadBytes(bytes);
                 //If no alpha
-                if (fmt == SurfaceFormat.Color && header.ddspf.dwABitMask == 0)
+                if (fmt == SurfaceFormat.Bgra8 && header.ddspf.dwABitMask == 0)
                 {
                     for (int px = 0; px < bytes; px += 4)
                     {
@@ -292,7 +292,7 @@ namespace LibreLancer.ImageLib
                     }
                 }
                 //Swap channels if needed
-                if (fmt == SurfaceFormat.Color && header.ddspf.dwRBitMask == 0xff0000)
+                if (fmt == SurfaceFormat.Bgra8 && header.ddspf.dwRBitMask == 0xff0000)
                 {
                     for (int px = 0; px < bytes; px += 4)
                     {

@@ -71,16 +71,8 @@ public class ModelRenderer
         renderContext.RenderTarget = restoreTarget;
         commandBuffer.Dispose();
         //Save to file
-        byte[] data = new byte[width * height * 4];
+        var data = new Bgra8[width * height];
         renderTarget.Texture.GetData(data);
-        for (int i = 0; i < data.Length; i += 4)
-        {
-            //Swap channels
-            var x = data[i + 2];
-            data[i + 2] = data[i];
-            data[i] = x;
-        }
-
         using var of = File.Create(outfile);
         ImageLib.PNG.Save(of, width, height, data, true);
         renderTarget.Dispose();

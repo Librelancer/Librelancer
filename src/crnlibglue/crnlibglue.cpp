@@ -33,11 +33,32 @@ static bool SetMipmapParameters(crnglue_mipmaps_t mipmaps, crn_mipmap_params& mi
     return true;
 }
 
+// Functions to enable taking BGRA input from Librelancer
+
+static void swap_channels(unsigned char *buffer, int width, int height)
+{
+    int len = width * height * 4;
+    for(int i = 0; i < len; i+= 4) {
+        unsigned char temp = buffer[i + 2];
+        buffer[i + 2] = buffer[i];
+        buffer[i] = temp;
+    }
+}
+
+static unsigned char *rgba_input(const unsigned char *input, int width, int height)
+{
+    unsigned char *newBuffer = (unsigned char*)malloc((size_t)(width * height * 4));
+    memcpy(newBuffer, input, (size_t)(width * height * 4));
+    swap_channels(newBuffer, width, height);
+    return newBuffer;    
+}
+
 CRNEXPORT int CrnGlueCompressDDS(const unsigned char *input, int inWidth, int inHeight, crnglue_format_t format, crnglue_mipmaps_t mipmaps, int highQualitySlow, unsigned char **output, unsigned int *outputSize)
 {
 	crn_comp_params compression = crn_comp_params();
     crn_mipmap_params mipparams;
 	compression.m_file_type = cCRNFileTypeDDS;
+	unsigned char *rgba = rgba_input(input, inWidth, inHeight);
 	switch(format) {
 		default:
 		case CRNGLUE_FORMAT_DXT1:
@@ -56,7 +77,7 @@ CRNEXPORT int CrnGlueCompressDDS(const unsigned char *input, int inWidth, int in
 	}
 	compression.m_width = inWidth;
 	compression.m_height = inHeight;
-	compression.m_pImages[0][0] = (const crn_uint32*)input;
+	compression.m_pImages[0][0] = (const crn_uint32*)rgba;
 	if(!highQualitySlow)
 		compression.m_dxt_quality = cCRNDXTQualityNormal;
 	if(!SetMipmapParameters(mipmaps, mipparams)) {
@@ -68,6 +89,7 @@ CRNEXPORT int CrnGlueCompressDDS(const unsigned char *input, int inWidth, int in
 		*output = (unsigned char*)crn_compress(compression, mipparams, sz);
 		*outputSize = (unsigned int)sz;
 	}
+	free(rgba);
 	return (*output != NULL) ? CRNGLUE_OK : CRNGLUE_ERROR;
 }
 
@@ -82,10 +104,11 @@ CRNEXPORT int CrnGlueGenerateMipmaps(const unsigned char *input, int inWidth, in
 {
     crn_mipmap_params mipparams;
     if(!SetMipmapParameters(mipmaps, mipparams)) return CRNGLUE_ERROR;
+    unsigned char *rgba = rgba_input(input, inWidth, inHeight);
     crn_comp_params compression = crn_comp_params();
     compression.m_width = inWidth;
 	compression.m_height = inHeight;
-	compression.m_pImages[0][0] = (const crn_uint32*)input;
+	compression.m_pImages[0][0] = (const crn_uint32*)rgba;
     //Create work_tex
     crnlib::mipmapped_texture work_tex = crnlib::mipmapped_texture();
     crnlib::image_u8 images[1][1];
@@ -99,16 +122,25 @@ CRNEXPORT int CrnGlueGenerateMipmaps(const unsigned char *input, int inWidth, in
     work_tex.assign(faces);
     //Create Mipmaps
     if(!crnlib::create_texture_mipmaps(work_tex, compression, mipparams, true)) {
+        free(rgba);
         return CRNGLUE_ERROR;
     }
+    free(rgba);
     //Copy output
     output->levelCount = (int)work_tex.get_num_levels();
     output->levels = (crnglue_miplevel_t*)malloc(sizeof(crnglue_miplevel_t) * output->levelCount);
     for(int i = 0; i < output->levelCount; i++) {
         output->levels[i].dataSize = (unsigned int)(work_tex.get_level(0,i)->get_total_pixels() * 4);
         output->levels[i].data = MakeCopy((void*)work_tex.get_level(0, i)->get_image()->get_ptr(), output->levels[i].dataSize);
+
         output->levels[i].width = (unsigned int)(work_tex.get_level(0,i)->get_width());
         output->levels[i].height = (unsigned int)(work_tex.get_level(0,i)->get_height());
+        
+        swap_channels(
+            output->levels[i].data,
+            output->levels[i].width,
+            output->levels[i].height
+        );
     }
     return CRNGLUE_OK;
 }

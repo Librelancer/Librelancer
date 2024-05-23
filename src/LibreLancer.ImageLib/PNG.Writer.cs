@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LibreLancer.ImageLib
@@ -39,10 +40,10 @@ namespace LibreLancer.ImageLib
             checksum_b = (checksum_b + checksum_a) % ADLER_MOD;
         }
 
-        public void Write(byte[] buffer, int start, int length)
+        public void Write(Span<byte> buffer)
         {
-            deflate.Write(buffer, start, length);
-            for (int i = start; i < start + length; i++)
+            deflate.Write(buffer);
+            for (int i = 0; i < buffer.Length; i++)
             {
                 checksum_a = (checksum_a + buffer[i]) % ADLER_MOD;
                 checksum_b = (checksum_b + checksum_a) % ADLER_MOD;
@@ -84,37 +85,51 @@ namespace LibreLancer.ImageLib
 			0xAE, 0x42, 0x60, 0x82
 		};
 
-		public static void Save(Stream output, int width, int height, byte[] data, bool flip, params PNGAncillaryChunk[] ancillaryChunks)
-		{
+		public static void Save(Stream output, int width, int height, ReadOnlySpan<Bgra8> bgraData, bool flip, params PNGAncillaryChunk[] ancillaryChunks)
+        {
+            var buffer = new Bgra8[bgraData.Length];
+            if (flip) {
+                for (int i = 0; i < height; i++)
+                {
+                    var dst = buffer.AsSpan().Slice(i * width, width);
+                    var src = bgraData.Slice((height - 1 - i) * width, width);
+                    src.CopyTo(dst);
+                }
+            }
+            else
+            {
+                bgraData.CopyTo(buffer.AsSpan());
+            }
+            Bgra8.ConvertFromRgba(buffer); //Reverse the swap, make it Rgba
+            var data = MemoryMarshal.Cast<Bgra8, byte>(buffer);
+
 			using (var writer = new BinaryWriter(output))
 			{
 				writer.Write(PNG_SIGNATURE);
-				WriteChunk("IHDR", writer, (chnk) =>
+				using(var ihdr = new Chunk("IHDR"))
 				{
-					chnk.WriteInt32BE(width);
-					chnk.WriteInt32BE(height);
-					chnk.Write((byte)8);
-					chnk.Write((byte)ColorType.Rgba);
-					chnk.Write((byte)0); //Compression method
-					chnk.Write((byte)0); //Filter method
-					chnk.Write((byte)0); //Interlacing
-				});
-				WriteChunk("IDAT", writer, (chnk) =>
+					ihdr.Writer.WriteInt32BE(width);
+                    ihdr.Writer.WriteInt32BE(height);
+                    ihdr.Writer.Write((byte)8);
+                    ihdr.Writer.Write((byte)ColorType.Rgba);
+                    ihdr.Writer.Write((byte)0); //Compression method
+                    ihdr.Writer.Write((byte)0); //Filter method
+                    ihdr.Writer.Write((byte)0); //Interlacing
+                    ihdr.WriteTo(writer);
+				}
+				using(var idat = new Chunk("IDAT"))
 				{
 					//zlib header
 					//deflate compression
-					byte[] buf = new byte[width * 4];
-                    using (var compress = new ZlibCompress(chnk.BaseStream))
+					Span<byte> buf = stackalloc byte[width * 4];
+                    using (var compress = new ZlibCompress(idat.Writer.BaseStream))
                     {
 
                         //First line
                         compress.WriteByte((byte) 0);
                         for (int x = 0; x < width * 4; x++)
                         {
-                            var b = flip
-                                ? data[width * (height - 1) * 4 + x]
-                                : data[x];
-                            compress.WriteByte(b);
+                            compress.WriteByte(data[x]);
                         }
                         //Filtered lines
                         for (int y = 1; y < height; y++)
@@ -122,41 +137,66 @@ namespace LibreLancer.ImageLib
                             var line = flip
                                 ? (height - 1 - y)
                                 : y;
-                            ApplyPaeth(data, (line + (flip ? 1 : -1)) * width * 4, line * width * 4, width * 4, buf);
+                            ApplyPaeth(data, (y - 1) * width * 4, y * width * 4, width * 4, buf);
                             compress.WriteByte((byte) 4); //paeth filter
-                            compress.Write(buf, 0, buf.Length);
+                            compress.Write(buf);
                         }
                     }
-                });
+                    idat.WriteTo(writer);
+                }
                 if (ancillaryChunks != null)
                 {
                     foreach (var ac in ancillaryChunks)
                     {
                         if (ac.FourCC is not { Length: 4 })
                             throw new Exception("Invalid ancillary FourCC, length must == 4");
-                        WriteChunk(ac.FourCC, writer, (chnk) => chnk.Write(ac.Data));
+                        using var chk = new Chunk(ac.FourCC);
+                        chk.Writer.Write(ac.Data);
+                        chk.WriteTo(writer);
                     }
                 }
 				writer.Write(IEND);
 			}
 		}
 
-		static void WriteChunk(string id, BinaryWriter writer, Action<BinaryWriter> writefunc)
-		{
-			var idbytes = Encoding.ASCII.GetBytes(id);
-			byte[] data;
-			using (var strm = new MemoryStream())
-			{
-				writefunc(new BinaryWriter(strm));
-				data = strm.ToArray();
-			}
-			writer.WriteInt32BE(data.Length);
-			writer.Write(idbytes);
-			writer.Write(data);
-			writer.WriteInt32BE((int)Crc(idbytes, data));
-		}
+        struct Chunk: IDisposable
+        {
+            public BinaryWriter Writer;
+            private MemoryStream stream;
+            private byte id0;
+            private byte id1;
+            private byte id2;
+            private byte id3;
 
-		static void ApplyPaeth(byte[] data, int prev, int curr, int count, byte[] buf)
+            public Chunk(string id)
+            {
+                id0 = (byte)id[0];
+                id1 = (byte)id[1];
+                id2 = (byte)id[2];
+                id3  = (byte)id[3];
+                stream = new MemoryStream();
+                Writer = new BinaryWriter(stream);
+            }
+
+            public void WriteTo(BinaryWriter png)
+            {
+                var data = stream.ToArray();
+                Span<byte> idbytes = stackalloc byte[4];
+                idbytes[0] = id0;
+                idbytes[1] = id1;
+                idbytes[2] = id2;
+                idbytes[3] = id3;
+
+                png.WriteInt32BE(data.Length);
+                png.Write(idbytes);
+                png.Write(data);
+                png.WriteInt32BE((int)Crc(idbytes, data));
+            }
+
+            public void Dispose() => stream.Dispose();
+        }
+
+		static void ApplyPaeth(Span<byte> data, int prev, int curr, int count, Span<byte> buf)
 		{
 			int j = 0;
 			int last = 0;

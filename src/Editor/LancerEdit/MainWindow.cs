@@ -163,7 +163,7 @@ namespace LancerEdit
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_64.png"))
             {
                 var icon = LibreLancer.ImageLib.Generic.ImageFromStream(stream);
-                SetWindowIcon(icon.Width, icon.Height, icon.Data);
+                SetWindowIcon(icon.Width, icon.Height, Bgra8.BufferFromBytes(icon.Data));
             }
             using (var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.reactor_128.png"))
             {

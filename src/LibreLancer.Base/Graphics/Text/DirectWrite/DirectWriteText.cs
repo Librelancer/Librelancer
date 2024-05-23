@@ -407,7 +407,7 @@ namespace LibreLancer.Graphics.Text.DirectWrite
             fontCollection = dWriteFactory.GetSystemFontCollection(false);
             renderParams = new RenderingParams(dWriteFactory, 1.2f, 0, 0, PixelGeometry.Flat, RenderingMode.NaturalSymmetric);
             this.engine = engine;
-            pages.Add(new Texture2D(context, TEXT_PAGE_SIZE, TEXT_PAGE_SIZE, false, SurfaceFormat.Color));
+            pages.Add(new Texture2D(context, TEXT_PAGE_SIZE, TEXT_PAGE_SIZE, false, SurfaceFormat.Bgra8));
         }
 
         struct ComputedSize
@@ -521,7 +521,7 @@ namespace LibreLancer.Graphics.Text.DirectWrite
                 }
                 if (currentY + r.Height > MAX_GLYPH_SIZE)
                 {
-                    pages.Add(new Texture2D(rcontext, TEXT_PAGE_SIZE, TEXT_PAGE_SIZE, false, SurfaceFormat.Color));
+                    pages.Add(new Texture2D(rcontext, TEXT_PAGE_SIZE, TEXT_PAGE_SIZE, false, SurfaceFormat.Bgra8));
                     currentX = currentY = maxLineHeight = 0;
                 }
                 r.X = currentX;

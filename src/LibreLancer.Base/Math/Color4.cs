@@ -113,34 +113,6 @@ namespace LibreLancer
         #region Public Members
 
         /// <summary>
-        /// Converts this color to an integer representation with 8 bits per channel for
-        /// use with OpenGL.
-        /// </summary>
-        /// <returns>A <see cref="System.Int32"/> that represents this instance.</returns>
-        public int ToAbgr()
-        {
-            var a = (uint) MathHelper.Clamp(A * 255, 0, 255);
-            var r = (uint)MathHelper.Clamp(R * 255, 0, 255);
-            var g = (uint)MathHelper.Clamp(G * 255, 0, 255);
-            var b = (uint)MathHelper.Clamp(B * 255, 0, 255);
-
-            uint value = a << 24 | b << 16 | g << 8 | r;
-
-            return unchecked((int)value);
-        }
-
-        public int ToRgba()
-        {
-            var a = (uint) MathHelper.Clamp(A * 255, 0, 255);
-            var r = (uint)MathHelper.Clamp(R * 255, 0, 255);
-            var g = (uint)MathHelper.Clamp(G * 255, 0, 255);
-            var b = (uint)MathHelper.Clamp(B * 255, 0, 255);
-
-            uint value = r << 24 | g << 16 | b << 8 | a;
-
-            return unchecked((int)value);
-        }
-        /// <summary>
         /// Compares the specified Color4 structures for equality.
         /// </summary>
         /// <param name="left">The left-hand side of the comparison.</param>
@@ -180,7 +152,14 @@ namespace LibreLancer
         /// <returns>A System.Int32 containing the hashcode of this Color4 structure.</returns>
         public override int GetHashCode()
         {
-            return ToAbgr();
+            var a = (uint) MathHelper.Clamp(A * 255, 0, 255);
+            var r = (uint)MathHelper.Clamp(R * 255, 0, 255);
+            var g = (uint)MathHelper.Clamp(G * 255, 0, 255);
+            var b = (uint)MathHelper.Clamp(B * 255, 0, 255);
+
+            uint value = a << 24 | b << 16 | g << 8 | r;
+
+            return unchecked((int)value);
         }
 
         /// <summary>
@@ -965,11 +944,6 @@ namespace LibreLancer
             return new Color4(r, g, b, srgb.A);
         }
 
-        public static unsafe Color4 FromRgba(uint argb)
-        {
-            byte* ptr = (byte*)&argb;
-            return new Color4(ptr[0], ptr[1], ptr[2], ptr[3]);
-        }
 
         /// <summary>
         /// Converts RGB color values to sRGB color values.

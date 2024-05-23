@@ -846,7 +846,7 @@ public static class LIF
     public static Texture2D TextureFromStream(RenderContext context, Stream stream)
     {
         var image = ImagesFromStream(stream);
-        var tex = new Texture2D(context, image[0].Width, image[0].Height, image.Length > 1, SurfaceFormat.Color);
+        var tex = new Texture2D(context, image[0].Width, image[0].Height, image.Length > 1, SurfaceFormat.Bgra8);
         tex.SetData(image[0].Data);
         tex.WithAlpha = image[0].Alpha;
         for (int i = 1; i < image.Length; i++)

@@ -282,7 +282,7 @@ namespace LibreLancer.ImageLib
             return new Image()
             {
                 Alpha = bytesPerPixel == 4 && imageType != 1, Data = targetData,
-                Format = bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Color,
+                Format = bytesPerPixel == 2 ? SurfaceFormat.Bgra5551 : SurfaceFormat.Bgra8,
                 Width = header.Width, Height = header.Height
             };
         }

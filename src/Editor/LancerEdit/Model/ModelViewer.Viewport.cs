@@ -249,15 +249,8 @@ namespace LancerEdit
             imageViewport.Begin(imageWidth, imageHeight);
             DrawGL(imageWidth, imageHeight, false, renderBackground);
             imageViewport.End(false);
-            byte[] data = new byte[imageWidth * imageHeight * 4];
+            var data = new Bgra8[imageWidth * imageHeight];
             imageViewport.RenderTarget.Texture.GetData(data);
-            for (int i = 0; i < data.Length; i += 4)
-            {
-                //Swap channels
-                var x = data[i + 2];
-                data[i + 2] = data[i];
-                data[i] = x;
-            }
             using var of = File.Create(output);
             LibreLancer.ImageLib.PNG.Save(of, imageWidth, imageHeight, data, true);
         }

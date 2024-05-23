@@ -1,3 +1,4 @@
+using System;
 using LibreLancer.Graphics;
 
 namespace LibreLancer.Platforms;
@@ -12,7 +13,7 @@ interface IGame : IUIThread
     float DpiScale { get; }
     int Width { get; }
     int Height { get; }
-    void SetWindowIcon(int width, int height, byte[] data);
+    void SetWindowIcon(int width, int height, ReadOnlySpan<Bgra8> data);
     bool Focused { get; }
     string Title { get; set; }
     Point MinimumWindowSize { get; set; }

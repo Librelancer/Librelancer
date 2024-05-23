@@ -90,13 +90,13 @@ namespace LibreLancer.Graphics.Text.Pango
         public int Bold;
         public int Italic;
         public int Underline;
-        public uint FgColor;
+        public VertexDiffuse FgColor;
         public int FontSize;
         public IntPtr FontName;
         public int ShadowEnabled;
-        public uint ShadowColor;
+        public VertexDiffuse ShadowColor;
         public int BackgroundEnabled;
-        public uint BackgroundColor;
+        public VertexDiffuse BackgroundColor;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -206,7 +206,7 @@ namespace LibreLancer.Graphics.Text.Pango
 
         void Alloc(PGTexture *texture, int width, int height, int isColor)
         {
-            textures.Add(new Texture2D(context, width, height, false, isColor == 0 ? SurfaceFormat.R8 : SurfaceFormat.Color));
+            textures.Add(new Texture2D(context, width, height, false, isColor == 0 ? SurfaceFormat.R8 : SurfaceFormat.Bgra8));
             texture->UserData = (IntPtr)(textures.Count - 1);
         }
 
@@ -288,18 +288,18 @@ namespace LibreLancer.Graphics.Text.Pango
                     if (text.Shadow.Enabled)
                     {
                         attrs[j].ShadowEnabled = 1;
-                        attrs[j].ShadowColor = (uint) text.Shadow.Color.ToRgba();
+                        attrs[j].ShadowColor = (VertexDiffuse)text.Shadow.Color;
                     }
                     else
                         attrs[j].ShadowEnabled = 0;
                     if (text.Background.Enabled)
                     {
                         attrs[j].BackgroundEnabled = 1;
-                        attrs[j].BackgroundColor = (uint) text.Background.Color.ToRgba();
+                        attrs[j].BackgroundColor = (VertexDiffuse)text.Background.Color;
                     }
                     else
                         attrs[j].BackgroundEnabled = 0;
-                    attrs[j].FgColor = (uint) text.Color.ToRgba();
+                    attrs[j].FgColor = (VertexDiffuse)text.Color;
                     attrs[j].FontName = pool.Allocate(text.FontName);
                     attrs[j].FontSize = (int)(text.FontSize * sizeMultiplier);
                 }

@@ -116,7 +116,7 @@ namespace LibreLancer.Utf.Vms
                         for (int i = 0; i < VertexCount; i++)
                         {
                             Vector3 position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                            var diffuse = reader.ReadUInt32();
+                            var diffuse = (VertexDiffuse)reader.ReadUInt32();
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
                             verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(position, Vector3.One, diffuse, textureCoordinate);
                         }
@@ -128,7 +128,7 @@ namespace LibreLancer.Utf.Vms
 						{
 							var position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 							var normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                            var diffuse = reader.ReadUInt32();
+                            var diffuse = (VertexDiffuse)reader.ReadUInt32();
 							Vector2 textureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 							verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(position, normal, diffuse, textureCoordinate);
 						}
@@ -141,7 +141,7 @@ namespace LibreLancer.Utf.Vms
                             var position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                             var normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
                             var diffuse = reader.ReadUInt32();
-                            verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(position, normal, diffuse, Vector2.Zero);
+                            verticesVertexPositionNormalDiffuseTexture[i] = new VertexPositionNormalDiffuseTexture(position, normal, (VertexDiffuse)diffuse, Vector2.Zero);
                         }
                         break;
                     case D3DFVF.XYZ | D3DFVF.NORMAL | D3DFVF.TEX2: //(D3DFVF)0x0212:

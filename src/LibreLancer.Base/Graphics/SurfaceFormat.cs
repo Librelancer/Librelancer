@@ -6,7 +6,7 @@ namespace LibreLancer.Graphics
 {
     public enum SurfaceFormat
     {
-        Color,
+        Bgra8,
         Bgr565,
         Bgra5551,
         Bgra4444,

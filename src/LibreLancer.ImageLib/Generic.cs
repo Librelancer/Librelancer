@@ -27,6 +27,10 @@ namespace LibreLancer.ImageLib
             /* stb_image it */
             StbImage.stbi_set_flip_vertically_on_load(flip ? 1 : 0);
             ImageResult image = ImageResult.FromMemory(b, ColorComponents.RedGreenBlueAlpha);
+            for (int i = 0; i < image.Data.Length; i += 4)
+            {
+                (image.Data[i + 2], image.Data[i]) = (image.Data[i], image.Data[i + 2]);
+            }
             return new Image()
             {
                 Width = image.Width, Height = image.Height, Data = image.Data
@@ -54,27 +58,14 @@ namespace LibreLancer.ImageLib
                     pos += r;
                 }
                 /* stb_image it */
-                int x = 0, y = 0;
                 StbImage.stbi_set_flip_vertically_on_load(flip ? 1 : 0);
                 ImageResult image = ImageResult.FromMemory(b, ColorComponents.RedGreenBlueAlpha);
-                x = image.Width;
-                y = image.Height;
-                var data = image.Data;
-                int dataLength = x * y * 4;
-                int j = 0;
-                for (int i = 0; i < dataLength; i+=4)
+                for (int i = 0; i < image.Data.Length; i += 4)
                 {
-                    var R = data[i];
-                    var G = data[i + 1];
-                    var B = data[i + 2];
-                    var A = data[i + 3];
-                    data[j++] = B;
-                    data[j++] = G;
-                    data[j++] = R;
-                    data[j++] = A;
+                    (image.Data[i + 2], image.Data[i]) = (image.Data[i], image.Data[i + 2]);
                 }
-                var t = new Texture2D(context, x, y, false, SurfaceFormat.Color);
-                t.SetData(data);
+                var t = new Texture2D(context, image.Width, image.Height, false, SurfaceFormat.Bgra8);
+                t.SetData(image.Data);
                 return t;
             }
         }

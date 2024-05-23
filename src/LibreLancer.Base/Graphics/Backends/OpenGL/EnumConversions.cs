@@ -36,7 +36,7 @@ static class EnumConversions
 
         switch (format)
         {
-            case SurfaceFormat.Color:
+            case SurfaceFormat.Bgra8:
                 glInternalFormat = GL.GLES ? GL.GL_BGRA : GL.GL_RGBA;
                 glFormat = GL.GL_BGRA;
                 glType = GL.GL_UNSIGNED_BYTE;
@@ -174,7 +174,7 @@ static class EnumConversions
             case SurfaceFormat.Rg32:
             case SurfaceFormat.NormalizedByte4:
             case SurfaceFormat.Rgba1010102:
-            case SurfaceFormat.Color:
+            case SurfaceFormat.Bgra8:
             case SurfaceFormat.Depth:
                 return 4;
             case SurfaceFormat.HalfSingle:

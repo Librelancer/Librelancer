@@ -60,6 +60,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Backends.OpenGL;
 
 namespace LibreLancer.Graphics
@@ -463,24 +464,25 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
             }
         }
 
-        public static byte[] Decompress(SurfaceFormat format, int width, int height, byte[] input)
+        public static Bgra8[] Decompress(SurfaceFormat format, int width, int height, byte[] input)
         {
-            byte[] rgba = new byte[width * height * 4];
+            Bgra8[] bgra = new Bgra8[width * height];
+            var image = MemoryMarshal.Cast<Bgra8, byte>(bgra);
             switch (format)
             {
                 case SurfaceFormat.Dxt1:
-                    BlockDecompressImageDXT1(width, height, input, rgba);
+                    BlockDecompressImageDXT1(width, height, input, image);
                     break;
                 case SurfaceFormat.Dxt3:
-                    BlockDecompressImageDXT3(width, height, input, rgba);
+                    BlockDecompressImageDXT3(width, height, input, image);
                     break;
                 case SurfaceFormat.Dxt5:
-                    BlockDecompressImageDXT5(width, height, input, rgba);
+                    BlockDecompressImageDXT5(width, height, input, image);
                     break;
                 default:
                     throw new InvalidOperationException($"Cannot convert {format}");
             }
-            return rgba;
+            return bgra;
         }
 
         internal static void CompressedTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int imageSize, IntPtr data)

@@ -58,7 +58,7 @@ public static class Controls
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
         ImGui.PushID(name);
         var push = !visible;
-        if (push) ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Gray.ToAbgr());
+        if (push) ImGui.PushStyleColor(ImGuiCol.Text, (VertexDiffuse)Color4.Gray);
         if (ImGui.Button(Icons.Eye)) visible = !visible;
         if (push) ImGui.PopStyleColor();
         ImGui.PopID();

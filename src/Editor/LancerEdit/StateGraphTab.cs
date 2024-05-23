@@ -5,6 +5,7 @@ using LibreLancer;
 using LibreLancer.Data.Pilots;
 using LibreLancer.ImUI;
 using LibreLancer.Server.Ai;
+using SimpleMesh;
 
 namespace LancerEdit;
 
@@ -13,13 +14,13 @@ public class StateGraphTab : EditorTab
     private List<StateGraph> graphs;
     private string[] graphNames;
     private int selectedIndex = 0;
-    
+
     public StateGraphTab(StateGraphDb stateGraphDb, string filename)
     {
         Title = filename;
         graphs = stateGraphDb.Tables.Values.ToList();
         graphNames = graphs.Select(x => $"{x.Description.Name} ({x.Description.Type})").ToArray();
-        
+
     }
 
     private int lastHoveredX = -1;
@@ -37,7 +38,7 @@ public class StateGraphTab : EditorTab
             {
                 ImGui.TableSetColumnIndex(i + 1);
                 if(lastHoveredX == i)
-                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (uint)Color4.CornflowerBlue.ToAbgr());
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (VertexDiffuse)Color4.CornflowerBlue);
                 ImGui.Text(((StateGraphEntry)i).ToString());
             }
             for (int y = 0; y < tab.Data.Count; y++)
@@ -45,8 +46,8 @@ public class StateGraphTab : EditorTab
                 ImGui.TableNextRow();
                 ImGui.TableSetColumnIndex(0);
                 ImGui.TableHeader(((StateGraphEntry)y).ToString());
-                if(lastHoveredY == y)                         
-                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (uint)Color4.CornflowerBlue.ToAbgr());
+                if(lastHoveredY == y)
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (VertexDiffuse)Color4.CornflowerBlue);
                 ImGui.PushFont(ImGuiHelper.SystemMonospace);
                 for (int x = 0; x < (int) StateGraphEntry._Count; x++)
                 {

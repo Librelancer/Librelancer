@@ -119,10 +119,10 @@ namespace LibreLancer
             }
         }
 
-        public unsafe void SetWindowIcon(int width, int height, byte[] data)
+        public unsafe void SetWindowIcon(int width, int height, ReadOnlySpan<Bgra8> data)
         {
             IntPtr surface;
-            fixed (byte* ptr = data)
+            fixed (Bgra8* ptr = &data.GetPinnableReference())
             {
                 surface = SDL.SDL_CreateRGBSurfaceFrom(
                     (IntPtr)ptr,
@@ -130,9 +130,9 @@ namespace LibreLancer
                     height,
                     32,
                     width * 4,
-                    0x000000FF,
+                    0xFF000000,
                     0x0000FF00,
-                    0x00FF0000,
+                    0x000000FF,
                     0xFF000000);
             }
             SDL.SDL_SetWindowIcon(windowptr, surface);
@@ -295,19 +295,13 @@ namespace LibreLancer
             if (ScreenshotSave != null)
             {
                 GL.ReadBuffer(GL.GL_BACK);
-                var colordata = new byte[width * height * 4];
-                fixed (byte* ptr = colordata)
-                {
+                var colordata = new Bgra8[width * height];
+                fixed (Bgra8* ptr = colordata)
                     GL.ReadPixels(0, 0, width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, (IntPtr)ptr);
-                }
                 var c = RenderContext.ClearColor;
-                for (int x = 0; x < width; x++)
-                    for (int y = 0; y < height; y++)
-                    {
-                        int offset = (y * height * 4) + (x * 4);
-                        colordata[offset + 3] = 0xFF;
-                    }
-
+                for (int i = 0; i < colordata.Length; i++) {
+                    colordata[i].A = 0xFF;
+                }
                 ScreenshotSave(_screenshotpath, width, height, colordata);
             }
 

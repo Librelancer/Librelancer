@@ -113,14 +113,14 @@ namespace LibreLancer.Graphics
 			public Vector2 Position;
 			public Vector2 TexCoord;
             public int CircleCoord;
-			public int Color;
+			public VertexDiffuse Color;
 
 			public Vertex2D(Vector2 position, Vector2 texcoord, Color4 color)
 			{
 				Position = position;
 				TexCoord = texcoord;
                 CircleCoord = 0;
-                Color = color.ToAbgr();
+                Color = (VertexDiffuse)color;
             }
 
             public Vertex2D(Vector2 position, Vector2 texcoord, int circlecoord, Color4 color)
@@ -128,7 +128,7 @@ namespace LibreLancer.Graphics
                 Position = position;
                 TexCoord = texcoord;
                 CircleCoord = circlecoord;
-                Color = color.ToAbgr();
+                Color = (VertexDiffuse)color;
             }
 
 			public VertexDeclaration GetVertexDeclaration()

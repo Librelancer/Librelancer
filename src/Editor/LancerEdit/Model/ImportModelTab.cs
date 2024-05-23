@@ -420,7 +420,7 @@ public class ImportModelTab : EditorTab
             new VertexPositionNormalDiffuseTexture(
                 x.Position,
                 x.Normal,
-                (uint)(new Color4(x.Diffuse).ToAbgr()),
+                (VertexDiffuse)x.Diffuse,
                 Vector2.One)
         ).ToArray();
         var elements = g.Indices.Indices16;

@@ -186,7 +186,7 @@ namespace LibreLancer.Media
                         //retrieve size of video
                         long sz = desc.MediaTypeHandler.CurrentMediaType.Get<long>(new Guid("{1652c33d-d6b2-4012-b834-72030849a37d}"));
                         int height = (int)(sz & uint.MaxValue), width = (int)(sz >> 32);
-                        _texture = new Texture2D(rcontext, width, height, false, SurfaceFormat.Color);
+                        _texture = new Texture2D(rcontext, width, height, false, SurfaceFormat.Bgra8);
                         mt = new MediaType();
 
                         mt.Set(MediaTypeAttributeKeys.MajorType, MediaTypeGuids.Video);

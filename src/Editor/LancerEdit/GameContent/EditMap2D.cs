@@ -155,7 +155,7 @@ public class EditMap2D
             {
                 var radius = (lt.Light.Range / mapScale.X) * renderWidth;
                 dlist.AddCircle(ImGui.GetWindowPos() + WorldToMap(lt.Light.Position), radius,
-                    (uint)Color4.Yellow.ToAbgr());
+                    (VertexDiffuse)Color4.Yellow);
             }
         }
         //Context menu

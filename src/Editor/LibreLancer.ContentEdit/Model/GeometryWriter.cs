@@ -111,7 +111,7 @@ namespace LibreLancer.ContentEdit.Model
                         writer.Write(v.Normal.Z);
                     }
                     if ((fvf & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
-                        writer.Write(((Color4)v.Diffuse).ToAbgr());
+                        writer.Write((VertexDiffuse)v.Diffuse);
                     }
                     //Librelancer flips DX to OpenGL on load,
                     //write as DX

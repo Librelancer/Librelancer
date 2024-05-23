@@ -48,7 +48,7 @@ namespace LibreLancer.ContentEdit
 
         [DllImport("crnlibglue")]
         static extern void CrnGlueFreeMipmaps(ref CrnglueMipmapOutput output);
-        
+
         [StructLayout(LayoutKind.Sequential)]
         struct CrnglueMiplevel
         {
@@ -70,13 +70,13 @@ namespace LibreLancer.ContentEdit
             Marshal.Copy(pointer, b, 0, size);
             return b;
         }
-        
-        public static unsafe byte[] CompressDDS(byte[] input, int width, int height, CrnglueFormat format,
+
+        public static unsafe byte[] CompressDDS(ReadOnlySpan<Bgra8> input, int width, int height, CrnglueFormat format,
             CrnglueMipmaps mipmaps, bool highQualitySlow)
         {
             IntPtr output;
             int outputSize;
-            fixed (byte* b = input)
+            fixed (Bgra8* b = &input.GetPinnableReference())
             {
                 if (CrnGlueCompressDDS((IntPtr)b, width, height, format, mipmaps, highQualitySlow, out output, out outputSize) == 0)
                     throw new Exception("Compression failed");
@@ -87,10 +87,10 @@ namespace LibreLancer.ContentEdit
             return result;
         }
 
-        public static unsafe List<CrunchMipLevel> GenerateMipmaps(byte[] input, int width, int height, CrnglueMipmaps mipmaps)
+        public static unsafe List<CrunchMipLevel> GenerateMipmaps(ReadOnlySpan<Bgra8> input, int width, int height, CrnglueMipmaps mipmaps)
         {
             CrnglueMipmapOutput output;
-            fixed (byte* b = input)
+            fixed (Bgra8* b = &input.GetPinnableReference())
             {
                 if(CrnGlueGenerateMipmaps((IntPtr)b, width, height, mipmaps, out output) == 0)
                     throw new Exception("Mipmap generation failed");

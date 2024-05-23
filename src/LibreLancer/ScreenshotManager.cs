@@ -39,7 +39,7 @@ namespace LibreLancer
 			names.Add(name);
 			g.Screenshot(Path.Combine(screenshotdir, name + ".png"));
 		}
-		public void Save(string filename, int width, int height, byte[] data)
+		public void Save(string filename, int width, int height, Bgra8[] data)
 		{
 			toSave.Enqueue(new SaveCommand() { Data = data, Filename = filename, Width = width, Height = height });
 		}
@@ -68,7 +68,7 @@ namespace LibreLancer
 			public int Width;
 			public int Height;
 			public string Filename;
-			public byte[] Data;
+			public Bgra8[] Data;
 		}
 	}
 }

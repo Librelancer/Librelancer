@@ -203,13 +203,13 @@ namespace LibreLancer
 			DefaultMaterial.Name = "$LL_DefaultMaterialName";
             DefaultMaterial.Initialize(this);
 
-            NullTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Color);
+            NullTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
             NullTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0x0 });
 
-            WhiteTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Color);
+            WhiteTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
             WhiteTexture.SetData(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF });
 
-            GreyTexture = new Texture2D(g.RenderContext, 1,1, false, SurfaceFormat.Color);
+            GreyTexture = new Texture2D(g.RenderContext, 1,1, false, SurfaceFormat.Bgra8);
             GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF});
 
             ConvexCollection = new ConvexMeshCollection(GetSur);

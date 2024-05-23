@@ -13,7 +13,7 @@ namespace LibreLancer.Graphics.Vertices
     {
         public Vector3 Position;
         public Vector3 Normal;
-        public uint Diffuse;
+        public VertexDiffuse Diffuse;
         public Vector2 TextureCoordinate;
         public Vector2 TextureCoordinateTwo;
 
@@ -22,11 +22,11 @@ namespace LibreLancer.Graphics.Vertices
         {
             this.Position = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             this.Normal = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            this.Diffuse = reader.ReadUInt32();
+            this.Diffuse = (VertexDiffuse)reader.ReadUInt32();
 			this.TextureCoordinate = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
 			this.TextureCoordinateTwo = new Vector2(reader.ReadSingle(), 1 - reader.ReadSingle());
         }
-        public VertexPositionNormalDiffuseTextureTwo(Vector3 pos, Vector3 normal, uint diffuse, Vector2 tex1, Vector2 tex2)
+        public VertexPositionNormalDiffuseTextureTwo(Vector3 pos, Vector3 normal, VertexDiffuse diffuse, Vector2 tex1, Vector2 tex2)
         {
             Position = pos;
             Normal = normal;

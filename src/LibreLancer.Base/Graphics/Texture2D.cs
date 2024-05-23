@@ -23,7 +23,7 @@ namespace LibreLancer.Graphics
             SetBacking(Backing);
         }
 
-        public Texture2D(RenderContext context, int width, int height) : this(context, width, height, false, SurfaceFormat.Color)
+        public Texture2D(RenderContext context, int width, int height) : this(context, width, height, false, SurfaceFormat.Bgra8)
         {
         }
 

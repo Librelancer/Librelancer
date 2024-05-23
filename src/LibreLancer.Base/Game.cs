@@ -22,7 +22,7 @@ using LibreLancer.Platforms;
 
 namespace LibreLancer
 {
-    public delegate void ScreenshotSaveHandler(string filename, int width, int height, byte[] data);
+    public delegate void ScreenshotSaveHandler(string filename, int width, int height, Bgra8[] data);
 
     public enum ClipboardContents
     {
@@ -109,7 +109,7 @@ namespace LibreLancer
             return Services.OfType<T>().FirstOrDefault();
         }
 
-        public void SetWindowIcon(int width, int height, byte[] data) =>
+        public void SetWindowIcon(int width, int height, ReadOnlySpan<Bgra8> data) =>
             impl.SetWindowIcon(width, height, data);
 
         public ClipboardContents ClipboardStatus() => impl.ClipboardStatus();

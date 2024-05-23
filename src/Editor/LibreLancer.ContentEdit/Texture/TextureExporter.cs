@@ -10,11 +10,10 @@ namespace LibreLancer.ContentEdit.Texture;
 
 public static class TextureExporter
 {
-    static byte[] Conv16To32(byte[] srcData, int width, int height)
+    static Bgra8[] Conv16To32(byte[] srcData, int width, int height)
     {
-        byte[] data = new byte[width * height * 4];
+        Bgra8[] data = new Bgra8[width * height];
         var src = MemoryMarshal.Cast<byte, ushort>(srcData);
-        var dst = MemoryMarshal.Cast<byte, uint>(data);
         for (int i = 0; i < width * height; i++)
         {
             var val = src[i];
@@ -24,7 +23,7 @@ public static class TextureExporter
             g = (g << 3) | (g >> 2);
             var b = (uint) (val & 0x001F);
             b = (b << 3) | (b >> 2);
-            dst[i] = 0xFF000000 | (b << 16) | (g << 8) | r;
+            data[i] = new Bgra8(0xFF000000 | (r << 16) | (g << 8) | b);
         }
         return data;
 
@@ -55,10 +54,9 @@ public static class TextureExporter
         {
             var toEncode = Generic.ImageFromStream(new MemoryStream(resource.Data));
             using var output = new MemoryStream();
-            if (toEncode.Format == SurfaceFormat.Color)
+            if (toEncode.Format == SurfaceFormat.Bgra8)
             {
-                SwapChannels(toEncode.Data);
-                PNG.Save(output, toEncode.Width, toEncode.Height, toEncode.Data, false);
+                PNG.Save(output, toEncode.Width, toEncode.Height, Bgra8.BufferFromBytes(toEncode.Data), false);
             }
             else if (toEncode.Format == SurfaceFormat.Bgra5551)
             {
@@ -78,11 +76,10 @@ public static class TextureExporter
             if (surface == null)
                 return null;
             using var output = new MemoryStream();
-            byte[] converted;
-            if (surface[0].Format == SurfaceFormat.Color) //Uncompressed
+            Bgra8[] converted;
+            if (surface[0].Format == SurfaceFormat.Bgra8) //Uncompressed
             {
-                SwapChannels(surface[0].Data);
-                PNG.Save(output, surface[0].Width, surface[0].Height, surface[0].Data, false);
+                PNG.Save(output, surface[0].Width, surface[0].Height, Bgra8.BufferFromBytes(surface[0].Data), false);
                 return output.ToArray();
             }
             else if (surface[0].Format == SurfaceFormat.Bgra5551)
@@ -94,7 +91,6 @@ public static class TextureExporter
                      surface[0].Format == SurfaceFormat.Dxt5)
             {
                 converted = S3TC.Decompress(surface[0].Format, surface[0].Width, surface[0].Height, surface[0].Data);
-                SwapChannels(converted);
             }
             else
             {
@@ -104,10 +100,7 @@ public static class TextureExporter
             {
                 //Create ancillary chunk
                 var ms = new MemoryStream();
-                using (SHA256 sha256Hash = SHA256.Create())
-                {
-                    ms.Write(sha256Hash.ComputeHash(converted));
-                }
+                ms.Write(SHA256.HashData(MemoryMarshal.Cast<Bgra8, byte>(converted)));
                 using var comp = new ZstdSharp.Compressor();
                 ms.Write(comp.Wrap(resource.Data));
                 var ancillary = new PNGAncillaryChunk("ddsz", ms.ToArray());

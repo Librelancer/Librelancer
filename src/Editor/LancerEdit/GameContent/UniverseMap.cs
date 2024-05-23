@@ -17,19 +17,19 @@ namespace LancerEdit.GameContent
 
             var minPos = ImGui.GetCursorScreenPos();
             var maxPos = minPos + new Vector2(width, height);
-            
+
             var drawList = ImGui.GetWindowDrawList();
 
             float buttonSize = (int) ((width / 838.0f) * 16f);
             if (buttonSize < 2) buttonSize = 2;
-            
+
             if (imageId != -1) {
                 drawList.AddImage((IntPtr) imageId, minPos, maxPos, new Vector2(0, 1), new Vector2(1, 0));
             }
             else {
                 drawList.AddRectFilled(minPos, maxPos, 0xFF000000);
             }
-        
+
             float margin = 0.15f;
             var min = ImGui.GetCursorPos() + new Vector2(width, height) * margin;
             var factor = (new Vector2(width, height) * (1 - 2 * margin)) / 16f;
@@ -38,9 +38,9 @@ namespace LancerEdit.GameContent
             {
                 var a = connectMin + c.Item1 * factor;
                 var b = connectMin + c.Item2 * factor;
-                drawList.AddLine(a, b, (uint)Color4.CornflowerBlue.ToAbgr(), 2f);
+                drawList.AddLine(a, b, (VertexDiffuse)Color4.CornflowerBlue, 2f);
             }
-            
+
             string retVal = null;
             foreach (var sys in gameData.Systems)
             {

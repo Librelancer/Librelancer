@@ -183,7 +183,7 @@ namespace LancerEdit
                 ImGui.SameLine();
                 var bb = ImGui.CalcTextSize(COMPILED_THN_MESSAGE);
                 var pos = ImGui.GetCursorScreenPos();
-                ImGui.PushStyleColor(ImGuiCol.Text, (uint)Color4.Yellow.ToAbgr());
+                ImGui.PushStyleColor(ImGuiCol.Text, (VertexDiffuse)Color4.Yellow);
                 ImGui.Text(COMPILED_THN_MESSAGE);
                 ImGui.PopStyleColor();
                 ImGui.SameLine();

@@ -211,7 +211,7 @@ namespace LibreLancer
 			VertexBuffer.TotalDrawcalls = 0;
         }
 
-		void FreelancerGame_ScreenshotSave(string filename, int width, int height, byte[] data)
+		void FreelancerGame_ScreenshotSave(string filename, int width, int height, Bgra8[] data)
 		{
 			Screenshots.Save(filename, width, height, data);
 		}
