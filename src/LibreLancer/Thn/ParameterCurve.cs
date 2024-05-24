@@ -106,7 +106,7 @@ namespace LibreLancer.Thn
 		{
             float x = 0;
 			var p = Period / 1000f;
-			if (p < 0)
+			if (p < float.Epsilon)
 				x = time / duration;
 			else
 				x = (time % p) / p;
