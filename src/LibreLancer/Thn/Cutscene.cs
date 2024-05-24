@@ -56,13 +56,10 @@ namespace LibreLancer.Thn
                     {
                         if (charRen.Skeleton.ApplyRootMotion)
                         {
-                            var newTranslate = charRen.Skeleton.RootTranslation -
-                                               charRen.Skeleton.RootTranslationOrigin;
-                            var newRotate = charRen.Skeleton.RootRotation * charRen.Skeleton.RootRotationOrigin;
-                            charRen.Skeleton.RootRotationOrigin = Quaternion.Inverse(charRen.Skeleton.RootRotation);
-                            charRen.Skeleton.RootTranslationOrigin = charRen.Skeleton.RootTranslation;
-                            Rotate = Matrix4x4.CreateFromQuaternion(newRotate) * Rotate;
-                            Translate += Vector3.Transform(newTranslate, Rotate);
+                            var accum = Rotate.ExtractRotation() * charRen.Skeleton.RootRotation;
+                            var movement = Quaternion.Inverse(charRen.Skeleton.RootRotationAccumulator) * accum;
+                            Translate += Vector3.Transform(charRen.Skeleton.RootTranslation, movement);
+                            Rotate = Matrix4x4.CreateFromQuaternion(accum);
                         }
 
                         Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
