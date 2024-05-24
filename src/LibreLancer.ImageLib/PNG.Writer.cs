@@ -30,7 +30,7 @@ namespace LibreLancer.ImageLib
             //write zlib header
             outputStream.WriteByte(0x78);
             outputStream.WriteByte(0xDA);
-            deflate = new DeflateStream(outputStream, CompressionLevel.Optimal, true);
+            deflate = new DeflateStream(outputStream, CompressionLevel.SmallestSize, true);
         }
 
         public void WriteByte(byte b)
