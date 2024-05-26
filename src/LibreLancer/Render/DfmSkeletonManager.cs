@@ -32,7 +32,7 @@ namespace LibreLancer.Render
         private Connection LeftHandConnection;
         private Connection RightHandConnection;
 
-        class Connection
+        public class Connection
         {
             private readonly HardpointDefinition parentHp;
             private readonly BoneInstance parentBone;
@@ -192,6 +192,8 @@ namespace LibreLancer.Render
             }
         }
 
+        public Dictionary<string, DfmHardpoint> Hardpoints =
+            new Dictionary<string, DfmHardpoint>(StringComparer.OrdinalIgnoreCase);
         public bool GetAccessoryTransform(RigidModel model, string hpAccessory, string hpSkel, Matrix4x4 world, out Matrix4x4 result)
         {
             result = Matrix4x4.Identity;
@@ -238,27 +240,41 @@ namespace LibreLancer.Render
             return false;
         }
 
+        void AddHardpoints(DfmSkinning skinning, Connection connection)
+        {
+            foreach (var hp in skinning.GetHardpoints())
+                Hardpoints[hp.def.Name] = new DfmHardpoint()
+                {
+                    Definition = hp.def,
+                    Bone = hp.bone,
+                    Connection = connection,
+                };
+        }
         public DfmSkeletonManager(DfmFile body, DfmFile head = null, DfmFile leftHand = null, DfmFile rightHand = null)
         {
             Body = body;
             BodySkinning = new DfmSkinning(body);
+            AddHardpoints(BodySkinning, null);
             if (head != null)
             {
                 Head = head;
                 HeadSkinning = new DfmSkinning(head);
                 HeadConnection = new(BodySkinning, HeadSkinning, "hp_head", "hp_head", "hp_neck");
+                AddHardpoints(HeadSkinning, HeadConnection);
             }
             if (leftHand != null)
             {
                 LeftHand = leftHand;
                 LeftHandSkinning = new DfmSkinning(leftHand);
                 LeftHandConnection = new(BodySkinning, LeftHandSkinning, "hp_left b", "hp_left b", "hp_left a");
+                AddHardpoints(LeftHandSkinning, LeftHandConnection);
             }
             if (rightHand != null)
             {
                 RightHand = rightHand;
                 RightHandSkinning = new DfmSkinning(rightHand);
                 RightHandConnection = new(BodySkinning, RightHandSkinning, "hp_right b", "hp_right b", "hp_right a");
+                AddHardpoints(RightHandSkinning, RightHandConnection);
             }
         }
 

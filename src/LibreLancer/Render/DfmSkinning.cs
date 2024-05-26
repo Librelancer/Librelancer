@@ -51,6 +51,20 @@ namespace LibreLancer.Render
             }
         }
 
+        public IEnumerable<(HardpointDefinition def, BoneInstance bone)> GetHardpoints()
+        {
+            foreach (var hp in dfm.GetHardpoints())
+            {
+                if (Bones.TryGetValue(hp.Part.objectName, out BoneInstance bi))
+                {
+                    yield return (hp.Hp, bi);
+                }
+                else
+                {
+                    yield return (hp.Hp, null);
+                }
+            }
+        }
         public bool GetHardpoint(string hp, out HardpointDefinition def, out BoneInstance bone)
         {
             var hardpoint = dfm.GetHardpoints().FirstOrDefault(x => x.Hp.Name.Equals(hp, StringComparison.OrdinalIgnoreCase));

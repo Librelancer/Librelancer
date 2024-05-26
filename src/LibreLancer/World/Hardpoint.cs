@@ -3,11 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.World
 {
-    public class Hardpoint
+    public class Hardpoint : IRenderHardpoint
     {
         Matrix4x4 transform;
         public RigidModelPart Parent;

@@ -237,9 +237,9 @@ PGBuiltText *pg_buildtext(PGRenderContext *ctx,
 		    if(paragraphs[i].attributes[j].shadowEnabled) {
 		        PangoAttribute *shadowAttr = attr_shadow_new(
 		            ctx,
+                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 0),
                     PG_8To16(paragraphs[i].attributes[j].shadowColor, 8),
-                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 16),
-                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 24)
+                    PG_8To16(paragraphs[i].attributes[j].shadowColor, 16)
                 );
                 shadowAttr->start_index = paragraphs[i].attributes[j].startIndex;
 		        shadowAttr->end_index = paragraphs[i].attributes[j].endIndex;
@@ -247,18 +247,18 @@ PGBuiltText *pg_buildtext(PGRenderContext *ctx,
 		    }
 		    if(paragraphs[i].attributes[j].backgroundEnabled) {
 		        PangoAttribute *backgroundAttr = pango_attr_background_new(
+                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 0),
                     PG_8To16(paragraphs[i].attributes[j].backgroundColor, 8),
-                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 16),
-                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 24)
+                    PG_8To16(paragraphs[i].attributes[j].backgroundColor, 16)
                 );
                 backgroundAttr->start_index = paragraphs[i].attributes[j].startIndex;
 		        backgroundAttr->end_index = paragraphs[i].attributes[j].endIndex;
 		        pango_attr_list_insert(attrList, backgroundAttr);
 		    }
 		    PangoAttribute *colorAttr = pango_attr_foreground_new(
+                PG_8To16(paragraphs[i].attributes[j].fgColor, 0),
                 PG_8To16(paragraphs[i].attributes[j].fgColor, 8),
-                PG_8To16(paragraphs[i].attributes[j].fgColor, 16),
-                PG_8To16(paragraphs[i].attributes[j].fgColor, 24)
+                PG_8To16(paragraphs[i].attributes[j].fgColor, 16)
             );
             colorAttr->start_index = paragraphs[i].attributes[j].startIndex;
 		    colorAttr->end_index = paragraphs[i].attributes[j].endIndex;

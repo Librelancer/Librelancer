@@ -6,7 +6,7 @@ using System;
 using System.Numerics;
 namespace LibreLancer.Utf.Dfm
 {
-	public class DfmHardpoint
+	public class DfmHardpointDef
 	{
 		public DfmFile File;
 		public DfmPart Part;

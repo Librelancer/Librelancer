@@ -7,8 +7,8 @@ namespace LancerEdit;
 
 public class DfmHpInfo : PopupWindow
 {
-    private DfmHardpoint hp;
-    public DfmHpInfo(DfmHardpoint hp)
+    private DfmHardpointDef hp;
+    public DfmHpInfo(DfmHardpointDef hp)
     {
         this.hp = hp;
     }

@@ -34,12 +34,12 @@ namespace LibreLancer.Utf.Dfm
         public List<Bone> BoneList = new List<Bone>();
 		public DfmConstructs Constructs { get; private set; }
 
-		public IEnumerable<DfmHardpoint> GetHardpoints()
+		public IEnumerable<DfmHardpointDef> GetHardpoints()
 		{
 			foreach (var b in Parts)
 			{
 				foreach (var hp in b.Value.Bone.Hardpoints)
-					yield return new DfmHardpoint() { Part = b.Value, Hp = hp };
+					yield return new DfmHardpointDef() { Part = b.Value, Hp = hp };
 			}
 		}
 
