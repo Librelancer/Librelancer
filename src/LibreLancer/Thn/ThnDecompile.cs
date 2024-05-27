@@ -77,6 +77,15 @@ namespace LibreLancer.Thn
             ThornTable.EnumReverse.Add("UserEvent", "USER_EVENT");
             ThornTable.EnumReverse.Add("StartReverbPropAnim", "START_REVERB_PROP_ANIM");
             ThornTable.EnumReverse.Add("Subtitle", "SUBTITLE");
+            //Axis
+            ThornTable.EnumReverse.Add("XAxis", "X_AXIS");
+            ThornTable.EnumReverse.Add("YAxis", "Y_AXIS");
+            ThornTable.EnumReverse.Add("ZAxis", "Z_AXIS");
+            ThornTable.EnumReverse.Add("NegXAxis", "NEG_X_AXIS");
+            ThornTable.EnumReverse.Add("NegYAxis", "NEG_Y_AXIS");
+            ThornTable.EnumReverse.Add("NegZAxis", "NEG_Z_AXIS");
+
+
         }
 
         public static string Decompile(string file, ThornReadFile readCallback = null)
@@ -119,13 +128,22 @@ namespace LibreLancer.Thn
                     if (lp.ContainsKey("type")) lp["type"] = ThnTypes.Convert<LightTypes>(lp["type"]);
                 }
                 if (ent.ContainsKey("flags")) ent["flags"] = ConvertFlags((EntityTypes)ent["type"], ent);
+                if (ent.ContainsKey("front"))
+                    ent["front"] = ThnTypes.Convert<ThnAxis>(ent["front"]);
+                if(ent.ContainsKey("up"))
+                    ent["up"] = ThnTypes.Convert<ThnAxis>(ent["up"]);
             }
         }
         static ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
         {
             if (!(table["flags"] is float)) return (ThnObjectFlags)table["flags"];
             var val = (int)(float)table["flags"];
-            return ThnTypes.Convert<ThnObjectFlags>(val);
+            var tp = ThnTypes.Convert<ThnObjectFlags>(val);
+            if (type == EntityTypes.Sound && (tp & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic)
+            {
+                return ThnObjectFlags.SoundSpatial | (tp & ~ThnObjectFlags.LitDynamic);
+            }
+            return tp;
         }
         static void ProcessEvents(ThornTable t)
         {

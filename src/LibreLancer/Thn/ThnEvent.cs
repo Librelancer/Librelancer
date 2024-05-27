@@ -2,7 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Render;
 using LibreLancer.Thorn;
+using LibreLancer.World;
 
 namespace LibreLancer.Thn
 {
@@ -77,6 +79,16 @@ namespace LibreLancer.Thn
                 return true;
             }
             return false;
+        }
+
+        protected static IRenderHardpoint GetHardpoint(GameObject obj, string hp)
+        {
+            if (obj.RenderComponent is CharacterRenderer ch)
+            {
+                ch.Skeleton.Hardpoints.TryGetValue(hp, out var h);
+                return h;
+            }
+            return obj.GetHardpoint(hp);
         }
 
     }

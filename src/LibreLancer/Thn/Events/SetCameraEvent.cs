@@ -14,6 +14,19 @@ namespace LibreLancer.Thn.Events
 
         public override void Run(ThnScriptInstance instance)
         {
+            if (instance.Objects.TryGetValue(Targets[0], out var monitor))
+            {
+                if (monitor.Entity.Type != EntityTypes.Monitor)
+                {
+                    FLLog.Error("Thn", $"Tried to set camera on non-monitor {Targets[0]}");
+                    return;
+                }
+                if (monitor.MonitorIndex != 0)
+                {
+                    FLLog.Debug("Thn", $"SET_CAMERA: Ignoring on non-main monitor {Targets[0]}");
+                    return;
+                }
+            }
             instance.Cutscene.SetCamera(Targets[1]);
         }
     }

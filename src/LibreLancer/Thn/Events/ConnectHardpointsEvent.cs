@@ -16,15 +16,7 @@ namespace LibreLancer.Thn.Events
         public string ParentHardpoint;
         public ConnectHardpointsEvent() { }
 
-        static IRenderHardpoint GetHardpoint(GameObject obj, string hp)
-        {
-            if (obj.RenderComponent is CharacterRenderer ch)
-            {
-                ch.Skeleton.Hardpoints.TryGetValue(hp, out var h);
-                return h;
-            }
-            return obj.GetHardpoint(hp);
-        }
+
 
 
         public ConnectHardpointsEvent(ThornTable table) : base(table)

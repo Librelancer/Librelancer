@@ -12,8 +12,8 @@ namespace LibreLancer.Thn
 		public string Template = "";
 		public EntityTypes Type;
 		public Vector3? Ambient;
-		public Vector3? Up;
-		public Vector3? Front;
+		public ThnAxis Up;
+		public ThnAxis Front;
 		public int LightGroup;
 		public int SortGroup;
 		public int UserFlag;
@@ -25,6 +25,7 @@ namespace LibreLancer.Thn
 		public float? HVAspect;
         public float? NearPlane;
         public float? FarPlane;
+        public float FloorHeight = 0;
 		public ThnLightProps LightProps;
         public ThnAudioProps AudioProps;
         public ThnDisplayText DisplayText;
@@ -32,6 +33,7 @@ namespace LibreLancer.Thn
 		public ThnObjectFlags ObjectFlags;
 		public bool NoFog = false;
         public bool MainObject = false;
+        public string Priority = ""; //For monitor selection
 		public override string ToString()
 		{
 			return string.Format("[{0}: {1}]", Name, Type);

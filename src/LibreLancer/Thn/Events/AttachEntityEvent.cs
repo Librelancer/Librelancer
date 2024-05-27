@@ -4,11 +4,20 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Render;
 using LibreLancer.Thorn;
 using LibreLancer.World;
 
 namespace LibreLancer.Thn.Events
 {
+    /*
+     * NOTES:
+     * Offset does not affect LOOK_AT flags (?)
+     * LOOK_AT rotates directly, object and camera
+     * no need for LookAtFunc
+     *
+     * Attached position is kept after event end, just stops updating
+     */
     public class AttachEntityEvent : ThnEvent
     {
         class AttachEntityProcessor : ThnEventProcessor
@@ -16,8 +25,7 @@ namespace LibreLancer.Thn.Events
             public float Duration;
             public ThnObject Child;
             public Vector3 Offset;
-            public ThnObject Parent;
-            public GameObject Part;
+            public EntityTarget Parent;
             public Quaternion LastRotate;
             public bool Position;
             public bool Orientation;
@@ -28,15 +36,8 @@ namespace LibreLancer.Thn.Events
             double t = 0;
             public override bool Run(double delta)
             {
-                Vector3 translate = Parent.Translate;
-                Matrix4x4 rotate = Parent.Rotate;
-                if (Part != null && (Position || Orientation))
-                {
-                    Part.SetLocalTransform(Part.LocalTransform); //force update: hacky
-                    var tr = Part.WorldTransform;
-                    if (Position) translate = tr.Translation;
-                    if (Orientation) rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
-                }
+                var (translate, rotate) = Parent.GetTransform();
+
                 if (Orientation && OrientationRelative)
                 {
                     var qCurrent = rotate.ExtractRotation();
@@ -46,44 +47,64 @@ namespace LibreLancer.Thn.Events
                     LastRotate = qCurrent;
                 }
                 t += delta;
-                if (LookAt)
-                {
-                    if (lookFunc == null)
-                    {
-                        //offset does not affect LOOK_AT flags
-                        if (Part != null) lookFunc = () => Vector3.Transform(Vector3.Zero, Part.LocalTransform);
-                        else lookFunc = () => Parent.Translate;
-                    }
-                    if (Child.Camera != null) Child.Camera.LookAt = lookFunc;
-                }
 
-                if (t > Duration)
-                    if (LookAt && Child.Camera != null) Child.Camera.LookAt = null;
-                if(Offset != Vector3.Zero) { //TODO: This can be optimised
-                    var off = Offset;
-                    if (EntityRelative)
+                if (Position)
+                {
+                    if (Offset != Vector3.Zero)
                     {
-                        off = Vector3.Transform(Offset, rotate.ExtractRotation());
+                        //TODO: This can be optimised
+                        var off = Offset;
+                        if (EntityRelative)
+                        {
+                            off = Vector3.Transform(Offset, rotate.ExtractRotation());
+                        }
+
+                        var tr = rotate * Matrix4x4.CreateTranslation(translate) * Matrix4x4.CreateTranslation(off);
+                        Child.Translate = tr.Translation;
                     }
-                    var tr = rotate * Matrix4x4.CreateTranslation(translate) * Matrix4x4.CreateTranslation(off);
-                    translate = tr.Translation;
-                    rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                    else
+                    {
+                        Child.Translate = translate;
+                    }
                 }
                 if (Position)
                     Child.Translate = translate;
                 if (Orientation)
                     Child.Rotate = rotate;
+                if (LookAt)
+                {
+                    Child.Rotate = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookAt(Child.Translate, translate));
+                }
                 return (t <= Duration);
             }
         }
-        
+
+        class EntityTarget(ThnObject obj, IRenderHardpoint hardpoint, RigidModelPart part)
+        {
+            public (Vector3 Translate, Matrix4x4 Rotate) GetTransform()
+            {
+                if (part != null)
+                {
+                    var tr = part.LocalTransform * obj.Object.LocalTransform;
+                    return (Vector3.Transform(Vector3.Zero, tr), Matrix4x4.CreateFromQuaternion(tr.ExtractRotation()));
+                }
+                if (hardpoint != null)
+                {
+                    var tr = hardpoint.Transform * obj.Object.LocalTransform;
+                    return (Vector3.Transform(Vector3.Zero, tr), Matrix4x4.CreateFromQuaternion(tr.ExtractRotation()));
+                }
+
+                return (obj.Translate, obj.Rotate);
+            }
+        }
+
         public AttachEntityEvent() { }
 
         public TargetTypes TargetType;
         public AttachFlags Flags;
         public string TargetPart;
         public Vector3 Offset;
-        
+
         public AttachEntityEvent(ThornTable table) : base(table)
         {
             if (GetProps(table, out var props))
@@ -109,10 +130,10 @@ namespace LibreLancer.Thn.Events
                 FLLog.Error("Thn", "Object doesn't exist " + Targets[1]);
                 return;
             }
-          
+
             //Attach GameObjects to eachother
-            GameObject part = null;
-            string tgt_part;
+            IRenderHardpoint hardpoint = null;
+            RigidModelPart part = null;
             if (TargetType == TargetTypes.Hardpoint && !string.IsNullOrEmpty(TargetPart))
             {
                 if (objB.Object == null)
@@ -121,9 +142,7 @@ namespace LibreLancer.Thn.Events
                 }
                 else
                 {
-                    part = new GameObject();
-                    part.Parent = objB.Object;
-                    part.Attachment = objB.Object.GetHardpoint(TargetPart);
+                    hardpoint = GetHardpoint(objB.Object, TargetPart);
                 }
             }
             if (TargetType == TargetTypes.Part && !string.IsNullOrEmpty(TargetPart))
@@ -134,30 +153,26 @@ namespace LibreLancer.Thn.Events
                 }
                 else
                 {
-                    if (objB.Object.RigidModel.Parts.TryGetValue(TargetPart, out var tgtpart))
+                    if (!objB.Object.RigidModel.Parts.TryGetValue(TargetPart, out part))
                     {
-                        var hp = new Hardpoint(null, tgtpart);
-                        part = new GameObject();
-                        part.Parent = objB.Object;
-                        part.Attachment = hp;
+                        FLLog.Error("Thn", $"Could not find part {TargetPart} on " + objB.Name);
                     }
                 }
             }
+
+            var tgt = new EntityTarget(objB, hardpoint, part);
             Quaternion lastRotate = Quaternion.Identity;
             if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation &&
                 (Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
             {
-                if (part != null)
-                    lastRotate = part.WorldTransform.ExtractRotation();
-                else
-                    lastRotate = objB.Rotate.ExtractRotation();
+                var (_, tr) = tgt.GetTransform();
+                lastRotate = tr.ExtractRotation();
             }
             instance.AddProcessor(new AttachEntityProcessor()
             {
                 Duration = Duration,
                 Child = objA,
-                Parent = objB,
-                Part = part,
+                Parent = tgt,
                 Position = ((Flags & AttachFlags.Position) == AttachFlags.Position),
                 Orientation = ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation),
                 OrientationRelative = ((Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative),

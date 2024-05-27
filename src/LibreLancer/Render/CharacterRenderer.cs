@@ -8,7 +8,10 @@ namespace LibreLancer.Render
 {
 	public class CharacterRenderer : ObjectRenderer
     {
-        public const float RADIUS = 1.5f;
+        // jacobi in prison cutscene needs this
+        // investigate how to calculate a culling radius
+        // in the skeleton manager?
+        public const float RADIUS = 3.5f;
 
         public DfmSkeletonManager Skeleton;
 		public CharacterRenderer(DfmSkeletonManager skeleton)

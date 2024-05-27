@@ -19,6 +19,8 @@ namespace LibreLancer.World.Components
 			public string Name;
 			public Script Script;
             public double StartTime;
+            public double Duration;
+            public float TimeScale;
             public bool Reverse;
 			public bool Loop;
 		}
@@ -115,7 +117,7 @@ namespace LibreLancer.World.Components
                     if (completeAnimations[j].Name.Equals(animationName, StringComparison.OrdinalIgnoreCase))
                         completeAnimations.RemoveAt(j);
                 }
-                animations.Add(new ActiveAnimation() { Name = animationName, Script = sc, StartTime = getTotalTime(), Loop = loop, Reverse = reverse});
+                animations.Add(new ActiveAnimation() { Name = animationName, Script = sc, StartTime = getTotalTime(), Loop = loop, Duration = duration, TimeScale = time_scale, Reverse = reverse});
 			}
 			else
 				FLLog.Error("Animation", animationName + " not present");
@@ -185,30 +187,31 @@ namespace LibreLancer.World.Components
 		bool ProcessAnimation(ActiveAnimation a)
 		{
 			bool finished = true;
+            float ts = a.TimeScale <= 0 ? 1 : a.TimeScale;
 			for (int i = 0; i < a.Script.ObjectMaps.Length; i++)
 			{
-				if (!ProcessObjectMap(ref a.Script.ObjectMaps[i], a.StartTime, a.Loop))
+				if (!ProcessObjectMap(ref a.Script.ObjectMaps[i], a.StartTime, ts, a.Loop))
 					finished = false;
 			}
             for (int i = 0; i < a.Script.JointMaps.Length; i++)
 			{
-				if (!ProcessJointMap(ref a.Script.JointMaps[i], a.StartTime, a.Loop, a.Reverse))
+				if (!ProcessJointMap(ref a.Script.JointMaps[i], a.StartTime, ts, a.Loop, a.Reverse))
 					finished = false;
 			}
-			return finished;
+			return finished || (a.Duration > 0 && (getTotalTime() - a.StartTime) >= a.Duration);
 		}
 
 
-		bool ProcessObjectMap(ref ObjectMap om, double startTime, bool loop)
+		bool ProcessObjectMap(ref ObjectMap om, double startTime, float timeScale, bool loop)
 		{
 			return false;
 		}
 
-		bool ProcessJointMap(ref JointMap jm, double startTime, bool loop, bool reverse)
+		bool ProcessJointMap(ref JointMap jm, double startTime, float timeScale, bool loop, bool reverse)
         {
             var mdl = Parent == null ? rm : Parent.RigidModel;
             var joint = mdl.Parts[jm.ChildName].Construct;
-			double t = getTotalTime() - startTime;
+            double t = (getTotalTime() - startTime) * timeScale;
 			//looping?
 			if (jm.Channel.Interval == -1)
 			{

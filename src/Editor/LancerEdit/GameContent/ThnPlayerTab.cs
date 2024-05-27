@@ -95,6 +95,8 @@ public class ThnPlayerTab : GameContentTab
         if(ImGuiExt.Button("Reload", cutscene != null))
             Reload();
         ImGui.SameLine();
+        ImGui.TextUnformatted($"T: {(cutscene?.CurrentTime ?? 0):F4}");
+        ImGui.SameLine();
         #if DEBUG
         Controls.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
         #endif

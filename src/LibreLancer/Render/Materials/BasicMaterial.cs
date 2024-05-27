@@ -39,7 +39,7 @@ namespace LibreLancer.Render.Materials
 		static ShaderVariables GetShader(RenderContext rstate, IVertexType vertextype, ShaderFeatures caps)
         {
             if (vertextype is Utf.Dfm.DfmVertex)
-                return Basic_Skinned.Get(rstate, caps);
+                return Basic_Skinned.Get(rstate, caps | ShaderFeatures.VERTEX_LIGHTING);
             else if (vertextype is FVFVertex fvf)
             {
                 if (fvf.Diffuse && fvf.Normal) {

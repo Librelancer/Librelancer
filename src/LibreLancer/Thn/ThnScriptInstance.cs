@@ -62,6 +62,7 @@ namespace LibreLancer.Thn
             this.Objects = objects;
             if (spawnObjects && Cutscene.PlayerShip != null)
                 Cutscene.PlayerShip.World = Cutscene.World;
+            List<ThnObject> monitors = new List<ThnObject>();
             foreach (var kv in thn.Entities)
             {
                 if (Objects.ContainsKey(kv.Key)) continue;
@@ -240,6 +241,7 @@ namespace LibreLancer.Thn
                         gameData.GetCostume(template, out var body, out var head, out var leftHand,
                             out var rightHand);
                         var skel = new DfmSkeletonManager(body?.LoadModel(resman), head?.LoadModel(resman), leftHand?.LoadModel(resman), rightHand?.LoadModel(resman));
+                        skel.FloorHeight = kv.Value.FloorHeight;
                         obj.Object.RenderComponent = new CharacterRenderer(skel);
                         var anmComponent = new AnimationComponent(obj.Object, gameData.GetCharacterAnimations());
                         obj.Object.AnimationComponent = anmComponent;
@@ -261,6 +263,10 @@ namespace LibreLancer.Thn
                     obj.Sound = new ThnSound(kv.Value.Template, Cutscene.SoundManager, kv.Value.AudioProps, obj);
                     obj.Sound.Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.SoundSpatial) == ThnObjectFlags.SoundSpatial;
                 }
+                else if (kv.Value.Type == EntityTypes.Monitor)
+                {
+                    monitors.Add(obj);
+                }
                 if (obj.Object != null)
                 {
                     if (!obj.PosFromObject)
@@ -274,6 +280,10 @@ namespace LibreLancer.Thn
                 obj.Entity = kv.Value;
                 Objects[kv.Key] = obj;
             }
+            //Verify? This seems to work
+            monitors.Sort((x,y) => string.Compare(x.Entity.Priority, y.Entity.Priority, StringComparison.Ordinal));
+            for(int i = 0; i < monitors.Count; i++)
+                monitors[i].MonitorIndex = i;
         }
 
         Queue<ThnEvent> delaySoundEvents = new Queue<ThnEvent>();
@@ -296,7 +306,7 @@ namespace LibreLancer.Thn
                     ev.Run(this);
                 }
             }
-            for (int i = (processors.Count - 1); i >= 0; i--)
+            for (int i = 0; i < processors.Count; i++)
             {
                 if (!processors[i].Run(delta))
                 {

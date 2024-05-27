@@ -75,10 +75,10 @@ namespace LibreLancer.Thn
 			//NOTE: near clip plane can't be too small or it causes z-fighting
 			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Transform.Znear, Transform.Zfar);
             ogProjection = projection;
-			Vector3 originalTarget = -Vector3.UnitZ;
-            Vector3 rotatedTarget = Vector3.Transform(originalTarget, Transform.Orientation);
-            Vector3 target = Transform.LookAt == null ? Position + rotatedTarget : Transform.LookAt();
-			Vector3 upVector = Transform.LookAt == null ? Vector3.Transform(Vector3.UnitY, Transform.Orientation) : Vector3.UnitY;
+			var originalTarget = -Vector3.UnitZ;
+            var rotatedTarget = Vector3.Transform(originalTarget, Transform.Orientation);
+            var target = Position + rotatedTarget;
+			var upVector = Vector3.UnitY;
 			view = Matrix4x4.CreateLookAt(Position, target, upVector);
 			frameNo++;
 			viewProjection = view * projection;

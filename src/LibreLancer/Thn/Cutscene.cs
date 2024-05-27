@@ -29,6 +29,7 @@ namespace LibreLancer.Thn
         public bool Animating = false;
         public bool PosFromObject = false;
         public CEngineComponent Engine;
+        public int MonitorIndex = 0;
 
         public void UpdateIfMain()
         {
@@ -103,7 +104,7 @@ namespace LibreLancer.Thn
         public GameDataManager GameData => gameData;
         public SoundManager SoundManager => soundManager;
         public bool Running => running;
-
+        public double CurrentTime => currentTime;
         //Private variables
         double currentTime = 0;
         private Dictionary<string, ThnObject> sceneObjects;

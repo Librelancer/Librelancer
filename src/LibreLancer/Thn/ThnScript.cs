@@ -84,12 +84,12 @@ namespace LibreLancer.Thn
             ThnEnv.Add("UNDEFINED_EVENT", EventTypes.UndefinedEvent);
             ThnEnv.Add("START_SUB_SCENE", EventTypes.StartSubScene);
             //Axis
-			ThnEnv.Add("X_AXIS", Vector3.UnitX);
-			ThnEnv.Add("Y_AXIS", Vector3.UnitY);
-			ThnEnv.Add("Z_AXIS", Vector3.UnitZ);
-			ThnEnv.Add("NEG_X_AXIS", -Vector3.UnitX);
-			ThnEnv.Add("NEG_Y_AXIS", -Vector3.UnitY);
-			ThnEnv.Add("NEG_Z_AXIS", -Vector3.UnitZ);
+			ThnEnv.Add("X_AXIS", ThnAxis.XAxis);
+			ThnEnv.Add("Y_AXIS", ThnAxis.YAxis);
+			ThnEnv.Add("Z_AXIS", ThnAxis.ZAxis);
+			ThnEnv.Add("NEG_X_AXIS", ThnAxis.NegXAxis);
+			ThnEnv.Add("NEG_Y_AXIS", ThnAxis.NegYAxis);
+			ThnEnv.Add("NEG_Z_AXIS", ThnAxis.NegZAxis);
 			//Booleans
 			ThnEnv.Add("Y", true);
 			ThnEnv.Add("N", false);
@@ -187,15 +187,9 @@ namespace LibreLancer.Thn
 			if (val == 1) return ThnObjectFlags.Reference; //Should be for all types
 			if (type == EntityTypes.Sound)
 			{
-				switch (val)
-				{
-					case 2:
-                        return ThnObjectFlags.SoundSpatial;
-                    case 3:
-                        return ThnObjectFlags.Reference | ThnObjectFlags.SoundSpatial;
-					default:
-						throw new NotImplementedException();
-				}
+                if ((val & 2) == 2) {
+                    val = (val & ~2) | (int)ThnObjectFlags.SoundSpatial;
+                }
 			}
 			return ThnTypes.Convert<ThnObjectFlags>(val);
 		}
@@ -259,13 +253,13 @@ namespace LibreLancer.Thn
 			{
 				e.Ambient = tmp;
 			}
-			if (table.TryGetVector3("up", out tmp))
+			if (table.TryGetValue("up", out o))
+            {
+                e.Up = ThnTypes.Convert<ThnAxis>(o);
+            }
+			if (table.TryGetValue("front", out o))
 			{
-				e.Up = tmp;
-			}
-			if (table.TryGetVector3("front", out tmp))
-			{
-				e.Front = tmp;
+				e.Front = ThnTypes.Convert<ThnAxis>(o);
 			}
 
 			if (table.TryGetValue("template_name", out o))
@@ -306,6 +300,10 @@ namespace LibreLancer.Thn
                         e.DisplayText.Start = FuzzyFloat(o);
                 }
 
+                if (usrprops.TryGetValue("Priority", out o))
+                {
+                    e.Priority = o.ToString();
+                }
                 if (usrprops.TryGetValue("main_object", out o))
                 {
                     e.MainObject = true;
@@ -357,6 +355,14 @@ namespace LibreLancer.Thn
                     e.FarPlane = (float) o;
                 }
 			}
+
+            if (table.TryGetValue("compoundprops", out o))
+            {
+                var compoundprops = (ThornTable)o;
+                if(compoundprops.TryGetValue("floor_height", out o)) {
+                    e.FloorHeight = (float)o;
+                }
+            }
 			if (table.TryGetValue("lightprops", out o))
 			{
 				var lightprops = (ThornTable)o;
@@ -393,7 +399,9 @@ namespace LibreLancer.Thn
 				if (lightprops.TryGetValue("range", out o))
 					r.Range = (int)(float)o;
 				if (lightprops.TryGetValue("theta", out o))
-					r.Theta = r.Phi = (float)o;
+					r.Theta = (float)o;
+                if (lightprops.TryGetValue("cutoff", out o))
+                    r.Phi = (float)o;
 				if (lightprops.TryGetVector3("atten", out tmp))
 				{
                     r.Attenuation = tmp;

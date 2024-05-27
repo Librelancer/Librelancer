@@ -11,7 +11,7 @@ namespace LibreLancer.Thn
 	{
 		None = 0,
 		LitDynamic = 2,
-        SoundSpatial = 2,
+        SoundSpatial = (1 << 20), // Store differently for reversing
 		LitAmbient = 4,
 		Hidden = 16,
 		Reference = 1

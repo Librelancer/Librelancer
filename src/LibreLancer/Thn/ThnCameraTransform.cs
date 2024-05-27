@@ -13,7 +13,6 @@ namespace LibreLancer.Thn
 		public float AspectRatio = 4f / 3f;
 		public Vector3 Position = Vector3.Zero;
 		public Matrix4x4 Orientation = Matrix4x4.Identity;
-        public Func<Vector3> LookAt;
         public float Znear = 2.5f;
         public float Zfar = 10000000f;
     }
