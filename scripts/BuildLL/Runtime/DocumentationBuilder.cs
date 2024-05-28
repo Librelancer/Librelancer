@@ -89,7 +89,7 @@ namespace BuildLL
                 : "";
             var prefixHTML = !Path.GetFileNameWithoutExtension(infile)
                 .Equals("index", StringComparison.OrdinalIgnoreCase)
-                ? $"<div><a href=\"{root}index.html\">« Home</a> | <a href=\"{root}search.html\">Search<a>{apiHTML}</div>"
+                ? $"<div><a href=\"{root}index.html\">« Home</a> | <a href=\"{root}search.html\">Search</a>{apiHTML}</div>"
                 : $"<a href=\"{root}search.html\">Search</a>";
             var innerHTML = prefixHTML + Markdown.ToHtml(input, pipeline);
             var content = Markdown.ToPlainText(xmlRegex.Replace(input, ""));
