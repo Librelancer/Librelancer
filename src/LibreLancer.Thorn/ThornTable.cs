@@ -452,6 +452,12 @@ namespace LibreLancer.Thorn
             return v != null;
         }
 
+        public bool TryGetValue(int key, out object v)
+        {
+            v = Get(key);
+            return v != null;
+        }
+
         static StringBuilder Tab(StringBuilder builder, int tabCount)
         {
             for (int i = 0; i < tabCount; i++)

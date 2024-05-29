@@ -284,8 +284,6 @@ namespace LibreLancer.Thn
             }
         }
 
-        private const double TIMESTEP = 1.0 / 500.0;
-        private double accumTime = 0;
         private int lagCounter = 0;
         private int LAG_LIMIT = 5;
         private const double LAG_THRESHOLD = 1 / 20.0;
@@ -303,17 +301,11 @@ namespace LibreLancer.Thn
             else if (frameDelay == 0)
             {
                 _Update(0);
-                accumTime = 0;
                 frameDelay = -1;
             }
             else
             {
-                accumTime += delta;
-                if (accumTime >= TIMESTEP)
-                {
-                    _Update(accumTime);
-                    accumTime = 0;
-                }
+                _Update(delta);
             }
         }
 

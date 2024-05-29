@@ -27,7 +27,7 @@ namespace LibreLancer.Thn.Events
         public Vector3 Pos;
         public struct AxisRotation
         {
-            public Vector3 Axis;
+            public ThnAxis Axis;
             public float Degrees;
             public float GetRads(float pct)
             {
@@ -47,15 +47,26 @@ namespace LibreLancer.Thn.Events
             if (GetValue(sp, "axisrot", out ThornTable axisrot))
             {
                 SetFlags |= AnimVars.AxisRot;
-                if (!axisrot.TryGetVector3(2, out AxisRot.Axis)) {
+                if (!axisrot.TryGetValue(2, out var o)) {
                     FLLog.Error("Thn", "START_SPATIAL_PROP_ANIM axisrot missing axis");
-                    AxisRot.Axis = Vector3.UnitY;
+                }
+                else {
+                    AxisRot.Axis = ThnTypes.Convert<ThnAxis>(o);
                 }
                 AxisRot.Degrees = (float) axisrot[1];
             }
             if (GetValue(sp, "pos", out Pos)) SetFlags |= AnimVars.Pos;
         }
 
+        private static readonly Vector3[] AxisTable =
+        {
+            Vector3.UnitX,
+            Vector3.UnitY,
+            Vector3.UnitZ,
+            -Vector3.UnitX,
+            -Vector3.UnitY,
+            -Vector3.UnitZ
+        };
 
         public override void Run(ThnScriptInstance instance)
         {
@@ -73,11 +84,6 @@ namespace LibreLancer.Thn.Events
             {
                 FLLog.Error("Thn", $"Object does not exist {Targets[0]}");
                 return;
-            }
-
-            AxisRotation trAxisRot = AxisRot;
-            if ((SetFlags & AnimVars.AxisRot) == AnimVars.AxisRot) {
-                trAxisRot.Axis = Vector3.TransformNormal(trAxisRot.Axis, objA.Rotate);
             }
 
             if (Targets.Length > 1)
@@ -112,7 +118,8 @@ namespace LibreLancer.Thn.Events
                     if (hasPos) objA.Translate = Pos;
                     if (hasQuat) objA.Rotate = Matrix4x4.CreateFromQuaternion(quat);
                     if ((SetFlags & AnimVars.AxisRot) == AnimVars.AxisRot) {
-                        objA.Rotate = objA.Rotate * Matrix4x4.CreateFromAxisAngle(trAxisRot.Axis, trAxisRot.GetRads(1));
+                        var ogAxis = Vector3.Transform(AxisTable[(int)AxisRot.Axis], objA.Rotate);
+                        objA.Rotate = objA.Rotate * Matrix4x4.CreateFromAxisAngle(ogAxis, AxisRot.GetRads(1));
                     }
                 }
                 else
@@ -125,7 +132,7 @@ namespace LibreLancer.Thn.Events
                         EndPos = Pos,
                         EndQuat = quat,
                         This = objA,
-                        AxisRot = trAxisRot,
+                        AxisRot = AxisRot,
                         OriginalRotate = objA.Rotate
                     });
                 }
@@ -151,8 +158,9 @@ namespace LibreLancer.Thn.Events
                 if (HasQuat) This.Rotate = Matrix4x4.CreateFromQuaternion(GetOrientation(delta));
                 if ((Event.SetFlags & AnimVars.AxisRot) == AnimVars.AxisRot)
                 {
+                    var ogAxis = Vector3.Transform(AxisTable[(int)AxisRot.Axis], OriginalRotate);
                     This.Rotate = OriginalRotate *
-                                  Matrix4x4.CreateFromAxisAngle(AxisRot.Axis, AxisRot.GetRads((float) (time / Event.Duration)));
+                                  Matrix4x4.CreateFromAxisAngle(ogAxis, AxisRot.GetRads((float) (time / Event.Duration)));
                 }
                 return time < Event.Duration;
             }
