@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -14,15 +15,56 @@ namespace BuildLL
 {
     public static class Runtime
     {
-        public static StringBuilder AppendQuoted(this StringBuilder builder, string s)
-        {
-            builder.Append("\"").Append(s.Replace("\"", "\\\"")).Append("\"");
-            return builder;
-        }
-
+        // https://learn.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
+        private static readonly char[] escapeChars = ['\t', '\n', ' ', '\v', '\"'];
         public static string Quote(string s)
         {
-            return $"\"{s.Replace("\"", "\\\"")}\"";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (s.IndexOfAny(escapeChars) == -1)
+                    return s;
+                var b = new StringBuilder();
+                b.Append('\"');
+                for (int i = 0; i < s.Length; i++)
+                {
+                    int numBackslashes = 0;
+                    while (i < s.Length && s[i] == '\\') {
+                        i++;
+                        numBackslashes++;
+                    }
+                    if (i == s.Length)
+                    {
+                        for (int j = 0; j < numBackslashes * 2; j++)
+                            b.Append('\\');
+                    }
+                    else if (s[i] == '\"')
+                    {
+                        for (int j = 0; j < numBackslashes * 2; j++)
+                            b.Append('\\');
+                        b.Append('\"');
+                    }
+                    else
+                    {
+                        for (int j = 0; j < numBackslashes; j++)
+                            b.Append('\\');
+                        b.Append(s[i]);
+                    }
+                }
+                b.Append('\"');
+                return b.ToString();
+            }
+            else
+            {
+                if (s.IndexOfAny(escapeChars) == -1 &&
+                    s.IndexOf('\\') == -1)
+                    return s;
+                return $"\"{s.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+            }
+        }
+
+        public static StringBuilder AppendQuoted(this StringBuilder builder, string s)
+        {
+            return builder.Append(Quote(s));
         }
 
         public static bool TryGetEnv(string variable, out string value)
@@ -30,7 +72,7 @@ namespace BuildLL
             value = Environment.GetEnvironmentVariable(variable);
             return !string.IsNullOrWhiteSpace(value);
         }
-      
+
         public static void CopyFile(string src, string dst)
         {
             if (Directory.Exists(dst))
@@ -52,7 +94,7 @@ namespace BuildLL
                 file.CopyTo(Path.Combine(target.FullName, file.Name), true);
             }
         }
-        
+
         public static void RmDir(string directory)
         {
             if(Directory.Exists(directory)) Directory.Delete(directory, true);
@@ -150,7 +192,7 @@ namespace BuildLL
                 foreach (var action in setArgActions) action();
                 setArgActions = null;
                 try
-                { 
+                {
                     Program.Targets();
                     if (WebHook.UseWebhook)
                     {
@@ -190,7 +232,7 @@ namespace BuildLL
                     OnError(e);
                     return 2;
                 }
-                
+
             });
             return app.Execute(args);
         }
@@ -221,7 +263,7 @@ namespace BuildLL
             }
             return null;
         }
-        
+
         static string GetFullPathFromWindows(string exeName)
         {
             if (exeName.Length >= MAX_PATH)
