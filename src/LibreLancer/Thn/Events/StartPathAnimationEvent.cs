@@ -13,7 +13,7 @@ namespace LibreLancer.Thn.Events
         public float StopPercent;
         public Vector3 Offset;
         public AttachFlags Flags;
-        
+
         public StartPathAnimationEvent()
         {
         }
@@ -55,7 +55,7 @@ namespace LibreLancer.Thn.Events
                 Process(Event.GetT((float)time));
                 return true;
             }
-            
+
             void Process(float t)
             {
                 float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, t);
@@ -71,7 +71,7 @@ namespace LibreLancer.Thn.Events
                 }
                 else if ((Event.Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
                 {
-                    var orient = Path.Rotate * Matrix4x4.CreateFromQuaternion(path.GetOrientation(pct));
+                    var orient = Matrix4x4.CreateFromQuaternion(path.GetOrientation(pct)) * Path.Rotate;
                     Object.Rotate = orient;
                     if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
                         Object.Translate = pos;
