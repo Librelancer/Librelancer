@@ -41,6 +41,10 @@ public class ImportedModel
         if (nodes.Count == 0) {
             return EditResult<ImportedModel>.Error("Could not find root model");
         }
+        if (nodes[0].Def == null)
+        {
+            return EditResult<ImportedModel>.Error("Model root must be a mesh");
+        }
         if(nodes[0].Def.Geometry?.Kind == GeometryKind.Lines)
             return EditResult<ImportedModel>.Error("Root mesh cannot be wireframe");
         var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
