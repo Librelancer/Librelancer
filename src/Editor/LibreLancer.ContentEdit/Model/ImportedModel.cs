@@ -47,6 +47,9 @@ public class ImportedModel
         }
         if(nodes[0].Def.Geometry?.Kind == GeometryKind.Lines)
             return EditResult<ImportedModel>.Error("Root mesh cannot be wireframe");
+        var geo = CheckGeometries(nodes[0]);
+        if (geo.IsError)
+            return new EditResult<ImportedModel>(null, geo.Messages);
         var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
         //Set up root
         m.Root.Construct = null;
@@ -63,6 +66,32 @@ public class ImportedModel
             }
         }
         return new EditResult<ImportedModel>(m);
+    }
+
+    static EditResult<bool> CheckGeometries(ImportedModelNode node)
+    {
+        if (node.Def != null)
+        {
+            if (node.Def.Geometry.Indices.Length > ushort.MaxValue)
+            {
+                return EditResult<bool>.Error($"Node {node.Name ?? "(noname)"} has >65535 indices");
+            }
+            if (node.Def.Geometry.Vertices.Length > ushort.MaxValue)
+            {
+                return EditResult<bool>.Error($"Node {node.Name ?? "(noname)"} has >65535 vertices");
+            }
+            if (node.Def.Geometry.Indices.Indices16 == null &&
+                node.Def.Geometry.Indices.Indices32 != null)
+            {
+                return EditResult<bool>.Error($"Node {node.Name ?? "(no name)"} requires 32-bit indices, which are unsupported. Vertex count too high");
+            }
+        }
+        foreach (var c in node.Children)
+        {
+            var res = CheckGeometries(c);
+            if (res.IsError) return res;
+        }
+        return true.AsResult();
     }
 
     static void ApplyDefaultPose(Animation anm, ImportedModelNode node)
