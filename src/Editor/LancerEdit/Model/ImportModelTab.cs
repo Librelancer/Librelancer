@@ -61,6 +61,7 @@ public class ImportModelTab : EditorTab
     private bool canGenerateSur = false;
 
     private bool importTextures = true;
+    private bool placeholderTextures = true;
 
     public ImportModelTab(Model model, string fname, MainWindow win, TaskRunPopup popup)
     {
@@ -144,6 +145,7 @@ public class ImportModelTab : EditorTab
             {
                 GenerateMaterials = generateMaterials,
                 ImportTextures = importTextures,
+                GeneratePlaceholderTextures = placeholderTextures,
                 ForceCompound = forceCompound
             });
             win.QueueUIThread(() =>
@@ -227,6 +229,8 @@ public class ImportModelTab : EditorTab
                     ref importTextures,
                     model.Images != null && model.Images.Count > 0,
                     "Model contains no textures to import");
+                ImGui.Checkbox("Placeholder Textures", ref placeholderTextures);
+                ImGui.SetItemTooltip("Includes the default texture when a material's texture is not found or specified");
                 ImGuiExt.Checkbox("Generate Sur",
                     ref generateSur,
                     canGenerateSur,

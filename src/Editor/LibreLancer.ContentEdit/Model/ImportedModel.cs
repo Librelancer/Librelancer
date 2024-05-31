@@ -455,9 +455,7 @@ public class ImportedModel
             IterateMaterials(materials, Root);
             var mats = new LUtfNode() { Name = "material library", Parent = utf.Root };
             mats.Children = new List<LUtfNode>();
-            int i = 0;
-            foreach (var mat in materials)
-                mats.Children.Add(DefaultMaterialNode(mats,mat,i++));
+
             var txms = new LUtfNode() { Name = "texture library", Parent = utf.Root };
             txms.Children = new List<LUtfNode>();
             HashSet<string> createdTextures = new HashSet<string>();
@@ -471,15 +469,19 @@ public class ImportedModel
                     {
                         txms.Children.Add(ImportTextureNode(txms, mat.DiffuseTexture, img.Data));
                     }
-                    else
+                    else if (settings.GeneratePlaceholderTextures)
                     {
                         txms.Children.Add(DefaultTextureNode(txms, mat.DiffuseTexture));
                     }
                 }
-                else {
+                else if (settings.GeneratePlaceholderTextures) {
                     txms.Children.Add(DefaultTextureNode(txms, mat.Name));
                 }
             }
+
+            int i = 0;
+            foreach (var mat in materials)
+                mats.Children.Add(DefaultMaterialNode(mats,mat,i++, settings.GeneratePlaceholderTextures));
 
             utf.Root.Children.Add(mats);
             utf.Root.Children.Add(txms);
@@ -487,16 +489,20 @@ public class ImportedModel
         return new EditResult<EditableUtf>(utf, warnings);
     }
 
-    static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i)
+    static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i, bool generatePlaceholders)
     {
         var matnode = new LUtfNode() { Name = mat.Name, Parent = parent };
         matnode.Children = new List<LUtfNode>();
         matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = "DcDt" });
-        var arr = new float[] {mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z};
+        var arr = new float[] { mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z };
         matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
-        string textureName = (mat.DiffuseTexture ?? mat.Name) + ".dds";
-        matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = textureName });
-        matnode.Children.Add(new LUtfNode() { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+        if (generatePlaceholders || !string.IsNullOrWhiteSpace(mat.DiffuseTexture))
+        {
+            string textureName = (mat.DiffuseTexture ?? mat.Name) + ".dds";
+            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = textureName });
+            matnode.Children.Add(new LUtfNode()
+                { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+        }
         return matnode;
     }
 
