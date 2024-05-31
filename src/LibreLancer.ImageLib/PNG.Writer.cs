@@ -133,7 +133,7 @@ namespace LibreLancer.ImageLib
                     }
                     break;
                 default:
-                    source.CopyTo(dest);
+                    source.Slice(0, width * 4).CopyTo(dest);
                     break;
             }
         }
