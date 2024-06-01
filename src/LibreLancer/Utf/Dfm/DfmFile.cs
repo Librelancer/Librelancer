@@ -31,7 +31,6 @@ namespace LibreLancer.Utf.Dfm
 
 		public Dictionary<int, DfmPart> Parts { get; private set; }
 		public Dictionary<string, Bone> Bones { get; private set; }
-        public List<Bone> BoneList = new List<Bone>();
 		public DfmConstructs Constructs { get; private set; }
 
 		public IEnumerable<DfmHardpointDef> GetHardpoints()
@@ -158,6 +157,8 @@ namespace LibreLancer.Utf.Dfm
 				}
 			}
 
+            if (Levels.ContainsKey(0))
+                Levels[0].CalculateBoneBounds(Parts);
 		}
 
 		public void Initialize(ResourceManager cache, RenderContext rstate)

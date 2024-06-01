@@ -11,7 +11,6 @@ namespace LibreLancer.Render
         // jacobi in prison cutscene needs this
         // investigate how to calculate a culling radius
         // in the skeleton manager?
-        public const float RADIUS = 3.5f;
 
         public DfmSkeletonManager Skeleton;
 		public CharacterRenderer(DfmSkeletonManager skeleton)
@@ -34,11 +33,13 @@ namespace LibreLancer.Render
                 out var leftTransform,
                 out var rightTransform
                 );
+            var radius = Vector3.Distance(Skeleton.Bounds.Min, Skeleton.Bounds.Max) / 2.0f;
+            var center = (Skeleton.Bounds.Min + Skeleton.Bounds.Max) / 2.0f;
             if (sysren.DfmMode < DfmDrawMode.DebugBones)
             {
                 var lighting = RenderHelpers.ApplyLights(
                     lights, LightGroup,
-                    Vector3.Transform(Vector3.Zero, transform), RADIUS, nr,
+                    Vector3.Transform(center, transform), radius, nr,
                     LitAmbient, LitDynamic, NoFog
                 );
                 Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
@@ -68,15 +69,13 @@ namespace LibreLancer.Render
         }
         public override bool OutOfView(ICamera camera)
         {
-            var position = Vector3.Transform(Vector3.Zero, transform);
-            var bsphere = new BoundingSphere(position, RADIUS);
-            return !camera.FrustumCheck(bsphere);
+            var bounds = BoundingBox.TransformAABB(Skeleton.Bounds, transform);
+            return !camera.FrustumCheck(bounds);
         }
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
-            var position = Vector3.Transform(Vector3.Zero, transform);
-            var bsphere = new BoundingSphere(position, RADIUS);
-            if (camera.FrustumCheck(bsphere))
+            var bounds = BoundingBox.TransformAABB(Skeleton.Bounds, transform);
+            if (camera.FrustumCheck(bounds))
             {
                 sys.AddObject(this);
                 this.sysren = sys;

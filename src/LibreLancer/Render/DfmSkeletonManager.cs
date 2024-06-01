@@ -276,7 +276,34 @@ namespace LibreLancer.Render
                 RightHandConnection = new(BodySkinning, RightHandSkinning, "hp_right b", "hp_right b", "hp_right a");
                 AddHardpoints(RightHandSkinning, RightHandConnection);
             }
+            UpdateBounds();
         }
+
+        public BoundingBox Bounds;
+
+
+        void UpdateBounds()
+        {
+            Bounds = BodySkinning.BoundingBox;
+            GetTransforms(Matrix4x4.Identity,
+                out var headTr,
+                out var lhTr,
+                out var rhTr);
+            if (HeadSkinning != null)
+            {
+                Bounds = BoundingBox.CreateMerged(Bounds, BoundingBox.TransformAABB(HeadSkinning.BoundingBox, headTr));
+            }
+            if (LeftHandSkinning != null)
+            {
+                Bounds = BoundingBox.CreateMerged(Bounds, BoundingBox.TransformAABB(LeftHandSkinning.BoundingBox, lhTr));
+            }
+            if (RightHandSkinning != null)
+            {
+                Bounds = BoundingBox.CreateMerged(Bounds, BoundingBox.TransformAABB(RightHandSkinning.BoundingBox, rhTr));
+            }
+        }
+
+
 
         public void UpdateScripts(double delta)
         {
@@ -297,6 +324,7 @@ namespace LibreLancer.Render
                 RightHandConnection?.Update();
             }
             foreach(var sc in toRemove) RunningScripts.Remove(sc);
+            UpdateBounds();
         }
 
         public void UploadBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet)

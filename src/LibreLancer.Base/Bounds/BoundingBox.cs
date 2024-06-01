@@ -31,6 +31,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace LibreLancer
 {
@@ -304,14 +305,25 @@ namespace LibreLancer
             return result;
         }
 
+        public static BoundingBox TransformAABB(BoundingBox original, Matrix4x4 mat)
+        {
+            Span<Vector3> corners = stackalloc Vector3[CornerCount];
+            original.GetCorners(corners);
+            var tmin = Vector3.Transform(corners[0], mat);
+            var tmax = tmin;
+            for (int i = 1; i < CornerCount; i++)
+            {
+                var p = Vector3.Transform(corners[i], mat);
+                tmin = Vector3.Min(tmin, p);
+                tmax = Vector3.Max(tmax, p);
+            }
+            return new BoundingBox(tmin, tmax);
+        }
+
         public static void CreateMerged(ref BoundingBox original, ref BoundingBox additional, out BoundingBox result)
         {
-            result.Min.X = Math.Min(original.Min.X, additional.Min.X);
-            result.Min.Y = Math.Min(original.Min.Y, additional.Min.Y);
-            result.Min.Z = Math.Min(original.Min.Z, additional.Min.Z);
-            result.Max.X = Math.Max(original.Max.X, additional.Max.X);
-            result.Max.Y = Math.Max(original.Max.Y, additional.Max.Y);
-            result.Max.Z = Math.Max(original.Max.Z, additional.Max.Z);
+            result.Min = Vector3.Min(original.Min, additional.Min);
+            result.Max = Vector3.Max(original.Max, additional.Max);
         }
 
         public bool Equals(BoundingBox other)

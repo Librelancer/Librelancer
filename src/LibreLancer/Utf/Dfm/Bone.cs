@@ -17,6 +17,10 @@ namespace LibreLancer.Utf.Dfm
 		public List<HardpointDefinition> Hardpoints { get; private set; }
 
         public string Name;
+
+        public Vector3 Min;
+        public Vector3 Max;
+
 		public Bone(string name, IntermediateNode node)
         {
             Name = name;

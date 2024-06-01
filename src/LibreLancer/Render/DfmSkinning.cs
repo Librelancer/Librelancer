@@ -19,6 +19,8 @@ namespace LibreLancer.Render
         List<BoneInstance> starts = new List<BoneInstance>();
         public Dictionary<string, BoneInstance> Bones = new Dictionary<string, BoneInstance>(StringComparer.OrdinalIgnoreCase);
         public int BufferOffset;
+        public BoundingBox BoundingBox;
+
         public DfmSkinning(DfmFile dfm)
         {
             this.dfm = dfm;
@@ -27,10 +29,11 @@ namespace LibreLancer.Render
 
             foreach (var kv in dfm.Parts)
             {
-                var inst = new BoneInstance(kv.Value.objectName, kv.Value.Bone.BoneToRoot);
+                var inst = new BoneInstance(kv.Value.objectName, kv.Value.Bone.BoneToRoot, kv.Value.Bone.Min, kv.Value.Bone.Max);
                 instanceArray[kv.Key] = inst;
                 Bones.Add(inst.Name, inst);
             }
+            UpdateBounds();
 
             foreach (var con in dfm.Constructs.Constructs)
             {
@@ -84,10 +87,30 @@ namespace LibreLancer.Render
             return false;
         }
 
+        void UpdateBounds()
+        {
+            var bounds = new BoundingBox();
+            bool set = false;
+            for (int i = 0; i < instanceArray.Length; i++)
+            {
+                if (instanceArray[i] == null)
+                    continue;
+                if (!set) {
+                    set = true;
+                    bounds = instanceArray[i].BoundingBox;
+                }
+                else {
+                    bounds = BoundingBox.CreateMerged(bounds, instanceArray[i].BoundingBox);
+                }
+            }
+            BoundingBox = bounds;
+        }
+
         public void UpdateBones()
         {
             foreach (var s in starts)
                 s.Update(Matrix4x4.Identity);
+            UpdateBounds();
         }
 
         public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet, Matrix4x4? connectionBone = null)

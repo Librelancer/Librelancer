@@ -407,6 +407,11 @@ namespace LancerEdit
         void DrawBounds()
         {
             var matrix = GetModelMatrix();
+            if (skel != null)
+            {
+                DrawBox(skel.Bounds, matrix, 0);
+                return;
+            }
             int i = 0;
             foreach (var part in vmsModel.AllParts)
             {

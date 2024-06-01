@@ -151,6 +151,36 @@ namespace LibreLancer.Utf.Dfm
 
         private ResourceManager res;
 
+        public void CalculateBoneBounds(Dictionary<int, DfmPart> parts)
+        {
+            foreach (var v in parts.Values)
+            {
+                v.Bone.Min = new Vector3(float.MaxValue);
+                v.Bone.Max = new Vector3(float.MinValue);
+            }
+            for (int i = 0; i < PointIndices.Length; i++)
+            {
+                var p = Points[PointIndices[i]];
+                var first = PointBoneFirst[PointIndices[i]];
+                var count = PointBoneCount[PointIndices[i]];
+                for (int j = first; j < first + count; j++)
+                {
+                    var boneId = BoneIdChain[j];
+                    if (!parts.TryGetValue(boneId, out var bone))
+                        continue;
+                    bone.Bone.Max = Vector3.Max(p, bone.Bone.Max);
+                    bone.Bone.Min = Vector3.Min(p, bone.Bone.Min);
+                }
+            }
+            foreach (var v in parts.Values)
+            {
+                if (v.Bone.Max == new Vector3(float.MinValue))
+                    v.Bone.Max = Vector3.Zero;
+                if (v.Bone.Min == new Vector3(float.MaxValue))
+                    v.Bone.Min = Vector3.Zero;
+            }
+        }
+
 		public void Initialize(ResourceManager cache, RenderContext rstate)
         {
             res = cache;
