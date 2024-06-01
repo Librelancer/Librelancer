@@ -29,14 +29,14 @@ public struct FVFVertex : IVertexType
             elems.Add(new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, stride));
             stride += 4;
         }
-        if ((FVF & D3DFVF.TEX1) == D3DFVF.TEX1)
-            coordCount = 1;
-        else if ((FVF & D3DFVF.TEX2) == D3DFVF.TEX2)
-            coordCount = 2;
+        if ((FVF & D3DFVF.TEX4) == D3DFVF.TEX4)
+            coordCount = 4;
         else if ((FVF & D3DFVF.TEX3) == D3DFVF.TEX3)
             coordCount = 3;
-        else if ((FVF & D3DFVF.TEX4) == D3DFVF.TEX4)
-            coordCount = 4;
+        else if ((FVF & D3DFVF.TEX2) == D3DFVF.TEX2)
+            coordCount = 2;
+        else if ((FVF & D3DFVF.TEX1) == D3DFVF.TEX1)
+            coordCount = 1;
         for (int i = 0; i < coordCount; i++) {
             elems.Add(new VertexElement(VertexSlots.Texture1 + i, 2, VertexElementType.Float, false,
                 stride + i * 8));

@@ -103,6 +103,29 @@ namespace LancerEdit
             return path;
         }
 
+        public void GenerateTangents()
+        {
+            try
+            {
+                LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+            }
+            catch  (Exception ex)
+            {
+                ErrorPopup("Could not open as model\n" + ex.Message + "\n" + ex.StackTrace);
+            }
+            Confirm("This action will overwrite any existing tangent data. Continue?", () =>
+            {
+                Tangents.GenerateForUtf(Utf);
+                ReloadResources();
+            });
+        }
+
+        public void ReloadResources()
+        {
+            var res = DetachedResources ?? main.Resources;
+            res.RemoveResourcesForId(Unique.ToString());
+            res.AddResources(Utf.Export(), Unique.ToString());
+        }
 
         public override void Draw(double elapsed)
         {
@@ -191,6 +214,11 @@ namespace LancerEdit
                     }
                 }
 
+                if (tb.ButtonItem("Generate Tangents"))
+                {
+                    GenerateTangents();
+                }
+
                 if (tb.ButtonItem("View Ale"))
                 {
                     AleFile ale = null;
@@ -230,9 +258,7 @@ namespace LancerEdit
                 }
                 if(tb.ButtonItem("Reload Resources"))
                 {
-                    var res = DetachedResources ?? main.Resources;
-                    res.RemoveResourcesForId(Unique.ToString());
-                    res.AddResources(Utf.Export(), Unique.ToString());
+                    ReloadResources();
                 }
 
                 const string TooltipDetached = "Resources already detached";

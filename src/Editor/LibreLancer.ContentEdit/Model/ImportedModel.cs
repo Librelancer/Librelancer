@@ -463,15 +463,15 @@ public class ImportedModel
             {
                 if (mat.DiffuseTexture != null)
                 {
-                    if (createdTextures.Contains(mat.DiffuseTexture)) continue;
-                    createdTextures.Add(mat.DiffuseTexture);
-                    if (settings.ImportTextures && Images != null && Images.TryGetValue(mat.DiffuseTexture, out var img))
+                    if (createdTextures.Contains(mat.DiffuseTexture.Name)) continue;
+                    createdTextures.Add(mat.DiffuseTexture.Name);
+                    if (settings.ImportTextures && Images != null && Images.TryGetValue(mat.DiffuseTexture.Name, out var img))
                     {
-                        txms.Children.Add(ImportTextureNode(txms, mat.DiffuseTexture, img.Data));
+                        txms.Children.Add(ImportTextureNode(txms, mat.DiffuseTexture.Name, img.Data));
                     }
                     else if (settings.GeneratePlaceholderTextures)
                     {
-                        txms.Children.Add(DefaultTextureNode(txms, mat.DiffuseTexture));
+                        txms.Children.Add(DefaultTextureNode(txms, mat.DiffuseTexture.Name));
                     }
                 }
                 else if (settings.GeneratePlaceholderTextures) {
@@ -496,9 +496,9 @@ public class ImportedModel
         matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = "DcDt" });
         var arr = new float[] { mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z };
         matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
-        if (generatePlaceholders || !string.IsNullOrWhiteSpace(mat.DiffuseTexture))
+        if (generatePlaceholders || !string.IsNullOrWhiteSpace(mat.DiffuseTexture?.Name))
         {
-            string textureName = (mat.DiffuseTexture ?? mat.Name) + ".dds";
+            string textureName = (mat.DiffuseTexture?.Name ?? mat.Name) + ".dds";
             matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = textureName });
             matnode.Children.Add(new LUtfNode()
                 { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });

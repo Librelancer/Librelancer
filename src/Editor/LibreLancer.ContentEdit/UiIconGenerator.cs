@@ -15,12 +15,15 @@ namespace LibreLancer.ContentEdit
 {
     public static class UiIconGenerator
     {
+        static Vertex IcoVert(Vector3 pos, Vector2 tex1) => new Vertex(
+            pos, Vector3.UnitZ, Vector4.One, Vector4.Zero,
+            tex1, Vector2.Zero, Vector2.Zero, Vector2.Zero);
 
         private static Vertex[] vertices_ship = {
-            new Vertex(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.00050f), Vector2.Zero),
-            new Vertex(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.99950f,0.99950f), Vector2.Zero),
-            new Vertex(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.00050f), Vector2.Zero),
-            new Vertex(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), Vector3.UnitZ, Vector4.One, new Vector2(0.00050f,0.99950f), Vector2.Zero),
+            IcoVert(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), new Vector2(0.99950f,0.00050f)),
+            IcoVert(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), new Vector2(0.99950f,0.99950f)),
+            IcoVert(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), new Vector2(0.00050f,0.00050f)),
+            IcoVert(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), new Vector2(0.00050f,0.99950f)),
         };
 
         private static ushort[] indices_ship = {
@@ -45,7 +48,7 @@ namespace LibreLancer.ContentEdit
             });
             return Generate(iconName, ddsNode, alpha);
         }
-        
+
         public static EditableUtf Generate(string iconName, LUtfNode textureNode, bool alpha)
         {
             var modelFile = new EditableUtf();
@@ -80,7 +83,7 @@ namespace LibreLancer.ContentEdit
             var vmeshPart = new LUtfNode() {Name = "VMeshPart", Parent = modelFile.Root, Children = new List<LUtfNode>()};
             modelFile.Root.Children.Add(vmeshPart);
             vmeshPart.Children.Add(new LUtfNode() {Name = "VMeshRef", Parent = vmeshPart, Data = GeometryWriter.VMeshRef(geom, meshName)});
-            
+
             //Texture
             var textureLibrary = new LUtfNode()
             {
@@ -126,7 +129,7 @@ namespace LibreLancer.ContentEdit
             });
             materialLibrary.Children.Add(material);
             modelFile.Root.Children.Add(materialLibrary);
-            
+
             return modelFile;
         }
     }

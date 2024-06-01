@@ -86,18 +86,18 @@ public static class ModelExporter
         var result = new Dictionary<string, ImageData>();
         foreach (var m in materials.Values)
         {
-            if(string.IsNullOrWhiteSpace(m.DiffuseTexture) || attempted.Contains(m.DiffuseTexture))
+            if(string.IsNullOrWhiteSpace(m.DiffuseTexture?.Name) || attempted.Contains(m.DiffuseTexture.Name))
                 continue;
-            var img = resources.FindImage(m.DiffuseTexture);
+            var img = resources.FindImage(m.DiffuseTexture.Name);
             if (img != null)
             {
                 var exported = TextureExporter.ExportTexture(img, true);
                 if (exported != null)
                 {
-                    result[m.DiffuseTexture] = new ImageData(m.DiffuseTexture, exported, "image/png");
+                    result[m.DiffuseTexture.Name] = new ImageData(m.DiffuseTexture.Name, exported, "image/png");
                 }
             }
-            attempted.Add(m.DiffuseTexture);
+            attempted.Add(m.DiffuseTexture.Name);
         }
         return result;
     }
@@ -291,7 +291,8 @@ public static class ModelExporter
         }
         if (!materials.TryGetValue(name, out var m))
         {
-            m = new Material() {Name = name, DiffuseColor = dc, DiffuseTexture = dt};
+            var x = dt != null ? new TextureInfo(dt, 0) : null;
+            m = new Material() {Name = name, DiffuseColor = dc, DiffuseTexture = x};
             materials[name] = m;
         }
         return m;
