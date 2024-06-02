@@ -51,20 +51,31 @@ namespace LibreLancer.ContentEdit.Model
             }
         }
 
-        public static D3DFVF FVF(Geometry g)
+        public static D3DFVF FVF(Geometry g, bool withTangents)
         {
             D3DFVF fvf = D3DFVF.XYZ;
             if ((g.Attributes & VertexAttributes.Normal) == VertexAttributes.Normal)
                 fvf |= D3DFVF.NORMAL;
             if ((g.Attributes & VertexAttributes.Diffuse) == VertexAttributes.Diffuse)
                 fvf |= D3DFVF.DIFFUSE;
+            int texCount = 0;
             if ((g.Attributes & VertexAttributes.Texture2) == VertexAttributes.Texture2)
-                fvf |= D3DFVF.TEX2;
+                texCount = 2;
             else if ((g.Attributes & VertexAttributes.Texture1) == VertexAttributes.Texture1)
-                fvf |= D3DFVF.TEX1;
+                texCount = 1;
+            if ((g.Attributes & VertexAttributes.Tangent) == VertexAttributes.Tangent)
+                texCount += 2;
+            fvf |= texCount switch
+            {
+                1 => D3DFVF.TEX1,
+                2 => D3DFVF.TEX2,
+                3 => D3DFVF.TEX3,
+                4 => D3DFVF.TEX4,
+                _ => 0,
+            };
             return fvf;
         }
-        public static byte[] VMeshData(Geometry g, D3DFVF? overrideFVF = null)
+        public static byte[] VMeshData(Geometry g, bool withTangents, D3DFVF? overrideFVF = null)
         {
             using (var stream = new MemoryStream())
             {
@@ -73,7 +84,7 @@ namespace LibreLancer.ContentEdit.Model
                 writer.Write((uint)0x04); //SurfaceType
                 writer.Write((ushort)(g.Groups.Length)); //MeshCount
                 writer.Write((ushort)(g.Indices.Length)); //IndexCount
-                D3DFVF fvf = overrideFVF ?? FVF(g);
+                D3DFVF fvf = overrideFVF ?? FVF(g, withTangents);
                 writer.Write((ushort)fvf); //FVF
                 writer.Write((ushort)g.Vertices.Length); //VertexCount
 
@@ -100,6 +111,9 @@ namespace LibreLancer.ContentEdit.Model
                     startTri += dc.IndexCount;
                 }
 
+                var desc = new FVFVertex(fvf);
+
+
                 foreach (var idx in g.Indices.Indices16) writer.Write(idx);
                 foreach(var v in g.Vertices) {
                     writer.Write(v.Position.X);
@@ -113,16 +127,23 @@ namespace LibreLancer.ContentEdit.Model
                     if ((fvf & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
                         writer.Write((VertexDiffuse)v.Diffuse);
                     }
-                    //Librelancer flips DX to OpenGL on load,
-                    //write as DX
-                    if((fvf & D3DFVF.TEX2) == D3DFVF.TEX2) {
+
+                    if (desc.TexCoords > 0)
+                    {
                         writer.Write(v.Texture1.X);
                         writer.Write(v.Texture1.Y);
+                    }
+                    if (desc.TexCoords > 1 && desc.TexCoords != 3)
+                    {
                         writer.Write(v.Texture2.X);
                         writer.Write(v.Texture2.Y);
-                    } else if ((fvf & D3DFVF.TEX1) == D3DFVF.TEX1) {
-                        writer.Write(v.Texture1.X);
-                        writer.Write(v.Texture1.Y);
+                    }
+                    if (desc.TexCoords == 3 || desc.TexCoords == 4)
+                    {
+                        writer.Write(v.Tangent.X);
+                        writer.Write(v.Tangent.Y);
+                        writer.Write(v.Tangent.Z);
+                        writer.Write(v.Tangent.W);
                     }
                 }
                 return stream.ToArray();

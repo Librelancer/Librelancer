@@ -6,4 +6,5 @@ public class ModelImporterSettings
     public bool GeneratePlaceholderTextures = true;
     public bool ImportTextures = true;
     public bool ForceCompound = false;
+    public bool AdvancedMaterials = false;
 }

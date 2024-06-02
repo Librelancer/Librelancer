@@ -17,8 +17,8 @@ namespace LibreLancer.Shaders
         private static bool iscompiled = false;
         private static int GetIndex(ShaderFeatures features)
         {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(8)));
-            if ((masked == ((ShaderFeatures)(8))))
+            ShaderFeatures masked = (features & ((ShaderFeatures)(32)));
+            if ((masked == ((ShaderFeatures)(32))))
             {
                 return 1;
             }
@@ -44,8 +44,8 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling NebulaMaterial");
             variants = new ShaderVariables[2];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(329445, 543), sourceBundle.Substring(329988, 308));
-            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(330296, 568), sourceBundle.Substring(329988, 308));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(499577, 543), sourceBundle.Substring(500120, 308));
+            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(500428, 568), sourceBundle.Substring(500120, 308));
         }
     }
 }

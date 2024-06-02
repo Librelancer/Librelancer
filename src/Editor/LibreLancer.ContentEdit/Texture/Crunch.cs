@@ -14,7 +14,10 @@ namespace LibreLancer.ContentEdit
         DXT1,
         DXT1A,
         DXT3,
-        DXT5
+        DXT5,
+        RGTC2,
+        MetallicRGTC1,
+        RoughnessRGTC1
     }
 
     enum CrnglueMipmaps

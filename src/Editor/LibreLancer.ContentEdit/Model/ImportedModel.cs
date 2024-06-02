@@ -389,7 +389,7 @@ public class ImportedModel
         if (!VerifyMaterials(Root))
             return EditResult<EditableUtf>.Error("Material name cannot be empty");
         if (Root.Children.Count == 0 && !settings.ForceCompound)
-            Export3DB(Name, utf.Root, Root);
+            Export3DB(Name, utf.Root, Root, settings);
         else
         {
             var suffix = $".{IdSalt.New()}.3db";
@@ -397,7 +397,7 @@ public class ImportedModel
             utf.Root.Children.Add(vmslib);
             var cmpnd = new LUtfNode() {Name = "Cmpnd", Parent = utf.Root, Children = new List<LUtfNode>()};
             utf.Root.Children.Add(cmpnd);
-            ExportModels(Name, utf.Root, suffix, vmslib, Root);
+            ExportModels(Name, utf.Root, suffix, vmslib, Root, settings);
             //Animations
             if (ImportAnimations != null && ImportAnimations.Length > 0)
             {
@@ -461,27 +461,18 @@ public class ImportedModel
             HashSet<string> createdTextures = new HashSet<string>();
             foreach (var mat in materials)
             {
-                if (mat.DiffuseTexture != null)
+                GenerateTexture(mat.DiffuseTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT5);
+                GenerateTexture(mat.EmissiveTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT1);
+                if (settings.AdvancedMaterials)
                 {
-                    if (createdTextures.Contains(mat.DiffuseTexture.Name)) continue;
-                    createdTextures.Add(mat.DiffuseTexture.Name);
-                    if (settings.ImportTextures && Images != null && Images.TryGetValue(mat.DiffuseTexture.Name, out var img))
-                    {
-                        txms.Children.Add(ImportTextureNode(txms, mat.DiffuseTexture.Name, img.Data));
-                    }
-                    else if (settings.GeneratePlaceholderTextures)
-                    {
-                        txms.Children.Add(DefaultTextureNode(txms, mat.DiffuseTexture.Name));
-                    }
-                }
-                else if (settings.GeneratePlaceholderTextures) {
-                    txms.Children.Add(DefaultTextureNode(txms, mat.Name));
+                    GenerateTexture(mat.NormalTexture?.Name, createdTextures, txms, settings, DDSFormat.RGTC2);
+                    GenerateMetallicRoughnessTexture(mat.MetallicRoughnessTexture?.Name, createdTextures, txms, settings);
                 }
             }
 
             int i = 0;
             foreach (var mat in materials)
-                mats.Children.Add(DefaultMaterialNode(mats,mat,i++, settings.GeneratePlaceholderTextures));
+                mats.Children.Add(DefaultMaterialNode(mats,mat,i++, settings));
 
             utf.Root.Children.Add(mats);
             utf.Root.Children.Add(txms);
@@ -489,28 +480,87 @@ public class ImportedModel
         return new EditResult<EditableUtf>(utf, warnings);
     }
 
-    static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i, bool generatePlaceholders)
+    void GenerateMetallicRoughnessTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings)
+    {
+        if (string.IsNullOrWhiteSpace(texture)) return;
+        if (!createdTextures.Add(texture)) return;
+        if (settings.ImportTextures && Images != null && Images.TryGetValue(texture, out var img))
+        {
+            txms.Children.Add(ImportTextureNode(txms, texture + "_METAL", img.Data, DDSFormat.MetallicRGTC1));
+            txms.Children.Add(ImportTextureNode(txms, texture + "_ROUGH", img.Data ,DDSFormat.RoughnessRGTC1));
+        }
+    }
+
+    void GenerateTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, DDSFormat format)
+    {
+        if (string.IsNullOrWhiteSpace(texture)) return;
+        if (!createdTextures.Add(texture)) return;
+        if (settings.ImportTextures && Images != null && Images.TryGetValue(texture, out var img))
+        {
+            txms.Children.Add(ImportTextureNode(txms, texture, img.Data, format));
+        }
+        else if (settings.GeneratePlaceholderTextures)
+        {
+            txms.Children.Add(DefaultTextureNode(txms, texture));
+        }
+    }
+
+    static LUtfNode DefaultMaterialNode(LUtfNode parent, SimpleMesh.Material mat, int i, ModelImporterSettings settings)
     {
         var matnode = new LUtfNode() { Name = mat.Name, Parent = parent };
         matnode.Children = new List<LUtfNode>();
-        matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = "DcDt" });
+        var type = (!string.IsNullOrWhiteSpace(mat.EmissiveTexture?.Name) ||
+                    mat.EmissiveColor != Vector3.Zero)
+            ? "DcDtEcEt"
+            : "DcDt";
+        matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = type });
         var arr = new float[] { mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z };
         matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
-        if (generatePlaceholders || !string.IsNullOrWhiteSpace(mat.DiffuseTexture?.Name))
+        if (settings.GeneratePlaceholderTextures || !string.IsNullOrWhiteSpace(mat.DiffuseTexture?.Name))
         {
             string textureName = (mat.DiffuseTexture?.Name ?? mat.Name) + ".dds";
             matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = textureName });
             matnode.Children.Add(new LUtfNode()
                 { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
         }
+        if (!string.IsNullOrWhiteSpace(mat.EmissiveTexture?.Name))
+        {
+            string textureName = mat.EmissiveTexture.Name  + ".dds";
+            matnode.Children.Add(new LUtfNode() { Name = "Et_name", Parent = matnode, StringData = textureName });
+            matnode.Children.Add(new LUtfNode()
+                { Name = "Et_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+        }
+        else if (mat.EmissiveColor != Vector3.Zero) //TODO: Maybe EcEt is not right in Librelancer?
+        {
+            arr = new float[] { mat.EmissiveColor.X, mat.EmissiveColor.Y, mat.EmissiveColor.Z };
+            matnode.Children.Add(new LUtfNode() { Name = "Ec", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
+        }
+        if (!string.IsNullOrWhiteSpace(mat.NormalTexture?.Name) && settings.AdvancedMaterials)
+        {
+            string textureName = mat.NormalTexture.Name  + ".dds";
+            matnode.Children.Add(new LUtfNode() { Name = "Nt_name", Parent = matnode, StringData = textureName });
+            matnode.Children.Add(new LUtfNode()
+                { Name = "Nt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+        }
+        if (!string.IsNullOrWhiteSpace(mat.MetallicRoughnessTexture?.Name) && settings.AdvancedMaterials)
+        {
+            string textureNameRough = mat.MetallicRoughnessTexture.Name  + "_ROUGH.dds";
+            string textureNameMetal = mat.MetallicRoughnessTexture.Name  + "_METAL.dds";
+            matnode.Children.Add(new LUtfNode() { Name = "Rt_name", Parent = matnode, StringData = textureNameRough });
+            matnode.Children.Add(new LUtfNode()
+                { Name = "Rt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+            matnode.Children.Add(new LUtfNode() { Name = "Mt_name", Parent = matnode, StringData = textureNameMetal });
+            matnode.Children.Add(new LUtfNode()
+                { Name = "Mt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+        }
         return matnode;
     }
 
-    static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data)
+    static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data, DDSFormat format)
     {
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
         texnode.Children = new List<LUtfNode>();
-        texnode.Children.Add(TextureImport.ImportAsMIPSNode(data, texnode));
+        texnode.Children.Add(TextureImport.ImportAsMIPSNode(data, texnode, format));
         return texnode;
     }
 
@@ -608,14 +658,14 @@ public class ImportedModel
         return node;
     }
 
-    void ExportModels(string mdlName, LUtfNode root, string suffix, LUtfNode vms, ImportedModelNode model)
+    void ExportModels(string mdlName, LUtfNode root, string suffix, LUtfNode vms, ImportedModelNode model, ModelImporterSettings settings)
     {
         var modelNode = new LUtfNode() {Parent = root, Name = model.Name + suffix};
         modelNode.Children = new List<LUtfNode>();
         root.Children.Add(modelNode);
-        Export3DB(mdlName, modelNode, model, vms);
+        Export3DB(mdlName, modelNode, model, settings, vms);
         foreach (var child in model.Children)
-            ExportModels(mdlName, root, suffix, vms, child);
+            ExportModels(mdlName, root, suffix, vms, child, settings);
     }
 
     static ushort[] GetIndicesForWire(Geometry lod, Geometry vmeshwire)
@@ -656,21 +706,29 @@ public class ImportedModel
         return wireNode;
     }
 
-    static void Export3DB(string mdlName, LUtfNode node3db, ImportedModelNode mdl, LUtfNode vmeshlibrary = null)
+    static void Export3DB(string mdlName, LUtfNode node3db, ImportedModelNode mdl, ModelImporterSettings settings, LUtfNode vmeshlibrary = null)
     {
-
         var vms = vmeshlibrary ?? new LUtfNode()
             { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
         for (int i = 0; i < mdl.LODs.Count; i++)
         {
+            if (settings.AdvancedMaterials)
+            {
+                if (mdl.LODs[i].Geometry.Groups.Any(x => x.Material.NormalTexture != null) &&
+                    ((mdl.LODs[i].Geometry.Attributes & VertexAttributes.Tangent) != VertexAttributes.Tangent))
+                {
+                    TangentGeneration.GenerateMikkTSpace(mdl.LODs[i].Geometry);
+                    mdl.LODs[i].Geometry.Attributes |= VertexAttributes.Tangent;
+                }
+            }
             var n = new LUtfNode()
             {
-                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int)GeometryWriter.FVF(mdl.LODs[i].Geometry)}.vms",
+                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int)GeometryWriter.FVF(mdl.LODs[i].Geometry, settings.AdvancedMaterials)}.vms",
                 Parent = vms
             };
             n.Children = new List<LUtfNode>();
             n.Children.Add(new LUtfNode()
-                    { Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry) });
+                    { Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry, settings.AdvancedMaterials) });
             vms.Children.Add(n);
         }
         if (vmeshlibrary == null && mdl.LODs.Count > 0)
@@ -693,7 +751,7 @@ public class ImportedModel
                     Parent = n.Children[0],
                     Data = GeometryWriter.VMeshRef(mdl.LODs[i].Geometry,
                         string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i,
-                            (int) GeometryWriter.FVF(mdl.LODs[i].Geometry)))
+                            (int) GeometryWriter.FVF(mdl.LODs[i].Geometry, settings.AdvancedMaterials)))
                 });
                 multilevel.Children.Add(n);
             }
@@ -734,7 +792,7 @@ public class ImportedModel
                 Parent = part,
                 Data = GeometryWriter.VMeshRef(mdl.LODs[0].Geometry,
                     string.Format("{0}-{1}.lod0.{2}.vms", mdlName, mdl.Name,
-                        (int) GeometryWriter.FVF(mdl.LODs[0].Geometry)))
+                        (int) GeometryWriter.FVF(mdl.LODs[0].Geometry, settings.AdvancedMaterials)))
             });
             node3db.Children.Add(part);
         }
@@ -762,7 +820,7 @@ public class ImportedModel
             {
                 FLLog.Info("Import", $"{mdl.Name} VMeshWire created from existing VMeshData");
                 node3db.Children.Add(GetVMeshWireNode(node3db,
-                    CrcTool.FLModelCrc($"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(srcGeometry)}.vms"),
+                    CrcTool.FLModelCrc($"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(srcGeometry, settings.AdvancedMaterials)}.vms"),
                     wireIndices
                     ));
             }
@@ -777,7 +835,7 @@ public class ImportedModel
                 };
                 n.Children = new List<LUtfNode>();
                 n.Children.Add(new LUtfNode()
-                    {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(wireLod, D3DFVF.XYZ)});
+                    {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(wireLod, false, D3DFVF.XYZ)});
                 vms.Children.Add(n);
                 if(vmeshlibrary == null && mdl.LODs.Count == 0)
                     node3db.Children.Add(vms);

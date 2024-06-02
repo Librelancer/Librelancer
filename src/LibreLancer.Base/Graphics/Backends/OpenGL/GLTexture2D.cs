@@ -41,6 +41,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                         case SurfaceFormat.Dxt1:
                         case SurfaceFormat.Dxt3:
                         case SurfaceFormat.Dxt5:
+                        case SurfaceFormat.Rgtc1:
+                        case SurfaceFormat.Rgtc2:
                             imageSize = ((Width + 3) / 4) * ((Height + 3) / 4) * format.GetSize();
                             break;
                         default:

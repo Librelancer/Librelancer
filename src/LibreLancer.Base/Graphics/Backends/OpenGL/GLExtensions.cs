@@ -11,6 +11,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		public static List<string> ExtensionList;
 		static bool? _computeShaders;
         static bool s3tc;
+        static bool rgtc;
         private static bool debugInfo;
         public static bool S3TC
         {
@@ -18,6 +19,15 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             {
                 PopulateExtensions();
                 return s3tc;
+            }
+        }
+
+        public static bool RGTC
+        {
+            get
+            {
+                PopulateExtensions();
+                return rgtc;
             }
         }
 
@@ -87,6 +97,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
             FLLog.Info("GL", "Extensions: \n" + string.Join(", ", ExtensionList));
             s3tc = ExtensionList.Contains("GL_EXT_texture_compression_s3tc");
+            rgtc = ExtensionList.Contains("GL_EXT_texture_compression_rgtc");
             debugInfo = ExtensionList.Contains("GL_KHR_debug");
             if (debugInfo)
                 FLLog.Info("GL", "KHR_debug supported");
@@ -98,6 +109,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             {
                 FLLog.Info("GL", "S3TC extension not supported");
             }
+            if(rgtc)
+                FLLog.Info("GL", "RGTC extension supported");
+            else
+                FLLog.Info("GL", "RGTC extension not supported");
 
 		}
     }

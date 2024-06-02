@@ -145,6 +145,12 @@ namespace LibreLancer.Utf.Mat
 
 		public string DmName;
 
+        public int MtFlags;
+        public string MtName;
+
+        public int RtFlags;
+        public string RtName;
+
 		static List<string> basicMaterials = new List<string> {
 			"Dc", //DcDt buggy
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt", "DcDtBtEc", "DcDtBtEcEt",
@@ -339,6 +345,18 @@ namespace LibreLancer.Utf.Mat
 				case "nt_flags":
 					NtFlags = n.Int32Data.Value;
 					break;
+                case "mt_name":
+                    MtName = n.StringData;
+                    break;
+                case "mt_flags":
+                    MtFlags = n.Int32Data.Value;
+                    break;
+                case "rt_name":
+                    RtName = n.StringData;
+                    break;
+                case "rt_flags":
+                    RtFlags = n.Int32Data.Value;
+                    break;
 				default:
                     FLLog.Warning("Material", Name + ": Unknown property " + n.Name.ToLowerInvariant());
                     break;
@@ -363,6 +381,12 @@ namespace LibreLancer.Utf.Mat
 				bm.DtFlags = (SamplerFlags)DtFlags;
 				bm.EtSampler = EtName;
 				bm.EtFlags = (SamplerFlags)EtFlags;
+                bm.NtSampler = NtName;
+                bm.NtFlags = (SamplerFlags)NtFlags;
+                bm.MtSampler = MtName;
+                bm.MtFlags = (SamplerFlags)MtFlags;
+                bm.RtSampler = RtName;
+                bm.RtFlags = (SamplerFlags)RtFlags;
 				bm.Library = res;
 				if (type.Contains("Ot"))
 					bm.AlphaEnabled = true;

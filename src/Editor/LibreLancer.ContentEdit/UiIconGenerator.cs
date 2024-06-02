@@ -77,7 +77,7 @@ namespace LibreLancer.ContentEdit
             {
                Name = "VMeshData",
                Parent = vmsName,
-               Data = GeometryWriter.VMeshData(geom)
+               Data = GeometryWriter.VMeshData(geom, false)
             });
             //VMeshPart
             var vmeshPart = new LUtfNode() {Name = "VMeshPart", Parent = modelFile.Root, Children = new List<LUtfNode>()};

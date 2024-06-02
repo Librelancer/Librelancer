@@ -18,7 +18,9 @@ namespace LibreLancer.Shaders
         ALPHATEST_ENABLED = 1,
         ET_ENABLED = 2,
         FADE_ENABLED = 4,
-        VERTEX_DIFFUSE = 8,
-        VERTEX_LIGHTING = 16,
+        METALROUGHMAP = 8,
+        NORMALMAP = 16,
+        VERTEX_DIFFUSE = 32,
+        VERTEX_LIGHTING = 64,
     }
 }

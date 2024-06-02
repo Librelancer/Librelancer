@@ -53,12 +53,33 @@ static unsigned char *rgba_input(const unsigned char *input, int width, int heig
     return newBuffer;    
 }
 
+static unsigned char *channel_input(const unsigned char *input, int width, int height, int channel)
+{
+    unsigned char *newBuffer = (unsigned char*)malloc((size_t)(width * height * 4));
+    memcpy(newBuffer, input, (size_t)(width * height * 4));
+    int len = width * height * 4;
+    for(int i = 0; i < len; i+= 4) {
+        unsigned char temp = newBuffer[i + channel];
+        newBuffer[i] = temp;
+        newBuffer[i + 1] = temp;
+        newBuffer[i + 2] = temp;
+    }
+    return newBuffer;    
+}
+
 CRNEXPORT int CrnGlueCompressDDS(const unsigned char *input, int inWidth, int inHeight, crnglue_format_t format, crnglue_mipmaps_t mipmaps, int highQualitySlow, unsigned char **output, unsigned int *outputSize)
 {
 	crn_comp_params compression = crn_comp_params();
     crn_mipmap_params mipparams;
 	compression.m_file_type = cCRNFileTypeDDS;
-	unsigned char *rgba = rgba_input(input, inWidth, inHeight);
+	unsigned char *rgba; 
+	if(format == CRNGLUE_FORMAT_RGTC1_METALLIC) {
+	    rgba = channel_input(input, inWidth, inHeight, 0);
+	} else if (format == CRNGLUE_FORMAT_RGTC1_ROUGHNESS) {
+	    rgba = channel_input(input, inWidth, inHeight, 1);
+    } else {
+        rgba = rgba_input(input, inWidth, inHeight);
+    }
 	switch(format) {
 		default:
 		case CRNGLUE_FORMAT_DXT1:
@@ -74,6 +95,15 @@ CRNEXPORT int CrnGlueCompressDDS(const unsigned char *input, int inWidth, int in
 		case CRNGLUE_FORMAT_DXT5:
 			compression.m_format = cCRNFmtDXT5;
 			break;
+		case CRNGLUE_FORMAT_RGTC2:
+		    compression.m_format = cCRNFmtDXN_XY;
+		    compression.m_flags = 0;
+		    break;
+		case CRNGLUE_FORMAT_RGTC1_METALLIC:
+		case CRNGLUE_FORMAT_RGTC1_ROUGHNESS:
+		    compression.m_format = cCRNFmtDXT5A;
+		    compression.m_flags = 0;
+		    break;
 	}
 	compression.m_width = inWidth;
 	compression.m_height = inHeight;

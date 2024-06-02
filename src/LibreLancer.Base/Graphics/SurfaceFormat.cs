@@ -13,6 +13,8 @@ namespace LibreLancer.Graphics
         Dxt1,
         Dxt3,
         Dxt5,
+        Rgtc1,
+        Rgtc2,
         NormalizedByte2,
         NormalizedByte4,
         Rgba1010102,

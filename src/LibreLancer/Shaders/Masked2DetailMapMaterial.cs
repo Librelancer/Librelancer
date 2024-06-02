@@ -17,8 +17,8 @@ namespace LibreLancer.Shaders
         private static bool iscompiled = false;
         private static int GetIndex(ShaderFeatures features)
         {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(16)));
-            if ((masked == ((ShaderFeatures)(16))))
+            ShaderFeatures masked = (features & ((ShaderFeatures)(64)));
+            if ((masked == ((ShaderFeatures)(64))))
             {
                 return 1;
             }
@@ -45,13 +45,13 @@ namespace LibreLancer.Shaders
             variants = new ShaderVariables[2];
             if (device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430))
             {
-                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(251574, 1545), sourceBundle.Substring(314218, 7181));
-                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(266725, 4472), sourceBundle.Substring(324183, 3125));
+                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(421706, 1545), sourceBundle.Substring(484350, 7181));
+                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(436857, 4472), sourceBundle.Substring(494315, 3125));
             }
             else
             {
-                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(246039, 1204), sourceBundle.Substring(309642, 4576));
-                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(260055, 4131), sourceBundle.Substring(321399, 2784));
+                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(416171, 1204), sourceBundle.Substring(479774, 4576));
+                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(430187, 4131), sourceBundle.Substring(491531, 2784));
             }
         }
     }

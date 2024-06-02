@@ -72,7 +72,9 @@ namespace LibreLancer.ImageLib
             DXT2 = 0x32545844,
             DXT3 = 0x33545844,
             DXT4 = 0x34545844,
-            DXT5 = 0x35545844
+            DXT5 = 0x35545844,
+            ATI2N = 0x32495441,
+            ATI1N = 0x31495441
         }
 
         public static Image[] ImageFromStream(Stream stream)
@@ -189,10 +191,12 @@ namespace LibreLancer.ImageLib
         {
             switch (GetSurfaceFormat(ref header))
             {
+                case SurfaceFormat.Rgtc1:
                 case SurfaceFormat.Dxt1:
                     return ((width + 3) / 4) * ((height + 3) / 4) * 8;
                 case SurfaceFormat.Dxt3:
                 case SurfaceFormat.Dxt5:
+                case SurfaceFormat.Rgtc2:
                     return ((width + 3) / 4) * ((height + 3) / 4) * 16;
                 case SurfaceFormat.Bgra5551:
                 case SurfaceFormat.Bgr565:
@@ -215,6 +219,10 @@ namespace LibreLancer.ImageLib
                     return SurfaceFormat.Dxt3;
                 case FourCC.DXT5:
                     return SurfaceFormat.Dxt5;
+                case FourCC.ATI1N:
+                    return SurfaceFormat.Rgtc1;
+                case FourCC.ATI2N:
+                    return SurfaceFormat.Rgtc2;
             }
             //Uncompressed 16-bit formats
             if (header.ddspf.dwFlags == 0x41 &&
@@ -267,8 +275,6 @@ namespace LibreLancer.ImageLib
             int w = width, h = height;
             for (int i = 0; i < mipMapCount; i++)
             {
-                var length = GetSurfaceBytes(ref header, w, h);
-
                 var bytes = GetSurfaceBytes(ref header, w, h);
                 byte[] data;
                 if (fmt == SurfaceFormat.Bgra8 && header.ddspf.dwRGBBitCount == 24)

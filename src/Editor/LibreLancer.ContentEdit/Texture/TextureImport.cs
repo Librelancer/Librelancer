@@ -19,7 +19,10 @@ namespace LibreLancer.ContentEdit
         DXT1 = CrnglueFormat.DXT1,
         DXT1a = CrnglueFormat.DXT1A,
         DXT3 = CrnglueFormat.DXT3,
-        DXT5 = CrnglueFormat.DXT5
+        DXT5 = CrnglueFormat.DXT5,
+        RGTC2 = CrnglueFormat.RGTC2,
+        MetallicRGTC1 = CrnglueFormat.MetallicRGTC1,
+        RoughnessRGTC1 = CrnglueFormat.RoughnessRGTC1,
     }
     public enum MipmapMethod
     {
@@ -217,7 +220,7 @@ namespace LibreLancer.ContentEdit
             return nodes;
         }
 
-        public static LUtfNode ImportAsMIPSNode(ReadOnlySpan<byte> input, LUtfNode parent)
+        public static LUtfNode ImportAsMIPSNode(ReadOnlySpan<byte> input, LUtfNode parent, DDSFormat format = DDSFormat.DXT5)
         {
             var data = new byte[input.Length];
             input.CopyTo(data);
@@ -233,7 +236,8 @@ namespace LibreLancer.ContentEdit
                     {
                         return new LUtfNode() { Name = "MIPS", Data = embedded, Parent = parent };
                     }
-                    data =  Crunch.CompressDDS(Bgra8.BufferFromBytes(raw.Data), raw.Width, raw.Height, CrnglueFormat.DXT5, CrnglueMipmaps.LANCZOS4, false);
+                    data =  Crunch.CompressDDS(Bgra8.BufferFromBytes(raw.Data), raw.Width, raw.Height,
+                        (CrnglueFormat)format, CrnglueMipmaps.LANCZOS4, false);
                     return new LUtfNode() {Name = "MIPS", Data = data, Parent = parent };
                 }
             }

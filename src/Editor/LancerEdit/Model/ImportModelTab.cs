@@ -59,9 +59,9 @@ public class ImportModelTab : EditorTab
 
     private bool generateSur = true;
     private bool canGenerateSur = false;
-
     private bool importTextures = true;
     private bool placeholderTextures = true;
+    private bool advancedMaterials = false;
 
     public ImportModelTab(Model model, string fname, MainWindow win, TaskRunPopup popup)
     {
@@ -146,7 +146,8 @@ public class ImportModelTab : EditorTab
                 GenerateMaterials = generateMaterials,
                 ImportTextures = importTextures,
                 GeneratePlaceholderTextures = placeholderTextures,
-                ForceCompound = forceCompound
+                ForceCompound = forceCompound,
+                AdvancedMaterials = advancedMaterials
             });
             win.QueueUIThread(() =>
             {
@@ -231,6 +232,8 @@ public class ImportModelTab : EditorTab
                     "Model contains no textures to import");
                 ImGui.Checkbox("Placeholder Textures", ref placeholderTextures);
                 ImGui.SetItemTooltip("Includes the default texture when a material's texture is not found or specified");
+                ImGui.Checkbox("Advanced Materials", ref advancedMaterials);
+                ImGui.SetItemTooltip("Import normal maps and PBR maps");
                 ImGuiExt.Checkbox("Generate Sur",
                     ref generateSur,
                     canGenerateSur,

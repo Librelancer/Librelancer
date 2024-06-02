@@ -24,6 +24,11 @@ namespace LibreLancer.Shaders
 		int ocPosition;
 		int ecPosition;
 		int etSamplerPosition;
+        int ntSamplerPosition;
+        int mtSamplerPosition;
+        int rtSamplerPosition;
+        int metallicPosition;
+        int roughnessPosition;
 
 		int flipUPosition;
 		int flipVPosition;
@@ -61,6 +66,11 @@ namespace LibreLancer.Shaders
 			ocPosition = sh.GetLocation("Oc");
 			ecPosition = sh.GetLocation("Ec");
 			etSamplerPosition = sh.GetLocation("EtSampler");
+            ntSamplerPosition = sh.GetLocation("NtSampler");
+            mtSamplerPosition = sh.GetLocation("MtSampler");
+            rtSamplerPosition = sh.GetLocation("RtSampler");
+            metallicPosition = sh.GetLocation("Metallic");
+            roughnessPosition = sh.GetLocation("Roughness");
 
 			flipUPosition = sh.GetLocation("FlipU");
 			flipVPosition = sh.GetLocation("FlipV");
@@ -194,11 +204,41 @@ namespace LibreLancer.Shaders
 				shader.SetColor4(ecPosition, ec);
 		}
 
+        public void SetMetallic(float v)
+        {
+            if (metallicPosition != -1)
+                shader.SetFloat(metallicPosition, v);
+        }
+
+        public void SetRoughness(float v)
+        {
+            if (roughnessPosition != -1)
+                shader.SetFloat(roughnessPosition, v);
+        }
+
 		public void SetEtSampler(int et)
 		{
 			if (etSamplerPosition != -1)
 				shader.SetInteger(etSamplerPosition, et);
 		}
+
+        public void SetNtSampler(int nt)
+        {
+            if (ntSamplerPosition != -1)
+                shader.SetInteger(ntSamplerPosition, nt);
+        }
+
+        public void SetMtSampler(int nt)
+        {
+            if (mtSamplerPosition != -1)
+                shader.SetInteger(mtSamplerPosition, nt);
+        }
+
+        public void SetRtSampler(int nt)
+        {
+            if (rtSamplerPosition != -1)
+                shader.SetInteger(rtSamplerPosition, nt);
+        }
 
 		public void SetFlipU(int flip)
 		{

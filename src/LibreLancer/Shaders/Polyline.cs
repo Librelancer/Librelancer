@@ -35,7 +35,7 @@ namespace LibreLancer.Shaders
             ShaderVariables.Log("Compiling Polyline");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(336597, 486), sourceBundle.Substring(244452, 236));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(615551, 486), sourceBundle.Substring(414584, 236));
         }
     }
 }

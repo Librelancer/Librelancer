@@ -58,6 +58,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             GL.BindAttribLocation(programID, VertexSlots.Color2, "vertex_color2");
             GL.BindAttribLocation(programID, VertexSlots.Texture1, "vertex_texture1");
 			GL.BindAttribLocation (programID, VertexSlots.Texture2, "vertex_texture2");
+            GL.BindAttribLocation (programID, VertexSlots.Texture3, "vertex_texture3");
+            GL.BindAttribLocation (programID, VertexSlots.Texture4, "vertex_texture4");
 			GL.BindAttribLocation (programID, VertexSlots.Dimensions, "vertex_dimensions");
 			GL.BindAttribLocation (programID, VertexSlots.Right, "vertex_right");
 			GL.BindAttribLocation (programID, VertexSlots.Up, "vertex_up");

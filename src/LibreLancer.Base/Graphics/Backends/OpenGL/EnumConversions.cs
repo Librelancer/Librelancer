@@ -84,6 +84,14 @@ static class EnumConversions
                 glInternalFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
                 glFormat = GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS;
                 break;
+            case SurfaceFormat.Rgtc1:
+                glInternalFormat = GL.GL_COMPRESSED_RED_RGTC1_EXT;
+                glFormat = GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS;
+                break;
+            case SurfaceFormat.Rgtc2:
+                glInternalFormat = GL.GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
+                glFormat = GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS;
+                break;
 
             case SurfaceFormat.Single:
                 glInternalFormat = GL.GL_R32F;
