@@ -74,7 +74,7 @@ namespace LibreLancer
                 #if !DEBUG
                 try
                 {
-                    intro.Add(new ThnScript(s.Load(), s.ReadCallback));
+                    intro.Add(s.LoadScript());
                 }
                 catch (Exception e)
                 {
@@ -83,7 +83,7 @@ namespace LibreLancer
                     return;
                 }
                 #else
-                intro.Add(new ThnScript(s.Load(), s.ReadCallback));
+                intro.Add(s.LoadScript());
                 #endif
             }
             scene.BeginScene(intro);

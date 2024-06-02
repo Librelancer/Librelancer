@@ -1062,7 +1062,7 @@ namespace LibreLancer.Client
                 {
 
                     var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.DataPath(thorn)),
-                        Game.GameData.ThornReadCallback);
+                        Game.GameData.ThornReadCallback, thorn);
                     var mo = gp.world.GetObject(mainObject);
                     if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
                     else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");

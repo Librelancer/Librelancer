@@ -38,7 +38,7 @@ namespace LibreLancer.Thn.Events
 
         public StartSpatialPropAnimEvent() { }
 
-        public StartSpatialPropAnimEvent(ThornTable table) : base(table)
+        public StartSpatialPropAnimEvent(ThornTable table, string source) : base(table)
         {
             if (!GetProps(table, out var props)) return;
             if (!GetValue(props, "spatialprops", out ThornTable sp)) return;
@@ -51,7 +51,7 @@ namespace LibreLancer.Thn.Events
                     FLLog.Error("Thn", "START_SPATIAL_PROP_ANIM axisrot missing axis");
                 }
                 else {
-                    AxisRot.Axis = ThnTypes.Convert<ThnAxis>(o);
+                    AxisRot.Axis = ThnTypes.ConvertAxis(o, source);
                 }
                 AxisRot.Degrees = (float) axisrot[1];
             }

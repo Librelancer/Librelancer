@@ -103,20 +103,20 @@ namespace LibreLancer.Thn
 		public List<ThnEvent> Events = new List<ThnEvent>();
 
 
-        public ThnScript(byte[] bytes, ThornReadFile readFile)
+        public ThnScript(byte[] bytes, ThornReadFile readFile, string source)
         {
             var runner = new ThornRunner(ThnEnv, readFile);
-            Initialize(runner.DoBytes(bytes));
+            Initialize(runner.DoBytes(bytes), source);
         }
 
-        private void Initialize(IDictionary<string, object> output)
+        private void Initialize(IDictionary<string, object> output, string source)
         {
             Duration = (float)output["duration"];
             var entities = (ThornTable)output["entities"];
             foreach(var val in entities.Values)
             {
                 var ent = (ThornTable)val;
-                var e = GetEntity(ent);
+                var e = GetEntity(ent, source);
                 if (Entities.ContainsKey(e.Name))
                 {
                     FLLog.Error("Thn", "Overwriting entity: \"" + e.Name + '"');
@@ -129,13 +129,13 @@ namespace LibreLancer.Thn
             foreach(var val in events.Values)
             {
                 var ev = (ThornTable)val;
-                var e = GetEvent(ev);
+                var e = GetEvent(ev, source);
                 Events.Add(e);
             }
             Events.Sort((x, y) => x.Time.CompareTo(y.Time));
         }
 
-		ThnEvent GetEvent(ThornTable table)
+		ThnEvent GetEvent(ThornTable table, string source)
 		{
             var t = ThnTypes.Convert<EventTypes>(table[2]);
             switch (t)
@@ -153,7 +153,7 @@ namespace LibreLancer.Thn
                 case EventTypes.StartPathAnimation:
                     return new StartPathAnimationEvent(table);
                 case EventTypes.StartSpatialPropAnim:
-                    return new StartSpatialPropAnimEvent(table);
+                    return new StartSpatialPropAnimEvent(table, source);
                 case EventTypes.AttachEntity:
                     return new AttachEntityEvent(table);
                 case EventTypes.ConnectHardpoints:
@@ -228,7 +228,7 @@ namespace LibreLancer.Thn
 
         static int FuzzyInt(object o) => (int) FuzzyFloat(o);
 
-		ThnEntity GetEntity(ThornTable table)
+		ThnEntity GetEntity(ThornTable table, string source)
 		{
 			object o;
 
@@ -255,11 +255,11 @@ namespace LibreLancer.Thn
 			}
 			if (table.TryGetValue("up", out o))
             {
-                e.Up = ThnTypes.Convert<ThnAxis>(o);
+                e.Up = ThnTypes.ConvertAxis(o, source);
             }
 			if (table.TryGetValue("front", out o))
 			{
-				e.Front = ThnTypes.Convert<ThnAxis>(o);
+				e.Front = ThnTypes.ConvertAxis(o, source);
 			}
 
 			if (table.TryGetValue("template_name", out o))

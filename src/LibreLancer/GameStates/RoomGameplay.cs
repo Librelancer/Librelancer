@@ -409,7 +409,7 @@ namespace LibreLancer
                     cState = state;
                     break;
             }
-            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(scName)), session.Game.GameData.ThornReadCallback);
+            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(scName)), session.Game.GameData.ThornReadCallback, scName);
             currentCutscene = ct;
             RoomDoSceneScript(script, ScriptState.Cutscene);
         }
@@ -421,7 +421,7 @@ namespace LibreLancer
         {
             if (!string.IsNullOrEmpty(currentRoom.LaunchScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LaunchScript.Load(), currentRoom.LaunchScript.ReadCallback), ScriptState.Launch);
+                RoomDoSceneScript(currentRoom.LaunchScript.LoadScript(), ScriptState.Launch);
             }
             else
             {
@@ -560,10 +560,10 @@ namespace LibreLancer
             sceneScripts = currentRoom.OpenScene().ToArray();
             if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.LandScript.Load(), currentRoom.LandScript.ReadCallback), ScriptState.Enter);
+                RoomDoSceneScript(currentRoom.LandScript.LoadScript(), ScriptState.Enter);
             } else if (!string.IsNullOrEmpty(currentRoom.StartScript?.DataPath))
             {
-                RoomDoSceneScript(new ThnScript(currentRoom.StartScript.Load(), currentRoom.StartScript.ReadCallback), ScriptState.Enter);
+                RoomDoSceneScript(currentRoom.StartScript.LoadScript(), ScriptState.Enter);
             }
             else
             {
@@ -639,7 +639,7 @@ namespace LibreLancer
                 scene.AddObject(thnObj);
                 scene.FidgetScript(new ThnScript(
                     session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(npc.Fidget)),
-                    session.Game.GameData.ThornReadCallback));
+                    session.Game.GameData.ThornReadCallback, npc.Fidget));
                 if(i == 0) hotspots.Add(new RTCHotspot() { ini = ct, obj = thnObj, npc = npc.Npc });
                 i++;
             }

@@ -11,6 +11,30 @@ namespace LibreLancer.Thn
 {
     public class ThnTypes
     {
+        private static readonly Vector3[] axisTable =
+        {
+            Vector3.UnitX,
+            Vector3.UnitY,
+            Vector3.UnitZ,
+            -Vector3.UnitX,
+            -Vector3.UnitY,
+            -Vector3.UnitZ
+        };
+        public static ThnAxis ConvertAxis(object o, string source)
+        {
+            if (o is ThornTable tb)
+            {
+
+                var v3 = tb.ToVector3();
+                var conv = axisTable.AsSpan().IndexOf(v3);
+                if (conv == -1) conv = 0;
+                FLLog.Error("Thn",
+                    $"Incorrect axis format in {source}, '{tb}' should be {ThornTable.EnumReverse[((ThnAxis)conv).ToString()]}. Support for this will be removed in a later version");
+                return (ThnAxis)conv;
+            }
+
+            return Convert<ThnAxis>(o);
+        }
         //This method attempts to map any valid thorn value to a corresponding .NET object
         //It is somewhat fuzzy, and yes a huge mess.
         public static T Convert<T>(object o)

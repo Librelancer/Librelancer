@@ -12,4 +12,5 @@ public class ResolvedThn
     public FileSystem VFS;
     public string DataPath;
     public string SourcePath;
+    public ThnScript LoadScript() => new ThnScript(Load(), ReadCallback, DataPath);
 }

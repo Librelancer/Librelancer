@@ -88,7 +88,7 @@ namespace LancerEdit
                     var source = colorTextEdit.GetText();
                     var compiledBytes = ThornCompiler.Compile(source, "");
                     lastError = null;
-                    var thornScript = new ThnScript(compiledBytes, null);
+                    var thornScript = new ThnScript(compiledBytes, null, "[SOURCE]");
                     var ctx = new ThnScriptContext(null);
                     cutscene?.Dispose();
                     cutscene = new Cutscene(ctx,

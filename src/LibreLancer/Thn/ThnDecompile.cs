@@ -102,7 +102,7 @@ namespace LibreLancer.Thn
                         ProcessEvents((ThornTable)kv.Value);
                         break;
                     case "entities":
-                        ProcessEntities((ThornTable)kv.Value);
+                        ProcessEntities((ThornTable)kv.Value, file);
                         break;
                 }
                 if (kv.Value is float f)
@@ -114,7 +114,7 @@ namespace LibreLancer.Thn
             }
             return builder.ToString();
         }
-        static void ProcessEntities(ThornTable t)
+        static void ProcessEntities(ThornTable t, string source)
         {
             //Make sure flags aren't integers
             object o;
@@ -129,9 +129,9 @@ namespace LibreLancer.Thn
                 }
                 if (ent.ContainsKey("flags")) ent["flags"] = ConvertFlags((EntityTypes)ent["type"], ent);
                 if (ent.ContainsKey("front"))
-                    ent["front"] = ThnTypes.Convert<ThnAxis>(ent["front"]);
+                    ent["front"] = ThnTypes.ConvertAxis(ent["front"], source);
                 if(ent.ContainsKey("up"))
-                    ent["up"] = ThnTypes.Convert<ThnAxis>(ent["up"]);
+                    ent["up"] = ThnTypes.ConvertAxis(ent["up"], source);
             }
         }
         static ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
