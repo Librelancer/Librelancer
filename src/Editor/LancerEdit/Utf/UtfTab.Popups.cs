@@ -37,7 +37,10 @@ namespace LancerEdit
             "DXT1",
             "DXT1a",
             "DXT3",
-            "DXT5"
+            "DXT5",
+            "Normal Map",
+            "Metallic Map (B channel)",
+            "Roughness Map (G channel)"
         };
         int compressOption = 0;
         string[] mipmapOptions = new string[] {
@@ -122,6 +125,15 @@ namespace LancerEdit
                                 break;
                             case 4:
                                 format = DDSFormat.DXT5;
+                                break;
+                            case 5:
+                                format = DDSFormat.RGTC2;
+                                break;
+                            case 6:
+                                format = DDSFormat.MetallicRGTC1;
+                                break;
+                            case 7:
+                                format = DDSFormat.RoughnessRGTC1;
                                 break;
                         }
                         var mipm = MipmapMethod.None;
