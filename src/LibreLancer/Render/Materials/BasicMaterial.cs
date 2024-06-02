@@ -51,8 +51,8 @@ namespace LibreLancer.Render.Materials
                 if (pbr)
                 {
                     var x = caps | (normalMap ? ShaderFeatures.NORMALMAP : 0);
-                    caps |= ShaderFeatures.METALROUGHMAP;
-                    return PBR.Get(rstate, caps);
+                    x |= ShaderFeatures.METALROUGHMAP;
+                    return PBR.Get(rstate, x);
                 }
                 if (fvf.Diffuse && fvf.Normal) {
                     return Basic_PositionNormalColorTexture.Get(rstate, caps);
@@ -66,7 +66,7 @@ namespace LibreLancer.Render.Materials
                     else if (fvf.TexCoords == 4)
                     {
                         var x = caps | (normalMap ? ShaderFeatures.NORMALMAP : 0);
-                        return Basic_PositionNormalTextureTwo.Get(rstate, caps);
+                        return Basic_PositionNormalTextureTwo.Get(rstate, x);
                     }
                     else if (fvf.TexCoords == 1)
                     {
