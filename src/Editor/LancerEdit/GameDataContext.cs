@@ -70,13 +70,14 @@ public class GameDataContext : IDisposable
             return false;
         }
         //Do things
-        using var rm = new GameResourceManager(Resources);
-        using var renderer = new ArchetypePreviews(win, rm);
+
         foreach (var a in GameData.Archetypes)
         {
+            // Dispose everything for each preview rendered
+            // important so big mods don't eat all VRAM at once
+            using var rm = new GameResourceManager(Resources);
+            using var renderer = new ArchetypePreviews(win, rm);
             GetArchetypePreview(a, renderer);
-            if(rm.EstimatedTextureMemory > 128 * 1024 * 1024)
-                rm.ClearTextures();
         }
         return true;
     }
