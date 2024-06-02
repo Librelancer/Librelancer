@@ -30,8 +30,8 @@ namespace LibreLancer.Render.Materials
 		public Color4 Ec = Color4.White;
 		public string EtSampler;
 		public SamplerFlags EtFlags;
-        public string NtSampler;
-        public SamplerFlags NtFlags;
+        public string NmSampler;
+        public SamplerFlags NmFlags;
         public string MtSampler;
         public SamplerFlags MtFlags;
         public string RtSampler;
@@ -98,7 +98,7 @@ namespace LibreLancer.Render.Materials
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
             ShaderFeatures caps = ShaderFeatures.None;
-            bool normalMap = !string.IsNullOrWhiteSpace(NtSampler);
+            bool normalMap = !string.IsNullOrWhiteSpace(NmSampler);
             bool pbr = (!string.IsNullOrWhiteSpace(RtSampler) ||
                        !string.IsNullOrWhiteSpace(MtSampler)) &&
                        lights.Enabled;
@@ -169,7 +169,7 @@ namespace LibreLancer.Render.Materials
             if (normalMap)
             {
                 shader.SetNtSampler(2);
-                BindTexture(rstate, 2, NtSampler, 2, NtFlags, ResourceManager.NullTextureName);
+                BindTexture(rstate, 2, NmSampler, 2, NmFlags, ResourceManager.NullTextureName);
             }
 
             if (pbr)

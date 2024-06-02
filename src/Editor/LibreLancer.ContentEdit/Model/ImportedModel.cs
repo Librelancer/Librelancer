@@ -538,9 +538,9 @@ public class ImportedModel
         if (!string.IsNullOrWhiteSpace(mat.NormalTexture?.Name) && settings.AdvancedMaterials)
         {
             string textureName = mat.NormalTexture.Name  + ".dds";
-            matnode.Children.Add(new LUtfNode() { Name = "Nt_name", Parent = matnode, StringData = textureName });
+            matnode.Children.Add(new LUtfNode() { Name = "Nm_name", Parent = matnode, StringData = textureName });
             matnode.Children.Add(new LUtfNode()
-                { Name = "Nt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+                { Name = "Nm_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
         }
         if (!string.IsNullOrWhiteSpace(mat.MetallicRoughnessTexture?.Name) && settings.AdvancedMaterials)
         {
