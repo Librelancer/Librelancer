@@ -58,7 +58,7 @@ public class EditResult<T>
         }
         catch (Exception e)
         {
-            return Error(e.Message);
+            return Error(e.ToString());
         }
     }
 

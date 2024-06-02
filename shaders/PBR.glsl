@@ -235,7 +235,7 @@ void main()
     float perceptualRoughness = getRoughness();
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
 
-    vec4 baseColor = SRGBtoLinear(texture(DtSampler, out_texcoord)) * Dc;
+    vec4 baseColor = SRGBtoLinear(texture(DtSampler, out_texcoord) * Dc);
 
     vec3 f0 = vec3(0.04);
     vec3 diffuseColor = baseColor.rgb * (vec3(1.0) - f0);

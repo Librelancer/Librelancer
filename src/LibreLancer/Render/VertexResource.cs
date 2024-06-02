@@ -95,7 +95,7 @@ namespace LibreLancer.Render
                 Allocator = this,
                 VertexType = format,
                 BaseVertex = baseVertex,
-                VertexCount = vertices.Length,
+                VertexCount = vertices.Length / buffersByType[format.FVF].Stride,
                 StartIndex = startIndex,
                 IndexCount = indices.Length,
             };
@@ -224,6 +224,8 @@ namespace LibreLancer.Render
 
             private RenderContext context;
 
+            public int Stride => type.Stride;
+
             public VertexResourceBuffer(RenderContext context, FVFVertex type, ElementBuffer elementBuffer)
             {
                 this.context = context;
@@ -243,7 +245,7 @@ namespace LibreLancer.Render
                     freeList.AddItem(0, chunkSize);
                 }
                 //
-                if (!freeList.TryAllocate(vertices.Length, out baseVertex)){
+                if (!freeList.TryAllocate(vertices.Length / Stride, out baseVertex)){
                     FLLog.Debug("Vertices", $"Expanding GPU resource for {type}");
                     baseVertex = VertexBuffer.VertexCount;
                     freeList.AddItem(baseVertex + (vertices.Length / type.Stride), chunkSize - (vertices.Length / type.Stride));

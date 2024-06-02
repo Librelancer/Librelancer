@@ -115,7 +115,8 @@ namespace LancerEdit
             }
             Confirm("This action will overwrite any existing tangent data. Continue?", () =>
             {
-                Tangents.GenerateForUtf(Utf);
+                var result = Tangents.GenerateForUtf(Utf);
+                main.ResultMessages(result);
                 ReloadResources();
             });
         }
