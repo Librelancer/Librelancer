@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
@@ -371,9 +372,26 @@ public class ImportedModel
         return true;
     }
 
+    class TaskHandler(bool multithreaded)
+    {
+        List<Task> tasks = new List<Task>();
+        public void Run(Action task)
+        {
+            if (multithreaded)
+                tasks.Add(Task.Run(task));
+            else
+                task();
+        }
+        public void Wait()
+        {
+            Task.WaitAll(tasks.ToArray());
+        }
+    }
+
     public EditResult<EditableUtf> CreateModel(ModelImporterSettings settings)
     {
         var utf = new EditableUtf();
+        var tasks = new TaskHandler(settings.Multithreaded);
         //Vanity
         var expv = new LUtfNode() {Name = "Exporter Version", Parent = utf.Root};
         expv.StringData = "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>();
@@ -461,12 +479,12 @@ public class ImportedModel
             HashSet<string> createdTextures = new HashSet<string>();
             foreach (var mat in materials)
             {
-                GenerateTexture(mat.DiffuseTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT5);
-                GenerateTexture(mat.EmissiveTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT1);
+                GenerateTexture(mat.DiffuseTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT5, tasks);
+                GenerateTexture(mat.EmissiveTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT1, tasks);
                 if (settings.AdvancedMaterials)
                 {
-                    GenerateTexture(mat.NormalTexture?.Name, createdTextures, txms, settings, DDSFormat.RGTC2);
-                    GenerateMetallicRoughnessTexture(mat.MetallicRoughnessTexture?.Name, createdTextures, txms, settings);
+                    GenerateTexture(mat.NormalTexture?.Name, createdTextures, txms, settings, DDSFormat.RGTC2, tasks);
+                    GenerateMetallicRoughnessTexture(mat.MetallicRoughnessTexture?.Name, createdTextures, txms, settings, tasks);
                 }
             }
 
@@ -477,27 +495,28 @@ public class ImportedModel
             utf.Root.Children.Add(mats);
             utf.Root.Children.Add(txms);
         }
+        tasks.Wait();
         return new EditResult<EditableUtf>(utf, warnings);
     }
 
-    void GenerateMetallicRoughnessTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings)
+    void GenerateMetallicRoughnessTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, TaskHandler tasks)
     {
         if (string.IsNullOrWhiteSpace(texture)) return;
         if (!createdTextures.Add(texture)) return;
         if (settings.ImportTextures && Images != null && Images.TryGetValue(texture, out var img))
         {
-            txms.Children.Add(ImportTextureNode(txms, texture + "_METAL", img.Data, DDSFormat.MetallicRGTC1));
-            txms.Children.Add(ImportTextureNode(txms, texture + "_ROUGH", img.Data ,DDSFormat.RoughnessRGTC1));
+            txms.Children.Add(ImportTextureNode(txms, texture + "_METAL", img.Data, DDSFormat.MetallicRGTC1, tasks));
+            txms.Children.Add(ImportTextureNode(txms, texture + "_ROUGH", img.Data ,DDSFormat.RoughnessRGTC1, tasks));
         }
     }
 
-    void GenerateTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, DDSFormat format)
+    void GenerateTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, DDSFormat format, TaskHandler tasks)
     {
         if (string.IsNullOrWhiteSpace(texture)) return;
         if (!createdTextures.Add(texture)) return;
         if (settings.ImportTextures && Images != null && Images.TryGetValue(texture, out var img))
         {
-            txms.Children.Add(ImportTextureNode(txms, texture, img.Data, format));
+            txms.Children.Add(ImportTextureNode(txms, texture, img.Data, format, tasks));
         }
         else if (settings.GeneratePlaceholderTextures)
         {
@@ -567,11 +586,12 @@ public class ImportedModel
         return matnode;
     }
 
-    static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data, DDSFormat format)
+    static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data, DDSFormat format, TaskHandler tasks)
     {
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
         texnode.Children = new List<LUtfNode>();
-        texnode.Children.Add(TextureImport.ImportAsMIPSNode(data, texnode, format));
+        var d = data.ToArray();
+        tasks.Run(() => texnode.Children.Add(TextureImport.ImportAsMIPSNode(d, texnode, format)));
         return texnode;
     }
 
