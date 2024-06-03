@@ -224,6 +224,7 @@ namespace LancerEdit
                 Win32Integration.FileTypes();
             }
 
+            ImGui.AlignTextToFramePadding();
             ImGui.Text("Auto Load Path");
             ImGui.SameLine();
             ImGui.InputText("##autoloadPath", ref config.AutoLoadPath, 255, ImGuiInputTextFlags.ReadOnly);
@@ -241,11 +242,14 @@ namespace LancerEdit
                     config.AutoLoadPath = path;
                 });
             }
+            ImGui.SameLine();
+            if (ImGui.Button($"{Icons.TrashAlt}"))
+                config.AutoLoadPath = "";
 
             guiHelper.PauseWhenUnfocused = config.PauseWhenUnfocused;
         }
 
-        void BlenderTab()
+        void ImportExportTab()
         {
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Blender Path: ");
@@ -258,6 +262,8 @@ namespace LancerEdit
             if (ImGui.Button(".."))
                 FileDialog.Open(path => config.BlenderPath = path);
             ImGui.TextDisabled("Leave blank to autodetect Blender");
+            ImGui.Checkbox("Enable Collada (Not recommended)", ref config.ColladaVisible);
+            ImGui.SetItemTooltip("Collada is not well supported by modelling programs, use GLB when possible");
         }
 
         void SystemViewerTab()
@@ -281,9 +287,9 @@ namespace LancerEdit
                         ImGui.EndTabItem();
                     }
 
-                    if (ImGui.BeginTabItem("Blender"))
+                    if (ImGui.BeginTabItem("Import/Export"))
                     {
-                        BlenderTab();
+                        ImportExportTab();
                         ImGui.EndTabItem();
                     }
 

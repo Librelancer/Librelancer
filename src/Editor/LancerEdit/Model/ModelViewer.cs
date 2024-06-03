@@ -1058,7 +1058,7 @@ namespace LancerEdit
             }
             if (ImGui.Button("Export GLTF 2.0 (.glb)"))
                 Export(SimpleMesh.ModelSaveFormat.GLB, AppFilters.GlbFilter);
-            if (ImGui.Button("Export Collada (.dae)"))
+            if (_window.Config.ColladaVisible && ImGui.Button("Export Collada (.dae)"))
                 Export(SimpleMesh.ModelSaveFormat.Collada, AppFilters.ColladaFilter);
             if (ImGuiExt.Button("Export .blend", blenderEnabled))
             {

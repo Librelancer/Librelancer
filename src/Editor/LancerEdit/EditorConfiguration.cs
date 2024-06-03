@@ -58,6 +58,8 @@ namespace LancerEdit
         public bool LogVisible;
         [Entry("files_visible")]
         public bool FilesVisible;
+        [Entry("collada_visible")]
+        public bool ColladaVisible;
 
         public string AutoLoadPath = "";
 
@@ -108,41 +110,37 @@ namespace LancerEdit
 
 
         [Entry("ui_scale")] public float UiScale = 1f;
-        static string FormatColor(Color4 c)
-        {
-            static string Fmt(float f) => ((int) (f * 255f)).ToString();
-            return $"{Fmt(c.R)}, {Fmt(c.G)}, {Fmt(c.B)}, {Fmt(c.A)}";
-        }
+
         public void Save()
         {
             if (!canSave)
                 return;
-            using(var writer = new StreamWriter(configPath))
-            {
-                writer.WriteLine("[Config]");
-                writer.WriteLine($"msaa = {MSAA}");
-                writer.WriteLine($"texture_filter = {TextureFilter}");
-                writer.WriteLine($"view_buttons = {(ViewButtons ? "true" : "false")}");
-                writer.WriteLine($"pause_when_unfocused = {(PauseWhenUnfocused ? "true" : "false")}");
-                writer.WriteLine($"background_top = {FormatColor(Background)}");
-                writer.WriteLine($"background_bottom = {FormatColor(Background2)}");
-                writer.WriteLine($"background_gradient = {(BackgroundGradient ? "true" : "false")}");
-                writer.WriteLine($"grid_color = {FormatColor(GridColor)}");
-                writer.WriteLine($"default_camera_mode = {DefaultCameraMode}");
-                writer.WriteLine($"default_render_mode = {DefaultRenderMode}");
-                writer.WriteLine(Invariant($"ui_scale = {UiScale:F4}"));
-                if(!string.IsNullOrWhiteSpace(lastExportPath))
-                    writer.WriteLine($"last_export_path = {lastExportPath}");
-                if(!string.IsNullOrWhiteSpace(blenderPath))
-                    writer.WriteLine($"blender_path = {blenderPath}");
-                writer.WriteLine($"lod_multiplier = {LodMultiplier.ToStringInvariant()}");
-                writer.WriteLine($"log_visible = {(LogVisible ? "true": "false" )}");
-                writer.WriteLine($"files_visible = {(FilesVisible ? "true": "false" )}");
-                foreach(var fav in Favorites)
-                    writer.WriteLine($"favorite = {Encode(fav.Name)}, {Encode(fav.FullPath)}");
-                if(!string.IsNullOrWhiteSpace(AutoLoadPath))
-                    writer.WriteLine($"auto_load_path = {Encode(AutoLoadPath)}");
-            }
+            var b = new IniBuilder();
+            var c = b.Section("Config")
+                .Entry("msaa", MSAA)
+                .Entry("texture_filter", TextureFilter)
+                .Entry("view_buttons", ViewButtons)
+                .Entry("pause_when_unfocused", PauseWhenUnfocused)
+                .Entry("background_top", Background, true)
+                .Entry("background_bottom", Background2, true)
+                .Entry("background_gradient", BackgroundGradient)
+                .Entry("grid_color", GridColor, true)
+                .Entry("default_camera_mode", DefaultCameraMode)
+                .Entry("default_render_mode", DefaultRenderMode)
+                .Entry("ui_scale", UiScale)
+                .OptionalEntry("last_export_path", lastExportPath)
+                .OptionalEntry("blender_path", blenderPath)
+                .Entry("lod_multiplier", LodMultiplier)
+                .Entry("log_visible", LogVisible)
+                .Entry("files_visible", FilesVisible)
+                .Entry("collada_visible", ColladaVisible);
+            foreach (var fav in Favorites)
+                c.Entry("favorite", Encode(fav.Name), Encode(fav.FullPath));
+            if (!string.IsNullOrWhiteSpace(AutoLoadPath))
+                c.Entry("auto_load_path", Encode(AutoLoadPath));
+
+            using(var file = File.Create(configPath))
+                IniWriter.WriteIni(file, b.Sections);
         }
 
         public void Validate(RenderContext context)
