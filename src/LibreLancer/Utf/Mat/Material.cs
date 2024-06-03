@@ -154,6 +154,9 @@ namespace LibreLancer.Utf.Mat
         public int NmFlags;
         public string NmName;
 
+        public float? MFactor;
+        public float? RFactor;
+
 		static List<string> basicMaterials = new List<string> {
 			"Dc", //DcDt buggy
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt", "DcDtBtEc", "DcDtBtEcEt",
@@ -366,6 +369,12 @@ namespace LibreLancer.Utf.Mat
                 case "nm_flags":
                     NmFlags = n.Int32Data.Value;
                     break;
+                case "m_factor":
+                    MFactor = n.SingleData.Value;
+                    break;
+                case "r_factor":
+                    RFactor = n.SingleData.Value;
+                    break;
 				default:
                     FLLog.Warning("Material", Name + ": Unknown property " + n.Name.ToLowerInvariant());
                     break;
@@ -396,6 +405,8 @@ namespace LibreLancer.Utf.Mat
                 bm.MtFlags = (SamplerFlags)MtFlags;
                 bm.RtSampler = RtName;
                 bm.RtFlags = (SamplerFlags)RtFlags;
+                bm.Roughness = RFactor;
+                bm.Metallic = MFactor;
 				bm.Library = res;
 				if (type.Contains("Ot"))
 					bm.AlphaEnabled = true;

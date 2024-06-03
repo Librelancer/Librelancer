@@ -17,16 +17,16 @@ namespace LibreLancer.Shaders
         private static bool iscompiled = false;
         private static int GetIndex(ShaderFeatures features)
         {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(71)));
+            ShaderFeatures masked = (features & ((ShaderFeatures)(135)));
             if ((masked == ((ShaderFeatures)(1))))
             {
                 return 1;
             }
-            if ((masked == ((ShaderFeatures)(64))))
+            if ((masked == ((ShaderFeatures)(128))))
             {
                 return 2;
             }
-            if ((masked == ((ShaderFeatures)(65))))
+            if ((masked == ((ShaderFeatures)(129))))
             {
                 return 3;
             }
@@ -38,11 +38,11 @@ namespace LibreLancer.Shaders
             {
                 return 5;
             }
-            if ((masked == ((ShaderFeatures)(66))))
+            if ((masked == ((ShaderFeatures)(130))))
             {
                 return 6;
             }
-            if ((masked == ((ShaderFeatures)(67))))
+            if ((masked == ((ShaderFeatures)(131))))
             {
                 return 7;
             }
@@ -54,11 +54,11 @@ namespace LibreLancer.Shaders
             {
                 return 9;
             }
-            if ((masked == ((ShaderFeatures)(68))))
+            if ((masked == ((ShaderFeatures)(132))))
             {
                 return 10;
             }
-            if ((masked == ((ShaderFeatures)(69))))
+            if ((masked == ((ShaderFeatures)(133))))
             {
                 return 11;
             }
@@ -70,11 +70,11 @@ namespace LibreLancer.Shaders
             {
                 return 13;
             }
-            if ((masked == ((ShaderFeatures)(70))))
+            if ((masked == ((ShaderFeatures)(134))))
             {
                 return 14;
             }
-            if ((masked == ((ShaderFeatures)(71))))
+            if ((masked == ((ShaderFeatures)(135))))
             {
                 return 15;
             }

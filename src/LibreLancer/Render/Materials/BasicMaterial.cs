@@ -36,6 +36,8 @@ namespace LibreLancer.Render.Materials
         public SamplerFlags MtFlags;
         public string RtSampler;
         public SamplerFlags RtFlags;
+        public float? Metallic;
+        public float? Roughness;
 
 		public BasicMaterial(string type, ResourceManager library) : base(library)
 		{
@@ -50,8 +52,9 @@ namespace LibreLancer.Render.Materials
             {
                 if (pbr)
                 {
-                    var x = caps | (normalMap ? ShaderFeatures.NORMALMAP : 0);
-                    x |= ShaderFeatures.METALROUGHMAP;
+                    //We only enable normal maps if we have the tangent data
+                    var x = caps |
+                            (normalMap && (fvf.TexCoords == 3 || fvf.TexCoords == 4) ? ShaderFeatures.NORMALMAP : 0);
                     return PBR.Get(rstate, x);
                 }
                 if (fvf.Diffuse && fvf.Normal) {
@@ -100,8 +103,12 @@ namespace LibreLancer.Render.Materials
             ShaderFeatures caps = ShaderFeatures.None;
             bool normalMap = !string.IsNullOrWhiteSpace(NmSampler);
             bool pbr = (!string.IsNullOrWhiteSpace(RtSampler) ||
-                       !string.IsNullOrWhiteSpace(MtSampler)) &&
+                       !string.IsNullOrWhiteSpace(MtSampler) || Metallic != null || Roughness != null) &&
                        lights.Enabled;
+            if (pbr && !string.IsNullOrEmpty(RtSampler))
+                caps |= ShaderFeatures.ROUGHMAP;
+            if (pbr && !string.IsNullOrEmpty(MtSampler))
+                caps |= ShaderFeatures.METALMAP;
             if (VertexLighting)
             {
                 caps |= ShaderFeatures.VERTEX_LIGHTING;
@@ -174,12 +181,18 @@ namespace LibreLancer.Render.Materials
 
             if (pbr)
             {
-                shader.SetMtSampler(3);
-                BindTexture(rstate, 3, MtSampler, 3, MtFlags, ResourceManager.WhiteTextureName);
-                shader.SetMetallic(1.0f);
-                shader.SetRtSampler(5);
-                BindTexture(rstate, 5, RtSampler, 5, RtFlags, ResourceManager.WhiteTextureName);
-                shader.SetRoughness(1.0f);
+                shader.SetMetallic(Metallic ?? 1.0f);
+                shader.SetRoughness(Roughness ?? 1.0f);
+                if (!string.IsNullOrEmpty(MtSampler))
+                {
+                    shader.SetMtSampler(3);
+                    BindTexture(rstate, 3, MtSampler, 3, MtFlags, ResourceManager.WhiteTextureName);
+                }
+                if (!string.IsNullOrEmpty(RtSampler))
+                {
+                    shader.SetRtSampler(5);
+                    BindTexture(rstate, 5, RtSampler, 5, RtFlags, ResourceManager.WhiteTextureName);
+                }
             }
 			//Set lights
             SetLights(shader, ref lights, rstate.FrameNumber);

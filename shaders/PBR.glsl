@@ -1,7 +1,8 @@
 @feature ET_ENABLED
 @feature NORMALMAP
 @feature FADE_ENABLED
-@feature METALROUGHMAP
+@feature METALMAP
+@feature ROUGHMAP
 
 @vertex
 @include(includes/camera.inc)
@@ -134,22 +135,26 @@ vec3 getNormal()
 }
 #endif
 
-#ifdef METALROUGHMAP
+#ifdef METALMAP
 uniform sampler2D MtSampler;
-uniform sampler2D RtSampler;
 float getMetallic()
 {
     return clamp(texture(MtSampler, out_texcoord).r * Metallic, 0.0, 1.0);
-}
-float getRoughness()
-{
-    return clamp(texture(RtSampler, out_texcoord).r * Roughness, c_MinRoughness, 1.0);
 }
 #else
 float getMetallic()
 {
     return clamp(Metallic, 0.0, 1.0);
 }
+#endif
+
+#ifdef ROUGHMAP
+uniform sampler2D RtSampler;
+float getRoughness()
+{
+    return clamp(texture(RtSampler, out_texcoord).r * Roughness, c_MinRoughness, 1.0);
+}
+#else
 float getRoughness()
 {
     return clamp(Roughness, c_MinRoughness, 1.0);

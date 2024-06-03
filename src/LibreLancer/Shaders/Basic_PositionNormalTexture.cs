@@ -17,7 +17,7 @@ namespace LibreLancer.Shaders
         private static bool iscompiled = false;
         private static int GetIndex(ShaderFeatures features)
         {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(87)));
+            ShaderFeatures masked = (features & ((ShaderFeatures)(151)));
             if ((masked == ((ShaderFeatures)(16))))
             {
                 return 1;
@@ -30,19 +30,19 @@ namespace LibreLancer.Shaders
             {
                 return 3;
             }
-            if ((masked == ((ShaderFeatures)(64))))
+            if ((masked == ((ShaderFeatures)(128))))
             {
                 return 4;
             }
-            if ((masked == ((ShaderFeatures)(80))))
+            if ((masked == ((ShaderFeatures)(144))))
             {
                 return 5;
             }
-            if ((masked == ((ShaderFeatures)(65))))
+            if ((masked == ((ShaderFeatures)(129))))
             {
                 return 6;
             }
-            if ((masked == ((ShaderFeatures)(81))))
+            if ((masked == ((ShaderFeatures)(145))))
             {
                 return 7;
             }
@@ -62,19 +62,19 @@ namespace LibreLancer.Shaders
             {
                 return 11;
             }
-            if ((masked == ((ShaderFeatures)(66))))
+            if ((masked == ((ShaderFeatures)(130))))
             {
                 return 12;
             }
-            if ((masked == ((ShaderFeatures)(82))))
+            if ((masked == ((ShaderFeatures)(146))))
             {
                 return 13;
             }
-            if ((masked == ((ShaderFeatures)(67))))
+            if ((masked == ((ShaderFeatures)(131))))
             {
                 return 14;
             }
-            if ((masked == ((ShaderFeatures)(83))))
+            if ((masked == ((ShaderFeatures)(147))))
             {
                 return 15;
             }
@@ -94,19 +94,19 @@ namespace LibreLancer.Shaders
             {
                 return 19;
             }
-            if ((masked == ((ShaderFeatures)(68))))
+            if ((masked == ((ShaderFeatures)(132))))
             {
                 return 20;
             }
-            if ((masked == ((ShaderFeatures)(84))))
+            if ((masked == ((ShaderFeatures)(148))))
             {
                 return 21;
             }
-            if ((masked == ((ShaderFeatures)(69))))
+            if ((masked == ((ShaderFeatures)(133))))
             {
                 return 22;
             }
-            if ((masked == ((ShaderFeatures)(85))))
+            if ((masked == ((ShaderFeatures)(149))))
             {
                 return 23;
             }
@@ -126,19 +126,19 @@ namespace LibreLancer.Shaders
             {
                 return 27;
             }
-            if ((masked == ((ShaderFeatures)(70))))
+            if ((masked == ((ShaderFeatures)(134))))
             {
                 return 28;
             }
-            if ((masked == ((ShaderFeatures)(86))))
+            if ((masked == ((ShaderFeatures)(150))))
             {
                 return 29;
             }
-            if ((masked == ((ShaderFeatures)(71))))
+            if ((masked == ((ShaderFeatures)(135))))
             {
                 return 30;
             }
-            if ((masked == ((ShaderFeatures)(87))))
+            if ((masked == ((ShaderFeatures)(151))))
             {
                 return 31;
             }

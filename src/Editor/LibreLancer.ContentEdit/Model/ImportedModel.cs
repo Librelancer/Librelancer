@@ -535,24 +535,35 @@ public class ImportedModel
             arr = new float[] { mat.EmissiveColor.X, mat.EmissiveColor.Y, mat.EmissiveColor.Z };
             matnode.Children.Add(new LUtfNode() { Name = "Ec", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
         }
+
         if (!string.IsNullOrWhiteSpace(mat.NormalTexture?.Name) && settings.AdvancedMaterials)
         {
-            string textureName = mat.NormalTexture.Name  + ".dds";
+            string textureName = mat.NormalTexture.Name + ".dds";
             matnode.Children.Add(new LUtfNode() { Name = "Nm_name", Parent = matnode, StringData = textureName });
             matnode.Children.Add(new LUtfNode()
                 { Name = "Nm_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
         }
-        if (!string.IsNullOrWhiteSpace(mat.MetallicRoughnessTexture?.Name) && settings.AdvancedMaterials)
+        if (mat.MetallicRoughness && settings.AdvancedMaterials)
         {
-            string textureNameRough = mat.MetallicRoughnessTexture.Name  + "_ROUGH.dds";
-            string textureNameMetal = mat.MetallicRoughnessTexture.Name  + "_METAL.dds";
-            matnode.Children.Add(new LUtfNode() { Name = "Rt_name", Parent = matnode, StringData = textureNameRough });
             matnode.Children.Add(new LUtfNode()
-                { Name = "Rt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
-            matnode.Children.Add(new LUtfNode() { Name = "Mt_name", Parent = matnode, StringData = textureNameMetal });
+                { Name = "M_factor", Parent = matnode, Data = BitConverter.GetBytes(mat.MetallicFactor)});
             matnode.Children.Add(new LUtfNode()
-                { Name = "Mt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+                { Name = "R_factor", Parent = matnode, Data = BitConverter.GetBytes(mat.RoughnessFactor)});
+            if (!string.IsNullOrWhiteSpace(mat.MetallicRoughnessTexture?.Name))
+            {
+                string textureNameRough = mat.MetallicRoughnessTexture.Name + "_ROUGH.dds";
+                string textureNameMetal = mat.MetallicRoughnessTexture.Name + "_METAL.dds";
+                matnode.Children.Add(new LUtfNode()
+                    { Name = "Rt_name", Parent = matnode, StringData = textureNameRough });
+                matnode.Children.Add(new LUtfNode()
+                    { Name = "Rt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+                matnode.Children.Add(new LUtfNode()
+                    { Name = "Mt_name", Parent = matnode, StringData = textureNameMetal });
+                matnode.Children.Add(new LUtfNode()
+                    { Name = "Mt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+            }
         }
+
         return matnode;
     }
 

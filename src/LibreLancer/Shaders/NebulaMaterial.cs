@@ -17,8 +17,8 @@ namespace LibreLancer.Shaders
         private static bool iscompiled = false;
         private static int GetIndex(ShaderFeatures features)
         {
-            ShaderFeatures masked = (features & ((ShaderFeatures)(32)));
-            if ((masked == ((ShaderFeatures)(32))))
+            ShaderFeatures masked = (features & ((ShaderFeatures)(64)));
+            if ((masked == ((ShaderFeatures)(64))))
             {
                 return 1;
             }
