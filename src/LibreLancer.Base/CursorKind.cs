@@ -14,6 +14,7 @@ namespace LibreLancer
         ResizeEW,
         ResizeNESW,
         ResizeNWSE,
+        NotAllowed,
         None
     }
 }

@@ -57,6 +57,8 @@ namespace LancerEdit
         OptionsWindow options;
 
         private QuickFileBrowser quickFileBrowser;
+        public bool DrawDragTargets => dragActive > 0;
+        private int dragActive = 0;
         public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -850,6 +852,17 @@ namespace LancerEdit
                                    Color4.Red);
             }
             ImGui.PopFont();
+            unsafe
+            {
+                if (ImGui.GetDragDropPayload().NativePtr != null)
+                    dragActive = 3;
+                else
+                {
+                    dragActive--;
+                    if (dragActive < 0) dragActive = 0;
+                }
+            }
+
             if (Width != 0 && Height != 0)
             {
                 if (lastFrame == null ||

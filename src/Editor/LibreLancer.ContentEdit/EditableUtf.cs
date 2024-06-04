@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using LL = LibreLancer.Utf;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace LibreLancer.ContentEdit
 {
@@ -401,13 +402,21 @@ namespace LibreLancer.ContentEdit
 	}
 
 	public class LUtfNode
-	{
+    {
+        private static long _interfaceId = 0;
+        public long InterfaceID { get; private set; }
+
 		public string Name;
         public string ResolvedName;
 		public List<LUtfNode> Children;
 		public LUtfNode Parent;
 		public byte[] Data;
         internal bool Write = true;
+
+        public LUtfNode()
+        {
+            InterfaceID = Interlocked.Increment(ref _interfaceId);
+        }
 
         public string StringData
         {

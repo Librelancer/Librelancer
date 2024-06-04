@@ -184,6 +184,7 @@ namespace LibreLancer
         IntPtr curResizeEW;
         IntPtr curResizeNESW;
         IntPtr curResizeNWSE;
+        IntPtr curNotAllowed;
         CursorKind cursorKind = CursorKind.Arrow;
         public CursorKind CursorKind
         {
@@ -217,6 +218,9 @@ namespace LibreLancer
                         break;
                     case CursorKind.ResizeNWSE:
                         SDL.SDL_SetCursor(curResizeNWSE);
+                        break;
+                    case CursorKind.NotAllowed:
+                        SDL.SDL_SetCursor(curNotAllowed);
                         break;
                 }
                 SDL.SDL_ShowCursor(value == CursorKind.None ? 0 : 1);
@@ -413,6 +417,7 @@ namespace LibreLancer
             curResizeEW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
             curResizeNESW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW);
             curResizeNWSE = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
+            curNotAllowed = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
             //Window sizing
             if (sdlWin == IntPtr.Zero)
             {
