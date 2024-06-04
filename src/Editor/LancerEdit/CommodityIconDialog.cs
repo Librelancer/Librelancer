@@ -47,7 +47,7 @@ namespace LancerEdit
             var src = TextureImport.OpenFile(filename, win.RenderContext);
             if (src.IsError)
             {
-                win.ErrorDialog(TextureImport.LoadErrorString(loadType, filename));
+                win.ErrorDialog(src.AllMessages());
                 return;
             }
             loadType = src.Data.Type;
@@ -64,7 +64,7 @@ namespace LancerEdit
             if (doOpen)
             {
                 ImGui.OpenPopup("New Icon");
-                ImGui.SetNextWindowSize(new Vector2(275,260) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+                ImGui.SetNextWindowSize(new Vector2(275,280) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
                 doOpen = false;
             }
             bool pOpen = true;

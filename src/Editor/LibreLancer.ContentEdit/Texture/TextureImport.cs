@@ -51,17 +51,6 @@ namespace LibreLancer.ContentEdit
 
     public class TextureImport
     {
-        public static string LoadErrorString(TexLoadType type, string filename)
-        {
-            switch (type)
-            {
-                case TexLoadType.ErrorLoad: return $"Could not load file {filename}";
-                case TexLoadType.ErrorNonSquare: return $"Dimensions of {filename} are not square";
-                case TexLoadType.ErrorNonPowerOfTwo: return $"Dimensions of {filename} are not powers of two";
-                default: throw new InvalidOperationException();
-            }
-        }
-
         static byte[] GetEmbeddedDDS(Image lr, Stream input)
         {
             try
