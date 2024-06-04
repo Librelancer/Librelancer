@@ -220,6 +220,7 @@ namespace LancerEdit
             {
                 Keys.C when control && !popupOrTextEditing => Hotkeys.Copy,
                 Keys.V when control && !popupOrTextEditing => Hotkeys.Paste,
+                Keys.X when control && !popupOrTextEditing => Hotkeys.Cut,
                 Keys.R when control => Hotkeys.ResetViewport,
                 Keys.G when control => Hotkeys.ToggleGrid,
                 Keys.D when control => Hotkeys.Deselect,

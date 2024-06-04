@@ -80,14 +80,6 @@ namespace LancerEdit
             main.Resources.RemoveResourcesForId(Unique.ToString());
         }
 
-        bool HasChild(LUtfNode node, string name)
-        {
-            if (node.Children == null) return false;
-            foreach (var child in node.Children)
-                if (child.Name == name) return true;
-            return false;
-        }
-
         public string GetUtfPath()
         {
             if (selectedNode == null) return "None";
@@ -126,6 +118,44 @@ namespace LancerEdit
             var res = DetachedResources ?? main.Resources;
             res.RemoveResourcesForId(Unique.ToString());
             res.AddResources(Utf.Export(), Unique.ToString());
+        }
+
+        public override void OnHotkey(Hotkeys hk, bool shiftPressed)
+        {
+            if (selectedNode == null)
+                return;
+            if (hk == Hotkeys.Copy && selectedNode != Utf.Root)
+            {
+                main.SetClipboardArray(UtfClipboard.ToBytes(selectedNode));
+            }
+            if (hk == Hotkeys.Cut && selectedNode != Utf.Root)
+            {
+                selectedNode.Parent.Children.Remove(selectedNode);
+                main.SetClipboardArray(UtfClipboard.ToBytes(selectedNode));
+            }
+
+            if (hk == Hotkeys.Paste &&
+                main.ClipboardStatus() == ClipboardContents.Array)
+            {
+                var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
+                if (cpy == null) return;
+                if (selectedNode.Data != null)
+                {
+                    Confirm("Adding children will delete this node's data. Continue?", () =>
+                    {
+                        selectedNode.Data = null;
+                        selectedNode.Children = new List<LUtfNode>();
+                        cpy.Parent = selectedNode;
+                        selectedNode.Children.Add(cpy);
+                    });
+                }
+                else
+                {
+                    selectedNode.Children ??= new List<LUtfNode>();
+                    cpy.Parent = selectedNode;
+                    selectedNode.Children.Add(cpy);
+                }
+            }
         }
 
         private Action dropAction = null;

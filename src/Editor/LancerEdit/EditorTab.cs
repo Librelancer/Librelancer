@@ -13,6 +13,7 @@ public enum Hotkeys
     ResetViewport,
     ToggleGrid,
     ChangeSystem,
+    Cut,
     Copy,
     Paste,
     ClearRotation,
