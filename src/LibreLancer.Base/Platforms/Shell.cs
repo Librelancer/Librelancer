@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace LibreLancer
 {
@@ -52,6 +54,53 @@ namespace LibreLancer
             {
                 FLLog.Warning("Shell", $"Error running {cmd} {args}");
                 return "";
+            }
+        }
+
+        // https://learn.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
+        private static readonly char[] escapeChars = ['\t', '\n', ' ', '\v', '\"'];
+        public static string Quote(string s)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (s.IndexOfAny(escapeChars) == -1)
+                    return s;
+                var b = new StringBuilder();
+                b.Append('\"');
+                for (int i = 0; i < s.Length; i++)
+                {
+                    int numBackslashes = 0;
+                    while (i < s.Length && s[i] == '\\') {
+                        i++;
+                        numBackslashes++;
+                    }
+                    if (i == s.Length)
+                    {
+                        for (int j = 0; j < numBackslashes * 2; j++)
+                            b.Append('\\');
+                    }
+                    else if (s[i] == '\"')
+                    {
+                        for (int j = 0; j < numBackslashes * 2; j++)
+                            b.Append('\\');
+                        b.Append('\"');
+                    }
+                    else
+                    {
+                        for (int j = 0; j < numBackslashes; j++)
+                            b.Append('\\');
+                        b.Append(s[i]);
+                    }
+                }
+                b.Append('\"');
+                return b.ToString();
+            }
+            else
+            {
+                if (s.IndexOfAny(escapeChars) == -1 &&
+                    s.IndexOf('\\') == -1)
+                    return s;
+                return $"\"{s.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
             }
         }
 

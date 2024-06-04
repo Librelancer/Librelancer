@@ -150,7 +150,7 @@ public class Blender
         var exportCode =
             "import bpy\n"
             + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True, export_image_format='AUTO')";
-        var result = await RunBlender(blenderPath, tmpblend ?? file, exportCode, cancellation, log);
+        var result = await RunBlender(blenderPath, Shell.Quote(tmpblend ?? file), exportCode, cancellation, log);
         if (result == CANCELLED)
         {
             DeleteIfExists(tmpblend);

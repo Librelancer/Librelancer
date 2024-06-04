@@ -16,6 +16,8 @@ public class TaskRunPopup : PopupWindow
 
     public override string Title { get; set; }
     public override bool NoClose => true;
+
+    public override Vector2 InitSize => new Vector2(400) * ImGuiHelper.Scale;
     public CancellationToken Token => source.Token;
 
     public void Log(string text)
@@ -56,7 +58,10 @@ public class TaskRunPopup : PopupWindow
         {
             ImGui.Text("Complete!");
         }
-        log.Draw(false, new Vector2(300) * ImGuiHelper.Scale);
+
+        var w = ImGui.GetWindowWidth() - (10 * ImGuiHelper.Scale);
+        var h = ImGui.GetContentRegionAvail().Y - (40 * ImGuiHelper.Scale);
+        log.Draw(false, new Vector2(w, h));
         if (ImGuiExt.Button("Ok", finished)) {
             ImGui.CloseCurrentPopup();
             log.Dispose();
