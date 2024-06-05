@@ -7,7 +7,9 @@ using LibreLancer.Physics;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Mat;
 using SimpleMesh;
+using Material = SimpleMesh.Material;
 
 namespace LibreLancer.ContentEdit.Model;
 
@@ -377,8 +379,10 @@ public static class ModelExporter
             geo.Attributes |= VertexAttributes.Normal;
         if (mesh.VertexFormat.Diffuse)
             geo.Attributes |= VertexAttributes.Diffuse;
-        if (mesh.VertexFormat.TexCoords > 1)
-            geo.Attributes |= VertexAttributes.Texture2;
+        if (mesh.VertexFormat.TexCoords > 1 && mesh.VertexFormat.TexCoords != 3)
+        {
+            geo.Attributes |= VertexAttributes.Texture1 | VertexAttributes.Texture2;
+        }
         else if (mesh.VertexFormat.TexCoords == 1)
             geo.Attributes |= VertexAttributes.Texture1;
         for (int meshi = vms.StartMesh; meshi < vms.StartMesh + vms.MeshCount; meshi++)
@@ -396,7 +400,7 @@ public static class ModelExporter
                     vert.Normal = mesh.GetNormal(idx);
                 if (mesh.VertexFormat.Diffuse)
                     vert.Diffuse = (Color4)mesh.GetDiffuse(idx);
-                if (mesh.VertexFormat.TexCoords > 1)
+                if (mesh.VertexFormat.TexCoords > 1 && mesh.VertexFormat.TexCoords != 3)
                 {
                     vert.Texture2 = mesh.GetTexCoord(idx, 1);
                     vert.Texture1 = mesh.GetTexCoord(idx, 0);
