@@ -285,18 +285,28 @@ namespace LibreLancer.Media
             return si;
         }
 
+        static bool Valid(Vector3 v)
+        {
+            return !float.IsNaN(v.X) && !float.IsNaN(v.Y) && !float.IsNaN(v.Z);
+        }
+
         public void SetListenerPosition(Vector3 pos)
         {
-            Al.alListener3f(Al.AL_POSITION, pos.X, pos.Y, pos.Z);
+            if(Valid(pos))
+                Al.alListener3f(Al.AL_POSITION, pos.X, pos.Y, pos.Z);
         }
 
         public void SetListenerVelocity(Vector3 pos)
         {
-            Al.alListener3f(Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
+            if(Valid(pos))
+                Al.alListener3f(Al.AL_VELOCITY, pos.X, pos.Y, pos.Z);
         }
 
         public unsafe void SetListenerOrientation(Vector3 forward, Vector3 up)
         {
+            if (!Valid(forward) || forward.Length() <= float.Epsilon ||
+                !Valid(up) || up.Length() <= float.Epsilon)
+                return;
             Vector3* ori = stackalloc Vector3[2];
             ori[0] = forward;
             ori[1] = up;
