@@ -45,6 +45,12 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
     {
         if (string.IsNullOrEmpty(item.Nickname) || item.CRC == 0)
             throw new ArgumentNullException();
+        if (crcCollection.ContainsKey(item.CRC) &&
+            !nicknameCollection.ContainsKey(item.Nickname))
+        {
+            throw new ArgumentException(
+                $"CRC collision between '{item.Nickname}' and {crcCollection[item.CRC].Nickname}");
+        }
         nicknameCollection[item.Nickname] = item;
         crcCollection[item.CRC] = item;
     }
