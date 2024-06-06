@@ -571,9 +571,39 @@ namespace LancerEdit
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
                     AddTab(new ProjectileViewerTab(this, OpenDataContext));
                 if (Theme.IconMenuItem(Icons.Globe, "Universe Editor", OpenDataContext != null))
-                    Popups.OpenPopup("Loading##systemviewer");
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is UniverseEditorTab);
+                    if(fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        Popups.OpenPopup("Loading##systemviewer");
+                }
+
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));
+                if (Theme.IconMenuItem(Icons.Check, "Check Faction Hashes", OpenDataContext != null))
+                {
+                    Dictionary<ushort, string> hashes = new Dictionary<ushort, string>();
+                    var collisions = new StringBuilder();
+                    foreach (var faction in OpenDataContext!.GameData.Factions)
+                    {
+                        var hash = FLHash.FLFacHash(faction.Nickname);
+                        if (hashes.TryGetValue(hash, out var og))
+                        {
+                            collisions.AppendLine(
+                                $"Faction '{faction.Nickname}' collides with '{og}' (hash 0x{hash:X2})");
+                        }
+                        else {
+                            hashes[hash] = faction.Nickname;
+                        }
+                    }
+                    if (collisions.Length > 0) {
+                        Popups.MessageBox("Check Faction Hashes", collisions.ToString());
+                    }
+                    else {
+                        Popups.MessageBox("Check Faction Hashes", "No hash collisions detected!");
+                    }
+                }
                 /*if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
                 {
                     FileDialog.Open(x =>
