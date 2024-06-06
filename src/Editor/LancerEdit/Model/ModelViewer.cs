@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
@@ -622,43 +624,47 @@ namespace LancerEdit
                     if (action == ContextActions.Edit) hpEditing = hp;
                     if(action == ContextActions.MirrorX) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
-                        //do mirroring
+                        //do mirroring + fix up negative determinant after flip
                         newHp.Definition.Position.X = -newHp.Definition.Position.X;
-                        newHp.Definition.Orientation *= new Matrix4x4(
+                        newHp.Definition.Orientation = newHp.Definition.Orientation *= new Matrix4x4(
                             -1, 0, 0, 0,
                             0, 1, 0, 0,
                             0, 0, 1, 0,
                             0, 0, 0, 1
                         );
+                        newHp.Definition.Orientation =
+                            Matrix4x4.CreateFromQuaternion(newHp.Definition.Orientation.ExtractRotation());
                         //add
                         addActions.Add(() =>
                         {
                             part.Hardpoints.Add(newHp);
-                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent) { Enabled = true});
                             OnDirtyHp();
                         });
                     }
                     if(action == ContextActions.MirrorY) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
-                        //do mirroring
+                        //do mirroring + fix up negative determinant after flip
                         newHp.Definition.Position.Y = -newHp.Definition.Position.Y;
-                        newHp.Definition.Orientation *= new Matrix4x4(
+                        newHp.Definition.Orientation = new Matrix4x4(
                             1, 0, 0, 0,
                             0, -1, 0, 0,
                             0, 0, 1, 0,
                             0, 0, 0, 1
-                        );
+                        ) * newHp.Definition.Orientation;
+                        newHp.Definition.Orientation =
+                            Matrix4x4.CreateFromQuaternion(newHp.Definition.Orientation.ExtractRotation());
                         //add
                         addActions.Add(() =>
                         {
                             part.Hardpoints.Add(newHp);
-                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent) { Enabled = true });
                             OnDirtyHp();
                         });
                     }
                     if(action == ContextActions.MirrorZ) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
-                        //do mirroring
+                        //do mirroring + fix up negative determinant after flip
                         newHp.Definition.Position.Z = -newHp.Definition.Position.Z;
                         newHp.Definition.Orientation *= new Matrix4x4(
                             1, 0, 0, 0,
@@ -666,11 +672,13 @@ namespace LancerEdit
                             0, 0, -1, 0,
                             0, 0, 0, 1
                         );
+                        newHp.Definition.Orientation =
+                            Matrix4x4.CreateFromQuaternion(newHp.Definition.Orientation.ExtractRotation());
                         //add
                         addActions.Add(() =>
                         {
                             part.Hardpoints.Add(newHp);
-                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent));
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent) { Enabled = true });
                             OnDirtyHp();
                         });
                     }
