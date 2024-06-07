@@ -2,12 +2,13 @@
     <ImportGroup>
         <Import Project="../CommonVersion.props" />
     </ImportGroup>
-    
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
-    
+
     <ItemGroup>
         <ProjectReference Include="..\LLServer.Core\LLServer.Core.csproj" />
     </ItemGroup>

@@ -2,11 +2,12 @@
     <ImportGroup>
         <Import Project="../CommonVersion.props" />
     </ImportGroup>
-    
+
     <PropertyGroup>
         <OutputType>winexe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>LLServer</RootNamespace>
+        <GenerateDependencyFile>false</GenerateDependencyFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
