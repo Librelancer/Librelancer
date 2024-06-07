@@ -248,6 +248,7 @@ namespace LancerEdit
             TabButton("Render", 3);
             if(drawable is CmpFile || drawable is ModelFile)
                 TabButton("Export", 4);
+            TabButton("Presets", 5);
             ImGuiNative.igEndGroup();
             ImGui.SameLine();
         }
@@ -280,6 +281,7 @@ namespace LancerEdit
                 if (openTabs[2]) SkeletonPanel();
                 if (openTabs[3]) RenderPanel();
                 if (openTabs[4]) ExportPanel();
+                if (openTabs[5]) PresetPanel();
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
@@ -1093,6 +1095,38 @@ namespace LancerEdit
                     }
                 }, AppFilters.BlenderFilter);
             }
+        }
+
+        void PresetPanel()
+        {
+            if (ImGui.Button($"{Icons.Save} Save Camera Preset"))
+            {
+                popups.OpenPopup(new NameInputPopup(
+                    NameInputConfig.Nickname("Preset Name", x => false),
+                    $"Preset {_window.Config.CameraPresets.Count + 1}",
+                    x =>
+                    {
+                        _window.Config.CameraPresets.Add(new CameraPreset(x, modelViewport.ExportControls()));
+                    }));
+            }
+            ImGui.Separator();
+            ImGui.BeginChild("##presets");
+            for (int i = 0; i < _window.Config.CameraPresets.Count; i++)
+            {
+                ImGui.PushID(i);
+                var p = _window.Config.CameraPresets[i];
+                if (ImGui.Button(ImGuiExt.IDSafe(p.Name))) {
+                    modelViewport.ImportControls(p.Preset);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button($"{Icons.TrashAlt}")) {
+                    _window.Confirm($"Are you sure you want to delete '{p.Name}'?", () => {
+                        _window.Config.CameraPresets.Remove(p);
+                    });
+                }
+                ImGui.PopID();
+            }
+            ImGui.EndChild();
         }
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)

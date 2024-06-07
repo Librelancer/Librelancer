@@ -25,6 +25,8 @@ namespace LancerEdit
         Cockpit
     }
 
+    public record CameraPreset(string Name, string Preset);
+
     [SelfSection("Config")]
     public class EditorConfiguration : IniFile, IRendererSettings
     {
@@ -62,6 +64,14 @@ namespace LancerEdit
         public bool ColladaVisible;
 
         public string AutoLoadPath = "";
+
+        public List<CameraPreset> CameraPresets = new List<CameraPreset>();
+
+        [EntryHandler("camera_preset", MinComponents = 2)]
+        void HandleCameraPreset(Entry entry)
+        {
+            CameraPresets.Add(new(CommentEscaping.Unescape(entry[0].ToString()), entry[1].ToString()));
+        }
 
         [EntryHandler("auto_load_path", MinComponents = 1)]
         void HandleAutoLoadPath(Entry entry)
@@ -138,7 +148,8 @@ namespace LancerEdit
                 c.Entry("favorite", Encode(fav.Name), Encode(fav.FullPath));
             if (!string.IsNullOrWhiteSpace(AutoLoadPath))
                 c.Entry("auto_load_path", Encode(AutoLoadPath));
-
+            foreach (var e in CameraPresets)
+                c.Entry("camera_preset", CommentEscaping.Escape(e.Name), e.Preset);
             using(var file = File.Create(configPath))
                 IniWriter.WriteIni(file, b.Sections);
         }

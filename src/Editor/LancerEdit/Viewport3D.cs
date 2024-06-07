@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
@@ -171,6 +172,44 @@ namespace LancerEdit
                 }
 
             }
+        }
+
+        struct SavedControls
+        {
+            public CameraModes Mode;
+            public Vector2 OrbitPan;
+            public Vector2 ModelRotation;
+            public Vector2 CameraRotation;
+            public Vector3 CameraOffset;
+            public float Zoom;
+        }
+
+        public string ExportControls()
+        {
+            Span<SavedControls> save = stackalloc SavedControls[1];
+            save[0].Mode = Mode;
+            save[0].OrbitPan = orbitPan;
+            save[0].CameraRotation = CameraRotation;
+            save[0].CameraOffset = CameraOffset / ModelScale;
+            save[0].Zoom = zoom / ModelScale;
+            save[0].ModelRotation = ModelRotation;
+            Span<byte> bytes = MemoryMarshal.Cast<SavedControls, byte>(save);
+            return Convert.ToBase64String(bytes).Replace('=','_');
+        }
+
+        public void ImportControls(string preset)
+        {
+            var bytes = Convert.FromBase64String(preset.Replace('_', '='));
+            var save = MemoryMarshal.Cast<byte, SavedControls>(bytes.AsSpan());
+            ResetControls();
+            Mode = save[0].Mode;
+            orbitPan = save[0].OrbitPan;
+            CameraRotation = save[0].CameraRotation;
+            CameraOffset = ModelScale * save[0].CameraOffset;
+            zoom = ModelScale * save[0].Zoom;
+            ModelRotation = save[0].ModelRotation;
+            if(Mode == CameraModes.Arcball)
+                ArcballUpdate();
         }
 
         public bool MouseInFrame;
