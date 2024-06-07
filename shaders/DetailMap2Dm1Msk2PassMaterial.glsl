@@ -26,5 +26,6 @@ void main()
 
 	vec4 base_color = light(Ac, vec4(0), Dc, tex, world_position, view_position, out_normal);
 	
-	out_color = tex.a < 0.99 ? modulate2x(texture(Dm1Sampler, texcoord), base_color) : base_color;
+	vec4 col = tex.a < 0.99 ? modulate2x(texture(Dm1Sampler, texcoord), base_color) : base_color;
+    out_color = vec4(col.rgb, 1.0);
 }

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using ImGuiNET;
 using LibreLancer;
 using LibreLancer.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Utf.Mat;
 using LibreLancer.World;
 
 namespace LancerEdit;
@@ -58,6 +58,11 @@ public class ArchetypePreviews : IDisposable
         {
             radius = rmf.CreateRigidModel(true, resources).GetRadius();
         }
+        if (mdl is SphFile)
+        {
+            radius *= 1.17f; //render planets a little smaller, looks better
+        }
+
 
         var mat = Matrix4x4.CreateFromYawPitchRoll(2.62f, -0.24f, 0);
         var res = Vector3.Transform(new Vector3(0, 0, radius* 2.35f), mat);
