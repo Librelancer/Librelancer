@@ -79,7 +79,7 @@ class GLRenderContext : IRenderContext
         GL.ClearColor(0f, 0f, 0f, 1f);
         GL.Enable(GL.GL_BLEND);
         GL.Enable(GL.GL_DEPTH_TEST);
-        GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFuncSeparate(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA, GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
         GL.DepthFunc(GL.GL_LEQUAL);
         GL.Enable(GL.GL_CULL_FACE);
         GL.CullFace(GL.GL_BACK);
@@ -291,7 +291,7 @@ class GLRenderContext : IRenderContext
                 applied.BlendEnabled = false;
             }
 
-            GL.BlendFunc(BlendTable[(mode >> 8) & 0xFF],BlendTable[(mode & 0xFF)]);
+            GL.BlendFuncSeparate(BlendTable[(mode >> 8) & 0xFF],BlendTable[(mode & 0xFF)], GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
             applied.BlendMode = mode;
         }
     }

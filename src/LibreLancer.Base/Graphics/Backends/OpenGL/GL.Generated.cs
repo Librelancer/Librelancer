@@ -17,6 +17,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int,int,int,int,void> _glViewport;
         private static delegate* unmanaged<int,int,int,int,void> _glScissor;
         private static delegate* unmanaged<int,int,void> _glBlendFunc;
+        private static delegate* unmanaged<int, int, int, int, void> _glBlendFuncSeparate;
         private static delegate* unmanaged<float,float,void> _glDepthRangef;
         private static delegate* unmanaged<int,int,void> _glPolygonMode;
         private static delegate* unmanaged<float,void> _glLineWidth;
@@ -120,6 +121,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glViewport = (delegate* unmanaged<int,int,int,int,void>)getProcAddress("glViewport");
             _glScissor = (delegate* unmanaged<int,int,int,int,void>)getProcAddress("glScissor");
             _glBlendFunc = (delegate* unmanaged<int,int,void>)getProcAddress("glBlendFunc");
+            _glBlendFuncSeparate = (delegate* unmanaged<int, int, int, int, void>)getProcAddress("glBlendFuncSeparate");
             _glDepthRangef = (delegate* unmanaged<float,float,void>)getProcAddress("glDepthRangef");
             _glPolygonMode = (delegate* unmanaged<int,int,void>)getProcAddress("glPolygonMode");
             _glLineWidth = (delegate* unmanaged<float,void>)getProcAddress("glLineWidth");
@@ -268,6 +270,12 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static void BlendFunc(int sfactor, int dfactor)
         {
             _glBlendFunc(sfactor, dfactor);
+            ErrorCheck();
+        }
+
+        public static void BlendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
+        {
+            _glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
             ErrorCheck();
         }
         public static void DepthRange(float near, float far)
