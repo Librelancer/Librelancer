@@ -100,12 +100,13 @@ namespace LibreLancer.Dialogs
 
 
         static unsafe void ThrowNFDError() => throw new Exception(Marshal.PtrToStringUTF8((IntPtr) NFD.NFD_GetError()));
-        public static unsafe void Open(Action<string> onOpen, FileDialogFilters filters = null)
+        public static unsafe void Open(Action<string> onOpen, FileDialogFilters filters = null, string defaultPath = null)
         {
             NFD.NFD_ClearError();
             var f = NFDFilters.Create(filters);
             void* path = null;
-            var res = NFD.NFD_OpenDialogN(&path, f, f.Count, null);
+            using var def = NFDString.Create(defaultPath);
+            var res = NFD.NFD_OpenDialogN(&path, f, f.Count, (void*)def.Pointer);
             if (res == NFDResult.NFD_OKAY)
             {
                 var selected = FromNFD(path);

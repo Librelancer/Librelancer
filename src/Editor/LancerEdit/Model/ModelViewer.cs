@@ -778,6 +778,7 @@ namespace LancerEdit
 
         void OpenSur()
         {
+            var defaultPath = !string.IsNullOrEmpty(parent.FilePath) ? Path.GetDirectoryName(parent.FilePath) : null;
             FileDialog.Open((file) =>
             {
                 surname = System.IO.Path.GetFileName(file);
@@ -798,7 +799,7 @@ namespace LancerEdit
             }
 #endif
                 if (surFile != null) ProcessSur(surFile);
-            }, AppFilters.SurFilters);
+            }, AppFilters.SurFilters, defaultPath);
         }
         void HierarchyPanel()
         {
