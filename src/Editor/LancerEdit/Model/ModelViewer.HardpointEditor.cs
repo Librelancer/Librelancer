@@ -278,5 +278,39 @@ namespace LancerEdit
                 editingGizmo = null;
             }
         }
+
+        bool ManipulateHardpoint(ICamera camera)
+        {
+            if (hpEditing == null || hpEditOpen == false)
+                return false;
+            var v = camera.View;
+            var p = camera.Projection;
+            var mode = ImGui.GetIO().KeyCtrl ? GuizmoMode.WORLD : GuizmoMode.LOCAL;
+            Matrix4x4 delta = Matrix4x4.Identity;
+            var newTransform =  MathHelper.MatrixFromEulerDegrees(HPpitch, HPyaw, HProll) *
+                             Matrix4x4.CreateTranslation(HPx, HPy, HPz);
+            var oldTransform = newTransform * hpEditing.Parent.LocalTransform;
+            GuizmoOp op;
+            if ((op = ImGuizmo.Manipulate(ref v, ref p, GuizmoOperation.TRANSLATE | GuizmoOperation.ROTATE_AXIS, mode,
+                    ref oldTransform, out delta)) != GuizmoOp.Nothing && !delta.IsIdentity)
+            {
+                newTransform = delta * newTransform;
+                var rot = newTransform.GetEulerDegrees();
+                var pos = Vector3.Transform(Vector3.Zero, newTransform);
+                if (op == GuizmoOp.Translate)
+                {
+                    HPx = pos.X;
+                    HPy = pos.Y;
+                    HPz = pos.Z;
+                }
+                else if (op == GuizmoOp.Rotate)
+                {
+                    HPpitch = rot.X;
+                    HPyaw = rot.Y;
+                    HProll = rot.Z;
+                }
+            }
+            return ImGuizmo.IsOver() || ImGuizmo.IsUsing();
+        }
     }
 }

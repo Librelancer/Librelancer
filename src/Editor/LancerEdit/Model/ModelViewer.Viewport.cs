@@ -227,10 +227,19 @@ namespace LancerEdit
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
             modelViewport.MarginH = (int) (4.25 * ImGui.GetFontSize());
+            ICamera camera = null;
             if (modelViewport.Begin())
             {
-                DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
+                camera = DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
                 modelViewport.End();
+            }
+            if (camera != null && ManipulateHardpoint(camera))
+            {
+                modelViewport.SetInputsEnabled(false);
+            }
+            else
+            {
+                modelViewport.SetInputsEnabled(true);
             }
             rotation = modelViewport.ModelRotation;
         }
@@ -258,7 +267,7 @@ namespace LancerEdit
         private LookAtCamera lookAtCam = new LookAtCamera();
         private ThnCamera tcam = new ThnCamera(new Rectangle(0, 0, 800, 600));
 
-        void DrawGL(int renderWidth, int renderHeight, bool viewport, bool bkgG)
+        ICamera DrawGL(int renderWidth, int renderHeight, bool viewport, bool bkgG)
         {
             if (_window.Config.BackgroundGradient && bkgG)
             {
@@ -375,6 +384,7 @@ namespace LancerEdit
             //Draw hardpoints
             DrawHardpoints(cam);
             if (drawSkeleton) DrawSkeleton(cam);
+            return cam;
         }
 
         void DrawSkeleton(ICamera cam)
