@@ -7,9 +7,18 @@ namespace LibreLancer.Ini;
 
 public static class IniWriter
 {
+    private const int defaultCodePage = 1252;
+    private static readonly Encoding defaultEncoding;
+    static IniWriter()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        defaultEncoding = Encoding.GetEncoding(defaultCodePage);
+    }
+
     public static void WriteIni(Stream outputStream, IEnumerable<Section> sections)
     {
-        using var writer = new StreamWriter(outputStream, Encoding.UTF8, -1, true);
+        using var writer = new StreamWriter(outputStream, defaultEncoding, -1, true);
+        writer.NewLine = "\r\n";
         int a = 0;
         foreach (var sec in sections)
         {
@@ -53,7 +62,7 @@ public static class IniWriter
             return offset;
         }
 
-        using var writer = new BinaryWriter(outputStream, Encoding.UTF8, true);
+        using var writer = new BinaryWriter(outputStream, defaultEncoding, true);
         writer.Write("BINI"u8);
         writer.Write((uint)1);
         writer.Write((uint)0); //StringBlockOffset

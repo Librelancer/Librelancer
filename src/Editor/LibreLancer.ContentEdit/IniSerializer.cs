@@ -110,14 +110,14 @@ public static class IniSerializer
             .Entry("pos", lt.Light.Position)
             .Entry("color", lt.Light.Color)
             .Entry("range", lt.Light.Range);
-        if (lt.Light.Direction != Vector3.UnitZ)
-            sb.Entry("direction", lt.Light.Direction);
         sb.Entry("type", lt.Light.Kind switch
         {
             LightKind.Directional => "DIRECTIONAL",
             LightKind.PointAttenCurve => "DIRECTIONAL",
             _ => "POINT"
         });
+        if (lt.Light.Kind == LightKind.Directional)
+            sb.Entry("direction", lt.Light.Direction);
         if (!string.IsNullOrWhiteSpace(lt.AttenuationCurveName))
             sb.Entry("atten_curve", lt.AttenuationCurveName);
         else
