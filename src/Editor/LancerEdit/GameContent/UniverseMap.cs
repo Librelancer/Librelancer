@@ -8,6 +8,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
+using SharpDX.Direct2D1;
 
 namespace LancerEdit.GameContent
 {
@@ -29,14 +30,7 @@ namespace LancerEdit.GameContent
                 Target.Position = value;
         }
 
-        private Vector2 accumDelta = Vector2.Zero;
-
-        static bool Snap(Vector2 original, Vector2 delta, Vector2 snaps, out Vector2 result)
-        {
-            result = MathHelper.Snap(original + delta, snaps);
-            return (Math.Abs(original.X - result.X) > 0.0001f ||
-                    Math.Abs(original.Y - result.Y) > 0.0001f);
-        }
+        private Vector2 newPos = Vector2.Zero;
 
         public string Draw(int imageId, List<EditorSystem> systems, GameDataManager gameData, List<(EditorSystem, EditorSystem)> connections, int width, int height, int offsetY)
         {
@@ -55,12 +49,35 @@ namespace LancerEdit.GameContent
                 drawList.AddRectFilled(minPos, maxPos, 0xFF000000);
             }
 
+
+
             drawList.AddText(ImGuiHelper.Default, ImGuiHelper.Default.FontSize, minPos, 0xFFFFFFFF, "Double-click to open. Click+drag to move. Shift to disable snapping");
 
             float margin = 0.15f;
             var min = ImGui.GetCursorPos() + new Vector2(width, height) * margin;
+
             var factor = (new Vector2(width, height) * (1 - 2 * margin)) / 16f;
             var connectMin = minPos + new Vector2(width, height) * margin;
+
+            if (dragTarget != null)
+            {
+                //Draw snapping grid
+                var gridCol = (VertexDiffuse)Color4.Gray;
+                var connectMax = maxPos - new Vector2(width, height) * margin;
+                var sz = new Vector2(width, height) - (new Vector2(width, height) * margin * 2);
+                drawList.AddRect(connectMin, connectMax, (VertexDiffuse)Color4.Gray);
+                for (int x = 1; x < 16; x++)
+                {
+                    drawList.AddLine(connectMin + new Vector2(x, 0) * factor,
+                        connectMin + new Vector2(x, 0) * factor + new Vector2(0, sz.Y), gridCol);
+                }
+                for (int y = 1; y < 16; y++)
+                {
+                    drawList.AddLine(connectMin + new Vector2(0, y) * factor,
+                        connectMin + new Vector2(0, y) * factor + new Vector2(sz.X, 0), gridCol);
+                }
+            }
+
             foreach (var c in connections)
             {
                 var a = connectMin + c.Item1.Position * factor;
@@ -87,15 +104,12 @@ namespace LancerEdit.GameContent
                     {
                         dragTarget = sys;
                         dragOgPos = sys.Position;
-                        accumDelta = Vector2.Zero;
+                        newPos = sys.Position;
                     }
 
-
-                    accumDelta += (ImGui.GetIO().MouseDelta / factor);
-                    if (Snap(dragOgPos, accumDelta, ImGui.IsKeyDown(ImGuiKey.ModShift) ? Vector2.Zero : Vector2.One, out var newPosition))
-                    {
-                        sys.Position = newPosition;
-                    }
+                    newPos += (ImGui.GetIO().MouseDelta / factor);
+                    sys.Position = MathHelper.Snap(newPos,
+                        ImGui.IsKeyDown(ImGuiKey.ModShift) ? Vector2.Zero : Vector2.One);
                     dragCurrent = sys;
                 }
 
@@ -109,7 +123,6 @@ namespace LancerEdit.GameContent
                 UndoBuffer.Commit(new ChangePositionAction(dragTarget, dragOgPos, dragTarget.Position));
                 OnChange?.Invoke();
                 dragTarget = null;
-                accumDelta = Vector2.Zero;
             }
 
             return retVal;
