@@ -335,6 +335,18 @@ namespace LibreLancer
         public static float Lerp(float value1, float value2, float amount)
             => MathF.FusedMultiplyAdd(amount, value2 - value1, value1);
 
+        public static float Snap(float s, float step)
+        {
+            if (step != 0f)
+            {
+                return MathF.Floor((s / step) + 0.5f) * step;
+            }
+            return s;
+        }
+
+        public static Vector2 Snap(Vector2 vector, Vector2 step) =>
+            new Vector2(Snap(vector.X, step.X), Snap(vector.Y, step.Y));
+
         public static bool IsPowerOfTwo(int x)
         {
             if (x == 0) return false;

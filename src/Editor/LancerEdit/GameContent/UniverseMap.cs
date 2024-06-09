@@ -29,6 +29,14 @@ namespace LancerEdit.GameContent
                 Target.Position = value;
         }
 
+        private Vector2 accumDelta = Vector2.Zero;
+
+        static bool Snap(Vector2 original, Vector2 delta, Vector2 snaps, out Vector2 result)
+        {
+            result = MathHelper.Snap(original + delta, snaps);
+            return (Math.Abs(original.X - result.X) > 0.0001f ||
+                    Math.Abs(original.Y - result.Y) > 0.0001f);
+        }
 
         public string Draw(int imageId, List<EditorSystem> systems, GameDataManager gameData, List<(EditorSystem, EditorSystem)> connections, int width, int height, int offsetY)
         {
@@ -47,7 +55,7 @@ namespace LancerEdit.GameContent
                 drawList.AddRectFilled(minPos, maxPos, 0xFF000000);
             }
 
-            drawList.AddText(ImGuiHelper.Default, ImGuiHelper.Default.FontSize, minPos, 0xFFFFFFFF, "Double-click to open. Click+drag to move");
+            drawList.AddText(ImGuiHelper.Default, ImGuiHelper.Default.FontSize, minPos, 0xFFFFFFFF, "Double-click to open. Click+drag to move. Shift to disable snapping");
 
             float margin = 0.15f;
             var min = ImGui.GetCursorPos() + new Vector2(width, height) * margin;
@@ -79,10 +87,15 @@ namespace LancerEdit.GameContent
                     {
                         dragTarget = sys;
                         dragOgPos = sys.Position;
+                        accumDelta = Vector2.Zero;
                     }
 
-                    var delta = (ImGui.GetIO().MouseDelta / factor);
-                    sys.Position += delta;
+
+                    accumDelta += (ImGui.GetIO().MouseDelta / factor);
+                    if (Snap(dragOgPos, accumDelta, ImGui.IsKeyDown(ImGuiKey.ModShift) ? Vector2.Zero : Vector2.One, out var newPosition))
+                    {
+                        sys.Position = newPosition;
+                    }
                     dragCurrent = sys;
                 }
 
@@ -96,6 +109,7 @@ namespace LancerEdit.GameContent
                 UndoBuffer.Commit(new ChangePositionAction(dragTarget, dragOgPos, dragTarget.Position));
                 OnChange?.Invoke();
                 dragTarget = null;
+                accumDelta = Vector2.Zero;
             }
 
             return retVal;
