@@ -1,0 +1,50 @@
+#!/bin/bash
+SELF="${BASH_SOURCE[0]}"
+EXTRACTION_DIR="$1"
+PID="$2"
+# read in existing file manifest
+MANIFEST1=$(sort "$EXTRACTION_DIR/lib/manifest.txt")
+echo Waiting for exit
+tail --pid=$PID -f /dev/null # wait for parent to exit
+echo Running updater
+# Ideally we use the zenity lib to show progress
+# Otherwise show a message box
+if command -v zenity &> /dev/null; then
+    INTERFACE="zenity --progress --pulsate --no-cancel"
+elif command -v kdialog &> /dev/null; then
+    INTERFACE="msgbox"
+    MSGBOX="kdialog"
+elif command -v xmessage &> /dev/null; then
+    INTERFACE="msgbox"
+    MSGBOX="xmessage"
+else
+    INTERFACE="msgbox"
+    MSGBOX="echo"
+fi
+
+function msgbox() {
+    cat; $MSGBOX "Update Complete"
+}
+
+function installer() {
+SCRIPT_DIR="$(cd -P "$( dirname "${BASH_SOURCE[0]}" )" ; pwd)"
+SKIP=$(awk '/^__TARFILE_FOLLOWS__/ { print NR + 1; exit 0; }' $0)
+
+echo "# Script Dir: " $SCRIPT_DIR
+echo "# Byte Offset: "$SKIP
+
+# Extract
+echo "# Updating ... "
+tail -n +${SKIP} $0 | tar --strip-components=1 -C "$EXTRACTION_DIR" -zpvx >/dev/null
+# delete files in old manifest that aren't in new
+for i in $(comm -23 <(echo "$MANIFEST1") <(sort "$EXTRACTION_DIR/lib/manifest.txt")); do
+    echo "# Deleting $EXTRACTION_DIR/$i"
+    rm -r "$EXTRACTION_DIR/$i"
+done
+echo "# Update Complete"
+}
+installer | tee "$EXTRACTION_DIR/UpdateLog.txt" | $INTERFACE
+rm -- "$SELF"
+exit 0
+# NOTE: Don't place any newline characters after the last line below.
+__TARFILE_FOLLOWS__

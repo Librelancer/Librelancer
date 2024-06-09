@@ -17,6 +17,10 @@ namespace BuildLL
         private static bool buildDebug = false;
         private static bool withWin32 = false;
         private static bool withWin64 = false;
+        private static bool withUpdates = true;
+        private static string updateChannel = "daily";
+
+        private static DateTime Invoked = DateTime.UtcNow;
         public static void Options()
         {
             StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
@@ -26,6 +30,8 @@ namespace BuildLL
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
+            FlagArg("--no-updates", () => withUpdates = false, "Disables built in updater (SDK only)");
+            StringArg("--update-channel", v => updateChannel = v, "Sets update channel for this build (SDK only)");
         }
 
         static readonly string[] sdkProjects = {
@@ -59,6 +65,7 @@ namespace BuildLL
         static async Task FullBuild(string rid, bool sdk)
         {
             Dotnet.Restore("LibreLancer.sln", rid);
+
             var projs = sdk ? sdkProjects : engineProjects;
             var objDir = "./obj/projs-";
             var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
@@ -86,6 +93,17 @@ namespace BuildLL
                 CopyFile("deps/openal-soft-sourceurl.txt", outdir);
             }
             CopyFile("LICENSE", outdir);
+            var unixTime = (long)((Invoked - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
+            if (sdk && withUpdates) {
+                File.WriteAllText(Path.Combine(outdir, "lib", "updates.ini"), $"[Updates]\nserver=https://librelancer.net/builds/\nchannel={updateChannel}");
+                File.WriteAllText(Path.Combine(outdir,"lib","build.txt"), $"{rid};{unixTime}");
+                if(rid.StartsWith("win"))
+                    CopyFile("src/updater.win32/updater.exe", Path.Combine(outdir,"lib/"));
+                var manifest =
+                    Directory.EnumerateFiles(outdir, "*.*", SearchOption.AllDirectories)
+                        .Select(x => Path.GetRelativePath(outdir, x).Replace('\\', '/')).ToArray();
+                File.WriteAllLines(Path.Combine(outdir, "lib", "manifest.txt"), manifest);
+            }
         }
 
         static string GetLinuxRid()
@@ -296,7 +314,7 @@ namespace BuildLL
 
             static void TarDirectory(string file, string dir)
             {
-                Bash($"tar -I 'gzip -9' -cf {Quote(file)} -C {Quote(dir)} .", true);
+                Bash($"tar -I 'gzip -9' -cf {Quote(file)} -C {Quote(dir)} --xform s:'./':: .", true);
             }
 
             static void ZipDirectory(string file, string dir)
@@ -366,7 +384,7 @@ namespace BuildLL
                     await winSdk;
                 }
                 //Timestamp
-                var unixTime = (long)((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
+                var unixTime = (long)((Invoked - new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds);
                 File.WriteAllText("packaging/packages/timestamp", unixTime.ToString());
             });
         }

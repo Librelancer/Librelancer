@@ -53,6 +53,7 @@ launchSettings.json
 
 # Executables
 *.exe
+!src/updater.win32/updater.exe
 *.out
 *.app
 *.i*86

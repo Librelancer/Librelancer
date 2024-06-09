@@ -75,7 +75,7 @@ public static class Icons
     public const char Stop = '\uf04d';
     public const char IceCream = '\uf810';
     //Icons to be tinted
-    private const char SyncAlt = '\uf2f1';
+    public const char SyncAlt = '\uf2f1';
     private const char ExpandArrowsAlt = '\uf31e';
     private const char Tree = '\uf1bb';
     private const char SignInAlt = '\uf2f6';
@@ -188,6 +188,7 @@ public static class Icons
         yield return Stop;
         yield return IceCream;
         yield return Gift;
+        yield return SyncAlt;
 
         yield return Cube_LightYellow;
         yield return Cube_Purple;

@@ -48,6 +48,9 @@
         </None>
         <None Remove="BlueprintBackground.png" />
         <EmbeddedResource Include="BlueprintBackground.png" />
+        <None Remove="Updater\Sfx-linux" />
+        <EmbeddedResource Include="Updater\Sfx-linux" />
+        <None Remove="Updater\Sfx-win" />
     </ItemGroup>
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

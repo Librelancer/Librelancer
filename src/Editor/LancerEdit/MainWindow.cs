@@ -18,6 +18,7 @@ using LibreLancer.Media;
 using ImGuiNET;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
+using LancerEdit.Updater;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
@@ -49,6 +50,7 @@ namespace LancerEdit
         private RecentFilesHandler recentFiles;
         bool openError = false;
         bool finishLoading = false;
+        public bool RequestExit = false;
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
         private HotkeyHelp hotkeys = new HotkeyHelp();
@@ -59,6 +61,8 @@ namespace LancerEdit
         private QuickFileBrowser quickFileBrowser;
         public bool DrawDragTargets => dragActive > 0;
         private int dragActive = 0;
+
+        private UpdateChecks updater;
         public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -87,7 +91,7 @@ namespace LancerEdit
             quickFileBrowser.FileSelected += OpenFile;
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
-
+            updater = new UpdateChecks(this, GetBasePath());
             if (!string.IsNullOrWhiteSpace(Config.AutoLoadPath))
             {
                 var c = new GameDataContext();
@@ -691,6 +695,11 @@ namespace LancerEdit
 				{
 					openAbout = true;
 				}
+
+                if (updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
+                {
+                    Popups.OpenPopup(updater.CheckForUpdates());
+                }
 				ImGui.EndMenu();
 			}
 
@@ -917,6 +926,8 @@ namespace LancerEdit
                 TabControl.SetSelected(tab);
             }
             toAdd.Clear();
+            if (RequestExit)
+                Exit();
         }
 
         void DrawQuickFiles()

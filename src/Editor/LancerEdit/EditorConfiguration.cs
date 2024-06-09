@@ -66,6 +66,8 @@ namespace LancerEdit
         public bool FilesVisible;
         [Entry("collada_visible")]
         public bool ColladaVisible;
+        [Entry("update_channel")]
+        public string UpdateChannel;
 
         public string AutoLoadPath = "";
 
@@ -144,6 +146,7 @@ namespace LancerEdit
                 .Entry("ui_scale", UiScale)
                 .OptionalEntry("last_export_path", lastExportPath)
                 .OptionalEntry("blender_path", blenderPath)
+                .OptionalEntry("update_channel", UpdateChannel)
                 .Entry("lod_multiplier", LodMultiplier)
                 .Entry("log_visible", LogVisible)
                 .Entry("files_visible", FilesVisible)
