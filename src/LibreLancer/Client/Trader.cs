@@ -272,6 +272,7 @@ namespace LibreLancer.Client
                         ui.IdsInfo = equip.IdsInfo;
                         ui.IdsName = equip.IdsName;
                         ui.Volume = equip.Volume;
+                        ui.Equipment = equip;
                         ui.Price = GetPrice(equip.Good);
                         ui.MountIcon = true;
                         ui.CanMount = true;
