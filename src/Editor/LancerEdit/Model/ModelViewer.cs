@@ -1111,23 +1111,38 @@ namespace LancerEdit
                     }));
             }
             ImGui.Separator();
-            ImGui.BeginChild("##presets");
-            for (int i = 0; i < _window.Config.CameraPresets.Count; i++)
+            if (ImGui.BeginTable("##presettable", 3, ImGuiTableFlags.ScrollY))
             {
-                ImGui.PushID(i);
-                var p = _window.Config.CameraPresets[i];
-                if (ImGui.Button(ImGuiExt.IDSafe(p.Name))) {
-                    modelViewport.ImportControls(p.Preset);
+                var btnWidth = ImGui.GetStyle().FramePadding.X * 2 + ImGui.CalcTextSize($"{Icons.Edit}").X;
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Rename", ImGuiTableColumnFlags.WidthFixed, btnWidth);
+                ImGui.TableSetupColumn("Delete", ImGuiTableColumnFlags.WidthFixed, btnWidth);
+                for (int i = 0; i < _window.Config.CameraPresets.Count; i++)
+                {
+                    ImGui.TableNextRow();
+                    ImGui.PushID(i);
+                    ImGui.TableNextColumn();
+                    var p = _window.Config.CameraPresets[i];
+                    if (ImGui.Button(ImGuiExt.IDSafe(p.Name))) {
+                        modelViewport.ImportControls(p.Preset);
+                    }
+                    ImGui.TableNextColumn();
+                    if (ImGui.Button($"{Icons.Edit}")) {
+                        popups.OpenPopup(new NameInputPopup(
+                            NameInputConfig.Nickname("Rename Preset", x => false),
+                            p.Name, x => p.Name = x));
+                    }
+                    ImGui.TableNextColumn();
+                    if (ImGui.Button($"{Icons.TrashAlt}")) {
+                        _window.Confirm($"Are you sure you want to delete '{p.Name}'?", () => {
+                            _window.Config.CameraPresets.Remove(p);
+                        });
+                    }
+                    ImGui.PopID();
                 }
-                ImGui.SameLine();
-                if (ImGui.Button($"{Icons.TrashAlt}")) {
-                    _window.Confirm($"Are you sure you want to delete '{p.Name}'?", () => {
-                        _window.Config.CameraPresets.Remove(p);
-                    });
-                }
-                ImGui.PopID();
+                ImGui.EndTable();
             }
-            ImGui.EndChild();
+
         }
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)

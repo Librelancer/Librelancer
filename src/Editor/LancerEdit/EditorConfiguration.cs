@@ -25,7 +25,11 @@ namespace LancerEdit
         Cockpit
     }
 
-    public record CameraPreset(string Name, string Preset);
+    public class CameraPreset(string name, string preset)
+    {
+        public string Name = name;
+        public string Preset = preset;
+    }
 
     [SelfSection("Config")]
     public class EditorConfiguration : IniFile, IRendererSettings
