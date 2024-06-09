@@ -54,11 +54,9 @@ namespace LibreLancer.Utf.Mat
 		/// <summary>
 		/// Emmisive Colour
 		/// </summary>
-		public Color4 Ec { get { return _ec; } set { _ec = value; } }
+		public Color4? Ec { get; set; }
 
-		Color4 _ec = new Color4(0, 0, 0, 0);
-
-		/// <summary>
+        /// <summary>
 		/// B? Texture Flags
 		/// </summary>
 		public int BtFlags { get; private set; }
@@ -394,7 +392,7 @@ namespace LibreLancer.Utf.Mat
 				bm.OcEnabled = Oc.HasValue;
 				if (Oc.HasValue)
 					bm.Oc = Oc.Value;
-				bm.Ec = Ec;
+				bm.Ec = Ec ?? Color4.Black;
 				bm.DtSampler = DtName;
 				bm.DtFlags = (SamplerFlags)DtFlags;
 				bm.EtSampler = EtName;

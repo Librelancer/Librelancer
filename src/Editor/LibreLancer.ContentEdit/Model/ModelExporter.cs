@@ -82,24 +82,34 @@ public static class ModelExporter
         return output.AsResult();
     }
 
+    static ImageData ExportSingleImage(string tex, HashSet<string> attempted, ResourceManager resources)
+    {
+        if (string.IsNullOrWhiteSpace(tex) || attempted.Contains(tex))
+            return null;
+        var img = resources.FindImage(tex);
+        if (img != null)
+        {
+            var exported = TextureExporter.ExportTexture(img, true);
+            if (exported != null)
+            {
+                return new ImageData(tex, exported, "image/png");
+            }
+        }
+        attempted.Add(tex);
+        return null;
+    }
     static Dictionary<string, ImageData> ExportImages(ResourceManager resources, Dictionary<string, Material> materials)
     {
         HashSet<string> attempted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var result = new Dictionary<string, ImageData>();
         foreach (var m in materials.Values)
         {
-            if(string.IsNullOrWhiteSpace(m.DiffuseTexture?.Name) || attempted.Contains(m.DiffuseTexture.Name))
-                continue;
-            var img = resources.FindImage(m.DiffuseTexture.Name);
-            if (img != null)
-            {
-                var exported = TextureExporter.ExportTexture(img, true);
-                if (exported != null)
-                {
-                    result[m.DiffuseTexture.Name] = new ImageData(m.DiffuseTexture.Name, exported, "image/png");
-                }
-            }
-            attempted.Add(m.DiffuseTexture.Name);
+            var dt = ExportSingleImage(m.DiffuseTexture?.Name, attempted, resources);
+            if (dt != null)
+                result[dt.Name] = dt;
+            var et = ExportSingleImage(m.EmissiveTexture?.Name, attempted, resources);
+            if (et != null)
+                result[et.Name] = et;
         }
         return result;
     }
@@ -273,28 +283,48 @@ public static class ModelExporter
         return -1;
     }
 
+    static int IndexFromFlags(int flags)
+    {
+        var sf = (SamplerFlags)flags;
+        return ((sf & SamplerFlags.SecondUV) == SamplerFlags.SecondUV) ? 1 : 0;
+    }
+
     static Material GetMaterial(uint crc, ResourceManager resources, Dictionary<string, Material> materials)
     {
         LibreLancer.Utf.Mat.Material mat;
         Color4 dc;
         string name;
-        string dt;
+        string dt = null;
+        string et = null;
+        Color4 ec;
+        int etIndex = 0;
         if ((mat = resources.FindMaterial(crc)) != null)
         {
             name = mat.Name;
             dc = mat.Dc;
             dt = mat.DtName;
+            et = mat.EtName;
+            etIndex = IndexFromFlags(mat.EtFlags);
+            if (et != null && mat.Ec == null)
+                ec = Color4.White;
+            else
+                ec = mat.Ec ?? Color4.Black;
         }
         else
         {
             name = $"material_0x{crc:X8}";
             dc = Color4.White;
-            dt = null;
+            ec = Color4.Black;
         }
         if (!materials.TryGetValue(name, out var m))
         {
             var x = dt != null ? new TextureInfo(dt, 0) : null;
-            m = new Material() {Name = name, DiffuseColor = dc, DiffuseTexture = x};
+            var y = et != null ? new TextureInfo(et, etIndex) : null;
+            m = new Material()
+            {
+                Name = name, DiffuseColor = dc, DiffuseTexture = x, EmissiveTexture = y,
+                EmissiveColor = new Vector3(ec.R, ec.G, ec.B)
+            };
             materials[name] = m;
         }
         return m;
