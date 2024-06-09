@@ -14,10 +14,19 @@ using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent;
 
+public class EditorSystem(StarSystem system, Vector2 position)
+{
+    public StarSystem System = system;
+    public Vector2 Position = position;
+}
+
 public class UniverseEditorTab : EditorTab
 {
+    public bool Dirty = false;
+    public GameDataContext Data;
+    public List<EditorSystem> AllSystems;
+
     private MainWindow win;
-    private GameDataContext gameData;
     private Texture2D universeBackgroundTex;
     private int universeBackgroundRegistered;
     private UniverseMap map;
@@ -25,15 +34,15 @@ public class UniverseEditorTab : EditorTab
     private PopupManager popups;
 
     private const string NAV_PRETTYMAP = "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db";
-    private List<(Vector2, Vector2)> connections = new List<(Vector2, Vector2)>();
+    private List<(EditorSystem, EditorSystem)> connections = new List<(EditorSystem, EditorSystem)>();
 
 
     public UniverseEditorTab(GameDataContext gameData, MainWindow win)
     {
         Title = "Universe Editor";
         this.win = win;
-        this.gameData = gameData;
-        var pmap = this.gameData.GameData.DataPath(NAV_PRETTYMAP);
+        this.Data = gameData;
+        var pmap = this.Data.GameData.DataPath(NAV_PRETTYMAP);
         if (gameData.GameData.VFS.FileExists(pmap))
             gameData.Resources.LoadResourceFile(pmap);
         universeBackgroundTex = (gameData.Resources.FindTexture("fancymap.tga") as Texture2D);
@@ -42,33 +51,65 @@ public class UniverseEditorTab : EditorTab
         else
             universeBackgroundRegistered = -1;
         popups = new PopupManager();
+        map = new UniverseMap();
+        map.OnChange += CalculateDirty;
+        BuildSystemList();
         BuildConnections();
-        RefreshSystemList();
+        SaveStrategy = new UniverseSaveStrategy() { Tab = this };
     }
 
-    void RefreshSystemList()
+    public override void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
-        allSystems = gameData.GameData.Systems.OrderBy(x => x.Nickname).Select(x => x.Nickname).ToArray();
+        if (hk == Hotkeys.Undo && map.UndoBuffer.CanUndo)
+        {
+            map.UndoBuffer.Undo();
+            CalculateDirty();
+        }
+        if (hk == Hotkeys.Redo && map.UndoBuffer.CanRedo)
+        {
+            map.UndoBuffer.Redo();
+            CalculateDirty();
+        }
     }
+
+    void CalculateDirty()
+    {
+        Dirty = false;
+        foreach (var s in AllSystems) {
+            if (s.Position != s.System.UniversePosition)
+            {
+                Dirty = true;
+                break;
+            }
+        }
+    }
+
+    void BuildSystemList()
+    {
+        AllSystems = Data.GameData.Systems.OrderBy(x => x.Nickname).Select(x => new EditorSystem(
+            x, x.UniversePosition)).ToList();
+    }
+
 
     void BuildConnections()
     {
         HashSet<string> connected = new HashSet<string>();
-        connections = new List<(Vector2, Vector2)>();
-        foreach (var sys in gameData.GameData.Systems) {
-            foreach (var obj in sys.Objects) {
+        connections = new List<(EditorSystem, EditorSystem)>();
+        foreach (var sys in AllSystems) {
+            foreach (var obj in sys.System.Objects) {
                 if(obj.Dock?.Kind == DockKinds.Jump &&
-                   !obj.Dock.Target.Equals(sys.Nickname, StringComparison.OrdinalIgnoreCase))
+                   !obj.Dock.Target.Equals(sys.System.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
-                    var conn = $"{sys.Nickname};{obj.Dock.Target}".ToLowerInvariant();
-                    var connOther = $"{obj.Dock.Target};{sys.Nickname}".ToLowerInvariant();
+                    var conn = $"{sys.System.Nickname};{obj.Dock.Target}".ToLowerInvariant();
+                    var connOther = $"{obj.Dock.Target};{sys.System.Nickname}".ToLowerInvariant();
                     if (!connected.Contains(conn) &&
                         !connected.Contains(connOther))
                     {
                         connected.Add(conn);
-                        var other = gameData.GameData.Systems.Get(obj.Dock.Target);
+                        var other = AllSystems.FirstOrDefault(x =>
+                            x.System.Nickname.Equals(obj.Dock.Target, StringComparison.OrdinalIgnoreCase));
                         if(other != null)
-                            connections.Add((sys.UniversePosition, other.UniversePosition));
+                            connections.Add((sys, other));
                     }
                 }
             }
@@ -92,14 +133,14 @@ public class UniverseEditorTab : EditorTab
         popups.Run();
     }
 
-    private string[] allSystems;
 
 
     private bool firstTab = true;
     void DrawSystems()
     {
         if (ImGui.Button("New System")) {
-            popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("New System", gameData.GameData.Systems.Contains), "", NewSystem));
+            popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("New System", Data.GameData.Systems.Contains), "",
+                x => NewSystem(x, Vector2.Zero)));
         }
         ImGui.SameLine();
         if(ImGui.Button("Refresh Connections"))
@@ -111,17 +152,17 @@ public class UniverseEditorTab : EditorTab
             firstTab = false;
         }
         ImGui.BeginChild("##systems");
-        foreach (var sys in allSystems)
+        foreach (var sys in AllSystems)
         {
-            if (ImGui.Selectable(sys))
-                OpenSystem(sys);
+            if (ImGui.Selectable(sys.System.Nickname))
+                OpenSystem(sys.System.Nickname);
         }
         ImGui.EndChild();
         ImGui.NextColumn();
         var size = (int)Math.Min(ImGui.GetWindowHeight(), ImGui.GetColumnWidth()) - 10;
-        var selected = UniverseMap.Draw(
-            universeBackgroundRegistered,
-            gameData.GameData, connections, size, size,
+        var selected = map.Draw(
+            universeBackgroundRegistered, AllSystems,
+            Data.GameData, connections, size, size,
             25
         );
         if (!string.IsNullOrWhiteSpace(selected))
@@ -129,10 +170,10 @@ public class UniverseEditorTab : EditorTab
         ImGui.Columns(1);
     }
 
-    void NewSystem(string nickname)
+    void NewSystem(string nickname, Vector2 position)
     {
         var systemsFolder =
-            gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Ini.Freelancer.DataPath + "/UNIVERSE/SYSTEMS");
+            Data.GameData.VFS.GetBackingFileName(Data.GameData.Ini.Freelancer.DataPath + "/UNIVERSE/SYSTEMS");
         var newFolder = Path.Combine(systemsFolder, nickname);
         Directory.CreateDirectory(newFolder);
         var system = new StarSystem()
@@ -143,11 +184,12 @@ public class UniverseEditorTab : EditorTab
             BackgroundColor = Color4.Black,
             FarClip = 20000,
             NavMapScale = 1f,
-            LocalFaction = gameData.GameData.Factions.First(),
+            LocalFaction = Data.GameData.Factions.First(),
             Preloads = Array.Empty<PreloadObject>(),
+            UniversePosition = position,
         };
-        gameData.GameData.Systems.Add(system);
-        var universePath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Ini.Freelancer.UniversePath);
+        Data.GameData.Systems.Add(system);
+        var universePath = Data.GameData.VFS.GetBackingFileName(Data.GameData.Ini.Freelancer.UniversePath);
         using (var stream = File.Create(Path.Combine(newFolder, $"{nickname}.ini")))
         {
             var sections = IniSerializer.SerializeStarSystem(system);
@@ -155,18 +197,19 @@ public class UniverseEditorTab : EditorTab
         }
         using (var stream = File.Create(universePath))
         {
-            var sections = IniSerializer.SerializeUniverse(gameData.GameData.Systems, gameData.GameData.Bases);
+            var sections = IniSerializer.SerializeUniverse(Data.GameData.Systems, Data.GameData.Bases);
             IniWriter.WriteIni(stream, sections);
         }
-        gameData.GameData.VFS.Refresh();
-        win.AddTab(new SystemEditorTab(gameData, win, system));
-        RefreshSystemList();
+        Data.GameData.VFS.Refresh();
+        win.AddTab(new SystemEditorTab(Data, win, system));
+        AllSystems.Add(new EditorSystem(system, system.UniversePosition));
+        AllSystems.Sort((x, y) => string.Compare(x.System.Nickname, y.System.Nickname, StringComparison.Ordinal));
     }
 
     void OpenSystem(string nickname)
     {
-        var sys = gameData.GameData.Systems.Get(nickname);
-        win.AddTab(new SystemEditorTab(gameData, win, sys));
+        var sys = Data.GameData.Systems.Get(nickname);
+        win.AddTab(new SystemEditorTab(Data, win, sys));
     }
 
     void DrawBases()
@@ -174,7 +217,7 @@ public class UniverseEditorTab : EditorTab
         ImGui.Text("Base List");
         ImGui.Separator();
         ImGui.BeginChild("##baselist");
-        foreach(var b in gameData.GameData.Bases)
+        foreach(var b in Data.GameData.Bases)
             ImGui.Text(b.Nickname);
         ImGui.EndChild();
     }

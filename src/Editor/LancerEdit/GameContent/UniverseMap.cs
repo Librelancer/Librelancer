@@ -7,14 +7,31 @@ using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent
 {
     public class UniverseMap
     {
-        public static string Draw(int imageId, GameDataManager gameData, List<(Vector2, Vector2)> connections, int width, int height, int offsetY)
-        {
+        private EditorSystem dragTarget = null;
+        private Vector2 dragOgPos = Vector2.Zero;
 
+        public EditorUndoBuffer UndoBuffer = new EditorUndoBuffer();
+
+        public event Action OnChange;
+
+        class ChangePositionAction(EditorSystem target, Vector2 old, Vector2 updated)
+            : EditorModification<Vector2>(old, updated)
+        {
+            public readonly EditorSystem Target = target;
+
+            public override void Set(Vector2 value) =>
+                Target.Position = value;
+        }
+
+
+        public string Draw(int imageId, List<EditorSystem> systems, GameDataManager gameData, List<(EditorSystem, EditorSystem)> connections, int width, int height, int offsetY)
+        {
             var minPos = ImGui.GetCursorScreenPos();
             var maxPos = minPos + new Vector2(width, height);
 
@@ -30,27 +47,55 @@ namespace LancerEdit.GameContent
                 drawList.AddRectFilled(minPos, maxPos, 0xFF000000);
             }
 
+            drawList.AddText(ImGuiHelper.Default, ImGuiHelper.Default.FontSize, minPos, 0xFFFFFFFF, "Double-click to open. Click+drag to move");
+
             float margin = 0.15f;
             var min = ImGui.GetCursorPos() + new Vector2(width, height) * margin;
             var factor = (new Vector2(width, height) * (1 - 2 * margin)) / 16f;
             var connectMin = minPos + new Vector2(width, height) * margin;
             foreach (var c in connections)
             {
-                var a = connectMin + c.Item1 * factor;
-                var b = connectMin + c.Item2 * factor;
+                var a = connectMin + c.Item1.Position * factor;
+                var b = connectMin + c.Item2.Position * factor;
                 drawList.AddLine(a, b, (VertexDiffuse)Color4.CornflowerBlue, 2f);
             }
 
+            bool grabbed = false;
+
+            EditorSystem dragCurrent = null;
             string retVal = null;
-            foreach (var sys in gameData.Systems)
+            foreach (var sys in systems)
             {
-                ImGui.SetCursorPos(min + (sys.UniversePosition * factor) - new Vector2(0.5f * buttonSize));
+                ImGui.SetCursorPos(min + (sys.Position * factor) - new Vector2(0.5f * buttonSize));
                 ImGui.PushStyleColor(ImGuiCol.Button, Color4.LightGray);
-                if (ImGui.Button($"###{sys.Nickname}", new Vector2(buttonSize)))
-                    retVal = sys.Nickname;
+                ImGui.Button($"###{sys.System.Nickname}", new Vector2(buttonSize));
+                if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    retVal = sys.System.Nickname;
+                if (ImGui.IsItemActive() && ImGui.IsMouseDragging(0) && !grabbed &&
+                    (dragTarget == null || dragTarget == sys))
+                {
+                    grabbed = true;
+                    if (dragTarget == null)
+                    {
+                        dragTarget = sys;
+                        dragOgPos = sys.Position;
+                    }
+
+                    var delta = (ImGui.GetIO().MouseDelta / factor);
+                    sys.Position += delta;
+                    dragCurrent = sys;
+                }
+
                 ImGui.PopStyleColor();
                 if(ImGui.IsItemHovered())
-                    ImGui.SetTooltip($"{gameData.GetString(sys.IdsName)} ({sys.Nickname})");
+                    ImGui.SetTooltip($"{gameData.GetString(sys.System.IdsName)} ({sys.System.Nickname})");
+            }
+
+            if (dragCurrent == null && dragTarget != null)
+            {
+                UndoBuffer.Commit(new ChangePositionAction(dragTarget, dragOgPos, dragTarget.Position));
+                OnChange?.Invoke();
+                dragTarget = null;
             }
 
             return retVal;
