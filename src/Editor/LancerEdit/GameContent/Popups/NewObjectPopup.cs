@@ -43,7 +43,7 @@ public class NewObjectPopup : PopupWindow
         ImGui.Text("Nickname: ");
         ImGui.InputText("##nickname", ref nickname, 100);
         ImGui.Separator();
-        ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth(),
+        ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth() - 12 * ImGuiHelper.Scale,
             ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Border);
         var a = ArchetypeSelection.DrawTable(Archetypes, gd, selectedArchetype);
         if (a != null) selectedArchetype = a;
