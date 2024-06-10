@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.InteropServices;
@@ -85,8 +87,31 @@ public class UpdateChecks : IniFile
         {
             win.RequestExit = true;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                //Extract updater exe from archive, as it can't overwrite itself
+                using (var zipStream = File.OpenRead(executable)) {
+                    using (var archive = new ZipArchive(zipStream))
+                    {
+                        var file = archive.Entries
+                            .Select(e =>
+                                new
+                                {
+                                    Name = string.Join("/", e.FullName.Replace('\\', '/').Split('/').Skip(1)),
+                                    Entry = e
+                                })
+                            .FirstOrDefault(x => x.Name.Equals("lib/updater.exe", StringComparison.OrdinalIgnoreCase));
+                        if (file != null)
+                        {
+                            using var updater = File.Create(Path.Combine(baseFolder, "lib/updater.exe"));
+                            using var src = file.Entry.Open();
+                            src.CopyTo(updater);
+                        }
+                    }
+                }
+                //Run updater
                 Process.Start(Path.Combine(baseFolder, "lib/updater.exe"),
                     $"{Shell.Quote(executable)} {Shell.Quote(baseFolder)}");
+            }
             else
             {
                 Process.Start(executable, $"{Shell.Quote(baseFolder)} {Process.GetCurrentProcess().Id}");
