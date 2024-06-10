@@ -27,6 +27,7 @@ namespace LancerEdit
 
         int[] msaaLevels;
         string[] msaaStrings = {"None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA"};
+        string[] updateChannels = { "Stable", "Daily" };
         int cMsaa = 0;
         string[] filters;
         int[] anisotropyLevels;
@@ -274,6 +275,20 @@ namespace LancerEdit
             ImGui.SliderFloat("##lodmultiplier", ref config.LodMultiplier, 1.0f, 8.0f);
         }
 
+        void UpdateTab()
+        {
+            int index = 0;
+            for (int i = 0; i < updateChannels.Length; i++) {
+                if (updateChannels[i].Equals(config.UpdateChannel, StringComparison.OrdinalIgnoreCase)) {
+                    index = i;
+                    break;
+                }
+            }
+            ImGui.Combo("Channel", ref index, updateChannels, updateChannels.Length);
+            config.UpdateChannel = updateChannels[index].ToLowerInvariant();
+            win.Updater.UpdateChannel = config.UpdateChannel;
+        }
+
         public void Draw()
         {
             if (windowOpen)
@@ -296,6 +311,12 @@ namespace LancerEdit
                     if (ImGui.BeginTabItem("System Viewer"))
                     {
                         SystemViewerTab();
+                        ImGui.EndTabItem();
+                    }
+
+                    if (win.Updater.Enabled && ImGui.BeginTabItem("Updates"))
+                    {
+                        UpdateTab();
                         ImGui.EndTabItem();
                     }
 

@@ -5,7 +5,6 @@
 using System;
 using System.Numerics;
 using System.Text;
-using System.Threading;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -17,7 +16,6 @@ using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
 using LancerEdit.GameContent;
-using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Updater;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
@@ -25,9 +23,6 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Render;
 using LibreLancer.Shaders;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using SharpDX.MediaFoundation;
-using LibreLancer.Thorn;
 
 namespace LancerEdit
 {
@@ -62,7 +57,8 @@ namespace LancerEdit
         public bool DrawDragTargets => dragActive > 0;
         private int dragActive = 0;
 
-        private UpdateChecks updater;
+        public UpdateChecks Updater;
+
         public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -91,7 +87,7 @@ namespace LancerEdit
             quickFileBrowser.FileSelected += OpenFile;
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
-            updater = new UpdateChecks(this, GetBasePath());
+            Updater = new UpdateChecks(this, GetBasePath());
             if (!string.IsNullOrWhiteSpace(Config.AutoLoadPath))
             {
                 QueueUIThread(() => LoadGameData(Config.AutoLoadPath));
@@ -708,9 +704,9 @@ namespace LancerEdit
 					openAbout = true;
 				}
 
-                if (updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
+                if (Updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
                 {
-                    Popups.OpenPopup(updater.CheckForUpdates());
+                    Popups.OpenPopup(Updater.CheckForUpdates());
                 }
 				ImGui.EndMenu();
 			}
