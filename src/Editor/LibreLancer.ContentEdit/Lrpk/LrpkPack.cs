@@ -6,7 +6,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using BepuUtilities;
 using SharpDX.DirectWrite;
 using ZstdSharp;
 
@@ -388,21 +390,34 @@ public class LrpkPack
             }
         }
     }
-    public void Pack(string outputFile)
+
+    void CompressSt(PackItem[] compTasks, Stream outputStream)
     {
-        Log?.Invoke($"Creating {outputFile}");
-        using var outputStream = File.Create(outputFile);
-        var outputWriter = new BinaryWriter(outputStream);
+        var compressor = new Compressor(22);
+        double lastpct = -1.0;
+        int i = 0;
+        foreach (var comp in compTasks) {
+            comp.Offset = outputStream.Position;
+            using var src = File.OpenRead(comp.SourcePath);
+            using (var dst = new CompressionStream(outputStream, compressor))
+            {
+                src.CopyTo(dst);
+            }
+            comp.Length = outputStream.Position - comp.Offset;
+            i++;
+            var pct = ((double)i / compTasks.Length) * 100.0;
+            if(Verbose)
+                Log?.Invoke($"Compressed: {comp.FullPath} ({i}/{compTasks.Length}) ({pct:F2}%)");
+            else if ((pct - lastpct) >= 0.1)
+            {
+                Log?.Invoke($"{pct:F2}%");
+                lastpct = pct;
+            }
+        }
+    }
 
-        outputWriter.Write((byte)'\b');
-        outputWriter.Write((byte)'L');
-        outputWriter.Write((byte)'P');
-        outputWriter.Write((byte)0);
-        outputWriter.Write((long)0); //Offset to metadata
-
-        Log?.Invoke("Compressing files...");
-        // Use threads for ZSTD, level 22 compression is very slow
-        var compTasks = IteratePack(sourceRoot).Where(x => x.Method == PackMethod.Zstandard).ToArray();
+    unsafe void CompressMt(PackItem[] compTasks, Stream outputStream, int threads)
+    {
         BlockingCollection<(string FullPath, PackItem Item, UnmanagedWriteStream Data)> compWriteItems = new();
         var compWriteTask = Task.Run(async () =>
         {
@@ -425,18 +440,60 @@ public class LrpkPack
                 comp.Data.WriteAndDispose(outputStream);
             }
         });
-        var compressTask = Parallel.ForEachAsync(compTasks, new ParallelOptions { MaxDegreeOfParallelism = MaxThreads <= 0 ? Environment.ProcessorCount : MaxThreads },
-            async (toComp, token) =>
+
+        //Bepu's ThreadDispatcher is faster than Parallel.ForEach by a
+        //matter of minutes on large data sets.
+        using var dispatch = new ThreadDispatcher(threads);
+        int packItemIndex = 0;
+
+        void Worker(int workerIndex)
+        {
+            using var compressor = new Compressor(22);
+            int jobIndex;
+            while ((jobIndex = Interlocked.Increment(ref packItemIndex)) < compTasks.Length)
             {
+                var toComp = compTasks[jobIndex];
                 using var src = File.OpenRead(toComp.SourcePath);
                 var mem = new UnmanagedWriteStream();
-                using (var comp = new CompressionStream(mem, 22))
-                    await src.CopyToAsync(comp);
+                using (var comp = new CompressionStream(mem, compressor))
+                    src.CopyTo(comp);
                 compWriteItems.Add((toComp.FullPath, toComp, mem));
-            });
-        compressTask.Wait();
+            }
+        }
+
+        dispatch.DispatchWorkers((Action<int>)Worker, compTasks.Length);
         compWriteItems.CompleteAdding();
         compWriteTask.Wait();
+    }
+
+
+    public void Pack(string outputFile)
+    {
+        Log?.Invoke($"Creating {outputFile}");
+        using var outputStream = File.Create(outputFile);
+        var outputWriter = new BinaryWriter(outputStream);
+
+        outputWriter.Write((byte)'\b');
+        outputWriter.Write((byte)'L');
+        outputWriter.Write((byte)'P');
+        outputWriter.Write((byte)0);
+        outputWriter.Write((long)0); //Offset to metadata
+
+        Log?.Invoke("Compressing files...");
+        // Use threads for ZSTD, level 22 compression is very slow
+        var compTasks = IteratePack(sourceRoot).Where(x => x.Method == PackMethod.Zstandard).ToArray();
+
+
+        int threads = MaxThreads <= 0 ? Environment.ProcessorCount : MaxThreads;
+        if (threads == 1)
+        {
+            CompressSt(compTasks, outputStream);
+        }
+        else
+        {
+            CompressMt(compTasks, outputStream, threads);
+        }
+        //
         Log?.Invoke("Adding uncompressed files");
         // Copying is fast
         foreach(var toCopy in IteratePack(sourceRoot).Where(x => x.Method == PackMethod.Uncompressed))
