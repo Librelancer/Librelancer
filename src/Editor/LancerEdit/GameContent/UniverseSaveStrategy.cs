@@ -13,12 +13,7 @@ public class UniverseSaveStrategy : ISaveStrategy
         foreach (var s in Tab.AllSystems)
             s.System.UniversePosition = s.Position;
         var path = Tab.Data.GameData.VFS.GetBackingFileName(Tab.Data.GameData.Ini.Freelancer.UniversePath);
-        using (var stream = File.Create(path))
-        {
-            var sections = IniSerializer.SerializeUniverse(Tab.Data.GameData.Systems, Tab.Data.GameData.Bases);
-            IniWriter.WriteIni(stream, sections);
-        }
-
+        IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(Tab.Data.GameData.Systems, Tab.Data.GameData.Bases));
         Tab.Dirty = false;
     }
 

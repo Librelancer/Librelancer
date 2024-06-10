@@ -15,6 +15,12 @@ public static class IniWriter
         defaultEncoding = Encoding.GetEncoding(defaultCodePage);
     }
 
+    public static void WriteIniFile(string outFile, IEnumerable<Section> sections)
+    {
+        using var stream = File.Create(outFile);
+        WriteIni(stream, sections);
+    }
+
     public static void WriteIni(Stream outputStream, IEnumerable<Section> sections)
     {
         using var writer = new StreamWriter(outputStream, defaultEncoding, -1, true);

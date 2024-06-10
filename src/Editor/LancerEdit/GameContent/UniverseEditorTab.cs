@@ -195,11 +195,7 @@ public class UniverseEditorTab : EditorTab
             var sections = IniSerializer.SerializeStarSystem(system);
             IniWriter.WriteIni(stream, sections);
         }
-        using (var stream = File.Create(universePath))
-        {
-            var sections = IniSerializer.SerializeUniverse(Data.GameData.Systems, Data.GameData.Bases);
-            IniWriter.WriteIni(stream, sections);
-        }
+        IniWriter.WriteIniFile(universePath, IniSerializer.SerializeUniverse(Data.GameData.Systems, Data.GameData.Bases));
         Data.GameData.VFS.Refresh();
         win.AddTab(new SystemEditorTab(Data, win, system));
         AllSystems.Add(new EditorSystem(system, system.UniversePosition));
