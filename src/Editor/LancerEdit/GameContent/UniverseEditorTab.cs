@@ -20,7 +20,7 @@ public class EditorSystem(StarSystem system, Vector2 position)
     public Vector2 Position = position;
 }
 
-public class UniverseEditorTab : EditorTab
+public class UniverseEditorTab : GameContentTab
 {
     public bool Dirty = false;
     public GameDataContext Data;

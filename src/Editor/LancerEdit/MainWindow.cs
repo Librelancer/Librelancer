@@ -94,8 +94,7 @@ namespace LancerEdit
             updater = new UpdateChecks(this, GetBasePath());
             if (!string.IsNullOrWhiteSpace(Config.AutoLoadPath))
             {
-                var c = new GameDataContext();
-                QueueUIThread(() => c.Load(this, Config.AutoLoadPath, () => OpenDataContext = c, e => ErrorDialog(GetExceptionText(e))));
+                QueueUIThread(() => LoadGameData(Config.AutoLoadPath));
             }
         }
         double errorTimer = 0;
@@ -452,31 +451,44 @@ namespace LancerEdit
                 if (!GameConfig.CheckFLDirectory(folder))
                     ErrorDialog("Selected directory is not a valid Freelancer folder");
                 else
-                {
-                    if (OpenDataContext != null)
-                    {
-                        var toClose = TabControl.Tabs.OfType<GameContentTab>().ToArray();
-                        foreach (var t in toClose)
-                        {
-                           TabControl.CloseTab(t);
-                        }
-                        OpenDataContext.Dispose();
-                        OpenDataContext = null;
-                    }
-                    var c = new GameDataContext();
-                    StartLoadingSpinner();
-                    c.Load(this, folder, () =>
-                    {
-                        OpenDataContext = c;
-                        FinishLoadingSpinner();
-                    }, e =>
-                    {
-                        FinishLoadingSpinner();
-                        ErrorDialog(GetExceptionText(e));
-                    });
-                }
+                    LoadGameData(folder);
             });
         }
+
+        void LoadGameData(string folder)
+        {
+            if (!GameConfig.CheckFLDirectory(folder)) {
+                ErrorDialog($"'{folder}' is not a valid Freelancer folder");
+                return;
+            }
+            QueueUIThread(() =>
+            {
+                if (OpenDataContext != null)
+                {
+                    var toClose = TabControl.Tabs.OfType<GameContentTab>().ToArray();
+                    foreach (var t in toClose)
+                    {
+                        TabControl.CloseTab(t);
+                    }
+
+                    OpenDataContext.Dispose();
+                    OpenDataContext = null;
+                }
+
+                var c = new GameDataContext();
+                StartLoadingSpinner();
+                c.Load(this, folder, () =>
+                {
+                    OpenDataContext = c;
+                    FinishLoadingSpinner();
+                }, e =>
+                {
+                    FinishLoadingSpinner();
+                    ErrorDialog(GetExceptionText(e));
+                });
+            });
+        }
+
 
         static string GetExceptionText(Exception e)
         {
