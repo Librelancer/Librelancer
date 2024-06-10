@@ -34,5 +34,9 @@ namespace LibreLancer.Data.Equipment
         public string HpGunType;
         [Entry("dry_fire_sound")]
         public string DryFireSound;
+        [Entry("force_gun_ori")]
+        public bool ForceGunOri;
+        [Entry("dispersion_angle")]
+        public float DispersionAngle;
     }
 }
