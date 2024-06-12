@@ -58,10 +58,20 @@ $env:DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX=2
 $SDKResult = "notfound";
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
     $FoundDotNetCliVersion = dotnet --list-sdks;
+    if([string]::IsNullOrWhitespace($FoundDotNetCliVersion)) {
+        "No .NET SDKS listed. CLI Path: "
+        (Get-Command dotnet).Path
+        exit 2
+    }
     Foreach($str in $FoundDotNetCliVersion.Split("\n")) {
         if($str.StartsWith($DotNetVersion)) {
             $SDKResult = "found";
         }
+    }
+    if((Get-Command dotnet).Path.StartsWith([Environment]::GetFolderPath("programfilesx86")))
+    {
+        "x86 dotnet CLI detected on PATH. This is likely a version mismatch. Please uninstall the x86 SDK, or edit your PATH"
+        exit 2
     }
 }
 
