@@ -458,6 +458,15 @@ namespace LibreLancer.ImUI
             ImGui.GetWindowDrawList().AddCallback((IntPtr) 1, (IntPtr) BlendMode.Normal);
         }
 
+        private static Action<Rectangle>[] callbacks = new Action<Rectangle>[128];
+        private static int cbIndex = 0;
+        public static IntPtr Callback(Action<Rectangle> callback)
+        {
+            var retval = cbIndex;
+            callbacks[cbIndex++] = callback;
+            return (IntPtr)retval;
+        }
+
 
         // Draw over the the top to block input while a file dialog is showing
         // Needed as a separate method as stacked modals require you to call within the parent modal
@@ -587,13 +596,21 @@ namespace LibreLancer.ImUI
                     var pcmd = cmd_list.CmdBuffer[cmd_i];
                     if (pcmd.UserCallback != IntPtr.Zero)
                     {
-                        if (pcmd.UserCallback > 8)
+                        if (pcmd.UserCallback == 2)
+                        {
+                            rstate.BlendMode = (ushort)pcmd.UserCallbackData;
+                        }
+                        else if (pcmd.UserCallback == 1)
+                        {
+                            callbacks[(int)pcmd.UserCallbackData](new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
+                                (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
+                                (int) (pcmd.ClipRect.W - pcmd.ClipRect.Y)));
+                        }
+                        else if (pcmd.UserCallback > 8)
                         {
                             var cb = (delegate* unmanaged<IntPtr,IntPtr, void>)pcmd.UserCallback;
                             cb((IntPtr)cmd_list.NativePtr, (IntPtr)pcmd.NativePtr);
                         }
-                        else
-                            rstate.BlendMode = (ushort)pcmd.UserCallbackData;
                         continue;
                     }
 
@@ -625,6 +642,10 @@ namespace LibreLancer.ImUI
                     rstate.ScissorEnabled = false;
 				}
 			}
-		}
+
+            for (int i = 0; i < cbIndex; i++)
+                callbacks[i] = null;
+            cbIndex = 0;
+        }
 	}
 }

@@ -38,29 +38,6 @@ namespace LancerEdit
                 ImGui.Dummy(new Vector2(1, 1));
                 return;
             }
-            if (icard.Height != renderHeight || (int)width != renderWidth)
-            {
-                renderWidth = (int)width;
-                renderHeight = (int)icard.Height;
-                if (renderTarget != null)
-                {
-                    ImGuiHelper.DeregisterTexture(renderTarget.Texture);
-                    renderTarget.Dispose();
-                }
-                renderTarget = new RenderTarget2D(window.RenderContext, renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(renderTarget.Texture);
-            }
-
-            window.RenderContext.RenderTarget = renderTarget;
-            window.RenderContext.PushViewport(0, 0, renderWidth, renderHeight);
-            var cc = window.RenderContext.ClearColor;
-            window.RenderContext.ClearColor = Color4.Transparent;
-            window.RenderContext.ClearAll();
-            window.RenderContext.ClearColor = cc;
-            window.RichText.RenderText(icard, 0, 0);
-            window.RenderContext.RenderTarget = null;
-            window.RenderContext.PopViewport();
-
             var cPos = (Vector2)ImGui.GetCursorPos();
             var wPos = (Vector2)ImGui.GetWindowPos();
             var scrPos = -ImGui.GetScrollY();
@@ -71,11 +48,19 @@ namespace LancerEdit
                 new Vector2((int)(mOffset.X + renderWidth), (int)(mOffset.Y + icard.Height)),
                 new Vector2(0, 1), new Vector2(1, 0));
 
+            drawList.AddCallback(1, ImGuiHelper.Callback(s =>
+            {
+                window.RenderContext.ScissorEnabled = true;
+                window.RenderContext.ScissorRectangle = s;
+                window.RichText.RenderText(icard, (int)mOffset.X, (int)mOffset.Y);
+                window.RenderContext.ScissorEnabled = false;
+            }));
+
             ImGui.InvisibleButton("##infocardbutton", new System.Numerics.Vector2(renderWidth, icard.Height));
         }
         public void Dispose()
         {
-            renderTarget?.Dispose();
+            icard?.Dispose();
         }
     }
 }
