@@ -1,7 +1,9 @@
 using System;
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Data.Universe;
 using LibreLancer.GameData.World;
+using Zone = LibreLancer.GameData.World.Zone;
 
 namespace LancerEdit.GameContent;
 
@@ -26,6 +28,8 @@ public class SysZoneCreate(SystemEditorTab tab, string nickname, Vector3 positio
         z ??= new Zone();
         z.Nickname = nickname;
         z.Position = position;
+        z.DensityRestrictions = [];
+        z.Encounters = [];
         Zone = tab.ZoneList.AddZone(z);
     }
 
