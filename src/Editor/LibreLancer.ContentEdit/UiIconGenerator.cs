@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using BepuUtilities;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
@@ -32,8 +33,11 @@ namespace LibreLancer.ContentEdit
 
         public static EditableUtf UncompressedFromFile(string iconName, string filename, bool alpha)
         {
-            var texNode = new LUtfNode() { Children = new List<LUtfNode>()};
-            texNode.Children.Add(new LUtfNode() { Name = "MIP0", Data = TextureImport.TGANoMipmap(filename, true), Parent = texNode});
+            var texNode = new LUtfNode();
+            var tgaNodes = TextureImport.TGAMipmaps(filename, MipmapMethod.Lanczos4, true);
+            foreach (var n in tgaNodes)
+                n.Parent = texNode;
+            texNode.Children = tgaNodes;
             return Generate(iconName, texNode, alpha);
         }
 
