@@ -479,7 +479,8 @@ public class ImportedModel
             HashSet<string> createdTextures = new HashSet<string>();
             foreach (var mat in materials)
             {
-                GenerateTexture(mat.DiffuseTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT5, tasks);
+                var dt = mat.DiffuseTexture?.Name ?? (settings.GeneratePlaceholderTextures ? mat.Name : null);
+                GenerateTexture(dt, createdTextures, txms, settings, DDSFormat.DXT5, tasks);
                 GenerateTexture(mat.EmissiveTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT1, tasks);
                 if (settings.AdvancedMaterials)
                 {
