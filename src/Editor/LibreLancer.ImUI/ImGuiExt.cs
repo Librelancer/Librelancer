@@ -168,7 +168,16 @@ namespace LibreLancer.ImUI
         public static void Checkbox(string label, ref bool v, bool enabled, string disableReason)
         {
             ImGui.BeginDisabled(!enabled);
-            ImGui.Checkbox(label, ref v);
+            if (!enabled)
+            {
+                bool falseVal = false;
+                ImGui.Checkbox(label, ref falseVal);
+            }
+            else
+            {
+                ImGui.Checkbox(label, ref v);
+            }
+
             ImGui.EndDisabled();
             if (!enabled && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             {

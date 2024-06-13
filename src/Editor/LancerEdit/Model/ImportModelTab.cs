@@ -225,15 +225,28 @@ public class ImportModelTab : EditorTab
                 ImGui.Checkbox("Generate Materials", ref generateMaterials);
                 ImGui.SameLine();
                 ImGui.Checkbox("Starsphere Mode", ref forceCompound);
-                ImGuiExt.Checkbox(
-                    "Import Textures",
-                    ref importTextures,
-                    model.Images != null && model.Images.Count > 0,
-                    "Model contains no textures to import");
-                ImGui.Checkbox("Placeholder Textures", ref placeholderTextures);
-                ImGui.SetItemTooltip("Includes the default texture when a material's texture is not found or specified");
-                ImGui.Checkbox("Advanced Materials", ref advancedMaterials);
-                ImGui.SetItemTooltip("Import normal maps and PBR maps");
+                if (generateMaterials)
+                {
+                    ImGuiExt.Checkbox(
+                        "Import Textures",
+                        ref importTextures,
+                        model.Images != null && model.Images.Count > 0,
+                        "Model contains no textures to import");
+                    ImGui.Checkbox("Placeholder Textures", ref placeholderTextures);
+                    ImGui.SetItemTooltip(
+                        "Includes the default texture when a material's texture is not found or specified");
+                    ImGui.Checkbox("Advanced Materials", ref advancedMaterials);
+                    ImGui.SetItemTooltip("Import normal maps and PBR maps");
+                }
+                else
+                {
+                    bool falseVal = false;
+                    ImGui.BeginDisabled(true);
+                    ImGui.Checkbox("Import Textures", ref falseVal);
+                    ImGui.Checkbox("Placeholder Textures", ref falseVal);
+                    ImGui.Checkbox("Advanced Materials", ref falseVal);
+                    ImGui.EndDisabled();
+                }
                 ImGuiExt.Checkbox("Generate Sur",
                     ref generateSur,
                     canGenerateSur,
@@ -246,6 +259,7 @@ public class ImportModelTab : EditorTab
                 if (ImGui.Button("..")) {
                     FileDialog.ChooseFolder(path => outputPath = path);
                 }
+
                 break;
             case 1: //MATERIALS
                 MatNameEdit();
