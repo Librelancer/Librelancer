@@ -600,7 +600,7 @@ namespace LibreLancer.ImUI
                         {
                             rstate.BlendMode = (ushort)pcmd.UserCallbackData;
                         }
-                        else if (pcmd.UserCallback == 1)
+                        else if (pcmd.UserCallback == IntPtr.MaxValue)
                         {
                             callbacks[(int)pcmd.UserCallbackData](new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
                                 (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
@@ -616,7 +616,6 @@ namespace LibreLancer.ImUI
 
                     if (pcmd.ElemCount == 0)
                         continue;
-                    //TODO: Do something with pcmd->UserCallback ??
 					var tid = pcmd.TextureId.ToInt32();
 					Texture2D tex;
 					if (tid == FONT_TEXTURE_ID)

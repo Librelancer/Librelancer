@@ -48,7 +48,7 @@ namespace LancerEdit
                 new Vector2((int)(mOffset.X + renderWidth), (int)(mOffset.Y + icard.Height)),
                 new Vector2(0, 1), new Vector2(1, 0));
 
-            drawList.AddCallback(1, ImGuiHelper.Callback(s =>
+            drawList.AddCallback(IntPtr.MaxValue, ImGuiHelper.Callback(s =>
             {
                 window.RenderContext.ScissorEnabled = true;
                 window.RenderContext.ScissorRectangle = s;
