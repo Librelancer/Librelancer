@@ -148,7 +148,11 @@ namespace LancerEdit
             AllShaders.Compile(RenderContext);
             DefaultMaterialMap.Init();
             DisplayMesh.LoadAll(RenderContext);
-			Title = "LancerEdit";
+            #if DEBUG
+			Title = "LancerEdit DEBUG";
+            #else
+            Title = Version;
+            #endif
             guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
