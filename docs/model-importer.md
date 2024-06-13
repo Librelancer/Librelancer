@@ -7,25 +7,25 @@ The LancerEdit model importer supports creating both .cmp and .3db files (corres
 
 ## Supported Formats
 
-### glTF 2.0
+### glTF 2.0 (.glb/.gltf)
 
-glTF 2.0 enjoys full support in the LancerEdit model importer, with the exception that the glTF 2.0 parser in LancerEdit may not access resources external to the selected file. Selecting a .glb export (or .gltf embedded in your modelling software) will ensure all resources are packed into the glTF file.
+glTF 2.0 enjoys full support in the LancerEdit model importer. Selecting a .glb export (or .gltf embedded in your modelling software) will ensure all resources are packed into the glTF file.
 
 This includes textures and custom properties.
 
-### Collada 
+### Wavefront .obj (.obj)
 
-A fallback import/export format for when glTF 2.0 is not supported by your modelling tool. Custom properties are not available in this format, so hardpoints and compound joints will not be importer correctly.
+**Not recommended.** Only supports creating single part .3db files, custom properties and multipart models are not supported by this format.
 
-### Wavefront .obj
+### Collada (.dae)
 
-Not recommended. Only supports creating single part .3db files, custom properties and multipart models are not supported by this format.
+A fallback import/export format for when glTF 2.0 is not supported by your modelling tool. Custom properties are not available in this format, so hardpoints and compound joints will not be imported correctly.
 
 ## Blender Integration
 
 LancerEdit supports opening files from Blender, by performing an automatic export to glTF 2.0. LancerEdit will try to automatically detect an installation of Blender, but if it cannot find your installation of blender, you may set it manually in the options window.
 
-- Go to **Tools -> Options** and set the Blender Path under the Blender tab.
+- Go to **Tools -> Options** and set the Blender Path under the Import/Export tab.
 
 ## Model Hierarchy
 
@@ -56,6 +56,25 @@ Collision hulls are stored as direct children of their parent, and have names en
 ### LODs
 
 LOD meshes can be stored anywhere in the file, and are named `part name` plus e.g. `$lod1` for the 1st lod. If your model has a part called `wing`, your lod meshes for that part will be called `wing$lod1` and `wing$lod2` etc.
+
+## Settings
+
+![Importer Settings](assets/modelimport-settings.png)
+
+- **Model Name**: The filename of the model output (minus the extension)
+- **Generate Materials**: Controls whether or not a texture library and material library are created on import. When disabled, all texture-related options are disabled too.
+- **Import Textures**: Controls whether or not to import textures from the model. This option is disabled when no textures are found in the import model.
+- **Placeholder Textures**: Controls the generation of the default placeholder texture when the texture of a material is either not found or not specified. Disable this if you are providing the texture library externally.
+- **Advanced Materials**: Select for importing PBR materials or normal maps from glTF or Blender files. This is an experimental setting, and the generated format is likely to change. These materials are not compatible with vanilla Freelancer out of the box.
+- **Generate sur**: Controls whether or not a .sur collision model is generated. This option is disabled when no collision hulls are detected in the model.
+- **Output Path**: The folder in which to save the generated .cmp/.3db (and optionally .sur)
+- **Starsphere Mode**: Enable when importing a model intended to be used as a starsphere. This forces single part models to be generated as multi-part .cmp files. .3db models do not work as starspheres in vanilla Freelancer.
+
+## Material Names
+
+![Material Names](assets/modelimport-materials.png)
+
+Referenced materials are listed in this tab, and the names of them can be edited here before saving the model file. This is useful if you wish to reference specific materials in an external .mat, or if you want to rename materials in your model to avoid name collisions once you've exported it.
 
 
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -50,15 +51,12 @@ namespace BuildLL
             }
         }
 
+        private static Regex markdownRegex = new Regex(@"(.*)(\.md)(#[A-Za-z0-9\-]*)?$");
+
         static string FixUrl(LinkInline link)
         {
             if (link.IsImage || link.IsAutoLink) return link.Url;
-            if (link.Url.EndsWith(".md"))
-            {
-                return Path.ChangeExtension(link.Url, ".html");
-            }
-
-            return link.Url;
+            return markdownRegex.Replace(link.Url, match => $"{match.Groups[1]}.html{match.Groups[3]}");
         }
 
         record Document(string title, string href, string content);

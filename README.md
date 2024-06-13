@@ -15,6 +15,8 @@ Download compiled binaries from https://librelancer.net/downloads.html
 
 ## Build Instructions
 
+Note for developers: .\build.ps1 or build.sh _must_ be ran before opening the .sln file, as it generates required files for the solution.
+
 ### Windows
 **Prerequisites:**
 
@@ -29,10 +31,20 @@ Download compiled binaries from https://librelancer.net/downloads.html
 1. Clone this repository with all submodules (Visual Studio's Team Explorer, Git bash, etc.)
 2. Run `build.ps1` in Powershell. (Can be launched from cmd by `powershell -File .\build.ps1`)
 
-Powershell security issues can be troubleshooted [here](https://cakebuild.net/docs/tutorials/powershell-security).
+**Troubleshooting**:
 
+If you run into issues with Powershell execution policies, you can bypass them with `powershell -ExecutionPolicy Bypass -File .\build.ps1`
 
+If you have installed both the 32-bit and 64-bit dotnet SDKs, your PATH can be in an invalid state and the build will fail.
+This can be checked with `where dotnet.exe` in the command prompt. If it returns output like:
 
+```
+> where.exe dotnet
+C:\Program Files (x86)\dotnet\dotnet.exe
+C:\Program Files\dotnet\dotnet.exe
+```
+
+You need to either uninstall the 32-bit dotnet SDK (recommended), or modify your PATH so the 64-bit SDK appears first in the list.
 
 ### Linux
 
@@ -40,7 +52,7 @@ Powershell security issues can be troubleshooted [here](https://cakebuild.net/do
 
 * .NET 8.0 SDK
 * SDL2
-* OpenAL
+* openal-soft
 * gcc and g++
 * CMake
 * GTK3, Pango and Cairo headers
