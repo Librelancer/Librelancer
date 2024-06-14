@@ -1270,6 +1270,19 @@ World Time: {12:F2}
                 return;
             }
 
+            if (Thn != null && Thn.Running)
+            {
+                Game.RenderContext.ClearColor = Color4.Black;
+                Game.RenderContext.ClearAll();
+                var newRatio = ((double)Game.Width / Game.Height) * 1.39;
+                var newHeight = Game.Width / newRatio;
+                var diff = (Game.Height - newHeight);
+                var vp = Game.RenderContext.CurrentViewport;
+                vp.Y = (int)(vp.Y + (diff / 2));
+                vp.Height = (int)(vp.Height - (diff));
+                Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
+            }
+
             if (Selection.Selected != null) {
                 targetWireframe.Model = Selection.Selected.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(Vector3.Transform(Vector3.Zero, player.LocalTransform),
@@ -1320,10 +1333,7 @@ World Time: {12:F2}
 
             if (Thn != null && Thn.Running)
             {
-                var pct = Cutscene.LETTERBOX_HEIGHT;
-                int h = (int) (Game.Height * pct);
-                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
-                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
+                Game.RenderContext.PopViewport();
             }
             session.SetDebug(Game.Debug.Enabled);
             Game.Debug.Draw(delta, () =>

@@ -26,6 +26,7 @@ using LibreLancer.Render;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using SharpDX.WIC;
 
 namespace LibreLancer
 {
@@ -814,16 +815,29 @@ namespace LibreLancer
         {
             RenderMaterial.VertexLighting = true;
             if (scene != null)
-				scene.Draw(delta, Game.Width, Game.Height);
+            {
+                if(letterboxAmount > 0)
+                {
+                    Game.RenderContext.ClearColor = Color4.Black;
+                    Game.RenderContext.ClearAll();
+                    var newRatio = ((double)Game.Width / Game.Height) * 1.39;
+                    var newHeight = Game.Width / newRatio;
+                    var diff = (Game.Height - newHeight);
+                    var vp = Game.RenderContext.CurrentViewport;
+                    vp.Y = (int)(vp.Y + (diff / 2) * letterboxAmount);
+                    vp.Height = (int)(vp.Height - (diff) * letterboxAmount);
+                    Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
+                }
+                scene.UpdateViewport(Game.RenderContext.CurrentViewport);
+                scene.Draw(delta, Game.Width, Game.Height);
+                if (letterboxAmount > 0)
+                {
+                    Game.RenderContext.PopViewport();
+                }
+            }
+
             ui.RenderWidget(delta);
             DoFade(delta);
-            if (letterboxAmount > 0)
-            {
-                var pct = Cutscene.LETTERBOX_HEIGHT * (float) letterboxAmount;
-                int h = (int) (Game.Height * pct);
-                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, h), Color4.Black);
-                Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, Game.Height - h, Game.Width, h), Color4.Black);
-            }
             if (animatingLetterbox)
             {
                 letterboxAmount -= delta * 3;
