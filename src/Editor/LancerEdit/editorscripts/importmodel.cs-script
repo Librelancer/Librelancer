@@ -4,7 +4,15 @@ ScriptUsage(@"input(.gltf|.glb|.dae|.obj) output
 - Output will be .3db/.cmp + .sur pair");
 
 bool noSur = false;
+bool noMaterials = false;
+bool noPlaceholders = false;
+bool starsphere = false;
+bool advanced = false;
 FlagOption("no-sur", "Skip generating a .sur", v => noSur = v);
+FlagOption("no-materials", "Skip generating textures + materials", v => noMaterials = v);
+FlagOption("no-placeholders", "Skip generating placeholder textures", v => noPlaceholders = v);
+FlagOption("starsphere", "Force .cmp generation, useful for starspheres", v => starsphere = v);
+FlagOption("advanced", "Enable importing PBR maps and normal maps", v => advanced = v);
 
 var args = ParseArguments(2);
 AssertFileExists(args[0]);
@@ -34,18 +42,23 @@ var importedModel = ImportedModel.FromSimpleMesh(modelName, input.Data);
 PrintMessages(importedModel);
 if(importedModel.IsError)
     return;
-    
+
 bool is3db = importedModel.Data.Root.Children.Count == 0;
 string extension = is3db ? ".3db" : ".cmp";
 
-var utf = importedModel.Data.CreateModel(new ModelImporterSettings());
+var utf = importedModel.Data.CreateModel(new ModelImporterSettings() {
+    ForceCompound = starsphere,
+    GenerateMaterials = !noMaterials,
+    GeneratePlaceholderTextures = !noPlaceholders,
+    AdvancedMaterials = advanced
+});
 PrintMessages(utf);
 if(utf.IsError)
     return;
 
 var utfSave = utf.Data.Save(args[1] + extension, 0);
 PrintMessages(utfSave);
-    
+
 if(utfSave.IsError) {
     Console.WriteLine($"Error writing '{args[1]}{extension}'.");
 } else {
