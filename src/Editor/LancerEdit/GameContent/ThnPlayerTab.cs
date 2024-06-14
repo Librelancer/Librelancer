@@ -63,7 +63,6 @@ public class ThnPlayerTab : GameContentTab
 
     public override void Update(double elapsed)
     {
-        cutscene?.Update(elapsed);
     }
 
     DropdownOption[] dfmOptions = new DropdownOption[]
@@ -105,9 +104,10 @@ public class ThnPlayerTab : GameContentTab
             if (cutscene != null)
             {
                 ImGuiHelper.AnimatingElement();
+                cutscene.Update(elapsed);
                 cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight));
                 cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
-                cutscene.Draw(ImGui.GetIO().DeltaTime, viewport.RenderWidth, viewport.RenderHeight);
+                cutscene.Draw(elapsed, viewport.RenderWidth, viewport.RenderHeight);
             }
             viewport.End();
         }

@@ -288,7 +288,7 @@ namespace LancerEdit
             if(modelViewport.Mode == CameraModes.Cockpit) {
                 var vp = new Rectangle(0, 0, renderWidth, renderHeight);
                 tcam.SetViewport(vp);
-                tcam.Transform.AspectRatio = renderWidth / (float)renderHeight;
+                tcam.Object.Camera.AspectRatio = renderWidth / (float)renderHeight;
                 var tr = Matrix4x4.Identity;
                 if (!string.IsNullOrEmpty(cameraPart.Construct?.ParentName))
                 {
@@ -296,13 +296,13 @@ namespace LancerEdit
                          vmsModel.Parts[cameraPart.Construct.ParentName].LocalTransform;
                 } else if(cameraPart.Construct != null)
                     tr = cameraPart.Construct.LocalTransform;
-                tcam.Transform.Orientation = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
-                tcam.Transform.Position = Vector3.Transform(Vector3.Zero, tr);
+                tcam.Object.Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                tcam.Object.Translate = Vector3.Transform(Vector3.Zero, tr);
                 znear = cameraPart.Camera.Znear;
                 zfar = cameraPart.Camera.Zfar;
-                tcam.Transform.Znear = 0.001f;
-                tcam.Transform.Zfar = 1000;
-                tcam.Transform.FovH = MathHelper.RadiansToDegrees(cameraPart.Camera.Fovx);
+                tcam.Object.Camera.Znear = 0.001f;
+                tcam.Object.Camera.Zfar = 1000;
+                tcam.Object.Camera.FovH = MathHelper.RadiansToDegrees(cameraPart.Camera.Fovx);
                 tcam.frameNo++;
                 tcam.Update();
                 cam = tcam;
@@ -334,8 +334,8 @@ namespace LancerEdit
                     buffer.StartFrame(rstate);
                     if (i == 1) {
                         rstate.ClearDepth();
-                        tcam.Transform.Zfar = zfar;
-                        tcam.Transform.Znear = znear;
+                        tcam.Object.Camera.Zfar = zfar;
+                        tcam.Object.Camera.Znear = znear;
                         tcam.frameNo++;
                         tcam.Update();
                     }

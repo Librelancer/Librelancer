@@ -10,8 +10,14 @@ namespace LibreLancer.Thn
 	public class ThnCamera : ICamera
 	{
 		public long frameNo = 0;
-        public ThnObject Object;
-		public ThnCameraTransform Transform = new ThnCameraTransform();
+
+        public ThnObject Object = new ThnObject()
+        {
+            Camera = new ThnCameraProps(),
+            Translate = Vector3.Zero,
+            Rotate = Matrix4x4.Identity,
+            Name = "DEFAULT_OBJECT_UNINITED"
+        };
 
 		Matrix4x4 view;
 		Matrix4x4 projection;
@@ -54,9 +60,9 @@ namespace LibreLancer.Thn
         void CalcCameraProps(out float fovV, out float aspectRatio)
         {
             float screen_ratio = (float) viewport.Width / (float) viewport.Height;
-            int hvaspect = (int) (Transform.AspectRatio * 100);
-            float ratio = Transform.AspectRatio;
-            float fovh = Transform.FovH;
+            int hvaspect = (int) (Object.Camera.AspectRatio * 100);
+            float ratio = Object.Camera.AspectRatio;
+            float fovh = Object.Camera.FovH;
             if (hvaspect == 133) {
                 ratio = screen_ratio;
                 fovh = MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screen_ratio));
@@ -73,39 +79,19 @@ namespace LibreLancer.Thn
             CalcCameraProps(out float fovv, out float aspectRatio);
             //TODO: Tweak clip plane some more - isn't quite right
 			//NOTE: near clip plane can't be too small or it causes z-fighting
-			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Transform.Znear, Transform.Zfar);
+			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Object.Camera.Znear, Object.Camera.Zfar);
             ogProjection = projection;
-			var originalTarget = -Vector3.UnitZ;
-            var rotatedTarget = Vector3.Transform(originalTarget, Transform.Orientation);
-            var target = Position + rotatedTarget;
-			var upVector = Vector3.UnitY;
-			view = Matrix4x4.CreateLookAt(Position, target, upVector);
-			frameNo++;
+            var transform = Object.Rotate * Matrix4x4.CreateTranslation(Object.Translate);
+            Matrix4x4.Invert(transform, out view);
 			viewProjection = view * projection;
 			frustum = new BoundingFrustum(viewProjection);
-		}
-
-		public long FrameNumber
-		{
-			get
-			{
-				return frameNo;
-			}
-		}
-
-		public BoundingFrustum Frustum
-		{
-			get
-			{
-				return frustum;
-			}
 		}
 
 		public Vector3 Position
 		{
 			get
 			{
-				return Transform.Position;
+				return Object.Translate;
 			}
 		}
 

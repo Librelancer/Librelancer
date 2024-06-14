@@ -212,9 +212,7 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Camera)
                 {
-                    obj.Camera = new ThnCameraTransform();
-                    obj.Camera.Position = kv.Value.Position.Value;
-                    obj.Camera.Orientation = kv.Value.RotationMatrix ?? Matrix4x4.Identity;
+                    obj.Camera = new ThnCameraProps();
                     obj.Camera.FovH = kv.Value.FovH ?? obj.Camera.FovH;
                     obj.Camera.AspectRatio = kv.Value.HVAspect ?? obj.Camera.AspectRatio;
                     if (kv.Value.NearPlane != null) obj.Camera.Znear = kv.Value.NearPlane.Value;

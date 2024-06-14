@@ -22,7 +22,7 @@ namespace LibreLancer.Thn
         public GameObject Object;
         public DynamicLight Light;
         public ThnEntity Entity;
-        public ThnCameraTransform Camera;
+        public ThnCameraProps Camera;
         public Vector3 LightDir;
         public Hardpoint HpMount;
         public ThnSound Sound;
@@ -75,11 +75,6 @@ namespace LibreLancer.Thn
                         Object.SetLocalTransform(tr * (Rotate * Matrix4x4.CreateTranslation(Translate)));
                     }
                 }
-            }
-            if(Camera != null)
-            {
-                Camera.Orientation = Rotate;
-                Camera.Position = Translate;
             }
             if(Light != null)
             {
@@ -236,7 +231,7 @@ namespace LibreLancer.Thn
                 if (firstCamera == null) firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
                 if (firstCamera != null)
                 {
-                    camera.Transform = firstCamera.Camera;
+                    camera.Object = firstCamera;
                 }
             }
 
@@ -313,9 +308,9 @@ namespace LibreLancer.Thn
         {
             if (Running)
             {
-                var pos = camera.Transform.Position;
-                var forward = Vector3.TransformNormal(-Vector3.UnitZ, camera.Transform.Orientation);
-                var up = Vector3.TransformNormal(Vector3.UnitY, camera.Transform.Orientation);
+                var pos = camera.Object.Translate;
+                var forward = Vector3.TransformNormal(-Vector3.UnitZ, camera.Object.Rotate);
+                var up = Vector3.TransformNormal(Vector3.UnitY, camera.Object.Rotate);
                 soundManager.UpdateListener(delta, pos, forward, up);
             }
 			currentTime += delta;
@@ -360,7 +355,6 @@ namespace LibreLancer.Thn
         {
             var cam = GetObject(name);
             camera.Object = cam;
-			camera.Transform = cam.Camera;
             soundManager.ResetListenerVelocity();
         }
         public void Dispose()

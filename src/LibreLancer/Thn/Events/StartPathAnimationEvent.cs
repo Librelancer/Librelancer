@@ -66,17 +66,14 @@ namespace LibreLancer.Thn.Events
                 {
                     var orient = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(path.GetDirection(pct, Event.StartPercent > Event.StopPercent), Vector3.UnitY)) * Path.Rotate;
                     Object.Rotate = orient;
-                    if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
-                        Object.Translate = pos;
                 }
                 else if ((Event.Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
                 {
                     var orient = Matrix4x4.CreateFromQuaternion(path.GetOrientation(pct)) * Path.Rotate;
                     Object.Rotate = orient;
-                    if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
-                        Object.Translate = pos;
                 }
-                else if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
+
+                if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
                 {
                     Object.Translate = pos;
                 }

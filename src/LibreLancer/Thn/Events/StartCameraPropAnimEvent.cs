@@ -76,7 +76,7 @@ namespace LibreLancer.Thn.Events
         class CameraPropAnim : ThnEventProcessor
         {
             public StartCameraPropAnimEvent Event;
-            public ThnCameraTransform Camera;
+            public ThnCameraProps Camera;
             public float OrigFovH;
             public float OrigHVAspect;
             public float OrigNearPlane;

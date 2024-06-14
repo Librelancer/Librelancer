@@ -34,6 +34,7 @@ namespace LibreLancer.Thn.Events
             public bool LookAt;
             Func<Vector3> lookFunc;
             double t = 0;
+
             public override bool Run(double delta)
             {
                 var (translate, rotate) = Parent.GetTransform();
@@ -67,13 +68,13 @@ namespace LibreLancer.Thn.Events
                         Child.Translate = translate;
                     }
                 }
-                if (Position)
-                    Child.Translate = translate;
                 if (Orientation)
+                {
                     Child.Rotate = rotate;
+                }
                 if (LookAt)
                 {
-                    Child.Rotate = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookAt(Child.Translate, translate));
+                    Child.Rotate = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(Vector3.Normalize(Child.Translate - translate), Vector3.UnitY));
                 }
                 return (t <= Duration);
             }
