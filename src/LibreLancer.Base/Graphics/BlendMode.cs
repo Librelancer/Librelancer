@@ -11,7 +11,7 @@ namespace LibreLancer.Graphics
         public const ushort Opaque = 0;
         public const ushort Normal = (D3DBLEND_SRCALPHA << 8) | D3DBLEND_INVSRCALPHA;
         public const ushort Additive = (D3DBLEND_SRCALPHA << 8) | D3DBLEND_ONE;
-        public const ushort OneInvSrcColor = (D3DBLEND_ONE << 8) | D3DBLEND_SRCCOLOR;
+        public const ushort OneInvSrcColor = (D3DBLEND_ONE << 8) | D3DBLEND_INVSRCCOLOR;
         //D3DBLEND, we base our consts on this
         private const int D3DBLEND_ZERO = 1;
         private const int D3DBLEND_ONE              = 2;
