@@ -105,7 +105,7 @@ public class ThnPlayerTab : GameContentTab
             {
                 ImGuiHelper.AnimatingElement();
                 cutscene.Update(elapsed);
-                cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight));
+                cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight), (float)viewport.RenderWidth / viewport.RenderHeight);
                 cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
                 cutscene.Draw(elapsed, viewport.RenderWidth, viewport.RenderHeight);
             }

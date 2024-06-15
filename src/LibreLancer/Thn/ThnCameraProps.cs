@@ -7,6 +7,7 @@ namespace LibreLancer.Thn
 	public class ThnCameraProps
 	{
 		public float FovH = 17;
+        //This does nothing in vanilla FL
 		public float AspectRatio = 4f / 3f;
         public float Znear = 2.5f;
         public float Zfar = 10000000f;

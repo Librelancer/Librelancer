@@ -161,7 +161,7 @@ namespace LancerEdit
                 if (cutscene != null)
                 {
                     ImGuiHelper.AnimatingElement();
-                    cutscene.UpdateViewport(new Rectangle(0, 0, thornViewport.RenderWidth, thornViewport.RenderHeight));
+                    cutscene.UpdateViewport(new Rectangle(0, 0, thornViewport.RenderWidth, thornViewport.RenderHeight), (float)thornViewport.RenderWidth / thornViewport.RenderHeight);
                     cutscene.Draw(ImGui.GetIO().DeltaTime, thornViewport.RenderWidth, thornViewport.RenderHeight);
                 }
                 thornViewport.End();

@@ -1272,6 +1272,7 @@ World Time: {12:F2}
 
             if (Thn != null && Thn.Running)
             {
+                //Viewport FOV calculations unaffected by letterboxing
                 Game.RenderContext.ClearColor = Color4.Black;
                 Game.RenderContext.ClearAll();
                 var newRatio = ((double)Game.Width / Game.Height) * 1.39;
@@ -1281,6 +1282,7 @@ World Time: {12:F2}
                 vp.Y = (int)(vp.Y + (diff / 2));
                 vp.Height = (int)(vp.Height - (diff));
                 Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
+                Thn.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
             }
 
             if (Selection.Selected != null) {

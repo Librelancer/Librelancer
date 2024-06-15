@@ -788,7 +788,6 @@ namespace LibreLancer
             if (ProcessCutscenes())
                 return;
             if (scene != null) {
-                scene.UpdateViewport(Game.RenderContext.CurrentViewport);
                 if(paused)
                     scene.Update(0);
                 else
@@ -828,7 +827,7 @@ namespace LibreLancer
                     vp.Height = (int)(vp.Height - (diff) * letterboxAmount);
                     Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
                 }
-                scene.UpdateViewport(Game.RenderContext.CurrentViewport);
+                scene.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
                 scene.Draw(delta, Game.Width, Game.Height);
                 if (letterboxAmount > 0)
                 {
@@ -840,7 +839,7 @@ namespace LibreLancer
             DoFade(delta);
             if (animatingLetterbox)
             {
-                letterboxAmount -= delta * 3;
+                letterboxAmount -= delta * 4.5;
                 if (letterboxAmount < 0)
                 {
                     letterboxAmount = -1;

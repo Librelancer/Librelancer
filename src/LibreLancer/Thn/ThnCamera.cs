@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Numerics;
 using LibreLancer.Render;
 
@@ -26,15 +27,18 @@ namespace LibreLancer.Thn
 		BoundingFrustum frustum;
 		Rectangle viewport;
 
+        private float screenAspect = 1f;
+
 		public ThnCamera(Rectangle vp)
 		{
 			viewport = vp;
 			Update();
 		}
 
-        public void SetViewport(Rectangle vp)
+        public void SetViewport(Rectangle vp, float screenAspect)
         {
             viewport = vp;
+            this.screenAspect = screenAspect;
         }
 
         public void DefaultZ()
@@ -59,19 +63,11 @@ namespace LibreLancer.Thn
 
         void CalcCameraProps(out float fovV, out float aspectRatio)
         {
-            float screen_ratio = (float) viewport.Width / (float) viewport.Height;
-            int hvaspect = (int) (Object.Camera.AspectRatio * 100);
-            float ratio = Object.Camera.AspectRatio;
+            float viewportRatio = (float) viewport.Width / (float) viewport.Height;
             float fovh = Object.Camera.FovH;
-            if (hvaspect == 133) {
-                ratio = screen_ratio;
-                fovh = MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screen_ratio));
-            } else if (hvaspect == 185) {
-                ratio = (screen_ratio * 1.39f); //cinematic ratio (1.85 / 1.33)
-                fovh =  MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screen_ratio));
-            }
-            fovV = FOVUtil.FovVRad(fovh, ratio);
-            aspectRatio = ratio;
+            fovh =  MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screenAspect));
+            fovV = FOVUtil.FovVRad(fovh, viewportRatio);
+            aspectRatio = viewportRatio;
         }
 
 		public void Update()

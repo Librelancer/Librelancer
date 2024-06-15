@@ -228,6 +228,8 @@ namespace LibreLancer.Thn
                         obj.Object.Parent = Cutscene.MainObject;
                         obj.Object.AddComponent(new DirtyTransformComponent(obj.Object));
                         obj.PosFromObject = true;
+                        obj.Translate = Vector3.Transform(Vector3.Zero, Cutscene.MainObject.LocalTransform);
+                        obj.Rotate = Matrix4x4.CreateFromQuaternion(Cutscene.MainObject.LocalTransform.ExtractRotation());
                     }
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)

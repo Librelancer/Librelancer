@@ -287,8 +287,7 @@ namespace LancerEdit
             float zfar = 0;
             if(modelViewport.Mode == CameraModes.Cockpit) {
                 var vp = new Rectangle(0, 0, renderWidth, renderHeight);
-                tcam.SetViewport(vp);
-                tcam.Object.Camera.AspectRatio = renderWidth / (float)renderHeight;
+                tcam.SetViewport(vp, (float)renderWidth / renderHeight);
                 var tr = Matrix4x4.Identity;
                 if (!string.IsNullOrEmpty(cameraPart.Construct?.ParentName))
                 {

@@ -160,9 +160,9 @@ namespace LibreLancer.Thn
 			camera = new ThnCamera(viewport);
         }
 
-        public void UpdateViewport(Rectangle vp)
+        public void UpdateViewport(Rectangle vp, float fullRatio)
         {
-            camera?.SetViewport(vp);
+            camera?.SetViewport(vp, fullRatio);
         }
 
         public void AddObject(ThnObject obj)
@@ -184,8 +184,6 @@ namespace LibreLancer.Thn
         {
             SceneSetup(new[] { scene }, false);
         }
-
-        private int frameDelay = 0;
 
         void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
         {
@@ -218,6 +216,7 @@ namespace LibreLancer.Thn
             }
             if(resetObjects)
                 instances = new List<ThnScriptInstance>();
+            int startIdx = instances.Count;
             foreach (var script in scripts)
             {
                 var ts = new ThnScriptInstance(this, script);
@@ -256,8 +255,8 @@ namespace LibreLancer.Thn
                 World.RegisterAll();
             }
 
-            frameDelay = 2;
-            lagCounter = 0;
+            for (int i = startIdx; i < instances.Count; i++)
+                instances[i].Update(0);
             //Init
             running = true;
         }
@@ -289,19 +288,7 @@ namespace LibreLancer.Thn
                 lagCounter++;
                 return;
             }
-            if (frameDelay > 0)
-            {
-                frameDelay--;
-            }
-            else if (frameDelay == 0)
-            {
-                _Update(0);
-                frameDelay = -1;
-            }
-            else
-            {
-                _Update(delta);
-            }
+            _Update(delta);
         }
 
         public void _Update(double delta)

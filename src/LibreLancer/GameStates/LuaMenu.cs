@@ -424,7 +424,7 @@ namespace LibreLancer
         {
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
-            scene?.UpdateViewport(Game.RenderContext.CurrentViewport);
+            scene?.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
             scene?.Update(delta);
             api._Update();
         }
