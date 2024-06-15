@@ -54,7 +54,7 @@ public class DisplayMesh
             List<Drawcall> dcs = new List<Drawcall>();
             foreach (var g in msh.Roots[0].Geometry.Groups)
             {
-                var col = (Color4)(g.Material?.DiffuseColor ?? Vector4.One);
+                var col = (Color4)((g.Material?.DiffuseColor ?? LinearColor.White).ToSrgb());
                 dcs.Add(new(g.BaseVertex, g.StartIndex, g.IndexCount / 3, col));
             }
 

@@ -534,7 +534,8 @@ public class ImportedModel
             ? "DcDtEcEt"
             : "DcDt";
         matnode.Children.Add(new LUtfNode() { Name = "Type", Parent = matnode, StringData = type });
-        var arr = new float[] { mat.DiffuseColor.X, mat.DiffuseColor.Y, mat.DiffuseColor.Z };
+        var srgb = mat.DiffuseColor.ToSrgb();
+        var arr = new float[] { srgb.X, srgb.Y, srgb.Z };
         matnode.Children.Add(new LUtfNode() { Name = "Dc", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
         if (settings.GeneratePlaceholderTextures || !string.IsNullOrWhiteSpace(mat.DiffuseTexture?.Name))
         {

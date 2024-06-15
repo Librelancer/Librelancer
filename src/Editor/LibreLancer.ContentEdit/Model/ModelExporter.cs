@@ -322,7 +322,7 @@ public static class ModelExporter
             var y = et != null ? new TextureInfo(et, etIndex) : null;
             m = new Material()
             {
-                Name = name, DiffuseColor = dc, DiffuseTexture = x, EmissiveTexture = y,
+                Name = name, DiffuseColor = LinearColor.FromSrgb(dc), DiffuseTexture = x, EmissiveTexture = y,
                 EmissiveColor = new Vector3(ec.R, ec.G, ec.B)
             };
             materials[name] = m;
