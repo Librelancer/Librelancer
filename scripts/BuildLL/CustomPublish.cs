@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Runtime.InteropServices;
 using static BuildLL.Runtime;
 
 namespace BuildLL
@@ -180,6 +181,11 @@ namespace BuildLL
                 }
             }
             File.WriteAllBytes(appHostPath, apphostExe);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                RunCommand("codesign", $"--force --deep -s - {Quote(appHostPath)}");
+            }
         }
     }
 }

@@ -186,7 +186,7 @@ namespace LibreLancer.Graphics
         {
             if (richText == null)
             {
-                if (Platform.RunningOS == OS.Linux)
+                if (Platform.RunningOS == OS.Linux || Platform.RunningOS == OS.Mac)
                     richText = new Text.Pango.PangoText(rs, this);
                 else if (Platform.RunningOS == OS.Windows)
                     //Different method

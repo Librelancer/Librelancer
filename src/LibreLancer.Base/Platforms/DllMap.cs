@@ -16,7 +16,7 @@ namespace LibreLancer
     static class DllMap
     {
         private static Dictionary<string, string> libs = new Dictionary<string, string>();
-        
+
         public static void Register(Assembly assembly)
         {
             lock (libs)
@@ -26,8 +26,17 @@ namespace LibreLancer
                 {
                     foreach (var el in XElement.Load(xmlPath).Elements("dllmap"))
                     {
-                        if (!el.Attribute("os").ToString().Contains("linux", StringComparison.OrdinalIgnoreCase))
-                            continue;
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            if (!el.Attribute("os").ToString().Contains("osx", StringComparison.OrdinalIgnoreCase))
+                                continue;
+                        }
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        {
+                            if (!el.Attribute("os").ToString().Contains("linux", StringComparison.OrdinalIgnoreCase))
+                                continue;
+                        }
+
                         string oldLib = el.Attribute("dll").Value;
                         string newLib = el.Attribute("target").Value;
                         if (string.IsNullOrWhiteSpace(oldLib) || string.IsNullOrWhiteSpace(newLib))
@@ -47,6 +56,6 @@ namespace LibreLancer
             }
             return NativeLibrary.Load(mappedName, assembly, dllImportSearchPath);
         }
-        
+
     }
 }
