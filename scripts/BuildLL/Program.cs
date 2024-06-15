@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using static Bullseye.Targets;
 using static BuildLL.Runtime;
 
@@ -109,13 +110,23 @@ namespace BuildLL
         static string GetLinuxRid()
         {
             var uname = Bash("uname -m", false).Trim().ToLowerInvariant();
-            if(uname.StartsWith("aarch64"))
-                return "linux-arm64";
-            if(uname.StartsWith("armv"))
-                return "linux-arm";
-            if(uname.StartsWith("x86_64"))
-                return "linux-x64";
-            return "linux-x86";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                if (uname.StartsWith("arm64"))
+                    return "osx-arm64";
+                return "osx-x64";
+            }
+            else
+            {
+                if(uname.StartsWith("aarch64"))
+                    return "linux-arm64";
+                if(uname.StartsWith("armv"))
+                    return "linux-arm";
+                if(uname.StartsWith("x86_64"))
+                    return "linux-x64";
+                return "linux-x86";
+            }
         }
 
         private static string VersionString;

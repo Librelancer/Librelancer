@@ -7,8 +7,9 @@
 #include <string.h>
 #include "pg_internal.h"
 #include "stb.h"
+#ifndef __APPLE__
 #include <fontconfig/fontconfig.h>
-
+#endif
 
 #define PG_MAX(x,y) (x) < (y) ? y : x
 
@@ -31,7 +32,7 @@ struct _PGRenderContext {
 	std::map<uint64_t,CachedGlyph> glyphs;
 	PangoAttrType shadowType;
 	PangoAttrClass shadowClass;
-}; 
+};
 
 static void pg_newtex(PGRenderContext *ctx, _PGPacking *pack, int color)
 {
@@ -58,8 +59,8 @@ static PangoAttribute * attr_shadow_new(PGRenderContext* ctx, guint16 red,
 }
 
 PGRenderContext *pg_createcontext(
-	PGAllocateTextureCallback allocate, 
-	PGUpdateTextureCallback update, 
+	PGAllocateTextureCallback allocate,
+	PGUpdateTextureCallback update,
 	PGDrawCallback draw
 )
 {
@@ -77,13 +78,13 @@ PGRenderContext *pg_createcontext(
 	ctx->shadowClass = *(colorAttr->klass);
 	ctx->shadowClass.type = ctx->shadowType;
 	pango_attribute_destroy(colorAttr);
-	
-	
+
+
     pango_cairo_font_map_set_resolution(PANGO_CAIRO_FONT_MAP(ctx->fontMap), 72.0);
 	pango_context_set_font_map(ctx->pangoContext, ctx->fontMap);
 	pg_newtex(ctx, &ctx->texa8, 0);
 	pg_newtex(ctx, &ctx->texargb32, 1);
-	
+
 	return ctx;
 }
 
@@ -116,17 +117,17 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
 		*outGlyph = gres->second;
 		return;
 	}
-	
+
 	int isColor = (codePoint & GLYPH_COLOR_FLAG);
-	
+
 	PangoRectangle ink_rect;
 	pango_font_get_glyph_extents (pango, (codePoint & ~GLYPH_COLOR_FLAG), &ink_rect, NULL);
     pango_extents_to_pixels (&ink_rect, NULL);
-    
+
     size_t bufferSize = (ink_rect.height * ink_rect.width * (isColor ? 4 : 1));
     unsigned char *buffer = (unsigned char*)malloc(bufferSize);
     memset(buffer, 0, bufferSize);
-    
+
     cairo_surface_t *surface = cairo_image_surface_create(isColor ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_A8, ink_rect.width, ink_rect.height);
     int stride = cairo_image_surface_get_stride(surface);
 
@@ -141,7 +142,7 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
     glyph_info.geometry.y_offset = -(ink_rect.y * 1024);
     glyph_string.num_glyphs = 1;
     glyph_string.glyphs = &glyph_info;
-    
+
     pango_cairo_show_glyph_string(cr, pango, &glyph_string);
     cairo_destroy(cr);
     cairo_surface_flush(surface);
@@ -158,10 +159,10 @@ void pg_getglyph(PGRenderContext *ctx, CachedGlyph *outGlyph, uint32_t codePoint
         }
     }
     cairo_surface_destroy(surface);
-       
+
 	//Upload
 	_PGPacking *packing = isColor ? &ctx->texargb32 : &ctx->texa8;
-	
+
 	if(packing->currentX + ink_rect.width > PG_TEXTURE_SIZE) {
 		packing->currentX = 0;
 		packing->currentY += packing->lineMax;
@@ -278,7 +279,7 @@ PGBuiltText *pg_buildtext(PGRenderContext *ctx,
 	}
 	pango_font_description_free(defaultFont);
 	PGBuiltText *built = pg_pango_constructtext(ctx, layouts, paragraphCount);
-	return built;                   
+	return built;
 }
 
 PGBuiltText *pg_buildtext_markup(PGRenderContext* ctx, char **markups, PGAlign* aligns, int paragraphCount, int width)
@@ -416,7 +417,7 @@ float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize)
     pango_font_description_set_size(desc, (int)(fontSize * PANGO_SCALE));
     PangoFont *font = pango_context_load_font(ctx->pangoContext, desc);
     pango_font_description_free(desc);
-    if(!font) return 0;  
+    if(!font) return 0;
     PangoFontMetrics *metrics = pango_font_get_metrics(font, NULL);
     //height = ascent + descent (get_height is not available in Ubuntu 20.04)
     float ascent = (float)(pango_font_metrics_get_ascent(metrics) / PANGO_SCALE);
@@ -427,9 +428,11 @@ float pg_lineheight(PGRenderContext* ctx, const char* fontName, float fontSize)
 
 void pg_addttfglobal(const char *filename)
 {
+#ifndef __APPLE__
 	const FcChar8 *file = (const FcChar8 *)filename;
 	if(!FcConfigAppFontAddFile(NULL, file))
 		printf("font add for %s failed\n", filename);
+#endif
 }
 
 void pg_destroytext(PGBuiltText *text)

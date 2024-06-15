@@ -53,7 +53,7 @@ namespace LibreLancer
 				    & Directory.Exists ("/Users")
 				    & Directory.Exists ("/Volumes")) {
 					RunningOS = OS.Mac;
-                    throw new NotImplementedException("macOS");
+                    RunningPlatform = new MacOSPlatform();
                 } else {
 					RunningOS = OS.Linux;
 					RunningPlatform = new LinuxPlatform ();
@@ -75,7 +75,8 @@ namespace LibreLancer
 				break;
 			case PlatformID.MacOSX:
 				RunningOS = OS.Mac;
-                throw new NotImplementedException("macOS");
+                RunningPlatform = new MacOSPlatform();
+                break;
 			default:
 				RunningOS = OS.Windows;
 				RunningPlatform = new Win32Platform ();
@@ -118,7 +119,8 @@ namespace LibreLancer
 
         public static void RegisterDllMap(Assembly assembly)
         {
-            if(RunningOS == OS.Linux)
+            if(RunningOS == OS.Linux ||
+               RunningOS == OS.Mac)
                 DllMap.Register(assembly);
         }
         public static byte[] GetMonospaceBytes()
