@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using LibreLancer.Data.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
@@ -10,6 +11,14 @@ namespace LibreLancer.World
 {
     public class ShipFormation
     {
+        static uint _counter;
+
+        public uint ID { get; } = Interlocked.Increment(ref _counter);
+
+        public uint Version { get; private set; } = 1;
+
+        public ulong Hash => (ulong)Version | (((ulong)ID) << 32);
+
         public GameObject LeadShip { get; private set; }
         public IReadOnlyList<GameObject> Followers => _followers;
 
@@ -43,9 +52,12 @@ namespace LibreLancer.World
             Offsets[idx] = offset;
         }
 
-        public Vector3 GetShipPosition(GameObject self)
+        public Vector3 GetShipPosition(GameObject self, bool isPlayer = false)
         {
-            return Vector3.Transform(GetShipOffset(self), LeadShip.WorldTransform);
+            var offset = isPlayer
+                ? (PlayerPosition ?? GetShipOffset(self))
+                : GetShipOffset(self);
+            return Vector3.Transform(offset, LeadShip.WorldTransform);
         }
 
         public bool Contains(GameObject obj)
@@ -66,7 +78,7 @@ namespace LibreLancer.World
                     _followers.Add(pobj);
                 }
             }
-            UpdatePlayers();
+            Version++;
         }
 
         public void Remove(GameObject obj)
@@ -84,19 +96,7 @@ namespace LibreLancer.World
                     throw new InvalidOperationException("Ship not in formation");
             }
             obj.Formation = null;
-            if(obj.TryGetComponent<SPlayerComponent>(out var player))
-                player.Player.RpcClient.UpdateFormation(new NetFormation());
-            UpdatePlayers();
-        }
-
-        void UpdatePlayers()
-        {
-            if(LeadShip.TryGetComponent<SPlayerComponent>(out var player))
-                player.Player.RpcClient.UpdateFormation(ToNetFormation(LeadShip));
-            foreach (var f in _followers) {
-                if(f.TryGetComponent<SPlayerComponent>(out player))
-                    player.Player.RpcClient.UpdateFormation(ToNetFormation(f));
-            }
+            Version++;
         }
 
         public ShipFormation()
@@ -107,15 +107,14 @@ namespace LibreLancer.World
         {
             LeadShip = lead;
             _followers = new List<GameObject>();
-            UpdatePlayers();
             Offsets = formation.Positions.Skip(1).ToArray();
-
+            PlayerPosition = formation.PlayerPosition;
         }
+
         public ShipFormation(GameObject lead, params GameObject[] follow)
         {
             LeadShip = lead;
             _followers = new List<GameObject>(follow);
-            UpdatePlayers();
         }
 
         static int GetId(GameObject obj, GameObject self)
@@ -124,12 +123,13 @@ namespace LibreLancer.World
             return obj.NetID;
         }
 
-        NetFormation ToNetFormation(GameObject self)
+        public NetFormation ToNetFormation(GameObject self)
         {
             var nf = new NetFormation();
             nf.Exists = true;
             nf.LeadShip = GetId(LeadShip, self);
             nf.Followers = Followers.Select(x => GetId(x, self)).ToArray();
+            nf.YourPosition = PlayerPosition ?? GetShipOffset(self);
             return nf;
         }
     }

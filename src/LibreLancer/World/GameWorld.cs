@@ -297,14 +297,6 @@ namespace LibreLancer.World
                 objects[i].RenderUpdate(t);
         }
 
-        public event Action<GameObject, GameMessageKind> MessageBroadcasted;
-
-        public void BroadcastMessage(GameObject sender, GameMessageKind kind)
-        {
-            if (MessageBroadcasted != null)
-                MessageBroadcasted(sender, kind);
-        }
-
         public GameObject GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth, float vpHeight)
         {
 

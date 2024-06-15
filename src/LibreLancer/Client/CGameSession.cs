@@ -1264,8 +1264,10 @@ namespace LibreLancer.Client
             {
                 if (!form.Exists)
                 {
-                    FLLog.Debug("Client", "Formation null");
+                    FLLog.Debug("Client", "Formation cleared");
                     gp.player.Formation = null;
+                    if(gp.pilotcomponent.CurrentBehavior == AutopilotBehaviors.Formation)
+                        gp.pilotcomponent.Cancel();
                 }
                 else
                 {
@@ -1274,6 +1276,8 @@ namespace LibreLancer.Client
                         ObjOrPlayer(form.LeadShip),
                         form.Followers.Select(ObjOrPlayer).ToArray()
                     );
+                    gp.player.Formation.PlayerPosition = form.YourPosition;
+                    FLLog.Debug("Client", $"Formation offset {form.YourPosition}");
                     if (gp.player.Formation.LeadShip != gp.player) {
                         FLLog.Debug("Client", "Starting follow");
                         gp.pilotcomponent.StartFormation();

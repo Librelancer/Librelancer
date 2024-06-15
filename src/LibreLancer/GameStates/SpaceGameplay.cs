@@ -117,7 +117,7 @@ World Time: {12:F2}
             control = new ShipPhysicsComponent(player) {Ship = session.PlayerShip};
             shipInput = new ShipInputComponent(player) {BankLimit = session.PlayerShip.MaxBankAngle};
             weapons = new WeaponControlComponent(player);
-            pilotcomponent = new AutopilotComponent(player);
+            pilotcomponent = new AutopilotComponent(player) { LocalPlayer = true };
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
             player.AddComponent(Selection);
@@ -188,7 +188,7 @@ World Time: {12:F2}
             Game.Mouse.MouseDown += Mouse_MouseDown;
             Game.Mouse.MouseUp += Mouse_MouseUp;
             player.World = world;
-            world.MessageBroadcasted += World_MessageBroadcasted;
+            pilotcomponent.BehaviorChanged += BehaviorChanged;
             Game.Sound.ResetListenerVelocity();
             contactList = new ContactList(this);
             ui.OpenScene("hud");
@@ -676,15 +676,23 @@ World Time: {12:F2}
             public int ThrustPercent() => ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
             public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length());
         }
-		void World_MessageBroadcasted(GameObject sender, GameMessageKind kind)
-		{
-			switch (kind)
-			{
-				case GameMessageKind.ManeuverFinished:
-                    uiApi.SetManeuver("FreeFlight");
-					break;
-			}
-		}
+
+        private void BehaviorChanged(AutopilotBehaviors obj)
+        {
+            uiApi.SetManeuver(obj switch
+            {
+                AutopilotBehaviors.Dock => "Dock",
+                AutopilotBehaviors.Formation => "Formation",
+                AutopilotBehaviors.Goto => "Goto",
+                _ => "FreeFlight"
+            });
+            if (obj != AutopilotBehaviors.Formation &&
+                player.Formation != null)
+            {
+                session.SpaceRpc.LeaveFormation();
+            }
+        }
+
 
         protected override void OnUnload()
 		{

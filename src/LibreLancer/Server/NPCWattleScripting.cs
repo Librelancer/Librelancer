@@ -128,7 +128,7 @@ namespace LibreLancer.Server
             var builder = new StringBuilder();
             if (Object.TryGetComponent<AutopilotComponent>(out var ap))
             {
-                builder.AppendLine($"Autopilot: {ap.CurrentBehaviour}");
+                builder.AppendLine($"Autopilot: {ap.CurrentBehavior}");
             }
             if (Object.TryGetComponent<SNPCComponent>(out var n))
             {

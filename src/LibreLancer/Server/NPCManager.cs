@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData.World;
@@ -60,14 +61,27 @@ namespace LibreLancer.Server
             });
         }
 
+        // Should be replaced with Faction class creating a random def
         public ObjectName RandomName(string affiliation)
         {
             var fac = World.Server.GameData.Factions.Get(affiliation);
             if (fac == null) return new ObjectName("NULL");
             var rand = new Random();
-            var first = rand.Next(0, 2) == 1 ? fac.Properties.FirstNameMale : fac.Properties.FirstNameFemale;
-            return new ObjectName(rand.Next(first), rand.Next(fac.Properties.LastName));
-
+            ValueRange<int>? firstName = null;
+            if (fac.Properties.FirstNameMale != null &&
+                fac.Properties.FirstNameFemale != null)
+            {
+                firstName = rand.Next(0, 2) == 1 ? fac.Properties.FirstNameMale : fac.Properties.FirstNameFemale;
+            }
+            else if (fac.Properties.FirstNameFemale != null)
+            {
+                firstName = fac.Properties.FirstNameFemale;
+            }
+            else if (fac.Properties.FirstNameMale != null)
+            {
+                firstName = fac.Properties.FirstNameMale;
+            }
+            return new ObjectName(firstName != null ? rand.Next(firstName.Value) : 0, rand.Next(fac.Properties.LastName));
         }
 
         public GameObject DoSpawn(

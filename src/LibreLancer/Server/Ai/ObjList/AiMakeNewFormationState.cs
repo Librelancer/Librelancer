@@ -13,10 +13,33 @@ namespace LibreLancer.Server.Ai.ObjList
 
         public override void OnStart(GameObject obj, SNPCComponent ai)
         {
-            obj.Formation?.Remove(obj);
             //TODO: Gross
             var formDef = obj.World.Server.Server.GameData.GetFormation(FormationDef);
-            var form = new ShipFormation(obj, formDef);
+            GameObject player = null;
+            bool playerLead = false;
+            // Preserve player (required)
+            if (obj.Formation != null) {
+                if (obj.Formation.LeadShip.TryGetComponent<SPlayerComponent>(out _))
+                {
+                    player = obj.Formation.LeadShip;
+                    playerLead = true;
+                }
+                else {
+                    foreach (var x in obj.Formation.Followers)
+                    {
+                        if (x.TryGetComponent<SPlayerComponent>(out _))
+                        {
+                            player = x;
+                            break;
+                        }
+                    }
+                }
+            }
+            obj.Formation?.Remove(obj);
+            var form = new ShipFormation(playerLead ? player : obj, formDef);
+            if (playerLead && player != null) {
+                form.Add(obj);
+            }
             obj.Formation = form;
             foreach (var tgt in Others)
             {
@@ -28,6 +51,11 @@ namespace LibreLancer.Server.Ai.ObjList
                 }
                 if (o.TryGetComponent<AutopilotComponent>(out var ap))
                     ap.StartFormation();
+            }
+            if (player != null && !obj.Formation.Contains(player))
+            {
+                form.Add(player);
+                player.Formation = form;
             }
             ai.SetState(Next);
         }

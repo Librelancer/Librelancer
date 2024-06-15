@@ -29,7 +29,7 @@ public class AiDockListState : AiObjListState
         dockState?.Update(obj, ai, dt);
         if (dockState != null && obj.TryGetComponent<AutopilotComponent>(out var ap))
         {
-            if(ap.CurrentBehaviour != AutopilotBehaviours.Dock)
+            if(ap.CurrentBehavior != AutopilotBehaviors.Dock)
                 ai.SetState(Next);
         }
     }

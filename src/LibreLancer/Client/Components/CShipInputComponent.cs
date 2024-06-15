@@ -16,6 +16,7 @@ namespace LibreLancer.Client.Components
         public Vector2 Viewport;
         public float Throttle = 0;
         public float AutopilotThrottle = 0;
+        public bool InFormation = false;
         public float BankLimit = 35f;
         public bool MouseFlight = false;
         public bool Reverse = false;
@@ -32,8 +33,14 @@ namespace LibreLancer.Client.Components
             if (steering == null) steering = Parent.GetComponent<ShipSteeringComponent>();
             if (Camera == null) return;
             if (steering == null) return;
-            steering.InThrottle = AutopilotThrottle > 0 ? AutopilotThrottle : Throttle;
-            if (Reverse) steering.InThrottle = -1;
+            if (InFormation || AutopilotThrottle > 0)
+            {
+                steering.InThrottle = AutopilotThrottle;
+            }
+            else
+            {
+                steering.InThrottle = Reverse ? -1 : Throttle;
+            }
             if (MouseFlight)
             {
                 //Calculate turning direction

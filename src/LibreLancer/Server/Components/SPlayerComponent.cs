@@ -104,6 +104,7 @@ namespace LibreLancer.Server.Components
             return found;
         }
 
+        private ulong formationHash = 0;
         public override void Update(double time)
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
@@ -131,6 +132,17 @@ namespace LibreLancer.Server.Components
                             Parent.GetWorld().Server.FireProjectiles(input.FireCommand.Value, Player);
                     }
                 }
+            }
+            if (Parent.Formation == null)
+            {
+                if(formationHash != 0)
+                    Player.RpcClient.UpdateFormation(new NetFormation());
+                formationHash = 0;
+            }
+            else if (formationHash != Parent.Formation.Hash)
+            {
+                formationHash = Parent.Formation.Hash;
+                Player.RpcClient.UpdateFormation(Parent.Formation.ToNetFormation(Parent));
             }
         }
 

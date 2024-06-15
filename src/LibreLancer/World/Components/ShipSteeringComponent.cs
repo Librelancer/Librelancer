@@ -35,7 +35,7 @@ namespace LibreLancer.World.Components
             //Set output parameters
             Vector3 steerControl;
             if (!PlayerInput && Parent.TryGetComponent<AutopilotComponent>(out var autoPilot) &&
-                autoPilot.CurrentBehaviour != AutopilotBehaviours.None)
+                autoPilot.CurrentBehavior != AutopilotBehaviors.None)
             {
                 steerControl = new Vector3(autoPilot.OutPitch, autoPilot.OutYaw, 0);
             }

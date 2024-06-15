@@ -41,7 +41,7 @@ namespace LibreLancer.Server.Ai.ObjList
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
             {
-                if (ap.CurrentBehaviour == AutopilotBehaviours.None) ;
+                if (ap.CurrentBehavior == AutopilotBehaviors.None) ;
                 ai.SetState(Next);
             }
             else
