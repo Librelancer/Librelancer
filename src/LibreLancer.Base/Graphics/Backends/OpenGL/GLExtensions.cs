@@ -97,7 +97,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
             FLLog.Info("GL", "Extensions: \n" + string.Join(", ", ExtensionList));
             s3tc = ExtensionList.Contains("GL_EXT_texture_compression_s3tc");
-            rgtc = ExtensionList.Contains("GL_EXT_texture_compression_rgtc");
+            // RGTC support is core in Desktop GL (at least the extension is not reported on macOS)
+            rgtc = !GL.GLES || ExtensionList.Contains("GL_EXT_texture_compression_rgtc");
             debugInfo = ExtensionList.Contains("GL_KHR_debug");
             if (debugInfo)
                 FLLog.Info("GL", "KHR_debug supported");
@@ -109,11 +110,14 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             {
                 FLLog.Info("GL", "S3TC extension not supported");
             }
-            if(rgtc)
-                FLLog.Info("GL", "RGTC extension supported");
-            else
-                FLLog.Info("GL", "RGTC extension not supported");
 
-		}
+            if (GL.GLES)
+            {
+                if (rgtc)
+                    FLLog.Info("GL", "RGTC extension supported");
+                else
+                    FLLog.Info("GL", "RGTC extension not supported");
+            }
+        }
     }
 }
