@@ -37,14 +37,14 @@ public class ModelHpNode
         var hps = hardpoints.Select(x => x.Definition);
         if (hps.Any((x) => x is FixedHardpointDefinition))
         {
-            fix = new LUtfNode() {Name = "Fixed", Parent = Node};
+            fix = new LUtfNode() {Name = "Fixed", Parent = HardpointsNode};
             fix.Children = new List<LUtfNode>();
             HardpointsNode.Children.Add(fix);
         }
 
         if (hps.Any((x) => x is RevoluteHardpointDefinition))
         {
-            rev = new LUtfNode() {Name = "Revolute", Parent = Node};
+            rev = new LUtfNode() {Name = "Revolute", Parent = HardpointsNode};
             rev.Children = new List<LUtfNode>();
             HardpointsNode.Children.Add(rev);
         }
