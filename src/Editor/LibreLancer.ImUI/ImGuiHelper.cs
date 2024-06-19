@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -262,6 +263,8 @@ namespace LibreLancer.ImUI
 
             io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
             io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
+
+            io.PlatformLocaleDecimalPoint = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
 		}
 
         private void MouseOnMouseWheel(int amountx, int amounty)
