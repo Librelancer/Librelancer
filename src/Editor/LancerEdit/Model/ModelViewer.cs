@@ -624,6 +624,16 @@ namespace LancerEdit
                         popups.OpenPopup("Confirm Delete");
                     }
                     if (action == ContextActions.Edit) hpEditing = hp;
+                    if (action == ContextActions.Dup)
+                    {
+                        var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
+                        addActions.Add(() =>
+                        {
+                            part.Hardpoints.Add(newHp);
+                            gizmos.Add(new HardpointGizmo(newHp, gz.Parent) { Enabled = true});
+                            OnDirtyHp();
+                        });
+                    }
                     if(action == ContextActions.MirrorX) {
                         var newHp = MakeDuplicate(GetDupName(hp.Name), hp);
                         //do mirroring + fix up negative determinant after flip
@@ -714,7 +724,7 @@ namespace LancerEdit
             return null;
         }
         enum ContextActions {
-            None, NewFixed,NewRevolute,Edit,Delete,MirrorX,MirrorY, MirrorZ
+            None, NewFixed,NewRevolute,Edit,Delete,MirrorX,MirrorY, MirrorZ, Dup
         }
         ContextActions NewHpMenu(string n)
         {
@@ -742,6 +752,7 @@ namespace LancerEdit
                 if(Theme.IconMenuItem(Icons.TrashAlt, "Delete",true)) act = ContextActions.Delete;
                 if(Theme.BeginIconMenu(Icons.Clone, "Duplicate"))
                 {
+                    if (ImGui.MenuItem("In-place")) act = ContextActions.Dup;
                     if (ImGui.MenuItem("Mirror X")) act = ContextActions.MirrorX;
                     if (ImGui.MenuItem("Mirror Y")) act = ContextActions.MirrorY;
                     if (ImGui.MenuItem("Mirror Z")) act = ContextActions.MirrorZ;
