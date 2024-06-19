@@ -27,12 +27,16 @@ namespace LibreLancer.Thn
         Vector3 lastTranslate;
         public void Update(double delta)
         {
-            if(Spatial && Instance != null)
+            if (Instance != null)
             {
-                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
-                Instance.SetPosition(Object.Translate);
+                Instance.SetAttenuation(Object.Sound.Attenuation);
+                if(Spatial)
+                {
+                    Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
+                    Instance.SetPosition(Object.Translate);
+                    lastTranslate = Object.Translate;
+                }
                 Instance.UpdateProperties();
-                lastTranslate = Object.Translate;
             }
         }
     }
@@ -63,6 +67,6 @@ namespace LibreLancer.Thn
             inst.DisposeOnStop = oneShot;
             return new ThnSoundInstance(this, inst);
         }
-        
+
     }
 }
