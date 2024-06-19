@@ -179,7 +179,7 @@ namespace LibreLancer.World.Components
                     haveSetCruise = true;
                 }
             }
-            else if ((distance - gotoRange) < 200)
+            else if ((distance - gotoRange) < 10)
             {
                 control.Cruise = false;
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices.JavaScript;
 using LibreLancer.GameData.Items;
 
 namespace LibreLancer.World.Components
@@ -9,14 +10,40 @@ namespace LibreLancer.World.Components
     {
         public MissileLauncherEquipment Object;
 
+        private float maxRange;
+
         public MissileLauncherComponent(GameObject parent, MissileLauncherEquipment Def) : base(parent)
         {
             Object = Def;
+
+            var lt = Object.Munition.Def.Lifetime;
+
+            if (Object.Munition.Motor != null)
+            {
+                maxRange = Object.Munition.Motor.Delay * Object.Def.MuzzleVelocity; //initial time + initial accel
+                var accelEndTime = Object.Munition.Motor.Lifetime + Object.Munition.Motor.Delay;
+                if (accelEndTime > lt)
+                    accelEndTime = lt;
+                var t = (accelEndTime - Object.Munition.Motor.Delay);
+                if (t > 0) {
+                    maxRange += (t * Object.Def.MuzzleVelocity) + 0.5f * Object.Munition.Motor.Accel * (t * t);
+                }
+                var maxSpeedTime = lt - accelEndTime;
+                if (maxSpeedTime > 0 && t > 0) {
+                    var newVel = Object.Def.MuzzleVelocity + (t * Object.Munition.Motor.Accel);
+                    maxRange += newVel * maxSpeedTime;
+                }
+            }
+            else
+            {
+                maxRange = Object.Munition.Def.Lifetime * Object.Def.MuzzleVelocity;
+            }
+            FLLog.Debug("Missile", $"{Def.Nickname} {maxRange}");
         }
 
         protected override float TurnRate => Object.Def.TurnRate;
 
-        public override float MaxRange => Object.Munition.Def.Lifetime * Object.Def.MuzzleVelocity;
+        public override float MaxRange => maxRange;
 
         public override int IdsName => Object.IdsName;
 

@@ -248,10 +248,13 @@ namespace LibreLancer.Server.Components
 
                 var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
 
-                var gunRange = weapons.GetMaxRange() * 0.95f;
+                var gunRange = weapons.GetGunMaxRange() * 0.95f;
                 weapons.AimPoint = GetAimPosition(shootAt, weapons);
 
-                var missileRange = Pilot?.Missile?.LaunchRange ?? gunRange;
+                var missileMax = weapons.GetMissileMaxRange();
+                var missileRange = Pilot?.Missile?.LaunchRange ?? missileMax;
+                if(missileMax < missileRange)
+                    missileRange = missileMax;
                 //Fire Missiles
                 if ((Pilot?.Missile?.MissileLaunchAllowOutOfRange ?? false) ||
                     dist <= missileRange)
@@ -291,7 +294,7 @@ namespace LibreLancer.Server.Components
                 lastShootAt.Nickname ?? "no nickname";
             var maxRange = 0f;
             if(Parent.TryGetComponent<WeaponControlComponent>(out var wp))
-                 maxRange = wp.GetMaxRange() * 0.95f;
+                 maxRange = wp.GetGunMaxRange() * 0.95f;
             bool physActive = false;
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var ps))
                 physActive = ps.Active;

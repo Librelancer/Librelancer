@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Physics;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
 {
@@ -78,10 +79,21 @@ namespace LibreLancer.World.Components
             }
             return accum / count;
         }
-        public float GetMaxRange()
+        public float GetGunMaxRange()
         {
             float range = 0;
-            foreach (var wp in Parent.GetChildComponents<WeaponComponent>())
+            foreach (var wp in Parent.GetChildComponents<GunComponent>())
+            {
+                var r = wp.MaxRange;
+                if (r > range) range = r;
+            }
+            return range;
+        }
+
+        public float GetMissileMaxRange()
+        {
+            float range = 0;
+            foreach (var wp in Parent.GetChildComponents<MissileLauncherComponent>())
             {
                 var r = wp.MaxRange;
                 if (r > range) range = r;
