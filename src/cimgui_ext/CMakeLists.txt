@@ -2,8 +2,6 @@ cmake_minimum_required (VERSION 3.1)
 project (cimgui)
 set(CMAKE_CXX_STANDARD 14)
 
-file(GLOB IMTE_SRC ../../extern/imgui_test_engine/imgui_test_engine/*.cpp)
-
 # Freetype dlopen shim for windows only
 if(WIN32)
 set(FTSHIM_C "ftshim.c")
@@ -28,7 +26,6 @@ add_library(cimgui SHARED
     ../../extern/imgui-node-editor/imgui_canvas.cpp
     ../../extern/imgui-node-editor/imgui_node_editor_api.cpp
     ../../extern/imgui-node-editor/imgui_node_editor.cpp
-    ${IMTE_SRC}
     cimgui_dock.cpp
     cimgui_colortextedit.cpp
     cimgui_freetype.cpp

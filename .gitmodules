@@ -53,6 +53,3 @@
 [submodule "extern/imgui-node-editor"]
 	path = extern/imgui-node-editor
 	url = https://github.com/thedmd/imgui-node-editor
-[submodule "extern/imgui_test_engine"]
-	path = extern/imgui_test_engine
-	url = https://github.com/ocornut/imgui_test_engine
