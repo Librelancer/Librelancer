@@ -28,8 +28,8 @@ public interface IClientPlayer
     void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Vector3 position, Quaternion orientation, float mass);
     void SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation);
     void DestroyMissile(int id, bool explode);
-    void BaseEnter(string _base, NetObjective objective, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships);
-    void UpdateRTCs(string[] rtcs);
+    void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships);
+    void UpdateThns(NetThnInfo thns);
     void SetObjective(NetObjective objective);
     void Killed();
     void DespawnObject(int id, bool explode);

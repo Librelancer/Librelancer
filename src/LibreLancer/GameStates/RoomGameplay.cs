@@ -353,7 +353,7 @@ namespace LibreLancer
                     n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
                     !ct.Encounters[0].StartRoom.Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
-                    var rm = currentBase.Rooms.Find((o) => o.Nickname == ct.Encounters[0].StartRoom);
+                    var rm = currentBase.Rooms.Get(ct.Encounters[0].StartRoom);
                     Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
                     return true;
                 }
@@ -453,7 +453,7 @@ namespace LibreLancer
                 switch (hotspot.Behavior)
                 {
                     case "ExitDoor":
-                        var rm = currentBase.Rooms.Find((o) => o.Nickname == hotspot.Room);
+                        var rm = currentBase.Rooms.Get(hotspot.Room);
                         FadeOut(0.6, () => Game.ChangeState(new RoomGameplay(Game, session, baseId, rm, hotspot.SetVirtualRoom)));
                         break;
                     case "VirtualRoom":
@@ -517,6 +517,28 @@ namespace LibreLancer
             }
         }
 
+        IEnumerable<ThnScript> GetMsnAmbients()
+        {
+            var r = virtualRoom ?? currentRoom.Nickname;
+            var b = currentBase.Nickname;
+            foreach (var x in session.Thns.Ambients.Where(x =>
+                         x.Base.Equals(b, StringComparison.OrdinalIgnoreCase) &&
+                         x.Room.Equals(r, StringComparison.OrdinalIgnoreCase)))
+            {
+                ThnScript script = null;
+                try
+                {
+                    script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(x.Script)), session.Game.GameData.ThornReadCallback, x.Script);
+                }
+                catch (Exception e)
+                {
+                    FLLog.Error("Thn", $"Error loading Ambient script: {e}");
+                }
+                if (script != null)
+                    yield return script;
+            }
+        }
+
 		void SwitchToRoom(bool dolanding)
         {
             Game.Saves.Selected = -1;
@@ -558,7 +580,9 @@ namespace LibreLancer
             if(currentBase.TerrainDyna2 != null) ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
             scene = new Cutscene(ctx, Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
             scene.ScriptFinished += SceneOnScriptFinished;
-            sceneScripts = currentRoom.OpenScene().ToArray();
+
+            sceneScripts = currentRoom.OpenScene().Concat(GetMsnAmbients()).ToArray();
+
             if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.DataPath))
             {
                 RoomDoSceneScript(currentRoom.LandScript.LoadScript(), ScriptState.Enter);
@@ -662,11 +686,13 @@ namespace LibreLancer
                         RoomDoSceneScript(null, ScriptState.None);
                         ui.Visible = true;
                         FLLog.Info("Thn", "Finished cutscene");
-                        if (cState == CutsceneState.Regular)
+                        if (cState == CutsceneState.Regular ||
+                            cState == CutsceneState.Accept ||
+                            cState == CutsceneState.Reject)
                         {
                             session.FinishCutscene(currentCutscene);
                             if (currentCutscene.Encounters[0].RelocatePlayer != null) {
-                                var rm = currentBase.Rooms.Find((o) => o.Nickname == currentCutscene.Encounters[0].RelocatePlayer);
+                                var rm = currentBase.Rooms.Get(currentCutscene.Encounters[0].RelocatePlayer);
                                 Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
                             }
                             else

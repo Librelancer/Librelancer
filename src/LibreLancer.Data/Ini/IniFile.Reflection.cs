@@ -538,7 +538,7 @@ namespace LibreLancer.Ini
             }
         }
 
-        protected void ParseAndFill(string filename, MemoryStream stream, bool preparse = true)
+        protected void ParseAndFill(string filename, Stream stream, bool preparse = true)
         {
             var sections = GetContainerInfo(GetType());
             var deferred = new Dictionary<ReflectionSection, List<DeferredSection>>();

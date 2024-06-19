@@ -99,6 +99,15 @@ namespace LibreLancer.Missions
                     case TriggerActions.Act_AddRTC:
                         yield return new Act_AddRTC(a);
                         break;
+                    case TriggerActions.Act_RemoveRTC:
+                        yield return new Act_RemoveRTC(a);
+                        break;
+                    case TriggerActions.Act_AddAmbient:
+                        yield return new Act_AddAmbient(a);
+                        break;
+                    case TriggerActions.Act_RemoveAmbient:
+                        yield return new Act_RemoveAmbient(a);
+                        break;
                     case TriggerActions.Act_PobjIdle:
                         yield return new Act_PobjIdle(a);
                         break;
@@ -229,6 +238,52 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.AddRTC(RTC);
+        }
+    }
+
+    public class Act_RemoveRTC : ScriptedAction
+    {
+        public string RTC;
+        public Act_RemoveRTC(MissionAction act) : base(act)
+        {
+            RTC = act.Entry[0].ToString();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.RemoveRTC(RTC);
+        }
+    }
+
+    public class Act_AddAmbient : ScriptedAction
+    {
+        public string Script;
+        public string Room;
+        public string Base;
+        public Act_AddAmbient(MissionAction act) : base(act)
+        {
+            Script = act.Entry[0].ToString();
+            Room = act.Entry[1].ToString();
+            Base = act.Entry[2].ToString();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.AddAmbient(Script, Room, Base);
+        }
+    }
+
+    public class Act_RemoveAmbient : ScriptedAction
+    {
+        public string Script;
+        public Act_RemoveAmbient(MissionAction act) : base(act)
+        {
+            Script = act.Entry[0].ToString();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            runtime.Player.RemoveAmbient(Script);
         }
     }
 

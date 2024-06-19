@@ -18,13 +18,9 @@ using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
-using LibreLancer.Interface;
 using LibreLancer.Render;
-using LibreLancer.Thn;
-using LibreLancer.Thorn;
 using LibreLancer.Thorn.VM;
 using LibreLancer.Utf.Anm;
-using LibreLancer.Utf.Dfm;
 using Archetype = LibreLancer.GameData.Archetype;
 using DockSphere = LibreLancer.GameData.World.DockSphere;
 using FileSystem = LibreLancer.Data.IO.FileSystem;
@@ -145,7 +141,7 @@ namespace LibreLancer
                 fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
                 var b = new Base();
                 b.Nickname = inibase.Nickname;
-                b.CRC = CrcTool.FLModelCrc(b.Nickname);
+                b.CRC = FLHash.CreateID(b.Nickname);
                 b.SourceFile = inibase.SourceFile;
                 b.IdsName = inibase.IdsName;
                 b.BaseRunBy = inibase.BGCSBaseRunBy;
@@ -220,7 +216,8 @@ namespace LibreLancer
                             VirtualRoom = hp.VirtualRoom
                         });
                     nr.Nickname = room.Nickname;
-                    if (room.Nickname == inibase.StartRoom) b.StartRoom = nr;
+                    nr.CRC = FLHash.CreateLocationID(b.Nickname, nr.Nickname);
+                    if (room.Nickname.Equals(inibase.StartRoom, StringComparison.OrdinalIgnoreCase)) b.StartRoom = nr;
                     nr.Camera = room.Camera?.Name;
                     nr.FixedNpcs = new List<BaseFixedNpc>();
                     if (mbase == null) continue;

@@ -10,10 +10,9 @@ using LibreLancer.Thn;
 namespace LibreLancer.GameData.World
 {
     public record SceneScript(bool AllAmbient, bool TrafficPriority, ResolvedThn Thn);
-	public class BaseRoom
+	public class BaseRoom : IdentifiableItem
 	{
         //Populated from room ini
-		public string Nickname;
         public string SourceFile;
 		public string Camera;
         public ResolvedThn SetScript;

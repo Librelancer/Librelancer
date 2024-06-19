@@ -9,9 +9,11 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Client;
 using LibreLancer.Data.Save;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
@@ -32,9 +34,13 @@ namespace LibreLancer.Server
         public GameServer Game;
         public SpacePlayer Space;
         public BasesidePlayer Baseside;
-        private MissionRuntime msnRuntime;
 
+        private MissionRuntime msnRuntime;
         private PreloadObject[] msnPreload;
+        private readonly DynamicThn thns = new DynamicThn();
+
+
+        private ConcurrentQueue<Action> saveActions = new ConcurrentQueue<Action>();
         //State
         public NetCharacter Character;
         public string Name = "Player";
@@ -43,6 +49,7 @@ namespace LibreLancer.Server
         public Vector3 Position;
         public Quaternion Orientation;
         public NetObjective Objective;
+        public StoryProgress Story;
         //Store so we can choose the correct character from the index
         public List<SelectableCharacter> CharacterList;
         //Respawn?
@@ -106,29 +113,54 @@ namespace LibreLancer.Server
         public void MissionSuccess()
         {
             loadTriggers = Array.Empty<uint>();
-            MissionTransitions.NextMission(this);
-            currentMissionNumber++;
-            LoadMission();
+            Story.Advance(this);
         }
 
         public MissionRuntime MissionRuntime => msnRuntime;
 
-        List<string> rtcs = new List<string>();
+
         public void AddRTC(string rtc)
         {
-            lock (rtcs)
+            lock (thns)
             {
-                rtcs.Add(rtc);
-                rpcClient.UpdateRTCs(rtcs.ToArray());
+                thns.AddRTC(rtc);
+                rpcClient.UpdateThns(thns.Pack());
+            }
+        }
+
+        public void RemoveRTC(string rtc)
+        {
+            lock (thns)
+            {
+                thns.RemoveRTC(rtc);
+                rpcClient.UpdateThns(thns.Pack());
+            }
+        }
+
+        public void AddAmbient(string script, string room, string _base)
+        {
+            lock (thns)
+            {
+                thns.AddAmbient(script, room, _base);
+                rpcClient.UpdateThns(thns.Pack());
+            }
+        }
+
+        public void RemoveAmbient(string script)
+        {
+            lock (thns)
+            {
+                thns.RemoveAmbient(script);
+                rpcClient.UpdateThns(thns.Pack());
             }
         }
 
         void IServerPlayer.RTCComplete(string rtc)
         {
-            lock (rtcs)
+            lock (thns)
             {
-                rtcs.Remove(rtc);
-                rpcClient.UpdateRTCs(rtcs.ToArray());
+                thns.RemoveRTC(rtc);
+                rpcClient.UpdateThns(thns.Pack());
                 msnRuntime?.FinishRTC(rtc);
             }
         }
@@ -267,10 +299,9 @@ namespace LibreLancer.Server
             MissionRuntime?.BaseEnter(Base);
             MissionRuntime?.CheckMissionScript();
             //send to player
-            lock (rtcs)
+            lock (thns)
             {
-
-                rpcClient.BaseEnter(Base, Objective, rtcs.ToArray(), news.ToArray(), Baseside.BaseData.SoldGoods.Select(x => new SoldGood()
+                rpcClient.BaseEnter(Base, Objective, thns.Pack(), news.ToArray(), Baseside.BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
                     Price = x.Price,
@@ -281,40 +312,13 @@ namespace LibreLancer.Server
             }
         }
 
-        private Dictionary<string, int> missionNumbers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "mission_01a", 1 },
-            { "mission_01b", 2 },
-            { "mission_02", 3 },
-            { "mission_03", 4 },
-            { "mission_04", 5 },
-            { "mission_05", 6 },
-            { "mission_06", 7 },
-            { "mission_07", 8 },
-            { "mission_08", 9 },
-            { "mission_09", 10 },
-            { "mission_10", 11 },
-            { "mission_11", 12 },
-            { "mission_12", 13 },
-            { "mission_13", 14 }
-        };
-
-        private int currentMissionNumber;
         private uint[] loadTriggers;
 
-        public int CurrentMissionNumber => currentMissionNumber;
-
-        void MissionNumber(string str, ref int num)
+        public void LoadMission()
         {
-            if (!string.IsNullOrEmpty(str) && missionNumbers.TryGetValue(str, out var n))
-                num = n;
-        }
-
-        void LoadMission()
-        {
-            if (currentMissionNumber != 0 && (currentMissionNumber - 1) < Game.GameData.Ini.MissionCount)
+            if (Story?.CurrentMission != null)
             {
-                msnRuntime = new MissionRuntime(Game.GameData.Ini.LoadMissionIni(currentMissionNumber - 1), this, loadTriggers);
+                msnRuntime = new MissionRuntime(Game.GameData.Ini.LoadMissionIni(Story.CurrentMission), this, loadTriggers);
                 msnPreload = msnRuntime.Script.CalculatePreloads(Game.GameData);
                 rpcClient.SetPreloads(msnPreload);
                 msnRuntime.Update(0.0);
@@ -322,10 +326,38 @@ namespace LibreLancer.Server
         }
         void InitStory(Data.Save.SaveGame sg)
         {
+            var msn = sg.StoryInfo?.Mission ?? "No_Mission";
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
-            MissionNumber(sg.StoryInfo?.Mission, ref missionNum);
-            if (Game.GameData.Ini.ContentDll.AlwaysMission13) missionNum = 14;
-            currentMissionNumber = missionNum;
+            if (Game.GameData.Ini.ContentDll.AlwaysMission13) {
+                missionNum = 41;
+                msn = "Mission_13";
+            }
+            Story = new StoryProgress();
+            var storyline = Game.GameData.Ini.Storyline;
+            if (!msn.Equals("No_Mission", StringComparison.OrdinalIgnoreCase))
+            {
+                Story.CurrentMission = storyline.Missions.FirstOrDefault(x =>
+                        x.Nickname.Equals(msn, StringComparison.OrdinalIgnoreCase));
+            }
+            if (missionNum >= 0 && missionNum < storyline.Items.Count)
+                Story.CurrentStory = storyline.Items[missionNum];
+            Story.MissionNum = missionNum;
+            Story.NextLevelWorth = (sg.StoryInfo?.DeltaWorth ?? -1);
+            lock (thns)
+            {
+                thns.Reset();
+                if (sg.MissionState != null) {
+                    foreach(var rtc in sg.MissionState.Rtcs)
+                        thns.AddRTC(rtc.Script);
+                    foreach (var amb in sg.MissionState.Ambients)
+                    {
+                        var _base = Game.GameData.Bases.Get(amb.Base.Hash);
+                        var room = _base.Rooms.Get(amb.Room.Hash);
+                        thns.AddAmbient(amb.Script, room.Nickname, _base.Nickname);
+                    }
+                }
+            }
+            FLLog.Debug("Story", $"{Story.CurrentStory.Nickname}, {Story.MissionNum}");
             loadTriggers = sg.TriggerSave.Select(x => (uint) x.Trigger).ToArray();
             LoadMission();
         }
@@ -477,6 +509,12 @@ namespace LibreLancer.Server
             msnRuntime?.MissionRejected();
         }
 
+        public void LevelUp()
+        {
+            using var c= Character.BeginTransaction();
+            c.UpdateRank(Character.Rank + 1);
+        }
+
         void IServerPlayer.RequestCharacterDB()
         {
             Client.SendPacket(new NewCharacterDBPacket()
@@ -579,6 +617,7 @@ namespace LibreLancer.Server
             Orientation = Character.Orientation;
         }
 
+
         void IServerPlayer.Respawn()
         {
             if (Dead)
@@ -619,14 +658,35 @@ namespace LibreLancer.Server
         {
         }
 
-        public void OnSPSave()
+        public void RunSave()
         {
-            if (Character != null)
-            {
-                using var c = Character.BeginTransaction();
-                c.UpdatePosition(Base, System, Position, Orientation);
-            }
+            while (saveActions.TryDequeue(out var a))
+                a();
         }
+
+        public Task SaveSP(string path, string description, int ids, DateTime? timeStamp)
+        {
+            var completionSource = new TaskCompletionSource();
+            saveActions.Enqueue(() =>
+            {
+                if (Character != null)
+                {
+                    using var c = Character.BeginTransaction();
+                    c.UpdatePosition(Base, System, Position, Orientation);
+                }
+                SaveGame sg;
+                lock (thns)
+                {
+                    sg = SaveWriter.CreateSave(Character, description, ids, timeStamp, Game.GameData, thns.Rtcs,
+                        thns.Ambients, Story);
+                }
+                MissionRuntime.WriteActiveTriggers(sg);
+                IniWriter.WriteIniFile(path, sg.ToIni());
+                completionSource.SetResult();
+            });
+            return completionSource.Task;
+        }
+
 
         void LoggedOut()
         {

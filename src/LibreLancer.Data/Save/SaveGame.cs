@@ -18,11 +18,21 @@ namespace LibreLancer.Data.Save
         [Section("mplayer")]
         public MPlayer MPlayer;
 
-        [Section("storyinfo")]
-        public StoryInfo StoryInfo;
+        [Section("missionstate")]
+        public MissionState MissionState;
 
         [Section("TriggerSave")]
         public List<TriggerSave> TriggerSave = new List<TriggerSave>();
+
+        [Section("mission01asave")] //Unknown, matching vanilla
+        public MissionDebugState Mission01aSave;
+        [Section("mission01bsave")] //Unknown, matching vanilla
+        public MissionDebugState Mission01bSave;
+        [Section("bstorymissiondone")] //Unknown, matching vanilla
+        public EmptySection BStoryMissionDone;
+
+        [Section("storyinfo")]
+        public StoryInfo StoryInfo;
 
         [Section("time")]
         public SaveTime Time;
@@ -41,7 +51,15 @@ namespace LibreLancer.Data.Save
             var builder = new IniBuilder();
             Player?.WriteTo(builder);
             MPlayer?.WriteTo(builder);
+            MissionState?.WriteTo(builder);
             foreach(var ts in TriggerSave) ts.WriteTo(builder);
+            builder.Section("BStoryMissionDone");
+            if (Mission01aSave != null)
+                builder.Section("Mission01aSave")
+                    .Entry("MissionStateNum", Mission01aSave.MissionStateNum);
+            if (Mission01bSave != null)
+                builder.Section("Mission01bSave")
+                    .Entry("MissionStateNum", Mission01bSave.MissionStateNum);
             StoryInfo?.WriteTo(builder);
             Time?.WriteTo(builder);
             foreach(var g in Groups) g.WriteTo(builder);

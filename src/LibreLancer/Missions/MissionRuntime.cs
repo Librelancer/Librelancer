@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Missions;
+using LibreLancer.Data.Save;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -55,6 +56,14 @@ namespace LibreLancer.Missions
                 }
             }
             UpdateUiTriggers();
+        }
+
+        public void WriteActiveTriggers(SaveGame sg)
+        {
+            foreach (var t in activeTriggers)
+            {
+                sg.TriggerSave.Add(new TriggerSave() { Trigger = (int)FLHash.CreateID(t.Trigger.Nickname)});
+            }
         }
 
         public void ActivateTrigger(string trigger)
@@ -376,6 +385,7 @@ namespace LibreLancer.Missions
 
         public void MissionAccepted()
         {
+            Player.Story?.MissionAccepted(Player);
             ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("accept", c.Entry[0].ToString()));
         }
 

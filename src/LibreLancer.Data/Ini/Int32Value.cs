@@ -12,6 +12,7 @@ namespace LibreLancer.Ini
 	public class Int32Value : ValueBase
 	{
 		private readonly int value;
+        private readonly bool unsigned;
 
 		public Int32Value(BinaryReader reader)
 		{
@@ -20,10 +21,11 @@ namespace LibreLancer.Ini
 			value = reader.ReadInt32();
 		}
 
-		public Int32Value(int value)
+		public Int32Value(int value, bool unsigned = false)
 		{
 			this.value = value;
-		}
+            this.unsigned = unsigned;
+        }
 
 		public static implicit operator int(Int32Value operand)
 		{
@@ -55,9 +57,8 @@ namespace LibreLancer.Ini
             return true;
 		}
 
-		public override string ToString()
-		{
-			return value.ToString(CultureInfo.InvariantCulture);
-		}
+		public override string ToString() => unsigned
+                ? ((uint)value).ToString(CultureInfo.InvariantCulture)
+                : value.ToString(CultureInfo.InvariantCulture);
 	}
 }

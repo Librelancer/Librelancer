@@ -39,6 +39,8 @@ namespace LibreLancer.Client
     }
 
 
+
+
     public class CGameSession : IClientPlayer
 	{
         public long Credits;
@@ -47,6 +49,7 @@ namespace LibreLancer.Client
 		public List<string> PlayerComponents = new List<string>();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
+        public DynamicThn Thns = new();
         public PreloadObject[] Preloads;
 		public FreelancerGame Game;
 		public string PlayerSystem;
@@ -76,6 +79,7 @@ namespace LibreLancer.Client
         public CircularBuffer<int> UpdatePacketSizes = new CircularBuffer<int>(200);
 
         public EmbeddedServer EmbedddedServer => connection as EmbeddedServer;
+
 
         public void Pause()
         {
@@ -138,14 +142,14 @@ namespace LibreLancer.Client
             baseRpc = new RemoteBasesidePlayer(connection, ResponseHandler);
         }
 
-        public void AddRTC(string[] paths)
+        public void CutsceneUpdate(NetThnInfo info)
         {
-            if (paths == null) return;
+            Thns.Unpack(info, Game.GameData);
             ActiveCutscenes = new List<StoryCutsceneIni>();
-            foreach (var path in paths)
+            foreach (var path in Thns.Rtcs)
             {
-                var rtc = new StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path, Game.GameData.VFS);
-                rtc.RefPath = path;
+                var rtc = new StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path.Script, Game.GameData.VFS);
+                rtc.RefPath = path.Script;
                 ActiveCutscenes.Add(rtc);
             }
         }
@@ -851,7 +855,7 @@ namespace LibreLancer.Client
         public SoldGood[] Goods;
         public NetSoldShip[] Ships;
 
-        void IClientPlayer.BaseEnter(string _base, NetObjective objective, string[] rtcs, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
+        void IClientPlayer.BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships)
         {
             if (enterCount > 0 && (connection is EmbeddedServer es)) {
                 var path = Game.GetSaveFolder();
@@ -865,7 +869,7 @@ namespace LibreLancer.Client
             Goods = goods;
             Ships = ships;
             SceneChangeRequired();
-            AddRTC(rtcs);
+            CutsceneUpdate(thns);
         }
 
         public Dictionary<uint, ulong> BaselinePrices = new Dictionary<uint, ulong>();
@@ -875,9 +879,10 @@ namespace LibreLancer.Client
                 BaselinePrices[p.GoodCRC] = p.Price;
         }
 
-        void IClientPlayer.UpdateRTCs(string[] rtcs)
+
+        void IClientPlayer.UpdateThns(NetThnInfo thns)
         {
-            AddRTC(rtcs);
+            CutsceneUpdate(thns);
         }
 
         void IClientPlayer.DespawnObject(int id, bool explode)

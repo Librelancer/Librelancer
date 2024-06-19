@@ -238,6 +238,7 @@ namespace LibreLancer.Server
             {
                 LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
             }
+            LocalPlayer?.RunSave();
             ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
             debugInfoForFrame = "";
             foreach (var w in worlds)

@@ -26,6 +26,8 @@ namespace LibreLancer.Server
         public Quaternion Orientation { get; private set; } = Quaternion.Identity;
         public long Credits { get; private set; }
 
+        public uint Rank { get; private set; }
+
         public ReputationCollection Reputation = new ReputationCollection();
 
         public Ship Ship { get; private set; }
@@ -145,6 +147,11 @@ namespace LibreLancer.Server
                 }
             }
 
+            public void UpdateRank(uint rank)
+            {
+                nc.Rank = rank;
+            }
+
             void Update(Character c, List<(NetCargo cargo, CargoItem dbItem)> newItems)
             {
                 c.Name = nc.Name;
@@ -161,7 +168,7 @@ namespace LibreLancer.Server
                 c.Ship = nc.Ship?.Nickname;
                 c.Costume = _costume;
                 c.ComCostume = _comCostume;
-                c.Rank = 1;
+                c.Rank = nc.Rank;
                 if (cargoDirty)
                 {
                     foreach (var item in cargoToDelete)
@@ -238,6 +245,7 @@ namespace LibreLancer.Server
                 c.UpdateCostume(sg.Player.Costume);
                 c.UpdateComCostume(sg.Player.ComCostume);
                 c.UpdatePosition(sg.Player.Base, sg.Player.System, sg.Player.Position, Quaternion.Identity);
+                c.UpdateRank((uint)sg.Player.Rank);
                 foreach (var eq in sg.Player.Equip)
                 {
                     var hp = eq.Hardpoint;
@@ -319,7 +327,7 @@ namespace LibreLancer.Server
         {
             var selectable = new SelectableCharacter();
             selectable.Id = charId;
-            selectable.Rank = 1;
+            selectable.Rank = (int)Rank;
             selectable.Ship = Ship.Nickname;
             selectable.Name = Name;
             selectable.Funds = Credits;

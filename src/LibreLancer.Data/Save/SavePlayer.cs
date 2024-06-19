@@ -91,7 +91,7 @@ namespace LibreLancer.Data.Save
         public DateTime? TimeStamp;
 
         public string Name;
-        [Entry("rank")] public string Rank;
+        [Entry("rank")] public int Rank;
 
         [Entry("money")] public long Money;
 
@@ -195,7 +195,7 @@ namespace LibreLancer.Data.Save
             var sec = builder.Section("Player")
                 .OptionalEntry("descrip_strid", DescripStrid)
                 .OptionalEntry("description", EncodeName(Description))
-                .Entry("tstamp", (int)(fileTime >> 32), (int)(fileTime & 0xFFFFFFFF))
+                .Entry("tstamp", (uint)(fileTime >> 32), (uint)(fileTime & 0xFFFFFFFF))
                 .OptionalEntry("name", EncodeName(Name))
                 .Entry("rank", Rank);
 

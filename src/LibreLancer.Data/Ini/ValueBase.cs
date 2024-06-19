@@ -60,6 +60,9 @@ namespace LibreLancer.Ini
         public static implicit operator ValueBase(int i) =>
             new Int32Value(i);
 
+        public static implicit operator ValueBase(uint u) =>
+            new Int32Value((int)u, true);
+
         public static implicit operator ValueBase(float f) =>
             new SingleValue(f, null);
 

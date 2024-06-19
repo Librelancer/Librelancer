@@ -35,8 +35,7 @@ namespace LibreLancer.Net
 
         public void Save(string path, string description, bool autosave)
         {
-            Server.LocalPlayer.OnSPSave();
-            File.WriteAllText(path, SaveWriter.WriteSave(Server.LocalPlayer.Character, description, autosave ? 1628 : 0, DateTime.Now));
+            Server.LocalPlayer.SaveSP(path, description, autosave ? 1628 : 0, DateTime.Now).Wait();
         }
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)

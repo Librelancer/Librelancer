@@ -24,6 +24,7 @@ using LibreLancer.Data.IO;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.NewCharDB;
 using LibreLancer.Data.Pilots;
+using LibreLancer.Data.Storyline;
 using LibreLancer.Data.Voices;
 
 namespace LibreLancer.Data
@@ -77,39 +78,19 @@ namespace LibreLancer.Data
         public KeymapIni Keymap;
         public KeyListIni KeyList;
         public VoicesIni Voices;
+        public StorylineIni Storyline;
         public string DataVersion;
         public bool Loaded = false;
 
         public bool LoadDacom = true;
 
-        static readonly string[] missionFiles = new string[]
-        {
-            "MISSIONS\\M01A\\m01a.ini",
-            "MISSIONS\\M01B\\m01b.ini",
-            "MISSIONS\\M02\\m02.ini",
-            "MISSIONS\\M03\\m03.ini",
-            "MISSIONS\\M04\\m04.ini",
-            "MISSIONS\\M05\\m05.ini",
-            "MISSIONS\\M06\\m06.ini",
-            "MISSIONS\\M07\\m07.ini",
-            "MISSIONS\\M08\\m08.ini",
-            "MISSIONS\\M09\\m09.ini",
-            "MISSIONS\\M10\\m10.ini",
-            "MISSIONS\\M11\\M11.ini",
-            "MISSIONS\\M12\\M12.ini",
-            "MISSIONS\\M13\\M13.ini"
-        };
-
-        public int MissionCount => missionFiles.Length;
-
         public SpecificNPCIni SpecificNPCs;
 
-        public MissionIni LoadMissionIni(int index)
+        public MissionIni LoadMissionIni(StoryMission item)
         {
-            var msn = missionFiles[index];
-            if (VFS.FileExists(Freelancer.DataPath + msn))
+            if (VFS.FileExists(Freelancer.DataPath + item.File))
             {
-                var m = new MissionIni(Freelancer.DataPath + msn, VFS);
+                var m = new MissionIni(Freelancer.DataPath + item.File, VFS);
                 if (m.Info?.NpcShipFile != null)
                 {
                     m.ShipIni = new NPCShipIni(Freelancer.DataPath + m.Info.NpcShipFile, VFS);
@@ -375,6 +356,11 @@ namespace LibreLancer.Data
             Run(() =>
             {
                 StateGraphDb = new StateGraphDb(Freelancer.DataPath + "AI\\state_graph.db", VFS);
+            });
+            Run(() =>
+            {
+                Storyline = new StorylineIni();
+                Storyline.AddDefault();
             });
             ContentDll = new ContentDll();
             if (VFS.FileExists("DLLS\\BIN\\content.dll"))

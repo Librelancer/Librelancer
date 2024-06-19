@@ -34,4 +34,11 @@
     <PackageReference Include="ZstdSharp.Port" Version="0.8.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Storyline\Storyline.default.ini" />
+    <EmbeddedResource Include="Storyline\Storyline.default.ini">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

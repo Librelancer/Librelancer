@@ -121,6 +121,14 @@ public class IniBuilder
             return this;
         }
 
+        public IniSectionBuilder Entry(string name, ValueBase value)
+        {
+            var e = new Entry(Section, name);
+            e.Add(value);
+            Section.Add(e);
+            return this;
+        }
+
         public IniSectionBuilder Entry(string name, params ValueBase[] values)
         {
             var e = new Entry(Section, name);

@@ -52,6 +52,9 @@ namespace LibreLancer
             return hash;
         }
 
+        public static uint CreateLocationID(string _base, string room) =>
+            CreateID($"{FLHash.CreateID(_base):X}_{room}");
+
         public static ushort FLFacHash(string id)
         {
             ushort hash = 0xFFFF;
