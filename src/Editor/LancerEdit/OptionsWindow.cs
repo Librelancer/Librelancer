@@ -43,6 +43,7 @@ namespace LancerEdit
         };
 
         private string autodetectedPath;
+        private bool autodetectedValid;
 
         public OptionsWindow(MainWindow win)
         {
@@ -51,6 +52,7 @@ namespace LancerEdit
             rstate = win.RenderContext;
             guiHelper = win.guiHelper;
             autodetectedPath = Blender.AutodetectBlender();
+            autodetectedValid = Blender.BlenderPathValid();
 
             var texturefilters = new List<string>(defaultFilters);
             if (win.RenderContext.MaxAnisotropy > 0)
@@ -272,6 +274,9 @@ namespace LancerEdit
                 ImGui.TextUnformatted($"Blender was detected at '{autodetectedPath}'");
                 if (!string.IsNullOrWhiteSpace(config.BlenderPath)) {
                     ImGui.Text("But importer will use specified path");
+                }
+                if (!autodetectedValid) {
+                    ImGui.TextColored(Color4.DarkRed, "Autodetect Blender test run failed");
                 }
             }
             else
