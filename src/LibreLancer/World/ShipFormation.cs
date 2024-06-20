@@ -132,5 +132,10 @@ namespace LibreLancer.World
             nf.YourPosition = PlayerPosition ?? GetShipOffset(self);
             return nf;
         }
+
+        public override string ToString()
+        {
+            return $"Lead: {LeadShip}\n" + string.Join("\n", _followers.Select(x => $"{x}: {GetShipOffset(x)}"));
+        }
     }
 }

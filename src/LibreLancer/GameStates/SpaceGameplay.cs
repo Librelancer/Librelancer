@@ -687,7 +687,8 @@ World Time: {12:F2}
                 _ => "FreeFlight"
             });
             if (obj != AutopilotBehaviors.Formation &&
-                player.Formation != null)
+                player.Formation != null &&
+                player.Formation.LeadShip != player)
             {
                 session.SpaceRpc.LeaveFormation();
             }

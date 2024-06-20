@@ -298,7 +298,19 @@ namespace LibreLancer.Server.Components
             bool physActive = false;
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var ps))
                 physActive = ps.Active;
-            return $"Shooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}";
+
+            var formation = "";
+            if (Parent.Formation != null)
+            {
+                formation = Parent.Formation.ToString();
+            }
+
+            AutopilotBehaviors beh = AutopilotBehaviors.None;
+            if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+            {
+                beh = ap.CurrentBehavior;
+            }
+            return $"Autopilot: {beh}\nShooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}\n{formation}";
         }
 
 
@@ -364,13 +376,16 @@ namespace LibreLancer.Server.Components
             var shootAt = GetHostileAndFire(time);
             lastShootAt = shootAt;
 
-            if (CurrentDirective != null || shootAt == null) {
+            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+
+            if (CurrentDirective != null ||
+                shootAt == null ||
+                ap.CurrentBehavior == AutopilotBehaviors.Formation) {
                 currentState = StateGraphEntry.NULL;
                 timeInState = 0;
                 return;
             }
 
-            Parent.TryGetComponent<AutopilotComponent>(out var ap);
             Parent.TryGetComponent<ShipSteeringComponent>(out var si);
             timeInState += time;
 

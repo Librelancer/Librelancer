@@ -68,7 +68,8 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var obj = world.Players[player];
-            obj.Formation?.Remove(obj);
+            if(obj.Formation != null && obj.Formation.LeadShip != obj)
+                obj.Formation.Remove(obj);
         });
     }
 
