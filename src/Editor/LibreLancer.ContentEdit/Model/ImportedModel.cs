@@ -54,8 +54,15 @@ public class ImportedModel
         var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
         //Set up root
         m.Root.Construct = null;
+        HashSet<string> usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        List<EditMessage> warnings = new List<EditMessage>();
+        usedNames.Add("Root");
         foreach (var child in m.Root.Children)
+        {
             child.Construct.ParentName = "Root";
+            CheckDuplicateNaming(child, usedNames, warnings);
+        }
+
         if (input.Animations != null) {
             m.ImportAnimations = input.Animations.Where(x => !"<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
             var defAnim =
@@ -66,7 +73,27 @@ public class ImportedModel
                     ApplyDefaultPose(defAnim, child);
             }
         }
-        return new EditResult<ImportedModel>(m);
+
+        return new EditResult<ImportedModel>(m, warnings);
+    }
+
+    static void CheckDuplicateNaming(ImportedModelNode n, HashSet<string> usedNames, List<EditMessage> warnings)
+    {
+        int j = 0;
+        var ogName = n.Name;
+        while (usedNames.Contains(n.Name))
+        {
+            n.Name = $"{ogName}.{j:D4}";
+            j++;
+        }
+        if (ogName != n.Name) {
+            warnings.Add(EditMessage.Warning($"Renamed duplicate node name '{ogName}' to '{n.Name}'"));
+            usedNames.Add(n.Name);
+        }
+        foreach (var child in n.Children) {
+            child.Construct.ParentName = n.Name;
+            CheckDuplicateNaming(child, usedNames, warnings);
+        }
     }
 
     static EditResult<bool> CheckGeometries(ImportedModelNode node)
