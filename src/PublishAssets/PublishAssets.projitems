@@ -5,6 +5,9 @@
     <HasSharedItems>true</HasSharedItems>
     <SharedGUID>1DBC7217-C374-49FB-97B2-A7E300DB05C9</SharedGUID>
   </PropertyGroup>
+  <PropertyGroup>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>PublishAssets</Import_RootNamespace>
   </PropertyGroup>

@@ -142,12 +142,8 @@ namespace BuildLL
                 "SOS_README.md"
             );
             //TODO: Fix this msbuild side
-            if(rid == "win7-x86") {
+            if(!rid.Contains("win")) {
                 RmDir(Path.Combine(publishDir, "x64"));
-            }
-            if(rid == "win7-x64")
-            {
-                RmDir(Path.Combine(publishDir, "x86"));
             }
             //Move the AppHost
             var apphostName = Path.GetFileNameWithoutExtension(proj);
