@@ -21,6 +21,10 @@ class NullGame : IGame
     {
     }
 
+    public void BringToFront()
+    {
+    }
+
     public bool EventsThisFrame => true;
     public float DpiScale => 1;
     public int Width => 1024;

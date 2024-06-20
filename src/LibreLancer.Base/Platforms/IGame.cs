@@ -17,6 +17,7 @@ interface IGame : IUIThread
     bool Focused { get; }
     string Title { get; set; }
     Point MinimumWindowSize { get; set; }
+    void BringToFront();
     void SetVSync(bool vsync);
     //Loop
     void Run(Game loop);

@@ -330,15 +330,10 @@ namespace LibreLancer
             }
         }
 
-        public void Yield()
+        public void BringToFront()
         {
-            if (Thread.CurrentThread.ManagedThreadId == mythread)
-            {
-                Action work;
-                while (actions.TryDequeue(out work))
-                    work();
-            }
-            Thread.Sleep(0);
+            if(windowptr != IntPtr.Zero)
+                SDL.SDL_RaiseWindow(windowptr);
         }
 
         private bool waitForEvent = false;

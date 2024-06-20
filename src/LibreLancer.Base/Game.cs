@@ -192,6 +192,8 @@ namespace LibreLancer
 
         public void Run() => impl.Run(this);
 
+        public void BringToFront() => impl.BringToFront();
+
 
         internal void SignalClipboardUpdate() => OnClipboardUpdate();
 
