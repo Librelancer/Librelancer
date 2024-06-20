@@ -61,13 +61,13 @@ namespace LancerEdit
         {
             var myPid = Process.GetCurrentProcess().Id;
             // Create pipe and start the async connection wait
-            await using var pipeServer = new NamedPipeServerStream(
-                $"{PipeGuid}-{myPid}", PipeDirection.In, 1, PipeTransmissionMode.Byte,
-                PipeOptions.CurrentUserOnly);
             while (!token.IsCancellationRequested)
             {
                 try
                 {
+                    await using var pipeServer = new NamedPipeServerStream(
+                        $"{PipeGuid}-{myPid}", PipeDirection.In, 1, PipeTransmissionMode.Byte,
+                        PipeOptions.CurrentUserOnly | PipeOptions.WriteThrough | PipeOptions.Asynchronous);
                     await pipeServer.WaitForConnectionAsync(token);
                     using (var reader = new BinaryReader(pipeServer))
                     {
@@ -97,7 +97,7 @@ namespace LancerEdit
                     continue;
                 try
                 {
-                    using var client = new NamedPipeClientStream($"{PipeGuid}-{p.Id}");
+                    using var client = new NamedPipeClientStream(".", $"{PipeGuid}-{p.Id}", PipeDirection.Out);
                     client.Connect(TimeSpan.FromSeconds(1));
                     using var writer = new BinaryWriter(client);
                     writer.Write(args.Length);
