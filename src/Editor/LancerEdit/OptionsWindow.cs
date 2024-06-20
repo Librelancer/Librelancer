@@ -8,8 +8,10 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
+using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LancerEdit
 {
@@ -40,12 +42,15 @@ namespace LancerEdit
             new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough)
         };
 
+        private string autodetectedPath;
+
         public OptionsWindow(MainWindow win)
         {
             this.win = win;
             config = win.Config;
             rstate = win.RenderContext;
             guiHelper = win.guiHelper;
+            autodetectedPath = Blender.AutodetectBlender();
 
             var texturefilters = new List<string>(defaultFilters);
             if (win.RenderContext.MaxAnisotropy > 0)
@@ -262,7 +267,18 @@ namespace LancerEdit
             ImGui.SameLine();
             if (ImGui.Button(".."))
                 FileDialog.Open(path => config.BlenderPath = path);
-            ImGui.TextDisabled("Leave blank to autodetect Blender");
+            ImGui.BeginDisabled(true);
+            if (!string.IsNullOrWhiteSpace(autodetectedPath)) {
+                ImGui.TextUnformatted($"Blender was detected at '{autodetectedPath}'");
+                if (!string.IsNullOrWhiteSpace(config.BlenderPath)) {
+                    ImGui.Text("But importer will use specified path");
+                }
+            }
+            else
+            {
+                ImGui.Text("Blender was not autodetected");
+            }
+            ImGui.EndDisabled();
             ImGui.Checkbox("Enable Collada (Not recommended)", ref config.ColladaVisible);
             ImGui.SetItemTooltip("Collada is not well supported by modelling programs, use GLB when possible");
         }
