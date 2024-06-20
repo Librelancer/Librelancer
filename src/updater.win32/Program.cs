@@ -113,10 +113,10 @@ public class Program : Form
         }
         var dstManifest = Read(Path.Combine(outputDir, "lib/manifest.txt"), log);
         HashSet<string> files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach(var a in srcManifest)
+        foreach(var a in dstManifest)
             files.Add(a);
         List<string> toDelete = new List<string>();
-        foreach(var b in dstManifest)
+        foreach(var b in srcManifest)
             if(!files.Contains(b))
                 toDelete.Add(b);
         foreach(var file in toDelete)
