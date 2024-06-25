@@ -48,77 +48,24 @@ namespace LibreLancer.ImUI
 
         public static unsafe bool BeginModalNoClose(string name, ImGuiWindowFlags flags)
         {
-            byte* native_name;
-            int name_byteCount = 0;
-            if (name != null)
-            {
-                name_byteCount = Encoding.UTF8.GetByteCount(name);
-                if (name_byteCount > Util.StackAllocationSizeLimit)
-                {
-                    native_name = Util.Allocate(name_byteCount + 1);
-                }
-                else
-                {
-                    byte* native_name_stackBytes = stackalloc byte[name_byteCount + 1];
-                    native_name = native_name_stackBytes;
-                }
-                int native_name_offset = Util.GetUtf8(name, native_name, name_byteCount);
-                native_name[native_name_offset] = 0;
-            }
-            else { native_name = null; }
-            byte ret = ImGuiNative.igBeginPopupModal(native_name, (byte*)0, flags);
-            if (name_byteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(native_name);
-            }
-            return ret != 0;
+            Span<byte> nbytes = stackalloc byte[512];
+            using var native_name = new UTF8ZHelper(nbytes, name);
+            fixed (byte* p = native_name.ToUTF8Z())
+                return ImGuiNative.igBeginPopupModal(p, (byte*)0, flags) != 0;
         }
 
         public static unsafe bool ComboButton(string id, string preview)
         {
-            byte* native_id;
-            int id_byteCount = 0;
-            if (id != null)
-            {
-                id_byteCount = Encoding.UTF8.GetByteCount(id);
-                if (id_byteCount > Util.StackAllocationSizeLimit)
-                {
-                    native_id = Util.Allocate(id_byteCount + 1);
-                }
-                else
-                {
-                    byte* native_id_stackBytes = stackalloc byte[id_byteCount + 1];
-                    native_id = native_id_stackBytes;
-                }
-                int native_id_offset = Util.GetUtf8(id, native_id, id_byteCount);
-                native_id[native_id_offset] = 0;
-            }
-            else { native_id = null; }
-            byte* native_preview;
-            int preview_byteCount = 0;
-            if (preview != null)
-            {
-                preview_byteCount = Encoding.UTF8.GetByteCount(preview);
-                if (preview_byteCount > Util.StackAllocationSizeLimit)
-                {
-                    native_preview = Util.Allocate(preview_byteCount + 1);
-                }
-                else
-                {
-                    byte* native_preview_stackBytes = stackalloc byte[preview_byteCount + 1];
-                    native_preview = native_preview_stackBytes;
-                }
-                int native_preview_offset = Util.GetUtf8(preview, native_preview, preview_byteCount);
-                native_preview[native_preview_offset] = 0;
-            }
-            else { native_preview = null; }
-            var retval = igExtComboButton((IntPtr)native_id, (IntPtr)native_preview);
-            if (id_byteCount > Util.StackAllocationSizeLimit)
-                Util.Free(native_id);
-            if (preview_byteCount > Util.StackAllocationSizeLimit)
-                Util.Free(native_preview);
-            return retval;
+            Span<byte> nbytes = stackalloc byte[512];
+            using var native_id = new UTF8ZHelper(nbytes, id);
+
+            Span<byte> pbytes = stackalloc byte[512];
+            using var native_preview = new UTF8ZHelper(pbytes, preview);
+
+            fixed(byte* ni = native_id.ToUTF8Z(), np = native_preview.ToUTF8Z())
+                return igExtComboButton((IntPtr)ni, (IntPtr)np);
         }
+
         public static bool ToggleButton(string text, bool v, bool enabled = true)
         {
             ImGui.BeginDisabled(!enabled);
@@ -179,7 +126,7 @@ namespace LibreLancer.ImUI
             var wasOne = isOne;
             var style = ImGui.GetStyle();
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-            fixed (byte* a = &z1.ToUTF8Z()[0]) {
+            fixed (byte* a = z1.ToUTF8Z()) {
                 if (wasOne)
                     ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
                 if (igButtonEx2(a, 0, 0, (int)ImDrawFlags.RoundCornersLeft))
@@ -191,7 +138,7 @@ namespace LibreLancer.ImUI
             }
             ImGui.SameLine();
             ImGui.PopStyleVar();
-            fixed (byte* b = &z2.ToUTF8Z()[0]) {
+            fixed (byte* b = z2.ToUTF8Z()) {
                 if (!wasOne)
                     ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
                 if (igButtonEx2(b, 0, 0, (int)ImDrawFlags.RoundCornersRight))
@@ -283,29 +230,10 @@ namespace LibreLancer.ImUI
 
         public static void SeparatorText(string text)
         {
-            byte* native_name;
-            int name_byteCount = 0;
-            if (text != null)
-            {
-                name_byteCount = Encoding.UTF8.GetByteCount(text);
-                if (name_byteCount > Util.StackAllocationSizeLimit)
-                {
-                    native_name = Util.Allocate(name_byteCount + 1);
-                }
-                else
-                {
-                    byte* native_name_stackBytes = stackalloc byte[name_byteCount + 1];
-                    native_name = native_name_stackBytes;
-                }
-                int native_name_offset = Util.GetUtf8(text, native_name, name_byteCount);
-                native_name[native_name_offset] = 0;
-            }
-            else { native_name = null; }
-            igExtSeparatorText((IntPtr)native_name);
-            if (name_byteCount > Util.StackAllocationSizeLimit)
-            {
-                Util.Free(native_name);
-            }
+            Span<byte> nbytes = stackalloc byte[512];
+            using var native_name = new UTF8ZHelper(nbytes, text);
+            fixed(byte* p = native_name.ToUTF8Z())
+                igExtSeparatorText((IntPtr)p);
         }
 	}
 }
