@@ -37,7 +37,6 @@ namespace LibreLancer
 				BlendMode.Additive,
                 angle
 			);
-            renderer.FillRectangle(new Rectangle(m.X, m.Y, 1,1), Color4.Red);
 		}
 	}
 }
