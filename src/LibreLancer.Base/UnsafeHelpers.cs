@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Buffers;
 using System.Text;
 using System.Runtime.InteropServices;
 namespace LibreLancer
@@ -35,6 +36,43 @@ namespace LibreLancer
             Marshal.Copy(bytes, 0, ptr, bytes.Length);
             ((byte*)ptr)[bytes.Length] = 0;
             return ptr;
+        }
+    }
+
+    public ref struct UTF8ZHelper
+    {
+        private byte[] poolArray;
+        private Span<byte> bytes;
+        private Span<byte> utf8z;
+        private bool used;
+        public UTF8ZHelper(Span<byte> initialBuffer, ReadOnlySpan<char> value)
+        {
+            poolArray = null;
+            bytes = initialBuffer;
+            used = false;
+            int maxSize = Encoding.UTF8.GetMaxByteCount(value.Length) + 1;
+            if (bytes.Length < maxSize) {
+                poolArray = ArrayPool<byte>.Shared.Rent(maxSize);
+                bytes = new Span<byte>(poolArray);
+            }
+            int byteCount = Encoding.UTF8.GetBytes(value, bytes);
+            bytes[byteCount] = 0;
+            utf8z = bytes.Slice(0, byteCount + 1);
+        }
+
+        public Span<byte> ToUTF8Z()
+        {
+            return utf8z;
+        }
+
+        public void Dispose()
+        {
+            byte[] toReturn = poolArray;
+            if (toReturn != null)
+            {
+                poolArray = null;
+                ArrayPool<byte>.Shared.Return(toReturn);
+            }
         }
     }
 }

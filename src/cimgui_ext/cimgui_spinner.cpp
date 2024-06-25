@@ -53,10 +53,58 @@ IGEXPORT bool igExtSpinner(const char* label, float radius, int thickness, int c
 	return true;
 }
 
+void RenderFrameExt(ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, ImDrawFlags border, float rounding)
+{
+    using namespace ImGui;
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    window->DrawList->AddRectFilled(p_min, p_max, fill_col, rounding, border);
+    const float border_size = g.Style.FrameBorderSize;
+    if (border && border_size > 0.0f)
+    {
+        window->DrawList->AddRect(p_min + ImVec2(1, 1), p_max + ImVec2(1, 1), GetColorU32(ImGuiCol_BorderShadow), rounding, border, border_size);
+        window->DrawList->AddRect(p_min, p_max, GetColorU32(ImGuiCol_Border), rounding, border, border_size);
+    }
+}
+
+IGEXPORT bool igButtonEx2(const char* label, float sizeX, float sizeY, int drawFlags)
+{
+    using namespace ImGui;
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const ImVec2 size_arg(sizeX, sizeY);
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+    const ImRect bb(pos, pos + size);
+    ItemSize(size, style.FramePadding.y);
+    if (!ItemAdd(bb, id))
+        return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, 0);
+
+    // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    RenderNavHighlight(bb, id);
+    RenderFrameExt(bb.Min, bb.Max, col, (ImDrawFlags)drawFlags, style.FrameRounding);
+
+    if (g.LogEnabled)
+        LogSetNextTextDecoration("[", "]");
+    RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+
+    return pressed;
+}
+
 IGEXPORT int igExtPlot(int plotType, const char* label, float (*values_getter)(void* data, int idx), int (*get_tooltip)(void* data, int idx, char* buffer), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, float size_x, float size_y)
 {
-
-
     using namespace ImGui;
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();

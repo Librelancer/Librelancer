@@ -588,6 +588,22 @@ namespace LancerEdit
                     }
                 }
 
+                if (selectedNode.Name.ToLowerInvariant() == "vmeshdata" &&
+                    ImGui.Button("Edit Materials"))
+                {
+                    VmsMaterialEditor dat = null;
+                    try
+                    {
+                        dat = new VmsMaterialEditor(selectedNode, main.Resources, this);
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorPopup(string.Format("Not a valid VMeshData node\n{0}\n{1}", ex.Message, ex.StackTrace));
+                    }
+                    if (dat != null)
+                        popups.OpenPopup(dat);
+                }
+
                 if (selectedNode.Name.ToLowerInvariant() == "vmeshref" &&
                     ImGui.Button("View VMeshRef"))
                 {

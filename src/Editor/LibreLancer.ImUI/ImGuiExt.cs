@@ -165,6 +165,43 @@ namespace LibreLancer.ImUI
             return r;
         }
 
+
+        [DllImport("cimgui")]
+        static extern unsafe bool igButtonEx2(byte* label, float sizeX, float sizeY, int drawFlags);
+
+        public static unsafe void ButtonDivided(string id, string label1, string label2, ref bool isOne)
+        {
+            ImGui.PushID(id);
+            Span<byte> bytes1 = stackalloc byte[512];
+            Span<byte> bytes2 = stackalloc byte[512];
+            using var z1 = new UTF8ZHelper(bytes1, label1);
+            using var z2 = new UTF8ZHelper(bytes2, label2);
+            var wasOne = isOne;
+            var style = ImGui.GetStyle();
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+            fixed (byte* a = &z1.ToUTF8Z()[0]) {
+                if (wasOne)
+                    ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
+                if (igButtonEx2(a, 0, 0, (int)ImDrawFlags.RoundCornersLeft))
+                {
+                    isOne = true;
+                }
+                if (wasOne)
+                    ImGui.PopStyleColor();
+            }
+            ImGui.SameLine();
+            ImGui.PopStyleVar();
+            fixed (byte* b = &z2.ToUTF8Z()[0]) {
+                if (!wasOne)
+                    ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
+                if (igButtonEx2(b, 0, 0, (int)ImDrawFlags.RoundCornersRight))
+                    isOne = false;
+                if (!wasOne)
+                    ImGui.PopStyleColor();
+            }
+            ImGui.PopID();
+        }
+
         public static void Checkbox(string label, ref bool v, bool enabled, string disableReason)
         {
             ImGui.BeginDisabled(!enabled);
