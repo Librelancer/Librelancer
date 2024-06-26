@@ -13,7 +13,9 @@ namespace LibreLancer
         bool inited = false;
 		public IntroMovie(FreelancerGame game, int index) : base(game)
         {
-            player = new VideoPlayer(game);
+            // Skip intro movies until VideoPlayer accepts Stream objects.
+            // See issue #128 for details
+            /*player = new VideoPlayer(game);
 			if ((inited = player.Init(game.RenderContext)) && game.IntroMovies.Count > 0)
             {
                 idx = index;
@@ -21,9 +23,9 @@ namespace LibreLancer
                 player.PlayFile(game.IntroMovies[index]);
             }
             else
-            {
+            {*/
                 Leave();
-            }
+            //}
 		}
 
 		public override void Draw(double delta)
