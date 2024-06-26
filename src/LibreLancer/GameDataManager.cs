@@ -279,7 +279,7 @@ namespace LibreLancer
                 {
                     case Data.Goods.GoodCategory.ShipHull:
                         hulls.Add(g.Nickname, g);
-                        shipToIcon[g.Ship] = DataPath(g.ItemIcon);
+                        shipToIcon[g.Ship] = g.ItemIcon;
                         shipPrices[g.Ship] = g.Price;
                         break;
                     case Data.Goods.GoodCategory.Ship:

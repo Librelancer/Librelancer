@@ -35,7 +35,7 @@ namespace LibreLancer.Client
             {
                 IdsName = ship.NameIds,
                 IdsInfo = ship.Infocard,
-                Model = ship.ModelFile.ModelFile,
+                Model = ship.ModelFile.SourcePath,
                 ShipClass = ship.Class,
                 Icon = session.Game.GameData.GetShipIcon(ship),
                 Price = session.ShipWorth,
