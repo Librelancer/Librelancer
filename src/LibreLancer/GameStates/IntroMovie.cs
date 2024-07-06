@@ -53,7 +53,7 @@ namespace LibreLancer
 		void Leave()
 		{
 			Game.Keyboard.KeyDown -= HandleKeyDown;
-			player.Dispose();
+			player?.Dispose();
 			if ((idx + 1) >= Game.IntroMovies.Count || !inited || Game.IntroMovies.Count <= 0)
 			{
 				Game.ChangeState(new LoadingDataState(Game));
