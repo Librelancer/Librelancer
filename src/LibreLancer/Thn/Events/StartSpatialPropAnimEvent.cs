@@ -116,10 +116,10 @@ namespace LibreLancer.Thn.Events
                 if (Duration < float.Epsilon)
                 {
                     if (hasPos) objA.Translate = Pos;
-                    if (hasQuat) objA.Rotate = Matrix4x4.CreateFromQuaternion(quat);
+                    if (hasQuat) objA.Rotate = quat;
                     if ((SetFlags & AnimVars.AxisRot) == AnimVars.AxisRot) {
                         var ogAxis = Vector3.Transform(AxisTable[(int)AxisRot.Axis], objA.Rotate);
-                        objA.Rotate = objA.Rotate * Matrix4x4.CreateFromAxisAngle(ogAxis, AxisRot.GetRads(1));
+                        objA.Rotate = objA.Rotate * Quaternion.CreateFromAxisAngle(ogAxis, AxisRot.GetRads(1));
                     }
                 }
                 else
@@ -145,7 +145,7 @@ namespace LibreLancer.Thn.Events
             public bool HasPos;
             public bool HasQuat;
             public AxisRotation AxisRot;
-            public Matrix4x4 OriginalRotate;
+            public Quaternion OriginalRotate;
             public ThnObject This;
 
             private double time;
@@ -155,12 +155,12 @@ namespace LibreLancer.Thn.Events
                 time = MathHelper.Clamp(time + delta, 0, Event.Duration);
 
                 if (HasPos) This.Translate = GetPosition(delta);
-                if (HasQuat) This.Rotate = Matrix4x4.CreateFromQuaternion(GetOrientation(delta));
+                if (HasQuat) This.Rotate = GetOrientation(delta);
                 if ((Event.SetFlags & AnimVars.AxisRot) == AnimVars.AxisRot)
                 {
                     var ogAxis = Vector3.Transform(AxisTable[(int)AxisRot.Axis], OriginalRotate);
                     This.Rotate = OriginalRotate *
-                                  Matrix4x4.CreateFromAxisAngle(ogAxis, AxisRot.GetRads((float) (time / Event.Duration)));
+                                  Quaternion.CreateFromAxisAngle(ogAxis, AxisRot.GetRads((float) (time / Event.Duration)));
                 }
                 return time < Event.Duration;
             }
@@ -182,7 +182,7 @@ namespace LibreLancer.Thn.Events
                 if (time >= Event.Duration) return end;
                 var pct = (float)(delta / (Event.Duration - time));
                 if (pct >= 1) return end;
-                return Quaternion.Slerp(This.Rotate.ExtractRotation(), end, pct);
+                return Quaternion.Slerp(This.Rotate, end, pct);
             }
             protected abstract Quaternion QEnd();
             protected abstract Vector3 PosEnd();
@@ -199,7 +199,7 @@ namespace LibreLancer.Thn.Events
             public ThnObject Follow;
             protected override Quaternion QEnd()
             {
-                return Follow.Rotate.ExtractRotation();
+                return Follow.Rotate;
             }
             protected override Vector3 PosEnd()
             {

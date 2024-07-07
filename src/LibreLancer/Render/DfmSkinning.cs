@@ -29,7 +29,7 @@ namespace LibreLancer.Render
 
             foreach (var kv in dfm.Parts)
             {
-                var inst = new BoneInstance(kv.Value.objectName, kv.Value.Bone.BoneToRoot, kv.Value.Bone.Min, kv.Value.Bone.Max);
+                var inst = new BoneInstance(kv.Value.objectName, Transform3D.FromMatrix(kv.Value.Bone.BoneToRoot), kv.Value.Bone.Min, kv.Value.Bone.Max);
                 instanceArray[kv.Key] = inst;
                 Bones.Add(inst.Name, inst);
             }
@@ -45,7 +45,7 @@ namespace LibreLancer.Render
                     parent.Children.Add(inst);
                     inst.Parent = parent;
                 }
-                inst.OriginalRotation = con.Rotation;
+                inst.OriginalRotation = Quaternion.CreateFromRotationMatrix(con.Rotation);
                 inst.Origin = con.Origin;
             }
             foreach (var b in Bones.Values)
@@ -109,17 +109,17 @@ namespace LibreLancer.Render
         public void UpdateBones()
         {
             foreach (var s in starts)
-                s.Update(Matrix4x4.Identity);
+                s.Update(Transform3D.Identity);
             UpdateBounds();
         }
 
-        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet, Matrix4x4? connectionBone = null)
+        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet, Transform3D? connectionBone = null)
         {
-            var cb = connectionBone ?? Matrix4x4.Identity;
+            var cb = connectionBone ?? Transform3D.Identity;
             for (int i = 0; i < instanceArray.Length; i++)
             {
                 if (instanceArray[i] != null) bonesBuffer.Data<Matrix4x4>(i+ offset) = instanceArray[i].BoneMatrix;
-                else bonesBuffer.Data<Matrix4x4>(i + offset) = cb;
+                else bonesBuffer.Data<Matrix4x4>(i + offset) = cb.Matrix();
             }
             BufferOffset = offset;
             offset += instanceArray.Length;
@@ -186,7 +186,7 @@ namespace LibreLancer.Render
                         continue;
                     var tr = instanceArray[i].LocalTransform;
                     var color = instanceArray[i].Name == lines.SkeletonHighlight ? Color4.White : Color4.Red;
-                    DrawCube(lines, tr * world, scale, color);
+                    DrawCube(lines, tr.Matrix() * world, scale, color);
                 }
             }
 
@@ -200,7 +200,7 @@ namespace LibreLancer.Render
                 {
                     if (Bones.TryGetValue(hp.Part.objectName, out BoneInstance bi))
                     {
-                        var tr = (hp.Hp.Transform * bi.LocalTransform) * world;
+                        var tr = (hp.Hp.Transform * bi.LocalTransform).Matrix() * world;
                         var color = hp.Hp.Name == lines.SkeletonHighlight ? Color4.White : Color4.Green;
                         DrawCube(lines, tr, scale, color);
                     }

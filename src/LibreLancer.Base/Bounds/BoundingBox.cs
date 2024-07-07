@@ -320,6 +320,21 @@ namespace LibreLancer
             return new BoundingBox(tmin, tmax);
         }
 
+        public static BoundingBox TransformAABB(BoundingBox original, Transform3D mat)
+        {
+            Span<Vector3> corners = stackalloc Vector3[CornerCount];
+            original.GetCorners(corners);
+            var tmin = mat.Transform(corners[0]);
+            var tmax = tmin;
+            for (int i = 1; i < CornerCount; i++)
+            {
+                var p = mat.Transform(corners[i]);
+                tmin = Vector3.Min(tmin, p);
+                tmax = Vector3.Max(tmax, p);
+            }
+            return new BoundingBox(tmin, tmax);
+        }
+
         public static void CreateMerged(ref BoundingBox original, ref BoundingBox additional, out BoundingBox result)
         {
             result.Min = Vector3.Min(original.Min, additional.Min);

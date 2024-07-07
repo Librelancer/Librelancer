@@ -20,7 +20,7 @@ namespace LibreLancer.Thn
 		public string MeshCategory;
         public string Actor;
 		public Vector3? Position;
-		public Matrix4x4? RotationMatrix;
+		public Quaternion Rotation = Quaternion.Identity;
 		public float? FovH;
 		public float? HVAspect;
         public float? NearPlane;

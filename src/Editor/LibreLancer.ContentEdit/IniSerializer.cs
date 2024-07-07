@@ -124,14 +124,21 @@ public static class IniSerializer
             sb.Entry("attenuation", lt.Light.Attenuation);
     }
 
-    static void SerializeRotation(IniBuilder.IniSectionBuilder sb, Matrix4x4? matrix)
+    static void SerializeRotation(IniBuilder.IniSectionBuilder sb, Matrix4x4 matrix)
     {
-        if (matrix == null) return;
-        var euler = matrix.Value.GetEulerDegrees();
+        var euler = matrix.GetEulerDegrees();
         var ln = euler.Length();
-        if (!float.IsNaN(ln) && ln > 0)
+        if (!float.IsNaN(ln) && ln > float.Epsilon)
             sb.Entry("rotate", euler);
     }
+    static void SerializeRotation(IniBuilder.IniSectionBuilder sb, Quaternion rotation)
+    {
+        var euler = Matrix4x4.CreateFromQuaternion(rotation).GetEulerDegrees();
+        var ln = euler.Length();
+        if (!float.IsNaN(ln) && ln > float.Epsilon)
+            sb.Entry("rotate", euler);
+    }
+
 
     static void SerializeZone(Zone z, IniBuilder builder)
     {

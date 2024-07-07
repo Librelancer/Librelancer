@@ -113,7 +113,7 @@ namespace LibreLancer.World.Components
         Vector3 GetTargetPoint()
         {
             if (_targetObject == null) return _targetPosition;
-            return _targetObject.PhysicsComponent == null ? Vector3.Transform(Vector3.Zero,_targetObject.WorldTransform) : _targetObject.PhysicsComponent.Body.Position;
+            return _targetObject.WorldTransform.Position;
         }
 
         float GetTargetRadius()
@@ -159,7 +159,7 @@ namespace LibreLancer.World.Components
 				}
                 var hp = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Skip(lastTargetHp).First();
 				radius = 5;
-                targetPoint = Vector3.Transform(Vector3.Zero, hp.Transform * _targetObject.WorldTransform);
+                targetPoint = (hp.Transform * _targetObject.WorldTransform).Position;
 				if (lastTargetHp > 0) maxSpeed = 0.3f;
 				if (lastTargetHp == 2) radius = docking.TriggerRadius;
                 var d2 = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();

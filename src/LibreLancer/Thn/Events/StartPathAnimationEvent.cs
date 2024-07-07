@@ -60,22 +60,18 @@ namespace LibreLancer.Thn.Events
             {
                 float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, t);
                 var path = Path.Entity.Path;
-                var mat = Path.Rotate * Matrix4x4.CreateTranslation(Path.Translate);
-                var pos = Vector3.Transform(path.GetPosition(pct) + Event.Offset, mat);
                 if ((Event.Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
-                    var orient = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(path.GetDirection(pct, Event.StartPercent > Event.StopPercent), Vector3.UnitY)) * Path.Rotate;
-                    Object.Rotate = orient;
+                    Object.Rotate =QuaternionEx.LookRotation(path.GetDirection(pct, Event.StartPercent > Event.StopPercent), Vector3.UnitY) * Path.Rotate;
                 }
                 else if ((Event.Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
                 {
-                    var orient = Matrix4x4.CreateFromQuaternion(path.GetOrientation(pct)) * Path.Rotate;
-                    Object.Rotate = orient;
+                    Object.Rotate = path.GetOrientation(pct) * Path.Rotate;
                 }
 
                 if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
                 {
-                    Object.Translate = pos;
+                    Object.Translate = new Transform3D(Path.Translate, Path.Rotate).Transform(path.GetPosition(pct) + Event.Offset);
                 }
             }
         }

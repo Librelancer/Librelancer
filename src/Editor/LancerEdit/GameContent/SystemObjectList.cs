@@ -32,7 +32,7 @@ public class SystemObjectList
 
     public void SelectSingle(GameObject obj)
     {
-        SelectedTransform = obj?.LocalTransform ?? Matrix4x4.Identity;
+        SelectedTransform = (obj?.LocalTransform ?? Transform3D.Identity).Matrix();
         if (Selection.Count > 0)
             Selection = new List<GameObject>();
         if(obj != null)

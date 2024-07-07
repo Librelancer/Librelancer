@@ -18,7 +18,7 @@ namespace LibreLancer.GameData.World
         public Sun Star;
 		public Vector3 Position = Vector3.Zero;
         public Vector3 Spin = Vector3.Zero;
-		public Matrix4x4? Rotation;
+		public Quaternion Rotation = Quaternion.Identity;
         public ObjectLoadout Loadout;
 		public DockAction Dock;
         public Faction Reputation;
@@ -27,7 +27,7 @@ namespace LibreLancer.GameData.World
         public int TradelaneSpaceName;
         public int IdsLeft;
         public int IdsRight;
-        
+
         //Properties not yet used in game, but copied from ini for round trip support
         public Pilot Pilot;
         public Faction Faction;
@@ -40,7 +40,7 @@ namespace LibreLancer.GameData.World
         public string Parent;
         public string Voice;
         public string[] SpaceCostume;
-        
+
         //Editor only
         public string Comment;
 

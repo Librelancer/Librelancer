@@ -33,7 +33,7 @@ namespace LibreLancer.Client.Components
 			else if (Action.Kind == DockKinds.Tradelane)
 			{
 				var heading = position - Parent.PhysicsComponent.Body.Position;
-                var fwd = Parent.PhysicsComponent.Body.Transform.GetForward();
+                var fwd = Vector3.Transform(-Vector3.UnitZ, Parent.PhysicsComponent.Body.Orientation);
 				var dot = Vector3.Dot(heading, fwd);
 				if (dot > 0)
 				{

@@ -16,11 +16,11 @@ namespace LibreLancer.Utf
         public string ParentName { get; set; }
         public string ChildName { get; set; }
         public Vector3 Origin { get; set; }
-        public Matrix4x4 Rotation { get; set; }
+        public Quaternion Rotation { get; set; }
 
-        public abstract Matrix4x4 LocalTransform { get; }
+        public abstract Transform3D LocalTransform { get; }
 
-        public Matrix4x4? OverrideTransform;
+        public Transform3D? OverrideTransform;
 
         protected AbstractConstruct()
         {
@@ -29,7 +29,7 @@ namespace LibreLancer.Utf
         protected AbstractConstruct(BinaryReader reader)
         {
             if (reader == null) throw new ArgumentNullException("reader");
-            
+
             byte[] buffer = new byte[STR_LENGTH];
 
             reader.Read(buffer, 0, STR_LENGTH);
@@ -53,11 +53,11 @@ namespace LibreLancer.Utf
 
         public abstract AbstractConstruct Clone();
 
-        protected Matrix4x4 internalGetTransform(Matrix4x4 matrix)
+        protected Transform3D internalGetTransform(Transform3D tr)
         {
             if (OverrideTransform != null)
-                matrix = OverrideTransform.Value;
-            return matrix;
+                tr = OverrideTransform.Value;
+            return tr;
         }
         public abstract void Reset();
         public abstract void Update(float distance, Quaternion quat);

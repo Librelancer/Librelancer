@@ -26,7 +26,7 @@ public class EditMap2D
     public float Zoom = 1;
 
     private GameObject dragTarget;
-    private Matrix4x4 dragOriginalTransform;
+    private Transform3D dragOriginalTransform;
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab)
     {
         var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
@@ -102,7 +102,7 @@ public class EditMap2D
         {
             if (obj.SystemObject == null)
                 continue;
-            var objPos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
+            var objPos = obj.LocalTransform.Position;
             ImGui.SetCursorPos(WorldToMap(objPos) - new Vector2(buttonSize * 0.5f));
             var id = $"##{obj.Nickname}";
             ImGui.PushStyleColor(ImGuiCol.Button, Color4.LightGray);
@@ -119,9 +119,7 @@ public class EditMap2D
                 var delta = (ImGui.GetIO().MouseDelta / new Vector2(renderWidth, renderHeight)) * mapScale;
                 Console.WriteLine($"dragging {delta}");
                 objPos += new Vector3(delta.X, 0, delta.Y);
-                var rot = obj.LocalTransform.ExtractRotation();
-                obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) *
-                                      Matrix4x4.CreateTranslation(objPos));
+                obj.SetLocalTransform(new Transform3D(objPos, obj.LocalTransform.Orientation));
                 dragCurrent = obj;
             }
 

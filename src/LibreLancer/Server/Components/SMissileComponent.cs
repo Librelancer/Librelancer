@@ -11,7 +11,7 @@ public class SMissileComponent : GameComponent
     public GameObject Owner;
 
     public float Speed = 0;
-    
+
     PIDController pitchControl = new PIDController() { P = 1 };
     PIDController yawControl = new PIDController() { P = 1 };
 
@@ -22,38 +22,38 @@ public class SMissileComponent : GameComponent
 
     private double totalTime;
     private Quaternion guidedRotation;
-    
+
     public override void Update(double time)
     {
         totalTime += time;
         if (Missile.Motor != null) DoMotor(time);
-        
-        var phys = Parent.PhysicsComponent;
-        phys.Body.LinearVelocity = Parent.LocalTransform.GetForward() * Speed;
 
-        if (Target != null && 
+        var phys = Parent.PhysicsComponent;
+        phys.Body.LinearVelocity = Vector3.Transform(-Vector3.UnitZ, Parent.LocalTransform.Orientation) * Speed;
+
+        if (Target != null &&
             !Target.Flags.HasFlag(GameObjectFlags.Exists))
         {
             Target = null;
         }
-        
+
         if (Target != null)
         {
-            TurnTowards(time, Vector3.Transform(Vector3.Zero, Target.LocalTransform));
+            TurnTowards(time, Target.LocalTransform.Position);
         }
-        
+
         if (Missile.Def.MaxAngularVelocity > 0 &&
             phys.Body.AngularVelocity.Length() > Missile.Def.MaxAngularVelocity)
         {
             phys.Body.AngularVelocity =
                 phys.Body.AngularVelocity.Normalized() * Missile.Def.MaxAngularVelocity;
         }
-        
+
         if (totalTime > Missile.Def.Lifetime) {
             Parent.World.Server.ExplodeMissile(Parent); //Todo: does this do damage?
         }
     }
-    
+
     void TurnTowards(double dt, Vector3 targetPoint)
     {
         //Orientation
@@ -71,7 +71,7 @@ public class SMissileComponent : GameComponent
         angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1);
         Parent.PhysicsComponent.Body.AddTorque(angularForce);
     }
-    
+
 
     void DoMotor(double time)
     {

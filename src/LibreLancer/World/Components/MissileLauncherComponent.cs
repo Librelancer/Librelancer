@@ -92,8 +92,7 @@ namespace LibreLancer.World.Components
                 //Play sound locally for latency reasons,
                 //we won't play it again for missiles owned by us
                 var tr = hpFire.Transform * (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
-                var pos = Vector3.Transform(Vector3.Zero, tr);
-                world.Projectiles.PlayProjectileSound(Parent.Parent, Object.Munition.Def.OneShotSound, pos, hp);
+                world.Projectiles.PlayProjectileSound(Parent.Parent, Object.Munition.Def.OneShotSound, tr.Position, hp);
                 if (!string.IsNullOrEmpty(hp))
                 {
                     world.Projectiles.QueueMissile(hp, target ?? GetTarget());

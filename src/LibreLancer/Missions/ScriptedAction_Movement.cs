@@ -116,8 +116,8 @@ namespace LibreLancer.Missions
                 runtime.Player.MissionWorldAction(() =>
                 {
                     var obj = runtime.Player.Space.World.GameWorld.GetObject(Ship);
-                    var quat = Orientation ?? obj.LocalTransform.ExtractRotation();
-                    obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat) * Matrix4x4.CreateTranslation(Position));
+                    var quat = Orientation ?? obj.LocalTransform.Orientation;
+                    obj.SetLocalTransform(new Transform3D(Position, quat));
                 });
             }
         }

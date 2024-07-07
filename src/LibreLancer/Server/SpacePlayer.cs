@@ -30,8 +30,8 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var obj = World.Players[player];
-            var rot = orientation ?? obj.LocalTransform.ExtractRotation();
-            obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(rot) * Matrix4x4.CreateTranslation(position));
+            var rot = orientation ?? obj.LocalTransform.Orientation;
+            obj.SetLocalTransform(new Transform3D(position, rot));
         });
     }
 

@@ -81,7 +81,7 @@ namespace LibreLancer.Server.Components
 			else if (Action.Kind == DockKinds.Tradelane)
 			{
 				var heading = position - Parent.PhysicsComponent.Body.Position;
-                var fwd = Parent.PhysicsComponent.Body.Transform.GetForward();
+                var fwd = Vector3.Transform(-Vector3.UnitZ, Parent.PhysicsComponent.Body.Orientation);
 				var dot = Vector3.Dot(heading, fwd);
 				if (dot > 0)
 				{
@@ -99,10 +99,10 @@ namespace LibreLancer.Server.Components
             float animRadius = 30;
             if (Action.Kind == DockKinds.Tradelane) animRadius = 300;
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
-            var pos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
+            var pos = obj.WorldTransform.Position;
 			foreach (var hps in GetDockHardpoints(i, pos))
             {
-                var targetPos = Vector3.Transform(Vector3.Zero, hps.Transform * Parent.WorldTransform);
+                var targetPos = (hps.Transform * Parent.WorldTransform).Position;
 				var dist = (targetPos - pos).Length();
 				if (dist < animRadius + rad)
 				{
@@ -116,10 +116,10 @@ namespace LibreLancer.Server.Components
         bool CanDock(int i, GameObject obj, string tlHP = null)
 		{
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
-            var pos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
+            var pos = obj.WorldTransform.Position;
 
 			var hp = Parent.GetHardpoint(tlHP ?? DockPoints[i].DockSphere.Hardpoint);
-			var targetPos = Vector3.Transform(Vector3.Zero, hp.Transform * Parent.WorldTransform);
+            var targetPos = (hp.Transform * Parent.WorldTransform).Position;
 			if ((targetPos - pos).Length() < (DockPoints[i].DockSphere.Radius * 2 + rad))
 			{
 				return true;
@@ -163,7 +163,7 @@ namespace LibreLancer.Server.Components
 
         public void StartDock(GameObject obj, int index)
         {
-            var pos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
+            var pos = obj.WorldTransform.Position;
             if (Action.Kind == DockKinds.Tradelane)
             {
                 activeDockings.Add(new DockingAction()

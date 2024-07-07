@@ -1,5 +1,6 @@
 using System.IO.Enumeration;
 using System.Numerics;
+using LibreLancer;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
@@ -16,16 +17,16 @@ public abstract class SysObjectModification<T>(GameObject target, T old, T updat
         $"{name}: {Target.Nickname ?? "No Nickname"}\nOld: {Print(Old)}\nUpdated: {Print(Updated)}";
 }
 
-public class ObjectSetTransform(GameObject target, Matrix4x4 old, Matrix4x4 updated, SystemObjectList objList)
-    : SysObjectModification<Matrix4x4>(target, old, updated, "SetTransform")
+public class ObjectSetTransform(GameObject target, Transform3D old, Transform3D updated, SystemObjectList objList)
+    : SysObjectModification<Transform3D>(target, old, updated, "SetTransform")
 {
-    public override void Set(Matrix4x4 value)
+    public override void Set(Transform3D value)
     {
         Target.SetLocalTransform(value);
         Target.GetEditData();
         Target.UpdateDirty();
         if (objList.Selection.Count > 0 && objList.Selection[0] == Target)
-            objList.SelectedTransform = value;
+            objList.SelectedTransform = value.Matrix();
     }
 }
 

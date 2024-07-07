@@ -59,15 +59,8 @@ namespace LibreLancer.ContentEdit.Model
             writer.Write(con.Max);
         }
     }
-    public class FixConstructor : PartNodeConstructor 
-    { 
-        public void Add(string parentName, string objectName, Matrix4x4 transform)
-        {
-            var origin = transform.Translation;
-            var rotate = Matrix4x4.CreateFromQuaternion(transform.ExtractRotation());
-            StartAdd(parentName, objectName, origin);
-            WriteMatrix3x3(rotate);
-        }
+    public class FixConstructor : PartNodeConstructor
+    {
         public void Add(FixConstruct con)
         {
             StartAdd(con.ParentName, con.ChildName, con.Origin);
@@ -101,8 +94,9 @@ namespace LibreLancer.ContentEdit.Model
             writer.Write(origin.Y);
             writer.Write(origin.Z);
         }
-        protected void WriteMatrix3x3(Matrix4x4 mat)
+        protected void WriteMatrix3x3(Quaternion q)
         {
+            var mat = Matrix4x4.CreateFromQuaternion(q);
             writer.Write(mat.M11);
             writer.Write(mat.M21);
             writer.Write(mat.M31);

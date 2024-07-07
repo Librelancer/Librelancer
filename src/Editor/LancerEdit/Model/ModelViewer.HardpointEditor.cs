@@ -285,7 +285,7 @@ namespace LancerEdit
                 return false;
             var v = camera.View;
             var p = camera.Projection;
-            var parentMatrix = (hpEditing.Parent.LocalTransform * GetModelMatrix());
+            var parentMatrix = (hpEditing.Parent.LocalTransform.Matrix() * GetModelMatrix());
             Matrix4x4.Invert(parentMatrix, out var invParentMatrix);
 
             var mode = ImGui.GetIO().KeyCtrl ? GuizmoMode.WORLD : GuizmoMode.LOCAL;

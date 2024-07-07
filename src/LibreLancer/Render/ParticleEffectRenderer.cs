@@ -56,7 +56,7 @@ namespace LibreLancer.Render
 		{
             if (fx == null) return;
             if (Attachment != null) {
-                transform = Attachment.Transform * transform;
+                transform = Attachment.Transform.Matrix() * transform;
                 position = Vector3.Transform(Vector3.Zero, transform);
             }
 			pos = position;

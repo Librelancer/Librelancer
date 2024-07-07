@@ -167,8 +167,8 @@ namespace LibreLancer
         public List<Hardpoint> Hardpoints;
         public AbstractConstruct Construct;
 
-        private Matrix4x4 localTransform = Matrix4x4.Identity;
-        public Matrix4x4 LocalTransform => localTransform;
+        private Transform3D localTransform = Transform3D.Identity;
+        public Transform3D LocalTransform => localTransform;
 
         public RigidModelPart Clone(bool withChildren = false)
         {
@@ -195,7 +195,7 @@ namespace LibreLancer
             if (Mesh == null) return 1;
             return Mesh.Radius;
         }
-        public void UpdateTransform(Matrix4x4 parent)
+        public void UpdateTransform(Transform3D parent)
         {
             if (Construct != null)
                 localTransform = Construct.LocalTransform * parent;
@@ -211,8 +211,8 @@ namespace LibreLancer
         internal void CalculateBoundingBox(ref Vector3 min, ref Vector3 max)
         {
             if (Mesh == null) return;
-            var bmin = Vector3.Transform(Mesh.BoundingBox.Min, localTransform);
-            var bmax = Vector3.Transform(Mesh.BoundingBox.Max, localTransform);
+            var bmin = localTransform.Transform(Mesh.BoundingBox.Min);
+            var bmax = localTransform.Transform(Mesh.BoundingBox.Max);
             min = Vector3.Min(min, bmin);
             max = Vector3.Max(max, bmax);
         }
@@ -239,7 +239,7 @@ namespace LibreLancer
         public Dictionary<string, RigidModelPart> Parts;
         public void UpdateTransform()
         {
-            Root?.UpdateTransform(Matrix4x4.Identity);
+            Root?.UpdateTransform(Transform3D.Identity);
         }
         public void Update(double globalTime)
         {
@@ -264,7 +264,7 @@ namespace LibreLancer
             {
                 var p = AllParts[i];
                 if (p.Mesh == null) continue;
-                var d = Vector3.Transform(p.Mesh.Center, p.LocalTransform).Length();
+                var d = p.LocalTransform.Transform(p.Mesh.Center).Length();
                 var r = p.GetRadius();
                 f = Math.Max(f, d + r);
             }
@@ -277,7 +277,7 @@ namespace LibreLancer
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
-                    var w = AllParts[i].LocalTransform * world;
+                    var w = AllParts[i].LocalTransform.Matrix() * world;
                     AllParts[i].Mesh.DrawImmediate(0, res, rstate, w, ref lights, MaterialAnims, userData, overrideMat);
                 }
             }
@@ -289,7 +289,7 @@ namespace LibreLancer
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
-                    var w = AllParts[i].LocalTransform * world;
+                    var w = AllParts[i].LocalTransform.Matrix() * world;
                     AllParts[i].Mesh.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, userData, overrideMat);
                 }
             }
@@ -312,7 +312,7 @@ namespace LibreLancer
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
-                    var w = AllParts[i].LocalTransform * world;
+                    var w = AllParts[i].LocalTransform.Matrix() * world;
                     AllParts[i].Mesh.DrawBuffer(GetLevel(AllParts[i].Mesh.Switch2, dist), res, buffer, w, ref lights, MaterialAnims, userData, overrideMat);
                 }
             }

@@ -84,7 +84,7 @@ namespace LibreLancer.Render
                 {
                     if (!part.Active) continue;
                     if (part.Mesh == null) continue;
-                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform * World);
+                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * World);
                     var lvl = GetLevel(part, center, camera.Position);
                     if (lvl != -1)
                     {
@@ -137,7 +137,7 @@ namespace LibreLancer.Render
                 {
                     var part = Model.AllParts[i];
                     if(!part.Active || part.Mesh == null) continue;
-                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform * World);
+                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * World);
                     var lvl = GetLevel(part, center, camera.Position);
                     if (lvl != -1)
                     {
@@ -162,7 +162,7 @@ namespace LibreLancer.Render
                 {
                     if (!visibleParts[i]) continue;
                     var part = Model.AllParts[i];
-                    var w = part.LocalTransform * World;
+                    var w = part.LocalTransform.Matrix() * World;
                     var center = Vector3.Transform(part.Mesh.Center, w);
                     var lvl = GetLevel(part, center, camera.Position);
                     if (lvl == -1) continue;

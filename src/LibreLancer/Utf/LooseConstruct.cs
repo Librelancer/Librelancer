@@ -10,14 +10,14 @@ namespace LibreLancer.Utf
 {
     public class LooseConstruct : AbstractConstruct
     {
-        public override Matrix4x4 LocalTransform { get { return internalGetTransform(Rotation * Matrix4x4.CreateTranslation(Origin)); } }
+        public override Transform3D LocalTransform { get { return internalGetTransform(new Transform3D(Origin, Rotation)); } }
 
         public LooseConstruct() { }
 
         public LooseConstruct(BinaryReader reader)
             : base(reader)
         {
-            Rotation = ConvertData.ToMatrix3x3(reader);
+            Rotation = ConvertData.ToMatrix3x3(reader).ExtractRotation();
         }
 
 		protected LooseConstruct(LooseConstruct cf) : base(cf) { }

@@ -11,34 +11,34 @@ namespace LibreLancer.Render
     {
         public string Name;
         public BoneInstance Parent;
-        public Matrix4x4 InvBindPose;
+        public Transform3D InvBindPose;
         public Matrix4x4 BoneMatrix = Matrix4x4.Identity;
-        public Matrix4x4 OriginalRotation = Matrix4x4.Identity;
+        public Quaternion OriginalRotation = Quaternion.Identity;
         public Vector3 Origin = Vector3.Zero;
         public Quaternion Rotation = Quaternion.Identity;
         public Vector3 Translation = Vector3.Zero;
         public List<BoneInstance> Children = new();
-        public Matrix4x4 LocalTransform;
+        public Transform3D LocalTransform;
         public BoundingBox BoundingBox;
 
         private Vector3 bMin;
         private Vector3 bMax;
 
-        public BoneInstance(string name, Matrix4x4 boneToRoot, Vector3 bMin, Vector3 bMax)
+        public BoneInstance(string name, Transform3D boneToRoot, Vector3 bMin, Vector3 bMax)
         {
             Name = name;
             LocalTransform = boneToRoot;
-            Matrix4x4.Invert(boneToRoot, out InvBindPose);
-            this.bMin = Vector3.Transform(bMin, InvBindPose);
-            this.bMax = Vector3.Transform(bMax, InvBindPose);
+            InvBindPose = boneToRoot.Inverse();
+            this.bMin = InvBindPose.Transform(bMin);
+            this.bMax = InvBindPose.Transform(bMax);
             BoundingBox = BoundingBox.TransformAABB(new BoundingBox(bMin, bMax), LocalTransform);
         }
 
-        public void Update(Matrix4x4 parentMatrix)
+        public void Update(Transform3D parentMatrix)
         {
-            LocalTransform = Matrix4x4.CreateFromQuaternion(Rotation) *
-                        (OriginalRotation * Matrix4x4.CreateTranslation(Translation + Origin)) * parentMatrix;
-            BoneMatrix = InvBindPose * LocalTransform;
+            LocalTransform = new Transform3D(Vector3.Zero, Rotation) *
+                             new Transform3D( Translation + Origin, OriginalRotation) * parentMatrix;
+            BoneMatrix = (InvBindPose * LocalTransform).Matrix();
             foreach (var b in Children)
                 b.Update(LocalTransform);
             BoundingBox = BoundingBox.TransformAABB(new BoundingBox(bMin, bMax), LocalTransform);

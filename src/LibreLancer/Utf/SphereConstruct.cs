@@ -20,12 +20,12 @@ namespace LibreLancer.Utf
         public float Min3 { get; set; }
         public float Max3 { get; set; }
 
-        public override Matrix4x4 LocalTransform
+        public override Transform3D LocalTransform
         {
-            get { return internalGetTransform(quatRot * Rotation * Matrix4x4.CreateTranslation(Origin + Offset)); }
+            get { return internalGetTransform( new Transform3D(Origin + Offset, Quaternion.Concatenate(quatRot, Rotation))); }
         }
 
-        private Matrix4x4 quatRot = Matrix4x4.Identity;
+        private Quaternion quatRot = Quaternion.Identity;
 
         public SphereConstruct()
         {
@@ -35,7 +35,7 @@ namespace LibreLancer.Utf
             : base(reader)
         {
             Offset = ConvertData.ToVector3(reader);
-            Rotation = ConvertData.ToMatrix3x3(reader);
+            Rotation = ConvertData.ToMatrix3x3(reader).ExtractRotation();
 
             Min1 = reader.ReadSingle();
             Max1 = reader.ReadSingle();
@@ -59,11 +59,11 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            quatRot = Matrix4x4.Identity;
+            quatRot = Quaternion.Identity;
         }
         public override void Update(float distance, Quaternion quat)
         {
-            quatRot = Matrix4x4.CreateFromQuaternion(quat);
+            quatRot = quat;
         }
     }
 }

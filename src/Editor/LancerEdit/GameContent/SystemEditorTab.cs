@@ -407,8 +407,7 @@ public class SystemEditorTab : GameContentTab
     void MoveCameraTo(GameObject obj)
     {
         var r = (obj.RenderComponent as ModelRenderer)?.Model?.GetRadius() ?? 10f;
-        var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
-        viewport.CameraOffset = pos + new Vector3(0, 0, -r * 3.5f);
+        viewport.CameraOffset = obj.LocalTransform.Position + new Vector3(0, 0, -r * 3.5f);
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
     }
 
@@ -508,7 +507,7 @@ public class SystemEditorTab : GameContentTab
             sel.Unregister(World.Physics);
             World.RemoveObject(sel);
             sel = World.NewObject(sel.SystemObject, Data.Resources, false);
-            ObjectsList.SelectedTransform = sel.LocalTransform;
+            ObjectsList.SelectedTransform = sel.LocalTransform.Matrix();
             ObjectsList.SelectSingle(sel);
             ObjectsList.SetObjects(World);
         }
@@ -532,13 +531,13 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Position
-        var pos = Vector3.Transform(Vector3.Zero, sel.LocalTransform);
+        var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
         Controls.PropertyRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
         Controls.PropertyRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
         if (ImGui.Button("0##rot"))
         {
-            UndoBuffer.Commit(new ObjectSetTransform(sel, sel.LocalTransform, Matrix4x4.CreateTranslation(pos),
+            UndoBuffer.Commit(new ObjectSetTransform(sel, sel.LocalTransform, new Transform3D(pos, Quaternion.Identity),
                 ObjectsList));
         }
 
@@ -717,7 +716,7 @@ public class SystemEditorTab : GameContentTab
                         World.RemoveObject(sel);
                         sel = World.NewObject(sel.SystemObject, Data.Resources, false);
                         if (i == 0)
-                            ObjectsList.SelectedTransform = sel.LocalTransform;
+                            ObjectsList.SelectedTransform = sel.LocalTransform.Matrix();
                         ObjectsList.Selection[i] = sel;
                     }
 
@@ -1033,7 +1032,7 @@ public class SystemEditorTab : GameContentTab
             var rc = obj.RenderComponent as ModelRenderer;
             if (rc == null) continue;
             var bbox = rc.Model.GetBoundingBox();
-            EditorPrimitives.DrawBox(renderer.DebugRenderer, bbox, obj.LocalTransform, Color4.White);
+            EditorPrimitives.DrawBox(renderer.DebugRenderer, bbox, obj.LocalTransform.Matrix(), Color4.White);
         }
 
         if (LightsList.Selected != null && LightsMode)
@@ -1110,7 +1109,7 @@ public class SystemEditorTab : GameContentTab
         return m + "_01";
     }
 
-    record ObjectClipboardItem(ObjectEditData EditData, Matrix4x4 Transform)
+    record ObjectClipboardItem(ObjectEditData EditData, Transform3D Transform)
     {
         //MakeCopy() after new object data to clone the SystemObject - detaches from world state
         public static ObjectClipboardItem Create(GameObject obj)
@@ -1167,7 +1166,7 @@ public class SystemEditorTab : GameContentTab
             UndoBuffer.Commit(EditorAggregateAction.Create(sel.ToArray()));
             ObjectsList.SetObjects(World);
             ObjectsList.Selection = sel.Select(x => x.Object).ToList();
-            ObjectsList.SelectedTransform = ObjectsList.Selection[0].LocalTransform;
+            ObjectsList.SelectedTransform = ObjectsList.Selection[0].LocalTransform.Matrix();
         }
     }
 
@@ -1277,8 +1276,8 @@ public class SystemEditorTab : GameContentTab
     private bool ObjectMode => openTabs[1];
     private bool LightsMode => openTabs[2];
 
-    private List<(GameObject Object, Matrix4x4 Transform)> originalObjTransforms =
-        new List<(GameObject Object, Matrix4x4 Transform)>();
+    private List<(GameObject Object, Transform3D Transform)> originalObjTransforms =
+        new List<(GameObject Object, Transform3D Transform)>();
 
     private bool manipulatingObjects = false;
 
@@ -1306,7 +1305,7 @@ public class SystemEditorTab : GameContentTab
                 for (int i = 0; i < ObjectsList.Selection.Count; i++)
                 {
                     ObjectsList.Selection[i]
-                        .SetLocalTransform(ImGuizmo.ApplyDelta(ObjectsList.Selection[i].LocalTransform, delta, op));
+                        .SetLocalTransform(Transform3D.FromMatrix(ImGuizmo.ApplyDelta(ObjectsList.Selection[i].LocalTransform.Matrix(), delta, op)));
                     GetEditData(ObjectsList.Selection[i]);
                 }
             }

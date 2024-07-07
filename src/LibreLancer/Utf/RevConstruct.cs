@@ -16,16 +16,16 @@ namespace LibreLancer.Utf
         public float Min { get; set; }
         public float Max { get; set; }
 
-        private Matrix4x4 currentTransform = Matrix4x4.Identity;
+        private Quaternion currentTransform = Quaternion.Identity;
 
-		public override Matrix4x4 LocalTransform { get { return internalGetTransform((Rotation * currentTransform) * Matrix4x4.CreateTranslation(Origin + Offset)); } }
+        public override Transform3D LocalTransform => internalGetTransform(new Transform3D(Origin + Offset, Rotation * currentTransform));
 
         public RevConstruct() : base() {}
 
         public RevConstruct(BinaryReader reader) : base(reader)
         {
             Offset = ConvertData.ToVector3(reader);
-            Rotation = ConvertData.ToMatrix3x3(reader);
+            Rotation = ConvertData.ToMatrix3x3(reader).ExtractRotation();
             AxisRotation = ConvertData.ToVector3(reader);
 
             Min = reader.ReadSingle();
@@ -44,13 +44,13 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            currentTransform = Matrix4x4.Identity;
+            currentTransform = Quaternion.Identity;
         }
         public float Current = 0;
         public override void Update(float distance, Quaternion quat)
         {
             Current = MathHelper.Clamp(distance, Min, Max);
-			currentTransform = Matrix4x4.CreateFromAxisAngle(AxisRotation, Current);
+			currentTransform = Quaternion.CreateFromAxisAngle(AxisRotation, Current);
         }
     }
 }

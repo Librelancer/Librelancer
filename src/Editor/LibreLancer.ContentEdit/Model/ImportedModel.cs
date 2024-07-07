@@ -131,7 +131,7 @@ public class ImportedModel
             var con = node.Construct.Clone();
             var p = tr != null ? tr.Keyframes[0].Translation : con.Origin;
             var r = rot != null
-                ? Matrix4x4.CreateFromQuaternion(rot.Keyframes[0].Rotation)
+                ? rot.Keyframes[0].Rotation
                 : con.Rotation;
             con.Rotation = r;
             con.Origin = p;
@@ -187,7 +187,7 @@ public class ImportedModel
 
     static (AbstractConstruct, bool) GetConstruct(ModelNode node, string childName, string parentName)
     {
-        var rot = Matrix4x4.CreateFromQuaternion(node.Transform.ExtractRotation());
+        var rot = node.Transform.ExtractRotation();
         var origin = Vector3.Transform(Vector3.Zero, node.Transform);
         bool propsSet = false;
         if (!node.Properties.TryGetValue("construct", out var construct) ||

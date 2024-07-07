@@ -39,16 +39,16 @@ namespace LibreLancer.Physics
 
         //Helper functions for dealing with compound parts
         //Keeps index order valid for managing the hierarchy
-        void AddCompoundPart(TypedIndex shape, Vector3 offset, Matrix4x4 transform)
+        void AddCompoundPart(TypedIndex shape, Vector3 offset, Transform3D transform)
         {
-            var pose = (Matrix4x4.CreateTranslation(offset) * transform).ToPose();
+            var t = new Transform3D(offset, Quaternion.Identity) * transform;
             partOffsets.Add(offset);
             if (Handle.Exists)
             {
                 BepuBigCompound().Add(new CompoundChild()
                 {
-                    LocalOrientation = pose.Orientation,
-                    LocalPosition = pose.Position,
+                    LocalOrientation = t.Orientation,
+                    LocalPosition = t.Position,
                     ShapeIndex = shape,
                 }, pool, sim.Shapes);
                 childIndices.Add(BepuBigCompound().Children.Length - 1);
@@ -57,8 +57,8 @@ namespace LibreLancer.Physics
             {
                 childBuilder.Add(new CompoundChild()
                 {
-                    LocalOrientation = pose.Orientation,
-                    LocalPosition = pose.Position,
+                    LocalOrientation = t.Orientation,
+                    LocalPosition = t.Position,
                     ShapeIndex = shape
                 }, pool);
                 childIndices.Add(childBuilder.Count - 1);
@@ -88,19 +88,19 @@ namespace LibreLancer.Physics
             partOffsets.RemoveAt(index);
         }
 
-        void UpdateCompoundTransform(int index, Matrix4x4 transform)
+        void UpdateCompoundTransform(int index, Transform3D transform)
         {
-            var pose = (Matrix4x4.CreateTranslation(partOffsets[index]) * transform).ToPose();
+            var t = new Transform3D(partOffsets[index], Quaternion.Identity) * transform;
             if (Handle.Exists)
             {
                 ref var child = ref BepuBigCompound().Children[childIndices[index]];
-                child.LocalOrientation = pose.Orientation;
-                child.LocalPosition = pose.Position;
+                child.LocalOrientation = t.Orientation;
+                child.LocalPosition = t.Position;
             }
             else
             {
-                childBuilder[index].LocalOrientation = pose.Orientation;
-                childBuilder[index].LocalPosition = pose.Position;
+                childBuilder[index].LocalOrientation = t.Orientation;
+                childBuilder[index].LocalPosition = t.Position;
             }
         }
 
@@ -135,7 +135,7 @@ namespace LibreLancer.Physics
 
         public bool Dump = false;
 
-        public void AddPart(uint provider, uint meshId, Matrix4x4 localTransform, object tag)
+        public void AddPart(uint provider, uint meshId, Transform3D localTransform, object tag)
         {
             var hulls = world.GetConvexShapes(provider, meshId);
             if (hulls.Length == 0) return;
@@ -151,7 +151,7 @@ namespace LibreLancer.Physics
             }
         }
 
-        public void UpdatePart(object tag, Matrix4x4 localTransform)
+        public void UpdatePart(object tag, Transform3D localTransform)
         {
             foreach (var part in children)
             {
@@ -254,7 +254,7 @@ namespace LibreLancer.Physics
             public object Tag;
             public int Index = 0;
             public int Count = 0;
-            public Matrix4x4 CurrentTransform;
+            public Transform3D CurrentTransform;
         }
     }
 }

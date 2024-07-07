@@ -7,7 +7,6 @@ internal class StaticObject : PhysicsObject
 {
     public override bool Static => true;
     public override bool Active => false;
-    public override Matrix4x4 Transform { get; protected set; }
     public override Vector3 Position { get; protected set; }
 
     public override Quaternion Orientation { get; protected set; }
@@ -21,29 +20,29 @@ internal class StaticObject : PhysicsObject
     internal StaticReference BepuObject;
     private PhysicsWorld world;
 
-    internal StaticObject(int id, StaticReference bepuObject, PhysicsWorld world, Matrix4x4 transform, Collider col) : base(id)
+    internal StaticObject(int id, StaticReference bepuObject, PhysicsWorld world, Transform3D transform, Collider col) : base(id)
     {
         this.BepuObject = bepuObject;
         this.world = world;
         this.Collider = col;
-        Transform = transform;
         var pose = transform.ToPose();
         Position = pose.Position;
         Orientation = pose.Orientation;
     }
-    public override void SetTransform(Matrix4x4 transform)
+    public override void SetTransform(Transform3D transform)
     {
-        Transform = transform;
-        Position = Vector3.Transform(Vector3.Zero, transform);
-        BepuObject.Pose = transform.ToPose();
+        Position = transform.Position;
+        Orientation = transform.Orientation;
+        BepuObject.Pose.Position = transform.Position;
+        BepuObject.Pose.Orientation = transform.Orientation;
         BepuObject.UpdateBounds();
     }
 
     public override void SetOrientation(Quaternion orientation)
     {
+        Orientation = orientation;
         BepuObject.Pose.Orientation = orientation;
         BepuObject.UpdateBounds();
-        Transform = BepuObject.Pose.ToMatrix();
     }
 
     public override Vector3 AngularVelocity

@@ -71,7 +71,7 @@ public class ArchetypePreviews : IDisposable
         var obj = new GameObject(archetype, resources, true, false);
         if(archetype.Loadout != null)
             obj.SetLoadout(archetype.Loadout);
-        obj.SetLocalTransform(Matrix4x4.Identity);
+        obj.SetLocalTransform(Transform3D.Identity);
         obj.World = world;
         world.AddObject(obj);
         obj.Register(world.Physics); //no physics but register method called

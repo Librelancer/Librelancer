@@ -85,7 +85,7 @@ namespace LibreLancer.Server
             if ((obj.Flags & GameObjectFlags.Exists) == 0)
                 return;
             var missile = obj.GetComponent<SMissileComponent>();
-            var pos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
+            var pos = obj.LocalTransform.Position;
             obj.Unregister(GameWorld.Physics);
             GameWorld.RemoveObject(obj);
             updatingObjects.Remove(obj);
@@ -132,8 +132,7 @@ namespace LibreLancer.Server
             GameWorld.AddObject(obj);
             obj.Register(GameWorld.Physics);
             FLLog.Debug("Server", $"Spawning player with rotation {orientation}");
-            obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                              Matrix4x4.CreateTranslation(position));
+            obj.SetLocalTransform(new Transform3D(position, orientation));
             foreach (var p in Players)
             {
                 player.SpawnPlayer(p.Key);
@@ -193,7 +192,7 @@ namespace LibreLancer.Server
             actions.Enqueue(a);
         }
 
-        public void FireMissile(Matrix4x4 transform, MissileEquip missile, float muzzleVelocity, GameObject owner, GameObject target)
+        public void FireMissile(Transform3D transform, MissileEquip missile, float muzzleVelocity, GameObject owner, GameObject target)
         {
             actions.Enqueue(() =>
             {
@@ -212,7 +211,7 @@ namespace LibreLancer.Server
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
                 foreach (var p in Players) {
-                    p.Key.RpcClient.SpawnMissile(go.NetID, p.Value != owner, missile.CRC, Vector3.Transform(Vector3.Zero, transform), transform.ExtractRotation());
+                    p.Key.RpcClient.SpawnMissile(go.NetID, p.Value != owner, missile.CRC, transform.Position, transform.Orientation);
                 }
             });
         }
@@ -353,8 +352,7 @@ namespace LibreLancer.Server
                 gameobj.NetID = IdGenerator.Allocate();
                 if (idsName != 0)
                     gameobj.Name = new ObjectName(idsName);
-                gameobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                          Matrix4x4.CreateTranslation(position));
+                gameobj.SetLocalTransform(new Transform3D(position, orientation));
                 gameobj.Nickname = nickname;
                 gameobj.World = GameWorld;
                 gameobj.Register(GameWorld.Physics);
@@ -374,7 +372,7 @@ namespace LibreLancer.Server
             });
         }
 
-        public void SpawnDebris(GameObjectKind kind, string archetype, string part, Matrix4x4 transform, float mass, Vector3 initialForce)
+        public void SpawnDebris(GameObjectKind kind, string archetype, string part, Transform3D transform, float mass, Vector3 initialForce)
         {
             actions.Enqueue(() =>
             {
@@ -434,8 +432,8 @@ namespace LibreLancer.Server
             var spawnInfo = new ShipSpawnInfo()
             {
                 Name = obj.Name,
-                Position = Vector3.Transform(Vector3.Zero, obj.LocalTransform),
-                Orientation = obj.LocalTransform.ExtractRotation(),
+                Position = obj.LocalTransform.Position,
+                Orientation = obj.LocalTransform.Orientation,
                 Affiliation = npcInfo.Faction?.CRC ?? 0,
                 CommHead = npcInfo.CommHead?.CRC ?? 0,
                 CommBody = npcInfo.CommBody?.CRC ?? 0,
@@ -458,7 +456,7 @@ namespace LibreLancer.Server
                 var pObj = Players[player];
                 player.RpcClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name), message);
                 foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(pObj,
-                             Vector3.Transform(Vector3.Zero, pObj.LocalTransform), 15000))
+                             pObj.LocalTransform.Position, 15000))
                 {
                     if (obj.TryGetComponent<SPlayerComponent>(out var other)) {
                         other.Player.RpcClient.ReceiveChatMessage(ChatCategory.Local, BinaryChatMessage.PlainText(player.Name+": "), message);
@@ -549,8 +547,8 @@ namespace LibreLancer.Server
             foreach(var player in Players)
             {
                 var tr = player.Value.WorldTransform;
-                player.Key.Position = Vector3.Transform(Vector3.Zero, tr);
-                player.Key.Orientation = tr.ExtractRotation();
+                player.Key.Position = tr.Position;
+                player.Key.Orientation = tr.Orientation;
             }
 
             var toUpdate = GetUpdatingObjects().ToArray();
@@ -575,8 +573,8 @@ namespace LibreLancer.Server
                     var update = new ObjectUpdate();
                     update.ID = new ObjNetId(obj.NetID);
                     var tr = obj.WorldTransform;
-                    update.Position = Vector3.Transform(Vector3.Zero, tr);
-                    update.Orientation = tr.ExtractRotation();
+                    update.Position = tr.Position;
+                    update.Orientation = tr.Orientation;
                     if (obj.PhysicsComponent != null)
                     {
                         update.SetVelocity(

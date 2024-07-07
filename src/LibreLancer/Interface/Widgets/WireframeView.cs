@@ -61,7 +61,7 @@ namespace LibreLancer.Interface
                 {
                     if (part.Wireframe != null)
                     {
-                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform * target.Matrix);
+                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * target.Matrix);
                     }
                 }
             }

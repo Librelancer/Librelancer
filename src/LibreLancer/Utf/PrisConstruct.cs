@@ -16,9 +16,15 @@ namespace LibreLancer.Utf
         public float Min { get; set; }
         public float Max { get; set; }
 
-        private Matrix4x4 currentTransform = Matrix4x4.Identity;
+        private Vector3 currentTranslation = Vector3.Zero;
 
-        public override Matrix4x4 LocalTransform { get { return internalGetTransform(Rotation * currentTransform * Matrix4x4.CreateTranslation(Origin + Offset)); } }
+        public override Transform3D LocalTransform
+        {
+            get
+            {
+                return internalGetTransform(new Transform3D(currentTranslation, Quaternion.Identity) * new Transform3D( Offset + Origin, Rotation));
+            }
+        }
 
         public PrisConstruct() : base() {}
 
@@ -26,7 +32,7 @@ namespace LibreLancer.Utf
             : base(reader)
         {
             Offset = ConvertData.ToVector3(reader);
-            Rotation = ConvertData.ToMatrix3x3(reader);
+            Rotation = ConvertData.ToMatrix3x3(reader).ExtractRotation();
             AxisTranslation = ConvertData.ToVector3(reader);
 
             Min = reader.ReadSingle();
@@ -44,12 +50,11 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            currentTransform = Matrix4x4.Identity;
+            currentTranslation = Vector3.Zero;
         }
         public override void Update(float distance, Quaternion quat)
         {
-			Vector3 currentTranslation = AxisTranslation * MathHelper.Clamp(distance, Min, Max);
-            currentTransform = Matrix4x4.CreateTranslation(currentTranslation);
+            currentTranslation = AxisTranslation * MathHelper.Clamp(distance, Min, Max);
         }
     }
 }

@@ -48,8 +48,7 @@ namespace LibreLancer.World.Components
 
                 var interpPos = lastPosition + (pos - lastPosition) * fraction;
                 var interpQuat = Quaternion.Slerp(lastOrientation, quat, fraction);
-                Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(interpQuat) *
-                                         Matrix4x4.CreateTranslation(interpPos), true);
+                Parent.SetLocalTransform(new Transform3D(interpPos, interpQuat), true);
             }
         }
 
@@ -88,8 +87,7 @@ namespace LibreLancer.World.Components
                 var pos = Body.Position;
                 var quat = Body.Orientation;
 
-                Parent.SetLocalTransform(Matrix4x4.CreateFromQuaternion(quat * PredictionErrorQuat) *
-                    Matrix4x4.CreateTranslation(pos + PredictionErrorPos), true);
+                Parent.SetLocalTransform(new Transform3D(pos + PredictionErrorPos, quat * PredictionErrorQuat), true);
             }
         }
 
@@ -105,12 +103,12 @@ namespace LibreLancer.World.Components
                 _convexMesh = new ConvexMeshCollider(physics);
                 cld = _convexMesh;
                 if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
-                    _convexMesh.AddPart(meshId, PlainCrc, Matrix4x4.Identity, null);
+                    _convexMesh.AddPart(meshId, PlainCrc, Transform3D.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
                         var crc = CrcTool.FLModelCrc(part.Name);
                         if (part.Construct == null)
-                            _convexMesh.AddPart( meshId, crc, Matrix4x4.Identity, part);
+                            _convexMesh.AddPart( meshId, crc, Transform3D.Identity, part);
                         else
                             _convexMesh.AddPart( meshId, crc, part.LocalTransform, part);
                     }

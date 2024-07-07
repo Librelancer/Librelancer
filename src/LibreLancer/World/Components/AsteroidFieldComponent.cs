@@ -64,7 +64,7 @@ namespace LibreLancer.World.Components
                 var sur = asteroid.Drawable.LoadFile(rm, MeshLoadMode.CPU).Collision;
                 if (sur.Valid)
                 {
-                    shape.AddPart(sur.FileId, 0, asteroid.RotationMatrix * Matrix4x4.CreateTranslation(asteroid.Position * Field.CubeSize), null);
+                    shape.AddPart(sur.FileId, 0, new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
                 }
             }
 
@@ -243,7 +243,7 @@ namespace LibreLancer.World.Components
                                 continue;
                             if (GetExclusionZone(center) != null)
                                 continue;
-                            var transform = Field.CubeRotation.GetRotation(tval) * Matrix4x4.CreateTranslation(center);
+                            var transform = new Transform3D(center, Field.CubeRotation.GetRotation(tval));
                             bodies.Add(new SpawnedCube() { Position = center }, world.Physics.BufferPool);
                             world.Physics.CreateUnmanagedStatic(ref bodies[bodies.Count - 1].Object, transform, shape);
                         }

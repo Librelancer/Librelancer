@@ -1293,15 +1293,13 @@ namespace LibreLancer
                 {
                     var sta = new StaticAsteroid()
                     {
-                        Rotation = c.Rotation,
                         Position = c.Position,
                         Info = c.Info,
                         Archetype = c.Name
                     };
                     var arch = fldata.Asteroids.FindAsteroid(c.Name);
                     sta.Drawable = ResolveDrawable(arch.MaterialLibrary, arch.DaArchetype);
-                    sta.RotationMatrix =
-                        MathHelper.MatrixFromEulerDegrees(c.Rotation);
+                    sta.Rotation = MathHelper.QuatFromEulerDegrees(c.Rotation);
                     a.Cube.Add(sta);
                 }
             }
@@ -1810,7 +1808,7 @@ namespace LibreLancer
             }
             if (o.Rotate != null)
             {
-                obj.Rotation = MathHelper.MatrixFromEulerDegrees(o.Rotate.Value);
+                obj.Rotation = MathHelper.MatrixFromEulerDegrees(o.Rotate.Value).ExtractRotation();
             }
 
             obj.Archetype = Archetypes.Get(o.Archetype);

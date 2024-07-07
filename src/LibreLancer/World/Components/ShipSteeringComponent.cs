@@ -45,7 +45,7 @@ namespace LibreLancer.World.Components
             }
 
             double pitch, yaw, roll;
-            DecomposeOrientation(Parent.PhysicsComponent.Body.Transform, out pitch, out yaw, out roll);
+            DecomposeOrientation(Matrix4x4.CreateFromQuaternion(Parent.PhysicsComponent.Body.Orientation), out pitch, out yaw, out roll);
 
             if (Math.Abs(InPitch) < float.Epsilon && Math.Abs(InYaw) < float.Epsilon)
                 steerControl.Z = MathHelper.Clamp((float) rollPID.Update(0, roll, (float) time), -0.5f, 0.5f);

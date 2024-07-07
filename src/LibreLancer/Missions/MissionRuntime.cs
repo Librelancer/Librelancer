@@ -136,7 +136,7 @@ namespace LibreLancer.Missions
                 var point = new Vector3(data.Entry[2].ToSingle(), data.Entry[3].ToSingle(), data.Entry[4].ToSingle());
                 var d = data.Entry[5].ToSingle();
                 bool satisfied;
-                if (Vector3.Distance(Vector3.Transform(Vector3.Zero, objA.LocalTransform), point) < (d * d))
+                if (Vector3.Distance(objA.LocalTransform.Position, point) < (d * d))
                     satisfied = inside;
                 else
                     satisfied = !inside;
@@ -154,9 +154,7 @@ namespace LibreLancer.Missions
                 var d = data.Entry[3].ToSingle();
                 d *= d;
                 bool satisfy;
-                if (Vector3.DistanceSquared(
-                        Vector3.Transform(Vector3.Zero, objA.LocalTransform),
-                        Vector3.Transform(Vector3.Zero, objB.LocalTransform)) < d)
+                if (Vector3.DistanceSquared(objA.LocalTransform.Position, objB.LocalTransform.Position) < d)
                     satisfy = inside;
                 else
                     satisfy = !inside;

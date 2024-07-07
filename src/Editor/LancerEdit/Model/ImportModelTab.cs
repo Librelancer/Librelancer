@@ -433,7 +433,7 @@ public class ImportModelTab : EditorTab
         else
             return null;
         pm.Drawcalls = g.Groups;
-        pm.Transform = n.Transform;
+        pm.Transform = n.Transform.Matrix();
         var d = Vector3.Transform(Vector3.Zero, pm.Transform * parent).Length();
         var r = g.Radius;
         if (d + r > radius) radius = d + r;

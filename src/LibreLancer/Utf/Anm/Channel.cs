@@ -93,7 +93,7 @@ namespace LibreLancer.Utf.Anm
         public bool HasOrientation => (header & QUAT_TYPE_MASK) != 0;
         public bool HasAngle => (header & ANGLES) != 0;
 
-        public unsafe float GetTime(int index)
+        public readonly unsafe float GetTime(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if (Interval >= 0)
@@ -103,7 +103,7 @@ namespace LibreLancer.Utf.Anm
                 return *(float*) (&ptr[offset]);
         }
 
-        public unsafe float GetAngle(int index)
+        public readonly unsafe float GetAngle(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if ((header & ANGLES) == 0)

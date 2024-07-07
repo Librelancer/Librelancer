@@ -40,10 +40,10 @@ namespace LibreLancer.Render
             private readonly BoneInstance childBone;
             private readonly HardpointDefinition connectionHp;
             private readonly BoneInstance connectionBone;
-            private readonly Matrix4x4 invBindPose;
+            private readonly Transform3D invBindPose;
 
-            public Matrix4x4 Transform { get; private set; }
-            public Matrix4x4 Bone { get; private set; }
+            public Transform3D Transform { get; private set; }
+            public Transform3D Bone { get; private set; }
 
             public Connection(DfmSkinning parent, DfmSkinning child,
                 string parentHpName, string childHpName, string connectionHpName)
@@ -52,23 +52,20 @@ namespace LibreLancer.Render
                 child.GetHardpoint(childHpName, out childHp, out childBone);
                 parent.GetHardpoint(connectionHpName, out connectionHp, out connectionBone);
                 CalculateTransform();
-                Matrix4x4.Invert(Transform, out Matrix4x4 invConn);
-                Matrix4x4.Invert(connectionHp.Transform * connectionBone.LocalTransform * invConn, out invBindPose);
+                invBindPose = (connectionHp.Transform * connectionBone.LocalTransform * Transform.Inverse()).Inverse();
                 CalculateBone();
             }
 
             private void CalculateTransform()
             {
-                var child = childHp.Transform * childBone.LocalTransform;
-                Matrix4x4.Invert(child, out child);
+                var invChild = (childHp.Transform * childBone.LocalTransform).Inverse();
                 var parent = parentHp.Transform * parentBone.LocalTransform;
-                Transform = child * parent;
+                Transform = invChild * parent;
             }
 
             private void CalculateBone()
             {
-                Matrix4x4.Invert(Transform, out Matrix4x4 invConn);
-                Bone = invBindPose * connectionHp.Transform * connectionBone.LocalTransform * invConn;
+                Bone = invBindPose * connectionHp.Transform * connectionBone.LocalTransform * Transform.Inverse();
             }
 
             public void Update()
@@ -215,26 +212,26 @@ namespace LibreLancer.Render
                 return false;
             }
 
-            Matrix4x4.Invert(srcHardpoint.Transform, out var invAccessory);
+            var invAccessory = srcHardpoint.Transform.Inverse();
 
             if (HeadSkinning != null && HeadSkinning.GetHardpoint(hpSkel, out var hpDef, out var boneDef))
             {
-                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * HeadConnection.Transform * world;
+                result = (invAccessory * hpDef.Transform * boneDef.LocalTransform * HeadConnection.Transform).Matrix() * world;
                 return true;
             }
             if (LeftHandSkinning != null && LeftHandSkinning.GetHardpoint(hpSkel, out hpDef, out boneDef))
             {
-                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * LeftHandConnection.Transform * world;
+                result = (invAccessory * hpDef.Transform * boneDef.LocalTransform * LeftHandConnection.Transform).Matrix() * world;
                 return true;
             }
             if (RightHandSkinning != null && RightHandSkinning.GetHardpoint(hpSkel, out hpDef, out boneDef))
             {
-                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * RightHandConnection.Transform * world;
+                result = (invAccessory * hpDef.Transform * boneDef.LocalTransform * RightHandConnection.Transform).Matrix() * world;
                 return true;
             }
             if(BodySkinning != null && BodySkinning.GetHardpoint(hpSkel, out hpDef, out boneDef))
             {
-                result = invAccessory * hpDef.Transform * boneDef.LocalTransform * world;
+                result = (invAccessory * hpDef.Transform * boneDef.LocalTransform).Matrix() * world;
                 return true;
             }
             return false;
@@ -338,15 +335,15 @@ namespace LibreLancer.Render
         public void GetTransforms(Matrix4x4 source, out Matrix4x4 head, out Matrix4x4 leftHand, out Matrix4x4 rightHand)
         {
             if (Head != null)
-                head = HeadConnection.Transform * source;
+                head = HeadConnection.Transform.Matrix() * source;
             else
                 head = source;
             if (LeftHand != null)
-                leftHand = LeftHandConnection.Transform * source;
+                leftHand = LeftHandConnection.Transform.Matrix() * source;
             else
                 leftHand = source;
             if (RightHand != null)
-                rightHand = RightHandConnection.Transform * source;
+                rightHand = RightHandConnection.Transform.Matrix() * source;
             else
                 rightHand = source;
         }

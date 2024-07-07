@@ -149,7 +149,7 @@ namespace LibreLancer.Interface
                 {
                     if (part.Wireframe != null)
                     {
-                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform * transform);
+                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform);
                     }
                 }
                 context.Lines.Render();

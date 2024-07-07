@@ -437,8 +437,8 @@ namespace LibreLancer.Server
                     Name = solar.Value.Name,
                     Nickname = solar.Value.Nickname,
                     Archetype = solar.Value.ArchetypeName,
-                    Position = Vector3.Transform(Vector3.Zero, tr),
-                    Orientation = tr.ExtractRotation()
+                    Position = tr.Position,
+                    Orientation = tr.Orientation
                 };
                 if (solar.Value.TryGetComponent<SRepComponent>(out var rep)){
                     info.Faction = rep.Faction?.Nickname;
@@ -576,9 +576,9 @@ namespace LibreLancer.Server
             }
         }
 
-        public void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Matrix4x4 tr, float mass)
+        public void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Transform3D tr, float mass)
         {
-            rpcClient.SpawnDebris(id, kind, archetype, part, Vector3.Transform(Vector3.Zero, tr), tr.ExtractRotation(), mass);
+            rpcClient.SpawnDebris(id, kind, archetype, part, tr.Position, tr.Orientation, mass);
         }
 
         void UpdateCurrentReputations()
@@ -737,7 +737,7 @@ namespace LibreLancer.Server
                 }
                 else {
                     Position = obj.Position;
-                    Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
+                    Orientation = obj.Rotation;
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
                 Baseside = null;
@@ -780,7 +780,7 @@ namespace LibreLancer.Server
                 else
                 {
                     Position = obj.Position;
-                    Orientation = (obj.Rotation ?? Matrix4x4.Identity).ExtractRotation();
+                    Orientation = obj.Rotation;
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
                 Baseside = null;

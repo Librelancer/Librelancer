@@ -18,15 +18,15 @@ namespace LibreLancer.GameData.World
         {
             Default = new AsteroidCubeRotation(Default_AxisX, Default_AxisY, Default_AxisZ);
         }
-        
+
         bool dirty = true;
 		public Vector4 AxisX
 		{
-			get 
+			get
 			{
 				return axisx;
-			} 
-			set 
+			}
+			set
 			{
 				axisx = value;
                 dirty = true;
@@ -61,7 +61,7 @@ namespace LibreLancer.GameData.World
 		Vector4 axisy;
 		Vector4 axisz;
 
-        private Matrix4x4[] rotations;
+        private Quaternion[] rotations;
 
         public AsteroidCubeRotation()
         {
@@ -84,7 +84,7 @@ namespace LibreLancer.GameData.World
 
         void GenerateRotations()
         {
-            rotations = new Matrix4x4[64];
+            rotations = new Quaternion[64];
             var i = 0;
             for (int x = 0; x <= 3; x++)
             {
@@ -92,16 +92,17 @@ namespace LibreLancer.GameData.World
                 {
                     for (int z = 0; z <= 3; z++)
                     {
-                        rotations[i++] = Matrix4x4.CreateRotationX(Angle(axisx, x)) *
-                                         Matrix4x4.CreateRotationY(Angle(axisy, y)) *
-                                         Matrix4x4.CreateRotationZ(Angle(axisz, z));
+                        rotations[i++] = Quaternion.CreateFromRotationMatrix(
+                            Matrix4x4.CreateRotationX(Angle(axisx, x)) *
+                            Matrix4x4.CreateRotationY(Angle(axisy, y)) *
+                            Matrix4x4.CreateRotationZ(Angle(axisz, z)));
                     }
                 }
             }
             dirty = false;
         }
-        
-        public Matrix4x4 GetRotation(int variation)
+
+        public Quaternion GetRotation(int variation)
         {
             if (dirty)
                 GenerateRotations();

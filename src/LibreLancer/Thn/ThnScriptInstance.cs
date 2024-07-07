@@ -70,7 +70,7 @@ namespace LibreLancer.Thn
                 var obj = new ThnObject();
                 obj.Name = kv.Key;
                 obj.Translate = kv.Value.Position ?? Vector3.Zero;
-                obj.Rotate = kv.Value.RotationMatrix ?? Matrix4x4.Identity;
+                obj.Rotate = kv.Value.Rotation;
                 //PlayerShip object
                 if (spawnObjects && CheckObject(kv.Value, Cutscene.PlayerShip, EntityTypes.Compound, "playership"))
                 {
@@ -81,8 +81,7 @@ namespace LibreLancer.Thn
                     ((ModelRenderer)obj.Object.RenderComponent).LightGroup = kv.Value.LightGroup;
                     obj.Entity = kv.Value;
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                    obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
-                                                 Matrix4x4.CreateTranslation(transform));
+                    obj.Object.SetLocalTransform(new Transform3D(transform, obj.Rotate));
                     obj.HpMount = Cutscene.PlayerShip.GetHardpoint("HpMount");
                     Cutscene.World.AddObject(obj.Object);
                     Objects.Add(kv.Key, obj);
@@ -202,11 +201,7 @@ namespace LibreLancer.Thn
                     lt.Light = kv.Value.LightProps.Render;
                     obj.Light = lt;
                     obj.LightDir = lt.Light.Direction;
-                    if (kv.Value.RotationMatrix.HasValue)
-                    {
-                        var m = kv.Value.RotationMatrix.Value;
-                        lt.Light.Direction = Vector3.TransformNormal(lt.Light.Direction, m);
-                    }
+                    lt.Light.Direction = Vector3.Transform(lt.Light.Direction, obj.Rotate);
                     if(Cutscene.Renderer != null)
                         Cutscene.Renderer.SystemLighting.Lights.Add(lt);
                 }
@@ -228,8 +223,8 @@ namespace LibreLancer.Thn
                         obj.Object.Parent = Cutscene.MainObject;
                         obj.Object.AddComponent(new DirtyTransformComponent(obj.Object));
                         obj.PosFromObject = true;
-                        obj.Translate = Vector3.Transform(Vector3.Zero, Cutscene.MainObject.LocalTransform);
-                        obj.Rotate = Matrix4x4.CreateFromQuaternion(Cutscene.MainObject.LocalTransform.ExtractRotation());
+                        obj.Translate = Cutscene.MainObject.WorldTransform.Position;
+                        obj.Rotate = Cutscene.MainObject.WorldTransform.Orientation;
                     }
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)
@@ -272,8 +267,7 @@ namespace LibreLancer.Thn
                     if (!obj.PosFromObject)
                     {
                         Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                        obj.Object.SetLocalTransform((kv.Value.RotationMatrix ?? Matrix4x4.Identity) *
-                                                     Matrix4x4.CreateTranslation(transform));
+                        obj.Object.SetLocalTransform(new Transform3D(transform, kv.Value.Rotation));
                     }
                     Cutscene.World.AddObject(obj.Object);
                 }

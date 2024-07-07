@@ -16,12 +16,12 @@ namespace LibreLancer.World
         public RevoluteHardpointDefinition Revolute;
         public HardpointDefinition Definition;
         public float CurrentRevolution;
-        Matrix4x4 rotation = Matrix4x4.Identity;
+        Quaternion rotation = Quaternion.Identity;
         public void Revolve(float val)
         {
             var clamped = MathHelper.Clamp(val, Revolute.Min, Revolute.Max);
             CurrentRevolution = clamped;
-            rotation = Matrix4x4.CreateFromAxisAngle(Revolute.Axis, clamped);
+            rotation = Quaternion.CreateFromAxisAngle(Revolute.Axis, clamped);
         }
         public Hardpoint(HardpointDefinition def, RigidModelPart parent)
         {
@@ -32,13 +32,13 @@ namespace LibreLancer.World
             Revolute = def as RevoluteHardpointDefinition;
         }
 
-        public Matrix4x4 HpTransformInfo
+        public Transform3D HpTransformInfo
         {
             get {
                 return Definition.Transform;
             }
         }
-        public Matrix4x4 TransformNoRotate
+        public Transform3D TransformNoRotate
         {
             get
             {
@@ -49,11 +49,11 @@ namespace LibreLancer.World
             }
         }
 
-        public Matrix4x4 Transform
+        public Transform3D Transform
         {
             get
             {
-                var tr = (rotation * Definition.Transform);
+                var tr = (new Transform3D(Vector3.Zero, rotation) * Definition.Transform);
                 if (Parent != null)
                     return tr * Parent.LocalTransform;
                 else

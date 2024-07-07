@@ -274,7 +274,7 @@ namespace LibreLancer.Client
                 {
                     Tick = WorldTick,
                     Position = player.PhysicsComponent.Body.Position,
-                    Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation(),
+                    Orientation = player.PhysicsComponent.Body.Orientation,
                     Steering = steering.OutputSteering,
                     AimPoint = wp.AimPoint,
                     Strafe = phys.CurrentStrafe,
@@ -436,13 +436,13 @@ namespace LibreLancer.Client
             physComponent.Update(1 / 60.0f);
             gp.player.PhysicsComponent.Body.PredictionStep(1 / 60.0f);
             moveState[i].Position = player.PhysicsComponent.Body.Position;
-            moveState[i].Orientation = player.PhysicsComponent.Body.Transform.ExtractRotation();
+            moveState[i].Orientation = player.PhysicsComponent.Body.Orientation;
         }
 
         void SmoothError(GameObject obj, Vector3 oldPos, Quaternion oldQuat)
         {
             var newPos = obj.PhysicsComponent.Body.Position;
-            var newOrient = obj.PhysicsComponent.Body.Transform.ExtractRotation();
+            var newOrient = obj.PhysicsComponent.Body.Orientation;
             if ((oldPos - newPos).Length() >
                 obj.PhysicsComponent.Body.LinearVelocity.Length() * 0.33f) {
                 obj.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
@@ -491,12 +491,12 @@ namespace LibreLancer.Client
                             // This is much faster than stepping the entire simulation again
                             FLLog.Info("Client", $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
                             var tr = gp.player.LocalTransform;
-                            var predictedPos = Vector3.Transform(Vector3.Zero, tr);
-                            var predictedOrient = tr.ExtractRotation();
+                            var predictedPos = tr.Position;
+                            var predictedOrient = tr.Orientation;
                             moveState[i].Position = state.Position;
                             moveState[i].Orientation = state.Orientation;
                             //Set states
-                            gp.player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(state.Orientation) * Matrix4x4.CreateTranslation(state.Position));
+                            gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation));
                             gp.player.PhysicsComponent.Body.LinearVelocity = state.LinearVelocity;
                             gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                             phys.ChargePercent = state.CruiseChargePct;
@@ -635,8 +635,7 @@ namespace LibreLancer.Client
                 {
                     var go = new GameObject(mn.ModelFile.LoadFile(Game.ResourceManager),
                         Game.ResourceManager);
-                    go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                         Matrix4x4.CreateTranslation(position));
+                    go.SetLocalTransform(new Transform3D(position, orientation));
                     go.NetID = id;
                     go.Kind = GameObjectKind.Missile;
                     go.PhysicsComponent.Mass = 1;
@@ -665,8 +664,7 @@ namespace LibreLancer.Client
                     if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
                         && ms.Missile?.ExplodeFx != null)
                     {
-                        var pos = Vector3.Transform(Vector3.Zero, despawn.LocalTransform);
-                        gp.world.Renderer.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager), pos);
+                        gp.world.Renderer.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager), despawn.LocalTransform.Position);
                     }
                     despawn.Unregister(gp.world.Physics);
                     gp.world.RemoveObject(despawn);
@@ -759,8 +757,7 @@ namespace LibreLancer.Client
                 };
                 newobj.Name = spawn.Name;
                 newobj.NetID = id;
-                newobj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(spawn.Orientation) *
-                                         Matrix4x4.CreateTranslation(spawn.Position));
+                newobj.SetLocalTransform(new Transform3D(spawn.Position, spawn.Orientation));
                 newobj.AddComponent(new CHealthComponent(newobj) { CurrentHealth = spawn.Loadout.Health, MaxHealth = shp.Hitpoints });
                 newobj.AddComponent(new CExplosionComponent(newobj, shp.Explosion));
                 var head = Game.GameData.Bodyparts.Get(spawn.CommHead);
@@ -841,8 +838,7 @@ namespace LibreLancer.Client
                     Path = mdl.Path,
                 };
                 var go = new GameObject(newmodel, collider, Game.ResourceManager, part, mass, true);
-                go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orientation) *
-                                     Matrix4x4.CreateTranslation(position));
+                go.SetLocalTransform(new Transform3D(position, orientation));
                 go.Kind = GameObjectKind.Debris;
                 go.World = gp.world;
                 go.Register(go.World.Physics);
@@ -932,8 +928,7 @@ namespace LibreLancer.Client
                     {
                         var arch = Game.GameData.GetSolarArchetype(si.Archetype);
                         var go = new GameObject(arch, Game.ResourceManager, true);
-                        go.SetLocalTransform(Matrix4x4.CreateFromQuaternion(si.Orientation) *
-                                             Matrix4x4.CreateTranslation(si.Position));
+                        go.SetLocalTransform(new Transform3D(si.Position, si.Orientation));
                         go.Nickname = si.Nickname;
                         go.Name = si.Name;
                         go.World = gp.world;
@@ -1133,12 +1128,12 @@ namespace LibreLancer.Client
             }
             if (obj.SystemObject == null)
             {
-                var oldPos = Vector3.Transform(Vector3.Zero, obj.LocalTransform);
-                var oldQuat = obj.LocalTransform.ExtractRotation();
+                var oldPos = obj.LocalTransform.Position;
+                var oldQuat = obj.LocalTransform.Orientation;
                 obj.PhysicsComponent.Body.LinearVelocity = update.LinearVelocity.Vector;
                 obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.Vector;
                 obj.PhysicsComponent.Body.Activate();
-                obj.PhysicsComponent.Body.SetTransform(Matrix4x4.CreateFromQuaternion(update.Orientation.Quaternion) * Matrix4x4.CreateTranslation(update.Position));
+                obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position, update.Orientation.Quaternion));
                 SmoothError(obj, oldPos, oldQuat);
             }
 
@@ -1185,8 +1180,7 @@ namespace LibreLancer.Client
             else if (str.TrimEnd() == "/pos")
             {
                 if (gp != null)
-                    ((IClientPlayer) this).OnConsoleMessage(Vector3.Transform(Vector3.Zero, gp.player.LocalTransform)
-                        .ToString());
+                    ((IClientPlayer) this).OnConsoleMessage(gp.player.LocalTransform.Position.ToString());
                 else
                     ((IClientPlayer) this).OnConsoleMessage("null");
             }

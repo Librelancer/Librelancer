@@ -26,7 +26,7 @@ public class DfmBoneInfo : PopupWindow
         ImGui.Text("");
         ImGui.Text("LocalTransform (pos + euler)");
         var tr = instance.LocalTransform;
-        ImGui.Text(Vector3.Transform(Vector3.Zero, tr).ToString());
+        ImGui.Text(tr.Position.ToString());
         ImGui.Text(tr.GetEulerDegrees().ToString());
     }
 }

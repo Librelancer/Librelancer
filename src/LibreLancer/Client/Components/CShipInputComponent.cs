@@ -79,16 +79,16 @@ namespace LibreLancer.Client.Components
 
             bankInfluence *= Throttle;
             float bankTarget = MathHelper.DegreesToRadians(-(bankInfluence * BankLimit));
-            var tr = Parent.PhysicsComponent.Body.Transform;
-            var transformUp = CalcDir(ref tr, Vector3.UnitY);
-            var transformForward = CalcDir(ref tr, -Vector3.UnitZ);
+            var tr = Parent.PhysicsComponent.Body.Orientation;
+            var transformUp = CalcDir(tr, Vector3.UnitY);
+            var transformForward = CalcDir(tr, -Vector3.UnitZ);
             float signedAngle = Vector3Ex.SignedAngle(transformUp, upVector, transformForward);
             float bankError = (signedAngle - bankTarget) * 0.1f;
             steering.InRoll = (float)MathHelper.Clamp(RollControl.Update(bankTarget * 0.5f, signedAngle * 0.5f, dt), -1, 1);
         }
 
         //My math lib seems to be lacking at the moment
-        Vector3 CalcDir(ref Matrix4x4 mat, Vector3 v)
+        Vector3 CalcDir(Quaternion mat, Vector3 v)
         {
             var v0 = Vector3.Transform(Vector3.Zero, mat);
             var v1 = Vector3.Transform(v, mat);

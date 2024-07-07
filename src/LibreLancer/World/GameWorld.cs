@@ -73,7 +73,7 @@ namespace LibreLancer.World
                 g.Name = new ObjectName(obj.IdsName);
             g.Nickname = obj.Nickname;
             g.SystemObject = obj;
-            g.SetLocalTransform((obj.Rotation ?? Matrix4x4.Identity) * Matrix4x4.CreateTranslation(obj.Position));
+            g.SetLocalTransform(new Transform3D(obj.Position, obj.Rotation));
             if (loadout != null)
                 g.SetLoadout(loadout);
             else if (arch?.Loadout != null)
@@ -208,7 +208,7 @@ namespace LibreLancer.World
                 obj.AnimationComponent?.SetTimeSource(timeSource);
             if (obj.NetID != 0)
                 netIDLookup.Add(obj.NetID, obj);
-            SpatialLookup.AddObject(obj, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
+            SpatialLookup.AddObject(obj, obj.WorldTransform.Position);
         }
 
         public void RemoveObject(GameObject obj)
@@ -271,7 +271,7 @@ namespace LibreLancer.World
             Physics?.StepSimulation((float) t);
             for (int i = 0; i < objects.Count; i++) {
                 objects[i].PhysicsComponent?.Update(t);
-                SpatialLookup.UpdatePosition(objects[i], Vector3.Transform(Vector3.Zero, objects[i].WorldTransform));
+                SpatialLookup.UpdatePosition(objects[i], objects[i].WorldTransform.Position);
             }
         }
 

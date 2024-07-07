@@ -16,17 +16,17 @@ namespace LibreLancer.Server.Ai
         {
             this.target = target;
         }
-        
+
         public override void OnStart(GameObject obj, SNPCComponent ai)
         {
-            
+
         }
 
         public override void Update(GameObject obj, SNPCComponent ai, double time)
         {
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
-                weapons.AimPoint = Vector3.Transform(Vector3.Zero, target.WorldTransform);
+                weapons.AimPoint = target.WorldTransform.Position;
                 weapons.FireAll();
             }
         }

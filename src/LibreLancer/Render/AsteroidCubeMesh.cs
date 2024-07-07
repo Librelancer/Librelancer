@@ -127,7 +127,7 @@ public class AsteroidCubeMeshBuilder
         var model = (ModelFile)ast.Drawable.LoadFile(resources, MeshLoadMode.CPU).Drawable;
         var l0 = model.Levels[0];
         var vms = resources.FindMeshData(l0.MeshCrc);
-        var transform = ast.RotationMatrix * Matrix4x4.CreateTranslation(ast.Position * cubeSize);
+        var transform = new Transform3D(ast.Position * cubeSize, ast.Rotation).Matrix();
         var norm = transform;
         Matrix4x4.Invert(norm, out norm);
         norm = Matrix4x4.Transpose(norm);

@@ -388,6 +388,18 @@ namespace LibreLancer
                     Matrix4x4.CreateRotationZ(angles.Z);
         }
 
+        public static Quaternion QuatFromEulerDegrees(Vector3 angles) =>
+            QuatFromEulerDegrees(angles.X, angles.Y, angles.Z);
+
+        public static Quaternion QuatFromEulerDegrees(float x, float y, float z)
+        {
+            x *= MathF.PI / 180.0f;
+            y *= MathF.PI / 180.0f;
+            z *= MathF.PI / 180.0f;
+            return Quaternion.CreateFromAxisAngle(Vector3.UnitX, x) *
+                   Quaternion.CreateFromAxisAngle(Vector3.UnitY, y) *
+                   Quaternion.CreateFromAxisAngle(Vector3.UnitZ, z);
+        }
         public static Matrix4x4 MatrixFromEulerDegrees(float x, float y, float z)
         {
             x *= MathF.PI / 180.0f;

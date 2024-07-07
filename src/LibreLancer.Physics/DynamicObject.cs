@@ -24,7 +24,6 @@ internal class DynamicObject : PhysicsObject
 
     public override bool Static => false;
     public override bool Active => BepuObject.Awake;
-    public override Matrix4x4 Transform { get; protected set; }
 
     public override Vector3 Position
     {
@@ -38,11 +37,10 @@ internal class DynamicObject : PhysicsObject
         protected set => BepuObject.Pose.Orientation = value;
     }
 
-    public override void SetTransform(Matrix4x4 transform)
+    public override void SetTransform(Transform3D transform)
     {
-        Transform = transform;
-        Position = Vector3.Transform(Vector3.Zero, transform);
-        BepuObject.Pose = transform.ToPose();
+        Position = transform.Position;
+        Orientation = transform.Orientation;
         BepuObject.UpdateBounds();
     }
 
@@ -50,7 +48,6 @@ internal class DynamicObject : PhysicsObject
     {
         BepuObject.Pose.Orientation = orientation;
         BepuObject.UpdateBounds();
-        Transform = BepuObject.Pose.ToMatrix();
     }
 
     public override Vector3 AngularVelocity
@@ -133,7 +130,6 @@ internal class DynamicObject : PhysicsObject
 
     internal override void UpdateProperties()
     {
-        Transform = BepuObject.Pose.ToMatrix();
     }
 
     public override void Dispose()

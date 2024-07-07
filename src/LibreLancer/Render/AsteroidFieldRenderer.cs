@@ -188,7 +188,7 @@ namespace LibreLancer.Render
         {
             public Vector3 pos;
             public Matrix4x4 tr;
-            public CalculatedCube(Vector3 p, Matrix4x4 r) { pos = p; tr = r; }
+            public CalculatedCube(Vector3 p, Transform3D r) { pos = p; tr = r.Matrix(); }
         }
         private Task asteroidsTask;
         int cubeCount = -1;
@@ -222,7 +222,9 @@ namespace LibreLancer.Render
                         if (GetExclusionZone(center) != null) {
                             continue;
                         }
-                        cubes[cubeCount++] = new CalculatedCube(center, field.CubeRotation.GetRotation(tval) * Matrix4x4.CreateTranslation(center));
+
+                        cubes[cubeCount++] =
+                            new CalculatedCube(center, new Transform3D(center, field.CubeRotation.GetRotation(tval)));
                     }
                 }
             }

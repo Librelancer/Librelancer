@@ -106,7 +106,7 @@ namespace LibreLancer.Server
             var obj = new GameObject(ship, World.Server.Resources, false, true);
             obj.Name = name;
             obj.Nickname = nickname;
-            obj.SetLocalTransform(Matrix4x4.CreateFromQuaternion(orient) * Matrix4x4.CreateTranslation(position));
+            obj.SetLocalTransform(new Transform3D(position, orient));
             obj.AddComponent(new SHealthComponent(obj)
             {
                 CurrentHealth = ship.Hitpoints,

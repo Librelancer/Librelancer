@@ -91,7 +91,7 @@ namespace LibreLancer.Physics
                         continue;
                     if (!camera.FrustumCheck(o.GetBoundingBox()))
                         continue;
-                    o.Collider.Draw(o.Transform, DebugRenderer);
+                    o.Collider.Draw(Matrix4x4.CreateFromQuaternion(o.Orientation) * Matrix4x4.CreateTranslation(o.Position), DebugRenderer);
                 }
 
                 if (ShowRaycasts)
@@ -122,7 +122,7 @@ namespace LibreLancer.Physics
             public bool ShouldAwaken(BodyReference body) => false;
         }
 
-        public PhysicsObject AddStaticObject(Matrix4x4 transform, Collider col)
+        public PhysicsObject AddStaticObject(Transform3D transform, Collider col)
         {
             col.Create(Simulation, BufferPool);
             var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle));
@@ -136,7 +136,7 @@ namespace LibreLancer.Physics
         }
 
 
-        public void CreateUnmanagedStatic(ref UnmanagedStatic obj, Matrix4x4 transform, Collider col)
+        public void CreateUnmanagedStatic(ref UnmanagedStatic obj, Transform3D transform, Collider col)
         {
             if (obj.Valid)
                 throw new InvalidOperationException("Object is already created");
@@ -295,7 +295,7 @@ namespace LibreLancer.Physics
             };
         }
 
-        public PhysicsObject AddDynamicObject(float mass, Matrix4x4 transform, Collider col, Vector3? inertia = null)
+        public PhysicsObject AddDynamicObject(float mass, Transform3D transform, Collider col, Vector3? inertia = null)
         {
             if (mass < float.Epsilon)
             {

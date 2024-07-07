@@ -41,10 +41,10 @@ namespace LibreLancer.Thn.Events
 
                 if (Orientation && OrientationRelative)
                 {
-                    var qCurrent = rotate.ExtractRotation();
+                    var qCurrent = rotate;
                     var diff = qCurrent * Quaternion.Inverse(LastRotate);
-                    var qChild = Child.Rotate.ExtractRotation();
-                    rotate = Matrix4x4.CreateFromQuaternion(qChild * diff);
+                    var qChild = Child.Rotate;
+                    rotate = qChild * diff;
                     LastRotate = qCurrent;
                 }
                 t += delta;
@@ -57,11 +57,11 @@ namespace LibreLancer.Thn.Events
                         var off = Offset;
                         if (EntityRelative)
                         {
-                            off = Vector3.Transform(Offset, rotate.ExtractRotation());
+                            off = Vector3.Transform(Offset, rotate);
                         }
 
-                        var tr = rotate * Matrix4x4.CreateTranslation(translate) * Matrix4x4.CreateTranslation(off);
-                        Child.Translate = tr.Translation;
+                        var tr = new Transform3D(translate, rotate) * new Transform3D(off, Quaternion.Identity);
+                        Child.Translate = tr.Position;
                     }
                     else
                     {
@@ -74,7 +74,7 @@ namespace LibreLancer.Thn.Events
                 }
                 if (LookAt)
                 {
-                    Child.Rotate = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(Vector3.Normalize(Child.Translate - translate), Vector3.UnitY));
+                    Child.Rotate = QuaternionEx.LookRotation(Vector3.Normalize(Child.Translate - translate), Vector3.UnitY);
                 }
                 return (t <= Duration);
             }
@@ -82,20 +82,17 @@ namespace LibreLancer.Thn.Events
 
         class EntityTarget(ThnObject obj, IRenderHardpoint hardpoint, RigidModelPart part)
         {
-            public (Vector3 Translate, Matrix4x4 Rotate) GetTransform()
+            public Transform3D GetTransform()
             {
                 if (part != null)
                 {
-                    var tr = part.LocalTransform * obj.Object.LocalTransform;
-                    return (Vector3.Transform(Vector3.Zero, tr), Matrix4x4.CreateFromQuaternion(tr.ExtractRotation()));
+                    return  part.LocalTransform * obj.Object.LocalTransform;
                 }
                 if (hardpoint != null)
                 {
-                    var tr = hardpoint.Transform * obj.Object.LocalTransform;
-                    return (Vector3.Transform(Vector3.Zero, tr), Matrix4x4.CreateFromQuaternion(tr.ExtractRotation()));
+                    return hardpoint.Transform * obj.Object.LocalTransform;
                 }
-
-                return (obj.Translate, obj.Rotate);
+                return new(obj.Translate, obj.Rotate);
             }
         }
 
@@ -167,7 +164,7 @@ namespace LibreLancer.Thn.Events
                 (Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
             {
                 var (_, tr) = tgt.GetTransform();
-                lastRotate = tr.ExtractRotation();
+                lastRotate = tr;
             }
             instance.AddProcessor(new AttachEntityProcessor()
             {

@@ -88,7 +88,7 @@ namespace LancerEdit
                 });
             }
         }
-       
+
     }
     class HardpointEditor
     {
@@ -225,11 +225,14 @@ namespace LancerEdit
                     var translate = new Vector3(partAxX, partAxY, partAxZ).Normalized() * partPreview;
                     jointPreview = Matrix4x4.CreateTranslation(translate);
                 }
-                editingPart.OverrideTransform = MathHelper.MatrixFromEulerDegrees(partPitch, partYaw, partRoll) * jointPreview *
-                    Matrix4x4.CreateTranslation(new Vector3(partX, partY, partZ) + new Vector3(partOX, partOY, partOZ));
+
+                editingPart.OverrideTransform = Transform3D.FromMatrix(
+                    MathHelper.MatrixFromEulerDegrees(partPitch, partYaw, partRoll) * jointPreview *
+                    Matrix4x4.CreateTranslation(new Vector3(partX, partY, partZ) +
+                                                new Vector3(partOX, partOY, partOZ)));
                 if(ImGui.Button("Apply")) {
                     editingPart.Origin = new Vector3(partX, partY, partZ);
-                    editingPart.Rotation = MathHelper.MatrixFromEulerDegrees(partPitch, partYaw, partRoll);
+                    editingPart.Rotation = MathHelper.QuatFromEulerDegrees(partPitch, partYaw, partRoll);
                     if(editingPart is RevConstruct) {
                         var rev = (RevConstruct)editingPart;
                         rev.Offset = new Vector3(partOX, partOY, partOZ);

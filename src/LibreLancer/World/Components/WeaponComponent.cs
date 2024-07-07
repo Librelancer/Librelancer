@@ -88,7 +88,7 @@ namespace LibreLancer.World.Components
         {
             var hp = Parent.Attachment;
             //Parent is the gun itself rotated
-            var br = hp.TransformNoRotate * Parent.Parent.WorldTransform;
+            var br = (hp.TransformNoRotate * Parent.Parent.WorldTransform).Matrix();
             //Inverse Transform
             Matrix4x4.Invert(br, out var beforeRotate);
             var local = TransformGL(point, beforeRotate);

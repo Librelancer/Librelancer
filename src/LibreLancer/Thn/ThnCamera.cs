@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Render;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LibreLancer.Thn
 {
@@ -16,7 +17,7 @@ namespace LibreLancer.Thn
         {
             Camera = new ThnCameraProps(),
             Translate = Vector3.Zero,
-            Rotate = Matrix4x4.Identity,
+            Rotate = Quaternion.Identity,
             Name = "DEFAULT_OBJECT_UNINITED"
         };
 
@@ -77,8 +78,9 @@ namespace LibreLancer.Thn
 			//NOTE: near clip plane can't be too small or it causes z-fighting
 			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Object.Camera.Znear, Object.Camera.Zfar);
             ogProjection = projection;
-            var transform = Object.Rotate * Matrix4x4.CreateTranslation(Object.Translate);
-            Matrix4x4.Invert(transform, out view);
+            view = new Transform3D(Object.Translate, Object.Rotate).Inverse().Matrix();
+            //var transform = Object.Rotate * Matrix4x4.CreateTranslation(Object.Translate);
+            //Matrix4x4.Invert(transform, out view);
 			viewProjection = view * projection;
 			frustum = new BoundingFrustum(viewProjection);
 		}

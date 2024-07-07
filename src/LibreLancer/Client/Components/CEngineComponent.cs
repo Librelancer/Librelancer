@@ -39,7 +39,7 @@ namespace LibreLancer.Client.Components
         }
 
         public bool PlaySound = true;
-        
+
 		public CEngineComponent(GameObject parent, EngineEquipment engine) : base(parent)
 		{
             this.Ship = parent;
@@ -57,11 +57,11 @@ namespace LibreLancer.Client.Components
             if (range == Vector2.Zero) return 0;
             return MathHelper.Lerp(range.X, range.Y, Speed);
         }
-        
+
 		public override void Update(double time)
         {
             var tr = Ship.WorldTransform;
-            var pos = Vector3.Transform(Vector3.Zero,tr);
+            var pos = tr.Position;
             var vel = Vector3.Zero;
             if (Ship.PhysicsComponent != null)
             {
@@ -87,7 +87,7 @@ namespace LibreLancer.Client.Components
                 if (Speed >= 0.901f) {
                     character.Active = false;
                 }
-                else {                    
+                else {
                     character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
                     character.Active = true;
                     character.Position = pos;
@@ -133,7 +133,7 @@ namespace LibreLancer.Client.Components
                 }
                 cruiseStart.Update();
             }
-            
+
             if (cruiseEnd != null)
             {
                 cruiseEnd.Position = pos;

@@ -55,8 +55,9 @@ namespace LibreLancer.World.Components
             bool retval = false;
             for (int i = 0; i < hpfires.Length; i++)
             {
-                var pos = Vector3.Transform(Vector3.Zero, hpfires[i].Transform * tr);
-                var normal = Vector3.TransformNormal(-Vector3.UnitZ, hpfires[i].Transform * tr);
+                var x = hpfires[i].Transform * tr;
+                var pos = x.Position;
+                var normal = Vector3.Transform(-Vector3.UnitZ, x.Orientation);
                 var heading = (point - pos).Normalized();
 
                 var angle = GetAngle(normal, heading);

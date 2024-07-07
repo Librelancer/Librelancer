@@ -133,16 +133,10 @@ public class ObjectEditData : GameComponent, IObjectData
 
     public bool CheckDirty()
     {
-        var pos = Vector3.Transform(Vector3.Zero, Parent.LocalTransform);
-        var r = Parent.LocalTransform.ExtractRotation();
-        var d = MathHelper.QuatError(r, Quaternion.Identity);
-
-        Matrix4x4? tgtRot = d > 0.0001f ? Matrix4x4.CreateFromQuaternion(r) : null;
-
         return
             sysobj.Nickname != Parent.Nickname ||
-            sysobj.Position != pos ||
-            sysobj.Rotation != tgtRot ||
+            sysobj.Position != Parent.LocalTransform.Position ||
+            sysobj.Rotation != Parent.LocalTransform.Orientation ||
             sysobj.IdsName != IdsName ||
             !ArrayEqual(sysobj.IdsInfo, IdsInfo.ToArray()) ||
             sysobj.IdsLeft != IdsLeft ||
@@ -156,13 +150,10 @@ public class ObjectEditData : GameComponent, IObjectData
             sysobj.Comment != Comment;
     }
 
-    public void ApplyTransform(Matrix4x4 localTransform)
+    public void ApplyTransform(Transform3D localTransform)
     {
-        var pos = Vector3.Transform(Vector3.Zero, localTransform);
-        var r = localTransform.ExtractRotation();
-        var d = MathHelper.QuatError(r, Quaternion.Identity);
-        sysobj.Position = pos;
-        sysobj.Rotation = d > 0.0001f ? Matrix4x4.CreateFromQuaternion(r) : null;
+        sysobj.Position = localTransform.Position;
+        sysobj.Rotation = localTransform.Orientation;
     }
 
     public void Apply()

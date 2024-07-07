@@ -133,7 +133,7 @@ World Time: {12:F2}
             cargo = new CPlayerCargoComponent(player, session);
             player.AddComponent(cargo);
             FLLog.Debug("Client", $"Spawning self with rotation {session.PlayerOrientation}");
-            player.SetLocalTransform(Matrix4x4.CreateFromQuaternion(session.PlayerOrientation) * Matrix4x4.CreateTranslation(session.PlayerPosition));
+            player.SetLocalTransform(new Transform3D(session.PlayerPosition, session.PlayerOrientation));
             playerHealth = new CHealthComponent(player);
             playerHealth.MaxHealth = session.PlayerShip.Hitpoints;
             playerHealth.CurrentHealth = session.PlayerShip.Hitpoints;
@@ -155,7 +155,7 @@ World Time: {12:F2}
             _turretViewCamera = new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
             _turretViewCamera.CameraOffset = new Vector3(0, 0, session.PlayerShip.ChaseOffset.Length());
             _chaseCamera.ChasePosition = session.PlayerPosition;
-            _chaseCamera.ChaseOrientation = player.LocalTransform.ClearTranslation();
+            _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
             var offset = session.PlayerShip.ChaseOffset;
 
             _chaseCamera.DesiredPositionOffset = offset;
@@ -322,7 +322,7 @@ World Time: {12:F2}
 
             Contact GetContact(GameObject obj)
             {
-                var distance = Vector3.Distance(playerPos, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
+                var distance = Vector3.Distance(playerPos, obj.WorldTransform.Position);
                 var name = obj.Name.GetName(game.Game.GameData, playerPos);
                 if (obj.Kind == GameObjectKind.Ship &&
                     obj.TryGetComponent<CFactionComponent>(out var fac))
@@ -376,7 +376,7 @@ World Time: {12:F2}
 
             public void UpdateList()
             {
-                playerPos = Vector3.Transform(Vector3.Zero, game.player.WorldTransform);
+                playerPos = game.player.WorldTransform.Position;
                 Contacts = game.world.Objects.Where(x => x != game.player &&
                                                          (x.Kind == GameObjectKind.Ship ||
                                                            x.Kind == GameObjectKind.Solar ||
@@ -868,9 +868,9 @@ World Time: {12:F2}
             //Has to be here or glitches
             if (!Dead)
             {
-                _turretViewCamera.ChasePosition = Vector3.Transform(Vector3.Zero, player.LocalTransform);
-                _chaseCamera.ChasePosition = Vector3.Transform(Vector3.Zero, player.LocalTransform);
-                _chaseCamera.ChaseOrientation = player.LocalTransform.ClearTranslation();
+                _turretViewCamera.ChasePosition = player.LocalTransform.Position;
+                _chaseCamera.ChasePosition = player.LocalTransform.Position;
+                _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
             }
             _turretViewCamera.Update(delta);
             _chaseCamera.Update(delta);
@@ -950,7 +950,7 @@ World Time: {12:F2}
                 df.Explosion?.Effect != null)
             {
                 var pfx = df.Explosion.Effect.GetEffect(FlGame.ResourceManager);
-                sysrender.SpawnTempFx(pfx, Vector3.Transform(Vector3.Zero, obj.WorldTransform));
+                sysrender.SpawnTempFx(pfx, obj.WorldTransform.Position);
             }
         }
 
@@ -1223,8 +1223,7 @@ World Time: {12:F2}
 
         (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
         {
-            var worldPos = Vector3.Transform(Vector3.Zero, obj.WorldTransform);
-            return ScreenPosition(worldPos);
+            return ScreenPosition(obj.WorldTransform.Position);
         }
 
         private GameObject missionWaypoint;
@@ -1244,14 +1243,14 @@ World Time: {12:F2}
             {
 
                 var pos = session.CurrentObjective.Kind == ObjectiveKind.Object
-                    ? Vector3.Transform(Vector3.Zero, world.GetObject(session.CurrentObjective.Object)?.WorldTransform ?? Matrix4x4.Identity)
+                    ? (world.GetObject(session.CurrentObjective.Object)?.WorldTransform ?? Transform3D.Identity).Position
                     : session.CurrentObjective.Position;
                 if (pos != Vector3.Zero)
                 {
                     var waypointArch = Game.GameData.GetSolarArchetype("waypoint");
                     missionWaypoint = new GameObject(waypointArch, Game.ResourceManager);
                     missionWaypoint.Name = new ObjectName(1091); //Mission Waypoint
-                    missionWaypoint.SetLocalTransform(Matrix4x4.CreateTranslation(pos));
+                    missionWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
                     missionWaypoint.World = world;
                     world.AddObject(missionWaypoint);
                     missionWaypoint.Register(world.Physics);
@@ -1296,10 +1295,10 @@ World Time: {12:F2}
 
             if (Selection.Selected != null) {
                 targetWireframe.Model = Selection.Selected.RigidModel;
-                var lookAt = Matrix4x4.CreateLookAt(Vector3.Transform(Vector3.Zero, player.LocalTransform),
-                    Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform), Vector3.UnitY);
+                var lookAt = Matrix4x4.CreateLookAt(player.LocalTransform.Position,
+                    Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform.Matrix()), Vector3.UnitY);
 
-                targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform).ClearTranslation();
+                targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform.Matrix()).ClearTranslation();
             }
 
             if (updateStartDelay > 0)

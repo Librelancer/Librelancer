@@ -201,8 +201,8 @@ namespace LibreLancer.Server.Components
 
         Vector3 GetAimPosition(GameObject other, WeaponControlComponent weapons)
         {
-            if(other.PhysicsComponent == null)
-                return Vector3.Transform(Vector3.Zero, other.WorldTransform);
+            if (other.PhysicsComponent == null)
+                return other.WorldTransform.Position;
             var myPos = Parent.PhysicsComponent.Body.Position;
             var myVelocity = Parent.PhysicsComponent.Body.LinearVelocity;
             var otherPos = other.PhysicsComponent.Body.Position;
@@ -220,7 +220,7 @@ namespace LibreLancer.Server.Components
             //Get hostile
             GameObject shootAt = null;
             int shootAtWeight = -1000;
-            var myPos = Parent.WorldTransform.Translation;
+            var myPos = Parent.WorldTransform.Position;
             foreach (var other in Parent.GetWorld().SpatialLookup
                          .GetNearbyObjects(Parent, myPos, 5000))
             {
@@ -228,7 +228,7 @@ namespace LibreLancer.Server.Components
                     continue;
                 if (other.TryGetComponent<STradelaneMoveComponent>(out _))
                     continue;
-                if (Vector3.Distance(other.WorldTransform.Translation, myPos) < 5000 &&
+                if (Vector3.Distance(other.WorldTransform.Position, myPos) < 5000 &&
                     IsHostileTo(other))
                 {
                     int weight = GetHostileWeight(other);
@@ -246,7 +246,7 @@ namespace LibreLancer.Server.Components
                 if (shootAt.Nickname.Equals("player", StringComparison.OrdinalIgnoreCase))
                     manager.AttackingPlayer++;
 
-                var dist = Vector3.Distance(shootAt.WorldTransform.Translation, myPos);
+                var dist = Vector3.Distance(shootAt.WorldTransform.Position, myPos);
 
                 var gunRange = weapons.GetGunMaxRange() * 0.95f;
                 weapons.AimPoint = GetAimPosition(shootAt, weapons);
@@ -391,7 +391,7 @@ namespace LibreLancer.Server.Components
 
             bool canTransition = false;
 
-            var mypos = Vector3.Transform(Vector3.Zero, Parent.WorldTransform);
+            var mypos = Parent.WorldTransform.Position;
 
             si.InThrottle = 0;
             si.InPitch = 0;
@@ -418,7 +418,7 @@ namespace LibreLancer.Server.Components
                 case StateGraphEntry.Buzz:
                 {
                     var dist = Pilot?.BuzzPassBy?.DistanceToPassBy ?? 100;
-                    var dest = Vector3.Transform(buzzDirection * dist, shootAt.WorldTransform);
+                    var dest = shootAt.WorldTransform.Transform(buzzDirection * dist);
                     ap.GotoVec(dest, false, 1, 0);
                     canTransition = timeInState >= (Pilot?.BuzzPassBy?.PassByTime ?? 5) ||
                                     Vector3.DistanceSquared(dest, mypos) < 16;

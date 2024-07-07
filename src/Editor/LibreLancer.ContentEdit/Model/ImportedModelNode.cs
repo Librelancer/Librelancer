@@ -19,8 +19,8 @@ public class ImportedModelNode
     public AbstractConstruct Construct;
     // Have construct properties been set to non-default values
     public bool ConstructPropertiesSet;
-    public Matrix4x4 Transform =>
-        Construct?.LocalTransform ?? Matrix4x4.Identity;
+    public Transform3D Transform =>
+        Construct?.LocalTransform ?? Transform3D.Identity;
 
     ModelNode def;
     public ModelNode Def {

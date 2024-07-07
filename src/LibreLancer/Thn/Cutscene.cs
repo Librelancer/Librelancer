@@ -17,7 +17,7 @@ namespace LibreLancer.Thn
     {
         public string Name;
         public Vector3 Translate;
-        public Matrix4x4 Rotate;
+        public Quaternion Rotate;
         public string Actor;
         public GameObject Object;
         public DynamicLight Light;
@@ -36,8 +36,8 @@ namespace LibreLancer.Thn
             if (Object != null && PosFromObject)
             {
                 var tr = Object.Parent.WorldTransform;
-                Translate = Vector3.Transform(Vector3.Zero, tr);
-                Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                Translate = tr.Position;
+                Rotate = tr.Orientation;
             }
         }
 
@@ -47,9 +47,8 @@ namespace LibreLancer.Thn
             {
                 if (PosFromObject)
                 {
-                    var tr = Object.Parent.WorldTransform;
-                    Translate = Vector3.Transform(Vector3.Zero, tr);
-                    Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                    Translate = Object.Parent.WorldTransform.Position;
+                    Rotate = Object.Parent.WorldTransform.Orientation;
                 }
                 else
                 {
@@ -57,29 +56,25 @@ namespace LibreLancer.Thn
                     {
                         if (charRen.Skeleton.ApplyRootMotion)
                         {
-                            var accum = Rotate.ExtractRotation() * charRen.Skeleton.RootRotation;
+                            var accum = Rotate * charRen.Skeleton.RootRotation;
                             var movement = Quaternion.Inverse(charRen.Skeleton.RootRotationAccumulator) * accum;
                             Translate += Vector3.Transform(charRen.Skeleton.RootTranslation, movement);
-                            Rotate = Matrix4x4.CreateFromQuaternion(accum);
+                            Rotate = accum;
                         }
 
                         Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
                     }
 
                     if (HpMount == null)
-                        Object.SetLocalTransform(Rotate * Matrix4x4.CreateTranslation(Translate));
+                        Object.SetLocalTransform(new Transform3D(Translate, Rotate));
                     else
-                    {
-                        var tr = HpMount.Transform;
-                        Matrix4x4.Invert(tr, out tr);
-                        Object.SetLocalTransform(tr * (Rotate * Matrix4x4.CreateTranslation(Translate)));
-                    }
+                        Object.SetLocalTransform(HpMount.Transform.Inverse() * new Transform3D(Translate, Rotate));
                 }
             }
             if(Light != null)
             {
                 Light.Light.Position = Translate;
-                Light.Light.Direction = Vector3.TransformNormal(LightDir.Normalized(), Rotate);
+                Light.Light.Direction = Vector3.Transform(LightDir.Normalized(), Rotate);
             }
         }
     }
@@ -246,8 +241,7 @@ namespace LibreLancer.Thn
                 for (int i = 0; i < sorted.Length; i++)
                 {
                     Renderer.StarSphereModels[i] = (sorted[i].Item1 as IRigidModelFile).CreateRigidModel(true, ResourceManager);
-                    Renderer.StarSphereWorlds[i] =
-                        sorted[i].Item2.Rotate * Matrix4x4.CreateTranslation(sorted[i].Item2.Translate);
+                    Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(sorted[i].Item2.Rotate) * Matrix4x4.CreateTranslation(sorted[i].Item2.Translate);
                     Renderer.StarSphereLightings[i] = Lighting.Empty;
                     starSphereObjects[i] = sorted[i].Item2;
                 }
@@ -268,7 +262,7 @@ namespace LibreLancer.Thn
         {
             for (int i = 0; i < starSphereObjects.Length; i++)
             {
-                Renderer.StarSphereWorlds[i] = starSphereObjects[i].Rotate * Matrix4x4.CreateTranslation(starSphereObjects[i].Translate);
+                Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(starSphereObjects[i].Rotate) * Matrix4x4.CreateTranslation(starSphereObjects[i].Translate);
                 var ldynamic = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
                 var lambient = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
                 var nofog = starSphereObjects[i].Entity.NoFog;
@@ -296,8 +290,8 @@ namespace LibreLancer.Thn
             if (Running)
             {
                 var pos = camera.Object.Translate;
-                var forward = Vector3.TransformNormal(-Vector3.UnitZ, camera.Object.Rotate);
-                var up = Vector3.TransformNormal(Vector3.UnitY, camera.Object.Rotate);
+                var forward = Vector3.Transform(-Vector3.UnitZ, camera.Object.Rotate);
+                var up = Vector3.Transform(Vector3.UnitY, camera.Object.Rotate);
                 soundManager.UpdateListener(delta, pos, forward, up);
             }
 			currentTime += delta;

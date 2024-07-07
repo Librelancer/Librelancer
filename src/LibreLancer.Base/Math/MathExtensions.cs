@@ -48,7 +48,7 @@ namespace LibreLancer
 		{
 			return new Vector3 (mat.M11, mat.M21, mat.M31);
 		}
-        
+
         static void ToEuler(Matrix4x4 mx, out float yaw, out float pitch, out float roll)
         {
             double p, y, r;
@@ -84,6 +84,9 @@ namespace LibreLancer
             const float radToDeg = 180.0f / MathF.PI;
             return new Vector3(Sanitize(p * radToDeg), Sanitize(y * radToDeg), Sanitize(r * radToDeg));
         }
+
+        public static Vector3 GetEulerDegrees(this Quaternion q) =>
+            GetEulerDegrees(Matrix4x4.CreateFromQuaternion(q));
     }
 }
 

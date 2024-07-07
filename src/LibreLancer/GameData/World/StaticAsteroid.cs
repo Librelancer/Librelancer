@@ -10,9 +10,8 @@ namespace LibreLancer.GameData.World
 	public class StaticAsteroid : ICloneable
 	{
 		public ResolvedModel Drawable;
-		public Vector3 Rotation;
+		public Quaternion Rotation;
 		public Vector3 Position;
-		public Matrix4x4 RotationMatrix;
 		public string Info;
         public string Archetype;
         object ICloneable.Clone() => MemberwiseClone();

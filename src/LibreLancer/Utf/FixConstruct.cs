@@ -12,8 +12,8 @@ namespace LibreLancer.Utf
 {
     public class FixConstruct : AbstractConstruct
     {
-		Matrix4x4 fixtransform;
-        public override Matrix4x4 LocalTransform { get { return internalGetTransform(fixtransform); } }
+		Transform3D fixtransform;
+        public override Transform3D LocalTransform { get { return internalGetTransform(fixtransform); } }
 
         public FixConstruct() : base()
         {
@@ -23,8 +23,8 @@ namespace LibreLancer.Utf
         public FixConstruct(BinaryReader reader)
             : base(reader)
         {
-            Rotation = ConvertData.ToMatrix3x3(reader);
-			fixtransform = Rotation * Matrix4x4.CreateTranslation(Origin);
+            Rotation = ConvertData.ToMatrix3x3(reader).ExtractRotation();
+            fixtransform = new Transform3D(Origin, Rotation);
         }
 
 		protected FixConstruct(FixConstruct cf) : base(cf) { }
@@ -36,7 +36,7 @@ namespace LibreLancer.Utf
 		}
         public override void Reset()
         {
-            fixtransform = Rotation * Matrix4x4.CreateTranslation(Origin);
+            fixtransform = new Transform3D(Origin, Rotation);
         }
         public override void Update(float distance, Quaternion quat)
         {

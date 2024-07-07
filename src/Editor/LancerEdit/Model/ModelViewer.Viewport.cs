@@ -22,6 +22,7 @@ using LibreLancer.Render.Materials;
 using LibreLancer.Sur;
 using LibreLancer.Thn;
 using SharpDX.MediaFoundation;
+using Quaternion = System.Numerics.Quaternion;
 
 namespace LancerEdit
 {
@@ -205,7 +206,7 @@ namespace LancerEdit
             foreach(var mdl in surs) {
                 if (mdl.Hardpoint && !surShowHps) continue;
                 if (!mdl.Hardpoint && !surShowHull) continue;
-                var transform =  ((mdl.Part?.LocalTransform) ?? Matrix4x4.Identity) * world;
+                var transform =  ((mdl.Part?.LocalTransform) ?? Transform3D.Identity).Matrix() * world;
                 var whandle = new WorldMatrixHandle()
                 {
                     ID = x,
@@ -288,15 +289,16 @@ namespace LancerEdit
             if(modelViewport.Mode == CameraModes.Cockpit) {
                 var vp = new Rectangle(0, 0, renderWidth, renderHeight);
                 tcam.SetViewport(vp, (float)renderWidth / renderHeight);
-                var tr = Matrix4x4.Identity;
+                var tr = Transform3D.Identity;
                 if (!string.IsNullOrEmpty(cameraPart.Construct?.ParentName))
                 {
                     tr = cameraPart.Construct.LocalTransform *
-                         vmsModel.Parts[cameraPart.Construct.ParentName].LocalTransform;
+                          vmsModel.Parts[cameraPart.Construct.ParentName].LocalTransform;
                 } else if(cameraPart.Construct != null)
                     tr = cameraPart.Construct.LocalTransform;
-                tcam.Object.Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
-                tcam.Object.Translate = Vector3.Transform(Vector3.Zero, tr);
+
+                tcam.Object.Rotate = tr.Orientation;
+                tcam.Object.Translate = tr.Position;
                 znear = cameraPart.Camera.Znear;
                 zfar = cameraPart.Camera.Zfar;
                 tcam.Object.Camera.Znear = 0.001f;
@@ -408,7 +410,7 @@ namespace LancerEdit
             {
                 if (part.Wireframe != null)
                 {
-                    DrawVMeshWire(part.Wireframe, part.LocalTransform * matrix, i++);
+                    DrawVMeshWire(part.Wireframe, part.LocalTransform.Matrix() * matrix, i++);
                 }
             }
         }
@@ -426,7 +428,7 @@ namespace LancerEdit
             {
                 if (part.Mesh != null)
                 {
-                    DrawBox(part.Mesh.BoundingBox, part.LocalTransform * matrix, i++);
+                    DrawBox(part.Mesh.BoundingBox, part.LocalTransform.Matrix() * matrix, i++);
                 }
             }
         }
@@ -441,7 +443,7 @@ namespace LancerEdit
                 if (!part.Active) continue;
                 var mat = NormalLinesMaterial.GetMaterial(res, normalLength * 0.1f * vmsModel.GetRadius());
                 var lvl = GetLevel(part.Mesh.Switch2);
-                part.Mesh.DrawImmediate(lvl, res, _window.RenderContext, part.LocalTransform * matrix,
+                part.Mesh.DrawImmediate(lvl, res, _window.RenderContext, part.LocalTransform.Matrix() * matrix,
                     ref Lighting.Empty,
                     null, 0, mat);
             }
@@ -471,16 +473,16 @@ namespace LancerEdit
             {
                 if (tr.Enabled || tr.Override != null)
                 {
-                    var transform = tr.Override ?? tr.Hardpoint.HpTransformInfo;
+                    var transform = tr.Override ?? (tr.Hardpoint.HpTransformInfo.Matrix());
                     //arc
                     if(tr.Hardpoint.Definition is RevoluteHardpointDefinition) {
                         var rev = (RevoluteHardpointDefinition)tr.Hardpoint.Definition;
                         var min = tr.Override == null ? rev.Min : tr.EditingMin;
                         var max = tr.Override == null ? rev.Max : tr.EditingMax;
-                        GizmoRender.AddGizmoArc(_window.LineRenderer, gizmoScale,transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, min,max);
+                        GizmoRender.AddGizmoArc(_window.LineRenderer, gizmoScale,transform * (tr.Parent?.LocalTransform ?? Transform3D.Identity).Matrix() * matrix, min,max);
                     }
                     //draw (red for editing, light pink for normal)
-                    GizmoRender.AddGizmo(_window.LineRenderer, gizmoScale,transform * (tr.Parent == null ? Matrix4x4.Identity : tr.Parent.LocalTransform) * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
+                    GizmoRender.AddGizmo(_window.LineRenderer, gizmoScale,transform * (tr.Parent?.LocalTransform ?? Transform3D.Identity).Matrix() * matrix, tr.Override != null ? Color4.Red : Color4.LightPink);
                 }
             }
             _window.LineRenderer.Render();
@@ -536,7 +538,7 @@ namespace LancerEdit
                         }
 
                         var lvl = GetLevel(part.Mesh.Switch2);
-                        part.Mesh.DrawBuffer(lvl, res, buffer, part.LocalTransform * matrix,
+                        part.Mesh.DrawBuffer(lvl, res, buffer, part.LocalTransform.Matrix() * matrix,
                             ref Lighting.Empty,
                             null, userData, mat);
                     }

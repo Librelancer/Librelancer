@@ -461,7 +461,7 @@ namespace LibreLancer.Render
                     {
                         if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null) continue;
                         var p = mdl.AllParts[j];
-                        var w = p.LocalTransform * ssworld;
+                        var w = p.LocalTransform.Matrix() * ssworld;
                         var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
                         if (camera.FrustumCheck(bsphere))
                             p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims, BasicMaterial.ForceAlpha);

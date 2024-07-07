@@ -87,12 +87,10 @@ namespace LibreLancer.Thn.Events
             public override bool Run(double delta)
             {
                 time += delta;
-                var p = Parent.Rotate *
-                        Matrix4x4.CreateTranslation(Parent.Translate);
-                Matrix4x4.Invert(ChildHardpoint.Transform, out var invChild);
-                var tr = invChild * ParentHardpoint.Transform * p;
-                Child.Translate = Vector3.Transform(Vector3.Zero, tr);
-                Child.Rotate = Matrix4x4.CreateFromQuaternion(tr.ExtractRotation());
+                var tr = ChildHardpoint.Transform.Inverse() * ParentHardpoint.Transform *
+                        new Transform3D(Parent.Translate, Parent.Rotate);
+                Child.Translate = tr.Position;
+                Child.Rotate = tr.Orientation;
                 return time < Duration;
             }
         }

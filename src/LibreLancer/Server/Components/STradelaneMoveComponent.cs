@@ -140,7 +140,8 @@ namespace LibreLancer.Server.Components
             {
                 offset = Parent.Formation.GetShipOffset(Parent);
             }
-            return Vector3.Transform(Vector3.Zero + offset, currenttradelane.GetHardpoint(lane).TransformNoRotate * currenttradelane.WorldTransform);
+            return (currenttradelane.GetHardpoint(lane).TransformNoRotate * currenttradelane.WorldTransform)
+                .Transform(offset);
         }
         private (Vector3, Vector3) CalculateNextTradelane(GameObject tradelaneComponent)
         {
@@ -154,7 +155,9 @@ namespace LibreLancer.Server.Components
             if (eng is not null)
                 eng.Speed = 0.9f;
 
-            var targetPosition = Vector3.Transform(Vector3.Zero + offset, tradelaneComponent.GetHardpoint(lane).TransformNoRotate * tradelaneComponent.WorldTransform);
+            var targetPosition =
+                (tradelaneComponent.GetHardpoint(lane).TransformNoRotate * tradelaneComponent.WorldTransform)
+                .Transform(offset);
             var direction = (targetPosition - Parent.PhysicsComponent.Body.Position);
 
             return (targetPosition, direction);

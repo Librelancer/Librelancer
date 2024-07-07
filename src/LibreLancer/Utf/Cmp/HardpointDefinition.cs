@@ -29,7 +29,7 @@ namespace LibreLancer.Utf.Cmp
         }
         protected bool parentNode(LeafNode node)
         {
-			
+
             switch (node.Name.ToLowerInvariant())
             {
                 case "orientation":
@@ -51,12 +51,6 @@ namespace LibreLancer.Utf.Cmp
             return true;
         }
 
-		public virtual Matrix4x4 Transform
-		{
-			get
-			{
-				return Orientation * Matrix4x4.CreateTranslation(Position);
-			}	
-		}
+		public Transform3D Transform => new(Position, Orientation.ExtractRotation());
     }
 }

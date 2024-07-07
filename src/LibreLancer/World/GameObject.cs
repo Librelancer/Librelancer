@@ -46,7 +46,7 @@ namespace LibreLancer.World
         public override string GetName(GameDataManager gameData, Vector3 other)
         {
             var heading = other - Parent.PhysicsComponent.Body.Position;
-            var fwd = Parent.PhysicsComponent.Body.Transform.GetForward();
+            var fwd = Vector3.Transform(-Vector3.UnitZ, Parent.PhysicsComponent.Body.Orientation);
             var dot = Vector3.Dot(heading, fwd);
             if (string.IsNullOrEmpty(leftRight) ||
                 string.IsNullOrEmpty(rightLeft))
@@ -148,10 +148,10 @@ namespace LibreLancer.World
 
         //Private Fields
         private HashSet<string> disabledParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        Matrix4x4 _localTransform = Matrix4x4.Identity;
+        Transform3D _localTransform = Transform3D.Identity;
         private string _nickname;
         private bool transformDirty = false;
-        Matrix4x4 worldTransform = Matrix4x4.Identity;
+        Transform3D worldTransform = Transform3D.Identity;
         private GameObject _parent;
         IDrawable dr;
         Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
@@ -181,7 +181,7 @@ namespace LibreLancer.World
             }
         }
 
-		public Matrix4x4 LocalTransform
+		public Transform3D LocalTransform
 		{
 			get
 			{
@@ -189,7 +189,7 @@ namespace LibreLancer.World
 			}
 		}
 
-        public void SetLocalTransform(Matrix4x4 tr, bool phys = false)
+        public void SetLocalTransform(Transform3D tr, bool phys = false)
         {
             _localTransform = tr;
             transformDirty = true;
@@ -205,7 +205,7 @@ namespace LibreLancer.World
 
         public void ForceTransformDirty() => transformDirty = true;
 
-        Matrix4x4 CalculateTransform()
+        Transform3D CalculateTransform()
         {
             var tr = LocalTransform;
             if (_attachment != null)
@@ -215,7 +215,7 @@ namespace LibreLancer.World
             return tr;
         }
 
-        public Matrix4x4 WorldTransform
+        public Transform3D WorldTransform
         {
             get {
                 if (transformDirty)
@@ -392,9 +392,7 @@ namespace LibreLancer.World
                 if (!DisableCmpPart(part))
                     return;
                 var tr = srcpart.LocalTransform * WorldTransform;
-                var pos0 = Vector3.Transform(Vector3.Zero, WorldTransform);
-                var pos1 = Vector3.Transform(Vector3.Zero, tr);
-                var vec = (pos1 - pos0).Normalized();
+                var vec = (tr.Position - WorldTransform.Position).Normalized();
                 var initialforce = 100f;
                 var mass = 50f;
                 if (CollisionGroups != null)
@@ -546,12 +544,11 @@ namespace LibreLancer.World
 
         public void RenderUpdate(double time)
         {
-            var myPos = Vector3.Transform(Vector3.Zero, WorldTransform);
-            RenderComponent?.Update(time, myPos, WorldTransform);
+            RenderComponent?.Update(time, WorldTransform.Position, WorldTransform.Matrix());
             for (int i = 0; i < Children.Count; i++)
                 Children[i].RenderUpdate(time);
             foreach(var child in ExtraRenderers)
-                child.Update(time, myPos, WorldTransform);
+                child.Update(time, WorldTransform.Position, WorldTransform.Matrix());
         }
 
         public void Register(PhysicsWorld physics)
@@ -601,7 +598,7 @@ namespace LibreLancer.World
             CollisionGroups = null;
             _parent = null;
             transformDirty = true;
-            _localTransform = Matrix4x4.Identity;
+            _localTransform = Transform3D.Identity;
             Nickname = null;
             Name = null;
             Flags = 0;
@@ -643,12 +640,7 @@ namespace LibreLancer.World
             return null;
 		}
 
-		public Vector3 InverseTransformPoint(Vector3 input)
-		{
-			var tf = WorldTransform;
-            Matrix4x4.Invert(tf, out tf);
-			return Vector3.Transform(input, tf);
-		}
+        public Vector3 InverseTransformPoint(Vector3 input) => WorldTransform.InverseTransform(input);
 
 		public IEnumerable<Hardpoint> GetHardpoints()
 		{

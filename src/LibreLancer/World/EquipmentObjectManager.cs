@@ -51,8 +51,7 @@ namespace LibreLancer.World
                     Hardpoint hpChild = obj.GetHardpoint(equip.HPChild);
                     if (hpChild != null)
                     {
-                        Matrix4x4.Invert(hpChild.Transform, out var invTr);
-                        obj.SetLocalTransform(invTr);
+                        obj.SetLocalTransform(hpChild.Transform.Inverse());
                     }
                 }
                 var hp = parent.GetHardpoint(hardpoint);

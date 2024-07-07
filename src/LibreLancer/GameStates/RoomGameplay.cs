@@ -655,10 +655,10 @@ namespace LibreLancer
                     spot = ct.Reserves[0].Spot[position++];
                 }
                 var pos = scene.GetObject(spot).Translate;
-                obj.SetLocalTransform(Matrix4x4.CreateTranslation(pos));
+                obj.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
                 var thnObj = new ThnObject();
                 thnObj.Name = npc.Actor;
-                thnObj.Rotate = Matrix4x4.Identity;
+                thnObj.Rotate = Quaternion.Identity;
                 thnObj.Translate = pos;
                 thnObj.Object = obj;
                 scene.AddObject(thnObj);
@@ -749,12 +749,11 @@ namespace LibreLancer
             if (shipMarker != null) {
                 if(playerShip.HardpointExists("HpMount"))
                 {
-                    Matrix4x4.Invert(playerShip.GetHardpoint("HpMount").Transform, out var tr);
-                    playerShip.SetLocalTransform(tr);
+                    playerShip.SetLocalTransform(playerShip.GetHardpoint("HpMount").Transform.Inverse());
                 }
                 else
                 {
-                    playerShip.SetLocalTransform(Matrix4x4.Identity);
+                    playerShip.SetLocalTransform(Transform3D.Identity);
                 }
                 shipMarker.Object.Children.Add(playerShip);
             }
@@ -787,8 +786,7 @@ namespace LibreLancer
                 marker.Object.Children.Add(obj);
                 if(obj.HardpointExists("HpMount"))
                 {
-                    Matrix4x4.Invert(obj.GetHardpoint("HpMount").Transform, out var tr);
-                    obj.SetLocalTransform(tr);
+                    obj.SetLocalTransform(obj.GetHardpoint("HpMount").Transform.Inverse());
                 }
             }
             if (sc == null) {

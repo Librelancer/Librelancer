@@ -136,7 +136,7 @@ public static class ModelExporter
     {
         var n = new ModelNode();
         n.Name = def.Name;
-        n.Transform = def.Transform;
+        n.Transform = def.Transform.Matrix();
         n.Properties["hardpoint"] = true;
         if (def is FixedHardpointDefinition)
         {
@@ -158,7 +158,7 @@ public static class ModelExporter
         sm.Name = node.Name;
         if (node.Construct != null)
         {
-            sm.Transform = node.Construct.Rotation * Matrix4x4.CreateTranslation(node.Construct.Origin);
+            sm.Transform = new Transform3D(node.Construct.Origin, node.Construct.Rotation).Matrix();
         }
         if (node.Construct is FixConstruct)
         {

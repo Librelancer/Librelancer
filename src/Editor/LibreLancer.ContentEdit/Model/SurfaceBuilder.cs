@@ -150,7 +150,7 @@ public static class SurfaceBuilder
         void AddHull(HullData h, uint crc, byte type, bool add = true)
         {
             if (type == 4 && node.Construct is FixConstruct) {
-                addToParent(h, crc, node.Transform);
+                addToParent(h, crc, node.Transform.Matrix());
             }
             Vector3 minimum = new Vector3(float.MaxValue);
             Vector3 maximum = new Vector3(float.MinValue);
@@ -185,7 +185,7 @@ public static class SurfaceBuilder
             CreateSurfacePart(child, parts, (h,c, m) =>
             {
                 if(node.Construct is FixConstruct)
-                    addToParent(h, c, m * node.Transform);
+                    addToParent(h, c, m * node.Transform.Matrix());
                 else
                 {
                     var h2 = new HullData() {Source = h.Source, Indices = h.Indices};

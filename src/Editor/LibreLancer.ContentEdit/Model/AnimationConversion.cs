@@ -32,7 +32,7 @@ static class AnimationConversion
             var rot = new SM.RotationChannel();
             rot.Target = p.ObjectName;
             rot.Keyframes = [
-                new SM.RotationKeyframe(0, Quaternion.Normalize(con.Rotation.ExtractRotation()))
+                new SM.RotationKeyframe(0, Quaternion.Normalize(con.Rotation))
             ];
             rotations.Add(rot);
         }
@@ -73,7 +73,7 @@ static class AnimationConversion
                     else
                         rot.Keyframes[i].Time = map.Channel.Interval * i;
                     cloned.Update(map.Channel.GetAngle(i), Quaternion.Identity);
-                    rot.Keyframes[i].Rotation = Quaternion.Normalize(cloned.LocalTransform.ExtractRotation());
+                    rot.Keyframes[i].Rotation = Quaternion.Normalize(cloned.LocalTransform.Orientation);
                 }
                 rotations.Add(rot);
             }
@@ -92,7 +92,7 @@ static class AnimationConversion
                     else
                         tr.Keyframes[i].Time = map.Channel.Interval * i;
                     cloned.Update(map.Channel.GetAngle(i), Quaternion.Identity);
-                    tr.Keyframes[i].Translation = Vector3.Transform(Vector3.Zero, cloned.LocalTransform);
+                    tr.Keyframes[i].Translation = cloned.LocalTransform.Position;
                 }
                 translations.Add(tr);
             }
@@ -381,7 +381,7 @@ static class AnimationConversion
             {
                 var jm = JointMapNode(n, i, child.Name, child.Construct.ParentName);
                 var resampled = Resample(rot);
-                var (ch, props) = QuatsToAngleChannel(resampled, child.Construct.LocalTransform);
+                var (ch, props) = QuatsToAngleChannel(resampled, child.Construct.LocalTransform.Matrix());
 
                 if (ch == null)
                 {
@@ -429,7 +429,7 @@ static class AnimationConversion
             {
                 var jm = JointMapNode(n, i, child.Name, child.Construct.ParentName);
                 var resampled = Resample(tr);
-                var (ch, props) = VectorsToAngleChannel(resampled, child.Construct.LocalTransform);
+                var (ch, props) = VectorsToAngleChannel(resampled, child.Construct.LocalTransform.Matrix());
                 if (ch == null)
                 {
                     messages.Add(EditMessage.Warning($"Translation in '{anim.Name}' could not map to single axis"));

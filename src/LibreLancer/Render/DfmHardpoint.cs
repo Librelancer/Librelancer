@@ -9,7 +9,7 @@ public class DfmHardpoint : IRenderHardpoint
     public BoneInstance Bone;
     public HardpointDefinition Definition;
 
-    public Matrix4x4 Transform => Definition.Transform *
-                                  (Bone?.LocalTransform ?? Matrix4x4.Identity) *
-                                  (Connection?.Transform ?? Matrix4x4.Identity);
+    public Transform3D Transform => Definition.Transform *
+                                  (Bone?.LocalTransform ?? Transform3D.Identity) *
+                                  (Connection?.Transform ?? Transform3D.Identity);
 }

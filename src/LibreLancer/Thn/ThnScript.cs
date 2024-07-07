@@ -196,7 +196,7 @@ namespace LibreLancer.Thn
 
 
 
-		public static Matrix4x4 GetMatrix(ThornTable orient)
+		public static Quaternion GetQuaternion(ThornTable orient)
 		{
 			var m11 = (float)((ThornTable)orient[1])[1];
 			var m12 = (float)((ThornTable)orient[1])[2];
@@ -209,13 +209,13 @@ namespace LibreLancer.Thn
 			var m31 = (float)((ThornTable)orient[3])[1];
 			var m32 = (float)((ThornTable)orient[3])[2];
 			var m33 = (float)((ThornTable)orient[3])[3];
-			return new Matrix4x4(
-				m11, m12, m13, 0,
-				m21, m22, m23, 0,
-				m31, m32, m33, 0,
-				0, 0, 0, 1
-			);
-		}
+            return new Matrix4x4(
+                m11, m12, m13, 0,
+                m21, m22, m23, 0,
+                m31, m32, m33, 0,
+                0, 0, 0, 1
+            ).ExtractRotation();
+        }
 
         static float FuzzyFloat(object o)
         {
@@ -331,7 +331,7 @@ namespace LibreLancer.Thn
 				}
 				if (spatialprops.TryGetValue("orient", out o))
 				{
-					e.RotationMatrix = GetMatrix((ThornTable)o);
+					e.Rotation = GetQuaternion((ThornTable)o);
 				}
 			}
 
