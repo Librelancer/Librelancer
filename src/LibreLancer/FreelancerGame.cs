@@ -152,7 +152,7 @@ namespace LibreLancer
 
         public string GetSaveFolder()
         {
-            var dir = GetSaveDirectory("Librelancer", "Librelancer");
+            var dir = GetSaveDirectory("Librelancer");
             try
             {
                 Directory.CreateDirectory(dir);

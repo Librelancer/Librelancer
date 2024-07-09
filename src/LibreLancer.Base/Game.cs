@@ -60,10 +60,38 @@ namespace LibreLancer
             set => impl.RelativeMouseMode = value;
         }
 
-        protected string GetSaveDirectory(string OrgName, string GameName)
+        protected string GetCacheDirectory(string gameName)
         {
-            string platform = SDL.SDL_GetPlatform();
-            if (platform.Equals("Windows"))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return Path.Combine(
+                    Environment.GetFolderPath(
+                        Environment.SpecialFolder.LocalApplicationData
+                    ),
+                    gameName,
+                    "Cache"
+                );
+            }
+            else
+            {
+                string osConfigDir = Environment.GetEnvironmentVariable("XDG_CACHE_HOME");
+                if (String.IsNullOrEmpty(osConfigDir))
+                {
+                    osConfigDir = Environment.GetEnvironmentVariable("HOME");
+                    if (String.IsNullOrEmpty(osConfigDir))
+                    {
+                        return "./cache"; // Oh well.
+                    }
+                    osConfigDir += "/.cache";
+                }
+                return Path.Combine(osConfigDir, gameName);
+            }
+        }
+
+        protected string GetSaveDirectory(string GameName)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return Path.Combine(
                     Environment.GetFolderPath(
@@ -73,7 +101,7 @@ namespace LibreLancer
                     GameName
                 );
             }
-            else if (platform.Equals("Mac OS X"))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 string osConfigDir = Environment.GetEnvironmentVariable("HOME");
                 if (String.IsNullOrEmpty(osConfigDir))
@@ -83,10 +111,7 @@ namespace LibreLancer
                 osConfigDir += "/Library/Application Support";
                 return Path.Combine(osConfigDir, GameName);
             }
-            else if (	platform.Equals("Linux") ||
-                        platform.Equals("FreeBSD") ||
-                        platform.Equals("OpenBSD") ||
-                        platform.Equals("NetBSD")	)
+            else
             {
                 string osConfigDir = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
                 if (String.IsNullOrEmpty(osConfigDir))
@@ -99,10 +124,6 @@ namespace LibreLancer
                     osConfigDir += "/.local/share";
                 }
                 return Path.Combine(osConfigDir, GameName);
-            }
-            else
-            {
-                return SDL.SDL_GetPrefPath(OrgName, GameName);
             }
         }
 

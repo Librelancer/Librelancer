@@ -193,9 +193,10 @@ namespace LancerEdit
             Popups.AddPopup("Loading##systemviewer", _ =>
             {
                 ImGui.Text("Loading Universe Editor...");
-                if (this.OpenDataContext.RenderAllArchetypePreviews()) {
-                    GC.Collect();
-                    this.AddTab(new UniverseEditorTab(this.OpenDataContext, this));
+                ImGuiHelper.AnimatingElement();
+                if (!OpenDataContext.IterateRenderArchetypePreviews())
+                {
+                    this.AddTab(new UniverseEditorTab(OpenDataContext, this));
                     ImGui.CloseCurrentPopup();
                 }
             }, ImGuiWindowFlags.AlwaysAutoResize, true);
@@ -477,7 +478,7 @@ namespace LancerEdit
 
                 var c = new GameDataContext();
                 StartLoadingSpinner();
-                c.Load(this, folder, () =>
+                c.Load(this, folder, GetCacheDirectory("LancerEdit"), () =>
                 {
                     OpenDataContext = c;
                     FinishLoadingSpinner();
@@ -592,7 +593,9 @@ namespace LancerEdit
                     if(fd != null)
                         TabControl.SetSelected(fd);
                     else
+                    {
                         Popups.OpenPopup("Loading##systemviewer");
+                    }
                 }
 
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))

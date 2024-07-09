@@ -41,7 +41,7 @@ public class ArchetypePreviews : IDisposable
     private GameResourceManager resources;
     private LookAtCamera camera;
     private SystemRenderer renderer;
-    public ArchetypePreviews(MainWindow win, GameResourceManager resources)
+    public ArchetypePreviews(MainWindow win, GameResourceManager resources, string cacheDir)
     {
         this.win = win;
         this.resources = resources;
@@ -50,6 +50,8 @@ public class ArchetypePreviews : IDisposable
         renderer.NullColor = new Color4(56, 57, 58, 255);
         renderer.SystemLighting = lighting;
     }
+
+
     public Texture2D RenderPreview(Archetype archetype, int width, int height)
     {
         var mdl = archetype.ModelFile?.LoadFile(resources).Drawable;
