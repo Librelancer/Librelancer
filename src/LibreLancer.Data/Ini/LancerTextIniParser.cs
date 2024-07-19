@@ -12,13 +12,13 @@ using System.Text;
 namespace LibreLancer.Ini
 {
     /// <summary>
-    /// Implementation of a text ini parser which comes as close to the original as possible. 
+    /// Implementation of a text ini parser which comes as close to the original as possible.
     /// </summary>
     /// <remarks>
     /// Freelancer data contains a mixture of binary ini and text ini files. The text ini files
     /// seem to contain nbsp (0xa0) characters from the windows-1252 code page which can be seen in
     /// DATA/initialworld.ini. The means that unless the ini file has BOM we should interpret the
-    /// file data as from this code page.  
+    /// file data as from this code page.
     /// </remarks>
     public class LancerTextIniParser : IIniParser
     {
@@ -70,8 +70,7 @@ namespace LibreLancer.Ini
                             {
                                 entry.Add(new Int32Value((int)tempLong) { Entry = entry, Line = line });
                             }
-                            else if (float.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out float tempFloat)
-                                && tempFloat.ToString() == Convert.ToDouble(part).ToString())
+                            else if (float.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out float tempFloat))
                             {
                                 entry.Add(new SingleValue(tempFloat, null) { Entry = entry, Line = line });
                             }
