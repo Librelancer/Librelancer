@@ -878,6 +878,7 @@ namespace LibreLancer
             }, () =>
             {
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
+                Game.Debug.ObjectsWindow(scene.World.Objects);
             });
 
             if (ui.Visible && !ui.HasModal && nextObjectiveUpdate != 0 && waitObjectiveFrames <= 0)
@@ -885,7 +886,7 @@ namespace LibreLancer
                 ui.Event("ObjectiveUpdate", nextObjectiveUpdate);
                 nextObjectiveUpdate = 0;
             }
-            if (ui.Visible || ui.HasModal)
+            if (ui.Visible || ui.HasModal || Game.Debug.Enabled)
             {
                 if(GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null) talk_story.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
                 else cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);

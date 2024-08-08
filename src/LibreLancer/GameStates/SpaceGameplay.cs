@@ -1409,8 +1409,9 @@ World Time: {12:F2}
             }, () =>
             {
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
+                Game.Debug.ObjectsWindow(world.Objects);
             });
-            if ((Thn == null || !Thn.Running) && ShowHud)
+            if ((Thn == null || !Thn.Running) && ShowHud || Game.Debug.Enabled)
             {
                 current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
             }
