@@ -3,10 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
+using LibreLancer.Render;
+using LibreLancer.World;
 
 namespace LibreLancer.Interface
 {
@@ -52,6 +55,46 @@ namespace LibreLancer.Interface
                 }
                 ImGui.End();
             }
+        }
+
+        private ObjectRenderer lastHighlight = null;
+        private bool lastAmbient;
+        private bool lastDynamic;
+
+        public void ObjectsWindow(IReadOnlyCollection<GameObject> objects)
+        {
+            ImGui.SetNextWindowSize(new Vector2(300, 500), ImGuiCond.FirstUseEver);
+            ImGui.Begin("Objects");
+            ObjectRenderer toHighlight = null;
+            foreach (var obj in objects)
+            {
+                ImGui.Selectable(obj.ToString());
+                if (ImGui.IsItemHovered() && obj.RenderComponent != null)
+                {
+                    toHighlight = obj.RenderComponent;
+                }
+            }
+
+            if (toHighlight != lastHighlight)
+            {
+                if (lastHighlight != null)
+                {
+                    lastHighlight.LitAmbient = lastAmbient;
+                    lastHighlight.LitDynamic = lastDynamic;
+                }
+
+                if (toHighlight != null)
+                {
+                    lastAmbient = toHighlight.LitAmbient;
+                    lastDynamic = toHighlight.LitDynamic;
+                    toHighlight.LitAmbient = false;
+                    toHighlight.LitDynamic = false;
+                }
+
+                lastHighlight = toHighlight;
+            }
+
+            ImGui.End();
         }
 
         public void Draw(double elapsed, Action debugWindow = null, Action otherWindows = null)
