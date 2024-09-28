@@ -97,6 +97,9 @@ public class IniBuilder
             return Entry(name, value);
         }
 
+        public IniSectionBuilder Entry(string name, Vector4 value)
+            => Entry(name, value.X, value.Y, value.Z, value.W);
+
         public IniSectionBuilder Entry(string name, Color4 value, bool alpha = false)
             => alpha
                 ? Entry(name, (int)(value.R * 255), (int)(value.G * 255), (int)(value.B * 255), (int)(value.A * 255))
