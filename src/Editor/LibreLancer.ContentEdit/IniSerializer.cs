@@ -183,11 +183,11 @@ public static class IniSerializer
                 var a = c.Rotation.GetEulerDegrees();
                 if (!string.IsNullOrWhiteSpace(c.Info))
                 {
-                    cb.Entry("cube", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z, c.Info);
+                    cb.Entry("asteroid", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z, c.Info);
                 }
                 else
                 {
-                    cb.Entry("cube", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z);
+                    cb.Entry("asteroid", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z);
                 }
             }
         }

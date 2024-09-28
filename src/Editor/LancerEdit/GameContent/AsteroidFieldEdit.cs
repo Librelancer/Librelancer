@@ -110,7 +110,10 @@ public class AsteroidFieldEdit
             renderer.DebugRenderer.DrawCube(Matrix4x4.Identity, field.CubeSize, Color4.Yellow);
         };
         SetAstPositions();
-        MoveCameraTo(world.Objects[0]);
+        if (world.Objects.Count > 0)
+        {
+            MoveCameraTo(world.Objects[0]);
+        }
     }
 
     class PatchedModel : IRigidModelFile
