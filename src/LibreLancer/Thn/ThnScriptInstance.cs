@@ -138,7 +138,8 @@ namespace LibreLancer.Thn
                                 drawable = eq?.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             case "asteroid":
-                                drawable = gameData.GetAsteroid(kv.Value.Template).Drawable;
+                                var ast = gameData.Asteroids.Get(template);
+                                drawable = ast?.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             default:
                                 throw new NotImplementedException("Mesh Category " + kv.Value.MeshCategory);

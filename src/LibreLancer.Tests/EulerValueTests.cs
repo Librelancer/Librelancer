@@ -32,6 +32,28 @@ public class EulerValueTests
         ), 3);
     }
 
+    [Fact]
+    public void QuatEulerAngles()
+    {
+        var v = new Vector3(35, 119, 20);
+
+        var a = MathHelper.QuatFromEulerDegrees(v);
+        var b = MathHelper.MatrixFromEulerDegrees(v);
+
+        AssertRotationsEqual(Matrix4x4.CreateFromQuaternion(a), b, 1, v);
+    }
+
+    [Fact]
+    public void RoundTripQuaternion()
+    {
+        var v = new Vector3(35, 119, 20);
+        var a = MathHelper.QuatFromEulerDegrees(v);
+        var v2 = a.GetEulerDegrees();
+        var b = MathHelper.QuatFromEulerDegrees(v2);
+        var error = MathHelper.QuatError(a, b);
+        Assert.True(error <= 0.0001f, $"Rotations are noticeably different for {a} and {b} based on angles {v} (error {error})");
+    }
+
     static void RoundtripMatrix(Matrix4x4 mat, int index)
     {
         var euler = mat.GetEulerDegrees();

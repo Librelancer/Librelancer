@@ -9,31 +9,31 @@ namespace LibreLancer.Data.Universe
 {
 	public class Field
     {
-        [Entry("cube_size")] 
+        [Entry("cube_size")]
         public int? CubeSize;
-        
-        [Entry("fill_dist")] 
+
+        [Entry("fill_dist")]
         public int? FillDist;
-        
-        [Entry("tint_field")] 
+
+        [Entry("tint_field")]
         public Color4? TintField;
-        
-        [Entry("max_alpha")] 
+
+        [Entry("max_alpha")]
         public float? MaxAlpha;
-        
-        [Entry("diffuse_color")] 
-        public Color4? DiffuseColor;
-        
-        [Entry("ambient_color")] 
+
+        [Entry("diffuse_color")]
+        public Color4 DiffuseColor = Color4.White;
+
+        [Entry("ambient_color")]
         public Color4? AmbientColor;
-        
-        [Entry("ambient_increase")] 
-        public Color4? AmbientIncrease;
-        
-        [Entry("empty_cube_frequency")] 
+
+        [Entry("ambient_increase")]
+        public Color4 AmbientIncrease = Color4.Black;
+
+        [Entry("empty_cube_frequency")]
         public float? EmptyCubeFrequency;
-        
-        [Entry("contains_fog_zone")] 
+
+        [Entry("contains_fog_zone")]
         public bool? ContainsFogZone;
     }
 }

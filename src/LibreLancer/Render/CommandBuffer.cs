@@ -68,7 +68,7 @@ namespace LibreLancer.Render
 					Count = count,
                     Type = RenderCommand.MakeType(RenderCmdType.Material, primitive),
                     World = world,
-                    Hash = userData,
+                    UserData = userData,
                 };
 			}
 			else
@@ -110,7 +110,8 @@ namespace LibreLancer.Render
             int layer,
             Vector2 fadeParams,
             float z = 0,
-            int offset = 0)
+            int offset = 0,
+            int userData = 0)
 		{
 			Transparents[transparentCommand++] = new RenderCommand()
 			{
@@ -126,6 +127,7 @@ namespace LibreLancer.Render
                 Hash = *(int*)(&fadeParams.X),
 				Index = *(int*)(&fadeParams.Y),
 				World = world,
+                UserData = userData
             };
 		}
 
@@ -270,6 +272,7 @@ namespace LibreLancer.Render
         public MaterialAnim MaterialAnim;
 		public int Hash;
 		public int Index;
+        public int UserData;
 
         public RenderCmdType CmdType => (RenderCmdType) (Type >> 4);
         public PrimitiveTypes Primitive => (PrimitiveTypes) (Type & 0xF);
@@ -295,7 +298,7 @@ namespace LibreLancer.Render
 					Material.FadeFar = *(float*)(&ff);
 				}
                 if (Material.DisableCull || Material.DoubleSided) context.Cull = false;
-				Material.Use(context, Buffer.VertexType, ref Lights, Hash);
+				Material.Use(context, Buffer.VertexType, ref Lights, UserData);
 				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
 					Buffer.Draw(Primitive, BaseVertex, Start, Count);
 				else

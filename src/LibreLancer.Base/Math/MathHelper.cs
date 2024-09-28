@@ -389,16 +389,18 @@ namespace LibreLancer
         }
 
         public static Quaternion QuatFromEulerDegrees(Vector3 angles) =>
-            QuatFromEulerDegrees(angles.X, angles.Y, angles.Z);
+            MatrixFromEulerDegrees(angles).ExtractRotation();
 
         public static Quaternion QuatFromEulerDegrees(float x, float y, float z)
         {
-            x *= MathF.PI / 180.0f;
+            return MatrixFromEulerDegrees(x, y, z).ExtractRotation();
+            //Not equivalent?
+            /*x *= MathF.PI / 180.0f;
             y *= MathF.PI / 180.0f;
             z *= MathF.PI / 180.0f;
             return Quaternion.CreateFromAxisAngle(Vector3.UnitX, x) *
                    Quaternion.CreateFromAxisAngle(Vector3.UnitY, y) *
-                   Quaternion.CreateFromAxisAngle(Vector3.UnitZ, z);
+                   Quaternion.CreateFromAxisAngle(Vector3.UnitZ, z);*/
         }
         public static Matrix4x4 MatrixFromEulerDegrees(float x, float y, float z)
         {
@@ -422,5 +424,66 @@ namespace LibreLancer
             else
                 flags &= ~(1 << idx);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetFlag<T>(ref T source, T flag) where T : struct, Enum
+        {
+            var underlying = typeof(T).GetEnumUnderlyingType();
+            if (underlying == typeof(byte) || underlying == typeof(sbyte))
+            {
+                var flagB = Unsafe.BitCast<T, byte>(flag);
+                ref var sourceB = ref Unsafe.As<T, byte>(ref source);
+                sourceB |= flagB;
+            }
+            if (underlying == typeof(short) || underlying == typeof(ushort))
+            {
+                var flagS = Unsafe.BitCast<T, ushort>(flag);
+                ref var sourceS = ref Unsafe.As<T, ushort>(ref source);
+                sourceS |= flagS;
+            }
+            if (underlying == typeof(int) || underlying == typeof(uint))
+            {
+                var flagI = Unsafe.BitCast<T, uint>(flag);
+                ref var sourceI = ref Unsafe.As<T, uint>(ref source);
+                sourceI |= flagI;
+            }
+            if (underlying == typeof(long) || underlying == typeof(ulong))
+            {
+                var flagL = Unsafe.BitCast<T, ulong>(flag);
+                ref var sourceL = ref Unsafe.As<T, ulong>(ref source);
+                sourceL |= flagL;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void UnsetFlag<T>(ref T source, T flag) where T : struct, Enum
+        {
+            var underlying = typeof(T).GetEnumUnderlyingType();
+            if (underlying == typeof(byte) || underlying == typeof(sbyte))
+            {
+                var flagB = Unsafe.BitCast<T, byte>(flag);
+                ref var sourceB = ref Unsafe.As<T, byte>(ref source);
+                sourceB &= (byte)~flagB;
+            }
+            if (underlying == typeof(short) || underlying == typeof(ushort))
+            {
+                var flagS = Unsafe.BitCast<T, ushort>(flag);
+                ref var sourceS = ref Unsafe.As<T, ushort>(ref source);
+                sourceS &= (ushort)~flagS;
+            }
+            if (underlying == typeof(int) || underlying == typeof(uint))
+            {
+                var flagI = Unsafe.BitCast<T, uint>(flag);
+                ref var sourceI = ref Unsafe.As<T, uint>(ref source);
+                sourceI &= ~flagI;
+            }
+            if (underlying == typeof(long) || underlying == typeof(ulong))
+            {
+                var flagL = Unsafe.BitCast<T, ulong>(flag);
+                ref var sourceL = ref Unsafe.As<T, ulong>(ref source);
+                sourceL &= ~flagL;
+            }
+        }
+
     }
 }

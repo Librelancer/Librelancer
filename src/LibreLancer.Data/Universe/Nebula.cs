@@ -11,7 +11,7 @@ namespace LibreLancer.Data.Universe
 {
 	public class Nebula : ZoneReference
     {
-        [Section("fog")] 
+        [Section("fog")]
         public NebulaFog Fog;
 
         [Section("exterior")]
@@ -20,13 +20,16 @@ namespace LibreLancer.Data.Universe
         [Section("nebulalight")]
 		public List<NebulaLight> NebulaLights = new List<NebulaLight>();
 
-        [Section("clouds")] 
+        [Section("clouds")]
         public List<NebulaClouds> Clouds = new List<NebulaClouds>();
 
-        [Section("backgroundlightning")] 
+        [Section("backgroundlightning")]
         public NebulaBackgroundLightning BackgroundLightning;
 
-        [Section("dynamiclightning")] 
+        [Section("dynamiclightning")]
         public NebulaDynamicLightning DynamicLightning;
+
+        [Section("exclusion zones", Delimiters = new[] { "exclude", "exclusion" })]
+        public List<NebulaExclusion> ExclusionZones = new List<NebulaExclusion>();
     }
 }

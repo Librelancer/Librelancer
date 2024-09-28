@@ -34,6 +34,12 @@ public class DropdownOption
 }
 public static class Controls
 {
+    public static bool Flag<T>(string id, T value, T flag, out bool set) where T : struct, Enum
+    {
+        set = !value.HasFlag(flag);
+        return ImGuiExt.ToggleButton(id, !set);
+    }
+
     public static void InputTextId(string label, ref string value, float width = 0.0f)
     {
         if (width != 0.0f)

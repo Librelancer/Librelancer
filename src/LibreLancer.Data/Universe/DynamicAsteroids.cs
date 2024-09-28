@@ -5,16 +5,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Numerics;
 using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class DynamicAsteroids : IEntryHandler
-	{
-        bool IEntryHandler.HandleEntry(Entry e)
-        {
-            return true;
-        }
+	public class DynamicAsteroids
+    {
+        [Entry("asteroid")]
+        public string Asteroid;
+        [Entry("count")]
+        public int Count;
+        [Entry("placement_radius")]
+        public int PlacementRadius;
+        [Entry("placement_offset")]
+        public int PlacementOffset;
+        [Entry("max_velocity")]
+        public int MaxVelocity;
+        [Entry("max_angular_velocity")]
+        public int MaxAngularVelocity;
+        [Entry("color_shift")]
+        public Vector3 ColorShift;
 	}
 }

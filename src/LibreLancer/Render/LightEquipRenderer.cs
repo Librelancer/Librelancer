@@ -23,9 +23,9 @@ namespace LibreLancer.Render
             colorBulb = equip.Color;
             colorGlow = equip.GlowColor;
         }
-        static TextureShape bulbshape = null;
+        static RenderShape bulbshape = RenderShape.Empty;
         static Texture2D bulbtex = null;
-        static TextureShape shineshape = null;
+        static RenderShape shineshape = RenderShape.Empty;
         static Texture2D shinetex = null;
         static bool frameStart = false;
         public static void FrameStart()

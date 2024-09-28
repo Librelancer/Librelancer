@@ -49,7 +49,7 @@ namespace LibreLancer
         public abstract void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
         public abstract Fx.ParticleLibrary GetParticleLibrary(string filename);
 
-        public abstract bool TryGetShape(string name, out TextureShape shape);
+        public abstract bool TryGetShape(string name, out RenderShape shape);
         public abstract bool TryGetFrameAnimation(string name, out TexFrameAnimation anim);
 
         public ConvexMeshCollection ConvexCollection { get; protected set; }
@@ -102,7 +102,7 @@ namespace LibreLancer
         public override Texture FindTexture(string name) => throw new InvalidOperationException();
         public override ImageResource FindImage(string name) => throw new InvalidOperationException();
 
-        public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
+        public override bool TryGetShape(string name, out RenderShape shape) => throw new InvalidOperationException();
         public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
 
         public override ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
@@ -139,7 +139,7 @@ namespace LibreLancer
         Dictionary<string, ImageResource> images = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, string> texturefiles = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, ModelResource> drawables = new(StringComparer.OrdinalIgnoreCase);
-		Dictionary<string, TextureShape> shapes = new(StringComparer.OrdinalIgnoreCase);
+		Dictionary<string, RenderShape> shapes = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, Cursor> cursors = new(StringComparer.OrdinalIgnoreCase);
 		Dictionary<string, TexFrameAnimation> frameanims = new(StringComparer.OrdinalIgnoreCase);
         Dictionary<string, ParticleLibrary> particlelibs = new(StringComparer.OrdinalIgnoreCase);
@@ -217,7 +217,7 @@ namespace LibreLancer
         public GameResourceManager(GameResourceManager src) : this(src.GLWindow, src.VFS)
         {
             texturefiles = new Dictionary<string, string>(src.texturefiles, StringComparer.OrdinalIgnoreCase);
-            shapes = new Dictionary<string, TextureShape>(src.shapes, StringComparer.OrdinalIgnoreCase);
+            shapes = new Dictionary<string, RenderShape>(src.shapes, StringComparer.OrdinalIgnoreCase);
             materialfiles = new Dictionary<uint, string>(src.materialfiles);
             foreach (var mat in src.materials.Keys)
                 materials[mat] = null;
@@ -245,11 +245,11 @@ namespace LibreLancer
 			cursors.Add(name, c);
 		}
 
-		public void AddShape(string name, TextureShape shape)
+		public void AddShape(string name, RenderShape shape)
 		{
 			shapes.Add(name, shape);
 		}
-		public override bool TryGetShape(string name, out TextureShape shape)
+		public override bool TryGetShape(string name, out RenderShape shape)
 		{
 			return shapes.TryGetValue(name, out shape);
 		}
@@ -537,6 +537,7 @@ namespace LibreLancer
                     else
                     {
                         kv.Value.Resource = null;
+                        meshes[kv.Key] = null;
                     }
                     meshFiles.TryAdd(kv.Key, filename);
                 }
@@ -606,6 +607,10 @@ namespace LibreLancer
                 drawable.ClearResources();
 				drawables.Add(filename, res);
 			}
+            else
+            {
+                res.Drawable.ClearResources();
+            }
 			return res;
 		}
 

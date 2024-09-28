@@ -61,6 +61,8 @@ namespace LibreLancer.ImageLib
             if (target != null)
                 channels = target.Format == SurfaceFormat.Bgra5551 ? 2 : 4;
             var image = ImageFromStream(stream, channels);
+            if (image == null)
+                return null;
             if (target == null)
             {
                 var tex = new Texture2D(context, image.Width, image.Height, hasMipMaps, image.Format);

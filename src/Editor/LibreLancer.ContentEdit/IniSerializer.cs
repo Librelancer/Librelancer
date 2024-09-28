@@ -9,6 +9,13 @@ using LibreLancer.GameData.Archetypes;
 using LibreLancer.Ini;
 using LibreLancer.Render;
 using LibreLancer.Data.Missions;
+using LibreLancer.Data.Universe;
+using AsteroidField = LibreLancer.GameData.World.AsteroidField;
+using Base = LibreLancer.GameData.World.Base;
+using LightSource = LibreLancer.GameData.World.LightSource;
+using StarSystem = LibreLancer.GameData.World.StarSystem;
+using SystemObject = LibreLancer.GameData.World.SystemObject;
+using Zone = LibreLancer.GameData.World.Zone;
 
 namespace LibreLancer.ContentEdit;
 
@@ -101,6 +108,131 @@ public static class IniSerializer
             SerializeSystemObject(obj, ib);
 
         return ib.Sections;
+    }
+    public static List<Section> SerializeAsteroidField(AsteroidField ast)
+    {
+        var builder = new IniBuilder();
+
+        IniBuilder.IniSectionBuilder tPanels = null;
+        foreach (var f in ast.TexturePanels)
+        {
+            tPanels ??= builder.Section("TexturePanels");
+            tPanels.Entry("file", f.SourcePath);
+        }
+
+        var fld = builder.Section("Field")
+            .Entry("cube_size", ast.CubeSize)
+            .Entry("fill_dist", ast.FillDist)
+            .Entry("empty_cube_frequency", ast.EmptyCubeFrequency);
+        if (ast.DiffuseColor != Color4.White)
+            fld.Entry("diffuse_color", ast.DiffuseColor);
+        if (ast.AmbientColor != null)
+            fld.Entry("ambient_color", ast.AmbientColor.Value);
+        if (ast.AmbientIncrease != Color4.Black)
+            fld.Entry("ambient_increase", ast.AmbientIncrease);
+
+        if (ast.Band != null)
+        {
+             builder.Section("Band")
+                .Entry("render_parts", ast.Band.RenderParts)
+                .Entry("shape", ast.Band.Shape)
+                .Entry("height", ast.Band.Height)
+                .Entry("offset_dist", ast.Band.OffsetDistance)
+                .Entry("fade", ast.Band.Fade)
+                .Entry("texture_aspect", ast.Band.TextureAspect)
+                .Entry("color_shift", ast.Band.ColorShift.R, ast.Band.ColorShift.G, ast.Band.ColorShift.B)
+                .Entry("ambient_intensity", 1)
+                .Entry("vert_increase", 2);
+        }
+
+        if (ast.ExclusionZones.Count > 0)
+        {
+            var s = builder.Section("Exclusion Zones");
+            foreach (var z in ast.ExclusionZones)
+            {
+                s.Entry("exclusion", z.Zone.Nickname);
+                if (z.ExcludeBillboards)
+                    s.Entry("exclude_billboards", 1);
+                if (z.ExcludeDynamicAsteroids)
+                    s.Entry("exclude_dynamic_asteroids", 1);
+                if (z.BillboardCount != null)
+                    s.Entry("billboard_count", z.BillboardCount.Value);
+                if (z.EmptyCubeFrequency != null)
+                    s.Entry("empty_cube_frequency", z.EmptyCubeFrequency.Value);
+            }
+        }
+
+        if (ast.Flags != 0)
+        {
+            var s = builder.Section("properties"); //intentional lower case
+            foreach(var flag in ast.Flags.GetStringValues())
+                s.Entry("flag", flag);
+        }
+
+        if (ast.Cube is { Count: > 0 })
+        {
+            var cb = builder.Section("Cube");
+            if (ast.CubeRotation.AxisX != AsteroidCubeRotation.Default_AxisX)
+                cb.Entry("xaxis_rotation", ast.CubeRotation.AxisX);
+            if (ast.CubeRotation.AxisY != AsteroidCubeRotation.Default_AxisY)
+                cb.Entry("yaxis_rotation", ast.CubeRotation.AxisY);
+            if (ast.CubeRotation.AxisZ != AsteroidCubeRotation.Default_AxisZ)
+                cb.Entry("zaxis_rotation", ast.CubeRotation.AxisZ);
+            foreach (var c in ast.Cube)
+            {
+                var a = c.Rotation.GetEulerDegrees();
+                if (!string.IsNullOrWhiteSpace(c.Info))
+                {
+                    cb.Entry("cube", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z, c.Info);
+                }
+                else
+                {
+                    cb.Entry("cube", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z);
+                }
+            }
+        }
+
+        if (ast.BillboardShape != null)
+        {
+            builder.Section("AsteroidBillboards")
+                .Entry("count", ast.BillboardCount)
+                .Entry("start_dist", ast.BillboardDistance)
+                .Entry("fade_dist_percent", ast.BillboardFadePercentage)
+                .OptionalEntry("shape", ast.BillboardShape)
+                .Entry("color_shift", ast.BillboardTint.R, ast.BillboardTint.G, ast.BillboardTint.B)
+                .Entry("size", ast.BillboardSize.X, ast.BillboardSize.Y);
+        }
+
+        foreach (var d in ast.DynamicAsteroids)
+        {
+            builder.Section("DynamicAsteroids")
+                .Entry("asteroid", d.Asteroid.Nickname)
+                .Entry("count", d.Count)
+                .Entry("placement_radius", d.PlacementRadius)
+                .Entry("placement_offset", d.PlacementOffset)
+                .Entry("max_velocity", d.MaxVelocity)
+                .Entry("max_angular_velocity", d.MaxAngularVelocity)
+                .Entry("color_shift", d.ColorShift);
+        }
+
+        void AddLootZone(DynamicLootZone lz)
+        {
+            builder.Section("LootableZone")
+                .OptionalEntry("zone", lz.Zone?.Nickname)
+                .OptionalEntry("dynamic_loot_container", lz.LootContainer?.Nickname)
+                .OptionalEntry("dynamic_loot_commodity", lz.LootCommodity?.Nickname)
+                .Entry("dynamic_loot_count", lz.LootCount)
+                .Entry("dynamic_loot_difficulty", lz.LootDifficulty);
+        }
+        if(ast.FieldLoot != null)
+        {
+            AddLootZone(ast.FieldLoot);
+        }
+        foreach (var lz in ast.LootZones)
+        {
+            AddLootZone(lz);
+        }
+        return builder.Sections;
     }
 
     static void SerializeLightSource(LightSource lt, IniBuilder builder)

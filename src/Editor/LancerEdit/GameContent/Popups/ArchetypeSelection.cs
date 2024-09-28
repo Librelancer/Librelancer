@@ -11,7 +11,7 @@ public class ArchetypeSelection : PopupWindow
 {
     public override string Title { get; set; } = "Archetype";
 
-    public override Vector2 InitSize => new Vector2(600, 400);
+    public override Vector2 InitSize => new Vector2(600, 400) * ImGuiHelper.Scale;
 
     public Archetype[] Archetypes;
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
@@ -29,17 +30,18 @@ public class StarSystemSaveStrategy : ISaveStrategy
                 item.RemoveComponent(dat);
             }
         }
-        if(tab.ZoneList.Dirty)
-            tab.ZoneList.ApplyZones(tab.CurrentSystem);
+        tab.ZoneList.SaveAndApply(tab.CurrentSystem, tab.Data.GameData);
         foreach (var o in tab.DeletedObjects)
             tab.CurrentSystem.Objects.Remove(o);
         tab.DeletedObjects = new List<SystemObject>();
         var resolved = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Ini.Freelancer.DataPath + "/universe/" + tab.CurrentSystem.SourceFile);
         IniWriter.WriteIniFile(resolved, IniSerializer.SerializeStarSystem(tab.CurrentSystem));
+        FLLog.Info("Ini", $"Saved to {resolved}");
         if (writeUniverse)
         {
             var path = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Ini.Freelancer.UniversePath);
             IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(tab.Data.GameData.Systems, tab.Data.GameData.Bases));
+            FLLog.Info("Ini", $"Saved to {path}");
         }
 
         tab.ObjectsDirty = false;

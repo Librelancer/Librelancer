@@ -44,7 +44,9 @@ public class SysZoneSetNickname(Zone target, SystemEditorTab tab, string old, st
 {
     public override void Set(string value)
     {
+        var existing = Target.Nickname;
         Target.Nickname = value;
+        tab.ZoneList.ZoneRenamed(target, existing);
         tab.ZoneList.CheckDirty();
     }
 }

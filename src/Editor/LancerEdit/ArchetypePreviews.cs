@@ -41,6 +41,8 @@ public class ArchetypePreviews : IDisposable
     private GameResourceManager resources;
     private LookAtCamera camera;
     private SystemRenderer renderer;
+
+    public GameResourceManager Resources => resources;
     public ArchetypePreviews(MainWindow win, GameResourceManager resources, string cacheDir)
     {
         this.win = win;
@@ -51,32 +53,31 @@ public class ArchetypePreviews : IDisposable
         renderer.SystemLighting = lighting;
     }
 
-
-    public Texture2D RenderPreview(Archetype archetype, int width, int height)
+    public Texture2D RenderPreview(Asteroid asteroid, int width, int height)
     {
-        var mdl = archetype.ModelFile?.LoadFile(resources).Drawable;
+        var mdl = asteroid.ModelFile.LoadFile(resources);
         var radius = 10f;
-        if (mdl is IRigidModelFile rmf)
+        if (mdl.Drawable is IRigidModelFile rmf)
         {
             radius = rmf.CreateRigidModel(true, resources).GetRadius();
         }
-        if (mdl is SphFile)
+        if (mdl.Drawable is SphFile)
         {
             radius *= 1.17f; //render planets a little smaller, looks better
         }
-
-
         var mat = Matrix4x4.CreateFromYawPitchRoll(2.62f, -0.24f, 0);
         var res = Vector3.Transform(new Vector3(0, 0, radius* 2.35f), mat);
         camera.Update(width, height, res, Vector3.Zero);
         var world = new GameWorld(renderer, resources, null, false);
-        var obj = new GameObject(archetype, resources, true, false);
-        if(archetype.Loadout != null)
-            obj.SetLoadout(archetype.Loadout);
+        var obj = new GameObject(mdl, resources, true, false);
         obj.SetLocalTransform(Transform3D.Identity);
         obj.World = world;
         world.AddObject(obj);
-        obj.Register(world.Physics); //no physics but register method called
+        return RenderWorldAndDispose(obj, world, width, height);
+    }
+
+    Texture2D RenderWorldAndDispose(GameObject obj, GameWorld world, int width, int height)
+    {
         var restoreTarget = win.RenderContext.RenderTarget;
         var renderTarget = new RenderTarget2D(win.RenderContext, width, height);
         win.RenderContext.RenderTarget = renderTarget;
@@ -99,6 +100,33 @@ public class ArchetypePreviews : IDisposable
         renderTarget.Dispose(true);
         world.Dispose();
         return renderTarget.Texture;
+    }
+
+    public Texture2D RenderPreview(Archetype archetype, int width, int height)
+    {
+        var mdl = archetype.ModelFile?.LoadFile(resources).Drawable;
+        var radius = 10f;
+        if (mdl is IRigidModelFile rmf)
+        {
+            radius = rmf.CreateRigidModel(true, resources).GetRadius();
+        }
+        if (mdl is SphFile)
+        {
+            radius *= 1.17f; //render planets a little smaller, looks better
+        }
+
+        var mat = Matrix4x4.CreateFromYawPitchRoll(2.62f, -0.24f, 0);
+        var res = Vector3.Transform(new Vector3(0, 0, radius* 2.35f), mat);
+        camera.Update(width, height, res, Vector3.Zero);
+        var world = new GameWorld(renderer, resources, null, false);
+        var obj = new GameObject(archetype, resources, true, false);
+        if(archetype.Loadout != null)
+            obj.SetLoadout(archetype.Loadout);
+        obj.SetLocalTransform(Transform3D.Identity);
+        obj.World = world;
+        world.AddObject(obj);
+        obj.Register(world.Physics); //no physics but register method called
+        return RenderWorldAndDispose(obj, world, width, height);
     }
 
     public void Dispose()

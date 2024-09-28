@@ -23,6 +23,7 @@ namespace LibreLancer.Render
         Billboards billboards;
 		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
         SystemRenderer sysr;
+        TexturePanelCollection sprites;
 		public NebulaRenderer(Nebula n, Game g, SystemRenderer sysr)
 		{
 			Nebula = n;
@@ -30,7 +31,13 @@ namespace LibreLancer.Render
             render2D = g.RenderContext.Renderer2D;
             billboards = g.GetService<Billboards>();
             this.sysr = sysr;
-			rand = new Random();
+            sprites = new TexturePanelCollection();
+            foreach (var f in n.TexturePanels)
+            {
+                f.Load(sysr.ResourceManager);
+                sprites.AddFile(f);
+            }
+            rand = new Random();
 			if (n.HasInteriorClouds)
 			{
 				puffsinterior = new InteriorPuff[n.InteriorCloudCount];
@@ -41,7 +48,7 @@ namespace LibreLancer.Render
 			//Set Timers
 			dynLightningTimer = Nebula.DynamicLightningGap;
 			bckLightningTimer = Nebula.BackgroundLightningGap;
-		}
+        }
 
 		public bool FogTransitioned()
 		{
@@ -90,7 +97,7 @@ namespace LibreLancer.Render
 							Vector3.Distance(puffsinterior[i].Position, sysr.Camera.Position) > Nebula.InteriorCloudMaxDistance)
 						{
 							puffsinterior[i].Color = GetPuffColor();
-							puffsinterior[i].Shape = Nebula.InteriorCloudShapes.GetNext(rand);
+							puffsinterior[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes.GetNext(rand));
 							puffsinterior[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
 							puffsinterior[i].Spawned = true;
 							puffsinterior[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
@@ -225,7 +232,7 @@ namespace LibreLancer.Render
 			return false;
 		}
 
-		ExclusionZone GetExclusion(Vector3 position)
+		NebulaExclusionZone GetExclusion(Vector3 position)
 		{
 			if (Nebula.ExclusionZones != null)
 			{
@@ -255,7 +262,7 @@ namespace LibreLancer.Render
 			}
 		}
 
-		void RenderExclusionZone(CommandBuffer buffer, ExclusionZone ex)
+		void RenderExclusionZone(CommandBuffer buffer, NebulaExclusionZone ex)
 		{
 			if (ex.Shell == null)
 				return;
@@ -400,7 +407,7 @@ namespace LibreLancer.Render
 					Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation)
 				);
                 var puffSize = new Vector2(radius * 2);
-                var shape = Nebula.ExteriorCloudShapes.GetNext(rn);
+                var shape = sprites.GetShape(Nebula.ExteriorCloudShapes.GetNext(rn));
                 var angle = rn.NextFloat(-MathF.PI, MathF.PI);
                 AddPuffQuad(verts, puffPos, puffSize, Nebula.ExteriorColor, Nebula.FogColor, angle,
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y),
@@ -425,7 +432,7 @@ namespace LibreLancer.Render
 			public Vector3 Position;
 			public Vector3 Velocity;
 			public Color3f Color;
-			public CloudShape Shape;
+			public RenderShape Shape;
 		}
 
 		InteriorPuff[] puffsinterior;

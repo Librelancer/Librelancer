@@ -23,11 +23,10 @@ public class VisitFlagEditor : PopupWindow
 
     void Flag(char icon, VisitFlags f)
     {
-        bool selected = (flags & f) == f;
-        if (ImGuiExt.ToggleButton($"{icon} {f}", selected))
+        if (Controls.Flag($"{icon} {f}", flags, f, out var set))
         {
-            if (selected) flags &= ~f;
-            else flags |= f;
+            if (set) flags |= f;
+            else flags &= ~f;
         }
     }
 

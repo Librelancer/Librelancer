@@ -15,12 +15,10 @@ namespace LibreLancer.Data.Universe
 		public string IniFile;
         [Entry("zone")]
 		public string ZoneName;
-        [Section("texturepanels")] 
+        [Section("texturepanels")]
         public TexturePanelsRef TexturePanels;
         [Section("properties")]
-        public List<ObjectProperties> Properties = new List<ObjectProperties>();
-        [Section("exclusion zones", Delimiters = new[] { "exclude", "exclusion" })]
-		public List<ExclusionZone> ExclusionZones = new List<ExclusionZone>();
+        public ObjectProperties Properties;
         protected override void OnSelfFilled(string datapath, FileSystem vfs)
         {
             if(!string.IsNullOrEmpty(IniFile))

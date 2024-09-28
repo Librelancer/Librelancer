@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
@@ -18,7 +19,8 @@ public enum ZoneDisplayKind
 public class ZoneList
 {
     public List<EditZone> Zones = new List<EditZone>();
-    public List<AsteroidField> AsteroidFields = new List<AsteroidField>();
+    public Dictionary<string, Zone> ZoneLookup = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
+    public AsteroidFieldList AsteroidFields = new AsteroidFieldList();
     public List<Nebula> Nebulae = new List<Nebula>();
 
     public EditZone Selected;
@@ -32,7 +34,8 @@ public class ZoneList
 
     Dictionary<string,ZoneDisplayKind> zoneTypes = new Dictionary<string, ZoneDisplayKind>();
 
-    public void ApplyZones(StarSystem system)
+
+    public void SaveAndApply(StarSystem system, GameDataManager gameData)
     {
         system.Zones = new List<Zone>();
         system.ZoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
@@ -43,7 +46,7 @@ public class ZoneList
             system.Zones.Add(cloned);
             system.ZoneDict[cloned.Nickname] = cloned;
         }
-        system.AsteroidFields = AsteroidFields.Select(x => x.Clone(system.ZoneDict)).ToList();
+        AsteroidFields.SaveAndApply(system, gameData);
         system.Nebulae = Nebulae.Select(x => x.Clone(system.ZoneDict)).ToList();
         dirtyOrder = false;
         dirtyZones = false;
@@ -55,15 +58,15 @@ public class ZoneList
     public void RemoveZone(EditZone z)
     {
         //Remove from Asteroid Fields
-        for (int i = 0; i < AsteroidFields.Count; i++) {
-            if (AsteroidFields[i].Zone == z.Current)
+        for (int i = 0; i < AsteroidFields.Fields.Count; i++) {
+            if (AsteroidFields.Fields[i].Zone == z.Current)
             {
-                AsteroidFields.RemoveAt(i);
+                AsteroidFields.Fields.RemoveAt(i);
                 break;
             }
-            for (int j = AsteroidFields[i].ExclusionZones.Count - 1; j >= 0; j--){
-                if (AsteroidFields[i].ExclusionZones[j].Zone == z.Current){
-                    AsteroidFields[i].ExclusionZones.RemoveAt(j);
+            for (int j = AsteroidFields.Fields[i].ExclusionZones.Count - 1; j >= 0; j--){
+                if (AsteroidFields.Fields[i].ExclusionZones[j].Zone == z.Current){
+                    AsteroidFields.Fields[i].ExclusionZones.RemoveAt(j);
                 }
             }
         }
@@ -98,6 +101,10 @@ public class ZoneList
     {
         if (dirtyOrder) return;
         dirtyZones = false;
+        if (AsteroidFields.CheckDirty()) {
+            dirtyZones = true;
+            return;
+        }
         foreach (var z in Zones)
         {
             if (z.CheckDirty()) {
@@ -110,20 +117,26 @@ public class ZoneList
     public bool HasZone(string nickname) =>
         Zones.Any(x => x.Current.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase));
 
+    public void ZoneRenamed(Zone z, string oldNick)
+    {
+        ZoneLookup.Remove(oldNick);
+        ZoneLookup[z.Nickname] = z;
+    }
+
     public void SetZones(List<Zone> zones, List<AsteroidField> asteroidFields, List<Nebula> nebulae)
     {
         dirtyOrder = dirtyZones = false;
         Zones = zones.Select(x => new EditZone(x)).ToList();
-        var zoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
+        ZoneLookup = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
         foreach (var z in Zones)
-            zoneDict[z.Current.Nickname] = z.Current;
+            ZoneLookup[z.Current.Nickname] = z.Current;
 
-        AsteroidFields = asteroidFields.Select(x => x.Clone(zoneDict)).ToList();
-        Nebulae = nebulae.Select(x => x.Clone(zoneDict)).ToList();
+        AsteroidFields.SetFields(asteroidFields, ZoneLookup);
+        Nebulae = nebulae.Select(x => x.Clone(ZoneLookup)).ToList();
 
 
         //asteroid fields
-        foreach (var ast in AsteroidFields)
+        foreach (var ast in AsteroidFields.Fields)
         {
             zoneTypes[ast.Zone.Nickname] = ZoneDisplayKind.AsteroidField;
             foreach (var ex in ast.ExclusionZones)

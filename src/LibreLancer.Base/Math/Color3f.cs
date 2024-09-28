@@ -7,9 +7,29 @@ using System.Numerics;
 
 namespace LibreLancer
 {
-	public struct Color3f
-	{
-		public static readonly Color3f White = new Color3f(1, 1, 1);
+	public struct Color3f : IEquatable<Color3f>
+    {
+        public bool Equals(Color3f other)
+        {
+            return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Color3f other && Equals(other);
+        }
+
+        public static bool operator ==(Color3f left, Color3f right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Color3f left, Color3f right)
+        {
+            return !left.Equals(right);
+        }
+
+        public static readonly Color3f White = new Color3f(1, 1, 1);
 		public static readonly Color3f Black = new Color3f(0, 0, 0);
 
 		public float R;
@@ -40,13 +60,18 @@ namespace LibreLancer
 			);
 		}
 
+        public static Color3f operator +(Color3f a, Color3f b)
+        {
+            return new Color3f(
+                a.R + b.R,
+                a.G + b.G,
+                a.B + b.B
+            );
+        }
+
         public override int GetHashCode()
         {
-            var value = (uint)(R * Byte.MaxValue) << 16 |
-                (uint)(G * Byte.MaxValue) << 8 |
-                (uint)(B * Byte.MaxValue);
-
-            return unchecked((int)value);
+            return HashCode.Combine(R, G, B);
         }
     }
 }

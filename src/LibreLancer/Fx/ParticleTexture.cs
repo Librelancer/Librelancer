@@ -14,7 +14,8 @@ namespace LibreLancer.Fx
         public string Name;
         public Texture2D Texture;
         public int FrameCount = 1;
-        TextureShape shape;
+        private bool useShape = false;
+        RenderShape shape;
         TexFrameAnimation frameanim;
 
         public Vector4 GetCoordinates(int frame)
@@ -27,11 +28,6 @@ namespace LibreLancer.Fx
                 var width = f.UV2.X - f.UV1.X;
                 var height = (1 - f.UV2.Y) - y;
                 return new Vector4(x, y, width, height);
-            }
-            if (shape != null)
-            {
-                return new Vector4(shape.Dimensions.X, shape.Dimensions.Y, shape.Dimensions.Width,
-                    shape.Dimensions.Height);
             }
             return new Vector4(0, 0, 1, 1);
         }
@@ -48,20 +44,22 @@ namespace LibreLancer.Fx
             if (Name != name) {
                 Texture = null;
                 frameanim = null;
-                shape = null;
+                useShape = false;
             }
             Name = name;
             if (Texture == null || Texture.IsDisposed)
             {
-                if (shape == null && frameanim == null && Texture != null)
+                if (useShape == false && frameanim == null && Texture != null)
                 {
                     Texture = res.FindTexture(name) as Texture2D;
+                    shape.Dimensions = new RectangleF(0, 0, 1, 1);
                 }
-                else if (shape == null && frameanim == null)
+                else if (useShape == false && frameanim == null)
                 {
                     if (res.TryGetShape(name, out shape))
                     {
                         Texture = (Texture2D) res.FindTexture(shape.Texture);
+                        useShape = true;
                     }
                     else if (res.TryGetFrameAnimation(name, out frameanim))
                     {
@@ -71,9 +69,10 @@ namespace LibreLancer.Fx
                     else
                     {
                         Texture = res.FindTexture(name) as Texture2D;
+                        shape.Dimensions = new RectangleF(0, 0, 1, 1);
                     }
                 }
-                else if (shape != null)
+                else if (useShape)
                 {
                     Texture = (Texture2D) res.FindTexture(shape.Texture);
                 }

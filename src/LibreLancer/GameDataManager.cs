@@ -22,7 +22,10 @@ using LibreLancer.Render;
 using LibreLancer.Thorn.VM;
 using LibreLancer.Utf.Anm;
 using Archetype = LibreLancer.GameData.Archetype;
+using Asteroid = LibreLancer.GameData.Asteroid;
 using DockSphere = LibreLancer.GameData.World.DockSphere;
+using DynamicAsteroid = LibreLancer.GameData.DynamicAsteroid;
+using DynamicAsteroids = LibreLancer.Data.Universe.DynamicAsteroids;
 using FileSystem = LibreLancer.Data.IO.FileSystem;
 using Spine = LibreLancer.GameData.World.Spine;
 
@@ -435,10 +438,9 @@ namespace LibreLancer
                 );
                 foreach (var shape in fldata.EffectShapes.Shapes)
                 {
-                    var s = new TextureShape()
+                    var s = new RenderShape()
                     {
                         Texture = shape.Value.TextureName,
-                        Nickname = shape.Value.ShapeName,
                         Dimensions = shape.Value.Dimensions
                     };
                     glResource.AddShape(shape.Key, s);
@@ -487,6 +489,7 @@ namespace LibreLancer
             var goodsTask = tasks.Begin(InitGoods, equipmentTask);
             var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
             var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask);
+            var astsTask = tasks.Begin(InitAsteroids);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
             tasks.Begin(InitBodyParts);
             tasks.Begin(() => InitSystems(tasks),
@@ -496,7 +499,8 @@ namespace LibreLancer
                 ships,
                 factionsTask,
                 loadoutsTask,
-                pilotTask
+                pilotTask,
+                astsTask
                 );
             tasks.WaitAll();
             fldata.Universe = null; //Free universe ini!
@@ -700,6 +704,10 @@ namespace LibreLancer
         public GameItemCollection<Equipment> Equipment = new GameItemCollection<Equipment>();
 
         public GameItemCollection<Faction> Factions = new GameItemCollection<Faction>();
+
+        public GameItemCollection<Asteroid> Asteroids = new GameItemCollection<Asteroid>();
+        public GameItemCollection<DynamicAsteroid> DynamicAsteroids = new();
+
         void InitEquipment()
         {
             FLLog.Info("Game", "Initing " + fldata.Equipment.Equip.Count + " equipments");
@@ -870,6 +878,11 @@ namespace LibreLancer
                     equip = eq;
                 }
 
+                if (val is Data.Equipment.LootCrate lc)
+                {
+                    var eq = new GameData.Items.LootCrateEquipment();
+                    equip = eq;
+                }
 
                 if (val is Data.Equipment.Engine deng)
                 {
@@ -1160,9 +1173,20 @@ namespace LibreLancer
                     {
                         foreach (var ast in inisys.Asteroids)
                         {
-                            var a = GetAsteroidField(sys, ast);
-                            if (ast != null)
-                                sys.AsteroidFields.Add(a);
+                            try
+                            {
+                                var a = GetAsteroidField(sys, ast);
+                                if (a != null)
+                                    sys.AsteroidFields.Add(a);
+                                else
+                                {
+                                    FLLog.Error("System", $"{sys.Nickname} failed to add asteroid field.");
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                FLLog.Error("System", $"{sys.Nickname} failed to add asteroid field.\n{e}");
+                            }
                         }
                     }
                     if (inisys.Nebulae != null)
@@ -1171,7 +1195,14 @@ namespace LibreLancer
                         {
                             if (sys.ZoneDict.ContainsKey(nbl.ZoneName))
                             {
-                                sys.Nebulae.Add(GetNebula(sys, nbl));
+                                try
+                                {
+                                    sys.Nebulae.Add(GetNebula(sys, nbl));
+                                }
+                                catch (Exception e)
+                                {
+                                    FLLog.Error("System", $"{sys.Nickname} failed to add nebula.\n{e}");
+                                }
                             }
                             else
                             {
@@ -1219,30 +1250,32 @@ namespace LibreLancer
             while (iterator.MoveNext()) { }
         }
 
-        class CachedTexturePanels
-        {
-            public int ID;
-            public Data.Universe.TexturePanels P;
-            public string[] ResourceFiles;
-        }
 
-        Dictionary<string, CachedTexturePanels> tpanels = new Dictionary<string, CachedTexturePanels>(StringComparer.OrdinalIgnoreCase);
-        int tpId = 0;
+        Dictionary<string, ResolvedTexturePanels> tpanels = new Dictionary<string, ResolvedTexturePanels>(StringComparer.OrdinalIgnoreCase);
         private object tPanelsLock = new object();
-        CachedTexturePanels TexturePanelFile(string f)
+        ResolvedTexturePanels TexturePanelFile(string f, string srcPath)
         {
             lock (tPanelsLock)
             {
-                CachedTexturePanels pnl;
+                ResolvedTexturePanels pnl;
                 if (!tpanels.TryGetValue(f, out pnl))
                 {
-                    pnl = new CachedTexturePanels() {ID = tpId++, P = new Data.Universe.TexturePanels(f, VFS)};
-                    pnl.ResourceFiles = pnl.P.Files.Select(DataPath).ToArray();
+                    if (!VFS.FileExists(f))
+                    {
+                        return null;
+                    }
+                    var pf = new Data.Universe.TexturePanels(f, VFS);
+                    pnl = new ResolvedTexturePanels() { SourcePath = srcPath };
+                    foreach(var s in pf.Shapes)
+                        pnl.Shapes.Add(s.Key, new RenderShape(s.Value.TextureName, s.Value.Dimensions));
+                    pnl.TextureShapes = pf.TextureShapes;
+                    pnl.LibraryFiles = pf.Files.Select(DataPath).ToArray();
                     tpanels.Add(f, pnl);
                 }
                 return pnl;
             }
         }
+
 
         AsteroidField GetAsteroidField(StarSystem sys, Data.Universe.AsteroidField ast)
         {
@@ -1254,17 +1287,22 @@ namespace LibreLancer
             }
             a.SourceFile = ast.IniFile;
             a.Zone = sys.ZoneDict[ast.ZoneName];
-            var panels = new Data.Universe.TexturePanels();
             if (ast.TexturePanels != null)
             {
                 foreach (var f in ast.TexturePanels.Files)
                 {
-                    var pnlref = TexturePanelFile(DataPath(f));
-                    var pf = pnlref.P;
-                    panels.TextureShapes.AddRange(pf.TextureShapes);
-                    foreach (var sh in pf.Shapes)
-                        panels.Shapes[sh.Key] = sh.Value;
-                    sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
+                    a.TexturePanels.Add(TexturePanelFile(DataPath(f), f));
+                }
+            }
+
+            if (ast.Properties != null)
+            {
+                foreach (var prop in ast.Properties.Flag)
+                {
+                    if (FieldFlagUtils.TryParse(prop, out var f))
+                    {
+                        a.Flags |= f;
+                    }
                 }
             }
             if (ast.Band != null)
@@ -1272,7 +1310,7 @@ namespace LibreLancer
                 a.Band = new AsteroidBand();
                 a.Band.RenderParts = ast.Band.RenderParts.Value;
                 a.Band.Height = ast.Band.Height.Value;
-                a.Band.Shape = panels.Shapes[ast.Band.Shape].TextureName;
+                a.Band.Shape = ast.Band.Shape;
                 a.Band.Fade = new Vector4(ast.Band.Fade[0], ast.Band.Fade[1], ast.Band.Fade[2], ast.Band.Fade[3]);
                 var cs = ast.Band.ColorShift ?? Vector3.One;
                 a.Band.ColorShift = new Color4(cs.X, cs.Y, cs.Z, 1f);
@@ -1287,23 +1325,68 @@ namespace LibreLancer
                 a.CubeRotation.AxisY = ast.Cube_RotationY ?? AsteroidCubeRotation.Default_AxisY;
                 a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? AsteroidCubeRotation.Default_AxisZ;
                 a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
-                a.SetFillDist(ast.Field.FillDist.Value);
+                a.FillDist = ast.Field.FillDist.Value;
                 a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
+                a.DiffuseColor = ast.Field.DiffuseColor;
+                a.AmbientColor = ast.Field.AmbientColor;
+                a.TintField = ast.Field.TintField;
+                a.AmbientIncrease = ast.Field.AmbientIncrease;
                 foreach (var c in ast.Cube)
                 {
                     var sta = new StaticAsteroid()
                     {
                         Position = c.Position,
                         Info = c.Info,
-                        Archetype = c.Name
+                        Archetype = Asteroids.Get(c.Name)
                     };
-                    var arch = fldata.Asteroids.FindAsteroid(c.Name);
-                    sta.Drawable = ResolveDrawable(arch.MaterialLibrary, arch.DaArchetype);
                     sta.Rotation = MathHelper.QuatFromEulerDegrees(c.Rotation);
                     a.Cube.Add(sta);
                 }
             }
-            a.ExclusionZones = new List<ExclusionZone>();
+
+            foreach (var dyn in ast.DynamicAsteroids)
+            {
+                var da = DynamicAsteroids.Get(dyn.Asteroid);
+                if (da == null)
+                {
+                    FLLog.Error("Asteroids", $"Dynamic asteroid arch '{dyn.Asteroid}' not found");
+                    continue;
+                }
+                a.DynamicAsteroids.Add(new()
+                {
+                    Asteroid = da,
+                    ColorShift = dyn.ColorShift,
+                    Count = dyn.Count,
+                    MaxAngularVelocity = dyn.MaxAngularVelocity,
+                    MaxVelocity = dyn.MaxVelocity,
+                    PlacementOffset = dyn.PlacementOffset,
+                    PlacementRadius = dyn.PlacementRadius
+                });
+            }
+            foreach (var lz in ast.LootableZones)
+            {
+                var lc = Equipment.Get(lz.DynamicLootCommodity);
+                var cont = Equipment.Get(lz.DynamicLootContainer);
+                var z = new DynamicLootZone()
+                {
+                    LootCommodity = lc,
+                    LootContainer = cont as LootCrateEquipment,
+                    LootDifficulty = lz.DynamicLootDifficulty,
+                    LootCount = lz.DynamicLootCount
+                };
+                if (string.IsNullOrWhiteSpace(lz.Zone))
+                {
+                    a.FieldLoot = z;
+                }
+                else
+                {
+                    if (!sys.ZoneDict.TryGetValue(lz.Zone, out z.Zone))
+                    {
+                        FLLog.Error("System", "Loot zone " + lz.Zone + " zone does not exist in " + sys.Nickname);
+                    }
+                }
+            }
+            a.ExclusionZones = new List<AsteroidExclusionZone>();
             if (ast.ExclusionZones != null)
             {
                 foreach (var excz in ast.ExclusionZones)
@@ -1314,18 +1397,14 @@ namespace LibreLancer
                         FLLog.Error("System", "Exclusion zone " + excz.ZoneName + " zone does not exist in " + sys.Nickname);
                         continue;
                     }
-
-                    var e = new ExclusionZone();
-                    e.Zone = zone;
-                    //e.FogFar = excz.FogFar ?? n.FogRange.Y;
-                    if (excz.ZoneShellPath != null)
+                    a.ExclusionZones.Add(new AsteroidExclusionZone()
                     {
-                        e.ShellPath = excz.ZoneShellPath;
-                        e.ShellTint = excz.Tint ?? Color3f.White;
-                        e.ShellScalar = excz.ShellScalar ?? 1f;
-                        e.ShellMaxAlpha = excz.MaxAlpha ?? 1f;
-                    }
-                    a.ExclusionZones.Add(e);
+                        Zone = zone,
+                        BillboardCount = excz.BillboardCount,
+                        EmptyCubeFrequency = excz.EmptyCubeFrequency,
+                        ExcludeBillboards = excz.ExcludeBillboards,
+                        ExcludeDynamicAsteroids = excz.ExcludeDynamicAsteroids,
+                    });
                 }
             }
             a.BillboardCount = ast.AsteroidBillboards == null ? -1 : ast.AsteroidBillboards.Count.Value;
@@ -1333,28 +1412,7 @@ namespace LibreLancer
             {
                 a.BillboardDistance = ast.AsteroidBillboards.StartDist.Value;
                 a.BillboardFadePercentage = ast.AsteroidBillboards.FadeDistPercent.Value;
-                Data.Universe.TextureShape sh = null;
-                if (panels != null)
-                {
-                    if (!panels.Shapes.TryGetValue(ast.AsteroidBillboards.Shape, out sh))
-                    {
-                        a.BillboardCount = -1;
-                        FLLog.Error("Asteroids", "Field " + ast.ZoneName + " can't find billboard shape " + ast.AsteroidBillboards.Shape);
-                        return a;
-                    }
-                    else
-                    {
-                        sh = panels.Shapes[ast.AsteroidBillboards.Shape];
-                    }
-                }
-                else
-                    sh = new Data.Universe.TextureShape(ast.AsteroidBillboards.Shape, ast.AsteroidBillboards.Shape, new RectangleF(0, 0, 1, 1));
-                a.BillboardShape = new TextureShape()
-                {
-                    Texture = sh.TextureName,
-                    Dimensions = sh.Dimensions,
-                    Nickname = ast.AsteroidBillboards.Shape
-                };
+                a.BillboardShape = ast.AsteroidBillboards.Shape;
                 a.BillboardSize = ast.AsteroidBillboards.Size.Value;
                 a.BillboardTint = new Color3f(ast.AsteroidBillboards.ColorShift ?? Vector3.One);
             }
@@ -1365,15 +1423,9 @@ namespace LibreLancer
             var n = new Nebula();
             n.SourceFile = nbl.IniFile;
             n.Zone = sys.ZoneDict[nbl.ZoneName];
-            var panels = new Data.Universe.TexturePanels();
             foreach(var f in nbl.TexturePanels.Files)
             {
-                var pnlref = TexturePanelFile(DataPath(f));
-                var pf = pnlref.P;
-                panels.TextureShapes.AddRange(pf.TextureShapes);
-                foreach (var sh in pf.Shapes)
-                    panels.Shapes[sh.Key] = sh.Value;
-                sys.ResourceFiles.AddRange(pnlref.ResourceFiles);
+                n.TexturePanels.Add(TexturePanelFile(DataPath(f), f));
             }
             n.ExteriorFill = nbl.Exterior.FillShape;
             n.ExteriorColor = nbl.Exterior.Color ?? Color4.White;
@@ -1391,24 +1443,8 @@ namespace LibreLancer
             {
                 var clds = nbl.Clouds[0];
                 n.HasInteriorClouds = true;
-                CloudShape[] shapes = new CloudShape[clds.PuffShape.Count];
-                for (int i = 0; i < shapes.Length; i++)
-                {
-                    var name = clds.PuffShape[i];
-                    if (!panels.Shapes.ContainsKey(name))
-                    {
-                        FLLog.Error("Nebula", "Shape " + name + " does not exist in " + nbl.TexturePanels.Files[0]);
-                        shapes[i].Texture = ResourceManager.NullTextureName;
-                        shapes[i].Dimensions = new RectangleF(0, 0, 1, 1);
-                    }
-                    else
-                    {
-                        shapes[i].Texture = panels.Shapes[name].TextureName;
-                        shapes[i].Dimensions = panels.Shapes[name].Dimensions;
-                    }
-                }
-                n.InteriorCloudShapes = new WeightedRandomCollection<CloudShape>(
-                    shapes,
+                n.InteriorCloudShapes = new WeightedRandomCollection<string>(
+                    clds.PuffShape.ToArray(),
                     clds.PuffWeights
                 );
                 n.InteriorCloudColorA = clds.PuffColorA.Value;
@@ -1423,24 +1459,8 @@ namespace LibreLancer
             if (nbl.Exterior != null && nbl.Exterior.Shape != null)
             {
                 n.HasExteriorBits = true;
-                CloudShape[] shapes = new CloudShape[nbl.Exterior.Shape.Count];
-                for (int i = 0; i < shapes.Length; i++)
-                {
-                    var name = nbl.Exterior.Shape[i];
-                    if (!panels.Shapes.ContainsKey(name))
-                    {
-                        FLLog.Error("Nebula", "Shape " + name + " does not exist in " + nbl.TexturePanels.Files[0]);
-                        shapes[i].Texture = ResourceManager.NullTextureName;
-                        shapes[i].Dimensions = new RectangleF(0, 0, 1, 1);
-                    }
-                    else
-                    {
-                        shapes[i].Texture = panels.Shapes[name].TextureName;
-                        shapes[i].Dimensions = panels.Shapes[name].Dimensions;
-                    }
-                }
-                n.ExteriorCloudShapes = new WeightedRandomCollection<CloudShape>(
-                    shapes,
+                n.ExteriorCloudShapes = new WeightedRandomCollection<string>(
+                    nbl.Exterior.Shape.ToArray(),
                     nbl.Exterior.ShapeWeights
                 );
                 n.ExteriorMinBits = nbl.Exterior.MinBits.Value;
@@ -1451,7 +1471,7 @@ namespace LibreLancer
             }
             if (nbl.ExclusionZones != null)
             {
-                n.ExclusionZones = new List<ExclusionZone>();
+                n.ExclusionZones = new List<NebulaExclusionZone>();
                 foreach (var excz in nbl.ExclusionZones)
                 {
 
@@ -1461,7 +1481,7 @@ namespace LibreLancer
                         FLLog.Error("System", "Exclusion zone " + excz.ZoneName + " zone does not exist in " + sys.Nickname);
                         continue;
                     }
-                    var e = new ExclusionZone();
+                    var e = new NebulaExclusionZone();
                     e.Zone = zone;
                     e.FogFar = excz.FogFar ?? n.FogRange.Y;
                     if (excz.ZoneShellPath != null)
@@ -1665,6 +1685,27 @@ namespace LibreLancer
             fldata.Ships = null; //free memory
         }
 
+        void InitAsteroids()
+        {
+            FLLog.Info("Game", "Initing " + fldata.Asteroids.Asteroids.Count + "asteroids");
+            foreach (var ast in fldata.Asteroids.Asteroids)
+            {
+                var asteroid = new GameData.Asteroid();
+                asteroid.Nickname = ast.Nickname;
+                asteroid.ModelFile = ResolveDrawable(ast.MaterialLibrary, ast.DaArchetype);
+                asteroid.CRC = CrcTool.FLModelCrc(asteroid.Nickname);
+                Asteroids.Add(asteroid);
+            }
+            foreach (var dynast in fldata.Asteroids.DynamicAsteroids)
+            {
+                var dyn = new DynamicAsteroid();
+                dyn.Nickname = dynast.Nickname;
+                dyn.ModelFile = ResolveDrawable(dynast.MaterialLibrary, dynast.DaArchetype);
+                dyn.CRC = CrcTool.FLModelCrc(dyn.Nickname);
+                DynamicAsteroids.Add(dyn);
+            }
+        }
+
         void InitArchetypes()
         {
             FLLog.Info("Game", "Initing " + fldata.Solar.Solars.Count + " archetypes");
@@ -1724,12 +1765,6 @@ namespace LibreLancer
             return (at.ModelFile.LoadFile(resource), at.LODRanges);
         }
 
-        public ModelResource GetAsteroid(string asteroid)
-        {
-            var ast = fldata.Asteroids.FindAsteroid(asteroid);
-            resource.LoadResourceFile(DataPath(ast.MaterialLibrary));
-            return resource.GetDrawable(DataPath(ast.DaArchetype));
-        }
 
         public IDrawable GetProp(string prop)
         {

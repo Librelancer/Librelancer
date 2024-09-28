@@ -40,7 +40,7 @@ namespace LibreLancer.World.Components
 
 		float activateDist;
 
-		ExclusionZone GetExclusionZone(Vector3 pt)
+		AsteroidExclusionZone GetExclusionZone(Vector3 pt)
 		{
 			for (int i = 0; i < Field.ExclusionZones.Count; i++)
 			{
@@ -61,7 +61,7 @@ namespace LibreLancer.World.Components
             var rm = GetResourceManager();
             foreach (var asteroid in Field.Cube)
             {
-                var sur = asteroid.Drawable.LoadFile(rm, MeshLoadMode.CPU).Collision;
+                var sur = asteroid.Archetype.ModelFile.LoadFile(rm, MeshLoadMode.CPU).Collision;
                 if (sur.Valid)
                 {
                     shape.AddPart(sur.FileId, 0, new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);

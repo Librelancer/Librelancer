@@ -35,6 +35,7 @@ public class SystemEditorTab : GameContentTab
     public StarSystem CurrentSystem;
     public List<SystemObject> DeletedObjects = new();
     public GameDataContext Data;
+    public SystemRenderer Renderer => renderer;
 
     private MainWindow win;
     private SystemRenderer renderer;
@@ -44,6 +45,7 @@ public class SystemEditorTab : GameContentTab
     public SystemObjectList ObjectsList;
     public LightSourceList LightsList;
     public ZoneList ZoneList;
+    private AsteroidFieldEdit openField;
 
     private bool mapOpen = false;
     private bool infocardOpen = false;
@@ -163,9 +165,14 @@ public class SystemEditorTab : GameContentTab
         //Setup UI
         ZoneList = new ZoneList();
         ZoneList.SetZones(CurrentSystem.Zones, CurrentSystem.AsteroidFields, CurrentSystem.Nebulae);
-        World.Renderer.LoadZones(ZoneList.AsteroidFields, ZoneList.Nebulae);
+        World.Renderer.LoadZones(ZoneList.AsteroidFields.Fields, ZoneList.Nebulae);
         ObjectsList.SetObjects(World);
         LightsList.SetLights(CurrentSystem.LightSources);
+    }
+
+    public void ReloadFieldRenderers()
+    {
+        World.Renderer.LoadZones(ZoneList.AsteroidFields.Fields, ZoneList.Nebulae);
     }
 
     private bool renderGrid = false;
@@ -301,6 +308,14 @@ public class SystemEditorTab : GameContentTab
         ShapeProperties(sel);
         Controls.EndPropertyTable();
 
+        //Special
+        var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x => x.Zone == sel);
+        if (ast != null && ImGui.Button("Edit Asteroids"))
+        {
+            closeField = false;
+            openField = new AsteroidFieldEdit(ast, win, this);
+        }
+
         //Comment
         Controls.BeginPropertyTable("comment", true, false, true);
         ImGui.TableNextRow();
@@ -313,6 +328,12 @@ public class SystemEditorTab : GameContentTab
             Popups.OpenPopup(new CommentPopup(sel.Comment,
                 x => UndoBuffer.Commit(new SysZoneSetComment(sel, this, sel.Comment, x))));
         Controls.EndPropertyTable();
+    }
+
+    private bool closeField = false;
+    internal void AsteroidFieldClose()
+    {
+        closeField = true;
     }
 
     void ShapeChangeButton(Zone z)
@@ -1191,6 +1212,21 @@ public class SystemEditorTab : GameContentTab
 
     public override unsafe void Draw(double elapsed)
     {
+        if (openField != null)
+        {
+            if (closeField)
+            {
+                openField.Closed();
+                openField = null;
+            }
+            else
+            {
+                openField.Update(elapsed);
+                openField.Draw();
+                Popups.Run();
+                return;
+            }
+        }
         var curSysName = Data.Infocards.GetStringResource(SystemData.IdsName);
         Title = $"{curSysName} ({CurrentSystem.Nickname})";
         World.RenderUpdate(elapsed);
@@ -1436,5 +1472,6 @@ public class SystemEditorTab : GameContentTab
         World.Dispose();
         renderer.Dispose();
         viewport.Dispose();
+        openField?.Closed();
     }
 }

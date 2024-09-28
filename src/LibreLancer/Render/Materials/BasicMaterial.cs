@@ -16,6 +16,14 @@ namespace LibreLancer.Render.Materials
 	public class BasicMaterial : RenderMaterial
     {
         public const int ForceAlpha = (1 << 31);
+        public const int DcSet = (1 << 24);
+
+        public static int SetDc(Color4 color)
+        {
+            var x = (VertexDiffuse)color;
+            x.A = 1;
+            return (int)x.Pixel;
+        }
 
 		public string Type;
 
@@ -131,8 +139,17 @@ namespace LibreLancer.Render.Materials
 			shader.SetDtSampler(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
 			//Dc
-			shader.SetDc(Dc);
-			//Oc
+            if ((userData & DcSet) == DcSet)
+            {
+                var d = (VertexDiffuse)(uint)userData;
+                d.A = 255;
+                shader.SetDc((Color4)d);
+            }
+            else
+            {
+                shader.SetDc(Dc);
+            }
+            //Oc
 			shader.SetOc(Oc);
 			if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest || (userData & ForceAlpha) == ForceAlpha)
 			{

@@ -5,32 +5,43 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.Render;
 
 namespace LibreLancer.GameData.World
 {
-	public class AsteroidField
+	public class AsteroidField : IDataEquatable<AsteroidField>
     {
         public string SourceFile;
-		public Zone Zone;
+        public List<ResolvedTexturePanels> TexturePanels = new();
+        public Zone Zone;
+        //Field
+        public Color4 DiffuseColor = Color4.White;
+        public Color4? AmbientColor;
+        public Color4 AmbientIncrease = Color4.Black;
+        public Color4? TintField;
+        public float FillDist;
+        public float EmptyCubeFrequency;
+        public int CubeSize;
+        //Cube
+        public AsteroidCubeRotation CubeRotation;
+        public List<StaticAsteroid> Cube;
+        //Billboards
+        public int BillboardCount;
+        public float BillboardDistance;
+        public float BillboardFadePercentage;
+        public string BillboardShape;
+        public Vector2 BillboardSize;
+        public Color3f BillboardTint;
 		public AsteroidBand Band;
-		public AsteroidCubeRotation CubeRotation;
-		public List<StaticAsteroid> Cube;
-		public List<ExclusionZone> ExclusionZones;
-		public int CubeSize;
+
+        public List<DynamicAsteroids> DynamicAsteroids = new();
+        public List<AsteroidExclusionZone> ExclusionZones = new();
+
+        public DynamicLootZone FieldLoot;
+        public List<DynamicLootZone> LootZones = new();
 		public bool AllowMultipleMaterials = false;
-		public float FillDist { get; private set; }
-		public void SetFillDist(int fillDist)
-		{
-			FillDist = fillDist;
-		}
-		public float EmptyCubeFrequency;
-		public int BillboardCount;
-		public float BillboardDistance;
-		public float BillboardFadePercentage;
-		public TextureShape BillboardShape;
-		public Vector2 BillboardSize;
-		public Color3f BillboardTint;
+
+		//Properties
+        public FieldFlags Flags;
 
 		//Multiplier hardcoded in Freelancer's common.dll
         //This is for near_field, not for rendering
@@ -45,10 +56,37 @@ namespace LibreLancer.GameData.World
             o.Band = Band?.Clone();
             o.CubeRotation = CubeRotation?.Clone();
             o.Cube = Cube.CloneCopy();
-            if (ExclusionZones != null)
-                o.ExclusionZones = ExclusionZones.Select(x => x.Clone(newZones)).ToList();
+            o.ExclusionZones = ExclusionZones.Select(x => x.Clone(newZones)).ToList();
+            o.DynamicAsteroids = DynamicAsteroids.CloneCopy();
+            o.LootZones = LootZones.Select(x => x.Clone(newZones)).ToList();
             return o;
         }
+
+        // ReSharper disable CompareOfFloatsByEqualityOperator
+        public bool DataEquals(AsteroidField other) =>
+            DataEquality.ListEquals(TexturePanels, other.TexturePanels) &&
+            DataEquality.IdEquals(Zone?.Nickname, other.Zone?.Nickname) &&
+            DiffuseColor == other.DiffuseColor &&
+            AmbientColor == other.AmbientColor &&
+            AmbientIncrease == other.AmbientIncrease &&
+            TintField == other.TintField &&
+            FillDist == other.FillDist &&
+            EmptyCubeFrequency == other.EmptyCubeFrequency &&
+            CubeSize == other.CubeSize &&
+            CubeRotation == other.CubeRotation &&
+            DataEquality.ListEquals(Cube, other.Cube) &&
+            BillboardCount == other.BillboardCount &&
+            BillboardDistance == other.BillboardDistance &&
+            BillboardFadePercentage == other.BillboardFadePercentage &&
+            DataEquality.IdEquals(BillboardShape, other.BillboardShape) &&
+            BillboardSize == other.BillboardSize &&
+            BillboardTint == other.BillboardTint &&
+            DataEquality.ObjectEquals(Band, other.Band) &&
+            DataEquality.ListEquals(DynamicAsteroids, other.DynamicAsteroids) &&
+            DataEquality.ListEquals(ExclusionZones, other.ExclusionZones) &&
+            DataEquality.ObjectEquals(FieldLoot, other.FieldLoot) &&
+            DataEquality.ListEquals(LootZones, other.LootZones) &&
+            Flags == other.Flags;
     }
 }
 

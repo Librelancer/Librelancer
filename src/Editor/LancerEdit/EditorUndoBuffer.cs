@@ -6,6 +6,7 @@ using System.Text;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
+using LibreLancer.Missions;
 
 namespace LancerEdit;
 
@@ -77,6 +78,20 @@ public abstract class EditorAction
     public abstract void Undo();
 }
 
+public sealed class EditorNopAction : EditorAction
+{
+    public string Description;
+    public EditorNopAction(string desc)
+    {
+        Description = desc;
+    }
+    public override void Commit() { }
+
+    public override void Undo() { }
+
+    public override string ToString() => Description;
+}
+
 public class EditorAggregateAction : EditorAction
 {
     private EditorAction[] actions;
@@ -123,4 +138,27 @@ public abstract class EditorModification<T>(T old, T updated) : EditorAction
 
     public override void Commit() => Set(Updated);
     public override void Undo() => Set(Old);
+
+    public override string ToString() => GetType().Name;
+}
+
+public abstract class EditorFlagModification<T, TFlag>(TFlag flag, bool newValue) : EditorAction where TFlag : struct, Enum
+{
+    public abstract ref TFlag Field { get; }
+
+    public override void Commit()
+    {
+        if (newValue)
+            MathHelper.SetFlag(ref Field, flag);
+        else
+            MathHelper.UnsetFlag(ref Field, flag);
+    }
+
+    public override void Undo()
+    {
+        if(newValue)
+            MathHelper.UnsetFlag(ref Field, flag);
+        else
+            MathHelper.SetFlag(ref Field, flag);
+    }
 }

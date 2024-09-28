@@ -34,6 +34,8 @@ namespace LibreLancer.Render
         private AsteroidBandMaterial bandMaterial;
         private AsteroidCubeMesh cubeMesh;
 
+         RenderShape billboardShape;
+
         public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
         {
             this.field = field;
@@ -43,6 +45,7 @@ namespace LibreLancer.Render
 
             if (field.BillboardCount != -1)
             {
+                SetBillboardShape();
                 billboardCube = new AsteroidBillboard[field.BillboardCount];
                 for(int i = 0; i < field.BillboardCount; i++)
                     billboardCube[i].Spawn(this);
@@ -69,6 +72,18 @@ namespace LibreLancer.Render
         }
 
 
+        void SetBillboardShape()
+        {
+            var col = new TexturePanelCollection();
+            foreach (var f in field.TexturePanels)
+            {
+                f.Load(sys.ResourceManager);
+                col.AddFile(f);
+            }
+
+            billboardShape = col.GetShape(field.BillboardShape);
+        }
+
 
         public void Dispose()
         {
@@ -90,7 +105,7 @@ namespace LibreLancer.Render
             }
         }
 
-        ExclusionZone GetExclusionZone(Vector3 pt)
+        AsteroidExclusionZone GetExclusionZone(Vector3 pt)
         {
             for (int i = 0; i < field.ExclusionZones.Count; i++) {
                 var f = field.ExclusionZones [i];
@@ -249,7 +264,12 @@ namespace LibreLancer.Render
                         return;
                     asteroidsTask.Wait();
                     var lt = RenderHelpers.ApplyLights(lighting, 0, cameraPos, field.FillDist, nr);
-
+                    if (field.TintField != null)
+                        lt.Ambient = field.TintField.Value.Rgb;
+                    else if (field.AmbientColor != null)
+                        lt.Ambient = field.AmbientColor.Value.Rgb;
+                    else
+                        lt.Ambient += field.AmbientIncrease.Rgb;
                     if (lt.FogMode == FogModes.Linear)
                         lastFog = lt.FogRange.Y;
                     else
@@ -276,7 +296,8 @@ namespace LibreLancer.Render
                                     dc.BaseVertex,
                                     dc.StartIndex,
                                     dc.Count / 3,
-                                    SortLayers.OBJECT
+                                    SortLayers.OBJECT,
+                                    0, null, 0, BasicMaterial.SetDc(field.TintField ?? field.DiffuseColor)
                                 );
                                 regCount++;
                             }
@@ -293,7 +314,7 @@ namespace LibreLancer.Render
                                     dc.Count / 3,
                                     SortLayers.OBJECT,
                                     new Vector2(fadeNear, fadeFar),
-                                    z
+                                    z, 0, BasicMaterial.SetDc(field.TintField ?? field.DiffuseColor)
                                 );
                                 fadeCount++;
                             }
@@ -304,7 +325,7 @@ namespace LibreLancer.Render
                 {
                     var cameraLights = RenderHelpers.ApplyLights(lighting, 0, cameraPos, 1, nr);
                     if (billboardTex == null || billboardTex.IsDisposed)
-                        billboardTex = (Texture2D)res.FindTexture (field.BillboardShape.Texture);
+                        billboardTex = (Texture2D)res.FindTexture (billboardShape.Texture);
                     billboardTask.Wait();
                     for (int i = 0; i < billboardCount; i++)
                     {

@@ -7,14 +7,19 @@ using System.Numerics;
 
 namespace LibreLancer.GameData.World
 {
-	public class StaticAsteroid : ICloneable
+	public class StaticAsteroid : ICloneable, IDataEquatable<StaticAsteroid>
 	{
-		public ResolvedModel Drawable;
+		public Asteroid Archetype;
 		public Quaternion Rotation;
 		public Vector3 Position;
 		public string Info;
-        public string Archetype;
         object ICloneable.Clone() => MemberwiseClone();
+
+        public bool DataEquals(StaticAsteroid other) =>
+            DataEquality.IdEquals(Archetype?.Nickname, other.Archetype?.Nickname) &&
+            Rotation == other.Rotation &&
+            Position == other.Position &&
+            string.Equals(Info, other.Info);
     }
 }
 

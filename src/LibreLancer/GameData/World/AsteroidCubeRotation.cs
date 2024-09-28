@@ -8,7 +8,7 @@ namespace LibreLancer.GameData.World
 {
 	public class AsteroidCubeRotation
 	{
-		public static readonly Vector4 Default_AxisX = new Vector4(0, 90, 180, 270);
+        public static readonly Vector4 Default_AxisX = new Vector4(0, 90, 180, 270);
 		public static readonly Vector4 Default_AxisY = new Vector4(0, 90, 180, 270);
 		public static readonly Vector4 Default_AxisZ = new Vector4(0, 90, 180, 270);
 
@@ -110,5 +110,39 @@ namespace LibreLancer.GameData.World
         }
 
         public AsteroidCubeRotation Clone() => (AsteroidCubeRotation) MemberwiseClone();
+
+        protected bool Equals(AsteroidCubeRotation other)
+        {
+            return axisx.Equals(other.axisx) && axisy.Equals(other.axisy) && axisz.Equals(other.axisz);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((AsteroidCubeRotation)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = axisx.GetHashCode();
+                hashCode = (hashCode * 397) ^ axisy.GetHashCode();
+                hashCode = (hashCode * 397) ^ axisz.GetHashCode();
+                return hashCode;
+            }
+        }
+
+        public static bool operator ==(AsteroidCubeRotation left, AsteroidCubeRotation right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(AsteroidCubeRotation left, AsteroidCubeRotation right)
+        {
+            return !Equals(left, right);
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace LibreLancer.GameData.World
 	public class Nebula
     {
         public string SourceFile;
+        public List<ResolvedTexturePanels> TexturePanels = new();
 		public Zone Zone;
 		//Exterior
 		public string ExteriorFill;
@@ -22,7 +23,7 @@ namespace LibreLancer.GameData.World
 		public float ExteriorBitRadius;
 		public float ExteriorBitRandomVariation;
 		public float ExteriorMoveBitPercent;
-		public WeightedRandomCollection<CloudShape> ExteriorCloudShapes;
+		public WeightedRandomCollection<string> ExteriorCloudShapes;
 		//Fog + Lighting
 		public bool FogEnabled;
 		public Color4 FogColor;
@@ -46,7 +47,7 @@ namespace LibreLancer.GameData.World
 		public Color4 CloudLightningColor;
 		//Interior
 		public bool HasInteriorClouds = false;
-		public WeightedRandomCollection<CloudShape> InteriorCloudShapes;
+		public WeightedRandomCollection<string> InteriorCloudShapes;
 		public Color3f InteriorCloudColorA;
 		public Color3f InteriorCloudColorB;
 		public int InteriorCloudRadius;
@@ -59,7 +60,7 @@ namespace LibreLancer.GameData.World
 		public float SunBurnthroughScale;
 		public float SunBurnthroughIntensity;
 		//Exclusion
-		public List<ExclusionZone> ExclusionZones;
+		public List<NebulaExclusionZone> ExclusionZones;
 
         public Nebula Clone(Dictionary<string, Zone> newZones)
         {
@@ -74,15 +75,5 @@ namespace LibreLancer.GameData.World
             return o;
         }
     }
-	public struct CloudShape
-	{
-		public string Texture;
-		public RectangleF Dimensions;
-		public CloudShape(string tex, RectangleF dim)
-		{
-			Texture = tex;
-			Dimensions = dim;
-		}
-	}
 }
 

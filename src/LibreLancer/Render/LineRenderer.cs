@@ -65,6 +65,40 @@ namespace LibreLancer.Render
             }
         }
 
+        private static readonly Vector3[] cubeVerts = new[]
+        {
+            //Front
+            new Vector3(-1,-1,1),
+            new Vector3(-1, 1, 1),
+            new Vector3(1, 1, 1),
+            new Vector3(1, -1, 1),
+            //Back
+            new Vector3(-1,-1,-1),
+            new Vector3(-1, 1, -1),
+            new Vector3(1, 1, -1),
+            new Vector3(1, -1, -1),
+        };
+
+        private static readonly int[] cubeIndices = new[]
+        {
+            //Front
+            0,1, 1,2, 2,3, 3,0,
+            //Back
+            4,5, 5,6, 6,7, 7,4,
+            //Join
+            0,4, 1,5, 2,6, 3,7,
+        };
+
+        public void DrawCube(Matrix4x4 world, float scale, Color4 color)
+        {
+            for (int i = 0; i < cubeIndices.Length; i += 2)
+            {
+                var a = Vector3.Transform(cubeVerts[cubeIndices[i]] * scale, world);
+                var b = Vector3.Transform(cubeVerts[cubeIndices[i + 1]] * scale, world);
+                DrawLine(a,b, color);
+            }
+        }
+
         public void DrawVWire(VMeshWire wire, VertexResource resource, Matrix4x4 world, Color4 color)
         {
             Render();
