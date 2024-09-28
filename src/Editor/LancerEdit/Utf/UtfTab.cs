@@ -35,6 +35,8 @@ namespace LancerEdit
         public GameResourceManager DetachedResources;
         public int DetachedResourceCount;
 
+        public override string Tooltip => FilePath;
+
         public void ReferenceDetached()
         {
             DetachedResourceCount++;

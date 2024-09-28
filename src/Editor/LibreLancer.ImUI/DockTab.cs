@@ -24,6 +24,8 @@ namespace LibreLancer.ImUI
         }
         public string RenderTitle { get; private set; }
 
+        public virtual string Tooltip { get; }
+
         static long _ids = 1;
 		static Random rand = new Random();
 		public long Unique { get; private set; }

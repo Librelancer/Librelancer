@@ -54,6 +54,10 @@ public class TabControl
                 }
                 if (ImGui.BeginTabItem(Tabs[i].RenderTitle, ref isTabOpen,tabFlags))
                 {
+                    if (ImGui.IsItemHovered() && !string.IsNullOrWhiteSpace(Tabs[i].Tooltip))
+                    {
+                        ImGui.SetTooltip(Tabs[i].Tooltip);
+                    }
                     selectedThis = true;
                     ImGui.EndTabItem();
                 }
