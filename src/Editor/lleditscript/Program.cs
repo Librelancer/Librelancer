@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -136,6 +137,40 @@ namespace lleditscript
         static string SearchFile(params string[] files) =>
             files.FirstOrDefault(File.Exists, files[^1]);
 
+        static Script<object> CompileScript(string filePath, string scriptText)
+        {
+            var opts = ScriptOptions.Default.WithReferences(
+                    typeof(Vector3).Assembly, typeof(FreelancerData).Assembly,
+                    typeof(FreelancerGame).Assembly, typeof(string).Assembly,
+                    typeof(EditableUtf).Assembly, typeof(Game).Assembly)
+                .WithImports(Namespaces).WithAllowUnsafe(true).WithFilePath(filePath);
+            var script = CSharpScript.Create(scriptText, opts, typeof(Globals));
+            var result = script.Compile();
+            foreach (var diag in result)
+            {
+                Console.WriteLine(diag);
+            }
+            if (result.Any(x => x.Severity == DiagnosticSeverity.Error))
+                return null;
+            return script;
+        }
+
+        static int RunAssembly(Assembly scriptAssembly, Globals globals)
+        {
+            var type = scriptAssembly.GetType("Submission#0");
+            var factory = type.GetMethod("<Factory>");
+            var submissionArray = new object[2];
+            submissionArray[0] = globals;
+            var tk = (Task<object>)factory.Invoke(null, new object[] { submissionArray });
+            tk.Wait();
+            if (tk.Exception != null)
+            {
+                LogException(tk.Exception);
+                return 1;
+            }
+            return 0;
+        }
+
 
         static int Main(string[] args)
         {
@@ -220,19 +255,8 @@ namespace lleditscript
                     return 2;
                 }
                 var scriptAssembly = Assembly.Load(File.ReadAllBytes(filePath));
-                var type = scriptAssembly.GetType("Submission#0");
-                var factory = type.GetMethod("<Factory>");
-                var submissionArray = new object[2];
-                submissionArray[0] = new Globals(scriptArguments,
-                    modulePath ? $"-m {args[argStart]}" : args[argStart]);
-                var tk = (Task<object>)factory.Invoke(null, new object[] { submissionArray });
-                tk.Wait();
-                if (tk.Exception != null)
-                {
-                    LogException(tk.Exception);
-                    return 1;
-                }
-                return 0;
+                return RunAssembly(scriptAssembly, new Globals(scriptArguments,
+                    modulePath ? $"-m {args[argStart]}" : args[argStart]));
             }
 
             scriptText = File.ReadAllText(filePath);
@@ -251,16 +275,9 @@ namespace lleditscript
                     .WithImports(Namespaces).WithAllowUnsafe(true).WithFilePath(filePath);
                 var globals = new Globals(scriptArguments,
                     modulePath ? $"-m {args[argStart]}" : args[argStart]);
-                var script = CSharpScript.Create(scriptText, opts, typeof(Globals));
                 if (testCompile)
                 {
-                    var result = script.Compile();
-                    foreach (var diag in result)
-                    {
-                        Console.WriteLine(diag);
-                    }
-                    if (result.Any(x => x.Severity == DiagnosticSeverity.Error))
-                        return 1;
+                    return CompileScript(filePath, scriptText) == null ? 1 : 0;
                 }
                 else if (compile)
                 {
@@ -269,14 +286,10 @@ namespace lleditscript
                         Console.WriteLine("Output file must be specified for compilation");
                         return 2;
                     }
-                    var result = script.Compile();
-                    foreach (var diag in result)
-                    {
-                        Console.WriteLine(diag);
-                    }
-                    if (result.Any(x => x.Severity == DiagnosticSeverity.Error))
+                    var result = CompileScript(filePath, scriptText);
+                    if (result == null)
                         return 1;
-                    var compilation = script.GetCompilation();
+                    var compilation = result.GetCompilation();
                     using var output = File.Create(args[argStart + 1]);
                     var emitResult = compilation.Emit(output);
                     if (!emitResult.Success) {
@@ -286,12 +299,35 @@ namespace lleditscript
                 }
                 else
                 {
-                    var tk = script.RunAsync(globals);
-                    tk.Wait();
-                    if (tk.Result.Exception != null)
+                    var p = Cache.GetCacheItem(scriptText);
+                    if (p == null)
                     {
-                        LogException(tk.Result.Exception);
-                        return 1;
+                        var sc = CompileScript(filePath, scriptText);
+                        var compilation = sc.GetCompilation();
+                        var output = new MemoryStream();
+                        using(var comp = new ZstdSharp.CompressionStream(output, 9))
+                        {
+                            compilation.Emit(comp);
+                        }
+                        Cache.WriteCacheItem(scriptText, output.ToArray());
+                        var tk = sc.RunAsync(globals);
+                        tk!.Wait();
+                        if (tk.Result.Exception != null)
+                        {
+                            LogException(tk.Result.Exception);
+                            return 1;
+                        }
+                    }
+                    else
+                    {
+                        MemoryStream asm = new MemoryStream();
+                        {
+                            using var input = new MemoryStream(p);
+                            using var decomp = new ZstdSharp.DecompressionStream(input);
+                            decomp.CopyTo(asm);
+                        }
+                        var loaded = Assembly.Load(asm.ToArray());
+                        return RunAssembly(loaded, globals);
                     }
                 }
             }
