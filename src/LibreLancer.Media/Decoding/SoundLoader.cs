@@ -11,7 +11,7 @@ namespace LibreLancer.Media
 	{
 		public static StreamingSound Open(Stream stream)
 		{
-            var dec = new Decoder(stream);
+            var dec = new AudioDecoder(stream);
             var sound = new StreamingSound();
             sound.Data = dec;
             switch(dec.Format)
@@ -33,7 +33,7 @@ namespace LibreLancer.Media
             return sound;
         }
 	}
-    enum LdFormat
+    public enum LdFormat
     {
         Mono8 = 1,
         Mono16 = 2,
@@ -41,7 +41,15 @@ namespace LibreLancer.Media
         Stereo16 = 4
     }
 
-    unsafe class Decoder : Stream
+    public record struct AudioProperty(string Name)
+    {
+        public static readonly AudioProperty Codec = new("ld.codec");
+        public static readonly AudioProperty Container = new("ld.container");
+        public static readonly AudioProperty FlTrim = new ("fl.trim");
+        public static readonly AudioProperty FlSamples = new AudioProperty("fl.samples");
+    }
+
+    public unsafe class AudioDecoder : Stream
     {
         enum LdSeek
         {
@@ -67,19 +75,6 @@ namespace LibreLancer.Media
             public LdFormat format;
             public int blockSize;
         }
-        delegate void ErrorCallback(IntPtr t);
-        static ErrorCallback err;
-        [DllImport("lancerdecode", CallingConvention = CallingConvention.Cdecl)]
-        static extern void ld_errorlog_register(ErrorCallback cb);
-        static void OnError(IntPtr t)
-        {
-            FLLog.Error("LancerDecode", Marshal.PtrToStringAnsi(t));
-        }
-        static Decoder()
-        {
-            err = OnError;
-            ld_errorlog_register(err);
-        }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate IntPtr ReadFn(byte* buffer, IntPtr size, ld_stream* stream);
@@ -97,7 +92,16 @@ namespace LibreLancer.Media
         [DllImport("lancerdecode", CallingConvention = CallingConvention.Cdecl)]
         static extern void ld_pcmstream_close(ld_pcmstream* stream);
         [DllImport("lancerdecode", CallingConvention = CallingConvention.Cdecl)]
-        static extern ld_pcmstream* ld_pcmstream_open(ld_stream* stream);
+        static extern ld_pcmstream* ld_pcmstream_open(ld_stream* stream, IntPtr options, IntPtr* error);
+
+        [DllImport("lancerdecode", CallingConvention = CallingConvention.Cdecl)]
+        static extern int ld_pcmstream_get_int(ld_pcmstream* stream,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string property, int* value);
+
+        [DllImport("lancerdecode", CallingConvention = CallingConvention.Cdecl)]
+        static extern int ld_pcmstream_get_string(ld_pcmstream* stream,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string property, byte* buffer, int size);
+
 
         ld_stream* self;
         ld_pcmstream* decoder;
@@ -176,7 +180,7 @@ namespace LibreLancer.Media
             ld_stream_destroy(stream);
         }
 
-        public Decoder(Stream stream)
+        public AudioDecoder(Stream stream)
         {
             baseStream = stream;
             self = ld_stream_new();
@@ -188,14 +192,37 @@ namespace LibreLancer.Media
             self->seek = Marshal.GetFunctionPointerForDelegate(selfSeek);
             self->tell = Marshal.GetFunctionPointerForDelegate(selfTell);
             self->close = Marshal.GetFunctionPointerForDelegate(selfClose);
-            decoder = ld_pcmstream_open(self);
+            IntPtr errorPtr = IntPtr.Zero;
+            decoder = ld_pcmstream_open(self, IntPtr.Zero, &errorPtr);
             if ((IntPtr)decoder == IntPtr.Zero)
             {
-                throw new Exception("ld_pcmstream_open failed");
+                throw new Exception($"ld_pcmstream_open failed: {Marshal.PtrToStringUTF8(errorPtr)}");
             }
 
             decoderRead = (ReadFn)Marshal.GetDelegateForFunctionPointer(decoder->stream->read, typeof(ReadFn));
             decoderSeek = (SeekFn)Marshal.GetDelegateForFunctionPointer(decoder->stream->seek, typeof(SeekFn));
+        }
+
+        public bool GetInt(AudioProperty property, out int value)
+        {
+            value = 0;
+            fixed(int* v = &value)
+                return ld_pcmstream_get_int(decoder, property.Name, v) == 1;
+        }
+
+        public bool GetString(AudioProperty property, out string value)
+        {
+            value = "";
+            Span<byte> buffer = stackalloc byte[256];
+            fixed (byte* p = buffer)
+            {
+                if (ld_pcmstream_get_string(decoder, property.Name, p, buffer.Length) > 0)
+                {
+                    value = Marshal.PtrToStringUTF8((IntPtr)p);
+                    return true;
+                }
+                return false;
+            }
         }
 
         void Reset()

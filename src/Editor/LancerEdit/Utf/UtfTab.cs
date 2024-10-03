@@ -376,6 +376,11 @@ namespace LancerEdit
                         }
                         if (ImGui.MenuItem("Texture"))
                             Confirm("Importing data will delete this node's children. Continue?", ImportTexture);
+                        if (ImGui.MenuItem("Audio", main.EnableAudioConversion))
+                        {
+                            Confirm("Importing data will delete this node's children. Continue?", () =>
+                                AudioImportPopup.Run(main, popups, b => selectedNode.Data = b));
+                        }
                         ImGui.EndPopup();
                     }
 
@@ -555,6 +560,18 @@ namespace LancerEdit
                     main.PlayBuffer(selectedNode.Data);
                 }
 
+                if (!main.PlayingBuffer &&  ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                {
+                    ImGui.OpenPopup("loopmenu");
+                }
+
+                if (ImGui.BeginPopupContextItem("loopmenu"))
+                {
+                    if(ImGui.MenuItem("Play Looped"))
+                        main.PlayBuffer(selectedNode.Data, true);
+                    ImGui.EndPopup();
+                }
+
                 if (ImGui.Button("Import Data"))
                     ImGui.OpenPopup("importactions");
                 if (ImGui.BeginPopup("importactions"))
@@ -565,6 +582,10 @@ namespace LancerEdit
                     }
                     if (ImGui.MenuItem("Texture"))
                         ImportTexture();
+                    if (ImGui.MenuItem("Audio", main.EnableAudioConversion))
+                    {
+                        AudioImportPopup.Run(main, popups, b => selectedNode.Data = b);
+                    }
                     ImGui.EndPopup();
                 }
                 if (ImGui.Button("Export Data"))
@@ -643,6 +664,8 @@ namespace LancerEdit
                     }
                     if(ImGui.MenuItem("Texture"))
                         ImportTexture();
+                    if (ImGui.MenuItem("Audio", main.EnableAudioConversion))
+                        AudioImportPopup.Run(main, popups, b => selectedNode.Data = b);
                     ImGui.EndPopup();
                 }
             }

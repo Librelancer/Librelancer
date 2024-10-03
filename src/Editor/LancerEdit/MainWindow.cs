@@ -59,6 +59,8 @@ namespace LancerEdit
 
         public UpdateChecks Updater;
 
+        public bool EnableAudioConversion;
+
         public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -88,6 +90,7 @@ namespace LancerEdit
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
             Updater = new UpdateChecks(this, GetBasePath());
+            EnableAudioConversion = Mp3Encoder.EncoderAvailable();
             if (!string.IsNullOrWhiteSpace(Config.AutoLoadPath))
             {
                 QueueUIThread(() => LoadGameData(Config.AutoLoadPath));
@@ -109,7 +112,7 @@ namespace LancerEdit
         private SoundInstance bufferInstance;
 
         public bool PlayingBuffer => bufferInstance != null && bufferInstance.Playing;
-        public void PlayBuffer(byte[] buffer)
+        public void PlayBuffer(byte[] buffer, bool loop = false)
         {
             StopBuffer();
             SoundData soundData;
@@ -130,7 +133,7 @@ namespace LancerEdit
             {
                 bufferInstance.DisposeOnStop = true;
                 bufferInstance.OnStop = () => soundData.Dispose();
-                bufferInstance.Play();
+                bufferInstance.Play(loop);
             }
         }
 
@@ -649,6 +652,10 @@ namespace LancerEdit
                         ? AppFilters.ImportModelFilters
                         : AppFilters.ImportModelFiltersNoBlender;
                     FileDialog.Open(TryImportModel, filters);
+                }
+                if (Theme.IconMenuItem(Icons.SyncAlt, "Convert Audio", EnableAudioConversion))
+                {
+                    AudioImportPopup.Run(this, Popups, null);
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
