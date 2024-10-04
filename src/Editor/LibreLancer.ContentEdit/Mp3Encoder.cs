@@ -24,6 +24,11 @@ public enum Mp3EncodePreset
 
 public static class Mp3Encoder
 {
+    static Mp3Encoder()
+    {
+        Platform.RegisterDllMap(typeof(Mp3Encoder).Assembly);
+    }
+
     [DllImport("libmp3lame")]
     static extern IntPtr get_lame_version();
 

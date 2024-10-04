@@ -20,6 +20,9 @@ abstract class VaListCallback
             case Architecture.X64:
                 return new VaListUnixX64(onCallback);
             case Architecture.X86:
+            case Architecture.Arm64:
+            case Architecture.Armv6:
+            case Architecture.Arm:
                 return new VaListUnixX86(onCallback);
             default:
                 throw new PlatformNotSupportedException();
