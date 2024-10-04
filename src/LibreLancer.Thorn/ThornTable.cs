@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -493,7 +494,8 @@ namespace LibreLancer.Thorn
             }
             return sb.ToString();
         }
-        static string FNice(float f) => f.ToString("0.##########################");
+
+        static string FNice(float f) => f.ToString("0.##########################", CultureInfo.InvariantCulture);
 
         string DumpValue(object value, int tabCount, bool firstTab) => value switch
         {
