@@ -46,7 +46,9 @@ namespace LibreLancer.Media
         public static readonly AudioProperty Codec = new("ld.codec");
         public static readonly AudioProperty Container = new("ld.container");
         public static readonly AudioProperty FlTrim = new ("fl.trim");
-        public static readonly AudioProperty FlSamples = new AudioProperty("fl.samples");
+        public static readonly AudioProperty FlSamples = new ("fl.samples");
+        public static readonly AudioProperty Mp3Trim = new ("mp3.trim");
+        public static readonly AudioProperty Mp3Samples = new ("mp3.samples");
     }
 
     public unsafe class AudioDecoder : Stream

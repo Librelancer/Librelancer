@@ -58,14 +58,6 @@ public static class Mp3Encoder
     [DllImport("libmp3lame")]
     static extern int lame_init_params(IntPtr lame);
 
-
-    [DllImport("libmp3lame")]
-    static extern int lame_get_encoder_delay(IntPtr lame);
-
-    [DllImport("libmp3lame")]
-    static extern int lame_get_out_samplerate(IntPtr lame);
-
-
     [DllImport("libmp3lame")]
     static extern int lame_get_lametag_frame(IntPtr lame, byte[] buffer, int length);
 
@@ -133,7 +125,6 @@ public static class Mp3Encoder
         Span<byte> buffer8 = stackalloc byte[8192];
 
         int read;
-        int totalFrames = 0;
         do
         {
             if (cancellation.IsCancellationRequested) {
@@ -158,7 +149,6 @@ public static class Mp3Encoder
                 lame_close(lame);
                 return;
             }
-            totalFrames += read;
             fixed (byte* wav = wavbuffer)
             fixed(byte* mp3 = mp3buffer)
             {
@@ -196,55 +186,13 @@ public static class Mp3Encoder
             mp3file.Write(lametag);
         }
 
-        var sr = lame_get_out_samplerate(lame);
-        totalFrames /= stereo ? 4 : 2;
-        if (sr != audio.Frequency)
-        {
-            var duration = totalFrames / (double)audio.Frequency;
-            var newSamples = sr * duration;
-            totalFrames = (int)Math.Ceiling(newSamples);
-        }
-
         if (cancellation.IsCancellationRequested) {
             log("Cancelled");
             lame_close(lame);
             return;
         }
 
-        // encoder delay + 528 decoder delay + 1152 silent Xing frame
-        int paddingFrames = lame_get_encoder_delay(lame) + 529 + 1152;
-        var writer = new BinaryWriter(output);
-
-        int totalLength = (int)mp3file.Length +
-                          12 + //riff header
-                          24 + //wave fmt chunk
-                          12 + //fact chunk
-                          12 + //trim chunk
-                          8; //data header
-        writer.Write("RIFF"u8);
-        writer.Write(totalLength);
-        writer.Write("WAVE"u8);
-        writer.Write("fmt "u8);
-        writer.Write(16); //size
-        writer.Write((ushort)0x55); //mp3
-        writer.Write((ushort)(stereo ? 2 : 1)); //channels
-        writer.Write(sr); //sample rate
-        writer.Write((int)(mp3file.Length / (totalFrames / (double)sr))); // approx byte rate
-        writer.Write((ushort)(stereo ? 4 : 2)); //block align
-        writer.Write((ushort)0); //bits per sample (invalid for mp3)
-        writer.Write("fact"u8);
-        writer.Write(4);
-        writer.Write(totalFrames);
-        writer.Write("trim"u8);
-        writer.Write(4);
-        writer.Write(paddingFrames);
-        writer.Write("data"u8);
-        lame_close(lame);
-        var arr = mp3file.ToArray();
-        writer.Write((int)arr.Length);
-        output.Write(arr);
-        log($"Trimmed frames: {paddingFrames}");
-        log($"Total PCM frames: {totalFrames}");
+        AudioImporter.ImportMp3(mp3file.ToArray(), output);
         log("Done");
     }
 

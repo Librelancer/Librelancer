@@ -166,10 +166,17 @@ public class AudioImportPopup : PopupWindow
         ImGui.TextUnformatted(name);
         ImGui.TextUnformatted($"Channels: {info.Channels}");
         ImGui.TextUnformatted($"Sample Rate: {info.Frequency}");
+        ImGui.Separator();
         switch (info.Kind)
         {
+            case AudioImportKind.Mp3 when info.Trim != 0 && info.Samples != 0:
+                ImGui.Text("Input is already mp3 (with LAME trimming info)");
+                ImGui.Text("Wrapping .mp3 in .wav container, converting trim to FL");
+                ImGui.TextUnformatted($"Trim: {info.Trim}, Length {info.Samples}");
+                break;
             case AudioImportKind.Mp3:
-                ImGui.Text("Input is already mp3, creating container");
+                ImGui.Text("Input is already mp3 (no trimming info)");
+                ImGui.Text("Wrapping .mp3 in .wav container");
                 break;
             case AudioImportKind.WavUncompressed:
                 ImGui.Text("Input is uncompressed .wav");
@@ -179,7 +186,6 @@ public class AudioImportPopup : PopupWindow
                 ImGui.Text("Input needs conversion to be used");
                 break;
         }
-        ImGui.Separator();
 
         if (info.Kind != AudioImportKind.Mp3)
         {
@@ -210,8 +216,8 @@ public class AudioImportPopup : PopupWindow
                     ImGui.EndCombo();
                 }
             }
-            ImGui.Separator();
         }
+        ImGui.Separator();
         if (onImport != null &&
             info.Kind == AudioImportKind.WavUncompressed)
         {
