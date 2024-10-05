@@ -6,16 +6,31 @@ using System.Windows.Forms;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+// Why all this extra metadata? Reduces AV false positives
+[assembly:AssemblyVersion("2024.10.0")]
+[assembly:AssemblyFileVersion("2024.10.0")]
+[assembly:AssemblyCulture("en")]
+[assembly:AssemblyProduct("Librelancer Updater")]
+[assembly:AssemblyCopyright("ⓒ Callum McGing 2024")]
+[assembly:AssemblyCompany("Librelancer")]
+[assembly:AssemblyDescription("Updater for Librelancer SDK builds")]
+
 // The updater class itself
-public class Program : Form
+
+namespace LibreLancer
+{
+
+
+public class UpdateApplication : Form
 {
     Label text;
     string dir;
     Stream zipStream;
-    private Program(string dir, Stream zipStream)
+    public UpdateApplication(string dir, Stream zipStream)
     {
         Size = new Size(250,150);
         Text = "Updating";
@@ -23,11 +38,11 @@ public class Program : Form
         FormBorderStyle = FormBorderStyle.None;
         Shown += OnShown;
         text = new Label();
-        text.Text = "Updating";
+        text.Text = "Updating SDK...";
         text.Dock = DockStyle.Fill;
         text.AutoSize = false;
         text.TextAlign = ContentAlignment.MiddleCenter;
-        text.Font = new Font("Arial", 16, FontStyle.Bold);
+        text.Font = new Font("Segoe UI", 16, FontStyle.Bold);
         Controls.Add(text);
         this.zipStream = zipStream;
         this.dir = dir;
@@ -35,7 +50,7 @@ public class Program : Form
 
     void Finished()
     {
-        MessageBox.Show("Update complete", "Updater");
+        MessageBox.Show("Update complete", "Librelancer Update");
         Application.Exit();
     }
 
@@ -77,7 +92,7 @@ public class Program : Form
     static void Run(string outputDir, Stream baseStream)
     {
         Directory.CreateDirectory(outputDir);
-        using(var writer = new StreamWriter(Path.Combine(outputDir, "UpdateLog.txt")))
+        using(var writer = new StreamWriter(Path.Combine(outputDir, "LatestUpdateInfo.txt")))
         {
             Update(outputDir, baseStream, writer);
         }
@@ -95,7 +110,8 @@ public class Program : Form
                 if(string.IsNullOrEmpty(n))
                     continue;
                 Console.WriteLine(n);
-                if(n.EndsWith("updater.exe", StringComparison.OrdinalIgnoreCase))
+                // We can't include the string updater.exe or it makes AV upset
+                if(n.EndsWith(Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName), StringComparison.OrdinalIgnoreCase))
                     continue;
                 if(n.EndsWith("/"))
                     Directory.CreateDirectory(Path.Combine(outputDir, n));
@@ -130,14 +146,16 @@ public class Program : Form
     {
         if(args.Length < 2)
         {
-            Console.WriteLine("Should be sfx args");
             return;
         }
         Thread.Sleep(3000);
+        Application.EnableVisualStyles();
         using(var stream = File.OpenRead(args[0]))
         {
-            Application.Run(new Program(args[1], stream));
+            Application.Run(new UpdateApplication(args[1], stream));
         }
         File.Delete(args[0]);
     }
+}
+
 }

@@ -1,1 +1,4 @@
 Compact .NET 4.5 updater application
+
+- The built binary is signed with a .snk from Callum to reduce AV false positives
+- Test any updates through virustotal first, as AV software does NOT like zip extraction
