@@ -192,6 +192,12 @@ namespace LibreLancer.World
         public void SetLocalTransform(Transform3D tr, bool phys = false)
         {
             _localTransform = tr;
+            var l = _localTransform.Orientation.Length();
+            if (l < float.Epsilon) {
+                _localTransform.Orientation = Quaternion.Identity;
+            } else if (Math.Abs(l - 1) >= 1e-6f) {
+                _localTransform.Orientation = Quaternion.Normalize(_localTransform.Orientation);
+            }
             transformDirty = true;
             for (int i = 0; i < Children.Count; i++)
             {
