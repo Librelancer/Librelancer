@@ -10,8 +10,8 @@ namespace LibreLancer.Net.Protocol
 	public static partial class NetPacking
 	{
         public const int BITS_COMPONENT = 10;
-        public const float UNIT_MIN = -0.70710677f;
-        public const float UNIT_MAX = 0.70710677f;
+        public const float UNIT_MIN = -0.707106829f;
+        public const float UNIT_MAX = 0.707106829f;
         public const float ANGLE_MIN = (float)(-2 * Math.PI);
         public const float ANGLE_MAX = (float)(2 * Math.PI);
 
@@ -31,6 +31,8 @@ namespace LibreLancer.Net.Protocol
         {
             #if DEBUG
             if (f < min || f > max) throw new ArgumentOutOfRangeException();
+            #else
+            f = MathHelper.Clamp(f, UNIT_MIN, UNIT_MAX);
             #endif
             var intMax = (1 << bits) - 1;
             float unit = ((f - min) / (max - min));
