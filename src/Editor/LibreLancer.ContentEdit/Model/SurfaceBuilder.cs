@@ -319,7 +319,7 @@ public static class SurfaceBuilder
         var indices = new List<ushort>();
         foreach (var i in h.Geometry.Indices.Indices16)
         {
-            verts.AddIfUnique(h.Geometry.Vertices[i].Position, out int index);
+            verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices[i].Position, h.Transform), out int index);
             indices.Add((ushort) index);
         }
         var inputHull = new HullData()
