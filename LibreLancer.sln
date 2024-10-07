@@ -63,6 +63,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuPhysics", "extern\bepup
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Net.Generator", "src\LibreLancer.Net.Generator\LibreLancer.Net.Generator.csproj", "{BFC51CE0-4528-4417-8F44-92D334A200ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlurgText", "extern\blurgtext\dotnet\BlurgText\BlurgText.csproj", "{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -397,6 +399,18 @@ Global
 		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x64.Build.0 = Release|Any CPU
 		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x86.ActiveCfg = Release|Any CPU
 		{BFC51CE0-4528-4417-8F44-92D334A200ED}.Release|x86.Build.0 = Release|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Debug|x64.Build.0 = Debug|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Debug|x86.Build.0 = Debug|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x64.Build.0 = Release|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x86.ActiveCfg = Release|Any CPU
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -413,6 +427,7 @@ Global
 		{49D998AE-98EF-4786-9225-8A09CE6C96C1} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 		{45F57047-5BF4-41BF-A13C-A1CD3BFCFD8A} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 		{5D321AB5-DF7F-4988-B432-000E24EBE9F2} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
+		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93BAD06D-C79A-48A8-9687-91EAE0EA2332}

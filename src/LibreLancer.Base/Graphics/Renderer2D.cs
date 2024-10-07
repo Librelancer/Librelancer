@@ -186,21 +186,11 @@ namespace LibreLancer.Graphics
         {
             if (richText == null)
             {
-                if (Platform.RunningOS == OS.Linux || Platform.RunningOS == OS.Mac)
-                    richText = new Text.Pango.PangoText(rs, this);
-                else if (Platform.RunningOS == OS.Windows)
-                    //Different method
-                    //So we don't have to load SharpDX on linux
-                    richText = DWriteEngine();
-                else
-                    throw new NotImplementedException();
+                richText = new BlurgEngine(rs, this);
             }
             return richText;
         }
-        RichTextEngine DWriteEngine()
-        {
-            return new Text.DirectWrite.DirectWriteText(rs, this);
-        }
+
 
         public Point MeasureString(string fontName, float size, string str)
 		{
@@ -269,11 +259,11 @@ namespace LibreLancer.Graphics
             CreateRichTextEngine().DrawStringCached(ref cache, fontName, size, text, x, y, color, underline, shadow, alignment, maxWidth);
         }
 
-        public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
+        public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, bool shadow = false, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
         {
             if (text == "" || size < 1) //skip empty str
                 return Point.Zero;
-            return CreateRichTextEngine().MeasureStringCached(ref cache, fontName, size, maxWidth, text, underline, alignment);
+            return CreateRichTextEngine().MeasureStringCached(ref cache, fontName, size, maxWidth, text, underline, shadow, alignment);
         }
 
         public void FillRectangle(Rectangle rect, Color4 color)

@@ -13,7 +13,6 @@ using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.World;
-using SharpDX.Direct2D1.Effects;
 
 namespace LibreLancer
 {

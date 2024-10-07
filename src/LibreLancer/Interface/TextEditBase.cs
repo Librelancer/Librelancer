@@ -294,7 +294,7 @@ public class TextEditBase
         context.ScissorEnabled = true;
         context.ScissorRectangle = new Rectangle(x,y,width,height);
         Update(context.Renderer2D.CreateRichTextEngine());
-        var pos = richText.GetCaretPosition(nodes.Length - 1, CaretPosition);
+        var pos = richText.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
         int xOffset = 0;
         if (!_wrap && pos.X >= width) {
             xOffset = 5 + pos.X - width;

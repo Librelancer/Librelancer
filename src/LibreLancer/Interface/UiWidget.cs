@@ -69,7 +69,7 @@ namespace LibreLancer.Interface
             var size = context.TextSize(textSize);
             var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
-            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, CastAlign(horizontalAlign),
+            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, shadowColor != null, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
             //workaround for font substitution causing layout issues - e.g. CJK
             //TODO: How to get max lineheight of fonts in string?

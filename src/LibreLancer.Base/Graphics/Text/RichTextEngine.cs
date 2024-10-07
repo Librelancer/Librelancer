@@ -18,7 +18,7 @@ namespace LibreLancer.Graphics.Text
         public abstract void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
             float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0);
         public abstract Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, float maxWidth, string text,
-            bool underline, TextAlignment alignment);
+            bool underline, bool shadow, TextAlignment alignment);
     }
 
     public abstract class BuiltRichText : IDisposable

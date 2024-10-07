@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using LibreLancer.Ini;
-using SharpDX.Direct2D1;
 
 namespace LibreLancer.Data.Missions
 {
@@ -14,7 +13,7 @@ namespace LibreLancer.Data.Missions
 
         [EntryHandler("empathy_rate", MinComponents = 2, Multiline = true)]
         void HandleEmpathyRate(Entry e) => EmpathyRate.Add(new GroupReputation(e[1].ToSingle(), e[0].ToString()));
-        
+
         [EntryHandler("event", MinComponents = 2, Multiline = true)]
         void HandleEvent(Entry e) => Events.Add(new EmpathyEvent(e));
     }

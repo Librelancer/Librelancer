@@ -8,7 +8,6 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
-using SharpDX.Direct2D1;
 
 namespace LancerEdit.GameContent
 {

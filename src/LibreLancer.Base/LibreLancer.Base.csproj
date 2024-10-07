@@ -12,6 +12,7 @@
     <PackageLicenseUrl>https://github.com/Librelancer/Librelancer/blob/main/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/Librelancer/Librelancer</RepositoryUrl>
     <RootNamespace>LibreLancer</RootNamespace>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -22,13 +23,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+
+  
   <ItemGroup>
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+    <Folder Include="Properties" />
   </ItemGroup>
 
 
   
   <ItemGroup>
-    <Folder Include="Properties" />
+    <ProjectReference Include="..\..\extern\blurgtext\dotnet\BlurgText\BlurgText.csproj" />
   </ItemGroup>
 </Project>

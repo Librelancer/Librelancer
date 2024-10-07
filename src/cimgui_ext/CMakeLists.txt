@@ -2,15 +2,6 @@ cmake_minimum_required (VERSION 3.1)
 project (cimgui)
 set(CMAKE_CXX_STANDARD 14)
 
-# Freetype dlopen shim for windows only
-if(WIN32)
-set(FTSHIM_C "ftshim.c")
-set(FTSHIM_DIR "./freetypeshim")
-else()
-set(FTSHIM_C "ft_unix.c")
-set(FTSHIM_DIR "")
-endif()
-
 add_library(cimgui SHARED
     ../../extern/cimgui/imgui/imgui.cpp
     ../../extern/cimgui/imgui/imgui_draw.cpp
@@ -33,12 +24,11 @@ add_library(cimgui SHARED
     cimgui_spinner.cpp
     cimgui_memory_editor.cpp
     cimgui_node_editor.cpp
-    ${FTSHIM_C}
     ImGuizmo.cpp
     cimgui_guizmo.cpp
 )
 
-target_include_directories(cimgui PRIVATE "." ${FTSHIM_DIR} "../../extern/cimgui/imgui" "../../extern/ImGuiColorTextEdit" "../../extern/imgui-node-editor" "../../extern/imgui_test_engine/imgui_test_engine")
+target_include_directories(cimgui PRIVATE "." "../../extern/cimgui/imgui" "../../extern/ImGuiColorTextEdit" "../../extern/imgui-node-editor" "../../extern/imgui_test_engine/imgui_test_engine")
 
 target_compile_definitions(cimgui PUBLIC -DIMGUI_ENABLE_FREETYPE -DCIMGUI_FREETYPE -DIMGUI_ENABLE_STB_TRUETYPE -DIMGUI_USER_CONFIG=<imconfig_ext.h>)
 
@@ -46,4 +36,6 @@ if(NOT WIN32)
     find_package(Freetype REQUIRED)
     target_link_libraries(cimgui PRIVATE ${FREETYPE_LIBRARIES})
     target_include_directories(cimgui PRIVATE ${FREETYPE_INCLUDE_DIRS})
+else()
+    target_link_libraries(cimgui PRIVATE FREETYPE_LIBRARY HARFBUZZ_LIBRARY)
 endif()

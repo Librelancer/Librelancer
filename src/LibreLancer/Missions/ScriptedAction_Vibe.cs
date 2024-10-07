@@ -2,7 +2,6 @@ using System;
 using LibreLancer.Data.Missions;
 using LibreLancer.Missions;
 using LibreLancer.Server.Components;
-using SharpDX.DirectWrite;
 
 namespace LibreLancer.Missions
 {

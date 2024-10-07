@@ -4,17 +4,11 @@
 
 #include "imgui.h"
 #include "imgui_freetype.h"
-#include "cimgui_ext.h"
-#include "ftshim.h"
-
+#include "cimgui_freetype.h"
 static bool functionsLoaded = false;
 extern "C" {
 IGEXPORT void igFtLoad()
 {
-	if(!functionsLoaded) {
-		igLoadFreetype();
-		functionsLoaded = true;
-	}
 }
 
 IGEXPORT void igMapGlyph(int glyph, int actual)

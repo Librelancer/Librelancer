@@ -9,7 +9,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using BepuUtilities;
-using SharpDX.DirectWrite;
 using ZstdSharp;
 
 namespace LibreLancer.ContentEdit;

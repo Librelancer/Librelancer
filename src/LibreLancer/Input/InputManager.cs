@@ -4,7 +4,6 @@
 
 using System;
 using LibreLancer.Interface;
-using SharpDX.DirectWrite;
 
 namespace LibreLancer.Input
 {

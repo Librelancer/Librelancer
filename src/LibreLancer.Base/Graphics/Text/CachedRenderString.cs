@@ -13,6 +13,7 @@ namespace LibreLancer.Graphics.Text
         internal float FontSize;
         internal bool Underline;
         internal TextAlignment Alignment;
+        internal bool Shadow;
         internal float MaxWidth;
 
         //Bail out on long strings
@@ -26,7 +27,7 @@ namespace LibreLancer.Graphics.Text
         internal bool Update(
             string font,
             string text, float size,
-            bool underline, TextAlignment alignment,
+            bool underline, TextAlignment alignment, bool shadow,
             float maxWidth
         )
         {
@@ -35,6 +36,7 @@ namespace LibreLancer.Graphics.Text
                 Math.Abs(size - FontSize) > float.Epsilon ||
                 underline != Underline ||
                 Alignment != alignment ||
+                Shadow != shadow ||
                 Math.Abs(maxWidth - MaxWidth) > float.Epsilon)
             {
                 FontName = font;
@@ -42,6 +44,7 @@ namespace LibreLancer.Graphics.Text
                 FontSize = size;
                 Underline = underline;
                 Alignment = alignment;
+                Shadow = shadow;
                 MaxWidth = maxWidth;
                 return true;
             }
