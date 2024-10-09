@@ -414,7 +414,8 @@ public static class IniSerializer
         {
             ib.Section("Base")
                 .Entry("nickname", b.Nickname)
-                .Entry("system", b.System)
+                //This shouldn't be empty, but used for mods for intro rooms
+                .OptionalEntry("system", b.System)
                 .OptionalEntry("strid_name", b.IdsName)
                 .Entry("file", b.SourceFile)
                 .OptionalEntry("BGCS_base_run_by", b.BaseRunBy)
