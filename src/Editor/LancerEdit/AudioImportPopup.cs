@@ -1,12 +1,14 @@
 using System;
 using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
+using LibreLancer.Media;
 
 namespace LancerEdit;
 
@@ -65,6 +67,12 @@ public class AudioImportPopup : PopupWindow
     private Action<byte[]> onImport;
     private MainWindow win;
 
+    private int manualTrim = 0;
+    private int manualTotal = 0;
+    private int manualTrimEnd = 0;
+    private int manualMax = 0;
+
+
     private AudioImportPopup(MainWindow win, Action<byte[]> onImport, AudioImportInfo info, string path)
     {
         Title = onImport == null ? "Convert Audio" : "Import Audio";
@@ -73,6 +81,11 @@ public class AudioImportPopup : PopupWindow
         this.name = $"Source: {Path.GetFileName(path)}";
         this.info = info;
         this.win = win;
+        if (info.TotalMp3Bytes != 0) {
+            manualMax = info.TotalMp3Bytes / 2 / info.Channels;
+            manualTotal = manualMax - 529;
+            manualTrim = 529;
+        }
     }
 
     private bool converting = false;
@@ -129,7 +142,7 @@ public class AudioImportPopup : PopupWindow
         }
         else
         {
-            AudioImporter.ImportMp3(path, outputStream);
+            AudioImporter.ImportMp3(path, outputStream, manualTrim, manualTotal);
             outputStream.Dispose();
             completed?.Invoke();
             ImGui.CloseCurrentPopup();
@@ -186,7 +199,27 @@ public class AudioImportPopup : PopupWindow
                 ImGui.Text("Input needs conversion to be used");
                 break;
         }
-
+        if (info.Kind == AudioImportKind.Mp3 &&
+            info.Samples == 0)
+        {
+            ImGui.Text("Open this file in e.g. audacity");
+            ImGui.Text("And enter the length of the silence at the start and end");
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Trim start (samples)");
+            ImGui.SameLine();
+            ImGui.InputInt("##trim", ref manualTrim, 0, 0);
+            if (manualTrim > manualMax - 1)
+                manualTrim = manualMax - 1;
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Trim end (samples)");
+            ImGui.SameLine();
+            ImGui.InputInt("##total", ref manualTrimEnd, 0, 0);
+            manualTotal = manualMax - manualTrimEnd;
+            if (manualTotal > manualMax - manualTrim || manualTotal <= 0) {
+                manualTotal = manualMax - manualTrim;
+                manualTrimEnd = 0;
+            }
+        }
         if (info.Kind != AudioImportKind.Mp3)
         {
             ImGuiExt.ButtonDivided("bvsq", "Bitrate", "Quality", ref useBitrate);

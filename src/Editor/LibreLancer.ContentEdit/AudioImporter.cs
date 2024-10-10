@@ -19,10 +19,24 @@ public class AudioImportInfo
     public int Frequency;
     public int Trim;
     public int Samples;
+    public int TotalMp3Bytes;
 }
 
 public static class AudioImporter
 {
+
+    static int GetByteLength(AudioDecoder audio)
+    {
+        int totalBytes = 0;
+        Span<byte> buffer = stackalloc byte[2048];
+        int r;
+        do
+        {
+            r = audio.Read(buffer);
+            totalBytes += r;
+        } while (r > 0);
+        return totalBytes;
+    }
 
     public static AudioImportInfo Analyze(Stream stream)
     {
@@ -56,6 +70,7 @@ public static class AudioImporter
                             !decoder.GetInt(AudioProperty.Mp3Samples, out info.Samples))
                         {
                             info.Trim = info.Samples = 0;
+                            info.TotalMp3Bytes = GetByteLength(decoder);
                         }
                     }
                 }
@@ -66,6 +81,7 @@ public static class AudioImporter
                         !decoder.GetInt(AudioProperty.Mp3Samples, out info.Samples))
                     {
                         info.Trim = info.Samples = 0;
+                        info.TotalMp3Bytes = GetByteLength(decoder);
                     }
                 }
             }
@@ -77,7 +93,7 @@ public static class AudioImporter
         }
     }
 
-    public static EditResult<bool> ImportMp3(byte[] mp3Bytes, Stream outputStream)
+    public static EditResult<bool> ImportMp3(byte[] mp3Bytes, Stream outputStream, int manualTrim = 0, int manualSamples = 0)
     {
         var info = Analyze(new MemoryStream(mp3Bytes));
         if (info == null || info.Kind != AudioImportKind.Mp3) {
@@ -88,18 +104,12 @@ public static class AudioImporter
         int totalBytes = 0;
         using (var audio = new AudioDecoder(new MemoryStream(mp3Bytes)))
         {
-            Span<byte> buffer = stackalloc byte[2048];
-            int r;
-            do
-            {
-                r = audio.Read(buffer);
-                totalBytes += r;
-            } while (r > 0);
+            totalBytes = GetByteLength(audio);
         }
 
         int totalSamples = totalBytes / 2 / info.Channels;
-
-        bool writeTrim = info.Samples != 0 && info.Trim != 0;
+        bool doManual = manualTrim != 0 && manualSamples != 0;
+        bool writeTrim = doManual || (info.Samples != 0 && info.Trim != 0);
         var writer = new BinaryWriter(outputStream);
         int totalLength = mp3Bytes.Length +
                           12 + //riff header
@@ -120,21 +130,21 @@ public static class AudioImporter
         if (writeTrim) {
             writer.Write("fact"u8);
             writer.Write(4);
-            writer.Write(info.Samples);
+            writer.Write(doManual ? manualSamples : info.Samples);
             writer.Write("trim"u8);
             writer.Write(4);
-            writer.Write(info.Trim);
+            writer.Write(doManual ? manualTrim : info.Trim);
         }
         writer.Write("data"u8);
         writer.Write(mp3Bytes.Length);
         outputStream.Write(mp3Bytes);
         return true.AsResult();
     }
-    public static EditResult<bool> ImportMp3(string mp3Path, Stream outputStream)
+    public static EditResult<bool> ImportMp3(string mp3Path, Stream outputStream, int manualTrim = 0, int manualSamples = 0)
     {
         var mp3Bytes = EditResult<byte[]>.TryCatch(() => File.ReadAllBytes(mp3Path));
         if (mp3Bytes.IsError)
             return new EditResult<bool>(false, mp3Bytes.Messages);
-        return ImportMp3(mp3Bytes.Data, outputStream);
+        return ImportMp3(mp3Bytes.Data, outputStream, manualTrim, manualSamples);
     }
 }
