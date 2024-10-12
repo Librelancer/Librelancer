@@ -32,6 +32,7 @@ public class GameDataContext : IDisposable
     public EditableInfocardManager Infocards => (EditableInfocardManager)GameData.Ini.Infocards;
 
     public string Folder;
+    public string UniverseVfsFolder;
 
     private string cacheDir;
 
@@ -91,6 +92,9 @@ public class GameDataContext : IDisposable
                 GameData.LoadData(win);
                 //Replace infocard manager with editable version
                 GameData.Ini.Infocards = new EditableInfocardManager(GameData.Ini.Infocards.Dlls);
+                char[] splits = ['\\', '/'];
+                var uniSplit = GameData.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
+                UniverseVfsFolder = $"{string.Join('\\', uniSplit.Take(uniSplit.Length - 1))}\\";
                 FLLog.Info("Game", "Finished loading game data");
                 win.QueueUIThread(() =>
                 {
