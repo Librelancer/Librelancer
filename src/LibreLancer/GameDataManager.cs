@@ -245,16 +245,9 @@ namespace LibreLancer
             fldata.MBases = null; //Free memory
         }
 
-        private Dictionary<uint, string> goodHashes = new Dictionary<uint, string>();
-        private Dictionary<string, ResolvedGood> goods = new Dictionary<string, ResolvedGood>();
-        private Dictionary<string, ResolvedGood> equipToGood = new Dictionary<string, ResolvedGood>();
+        public GameItemCollection<ResolvedGood> Goods;
         Dictionary<string, long> shipPrices = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
-        public IEnumerable<ResolvedGood> AllGoods => goods.Values;
-
-        public bool TryGetGood(string nickname, out ResolvedGood good) => goods.TryGetValue(nickname, out good);
-
-        public string GoodFromCRC(uint crc) => goodHashes[crc];
 
         private Dictionary<string, string> shipToIcon =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -274,6 +267,7 @@ namespace LibreLancer
         void InitGoods()
         {
             FLLog.Info("Game", "Initing " + fldata.Goods.Goods.Count + " goods");
+            Goods = new GameItemCollection<ResolvedGood>();
             Dictionary<string, Data.Goods.Good> hulls = new Dictionary<string, Data.Goods.Good>(256, StringComparer.OrdinalIgnoreCase);
             List<Data.Goods.Good> ships = new List<Good>();
             foreach (var g in fldata.Goods.Goods)
@@ -281,7 +275,7 @@ namespace LibreLancer
                 switch (g.Category)
                 {
                     case Data.Goods.GoodCategory.ShipHull:
-                        hulls.Add(g.Nickname, g);
+                        hulls[g.Nickname] = g;
                         shipToIcon[g.Ship] = g.ItemIcon;
                         shipPrices[g.Ship] = g.Price;
                         break;
@@ -292,10 +286,9 @@ namespace LibreLancer
                     case Data.Goods.GoodCategory.Commodity:
                         if (Equipment.TryGetValue(g.Nickname, out var equip))
                         {
-                            var good = new ResolvedGood() {Equipment = equip, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname) };
+                            var good = new ResolvedGood() {Nickname = g.Nickname, Equipment = equip, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname) };
                             equip.Good = good;
-                            goods.Add(g.Nickname, good);
-                            goodHashes.Add(CrcTool.FLModelCrc(g.Nickname), g.Nickname);
+                            Goods.Add(good);
                         }
                         break;
                 }
@@ -345,7 +338,7 @@ namespace LibreLancer
                         if(gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
                             b.SoldShips.Add(new GameData.Market.SoldShip() { Package = sp });
                     }
-                    else if (goods.TryGetValue(gd.Good, out var good))
+                    else if (Goods.TryGetValue(gd.Good, out var good))
                     {
                         b.SoldGoods.Add(new BaseSoldGood()
                         {

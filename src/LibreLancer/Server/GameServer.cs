@@ -177,7 +177,7 @@ namespace LibreLancer.Server
         void InitBaselinePrices()
         {
             var bp = new List<BaselinePrice>();
-            foreach (var good in GameData.AllGoods)
+            foreach (var good in GameData.Goods)
             {
                 bp.Add(new BaselinePrice()
                 {

@@ -139,8 +139,7 @@ namespace LibreLancer.Client
             foreach (var sold in session.Goods)
             {
                 if (!sold.ForSale) continue;
-                var nick = session.Game.GameData.GoodFromCRC(sold.GoodCRC);
-                if (!session.Game.GameData.TryGetGood(nick, out ResolvedGood g))
+                if (!session.Game.GameData.Goods.TryGetValue(sold.GoodCRC, out var g))
                     continue;
                 if (!filterfunc(g.Equipment)) continue;
                 var price = GetPrice(g);
