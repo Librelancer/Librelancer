@@ -11,10 +11,11 @@ namespace LibreLancer.Utf.Ale
 	{
 		public ALEffectLib FxLib;
 		public AlchemyNodeLibrary NodeLib;
+        public string Path;
 		public AleFile(string file, Stream stream) : this(parseFile(file, stream))
-		{
-
-		}
+        {
+            Path = file;
+        }
 		public AleFile (IntermediateNode root)
 		{
 			//TODO: This is ugly
@@ -30,7 +31,8 @@ namespace LibreLancer.Utf.Ale
 					throw new NotImplementedException (node.Name);
 				}
 			}
-		}
+            Path = "[utf]";
+        }
 	}
 }
 

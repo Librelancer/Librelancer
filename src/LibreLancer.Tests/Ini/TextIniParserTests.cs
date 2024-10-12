@@ -51,7 +51,7 @@ namespace LibreLancer.Tests.Ini
 
         // The UK pound sign is a unicode character and cannot be encoded to ASCII using
         // .NET standard ASCII encoding. By representing it in UTF8 and encoding a BOM in
-        // start of the data stream the ini parser should interpret it correctly. 
+        // start of the data stream the ini parser should interpret it correctly.
         [Theory]
         [InlineData("[!£$%^&*()#':/?\\|]", "!£$%^&*()#':/?\\|")]
         public void ParseSectionUtf8Succeeds(string iniString, string result)
@@ -101,6 +101,15 @@ namespace LibreLancer.Tests.Ini
             var value = ini[0][0][0];
             value.Should().BeAssignableTo<SingleValue>();
             value.ToSingle().Should().Be(result);
+        }
+
+        // This is required for mods loading ALEs
+        [Fact]
+        public void ParseLongValueWrapSucceeds()
+        {
+            var ini = ParseAsAscii("[A]\nK=3949920388");
+            var value = ini[0][0][0];
+            value.ToInt32().Should().Be(-345046908);
         }
 
         [Theory]

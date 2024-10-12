@@ -13,9 +13,11 @@ namespace LibreLancer.Fx
 	{
 		public List<ParticleEffect> Effects = new List<ParticleEffect>();
 		public ResourceManager Resources;
+        public string AlePath;
 		public ParticleLibrary (ResourceManager res, AleFile ale)
 		{
 			Resources = res;
+            AlePath = ale.Path;
 			foreach (var effect in ale.FxLib.Effects) {
 
 				Dictionary<uint, NodeReference> nodesByIndex = new Dictionary<uint, NodeReference>();
@@ -110,15 +112,27 @@ namespace LibreLancer.Fx
             _ => throw new ArgumentException(ale.Name)
         };
 
+        private HashSet<uint> errored;
 		public ParticleEffect FindEffect(uint crc)
 		{
 			if (Effects.Count == 1)
 				return Effects[0]; //Work around buggy mods
-			var result = from ParticleEffect e in Effects where e.CRC == crc select e;
-			if (result.Count() == 1)
-				return result.First();
-			throw new Exception();
-		}
+            for (int i = 0; i < Effects.Count; i++)
+            {
+                if (Effects[i].CRC == crc)
+                {
+                    return Effects[i];
+                }
+            }
+            errored ??= new HashSet<uint>();
+            if (!errored.Contains(crc))
+            {
+                int crcInt = unchecked((int)crc);
+                FLLog.Error("Fx", $"Unable to find fx crc {crcInt} in {AlePath ?? "(null)"}");
+                errored.Add(crc);
+            }
+            return null;
+        }
 	}
 }
 

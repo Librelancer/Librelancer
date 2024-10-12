@@ -65,14 +65,14 @@ namespace LibreLancer.Ini
                     {
                         if (preparse && (part[0] == '-' || part[0] >= '0' && part[0] <= '9'))
                         {
-                            if (long.TryParse(part, out long tempLong)
-                                && tempLong >= int.MinValue && tempLong <= int.MaxValue)
+                            bool isLong = long.TryParse(part, out long tempLong);
+                            if (isLong && tempLong >= int.MinValue && tempLong <= int.MaxValue)
                             {
                                 entry.Add(new Int32Value((int)tempLong) { Entry = entry, Line = line });
                             }
                             else if (float.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out float tempFloat))
                             {
-                                entry.Add(new SingleValue(tempFloat, null) { Entry = entry, Line = line });
+                                entry.Add(new SingleValue(tempFloat, isLong ? tempLong : null) { Entry = entry, Line = line });
                             }
                             else
                                 entry.Add(new LancerStringValue(part) { Entry = entry, Line = line });
