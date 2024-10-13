@@ -45,10 +45,13 @@ public class AsteroidFieldEdit
     private Vector4 ambientSelector;
     private Vector4 intensitySelector;
 
+    private MainWindow mw;
     private uint matCrc;
 
     public AsteroidFieldEdit(AsteroidField field, MainWindow mw, SystemEditorTab parent)
     {
+        this.mw = mw;
+
         Target = field;
         Field = field.Clone(parent.ZoneList.ZoneLookup);
 
@@ -362,7 +365,7 @@ public class AsteroidFieldEdit
         ImGui.SameLine();
         if (ImGui.Button("Generate Ini"))
         {
-            td = new TextDisplayWindow(GenText(), Field.SourceFile);
+            td = new TextDisplayWindow(GenText(), Field.SourceFile, mw);
         }
         if (ImGui.BeginTabBar("##tabs"))
         {

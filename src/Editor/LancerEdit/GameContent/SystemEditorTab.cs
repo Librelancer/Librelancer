@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.Data;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
@@ -15,6 +16,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
+using LibreLancer.Ini;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -265,6 +267,13 @@ public class SystemEditorTab : GameContentTab
 
         var sel = ZoneList.Selected.Current;
         var ez = ZoneList.Selected;
+
+        if (ImGui.Button("Get Ini"))
+        {
+            var ib = new IniBuilder();
+            IniSerializer.SerializeZone(sel, ib);
+            IniWindow(ib, "zone.txt");
+        }
 
         Controls.BeginPropertyTable("properties", true, false, true);
         Controls.PropertyRow("Nickname", sel.Nickname);
@@ -531,6 +540,19 @@ public class SystemEditorTab : GameContentTab
             ObjectsList.SelectedTransform = sel.LocalTransform.Matrix();
             ObjectsList.SelectSingle(sel);
             ObjectsList.SetObjects(World);
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Get Ini"))
+        {
+            SystemObject obj;
+            if (sel.TryGetComponent<ObjectEditData>(out var oed)) {
+                obj = oed.MakeCopy().SystemObject;
+            } else {
+                obj = sel.SystemObject;
+            }
+            var ib = new IniBuilder();
+            IniSerializer.SerializeSystemObject(obj, ib);
+            IniWindow(ib, "object.txt");
         }
 
         Controls.BeginPropertyTable("properties", true, false, true);
@@ -817,6 +839,12 @@ public class SystemEditorTab : GameContentTab
                 return;
             }
             var sel = LightsList.Selected;
+            if (ImGui.Button("Get Ini"))
+            {
+                var ib = new IniBuilder();
+                IniSerializer.SerializeLightSource(sel, ib);
+                IniWindow(ib, "LightSource.txt");
+            }
             Controls.BeginPropertyTable("Props", true, false, true);
             Controls.PropertyRow("Nickname", sel.Nickname);
             if (ImGui.Button($"{Icons.Edit}##nickname"))
@@ -875,6 +903,15 @@ public class SystemEditorTab : GameContentTab
 
             Controls.EndPropertyTable();
         });
+    }
+
+    void IniWindow(IniBuilder ini, string name)
+    {
+        var os = new MemoryStream();
+        IniWriter.WriteIni(os, ini.Sections);
+        os.Position = 0;
+        var sr = new StreamReader(os);
+        win.TextWindows.Add(new TextDisplayWindow(sr.ReadToEnd(), name, win));
     }
 
     void MusicProp(string name, string arg, Action<string> onSet)

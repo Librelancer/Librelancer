@@ -607,7 +607,7 @@ namespace LancerEdit
 
                     if (dat != null)
                     {
-                        main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshData(dat), selectedNode.Name + ".txt"));
+                        main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshData(dat), selectedNode.Name + ".txt", main));
                     }
                 }
 
@@ -642,7 +642,7 @@ namespace LancerEdit
 
                     if (dat != null)
                     {
-                        main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshRef(dat), selectedNode.Name + ".txt"));
+                        main.TextWindows.Add(new TextDisplayWindow(DumpObject.DumpVmeshRef(dat), selectedNode.Name + ".txt", main));
                     }
                 }
             }

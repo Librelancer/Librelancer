@@ -235,7 +235,7 @@ public static class IniSerializer
         return builder.Sections;
     }
 
-    static void SerializeLightSource(LightSource lt, IniBuilder builder)
+    public static void SerializeLightSource(LightSource lt, IniBuilder builder)
     {
         var sb = builder.Section("LightSource")
             .Entry("nickname", lt.Nickname)
@@ -272,7 +272,7 @@ public static class IniSerializer
     }
 
 
-    static void SerializeZone(Zone z, IniBuilder builder)
+    public static void SerializeZone(Zone z, IniBuilder builder)
     {
         var sb = builder.Section("Zone")
             .Entry("nickname", z.Nickname)
@@ -351,7 +351,7 @@ public static class IniSerializer
             .OptionalEntry("Music", z.Music);
     }
 
-    static void SerializeSystemObject(SystemObject obj, IniBuilder builder)
+    public static void SerializeSystemObject(SystemObject obj, IniBuilder builder)
     {
         var sb = builder.Section("Object")
             .Entry("nickname", obj.Nickname)

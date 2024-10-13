@@ -14,11 +14,13 @@ public class TextDisplayWindow
     public string SuggestedFilename;
 
     private string title;
-    public TextDisplayWindow(string text, string filename)
+    private MainWindow mw;
+    public TextDisplayWindow(string text, string filename, MainWindow mw)
     {
         SuggestedFilename = filename;
         title = $"Text##{unique++}";
         this.Text = text;
+        this.mw = mw;
     }
 
     FileDialogFilters TextFilter = new FileDialogFilters(
@@ -32,6 +34,11 @@ public class TextDisplayWindow
         ImGui.SetNextWindowSize(new Vector2(500,400), ImGuiCond.Once);
         ImGui.Begin(title, ref isOpen);
         ImGui.Text(SuggestedFilename);
+        if (ImGui.Button("Copy Text"))
+        {
+            mw.SetClipboardText(Text);
+        }
+        ImGui.SameLine();
         if (ImGui.Button("Save"))
         {
             FileDialog.Save(x => File.WriteAllText(x, Text), TextFilter);
