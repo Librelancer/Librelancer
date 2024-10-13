@@ -13,7 +13,7 @@ public class IniWriterTests
     private static Section[] Parse(string ini)
     {
         var stream = new MemoryStream(Encoding.UTF8.GetBytes(ini));
-        var parser = new TextIniParser();
+        var parser = new LancerTextIniParser();
         return parser.ParseIniFile(null, stream).ToArray();
     }
 
@@ -31,7 +31,7 @@ public class IniWriterTests
         var stream = new MemoryStream();
         IniWriter.WriteIni(stream, input);
         stream.Position = 0;
-        var parser = new TextIniParser();
+        var parser = new LancerTextIniParser();
         return parser.ParseIniFile("TEST", stream).ToArray();
     }
 
