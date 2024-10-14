@@ -264,12 +264,8 @@ namespace LibreLancer.Render
                         return;
                     asteroidsTask.Wait();
                     var lt = RenderHelpers.ApplyLights(lighting, 0, cameraPos, field.FillDist, nr);
-                    if (field.TintField != null)
-                        lt.Ambient = field.TintField.Value.Rgb;
-                    else if (field.AmbientColor != null)
-                        lt.Ambient = field.AmbientColor.Value.Rgb;
-                    else
-                        lt.Ambient += field.AmbientIncrease.Rgb;
+                    lt.Ambient += field.AmbientIncrease.Rgb;
+                    lt.Ambient *= field.AmbientColor.Rgb;
                     if (lt.FogMode == FogModes.Linear)
                         lastFog = lt.FogRange.Y;
                     else
@@ -297,7 +293,7 @@ namespace LibreLancer.Render
                                     dc.StartIndex,
                                     dc.Count / 3,
                                     SortLayers.OBJECT,
-                                    0, null, 0, BasicMaterial.SetDc(field.TintField ?? field.DiffuseColor)
+                                    0, null, 0, BasicMaterial.SetDc(field.DiffuseColor)
                                 );
                                 regCount++;
                             }
@@ -314,7 +310,7 @@ namespace LibreLancer.Render
                                     dc.Count / 3,
                                     SortLayers.OBJECT,
                                     new Vector2(fadeNear, fadeFar),
-                                    z, 0, BasicMaterial.SetDc(field.TintField ?? field.DiffuseColor)
+                                    z, 0, BasicMaterial.SetDc(field.DiffuseColor)
                                 );
                                 fadeCount++;
                             }

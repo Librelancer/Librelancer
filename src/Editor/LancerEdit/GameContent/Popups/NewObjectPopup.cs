@@ -14,24 +14,19 @@ public class NewObjectPopup : PopupWindow
 
     public override Vector2 InitSize => new Vector2(600, 400);
 
-    public Archetype[] Archetypes;
-
-    private GameDataContext gd;
-
     private string nickname = "";
 
     private Action<string, Archetype, Vector3?> onCreate;
-
-    private Archetype selectedArchetype;
 
     private GameWorld world;
 
     public Vector3? Position;
 
+    private ArchetypeList list;
+
     public NewObjectPopup(GameDataContext gd, GameWorld world, Vector3? position, Action<string, Archetype, Vector3?> onCreate)
     {
-        Archetypes = gd.GameData.Archetypes.OrderBy(x => x.Nickname).ToArray();
-        this.gd = gd;
+        list = new ArchetypeList(gd, null);
         this.world = world;
         this.onCreate = onCreate;
         this.Position = position;
@@ -41,19 +36,16 @@ public class NewObjectPopup : PopupWindow
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Nickname: ");
-        ImGui.InputText("##nickname", ref nickname, 100);
+        ImGui.SameLine();
+        Controls.InputTextId("##nickname", ref nickname);
         ImGui.Separator();
-        ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth() - 12 * ImGuiHelper.Scale,
-            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Border);
-        var a = ArchetypeSelection.DrawTable(Archetypes, gd, selectedArchetype);
-        if (a != null) selectedArchetype = a;
-        ImGui.EndChild();
+        ImGui.Text("Archetype:");
+        list.Draw("##archetypes");
 
-        var n = nickname.Trim();
-        if (ImGuiExt.Button("Create", !string.IsNullOrWhiteSpace(n) && selectedArchetype != null &&
-                                  world.GetObject(n) == null))
+        if (ImGuiExt.Button("Create", !string.IsNullOrWhiteSpace(nickname) && list.Selected != null &&
+                                  world.GetObject(nickname) == null))
         {
-            onCreate(nickname, selectedArchetype, Position);
+            onCreate(nickname, list.Selected, Position);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();

@@ -55,9 +55,8 @@ public class AsteroidFieldEdit
         Target = field;
         Field = field.Clone(parent.ZoneList.ZoneLookup);
 
-        tintSelector = field.TintField ?? Color4.Black;
         diffuseSelector = field.DiffuseColor;
-        ambientSelector = field.AmbientColor ?? parent.SystemData.Ambient;
+        ambientSelector = field.AmbientColor;
         intensitySelector = field.AmbientIncrease;
         camera = new LookAtCamera()
         {
@@ -236,6 +235,29 @@ public class AsteroidFieldEdit
         {
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
+            ImGui.ColorPicker4("Ambient Color", ref ambientSelector, ImGuiColorEditFlags.NoAlpha);
+            Field.AmbientColor = ambientSelector;
+            ImGui.TableNextColumn();
+            ImGui.ColorPicker4("Ambient Increase", ref intensitySelector, ImGuiColorEditFlags.NoAlpha);
+            Field.AmbientIncrease = intensitySelector;
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.ColorPicker4("Diffuse", ref diffuseSelector, ImGuiColorEditFlags.NoAlpha);
+            Field.DiffuseColor = diffuseSelector;
+            ImGui.TableNextColumn();
+            ImGui.TextWrapped("Ambient = (System Ambient + Ambient Increase) * Ambient Color");
+            ImGui.Text("Final Ambient: ");
+            ImGui.ColorButton("##famb", (parent.SystemData.Ambient + Field.AmbientIncrease) * Field.AmbientColor,
+                ImGuiColorEditFlags.NoAlpha);
+            ImGui.EndTable();
+        }
+
+
+
+        /*if (ImGui.BeginTable("##color", 2, ImGuiTableFlags.Borders))
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
             if (ImGui.Selectable("Tint", Field.TintField != null, ImGuiSelectableFlags.DontClosePopups)) {
                 Field.TintField = tintSelector;
             }
@@ -261,23 +283,17 @@ public class AsteroidFieldEdit
             //Ambient vs Intensity
             if (ImGui.RadioButton("Ambient", Field.AmbientColor != null))
                 Field.AmbientColor = ambientSelector;
-            ImGui.SetItemTooltip("Override system ambient light");
+            ImGui.SetItemTooltip("Multiply color with system ambient light");
             if (ImGui.RadioButton("Intensity", Field.AmbientColor == null))
                 Field.AmbientColor = null;
             ImGui.SetItemTooltip("Add color to system ambient light");
             if (Field.AmbientColor != null)
             {
-                ImGui.ColorPicker4("Ambient", ref ambientSelector, ImGuiColorEditFlags.NoAlpha);
-                Field.AmbientColor = ambientSelector;
-            }
-            else
-            {
-                ImGui.ColorPicker4("Intensity", ref intensitySelector, ImGuiColorEditFlags.NoAlpha);
-                Field.AmbientIncrease = intensitySelector;
+
             }
             ImGui.EndDisabled();
             ImGui.EndTable();
-        }
+        }*/
 
         ImGui.EndChild();
         ImGui.NextColumn();
@@ -290,15 +306,14 @@ public class AsteroidFieldEdit
         ImGuiHelper.AnimatingElement();
         var vpSize = ImGui.GetColumnWidth() - 15 * ImGuiHelper.Scale;
         //Set ambient color
-        renderer.SystemLighting.Ambient =
-            (Field.TintField ?? Field.AmbientColor ?? (parent.SystemData.Ambient + Field.AmbientIncrease));
+        renderer.SystemLighting.Ambient = (parent.SystemData.Ambient + Field.AmbientIncrease)* Field.AmbientColor;
         if (viewport.Begin((int)vpSize, (int)(fl_h1 - 15 * ImGuiHelper.Scale)))
         {
             //Draw with proper diffuse
             var mat = (renderer.ResourceManager.FindMaterial(matCrc)?.Render as BasicMaterial);
             var restoreDc = mat?.Dc ?? Color4.Black;
             if (mat != null)
-                mat.Dc = Field.TintField ?? Field.DiffuseColor;
+                mat.Dc = Field.DiffuseColor;
             renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
             if (mat != null)
                 mat.Dc = restoreDc;
@@ -397,9 +412,6 @@ public class AsteroidFieldEdit
         }
         if (Target.AmbientIncrease != Field.AmbientIncrease) {
             actions.Add(new AsteroidFieldSetAmbientIncrease(Target, Target.AmbientIncrease, Field.AmbientIncrease));
-        }
-        if (Target.TintField != Field.TintField) {
-            actions.Add(new AsteroidFieldSetTintField(Target, Target.TintField, Field.TintField));
         }
         if (Target.FillDist != Field.FillDist) {
             actions.Add(new AsteroidFieldSetFillDist(Target, Target.FillDist, Field.FillDist));

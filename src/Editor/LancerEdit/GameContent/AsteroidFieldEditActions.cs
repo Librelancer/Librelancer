@@ -18,22 +18,16 @@ public class AsteroidFieldSetDiffuseColor(AsteroidField target, Color4 oldValue,
     public override void Set(Color4 value) => target.DiffuseColor = value;
 }
 
-public class AsteroidFieldSetAmbientColor(AsteroidField target, Color4? oldValue, Color4? newValue)
-    : EditorModification<Color4?>(oldValue, newValue)
+public class AsteroidFieldSetAmbientColor(AsteroidField target, Color4 oldValue, Color4 newValue)
+    : EditorModification<Color4>(oldValue, newValue)
 {
-    public override void Set(Color4? value) => target.AmbientColor = value;
+    public override void Set(Color4 value) => target.AmbientColor = value;
 }
 
 public class AsteroidFieldSetAmbientIncrease(AsteroidField target, Color4 oldValue, Color4 newValue)
     : EditorModification<Color4>(oldValue, newValue)
 {
     public override void Set(Color4 value) => target.AmbientIncrease = value;
-}
-
-public class AsteroidFieldSetTintField(AsteroidField target, Color4? oldValue, Color4? newValue)
-    : EditorModification<Color4?>(oldValue, newValue)
-{
-    public override void Set(Color4? value) => target.TintField = value;
 }
 
 public class AsteroidFieldSetFillDist(AsteroidField target, float oldValue, float newValue)

@@ -15,9 +15,8 @@ namespace LibreLancer.GameData.World
         public Zone Zone;
         //Field
         public Color4 DiffuseColor = Color4.White;
-        public Color4? AmbientColor;
+        public Color4 AmbientColor = Color4.White;
         public Color4 AmbientIncrease = Color4.Black;
-        public Color4? TintField;
         public float FillDist;
         public float EmptyCubeFrequency;
         public int CubeSize;
@@ -69,7 +68,6 @@ namespace LibreLancer.GameData.World
             DiffuseColor == other.DiffuseColor &&
             AmbientColor == other.AmbientColor &&
             AmbientIncrease == other.AmbientIncrease &&
-            TintField == other.TintField &&
             FillDist == other.FillDist &&
             EmptyCubeFrequency == other.EmptyCubeFrequency &&
             CubeSize == other.CubeSize &&

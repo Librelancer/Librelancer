@@ -1320,9 +1320,16 @@ namespace LibreLancer
                 a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
                 a.FillDist = ast.Field.FillDist.Value;
                 a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
-                a.DiffuseColor = ast.Field.DiffuseColor;
-                a.AmbientColor = ast.Field.AmbientColor;
-                a.TintField = ast.Field.TintField;
+                if (ast.Field.TintField.HasValue)
+                {
+                    a.DiffuseColor = ast.Field.TintField.Value;
+                    a.AmbientColor = ast.Field.TintField.Value;
+                }
+                else
+                {
+                    a.DiffuseColor = ast.Field.DiffuseColor;
+                    a.AmbientColor = ast.Field.AmbientColor ?? Color4.White;
+                }
                 a.AmbientIncrease = ast.Field.AmbientIncrease;
                 foreach (var c in ast.Cube)
                 {

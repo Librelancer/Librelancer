@@ -120,16 +120,14 @@ public static class IniSerializer
             tPanels.Entry("file", f.SourcePath);
         }
 
-        var fld = builder.Section("Field")
+        builder.Section("Field")
             .Entry("cube_size", ast.CubeSize)
             .Entry("fill_dist", ast.FillDist)
-            .Entry("empty_cube_frequency", ast.EmptyCubeFrequency);
-        if (ast.DiffuseColor != Color4.White)
-            fld.Entry("diffuse_color", ast.DiffuseColor);
-        if (ast.AmbientColor != null)
-            fld.Entry("ambient_color", ast.AmbientColor.Value);
-        if (ast.AmbientIncrease != Color4.Black)
-            fld.Entry("ambient_increase", ast.AmbientIncrease);
+            .Entry("empty_cube_frequency", ast.EmptyCubeFrequency)
+            .Entry("diffuse_color", ast.DiffuseColor)
+            .Entry("ambient_color", ast.AmbientColor)
+            .Entry("ambient_increase", ast.AmbientIncrease);
+
 
         if (ast.Band != null)
         {
