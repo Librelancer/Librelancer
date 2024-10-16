@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -282,6 +283,7 @@ namespace LibreLancer.Server
                 FLLog.Info("Server", "Loading Game Data...");
                 GameData.LoadData(null);
                 FLLog.Info("Server", "Finished Loading Game Data");
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             }
             InitBaselinePrices();
             Worlds = new WorldProvider(this);
