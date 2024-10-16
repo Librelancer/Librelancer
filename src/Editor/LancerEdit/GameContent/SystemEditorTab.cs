@@ -1116,11 +1116,51 @@ public class SystemEditorTab : GameContentTab
         World.Update(elapsed);
     }
 
+    void DrawCamera()
+    {
+        if (render3d && cameraOpen)
+        {
+            ImGui.SetNextWindowSize(new Vector2(360, 210) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+            if (ImGui.Begin("Camera", ref cameraOpen))
+            {
+                string pos =
+                    $"{camera.Position.X.ToStringInvariant()}, {camera.Position.Y.ToStringInvariant()}, {camera.Position.Z.ToStringInvariant()}";
+                string rotWXYZ =
+                    $"{camera.Rotation.W.ToStringInvariant()}, {camera.Rotation.X.ToStringInvariant()}, {camera.Rotation.Y.ToStringInvariant()}, {camera.Rotation.Z.ToStringInvariant()}";
+                string rotEuler =
+                    $"{camera.RotationEuler.X.ToStringInvariant()}, {camera.RotationEuler.Y.ToStringInvariant()}, {camera.RotationEuler.Z.ToStringInvariant()}";
+                ImGui.SeparatorText("Position");
+                if (ImGui.Button($"{Icons.Copy}##pos")) {
+                    win.SetClipboardText(pos);
+                }
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextUnformatted(pos);
+                ImGui.SeparatorText("WXYZ Rotation");
+                if (ImGui.Button($"{Icons.Copy}##wxyz")) {
+                    win.SetClipboardText(rotWXYZ);
+                }
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextUnformatted(rotWXYZ);
+                ImGui.SeparatorText("Euler Rotation");
+                if (ImGui.Button($"{Icons.Copy}##euler")) {
+                    win.SetClipboardText(rotEuler);
+                }
+                ImGui.SameLine();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextUnformatted(rotEuler);
+            }
+
+            ImGui.End();
+        }
+    }
+
     void DrawInfocard()
     {
         if (infocardOpen)
         {
-            ImGui.SetNextWindowSize(new Vector2(300, 300), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(300, 300) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
             if (ImGui.Begin("Infocard", ref infocardOpen))
             {
                 var szX = Math.Max(20, ImGui.GetWindowWidth());
@@ -1129,10 +1169,9 @@ public class SystemEditorTab : GameContentTab
                 {
                     icard = new InfocardControl(win, systemInfocard, szX);
                 }
-
                 icard.Draw(szX);
-                ImGui.End();
             }
+            ImGui.End();
         }
     }
 
@@ -1146,8 +1185,8 @@ public class SystemEditorTab : GameContentTab
                 var szX = Math.Max(20, ImGui.GetWindowWidth());
                 var szY = Math.Max(20, ImGui.GetWindowHeight() - 37 * ImGuiHelper.Scale);
                 systemMap.Draw((int)szX, (int)szY, 1 / 60.0f);
-                ImGui.End();
             }
+            ImGui.End();
         }
     }
 
@@ -1245,6 +1284,7 @@ public class SystemEditorTab : GameContentTab
     private bool firstTab = true;
     bool render3d = true;
     private bool historyOpen = false;
+    private bool cameraOpen = false;
     EditMap2D map2D = new();
 
     public override unsafe void Draw(double elapsed)
@@ -1296,16 +1336,18 @@ public class SystemEditorTab : GameContentTab
             if (render3d)
             {
                 tb.CheckItem("Grid", ref renderGrid);
-                tb.TextItem($"Camera Position: {camera.Position}");
             }
             else
             {
                 tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 10, "%.2fx");
             }
-
             tb.ToggleButtonItem("Map", ref mapOpen);
             tb.ToggleButtonItem("Infocard", ref infocardOpen);
             tb.ToggleButtonItem("History", ref historyOpen);
+            if (render3d)
+            {
+                tb.ToggleButtonItem("Camera", ref cameraOpen);
+            }
         }
 
         if (render3d)
@@ -1340,6 +1382,7 @@ public class SystemEditorTab : GameContentTab
         ImGui.EndChild();
         DrawMaps();
         DrawInfocard();
+        DrawCamera();
         if (historyOpen)
             UndoBuffer.DisplayStack();
         Popups.Run();
