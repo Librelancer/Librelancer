@@ -150,6 +150,8 @@ void main() {
         public static void Draw(RenderContext rstate, float scale, Color4 color, float nearPlane, float farPlane)
         {
             Load(rstate);
+            var wf = rstate.Wireframe;
+            rstate.Wireframe = false;
             rstate.Cull = false;
             rstate.BlendMode = BlendMode.Normal;
             //Draw
@@ -164,6 +166,7 @@ void main() {
             //Restore State
             rstate.BlendMode = BlendMode.Opaque;
             rstate.Cull = true;
+            rstate.Wireframe = wf;
         }
     }
 }
