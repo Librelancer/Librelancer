@@ -20,7 +20,7 @@ namespace LibreLancer
             FLLog.Info("Platform", Platform.OSDescription);
             FLLog.Info("Available Threads", Environment.ProcessorCount.ToString());
         }
-        
+
         public static void ConsoleInit(bool silent = false)
         {
             if(!silent)
@@ -32,12 +32,15 @@ namespace LibreLancer
                 SetDllDirectory(fullpath);
             }
         }
-        
+
         public static void Run(Action action, Action onCrash = null)
         {
             LogPlatform();
             string errorMessage =  $"{ProjectName} has crashed. See the log for more information.";
-            Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ALSOFT_LOGLEVEL")))
+            {
+                Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
+            }
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
@@ -50,8 +53,10 @@ namespace LibreLancer
                 var spewPath = Path.Combine(spewFolder, spewFilename);
                 string openAlFilename = Assembly.GetCallingAssembly().GetName().Name + ".openallog.txt";
                 var openalPath = Path.Combine(spewFolder, openAlFilename);
-                if(!Debugger.IsAttached)
+                if (string.IsNullOrWhiteSpace("ALSOFT_LOGFILE"))
+                {
                     Environment.SetEnvironmentVariable("ALSOFT_LOGFILE", openalPath);
+                }
                 if (FLLog.CreateSpewFile(spewPath)) errorMessage += "\n" + spewPath;
                 else errorMessage += "\n(Log file could not be created).";
             }
