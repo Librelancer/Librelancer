@@ -97,7 +97,6 @@ public class SystemEditorTab : GameContentTab
         LoadSystem(system);
     }
 
-
     private void ViewportOnDoubleClicked(Vector2 pos)
     {
         if (openTabs[1])
@@ -1355,8 +1354,11 @@ public class SystemEditorTab : GameContentTab
             ImGuiHelper.AnimatingElement();
             renderer.BackgroundOverride = SystemData.SpaceColor;
             renderer.SystemLighting.Ambient = SystemData.Ambient;
-            renderer.SystemLighting.Lights =
-                LightsList.Sources.Select(x => new DynamicLight() { Light = x.Light }).ToList();
+            renderer.SystemLighting.Lights = new List<DynamicLight>(LightsList.Sources.Count);
+            for (int i = 0; i < LightsList.Sources.Count; i++)
+            {
+                renderer.SystemLighting.Lights.Add(new() { Active = LightsList.Visible[i], Light = LightsList.Sources[i].Light });
+            }
             if (viewport.Begin())
             {
                 win.RenderContext.Wireframe = drawWireframe;

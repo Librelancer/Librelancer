@@ -24,6 +24,11 @@ public struct BitArray512
         return ref Unsafe.Add(ref x.A, (nuint) (index >> 6));
     }
 
+    public void SetAllTrue()
+    {
+        A = B = C = D = E = F = G = H = long.MaxValue;
+    }
+
     public bool this[int index]
     {
         get
