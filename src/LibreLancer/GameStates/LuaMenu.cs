@@ -62,7 +62,7 @@ namespace LibreLancer
                 g.LoadTimer = null;
             }
             // Set low latency GC mode only once everything has been loaded in
-            GCSettings.LatencyMode = GCLatencyMode.LowLatency;
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             FadeIn(0.1, 0.3);
         }
         void TryRunScript(List<ResolvedThn> thnScripts)
