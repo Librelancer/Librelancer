@@ -63,6 +63,9 @@ You need to either uninstall the 32-bit dotnet SDK (recommended), or modify your
 1. Clone this repository with `git clone --recursive https://github.com/Librelancer/Librelancer`
 2. Run `build.sh`
 
+### Nix
+
+If you are using the Nix package manager, you can use the provided shell script to easily acquire all the packages. You can do so by running the `nix-shell --pure` command then running `./build.sh`.
 
 ## Screenshots
 See: https://librelancer.net/screenshots.html
