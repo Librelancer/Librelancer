@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.ContentEdit.Model.Quickhull;
 using LibreLancer.Sur;
+using static LibreLancer.ContentEdit.Model.Quickhull.VectorFunctions;
 
 namespace LibreLancer.ContentEdit.Model;
 
-class HullData
+public class HullData
 {
     public Vector3[] Vertices;
     public ushort[] Indices;
@@ -29,7 +32,7 @@ class HullData
         var x = c - b;
         var y = a - b;
 
-        
+
         var normal = Vector3.Cross(x, y).Normalized();
         return normal;
     }
@@ -73,11 +76,11 @@ class HullData
         }
         return vol;
     }
-    
+
     static float SignedTriVolume(Vector3 a, Vector3 b, Vector3 c)
         => Vector3.Dot(a, Vector3.Cross(b, c)) / 6;
 
-    
+
 
     static float RayEpsilon = 1E-7f;
     static float BigEpsilon = 1E-5f;
@@ -108,6 +111,75 @@ class HullData
         {
             //Invalid barycentric coordinate for b and/or c.
             return false;
+        }
+        return true;
+    }
+
+    public static EditResult<HullData> Calculate(IList<Vector3> points)
+    {
+        return EditResult<HullData>.TryCatch(() =>
+        {
+            var qh = new Quickhull.QuickhullCS(points);
+            qh.Build();
+            var idx = qh.CollectFaces();
+            var verts = new List<Vector3>();
+            var indices = new List<ushort>();
+            if (idx.Length > 65535)
+                throw new Exception("Generated hull is too complex");
+            foreach (var i in idx)
+            {
+                var v = qh.Vertices[i].Point;
+                var x = verts.IndexOf(v);
+                if (x == -1)
+                {
+                    if (verts.Count - 1 > 65535)
+                        throw new Exception("Generated hull is too complex");
+                    verts.Add(v);
+                    indices.Add((ushort)(verts.Count - 1));
+                }
+                else
+                {
+                    indices.Add((ushort)x);
+                }
+            }
+            var hd = new HullData() { Vertices = verts.ToArray(), Indices = indices.ToArray() };
+            if (!IsConvexHull(hd.Vertices, hd.Indices))
+            {
+                throw new Exception("Convex hull creation failed");
+            }
+            return hd;
+        });
+    }
+
+
+    public static bool IsConvexHull(Vector3[] vertices, ushort[] indices)
+    {
+        if (indices.Length < 6)
+        {
+            return false;
+        }
+
+        const double EPSILON = 0.0001; // fairly small epsilon
+        for (int i = 0; i < indices.Length; i += 3)
+        {
+            var v0 = (Vector3d)vertices[indices[i]];
+            var v1 = (Vector3d)vertices[indices[i + 1]];
+            var v2 = (Vector3d)vertices[indices[i + 2]];
+
+            var normal = PlaneNormal(v0, v1, v2);
+            var offset = Vector3d.Dot(normal, v0);
+            for (int j = 0; j < vertices.Length; j++)
+            {
+                if (j == indices[i] ||
+                    j == indices[i + 1] ||
+                    j == indices[i + 2])
+                    continue;
+                var d = Vector3d.Dot(normal, (Vector3d)vertices[j]);
+                if (d > offset + EPSILON)
+                {
+                    return false;
+                }
+            }
         }
         return true;
     }
