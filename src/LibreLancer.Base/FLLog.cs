@@ -53,7 +53,7 @@ namespace LibreLancer
 
         private static object spewLock = new object();
         private static StreamWriter spewFile;
-        
+
 		struct NonblockingWrite
 		{
             public LogSeverity Severity;
@@ -123,6 +123,11 @@ namespace LibreLancer
 		{
 			m_Queue.Add(new NonblockingWrite() { Color = color, Value = message, Severity = severity });
 		}
+
+        public static void Flush()
+        {
+            while(m_Queue.Count > 0) { Thread.Sleep(1); }
+        }
 
 		public static void Info(string component, string message)
 		{

@@ -205,7 +205,7 @@ public static class SurfaceBuilder
             var lengths = new List<float>();
             var pairs = new List<(SurfaceNode left, SurfaceNode right)>();
             foreach (var leftNode in nodes.Where(unsorted.AddIfUnique)) {
-                foreach (var rightNode in nodes.Where(x => x != leftNode)) {
+                foreach (var rightNode in unsorted.Where(x => x != leftNode)) {
                     pairs.Add((leftNode, rightNode));
                     lengths.Add(Vector3.Distance(leftNode.Center, rightNode.Center));
                 }
@@ -255,15 +255,17 @@ public static class SurfaceBuilder
                 if (h.IsError) {
                     parts.Remove(part);
                     warnings.Add(EditMessage.Warning("Could not generate wrap hull for " + node.Name));
+                    return;
                 }
-                var indices = new int[points.Count];
+                var indices = new int[h.Data.Vertices.Length];
                 for (int i = 0; i < indices.Length; i++)
-                    indices[i] = i;
+                    indices[i] = points.FindIndex(x => x.Point == h.Data.Vertices[i]);
                 var hull = ToSurfaceHull(h.Data, modelCrc, 5, indices);
                 warnings.AddRange(hull.Messages.Select(x => x.Message).Select(EditMessage.Warning));
                 if (hull.IsError) {
                     parts.Remove(part);
                     warnings.Add(EditMessage.Warning("Could not generate wrap hull for " + node.Name));
+                    return;
                 }
                 part.Root.Hull = hull.Data;
             }
@@ -303,7 +305,7 @@ public static class SurfaceBuilder
         var pos = new List<Vector3>();
         foreach (var p in positions)
             pos.AddIfUnique(p);
-        return EditResult<HullData>.TryCatch(() => new ConvexHullCalculator().GenerateHull(pos, false));
+        return HullData.Calculate(pos);
     }
 
 
@@ -342,6 +344,19 @@ public static class SurfaceBuilder
 
     static EditResult<SurfaceHull> ToSurfaceHull(HullData hullData, uint crc, byte type, int[] indices)
     {
+        /*if (type == 5)
+        {
+            using var writer = new StreamWriter("wrap.obj");
+            writer.WriteLine("o wrap");
+            foreach (var f in hullData.Vertices) {
+                writer.WriteLine($"v {f.X:F5} {f.Y:F5} {f.Z:F5}");
+            }
+            for (int i = 0; i < hullData.FaceCount; i++)
+            {
+                var face = hullData.GetFace(i);
+                writer.WriteLine($"f {face.A+1} {face.B+1} {face.C+1}");
+            }
+        }*/
         var surf = new SurfaceHull();
         surf.HullId = crc;
         surf.Unknown = 0;

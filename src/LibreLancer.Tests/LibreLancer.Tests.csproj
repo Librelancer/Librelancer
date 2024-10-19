@@ -31,7 +31,9 @@
       <Folder Include="TestAssets\" />
       <Folder Include="Thorn\Scripts\" />
     </ItemGroup>
-
+    <ItemGroup>
+      <Content Include="Hulls\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
     <ItemGroup>
       <Content Include="Thorn\Scripts\**\*.*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
