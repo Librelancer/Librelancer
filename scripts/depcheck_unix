@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Script to check if dependencies for build are installed
 
 check_command() {
