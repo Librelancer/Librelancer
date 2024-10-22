@@ -7,7 +7,8 @@
         <OutputType>winexe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>LLServer</RootNamespace>
-        <GenerateDependencyFile>false</GenerateDependencyFile>
+        <!-- Required for sqlite debug -->
+        <GenerateDependencyFile>true</GenerateDependencyFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

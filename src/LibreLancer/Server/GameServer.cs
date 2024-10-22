@@ -41,7 +41,7 @@ namespace LibreLancer.Server
         public WorldProvider Worlds;
         public ServerPerformance PerformanceStats;
 
-        public BaselinePrice[] BaselineGoodPrices;
+        public BaselinePriceBundle BaselineGoodPrices;
 
         volatile bool running = false;
 
@@ -187,7 +187,14 @@ namespace LibreLancer.Server
                 });
             }
 
-            BaselineGoodPrices = bp.ToArray();
+            if (Listener == null)
+            {
+                BaselineGoodPrices = new BaselinePriceBundle() { Prices = bp.ToArray() };
+            }
+            else
+            {
+                BaselineGoodPrices = BaselinePriceBundle.Compress(bp.ToArray());
+            }
         }
 
         public void SystemChatMessage(Player source, BinaryChatMessage message)

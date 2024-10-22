@@ -6,7 +6,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <!-- Required for sqlite debug -->
+    <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
 
     <ItemGroup>
@@ -14,5 +15,4 @@
     </ItemGroup>
 
   <Import Project="..\PublishAssets\PublishAssets.projitems" Label="Shared" />
-
 </Project>

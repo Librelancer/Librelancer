@@ -7,7 +7,7 @@ namespace LibreLancer.Net.Protocol;
 [RPCInterface]
 public interface IClientPlayer
 {
-    void UpdateBaselinePrices(BaselinePrice[] prices);
+    void UpdateBaselinePrices(BaselinePriceBundle prices);
     void CallThorn(string script, ObjNetId mainObject);
     void ListPlayers(bool isAdmin);
     void UpdateWeaponGroups(NetWeaponGroup[] wg);

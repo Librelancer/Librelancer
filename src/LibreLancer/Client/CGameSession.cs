@@ -869,9 +869,9 @@ namespace LibreLancer.Client
         }
 
         public Dictionary<uint, ulong> BaselinePrices = new Dictionary<uint, ulong>();
-        void IClientPlayer.UpdateBaselinePrices(BaselinePrice[] prices)
+        void IClientPlayer.UpdateBaselinePrices(BaselinePriceBundle prices)
         {
-            foreach (var p in prices)
+            foreach (var p in prices.Prices)
                 BaselinePrices[p.GoodCRC] = p.Price;
         }
 
