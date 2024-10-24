@@ -18,7 +18,8 @@ namespace LibreLancer.Utf
 
         private Quaternion currentTransform = Quaternion.Identity;
 
-        public override Transform3D LocalTransform => internalGetTransform(new Transform3D(Origin + Offset, Rotation * currentTransform));
+        public override Transform3D LocalTransform => internalGetTransform(
+            new Transform3D(Origin + Offset, currentTransform * Rotation));
 
         public RevConstruct() : base() {}
 
