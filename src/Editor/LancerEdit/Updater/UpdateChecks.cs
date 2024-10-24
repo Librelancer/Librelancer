@@ -9,6 +9,7 @@ using System.Net.Http.Json;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 using LibreLancer.Ini;
 
@@ -53,6 +54,7 @@ public class UpdateChecks : IniFile
         public record Build(string URL, long Timestamp);
         public Dictionary<string, Build> Builds { get; set; } = new Dictionary<string, Build>();
     }
+
     public UpdatePopup CheckForUpdates()
     {
         if (!Enabled)
@@ -68,7 +70,7 @@ public class UpdateChecks : IniFile
         {
             if (res.IsCompletedSuccessfully)
             {
-                if(string.IsNullOrWhiteSpace(res.Result))
+                if (string.IsNullOrWhiteSpace(res.Result))
                     popup.Message($"{Icons.Check} You are up to date");
                 else
                     popup.NewVersion(res.Result);
@@ -81,39 +83,58 @@ public class UpdateChecks : IniFile
         return popup;
     }
 
+    void RunUpdaterWindows(string executable)
+    {
+        //Extract updater exe from archive, as it can't overwrite itself
+        using (var zipStream = File.OpenRead(executable))
+        {
+            using (var archive = new ZipArchive(zipStream))
+            {
+                var file = archive.Entries
+                    .Select(e =>
+                        new
+                        {
+                            Name = string.Join("/", e.FullName.Replace('\\', '/').Split('/').Skip(1)),
+                            Entry = e
+                        })
+                    .FirstOrDefault(x => x.Name.Equals("lib/updater.exe", StringComparison.OrdinalIgnoreCase));
+                if (file != null)
+                {
+                    using var updater = File.Create(Path.Combine(baseFolder, "lib/updater.exe"));
+                    using var src = file.Entry.Open();
+                    src.CopyTo(updater);
+                }
+            }
+        }
+
+        //Run updater
+        Process.Start(Path.Combine(baseFolder, "lib/updater.exe"),
+            $"{Shell.Quote(executable)} {Shell.Quote(baseFolder)}");
+    }
+
     public void Update(string executable)
     {
         win.QueueUIThread(() =>
         {
-            win.RequestExit = true;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                //Extract updater exe from archive, as it can't overwrite itself
-                using (var zipStream = File.OpenRead(executable)) {
-                    using (var archive = new ZipArchive(zipStream))
-                    {
-                        var file = archive.Entries
-                            .Select(e =>
-                                new
-                                {
-                                    Name = string.Join("/", e.FullName.Replace('\\', '/').Split('/').Skip(1)),
-                                    Entry = e
-                                })
-                            .FirstOrDefault(x => x.Name.Equals("lib/updater.exe", StringComparison.OrdinalIgnoreCase));
-                        if (file != null)
-                        {
-                            using var updater = File.Create(Path.Combine(baseFolder, "lib/updater.exe"));
-                            using var src = file.Entry.Open();
-                            src.CopyTo(updater);
-                        }
-                    }
+                var res = EditResult<bool>.TryCatch(() =>
+                {
+                    RunUpdaterWindows(executable);
+                    return true;
+                });
+                if (res.IsError)
+                {
+                    win.ErrorDialog($"Update failed. Please update manually.\nDetails\n:{res.AllMessages()}");
                 }
-                //Run updater
-                Process.Start(Path.Combine(baseFolder, "lib/updater.exe"),
-                    $"{Shell.Quote(executable)} {Shell.Quote(baseFolder)}");
+                else
+                {
+                    win.RequestExit = true;
+                }
             }
             else
             {
+                win.RequestExit = true;
                 Process.Start(executable, $"{Shell.Quote(baseFolder)} {Process.GetCurrentProcess().Id}");
             }
         });
@@ -127,9 +148,11 @@ public class UpdateChecks : IniFile
         //Check all the desired info exists
         if (!File.Exists(Path.Combine(path, "build.txt")) ||
             !File.Exists(Path.Combine(path, "updates.ini")) ||
-            !File.Exists(Path.Combine(path, "manifest.txt"))) {
+            !File.Exists(Path.Combine(path, "manifest.txt")))
+        {
             return;
         }
+
         var x = File.ReadAllText(Path.Combine(path, "build.txt")).Split(';',
             StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (x.Length != 2)
