@@ -203,9 +203,10 @@ namespace LancerEdit
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Grid Color");
-            if (ImGui.BeginPopupModal("Grid Color", ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            wOpen = true;
+            if (ImGui.BeginPopupModal("Grid Color",  ref wOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.ColorPicker4("###a", ref editCol);
+                ImGui.ColorPicker4("###a", ref editCol, ImGuiColorEditFlags.AlphaBar);
                 if (ImGui.Button("OK"))
                 {
                     config.GridColor = new Color4(editCol.X, editCol.Y, editCol.Z, editCol.W);
