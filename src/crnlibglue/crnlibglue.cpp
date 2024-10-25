@@ -5,6 +5,7 @@
 #include <crnlib.h>
 #include <crn_mipmapped_texture.h>
 #include <crn_texture_comp.h>
+#include <crn_console.h>
 #include "crnlibglue.h"
 #include <stdio.h>
 
@@ -69,6 +70,7 @@ static unsigned char *channel_input(const unsigned char *input, int width, int h
 
 CRNEXPORT int CrnGlueCompressDDS(const unsigned char *input, int inWidth, int inHeight, crnglue_format_t format, crnglue_mipmaps_t mipmaps, int highQualitySlow, unsigned char **output, unsigned int *outputSize)
 {
+    crnlib::console::disable_output();
 	crn_comp_params compression = crn_comp_params();
     crn_mipmap_params mipparams;
 	compression.m_file_type = cCRNFileTypeDDS;
@@ -132,6 +134,7 @@ static unsigned char *MakeCopy(void *inptr, int size)
 
 CRNEXPORT int CrnGlueGenerateMipmaps(const unsigned char *input, int inWidth, int inHeight, crnglue_mipmaps_t mipmaps, crnglue_mipmap_output_t *output)
 {
+    crnlib::console::disable_output();
     crn_mipmap_params mipparams;
     if(!SetMipmapParameters(mipmaps, mipparams)) return CRNGLUE_ERROR;
     unsigned char *rgba = rgba_input(input, inWidth, inHeight);

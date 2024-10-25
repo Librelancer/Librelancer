@@ -48,18 +48,19 @@ namespace LibreLancer.Ini
 
         private static void ParseKeyValue(Section section, string key, string value, int line, bool preparse, bool allowmaps)
         {
-            var entry = new Entry(section, key) { Line = line };
-
-            var values = new List<IValue>();
+            Entry entry;
             var kvIdx = value.IndexOf('=');
             if (allowmaps && kvIdx >= 0)
             {
+                entry = new Entry(section, key, 1) { Line = line };
                 var parts = value.Split('=');
                 entry.Add(new StringKeyValue(parts[0].Trim(), parts[1].Trim()) { Entry = entry });
             }
             else
             {
-                foreach (string part in value.Split(",").Select(p => p.Trim()))
+                var splits = value.Split(',', StringSplitOptions.TrimEntries);
+                entry = new Entry(section, key, splits.Length) { Line = line };
+                foreach (string part in splits)
                 {
                     if (!string.IsNullOrEmpty(part))
                     {

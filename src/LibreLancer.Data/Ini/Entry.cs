@@ -20,14 +20,17 @@ namespace LibreLancer.Ini
 
 		public int Line { get; init; } = -1;
 
-		public Entry(Section section, string name)
+		public Entry(Section section, string name, int capacity = -1)
 		{
             if (section == null) throw new ArgumentNullException(nameof(section));
 			if (name == null) throw new ArgumentNullException(nameof(name));
 
             Section = section;
 			Name = name;
-			values = new List<IValue>();
+            if(capacity > 0)
+                values = new List<IValue>(capacity);
+            else
+			    values = new List<IValue>();
 		}
 
 		public IValue this[int index]

@@ -12,7 +12,7 @@ namespace LibreLancer.Client.Components
     public class CNetEffectsComponent : GameComponent
     {
         private SpawnedEffect[] effects = new SpawnedEffect[0];
-        
+
         public CNetEffectsComponent(GameObject parent) : base(parent)
         {
         }
@@ -20,10 +20,10 @@ namespace LibreLancer.Client.Components
         private int renIndex = 0;
 
         private List<ParticleEffectRenderer> spawned = new List<ParticleEffectRenderer>();
-        
+
         void Spawn(SpawnedEffect effect)
         {
-            var fx = Parent.World.Renderer.Game.GetService<GameDataManager>().GetEffect(effect.Effect);
+            var fx = Parent.World.Renderer.Game.GetService<GameDataManager>().Effects.Get(effect.Effect);
             if (fx == null) return;
             var pfx = fx.GetEffect(Parent.World.Renderer.ResourceManager);
             if (pfx == null) return;

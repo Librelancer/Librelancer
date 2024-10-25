@@ -442,6 +442,7 @@ public class LrpkPack
 
         //Bepu's ThreadDispatcher is faster than Parallel.ForEach by a
         //matter of minutes on large data sets.
+        //We use Bepu's version to allow for the per-worker context
         using var dispatch = new ThreadDispatcher(threads);
         int packItemIndex = 0;
 

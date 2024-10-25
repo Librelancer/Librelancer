@@ -2,18 +2,23 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Data.Effects;
 using LibreLancer.Fx;
 
 namespace LibreLancer.GameData
 {
-    public class ResolvedFx
+    public class ResolvedFx : IdentifiableItem
     {
         public string[] LibraryFiles;
         public uint VisFxCrc;
         public string AlePath;
+        public BeamSpear Spear;
+        public BeamBolt Bolt;
 
         public ParticleEffect GetEffect(ResourceManager resman)
         {
+            if (string.IsNullOrWhiteSpace(AlePath))
+                return null;
             foreach(var f in LibraryFiles)
                 resman.LoadResourceFile(f);
             var lib = resman.GetParticleLibrary(AlePath);

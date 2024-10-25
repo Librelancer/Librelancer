@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -71,18 +72,6 @@ public class GameDataContext : IDisposable
         return awaiter.Result;
     }
 
-    void YieldAndWait(Task task)
-    {
-        var awaiter = Task.Run(async () => await task);
-        while (!awaiter.IsCompleted)
-        {
-            win.Yield();
-            Thread.Sleep(0);
-        }
-        if (awaiter.Exception != null)
-            throw awaiter.Exception;
-    }
-
     public void Load(MainWindow win, string folder, string cache, Action onComplete, Action<Exception> onError)
     {
         Folder = folder;
@@ -116,6 +105,7 @@ public class GameDataContext : IDisposable
         {
             try
             {
+                var sw = Stopwatch.StartNew();
                 GameData = new GameDataManager(vfs, Resources);
                 GameData.LoadData(win);
                 //Replace infocard manager with editable version
@@ -123,7 +113,8 @@ public class GameDataContext : IDisposable
                 char[] splits = ['\\', '/'];
                 var uniSplit = GameData.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
                 UniverseVfsFolder = $"{string.Join('\\', uniSplit.Take(uniSplit.Length - 1))}\\";
-                FLLog.Info("Game", "Finished loading game data");
+                sw.Stop();
+                FLLog.Info("Game", $"Finished loading game data in {sw.Elapsed.TotalSeconds:0.000} seconds");
                 win.QueueUIThread(() =>
                 {
                     Sounds = new SoundManager(GameData, win.Audio, win);
@@ -172,7 +163,7 @@ public class GameDataContext : IDisposable
         rmBulk ??= new GameResourceManager(Resources);
         prevBulk ??= new PreviewRenderer(win, rmBulk);
 
-        for (int i = 0; i < 120; i++)
+        for (int i = 0; i < max; i++)
         {
             FLLog.Debug("Render", $"Budget used: {DebugDrawing.SizeSuffix(rmBulk.EstimatedTextureMemory)}");
             //Dispose when we hit memory budget
@@ -240,8 +231,16 @@ public class GameDataContext : IDisposable
         var cachePath = Path.Combine(cacheDir, cacheId + ".dds.zstd");
         if (File.Exists(cachePath))
         {
-            using var stream = new ZstdSharp.DecompressionStream(File.OpenRead(cachePath), 0, true, false);
-            var tex = (Texture2D)DDS.FromStream(win.RenderContext, stream);
+            Texture2D tex;
+            try
+            {
+                using var stream = new ZstdSharp.DecompressionStream(File.OpenRead(cachePath), 0, true, false);
+                tex = (Texture2D)DDS.FromStream(win.RenderContext, stream);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
             renderedArchetypes[cacheId] = (tex, ImGuiHelper.RegisterTexture(tex));
             return true;
         }

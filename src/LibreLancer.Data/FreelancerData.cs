@@ -124,9 +124,9 @@ namespace LibreLancer.Data
 
             Infocards = new InfocardManager(Freelancer.Resources);
 
-            List<Task> tasks = new List<Task>();
+            List<Action> tasks = new List<Action>();
 
-            void Run(Action a) => tasks.Add(Task.Run(a));
+            void Run(Action a) => tasks.Add(a);
 
             Run(() =>
             {
@@ -362,14 +362,20 @@ namespace LibreLancer.Data
                 Storyline = new StorylineIni();
                 Storyline.AddDefault();
             });
-            ContentDll = new ContentDll();
-            if (VFS.FileExists("DLLS\\BIN\\content.dll"))
-                ContentDll.Load(VFS.ReadAllBytes("DLLS\\BIN\\content.dll"));
-            if (!string.IsNullOrEmpty(Freelancer.DataVersion))
-                DataVersion = Freelancer.DataVersion;
-            else
-                DataVersion = "FL-1";
-            Task.WaitAll(tasks.ToArray());
+            Run(() =>
+            {
+                ContentDll = new ContentDll();
+                if (VFS.FileExists("DLLS\\BIN\\content.dll"))
+                    ContentDll.Load(VFS.ReadAllBytes("DLLS\\BIN\\content.dll"));
+                if (!string.IsNullOrEmpty(Freelancer.DataVersion))
+                    DataVersion = Freelancer.DataVersion;
+                else
+                    DataVersion = "FL-1";
+            });
+            foreach (var t in tasks)
+                t();
+            using var pool = new ParallelActionRunner(Environment.ProcessorCount);
+            pool.RunActions(x => tasks[x](), tasks.Count);
             Loaded = true;
         }
     }

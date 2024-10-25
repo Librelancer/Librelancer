@@ -178,8 +178,8 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.PSys)
                 {
-                    var fx = gameData.GetEffect(kv.Value.Template);
-                    if (fx != null)
+                    var fx = gameData.Effects.Get(kv.Value.Template);
+                    if (fx?.AlePath != null)
                     {
                         obj.Object = new GameObject();
                         obj.Object.RenderComponent = new ParticleEffectRenderer(fx.GetEffect(resman)) {Active = false};

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
+using LibreLancer.Data.Effects;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
 using LibreLancer.Data.Goods;
@@ -131,6 +132,58 @@ namespace LibreLancer
         {
             if (path == null) return null;
             return new() {SourcePath = path, VFS = VFS, DataPath = DataPath(path), ReadCallback = ThornReadCallback};
+        }
+
+        class EffectStorage
+        {
+            public Dictionary<string, VisEffect> VisFx = new Dictionary<string, VisEffect>(StringComparer.OrdinalIgnoreCase);
+            public Dictionary<string, BeamSpear> BeamSpears = new Dictionary<string, BeamSpear>(StringComparer.OrdinalIgnoreCase);
+            public Dictionary<string, BeamBolt> BeamBolts = new Dictionary<string, BeamBolt>(StringComparer.OrdinalIgnoreCase);
+        }
+        private EffectStorage fxdata;
+        public GameItemCollection<ResolvedFx> Effects;
+
+        void InitEffects()
+        {
+            fxdata = new EffectStorage();
+            foreach (var fx in fldata.Effects.VisEffects)
+                fxdata.VisFx[fx.Nickname] = fx;
+            foreach (var fx in fldata.Effects.BeamSpears)
+                fxdata.BeamSpears[fx.Nickname] = fx;
+            foreach (var fx in fldata.Effects.BeamBolts)
+                fxdata.BeamBolts[fx.Nickname] = fx;
+            Effects = new GameItemCollection<ResolvedFx>();
+            foreach (var effect in fldata.Effects.Effects)
+            {
+                VisEffect visfx = null;
+                BeamSpear spear = null;
+                BeamBolt bolt = null;
+                if(!string.IsNullOrWhiteSpace(effect.VisEffect))
+                    fxdata.VisFx.TryGetValue(effect.VisEffect, out visfx);
+                if (!string.IsNullOrWhiteSpace(effect.VisBeam))
+                {
+                    fxdata.BeamSpears.TryGetValue(effect.VisBeam, out spear);
+                    fxdata.BeamBolts.TryGetValue(effect.VisBeam, out bolt);
+                }
+                string alepath = null;
+                if (!string.IsNullOrWhiteSpace(visfx?.AlchemyPath))
+                {
+                    alepath = DataPath(visfx.AlchemyPath);
+                }
+                var lib = visfx != null
+                    ? visfx.Textures.Select(DataPath).Where(x => x != null).ToArray()
+                    : null;
+                Effects.Add(new ResolvedFx()
+                {
+                    AlePath = alepath,
+                    VisFxCrc = (uint)(visfx?.EffectCrc ?? 0),
+                    LibraryFiles = lib,
+                    Spear = spear,
+                    Bolt = bolt,
+                    CRC = FLHash.CreateID(effect.Nickname),
+                    Nickname = effect.Nickname
+                });
+            }
         }
 
         IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)
@@ -445,7 +498,8 @@ namespace LibreLancer
             if(glResource != null)
                 tasks.Begin(() => GetCharacterAnimations());
             var pilotTask = tasks.Begin(InitPilots);
-            var explosionTask = tasks.Begin(InitExplosions);
+            var effectsTask = tasks.Begin(InitEffects);
+            var explosionTask = tasks.Begin(InitExplosions, effectsTask);
             var ships = tasks.Begin(InitShips, explosionTask);
             List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
             var baseTask = tasks.Begin(() => introbases.AddRange(InitBases(tasks)));
@@ -478,7 +532,7 @@ namespace LibreLancer
                 }
             }, baseTask);
             var factionsTask = tasks.Begin(InitFactions);
-            var equipmentTask = tasks.Begin(InitEquipment);
+            var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
             var goodsTask = tasks.Begin(InitGoods, equipmentTask);
             var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
             var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask);
@@ -732,21 +786,18 @@ namespace LibreLancer
                     if (mequip.Explosion != null &&
                        !string.IsNullOrEmpty(mequip.Explosion.Effect))
                     {
-                        mequip.ExplodeFx = GetEffect(mequip.Explosion.Effect);
+                        mequip.ExplodeFx = Effects.Get(mequip.Explosion.Effect);
                     }
                     equip = mequip;
                 }
                 else
                 {
-                    var effect = fldata.Effects.FindEffect(mn.ConstEffect);
-                    string visbeam;
-                    if (effect == null) visbeam = "";
-                    else visbeam = effect.VisBeam ?? "";
+                    var effect = Effects.Get(mn.ConstEffect);
                     var mequip = new GameData.Items.MunitionEquip()
                     {
                         Def = mn,
-                        ConstEffect_Spear = fldata.Effects.BeamSpears.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase)),
-                        ConstEffect_Bolt = fldata.Effects.BeamBolts.FirstOrDefault((x) => x.Nickname.Equals(visbeam, StringComparison.OrdinalIgnoreCase))
+                        ConstEffect_Spear = effect?.Spear,
+                        ConstEffect_Bolt = effect?.Bolt,
                     };
                     equip = mequip;
                 }
@@ -810,7 +861,7 @@ namespace LibreLancer
                             Munition = mn,
                             Def = gn
                         };
-                        eqp.FlashEffect = GetEffect(gn.FlashParticleName);
+                        eqp.FlashEffect = Effects.Get(gn.FlashParticleName);
                         equip = eqp;
                         equip.ModelFile = ResolveDrawable(gn.MaterialLibrary, gn.DaArchetype);
                     }
@@ -841,7 +892,7 @@ namespace LibreLancer
                         HpType = "hp_thruster"
                     };
                     equip = eqp;
-                    eqp.Particles = GetEffect(th.Particles);
+                    eqp.Particles = Effects.Get(th.Particles);
                     equip.ModelFile = ResolveDrawable(th.MaterialLibrary, th.DaArchetype);
                 }
                 if (val is Data.Equipment.ShieldGenerator sh)
@@ -888,7 +939,7 @@ namespace LibreLancer
                 if (val is Tradelane tl)
                 {
                     var tlequip = new TradelaneEquipment();
-                    tlequip.RingActive = GetEffect(tl.TlRingActive);
+                    tlequip.RingActive = Effects.Get(tl.TlRingActive);
                     equip = tlequip;
                 }
 
@@ -1619,7 +1670,7 @@ namespace LibreLancer
                 var ex = new GameData.Explosion() {Nickname = orig.Nickname};
                 ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
                 if(orig.Effects.Count > 0)
-                    ex.Effect = GetEffect(orig.Effects[0].Name);
+                    ex.Effect = Effects.Get(orig.Effects[0].Name);
                 Explosions.Add(ex);
             }
         }
@@ -1940,7 +1991,7 @@ namespace LibreLancer
                             if(string.IsNullOrEmpty(fza.Effect)) continue;
                             if (!fuse.Fx.ContainsKey(fza.Effect))
                             {
-                                fuse.Fx[fza.Effect] = GetEffect(fza.Effect);
+                                fuse.Fx[fza.Effect] = Effects.Get(fza.Effect);
                             }
                         }
                     }
@@ -1951,41 +2002,12 @@ namespace LibreLancer
             }
         }
 
-        public bool HasEffect(string effectName)
-        {
-            return fldata.Effects.FindEffect(effectName) != null || fldata.Effects.FindVisEffect(effectName) != null;
-        }
-
-        public ResolvedFx GetEffect(string effectName)
-        {
-            var effect = fldata.Effects.FindEffect(effectName);
-            Data.Effects.VisEffect visfx;
-            if (effect == null)
-                visfx = fldata.Effects.FindVisEffect(effectName);
-            else
-                visfx = fldata.Effects.FindVisEffect(effect.VisEffect);
-            if (effect == null && visfx == null)
-            {
-                FLLog.Error("Fx", $"Can't find fx '{effectName}'");
-                return null;
-            }
-            if (visfx == null) return null;
-            if(string.IsNullOrWhiteSpace(visfx.AlchemyPath)) return null;
-            var alepath = DataPath(visfx.AlchemyPath);
-            if (alepath == null) return null;
-            return new ResolvedFx()
-            {
-                AlePath = alepath,
-                VisFxCrc = (uint)visfx.EffectCrc,
-                LibraryFiles = visfx.Textures.Select(DataPath).Where(x => x != null).ToArray()
-            };
-        }
 
         GameData.Items.EffectEquipment GetAttachedFx(Data.Equipment.AttachedFx fx)
         {
             var equip = new GameData.Items.EffectEquipment()
             {
-                Particles = GetEffect(fx.Particles)
+                Particles = Effects.Get(fx.Particles)
             };
             return equip;
         }

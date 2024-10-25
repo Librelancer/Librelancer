@@ -642,7 +642,7 @@ namespace LibreLancer.Client
                     go.World = gp.world;
                     if (mn.Def.ConstEffect != null)
                     {
-                       var fx = Game.GameData.GetEffect(mn.Def.ConstEffect)?
+                       var fx = Game.GameData.Effects.Get(mn.Def.ConstEffect)?
                             .GetEffect(Game.ResourceManager);
                        var ren = new ParticleEffectRenderer(fx) {Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
                        go.ExtraRenderers.Add(ren);
