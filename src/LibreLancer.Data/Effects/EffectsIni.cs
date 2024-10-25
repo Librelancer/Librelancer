@@ -25,21 +25,5 @@ namespace LibreLancer.Data.Effects
         public List<EffectLOD> EffectLODs = new List<EffectLOD>();
 
         public void AddIni(string ini, FileSystem vfs) => ParseAndFill(ini, vfs);
-
-		public Effect FindEffect(string nickname)
-		{
-			var result = from Effect e in Effects where e.Nickname.Equals(nickname,StringComparison.OrdinalIgnoreCase) select e;
-			if (result.Count() == 1)
-				return result.First();
-			return null;
-		}
-
-		public VisEffect FindVisEffect(string nickname)
-		{
-			var result = from VisEffect v in VisEffects where v.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase) select v;
-			if (result.Count() >= 1)
-				return result.First();
-			return null;
-		}
 	}
 }
