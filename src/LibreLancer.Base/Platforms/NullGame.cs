@@ -76,6 +76,15 @@ class NullGame : IGame
         running = false;
     }
 
+    public void Yield()
+    {
+        if (mythread != Thread.CurrentThread.ManagedThreadId) {
+            throw new InvalidOperationException();
+        }
+        while (actions.TryDequeue(out Action work))
+            work();
+    }
+
     public void Crashed()
     {
     }

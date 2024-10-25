@@ -232,6 +232,11 @@ namespace LibreLancer.ContentEdit
             }
         }
 
+        public static byte[] CreateDDS(ReadOnlySpan<Bgra8> input, int width, int height, DDSFormat format, MipmapMethod mipm, bool slow)
+        {
+            return Crunch.CompressDDS(input, width, height, (CrnglueFormat) format, (CrnglueMipmaps) mipm, slow);
+        }
+
         public static byte[] CreateDDS(string input, DDSFormat format, MipmapMethod mipm, bool slow, bool flip)
         {
             var raw = ReadFile(input, flip);

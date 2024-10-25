@@ -23,6 +23,7 @@ interface IGame : IUIThread
     void Run(Game loop);
     void Exit();
     void Crashed();
+    void Yield();
 
     bool IsUiThread();
     //Timing

@@ -193,16 +193,21 @@ namespace LancerEdit
             Services.Add(Config);
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();
+            int loadFrames = 0;
             Popups.AddPopup("Loading##systemviewer", _ =>
             {
-                ImGui.Text("Loading Universe Editor...");
+                ImGui.TextUnformatted($"Loading Universe Editor");
+                ImGui.ProgressBar(OpenDataContext.PreviewLoadPercent, new Vector2(180, 0) * ImGuiHelper.Scale);
                 ImGuiHelper.AnimatingElement();
-                if (!OpenDataContext.IterateRenderArchetypePreviews())
+                loadFrames++;
+                if ((loadFrames > 8 || loadFrames % 2 == 0) &&
+                    !OpenDataContext.IterateRenderArchetypePreviews(loadFrames > 8 ? 120 : 8))
                 {
                     this.AddTab(new UniverseEditorTab(OpenDataContext, this));
+                    loadFrames = 0;
                     ImGui.CloseCurrentPopup();
                 }
-            }, ImGuiWindowFlags.AlwaysAutoResize, true);
+            }, ImGuiWindowFlags.NoResize, true, new Vector2(200, 100) * ImGuiHelper.Scale);
             MinimumWindowSize = new Point(200, 200);
             h1 *= ImGuiHelper.Scale;
             h2 *= ImGuiHelper.Scale;

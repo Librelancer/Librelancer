@@ -307,6 +307,15 @@ namespace LibreLancer
             SDL.SDL_PushEvent(ref ev);
         }
 
+        public void Yield()
+        {
+            if (mythread != Thread.CurrentThread.ManagedThreadId) {
+                throw new InvalidOperationException();
+            }
+            while (actions.TryDequeue(out Action work))
+                work();
+        }
+
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
 

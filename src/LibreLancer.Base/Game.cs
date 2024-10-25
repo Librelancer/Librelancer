@@ -60,6 +60,8 @@ namespace LibreLancer
             set => impl.RelativeMouseMode = value;
         }
 
+        public void Yield() => impl.Yield();
+
         protected string GetCacheDirectory(string gameName)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
