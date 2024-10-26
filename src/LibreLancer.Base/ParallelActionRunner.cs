@@ -120,6 +120,30 @@ namespace LibreLancer
         }
 
         /// <summary>
+        /// Spawns workers on threads directly.
+        /// </summary>
+        /// <param name="workerBody">The method to run on each thread</param>
+        /// <param name="maximumWorkerCount">Max amount of workers from this instance</param>
+        public void RunWorkers(Action<int> workerBody, int maximumWorkerCount = int.MaxValue)
+        {
+            if (this.managedWorker != null)
+                throw new InvalidOperationException();
+            if (maximumWorkerCount <= 1)
+            {
+                workerBody(0);
+            }
+            else
+            {
+                this.managedWorker = workerBody;
+                SignalThreads(maximumWorkerCount);
+                //Calling thread does work. No reason to spin up another worker and block this one!
+                DispatchThread(0);
+                finished.WaitOne();
+                this.managedWorker = null;
+            }
+        }
+
+        /// <summary>
         /// Runs a list of actions across multiple workers
         /// </summary>
         /// <param name="actions">The actions to run</param>
@@ -127,7 +151,7 @@ namespace LibreLancer
         /// <exception cref="InvalidOperationException">An operation is already running</exception>
         public void RunActions(IList<Action> actions, int maximumWorkerCount = int.MaxValue)
         {
-            if (this.tasks != null || this.taskBody != null)
+            if (this.managedWorker != null)
                 throw new InvalidOperationException();
             if (taskCount <= 0)
                 return;
@@ -153,7 +177,7 @@ namespace LibreLancer
 
         public void RunActions(Action<int> taskBody, int taskCount, int maximumWorkerCount = int.MaxValue)
         {
-            if (this.tasks != null || this.taskBody != null)
+            if (this.managedWorker != null)
                 throw new InvalidOperationException();
             if (taskCount <= 0)
                 return;

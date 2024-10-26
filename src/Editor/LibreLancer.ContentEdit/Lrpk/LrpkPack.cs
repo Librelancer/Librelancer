@@ -440,11 +440,11 @@ public class LrpkPack
             }
         });
 
-        //Bepu's ThreadDispatcher is faster than Parallel.ForEach by a
+        //ParallelActionRunner is faster than Parallel.ForEach by a
         //matter of minutes on large data sets.
-        //We use Bepu's version to allow for the per-worker context
-        using var dispatch = new ThreadDispatcher(threads);
-        int packItemIndex = 0;
+        using var dispatch = new ParallelActionRunner(threads);
+        //Interlocked.Increment for sync = start from -1
+        int packItemIndex = -1;
 
         void Worker(int workerIndex)
         {
@@ -461,7 +461,7 @@ public class LrpkPack
             }
         }
 
-        dispatch.DispatchWorkers((Action<int>)Worker, compTasks.Length);
+        dispatch.RunWorkers((Action<int>)Worker, compTasks.Length);
         compWriteItems.CompleteAdding();
         compWriteTask.Wait();
     }
