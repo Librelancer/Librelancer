@@ -12,12 +12,16 @@ public class SearchDropdown<T>
     private string inputText = "";
     private string lastFilter = "";
 
+    // Actual selected value
     private T selectedValue;
+    // Temporal value, used for selecting from list with keyboard
+    private int selectedIndex = -1;
     private Action<T> onSelected;
     private Func<T, string> displayName;
 
-    private T[] choices;
-    private T[] currentChoices;
+    private (T Item, int Index)[] allChoices;
+    private (T Item, int Index)[] currentChoices;
+
 
     public SearchDropdown(
         string id,
@@ -29,8 +33,8 @@ public class SearchDropdown<T>
         this.id = id;
         this.displayName = displayName;
         this.onSelected = selected;
-        this.choices = choices;
-        this.currentChoices = choices;
+        this.allChoices = choices.Select((x, i) => (x, i)).ToArray();
+        this.currentChoices = this.allChoices;
         SetSelected(initial);
     }
 
@@ -44,6 +48,9 @@ public class SearchDropdown<T>
         activate = true;
     }
 
+    int GetCurrentIndex() => Array.FindIndex(currentChoices, x => x.Index == selectedIndex);
+
+
     public unsafe void Draw()
     {
         var szButton = ImGui.GetFrameHeight();
@@ -56,35 +63,30 @@ public class SearchDropdown<T>
 
         var w = ImGui.CalcItemWidth();
         ImGui.SetNextItemWidth(w - szButton);
-        var enterPressed = ImGui.InputText("##input", ref inputText, 300, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackAlways,
-            cb =>
-            {
-                // Have to clear text in callback due to imgui usage
-                // PopupShown is 2 frames to allow scroll logic to work
-                if (popupShown == 2)
-                {
-                    cb->BufDirty = 1;
-                    cb->Buf[0] = 0;
-                    cb->BufTextLen =  0;
-                }
-                return 0;
-            });
+
+        var enterPressed = ImGui.InputText("##input", ref inputText, 300,
+            ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackAlways | ImGuiInputTextFlags.CallbackHistory, TextCallback);
         var textActive = ImGui.IsItemActive();
         var textActivated = ImGui.IsItemActivated();
         if (textActivated)
         {
             ImGui.OpenPopup("##choices");
+            UpdateSelectedIndex();
         }
         if (textActivated || visibleLastFrame && lastFilter != inputText)
         {
             lastFilter = inputText;
             if (string.IsNullOrWhiteSpace(inputText)) {
-                currentChoices = choices;
+                currentChoices = allChoices;
+                UpdateSelectedIndex();
             }
             else {
                 var st = inputText.Trim();
-                currentChoices = choices.Where(x => displayName(x).Contains(st, StringComparison.OrdinalIgnoreCase))
+                currentChoices = allChoices.Where(x => displayName(x.Item)
+                        .Contains(st, StringComparison.OrdinalIgnoreCase))
                     .ToArray();
+                if (GetCurrentIndex() == -1)
+                    selectedIndex = -1;
             }
         }
         var min = ImGui.GetItemRectMin();
@@ -100,17 +102,40 @@ public class SearchDropdown<T>
             if (!visibleLastFrame)
                 popupShown = 2;
             visibleLastFrame = true;
+            if (nextAction == ACT_UP && currentChoices.Length > 0)
+            {
+                var idx = GetCurrentIndex();
+                if (idx - 1 <= 0)
+                {
+                    selectedIndex = currentChoices[0].Index;
+                }
+                else {
+                    selectedIndex = currentChoices[idx - 1].Index;
+                }
+            }
+            else if (nextAction == ACT_DOWN && currentChoices.Length > 0)
+            {
+                var idx = GetCurrentIndex();
+                if (idx + 1 >= currentChoices.Length)
+                {
+                    selectedIndex = currentChoices[^1].Index;
+                }
+                else
+                {
+                    selectedIndex = currentChoices[idx + 1].Index;
+                }
+            }
             for (int i = 0; i < currentChoices.Length; i++)
             {
-                var n = displayName(currentChoices[i]);
-                bool isSelected = choices[i].Equals(selectedValue);
+                var n = displayName(currentChoices[i].Item);
+                bool isSelected = currentChoices[i].Index == selectedIndex;
                 if (ImGui.Selectable(n, isSelected))
                 {
-                    SetSelected(currentChoices[i]);
-                    onSelected(currentChoices[i]);
+                    SetSelected(currentChoices[i].Item);
+                    onSelected(currentChoices[i].Item);
                     ImGui.CloseCurrentPopup();
                 }
-                if (popupShown > 0 && isSelected) {
+                if ((popupShown > 0  || nextAction != 0) && isSelected) {
                     ImGui.SetScrollHereY();
                 }
             }
@@ -118,9 +143,10 @@ public class SearchDropdown<T>
             {
                 if (enterPressed)
                 {
-                    if (currentChoices.Length == 1 && !string.IsNullOrWhiteSpace(inputText)) {
-                        SetSelected(currentChoices[0]);
-                        onSelected(currentChoices[0]);
+                    if (selectedIndex >= 0 &&
+                        !allChoices[selectedIndex].Item.Equals(selectedValue)) {
+                        SetSelected(allChoices[selectedIndex].Item);
+                        onSelected(allChoices[selectedIndex].Item);
                     }
                 }
                 inputText = displayName(selectedValue);
@@ -154,14 +180,52 @@ public class SearchDropdown<T>
         if (ImGui.IsItemDeactivated() && !activate) {
             buttonClosed = false;
         }
+        nextAction = 0;
         var m = ImGui.GetItemRectMin();
         ImGuiExt.igExtRenderArrow(m.X, m.Y);
         ImGui.PopID();
+    }
+
+    private int nextAction = 0;
+    private const int ACT_UP = 1;
+    private const int ACT_DOWN = 2;
+
+    private unsafe int TextCallback(ImGuiInputTextCallbackData* cb)
+    {
+        if (cb->EventKey == ImGuiKey.UpArrow) {
+            nextAction = ACT_UP;
+        }
+        if (cb->EventKey == ImGuiKey.DownArrow) {
+            nextAction = ACT_DOWN;
+        }
+        // Have to clear text in callback due to imgui usage
+        // PopupShown is 2 frames to allow scroll logic to work
+        if (popupShown == 2)
+        {
+            cb->BufDirty = 1;
+            cb->Buf[0] = 0;
+            cb->BufTextLen = 0;
+        }
+        return 0;
     }
 
     public void SetSelected(T value)
     {
         selectedValue = value;
         inputText = displayName(value);
+        UpdateSelectedIndex();
+    }
+
+    void UpdateSelectedIndex()
+    {
+        selectedIndex = -1;
+        for (int i = 0; i < allChoices.Length; i++)
+        {
+            if (allChoices[i].Item.Equals(selectedValue))
+            {
+                selectedIndex = i;
+                break;
+            }
+        }
     }
 }
