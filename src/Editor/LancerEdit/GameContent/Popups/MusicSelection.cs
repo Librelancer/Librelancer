@@ -16,14 +16,19 @@ public class MusicSelection : PopupWindow
     private GameDataContext gd;
     private int selectedIndex;
     private MainWindow win;
-    
+
+    private string selection;
+
+    private SearchDropdown<string> dropdown;
+
     public MusicSelection(Action<string> onSelect, string title, string initial, GameDataContext gd, MainWindow win)
     {
+        dropdown = new SearchDropdown<string>("##music", x => x ?? "(none)", x => selection = x, initial,
+            gd.GameData.AllSounds.Where(x => x.Type == AudioType.Music)
+                .OrderBy(x => x.Nickname)
+                .Select(x => x.Nickname).ToArray());
         this.onSelect = onSelect;
-        music = gd.GameData.AllSounds.Where(x => x.Type == AudioType.Music)
-            .OrderBy(x => x.Nickname)
-            .Select(x => x.Nickname).ToArray();
-        selectedIndex = Array.IndexOf(music, initial);
+        this.selection = initial;
         Title = title;
         this.win = win;
         this.gd = gd;
@@ -32,24 +37,18 @@ public class MusicSelection : PopupWindow
     public override void Draw()
     {
         ImGui.PushItemWidth(200 * ImGuiHelper.Scale);
-        ImGui.Combo("##music", ref selectedIndex, music, music.Length);
+        dropdown.Draw();
         ImGui.PopItemWidth();
-        var sel = GetSelection();
         ImGui.SameLine();
-        if(Controls.Music("music", win, sel != null))
-            gd.Sounds.PlayMusic(sel, 0, true);
+        if(Controls.Music("music", win, selection != null))
+            gd.Sounds.PlayMusic(selection, 0, true);
         if (ImGui.Button("Ok"))
         {
-            onSelect(sel);
+            onSelect(selection);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();
         if(ImGui.Button("Cancel"))
             ImGui.CloseCurrentPopup();
     }
-
-    string GetSelection() =>
-        selectedIndex >= 0 && selectedIndex < music.Length
-            ? music[selectedIndex]
-            : null;
 }

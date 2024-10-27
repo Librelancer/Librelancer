@@ -24,6 +24,16 @@ IGEXPORT bool igExtSplitterV(float thickness, float* size1, float *size2, float 
     return SplitterBehavior(bb, id, ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
 }
 
+IGEXPORT void igExtRenderArrow(float frameX, float frameY)
+{
+    using namespace ImGui;
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    ImU32 text_col = GetColorU32(ImGuiCol_Text);
+    ImGuiWindow* window = GetCurrentWindow();
+    RenderArrow(window->DrawList, ImVec2(frameX + style.FramePadding.y, frameY + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
+}
+
 IGEXPORT bool igExtComboButton(const char* idstr, const char* preview_value)
 {
     using namespace ImGui;

@@ -54,6 +54,12 @@ namespace LibreLancer.ImUI
                 return ImGuiNative.igBeginPopupModal(p, (byte*)0, flags) != 0;
         }
 
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void igExtRenderArrow(float x, float y);
+
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int igExtGetNextWidth(out float nextWidth);
+
         public static unsafe bool ComboButton(string id, string preview)
         {
             Span<byte> nbytes = stackalloc byte[512];

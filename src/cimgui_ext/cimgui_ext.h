@@ -21,6 +21,7 @@ IGEXPORT const char* igExtGetVersion();
 IGEXPORT bool igExtSplitterV(float thickness, float* size1, float *size2, float min_size1, float min_size2, float splitter_long_axis_size);
 IGEXPORT bool igExtSpinner(const char* label, float radius, int thickness, int color);
 IGEXPORT bool igExtComboButton(const char* id, const char* preview_value);
+IGEXPORT void igExtRenderArrow(float frameX, float frameY);
 IGEXPORT int igExtPlot(int plotType, const char* label, float (*values_getter)(void* data, int idx), int (*get_tooltip)(void* data, int idx, char* buffer), void* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, float size_x, float size_y);
 IGEXPORT bool igButtonEx2(const char* label, float sizeX, float sizeY, int drawFlags);
 //font
