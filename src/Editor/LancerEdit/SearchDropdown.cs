@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.ImUI;
 
 namespace LancerEdit;
@@ -91,8 +92,9 @@ public class SearchDropdown<T>
         }
         var min = ImGui.GetItemRectMin();
         var max = ImGui.GetItemRectMax();
+        int lines = Math.Min(currentChoices.Length + 1, 8);
         ImGui.SetNextWindowPos(new Vector2(min.X, max.Y));
-        ImGui.SetNextWindowSize(new Vector2(max.X - min.X + szButton, (max.Y - min.Y) * 8));
+        ImGui.SetNextWindowSize(new Vector2(max.X - min.X + szButton, (max.Y - min.Y) * lines));
         if (ImGui.BeginPopup("##choices",
                 ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.ChildWindow))

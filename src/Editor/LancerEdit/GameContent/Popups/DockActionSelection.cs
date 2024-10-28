@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using ImGuiNET;
+using LancerEdit.GameContent.Lookups;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
@@ -14,26 +15,16 @@ public class DockActionSelection : PopupWindow
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
 
     private Action<DockAction> onSelect;
-    
-    private string[] baseNames;
-    private Base[] bases;
-    private int selectedBase = -1;
 
-    private string[] systemNames;
-    private StarSystem[] systems;
-    private int selectedSystem = -1;
+    private BaseLookup baseLookup;
+    private SystemLookup systemLookup;
 
     private StarSystem openSystemNames;
     private string[] objectNames;
     private int selectedObject = -1;
     private string currentTunnel = "";
 
-    
-
-    private string[] kindNames = new string[]
-    {
-        "None",
-    };
+    private string[] kindNames = ["None"];
 
     private int selectedKind;
 
@@ -41,19 +32,16 @@ public class DockActionSelection : PopupWindow
     private int leftObject = -1;
     private int rightObject = -1;
 
-    private int baseKind;
-    private int jumpKind;
-    private int tradelaneKind;
-    
-    
+    private int baseKind = -1;
+    private int jumpKind = -1;
+    private int tradelaneKind = -1;
+
+
     public DockActionSelection(Action<DockAction> onSelect, DockAction initial, Archetype a, string[] currentObjects, GameDataContext gd)
     {
         this.onSelect = onSelect;
-        bases = gd.GameData.Bases.OrderBy(x => x.Nickname).ToArray();
-        baseNames = bases.Select(x => $"{x.Nickname} ({gd.GameData.GetString(x.IdsName)})").ToArray();
-        
-        systems = gd.GameData.Systems.OrderBy(x => x.Nickname).ToArray();
-        systemNames = systems.Select(x => $"{x.Nickname} ({gd.GameData.GetString(x.IdsName)})").ToArray();
+        Base initialBase = null;
+        StarSystem initialSystem = null;
 
         this.currentObjects = currentObjects;
 
@@ -81,18 +69,13 @@ public class DockActionSelection : PopupWindow
             {
                 case DockKinds.Base:
                     selectedKind = baseKind;
-                    var b = gd.GameData.Bases.Get(initial.Target);
-                    if (b != null)
-                        selectedBase = Array.IndexOf(bases, b);
+                    initialBase = gd.GameData.Bases.Get(initial.Target);
                     break;
                 case DockKinds.Jump:
                     selectedKind = jumpKind;
-                    var sys = gd.GameData.Systems.Get(initial.Target);
-                    if (sys != null) {
-                        selectedSystem = Array.IndexOf(systems, sys);
-                        LoadObjectNames();
-                        if(objectNames != null)
-                            selectedObject = Array.IndexOf(objectNames, initial.Exit);
+                    initialSystem = gd.GameData.Systems.Get(initial.Target);
+                    if (initialSystem != null) {
+
                         currentTunnel = initial.Tunnel ?? "";
                     }
                     break;
@@ -103,44 +86,57 @@ public class DockActionSelection : PopupWindow
                     break;
             }
         }
+        baseLookup = new BaseLookup("##dockbase", gd, initialBase);
+        systemLookup = new SystemLookup("##jumpsys", gd, initialSystem);
+        if (initialSystem != null) {
+            LoadObjectNames();
+            if(objectNames != null)
+                selectedObject = Array.IndexOf(objectNames, initial.Exit);
+        }
     }
 
     void LoadObjectNames()
     {
         selectedObject = -1;
-        if (selectedSystem < 0 || selectedSystem >= systems.Length) {
+        if (systemLookup.Selected == null) {
             objectNames = null;
+            openSystemNames = null;
             return;
         }
-        objectNames = systems[selectedSystem].Objects
+        objectNames = systemLookup.Selected.Objects
             .Select(x => x.Nickname)
             .OrderBy(x => x)
             .ToArray();
+        openSystemNames = systemLookup.Selected;
     }
 
     void Combo(string label, ref int selectedIndex, string[] names)
     {
-        ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted(label);
-        ImGui.PushItemWidth(200 * ImGuiHelper.Scale);
+        ImGui.SetNextItemWidth(300 * ImGuiHelper.Scale);
         ImGui.Combo($"##{label}", ref selectedIndex, names, names.Length);
-        ImGui.PopItemWidth();
     }
-    
-    
+
+    void Combo<T>(string label, ObjectLookup<T> lookup) where T : class
+    {
+        ImGui.TextUnformatted(label);
+        ImGui.SetNextItemWidth(300 * ImGuiHelper.Scale);
+        lookup.Draw();
+    }
+
+
     public override void Draw()
     {
         Combo("Kind: ", ref selectedKind, kindNames);
         if (selectedKind == baseKind)
         {
-            Combo("Base: ", ref selectedBase, baseNames);
+            Combo("Base: ", baseLookup);
         }
         else if (selectedKind == jumpKind)
         {
-            Combo("System: ", ref selectedSystem, systemNames);
-            if (selectedSystem != -1 && systems[selectedSystem] != openSystemNames) {
+            Combo("System: ", systemLookup);
+            if (systemLookup.Selected != openSystemNames) {
                 LoadObjectNames();
-                openSystemNames = systems[selectedSystem];
             }
             if(objectNames != null)
                 Combo("Exit: ", ref selectedObject, objectNames);
@@ -163,7 +159,7 @@ public class DockActionSelection : PopupWindow
                 onSelect(new DockAction()
                 {
                     Kind = DockKinds.Base,
-                    Target = selectedBase >= 0 ? bases[selectedBase].Nickname : null
+                    Target = baseLookup.Selected?.Nickname
                 });
             }
             else if (selectedKind == jumpKind)
@@ -171,7 +167,7 @@ public class DockActionSelection : PopupWindow
                 onSelect(new DockAction()
                 {
                     Kind = DockKinds.Jump,
-                    Target = selectedSystem >= 0 ? systems[selectedSystem].Nickname : null,
+                    Target = systemLookup.Selected?.Nickname,
                     Exit = selectedObject >= 0 ? objectNames[selectedObject] : null,
                     Tunnel = string.IsNullOrWhiteSpace(currentTunnel) ? null : currentTunnel,
                 });

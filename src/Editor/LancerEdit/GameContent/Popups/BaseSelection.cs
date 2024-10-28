@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using ImGuiNET;
+using LancerEdit.GameContent.Lookups;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
 
@@ -12,34 +12,30 @@ public class BaseSelection : PopupWindow
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
 
     private Action<Base> onSelect;
-    private string[] names;
-    private Base[] Bases;
-    private int selectedIndex;
+    private BaseLookup lookup;
     private string message;
-    
+
     public BaseSelection(Action<Base> onSelect, string title, string message, Base initial, GameDataContext gd)
     {
         this.message = message;
         this.onSelect = onSelect;
-        Bases = gd.GameData.Bases.OrderBy(x => x.Nickname).ToArray();
-        names = Bases.Select(x => $"{x.Nickname} ({gd.GameData.GetString(x.IdsName)})").ToArray();
-        selectedIndex = Array.IndexOf(Bases, initial);
+        lookup = new BaseLookup("##Bases", gd, initial);
         Title = title;
     }
-    
+
     public override void Draw()
     {
-        var width = 200 * ImGuiHelper.Scale;
+        var width = 300 * ImGuiHelper.Scale;
         if (message != null) {
             ImGui.TextUnformatted(message);
             width = Math.Max(width, ImGui.CalcTextSize(message).X);
         }
         ImGui.PushItemWidth(width);
-        ImGui.Combo("##Bases", ref selectedIndex, names, names.Length);
+        lookup.Draw();
         ImGui.PopItemWidth();
         if (ImGui.Button("Ok"))
         {
-            onSelect(GetSelection());
+            onSelect(lookup.Selected);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();
@@ -53,8 +49,4 @@ public class BaseSelection : PopupWindow
             ImGui.CloseCurrentPopup();
     }
 
-    Base GetSelection() =>
-        selectedIndex >= 0 && selectedIndex < Bases.Length
-            ? Bases[selectedIndex]
-            : null;
 }
