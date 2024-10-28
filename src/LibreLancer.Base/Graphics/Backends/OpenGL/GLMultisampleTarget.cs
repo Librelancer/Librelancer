@@ -48,7 +48,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		{
             if(!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
             RenderContext.Instance.Renderer2D.Flush();
-            context.PrepareBlit();
+            context.PrepareBlit(false);
             //Unbind everything
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 			//read from our fbo
@@ -65,7 +65,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         {
             RenderContext.Instance.Renderer2D.Flush();
             if (!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
-            context.PrepareBlit();
+            context.PrepareBlit(false);
             //Unbind everything
             GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
             //read from our fbo

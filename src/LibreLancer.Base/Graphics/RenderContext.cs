@@ -222,11 +222,15 @@ namespace LibreLancer.Graphics
 
         Stack<Rectangle> viewports = new Stack<Rectangle>();
 
+        public void PushViewport(Rectangle vp)
+        {
+            viewports.Push (vp);
+            SetViewport(vp);
+        }
+
         public void PushViewport(int x, int y, int width, int height)
         {
-            var vp = new Rectangle (x, y, width, height);
-            viewports.Push (vp);
-            SetViewport(new Rectangle(x,y,width,height));
+            PushViewport(new Rectangle(x,y,width,height));
         }
 
         public void ReplaceViewport(int x, int y, int width, int height)

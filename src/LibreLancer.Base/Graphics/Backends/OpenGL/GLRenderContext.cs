@@ -239,6 +239,8 @@ class GLRenderContext : IRenderContext
         }
     }
 
+    private Rectangle appliedConvertedScissor = new Rectangle();
+
     public void ApplyScissor(ref GraphicsState requested)
     {
         if (requested.ScissorEnabled != applied.ScissorEnabled)
@@ -248,13 +250,17 @@ class GLRenderContext : IRenderContext
             applied.ScissorEnabled = requested.ScissorEnabled;
         }
 
-        if (requested.ScissorEnabled & (requested.ScissorRect != applied.ScissorRect))
+        if (requested.ScissorEnabled)
         {
             var cr = requested.ScissorRect;
             applied.ScissorRect = cr;
             if (cr.Height < 1) cr.Height = 1;
             if (cr.Width < 1) cr.Width = 1;
-            GL.Scissor(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
+            var conv = new Rectangle(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
+            if (conv != appliedConvertedScissor) {
+                GL.Scissor(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
+                appliedConvertedScissor = conv;
+            }
         }
     }
 
@@ -311,10 +317,10 @@ class GLRenderContext : IRenderContext
         GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT);
     }
 
-    public void PrepareBlit()
+    public void PrepareBlit(bool scissor)
     {
         applied.RenderTarget = null;
-        if (applied.ScissorEnabled)
+        if (!scissor && applied.ScissorEnabled)
         {
             applied.ScissorEnabled = false;
             GL.Disable(GL.GL_SCISSOR_TEST);

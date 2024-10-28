@@ -38,10 +38,37 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, FBO);
 		}
 
+        public void BlitToScreen(Point offset)
+        {
+            RenderContext.Instance.Renderer2D.Flush();
+            RenderContext.Instance.ApplyViewport();
+            RenderContext.Instance.ApplyScissor();
+            context.PrepareBlit(true);
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
+            GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
+            GL.BlitFramebuffer(0, 0, texture.Width, texture.Height, offset.X, offset.Y, offset.X + texture.Width, offset.Y + texture.Height,
+                GL.GL_COLOR_BUFFER_BIT, GL.GL_LINEAR);
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
+        }
+
+        public void BlitToBuffer(RenderTarget2D other, Point offset)
+        {
+            RenderContext.Instance.Renderer2D.Flush();
+            RenderContext.Instance.ApplyViewport();
+            RenderContext.Instance.ApplyScissor();
+            context.PrepareBlit(true);
+            var Y = ((GLRenderTarget2D)other.Backing).texture.Height;
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
+            GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, ((GLRenderTarget2D)other.Backing).FBO);
+            GL.BlitFramebuffer(0, 0, texture.Width, texture.Height, offset.X, Y - offset.Y, offset.X + texture.Width, Y - (offset.Y + texture.Height),
+                GL.GL_COLOR_BUFFER_BIT, GL.GL_LINEAR);
+            GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
+        }
+
         public void BlitToScreen()
         {
             RenderContext.Instance.Renderer2D.Flush();
-            context.PrepareBlit();
+            context.PrepareBlit(false);
             GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
             GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
             GL.BlitFramebuffer(0, 0, texture.Width, texture.Height, 0, 0, texture.Width, texture.Height,

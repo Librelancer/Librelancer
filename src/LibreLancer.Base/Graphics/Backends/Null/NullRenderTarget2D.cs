@@ -15,6 +15,14 @@ class NullRenderTarget2D : IRenderTarget2D
     {
     }
 
+    public void BlitToBuffer(RenderTarget2D other, Point offset)
+    {
+    }
+
+    public void BlitToScreen(Point offset)
+    {
+    }
+
     public int Width { get; }
     public int Height { get; }
 }

@@ -26,6 +26,10 @@ namespace LibreLancer.Graphics
 
         public void BlitToScreen() => Backing.BlitToScreen();
 
+        public void BlitToBuffer(RenderTarget2D other, Point offset) => Backing.BlitToBuffer(other, offset);
+
+        public void BlitToScreen(Point offset) => Backing.BlitToScreen(offset);
+
 		public override void Dispose ()
 		{
 			Dispose(false);
