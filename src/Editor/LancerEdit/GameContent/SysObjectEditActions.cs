@@ -2,6 +2,7 @@ using System.IO.Enumeration;
 using System.Numerics;
 using LibreLancer;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Archetypes;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
 
@@ -102,18 +103,18 @@ public class ObjectSetComment(GameObject target, string old, string updated)
     }
 }
 
-public class ObjectSetArchetypeLoadout(
+public class ObjectSetArchetypeLoadoutStar(
     GameObject target, SystemEditorTab tab,
-    Archetype oldArchetype, ObjectLoadout oldLoadout,
-    Archetype newArchetype, ObjectLoadout newLoadout) :
-    EditorModification<(Archetype Archetype, ObjectLoadout Loadout)>(
-        (oldArchetype, oldLoadout),
-        (newArchetype, newLoadout)
+    Archetype oldArchetype, ObjectLoadout oldLoadout, Sun oldSun,
+    Archetype newArchetype, ObjectLoadout newLoadout, Sun newSun) :
+    EditorModification<(Archetype Archetype, ObjectLoadout Loadout, Sun Star)>(
+        (oldArchetype, oldLoadout, oldSun),
+        (newArchetype, newLoadout, newSun)
         )
 {
-    public override void Set((Archetype Archetype, ObjectLoadout Loadout) value)
+    public override void Set((Archetype Archetype, ObjectLoadout Loadout, Sun Star) value)
     {
-        tab.SetArchetypeLoadout(target, value.Archetype, value.Loadout);
+        tab.SetArchetypeLoadout(target, value.Archetype, value.Loadout, value.Star);
         target.UpdateDirty();
     }
 
@@ -121,9 +122,11 @@ public class ObjectSetArchetypeLoadout(
     {
         var oldA = Old.Archetype?.Nickname ?? "NULL";
         var oldL = Old.Loadout?.Nickname ?? "NULL";
+        var oldS = Old.Star?.Nickname ?? "NULL";
         var newA = Updated.Archetype?.Nickname ?? "NULL";
         var newL = Updated.Loadout?.Nickname ?? "NULL";
-        return $"SetArchetypeLoadout: {target.Nickname}\nOld: ({oldA}, {oldL}), New: ({newA}, {newL})";
+        var newS = Updated.Star?.Nickname ?? "NULL";
+        return $"SetArchetypeLoadoutStar: {target.Nickname}\nOld: ({oldA}, {oldL}, {oldS}), New: ({newA}, {newL}, {newS})";
     }
 }
 

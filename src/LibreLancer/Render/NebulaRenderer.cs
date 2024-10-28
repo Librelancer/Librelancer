@@ -330,11 +330,9 @@ namespace LibreLancer.Render
         }
 
         int puffId = 0;
+        private int puffsIdx = 0;
         VertexBillboardColor2[] puffVertices;
-        int GetPuffsIdx()
-        {
-            return sysr.StaticBillboards.DoVertices(ref puffId, puffVertices);
-        }
+
 
         unsafe void DrawPuffRing(bool inside, CommandBuffer buffer, float z)
 		{
@@ -358,12 +356,12 @@ namespace LibreLancer.Render
             /* Actually Render */
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
-            int idx = GetPuffsIdx();
+            int idx = puffsIdx;
             for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
                 buffer.AddCommand(p.Material, null, wh, Lighting.Empty
-                    , sysr.StaticBillboards.VertexBuffer,
+                    , sysr.QuadBuffer.VertexBuffer,
                     PrimitiveTypes.TriangleList, 0, idx, 2, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
                     z, null, i, *(int*)&factor);
                 idx += 6;
@@ -379,6 +377,14 @@ namespace LibreLancer.Render
 			GeneratePuffRing(0.75f, rn, verts);
             puffVertices = verts.ToArray();
 		}
+
+        public void UploadPuffs()
+        {
+            if (puffVertices != null)
+            {
+                puffsIdx = sysr.QuadBuffer.DoVertices(puffVertices);
+            }
+        }
 
 		void GeneratePuffRing(float ypct, Random rn, List<VertexBillboardColor2> verts)
 		{
@@ -543,11 +549,11 @@ namespace LibreLancer.Render
                 null,
                 world,
                 Lighting.Empty,
-                sysr.StaticBillboards.VertexBuffer,
+                sysr.QuadBuffer.VertexBuffer,
                 PrimitiveTypes.TriangleList,
                 0,
                 0,
-                StaticBillboards.NebulaFillPrimCount,
+                QuadBuffer.NebulaFillPrimCount,
                 inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
                 z, null,
                 Exterior?.Count ?? 0

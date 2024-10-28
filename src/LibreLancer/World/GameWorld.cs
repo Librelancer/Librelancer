@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Archetypes;
 using LibreLancer.GameData.World;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
@@ -19,6 +20,13 @@ using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
+    public struct OptionalArgument<T>
+    {
+        public bool Present;
+        public T Value;
+        public static explicit operator OptionalArgument<T>(T val) => new () { Value = val, Present = true };
+        public T Get(T defaultVal) => Present ? Value : defaultVal;
+    }
     public class GameWorld : IDisposable
     {
         public PhysicsWorld Physics;
@@ -56,7 +64,7 @@ namespace LibreLancer.World
         }
 
         public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, bool server,
-            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null,
+            bool changeLoadout = false, ObjectLoadout newLoadout = default, Archetype changedArch = null, OptionalArgument<Sun> changedStar = default,
             Func<int> netId = null)
         {
             if (reinit)
@@ -64,9 +72,10 @@ namespace LibreLancer.World
                 RemoveObject(g);
                 g.ClearAll(Physics);
             }
-            var arch = changedArch ?? obj.Star ?? obj.Archetype;
+            var arch = changedArch ?? obj.Archetype;
+            var sun = changedStar.Get(obj.Star);
             var loadout = changeLoadout ? newLoadout : obj.Loadout;
-            g.InitWithArchetype(changedArch ?? obj.Star ?? arch, res, Renderer != null);
+            g.InitWithArchetype(arch, sun, res, Renderer != null);
             if (obj.IdsLeft != 0 && obj.IdsRight != 0)
                 g.Name = new TradelaneName(g, obj.IdsLeft, obj.IdsRight);
             else
@@ -122,10 +131,10 @@ namespace LibreLancer.World
         }
 
         public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
-            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null, Func<int> netId = null)
+            bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null, OptionalArgument<Sun> changedStar = default, Func<int> netId = null)
         {
             var g = new GameObject();
-            InitObject(g, false, obj, res, server, changeLoadout, newLoadout, changedArch, netId);
+            InitObject(g, false, obj, res, server, changeLoadout, newLoadout, changedArch, changedStar, netId);
             return g;
         }
 
@@ -157,7 +166,7 @@ namespace LibreLancer.World
 
             foreach (var obj in sys.Objects)
             {
-                NewObject(obj, res, server, false, null, null, netId);
+                NewObject(obj, res, server, false, null, null, default, netId);
             }
 
             if (server) {

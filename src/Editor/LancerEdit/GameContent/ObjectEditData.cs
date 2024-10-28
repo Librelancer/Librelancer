@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Archetypes;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
 
@@ -15,6 +16,7 @@ public interface IObjectData
     int IdsRight { get; }
     VisitFlags Visit { get; }
     Archetype Archetype { get; }
+    Sun Star { get; }
     ObjectLoadout Loadout { get; }
     Faction Reputation { get; }
     Base Base { get; }
@@ -32,6 +34,7 @@ class SystemObjectAccessor : IObjectData
     public int IdsRight => sysobj.IdsRight;
     public VisitFlags Visit => sysobj.Visit;
     public Archetype Archetype => sysobj.Archetype;
+    public Sun Star => sysobj.Star;
     public ObjectLoadout Loadout => sysobj.Loadout;
     public Faction Reputation => sysobj.Reputation;
     public Base Base => sysobj.Base;
@@ -80,6 +83,7 @@ public class ObjectEditData : GameComponent, IObjectData
     public int IdsRight { get; set; }
     public VisitFlags Visit { get; set; }
     public Archetype Archetype { get; set; }
+    public Sun Star { get; set; }
     public ObjectLoadout Loadout { get; set; }
     public Faction Reputation { get; set; }
     public Base Base { get; set; }
@@ -100,6 +104,7 @@ public class ObjectEditData : GameComponent, IObjectData
         IdsRight = sysobj.IdsRight;
         Loadout = sysobj.Loadout;
         Archetype = sysobj.Archetype;
+        Star = sysobj.Star;
         Reputation = sysobj.Reputation;
         Visit = sysobj.Visit;
         Base = sysobj.Base;
@@ -142,6 +147,7 @@ public class ObjectEditData : GameComponent, IObjectData
             sysobj.IdsLeft != IdsLeft ||
             sysobj.IdsRight != IdsRight ||
             sysobj.Archetype != Archetype ||
+            sysobj.Star != Star ||
             sysobj.Loadout != Loadout ||
             sysobj.Visit != Visit ||
             sysobj.Reputation != Reputation ||
@@ -169,6 +175,7 @@ public class ObjectEditData : GameComponent, IObjectData
         sysobj.IdsLeft = IdsLeft;
         sysobj.IdsRight = IdsRight;
         sysobj.Archetype = Archetype;
+        sysobj.Star = Star;
         sysobj.Loadout = Loadout;
         sysobj.Visit = Visit;
         sysobj.Reputation = Reputation;

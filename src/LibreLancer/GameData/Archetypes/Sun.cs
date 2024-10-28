@@ -9,7 +9,7 @@ using Spine = LibreLancer.GameData.World.Spine;
 
 namespace LibreLancer.GameData.Archetypes
 {
-	public class Sun : Archetype
+	public class Sun : IdentifiableItem
 	{
 		public float Radius;
 		public string GlowSprite;
@@ -23,11 +23,6 @@ namespace LibreLancer.GameData.Archetypes
 		public string SpinesSprite;
 		public float SpinesScale;
 		public List<Spine> Spines;
-
-        public Sun ()
-        {
-            Type = ArchetypeType.sun;
-        }
 	}
 }
 

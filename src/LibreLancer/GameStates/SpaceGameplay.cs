@@ -1248,7 +1248,7 @@ World Time: {12:F2}
                 if (pos != Vector3.Zero)
                 {
                     var waypointArch = Game.GameData.GetSolarArchetype("waypoint");
-                    missionWaypoint = new GameObject(waypointArch, Game.ResourceManager);
+                    missionWaypoint = new GameObject(waypointArch, null, Game.ResourceManager);
                     missionWaypoint.Name = new ObjectName(1091); //Mission Waypoint
                     missionWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
                     missionWaypoint.World = world;

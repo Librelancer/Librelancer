@@ -347,7 +347,7 @@ namespace LibreLancer.Server
             actions.Enqueue(() =>
             {
                 var arch = Server.GameData.GetSolarArchetype(archetype);
-                var gameobj = new GameObject(arch, Server.Resources, false);
+                var gameobj = new GameObject(arch, null, Server.Resources, false);
                 gameobj.ArchetypeName = archetype;
                 gameobj.NetID = IdGenerator.Allocate();
                 if (idsName != 0)

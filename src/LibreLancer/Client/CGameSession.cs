@@ -927,7 +927,7 @@ namespace LibreLancer.Client
                     if (o == null)
                     {
                         var arch = Game.GameData.GetSolarArchetype(si.Archetype);
-                        var go = new GameObject(arch, Game.ResourceManager, true);
+                        var go = new GameObject(arch, null, Game.ResourceManager, true);
                         go.SetLocalTransform(new Transform3D(si.Position, si.Orientation));
                         go.Nickname = si.Nickname;
                         go.Name = si.Name;

@@ -49,21 +49,19 @@ namespace LibreLancer.Render
         }
     }
 
-    public class StaticBillboards : IDisposable
+    public unsafe class QuadBuffer : IDisposable
     {
         public const int MAX_QUADS = 400;
         public VertexBuffer VertexBuffer;
         ElementBuffer ibo;
-        struct SunVtx
-        {
-            public int ID;
-            public int IndexStart;
-        }
-        List<SunVtx> vertexPtrs = new List<SunVtx>();
         int vertexOffset = 0;
-        public StaticBillboards(RenderContext rstate)
+        private VertexBillboardColor2* verts;
+
+        Span<VertexBillboardColor2> gpuVertices => new Span<VertexBillboardColor2>((void*)verts, MAX_QUADS);
+
+        public QuadBuffer(RenderContext rstate)
         {
-            VertexBuffer = new VertexBuffer(rstate, typeof(VertexBillboardColor2), MAX_QUADS * 4);
+            VertexBuffer = new VertexBuffer(rstate, typeof(VertexBillboardColor2), MAX_QUADS * 4, true);
             ibo = new ElementBuffer(rstate, MAX_QUADS * 6);
             var indices = new ushort[MAX_QUADS * 6];
             int iptr = 0;
@@ -80,6 +78,14 @@ namespace LibreLancer.Render
             }
             ibo.SetData(indices);
             VertexBuffer.SetElementBuffer(ibo);
+        }
+
+        private bool uploading = false;
+        public void BeginUpload()
+        {
+            if (uploading) throw new InvalidOperationException();
+            uploading = true;
+            verts = (VertexBillboardColor2*)VertexBuffer.BeginStreaming();
             NebulaFill();
         }
 
@@ -88,7 +94,7 @@ namespace LibreLancer.Render
         void NebulaFill()
         {
             int a = 0;
-            DoVertices(ref a, new VertexBillboardColor2[]
+            DoVertices(new VertexBillboardColor2[]
             {
                 //X Axis
                 new(new Vector3(-1, -1, 0), new Vector2(0, 1)),
@@ -108,21 +114,20 @@ namespace LibreLancer.Render
             });
         }
 
-        int idCounter = 0;
-        public int DoVertices(ref int id, VertexBillboardColor2[] vertices)
+        public void EndUpload()
         {
-            if (id == 0) id = idCounter++;
-            foreach(var v in vertexPtrs)
-            {
-                if (v.ID == id)
-                    return v.IndexStart;
-            }
+            if(!uploading) throw new InvalidOperationException();
+            uploading = false;
+            VertexBuffer.SetData<VertexBillboardColor2>(gpuVertices.Slice(0, vertexOffset));
+            vertexOffset = 0;
+        }
+
+        public int DoVertices(ReadOnlySpan<VertexBillboardColor2> vx)
+        {
             var idxOffset = (vertexOffset / 4) * 6;
-            if (vertexOffset + vertices.Length >= (MAX_QUADS * 4)) return -1;
-            VertexBuffer.SetData<VertexBillboardColor2>(vertices.AsSpan(), vertexOffset);
-            vertexOffset += vertices.Length;
-            var vtx = new SunVtx() { ID = id, IndexStart = idxOffset };
-            vertexPtrs.Add(vtx);
+            if (vertexOffset + vx.Length >= (MAX_QUADS * 4)) return -1;
+            vx.CopyTo(gpuVertices.Slice(vertexOffset));
+            vertexOffset += vx.Length;
             return idxOffset;
         }
 

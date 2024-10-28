@@ -53,7 +53,7 @@ namespace LibreLancer.Render
 		public SystemLighting SystemLighting = new SystemLighting();
         public ParticleEffectPool FxPool;
         public BeamsBuffer Beams;
-        public StaticBillboards StaticBillboards;
+        public QuadBuffer QuadBuffer;
         public DfmDrawMode DfmMode = DfmDrawMode.Normal;
         public RenderContext RenderContext => rstate;
 		RenderContext rstate;
@@ -113,7 +113,7 @@ namespace LibreLancer.Render
             rstate = resources.GLWindow.RenderContext;
             resman = resources;
             Polyline = new PolylineRender(rstate, Commands);
-            StaticBillboards = new StaticBillboards(rstate);
+            QuadBuffer = new QuadBuffer(rstate);
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new LineRenderer(rstate);
             Beams = new BeamsBuffer(resources, rstate);
@@ -318,6 +318,7 @@ namespace LibreLancer.Render
 			}
             Commands.BonesMax = Commands.BonesOffset = 0;
             Commands.BonesBuffer.BeginStreaming();
+            QuadBuffer.BeginUpload();
             foreach (var obj in tempFx)
             {
                 obj.Render.PrepareRender(camera, nr, this, false);
@@ -326,6 +327,9 @@ namespace LibreLancer.Render
             {
                 World.Objects[i].PrepareRender(camera, nr, this);
             }
+            foreach(var n in Nebulae)
+                n.UploadPuffs();
+            QuadBuffer.EndUpload();
             Commands.BonesBuffer.EndStreaming(Commands.BonesMax);
 			if (transitioned)
 			{
@@ -527,7 +531,7 @@ namespace LibreLancer.Render
 			Polyline.Dispose();
             FxPool.Dispose();
 			DebugRenderer.Dispose();
-            StaticBillboards.Dispose();
+            QuadBuffer.Dispose();
             Beams.Dispose();
         }
 	}

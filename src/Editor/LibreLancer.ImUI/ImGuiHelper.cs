@@ -461,7 +461,7 @@ namespace LibreLancer.ImUI
             ImGui.GetWindowDrawList().AddCallback((IntPtr) 1, (IntPtr) BlendMode.Normal);
         }
 
-        private static Action<Rectangle>[] callbacks = new Action<Rectangle>[128];
+        private static Action<Rectangle>[] callbacks = new Action<Rectangle>[4096];
         private static int cbIndex = 0;
         public static IntPtr Callback(Action<Rectangle> callback)
         {

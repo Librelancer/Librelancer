@@ -288,17 +288,18 @@ namespace LibreLancer.World
             }
         }
 
-        public GameObject(Archetype arch, ResourceManager res, bool draw = true, bool phys = true)
+        public GameObject(Archetype arch, Archs.Sun sun, ResourceManager res, bool draw = true, bool phys = true)
         {
-            InitWithArchetype(arch, res, draw, phys);
+            InitWithArchetype(arch, sun, res, draw, phys);
 		}
 
-        public void InitWithArchetype(Archetype arch, ResourceManager res, bool draw = true, bool phys = true)
+        public void InitWithArchetype(Archetype arch, Archs.Sun sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
-            if (arch is Archs.Sun)
+            if (sun != null)
             {
-                RenderComponent = new SunRenderer((Archs.Sun)arch);
+                InitWithModel(arch.ModelFile.LoadFile(res), res, false, true);
+                RenderComponent = new SunRenderer(sun);
             }
             else
             {

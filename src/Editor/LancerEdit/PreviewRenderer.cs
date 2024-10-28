@@ -119,7 +119,7 @@ public class PreviewRenderer : IDisposable
         var res = Vector3.Transform(new Vector3(0, 0, radius* 2.35f), mat);
         camera.Update(width, height, res, Vector3.Zero);
         var world = new GameWorld(renderer, resources, null, false);
-        var obj = new GameObject(archetype, resources, true, false);
+        var obj = new GameObject(archetype, null, resources, true, false);
         if(archetype.Loadout != null)
             obj.SetLoadout(archetype.Loadout);
         obj.SetLocalTransform(Transform3D.Identity);

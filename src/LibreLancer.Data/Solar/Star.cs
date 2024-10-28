@@ -30,6 +30,6 @@ namespace LibreLancer.Data.Solar
         [Entry("zone_occlusion_fade_out")]
         public float? ZoneOcclusionFadeOut;
         [Entry("radius")]
-        public float? Radius;
+        public float Radius;
 	}
 }
