@@ -132,7 +132,7 @@ public class StarSelection : PopupWindow
                     {
                         bool isNull = Selected == null;
                         if (isNull) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetColorU32(ImGuiCol.ButtonActive));
-                        if (ImGui.Button("##=null", new Vector2(64 * ImGuiHelper.Scale)))
+                        if (ImGui.Button("##=null", new Vector2(80 * ImGuiHelper.Scale)))
                         {
                             Selected = returnValue = null;
                             doReturn = true;
@@ -142,7 +142,7 @@ public class StarSelection : PopupWindow
                         ImGui.Text("(none)");
                         continue;
                     }
-                    if (SunButton(displayList[i], new Vector2(64) * ImGuiHelper.Scale, displayList[i] == Selected))
+                    if (SunButton(displayList[i], new Vector2(80) * ImGuiHelper.Scale, displayList[i] == Selected))
                     {
                         Selected = returnValue = displayList[i];
                         doReturn = true;

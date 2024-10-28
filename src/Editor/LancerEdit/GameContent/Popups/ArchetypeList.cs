@@ -83,7 +83,7 @@ public class ArchetypeList
                 {
                     ImGui.TableNextColumn();
                     var image = gd.GetArchetypePreview(displayList[i]);
-                    if (SelectableImageButton(image, new Vector2(64) * ImGuiHelper.Scale, displayList[i] == Selected))
+                    if (SelectableImageButton(image, new Vector2(80) * ImGuiHelper.Scale, displayList[i] == Selected))
                     {
                         Selected = returnValue = displayList[i];
                         doFiltering = true;
