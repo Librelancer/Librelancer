@@ -327,6 +327,8 @@ class GLRenderContext : IRenderContext
         }
     }
 
+    public IRenderTarget CurrentTarget=> applied.RenderTarget;
+
     public void ApplyRenderTarget(ref GraphicsState requested)
     {
         if (applied.RenderTarget != requested.RenderTarget)
@@ -389,13 +391,13 @@ class GLRenderContext : IRenderContext
         new GLDepthBuffer(width, height);
 
     public ITexture2D CreateTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format) =>
-        new GLTexture2D(width, height, hasMipMaps, format);
+        new GLTexture2D(this, width, height, hasMipMaps, format);
 
     public ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format) =>
         new GLTextureCube(size, mipMap, format);
 
     public IDepthMap CreateDepthMap(int width, int height) =>
-        new GLDepthMap(width, height);
+        new GLDepthMap(this, width, height);
 
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new GLRenderTarget2D(this, (GLTexture2D)texture, (GLDepthBuffer)buffer);

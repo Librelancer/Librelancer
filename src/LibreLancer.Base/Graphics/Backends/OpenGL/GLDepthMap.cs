@@ -9,7 +9,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
     class GLDepthMap : GLTexture2D, IDepthMap
     {
         uint FBO;
-        public GLDepthMap(int width, int height) : base(width, height, false, SurfaceFormat.Depth)
+        public GLDepthMap(GLRenderContext rc, int width, int height) : base(rc, width, height, false, SurfaceFormat.Depth)
         {
             FBO = GL.GenFramebuffer();
             SetFiltering(TextureFiltering.Nearest);

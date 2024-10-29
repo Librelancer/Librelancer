@@ -17,9 +17,11 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         int glInternalFormat;
         int glFormat;
         int glType;
+        private GLRenderContext rc;
 
-        public GLTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format) : this(true)
+        public GLTexture2D(GLRenderContext rc, int width, int height, bool hasMipMaps, SurfaceFormat format) : this(true)
         {
+            this.rc = rc;
             Width = width;
             Height = height;
             Format = format;
@@ -117,21 +119,38 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         }
         public void GetData<T>(T[] data) where T : struct
         {
-			BindForModify();
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
             {
                 throw new NotImplementedException();
             }
             else {
-				var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-                GL.GetTexImage(
-                    GL.GL_TEXTURE_2D,
-                    0,
-                    glFormat,
-                    glType,
-					handle.AddrOfPinnedObject()
-                );
-				handle.Free();
+                var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                BindForModify();
+                if (GL.GLES)
+                {
+                    var fbo = GL.GenFramebuffer();
+                    GL.BindFramebuffer(GL.GL_FRAMEBUFFER, fbo);
+                    GL.FramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, ID, 0);
+                    GL.ReadPixels(0,0,Width,Height, glFormat, glType, handle.AddrOfPinnedObject());
+                    if (rc.CurrentTarget != null)
+                        ((GLRenderTarget)rc.CurrentTarget).BindFramebuffer();
+                    else
+                        GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+                    GL.DeleteFramebuffer(fbo);
+                }
+                else
+                {
+
+                    GL.GetTexImage(
+                        GL.GL_TEXTURE_2D,
+                        0,
+                        glFormat,
+                        glType,
+                        handle.AddrOfPinnedObject()
+                    );
+
+                }
+                handle.Free();
             }
         }
 
