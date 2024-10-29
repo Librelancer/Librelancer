@@ -756,7 +756,7 @@ public class ImportedModel
         writer.Write(VMeshWire.HEADER_SIZE);
         writer.Write(crc);
         writer.Write(vertexOffset);
-        writer.Write((ushort)(max - vertexOffset)); //vertex count
+        writer.Write((ushort)(max - vertexOffset + 1)); //vertex count
         writer.Write((ushort)(indices.Length)); //index count
         writer.Write(max); //max vertex
         foreach(var i in indices)
