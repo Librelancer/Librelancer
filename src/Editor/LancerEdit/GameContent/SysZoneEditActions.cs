@@ -28,6 +28,9 @@ public class SysZoneCreate(SystemEditorTab tab, string nickname, Vector3 positio
         z ??= new Zone();
         z.Nickname = nickname;
         z.Position = position;
+        z.Size = new Vector3(100, 0, 0);
+        z.Shape = ShapeKind.Sphere;
+        z.RotationMatrix = Matrix4x4.Identity;
         z.DensityRestrictions = [];
         z.Encounters = [];
         Zone = tab.ZoneList.AddZone(z);
