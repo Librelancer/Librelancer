@@ -71,8 +71,8 @@ vec4 grid(vec3 fragPos3D, float scale, bool drawAxis) {
     vec2 derivative = fwidth(coord);
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / derivative;
     float line = min(grid.x, grid.y);
-    float minimumz = min(derivative.y, 1);
-    float minimumx = min(derivative.x, 1);
+    float minimumz = min(derivative.y, 1.0);
+    float minimumx = min(derivative.x, 1.0);
     vec4 color = vec4(gridColor.r, gridColor.g, gridColor.b, 1.0 - min(line, 1.0));
     // z axis
     if(fragPos3D.x > (-0.1 / scale) * minimumx && fragPos3D.x < (0.1 / scale) * minimumx)
@@ -101,9 +101,9 @@ void main() {
                 gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 
     float linearDepth = computeLinearDepth(fragPos3D);
-    float fading = max(0, (0.5 - linearDepth));
+    float fading = max(0.0, (0.5 - linearDepth));
 
-    outColor = (grid(fragPos3D, gridScale * 10, true) + grid(fragPos3D, gridScale, true))* float(t > 0); // adding multiple resolution for the grid
+    outColor = (grid(fragPos3D, gridScale * 10.0, true) + grid(fragPos3D, gridScale, true))* float(t > 0.0); // adding multiple resolution for the grid
     outColor.a *= fading;
 }
 ";
