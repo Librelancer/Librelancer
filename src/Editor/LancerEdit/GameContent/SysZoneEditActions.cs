@@ -136,7 +136,7 @@ public class SysZoneSetSizeZ(Zone target, SystemEditorTab tab, float old, float 
 {
     public override void Set(float value)
     {
-        Target.Size = Target.Size with { X = value };
+        Target.Size = Target.Size with { Z = value };
         tab.ZoneList.CheckDirty();
         tab.World.Renderer.ZoneVersion++;
     }
