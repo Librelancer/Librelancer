@@ -669,7 +669,7 @@ namespace LancerEdit
                 if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
                     FileDialog.Open(
-                        input => AddTab(new StateGraphTab(new StateGraphDb(input, null), Path.GetFileName(input))),
+                        input => AddTab(new StateGraphTab(this, new StateGraphDb(input, null), input)),
                         AppFilters.StateGraphFilter
                         );
                 }

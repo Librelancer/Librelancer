@@ -11,7 +11,9 @@ public class NameInputConfig
 {
     public string Title;
     public string ValueName;
+    public bool AllowInitial = true;
     public Func<string, bool> InUse;
+    public Action Extra;
     public bool IsId = true;
     public static NameInputConfig Nickname(string title, Func<string, bool> inUse) => new() {Title = title, ValueName = "Nickname", InUse = inUse};
     public static NameInputConfig Rename() => new() {Title = "Rename", IsId = false};
@@ -59,12 +61,13 @@ public class NameInputPopup : PopupWindow
             ImGui.TextColored(Color4.Red, $"{config.ValueName ?? "Name"} cannot be empty");
             valid = false;
         }
-        else if (config.InUse != null && !nickname.Equals(firstNickname, StringComparison.OrdinalIgnoreCase) &&
+        else if (config.InUse != null && (!config.AllowInitial || !nickname.Equals(firstNickname, StringComparison.OrdinalIgnoreCase)) &&
                 config.InUse(nickname))
         {
             ImGui.TextColored(Color4.Red, $"{config.ValueName ?? "Name"} is already in use");
             valid = false;
         }
+        config.Extra?.Invoke();
         if (ImGuiExt.Button("Ok", valid))
         {
             onSelect(nickname);

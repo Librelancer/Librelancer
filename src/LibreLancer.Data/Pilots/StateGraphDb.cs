@@ -39,6 +39,11 @@ namespace LibreLancer.Data.Pilots
             return true;
         }
 
+        public StateGraphDb()
+        {
+            BehaviorCount = 21;
+        }
+
         public StateGraphDb(string path, FileSystem vfs)
         {
             using (var reader = new StreamReader(vfs?.Open(path) ?? File.OpenRead(path)))
