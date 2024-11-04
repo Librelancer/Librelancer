@@ -93,12 +93,53 @@ public static class AudioImporter
         }
     }
 
+    static EditResult<byte[]> GetMP3Bytes(byte[] src)
+    {
+        try
+        {
+            var reader = new BinaryReader(new MemoryStream(src));
+            Span<byte> tag = stackalloc byte[4];
+            reader.Read(tag);
+            if (!tag.SequenceEqual("RIFF"u8))
+                return src.AsResult();
+            reader.Skip(4);
+            reader.Read(tag);
+            if (!tag.SequenceEqual("WAVE"u8))
+                return EditResult<byte[]>.Error("Failed to read RIFF file");
+            while (true)
+            {
+                reader.Read(tag);
+                if (tag.SequenceEqual("data"u8))
+                {
+                    var sz = reader.ReadInt32();
+                    return reader.ReadBytes(sz).AsResult();
+                }
+                else
+                {
+                    reader.Skip(reader.ReadInt32());
+                }
+            }
+        }
+        catch (Exception)
+        {
+            return EditResult<byte[]>.Error("Failed to read RIFF file");
+        }
+    }
+
+    private const ushort MPEGLAYER3_ID_MPEG = 0x1;
+    private const uint MPEGLAYER3_FLAG_PADDING_OFF = 0x2;
+
+
     public static EditResult<bool> ImportMp3(byte[] mp3Bytes, Stream outputStream, int manualTrim = 0, int manualSamples = 0)
     {
         var info = Analyze(new MemoryStream(mp3Bytes));
         if (info == null || info.Kind != AudioImportKind.Mp3) {
             return EditResult<bool>.Error("File is not valid mp3");
         }
+
+        var embedded = GetMP3Bytes(mp3Bytes);
+        if (embedded.IsError)
+            return new EditResult<bool>(false, embedded.Messages);
 
         // Decode file to get accurate duration
         int totalBytes = 0;
@@ -111,22 +152,29 @@ public static class AudioImporter
         bool doManual = manualTrim != 0 && manualSamples != 0;
         bool writeTrim = doManual || (info.Samples != 0 && info.Trim != 0);
         var writer = new BinaryWriter(outputStream);
-        int totalLength = mp3Bytes.Length +
+        int totalLength = embedded.Data.Length +
                           12 + //riff header
-                          24 + //wave fmt chunk
+                          38 + //wave fmt chunk
                           (writeTrim ? 24 : 0) + //fact and trim chunk
                           8; //data header
         writer.Write("RIFF"u8);
         writer.Write(totalLength);
         writer.Write("WAVE"u8);
         writer.Write("fmt "u8);
-        writer.Write(16); //size
+        writer.Write(30); //size
         writer.Write((ushort)0x55); //mp3
         writer.Write((ushort)info.Channels);
         writer.Write(info.Frequency);
-        writer.Write((int)(mp3Bytes.Length / (totalSamples / (double)info.Frequency))); // approx byte rate
+        writer.Write((int)(embedded.Data.Length / (totalSamples / (double)info.Frequency))); // approx byte rate
         writer.Write((ushort)(info.Channels * 2)); // block align
         writer.Write((ushort)0); //bits per sample (invalid for mp3)
+        // MP3 Extra Data required for msacm
+        writer.Write((ushort)12);
+        writer.Write(MPEGLAYER3_ID_MPEG); //mp3
+        writer.Write(MPEGLAYER3_FLAG_PADDING_OFF); //don't insert padding?
+        writer.Write((ushort)1); //blockSize 1 seems to work
+        writer.Write((ushort)1); //framePerBlock
+        writer.Write((ushort)0); //codec delay
         if (writeTrim) {
             writer.Write("fact"u8);
             writer.Write(4);
@@ -136,8 +184,8 @@ public static class AudioImporter
             writer.Write(doManual ? manualTrim : info.Trim);
         }
         writer.Write("data"u8);
-        writer.Write(mp3Bytes.Length);
-        outputStream.Write(mp3Bytes);
+        writer.Write(embedded.Data.Length);
+        outputStream.Write(embedded.Data);
         return true.AsResult();
     }
     public static EditResult<bool> ImportMp3(string mp3Path, Stream outputStream, int manualTrim = 0, int manualSamples = 0)
