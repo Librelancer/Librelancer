@@ -389,10 +389,12 @@ namespace InterfaceEdit
             mainWindow.RenderContext.SetIdentityCamera();
             drawable.Update(mainWindow.TotalTime);
             mainWindow.RenderContext.Cull = false;
-            mainWindow.RenderContext.ScissorEnabled = true;
-            mainWindow.RenderContext.ScissorRectangle = rectangle;
-            drawable.DrawImmediate(mainWindow.RenderContext, context.ResourceManager, transform, ref Lighting.Empty);
-            mainWindow.RenderContext.ScissorEnabled = false;
+            if (mainWindow.RenderContext.PushScissor(rectangle))
+            {
+                drawable.DrawImmediate(mainWindow.RenderContext, context.ResourceManager, transform,
+                    ref Lighting.Empty);
+                mainWindow.RenderContext.PopScissor();
+            }
             mainWindow.RenderContext.Cull = true;
             DrawViewport();
         }

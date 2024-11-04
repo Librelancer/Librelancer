@@ -42,7 +42,7 @@ class NullRenderContext : IRenderContext
     {
     }
 
-    public void Set2DState(bool cull, bool depth, bool scissor)
+    public void Set2DState(bool cull, bool depth)
     {
     }
 

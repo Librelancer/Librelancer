@@ -50,10 +50,11 @@ namespace LancerEdit
 
             drawList.AddCallback(IntPtr.MaxValue, ImGuiHelper.Callback(s =>
             {
-                window.RenderContext.ScissorEnabled = true;
-                window.RenderContext.ScissorRectangle = s;
-                window.RichText.RenderText(icard, (int)mOffset.X, (int)mOffset.Y);
-                window.RenderContext.ScissorEnabled = false;
+                if (window.RenderContext.PushScissor(s))
+                {
+                    window.RichText.RenderText(icard, (int)mOffset.X, (int)mOffset.Y);
+                    window.RenderContext.PopScissor();
+                }
             }));
 
             ImGui.InvisibleButton("##infocardbutton", new System.Numerics.Vector2(renderWidth, icard.Height));

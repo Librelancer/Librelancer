@@ -99,14 +99,15 @@ namespace LibreLancer.Interface
                 }
                 if(scrollbarVisible)
                     scrollbar.Render(context, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
-                context.RenderContext.ScissorEnabled = true;
-                context.RenderContext.ScissorRectangle = myRect;
-                int y = myRect.Y;
-                if (scrollbarVisible) {
-                    y -= (int) (scrollbar.ScrollOffset * (richText.Height - myRect.Height));
+                if (context.RenderContext.PushScissor(myRect))
+                {
+                    int y = myRect.Y;
+                    if (scrollbarVisible) {
+                        y -= (int) (scrollbar.ScrollOffset * (richText.Height - myRect.Height));
+                    }
+                    rte.RenderText(richText, myRect.X, y);
+                    context.RenderContext.PopScissor();
                 }
-                rte.RenderText(richText, myRect.X, y);
-                context.RenderContext.ScissorEnabled = false;
             }
             Border?.Draw(context, myRectangle);
         }

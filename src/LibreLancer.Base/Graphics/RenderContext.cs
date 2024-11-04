@@ -126,9 +126,9 @@ namespace LibreLancer.Graphics
         public bool ScissorEnabled
         {
             get => requested.ScissorEnabled;
-            set
+            private set
             {
-                Renderer2D.ScissorChanged();
+                Renderer2D.Flush();
                 requested.ScissorEnabled = value;
             }
         }
@@ -136,9 +136,9 @@ namespace LibreLancer.Graphics
         public Rectangle ScissorRectangle
         {
             get => requested.ScissorRect;
-            set
+            private set
             {
-                Renderer2D.ScissorChanged();
+                Renderer2D.Flush();
                 requested.ScissorRect = value;
             }
         }
@@ -221,6 +221,50 @@ namespace LibreLancer.Graphics
         public Rectangle CurrentViewport => requested.Viewport;
 
         Stack<Rectangle> viewports = new Stack<Rectangle>();
+        private Stack<Rectangle> clips = new Stack<Rectangle>();
+
+        public bool PushScissor(Rectangle clip, bool parentClip = true)
+        {
+            if(clips.Count > 0 && parentClip) {
+                if (!Rectangle.Clip(clip, clips.Peek(), out var newRect))
+                {
+                    return false;
+                }
+                ScissorRectangle = newRect;
+                clips.Push(newRect);
+                ScissorEnabled = true;
+            }
+            else
+            {
+                ScissorRectangle = clip;
+                clips.Push(clip);
+                ScissorEnabled = true;
+            }
+            return true;
+        }
+
+        public void PopScissor()
+        {
+            if (clips.Count == 0)
+                throw new InvalidOperationException();
+            clips.Pop();
+            if (clips.Count > 0)
+            {
+                ScissorRectangle = clips.Peek();
+                ScissorEnabled = true;
+            }
+            else
+            {
+                ScissorEnabled = false;
+            }
+        }
+
+        public void ClearScissor()
+        {
+            ScissorEnabled = false;
+            clips.Clear();
+        }
+
 
         public void PushViewport(Rectangle vp)
         {
@@ -294,7 +338,7 @@ namespace LibreLancer.Graphics
         internal void ApplyRenderTarget() => impl.ApplyRenderTarget(ref requested);
 
         internal void SetBlendMode(ushort mode) => impl.SetBlendMode(mode);
-        internal void Set2DState(bool depth, bool cull, bool scissor) => impl.Set2DState(depth, cull, scissor);
+        internal void Set2DState(bool depth, bool cull) => impl.Set2DState(depth, cull);
 
 		public void Apply()
 		{

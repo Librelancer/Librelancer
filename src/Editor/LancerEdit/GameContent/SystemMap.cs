@@ -16,7 +16,7 @@ namespace LancerEdit.GameContent
     public class SystemMap
     {
         private UiContext ctx;
-        private Navmap navmap;
+        public Navmap Control;
         private MainWindow win;
         public void CreateContext(GameDataContext context, MainWindow win)
         {
@@ -32,18 +32,18 @@ namespace LancerEdit.GameContent
             uidata.ResourceManager = context.Resources;
             ctx = new UiContext(uidata);
             ctx.RenderContext = win.RenderContext;
-            navmap = new Navmap();
-            navmap.Width = 480;
-            navmap.Height = 480;
-            navmap.LetterMargin = true;
-            navmap.MapBorder = true;
-            ctx.SetWidget(navmap);
+            Control = new Navmap();
+            Control.Width = 480;
+            Control.Height = 480;
+            Control.LetterMargin = true;
+            Control.MapBorder = true;
+            ctx.SetWidget(Control);
             this.win = win;
         }
 
         public void SetObjects(StarSystem sys)
         {
-            navmap.PopulateIcons(ctx, sys);
+            Control.PopulateIcons(ctx, sys);
         }
 
         private RenderTarget2D rtarget;

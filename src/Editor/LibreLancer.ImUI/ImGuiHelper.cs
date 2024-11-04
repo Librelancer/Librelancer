@@ -636,12 +636,11 @@ namespace LibreLancer.ImUI
 						dot.BindTo(0);
 					}
 
-                    rstate.ScissorEnabled = true;
-                    rstate.ScissorRectangle = new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
-                        (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
-                        (int) (pcmd.ClipRect.W - pcmd.ClipRect.Y));
+                    rstate.PushScissor(new Rectangle((int)pcmd.ClipRect.X, (int)pcmd.ClipRect.Y,
+                        (int)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
+                        (int)(pcmd.ClipRect.W - pcmd.ClipRect.Y)));
                     vbo.Draw(PrimitiveTypes.TriangleList, (int)pcmd.VtxOffset, (int)pcmd.IdxOffset, (int)pcmd.ElemCount / 3);
-                    rstate.ScissorEnabled = false;
+                    rstate.PopScissor();
 				}
 			}
 

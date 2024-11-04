@@ -291,8 +291,8 @@ public class TextEditBase
 
     public void Draw(RenderContext context, double globalTime)
     {
-        context.ScissorEnabled = true;
-        context.ScissorRectangle = new Rectangle(x,y,width,height);
+        if (!context.PushScissor(new Rectangle(x, y, width, height)))
+            return;
         Update(context.Renderer2D.CreateRichTextEngine());
         var pos = richText.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
         int xOffset = 0;
@@ -311,6 +311,6 @@ public class TextEditBase
             var caretRect = new Rectangle(x - xOffset + pos.X, y + pos.Y, pos.Width, pos.Height);
             context.Renderer2D.FillRectangle(caretRect, _fontColor);
         }
-        context.ScissorEnabled = false;
+        context.PopScissor();
     }
 }

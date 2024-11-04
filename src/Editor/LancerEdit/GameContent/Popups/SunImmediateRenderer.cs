@@ -83,12 +83,12 @@ public class SunImmediateRenderer : IDisposable
         glowMaterial.World = handle;
 
         var restore = render.RenderTarget;
-        var szRect = render.ScissorEnabled;
-        render.ScissorEnabled = false;
+
         if (viewport != null)
         {
             var vp = viewport.Value;
             render.PushViewport(new Rectangle(0, 0, vp.Width, vp.Height));
+            render.PushScissor(new Rectangle(0, 0, vp.Width, vp.Height), false);
             if (drawTarget == null ||
                 drawTarget?.Width != vp.Width || drawTarget?.Height != vp.Height)
             {
@@ -99,6 +99,7 @@ public class SunImmediateRenderer : IDisposable
             render.RenderTarget = drawTarget;
             render.ClearColor = background;
             render.ClearAll();
+
         }
 
         // Calculate size of sun
@@ -151,8 +152,8 @@ public class SunImmediateRenderer : IDisposable
 
         if (viewport != null)
         {
+            render.PopScissor();
             render.PopViewport();
-            render.ScissorEnabled = szRect;
             render.RenderTarget = restore;
             var vp = viewport.Value;
             if (restore != null)

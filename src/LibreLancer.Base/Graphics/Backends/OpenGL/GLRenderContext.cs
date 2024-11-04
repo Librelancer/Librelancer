@@ -211,7 +211,7 @@ class GLRenderContext : IRenderContext
         }
     }
 
-    public void Set2DState(bool depth, bool cull, bool scissor)
+    public void Set2DState(bool depth, bool cull)
     {
         if (depth != applied.DepthEnabled)
         {
@@ -229,13 +229,6 @@ class GLRenderContext : IRenderContext
                 GL.Enable(GL.GL_CULL_FACE);
             else
                 GL.Disable(GL.GL_CULL_FACE);
-        }
-        if (scissor != applied.ScissorEnabled)
-        {
-            if(scissor)
-                GL.Enable(GL.GL_SCISSOR_TEST);
-            else
-                GL.Disable(GL.GL_SCISSOR_TEST);
         }
     }
 

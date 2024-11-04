@@ -76,14 +76,15 @@ public class ChatHistory : UiWidget
         }
         if(scrollbarVisible)
             scrollbar.Render(context, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
-        context.RenderContext.ScissorEnabled = true;
-        context.RenderContext.ScissorRectangle = displayRect;
-        int y = displayRect.Y;
-        if (scrollbarVisible) {
-            y -= (int) (scrollbar.ScrollOffset * (builtText.Height - displayRect.Height));
+        if (context.RenderContext.PushScissor(displayRect))
+        {
+            int y = displayRect.Y;
+            if (scrollbarVisible) {
+                y -= (int) (scrollbar.ScrollOffset * (builtText.Height - displayRect.Height));
+            }
+            context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText, displayRect.X, y);
+            context.RenderContext.PopScissor();
         }
-        context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText, displayRect.X, y);
-        context.RenderContext.ScissorEnabled = false;
         Border?.Draw(context, myRectangle);
     }
 

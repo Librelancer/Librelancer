@@ -114,15 +114,15 @@ namespace LibreLancer.Interface
                 shadow = new OptionalColor(shadowColor.Color);
                 shadow.Color.A *= alpha;
             }
-            if (clip) {
-                context.RenderContext.ScissorEnabled = true;
-                context.RenderContext.ScissorRectangle = drawRect;
-            }
+
+            bool restoreClip = false;
+            Rectangle restoreRect = default;
+            if (clip && !context.RenderContext.PushScissor(drawRect))
+                return;
             context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
-            if (clip) {
-                context.RenderContext.ScissorEnabled = false;
-            }
+            if (clip)
+                context.RenderContext.PopScissor();
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 

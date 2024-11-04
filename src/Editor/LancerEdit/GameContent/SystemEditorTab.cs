@@ -1195,8 +1195,9 @@ public class SystemEditorTab : GameContentTab
             ImGui.SetNextWindowSize(new Vector2(300) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
             if (ImGui.Begin("Map", ref mapOpen))
             {
+                ImGui.SliderFloat("Zoom", ref systemMap.Control.Zoom, 1, 10);
                 var szX = Math.Max(20, ImGui.GetWindowWidth());
-                var szY = Math.Max(20, ImGui.GetWindowHeight() - 37 * ImGuiHelper.Scale);
+                var szY = Math.Max(20, ImGui.GetWindowHeight() - 90 * ImGuiHelper.Scale);
                 systemMap.Draw((int)szX, (int)szY, 1 / 60.0f);
             }
             ImGui.End();

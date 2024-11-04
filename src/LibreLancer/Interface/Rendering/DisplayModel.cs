@@ -90,9 +90,8 @@ namespace LibreLancer.Interface
             if (!Enabled || Model == null) return;
             if (!CanRender(context)) return;
             var rect = context.PointsToPixels(clientRectangle);
-            if (Clip) {
-                context.RenderContext.ScissorEnabled = true;
-                context.RenderContext.ScissorRectangle = rect;
+            if (Clip && !context.RenderContext.PushScissor(rect)) {
+                return;
             }
             Matrix4x4 rotationMatrix = Matrix4x4.Identity;
             var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
@@ -155,7 +154,8 @@ namespace LibreLancer.Interface
                 context.Lines.Render();
                 context.RenderContext.DepthEnabled = false;
             }
-            context.RenderContext.ScissorEnabled = false;
+            if(Clip)
+                context.RenderContext.PopScissor();
             context.RenderContext.Cull = true;
         }
 

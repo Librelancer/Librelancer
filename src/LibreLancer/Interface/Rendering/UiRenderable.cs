@@ -21,10 +21,11 @@ namespace LibreLancer.Interface
         public void DrawWithClip(UiContext context, RectangleF rectangle, RectangleF clip)
         {
             var clipRectangle = context.PointsToPixels(clip);
-            context.RenderContext.ScissorRectangle = clipRectangle;
-            context.RenderContext.ScissorEnabled = true;
-            Draw(context, rectangle);
-            context.RenderContext.ScissorEnabled = false;
+            if (context.RenderContext.PushScissor(clipRectangle))
+            {
+                Draw(context, rectangle);
+                context.RenderContext.PopScissor();
+            }
         }
     }
 

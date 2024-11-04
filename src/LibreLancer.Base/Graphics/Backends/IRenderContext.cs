@@ -18,7 +18,7 @@ interface IRenderContext
 
     void ApplyShader(IShader shader);
 
-    void Set2DState(bool cull, bool depth, bool scissor);
+    void Set2DState(bool cull, bool depth);
 
     void SetBlendMode(ushort mode);
 

@@ -43,6 +43,22 @@ namespace LibreLancer
 					Y < (other.Y + other.Height));
 		}
 
+        public static bool Clip(Rectangle rect, Rectangle clip, out Rectangle result)
+        {
+            int clippedX = Math.Max(rect.X, clip.X);
+            int clippedY = Math.Max(rect.Y, clip.Y);
+            int clippedWidth = Math.Min(rect.X + rect.Width, clip.X + clip.Width) - clippedX;
+            int clippedHeight = Math.Min(rect.Y + rect.Height, clip.Y + clip.Height) - clippedY;
+            // If there's no intersection, return an empty rectangle
+            if (clippedWidth <= 0 || clippedHeight <= 0)
+            {
+                result = default;
+                return false;
+            }
+            result = new Rectangle(clippedX, clippedY, clippedWidth, clippedHeight);
+            return true;
+        }
+
 		public override bool Equals(object obj)
 		{
 			if (obj is Rectangle)
