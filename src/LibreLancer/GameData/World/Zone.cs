@@ -3,9 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Data.Universe;
+using SharpDX.DXGI;
 
 namespace LibreLancer.GameData.World
 {
@@ -71,7 +75,7 @@ namespace LibreLancer.GameData.World
         private ShapeData _shape;
         private ZoneData data;
 
-        void UpdateShape()
+        void UpdateShape(bool isPosition = false)
         {
             switch (data.Shape)
             {
@@ -89,33 +93,9 @@ namespace LibreLancer.GameData.World
                     _shape.CylRing.SZ2 = data.Size * data.Size;
                     break;
             }
-        }
 
-        public Vector3 PointOnRadius(Func<float> randfunc)
-        {
-            switch (data.Shape)
-            {
-                case ShapeKind.Sphere:
-                {
-                    var theta = randfunc () * 2 * Math.PI;
-                    var phi = randfunc () * 2 * Math.PI;
-                    var x = Math.Cos (theta) * Math.Cos (phi);
-                    var y = Math.Sin (phi);
-                    var z = Math.Sin (theta) * Math.Cos (phi);
-                    return new Vector3 ((float)x, (float)y, (float)z) * data.Size.X;
-                }
-                case ShapeKind.Ellipsoid:
-                {
-                    var theta = randfunc () * 2 * Math.PI;
-                    var phi = randfunc () * 2 * Math.PI;
-                    var x = Math.Cos (theta) * Math.Cos (phi);
-                    var y = Math.Sin (phi);
-                    var z = Math.Sin (theta) * Math.Cos (phi);
-                    return new Vector3 ((float)x, (float)y, (float)z) * data.Size;
-                }
-                default:
-                    throw new InvalidOperationException();
-            }
+            if (!isPosition)
+                topDown = null;
         }
 
         public float ScaledDistance(Vector3 point)
@@ -258,7 +238,7 @@ namespace LibreLancer.GameData.World
             set
             {
                 data.Position = value;
-                UpdateShape();
+                UpdateShape(true);
             }
         }
 
@@ -290,6 +270,168 @@ namespace LibreLancer.GameData.World
                 data.Shape = value;
                 UpdateShape();
             }
+        }
+
+        private Vector2[] topDown = null;
+
+        private static readonly Vector3[] _cubeVertices =
+        {
+            new(-0.5f, -0.5f, -0.5f),
+            new(0.5f, -0.5f, -0.5f),
+            new(0.5f, -0.5f, 0.5f),
+            new(-0.5f, -0.5f, 0.5f),
+            new(-0.5f, 0.5f, -0.5f),
+            new(0.5f, 0.5f, -0.5f),
+            new(0.5f, 0.5f, 0.5f),
+            new(-0.5f, 0.5f, 0.5f)
+        };
+
+        private static readonly Vector3[] _cylinderVertices =
+        {
+            new(0.0f, 0.5f, 0.0f),
+            new(0.0f, -0.5f, 0.0f),
+            new(1.0f, 0.5f, 0.0f),
+            new(1.0f, -0.5f, 0.0f),
+            new(0.9511f, 0.5f, 0.3090f),
+            new(0.9511f, -0.5f, 0.3090f),
+            new(0.8090f, 0.5f, 0.5878f),
+            new(0.8090f, -0.5f, 0.5878f),
+            new(0.5878f, 0.5f, 0.8090f),
+            new(0.5878f, -0.5f, 0.8090f),
+            new(0.3090f, 0.5f, 0.9511f),
+            new(0.3090f, -0.5f, 0.9511f),
+            new(0.0f, 0.5f, 1.0f),
+            new(0.0f, -0.5f, 1.0f),
+            new(-0.3090f, 0.5f, 0.9511f),
+            new(-0.3090f, -0.5f, 0.9511f),
+            new(-0.5878f, 0.5f, 0.8090f),
+            new(-0.5878f, -0.5f, 0.8090f),
+            new(-0.8090f, 0.5f, 0.5878f),
+            new(-0.8090f, -0.5f, 0.5878f),
+            new(-0.9511f, 0.5f, 0.3090f),
+            new(-0.9511f, -0.5f, 0.3090f),
+            new(-1.0f, 0.5f, 0.0f),
+            new(-1.0f, -0.5f, 0.0f),
+            new(-0.9511f, 0.5f, -0.3090f),
+            new(-0.9511f, -0.5f, -0.3090f),
+            new(-0.8090f, 0.5f, -0.5878f),
+            new(-0.8090f, -0.5f, -0.5878f),
+            new(-0.5878f, 0.5f, -0.8090f),
+            new(-0.5878f, -0.5f, -0.8090f),
+            new(-0.3090f, 0.5f, -0.9511f),
+            new(-0.3090f, -0.5f, -0.9511f),
+            new(0.0f, 0.5f, -1.0f),
+            new(0.0f, -0.5f, -1.0f),
+            new(0.3090f, 0.5f, -0.9511f),
+            new(0.3090f, -0.5f, -0.9511f),
+            new(0.5878f, 0.5f, -0.8090f),
+            new(0.5878f, -0.5f, -0.8090f),
+            new(0.8090f, 0.5f, -0.5878f),
+            new(0.8090f, -0.5f, -0.5878f),
+            new(0.9511f, 0.5f, -0.3090f),
+            new(0.9511f, -0.5f, -0.3090f)
+        };
+
+        private const int SECTORS = 48;
+
+        public Vector2[] TopDownMesh()
+        {
+            if(topDown != null)
+                return topDown;
+
+            if (Shape == ShapeKind.Ellipsoid)
+            {
+                topDown = new Vector2[(SECTORS - 1) * 3];
+                int j = 0;
+                for (int i = 1; i < SECTORS; i++)
+                {
+                    var lastT = ((2 * MathF.PI) / (SECTORS - 1)) * (i - 1);
+                    var t = ((2 * MathF.PI) / (SECTORS - 1)) * i;
+                    var p0 = Vector3.Transform(PrimitiveMath.GetPointOnRadius(Size, 0, lastT), RotationMatrix);
+                    var p1 = Vector3.Transform(PrimitiveMath.GetPointOnRadius(Size, 0, t), RotationMatrix);
+                    topDown[j++] = new Vector2(p0.X, p0.Z);
+                    j++; //Vector2.Zero
+                    topDown[j++] = new Vector2(p1.X, p1.Z);
+                }
+            }
+            else if (Shape == ShapeKind.Sphere)
+            {
+                // Don't rotate for sphere
+                topDown = new Vector2[(SECTORS - 1) * 3];
+                int j = 0;
+                var sz = new Vector3(Size.X);
+                for (int i = 1; i < SECTORS; i++)
+                {
+                    var lastT = ((2 * MathF.PI) / (SECTORS - 1)) * (i - 1);
+                    var t = ((2 * MathF.PI) / (SECTORS - 1)) * i;
+                    var p0 = PrimitiveMath.GetPointOnRadius(sz, 0, lastT);
+                    var p1 = PrimitiveMath.GetPointOnRadius(sz, 0, t);
+                    topDown[j++] = new Vector2(p0.X, p0.Z);
+                    j++; //Vector2.Zero
+                    topDown[j++] = new Vector2(p1.X, p1.Z);
+                }
+            }
+            else if (Shape == ShapeKind.Box)
+            {
+                //Flatten a mesh + create convex hull
+                List<Vector2> points = new List<Vector2>(_cubeVertices.Length);
+                foreach (var v in _cubeVertices) {
+                    var p0 = Vector3.Transform(v * Size, RotationMatrix);
+                    points.Add(new Vector2(p0.X, p0.Z));
+                }
+                topDown = Convex2D(points);
+            }
+            else // Cylinder and ring
+            {
+                //Flatten a mesh + create convex hull
+                List<Vector2> points = new List<Vector2>(_cylinderVertices.Length);
+                var sz = new Vector3(Size.X, Size.Y, Size.X);
+                foreach (var v in _cylinderVertices) {
+                    var p0 = Vector3.Transform(v * sz, RotationMatrix);
+                    points.Add(new Vector2(p0.X, p0.Z));
+                }
+                topDown = Convex2D(points);
+            }
+
+            return topDown;
+        }
+
+        static double Cross2D(Vector2 O, Vector2 A, Vector2 B) =>
+            ((double)A.X - O.X) * ((double)B.Y - O.Y) - ((double)A.Y - O.Y) * ((double)B.X - O.X);
+
+        static Vector2[] Convex2D(List<Vector2> points)
+        {
+            if (points == null || points.Count <= 1)
+                throw new InvalidOperationException();
+            int n = points.Count, k = 0;
+            var H = new Vector2[2 * n];
+            points.Sort((a, b) =>
+                MathF.Abs(a.X - b.X) < float.Epsilon ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
+            // Build lower hull
+            for (int i = 0; i < n; ++i)
+            {
+                while (k >= 2 && Cross2D(H[k - 2], H[k - 1], points[i]) <= 0)
+                    k--;
+                H[k++] = points[i];
+            }
+            // Build upper hull
+            for (int i = n - 2, t = k + 1; i >= 0; i--)
+            {
+                while (k >= t && Cross2D(H[k - 2], H[k - 1], points[i]) <= 0)
+                    k--;
+                H[k++] = points[i];
+            }
+
+            // Triangulate and return
+            var triangulated = new Vector2[(k - 3) * 3];
+            int j = 0;
+            for (int i = 1; i < k - 2; i++)
+            {
+                triangulated[j++] = H[0];
+                triangulated[j++] = H[i];
+                triangulated[j++] = H[i + 1];
+            }
+            return triangulated;
         }
 
         public ref Vector3 RotationAngles => ref data.RotationAngles;

@@ -10,6 +10,7 @@ using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
+using LibreLancer.Dialogs;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 using LibreLancer.GameData.World;
@@ -22,6 +23,7 @@ using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.World;
+using SimpleMesh;
 using Archetype = LibreLancer.GameData.Archetype;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
 
@@ -266,7 +268,6 @@ public class SystemEditorTab : GameContentTab
         }
 
         var sel = ZoneList.Selected.Current;
-        var ez = ZoneList.Selected;
 
         if (ImGui.Button("Get Ini"))
         {

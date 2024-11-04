@@ -11,7 +11,7 @@ namespace LibreLancer.Shaders
 {
     using System;
     
-    public class Particle
+    public class Navmap
     {
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
@@ -32,10 +32,10 @@ namespace LibreLancer.Shaders
                 return;
             }
             iscompiled = true;
-            ShaderVariables.Log("Compiling Particle");
+            ShaderVariables.Log("Compiling Navmap");
             variants = new ShaderVariables[1];
             // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(719126, 708), sourceBundle.Substring(414584, 236), sourceBundle.Substring(719834, 2127));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(497580, 236), sourceBundle.Substring(497816, 321));
         }
     }
 }

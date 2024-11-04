@@ -156,6 +156,26 @@ public class EditMap2D
                     (VertexDiffuse)Color4.Yellow);
             }
         }
+
+        Vector2 ZoneVertex(Vector2 wp, Vector3 pos, Vector2 mesh) =>
+            wp + WorldToMap(pos + new Vector3(mesh.X, 0, mesh.Y));
+
+        foreach (var z in tab.ZoneList.Zones)
+        {
+            if (!z.Visible)
+                continue;
+            var mesh = z.Current.TopDownMesh();
+            var wp = ImGui.GetWindowPos();
+            for (int i = 0; i < mesh.Length; i += 3)
+            {
+                dlist.AddTriangleFilled(
+                    ZoneVertex(wp, z.Current.Position, mesh[i]),
+                    ZoneVertex(wp, z.Current.Position, mesh[i + 1]),
+                    ZoneVertex(wp, z.Current.Position, mesh[i + 2]),
+                    (VertexDiffuse)Color4.Pink
+                );
+            }
+        }
         //Context menu
         ImGui.SetCursorPos(new Vector2(gridMargin));
         ImGui.InvisibleButton("##canvas", new Vector2(renderWidth, renderHeight));
