@@ -144,7 +144,7 @@ namespace LibreLancer
         }
         private EffectStorage fxdata;
         public GameItemCollection<ResolvedFx> Effects;
-
+        public GameItemCollection<ResolvedFx> VisEffects;
         void InitEffects()
         {
             fxdata = new EffectStorage();
@@ -155,6 +155,22 @@ namespace LibreLancer
             foreach (var fx in fldata.Effects.BeamBolts)
                 fxdata.BeamBolts[fx.Nickname] = fx;
             Effects = new GameItemCollection<ResolvedFx>();
+            VisEffects = new GameItemCollection<ResolvedFx>();
+            foreach (var fx in fldata.Effects.VisEffects)
+            {
+                string alepath = null;
+                if (!string.IsNullOrWhiteSpace(fx.AlchemyPath))
+                    alepath = DataPath(fx.AlchemyPath);
+                var lib = fx.Textures.Select(DataPath).Where(x => x != null).ToArray();
+                VisEffects.Add(new ResolvedFx()
+                {
+                    AlePath = alepath,
+                    VisFxCrc = (uint)fx.EffectCrc,
+                    LibraryFiles = lib,
+                    CRC = FLHash.CreateID(fx.Nickname),
+                    Nickname = fx.Nickname
+                });
+            }
             foreach (var effect in fldata.Effects.Effects)
             {
                 VisEffect visfx = null;

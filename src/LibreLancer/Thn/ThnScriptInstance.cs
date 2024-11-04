@@ -179,6 +179,7 @@ namespace LibreLancer.Thn
                 else if (kv.Value.Type == EntityTypes.PSys)
                 {
                     var fx = gameData.Effects.Get(kv.Value.Template);
+                    fx ??= gameData.VisEffects.Get(kv.Value.Template); //TODO: Check if this only searches VisEffects
                     if (fx?.AlePath != null)
                     {
                         obj.Object = new GameObject();
