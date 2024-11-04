@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using ImGuiNET;
 namespace LibreLancer.ImUI
 {
-    public unsafe class ImGuiExt
+    public static unsafe class ImGuiExt
     {
         [DllImport("cimgui", CallingConvention =  CallingConvention.Cdecl)]
         internal static extern void igFtLoad();
@@ -45,6 +45,17 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         public static extern ImFontGlyph* igFontFindGlyph(ImFont* font, uint c);
+
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+        static extern void igExtDrawListAddTriangleMesh(IntPtr drawlist, IntPtr vertices, int count, uint color);
+
+        public static void AddTriangleMesh(this ImDrawListPtr drawList, Vector2[] vertices, int count, VertexDiffuse color)
+        {
+            fixed (Vector2* ptr = vertices)
+            {
+                igExtDrawListAddTriangleMesh((IntPtr)drawList.NativePtr, (IntPtr)ptr, count, color);
+            }
+        }
 
         public static unsafe bool BeginModalNoClose(string name, ImGuiWindowFlags flags)
         {

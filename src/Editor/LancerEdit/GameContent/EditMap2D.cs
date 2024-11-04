@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
@@ -157,25 +158,19 @@ public class EditMap2D
             }
         }
 
-        Vector2 ZoneVertex(Vector2 wp, Vector3 pos, Vector2 mesh) =>
-            wp + WorldToMap(pos + new Vector3(mesh.X, 0, mesh.Y));
-
         foreach (var z in tab.ZoneList.Zones)
         {
             if (!z.Visible)
                 continue;
             var mesh = z.Current.TopDownMesh();
+            var transformed = ArrayPool<Vector2>.Shared.Rent(mesh.Length);
             var wp = ImGui.GetWindowPos();
-            for (int i = 0; i < mesh.Length; i += 3)
-            {
-                dlist.AddTriangleFilled(
-                    ZoneVertex(wp, z.Current.Position, mesh[i]),
-                    ZoneVertex(wp, z.Current.Position, mesh[i + 1]),
-                    ZoneVertex(wp, z.Current.Position, mesh[i + 2]),
-                    (VertexDiffuse)Color4.Pink
-                );
-            }
+            for (int i = 0; i < mesh.Length; i++)
+                transformed[i] = wp + WorldToMap(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
+            dlist.AddTriangleMesh(transformed, mesh.Length, (VertexDiffuse)Color4.Pink);
+            ArrayPool<Vector2>.Shared.Return(transformed);
         }
+
         //Context menu
         ImGui.SetCursorPos(new Vector2(gridMargin));
         ImGui.InvisibleButton("##canvas", new Vector2(renderWidth, renderHeight));

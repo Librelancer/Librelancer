@@ -34,6 +34,25 @@ IGEXPORT void igExtRenderArrow(float frameX, float frameY)
     RenderArrow(window->DrawList, ImVec2(frameX + style.FramePadding.y, frameY + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
 }
 
+IGEXPORT void igExtDrawListAddTriangleMesh(void* drawlist, float* vertices, int32_t count, uint32_t color)
+{
+    using namespace ImGui;
+    ImDrawList *dl = (ImDrawList*)drawlist;
+    dl->PrimReserve(count, count);
+    ImVec2* points = (ImVec2*)vertices;
+    ImDrawIdx idx = (ImDrawIdx)dl->_VtxCurrentIdx;
+    for (int i = 0; i < count; i++)
+    {
+        dl->_IdxWritePtr[i] = (ImDrawIdx)(idx + i);
+        dl->_VtxWritePtr[i].pos = points[i];
+        dl->_VtxWritePtr[i].uv = dl->_Data->TexUvWhitePixel;
+        dl->_VtxWritePtr[i].col = color;
+    }
+    dl->_VtxWritePtr += count;
+    dl->_IdxWritePtr += count;
+    dl->_VtxCurrentIdx += count;
+}
+
 IGEXPORT bool igExtComboButton(const char* idstr, const char* preview_value)
 {
     using namespace ImGui;
