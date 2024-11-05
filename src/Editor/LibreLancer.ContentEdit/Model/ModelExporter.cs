@@ -429,7 +429,7 @@ public static class ModelExporter
                 if (mesh.VertexFormat.Normal)
                     vert.Normal = mesh.GetNormal(idx);
                 if (mesh.VertexFormat.Diffuse)
-                    vert.Diffuse = (Color4)mesh.GetDiffuse(idx);
+                    vert.Diffuse = LinearColor.FromSrgb((Color4)mesh.GetDiffuse(idx));
                 if (mesh.VertexFormat.TexCoords > 1 && mesh.VertexFormat.TexCoords != 3)
                 {
                     vert.Texture2 = mesh.GetTexCoord(idx, 1);

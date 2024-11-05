@@ -125,7 +125,7 @@ namespace LibreLancer.ContentEdit.Model
                         writer.Write(v.Normal.Z);
                     }
                     if ((fvf & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
-                        writer.Write((VertexDiffuse)v.Diffuse);
+                        writer.Write((VertexDiffuse)v.Diffuse.ToSrgb());
                     }
 
                     if (desc.TexCoords > 0)

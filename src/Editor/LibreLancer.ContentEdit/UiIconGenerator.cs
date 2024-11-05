@@ -17,7 +17,7 @@ namespace LibreLancer.ContentEdit
     public static class UiIconGenerator
     {
         static Vertex IcoVert(Vector3 pos, Vector2 tex1) => new Vertex(
-            pos, Vector3.UnitZ, Vector4.One, Vector4.Zero,
+            pos, Vector3.UnitZ, LinearColor.White, Vector4.Zero,
             tex1, Vector2.Zero, Vector2.Zero, Vector2.Zero);
 
         private static Vertex[] vertices_ship = {
