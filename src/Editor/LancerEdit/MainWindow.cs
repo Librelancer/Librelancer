@@ -228,7 +228,7 @@ namespace LancerEdit
                 editor.SaveStrategy.Save();
                 return;
             }
-            Hotkeys hk = e.Key switch
+            Hotkeys hk = e.Key.Map() switch
             {
                 Keys.C when control && !popupOrTextEditing => Hotkeys.Copy,
                 Keys.V when control && !popupOrTextEditing => Hotkeys.Paste,
