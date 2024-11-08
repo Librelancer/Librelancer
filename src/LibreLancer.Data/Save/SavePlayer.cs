@@ -16,7 +16,7 @@ namespace LibreLancer.Data.Save
     {
         public HashValue Item;
         public string Hardpoint;
-        public float Unknown = 1; //Either health or count, not sure
+        public float Health = 1;
         public PlayerEquipment() { }
         public PlayerEquipment(Entry e)
         {
@@ -26,12 +26,12 @@ namespace LibreLancer.Data.Save
             if (e.Count < 2) return;
             //Extra
             Hardpoint = e[1].ToString();
-            if (e.Count > 2) Unknown = e[2].ToSingle();
+            if (e.Count > 2) Health = e[2].ToSingle();
         }
 
         public string ToString(string ename)
         {
-            return $"{ename} = {(uint)Item}, {Hardpoint}, {Unknown}";
+            return $"{ename} = {(uint)Item}, {Hardpoint}, {Health}";
         }
 
         public override string ToString() => ToString("equip");
@@ -115,6 +115,7 @@ namespace LibreLancer.Data.Save
 
         [Entry("system")] public string System;
         [Entry("base")] public string Base;
+        [Entry("last_base")] public string LastBase;
         [Entry("pos")] public Vector3 Position;
         [Entry("rotate")] public Vector3 Rotate;
 
@@ -226,7 +227,7 @@ namespace LibreLancer.Data.Save
             sec.OptionalEntry("location", (uint)Location)
                 .OptionalEntry("ship_archetype", ShipArchetype);
             foreach (var e in Equip)
-                sec.Entry("equip", e.Item, (e.Hardpoint ?? ""), e.Unknown);
+                sec.Entry("equip", e.Item, (e.Hardpoint ?? ""), e.Health);
             foreach (var c in Cargo)
             {
                 ValueBase hstr = c.PercentageHealth < 1
@@ -235,6 +236,7 @@ namespace LibreLancer.Data.Save
                 sec.Entry("cargo", c.Item, c.Count, hstr, "", (c.IsMissionCargo ? 1 : 0));
             }
 
+            sec.OptionalEntry("last_base", LastBase);
             foreach (var v in Visit)
                 sec.Entry("visit", v.Obj, v.Visit);
 
