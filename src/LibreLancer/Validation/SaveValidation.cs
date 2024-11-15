@@ -2,6 +2,7 @@
 using System.Linq;
 using LibreLancer.Data.Save;
 using LibreLancer.GameData;
+using LibreLancer.GameData.World;
 
 namespace LibreLancer.Validation;
 
@@ -112,8 +113,12 @@ public static class SaveValidation
         result.AddRange(savePlayer.Equip.Select(equip => ValidateEquipment(gameDataManager, equip, ship))
             .Where(equipResult => equipResult != null));
 
-        result.AddRange(savePlayer.Visit.Select(visit => ValidateVisitEntry(gameDataManager, visit))
-            .Where(visitRes => visitRes is not null));
+
+        var solars = gameDataManager.Systems.SelectMany(system => system.Objects)
+            .ToDictionary(solar => FLHash.CreateID(solar.Nickname));
+
+        result.AddRange(savePlayer.Visit.Select(visit => ValidateVisitEntry(solars, visit))
+            .Where(visitRes => visitRes != null));
 
 
         return result;
@@ -187,11 +192,9 @@ public static class SaveValidation
         return null;
     }
 
-    private static string ValidateVisitEntry(GameDataManager gameDataManager, VisitEntry visitEntry)
+    private static string ValidateVisitEntry(Dictionary<uint, SystemObject> solars, VisitEntry visitEntry)
     {
-        var found = gameDataManager.Systems.Any(sys =>
-            sys.Objects.Any(x => FLHash.CreateID(x.Nickname) == visitEntry.Obj));
-
+        var found = solars.TryGetValue(visitEntry.Obj.Hash, out var solar);
         return !found ? $"System Object with id {visitEntry.Obj} does not exist" : null;
     }
 }
