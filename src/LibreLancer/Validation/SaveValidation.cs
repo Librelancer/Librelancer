@@ -119,7 +119,7 @@ public static class SaveValidation
         return result;
     }
 
-    public static string ValidateCargo(GameDataManager gameDataManager, PlayerCargo cargo)
+    private static string ValidateCargo(GameDataManager gameDataManager, PlayerCargo cargo)
     {
         var checkOne = gameDataManager.Equipment.Get(cargo.Item);
         var checkTwo = gameDataManager.Goods.Get(cargo.Item);
@@ -143,7 +143,7 @@ public static class SaveValidation
     }
 
 
-    public static string ValidateReputation(GameDataManager gameDataManager, SaveRep rep)
+    private static string ValidateReputation(GameDataManager gameDataManager, SaveRep rep)
     {
         if (gameDataManager.Factions.Get(FLHash.CreateID(rep.Group)) is null)
         {
@@ -159,7 +159,7 @@ public static class SaveValidation
         return null;
     }
 
-    public static string ValidateEquipment(GameDataManager gameDataManager, PlayerEquipment equipment, Ship ship)
+    private static string ValidateEquipment(GameDataManager gameDataManager, PlayerEquipment equipment, Ship ship)
     {
         var equip = gameDataManager.Equipment.Get(equipment.Item);
 
@@ -187,25 +187,11 @@ public static class SaveValidation
         return null;
     }
 
-    public static string ValidateVisitEntry(GameDataManager gameDataManager, VisitEntry visitEntry)
+    private static string ValidateVisitEntry(GameDataManager gameDataManager, VisitEntry visitEntry)
     {
-        bool found = false;
+        var found = gameDataManager.Systems.Any(sys =>
+            sys.Objects.Any(x => FLHash.CreateID(x.Nickname) == visitEntry.Obj));
 
-        foreach (var sys in gameDataManager.Systems)
-        {
-            if (sys.Objects.Any(x => FLHash.CreateID(x.Nickname) == visitEntry.Obj))
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            return $"System Object with id {visitEntry.Obj} does not exist";
-        }
-
-
-        return null;
+        return !found ? $"System Object with id {visitEntry.Obj} does not exist" : null;
     }
 }
