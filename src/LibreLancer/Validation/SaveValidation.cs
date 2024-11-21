@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data;
 using LibreLancer.Data.Save;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
@@ -8,193 +10,334 @@ namespace LibreLancer.Validation;
 
 public static class SaveValidation
 {
-    public static List<string> ValidateSavePlayer(GameDataManager gameDataManager, SavePlayer savePlayer)
+    public static List<ValidationError> ValidateSavePlayer(GameDataManager gameDataManager, SavePlayer savePlayer)
     {
-        var result = new List<string>();
+        var result = new List<ValidationError>();
 
         if (savePlayer.Rank <= 0)
         {
-            result.Add($"Player rank is a non-positive value of {savePlayer.Rank}");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message = $"Player rank is a non-positive value of {savePlayer.Rank}"
+            });
         }
 
         if (savePlayer.NumKills <= 0)
         {
-            result.Add($"Player number of kills is a non-positive value of {savePlayer.NumKills}");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message = $"Player number of kills is a non-positive value of {savePlayer.NumKills}"
+            });
         }
 
         if (savePlayer.NumMissionSuccesses <= 0)
         {
-            result.Add(
-                $"Player number of mission successes is a non-positive value of {savePlayer.NumMissionSuccesses}");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"Player number of mission successes is a non-positive value of {savePlayer.NumMissionSuccesses}"
+            });
         }
 
         if (savePlayer.NumMissionFailures <= 0)
         {
-            result.Add($"Player number of mission failures is a non-positive value of {savePlayer.NumMissionFailures}");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"Player number of mission failures is a non-positive value of {savePlayer.NumMissionFailures}"
+            });
         }
 
-        result.AddRange(savePlayer.House.Select(rep => ValidateReputation(gameDataManager, rep))
-            .Where(repResult => repResult != null));
 
-        //TODO: Validate Voice.
+        foreach (var rep in savePlayer.House)
+        {
+            result.AddRange(ValidateReputation(gameDataManager, rep));
+        }
+
+
         gameDataManager.Ini.Voices.Voices.TryGetValue(savePlayer.Voice, out var voice);
         if (voice is null)
         {
-            result.Add($"Voice is not a valid voice of {savePlayer.Voice}");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"Voice is not a valid voice of {savePlayer.Voice}"
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.Head) is null)
         {
-            result.Add($"Head {savePlayer.Head} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"Head {savePlayer.Head} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.Body) is null)
         {
-            result.Add($"Body {savePlayer.Body} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"Body {savePlayer.Body} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.LeftHand) is null)
         {
-            result.Add($"LeftHand {savePlayer.LeftHand} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"LeftHand {savePlayer.LeftHand} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.RightHand) is null)
         {
-            result.Add($"RightHand {savePlayer.RightHand} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"RightHand {savePlayer.RightHand} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.ComHead) is null)
         {
-            result.Add($"ComHead {savePlayer.ComHead} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"ComHead {savePlayer.ComHead} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.ComBody) is null)
         {
-            result.Add($"ComBody {savePlayer.ComBody} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"ComBody {savePlayer.ComBody} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.ComLeftHand) is null)
         {
-            result.Add($"ComLeftHand {savePlayer.ComLeftHand} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"ComLeftHand {savePlayer.ComLeftHand} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Bodyparts.Get(savePlayer.ComRightHand) is null)
         {
-            result.Add($"ComRightHand {savePlayer.ComRightHand} is not a valid body part.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"ComRightHand {savePlayer.ComRightHand} is not a valid body part."
+            });
         }
 
         if (gameDataManager.Systems.Get(FLHash.CreateID(savePlayer.System)) is null)
         {
-            result.Add($"System {savePlayer.System} does not exist");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message =
+                    $"System {savePlayer.System} does not exist"
+            });
         }
 
         if (gameDataManager.Bases.Get(FLHash.CreateID(savePlayer.LastBase)) is null)
         {
-            result.Add($"Base {savePlayer.LastBase} specified in last_base does not exist");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message =
+                    $"Base {savePlayer.LastBase} specified in last_base does not exist"
+            });
         }
 
         //Assuming that if Pos and Rot are not present in the save file they default to <0,0,0> when loaded
         if (gameDataManager.Bases.Get(FLHash.CreateID(savePlayer.Base)) is null &&
-            savePlayer.Position.Length() is not 0 && savePlayer.Rotate.Length() is not 0)
+            Math.Abs(savePlayer.Position.Length()) < .05 && savePlayer.Rotate.Length() is not 0)
         {
-            result.Add($"Base {savePlayer.Base} does not exist.");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message =
+                    $"Base {savePlayer.Base} does not exist."
+            });
         }
 
 
-        result.AddRange(savePlayer.Cargo.Select(cargo => ValidateCargo(gameDataManager, cargo))
-            .Where(cargoResult => cargoResult != null).ToList());
+        foreach (var cargo in savePlayer.Cargo)
+        {
+            result.AddRange(ValidateCargo(gameDataManager, cargo));
+        }
 
         if (gameDataManager.Ships.Get(savePlayer.ShipArchetype) is null)
         {
-            result.Add($"Ship archetype {savePlayer.ShipArchetype} does not exist");
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message =
+                    $"Ship archetype {savePlayer.ShipArchetype} does not exist"
+            });
         }
 
         var ship = gameDataManager.Ships.Get(savePlayer.ShipArchetype);
-        result.AddRange(savePlayer.Equip.Select(equip => ValidateEquipment(gameDataManager, equip, ship))
-            .Where(equipResult => equipResult != null));
 
+        foreach (var equip in savePlayer.Equip)
+        {
+            var res = ValidateEquipment(gameDataManager, equip, ship);
+            if (res != null)
+            {
+                result.Add((ValidationError) res);
+            }
+        }
 
-        var solars = gameDataManager.Systems.SelectMany(system => system.Objects)
-            .ToDictionary(solar => FLHash.CreateID(solar.Nickname));
+        var solars = gameDataManager.Systems.SelectMany(system => system.Objects).ToList()
+            .GroupBy(obj => FLHash.CreateID(obj.Nickname))
+            .ToDictionary(group => group.Key, group => group.First());
 
-        result.AddRange(savePlayer.Visit.Select(visit => ValidateVisitEntry(solars, visit))
-            .Where(visitRes => visitRes != null));
-
+        foreach (var visit in savePlayer.Visit)
+        {
+            var res = ValidateVisitEntry(solars, visit);
+            if (res is not null)
+            {
+                result.Add((ValidationError) res);
+            }
+        }
 
         return result;
     }
 
-    private static string ValidateCargo(GameDataManager gameDataManager, PlayerCargo cargo)
+    private static List<ValidationError> ValidateCargo(GameDataManager gameDataManager, PlayerCargo cargo)
     {
+        var result = new List<ValidationError>();
+
         var checkOne = gameDataManager.Equipment.Get(cargo.Item);
         var checkTwo = gameDataManager.Goods.Get(cargo.Item);
 
         if (checkOne is null && checkTwo is null)
         {
-            return $"{cargo.GetHashCode()} is not a valid cargo Id.";
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message = $"{cargo.GetHashCode()} is not a valid cargo Id."
+            });
         }
 
         if (cargo.Count <= 0)
         {
-            return $"Cargo count has a non-positive value of {cargo.Count}";
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message = $"Cargo count has a non-positive value of {cargo.Count}"
+            });
         }
 
         if (cargo.PercentageHealth is <= 0 or > 1)
         {
-            return $"Percent health has an invalid value of {cargo.PercentageHealth}";
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message = $"Percent health has an invalid value of {cargo.PercentageHealth}"
+            });
         }
 
-        return null;
+        return result;
     }
 
 
-    private static string ValidateReputation(GameDataManager gameDataManager, SaveRep rep)
+    private static List<ValidationError> ValidateReputation(GameDataManager gameDataManager, SaveRep rep)
     {
+        var result = new List<ValidationError>();
+
         if (gameDataManager.Factions.Get(FLHash.CreateID(rep.Group)) is null)
         {
-            return $"Faction {rep.Group} defined in reputations does not exist.";
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message = $"Faction {rep.Group} defined in reputations does not exist."
+            });
         }
 
         //comparing to -1.01 instead of -1.0 to account for float error
         if (rep.Reputation < -1.01 || rep.Reputation > 1.01)
         {
-            return $"Faction reputation value for {rep.Group} is outside the range of [-1, 1] {rep.Reputation}.";
+            result.Add(new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message = $"Faction reputation value for {rep.Group} is outside the range of [-1, 1] {rep.Reputation}."
+            });
         }
 
-        return null;
+        return result;
     }
 
-    private static string ValidateEquipment(GameDataManager gameDataManager, PlayerEquipment equipment, Ship ship)
+    private static ValidationError? ValidateEquipment(GameDataManager gameDataManager, PlayerEquipment equipment,
+        Ship ship)
     {
-        var equip = gameDataManager.Equipment.Get(equipment.Item);
-
-        if (equip is null)
-        {
-            return $"Equipment {equipment.Item} does not exist";
-        }
-
         if (ship is null)
         {
-            return $"Ship does not exist and thus equipment hard points for {equipment.Item} cannot be validated.";
+            return null;
+        }
+
+        var equip = gameDataManager.Equipment.Get(equipment.Item);
+        if (equip is null)
+        {
+            return new ValidationError
+            {
+                severity = ValidationSeverity.Error,
+                message = $"Equipment {equipment.Item} does not exist"
+            };
         }
 
         if (ship.PossibleHardpoints.TryGetValue(equipment.Hardpoint, out var hpTypes) is false)
         {
-            return $"Equipment {equipment.Item} is equipped to non-existent hard point {equipment.Hardpoint}.";
+            return new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message = $"Equipment {equipment.Item} is equipped to non-existent hard point {equipment.Hardpoint}."
+            };
         }
 
-        if (hpTypes.Any(hp => hp == equip.HpType) is false)
+        if (hpTypes.Any(hp => hp.Equals(equip.HpType, StringComparison.OrdinalIgnoreCase)) is false)
         {
-            return
-                $"Equipment {equipment.Item} is mounted on unsupported hard point of ${equipment.Hardpoint} with an HpType of {equip.HpType}.";
+            return new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"Equipment {equipment.Item} is mounted on unsupported hard point of ${equipment.Hardpoint} with an HpType of {equip.HpType}."
+            };
         }
 
         return null;
     }
 
-    private static string ValidateVisitEntry(Dictionary<uint, SystemObject> solars, VisitEntry visitEntry)
+    private static ValidationError? ValidateVisitEntry(Dictionary<uint, SystemObject> solars, VisitEntry visitEntry)
     {
-        var found = solars.TryGetValue(visitEntry.Obj.Hash, out var solar);
-        return !found ? $"System Object with id {visitEntry.Obj} does not exist" : null;
+        return !solars.TryGetValue(visitEntry.Obj.Hash, out var _)
+            ? new ValidationError
+            {
+                severity = ValidationSeverity.Warning,
+                message =
+                    $"System Object with id {visitEntry.Obj} does not exist"
+            }
+            : null;
     }
 }
