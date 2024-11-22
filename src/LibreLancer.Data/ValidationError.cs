@@ -1,9 +1,14 @@
-﻿namespace LibreLancer.Data;
+﻿using System;
 
-public struct ValidationError
+namespace LibreLancer.Data;
+
+public record struct ValidationError(ValidationSeverity Severity, string Message)
 {
-    public ValidationSeverity severity;
-    public string message;
+    public static ValidationError Warning(string message) => new ValidationError
+        {Severity = ValidationSeverity.Warning, Message = message};
+
+    public static ValidationError Error(string message) => new ValidationError
+        {Severity = ValidationSeverity.Error, Message = message};
 }
 
 public enum ValidationSeverity
