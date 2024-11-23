@@ -48,44 +48,61 @@ public static class SaveValidation
             result.Add(ValidationError.Warning($"Voice is not a valid voice of {savePlayer.Voice}"));
         }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.Head) is null)
+        if (gameDataManager.GetCostume(savePlayer.Costume, out _, out _, out _, out _) is false)
         {
-            result.Add(ValidationError.Warning($"Head {savePlayer.Head} is not a valid body part."));
+            result.Add(ValidationError.Warning($"Costume {savePlayer.Costume} is not a valid costume"));
         }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.Body) is null)
+        if (gameDataManager.GetCostume(savePlayer.ComCostume, out _, out _, out _, out _) is false)
         {
-            result.Add(ValidationError.Warning($"Body {savePlayer.Body} is not a valid body part."));
+            result.Add(ValidationError.Warning($"Costume {savePlayer.Costume} is not a valid costume"));
         }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.LeftHand) is null)
+        if (savePlayer.Costume is null)
         {
-            result.Add(ValidationError.Warning($"LeftHand {savePlayer.LeftHand} is not a valid body part."));
+            if (gameDataManager.Bodyparts.Get(savePlayer.Head) is null)
+            {
+                result.Add(ValidationError.Warning($"Head {savePlayer.Head} is not a valid body part."));
+            }
+
+            if (gameDataManager.Bodyparts.Get(savePlayer.Body) is null)
+            {
+                result.Add(ValidationError.Warning($"Body {savePlayer.Body} is not a valid body part."));
+            }
+
+            if (gameDataManager.Bodyparts.Get(savePlayer.LeftHand) is null)
+            {
+                result.Add(ValidationError.Warning($"LeftHand {savePlayer.LeftHand} is not a valid body part."));
+            }
+
+            if (gameDataManager.Bodyparts.Get(savePlayer.RightHand) is null)
+            {
+                result.Add(ValidationError.Warning($"RightHand {savePlayer.RightHand} is not a valid body part."));
+            }
         }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.RightHand) is null)
+        if (savePlayer.ComCostume is null)
         {
-            result.Add(ValidationError.Warning($"RightHand {savePlayer.RightHand} is not a valid body part."));
-        }
+            if (gameDataManager.Bodyparts.Get(savePlayer.ComHead) is null)
+            {
+                result.Add(ValidationError.Warning($"ComHead {savePlayer.ComHead} is not a valid body part."));
+            }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.ComHead) is null)
-        {
-            result.Add(ValidationError.Warning($"ComHead {savePlayer.ComHead} is not a valid body part."));
-        }
+            if (gameDataManager.Bodyparts.Get(savePlayer.ComBody) is null)
+            {
+                result.Add(ValidationError.Warning($"ComBody {savePlayer.ComBody} is not a valid body part."));
+            }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.ComBody) is null)
-        {
-            result.Add(ValidationError.Warning($"ComBody {savePlayer.ComBody} is not a valid body part."));
-        }
+            if (gameDataManager.Bodyparts.Get(savePlayer.ComLeftHand) is null)
+            {
+                result.Add(ValidationError.Warning($"ComLeftHand {savePlayer.ComLeftHand} is not a valid body part."));
+            }
 
-        if (gameDataManager.Bodyparts.Get(savePlayer.ComLeftHand) is null)
-        {
-            result.Add(ValidationError.Warning($"ComLeftHand {savePlayer.ComLeftHand} is not a valid body part."));
-        }
-
-        if (gameDataManager.Bodyparts.Get(savePlayer.ComRightHand) is null)
-        {
-            result.Add(ValidationError.Warning($"ComRightHand {savePlayer.ComRightHand} is not a valid body part."));
+            if (gameDataManager.Bodyparts.Get(savePlayer.ComRightHand) is null)
+            {
+                result.Add(ValidationError.Warning(
+                    $"ComRightHand {savePlayer.ComRightHand} is not a valid body part."));
+            }
         }
 
         if (gameDataManager.Systems.Get(FLHash.CreateID(savePlayer.System)) is null)

@@ -208,6 +208,8 @@ namespace LibreLancer.Data.Save
                 .Entry("num_kills", NumKills)
                 .Entry("num_misn_successes", NumMissionSuccesses)
                 .Entry("num_misn_failures", NumMissionFailures)
+                .OptionalEntry("costume", Costume)
+                .OptionalEntry("com_costume", ComCostume)
                 .OptionalEntry("voice", Voice)
                 .OptionalEntry("com_body", ComBody)
                 .OptionalEntry("com_head", ComHead)
