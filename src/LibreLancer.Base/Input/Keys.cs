@@ -320,6 +320,9 @@ namespace LibreLancer
         {
             if (UseSDL)
             {
+                var idx = (int)input;
+                if (idx < 0 || idx > defaultMapping.Length)
+                    return input;
                 return (Keys)SDL.SDL_GetScancodeFromKey(defaultMapping[(int)input]);
             }
             return input;
