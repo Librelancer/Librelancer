@@ -108,7 +108,7 @@ namespace LibreLancer.Render
             }
         }
 
-        private int renderIndex = -1;
+        private QuadBufferHandle renderIndex;
 
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
@@ -126,20 +126,22 @@ namespace LibreLancer.Render
 
             sysr = sys;
             sys.AddObject(this);
-            renderIndex = sysr.QuadBuffer.DoVertices(vertices);
+            if (!renderIndex.Check(sysr.QuadBuffer)) {
+                renderIndex = sysr.QuadBuffer.DoVertices(vertices);
+            }
             return true;
         }
 
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
-            if (sysr == null || vertices == null)
+            if (sysr == null || vertices == null || renderIndex.Invalid)
                 return;
             float z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
                 z = 900000;
             var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
             var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
-            var idx = renderIndex;
+            var idx = renderIndex.Index;
             //draw center
             if (Sun.CenterSprite != null)
             {

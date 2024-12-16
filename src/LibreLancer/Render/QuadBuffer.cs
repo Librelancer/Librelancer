@@ -49,6 +49,29 @@ namespace LibreLancer.Render
         }
     }
 
+    public struct QuadBufferHandle
+    {
+        private WeakReference<QuadBuffer> parent;
+        private bool valid;
+        public int Index { get; private set; }
+
+        public bool Check(QuadBuffer buf)
+        {
+            if (parent == null) return false;
+            if (!parent.TryGetTarget(out var t) || t != buf)
+                return false;
+            return true;
+        }
+
+        public bool Invalid => parent == null;
+
+        public QuadBufferHandle(QuadBuffer buffer, int index)
+        {
+            parent = new WeakReference<QuadBuffer>(buffer);
+            Index = index;
+        }
+    }
+
     public unsafe class QuadBuffer : IDisposable
     {
         public const int MAX_QUADS = 400;
@@ -57,7 +80,7 @@ namespace LibreLancer.Render
         int vertexOffset = 0;
         private VertexBillboardColor2* verts;
 
-        Span<VertexBillboardColor2> gpuVertices => new Span<VertexBillboardColor2>((void*)verts, MAX_QUADS);
+        Span<VertexBillboardColor2> gpuVertices => new Span<VertexBillboardColor2>((void*)verts, MAX_QUADS * 4);
 
         public QuadBuffer(RenderContext rstate)
         {
@@ -122,13 +145,13 @@ namespace LibreLancer.Render
             vertexOffset = 0;
         }
 
-        public int DoVertices(ReadOnlySpan<VertexBillboardColor2> vx)
+        public QuadBufferHandle DoVertices(ReadOnlySpan<VertexBillboardColor2> vx)
         {
             var idxOffset = (vertexOffset / 4) * 6;
-            if (vertexOffset + vx.Length >= (MAX_QUADS * 4)) return -1;
+            if (vertexOffset + vx.Length >= gpuVertices.Length) return default;
             vx.CopyTo(gpuVertices.Slice(vertexOffset));
             vertexOffset += vx.Length;
-            return idxOffset;
+            return new QuadBufferHandle(this, idxOffset);
         }
 
         public void Dispose()
