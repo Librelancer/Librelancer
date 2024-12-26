@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Physics;
 using LibreLancer.Render;
@@ -36,6 +37,24 @@ namespace LibreLancer.World.Components
         {
             _convexMesh.RemovePart(part);
             partRemoved = true;
+        }
+
+        List<Hardpoint> hardpoints = new List<Hardpoint>();
+
+        public bool ActivateHardpoint(Hardpoint hardpoint)
+        {
+            var hpid = CrcTool.FLModelCrc(hardpoint.Name);
+            var meshId = Parent.RigidModel.Source == RigidModelSource.SinglePart
+                ? 0
+                : CrcTool.FLModelCrc(hardpoint.Parent.Name);
+            hardpoints.Add(hardpoint);
+            return _convexMesh.AddPart(SurPath.FileId, new ConvexMeshId(meshId, hpid), hardpoint.Parent.LocalTransform, hardpoint);
+        }
+
+        public void DeactivateHardpoint(Hardpoint hardpoint)
+        {
+            hardpoints.Remove(hardpoint);
+            _convexMesh.RemovePart(hardpoint);
         }
 
         private bool isInterpolating = false;
@@ -103,14 +122,14 @@ namespace LibreLancer.World.Components
                 _convexMesh = new ConvexMeshCollider(physics);
                 cld = _convexMesh;
                 if(Parent.RigidModel.Source == RigidModelSource.SinglePart) {
-                    _convexMesh.AddPart(meshId, PlainCrc, Transform3D.Identity, null);
+                    _convexMesh.AddPart(meshId, new ConvexMeshId(PlainCrc, 0), Transform3D.Identity, null);
                 } else {
                     foreach(var part in Parent.RigidModel.AllParts) {
-                        var crc = CrcTool.FLModelCrc(part.Name);
+                        var id = new ConvexMeshId(CrcTool.FLModelCrc(part.Name), 0);
                         if (part.Construct == null)
-                            _convexMesh.AddPart( meshId, crc, Transform3D.Identity, part);
+                            _convexMesh.AddPart( meshId, id, Transform3D.Identity, part);
                         else
-                            _convexMesh.AddPart( meshId, crc, part.LocalTransform, part);
+                            _convexMesh.AddPart( meshId, id, part.LocalTransform, part);
                     }
                 }
             }
@@ -137,6 +156,11 @@ namespace LibreLancer.World.Components
             foreach(var part in Parent.RigidModel.AllParts) {
                 if (part.Construct != null)
                     _convexMesh.UpdatePart(part, part.LocalTransform);
+            }
+            foreach (var hp in hardpoints)
+            {
+                if(hp.Parent.Construct != null)
+                    _convexMesh.UpdatePart(hp, hp.Parent.LocalTransform);
             }
             _convexMesh.FinishUpdatePart();
         }

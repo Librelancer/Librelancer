@@ -335,6 +335,7 @@ namespace LibreLancer.World
                 PhysicsComponent.Mass = ship.Mass;
                 PhysicsComponent.Inertia = ship.RotationInertia;
             }
+            AddComponent(new ShipComponent(ship, this));
         }
 
         public GameObject(RigidModel model, CollisionMeshHandle collider, ResourceManager res, string partName, float mass, bool draw)
@@ -486,6 +487,17 @@ namespace LibreLancer.World
             }
         }
 
+        public bool TryGetFirstChildComponent<T>(out T result) where T : GameComponent
+        {
+            for (int i = 0; i < Children.Count; i++)
+            {
+                if (Children[i].TryGetComponent<T>(out result))
+                    return true;
+            }
+            result = null;
+            return false;
+        }
+
         public T GetFirstChildComponent<T>() where T : GameComponent
         {
             for (int i = 0; i < Children.Count; i++)
@@ -534,7 +546,6 @@ namespace LibreLancer.World
 
             public void Dispose() => Reset();
         }
-
 
 		public StructEnumerable<T, ChildComponentEnumerator<T>> GetChildComponents<T>() where T : GameComponent
         {

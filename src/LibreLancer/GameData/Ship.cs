@@ -40,6 +40,10 @@ namespace LibreLancer.GameData
 
         public Dictionary<string, List<HpType>> HardpointTypes = new (StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, List<string>> PossibleHardpoints = new (StringComparer.OrdinalIgnoreCase);
+
+        public string ShieldLinkHull;
+        public string ShieldLinkSource;
+        
         public Ship ()
 		{
 		}

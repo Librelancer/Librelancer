@@ -260,12 +260,12 @@ namespace LibreLancer.Physics
             return handler.DidHit;
         }
 
-        private Dictionary<ulong, (TypedIndex Shape, Vector3 Center)[]> shapes = new();
+        private Dictionary<ShapeId, (TypedIndex Shape, Vector3 Center)[]> shapes = new();
         private uint nextMeshId = 0;
 
-        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, uint meshId)
+        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, ConvexMeshId meshId)
         {
-            var id = (ulong) meshId | ((ulong) fileId << 32);
+            var id =meshId.ShapeId(fileId);
             if (shapes.TryGetValue(id, out var sh))
                 return sh;
             var cvx = ConvexCollection.GetShapes(fileId, meshId);

@@ -19,7 +19,7 @@ public class ConvexMeshCollection : IDisposable
     private object poolLock = new object();
     private object filesLock = new object();
 
-    private ConcurrentDictionary<ulong, Lazy<ConvexMeshItem>> shapes = new();
+    private ConcurrentDictionary<ShapeId, Lazy<ConvexMeshItem>> shapes = new();
     private ConcurrentDictionary<ulong, Lazy<IConvexMeshProvider>> files = new();
 
     static uint Hash(string s)
@@ -57,15 +57,16 @@ public class ConvexMeshCollection : IDisposable
         return id;
     }
 
-    public void CreateShape(uint fileId, uint meshId) => GetShapes(fileId, meshId);
+    public void CreateShape(uint fileId, ConvexMeshId meshId) => GetShapes(fileId, meshId);
 
-    internal ConvexMeshItem GetShapes(uint fileId, uint meshId) =>
+
+    internal ConvexMeshItem GetShapes(uint fileId, ConvexMeshId meshId) =>
         shapes.GetOrAdd(
-            (ulong) meshId | ((ulong) fileId << 32),
+            meshId.ShapeId(fileId),
             _ => new Lazy<ConvexMeshItem>(() => Create(fileId, meshId))
             ).Value;
 
-    ConvexMeshItem Create(uint fileId, uint meshId)
+    ConvexMeshItem Create(uint fileId, ConvexMeshId meshId)
     {
         if (!files.TryGetValue(fileId, out var f))
             throw new InvalidOperationException("File has not been added to collection");

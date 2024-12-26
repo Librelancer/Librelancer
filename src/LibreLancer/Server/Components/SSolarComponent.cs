@@ -15,8 +15,7 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time)
         {
-            var shield = Parent.GetFirstChildComponent<SShieldComponent>();
-            if (shield != null)
+            if (Parent.TryGetFirstChildComponent<SShieldComponent>(out var shield))
             {
                 if (shield.Health < shield.Equip.Def.MaxCapacity) {
                     SendSolarUpdate = true;

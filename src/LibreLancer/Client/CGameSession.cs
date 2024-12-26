@@ -1116,8 +1116,7 @@ namespace LibreLancer.Client
             {
                 health.CurrentHealth = update.HullValue;
             }
-            var sh = obj.GetFirstChildComponent<CShieldComponent>();
-            if (sh != null) {
+            if (obj.TryGetFirstChildComponent<CShieldComponent>(out var sh)) {
                 sh.SetShieldHealth(update.ShieldValue);
             }
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)

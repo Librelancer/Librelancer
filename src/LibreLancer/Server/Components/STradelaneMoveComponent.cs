@@ -165,8 +165,8 @@ namespace LibreLancer.Server.Components
 
         private static bool TradelaneDisrupted(float distance, GameObject tradelaneComponent) =>
             distance < DISRUPTION_DISTANCE &&
-            tradelaneComponent.GetChildComponents<SShieldComponent>()
-                .Any(c => c.Health == 0);
+            tradelaneComponent.TryGetFirstChildComponent<SShieldComponent>(out var comp) &&
+            comp.Health < float.Epsilon;
 
 
         private void TradeLaneDisruption()

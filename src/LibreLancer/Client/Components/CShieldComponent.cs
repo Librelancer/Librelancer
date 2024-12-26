@@ -5,6 +5,7 @@
 using System;
 using LibreLancer.GameData.Items;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Client.Components
 {
@@ -47,6 +48,26 @@ namespace LibreLancer.Client.Components
             }
             //Set value
             Health = value;
+        }
+
+        private bool shieldHpActive = false;
+
+        public override void Update(double time)
+        {
+            if (Health >= MinHealth && !shieldHpActive)
+            {
+                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.ActivateShieldBubble(Parent.Attachment.Name);
+                }
+                shieldHpActive = true;
+            }
+            else if (Health < MinHealth && shieldHpActive)
+            {
+                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.DeactivateShieldBubble(Parent.Attachment.Name);
+                }
+                shieldHpActive = false;
+            }
         }
     }
 }

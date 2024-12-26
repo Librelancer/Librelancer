@@ -135,10 +135,10 @@ namespace LibreLancer.Physics
 
         public bool Dump = false;
 
-        public void AddPart(uint provider, uint meshId, Transform3D localTransform, object tag)
+        public bool AddPart(uint provider, ConvexMeshId meshId, Transform3D localTransform, object tag)
         {
             var hulls = world.GetConvexShapes(provider, meshId);
-            if (hulls.Length == 0) return;
+            if (hulls.Length == 0) return false;
             var pt = new CollisionPart() {Tag = tag, Index = childIndices.Count, Count = hulls.Length};
             foreach (var h in hulls)
             {
@@ -149,6 +149,7 @@ namespace LibreLancer.Physics
                 BepuBigCompound().Tree.RefitAndRefine(pool, refinementCounter++);
                 lastRefinement = refinementCounter;
             }
+            return true;
         }
 
         public void UpdatePart(object tag, Transform3D localTransform)

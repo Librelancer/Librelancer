@@ -54,20 +54,31 @@ namespace LibreLancer.Sur
             return false;
         }
 
-        public ConvexMesh[] GetMesh(uint meshId)
+        public ConvexMesh[] GetMesh(ConvexMeshId meshId)
         {
             List<ConvexMesh> hull = new List<ConvexMesh>();
             foreach (var surface in Surfaces)
             {
-                if (surface.Crc != meshId) continue;
+                if (surface.Crc != meshId.Id) continue;
+                if (meshId.SubId != 0 && !surface.HardpointIds.Contains(meshId.SubId))
+                    continue;
                 var hulls = surface.GetHulls(false);
                 for (int i = 0; i < hulls.Length; i++)
                 {
                     var triHull = hulls[i];
-                    if (triHull.Type == 5 ||
-                        surface.HardpointIds.Contains(triHull.HullId) ||
-                        Surfaces.Any(x => x != surface && x.Crc == triHull.HullId))
+                    if (meshId.SubId == 0)
+                    {
+                        // Skip non-part hulls
+                        if (triHull.Type == 5 ||
+                            surface.HardpointIds.Contains(triHull.HullId) ||
+                            Surfaces.Any(x => x != surface && x.Crc == triHull.HullId))
+                            continue;
+                    }
+                    else if (meshId.SubId != triHull.HullId)
+                    {
+                        // Skip hulls that aren't for this hardpoint
                         continue;
+                    }
                     var verts = new List<Vector3>();
                     foreach (var v in surface.Points)
                         verts.Add(v.Point);

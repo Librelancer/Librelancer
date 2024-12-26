@@ -16,6 +16,7 @@ using LancerEdit.Materials;
 using LibreLancer.Data;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
@@ -144,7 +145,7 @@ namespace LancerEdit
             surs = new List<SurModel>();
             if((drawable is ModelFile))
             {
-                surs.Add(GetSurModel(surfile.GetMesh(0), null, surPart));
+                surs.Add(GetSurModel(surfile.GetMesh(new ConvexMeshId(0,0)), null, surPart));
                 foreach (var hp in vmsModel.Root.Hardpoints)
                 {
                     if (surfile.TryGetHardpoint(0, CrcTool.FLModelCrc(hp.Name), out var meshes))
@@ -160,7 +161,7 @@ namespace LancerEdit
                     var crc = CrcTool.FLModelCrc(kv.Key);
                     if (!surfile.HasShape(crc))
                         continue;
-                    surs.Add(GetSurModel(surfile.GetMesh(crc), kv.Value, surPart));
+                    surs.Add(GetSurModel(surfile.GetMesh(new ConvexMeshId(0,0)), kv.Value, surPart));
                     foreach (var hp in kv.Value.Hardpoints)
                     {
                         if (surfile.TryGetHardpoint(crc, CrcTool.FLModelCrc(hp.Name), out var meshes))

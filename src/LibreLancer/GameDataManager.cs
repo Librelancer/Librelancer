@@ -21,6 +21,7 @@ using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Thorn.VM;
 using LibreLancer.Utf.Anm;
@@ -706,11 +707,11 @@ namespace LibreLancer
                 return;
             var cvx = res.ConvexCollection.UseFile(surpath);
             if(mdl.Source == RigidModelSource.SinglePart)
-                res.ConvexCollection.CreateShape(cvx, 0);
+                res.ConvexCollection.CreateShape(cvx, new ConvexMeshId(0,0));
             else
             {
                 foreach(var p in mdl.AllParts)
-                    res.ConvexCollection.CreateShape(cvx, CrcTool.FLModelCrc(p.Name));
+                    res.ConvexCollection.CreateShape(cvx, new ConvexMeshId(0, CrcTool.FLModelCrc(p.Name)));
             }
         }
 
@@ -1724,6 +1725,8 @@ namespace LibreLancer
                 ship.CRC = FLHash.CreateID(ship.Nickname);
                 ship.MaxShieldBatteries = orig.ShieldBatteryLimit;
                 ship.MaxRepairKits = orig.NanobotLimit;
+                ship.ShieldLinkHull = orig.ShieldLink?.HardpointMount;
+                ship.ShieldLinkSource = orig.ShieldLink?.HardpointShield;
                 foreach (var fuse in orig.Fuses)
                 {
                     ship.Fuses.Add(new DamageFuse()

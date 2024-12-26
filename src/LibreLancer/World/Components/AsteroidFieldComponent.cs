@@ -64,7 +64,7 @@ namespace LibreLancer.World.Components
                 var sur = asteroid.Archetype.ModelFile.LoadFile(rm, MeshLoadMode.CPU).Collision;
                 if (sur.Valid)
                 {
-                    shape.AddPart(sur.FileId, 0, new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
+                    shape.AddPart(sur.FileId, new ConvexMeshId(0,0), new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
                 }
             }
 

@@ -4,6 +4,7 @@
 
 using LibreLancer.GameData.Items;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Server.Components
 {
@@ -27,6 +28,8 @@ namespace LibreLancer.Server.Components
             this.Health = Equip.Def.MaxCapacity;
         }
 
+        private bool shieldHpActive = false;
+
         public override void Update(double time)
         {
             if (_health < MinHealth)
@@ -41,6 +44,21 @@ namespace LibreLancer.Server.Components
                 _health += (float)(time * Equip.Def.RegenerationRate);
                 if (_health > Equip.Def.MaxCapacity) _health = Equip.Def.MaxCapacity;
             }
+
+            if (Health >= MinHealth && !shieldHpActive)
+            {
+                shieldHpActive = true;
+                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.ActivateShieldBubble(Parent.Attachment.Name);
+                }
+            }
+            else if (Health < MinHealth && shieldHpActive)
+            {
+                shieldHpActive = false;
+                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.DeactivateShieldBubble(Parent.Attachment.Name);
+                }
+            }
         }
 
 
@@ -53,7 +71,7 @@ namespace LibreLancer.Server.Components
                 {
                     _health = 0;
                 }
-                if(Parent.TryGetComponent<SNPCComponent>(out var n))
+                if(Parent.Parent.TryGetComponent<SNPCComponent>(out var n))
                     n.TakingDamage(incomingDamage);
                 return true;
             }
