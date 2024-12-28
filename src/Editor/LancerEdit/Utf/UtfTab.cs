@@ -683,7 +683,7 @@ namespace LancerEdit
         {
             FileDialog.Open(path =>
             {
-                var src = TextureImport.OpenFile(path, main.RenderContext);
+                var src = TextureImport.OpenBuffer(File.ReadAllBytes(path), main.RenderContext);
                 if(src.IsError)
                 {
                     main.ResultMessages(src);
@@ -691,16 +691,22 @@ namespace LancerEdit
                 else if (src.Data.Type == TexLoadType.DDS)
                 {
                     src.Data.Texture.Dispose();
-                    selectedNode.Children = null;
-                    selectedNode.Data = File.ReadAllBytes(path);
+                    selectedNode.Data = null;
+                    selectedNode.Children = new List<LUtfNode>()
+                    {
+                        new () { Parent = selectedNode, Name = "MIPS", Data = File.ReadAllBytes(path) }
+                    };
                 }
                 else
                 {
-                    teximportprev = src.Data.Texture;
-                    teximportwarn = src.AllMessages();
-                    teximportpath = path;
-                    teximportid = ImGuiHelper.RegisterTexture(teximportprev);
-                    popups.OpenPopup("Texture Import");
+                    var target = selectedNode;
+                    popups.OpenPopup(new TextureImportDialog(src.Data, ch =>
+                    {
+                        foreach (var child in ch)
+                            child.Parent = target;
+                        target.Data = null;
+                        target.Children = ch;
+                    }, main));
                 }
             });
         }

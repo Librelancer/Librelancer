@@ -507,12 +507,12 @@ public class ImportedModel
             foreach (var mat in materials)
             {
                 var dt = mat.DiffuseTexture?.Name ?? (settings.GeneratePlaceholderTextures ? mat.Name : null);
-                GenerateTexture(dt, createdTextures, txms, settings, DDSFormat.DXT5, tasks);
-                GenerateTexture(mat.EmissiveTexture?.Name, createdTextures, txms, settings, DDSFormat.DXT1, tasks);
+                GenerateTexture(dt, warnings, createdTextures, txms, settings, DDSFormat.DXT5, tasks);
+                GenerateTexture(mat.EmissiveTexture?.Name, warnings, createdTextures, txms, settings, DDSFormat.DXT1, tasks);
                 if (settings.AdvancedMaterials)
                 {
-                    GenerateTexture(mat.NormalTexture?.Name, createdTextures, txms, settings, DDSFormat.RGTC2, tasks);
-                    GenerateMetallicRoughnessTexture(mat.MetallicRoughnessTexture?.Name, createdTextures, txms, settings, tasks);
+                    GenerateTexture(mat.NormalTexture?.Name, warnings, createdTextures, txms, settings, DDSFormat.RGTC2, tasks);
+                    GenerateMetallicRoughnessTexture(mat.MetallicRoughnessTexture?.Name, warnings, createdTextures, txms, settings, tasks);
                 }
             }
 
@@ -527,24 +527,39 @@ public class ImportedModel
         return new EditResult<EditableUtf>(utf, warnings);
     }
 
-    void GenerateMetallicRoughnessTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, TaskHandler tasks)
+    void GenerateMetallicRoughnessTexture(string texture, List<EditMessage> warnings, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, TaskHandler tasks)
     {
         if (string.IsNullOrWhiteSpace(texture)) return;
         if (!createdTextures.Add(texture)) return;
         if (settings.ImportTextures && Images != null && Images.TryGetValue(texture, out var img))
         {
-            txms.Children.Add(ImportTextureNode(txms, texture + "_METAL", img.Data, DDSFormat.MetallicRGTC1, tasks));
-            txms.Children.Add(ImportTextureNode(txms, texture + "_ROUGH", img.Data ,DDSFormat.RoughnessRGTC1, tasks));
+            var mtl = ImportTextureNode(txms, texture + "_METAL", img.Data, DDSFormat.MetallicRGTC1, tasks);
+            var rough = ImportTextureNode(txms, texture + "_ROUGH", img.Data, DDSFormat.RoughnessRGTC1, tasks);
+            if(mtl.IsSuccess)
+                txms.Children.Add(mtl.Data);
+            else
+                warnings.Add(EditMessage.Warning($"{texture}_METAL not imported"));
+            warnings.AddRange(mtl.Messages.Select(x => EditMessage.Warning(x.Message)));
+            if (rough.IsSuccess)
+                txms.Children.Add(rough.Data);
+            else
+                warnings.Add(EditMessage.Warning($"{texture}_ROUGH not imported"));
+            warnings.AddRange(rough.Messages.Select(x => EditMessage.Warning(x.Message)));
         }
     }
 
-    void GenerateTexture(string texture, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, DDSFormat format, TaskHandler tasks)
+    void GenerateTexture(string texture, List<EditMessage> warnings, HashSet<string> createdTextures, LUtfNode txms, ModelImporterSettings settings, DDSFormat format, TaskHandler tasks)
     {
         if (string.IsNullOrWhiteSpace(texture)) return;
         if (!createdTextures.Add(texture)) return;
         if (settings.ImportTextures && Images != null && Images.TryGetValue(texture, out var img))
         {
-            txms.Children.Add(ImportTextureNode(txms, texture, img.Data, format, tasks));
+            var result = ImportTextureNode(txms, texture, img.Data, format, tasks);
+            if(result.IsSuccess)
+                txms.Children.Add(result.Data);
+            else
+                warnings.Add(EditMessage.Warning($"{texture} not imported"));
+            warnings.AddRange(result.Messages.Select(x => EditMessage.Warning(x.Message)));
         }
         else if (settings.GeneratePlaceholderTextures)
         {
@@ -615,13 +630,24 @@ public class ImportedModel
         return matnode;
     }
 
-    static LUtfNode ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data, DDSFormat format, TaskHandler tasks)
+    static EditResult<LUtfNode> ImportTextureNode(LUtfNode parent, string name, ReadOnlySpan<byte> data, DDSFormat format, TaskHandler tasks)
     {
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
         texnode.Children = new List<LUtfNode>();
         var d = data.ToArray();
-        tasks.Run(() => texnode.Children.Add(TextureImport.ImportAsMIPSNode(d, texnode, format)));
-        return texnode;
+
+        var analyzed = TextureImport.OpenBuffer(d, null);
+        if (!analyzed.IsError) {
+            if (format == DDSFormat.DXT5 && analyzed.Data.Type == TexLoadType.Opaque) {
+                format = DDSFormat.DXT1;
+            }
+            tasks.Run(() => texnode.Children.Add(TextureImport.ImportAsMIPSNode(d, texnode, format)));
+        }
+        else
+        {
+            return EditResult<LUtfNode>.Error($"{name}: {analyzed.AllMessages()}");
+        }
+        return new EditResult<LUtfNode>(texnode, analyzed.Messages.Select(x => EditMessage.Warning($"{name}: {x.Message}")));
     }
 
     static LUtfNode DefaultTextureNode(LUtfNode parent, string name)

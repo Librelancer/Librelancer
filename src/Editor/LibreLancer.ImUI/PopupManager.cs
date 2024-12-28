@@ -120,7 +120,7 @@ namespace LibreLancer.ImUI
                 bool open = true;
                 bool beginval;
                 if(p.InitSize != Vector2.Zero)
-                    ImGui.SetNextWindowSize(p.InitSize * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+                    ImGui.SetNextWindowSize(p.InitSize * ImGuiHelper.Scale, ImGuiCond.Appearing);
                 if (!p.NoClose)
                     beginval = ImGui.BeginPopupModal(p.Title, ref open, p.WindowFlags);
                 else

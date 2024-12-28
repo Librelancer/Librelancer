@@ -4,10 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
@@ -39,15 +36,15 @@ namespace LibreLancer.ContentEdit
     {
         DDS,
         Opaque,
-        Alpha,
-        ErrorNonSquare,
-        ErrorLoad,
-        ErrorNonPowerOfTwo
+        Alpha
     }
+
     public class AnalyzedTexture
     {
         public TexLoadType Type;
         public Texture2D Texture;
+        public bool OneBitAlpha = false;
+        public byte[] Source;
     }
 
     public class TextureImport
@@ -99,11 +96,11 @@ namespace LibreLancer.ContentEdit
             }
         }
 
-        public static EditResult<AnalyzedTexture> OpenFile(string input, RenderContext context)
+        public static EditResult<AnalyzedTexture> OpenBuffer(byte[] input, RenderContext context)
         {
             try
             {
-                using (var file = File.OpenRead(input))
+                using (var file = new MemoryStream(input))
                 {
                     if (DDS.StreamIsDDS(file))
                     {
@@ -115,11 +112,11 @@ namespace LibreLancer.ContentEdit
                     }
                 }
                 Image lr;
-                using (var file = File.OpenRead(input))
+                using (var file = new MemoryStream(input))
                 {
                     lr = Generic.ImageFromStream(file);
                 }
-                using (var file = File.OpenRead(input))
+                using (var file = new MemoryStream(input))
                 {
                     byte[] embedded;
                     if ((embedded = GetEmbeddedDDS(lr, file)) != null)
@@ -127,7 +124,8 @@ namespace LibreLancer.ContentEdit
                         return (new AnalyzedTexture()
                         {
                             Type = TexLoadType.DDS,
-                            Texture = (Texture2D)DDS.FromStream(context, new MemoryStream(embedded))
+                            Texture = context == null ? null : (Texture2D)DDS.FromStream(context, new MemoryStream(embedded)),
+                            Source = input
                         }).AsResult();
                     }
                 }
@@ -143,20 +141,32 @@ namespace LibreLancer.ContentEdit
                 var opaque = true;
                 var pixels = Bgra8.BufferFromBytes(lr.Data);
                 //Swap channels + check alpha
+                bool oneBitAlpha = true;
                 for (int i = 0; i < pixels.Length; i++)
                 {
                     if (pixels[i].A != 255)
                     {
                         opaque = false;
-                        break;
                     }
+                    if (pixels[i].A != 255 && pixels[i].A != 0)
+                    {
+                        oneBitAlpha = false;
+                    }
+                    if (!opaque && !oneBitAlpha)
+                        break;
                 }
-                var tex = new Texture2D(context, lr.Width, lr.Height);
-                tex.SetData(lr.Data);
+                if (opaque)
+                    oneBitAlpha = false;
+                Texture2D tex = null;
+                if (context != null)
+                {
+                    tex = new Texture2D(context, lr.Width, lr.Height);
+                    tex.SetData(lr.Data);
+                }
                 return new EditResult<AnalyzedTexture>(new AnalyzedTexture()
                 {
                     Type = opaque ? TexLoadType.Opaque : TexLoadType.Alpha,
-                    Texture = tex
+                    Texture = tex, OneBitAlpha = oneBitAlpha, Source = input
                 }, warning);
             }
             catch (Exception e)
@@ -164,9 +174,9 @@ namespace LibreLancer.ContentEdit
                 return EditResult<AnalyzedTexture>.Error($"Could not load file {input}");
             }
         }
-        static Image ReadFile(string input, bool flip)
+        static Image ReadBuffer(byte[] input, bool flip)
         {
-            using (var file = File.OpenRead(input))
+            using (var file = new MemoryStream(input))
             {
                 return Generic.ImageFromStream(file, flip);
             }
@@ -263,14 +273,14 @@ namespace LibreLancer.ContentEdit
         }
 
 
-        public static byte[] TGANoMipmap(string input, bool flip)
+        public static byte[] TGANoMipmap(byte[] input, bool flip)
         {
-            var raw = ReadFile(input, flip);
+            var raw = ReadBuffer(input, flip);
             return TargaRGBA(raw.Data, raw.Width, raw.Height);
         }
-        public static List<LUtfNode> TGAMipmaps(string input, MipmapMethod mipm, bool flip)
+        public static List<LUtfNode> TGAMipmaps(byte[] input, MipmapMethod mipm, bool flip)
         {
-            var raw = ReadFile(input, flip);
+            var raw = ReadBuffer(input, flip);
             var mips = Crunch.GenerateMipmaps(Bgra8.BufferFromBytes(raw.Data), raw.Width, raw.Height, (CrnglueMipmaps) mipm);
             //Limit mips from MIP0 to MIP9 or we generate invalid txm nodes
             var nodes = new List<LUtfNode>(mips.Count > 9 ? 9 : mips.Count);
@@ -310,9 +320,9 @@ namespace LibreLancer.ContentEdit
             return Crunch.CompressDDS(input, width, height, (CrnglueFormat) format, (CrnglueMipmaps) mipm, slow);
         }
 
-        public static byte[] CreateDDS(string input, DDSFormat format, MipmapMethod mipm, bool slow, bool flip)
+        public static byte[] CreateDDS(byte[] input, DDSFormat format, MipmapMethod mipm, bool slow, bool flip)
         {
-            var raw = ReadFile(input, flip);
+            var raw = ReadBuffer(input, flip);
             return Crunch.CompressDDS(Bgra8.BufferFromBytes(raw.Data), raw.Width, raw.Height, (CrnglueFormat) format, (CrnglueMipmaps) mipm, slow);
         }
     }

@@ -44,7 +44,7 @@ namespace LancerEdit
                 teximportprev = null;
             }
 
-            var src = TextureImport.OpenFile(filename, win.RenderContext);
+            var src = TextureImport.OpenBuffer(File.ReadAllBytes(filename), win.RenderContext);
             if (src.IsError)
             {
                 win.ErrorDialog(src.AllMessages());

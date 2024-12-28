@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using System.Text;
 using BepuUtilities;
@@ -34,7 +35,7 @@ namespace LibreLancer.ContentEdit
         public static EditableUtf UncompressedFromFile(string iconName, string filename, bool alpha)
         {
             var texNode = new LUtfNode();
-            var tgaNodes = TextureImport.TGAMipmaps(filename, MipmapMethod.Lanczos4, true);
+            var tgaNodes = TextureImport.TGAMipmaps(File.ReadAllBytes(filename), MipmapMethod.Lanczos4, true);
             foreach (var n in tgaNodes)
                 n.Parent = texNode;
             texNode.Children = tgaNodes;
@@ -47,7 +48,7 @@ namespace LibreLancer.ContentEdit
             ddsNode.Children.Add(new LUtfNode()
             {
                 Name = "MIPS",
-                Data = TextureImport.CreateDDS(filename, DDSFormat.DXT5, MipmapMethod.Lanczos4, true, true),
+                Data = TextureImport.CreateDDS(File.ReadAllBytes(filename), DDSFormat.DXT5, MipmapMethod.Lanczos4, true, true),
                 Parent = ddsNode,
             });
             return Generate(iconName, ddsNode, alpha);
