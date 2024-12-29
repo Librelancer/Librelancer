@@ -326,11 +326,24 @@ namespace LibreLancer.Graphics
 
         internal void ApplyViewport() => impl.ApplyViewport(ref requested);
 
+        private bool viewportErrorTriggered;
+
         internal void EndFrame()
         {
             Renderer2D.Flush();
             if (viewports.Count != 1)
+            {
+                if (!viewportErrorTriggered)
+                {
+                    FLLog.Error("Render", "Internal Error: viewports.Count != 1 at end of frame (single trigger)");
+                    viewportErrorTriggered = true;
+                }
+                #if DEBUG
                 throw new Exception ("viewports.Count != 1 at end of frame");
+                #else
+                viewports = new Stack<Rectangle>([viewports.Peek()]);
+                #endif
+            }
         }
 
         internal void ApplyScissor() => impl.ApplyScissor(ref requested);
