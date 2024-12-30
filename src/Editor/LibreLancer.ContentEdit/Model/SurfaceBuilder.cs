@@ -336,6 +336,7 @@ public static class SurfaceBuilder
     {
         var fromPos = CreateHullFromPositions(h.Vertices);
         if (fromPos.IsError) return EditResult<HullData>.Error($"Creating convex hull for {name} failed");
+        fromPos.Data.Source = name;
         return Math.Abs(fromPos.Data.GetVolume() - h.GetVolume()) > 2.0f
             ? new EditResult<HullData>(fromPos.Data, new[] {EditMessage.Warning($"Source hull {name} may not be convex")})
             : fromPos;
