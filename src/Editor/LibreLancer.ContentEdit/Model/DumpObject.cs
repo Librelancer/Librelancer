@@ -65,11 +65,28 @@ namespace LibreLancer.ContentEdit.Model
             writer.WriteLine("Triangle  Vertex 1  Vertex 2  Vertex 3");
             for (int i = 0; i < vms.Indices.Length; i += 3)
             {
-                writer.WriteLine("{0}  {1}  {2}  {3}",
-                    (i / 3).ToString().PadLeft(8),
-                    vms.Indices[i].ToString().PadLeft(8),
-                    vms.Indices[i + 1].ToString().PadLeft(8),
-                    vms.Indices[i + 2].ToString().PadLeft(8));
+                if (i + 2 < vms.Indices.Length)
+                {
+                    writer.WriteLine("{0}  {1}  {2}  {3}",
+                        (i / 3).ToString().PadLeft(8),
+                        vms.Indices[i].ToString().PadLeft(8),
+                        vms.Indices[i + 1].ToString().PadLeft(8),
+                        vms.Indices[i + 2].ToString().PadLeft(8));
+                }
+                else if (i + 1 < vms.Indices.Length)
+                {
+                    writer.WriteLine("{0}  {1}  {2}",
+                        (i / 3).ToString().PadLeft(8),
+                        vms.Indices[i].ToString().PadLeft(8),
+                        vms.Indices[i + 1].ToString().PadLeft(8));
+                }
+                else
+                {
+                    writer.WriteLine("{0}  {1}",
+                        (i / 3).ToString().PadLeft(8),
+                        vms.Indices[i].ToString().PadLeft(8));
+                }
+
             }
             writer.WriteLine("\n---- Vertices ----\n");
             //Heading
