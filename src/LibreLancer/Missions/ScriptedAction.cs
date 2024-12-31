@@ -18,6 +18,12 @@ namespace LibreLancer.Missions
     public abstract class ScriptedAction
     {
         public string Text { get; private set; }
+
+        protected ScriptedAction()
+        {
+            Text = "";
+        }
+
         protected ScriptedAction(MissionAction a)
         {
             Text = a.Entry.ToString();
@@ -364,6 +370,11 @@ namespace LibreLancer.Missions
     public class Act_PlaySoundEffect : ScriptedAction
     {
         public string Effect;
+
+        public Act_PlaySoundEffect()
+        {
+            Effect = "";
+        }
 
         public Act_PlaySoundEffect(MissionAction act) : base(act)
         {

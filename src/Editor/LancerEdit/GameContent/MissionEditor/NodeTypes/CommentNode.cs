@@ -8,14 +8,10 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public class CommentNode : Node
+public class CommentNode(int id, string name) : Node(id, name)
 {
-    public Vector2 Size = new Vector2(100, 100);
-    private string previousName = null;
-
-    public CommentNode(int id, string name) : base(id, name, null, null)
-    {
-    }
+    public Vector2 Size = new(100, 100);
+    private string previousName;
 
     static (Vector2 min, Vector2 max) Expand(Vector2 min, Vector2 max, float x, float y)
     {

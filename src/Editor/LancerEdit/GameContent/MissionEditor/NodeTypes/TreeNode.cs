@@ -7,11 +7,13 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public class TreeNode : Node
+public abstract class TreeNode : Node
 {
-    public TreeNode(int id, string name) : base(id, name, null, null)
+    public TreeNode(int id, string name) : base(id, name)
     {
     }
+
+    protected abstract void RenderContent(GameDataContext gameData, MissionScript missionScript);
 
     public override void Render(GameDataContext gameData, MissionScript missionScript)
     {
@@ -49,13 +51,9 @@ public class TreeNode : Node
         ImGui.SameLine();
         ImGui.BeginGroup();
         ImGui.TextUnformatted(Name);
-        if (Data != null)
-        {
-            if (NodeValueRenders.TryGetValue(Data.GetType(), out var renderer))
-            {
-                renderer(gameData, missionScript, ref popups, Data);
-            }
-        }
+
+        RenderContent(gameData, missionScript);
+
         ImGui.EndGroup();
         var topSz = ImGui.GetItemRectSize();
         inputMax.X = inputMin.X + topSz.X;

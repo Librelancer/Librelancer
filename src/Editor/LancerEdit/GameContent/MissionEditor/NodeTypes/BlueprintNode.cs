@@ -10,14 +10,15 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public class BlueprintNode<T> : Node where T : class
+public abstract class BlueprintNode : Node
 {
-    public BlueprintNode(ref int id, string name, object data, Color4? color = null) : base(id++, name, data, color)
+    protected BlueprintNode(ref int id, string name, VertexDiffuse? color = null) : base(id++, name, color)
     {
-        Registers.Registers.RegisterNodeIo<T>(this, ref id);
     }
 
-    public override void Render(GameDataContext gameData, MissionScript missionScript)
+    protected abstract void RenderContent(GameDataContext gameData, MissionScript missionScript);
+
+    public sealed override void Render(GameDataContext gameData, MissionScript missionScript)
     {
         var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
         var nb = NodeBuilder.Begin(Id);
@@ -49,10 +50,8 @@ public class BlueprintNode<T> : Node where T : class
         }
 
         StartFixed();
-        if (NodeValueRenders.TryGetValue(Data.GetType(), out var renderer))
-        {
-            renderer(gameData, missionScript, ref nb.Popups, Data);
-        }
+
+        RenderContent(gameData, missionScript);
 
         EndNodeLayout();
 

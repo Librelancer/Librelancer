@@ -20,13 +20,13 @@ public class NodeLink
     public LinkId Id { get; }
     public NodePin StartPin  { get; set; }
     public NodePin EndPin  { get; set; }
-    public Color4 Color  { get; set; }
+    public VertexDiffuse Color  { get; set; }
 
-    public NodeLink(LinkId id, NodePin startPin, NodePin endPin, Color4? color = null)
+    public NodeLink(LinkId id, NodePin startPin, NodePin endPin, VertexDiffuse? color = null)
     {
         Id = id;
         StartPin = startPin;
         EndPin = endPin;
-        Color = color ?? Color4.White;
+        Color = color ?? (VertexDiffuse)Color4.White;
     }
 }

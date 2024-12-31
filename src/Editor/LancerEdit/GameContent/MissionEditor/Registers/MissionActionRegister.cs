@@ -9,7 +9,7 @@ namespace LancerEdit.GameContent.MissionEditor.Registers;
 
 internal static partial class Registers
 {
-    private static bool RegisterMissionTriggerIo(Node node, ref int pinId)
+    private static bool RegisterMissionActionIo(Node node, ref int pinId)
     {
         node.Inputs.Add(new NodePin(pinId++, "Action: Start Trigger", node, LinkType.TriggerAction, PinKind.Input));
 
@@ -18,9 +18,11 @@ internal static partial class Registers
         return true;
     }
 
-    internal static void MissionTriggerContent(GameDataContext context, MissionScript script, ref NodePopups popups, MissionTrigger obj)
+    internal static void MissionActionContent(GameDataContext context, MissionScript script, ref NodePopups popups, MissionTrigger obj)
     {
         using var value = NodeValue.Begin(obj.Nickname);
+
+
 
         Controls.InputTextId("Nickname##ID", ref obj.Nickname);
         Controls.InputTextId("System##ID", ref obj.System);

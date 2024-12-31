@@ -16,6 +16,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Media;
 using ImGuiNET;
 using LancerEdit.GameContent;
+using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Updater;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
@@ -485,6 +486,8 @@ namespace LancerEdit
                 {
                     OpenDataContext = c;
                     FinishLoadingSpinner();
+
+                    QueueUIThread(() => AddTab(new MissionScriptEditorTab(OpenDataContext, this, @"/mnt/ssd3/Freelancer/DATA/MISSIONS/M02/m02.ini")));
                 }, e =>
                 {
                     FinishLoadingSpinner();
@@ -626,13 +629,13 @@ namespace LancerEdit
                         Popups.MessageBox("Check Faction Hashes", "No hash collisions detected!");
                     }
                 }
-                /*if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
+                if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
                 {
                     FileDialog.Open(x =>
                     {
                         AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
                     }, AppFilters.IniFilters);
-                }*/
+                }
                 ImGui.EndMenu();
             }
 			if (ImGui.BeginMenu("Tools"))

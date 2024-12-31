@@ -12,6 +12,7 @@ internal static partial class Registers
         _ = true switch
         {
             _ when type == typeof(MissionTrigger) => RegisterMissionTriggerIo(node, ref pinId),
+            _ when type == typeof(MissionAction) => RegisterMissionActionIo(node, ref pinId),
             _ => throw new InvalidOperationException("A type that has not been setup has been registered.")
         };
     }

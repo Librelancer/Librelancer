@@ -10,14 +10,13 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public abstract class Node
+public abstract class Node(int id, string name, VertexDiffuse? color = null)
 {
-    protected NodeId Id { get; }
-    protected string Name  { get; set; }
-    public List<NodePin> Inputs  { get; }
-    public List<NodePin> Outputs  { get; }
-    public Color4 Color  { get; }
-    protected object Data { get; }
+    protected NodeId Id { get; } = id;
+    protected string Name  { get; set; } = name;
+    public List<NodePin> Inputs  { get; } = [];
+    public List<NodePin> Outputs  { get; } = [];
+    public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
 
     protected static readonly Dictionary<Type, NodeValueRenderer<object>> NodeValueRenders = new();
 
@@ -26,17 +25,6 @@ public abstract class Node
     {
         NodeValueRenders[typeof(T)] = (GameDataContext context, MissionScript script, ref NodePopups popups, object obj)
             => values(context, script, ref popups, (T)obj);
-    }
-
-    protected Node(int id, string name, object data, Color4? color = null)
-    {
-        Id = id;
-        Name = name;
-        Data = data;
-        Color = color ?? Color4.White;
-
-        Inputs = [];
-        Outputs = [];
     }
 
     public abstract void Render(GameDataContext gameData, MissionScript missionScript);

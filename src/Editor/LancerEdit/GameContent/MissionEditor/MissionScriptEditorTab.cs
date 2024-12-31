@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
+using LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data.Missions;
@@ -62,10 +63,27 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             missionScript.Ini.ShipIni = new NPCShipIni(npcPath, null);
         }
 
-        foreach (var trigger in missionScript.Ini.Triggers)
+        foreach (var trigger in missionScript.AvailableTriggers.Values)
         {
-            nodes.Add(new BlueprintNode<MissionTrigger>(ref nextId, "Trigger", trigger,
-                Color4.FromRgba((uint)NodeColours.Trigger)));
+            //var triggerNode = new BlueprintNode<MissionTrigger>(ref nextId, "Trigger", trigger, NodeColours.Trigger);
+
+            //nodes.Add(triggerNode);
+
+            foreach (var action in trigger.Actions)
+            {
+                BlueprintNode node = action switch
+                {
+                    Act_PlaySoundEffect act => new NodeActPlaySound(ref nextId, act),
+                    _ => null,
+                };
+
+                if (node is null)
+                {
+                    continue;
+                }
+
+                nodes.Add(node);
+            }
         }
     }
 
