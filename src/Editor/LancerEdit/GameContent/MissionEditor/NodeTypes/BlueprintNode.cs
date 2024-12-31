@@ -12,13 +12,13 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class BlueprintNode : Node
 {
-    protected BlueprintNode(ref int id, string name, VertexDiffuse? color = null) : base(id++, name, color)
+    protected BlueprintNode(ref int id, VertexDiffuse? color = null) : base(id++, color)
     {
     }
 
-    protected abstract void RenderContent(GameDataContext gameData, MissionScript missionScript);
+    protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript);
 
-    public sealed override void Render(GameDataContext gameData, MissionScript missionScript)
+    public sealed override void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
     {
         var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
         var nb = NodeBuilder.Begin(Id);
@@ -51,7 +51,7 @@ public abstract class BlueprintNode : Node
 
         StartFixed();
 
-        RenderContent(gameData, missionScript);
+        RenderContent(gameData, popup, missionScript);
 
         EndNodeLayout();
 

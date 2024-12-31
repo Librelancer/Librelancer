@@ -63,27 +63,54 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             missionScript.Ini.ShipIni = new NPCShipIni(npcPath, null);
         }
 
-        foreach (var trigger in missionScript.AvailableTriggers.Values)
+        foreach (var action in missionScript.AvailableTriggers.Values.SelectMany(trigger => trigger.Actions))
         {
-            //var triggerNode = new BlueprintNode<MissionTrigger>(ref nextId, "Trigger", trigger, NodeColours.Trigger);
-
-            //nodes.Add(triggerNode);
-
-            foreach (var action in trigger.Actions)
+            BlueprintNode node = action switch
             {
-                BlueprintNode node = action switch
-                {
-                    Act_PlaySoundEffect act => new NodeActPlaySound(ref nextId, act),
-                    _ => null,
-                };
+                Act_PlaySoundEffect act => new NodeActPlaySound(ref nextId, act),
+                Act_Invulnerable act => new NodeActInvulnerable(ref nextId, act),
+                Act_PlayMusic act => new NodeActPlayMusic(ref nextId, act),
+                Act_SetShipAndLoadout act => new NodeActSetShipAndLoadout(ref nextId, act),
+                Act_RemoveAmbient act => new NodeActRemoveAmbient(ref nextId, act),
+                Act_AddAmbient act => new NodeActAddAmbient(ref nextId, act),
+                Act_RemoveRTC act => new NodeActRemoveRtc(ref nextId, act),
+                Act_AddRTC act => new NodeActAddRtc(ref nextId, act),
+                Act_AdjAcct act => new NodeActAdjustAccount(ref nextId, act),
+                //Act_DeactTrig act => new NodeActDeactivateTrigger(ref nextId, act),
+                //Act_ActTrig act => new NodeActActivateTrigger(ref nextId, act),
+                Act_SetNNObj act => new NodeActSetNNObject(ref nextId, act),
+                Act_ForceLand act => new NodeActForceLand(ref nextId, act),
+                Act_LightFuse act => new NodeActLightFuse(ref nextId, act),
+                Act_PopupDialog act => new NodeActPopupDialog(ref nextId, act),
+                Act_ChangeState act => new NodeActChangeState(ref nextId, act),
+                Act_RevertCam act => new NodeActRevertCamera(ref nextId, act),
+                Act_CallThorn act => new NodeActCallThorn(ref nextId, act),
+                Act_MovePlayer act => new NodeActMovePlayer(ref nextId, act),
+                Act_Cloak act => new NodeActCloak(ref nextId, act),
+                Act_PobjIdle act => new NodeActPObjectIdle(ref nextId, act),
+                Act_SetInitialPlayerPos act => new NodeActSetInitialPlayerPos(ref nextId, act),
+                Act_RelocateShip act => new NodeActRelocateShip(ref nextId, act),
+                Act_StartDialog act => new NodeActStartDialog(ref nextId, act),
+                Act_SendComm act => new NodeActSendComm(ref nextId, act),
+                Act_EtherComm act => new NodeActEtherComm(ref nextId, act),
+                Act_SetVibe act => new NodeActSetVibe(ref nextId, act),
+                Act_SetVibeLbl act => new NodeActSetVibeLabel(ref nextId, act),
+                Act_SetVibeShipToLbl act => new NodeActSetVibeShipToLabel(ref nextId, act),
+                Act_SetVibeLblToShip act => new NodeActSetVibeLabelToShip(ref nextId, act),
+                Act_SpawnSolar act => new NodeActSpawnSolar(ref nextId, act),
+                Act_SpawnShip act => new NodeActSpawnShip(ref nextId, act),
+                Act_SpawnFormation act => new NodeActSpawnFormation(ref nextId, act),
+                Act_MarkObj act => new NodeActMarkObject(ref nextId, act),
+                Act_Destroy act => new NodeActDestroy(ref nextId, act),
+                _ => null,
+            };
 
-                if (node is null)
-                {
-                    continue;
-                }
-
-                nodes.Add(node);
+            if (node is null)
+            {
+                continue;
             }
+
+            nodes.Add(node);
         }
     }
 
@@ -156,7 +183,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         foreach (var node in nodes)
         {
-            node.Render(gameData, missionScript);
+            node.Render(gameData, popup, missionScript);
         }
 
         foreach (var link in links)

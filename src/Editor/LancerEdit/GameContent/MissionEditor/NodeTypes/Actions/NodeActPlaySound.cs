@@ -1,25 +1,20 @@
-﻿using ImGuiNET;
-using LibreLancer;
+﻿using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public class NodeActPlaySound : BlueprintNode
+public sealed class NodeActPlaySound : BlueprintNode
 {
-    private const string Name = "Play Sound";
-    public Act_PlaySoundEffect Data { get; set; }
-    public NodeActPlaySound(ref int id) : base(ref id, Name, NodeColours.Action)
+    protected override string Name => "Play sound";
+
+    private readonly Act_PlaySoundEffect data;
+    public NodeActPlaySound(ref int id, Act_PlaySoundEffect data) : base(ref id, NodeColours.Action)
     {
-        Data = new Act_PlaySoundEffect();
+        this.data = data;
     }
 
-    public NodeActPlaySound(ref int id, Act_PlaySoundEffect data) : base(ref id, Name, NodeColours.Action)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
     {
-        Data = data;
-    }
-
-    protected override void RenderContent(GameDataContext gameData, MissionScript missionScript)
-    {
-        ImGui.Text("Play sound");
+        Controls.InputTextId("Sound Id", ref data.Effect);
     }
 }

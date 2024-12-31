@@ -14,6 +14,9 @@ namespace LibreLancer.Missions
         public Vector3 Position;
         public float Unknown; //1 in M01A
 
+        public Act_MovePlayer()
+        {
+        }
         public Act_MovePlayer(MissionAction act) : base(act)
         {
             Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
@@ -30,8 +33,12 @@ namespace LibreLancer.Missions
 
     public class Act_Cloak : ScriptedAction
     {
-        public string Target;
+        public string Target = string.Empty;
         public bool Cloaked;
+
+        public Act_Cloak()
+        {
+        }
         public Act_Cloak(MissionAction a) : base(a)
         {
             Target = a.Entry[0].ToString();
@@ -56,6 +63,9 @@ namespace LibreLancer.Missions
 
     public class Act_PobjIdle : ScriptedAction
     {
+        public Act_PobjIdle()
+        {
+        }
         public Act_PobjIdle(MissionAction a) : base(a)
         {
         }
@@ -72,6 +82,9 @@ namespace LibreLancer.Missions
         public Vector3 Position;
         public Quaternion Orientation;
 
+        public Act_SetInitialPlayerPos()
+        {
+        }
         public Act_SetInitialPlayerPos(MissionAction act) : base(act)
         {
             Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
@@ -89,10 +102,13 @@ namespace LibreLancer.Missions
 
     public class Act_RelocateShip : ScriptedAction
     {
-        public string Ship;
+        public string Ship = string.Empty;
         public Vector3 Position;
         public Quaternion? Orientation;
 
+        public Act_RelocateShip()
+        {
+        }
         public Act_RelocateShip(MissionAction act) : base(act)
         {
             Ship = act.Entry[0].ToString();

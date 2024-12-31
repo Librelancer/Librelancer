@@ -15,7 +15,12 @@ namespace LibreLancer.Missions
 {
     public class Act_SpawnSolar : ScriptedAction
     {
-        public string Solar;
+        public string Solar = string.Empty;
+
+        public Act_SpawnSolar()
+        {
+        }
+
         public Act_SpawnSolar(MissionAction act) : base(act)
         {
             Solar = act.Entry[0].ToString();
@@ -42,8 +47,12 @@ namespace LibreLancer.Missions
 
     public class Act_MarkObj : ScriptedAction
     {
-        public string Object;
+        public string Object = string.Empty;
         public int Value;
+
+        public Act_MarkObj()
+        {
+        }
 
         public Act_MarkObj(MissionAction act) : base(act)
         {
@@ -75,6 +84,7 @@ namespace LibreLancer.Missions
 
     public abstract class ShipSpawnBase : ScriptedAction
     {
+        protected ShipSpawnBase() {}
         protected ShipSpawnBase(MissionAction act) : base(act) { }
 
         protected void SpawnShip(string msnShip, Vector3? spawnpos, Quaternion? spawnorient, string objList, MissionScript script, MissionRuntime runtime)
@@ -147,8 +157,12 @@ namespace LibreLancer.Missions
 
     public class Act_SpawnFormation : ShipSpawnBase
     {
-        public string Formation;
+        public string Formation = string.Empty;
         public Vector3? Position;
+
+        public Act_SpawnFormation()
+        {
+        }
 
         //TODO: implement formations
         private static IReadOnlyList<Vector3> nullOffsets = new List<Vector3>(

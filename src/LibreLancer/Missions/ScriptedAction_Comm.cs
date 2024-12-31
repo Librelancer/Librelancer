@@ -10,8 +10,11 @@ namespace LibreLancer.Missions
 {
     public class Act_StartDialog : ScriptedAction
     {
-        public string Dialog;
+        public string Dialog = string.Empty;
 
+        public Act_StartDialog()
+        {
+        }
         public Act_StartDialog(MissionAction act) : base(act)
         {
             Dialog = act.Entry[0].ToString();
@@ -50,10 +53,13 @@ namespace LibreLancer.Missions
 
     public class Act_SendComm : ScriptedAction
     {
-        public string Source;
-        public string Destination;
-        public string Line;
+        public string Source = string.Empty;
+        public string Destination = string.Empty;
+        public string Line = string.Empty;
 
+        public Act_SendComm()
+        {
+        }
         public Act_SendComm(MissionAction act) : base(act)
         {
             Source = act.Entry[0].ToString();
@@ -105,6 +111,4 @@ namespace LibreLancer.Missions
             }});
         }
     }
-
-
 }

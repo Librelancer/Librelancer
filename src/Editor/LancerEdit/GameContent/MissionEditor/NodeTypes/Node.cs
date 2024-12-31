@@ -10,10 +10,10 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public abstract class Node(int id, string name, VertexDiffuse? color = null)
+public abstract class Node(int id, VertexDiffuse? color = null)
 {
     protected NodeId Id { get; } = id;
-    protected string Name  { get; set; } = name;
+    protected abstract string Name  { get; }
     public List<NodePin> Inputs  { get; } = [];
     public List<NodePin> Outputs  { get; } = [];
     public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
@@ -27,7 +27,7 @@ public abstract class Node(int id, string name, VertexDiffuse? color = null)
             => values(context, script, ref popups, (T)obj);
     }
 
-    public abstract void Render(GameDataContext gameData, MissionScript missionScript);
+    public abstract void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript);
 
     protected static void LayoutNode(IEnumerable<string> pinsIn, IEnumerable<string> pinsOut, float fixedWidth)
     {

@@ -8,7 +8,7 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public class CommentNode(int id, string name) : Node(id, name)
+public class CommentNode(int id) : Node(id)
 {
     public Vector2 Size = new(100, 100);
     private string previousName;
@@ -18,7 +18,11 @@ public class CommentNode(int id, string name) : Node(id, name)
         return (new Vector2(min.X - x, min.Y - y),
             new Vector2(max.X + x, max.Y + y));
     }
-    public override void Render(GameDataContext gameData, MissionScript missionScript)
+
+    private string _name = "Commend Node";
+    protected override string Name => _name;
+
+    public override void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
     {
         const float CommentAlpha = 0.75f;
 
@@ -86,7 +90,7 @@ public class CommentNode(int id, string name) : Node(id, name)
             ImGui.PushItemWidth(200 * ImGuiHelper.Scale);
             ImGui.InputText("##name", ref n, 255);
             ImGui.PopItemWidth();
-            Name = n;
+            _name = n;
             if (ImGui.Button("Ok"))
             {
                 ImGui.CloseCurrentPopup();
@@ -94,7 +98,7 @@ public class CommentNode(int id, string name) : Node(id, name)
             ImGui.SameLine();
             if (ImGui.Button("Cancel"))
             {
-                Name = previousName;
+                _name = previousName;
                 ImGui.CloseCurrentPopup();
             }
             ImGui.EndPopup();

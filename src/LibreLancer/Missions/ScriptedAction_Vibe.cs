@@ -18,6 +18,10 @@ namespace LibreLancer.Missions
 
     public abstract class SetVibeBase : ScriptedAction
     {
+        public SetVibeBase()
+        {
+        }
+
         protected SetVibeBase(MissionAction act) : base(act) { }
 
         protected void SetVibe(MissionRuntime runtime, string target, string other, VibeSet vibe)
@@ -52,9 +56,13 @@ namespace LibreLancer.Missions
 
     public class Act_SetVibe : SetVibeBase
     {
-        public VibeSet Vibe;
-        public string Target;
-        public string Other;
+        public VibeSet Vibe = VibeSet.REP_NEUTRAL;
+        public string Target = string.Empty;
+        public string Other = string.Empty;
+
+        public Act_SetVibe()
+        {
+        }
 
         public Act_SetVibe(MissionAction act) : base(act)
         {
@@ -70,9 +78,13 @@ namespace LibreLancer.Missions
 
     public class Act_SetVibeLbl : SetVibeBase
     {
-        public VibeSet Vibe;
-        public string Label1;
-        public string Label2;
+        public VibeSet Vibe = VibeSet.REP_NEUTRAL;
+        public string Label1 = string.Empty;
+        public string Label2 = string.Empty;
+
+        public Act_SetVibeLbl()
+        {
+        }
 
         public Act_SetVibeLbl(MissionAction act) : base(act)
         {
@@ -94,9 +106,13 @@ namespace LibreLancer.Missions
 
     public class Act_SetVibeShipToLbl : SetVibeBase
     {
-        public VibeSet Vibe;
-        public string Label;
-        public string Ship;
+        public VibeSet Vibe = VibeSet.REP_NEUTRAL;
+        public string Label = string.Empty;
+        public string Ship = string.Empty;
+
+        public Act_SetVibeShipToLbl()
+        {
+        }
 
         public Act_SetVibeShipToLbl(MissionAction act) : base(act)
         {
@@ -113,9 +129,13 @@ namespace LibreLancer.Missions
 
     public class Act_SetVibeLblToShip : SetVibeBase
     {
-        public VibeSet Vibe;
-        public string Label;
-        public string Ship;
+        public VibeSet Vibe = VibeSet.REP_NEUTRAL;
+        public string Label = string.Empty;
+        public string Ship = string.Empty;
+
+        public Act_SetVibeLblToShip()
+        {
+        }
 
         public Act_SetVibeLblToShip(MissionAction act) : base(act)
         {
