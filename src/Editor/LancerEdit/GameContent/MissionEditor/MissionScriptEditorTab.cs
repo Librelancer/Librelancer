@@ -76,8 +76,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 Act_RemoveRTC act => new NodeActRemoveRtc(ref nextId, act),
                 Act_AddRTC act => new NodeActAddRtc(ref nextId, act),
                 Act_AdjAcct act => new NodeActAdjustAccount(ref nextId, act),
-                //Act_DeactTrig act => new NodeActDeactivateTrigger(ref nextId, act),
-                //Act_ActTrig act => new NodeActActivateTrigger(ref nextId, act),
+                Act_DeactTrig act => new NodeActDeactivateTrigger(ref nextId, act),
+                Act_ActTrig act => new NodeActActivateTrigger(ref nextId, act),
                 Act_SetNNObj act => new NodeActSetNNObject(ref nextId, act),
                 Act_ForceLand act => new NodeActForceLand(ref nextId, act),
                 Act_LightFuse act => new NodeActLightFuse(ref nextId, act),
@@ -107,6 +107,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
             if (node is null)
             {
+                FLLog.Warning("MissionScriptEditor", $"Unable to render node for action type: {action.GetType().FullName}");
                 continue;
             }
 
