@@ -1,18 +1,17 @@
-using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class TreeNode(int id) : Node(id)
 {
-    protected abstract void RenderContent(GameDataContext gameData, MissionScript missionScript);
+    protected abstract void RenderContent(GameDataContext gameData, MissionIni missionIni);
 
-    public override void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    public override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         const float Rounding = 5.0f;
         const float Padding = 12.0f;
@@ -49,7 +48,7 @@ public abstract class TreeNode(int id) : Node(id)
         ImGui.BeginGroup();
         ImGui.TextUnformatted(Name);
 
-        RenderContent(gameData, missionScript);
+        RenderContent(gameData, missionIni);
 
         ImGui.EndGroup();
         var topSz = ImGui.GetItemRectSize();

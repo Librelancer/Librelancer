@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -8,15 +9,15 @@ public sealed class NodeActCloak : BlueprintNode
 {
     protected override string Name => "Act Cloak";
 
-    public readonly Act_Cloak Data;
-    public NodeActCloak(ref int id, Act_Cloak data) : base(ref id, NodeColours.Action)
+    private readonly Act_Cloak data;
+    public NodeActCloak(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        Data = data;
+        data = new Act_Cloak(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref Data.Target);
-        ImGui.Checkbox("Cloak", ref Data.Cloaked);
+        Controls.InputTextId("Target", ref data.Target);
+        ImGui.Checkbox("Cloak", ref data.Cloaked);
     }
 }

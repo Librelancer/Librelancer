@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -9,12 +9,12 @@ public sealed class NodeActPopupDialog : BlueprintNode
     protected override string Name => "Popup Dialog";
 
     private readonly Act_PopupDialog data;
-    public NodeActPopupDialog(ref int id, Act_PopupDialog data) : base(ref id, NodeColours.Action)
+    public NodeActPopupDialog(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_PopupDialog(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Sound Id", ref data.ID);
         Controls.IdsInputString("Title IDS", gameData, popup, ref data.Title, (ids) => data.Title = ids);

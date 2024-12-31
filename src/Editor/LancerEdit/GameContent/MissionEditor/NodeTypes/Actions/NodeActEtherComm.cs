@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -9,12 +9,12 @@ public sealed class NodeActEtherComm : BlueprintNode
     protected override string Name => "Ether Comm";
 
     private readonly Act_EtherComm data;
-    public NodeActEtherComm(ref int id, Act_EtherComm data) : base(ref id, NodeColours.Action)
+    public NodeActEtherComm(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_EtherComm(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Line", ref data.Line);
         Controls.InputTextId("Voices", ref data.Voice);

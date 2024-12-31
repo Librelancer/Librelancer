@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -9,12 +10,12 @@ public sealed class NodeActSetInitialPlayerPos : BlueprintNode
     protected override string Name => "Set Initial Player Position";
 
     private readonly Act_SetInitialPlayerPos data;
-    public NodeActSetInitialPlayerPos(ref int id, Act_SetInitialPlayerPos data) : base(ref id, NodeColours.Action)
+    public NodeActSetInitialPlayerPos(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_SetInitialPlayerPos(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         ImGui.InputFloat3("Position", ref data.Position);
         Controls.InputFlQuaternion("Orientation", ref data.Orientation);

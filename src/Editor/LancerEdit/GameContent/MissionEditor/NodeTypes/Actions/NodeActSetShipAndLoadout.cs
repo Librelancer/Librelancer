@@ -1,4 +1,5 @@
-﻿using LibreLancer.ImUI;
+﻿using LibreLancer.Data.Missions;
+using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
@@ -8,12 +9,12 @@ public sealed class NodeActSetShipAndLoadout : BlueprintNode
     protected override string Name => "Set Ship and Loadout";
 
     private readonly Act_SetShipAndLoadout data;
-    public NodeActSetShipAndLoadout(ref int id, Act_SetShipAndLoadout data) : base(ref id, NodeColours.Action)
+    public NodeActSetShipAndLoadout(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_SetShipAndLoadout(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Ship", ref data.Ship);
         Controls.InputTextId("Loadout", ref data.Loadout);

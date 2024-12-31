@@ -1,4 +1,5 @@
-﻿using LibreLancer.ImUI;
+﻿using LibreLancer.Data.Missions;
+using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
@@ -8,12 +9,12 @@ public sealed class NodeActAddAmbient : BlueprintNode
     protected override string Name => "Add Ambient";
 
     private readonly Act_AddAmbient data;
-    public NodeActAddAmbient(ref int id, Act_AddAmbient data) : base(ref id, NodeColours.Action)
+    public NodeActAddAmbient(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_AddAmbient(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Script", ref data.Script);
         Controls.InputTextId("Base", ref data.Base);

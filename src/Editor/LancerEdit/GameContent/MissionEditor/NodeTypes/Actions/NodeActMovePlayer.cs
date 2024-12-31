@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -9,12 +10,12 @@ public sealed class NodeActMovePlayer : BlueprintNode
     protected override string Name => "Move Player";
 
     private readonly Act_MovePlayer data;
-    public NodeActMovePlayer(ref int id, Act_MovePlayer data) : base(ref id, NodeColours.Action)
+    public NodeActMovePlayer(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_MovePlayer(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         ImGui.InputFloat3("Position", ref data.Position);
         ImGui.InputFloat("Unknown", ref data.Unknown);

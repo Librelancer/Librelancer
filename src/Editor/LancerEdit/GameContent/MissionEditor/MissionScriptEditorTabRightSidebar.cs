@@ -10,7 +10,9 @@ public sealed partial class MissionScriptEditorTab
 {
     private void RenderRightSidebar()
     {
-        ImGui.BeginChild("NavbarRight", new Vector2(300f, ImGui.GetContentRegionMax().Y), ImGuiChildFlags.None, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoCollapse);
+        ImGui.BeginChild("NavbarRight", new Vector2(300f, ImGui.GetContentRegionMax().Y), ImGuiChildFlags.None,
+            ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoCollapse);
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
 
@@ -44,34 +46,31 @@ public sealed partial class MissionScriptEditorTab
     }
 
     private int selectedDialogIndex = -1;
+
     private void RenderDialogManager()
     {
-        var ini = missionScript.Ini;
-
         if (ImGui.Button("Create New Dialog"))
         {
-            selectedDialogIndex = ini.Dialogs.Count;
-            ini.Dialogs.Add(new MissionDialog());
+            selectedDialogIndex = missionIni.Dialogs.Count;
+            missionIni.Dialogs.Add(new MissionDialog());
         }
 
         ImGui.BeginDisabled(selectedDialogIndex == -1);
         if (ImGui.Button("Delete Dialog"))
         {
-            win.Confirm("Are you sure you want to delete this dialog?", () =>
-            {
-                ini.Dialogs.RemoveAt(selectedDialogIndex--);
-            });
+            win.Confirm("Are you sure you want to delete this dialog?",
+                () => { missionIni.Dialogs.RemoveAt(selectedDialogIndex--); });
         }
 
         ImGui.EndDisabled();
 
-        var selectedDialog = selectedDialogIndex != -1 ? ini.Dialogs[selectedDialogIndex] : null;
+        var selectedDialog = selectedDialogIndex != -1 ? missionIni.Dialogs[selectedDialogIndex] : null;
         ImGui.SetNextItemWidth(150f);
         if (ImGui.BeginCombo("Dialogs", selectedDialog is not null ? selectedDialog.Nickname : ""))
         {
-            for (var index = 0; index < ini.Dialogs.Count; index++)
+            for (var index = 0; index < missionIni.Dialogs.Count; index++)
             {
-                var arch = ini.Dialogs[index];
+                var arch = missionIni.Dialogs[index];
                 var selected = arch == selectedDialog;
                 if (!ImGui.Selectable(arch?.Nickname, selected))
                 {
@@ -95,7 +94,8 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextId("Nickname##Dialog", ref selectedDialog.Nickname, 150f);
         Controls.InputTextId("System##Dialog", ref selectedDialog.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedDialog.System.Length is 0 ||
-                                                     gameData.GameData.Systems.Any(x => x.Nickname == selectedDialog.System));
+                                                     gameData.GameData.Systems.Any(x =>
+                                                         x.Nickname == selectedDialog.System));
 
         for (var index = 0; index < selectedDialog.Lines.Count; index++)
         {
@@ -118,34 +118,31 @@ public sealed partial class MissionScriptEditorTab
     }
 
     private int selectedLootIndex = -1;
+
     private void RenderLootManager()
     {
-        var ini = missionScript.Ini;
-
         if (ImGui.Button("Create New Loot"))
         {
-            selectedLootIndex = ini.Loots.Count;
-            ini.Loots.Add(new MissionLoot());
+            selectedLootIndex = missionIni.Loots.Count;
+            missionIni.Loots.Add(new MissionLoot());
         }
 
         ImGui.BeginDisabled(selectedLootIndex == -1);
         if (ImGui.Button("Delete Loot"))
         {
-            win.Confirm("Are you sure you want to delete this loot?", () =>
-            {
-                ini.Loots.RemoveAt(selectedLootIndex--);
-            });
+            win.Confirm("Are you sure you want to delete this loot?",
+                () => { missionIni.Loots.RemoveAt(selectedLootIndex--); });
         }
 
         ImGui.EndDisabled();
 
-        var selectedLoot = selectedLootIndex != -1 ? ini.Loots[selectedLootIndex] : null;
+        var selectedLoot = selectedLootIndex != -1 ? missionIni.Loots[selectedLootIndex] : null;
         ImGui.SetNextItemWidth(150f);
         if (ImGui.BeginCombo("Loots", selectedLoot is not null ? selectedLoot.Nickname : ""))
         {
-            for (var index = 0; index < ini.Loots.Count; index++)
+            for (var index = 0; index < missionIni.Loots.Count; index++)
             {
-                var arch = ini.Loots[index];
+                var arch = missionIni.Loots[index];
                 var selected = arch == selectedLoot;
                 if (!ImGui.Selectable(arch?.Nickname, selected))
                 {
@@ -168,7 +165,8 @@ public sealed partial class MissionScriptEditorTab
 
         Controls.InputTextId("Nickname##Loot", ref selectedLoot.Nickname, 150f);
         Controls.InputTextId("Archetype##Loot", ref selectedLoot.Archetype, 150f);
-        Controls.IdsInputString("Name##Loot", gameData, popup, ref selectedLoot.StringId, x => selectedLoot.StringId = x, inputWidth: 150f);
+        Controls.IdsInputString("Name##Loot", gameData, popup, ref selectedLoot.StringId,
+            x => selectedLoot.StringId = x, inputWidth: 150f);
 
         ImGui.BeginDisabled(!string.IsNullOrEmpty(selectedLoot.RelPosObj) && selectedLoot.RelPosOffset != Vector3.Zero);
         ImGui.SetNextItemWidth(200f);
@@ -198,34 +196,31 @@ public sealed partial class MissionScriptEditorTab
     }
 
     private int selectedSolarIndex = -1;
+
     private void RenderMissionSolarManager()
     {
-        var ini = missionScript.Ini;
-
         if (ImGui.Button("Create New Solar"))
         {
-            selectedSolarIndex = ini.Solars.Count;
-            ini.Solars.Add(new MissionSolar());
+            selectedSolarIndex = missionIni.Solars.Count;
+            missionIni.Solars.Add(new MissionSolar());
         }
 
         ImGui.BeginDisabled(selectedSolarIndex == -1);
         if (ImGui.Button("Delete Solar"))
         {
-            win.Confirm("Are you sure you want to delete this solar?", () =>
-            {
-                ini.Solars.RemoveAt(selectedSolarIndex--);
-            });
+            win.Confirm("Are you sure you want to delete this solar?",
+                () => { missionIni.Solars.RemoveAt(selectedSolarIndex--); });
         }
 
         ImGui.EndDisabled();
 
-        var selectedSolar = selectedSolarIndex != -1 ? ini.Solars[selectedSolarIndex] : null;
+        var selectedSolar = selectedSolarIndex != -1 ? missionIni.Solars[selectedSolarIndex] : null;
         ImGui.SetNextItemWidth(150f);
         if (ImGui.BeginCombo("Solars", selectedSolar is not null ? selectedSolar.Nickname : ""))
         {
-            for (var index = 0; index < ini.Solars.Count; index++)
+            for (var index = 0; index < missionIni.Solars.Count; index++)
             {
-                var arch = ini.Solars[index];
+                var arch = missionIni.Solars[index];
                 var selected = arch == selectedSolar;
                 if (!ImGui.Selectable(arch?.Nickname, selected))
                 {
@@ -249,23 +244,33 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextId("Nickname##Solar", ref selectedSolar.Nickname, 150f);
         Controls.InputTextId("System##Solar", ref selectedSolar.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.System.Length is 0 ||
-            gameData.GameData.Systems.Any(x => x.Nickname.Equals(selectedSolar.System, StringComparison.InvariantCultureIgnoreCase)));
+                                                     gameData.GameData.Systems.Any(x =>
+                                                         x.Nickname.Equals(selectedSolar.System,
+                                                             StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextId("Faction##Solar", ref selectedSolar.Faction, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Faction.Length is 0 ||
-            gameData.GameData.Factions.Any(x => x.Nickname.Equals(selectedSolar.Faction, StringComparison.InvariantCultureIgnoreCase)));
+                                                     gameData.GameData.Factions.Any(x =>
+                                                         x.Nickname.Equals(selectedSolar.Faction,
+                                                             StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextId("Archetype##Solar", ref selectedSolar.Archetype, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Archetype.Length is 0 ||
-            gameData.GameData.Archetypes.Any(x => x.Nickname.Equals(selectedSolar.Archetype, StringComparison.InvariantCultureIgnoreCase)));
+                                                     gameData.GameData.Archetypes.Any(x =>
+                                                         x.Nickname.Equals(selectedSolar.Archetype,
+                                                             StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextId("Base##Solar", ref selectedSolar.Base, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Base.Length is 0 ||
-            gameData.GameData.Bases.Any(x => x.Nickname.Equals(selectedSolar.Base, StringComparison.InvariantCultureIgnoreCase)));
+                                                     gameData.GameData.Bases.Any(x =>
+                                                         x.Nickname.Equals(selectedSolar.Base,
+                                                             StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextId("Loadout##Solar", ref selectedSolar.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Loadout.Length is 0 ||
-            gameData.GameData.Loadouts.Any(x => x.Nickname.Equals(selectedSolar.Loadout, StringComparison.InvariantCultureIgnoreCase)));
+                                                     gameData.GameData.Loadouts.Any(x =>
+                                                         x.Nickname.Equals(selectedSolar.Loadout,
+                                                             StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextId("Voice##Solar", ref selectedSolar.Voice, 150f);
         Controls.InputTextId("Pilot##Solar", ref selectedSolar.Pilot, 150f);
@@ -294,34 +299,31 @@ public sealed partial class MissionScriptEditorTab
     }
 
     private int selectedShipIndex = -1;
+
     private void RenderMissionShipManager()
     {
-        var ini = missionScript.Ini;
-
         if (ImGui.Button("Create New Ship"))
         {
-            selectedShipIndex = ini.Ships.Count;
-            ini.Ships.Add(new MissionShip());
+            selectedShipIndex = missionIni.Ships.Count;
+            missionIni.Ships.Add(new MissionShip());
         }
 
         ImGui.BeginDisabled(selectedShipIndex == -1);
         if (ImGui.Button("Delete Ship"))
         {
-            win.Confirm("Are you sure you want to delete this ship?", () =>
-            {
-                ini.NPCs.RemoveAt(selectedShipIndex--);
-            });
+            win.Confirm("Are you sure you want to delete this ship?",
+                () => { missionIni.NPCs.RemoveAt(selectedShipIndex--); });
         }
 
         ImGui.EndDisabled();
 
-        var selectedShip = selectedShipIndex != -1 ? ini.Ships[selectedShipIndex] : null;
+        var selectedShip = selectedShipIndex != -1 ? missionIni.Ships[selectedShipIndex] : null;
         ImGui.SetNextItemWidth(150f);
         if (ImGui.BeginCombo("Ships", selectedShip is not null ? selectedShip.Nickname : ""))
         {
-            for (var index = 0; index < ini.Ships.Count; index++)
+            for (var index = 0; index < missionIni.Ships.Count; index++)
             {
-                var arch = ini.Ships[index];
+                var arch = missionIni.Ships[index];
                 var selected = arch == selectedShip;
                 if (!ImGui.Selectable(arch?.Nickname, selected))
                 {
@@ -345,12 +347,13 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextId("Nickname##Ship", ref selectedShip.Nickname, 150f);
         Controls.InputTextId("System##Ship", ref selectedShip.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
-            gameData.GameData.Systems.Any(x => x.Nickname == selectedShip.System));
+                                                     gameData.GameData.Systems.Any(x =>
+                                                         x.Nickname == selectedShip.System));
 
         ImGui.SetNextItemWidth(150f);
         if (ImGui.BeginCombo("NPC##Ship", selectedShip.NPC ?? ""))
         {
-            foreach (var npc in ini.NPCs
+            foreach (var npc in missionIni.NPCs
                          .Select(x => x.Nickname)
                          .Where(x => ImGui.Selectable(x ?? "", selectedShip.NPC == x)))
             {
@@ -360,7 +363,7 @@ public sealed partial class MissionScriptEditorTab
             ImGui.EndCombo();
         }
 
-        MissionEditorHelpers.AlertIfInvalidRef(() => ini.NPCs.Any(x => x.Nickname == selectedShip.NPC));
+        MissionEditorHelpers.AlertIfInvalidRef(() => missionIni.NPCs.Any(x => x.Nickname == selectedShip.NPC));
 
         ImGui.NewLine();
 
@@ -403,7 +406,7 @@ public sealed partial class MissionScriptEditorTab
                 selectedShip.InitObjectives = "no_op";
             }
 
-            foreach (var npc in ini.ObjLists
+            foreach (var npc in missionIni.ObjLists
                          .Select(x => x.Nickname)
                          .Where(x => ImGui.Selectable(x ?? "", selectedShip.InitObjectives == x)))
             {
@@ -416,7 +419,7 @@ public sealed partial class MissionScriptEditorTab
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.InitObjectives is null ||
                                                      selectedShip.InitObjectives.Length is 0 ||
                                                      selectedShip.InitObjectives == "no_op" ||
-                                                     ini.ObjLists.Any(x => x.Nickname == selectedShip.InitObjectives));
+                                                     missionIni.ObjLists.Any(x => x.Nickname == selectedShip.InitObjectives));
 
         ImGui.Text("Cargo");
         if (selectedShip.Cargo.Count is not 0)
@@ -426,7 +429,9 @@ public sealed partial class MissionScriptEditorTab
                 var cargo = selectedShip.Cargo[i];
                 ImGui.PushID(i);
                 Controls.InputTextId("##Cargo", ref cargo.Cargo, 150f);
-                MissionEditorHelpers.AlertIfInvalidRef(() => gameData.GameData.Equipment.Any(x => x.Nickname.Equals(cargo.Cargo, StringComparison.InvariantCultureIgnoreCase)));
+                MissionEditorHelpers.AlertIfInvalidRef(() =>
+                    gameData.GameData.Equipment.Any(x =>
+                        x.Nickname.Equals(cargo.Cargo, StringComparison.InvariantCultureIgnoreCase)));
                 ImGui.SameLine();
                 ImGui.PushItemWidth(75f);
                 ImGui.InputInt("##Count", ref cargo.Count);

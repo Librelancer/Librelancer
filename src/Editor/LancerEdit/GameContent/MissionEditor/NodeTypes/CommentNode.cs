@@ -1,10 +1,9 @@
-using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
@@ -22,7 +21,7 @@ public class CommentNode(int id) : Node(id)
     private string _name = "Commend Node";
     protected override string Name => _name;
 
-    public override void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    public override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         const float CommentAlpha = 0.75f;
 

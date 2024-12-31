@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -27,7 +28,7 @@ public abstract class Node(int id, VertexDiffuse? color = null)
             => values(context, script, ref popups, (T)obj);
     }
 
-    public abstract void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript);
+    public abstract void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni);
 
     protected static void LayoutNode(IEnumerable<string> pinsIn, IEnumerable<string> pinsOut, float fixedWidth)
     {

@@ -1,12 +1,10 @@
-using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
@@ -16,9 +14,9 @@ public abstract class BlueprintNode : Node
     {
     }
 
-    protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript);
+    protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni);
 
-    public sealed override void Render(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    public sealed override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
         var nb = NodeBuilder.Begin(Id);
@@ -51,7 +49,7 @@ public abstract class BlueprintNode : Node
 
         StartFixed();
 
-        RenderContent(gameData, popup, missionScript);
+        RenderContent(gameData, popup, missionIni);
 
         EndNodeLayout();
 

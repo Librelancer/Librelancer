@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -9,12 +9,12 @@ public sealed class NodeActSendComm : BlueprintNode
     protected override string Name => "Send Comm";
 
     private readonly Act_SendComm data;
-    public NodeActSendComm(ref int id, Act_SendComm data) : base(ref id, NodeColours.Action)
+    public NodeActSendComm(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_SendComm(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Source", ref data.Source);
         Controls.InputTextId("Destination", ref data.Destination);

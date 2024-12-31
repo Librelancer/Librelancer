@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using ImGuiNET;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -12,12 +13,12 @@ public sealed class NodeActSetVibe : BlueprintNode
 
     private readonly Act_SetVibe data;
 
-    public NodeActSetVibe(ref int id, Act_SetVibe data) : base(ref id, NodeColours.Action)
+    public NodeActSetVibe(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_SetVibe(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         VibeComboBox(ref data.Vibe);
         Controls.InputTextId("Target", ref data.Target);

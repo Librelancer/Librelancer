@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using ImGuiNET;
+﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -12,12 +10,12 @@ public sealed class NodeActSetVibeShipToLabel : BlueprintNode
 
     private readonly Act_SetVibeShipToLbl data;
 
-    public NodeActSetVibeShipToLabel(ref int id, Act_SetVibeShipToLbl data) : base(ref id, NodeColours.Action)
+    public NodeActSetVibeShipToLabel(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_SetVibeShipToLbl(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         NodeActSetVibe.VibeComboBox(ref data.Vibe);
         Controls.InputTextId("Ship", ref data.Ship);

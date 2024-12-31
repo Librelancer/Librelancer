@@ -37,7 +37,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
     private static bool _registeredNodeValueRenderers = false;
 
-    private readonly MissionScript missionScript;
+    private readonly MissionIni missionIni;
 
     public MissionScriptEditorTab(GameDataContext gameData, MainWindow win, string file)
     {
@@ -55,63 +55,69 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         nodes = [];
         links = [];
-        missionScript = new MissionScript(new MissionIni(file, null));
+        missionIni = new MissionIni(file, null);
 
-        var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionScript.Ini.Info.NpcShipFile));
+        var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
         if (npcPath is not null)
         {
-            missionScript.Ini.ShipIni = new NPCShipIni(npcPath, null);
+            missionIni.ShipIni = new NPCShipIni(npcPath, null);
         }
 
-        foreach (var action in missionScript.AvailableTriggers.Values.SelectMany(trigger => trigger.Actions))
+        foreach (var trigger in missionIni.Triggers)
         {
-            BlueprintNode node = action switch
+            foreach (var action in trigger.Actions)
             {
-                Act_PlaySoundEffect act => new NodeActPlaySound(ref nextId, act),
-                Act_Invulnerable act => new NodeActInvulnerable(ref nextId, act),
-                Act_PlayMusic act => new NodeActPlayMusic(ref nextId, act),
-                Act_SetShipAndLoadout act => new NodeActSetShipAndLoadout(ref nextId, act),
-                Act_RemoveAmbient act => new NodeActRemoveAmbient(ref nextId, act),
-                Act_AddAmbient act => new NodeActAddAmbient(ref nextId, act),
-                Act_RemoveRTC act => new NodeActRemoveRtc(ref nextId, act),
-                Act_AddRTC act => new NodeActAddRtc(ref nextId, act),
-                Act_AdjAcct act => new NodeActAdjustAccount(ref nextId, act),
-                Act_DeactTrig act => new NodeActDeactivateTrigger(ref nextId, act),
-                Act_ActTrig act => new NodeActActivateTrigger(ref nextId, act),
-                Act_SetNNObj act => new NodeActSetNNObject(ref nextId, act),
-                Act_ForceLand act => new NodeActForceLand(ref nextId, act),
-                Act_LightFuse act => new NodeActLightFuse(ref nextId, act),
-                Act_PopupDialog act => new NodeActPopupDialog(ref nextId, act),
-                Act_ChangeState act => new NodeActChangeState(ref nextId, act),
-                Act_RevertCam act => new NodeActRevertCamera(ref nextId, act),
-                Act_CallThorn act => new NodeActCallThorn(ref nextId, act),
-                Act_MovePlayer act => new NodeActMovePlayer(ref nextId, act),
-                Act_Cloak act => new NodeActCloak(ref nextId, act),
-                Act_PobjIdle act => new NodeActPObjectIdle(ref nextId, act),
-                Act_SetInitialPlayerPos act => new NodeActSetInitialPlayerPos(ref nextId, act),
-                Act_RelocateShip act => new NodeActRelocateShip(ref nextId, act),
-                Act_StartDialog act => new NodeActStartDialog(ref nextId, act),
-                Act_SendComm act => new NodeActSendComm(ref nextId, act),
-                Act_EtherComm act => new NodeActEtherComm(ref nextId, act),
-                Act_SetVibe act => new NodeActSetVibe(ref nextId, act),
-                Act_SetVibeLbl act => new NodeActSetVibeLabel(ref nextId, act),
-                Act_SetVibeShipToLbl act => new NodeActSetVibeShipToLabel(ref nextId, act),
-                Act_SetVibeLblToShip act => new NodeActSetVibeLabelToShip(ref nextId, act),
-                Act_SpawnSolar act => new NodeActSpawnSolar(ref nextId, act),
-                Act_SpawnShip act => new NodeActSpawnShip(ref nextId, act),
-                Act_SpawnFormation act => new NodeActSpawnFormation(ref nextId, act),
-                Act_MarkObj act => new NodeActMarkObject(ref nextId, act),
-                Act_Destroy act => new NodeActDestroy(ref nextId, act),
-                _ => null,
-            };
+                BlueprintNode node = action.Type switch
+                {
+                    TriggerActions.Act_PlaySoundEffect => new NodeActPlaySound(ref nextId, action),
+                    TriggerActions.Act_Invulnerable => new NodeActInvulnerable(ref nextId, action),
+                    TriggerActions.Act_PlayMusic => new NodeActPlayMusic(ref nextId, action),
+                    TriggerActions.Act_SetShipAndLoadout => new NodeActSetShipAndLoadout(ref nextId, action),
+                    TriggerActions.Act_RemoveAmbient => new NodeActRemoveAmbient(ref nextId, action),
+                    TriggerActions.Act_AddAmbient => new NodeActAddAmbient(ref nextId, action),
+                    TriggerActions.Act_RemoveRTC => new NodeActRemoveRtc(ref nextId, action),
+                    TriggerActions.Act_AddRTC => new NodeActAddRtc(ref nextId, action),
+                    TriggerActions.Act_AdjAcct => new NodeActAdjustAccount(ref nextId, action),
+                    TriggerActions.Act_DeactTrig => new NodeActDeactivateTrigger(ref nextId, action),
+                    TriggerActions.Act_ActTrig => new NodeActActivateTrigger(ref nextId, action),
+                    TriggerActions.Act_SetNNObj => new NodeActSetNNObject(ref nextId, action),
+                    TriggerActions.Act_ForceLand => new NodeActForceLand(ref nextId, action),
+                    TriggerActions.Act_LightFuse => new NodeActLightFuse(ref nextId, action),
+                    TriggerActions.Act_PopUpDialog => new NodeActPopupDialog(ref nextId, action),
+                    TriggerActions.Act_ChangeState => new NodeActChangeState(ref nextId, action),
+                    TriggerActions.Act_RevertCam => new NodeActRevertCamera(ref nextId, action),
+                    TriggerActions.Act_CallThorn => new NodeActCallThorn(ref nextId, action),
+                    TriggerActions.Act_MovePlayer => new NodeActMovePlayer(ref nextId, action),
+                    TriggerActions.Act_Cloak => new NodeActCloak(ref nextId, action),
+                    TriggerActions.Act_PobjIdle => new NodeActPObjectIdle(ref nextId, action),
+                    TriggerActions.Act_SetInitialPlayerPos => new NodeActSetInitialPlayerPos(ref nextId, action),
+                    TriggerActions.Act_RelocateShip => new NodeActRelocateShip(ref nextId, action),
+                    TriggerActions.Act_StartDialog => new NodeActStartDialog(ref nextId, action),
+                    TriggerActions.Act_SendComm => new NodeActSendComm(ref nextId, action),
+                    TriggerActions.Act_EtherComm => new NodeActEtherComm(ref nextId, action),
+                    TriggerActions.Act_SetVibe => new NodeActSetVibe(ref nextId, action),
+                    TriggerActions.Act_SetVibeLbl => new NodeActSetVibeLabel(ref nextId, action),
+                    TriggerActions.Act_SetVibeShipToLbl => new NodeActSetVibeShipToLabel(ref nextId, action),
+                    TriggerActions.Act_SetVibeLblToShip => new NodeActSetVibeLabelToShip(ref nextId, action),
+                    TriggerActions.Act_SpawnSolar => new NodeActSpawnSolar(ref nextId, action),
+                    TriggerActions.Act_SpawnShip => new NodeActSpawnShip(ref nextId, action),
+                    TriggerActions.Act_SpawnFormation => new NodeActSpawnFormation(ref nextId, action),
+                    TriggerActions.Act_MarkObj => new NodeActMarkObject(ref nextId, action),
+                    TriggerActions.Act_Destroy => new NodeActDestroy(ref nextId, action),
+                    _ => null,
+                };
 
-            if (node is null)
-            {
-                FLLog.Warning("MissionScriptEditor", $"Unable to render node for action type: {action.GetType().FullName}");
-                continue;
+                if (node is null)
+                {
+                    FLLog.Warning("MissionScriptEditor",
+                        $"Unable to render node for action type: {action.GetType().FullName}");
+                    continue;
+                }
+
+                nodes.Add(node);
             }
 
-            nodes.Add(node);
+            nodes.Add(new NodeMissionTrigger(ref nextId, trigger));
         }
     }
 
@@ -146,32 +152,32 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
     private void CheckIndexes()
     {
-        if (selectedShipIndex is -1 && missionScript.Ini.Ships.Count is not 0)
+        if (selectedShipIndex is -1 && missionIni.Ships.Count is not 0)
         {
             selectedShipIndex = 0;
         }
 
-        if (selectedArchIndex is -1 && missionScript.Ini.ShipIni.ShipArches.Count is not 0)
+        if (selectedArchIndex is -1 && missionIni.ShipIni.ShipArches.Count is not 0)
         {
             selectedArchIndex = 0;
         }
 
-        if (selectedNpcIndex is -1 && missionScript.Ini.NPCs.Count is not 0)
+        if (selectedNpcIndex is -1 && missionIni.NPCs.Count is not 0)
         {
             selectedNpcIndex = 0;
         }
 
-        if (selectedSolarIndex is -1 && missionScript.Ini.Solars.Count is not 0)
+        if (selectedSolarIndex is -1 && missionIni.Solars.Count is not 0)
         {
             selectedSolarIndex = 0;
         }
 
-        if (selectedFormationIndex is -1 && missionScript.Ini.Formations.Count is not 0)
+        if (selectedFormationIndex is -1 && missionIni.Formations.Count is not 0)
         {
             selectedFormationIndex = 0;
         }
 
-        if (selectedLootIndex is -1 && missionScript.Ini.Loots.Count is not 0)
+        if (selectedLootIndex is -1 && missionIni.Loots.Count is not 0)
         {
             selectedLootIndex = 0;
         }
@@ -184,7 +190,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         foreach (var node in nodes)
         {
-            node.Render(gameData, popup, missionScript);
+            node.Render(gameData, popup, missionIni);
         }
 
         foreach (var link in links)

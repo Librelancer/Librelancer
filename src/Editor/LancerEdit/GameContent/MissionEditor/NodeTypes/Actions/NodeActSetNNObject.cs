@@ -1,4 +1,5 @@
-﻿using LibreLancer.ImUI;
+﻿using LibreLancer.Data.Missions;
+using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
@@ -9,12 +10,12 @@ public sealed class NodeActSetNNObject : BlueprintNode
     protected override string Name => "Set NN Object";
 
     private readonly Act_SetNNObj data;
-    public NodeActSetNNObject(ref int id, Act_SetNNObj data) : base(ref id, NodeColours.Action)
+    public NodeActSetNNObject(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        this.data = data;
+        data = new Act_SetNNObj(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Objective", ref data.Objective);
     }

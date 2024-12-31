@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -8,14 +9,14 @@ public sealed class NodeActInvulnerable : BlueprintNode
 {
     protected override string Name => "Set Invulnerable";
 
-    public readonly Act_Invulnerable Data;
-    public NodeActInvulnerable(ref int id, Act_Invulnerable data) : base(ref id, NodeColours.Action)
+    private readonly Act_Invulnerable data;
+    public NodeActInvulnerable(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        Data = data;
+        data = new Act_Invulnerable(action);
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionScript missionScript)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Is Invulnerable", ref Data.Invulnerable);
+        ImGui.Checkbox("Is Invulnerable", ref data.Invulnerable);
     }
 }
