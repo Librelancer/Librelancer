@@ -31,7 +31,18 @@ public abstract class BlueprintNode : Node
         foreach (var pin in Inputs)
         {
             NodeEditor.BeginPin(pin.Id, PinKind.Input);
-            VectorIcons.Icon(iconSize, VectorIcon.Flow, false);
+
+            Color4 color = pin.LinkType switch
+            {
+                LinkType.Command => Color4.Cyan,
+                LinkType.CommandList => Color4.DarkBlue,
+                LinkType.Condition => Color4.Orange,
+                LinkType.Trigger => Color4.Green,
+                LinkType.Action => Color4.Red,
+                _ => Color4.White,
+            };
+
+            VectorIcons.Icon(iconSize, VectorIcon.Flow, false, color);
             ImGui.SameLine();
             ImGui.Text(pin.Name);
             NodeEditor.EndPin();

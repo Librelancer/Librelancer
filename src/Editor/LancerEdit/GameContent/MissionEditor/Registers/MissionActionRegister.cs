@@ -11,7 +11,7 @@ internal static partial class Registers
 {
     private static bool RegisterMissionActionIo(Node node, ref int pinId)
     {
-        node.Inputs.Add(new NodePin(pinId++, "Action: Start Trigger", node, LinkType.TriggerAction, PinKind.Input));
+        node.Inputs.Add(new NodePin(pinId++, "Action: Start Trigger", node, LinkType.Trigger, PinKind.Input));
 
         node.Outputs.Add(new NodePin(pinId++, "Actions", node, LinkType.Action, PinKind.Output));
         node.Outputs.Add(new NodePin(pinId++, "Conditions", node, LinkType.Condition, PinKind.Output));

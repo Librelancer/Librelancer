@@ -313,4 +313,23 @@ public static class Controls
         }
         ImGui.PopID();
     }
+
+    public static void HelpMarker(string helpText, bool sameLine = false)
+    {
+        if (sameLine)
+        {
+            ImGui.SameLine();
+        }
+
+        ImGui.TextDisabled("(?)");
+        if (!ImGui.BeginItemTooltip())
+        {
+            return;
+        }
+
+        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
+        ImGui.TextUnformatted(helpText);
+        ImGui.PopTextWrapPos();
+        ImGui.EndTooltip();
+    }
 }

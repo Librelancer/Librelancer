@@ -7,6 +7,7 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
+using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data.Missions;
@@ -110,9 +111,63 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 if (node is null)
                 {
                     FLLog.Warning("MissionScriptEditor",
-                        $"Unable to render node for action type: {action.GetType().FullName}");
+                        $"Unable to render node for action type: {action.Type}");
                     continue;
                 }
+
+                nodes.Add(node);
+            }
+
+            foreach (var condition in trigger.Conditions)
+            {
+                BlueprintNode node = condition.Type switch
+                {
+                    TriggerConditions.Cnd_WatchVibe => new NodeCndWatchVibe(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_WatchTrigger => new NodeCndWatchTrigger(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_True => new NodeCndTrue(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_TLExited => new NodeCndTradeLaneExit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_TLEntered => new NodeCndTradeLaneEnter(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_Timer => new NodeCndTimer(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_TetherBroke => new NodeCndTetherBreak(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_SystemExit => new NodeCndSystemExit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_SystemEnter => new NodeCndSystemEnter(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_SpaceExit => new NodeCndSpaceExit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_SpaceEnter => new NodeCndSpaceEnter(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_RumorHeard => new NodeCndRumourHeard(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_RTCDone => new NodeCndRtcComplete(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_ProjHitShipToLbl => new NodeCndProjectileHitShipToLabel(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_ProjHit => new NodeCndProjectileHit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_PopUpDialog => new NodeCndPopUpDialog(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_PlayerManeuver => new NodeCndPlayerManeuver(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_PlayerLaunch => new NodeCndPlayerLaunch(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_NPCSystemExit => new NodeCndNpcSystemExit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_NPCSystemEnter => new NodeCndNpcSystemEnter(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_MsnResponse => new NodeCndMissionResponse(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_LootAcquired => new NodeCndLootAcquired(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_LocExit => new NodeCndLocationExit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_LocEnter => new NodeCndLocationEnter(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_LaunchComplete => new NodeCndLaunchComplete(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_JumpInComplete => new NodeCndJumpInComplete(ref nextId, condition.Entry),
+                    //TriggerConditions.Cnd_JumpgateAct => // need examples of what this one looks like
+                    TriggerConditions.Cnd_InZone => new NodeCndInZone(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_InTradelane => new NodeCndInTradeLane(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_InSpace => new NodeCndInSpace(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_HealthDec => new NodeCndHealthDecreased(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_HasMsn => new NodeCndHasMission(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_EncLaunched => new NodeCndEncounterLaunched(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_DistVecLbl => new NodeCndShipDistanceVectorLabel(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_DistVec => new NodeCndShipDistanceVector(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_DistShip => new NodeCndShipDistance(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_DistCircle => new NodeCndShipDistanceCircle(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_Destroyed => new NodeCndDestroyed(ref nextId, condition.Entry),
+                    //TriggerConditions.Cnd_CmpToPlane => need examples of this one too
+                    TriggerConditions.Cnd_CommComplete => new NodeCndCommComplete(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_CharSelect => new NodeCndCharacterSelect(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_CargoScanned => new NodeCndCargoScanned(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_BaseExit => new NodeCndBaseExit(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_BaseEnter => new NodeCndBaseEnter(ref nextId, condition.Entry),
+                    _ => throw new NotImplementedException($"{condition.Type} is not implemented")
+                };
 
                 nodes.Add(node);
             }
