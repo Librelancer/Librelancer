@@ -8,6 +8,7 @@ using System.Text;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using SimpleMesh;
+using SimpleMesh.Convex;
 
 namespace LibreLancer.ContentEdit.Model;
 
@@ -154,10 +155,10 @@ public static class SurfaceBuilder
             }
             Vector3 minimum = new Vector3(float.MaxValue);
             Vector3 maximum = new Vector3(float.MinValue);
-            var indices = new int[h.Vertices.Length];
-            for (int i = 0; i < h.Vertices.Length; i++)
+            var indices = new int[h.Hull.Vertices.Count];
+            for (int i = 0; i < h.Hull.Vertices.Count; i++)
             {
-                var p = h.Vertices[i];
+                var p = h.Hull.Vertices[i];
                 points.AddIfUnique(new SurfacePoint(p, modelCrc), out indices[i]);
                 minimum = Vector3.Min(p, minimum);
                 maximum = Vector3.Max(p, maximum);
@@ -188,8 +189,12 @@ public static class SurfaceBuilder
                     addToParent(h, c, m * node.Transform.Matrix());
                 else
                 {
-                    var h2 = new HullData() {Source = h.Source, Indices = h.Indices};
-                    h2.Vertices = h.Vertices.Select(x => Vector3.Transform(x, m)).ToArray();
+                    var h2 = new HullData()
+                    {
+                        Source = h.Source,
+                        Hull = Hull.FromTriangles(h.Hull.Vertices.Select(x => Vector3.Transform(x, m)).ToArray(),
+                            h.Hull.Indices)
+                    };
                     AddHull(h2, c, 4);
                 }
             }, false, warnings);
@@ -257,9 +262,9 @@ public static class SurfaceBuilder
                     warnings.Add(EditMessage.Warning("Could not generate wrap hull for " + node.Name));
                     return;
                 }
-                var indices = new int[h.Data.Vertices.Length];
+                var indices = new int[h.Data.Hull.Vertices.Count];
                 for (int i = 0; i < indices.Length; i++)
-                    indices[i] = points.FindIndex(x => x.Point == h.Data.Vertices[i]);
+                    indices[i] = points.FindIndex(x => x.Point == h.Data.Hull.Vertices[i]);
                 var hull = ToSurfaceHull(h.Data, modelCrc, 5, indices);
                 warnings.AddRange(hull.Messages.Select(x => x.Message).Select(EditMessage.Warning));
                 if (hull.IsError) {
@@ -312,52 +317,56 @@ public static class SurfaceBuilder
 
     static EditResult<HullData> CreateHull(ModelNode h)
     {
-        if (h.Geometry.Indices.Indices32 != null)
-            return EditResult<HullData>.Error($"Mesh {h.Name} is too complex");
-
         var verts = new List<Vector3>();
-        var indices = new List<ushort>();
+        var indices = new List<int>();
         foreach (var i in h.Geometry.Indices.Indices16)
         {
             verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices[i].Position, h.Transform), out int index);
-            indices.Add((ushort) index);
+            indices.Add(index);
         }
         var inputHull = new HullData()
         {
-            Vertices = verts.ToArray(),
-            Indices = indices.ToArray(),
+            Hull = Hull.FromTriangles(verts.ToArray(), indices.ToArray()),
             Source = h.Name,
         };
-        return QuickhullAndVerify(inputHull, h.Name);
+        return QuickhullAndVerify(inputHull);
     }
 
 
-    static EditResult<HullData> QuickhullAndVerify(HullData h, string name)
+    static EditResult<HullData> QuickhullAndVerify(HullData h)
     {
-        var fromPos = CreateHullFromPositions(h.Vertices);
-        if (fromPos.IsError) return EditResult<HullData>.Error($"Creating convex hull for {name} failed");
-        fromPos.Data.Source = name;
-        return Math.Abs(fromPos.Data.GetVolume() - h.GetVolume()) > 2.0f
-            ? new EditResult<HullData>(fromPos.Data, new[] {EditMessage.Warning($"Source hull {name} may not be convex")})
-            : fromPos;
+        EditMessage warning = null;
+        if (!h.Hull.IsConvex)
+        {
+            if (!h.Hull.IsWatertight)
+            {
+                warning = EditMessage.Warning($"{h.Source} is not convex (not water-tight), fixing.");
+            }
+            else if (h.Hull.Multibody)
+            {
+                warning = EditMessage.Warning($"{h.Source} is not convex (not all triangles connected), creating convex hull.");
+            }
+            else if (h.Hull.DegenerateMesh)
+            {
+                warning = EditMessage.Warning($"{h.Source} is not convex (degenerate triangles)");
+            }
+            else
+            {
+                warning = EditMessage.Warning($"{h.Source} may not be convex, fixing.");
+            }
+        }
+        if (!h.Hull.MakeConvex(true)) {
+            return EditResult<HullData>.Error($"Creating convex hull for {h.Source} failed");
+        }
+        if (h.Hull.Vertices.Count > 65535 || h.Hull.Indices.Count > 65535) {
+            return EditResult<HullData>.Error($"Hull mesh for {h.Source} is too complex");
+        }
+        return h.Hull.IsConvex ? h.AsResult() : new EditResult<HullData>(h, [warning]);
     }
 
 
     static EditResult<SurfaceHull> ToSurfaceHull(HullData hullData, uint crc, byte type, int[] indices)
     {
-        /*if (type == 5)
-        {
-            using var writer = new StreamWriter("wrap.obj");
-            writer.WriteLine("o wrap");
-            foreach (var f in hullData.Vertices) {
-                writer.WriteLine($"v {f.X:F5} {f.Y:F5} {f.Z:F5}");
-            }
-            for (int i = 0; i < hullData.FaceCount; i++)
-            {
-                var face = hullData.GetFace(i);
-                writer.WriteLine($"f {face.A+1} {face.B+1} {face.C+1}");
-            }
-        }*/
         var surf = new SurfaceHull();
         surf.HullId = crc;
         surf.Unknown = 0;
@@ -367,7 +376,7 @@ public static class SurfaceBuilder
         var edges = new List<Point>();
         for (int i = 0; i < hullData.FaceCount; i++)
         {
-            var f = hullData.GetFace(i);
+            var f = hullData.Hull.GetFace(i);
             edges.Add(new Point(f.A, f.B));
             edges.Add(new Point(f.B, f.C));
             edges.Add(new Point(f.C, f.A));
@@ -379,12 +388,12 @@ public static class SurfaceBuilder
 
         int edgeCount = 0;
 
-        const float RayEpsilon = 1E-7f;
+        const float RayEpsilon = 1E-6f;
         int missingHit = 0;
         for (int i = 0; i < hullData.FaceCount; i++)
         {
-            var normal = hullData.GetFaceNormal(i);
-            var hit = hullData.Raycast(new Ray(hullData.GetFaceCenter(i) - normal * RayEpsilon, -normal));
+            var normal = hullData.Hull.FaceNormal(i);
+            var hit = hullData.Raycast(new Ray(hullData.Hull.FaceCenter(i) - normal * RayEpsilon, -normal));
             Debug.Assert(hit != i);
             var face = new SurfaceFace();
             face.Index = surf.Faces.Count;
@@ -395,8 +404,8 @@ public static class SurfaceBuilder
             }
             face.Flag = type == 5;
             face.Flags = type == 5
-                ? new Point3<bool>(true, true, true)
-                : new Point3<bool>(false, false, false);
+                ? new Sur.Point3<bool>(true, true, true)
+                : new Sur.Point3<bool>(false, false, false);
             face.Points.A = (ushort)indices[edges[edgeCount].X];
             face.Shared.A = reversed[edgeCount];
             edgeCount++;
