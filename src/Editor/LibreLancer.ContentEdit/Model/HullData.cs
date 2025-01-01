@@ -2,10 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.ContentEdit.Model.Quickhull;
-using LibreLancer.Sur;
 using SimpleMesh.Convex;
-using static LibreLancer.ContentEdit.Model.Quickhull.VectorFunctions;
 
 namespace LibreLancer.ContentEdit.Model;
 
@@ -75,38 +72,5 @@ public class HullData
             return EditResult<HullData>.Error("Generated hull is too complex");
         }
         return new HullData() { Hull = hull }.AsResult();
-    }
-
-
-    public static bool IsConvexHull(Vector3[] vertices, ushort[] indices)
-    {
-        if (indices.Length < 6)
-        {
-            return false;
-        }
-
-        const double EPSILON = 0.0001; // fairly small epsilon
-        for (int i = 0; i < indices.Length; i += 3)
-        {
-            var v0 = (Vector3d)vertices[indices[i]];
-            var v1 = (Vector3d)vertices[indices[i + 1]];
-            var v2 = (Vector3d)vertices[indices[i + 2]];
-
-            var normal = PlaneNormal(v0, v1, v2);
-            var offset = Vector3d.Dot(normal, v0);
-            for (int j = 0; j < vertices.Length; j++)
-            {
-                if (j == indices[i] ||
-                    j == indices[i + 1] ||
-                    j == indices[i + 2])
-                    continue;
-                var d = Vector3d.Dot(normal, (Vector3d)vertices[j]);
-                if (d > offset + EPSILON)
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 }
