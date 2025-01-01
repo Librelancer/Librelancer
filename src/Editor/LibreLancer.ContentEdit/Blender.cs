@@ -175,6 +175,7 @@ public class Blender
 
     private const string EXPORT_SCRIPT = @"
 import bpy
+import re
 
 bpy.ops.wm.read_homefile(use_empty=True)
 bpy.ops.import_scene.gltf(filepath={0})
@@ -183,6 +184,8 @@ for obj in bpy.context.scene.objects:
     if 'construct' in obj:
         obj.empty_display_size = 0.5
         obj.empty_display_type = 'CONE'
+    elif 'hull' in obj or re.search(r'\$lod\d$', obj.name):
+        obj.hide_set(True)
     else:
         obj.empty_display_size = 2
         obj.empty_display_type = 'SINGLE_ARROW'
