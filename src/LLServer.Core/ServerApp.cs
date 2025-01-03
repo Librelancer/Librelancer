@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using LibreLancer;
 using LibreLancer.Data;
@@ -44,10 +46,17 @@ public class ServerApp
         Server.DbContextFactory = ctxFactory;
         Server.ServerName = Config.ServerName;
         Server.ServerDescription = Config.ServerDescription;
+        Server.ScriptsFolder = Path.Combine(GetBasePath(), "scripts");
         Server.LoginUrl = Config.LoginUrl;
         Server.Listener.Port = Config.Port > 0 ? Config.Port : LNetConst.DEFAULT_PORT;
         Server.Start();
         return true;
+    }
+
+    private string GetBasePath()
+    {
+        using var processModule = Process.GetCurrentProcess().MainModule;
+        return Path.GetDirectoryName(processModule?.FileName);
     }
 
     public void StopServer()

@@ -34,6 +34,8 @@ namespace LibreLancer.Server
         public bool SendDebugInfo = false;
         public string DebugInfo { get; private set; }
 
+        public string ScriptsFolder { get; set; }
+
         public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory;
         public GameDataManager GameData;
         public ServerDatabase Database;
@@ -287,6 +289,7 @@ namespace LibreLancer.Server
         {
             if (needLoadData)
             {
+                LuaHardwire_LibreLancer.Initialize();
                 FLLog.Info("Server", "Loading Game Data...");
                 GameData.LoadData(null);
                 FLLog.Info("Server", "Finished Loading Game Data");

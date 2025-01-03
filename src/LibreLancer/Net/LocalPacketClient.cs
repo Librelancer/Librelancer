@@ -10,6 +10,8 @@ namespace LibreLancer.Net
 {
     public class LocalPacketClient : IPacketClient
     {
+        public int MaxSequencedSize => int.MaxValue;
+
         public ConcurrentQueue<IPacket> Packets = new ConcurrentQueue<IPacket>();
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {

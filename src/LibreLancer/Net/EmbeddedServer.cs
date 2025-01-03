@@ -17,10 +17,13 @@ namespace LibreLancer.Net
         //Hardcoded delay for single player.
         public uint EstimateTickDelay() => 2;
 
-        public EmbeddedServer(GameDataManager gameData, GameResourceManager resources)
+        public int MaxSequencedSize => int.MaxValue;
+
+        public EmbeddedServer(GameDataManager gameData, GameResourceManager resources, string saveFolder)
         {
             Client = new LocalPacketClient();
             Server = new GameServer(gameData, resources.ConvexCollection);
+            Server.ScriptsFolder = Path.Combine(saveFolder, "scripts");
             Server.LocalPlayer = new Player(Client, Server, Guid.Empty);
             Server.ConnectedPlayers.Add(Server.LocalPlayer);
         }

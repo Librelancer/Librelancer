@@ -529,7 +529,8 @@ World Time: {12:F2}
                 g.FadeOut(0.2, () =>
                 {
                     g.session.OnExit();
-                    var embeddedServer = new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager);
+                    var embeddedServer =
+                        new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager, g.Game.GetSaveFolder());
                     var session = new CGameSession(g.Game, embeddedServer);
                     embeddedServer.StartFromSave(g.Game.Saves.SelectedFile, File.ReadAllBytes(g.Game.Saves.SelectedFile));
                     g.Game.ChangeState(new NetWaitState(session, g.Game));

@@ -127,7 +127,7 @@ namespace LibreLancer.Server.Components
 
         int GetHostileWeight(GameObject obj)
         {
-            if (obj.Nickname.Equals("player", StringComparison.OrdinalIgnoreCase) &&
+            if ("player".Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase) &&
                 manager.AttackingPlayer > 2)
                 return -100;
             if (attackPref.TryGetValue(obj.Kind, out var weight))
@@ -243,7 +243,7 @@ namespace LibreLancer.Server.Components
             //Shoot at hostile
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
-                if (shootAt.Nickname.Equals("player", StringComparison.OrdinalIgnoreCase))
+                if ("player".Equals(shootAt.Nickname, StringComparison.OrdinalIgnoreCase))
                     manager.AttackingPlayer++;
 
                 var dist = Vector3.Distance(shootAt.WorldTransform.Position, myPos);

@@ -15,6 +15,8 @@ namespace LibreLancer.Net
         public NetPeer Client;
         public NetHpidWriter Hpids;
 
+        public int MaxSequencedSize => (Client?.Mtu ?? 1400) - 16;
+
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);

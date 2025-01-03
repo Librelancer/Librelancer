@@ -218,7 +218,8 @@ namespace LibreLancer
             {
                 state.FadeOut(0.2, () =>
                 {
-                    var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager);
+                    var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager,
+                        state.Game.GetSaveFolder());
                     var session = new CGameSession(state.Game, embeddedServer);
                     embeddedServer.StartFromSave(state.Game.Saves.SelectedFile, File.ReadAllBytes(state.Game.Saves.SelectedFile));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
@@ -229,7 +230,8 @@ namespace LibreLancer
             {
                 state.FadeOut(0.2, () =>
                 {
-                    var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager);
+                    var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager,
+                        state.Game.GetSaveFolder());
                     var session = new CGameSession(state.Game, embeddedServer);
                     embeddedServer.StartFromSave("EXE\\newplayer.fl", state.Game.GameData.VFS.ReadAllBytes("EXE\\newplayer.fl"));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));

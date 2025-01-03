@@ -9,6 +9,7 @@ namespace LibreLancer.Net
 {
     public interface IPacketSender
     {
+        int MaxSequencedSize { get; }
         void SendPacket(IPacket packet, PacketDeliveryMethod method);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -20,10 +21,21 @@ namespace LibreLancer.Server
         public NPCWattleScripting(NPCManager manager)
         {
             this.manager = manager;
-            this.script = new Script(CoreModules.None);
+            this.script = new Script(CoreModules.Preset_HardSandboxWattle);
             script.Options.Syntax = ScriptSyntax.Wattle;
+            script.Options.IndexTablesFrom = 0;
             script.Globals["spawnnpc"] = DynValue.FromObject(script, spawnnpc);
             script.Globals["getnpc"] = DynValue.FromObject(script, getnpc);
+            script.Globals["runscript"] = DynValue.FromObject(script, runscript);
+        }
+
+        public DynValue runscript(string file)
+        {
+            var p = Path.Combine(manager.World.Server.ScriptsFolder, file);
+            if (!File.Exists(p)) {
+                throw new ScriptRuntimeException($"Script file '{file}' does not exist");
+            }
+            return script.DoString(File.ReadAllText(p), null, file);
         }
 
         [WattleScriptHidden]
@@ -33,9 +45,13 @@ namespace LibreLancer.Server
             {
                 return script.DoString("return " + code).ToPrintString();
             }
+            catch (ScriptRuntimeException se)
+            {
+                return se.DecoratedMessage ?? se.ToString();
+            }
             catch (Exception e)
             {
-                return e.Message;
+                return e.ToString();
             }
         }
 

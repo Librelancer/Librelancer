@@ -13,7 +13,6 @@ namespace LibreLancer.Net
         ReliableOrderedC,
         SequenceA,
         SequenceB,
-        SequenceC
     }
 
     public static class PacketDeliveryMethodExt
@@ -30,10 +29,6 @@ namespace LibreLancer.Net
                 case PacketDeliveryMethod.SequenceB:
                     method = DeliveryMethod.Sequenced;
                     channel = 1;
-                    break;
-                case PacketDeliveryMethod.SequenceC:
-                    method = DeliveryMethod.Unreliable;
-                    channel = 2;
                     break;
                 case PacketDeliveryMethod.ReliableOrderedB:
                     channel = 1;
