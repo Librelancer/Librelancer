@@ -761,7 +761,7 @@ namespace LancerEdit
                 CenterText($"ImGui version: {ImGuiExt.Version}");
                 CenterText("Callum McGing");
                 CenterText("Librelancer Contributors");
-                CenterText("2018-2024");
+                CenterText("2018-2025");
                 ImGui.Separator();
                 var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
                 ImGui.Dummy(Vector2.One);
