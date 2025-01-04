@@ -39,7 +39,7 @@ namespace BuildLL
 
         public static void Test(string project)
         {
-            RunCommand("dotnet", $"test {P(project)}");
+            RunCommand("dotnet", $"test -c Release {P(project)}");
         }
 
         public static void Publish(string project, DotnetPublishSettings settings = null)

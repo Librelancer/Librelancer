@@ -50,7 +50,7 @@ namespace LibreLancer.Net.Protocol
             #if DEBUG
             if (f < min || f > max) throw new ArgumentOutOfRangeException();
             #else
-            f = MathHelper.Clamp(f, UNIT_MIN, UNIT_MAX);
+            f = MathHelper.Clamp(f, min, max);
             #endif
             var intMax = (1 << bits) - 1;
             float unit = ((f - min) / (max - min));
