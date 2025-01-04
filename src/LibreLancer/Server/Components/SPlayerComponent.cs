@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -10,6 +11,7 @@ using LibreLancer.World.Components;
 
 namespace LibreLancer.Server.Components
 {
+    public record struct FetchedDelta(int Priority, uint Tick, ObjectUpdate Update);
     /*
      * Component that handles a remote player controlling this GameObject
      * Stores a reference to the Player class, buffers input
@@ -19,12 +21,12 @@ namespace LibreLancer.Server.Components
     {
         private PriorityQueue<NetInputControls, uint> inputs = new();
 
+        record SavedTick(uint Tick, PlayerAuthState Player, Dictionary<int, ObjectUpdate> Updates);
 
         //Used for compressing delta info
-        private CircularBuffer<(uint t, PlayerAuthState p, ObjectUpdate[] u)> oldStates =
-            new CircularBuffer<(uint t, PlayerAuthState p, ObjectUpdate[] u)>(128);
+        private CircularBuffer<SavedTick> oldStates = new(64);
 
-        public uint MostRecentAck = 0;
+        public UpdateAck MostRecentAck = default;
         public Player Player { get; private set; }
 
         public GameObject SelectedObject { get; private set; }
@@ -39,33 +41,79 @@ namespace LibreLancer.Server.Components
             Player.Killed();
         }
 
-        public void GetAcknowledgedState(out uint ackTick, out PlayerAuthState authState, out ObjectUpdate[] updates)
+        private Dictionary<int, int> priorities = new();
+        private BitArray found = new BitArray(512);
+
+        public void GetUpdates(GameObject[] objs, FetchedDelta[] deltas)
+        {
+            if(objs.Length > found.Length)
+                found = new BitArray(found.Length);
+            found.SetAll(false);
+            int foundCount = 0;
+            if (deltas.Length != objs.Length) {
+                throw new InvalidOperationException("Bad number of updates");
+            }
+            for (int i = 0; i < deltas.Length; i++) {
+                deltas[i] = new FetchedDelta(100, 0, ObjectUpdate.Blank);
+                if (objs[i] == Parent) {
+                    found[i] = true;
+                    foundCount++;
+                }
+            }
+            for (int i = 0; i < oldStates.Count; i++)
+            {
+                if (!MostRecentAck[oldStates[i].Tick])
+                    continue;
+                for (int j = 0; j < objs.Length; j++)
+                {
+                    if (found[j]) continue;
+                    if (oldStates[i].Updates.TryGetValue(objs[j].Unique, out var upd))
+                    {
+                        priorities.TryGetValue(objs[j].Unique, out var priority);
+                        deltas[j] = new FetchedDelta(priority, oldStates[i].Tick, upd);
+                        found[j] = true;
+                        foundCount++;
+                        if (foundCount == objs.Length)
+                        {
+                            priorities.Clear();
+                            return;
+                        }
+                    }
+                }
+            }
+            priorities.Clear();
+        }
+
+        public void SetPriority(GameObject obj, int priority)
+        {
+            priorities[obj.Unique] = priority;
+        }
+
+        public void GetAcknowledgedState(out uint ackTick, out PlayerAuthState authState)
         {
             ackTick = 0;
             authState = new PlayerAuthState();
-            updates = Array.Empty<ObjectUpdate>();
-            if (MostRecentAck == 0) return;
+            if (MostRecentAck.Tick == 0) return;
             for (int i = 0; i < oldStates.Count; i++) {
-                if (oldStates[i].t == MostRecentAck)
+                if (oldStates[i].Tick == MostRecentAck.Tick)
                 {
-                    ackTick = MostRecentAck;
-                    authState = oldStates[i].p;
-                    updates = oldStates[i].u;
+                    ackTick = MostRecentAck.Tick;
+                    authState = oldStates[i].Player;
                     break;
                 }
             }
         }
 
-        public void EnqueueState(uint tick, PlayerAuthState auth, ObjectUpdate[] updates)
+        public void EnqueueState(uint tick, PlayerAuthState auth, Dictionary<int, ObjectUpdate> updates)
         {
-            oldStates.Enqueue((tick, auth, updates));
+            oldStates.Enqueue(new SavedTick(tick, auth, updates));
         }
 
         public uint LatestReceived;
 
         public void QueueInput(InputUpdatePacket input)
         {
-            MostRecentAck = input.AckTick;
+            MostRecentAck = input.Acks;
             //Select object immediately
             SelectedObject = Parent.World.GetObject( input.SelectedObject);
             Enqueue(input.HistoryC);

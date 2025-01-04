@@ -1386,7 +1386,7 @@ World Time: {12:F2}
                     {
                         if (floats.Length > 0)
                         {
-                            ImGui.TextUnformatted($"last ack received: {session.LastAck}");
+                            ImGui.TextUnformatted($"last ack received: {session.Acks.Tick}");
                             ImGui.TextUnformatted($"update packet size: {floats[floats.Length - 1]}");
                             ImGui.PlotLines("update packet size", ref floats[0], floats.Length);
                         }

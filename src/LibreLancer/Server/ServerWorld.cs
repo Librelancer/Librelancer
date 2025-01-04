@@ -31,6 +31,9 @@ namespace LibreLancer.Server
 
         public NetIDGenerator IdGenerator = new NetIDGenerator();
 
+        private byte[] worldUpdateBuffer = new byte[2048];
+        private byte[] packetUpdatesBuffer = new byte[2048];
+
         public bool Paused => paused;
 
         private bool paused = false;
@@ -541,6 +544,24 @@ namespace LibreLancer.Server
             }
         }
 
+        record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update) : IComparable<SortedUpdate>
+        {
+            public int CompareTo(SortedUpdate other)
+            {
+                var x = ((ulong)other.Old.Priority) << 32 | (uint)other.Size;
+                var y = ((ulong)Old.Priority) << 32 | (uint)Size;
+                return x.CompareTo(y);
+            }
+        }
+
+        class IdComparer : IComparer<SortedUpdate>
+        {
+            public static readonly IdComparer Instance = new IdComparer();
+            private IdComparer() { }
+            public int Compare(SortedUpdate x, SortedUpdate y) =>
+                x.Update.ID.Value.CompareTo(y.Update.ID.Value);
+        }
+
         //This could do with some work
         void SendWorldUpdates(uint tick)
         {
@@ -552,10 +573,61 @@ namespace LibreLancer.Server
             }
 
             var toUpdate = GetUpdatingObjects().ToArray();
+            var deltas = new FetchedDelta[toUpdate.Length];
+            var allUpdates = new ObjectUpdate[toUpdate.Length];
+            var sorted = new SortedUpdate[toUpdate.Length];
+
+            for (int i = 0; i < toUpdate.Length; i++)
+            {
+                //Get main object update fields
+                var obj = toUpdate[i];
+                var update = new ObjectUpdate();
+                update.ID = new ObjNetId(obj.NetID);
+                var tr = obj.WorldTransform;
+                update.Position = tr.Position;
+                update.Orientation = tr.Orientation;
+                if (obj.PhysicsComponent != null)
+                {
+                    update.SetVelocity(
+                        obj.PhysicsComponent.Body.LinearVelocity,
+                        obj.PhysicsComponent.Body.AngularVelocity
+                        );
+                }
+                if (obj.TryGetComponent<SEngineComponent>(out var eng))
+                    update.Throttle = eng.Speed;
+                if(obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))
+                {
+                    switch (objPhysics.EngineState)
+                    {
+                        case EngineStates.CruiseCharging:
+                            update.CruiseThrust = CruiseThrustState.CruiseCharging;
+                            break;
+                        case EngineStates.Cruise:
+                            update.CruiseThrust = CruiseThrustState.Cruising;
+                            break;
+                        case EngineStates.Standard when objPhysics.ThrustEnabled:
+                            update.CruiseThrust = CruiseThrustState.Thrusting;
+                            break;
+                    }
+                }
+                if (obj.TryGetComponent<SHealthComponent>(out var health))
+                {
+                    update.HullValue = (long)health.CurrentHealth;
+                    var sh = obj.GetFirstChildComponent<SShieldComponent>();
+                    if (sh != null)
+                    {
+                        update.ShieldValue = (long)sh.Health;
+                    }
+                }
+                if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
+                {
+                    update.Guns = weapons.GetRotations();
+                }
+                allUpdates[i] = update;
+            }
 
             foreach (var player in Players)
             {
-                List<ObjectUpdate> ps = new List<ObjectUpdate>();
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
                 var phealth = phealthcomponent.CurrentHealth;
                 var pshieldComponent = player.Value.GetFirstChildComponent<SShieldComponent>();
@@ -563,65 +635,21 @@ namespace LibreLancer.Server
                 if (pshieldComponent != null)
                     pshield = pshieldComponent.Health;
                 var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
-                foreach (var obj in toUpdate)
+                selfPlayer.GetUpdates(toUpdate, deltas);
+                // Locate self update to skip processing
+                int skipIndex = -1;
+                for(int i = 0; i < toUpdate.Length; i++)
                 {
+                    var obj = toUpdate[i];
                     //Skip self
                     if (obj.TryGetComponent<SPlayerComponent>(out var pComp) &&
                         pComp.Player == player.Key)
-                        continue;
-                    //Update object
-                    var update = new ObjectUpdate();
-                    update.ID = new ObjNetId(obj.NetID);
-                    var tr = obj.WorldTransform;
-                    update.Position = tr.Position;
-                    update.Orientation = tr.Orientation;
-                    if (obj.PhysicsComponent != null)
                     {
-                        update.SetVelocity(
-                            obj.PhysicsComponent.Body.LinearVelocity,
-                            obj.PhysicsComponent.Body.AngularVelocity
-                            );
+                        skipIndex = i;
+                        break;
                     }
-
-                    if (obj.TryGetComponent<SEngineComponent>(out var eng))
-                        update.Throttle = eng.Speed;
-                    if (obj.TryGetComponent<SRepComponent>(out var rep))
-                    {
-                        update.RepToPlayer = rep.GetRep(player.Value);
-                    }
-                    if(obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))
-                    {
-                        switch (objPhysics.EngineState)
-                        {
-                            case EngineStates.CruiseCharging:
-                                update.CruiseThrust = CruiseThrustState.CruiseCharging;
-                                break;
-                            case EngineStates.Cruise:
-                                update.CruiseThrust = CruiseThrustState.Cruising;
-                                break;
-                            case EngineStates.Standard when objPhysics.ThrustEnabled:
-                                update.CruiseThrust = CruiseThrustState.Thrusting;
-                                break;
-                        }
-                    }
-                    if (obj.TryGetComponent<SHealthComponent>(out var health))
-                    {
-                        update.HullValue = (long)health.CurrentHealth;
-                        var sh = obj.GetFirstChildComponent<SShieldComponent>();
-                        if (sh != null)
-                        {
-                            update.ShieldValue = (long)sh.Health;
-                        }
-                    }
-                    if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
-                    {
-                        update.Guns = weapons.GetRotations();
-                    }
-                    ps.Add(update);
                 }
-
                 var phys = player.Value.GetComponent<ShipPhysicsComponent>();
-                var newUpdates = ps.ToArray();
                 var state = new PlayerAuthState
                 {
                     Health = phealth,
@@ -635,22 +663,155 @@ namespace LibreLancer.Server
                 };
                 if (player.Key.SinglePlayer)
                 {
+                    var lst = new ObjectUpdate[allUpdates.Length - 1];
+                    int j = 0;
+                    for (int i = 0; i < allUpdates.Length; i++)
+                    {
+                        if (i == skipIndex)
+                            continue;
+                        lst[j++] = allUpdates[i];
+                    }
                     player.Key.SendSPUpdate(new SPUpdatePacket()
                     {
                         Tick = tick,
                         InputSequence = selfPlayer.LatestReceived,
                         PlayerState = state,
-                        Updates = newUpdates,
+                        Updates = lst
                     });
                 }
                 else
                 {
-                    selfPlayer.GetAcknowledgedState(out var oldTick, out var oldState, out var oldUpdates);
+                    selfPlayer.GetAcknowledgedState(out var oldTick, out var oldState);
                     var packet = new PackedUpdatePacket();
                     packet.Tick = tick;
                     packet.OldTick = oldTick;
                     packet.InputSequence = selfPlayer.LatestReceived;
-                    selfPlayer.EnqueueState((uint)tick, state,  packet.SetUpdates(state, oldState, oldUpdates, newUpdates, player.Key.HpidWriter));
+                    packet.SetAuthState(state, oldState);
+                    var deltaWriter = new BitWriter(worldUpdateBuffer, true);
+                    int totalSum = 0;
+                    int totalSorted = 0;
+                    for (int i = 0; i < allUpdates.Length; i++)
+                    {
+                        if (skipIndex == i)
+                            continue;
+                        int start = deltaWriter.ByteLength;
+                        allUpdates[i].WriteDelta(deltas[i].Update, deltas[i].Tick, tick, ref deltaWriter);
+                        deltaWriter.Align();
+                        var len = (deltaWriter.ByteLength - start);
+                        totalSum += len + 4; //over-estimate overhead of sending ID
+                        sorted[totalSorted++] = new SortedUpdate(deltas[i], len, start, toUpdate[i], allUpdates[i]);
+                    }
+                    // In case it was resized
+                    worldUpdateBuffer = deltaWriter.Backing;
+
+                    #if PACKETDEBUG
+                    int maxPacketSize = 500; //Min safe UDP packet size - 8
+                    #else
+                    int maxPacketSize = player.Key.Client.MaxSequencedSize;
+                    #endif
+
+                    if (maxPacketSize >= (packet.DataSize + totalSum))
+                    {
+
+                        //Skip sorting, just shove the packet in
+                        var d = new Dictionary<int, ObjectUpdate>();
+                        for (int i = 0; i < allUpdates.Length; i++) {
+                            if (skipIndex == i)
+                                continue;
+                            d[toUpdate[i].Unique] = allUpdates[i];
+                        }
+                        selfPlayer.EnqueueState((uint)tick, state, d);
+                        var allWriter = new BitWriter(packetUpdatesBuffer, false);
+                        // Write IDs
+                        allWriter.PutVarUInt32((uint)totalSorted);
+                        if (totalSorted > 0) {
+                            allWriter.PutVarInt32(sorted[0].Update.ID.Value);
+                        }
+                        for (int i = 1; i < totalSorted; i++) {
+                            int curr = sorted[i].Update.ID.Value;
+                            int prev = sorted[i - 1].Update.ID.Value;
+                            allWriter.PutVarInt32(curr - prev);
+                        }
+                        // Write Updates
+                        int offset = allWriter.ByteLength;
+                        for (int i = 0; i < totalSorted; i++)
+                        {
+                            var dest = packetUpdatesBuffer.AsSpan(offset, sorted[i].Size);
+                            var src = worldUpdateBuffer.AsSpan(sorted[i].Offset, sorted[i].Size);
+                            src.CopyTo(dest);
+                            offset += sorted[i].Size;
+                        }
+                        packet.Updates = new byte[offset];
+                        packetUpdatesBuffer.AsSpan(0, offset).CopyTo(packet.Updates);
+                    }
+                    else
+                    {
+                        int dataSum = 0;
+                        Array.Sort(sorted, 0, totalSorted);
+                        var d = new Dictionary<int, ObjectUpdate>();
+                        // First pass counting packet size
+                        int newSum = packet.DataSize;
+                        int uIdx = 1;
+                        newSum += NetPacking.ByteCountInt64((int)sorted[0].Update.ID.Value);
+                        newSum += sorted[0].Size;
+                        for (; uIdx < totalSorted && uIdx <= 127; uIdx++) {
+                            int curr = sorted[uIdx].Update.ID.Value;
+                            int prev = sorted[uIdx - 1].Update.ID.Value;
+                            if (newSum +
+                                NetPacking.ByteCountInt64(curr - prev)
+                                + sorted[uIdx].Size > maxPacketSize)
+                            {
+                                break;
+                            }
+                            newSum += NetPacking.ByteCountInt64(curr - prev) + sorted[uIdx].Size;
+                        }
+                        // Sort available updates by ID to get a few bytes back
+                        Array.Sort(sorted, 0, uIdx, IdComparer.Instance);
+                        // First update will always be fine
+                        // Start writing ID list
+                        var allWriter = new BitWriter(packetUpdatesBuffer, false);
+                        allWriter.PutByte(0);
+                        allWriter.PutVarInt32((int)sorted[0].Update.ID.Value);
+                        uIdx = 1;
+                        dataSum += sorted[0].Size;
+                        d[sorted[0].Object.Unique] = sorted[0].Update;
+                        // Max 127 updates as we reserve one byte for count
+                        for (int j = 1; uIdx < totalSorted && uIdx <= 127; uIdx++) {
+                            // If adding another update would make the packet oversized
+                            // we stop
+                            int curr = sorted[uIdx].Update.ID.Value;
+                            int prev = sorted[uIdx - 1].Update.ID.Value;
+                            if ((packet.DataSize + //authstate + headers
+                                 allWriter.ByteLength +  //current ID list
+                                 dataSum + //size of existing updates
+                                 sorted[uIdx].Size +
+                                 NetPacking.ByteCountInt64(curr - prev)) //size of ID list add
+                                >= maxPacketSize)
+                            {
+                                break;
+                            }
+                            d[sorted[uIdx].Object.Unique] = sorted[uIdx].Update;
+                            allWriter.PutVarInt32(curr - prev);
+                            dataSum += sorted[uIdx].Size;
+                        }
+                        packetUpdatesBuffer[0] = (byte)uIdx; //Set count
+                        //copy updates
+                        int offset = allWriter.ByteLength;
+                        for (int i = 0; i < uIdx; i++)
+                        {
+                            var dest = packetUpdatesBuffer.AsSpan(offset, sorted[i].Size);
+                            var src = worldUpdateBuffer.AsSpan(sorted[i].Offset, sorted[i].Size);
+                            src.CopyTo(dest);
+                            offset += sorted[i].Size;
+                        }
+                        packet.Updates = new byte[offset];
+                        packetUpdatesBuffer.AsSpan(0, offset).CopyTo(packet.Updates);
+                        // Increase priority for any non-updated objects
+                        for (int i = uIdx; i < totalSorted; i++) {
+                            selfPlayer.SetPriority(sorted[i].Object, sorted[i].Old.Priority + 1);
+                        }
+                        selfPlayer.EnqueueState((uint)tick, state, d);
+                    }
                     player.Key.SendMPUpdate(packet);
                 }
             }

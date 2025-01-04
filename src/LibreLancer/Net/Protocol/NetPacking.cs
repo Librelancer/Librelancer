@@ -15,6 +15,24 @@ namespace LibreLancer.Net.Protocol
         public const float ANGLE_MIN = (float)(-2 * Math.PI);
         public const float ANGLE_MAX = (float)(2 * Math.PI);
 
+        public static int ByteCountUInt64(ulong u)
+        {
+            return u switch
+            {
+                <= 127 => 1,
+                <= 16511 => 2,
+                <= 2113662 => 3,
+                <= 270549118 => 4,
+                <= 34630197486 => 5,
+                <= 4432676708590 => 6,
+                <= 567382630129902 => 7,
+                <= 72624976668057838 => 8,
+                _ => 9
+            };
+        }
+
+        public static int ByteCountInt64(long l) => ByteCountUInt64(Zig64(l));
+
         public static ulong Zig64(long value)
         {
             return (ulong)((value << 1) ^ (value >> 63));

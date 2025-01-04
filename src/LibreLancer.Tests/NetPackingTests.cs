@@ -1,3 +1,4 @@
+using FluentAssertions;
 using LibreLancer.Net.Protocol;
 using Xunit;
 
@@ -36,7 +37,7 @@ public class NetPackingTests
             w.PutUInt(i, bits);
             w.PutUInt(i, bits);
             w.PutUInt(i, bits);
-            var r = new BitReader(w.GetBuffer(), 0);
+            var r = new BitReader(w.GetCopy(), 0);
             Assert.Equal(1U, r.GetUInt(2));
             Assert.Equal(i, r.GetUInt(bits));
             Assert.Equal(i, r.GetUInt(bits));
@@ -54,7 +55,24 @@ public class NetPackingTests
     {
         var w = new BitWriter();
         w.PutUInt(v, 32);
-        var r = new BitReader(w.GetBuffer(), 0);
+        var r = new BitReader(w.GetCopy(), 0);
         Assert.Equal(v, r.GetUInt());
+    }
+
+    [Fact]
+    public void Alignment()
+    {
+        var w = new BitWriter();
+        w.PutBool(true);
+        w.Align();
+        w.PutByte(0x33);
+        w.Align();
+        var result = w.GetCopy();
+        Assert.Equal(2, result.Length);
+        var r = new BitReader(result, 0);
+        Assert.Equal(true, r.GetBool());
+        r.Align();
+        Assert.Equal(0x33, r.GetByte());
+        r.Align();
     }
 }

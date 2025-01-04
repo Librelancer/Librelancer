@@ -1,7 +1,7 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Quaternion = System.Numerics.Quaternion;
 
 namespace LibreLancer.Net.Protocol
 {
@@ -10,6 +10,7 @@ namespace LibreLancer.Net.Protocol
         private const int GROWTH_AMOUNT = 4;
 
         private byte[] buffer;
+        private bool canResize;
         private int bitOffset;
 
         public NetHpidWriter HpidWriter;
@@ -18,6 +19,14 @@ namespace LibreLancer.Net.Protocol
         {
             buffer = new byte [(initialCapacity + 7) >> 3];
             bitOffset = 0;
+            canResize = true;
+        }
+
+        public BitWriter(byte[] buffer, bool canResize)
+        {
+            this.buffer = buffer;
+            bitOffset = 0;
+            this.canResize = canResize;
         }
 
         public void PutHpid(string hpid)
@@ -289,11 +298,26 @@ namespace LibreLancer.Net.Protocol
             );
         }
 
+        public void Align()
+        {
+            int bitsUsed = bitOffset & 0x7;
+            int bitsFree = 8 - bitsUsed;
+            if (bitsFree != 8) {
+                CheckSize(bitOffset + bitsFree);
+                bitOffset += bitsFree;
+            }
+        }
+
         void CheckSize(int nBits)
         {
             int byteLen = (nBits + 7) >> 3;
             if (buffer.Length < byteLen)
-                Array.Resize(ref buffer, byteLen + GROWTH_AMOUNT);
+            {
+                if(canResize)
+                    Array.Resize(ref buffer, byteLen + GROWTH_AMOUNT);
+                else
+                    throw new InvalidOperationException("Data exceeds provided buffer size");
+            }
         }
 
         public bool NeedsNewByte(int bitCount)
@@ -301,12 +325,16 @@ namespace LibreLancer.Net.Protocol
             return bitCount >= 8 || (8 - (bitOffset & 0x7)) < bitCount;
         }
 
-        public byte[] GetBuffer()
+        public byte[] GetCopy()
         {
             var b = new byte[ByteLength];
             for (int i = 0; i < ByteLength; i++) b[i] = buffer[i];
             return b;
         }
+
+        public byte[] Backing => buffer;
+
+
 
         public int ByteLength => (bitOffset + 7) >> 3;
 

@@ -415,7 +415,7 @@ namespace LibreLancer.Net.Protocol
     public class InputUpdatePacket : IPacket
     {
         public ObjNetId SelectedObject;
-        public uint AckTick;
+        public UpdateAck Acks;
         public NetInputControls Current;
         public NetInputControls HistoryA;
         public NetInputControls HistoryB;
@@ -507,7 +507,7 @@ namespace LibreLancer.Net.Protocol
         {
             var br = new BitReader(message.GetRemainingBytes(), 0);
             var p = new InputUpdatePacket();
-            p.AckTick = br.GetVarUInt32();
+            p.Acks = new UpdateAck(br.GetVarUInt32(), br.GetUInt(), br.GetUInt());
             p.SelectedObject = ObjNetId.Read(ref br);
             p.Current.Tick = br.GetVarUInt32();
             p.Current.Steering = br.GetVector3();
@@ -532,7 +532,9 @@ namespace LibreLancer.Net.Protocol
         public void WriteContents(PacketWriter outPacket)
         {
             var bw = new BitWriter();
-            bw.PutVarUInt32(AckTick);
+            bw.PutVarUInt32(Acks.Tick);
+            bw.PutUInt(Acks.History0, 32);
+            bw.PutUInt(Acks.History1, 32);
             SelectedObject.Put(bw);
             bw.PutVarUInt32(Current.Tick);
             bw.PutVector3(Current.Steering);

@@ -26,7 +26,7 @@ namespace LibreLancer.Net
         private NetManager client;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
-        public int MaxSequencedSize => 560; //Set to minimum - 16. Client should not be sending huge packets
+        public int MaxSequencedSize => 500;  //Min safe UDP packet size - 8 bytes overhead
         public event Action<LocalServerInfo> ServerFound;
         public event Action<bool> AuthenticationRequired;
         public event Action<DisconnectReason> Disconnected;

@@ -159,7 +159,7 @@ namespace LibreLancer.Net.Protocol
 
             return a;
         }
-        
+
 
         public Vector3 GetNormal()
         {
@@ -219,6 +219,15 @@ namespace LibreLancer.Net.Protocol
         public bool GetBool()
         {
             return UnpackBits(array, 1, bitsOffset++) != 0;
+        }
+
+        public void Align()
+        {
+            int bitsUsed = bitsOffset & 0x7;
+            int bitsFree = 8 - bitsUsed;
+            if (bitsFree != 8) {
+                bitsOffset += bitsFree;
+            }
         }
 
         static uint UnpackUInt(ReadOnlySpan<byte> buffer, int nBits, int readOffset)

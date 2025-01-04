@@ -128,7 +128,7 @@ namespace LibreLancer.Net.Protocol
             int utf8Count = Encoding.UTF8.GetByteCount(str);
             if (utf8Count > writer.ByteLength)
             {
-                data = writer.GetBuffer();
+                data = writer.GetCopy();
                 return true;
             }
             return false;

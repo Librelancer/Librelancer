@@ -22,22 +22,30 @@ public class PackedUpdatePacket : IPacket
     public uint InputSequence;
     public uint OldTick;
     public uint Tick;
+    public byte[] AuthState;
     public byte[] Updates;
 
-    public int DataSize { get; private set; }
+    public int DataSize =>
+        1 + //Packet Kind
+        NetPacking.ByteCountUInt64(Tick) + //Header
+        NetPacking.ByteCountInt64((int)((long)OldTick - Tick)) +
+        NetPacking.ByteCountInt64(((int)((long)InputSequence - Tick))) +
+        (AuthState?.Length ?? 0) + //Auth State serialized
+        (Updates?.Length ?? 0); //Updates serialized
+
 
     public void WriteContents(PacketWriter outPacket)
     {
         outPacket.PutVariableUInt32(Tick);
         outPacket.PutVariableInt32((int)((long)OldTick - Tick));
         outPacket.PutVariableInt32((int)((long)InputSequence - Tick));
+        outPacket.Put(AuthState, 0, AuthState.Length);
         outPacket.Put(Updates, 0, Updates.Length);
     }
 
     public static object Read(PacketReader message)
     {
         var p = new PackedUpdatePacket();
-        p.DataSize = message.Size;
         p.Tick = message.GetVariableUInt32();
         p.OldTick = (uint) (p.Tick + message.GetVariableInt32());
         p.InputSequence = (uint) (p.Tick + message.GetVariableInt32());
@@ -45,108 +53,37 @@ public class PackedUpdatePacket : IPacket
         return p;
     }
 
-    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth, ObjectUpdate[] origUpdate,
+    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth, Func<uint, int, ObjectUpdate> getSource,
         NetHpidReader hpids)
     {
         var reader = new BitReader(Updates, 0, hpids);
         var pa = PlayerAuthState.Read(ref reader, origAuth);
-#if DEBUG_PACKET_ALIGNMENT
-        if (reader.GetUInt(16) != 0xBABE) throw new InvalidOperationException();
-        var origLen = reader.GetUInt(32);
-        if (origLen != (uint) origUpdate.Length) throw new InvalidOperationException($"{origLen} != {origUpdate.Length}");
-#endif
-        var blankUpdate = new ObjectUpdate {Guns = Array.Empty<GunOrient>()};
-        var updates = new List<ObjectUpdate>();
-        for (var i = 0; i < origUpdate.Length; i++)
+        reader.Align();
+        var count = reader.GetVarUInt32();
+        int[] ids = new int[count];
+        if (count > 0)
         {
-            var hasUpdate = reader.GetBool();
-            if (hasUpdate) updates.Add(ObjectUpdate.ReadDelta(ref reader, origUpdate[i]));
+            ids[0] = reader.GetVarInt32();
         }
-#if DEBUG_PACKET_ALIGNMENT
-        if (reader.GetUInt(16) != 0xBABE) throw new InvalidOperationException();
-#endif
-        var hasMore = reader.GetBool();
-        if (hasMore)
+        for (int i = 1; i < count; i++)
         {
-            var moreLength = reader.GetVarUInt32();
-#if DEBUG_PACKET_ALIGNMENT
-            FLLog.Debug("Client", $"Received {moreLength} new updates");
-#endif
-            while (moreLength-- > 0)
-            {
-                var id =  reader.GetVarInt32();
-                var u = ObjectUpdate.ReadDelta(ref reader, blankUpdate);
-                u.ID = new ObjNetId(id);
-                updates.Add(u);
-            }
+            ids[i] = ids[i - 1] + reader.GetVarInt32();
         }
-#if DEBUG_PACKET_ALIGNMENT
-        if (reader.GetUInt(16) != 0xBABE) throw new InvalidOperationException();
-#endif
-        return (pa, updates.ToArray());
+        var updates = new ObjectUpdate[count];
+        for (int i = 0; i < count; i++)
+        {
+            updates[i] = ObjectUpdate.ReadDelta(ref reader, Tick, ids[i], getSource);
+            reader.Align();
+        }
+        return (pa, updates);
     }
 
-    //Returns re-ordered list of updates
-    public ObjectUpdate[] SetUpdates(
-        PlayerAuthState newAuth,
-        PlayerAuthState origAuth,
-        ObjectUpdate[] origUpdate,
-        IEnumerable<ObjectUpdate> newUpdate,
-        NetHpidWriter hpids
-    )
+    public void SetAuthState(PlayerAuthState newAuth, PlayerAuthState origAuth)
     {
         var writer = new BitWriter();
-        var blankUpdate = new ObjectUpdate {Guns = Array.Empty<GunOrient>()};
-        writer.HpidWriter = hpids;
         newAuth.Write(ref writer, origAuth);
-#if DEBUG_PACKET_ALIGNMENT
-        writer.PutUInt(0xBABE, 16);
-        writer.PutUInt((uint)origUpdate.Length, 32);
-#endif
-        //Existing updates (delta against old state + no ID write)
-        var pendingUpdates = new List<ObjectUpdate>(newUpdate);
-        var sentUpdates = new List<ObjectUpdate>();
-        for (var i = 0; i < origUpdate.Length; i++)
-        {
-            var x = pendingUpdates.FindIndex(u => u.ID == origUpdate[i].ID);
-            if (x != -1)
-            {
-                writer.PutBool(true);
-                var u = pendingUpdates[x];
-                pendingUpdates.RemoveAt(x);
-                u.WriteDelta(origUpdate[i], ref writer);
-                sentUpdates.Add(u);
-            }
-            else
-            {
-                writer.PutBool(false); // update not included for this ID
-            }
-        }
-#if DEBUG_PACKET_ALIGNMENT
-        writer.PutUInt(0xBABE, 16);
-#endif
-        //New updates (delta against blank, write ID)
-        if (pendingUpdates.Count > 0)
-        {
-            writer.PutBool(true);
-            writer.PutVarUInt32((uint) pendingUpdates.Count);
-            foreach (var u in pendingUpdates)
-            {
-                writer.PutVarInt32(u.ID.Value);
-                u.WriteDelta(blankUpdate, ref writer);
-            }
-
-            sentUpdates.AddRange(pendingUpdates);
-        }
-        else
-        {
-            writer.PutBool(false);
-        }
-#if DEBUG_PACKET_ALIGNMENT
-        writer.PutUInt(0xBABE, 16);
-#endif
-        Updates = writer.GetBuffer();
-        return sentUpdates.ToArray();
+        writer.Align();
+        AuthState = writer.GetCopy();
     }
 }
 
@@ -382,6 +319,8 @@ public struct UpdateVector
 
 public class ObjectUpdate
 {
+    public static readonly ObjectUpdate Blank = new (){Guns = []};
+
     private const int VELOCITY_DELTA_BITS = 14;
     public UpdateVector AngularVelocity = new(Vector3.Zero, 24, -16384, 16384);
 
@@ -409,14 +348,6 @@ public class ObjectUpdate
         AngularVelocity = new UpdateVector(angular, 24, -16384, 16384);
     }
 
-    private static bool FlagsEqual(ObjectUpdate a, ObjectUpdate b)
-    {
-        return a.Tradelane == b.Tradelane &&
-               a.EngineKill == b.EngineKill &&
-               a.CruiseThrust == b.CruiseThrust &&
-               a.RepToPlayer == b.RepToPlayer;
-    }
-
     private static bool CanQuantize(Vector3 a, Vector3 b, float min, float max)
     {
         return a.X - b.X >= min && a.X - b.X <= max &&
@@ -437,11 +368,24 @@ public class ObjectUpdate
         );
     }
 
-    public void WriteDelta(ObjectUpdate src, ref BitWriter msg)
+    public void WriteDelta(ObjectUpdate src, uint oldTick, uint newTick, ref BitWriter msg)
     {
         //ID
         if (src.ID != new ObjNetId(0) && src.ID != ID)
             throw new InvalidOperationException("Cannot delta from different object");
+        if (oldTick == 0) {
+            msg.PutByte(255);
+        }
+        else if (oldTick == newTick) {
+            throw new ArgumentException("old tick == new tick");
+        }
+        else if ((newTick - oldTick) > 254 || oldTick > newTick)
+        {
+            throw new ArgumentException("old tick must be < newTick and up to 254 ticks away");
+        }
+        else {
+            msg.PutByte((byte)(newTick - oldTick));
+        }
         //Position
         if (NetPacking.ApproxEqual(src.Position, Position))
         {
@@ -482,18 +426,9 @@ public class ObjectUpdate
         AngularVelocity.WriteDelta(src.AngularVelocity, VELOCITY_DELTA_BITS, ref msg);
 
         //Flags
-        if (FlagsEqual(src, this))
-        {
-            msg.PutBool(false);
-        }
-        else
-        {
-            msg.PutBool(true);
-            msg.PutBool(Tradelane);
-            msg.PutBool(EngineKill);
-            msg.PutUInt((uint) CruiseThrust, 2);
-            msg.PutUInt((uint) RepToPlayer, 2);
-        }
+        msg.PutBool(Tradelane);
+        msg.PutBool(EngineKill);
+        msg.PutUInt((uint) CruiseThrust, 2);
 
         //Throttle
         if (NetPacking.QuantizedEqual(src.Throttle, Throttle, -1, 1, 7))
@@ -554,10 +489,11 @@ public class ObjectUpdate
         }
     }
 
-    public static ObjectUpdate ReadDelta(ref BitReader msg, ObjectUpdate source)
+    public static ObjectUpdate ReadDelta(ref BitReader msg, uint mainTick, int id, Func<uint, int, ObjectUpdate> getSource)
     {
-        var p = new ObjectUpdate();
-        p.ID = source.ID;
+        var p = new ObjectUpdate() { ID = new(id) };
+        var b = msg.GetByte();
+        ObjectUpdate source = b == 255 ? ObjectUpdate.Blank : getSource(mainTick - b, id);
         var posKind = msg.GetUInt(2);
         if (posKind == 0)
             p.Position = source.Position;
@@ -568,11 +504,9 @@ public class ObjectUpdate
         p.Orientation = msg.GetBool() ? UpdateQuaternion.ReadDelta(source.Orientation, ref msg) : source.Orientation;
         p.LinearVelocity = UpdateVector.ReadDelta(source.LinearVelocity, VELOCITY_DELTA_BITS, ref msg);
         p.AngularVelocity = UpdateVector.ReadDelta(source.AngularVelocity, VELOCITY_DELTA_BITS, ref msg);
-        var readFlags = msg.GetBool();
-        p.Tradelane = readFlags ? msg.GetBool() : source.Tradelane;
-        p.EngineKill = readFlags ? msg.GetBool() : source.EngineKill;
-        p.CruiseThrust = readFlags ? (CruiseThrustState) msg.GetUInt(2) : source.CruiseThrust;
-        p.RepToPlayer = readFlags ? (RepAttitude) msg.GetUInt(2) : source.RepToPlayer;
+        p.Tradelane = msg.GetBool();
+        p.EngineKill = msg.GetBool();
+        p.CruiseThrust = (CruiseThrustState)msg.GetUInt(2);
         p.Throttle = msg.GetBool() ? msg.GetRangedFloat(-1, 1, 7) : source.Throttle;
         p.HullValue = msg.GetBool() ? (source.HullValue + msg.GetVarInt64()) : source.HullValue;
         p.ShieldValue = msg.GetBool() ? (source.ShieldValue + msg.GetVarInt64()) : source.ShieldValue;

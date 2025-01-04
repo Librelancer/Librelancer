@@ -13,7 +13,7 @@ public class InputUpdatePacketTests
     public void ShouldRoundtrip()
     {
         var pkt = new InputUpdatePacket();
-        pkt.AckTick = 97;
+        pkt.Acks = new UpdateAck(97, 0);
         pkt.SelectedObject = new ObjNetId(1673);
         pkt.Current = new NetInputControls()
         {
@@ -33,7 +33,7 @@ public class InputUpdatePacketTests
         var reader = new PacketReader(dr);
         var pkt2 = (InputUpdatePacket)InputUpdatePacket.Read(reader);
 
-        Assert.Equal(pkt.AckTick, pkt2.AckTick);
+        Assert.Equal(pkt.Acks, pkt2.Acks);
         Assert.Equal(pkt.SelectedObject, pkt2.SelectedObject);
         Assert.Equal(pkt.Current.Tick, pkt2.Current.Tick);
 
