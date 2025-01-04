@@ -8,6 +8,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 public sealed class NodeActSpawnShip : BlueprintNode
 {
     protected override string Name => "Spawn Ship";
+    protected override float NodeInnerWidth => 320;
 
     private readonly Act_SpawnShip data;
     public NodeActSpawnShip(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
@@ -22,7 +23,7 @@ public sealed class NodeActSpawnShip : BlueprintNode
         Controls.InputTextId("Ship", ref data.Ship);
         Controls.InputTextId("Object List", ref data.ObjList);
         // TODO: Handle null values for pos and orient
-        // ImGui.InputFloat3("Position", ref data.Position);
-        // Controls.InputTextId("Orientation", ref data.Orientation);
+        Controls.InputVec3Nullable("Position", ref data.Position);
+        Controls.InputFlQuaternionNullable("Orientation", ref data.Orientation);
     }
 }

@@ -4,18 +4,12 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
 public class NodeCndPlayerManeuver : BlueprintNode
 {
-    public enum ManeuverType
-    {
-        Dock,
-        Formation,
-        GoTo
-    }
-
     protected override string Name => "On Player Maneuver";
 
     private ManeuverType type = ManeuverType.Dock;

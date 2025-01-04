@@ -195,10 +195,60 @@ public static class Controls
         value = new Quaternion(swizzle.X, swizzle.Y, swizzle.Z, swizzle.W);
     }
 
-    public static void InputStringList(string label, List<string> list, bool rmButtonOnEveryElement = true)
+    public static void InputVec3Nullable(string label, ref Vector3? value)
     {
+        if (value == null)
+        {
+            if (ImGui.Button($"Set {label}"))
+            {
+                value = Vector3.Zero;
+            }
+        }
+        else
+        {
+            if (value is null) return;
+
+            var v = value.Value;
+            ImGui.InputFloat3(label, ref v, "%0f");
+            value = v;
+
+            ImGui.SameLine();
+            if (ImGui.Button($"Clear##{label}"))
+            {
+                value = null;
+            }
+        }
+    }
+
+    public static void InputFlQuaternionNullable(string label, ref Quaternion? value)
+    {
+        if (value == null)
+        {
+            if (ImGui.Button($"Set {label}"))
+            {
+                value = Quaternion.Identity;
+            }
+        }
+        else
+        {
+            if (ImGui.Button($"Clear##{label}"))
+            {
+                value = null;
+            }
+
+            if (value is null) return;
+
+            var v = value.Value;
+            InputFlQuaternion(label, ref v);
+            value = v;
+        }
+    }
+
+    public static void InputStringList(string id, List<string> list, bool rmButtonOnEveryElement = true)
+    {
+        ImGui.PushID(id);
         ImGui.AlignTextToFramePadding();
-        ImGui.Text(label);
+        Label(id);
 
         void AddListControls()
         {
@@ -228,7 +278,7 @@ public static class Controls
         for (var index = 0; index < list.Count; index++)
         {
             var str = list[index];
-            ImGui.PushID(str);
+            ImGui.PushID(index);
 
             ImGui.SetNextItemWidth(150f);
             ImGui.InputText("###", ref str, 32);
@@ -240,7 +290,7 @@ public static class Controls
                 if (rmButtonOnEveryElement)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button(Icons.X + "##"))
+                    if (ImGui.Button(Icons.X))
                     {
                         list.RemoveAt(index);
                     }
@@ -253,6 +303,8 @@ public static class Controls
 
             AddListControls();
         }
+
+        ImGui.PopID();
     }
 
     private static void IdsInput(string label, string infocard, ref int ids, bool showTooltipOnHover)
@@ -331,5 +383,18 @@ public static class Controls
         ImGui.TextUnformatted(helpText);
         ImGui.PopTextWrapPos();
         ImGui.EndTooltip();
+    }
+
+    static void Label(string id)
+    {
+        var i = id.IndexOf("##", StringComparison.Ordinal);
+        if(i == -1)
+        {
+            ImGui.TextUnformatted(id);
+        }
+        else
+        {
+            ImGui.TextUnformatted(id.AsSpan(0, i));
+        }
     }
 }

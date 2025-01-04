@@ -27,6 +27,6 @@ public class NodeCndHealthDecreased : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         Controls.InputTextId("Target", ref target);
-        ImGui.SliderFloat("Health", ref percent, 0, 100, "%.0f%%", ImGuiSliderFlags.AlwaysClamp);
+        ImGui.SliderFloat("Health", ref percent, 0, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
     }
 }

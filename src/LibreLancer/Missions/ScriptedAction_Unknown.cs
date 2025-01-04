@@ -877,7 +877,7 @@ public class Act_GiveNNObjs : ScriptedAction
 public class Act_EnableManeuver : ScriptedAction
 {
     public ManeuverType Maneuver = ManeuverType.Dock;
-    private bool Lock;
+    public bool Lock;
 
     public Act_EnableManeuver()
     {

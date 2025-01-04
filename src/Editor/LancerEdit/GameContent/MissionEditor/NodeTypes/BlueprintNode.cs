@@ -10,6 +10,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class BlueprintNode : Node
 {
+    protected virtual float NodeInnerWidth => 200f;
     protected BlueprintNode(ref int id, VertexDiffuse? color = null) : base(id++, color)
     {
     }
@@ -25,7 +26,7 @@ public abstract class BlueprintNode : Node
         ImGui.Text(Name);
         nb.EndHeader();
 
-        LayoutNode(Inputs.Select(x => x.Name), Outputs.Select(x => x.Name), 200);
+        LayoutNode(Inputs.Select(x => x.Name), Outputs.Select(x => x.Name), NodeInnerWidth * ImGuiHelper.Scale);
         StartInputs();
 
         foreach (var pin in Inputs)
