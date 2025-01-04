@@ -31,8 +31,7 @@ namespace LibreLancer.Server
 
         public NetIDGenerator IdGenerator = new NetIDGenerator();
 
-        private byte[] worldUpdateBuffer = new byte[2048];
-        private byte[] packetUpdatesBuffer = new byte[2048];
+        UpdatePacker packer = new UpdatePacker();
 
         public bool Paused => paused;
 
@@ -565,17 +564,16 @@ namespace LibreLancer.Server
         //This could do with some work
         void SendWorldUpdates(uint tick)
         {
+            // Update players
             foreach(var player in Players)
             {
                 var tr = player.Value.WorldTransform;
                 player.Key.Position = tr.Position;
                 player.Key.Orientation = tr.Orientation;
             }
-
+            // Fetch data
             var toUpdate = GetUpdatingObjects().ToArray();
-            var deltas = new FetchedDelta[toUpdate.Length];
             var allUpdates = new ObjectUpdate[toUpdate.Length];
-            var sorted = new SortedUpdate[toUpdate.Length];
 
             for (int i = 0; i < toUpdate.Length; i++)
             {
@@ -625,7 +623,8 @@ namespace LibreLancer.Server
                 }
                 allUpdates[i] = update;
             }
-
+            // Send data to players
+            var pk = packer.Begin(allUpdates, toUpdate);
             foreach (var player in Players)
             {
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
@@ -635,20 +634,6 @@ namespace LibreLancer.Server
                 if (pshieldComponent != null)
                     pshield = pshieldComponent.Health;
                 var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
-                selfPlayer.GetUpdates(toUpdate, deltas);
-                // Locate self update to skip processing
-                int skipIndex = -1;
-                for(int i = 0; i < toUpdate.Length; i++)
-                {
-                    var obj = toUpdate[i];
-                    //Skip self
-                    if (obj.TryGetComponent<SPlayerComponent>(out var pComp) &&
-                        pComp.Player == player.Key)
-                    {
-                        skipIndex = i;
-                        break;
-                    }
-                }
                 var phys = player.Value.GetComponent<ShipPhysicsComponent>();
                 var state = new PlayerAuthState
                 {
@@ -667,7 +652,7 @@ namespace LibreLancer.Server
                     int j = 0;
                     for (int i = 0; i < allUpdates.Length; i++)
                     {
-                        if (i == skipIndex)
+                        if (toUpdate[i] == player.Value)
                             continue;
                         lst[j++] = allUpdates[i];
                     }
@@ -681,138 +666,12 @@ namespace LibreLancer.Server
                 }
                 else
                 {
-                    selfPlayer.GetAcknowledgedState(out var oldTick, out var oldState);
-                    var packet = new PackedUpdatePacket();
-                    packet.Tick = tick;
-                    packet.OldTick = oldTick;
-                    packet.InputSequence = selfPlayer.LatestReceived;
-                    packet.SetAuthState(state, oldState);
-                    var deltaWriter = new BitWriter(worldUpdateBuffer, true);
-                    int totalSum = 0;
-                    int totalSorted = 0;
-                    for (int i = 0; i < allUpdates.Length; i++)
-                    {
-                        if (skipIndex == i)
-                            continue;
-                        int start = deltaWriter.ByteLength;
-                        allUpdates[i].WriteDelta(deltas[i].Update, deltas[i].Tick, tick, ref deltaWriter);
-                        deltaWriter.Align();
-                        var len = (deltaWriter.ByteLength - start);
-                        totalSum += len + 4; //over-estimate overhead of sending ID
-                        sorted[totalSorted++] = new SortedUpdate(deltas[i], len, start, toUpdate[i], allUpdates[i]);
-                    }
-                    // In case it was resized
-                    worldUpdateBuffer = deltaWriter.Backing;
-
-                    #if PACKETDEBUG
+                    #if DEBUG
                     int maxPacketSize = 500; //Min safe UDP packet size - 8
                     #else
                     int maxPacketSize = player.Key.Client.MaxSequencedSize;
                     #endif
-
-                    if (maxPacketSize >= (packet.DataSize + totalSum))
-                    {
-
-                        //Skip sorting, just shove the packet in
-                        var d = new Dictionary<int, ObjectUpdate>();
-                        for (int i = 0; i < allUpdates.Length; i++) {
-                            if (skipIndex == i)
-                                continue;
-                            d[toUpdate[i].Unique] = allUpdates[i];
-                        }
-                        selfPlayer.EnqueueState((uint)tick, state, d);
-                        var allWriter = new BitWriter(packetUpdatesBuffer, false);
-                        // Write IDs
-                        allWriter.PutVarUInt32((uint)totalSorted);
-                        if (totalSorted > 0) {
-                            allWriter.PutVarInt32(sorted[0].Update.ID.Value);
-                        }
-                        for (int i = 1; i < totalSorted; i++) {
-                            int curr = sorted[i].Update.ID.Value;
-                            int prev = sorted[i - 1].Update.ID.Value;
-                            allWriter.PutVarInt32(curr - prev);
-                        }
-                        // Write Updates
-                        int offset = allWriter.ByteLength;
-                        for (int i = 0; i < totalSorted; i++)
-                        {
-                            var dest = packetUpdatesBuffer.AsSpan(offset, sorted[i].Size);
-                            var src = worldUpdateBuffer.AsSpan(sorted[i].Offset, sorted[i].Size);
-                            src.CopyTo(dest);
-                            offset += sorted[i].Size;
-                        }
-                        packet.Updates = new byte[offset];
-                        packetUpdatesBuffer.AsSpan(0, offset).CopyTo(packet.Updates);
-                    }
-                    else
-                    {
-                        int dataSum = 0;
-                        Array.Sort(sorted, 0, totalSorted);
-                        var d = new Dictionary<int, ObjectUpdate>();
-                        // First pass counting packet size
-                        int newSum = packet.DataSize;
-                        int uIdx = 1;
-                        newSum += NetPacking.ByteCountInt64((int)sorted[0].Update.ID.Value);
-                        newSum += sorted[0].Size;
-                        for (; uIdx < totalSorted && uIdx <= 127; uIdx++) {
-                            int curr = sorted[uIdx].Update.ID.Value;
-                            int prev = sorted[uIdx - 1].Update.ID.Value;
-                            if (newSum +
-                                NetPacking.ByteCountInt64(curr - prev)
-                                + sorted[uIdx].Size > maxPacketSize)
-                            {
-                                break;
-                            }
-                            newSum += NetPacking.ByteCountInt64(curr - prev) + sorted[uIdx].Size;
-                        }
-                        // Sort available updates by ID to get a few bytes back
-                        Array.Sort(sorted, 0, uIdx, IdComparer.Instance);
-                        // First update will always be fine
-                        // Start writing ID list
-                        var allWriter = new BitWriter(packetUpdatesBuffer, false);
-                        allWriter.PutByte(0);
-                        allWriter.PutVarInt32((int)sorted[0].Update.ID.Value);
-                        uIdx = 1;
-                        dataSum += sorted[0].Size;
-                        d[sorted[0].Object.Unique] = sorted[0].Update;
-                        // Max 127 updates as we reserve one byte for count
-                        for (int j = 1; uIdx < totalSorted && uIdx <= 127; uIdx++) {
-                            // If adding another update would make the packet oversized
-                            // we stop
-                            int curr = sorted[uIdx].Update.ID.Value;
-                            int prev = sorted[uIdx - 1].Update.ID.Value;
-                            if ((packet.DataSize + //authstate + headers
-                                 allWriter.ByteLength +  //current ID list
-                                 dataSum + //size of existing updates
-                                 sorted[uIdx].Size +
-                                 NetPacking.ByteCountInt64(curr - prev)) //size of ID list add
-                                >= maxPacketSize)
-                            {
-                                break;
-                            }
-                            d[sorted[uIdx].Object.Unique] = sorted[uIdx].Update;
-                            allWriter.PutVarInt32(curr - prev);
-                            dataSum += sorted[uIdx].Size;
-                        }
-                        packetUpdatesBuffer[0] = (byte)uIdx; //Set count
-                        //copy updates
-                        int offset = allWriter.ByteLength;
-                        for (int i = 0; i < uIdx; i++)
-                        {
-                            var dest = packetUpdatesBuffer.AsSpan(offset, sorted[i].Size);
-                            var src = worldUpdateBuffer.AsSpan(sorted[i].Offset, sorted[i].Size);
-                            src.CopyTo(dest);
-                            offset += sorted[i].Size;
-                        }
-                        packet.Updates = new byte[offset];
-                        packetUpdatesBuffer.AsSpan(0, offset).CopyTo(packet.Updates);
-                        // Increase priority for any non-updated objects
-                        for (int i = uIdx; i < totalSorted; i++) {
-                            selfPlayer.SetPriority(sorted[i].Object, sorted[i].Old.Priority + 1);
-                        }
-                        selfPlayer.EnqueueState((uint)tick, state, d);
-                    }
-                    player.Key.SendMPUpdate(packet);
+                    player.Key.SendMPUpdate(pk.Pack(tick, state, selfPlayer, player.Value, maxPacketSize));
                 }
             }
         }

@@ -403,12 +403,12 @@ namespace LibreLancer.Client
             var nsp = new SPUpdatePacket();
             nsp.Tick = mp.Tick;
             nsp.InputSequence = mp.InputSequence;
-            (nsp.PlayerState, nsp.Updates) = mp.GetUpdates(oldPlayerState, GetUpdate, (connection as GameNetClient).HpidReader);
+            (nsp.PlayerState, nsp.Updates) = mp.GetUpdates(oldPlayerState, GetUpdate);
             oldPackets.Enqueue(nsp);
             // Create new acknowledgement history
             var prevAcks = Acks;
             Acks = new UpdateAck(mp.Tick, 0);
-            for(uint i = 1; i <= 32; i++)
+            for(uint i = 1; i < 64; i++)
             {
                 uint tick = mp.Tick - i;
                 Acks[tick] = prevAcks[tick];

@@ -53,10 +53,9 @@ public class PackedUpdatePacket : IPacket
         return p;
     }
 
-    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth, Func<uint, int, ObjectUpdate> getSource,
-        NetHpidReader hpids)
+    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth, Func<uint, int, ObjectUpdate> getSource)
     {
-        var reader = new BitReader(Updates, 0, hpids);
+        var reader = new BitReader(Updates, 0);
         var pa = PlayerAuthState.Read(ref reader, origAuth);
         reader.Align();
         var count = reader.GetVarUInt32();
@@ -370,6 +369,9 @@ public class ObjectUpdate
 
     public void WriteDelta(ObjectUpdate src, uint oldTick, uint newTick, ref BitWriter msg)
     {
+        #if DEBUG
+        msg.PutByte(0xA1);
+        #endif
         //ID
         if (src.ID != new ObjNetId(0) && src.ID != ID)
             throw new InvalidOperationException("Cannot delta from different object");
@@ -487,10 +489,16 @@ public class ObjectUpdate
                 Guns[i].WriteDelta(sg, ref msg);
             }
         }
+        #if DEBUG
+        msg.PutByte(0xA1);
+        #endif
     }
 
     public static ObjectUpdate ReadDelta(ref BitReader msg, uint mainTick, int id, Func<uint, int, ObjectUpdate> getSource)
     {
+        #if DEBUG
+        if(msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
+        #endif
         var p = new ObjectUpdate() { ID = new(id) };
         var b = msg.GetByte();
         ObjectUpdate source = b == 255 ? ObjectUpdate.Blank : getSource(mainTick - b, id);
@@ -524,7 +532,9 @@ public class ObjectUpdate
         {
             p.Guns = Array.Empty<GunOrient>();
         }
-
+        #if DEBUG
+        if(msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
+        #endif
         return p;
     }
 }
