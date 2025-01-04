@@ -12,7 +12,7 @@ public sealed class NodeActGiveNNObjectives : BlueprintNode
 
     public NodeActGiveNNObjectives(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        Inputs.Add(new NodePin(id++, "Trigger", this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

@@ -20,8 +20,8 @@ public class NodeCndWatchTrigger : BlueprintNode
             triggerOn = entry[1].ToString()!.Equals("on", StringComparison.InvariantCultureIgnoreCase);
         }
 
-        Inputs.Add(new NodePin(id++, "Trigger", this, LinkType.Condition, PinKind.Input));
-        Outputs.Add(new NodePin(id++, "Trigger", this, LinkType.Trigger, PinKind.Output));
+        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Outputs.Add(new NodePin(id++, this, LinkType.Trigger, PinKind.Output));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

@@ -22,11 +22,11 @@ public abstract class BlueprintNode : Node
         var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
         var nb = NodeBuilder.Begin(Id);
 
-        nb.Header(new Color4(Color.R, Color.G, Color.B, 255f));
+        nb.Header(Color);
         ImGui.Text(Name);
         nb.EndHeader();
 
-        LayoutNode(Inputs.Select(x => x.Name), Outputs.Select(x => x.Name), NodeInnerWidth * ImGuiHelper.Scale);
+        LayoutNode(Inputs.Select(x => x.LinkType.ToString()), Outputs.Select(x => x.LinkType.ToString()), NodeInnerWidth * ImGuiHelper.Scale);
         StartInputs();
 
         foreach (var pin in Inputs)
@@ -45,7 +45,7 @@ public abstract class BlueprintNode : Node
 
             VectorIcons.Icon(iconSize, VectorIcon.Flow, false, color);
             ImGui.SameLine();
-            ImGui.Text(pin.Name);
+            ImGui.Text(pin.LinkType.ToString());
             NodeEditor.EndPin();
         }
 
@@ -55,7 +55,7 @@ public abstract class BlueprintNode : Node
             NodeEditor.BeginPin(pin.Id, PinKind.Output);
             VectorIcons.Icon(iconSize, VectorIcon.Flow, false);
             ImGui.SameLine();
-            ImGui.Text(pin.Name);
+            ImGui.Text(pin.LinkType.ToString());
             NodeEditor.EndPin();
         }
 

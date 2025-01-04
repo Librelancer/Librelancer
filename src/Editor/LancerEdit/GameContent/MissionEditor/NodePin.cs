@@ -7,16 +7,14 @@ public class NodePin
 {
     public PinId Id { get; }
     public Node OwnerNode { get; }
-    public string Name { get; }
     public LinkType LinkType { get; }
     public PinKind PinKind { get; }
     public NodeLink Link { get; set; } = null;
 
-    public NodePin(int id, string name, Node owner, LinkType type, PinKind kind)
+    public NodePin(int id, Node owner, LinkType type, PinKind kind)
     {
         Id = id;
         OwnerNode = owner;
-        Name = name;
         LinkType = type;
         PinKind = kind;
     }

@@ -13,20 +13,11 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class Node(int id, VertexDiffuse? color = null)
 {
-    protected NodeId Id { get; } = id;
+    public NodeId Id { get; } = id;
     protected abstract string Name  { get; }
     public List<NodePin> Inputs  { get; } = [];
     public List<NodePin> Outputs  { get; } = [];
     public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
-
-    protected static readonly Dictionary<Type, NodeValueRenderer<object>> NodeValueRenders = new();
-
-    public delegate void NodeValueRenderer<in T>(GameDataContext context, MissionScript script, ref NodePopups popups, T item);
-    public static void RegisterNodeValueRenderer<T>(NodeValueRenderer<T> values)
-    {
-        NodeValueRenders[typeof(T)] = (GameDataContext context, MissionScript script, ref NodePopups popups, object obj)
-            => values(context, script, ref popups, (T)obj);
-    }
 
     public abstract void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni);
 

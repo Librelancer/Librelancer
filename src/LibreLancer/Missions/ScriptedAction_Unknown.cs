@@ -482,12 +482,12 @@ public class Act_NagDistTowards : ScriptedAction
             Object = act.Entry[3].ToString();
             MissionFailIds = act.Entry[4].ToInt32();
 
-            if (act.Entry.Count > 5)
+            if (act.Entry.Count > 6)
             {
                 Distance = act.Entry[6].ToSingle();
             }
 
-            if (act.Entry.Count > 6)
+            if (act.Entry.Count > 7)
             {
                 NagType = Enum.Parse<NagType>(act.Entry[7].ToString()!, ignoreCase: true);
             }

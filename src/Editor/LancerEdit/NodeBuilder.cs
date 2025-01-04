@@ -103,9 +103,9 @@ public struct NodeBuilder : IDisposable
         }
     }
 
-    public void Header(Color4 color)
+    public void Header(uint color)
     {
-        HeaderColor = ImGui.GetColorU32(color);
+        HeaderColor = color;
         SetStage(NodeStage.Header);
     }
 
@@ -126,8 +126,7 @@ public struct NodeBuilder : IDisposable
             var alpha = ImGui.GetStyle().Alpha;
             var drawList = NodeEditor.GetNodeBackgroundDrawList(CurrentId);
             var halfBorderWidth = NodeEditor.GetStyle()->NodeBorderWidth * 0.5f;
-            var color = ImGui.GetColorU32(new Vector4(0, 0, 0, alpha)) |
-                        (HeaderColor & ImGui.GetColorU32(new Vector4(1, 1, 1, 0)));
+
             if ((HeaderMax.X > HeaderMin.X) && (HeaderMax.Y > HeaderMin.Y) && (HeaderTextureId != 0))
             {
                 if (HeaderMax.X < NodeMax.X) //no spring layout, get max

@@ -26,7 +26,7 @@ public class NodeCndPlayerManeuver : BlueprintNode
             }
         }
 
-        Inputs.Add(new NodePin(id++, "Trigger", this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
     }
 
     private readonly string[] maneuverTypes = Enum.GetNames<ManeuverType>();

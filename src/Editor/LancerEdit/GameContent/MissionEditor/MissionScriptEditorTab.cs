@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -9,16 +10,13 @@ using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 using LibreLancer;
-using LibreLancer.ContentEdit;
 using LibreLancer.Data.Missions;
-using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
 using ImGui = ImGuiNET.ImGui;
-using Reg = LancerEdit.GameContent.MissionEditor.Registers.Registers;
 
 namespace LancerEdit.GameContent.MissionEditor;
+
 public sealed partial class MissionScriptEditorTab : GameContentTab
 {
     private readonly GameDataContext gameData;
@@ -27,16 +25,11 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
     private readonly NodeEditorConfig config;
     private readonly NodeEditorContext context;
-
     private readonly List<Node> nodes;
+    private readonly List<NodeMissionTrigger> triggers = [];
     private readonly List<NodeLink> links;
-
     private int nextId;
-
-    private NodePin newLinkPin = null;
-    private NodePin newNodeLinkPin = null;
-
-    private static bool _registeredNodeValueRenderers = false;
+    private NodePin newLinkPin;
 
     private readonly MissionIni missionIni;
 
@@ -52,8 +45,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         NodeBuilder.LoadTexture(win.RenderContext);
 
-        RegisterNodeValues();
-
         nodes = [];
         links = [];
         missionIni = new MissionIni(file, null);
@@ -64,8 +55,10 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             missionIni.ShipIni = new NPCShipIni(npcPath, null);
         }
 
+        var actionsThatLinkToTriggers = new List<BlueprintNode>();
         foreach (var trigger in missionIni.Triggers)
         {
+            var triggerNode = new NodeMissionTrigger(ref nextId, trigger);
             foreach (var action in trigger.Actions)
             {
                 BlueprintNode node = action.Type switch
@@ -105,14 +98,56 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     TriggerActions.Act_SpawnFormation => new NodeActSpawnFormation(ref nextId, action),
                     TriggerActions.Act_MarkObj => new NodeActMarkObject(ref nextId, action),
                     TriggerActions.Act_Destroy => new NodeActDestroy(ref nextId, action),
-                    _ => null,
+                    TriggerActions.Act_StaticCam => new NodeActStaticCamera(ref nextId, action),
+                    TriggerActions.Act_SpawnLoot => new NodeActSpawnLoot(ref nextId, action),
+                    TriggerActions.Act_SetVibeOfferBaseHack => new NodeActSetVibeOfferBaseHack(ref nextId, action),
+                    TriggerActions.Act_SetTitle => new NodeActSetTitle(ref nextId, action),
+                    TriggerActions.Act_SetRep => new NodeActSetRep(ref nextId, action),
+                    TriggerActions.Act_SetOrient => new NodeActSetOrientation(ref nextId, action),
+                    TriggerActions.Act_SetOffer => new NodeActSetOffer(ref nextId, action),
+                    TriggerActions.Act_SetNNState => new NodeActSetNNState(ref nextId, action),
+                    TriggerActions.Act_SetNNHidden => new NodeActSetNNHidden(ref nextId, action),
+                    TriggerActions.Act_SetLifeTime => new NodeActSetLifetime(ref nextId, action),
+                    TriggerActions.Act_Save => new NodeActSave(ref nextId, action),
+                    TriggerActions.Act_RpopTLAttacksEnabled => new NodeActRPopAttacksEnabled(ref nextId, action),
+                    TriggerActions.Act_RpopAttClamp => new NodeActRPopClamp(ref nextId, action),
+                    TriggerActions.Act_RemoveCargo => new NodeActRemoveCargo(ref nextId, action),
+                    TriggerActions.Act_RandomPopSphere => new NodeActRandomPopSphere(ref nextId, action),
+                    TriggerActions.Act_RandomPop => new NodeActRandomPop(ref nextId, action),
+                    TriggerActions.Act_SetPriority => new NodeActSetPriority(ref nextId, action),
+                    TriggerActions.Act_PlayerEnemyClamp => new NodeActPlayerEnemyClamp(ref nextId, action),
+                    TriggerActions.Act_PlayerCanTradelane => new NodeActCanTradeLane(ref nextId, action),
+                    TriggerActions.Act_PlayerCanDock => new NodeActCanDock(ref nextId, action),
+                    TriggerActions.Act_NNIds => new NodeActNNIds(ref nextId, action),
+                    TriggerActions.Act_NNPath => new NodeActNNPath(ref nextId, action),
+                    TriggerActions.Act_NagOff => new NodeActNagOff(ref nextId, action),
+                    TriggerActions.Act_NagGreet => new NodeActNagGreet(ref nextId, action),
+                    TriggerActions.Act_NagDistTowards => new NodeActNagDistTowards(ref nextId, action),
+                    TriggerActions.Act_NagDistLeaving => new NodeActNagDistLeaving(ref nextId, action),
+                    TriggerActions.Act_NagClamp => new NodeActNagClamp(ref nextId, action),
+                    TriggerActions.Act_LockManeuvers => new NodeActLockManeuvers(ref nextId, action),
+                    TriggerActions.Act_LockDock => new NodeActLockDock(ref nextId, action),
+                    TriggerActions.Act_Jumper => new NodeActJumper(ref nextId, action),
+                    TriggerActions.Act_HostileClamp => new NodeActHostileClamp(ref nextId, action),
+                    TriggerActions.Act_GiveObjList => new NodeActGiveObjectList(ref nextId, action),
+                    TriggerActions.Act_GiveNNObjs => new NodeActGiveNNObjectives(ref nextId, action),
+                    TriggerActions.Act_GCSClamp => new NodeActGcsClamp(ref nextId, action),
+                    TriggerActions.Act_EnableManeuver => new NodeActEnableManeuver(ref nextId, action),
+                    TriggerActions.Act_EnableEnc => new NodeActEnableEncounter(ref nextId, action),
+                    TriggerActions.Act_DockRequest => new NodeActDockRequest(ref nextId, action),
+                    TriggerActions.Act_DisableTradelane => new NodeActDisableTradelane(ref nextId, action),
+                    TriggerActions.Act_DisableFriendlyFire => new NodeActDisableFriendlyFire(ref nextId, action),
+                    TriggerActions.Act_DisableEnc => new NodeActDisableEncounter(ref nextId, action),
+                    TriggerActions.Act_AdjHealth => new NodeActAdjustHealth(ref nextId, action),
+                    _ => throw new NotImplementedException($"Unable to render node for action type: {action.Type}"),
                 };
 
-                if (node is null)
+                var linked = TryLinkNodes(triggerNode, node, LinkType.Action);
+                Debug.Assert(linked);
+
+                if (node is NodeActActivateTrigger or NodeActDeactivateTrigger)
                 {
-                    FLLog.Warning("MissionScriptEditor",
-                        $"Unable to render node for action type: {action.Type}");
-                    continue;
+                    actionsThatLinkToTriggers.Add(node);
                 }
 
                 nodes.Add(node);
@@ -135,7 +170,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     TriggerConditions.Cnd_SpaceEnter => new NodeCndSpaceEnter(ref nextId, condition.Entry),
                     TriggerConditions.Cnd_RumorHeard => new NodeCndRumourHeard(ref nextId, condition.Entry),
                     TriggerConditions.Cnd_RTCDone => new NodeCndRtcComplete(ref nextId, condition.Entry),
-                    TriggerConditions.Cnd_ProjHitShipToLbl => new NodeCndProjectileHitShipToLabel(ref nextId, condition.Entry),
+                    TriggerConditions.Cnd_ProjHitShipToLbl => new NodeCndProjectileHitShipToLabel(ref nextId,
+                        condition.Entry),
                     TriggerConditions.Cnd_ProjHit => new NodeCndProjectileHit(ref nextId, condition.Entry),
                     TriggerConditions.Cnd_PopUpDialog => new NodeCndPopUpDialog(ref nextId, condition.Entry),
                     TriggerConditions.Cnd_PlayerManeuver => new NodeCndPlayerManeuver(ref nextId, condition.Entry),
@@ -169,10 +205,33 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     _ => throw new NotImplementedException($"{condition.Type} is not implemented")
                 };
 
+                var linked = TryLinkNodes(triggerNode, node, LinkType.Condition);
+                Debug.Assert(linked);
+
                 nodes.Add(node);
             }
 
-            nodes.Add(new NodeMissionTrigger(ref nextId, trigger));
+            triggers.Add(triggerNode);
+            nodes.Add(triggerNode);
+        }
+
+        foreach (var action in actionsThatLinkToTriggers)
+        {
+            var triggerTarget = action switch
+            {
+                NodeActActivateTrigger act => act.Data.Trigger,
+                NodeActDeactivateTrigger deactivate => deactivate.Data.Trigger,
+                _ => throw new InvalidCastException()
+            };
+
+            var trigger = triggers.FirstOrDefault(x => x.Data.Nickname == triggerTarget);
+            if (trigger is null)
+            {
+                FLLog.Warning("MissionScriptEditor", "An activate trigger action had a trigger that was not valid!");
+                continue;
+            }
+
+            TryLinkNodes(action, trigger, LinkType.Trigger);
         }
     }
 
@@ -238,10 +297,50 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
     }
 
+    private bool firstRender;
     private void RenderNodeEditor()
     {
         NodeEditor.SetCurrentEditor(context);
         NodeEditor.Begin("Node Editor", Vector2.Zero);
+
+        if (!firstRender)
+        {
+            firstRender = true;
+
+            // If there is no positional data, we try to arrange them into a grid like structure to make it easier to use
+
+            int sortIndex = 0;
+            var startingXPos = 0f;
+            var triggerYPos = 0f;
+            var actionYPos = 0f;
+            var conditionYPos = 0f;
+            foreach (var trigger in triggers)
+            {
+                if (sortIndex > 10)
+                {
+                    sortIndex = 0;
+                    startingXPos += 1600f;
+                    triggerYPos = actionYPos = conditionYPos = 0f;
+                }
+
+                NodeEditor.SetNodePosition(trigger.Id, new Vector2(startingXPos, triggerYPos));
+                foreach (var action in GetLinkedNodes(trigger, PinKind.Output, LinkType.Action))
+                {
+                    NodeEditor.SetNodePosition(action.Id, new Vector2(startingXPos + 600f, actionYPos));
+                    actionYPos += 100f;
+                }
+
+                foreach (var condition in GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition))
+                {
+                    NodeEditor.SetNodePosition(condition.Id, new Vector2(startingXPos + 1200f, conditionYPos));
+                    conditionYPos += 100f;
+                }
+
+                triggerYPos = Math.Max(conditionYPos, actionYPos) + 100f;
+                conditionYPos = actionYPos = triggerYPos;
+                sortIndex++;
+            }
+        }
 
         foreach (var node in nodes)
         {
@@ -257,6 +356,24 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         NodeEditor.End();
         NodeEditor.SetCurrentEditor(null);
+    }
+
+    private bool TryLinkNodes(Node start, Node end, LinkType linkType)
+    {
+        var startPin = start.Outputs.FirstOrDefault(x => x.LinkType == linkType);
+        if (startPin is null)
+        {
+            return false;
+        }
+
+        var endPin = end.Inputs.FirstOrDefault(x => x.LinkType == linkType);
+        if (endPin is null)
+        {
+            return false;
+        }
+
+        links.Add(new NodeLink(nextId++, startPin, endPin, end.Color));
+        return true;
     }
 
     private void TryCreateLink()
@@ -318,6 +435,11 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                         ShowLabel("x Incompatible Link Type", new Color4(45, 32, 32, 180));
                         NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
                     }
+                    else if (links.Any(x => x.StartPin == startPin && x.EndPin == endPin))
+                    {
+                        ShowLabel("x Link already exists", new Color4(45, 32, 32, 180));
+                        NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+                    }
                     else
                     {
                         ShowLabel("+ Create Link", new Color4(32, 45, 32, 180));
@@ -325,7 +447,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                         {
                             var nodeLink = new NodeLink(nextId++, startPin, endPin)
                             {
-                                Color = startPin.OwnerNode.Color
+                                Color = endPin.OwnerNode.Color
                             };
                             links.Add(nodeLink);
                         }
@@ -359,18 +481,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         NodeEditor.EndCreate();
     }
 
-    private void RegisterNodeValues()
-    {
-        if (_registeredNodeValueRenderers)
-        {
-            return;
-        }
-
-        _registeredNodeValueRenderers = true;
-
-        Node.RegisterNodeValueRenderer<MissionTrigger>(Reg.MissionTriggerContent);
-    }
-
     private NodePin FindPin(PinId id)
     {
         if (id.Value.ToInt64() == 0)
@@ -394,6 +504,21 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         return null;
+    }
+
+    private List<Node> GetLinkedNodes([NotNull] Node node, PinKind kind, LinkType? pinFilter = null)
+    {
+        var nodes = new List<Node>();
+        var inPins = kind == PinKind.Input;
+        var pins = inPins ? node.Inputs : node.Outputs;
+        foreach (var pin in pins.Where(x => pinFilter == null || x.LinkType == pinFilter))
+        {
+            nodes.AddRange(links
+                .Where(x => inPins ? x.EndPin == pin : x.StartPin == pin)
+                .Select(link => inPins ? link.StartPin.OwnerNode : link.EndPin.OwnerNode));
+        }
+
+        return nodes;
     }
 
     public override void Dispose()

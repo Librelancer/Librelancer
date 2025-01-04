@@ -14,7 +14,7 @@ public sealed class NodeActDockRequest : BlueprintNode
     {
         data = new Act_DockRequest(action);
 
-        Inputs.Add(new NodePin(id++, "Trigger", this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

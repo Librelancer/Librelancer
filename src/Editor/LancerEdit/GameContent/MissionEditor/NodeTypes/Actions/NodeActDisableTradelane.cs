@@ -5,19 +5,20 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActRevertCamera : BlueprintNode
+public sealed class NodeActDisableTradelane : BlueprintNode
 {
-    protected override string Name => "Revert Camera";
+    protected override string Name => "Disable Tradelane";
 
-    private readonly Act_RevertCam data;
-    public NodeActRevertCamera(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
+    private readonly Act_DisableTradelane data;
+    public NodeActDisableTradelane(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RevertCam(action);
+        data = new Act_DisableTradelane(action);
 
         Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
+        Controls.InputTextId("Target TL", ref data.Tradelane);
     }
 }

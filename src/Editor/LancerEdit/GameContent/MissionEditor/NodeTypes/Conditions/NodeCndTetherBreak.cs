@@ -28,7 +28,7 @@ public class NodeCndTetherBreak : BlueprintNode
             unknown = entry.Count >= 5 ? entry[4].ToSingle() : 0.0f;
         }
 
-        Inputs.Add(new NodePin(id++, "Trigger", this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

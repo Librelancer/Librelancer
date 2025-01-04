@@ -14,7 +14,7 @@ public sealed class NodeActPObjectIdle : BlueprintNode
     {
         data = new Act_PobjIdle(action);
 
-        Inputs.Add(new NodePin(id++, "Trigger", this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
