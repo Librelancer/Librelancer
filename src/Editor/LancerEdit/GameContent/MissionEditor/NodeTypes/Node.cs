@@ -56,4 +56,8 @@ public abstract class Node(int id, VertexDiffuse? color = null)
     {
         ImGui.EndTable();
     }
+
+    public virtual void OnLinkCreated(NodeLink link)
+    {
+    }
 }

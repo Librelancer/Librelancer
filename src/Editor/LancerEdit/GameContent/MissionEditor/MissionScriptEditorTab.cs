@@ -227,7 +227,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             var trigger = triggers.FirstOrDefault(x => x.Data.Nickname == triggerTarget);
             if (trigger is null)
             {
-                FLLog.Warning("MissionScriptEditor", "An activate trigger action had a trigger that was not valid!");
+                FLLog.Warning("MissionScriptEditor", $"An activate trigger action had a trigger that was not valid! ({triggerTarget})");
                 continue;
             }
 
@@ -380,7 +380,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     {
         if (NodeEditor.BeginCreate(Color4.White, 2.0f))
         {
-            void ShowLabel(string label, Color4 color)
+            void ShowLabel(string label, bool success)
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetTextLineHeight());
                 var size = ImGui.CalcTextSize(label);
@@ -394,6 +394,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 var rectMax = ImGui.GetCursorScreenPos() + size + padding;
 
                 var drawList = ImGui.GetWindowDrawList();
+                var color = success ? new Color4(32, 45, 32, 180) : new Color4(45, 32, 32, 180);
                 drawList.AddRectFilled(rectMin, rectMax, ImGui.ColorConvertFloat4ToU32(color), size.Y * 0.15f);
                 ImGui.TextUnformatted(label);
             }
@@ -416,40 +417,12 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 // If we are dragging a pin and hovering a pin, check if we can connect
                 if (startPin is not null && endPin is not null)
                 {
-                    if (endPin == startPin)
+                    var link = startPin.CreateLink(ref nextId, endPin, ShowLabel);
+                    if (link is not null)
                     {
-                        NodeEditor.RejectNewItem(Color4.Red, 2.0f);
-                    }
-                    else if (endPin.PinKind == startPin.PinKind)
-                    {
-                        ShowLabel("x Incompatible Pin Kind", new Color4(45, 32, 32, 180));
-                        NodeEditor.RejectNewItem(Color4.Red, 2.0f);
-                    }
-                    else if (endPin.OwnerNode == startPin.OwnerNode)
-                    {
-                        ShowLabel("x Cannot connect to self", new Color4(45, 32, 32, 180));
-                        NodeEditor.RejectNewItem(Color4.Red, 1.0f);
-                    }
-                    else if (endPin.LinkType != startPin.LinkType)
-                    {
-                        ShowLabel("x Incompatible Link Type", new Color4(45, 32, 32, 180));
-                        NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
-                    }
-                    else if (links.Any(x => x.StartPin == startPin && x.EndPin == endPin))
-                    {
-                        ShowLabel("x Link already exists", new Color4(45, 32, 32, 180));
-                        NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
-                    }
-                    else
-                    {
-                        ShowLabel("+ Create Link", new Color4(32, 45, 32, 180));
-                        if (NodeEditor.AcceptNewItem(new Color4(128, 255, 128, 255), 4.0f))
+                        foreach (var node in nodes)
                         {
-                            var nodeLink = new NodeLink(nextId++, startPin, endPin)
-                            {
-                                Color = endPin.OwnerNode.Color
-                            };
-                            links.Add(nodeLink);
+                            node.OnLinkCreated(link);
                         }
                     }
                 }
@@ -460,7 +433,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 newLinkPin = FindPin(newPinId);
                 if (newLinkPin is not null)
                 {
-                    ShowLabel("+ Create Node", new Color4(32, 45, 32, 180));
+                    ShowLabel("+ Create Node", true);
                 }
 
                 if (NodeEditor.AcceptNewItem())
