@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
@@ -10,7 +11,8 @@ namespace LancerEdit.GameContent.MissionEditor;
 
 public class NodePin
 {
-    private static List<NodeLink> AllLinks = [];
+    private static readonly List<NodeLink> _allLinks = [];
+    public static ReadOnlyCollection<NodeLink> AllLinks => _allLinks.AsReadOnly();
 
     public PinId Id { get; }
     public Node OwnerNode { get; }
@@ -28,54 +30,85 @@ public class NodePin
         LinkCapacity = linkCapacity;
     }
 
+    [SuppressMessage("ReSharper", "InvertIf")]
     public NodeLink CreateLink(ref int nextId, [NotNull] NodePin endPin, Action<string, bool> labelCallback)
     {
         if (endPin == this)
         {
-            NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            if (labelCallback != null)
+            {
+                NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            }
+
             return null;
         }
 
         if (endPin.PinKind == PinKind)
         {
-            labelCallback("x Incompatible Pin Kind", false);
-            NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            if (labelCallback != null)
+            {
+                labelCallback("x Incompatible Pin Kind", false);
+                NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            }
+
+
             return null;
         }
 
         if (endPin.OwnerNode == OwnerNode)
         {
-            labelCallback("x Cannot connect to self", false);
-            NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            if (labelCallback != null)
+            {
+                labelCallback("x Cannot connect to self", false);
+                NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            }
+
             return null;
         }
 
         if (endPin.LinkType != LinkType)
         {
-            labelCallback("x Incompatible Link Type", false);
-            NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+            if (labelCallback != null)
+            {
+                labelCallback("x Incompatible Link Type", false);
+                NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+            }
+
+
             return null;
         }
 
-        if (Links.Count + 1 >= LinkCapacity ||
-            endPin.Links.Count + 1 >= endPin.LinkCapacity)
+        if (Links.Count + 1 > LinkCapacity ||
+            endPin.Links.Count + 1 > endPin.LinkCapacity)
         {
-            labelCallback("x Pin has reached link capacity", false);
-            NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+            if (labelCallback != null)
+            {
+                labelCallback("x Pin has reached link capacity", false);
+                NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+            }
+
             return null;
         }
 
-        if (AllLinks.Any(x => x.StartPin == this && x.EndPin == endPin))
+        if (_allLinks.Any(x => x.StartPin == this && x.EndPin == endPin))
         {
-            labelCallback("x Link already exists", false);
-            NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+            if (labelCallback != null)
+            {
+                labelCallback("x Link already exists", false);
+                NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
+            }
+
             return null;
         }
 
-        labelCallback("+ Create Link", true);
-        if (!NodeEditor.AcceptNewItem(new Color4(128, 255, 128, 255), 4.0f))
+        if (labelCallback != null)
         {
-            return null;
+            NodeEditor.RejectNewItem(Color4.Red, 2.0f);
+            labelCallback("+ Create Link", true);
+            if (!NodeEditor.AcceptNewItem(new Color4(128, 255, 128, 255), 4.0f))
+            {
+                return null;
+            }
         }
 
         var nodeLink = new NodeLink(nextId++, this, endPin)
@@ -85,7 +118,20 @@ public class NodePin
 
         Links.Add(nodeLink);
         endPin.Links.Add(nodeLink);
-        AllLinks.Add(nodeLink);
+        _allLinks.Add(nodeLink);
         return nodeLink;
+    }
+
+    public static void DeleteLink(LinkId id)
+    {
+        var link = _allLinks.Find(x => x.Id == id);
+        if (link == null)
+        {
+            return;
+        }
+
+        _allLinks.Remove(link);
+        link.StartPin.Links.Remove(link);
+        link.EndPin.Links.Remove(link);
     }
 }

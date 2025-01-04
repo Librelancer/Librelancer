@@ -27,9 +27,9 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     private readonly NodeEditorContext context;
     private readonly List<Node> nodes;
     private readonly List<NodeMissionTrigger> triggers = [];
-    private readonly List<NodeLink> links;
     private int nextId;
     private NodePin newLinkPin;
+    private bool createNewNode;
 
     private readonly MissionIni missionIni;
 
@@ -46,7 +46,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         NodeBuilder.LoadTexture(win.RenderContext);
 
         nodes = [];
-        links = [];
         missionIni = new MissionIni(file, null);
 
         var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
@@ -303,13 +302,97 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         NodeEditor.SetCurrentEditor(context);
         NodeEditor.Begin("Node Editor", Vector2.Zero);
 
+        var cursorTopLeft = ImGui.GetCursorScreenPos();
+
         if (!firstRender)
         {
             firstRender = true;
 
+            // INIT STATE = ACTIVE
+            List<NodeMissionTrigger> processedTriggers = [];
+            Dictionary<int, float> columnHeights = [];
+            Dictionary<NodeMissionTrigger, float> triggerColumnMinMaxHeight = [];
+
+            var firstTrigger = triggers.FirstOrDefault(x => x.Data.InitState == TriggerInitState.ACTIVE);
+            if (firstTrigger != null)
+            {
+                void CalculateNodeTreeSize(NodeMissionTrigger trigger, int column)
+                {
+                    if (processedTriggers.Contains(trigger))
+                    {
+                        return;
+                    }
+
+                    Dictionary<string, NodeMissionTrigger> triggersDictionary = triggers.ToDictionary(x => x.Data.Nickname, x => x);
+                    var actions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Action);
+                    var conditions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition);
+                    var triggerActions = actions.OfType<NodeActActivateTrigger>().Select(x => x.Data.Trigger);
+                    var nextTriggers = triggersDictionary.Where(x => triggerActions.Any(y => y == x.Key)).ToDictionary().Values;
+
+                    float maxY = 100 * actions.Count + 100 * conditions.Count;
+                    if (!columnHeights.TryAdd(column + 1, maxY))
+                    {
+                        var height = columnHeights[column + 1] + maxY;
+                        columnHeights[column + 1] = height;
+                    }
+
+                    triggerColumnMinMaxHeight[trigger] = 50f * (actions.Count + conditions.Count);
+                    processedTriggers.Add(trigger);
+
+                    foreach (var nextTrigger in nextTriggers)
+                    {
+                        CalculateNodeTreeSize(nextTrigger, column + 2);
+                    }
+                }
+
+                void ProcessTrigger(NodeMissionTrigger trigger, int column)
+                {
+                    if (processedTriggers.Contains(trigger))
+                    {
+                        return;
+                    }
+
+                    Dictionary<string, NodeMissionTrigger> triggersDictionary = triggers.ToDictionary(x => x.Data.Nickname, x => x);
+                    var actions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Action);
+                    var conditions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition);
+                    var triggerActions = actions.OfType<NodeActActivateTrigger>().Select(x => x.Data.Trigger);
+                    var nextTriggers = triggersDictionary.Where(x => triggerActions.Any(y => y == x.Key)).ToDictionary().Values;
+
+                    processedTriggers.Add(trigger);
+
+                    var nextYPos = columnHeights[column + 1];
+                    foreach (var action in actions)
+                    {
+                        var height = columnHeights[column + 1];
+                        columnHeights[column + 1] -= 300f;
+                        NodeEditor.SetNodePosition(action.Id, new Vector2((column + 1) * 500f, height));
+                    }
+
+                    foreach (var condition in conditions)
+                    {
+                        var height = columnHeights[column + 1];
+                        columnHeights[column + 1] -= 300f;
+                        NodeEditor.SetNodePosition(condition.Id, new Vector2((column + 1) * 500f, height));
+                    }
+
+                    foreach (var nextTrigger in nextTriggers)
+                    {
+                        nextYPos -= triggerColumnMinMaxHeight[trigger];
+                        NodeEditor.SetNodePosition(nextTrigger.Id, new Vector2((column + 2) * 500f, nextYPos));
+                        ProcessTrigger(nextTrigger, column + 2);
+                    }
+                }
+
+                CalculateNodeTreeSize(firstTrigger, 0);
+                processedTriggers.Clear();
+
+                ProcessTrigger(firstTrigger, 0);
+                NodeEditor.SetNodePosition(firstTrigger.Id, Vector2.Zero);
+            }
+
             // If there is no positional data, we try to arrange them into a grid like structure to make it easier to use
 
-            int sortIndex = 0;
+            /*int sortIndex = 0;
             var startingXPos = 0f;
             var triggerYPos = 0f;
             var actionYPos = 0f;
@@ -339,7 +422,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 triggerYPos = Math.Max(conditionYPos, actionYPos) + 100f;
                 conditionYPos = actionYPos = triggerYPos;
                 sortIndex++;
-            }
+            }*/
         }
 
         foreach (var node in nodes)
@@ -347,13 +430,20 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             node.Render(gameData, popup, missionIni);
         }
 
-        foreach (var link in links)
+        foreach (var link in NodePin.AllLinks)
         {
             NodeEditor.Link(link.Id, link.StartPin.Id, link.EndPin.Id, link.Color, 2.0f);
         }
 
-        TryCreateLink();
+        //if (!createNewNode)
+        {
+            TryCreateLink();
+            ImGui.SetCursorScreenPos(cursorTopLeft);
+        }
 
+        NodeEditor.Suspend();
+
+        NodeEditor.Resume();
         NodeEditor.End();
         NodeEditor.SetCurrentEditor(null);
     }
@@ -372,86 +462,101 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             return false;
         }
 
-        links.Add(new NodeLink(nextId++, startPin, endPin, end.Color));
+        startPin.CreateLink(ref nextId, endPin, null);
         return true;
     }
 
     private void TryCreateLink()
     {
-        if (NodeEditor.BeginCreate(Color4.White, 2.0f))
+        if (!NodeEditor.BeginCreate(Color4.White, 2.0f))
         {
-            void ShowLabel(string label, bool success)
+            newLinkPin = null;
+            NodeEditor.EndCreate();
+        }
+
+        if (NodeEditor.QueryNewLink(out var startPinId, out var endPinId))
+        {
+            var startPin = FindPin(startPinId);
+            var endPin = FindPin(endPinId);
+
+            newLinkPin = startPin ?? endPin;
+
+            Debug.Assert(startPin != null, nameof(startPin) + " != null");
+
+            if (startPin.PinKind == PinKind.Input)
             {
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetTextLineHeight());
-                var size = ImGui.CalcTextSize(label);
-
-                var padding = ImGui.GetStyle().FramePadding;
-                var spacing = ImGui.GetStyle().ItemSpacing;
-
-                ImGui.SetCursorPos(ImGui.GetCursorPos() + new Vector2(spacing.X, -spacing.Y));
-
-                var rectMin = ImGui.GetCursorScreenPos() - padding;
-                var rectMax = ImGui.GetCursorScreenPos() + size + padding;
-
-                var drawList = ImGui.GetWindowDrawList();
-                var color = success ? new Color4(32, 45, 32, 180) : new Color4(45, 32, 32, 180);
-                drawList.AddRectFilled(rectMin, rectMax, ImGui.ColorConvertFloat4ToU32(color), size.Y * 0.15f);
-                ImGui.TextUnformatted(label);
+                // Swap pins
+                (startPin, endPin) = (endPin, startPin);
             }
 
-            if (NodeEditor.QueryNewLink(out var startPinId, out var endPinId))
+            // If we are dragging a pin and hovering a pin, check if we can connect
+            if (startPin is not null && endPin is not null)
             {
-                var startPin = FindPin(startPinId);
-                var endPin = FindPin(endPinId);
-
-                newLinkPin = startPin ?? endPin;
-
-                Debug.Assert(startPin != null, nameof(startPin) + " != null");
-
-                if (startPin.PinKind == PinKind.Input)
+                var link = startPin.CreateLink(ref nextId, endPin, ShowLabel);
+                if (link is not null)
                 {
-                    // Swap pins
-                    (startPin, endPin) = (endPin, startPin);
-                }
-
-                // If we are dragging a pin and hovering a pin, check if we can connect
-                if (startPin is not null && endPin is not null)
-                {
-                    var link = startPin.CreateLink(ref nextId, endPin, ShowLabel);
-                    if (link is not null)
+                    foreach (var node in nodes)
                     {
-                        foreach (var node in nodes)
-                        {
-                            node.OnLinkCreated(link);
-                        }
+                        node.OnLinkCreated(link);
                     }
                 }
             }
-
-            if (NodeEditor.QueryNewNode(out var newPinId))
-            {
-                newLinkPin = FindPin(newPinId);
-                if (newLinkPin is not null)
-                {
-                    ShowLabel("+ Create Node", true);
-                }
-
-                if (NodeEditor.AcceptNewItem())
-                {
-                    // TODO createNewNode = true;
-                    newLinkPin = null;
-                    NodeEditor.Suspend();
-                    ImGui.OpenPopup("Create New Node");
-                    NodeEditor.Resume();
-                }
-            }
         }
-        else
+
+        if (NodeEditor.QueryNewNode(out var newPinId))
         {
-            newLinkPin = null;
+            newLinkPin = FindPin(newPinId);
+            if (newLinkPin is not null)
+            {
+                ShowLabel("+ Create Node", true);
+            }
+
+            if (NodeEditor.AcceptNewItem())
+            {
+                createNewNode = true;
+                newLinkPin = null;
+                NodeEditor.Suspend();
+                ImGui.OpenPopup("Create New Node");
+                NodeEditor.Resume();
+            }
         }
 
         NodeEditor.EndCreate();
+
+        /*if (NodeEditor.BeginDelete())
+        {
+            if (NodeEditor.QueryDeletedLink(out var linkId) && NodeEditor.AcceptDeletedItem())
+            {
+                NodePin.DeleteLink(linkId);
+            }
+        }
+
+        NodeEditor.EndDelete();*/
+        return;
+
+        void ShowLabel(string label, bool success)
+        {
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - ImGui.GetTextLineHeight());
+            var size = ImGui.CalcTextSize(label);
+
+            var padding = ImGui.GetStyle().FramePadding;
+            var spacing = ImGui.GetStyle().ItemSpacing;
+
+            ImGui.SetCursorPos(ImGui.GetCursorPos() + new Vector2(spacing.X, -spacing.Y));
+
+            var rectMin = ImGui.GetCursorScreenPos() - padding;
+            var rectMax = ImGui.GetCursorScreenPos() + size + padding;
+
+            var drawList = ImGui.GetWindowDrawList();
+            var color = success ? new Color4(32, 45, 32, 180) : new Color4(45, 32, 32, 180);
+            drawList.AddRectFilled(rectMin, rectMax, ImGui.ColorConvertFloat4ToU32(color), size.Y * 0.15f);
+            ImGui.TextUnformatted(label);
+        }
+    }
+
+    private void NodeContextMenu()
+    {
+
     }
 
     private NodePin FindPin(PinId id)
@@ -481,17 +586,17 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
     private List<Node> GetLinkedNodes([NotNull] Node node, PinKind kind, LinkType? pinFilter = null)
     {
-        var nodes = new List<Node>();
+        var linkedNodes = new List<Node>();
         var inPins = kind == PinKind.Input;
         var pins = inPins ? node.Inputs : node.Outputs;
         foreach (var pin in pins.Where(x => pinFilter == null || x.LinkType == pinFilter))
         {
-            nodes.AddRange(links
+            linkedNodes.AddRange(NodePin.AllLinks
                 .Where(x => inPins ? x.EndPin == pin : x.StartPin == pin)
                 .Select(link => inPins ? link.StartPin.OwnerNode : link.EndPin.OwnerNode));
         }
 
-        return nodes;
+        return linkedNodes;
     }
 
     public override void Dispose()
