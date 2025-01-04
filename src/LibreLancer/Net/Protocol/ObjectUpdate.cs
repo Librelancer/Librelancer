@@ -77,10 +77,10 @@ public class PackedUpdatePacket : IPacket
         return (pa, updates);
     }
 
-    public void SetAuthState(PlayerAuthState newAuth, PlayerAuthState origAuth)
+    public void SetAuthState(PlayerAuthState newAuth, PlayerAuthState origAuth, uint tick)
     {
         var writer = new BitWriter();
-        newAuth.Write(ref writer, origAuth);
+        newAuth.Write(ref writer, origAuth, tick);
         writer.Align();
         AuthState = writer.GetCopy();
     }

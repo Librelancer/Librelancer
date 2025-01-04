@@ -64,7 +64,7 @@ public class UpdatePacker
             packet.Tick = tick;
             packet.OldTick = oldTick;
             packet.InputSequence = self.LatestReceived;
-            packet.SetAuthState(authState, oldState);
+            packet.SetAuthState(authState, oldState, tick);
 
             // Locate self in array and skip
             int skipIndex = -1;

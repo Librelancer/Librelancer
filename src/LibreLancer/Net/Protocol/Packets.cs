@@ -321,10 +321,10 @@ namespace LibreLancer.Net.Protocol
             return pa;
         }
 
-        static void EncodeFloat(ref BitWriter writer, float old, float current)
+        static void EncodeFloat(ref BitWriter writer, float old, float current, bool force)
         {
             var diff = current - old;
-            if (diff >= -32 && diff < 31) {
+            if (!force && diff >= -32 && diff < 31) {
                 writer.PutBool(true);
                 writer.PutRangedFloat(diff, -32, 31, 24);
             }
@@ -334,11 +334,11 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        static void EncodeVec3(ref BitWriter writer, Vector3 old, Vector3 current)
+        static void EncodeVec3(ref BitWriter writer, Vector3 old, Vector3 current, bool force)
         {
-            EncodeFloat(ref writer, old.X, current.X);
-            EncodeFloat(ref writer, old.Y, current.Y);
-            EncodeFloat(ref writer, old.Z, current.Z);
+            EncodeFloat(ref writer, old.X, current.X, force);
+            EncodeFloat(ref writer, old.Y, current.Y, force);
+            EncodeFloat(ref writer, old.Z, current.Z, force);
         }
 
         static float DecodeFloat(ref BitReader reader, float old) =>
@@ -350,36 +350,37 @@ namespace LibreLancer.Net.Protocol
             new Vector3(DecodeFloat(ref reader, old.X), DecodeFloat(ref reader, old.Y), DecodeFloat(ref reader, old.Z));
 
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
-        public void Write(ref BitWriter writer, PlayerAuthState prev)
+        public void Write(ref BitWriter writer, PlayerAuthState prev, uint tick)
         {
-            EncodeVec3(ref writer, prev.Position, Position);
+            uint forced = tick % 15;
+            EncodeVec3(ref writer, prev.Position, Position, forced == 1);
             //Extra precision
             writer.PutQuaternion(Orientation, 18);
-            EncodeVec3(ref writer, prev.LinearVelocity, LinearVelocity);
-            EncodeVec3(ref writer, prev.AngularVelocity, AngularVelocity);
+            EncodeVec3(ref writer, prev.LinearVelocity, LinearVelocity, forced == 3);
+            EncodeVec3(ref writer, prev.AngularVelocity, AngularVelocity, forced == 5);
 
-            if (Health == prev.Health) {
+            if (forced != 7 && Health == prev.Health) {
                 writer.PutBool(false);
             }
             else {
                 writer.PutBool(true);
                 writer.PutFloat(Health);
             }
-            if (Shield == prev.Shield) {
+            if (forced != 9 && Shield == prev.Shield) {
                 writer.PutBool(false);
             }
             else {
                 writer.PutBool(true);
                 writer.PutFloat(Shield);
             }
-            if(NetPacking.QuantizedEqual(CruiseChargePct, prev.CruiseChargePct, 0, 1, 12))
+            if(forced != 11 && NetPacking.QuantizedEqual(CruiseChargePct, prev.CruiseChargePct, 0, 1, 12))
                 writer.PutBool(false);
             else
             {
                 writer.PutBool(true);
                 writer.PutRangedFloat(CruiseChargePct, 0, 1, 12);
             }
-            if(NetPacking.QuantizedEqual(CruiseAccelPct, prev.CruiseAccelPct, 0, 1, 12))
+            if(forced != 13 && NetPacking.QuantizedEqual(CruiseAccelPct, prev.CruiseAccelPct, 0, 1, 12))
                 writer.PutBool(false);
             else
             {
