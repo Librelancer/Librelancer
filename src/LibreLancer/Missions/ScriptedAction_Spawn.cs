@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Missions;
+using LibreLancer.Ini;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -222,6 +223,7 @@ namespace LibreLancer.Missions
                     act.Entry[5].ToSingle());
             }
         }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             SpawnShip(Ship, Position, Orientation, ObjList, script, runtime);
@@ -248,6 +250,11 @@ namespace LibreLancer.Missions
                     runtime.LabelDecrement(lbl);
                 runtime.Player.MissionWorldAction(() => { runtime.Player.Space.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target), false); });
             }
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_Destroy", Target);
         }
     }
 }

@@ -6,7 +6,9 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using LibreLancer.Data.Missions;
+using LibreLancer.Ini;
 using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Ai.ObjList;
@@ -28,128 +30,141 @@ namespace LibreLancer.Missions
         {
             Text = a.Entry.ToString();
         }
-        public abstract void Invoke(MissionRuntime runtime, MissionScript script);
+
+        protected bool ParseBoolean(IValue value)
+        {
+            bool? result = value.ToString()!.ToLowerInvariant() switch
+            {
+                "1" => true,
+                "accept" => true,
+                "active" => true,
+                "yes" => true,
+                "on" => true,
+                "succeed" => true,
+                "true" => true,
+                "lock" => true,
+                "0" => false,
+                "off" => false,
+                "no" => false,
+                "reject" => false,
+                "fail" => false,
+                "false" => false,
+                "unlock" => false,
+                _ => null
+            };
+
+            if (result is not null)
+            {
+                return result.Value;
+            }
+
+            FLLog.Warning("ScriptedAction", $"Unable to parse boolean value '{value}'");
+            return false;
+        }
+
+        public virtual void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            FLLog.Warning("Missions", $"{GetType().Name}.Invoke() is not implemented!");
+        }
+
+        public virtual void Write(IniBuilder.IniSectionBuilder section)
+        {
+            FLLog.Warning("Missions", $"{GetType().Name}.Write() is not implemented!");
+        }
 
         public static IEnumerable<ScriptedAction> Convert(IEnumerable<MissionAction> actions)
         {
             foreach (var a in actions)
             {
-                switch (a.Type)
+                yield return a.Type switch
                 {
-                    case TriggerActions.Act_ActTrig:
-                        yield return new Act_ActTrig(a);
-                        break;
-                    case TriggerActions.Act_DeactTrig:
-                        yield return new Act_DeactTrig(a);
-                        break;
-                    case TriggerActions.Act_PlaySoundEffect:
-                        yield return new Act_PlaySoundEffect(a);
-                        break;
-                    case TriggerActions.Act_ForceLand:
-                        yield return new Act_ForceLand(a);
-                        break;
-                    case TriggerActions.Act_AdjAcct:
-                        yield return new Act_AdjAcct(a);
-                        break;
-                    case TriggerActions.Act_DisableTradelane:
-                        yield return new Act_DisableTradelane(a);
-                        break;
-                    case TriggerActions.Act_SpawnSolar:
-                        yield return new Act_SpawnSolar(a);
-                        break;
-                    case TriggerActions.Act_StartDialog:
-                        yield return new Act_StartDialog(a);
-                        break;
-                    case TriggerActions.Act_SpawnFormation:
-                        yield return new Act_SpawnFormation(a);
-                        break;
-                    case TriggerActions.Act_Destroy:
-                        yield return new Act_Destroy(a);
-                        break;
-                    case TriggerActions.Act_MovePlayer:
-                        yield return new Act_MovePlayer(a);
-                        break;
-                    case TriggerActions.Act_RelocateShip:
-                        yield return new Act_RelocateShip(a);
-                        break;
-                    case TriggerActions.Act_SetInitialPlayerPos:
-                        yield return new Act_SetInitialPlayerPos(a);
-                        break;
-                    case TriggerActions.Act_LightFuse:
-                        yield return new Act_LightFuse(a);
-                        break;
-                    case TriggerActions.Act_PopUpDialog:
-                        yield return new Act_PopupDialog(a);
-                        break;
-                    case TriggerActions.Act_SpawnShip:
-                        yield return new Act_SpawnShip(a);
-                        break;
-                    case TriggerActions.Act_SendComm:
-                        yield return new Act_SendComm(a);
-                        break;
-                    case TriggerActions.Act_EtherComm:
-                        yield return new Act_EtherComm(a);
-                        break;
-                    case TriggerActions.Act_GiveObjList:
-                        yield return new Act_GiveObjList(a);
-                        break;
-                    case TriggerActions.Act_PlayMusic:
-                        yield return new Act_PlayMusic(a);
-                        break;
-                    case TriggerActions.Act_CallThorn:
-                        yield return new Act_CallThorn(a);
-                        break;
-                    case TriggerActions.Act_RevertCam:
-                        yield return new Act_RevertCam(a);
-                        break;
-                    case TriggerActions.Act_AddRTC:
-                        yield return new Act_AddRTC(a);
-                        break;
-                    case TriggerActions.Act_RemoveRTC:
-                        yield return new Act_RemoveRTC(a);
-                        break;
-                    case TriggerActions.Act_AddAmbient:
-                        yield return new Act_AddAmbient(a);
-                        break;
-                    case TriggerActions.Act_RemoveAmbient:
-                        yield return new Act_RemoveAmbient(a);
-                        break;
-                    case TriggerActions.Act_PobjIdle:
-                        yield return new Act_PobjIdle(a);
-                        break;
-                    case TriggerActions.Act_ChangeState:
-                        yield return new Act_ChangeState(a);
-                        break;
-                    case TriggerActions.Act_SetShipAndLoadout:
-                        yield return new Act_SetShipAndLoadout(a);
-                        break;
-                    case TriggerActions.Act_SetVibeLblToShip:
-                        yield return new Act_SetVibeLblToShip(a);
-                        break;
-                    case TriggerActions.Act_SetVibe:
-                        yield return new Act_SetVibe(a);
-                        break;
-                    case TriggerActions.Act_SetVibeLbl:
-                        yield return new Act_SetVibeLbl(a);
-                        break;
-                    case TriggerActions.Act_SetVibeShipToLbl:
-                        yield return new Act_SetVibeShipToLbl(a);
-                        break;
-                    case TriggerActions.Act_Invulnerable:
-                        yield return new Act_Invulnerable(a);
-                        break;
-                    case TriggerActions.Act_Cloak:
-                        yield return new Act_Cloak(a);
-                        break;
-                    case TriggerActions.Act_SetNNObj:
-                        yield return new Act_SetNNObj(a);
-                        break;
-                    case TriggerActions.Act_MarkObj:
-                        yield return new Act_MarkObj(a);
-                        break;
-                    default:
-                        break;
-                }
+                    TriggerActions.Act_StaticCam => new Act_StaticCam(a),
+                    TriggerActions.Act_StartDialog => new Act_StartDialog(a),
+                    TriggerActions.Act_SpawnSolar => new Act_SpawnSolar(a),
+                    //TriggerActions.Act_SpawnShipRel => new Act_SpawnShipRel(a),
+                    TriggerActions.Act_SpawnShip => new Act_SpawnShip(a),
+                    TriggerActions.Act_SpawnLoot => new Act_SpawnLoot(a),
+                    TriggerActions.Act_SpawnFormation => new Act_SpawnFormation(a),
+                    TriggerActions.Act_SetVibeOfferBaseHack => new Act_SetVibeOfferBaseHack(a),
+                    TriggerActions.Act_SetVibeShipToLbl => new Act_SetVibeShipToLbl(a),
+                    TriggerActions.Act_SetVibeLblToShip => new Act_SetVibeLblToShip(a),
+                    TriggerActions.Act_SetVibeLbl => new Act_SetVibeLbl(a),
+                    TriggerActions.Act_SetVibe => new Act_SetVibe(a),
+                    TriggerActions.Act_SetTitle => new Act_SetTitle(a),
+                    TriggerActions.Act_SetShipAndLoadout => new Act_SetShipAndLoadout(a),
+                    TriggerActions.Act_SetRep => new Act_SetRep(a),
+                    TriggerActions.Act_SetOrient => new Act_SetOrient(a),
+                    TriggerActions.Act_SetOffer => new Act_SetOffer(a),
+                    TriggerActions.Act_SetNNState => new Act_SetNNState(a),
+                    TriggerActions.Act_SetNNObj => new Act_SetNNObj(a),
+                    TriggerActions.Act_SetNNHidden => new Act_SetNNHidden(a),
+                    TriggerActions.Act_SetLifeTime => new Act_SetLifetime(a),
+                    TriggerActions.Act_SetInitialPlayerPos => new Act_SetInitialPlayerPos(a),
+                    //TriggerActions.Act_SetFlee => new Act_SetFlee(a),
+                    TriggerActions.Act_SendComm => new Act_SendComm(a),
+                    TriggerActions.Act_Save => new Act_Save(a),
+                    TriggerActions.Act_RpopTLAttacksEnabled => new Act_RpopTLAttacksEnabled(a),
+                    TriggerActions.Act_RpopAttClamp => new Act_RpopAttClamp(a),
+                    TriggerActions.Act_RevertCam => new Act_RevertCam(a),
+                    //TriggerActions.Act_RepChangeRequest => new Act_RepChangeRequest(a),
+                    TriggerActions.Act_RemoveRTC => new Act_RemoveRTC(a),
+                    TriggerActions.Act_RemoveCargo => new Act_RemoveCargo(a),
+                    TriggerActions.Act_RemoveAmbient => new Act_RemoveAmbient(a),
+                    TriggerActions.Act_RelocateShip => new Act_RelocateShip(a),
+                    //TriggerActions.Act_RelocateForm => new Act_RelocateForm(a),
+                    TriggerActions.Act_RandomPopSphere => new Act_RandomPopSphere(a),
+                    TriggerActions.Act_RandomPop => new Act_RandomPop(a),
+                    TriggerActions.Act_SetPriority => new Act_SetPriority(a),
+                    TriggerActions.Act_PopUpDialog => new Act_PopupDialog(a),
+                    TriggerActions.Act_PobjIdle => new Act_PobjIdle(a),
+                    //TriggerActions.Act_PilotParams => new Act_PilotParams(a),
+                    TriggerActions.Act_PlaySoundEffect => new Act_PlaySoundEffect(a),
+                    //TriggerActions.Act_PlayNN => new Act_PlayNN(a),
+                    TriggerActions.Act_PlayMusic => new Act_PlayMusic(a),
+                    //TriggerActions.Act_PlayerForm => new Act_PlayerForm(a),
+                    TriggerActions.Act_PlayerEnemyClamp => new Act_PlayerEnemyClamp(a),
+                    TriggerActions.Act_PlayerCanTradelane => new Act_PlayerCanTradelane(a),
+                    TriggerActions.Act_PlayerCanDock => new Act_PlayerCanDock(a),
+                    TriggerActions.Act_NNIds => new Act_NNIds(a),
+                    TriggerActions.Act_NNPath => new Act_NNPath(a),
+                    TriggerActions.Act_NagOff => new Act_NagOff(a),
+                    TriggerActions.Act_NagGreet => new Act_NagGreet(a),
+                    TriggerActions.Act_NagDistTowards => new Act_NagDistTowards(a),
+                    TriggerActions.Act_NagDistLeaving => new Act_NagDistLeaving(a),
+                    TriggerActions.Act_NagClamp => new Act_NagClamp(a),
+                    TriggerActions.Act_MovePlayer => new Act_MovePlayer(a),
+                    TriggerActions.Act_MarkObj => new Act_MarkObj(a),
+                    TriggerActions.Act_LockManeuvers => new Act_LockManeuvers(a),
+                    TriggerActions.Act_LockDock => new Act_LockDock(a),
+                    TriggerActions.Act_LightFuse => new Act_LightFuse(a),
+                    TriggerActions.Act_Jumper => new Act_Jumper(a),
+                    TriggerActions.Act_Invulnerable => new Act_Invulnerable(a),
+                    TriggerActions.Act_HostileClamp => new Act_HostileClamp(a),
+                    TriggerActions.Act_GiveObjList => new Act_GiveObjList(a),
+                    TriggerActions.Act_GiveNNObjs => new Act_GiveNNObjs(a),
+                    // TriggerActions.Act_GiveMB => new Act_GiveMB(a),
+                    TriggerActions.Act_GCSClamp => new Act_GcsClamp(a),
+                    TriggerActions.Act_ForceLand => new Act_ForceLand(a),
+                    TriggerActions.Act_EtherComm => new Act_EtherComm(a),
+                    TriggerActions.Act_EnableManeuver => new Act_EnableManeuver(a),
+                    TriggerActions.Act_EnableEnc => new Act_EnableEnc(a),
+                    TriggerActions.Act_DockRequest => new Act_DockRequest(a),
+                    TriggerActions.Act_DisableTradelane => new Act_DisableTradelane(a),
+                    TriggerActions.Act_DisableFriendlyFire => new Act_DisableFriendlyFire(a),
+                    TriggerActions.Act_DisableEnc => new Act_DisableEnc(a),
+                    TriggerActions.Act_Destroy => new Act_Destroy(a),
+                    // TriggerActions.Act_DebugMsg => new Act_DebugMsg(a),
+                    TriggerActions.Act_DeactTrig => new Act_DeactTrig(a),
+                    TriggerActions.Act_Cloak => new Act_Cloak(a),
+                    TriggerActions.Act_ChangeState => new Act_ChangeState(a),
+                    TriggerActions.Act_CallThorn => new Act_CallThorn(a),
+                    TriggerActions.Act_AdjHealth => new Act_AdjHealth(a),
+                    TriggerActions.Act_AdjAcct => new Act_AdjAcct(a),
+                    TriggerActions.Act_AddRTC => new Act_AddRTC(a),
+                    TriggerActions.Act_AddAmbient => new Act_AddAmbient(a),
+                    TriggerActions.Act_ActTrig => new Act_ActTrig(a),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
             }
         }
     }

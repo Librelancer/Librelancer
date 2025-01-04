@@ -7,6 +7,7 @@ namespace LibreLancer.Missions
 {
     public enum VibeSet
     {
+        None,
         REP_FRIEND_MAXIMUM,
         REP_FRIEND_THRESHOLD,
         REP_NEUTRAL_FRIENDLY,
