@@ -389,40 +389,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 ProcessTrigger(firstTrigger, 0);
                 NodeEditor.SetNodePosition(firstTrigger.Id, Vector2.Zero);
             }
-
-            // If there is no positional data, we try to arrange them into a grid like structure to make it easier to use
-
-            /*int sortIndex = 0;
-            var startingXPos = 0f;
-            var triggerYPos = 0f;
-            var actionYPos = 0f;
-            var conditionYPos = 0f;
-            foreach (var trigger in triggers)
-            {
-                if (sortIndex > 10)
-                {
-                    sortIndex = 0;
-                    startingXPos += 1600f;
-                    triggerYPos = actionYPos = conditionYPos = 0f;
-                }
-
-                NodeEditor.SetNodePosition(trigger.Id, new Vector2(startingXPos, triggerYPos));
-                foreach (var action in GetLinkedNodes(trigger, PinKind.Output, LinkType.Action))
-                {
-                    NodeEditor.SetNodePosition(action.Id, new Vector2(startingXPos + 600f, actionYPos));
-                    actionYPos += 100f;
-                }
-
-                foreach (var condition in GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition))
-                {
-                    NodeEditor.SetNodePosition(condition.Id, new Vector2(startingXPos + 1200f, conditionYPos));
-                    conditionYPos += 100f;
-                }
-
-                triggerYPos = Math.Max(conditionYPos, actionYPos) + 100f;
-                conditionYPos = actionYPos = triggerYPos;
-                sortIndex++;
-            }*/
         }
 
         foreach (var node in nodes)
@@ -442,7 +408,32 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         NodeEditor.Suspend();
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(8, 8));
 
+        const string nodeContextMenu = "Node Context Menu";
+        const string newNodeContextMenu = "Create New Node";
+        const string linkContextMenu = "Link Context Menu";
+
+        if (NodeEditor.ShowNodeContextMenu(out var contextNodeId))
+        {
+            ImGui.OpenPopup(nodeContextMenu);
+        }
+        else if (NodeEditor.ShowLinkContextMenu(out var linkNodeId))
+        {
+            ImGui.OpenPopup(linkContextMenu);
+        }
+        else if (NodeEditor.ShowBackgroundContextMenu())
+        {
+            ImGui.OpenPopup(newNodeContextMenu);
+        }
+
+        if (ImGui.BeginPopup(nodeContextMenu))
+        {
+            NodeContextMenu(contextNodeId);
+            ImGui.EndPopup();
+        }
+
+        ImGui.PopStyleVar();
         NodeEditor.Resume();
         NodeEditor.End();
         NodeEditor.SetCurrentEditor(null);
@@ -554,9 +545,27 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
     }
 
-    private void NodeContextMenu()
+    private void NodeContextMenu(NodeId contextNodeId)
     {
+        var node = nodes.FirstOrDefault(x => x.Id == contextNodeId);
 
+        ImGui.TextUnformatted("Node Context Menu");
+        ImGui.Separator();
+        if (node is not null)
+        {
+            ImGui.Text($"ID: {node.Id}");
+            ImGui.Text($"Type: {node.GetType().Name}");
+            ImGui.Text($"Inputs: {node.Inputs.Count}");
+            ImGui.Text($"Outputs: {node.Outputs.Count}");
+        }
+
+        ImGui.Separator();
+        if (ImGui.MenuItem("Delete"))
+        {
+            NodeEditor.DeleteNode(contextNodeId);
+        }
+
+        ImGui.EndPopup();
     }
 
     private NodePin FindPin(PinId id)
