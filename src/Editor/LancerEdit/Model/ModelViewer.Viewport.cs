@@ -161,7 +161,7 @@ namespace LancerEdit
                     var crc = CrcTool.FLModelCrc(kv.Key);
                     if (!surfile.HasShape(crc))
                         continue;
-                    surs.Add(GetSurModel(surfile.GetMesh(new ConvexMeshId(0,0)), kv.Value, surPart));
+                    surs.Add(GetSurModel(surfile.GetMesh(new ConvexMeshId(crc,0)), kv.Value, surPart));
                     foreach (var hp in kv.Value.Hardpoints)
                     {
                         if (surfile.TryGetHardpoint(crc, CrcTool.FLModelCrc(hp.Name), out var meshes))
