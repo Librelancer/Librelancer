@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
@@ -104,6 +105,14 @@ namespace BuildLL
                     Directory.EnumerateFiles(outdir, "*.*", SearchOption.AllDirectories)
                         .Select(x => Path.GetRelativePath(outdir, x).Replace('\\', '/')).ToArray();
                 File.WriteAllLines(Path.Combine(outdir, "lib", "manifest.txt"), manifest);
+            }
+
+            if (sdk)
+            {
+                Directory.CreateDirectory(Path.Combine(outdir, "blender"));
+                await using var blAddon = File.Create(Path.Combine(outdir, "blender", "librelancer_addon.zip"));
+                ZipFile.CreateFromDirectory("src/Editor/librelancer_blender_addon", blAddon, CompressionLevel.Optimal,
+                    true);
             }
         }
 

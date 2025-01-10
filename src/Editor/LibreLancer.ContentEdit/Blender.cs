@@ -2,16 +2,26 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit;
 
 public class Blender
 {
+    private static readonly string ExportScript;
+
+    static Blender()
+    {
+        var reader = new StreamReader(typeof(Blender).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.BlenderExport.py")!);
+        ExportScript = reader.ReadToEnd();
+    }
+
     public static string AutodetectBlender()
     {
         if (Platform.RunningOS == OS.Windows)
@@ -173,25 +183,21 @@ public class Blender
         return EditResult<SimpleMesh.Model>.Error("Failed to execute blender export");
     }
 
-    private const string EXPORT_SCRIPT = @"
-import bpy
-import re
+    const float RADIUS_DIVIDER = 21.916825f;
 
-bpy.ops.wm.read_homefile(use_empty=True)
-bpy.ops.import_scene.gltf(filepath={0})
-
-for obj in bpy.context.scene.objects:
-    if 'construct' in obj:
-        obj.empty_display_size = 0.5
-        obj.empty_display_type = 'CONE'
-    elif 'hull' in obj or re.search(r'\$lod\d$', obj.name):
-        obj.hide_set(True)
-    else:
-        obj.empty_display_size = 2
-        obj.empty_display_type = 'SINGLE_ARROW'
-
-bpy.ops.wm.save_as_mainfile(filepath={1})
-";
+    static void CalcMinMax(ModelNode n, ref Vector3 min, ref Vector3 max, Matrix4x4 parent)
+    {
+        if (n.Geometry != null)
+        {
+            var modelMin = Vector3.Transform(n.Geometry.Min, n.Transform * parent);
+            var modelMax = Vector3.Transform(n.Geometry.Max, n.Transform * parent);
+            min = Vector3.Min(modelMin, min);
+            max = Vector3.Max(modelMax, max);
+        }
+        foreach (var c in n.Children) {
+            CalcMinMax(c, ref min, ref max, n.Transform * parent);
+        }
+    }
 
     public static async Task<EditResult<bool>> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null, CancellationToken cancellation = default, Action<string> logLine = null)
     {
@@ -205,10 +211,21 @@ bpy.ops.wm.save_as_mainfile(filepath={1})
         using (var gltfStream = File.Create(tmpfile)) {
             exported.SaveTo(gltfStream, ModelSaveFormat.GLTF2);
         }
+
+        var min = new Vector3(float.MaxValue);
+        var max = new Vector3(float.MinValue);
+        exported.CalculateBounds();
+        foreach (var x in exported.Roots) {
+            CalcMinMax(x, ref min, ref max, Matrix4x4.Identity);
+        }
+
+        var radius = (max - min).Length() / 2.0f;
+        float hpScale = radius / RADIUS_DIVIDER;
+
         var result = await RunBlender(
             blenderPath,
             "",
-            string.Format(EXPORT_SCRIPT, EscapeCode(tmpfile), EscapeCode(tmpblend)),
+            string.Format(ExportScript, EscapeCode(tmpfile), EscapeCode(tmpblend), hpScale.ToStringInvariant()),
             cancellation,
             logLine
         );
