@@ -1,6 +1,7 @@
 import bpy
 import bmesh
 from bpy_extras.object_utils import AddObjectHelper
+from mathutils import Matrix
 
 from bpy.props import (
     FloatProperty,
@@ -77,6 +78,9 @@ class AddHardpoint(bpy.types.Operator, AddObjectHelper):
         child.hide_render = True
         child.hide_select = True
         child.display_type = "WIRE"
+        child.location = (0.0, 0.0, 0.0)
+        child.rotation_euler = (0.0, 0.0, 0.0)
+        child.matrix_parent_inverse = Matrix.Translation((0.0, 0.0, 0.0))
         return {'FINISHED'}
 
 
