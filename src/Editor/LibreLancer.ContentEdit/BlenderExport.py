@@ -50,5 +50,6 @@ for obj in bpy.context.scene.objects:
         obj.empty_display_type = 'CUBE'
     elif 'hull' in obj or re.search(r'\$lod\d$', obj.name):
         obj.hide_set(True)
+        obj.hide_render = True
 
 bpy.ops.wm.save_as_mainfile(filepath=BLEND_FILEPATH)

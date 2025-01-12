@@ -8,7 +8,9 @@ using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using SimpleMesh;
+using SimpleMesh.Formats.Collada.Schema;
 using Material = SimpleMesh.Material;
 
 namespace LibreLancer.ContentEdit.Model;
@@ -132,7 +134,12 @@ public static class ModelExporter
         return output.AsResult();
     }
 
-    static SimpleMesh.ModelNode FromHardpoint(HardpointDefinition def)
+    static SimpleMesh.ModelNode FromHardpoint(
+        HardpointDefinition def,
+        uint parentId,
+        ResourceManager resources,
+        Dictionary<string, Material> materials,
+        SurFile? sur)
     {
         var n = new ModelNode();
         n.Name = def.Name;
@@ -148,6 +155,28 @@ public static class ModelExporter
             n.Properties["min"] = MathHelper.RadiansToDegrees(rev.Min);
             n.Properties["max"] = MathHelper.RadiansToDegrees(rev.Max);
             n.Properties["axis"] = rev.Axis;
+        }
+
+        if (sur != null &&
+            sur.TryGetHardpoint(parentId, CrcTool.FLModelCrc(def.Name), out var hulls))
+        {
+            n.Children = new List<ModelNode>();
+            for (int i = 0; i < hulls.Length; i++)
+            {
+                var h = hulls[i];
+                var geo = GeometryFromSur($"{def.Name}.{i}$hull", h, resources, materials);
+                Matrix4x4.Invert(n.Transform, out var inverse);
+                for (int j = 0; j < geo.Vertices.Length; j++)
+                {
+                    geo.Vertices[j].Position = Vector3.Transform(geo.Vertices[j].Position, inverse);
+                }
+                var hn = new ModelNode();
+                hn.Geometry = geo;
+                hn.Name = $"{def.Name}.{i}$hull";
+                hn.Transform = Matrix4x4.Identity;
+                hn.Properties["hull"] = true;
+                n.Children.Add(hn);
+            }
         }
         return n;
     }
@@ -210,9 +239,10 @@ public static class ModelExporter
         }
         if (settings.IncludeHardpoints)
         {
+            var id = is3db ? 0 : CrcTool.FLModelCrc(node.Name);
             foreach (var hp in node.Model.Hardpoints)
             {
-                sm.Children.Add(FromHardpoint(hp));
+                sm.Children.Add(FromHardpoint(hp, id, res, dest.Materials, settings.IncludeHulls ? sur : null));
             }
         }
         if (settings.IncludeHulls && sur != null)

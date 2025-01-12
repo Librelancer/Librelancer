@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
@@ -45,10 +46,12 @@ public static class SurfaceBuilder
             {
                 builder.AppendLine(point.Mesh + " " + point.Point.ToString());
             }
+
             foreach (var id in p.HardpointIds)
             {
                 builder.AppendFmtLine(id);
             }
+
             DescribeNode(p.Root, builder);
         }
 
@@ -62,6 +65,7 @@ public static class SurfaceBuilder
             builder.AppendLine("->NODENULL");
             return;
         }
+
         builder.AppendFmtLine(node.Center);
         builder.AppendFmtLine(node.Radius);
         builder.AppendFmtLine((byte)(node.Scale.X * 0xFA));
@@ -84,6 +88,7 @@ public static class SurfaceBuilder
         {
             builder.AppendLine($">>HULL {hull.ToString()}");
         }
+
         builder.AppendFmtLine(hull.Unknown);
         foreach (var f in hull.Faces)
         {
@@ -96,7 +101,7 @@ public static class SurfaceBuilder
     static bool NodeHasHulls(ImportedModelNode node)
     {
         if (node.Hulls.Count > 0) return true;
-        foreach(var c in node.Children)
+        foreach (var c in node.Children)
             if (NodeHasHulls(c))
                 return true;
         return false;
@@ -106,74 +111,172 @@ public static class SurfaceBuilder
     {
         List<EditMessage> warnings = new List<EditMessage>();
         var parts = new List<SurfacePart>();
-        CreateSurfacePart(model.Root, parts, (h,c,m) => { }, !forceCompound && model.Root.Children.Count == 0, warnings);
-        if (parts.Count == 0) {
+        CreateSurfacePart(model.Root, parts, null, !forceCompound && model.Root.Children.Count == 0, warnings);
+        if (parts.Count == 0)
+        {
             return EditResult<SurFile>.Error("No valid hulls", warnings);
         }
+
         parts[0].Dynamic = true;
         var result = new SurFile() { Surfaces = parts };
-        if(!VerifyWriteSur(result))
+        if (!VerifyWriteSur(result))
             warnings.Add(EditMessage.Warning("Verify writing sur failed"));
         return new EditResult<SurFile>(result, warnings);
     }
 
-
-
-    static void CreateSurfacePart(ImportedModelNode node, List<SurfacePart> parts, Action<HullData, uint, Matrix4x4> addToParent, bool is3db, List<EditMessage> warnings)
+    static HullData NodeToHull(ModelNode h, Matrix4x4 tr, List<EditMessage> warnings)
     {
-        List<HullData> convexHulls = new List<HullData>();
-        var modelCrc = is3db ? 0 : CrcTool.FLModelCrc(node.Name);
-        foreach (var h in node.Hulls) {
-            if (h.Geometry == null) {
-                warnings.Add(EditMessage.Warning($"Hull node {h.Name} contains no geometry"));
-                continue;
-            }
-            var hull = CreateHull(h);
-            if (hull.IsError) {
-                warnings.Add(EditMessage.Warning($"Hull creation failed: {hull.AllMessages()}"));
-            }
-            else
-            {
-                warnings.AddRange(hull.Messages);
-                if (hull.Data.FaceCount > 300) {
-                    warnings.Add(EditMessage.Warning($"Hull {h.Name} has > 300 triangles, this can cause issues with Freelancer"));
-                }
-                convexHulls.Add(hull.Data);
-            }
-        }
-        if (convexHulls.Count == 0) {
-            warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
-        }
-
-        List<SurfacePoint> points = new List<SurfacePoint>();
-        List<SurfaceNode> nodes = new List<SurfaceNode>();
-
-        void AddHull(HullData h, uint crc, byte type, bool add = true)
+        if (h.Geometry == null)
         {
-            if (type == 4 && node.Construct is FixConstruct) {
-                addToParent(h, crc, node.Transform.Matrix());
+            warnings.Add(EditMessage.Warning($"Hull node {h.Name} contains no geometry"));
+            return null;
+        }
+
+        var hull = CreateHull(h, tr);
+        if (hull.IsError)
+        {
+            warnings.Add(EditMessage.Warning($"Hull creation failed: {hull.AllMessages()}"));
+        }
+        else
+        {
+            warnings.AddRange(hull.Messages);
+            if (hull.Data.FaceCount > 300)
+            {
+                warnings.Add(
+                    EditMessage.Warning($"Hull {h.Name} has > 300 triangles, this can cause issues with Freelancer"));
             }
+
+            return hull.Data;
+        }
+
+        return null;
+    }
+
+    static Vector3 RandomVector(uint hash, float scale)
+    {
+        var rng = 1664525 * hash + 1013904223;
+
+        float NextFloat()
+        {
+            rng ^= rng << 13;
+            rng ^= rng >> 17;
+            rng ^= rng << 5;
+            var d = rng * (1.0 / 4294967296.0);
+            return (float)(-1.0 + d * 2.0);
+        }
+
+        return new Vector3(NextFloat(), NextFloat(), NextFloat()) * scale;
+    }
+
+
+    class SurfacePartContext
+    {
+        public List<EditMessage> Warnings;
+        public SurfacePartContext Parent;
+        public Matrix4x4 Transform;
+
+        public HashSet<uint> HpIds = new HashSet<uint>();
+        public uint PartHash = unchecked((uint)-2128831035);
+        public List<SurfacePoint> Points = new List<SurfacePoint>();
+        public List<SurfaceNode> Nodes = new List<SurfaceNode>();
+
+        public SurfacePartContext(List<EditMessage> warnings, Matrix4x4 transform, SurfacePartContext parent)
+        {
+            this.Warnings = warnings;
+            this.Parent = parent;
+            this.Transform = transform;
+        }
+
+        public void AddChild(HullData h, uint crc, bool hpid, Matrix4x4 matrix)
+        {
+            var h2 = new HullData()
+            {
+                Source = h.Source,
+                Hull = Hull.FromTriangles(h.Hull.Vertices.Select(x => Vector3.Transform(x, matrix)).ToArray(),
+                    h.Hull.Indices)
+            };
+            Console.WriteLine($"Adding child {crc} {hpid}");
+            AddHull(h2, crc, 4, hpid);
+        }
+        public void AddHull(HullData h, uint crc, byte type, bool hpid)
+        {
+            if (type == 4)
+            {
+                Parent?.AddChild(h, crc, hpid, Transform);
+            }
+
+            if (hpid)
+            {
+                Console.WriteLine($"Adding hpid {crc}");
+                HpIds.Add(crc);
+            }
+
             Vector3 minimum = new Vector3(float.MaxValue);
             Vector3 maximum = new Vector3(float.MinValue);
             var indices = new int[h.Hull.Vertices.Count];
+            Span<Vector3> hashVec = stackalloc Vector3[1];
+            Span<byte> hashBytes = MemoryMarshal.Cast<Vector3, byte>(hashVec);
             for (int i = 0; i < h.Hull.Vertices.Count; i++)
             {
                 var p = h.Hull.Vertices[i];
-                points.AddIfUnique(new SurfacePoint(p, modelCrc), out indices[i]);
+                Points.AddIfUnique(new SurfacePoint(p, crc), out indices[i]);
                 minimum = Vector3.Min(p, minimum);
                 maximum = Vector3.Max(p, maximum);
+                //hash
+                unchecked
+                {
+                    hashVec[0] = p;
+                    for (int j = 0; j < hashBytes.Length; j++)
+                    {
+                        PartHash = (PartHash ^ hashBytes[j]) * 16777619;
+                    }
+                }
             }
+
             var n = new SurfaceNode();
             var hull = ToSurfaceHull(h, crc, type, indices);
             n.Hull = hull.Data;
-            warnings.AddRange(hull.Messages);
+            Warnings.AddRange(hull.Messages);
             n.SetBoundary(minimum, maximum);
-            nodes.Add(n);
+            Nodes.Add(n);
         }
+    }
+
+    static void CreateSurfacePart(ImportedModelNode node, List<SurfacePart> parts,
+        SurfacePartContext parent, bool is3db, List<EditMessage> warnings)
+    {
+        var modelCrc = is3db ? 0 : CrcTool.FLModelCrc(node.Name);
+        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings)).ToList();
+        if (convexHulls.Count == 0)
+        {
+            warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
+        }
+
+        var ctx = new SurfacePartContext(warnings, node.Transform.Matrix(), parent);
 
         foreach (var h in convexHulls)
         {
-           AddHull(h, modelCrc, 4);
+            ctx.AddHull(h, modelCrc, 4, false);
+        }
+
+        foreach (var hp in node.Hardpoints)
+        {
+            if (hp.Hulls.Count == 0)
+                continue;
+            var hullDatas = hp.Hulls.Select(x => NodeToHull(x, hp.Hardpoint.Transform.Matrix(), warnings))
+                .Where(x => x != null).ToArray();
+            if (hullDatas.Length == 0)
+            {
+                warnings.Add(EditMessage.Warning($"Node {hp.Hardpoint.Name} has no valid collision hulls"));
+                continue;
+            }
+
+            var hpid = CrcTool.FLModelCrc(hp.Hardpoint.Name);
+
+            foreach (var h in hullDatas)
+            {
+                ctx.AddHull(h, hpid, 4, true);
+            }
         }
 
         var part = new SurfacePart();
@@ -182,42 +285,33 @@ public static class SurfaceBuilder
         // Pull child hulls into closest dynamic part
         foreach (var child in node.Children)
         {
-
-            CreateSurfacePart(child, parts, (h,c, m) =>
-            {
-                if(node.Construct is FixConstruct)
-                    addToParent(h, c, m * node.Transform.Matrix());
-                else
-                {
-                    var h2 = new HullData()
-                    {
-                        Source = h.Source,
-                        Hull = Hull.FromTriangles(h.Hull.Vertices.Select(x => Vector3.Transform(x, m)).ToArray(),
-                            h.Hull.Indices)
-                    };
-                    AddHull(h2, c, 4);
-                }
-            }, false, warnings);
+            CreateSurfacePart(child, parts, child.Construct is FixConstruct ? ctx : null, false, warnings);
         }
 
+        // Pull hpid info out after children
+        part.HardpointIds = ctx.HpIds.Order().ToList(); //Ordered for reproducibility
+
         part.Crc = modelCrc;
-        part.Points = points;
+        part.Points = ctx.Points;
         part.Dynamic = node.Construct is FixConstruct;
 
         //  Condense node list by grouping nodes into pairs until only one node remain which becomes root
-        while (nodes.Count > 1) {
+        while (ctx.Nodes.Count > 1)
+        {
             var unsorted = new List<SurfaceNode>();
             var lengths = new List<float>();
             var pairs = new List<(SurfaceNode left, SurfaceNode right)>();
-            foreach (var leftNode in nodes.Where(unsorted.AddIfUnique)) {
-                foreach (var rightNode in unsorted.Where(x => x != leftNode)) {
+            foreach (var leftNode in ctx.Nodes.Where(unsorted.AddIfUnique))
+            {
+                foreach (var rightNode in unsorted.Where(x => x != leftNode))
+                {
                     pairs.Add((leftNode, rightNode));
                     lengths.Add(Vector3.Distance(leftNode.Center, rightNode.Center));
                 }
             }
 
             // Group list into pairs until one or none are left
-            nodes = new List<SurfaceNode>();
+            ctx.Nodes = new List<SurfaceNode>();
             while (unsorted.Count > 1)
             {
                 var index = lengths.IndexOfMin(); // Get pair index of shortest length
@@ -228,10 +322,11 @@ public static class SurfaceBuilder
                 unsorted.Remove(rightNode);
 
                 // Create new node by grouping selected pair
-                nodes.Add(SurfaceNode.GroupNodes(leftNode, rightNode));
+                ctx.Nodes.Add(SurfaceNode.GroupNodes(leftNode, rightNode));
 
                 //  Remove left and right nodes from pairs and lengths
-                for (int i = lengths.Count - 1; i >= 0; i--) {
+                for (int i = lengths.Count - 1; i >= 0; i--)
+                {
                     if (pairs[i].left == leftNode ||
                         pairs[i].right == rightNode ||
                         pairs[i].left == rightNode ||
@@ -243,35 +338,39 @@ public static class SurfaceBuilder
                 }
 
                 // Should one remain add it to next round
-                if(unsorted.Count == 1) nodes.Add(unsorted[0]);
+                if (unsorted.Count == 1) ctx.Nodes.Add(unsorted[0]);
             }
         }
 
         // Set resulting node to root
-        if (nodes.Count == 1)
+        if (ctx.Nodes.Count == 1)
         {
-            part.Root = nodes[0];
+            part.Root = ctx.Nodes[0];
 
             // Generate wrap from points if root has no hull
             if (part.Root.Hull == null)
             {
-                var h = CreateHullFromPositions(points.Select(x => x.Point));
+                var h = CreateHullFromPositions(ctx.Points.Select(x => x.Point));
                 warnings.AddRange(h.Messages.Select(x => x.Message).Select(EditMessage.Warning));
-                if (h.IsError) {
+                if (h.IsError)
+                {
                     parts.Remove(part);
                     warnings.Add(EditMessage.Warning("Could not generate wrap hull for " + node.Name));
                     return;
                 }
+
                 var indices = new int[h.Data.Hull.Vertices.Count];
                 for (int i = 0; i < indices.Length; i++)
-                    indices[i] = points.FindIndex(x => x.Point == h.Data.Hull.Vertices[i]);
+                    indices[i] = ctx.Points.FindIndex(x => x.Point == h.Data.Hull.Vertices[i]);
                 var hull = ToSurfaceHull(h.Data, modelCrc, 5, indices);
                 warnings.AddRange(hull.Messages.Select(x => x.Message).Select(EditMessage.Warning));
-                if (hull.IsError) {
+                if (hull.IsError)
+                {
                     parts.Remove(part);
                     warnings.Add(EditMessage.Warning("Could not generate wrap hull for " + node.Name));
                     return;
                 }
+
                 part.Root.Hull = hull.Data;
             }
 
@@ -282,25 +381,36 @@ public static class SurfaceBuilder
             float minRadius = 0;
             float maxRadius = 0;
 
-            foreach (var p in points)
+            foreach (var p in ctx.Points)
             {
-                part.Minimum = Vector3.Min(part.Minimum, p.Point);
-                part.Maximum = Vector3.Max(part.Maximum, p.Point);
                 var radius = Vector3.Distance(part.Center, p.Point);
                 maxRadius = Math.Max(radius, maxRadius);
+                if (ctx.HpIds.Contains(p.Mesh))
+                {
+                    minRadius = Math.Max(minRadius, radius);
+                }
+                else
+                {
+                    part.Minimum = Vector3.Min(part.Minimum, p.Point);
+                    part.Maximum = Vector3.Max(part.Maximum, p.Point);
+                }
             }
 
             if (minRadius == 0)
                 minRadius = maxRadius;
             part.Radius = maxRadius;
             // Seems to generate objects that consistently work in vanilla FL
-            part.Inertia = new Vector3(0.2f * maxRadius * maxRadius);
+            // Random component added in
+
+            var d = 0.2f * maxRadius * maxRadius;
+            part.Inertia = new Vector3(d) + RandomVector(ctx.PartHash, d * 0.001f);
+
             part.Scale = minRadius / maxRadius;
         }
         else
         {
             parts.Remove(part);
-            if(convexHulls.Count != 0)
+            if (convexHulls.Count != 0)
                 warnings.Add(EditMessage.Warning("Could not generate BSP tree for " + node.Name));
         }
     }
@@ -314,16 +424,17 @@ public static class SurfaceBuilder
     }
 
 
-
-    static EditResult<HullData> CreateHull(ModelNode h)
+    static EditResult<HullData> CreateHull(ModelNode h, Matrix4x4 parentTransform)
     {
         var verts = new List<Vector3>();
         var indices = new List<int>();
+        var tr = h.Transform * parentTransform;
         foreach (var i in h.Geometry.Indices.Indices16)
         {
-            verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices[i].Position, h.Transform), out int index);
+            verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices[i].Position, tr), out int index);
             indices.Add(index);
         }
+
         var inputHull = new HullData()
         {
             Hull = Hull.FromTriangles(verts.ToArray(), indices.ToArray()),
@@ -344,7 +455,8 @@ public static class SurfaceBuilder
             }
             else if (h.Hull.Multibody)
             {
-                warning = EditMessage.Warning($"{h.Source} is not convex (not all triangles connected), creating convex hull.");
+                warning = EditMessage.Warning(
+                    $"{h.Source} is not convex (not all triangles connected), creating convex hull.");
             }
             else if (h.Hull.DegenerateMesh)
             {
@@ -355,12 +467,17 @@ public static class SurfaceBuilder
                 warning = EditMessage.Warning($"{h.Source} may not be convex, fixing.");
             }
         }
-        if (!h.Hull.MakeConvex(true)) {
+
+        if (!h.Hull.MakeConvex(true))
+        {
             return EditResult<HullData>.Error($"Creating convex hull for {h.Source} failed");
         }
-        if (h.Hull.Vertices.Count > 65535 || h.Hull.Indices.Count > 65535) {
+
+        if (h.Hull.Vertices.Count > 65535 || h.Hull.Indices.Count > 65535)
+        {
             return EditResult<HullData>.Error($"Hull mesh for {h.Source} is too complex");
         }
+
         return h.Hull.IsConvex ? h.AsResult() : new EditResult<HullData>(h, [warning]);
     }
 
@@ -381,6 +498,7 @@ public static class SurfaceBuilder
             edges.Add(new Point(f.B, f.C));
             edges.Add(new Point(f.C, f.A));
         }
+
         // Collect indices of reverse edge pairs (B-A, C-B, A-C)
         var reversed = edges.Select(
             x => edges.IndexOf(new Point(x.Y, x.X))
@@ -402,6 +520,7 @@ public static class SurfaceBuilder
             {
                 missingHit++;
             }
+
             face.Flag = type == 5;
             face.Flags = type == 5
                 ? new Sur.Point3<bool>(true, true, true)
@@ -423,7 +542,8 @@ public static class SurfaceBuilder
         if (missingHit > 0)
             return new EditResult<SurfaceHull>(surf, new[]
             {
-                EditMessage.Warning($"{hullData.Source}: {missingHit}/{hullData.FaceCount} faces could not calculate opposite")
+                EditMessage.Warning(
+                    $"{hullData.Source}: {missingHit}/{hullData.FaceCount} faces could not calculate opposite")
             });
         else
             return new EditResult<SurfaceHull>(surf);

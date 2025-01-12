@@ -141,13 +141,19 @@ public class ImportedModel
             ApplyDefaultPose(anm, child);
     }
 
-    static bool IsHull(ModelNode node)
+    static bool IsIgnored(ModelNode node)
     {
-        return node.Properties.ContainsKey("hull") ||
-               node.Name.EndsWith("$hull");
+        return node.Properties.ContainsKey("export_ignore");
     }
 
-    static bool GetHardpoint(ModelNode node, out HardpointDefinition hp)
+    static bool IsHull(ModelNode node)
+    {
+        return !IsIgnored(node) &&
+               (node.Properties.ContainsKey("hull") ||
+                node.Name.EndsWith("$hull"));
+    }
+
+    static bool GetHardpoint(ModelNode node, out ImportedHardpoint hp)
     {
         hp = null;
         PropertyValue pv;
@@ -155,6 +161,7 @@ public class ImportedModel
             return false;
         var orientation = Matrix4x4.CreateFromQuaternion(node.Transform.ExtractRotation());
         var position = Vector3.Transform(Vector3.Zero, node.Transform);
+        HardpointDefinition hpdef;
         if (node.Properties.TryGetValue("hptype", out pv) && pv.AsString(out var hptype) &&
             hptype.Equals("rev", StringComparison.OrdinalIgnoreCase))
         {
@@ -170,7 +177,7 @@ public class ImportedModel
             if (min > max) {
                 (min, max) = (max, min);
             }
-            hp = new RevoluteHardpointDefinition(node.Name) {
+            hpdef = new RevoluteHardpointDefinition(node.Name) {
                 Orientation = orientation,
                 Position = position,
                 Min = MathHelper.DegreesToRadians(min),
@@ -180,8 +187,10 @@ public class ImportedModel
         }
         else
         {
-            hp = new FixedHardpointDefinition(node.Name) {Orientation = orientation, Position = position};
+            hpdef = new FixedHardpointDefinition(node.Name) {Orientation = orientation, Position = position};
         }
+
+        hp = new ImportedHardpoint() { Hardpoint = hpdef, Hulls = node.Children.Where(IsHull).ToList() };
         return true;
     }
 
@@ -319,8 +328,10 @@ public class ImportedModel
                 if (g != null)
                     mdl.LODs.Add(g);
         }
-        foreach(var child in obj.Children) {
-
+        foreach(var child in obj.Children)
+        {
+            if (IsIgnored(child))
+                continue;
             if(IsHull(child))
                 mdl.Hulls.Add(child);
             else if (IsWire(child))
@@ -886,7 +897,7 @@ public class ImportedModel
         if (mdl.Hardpoints.Count > 0)
         {
             var hp = new ModelHpNode() {Node = node3db};
-            hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x, null)).ToList());
+            hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x.Hardpoint, null)).ToList());
         }
 
         if (mdl.Wire != null)

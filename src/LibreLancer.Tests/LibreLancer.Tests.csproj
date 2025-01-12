@@ -32,7 +32,7 @@
       <Folder Include="Thorn\Scripts\" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="Hulls\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="Models\**\*.*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Thorn\Scripts\**\*.*" CopyToOutputDirectory="PreserveNewest" />
