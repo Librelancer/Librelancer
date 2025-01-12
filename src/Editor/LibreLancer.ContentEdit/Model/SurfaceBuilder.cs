@@ -195,7 +195,6 @@ public static class SurfaceBuilder
                 Hull = Hull.FromTriangles(h.Hull.Vertices.Select(x => Vector3.Transform(x, matrix)).ToArray(),
                     h.Hull.Indices)
             };
-            Console.WriteLine($"Adding child {crc} {hpid}");
             AddHull(h2, crc, 4, hpid);
         }
         public void AddHull(HullData h, uint crc, byte type, bool hpid)
@@ -207,7 +206,6 @@ public static class SurfaceBuilder
 
             if (hpid)
             {
-                Console.WriteLine($"Adding hpid {crc}");
                 HpIds.Add(crc);
             }
 
