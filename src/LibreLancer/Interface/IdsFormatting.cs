@@ -7,15 +7,47 @@ namespace LibreLancer.Interface;
 
 public struct IdsFormatItem
 {
-    public ushort Id;
-    public char Category => (char)(Id >> 8);
-    public int Index => (int)(Id & 0xFF);
+    public readonly ushort Id;
+    public readonly string Value;
+    public readonly int Ids;
 
-    public string Value;
-    public int Ids;
+    public readonly char Category => (char)(Id >> 8);
+    public readonly int Index => (int)(Id & 0xFF);
 
-    public readonly string GetString(int variant, InfocardManager infocards) =>
-        Value ?? infocards.GetStringResource(Ids + variant);
+    private const int FACTION_COUNT = 100;
+    private const int FACTION_OFFSET = 131834;
+    private const int FACTION_MIN = 196846;
+    private const int FACTION_MAX = FACTION_MIN + FACTION_COUNT;
+    private const int ZONE_COUNT = 200;
+    private const int ZONE_OFFSET = 70473;
+    private const int ZONE_MIN = 261208;
+    private const int ZONE_MAX = ZONE_MIN + ZONE_COUNT;
+
+    public readonly string GetString(int variant, InfocardManager infocards)
+    {
+        if (Value != null)
+            return Value;
+        int id = Ids;
+        if (variant >= 0)
+        {
+            if (Category == 'F' &&
+                (Ids >= FACTION_MIN && Ids <= FACTION_MAX))
+            {
+                id = Ids + FACTION_OFFSET + variant * FACTION_COUNT;
+            }
+            else if (Category == 'Z' &&
+                     (Ids >= ZONE_MIN && Ids <= ZONE_MAX))
+            {
+                id = Ids + ZONE_OFFSET + variant * ZONE_COUNT;
+            }
+            else
+            {
+                id = Ids + variant;
+            }
+        }
+        return infocards?.GetStringResource(id) ?? "(NULL)";
+    }
+
 
     public IdsFormatItem(char category, int index, string value)
     {
@@ -81,38 +113,48 @@ public static class IdsFormatting
 
     public static string Format(string format, InfocardManager infocards, ReadOnlySpan<IdsFormatItem> items)
     {
-        var sb = new StringBuilder(format.Length);
-        for (int i = 0; i < format.Length; i++)
+        int idxLast = 0;
+        int idxPct = format.IndexOf('%');
+        if (idxPct == -1)
         {
-            if (format[i] == '%' && i + 1 < format.Length)
+            return format;
+        }
+
+        var sb = new StringBuilder(format.Length);
+        while (idxPct != -1)
+        {
+            sb.Append(format.AsSpan(idxLast, idxPct - idxLast));
+            if (idxPct + 1 < format.Length)
             {
-                int index = 0;
-                int variant = 0;
-                if (format[i + 1] == '%')
+                if (format[idxPct + 1] == '%')
                 {
-                    sb.Append("%");
-                    i++;
+                    sb.Append('%');
+                    idxLast = idxPct + 2;
+                    idxPct = format.IndexOf('%', idxLast);
                     continue;
                 }
 
-                char category = format[i + 1];
-                //ingest category char
-                if (i + 2 < format.Length && format[i + 2] >= '0' && format[i + 2] <= '9')
+                int index = 0;
+                int variant = -1;
+                char category = format[idxPct + 1];
+                if (idxPct + 2 < format.Length && format[idxPct + 2] >= '0' && format[idxPct + 2] <= '9')
                 {
-                    index = format[i + 2] - '0';
-                    if (i + 4 < format.Length && format[i + 3] == 'v' && format[i + 4] >= '0' && format[i + 4] <= '9')
+                    index = format[idxPct + 2] - '0';
+                    if (idxPct + 4 < format.Length
+                        && format[idxPct + 3] == 'v'
+                        && format[idxPct + 4] >= '0' && format[idxPct + 4] <= '9')
                     {
-                        variant = format[i + 4] - '0';
-                        i += 4; //ingest category + 0v1
+                        variant = format[idxPct + 4] - '0';
+                        idxLast = idxPct + 5; //ingest category + 0v1
                     }
                     else
                     {
-                        i += 2; // ingest category + 0
+                        idxLast = idxPct + 3; // ingest category + 0
                     }
                 }
                 else
                 {
-                    i++; //ingest category
+                    idxLast = idxPct + 2;
                 }
 
                 var searchId = (ushort)(((category & 0xFF) << 8) | (index & 0xFF));
@@ -124,11 +166,20 @@ public static class IdsFormatting
                         break;
                     }
                 }
+
+                idxPct = format.IndexOf('%', idxLast);
             }
             else
             {
-                sb.Append(format[i]);
+                sb.Append('%');
+                idxLast = format.Length;
+                idxPct = -1;
             }
+        }
+
+        if (idxLast < format.Length)
+        {
+            sb.Append(format.AsSpan(idxLast));
         }
 
         return sb.ToString();

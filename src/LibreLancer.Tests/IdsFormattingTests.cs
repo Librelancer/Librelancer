@@ -48,7 +48,7 @@ public class IdsFormattingTests
     }
 
     [Fact]
-    public void CanFindVariant()
+    public void VariantOutOfRangeFaction()
     {
         var dll = new ResourceDll();
         dll.Strings[5] = "Liberty Rogues";
@@ -60,7 +60,49 @@ public class IdsFormattingTests
         Assert.Equal("There is a Rogues base out there.", result);
     }
 
+    static EditableInfocardManager EmptyInfocards() => new EditableInfocardManager([
+        new ResourceDll(), new ResourceDll(), new ResourceDll(), new ResourceDll(), new ResourceDll(),
+        new ResourceDll()]);
 
+
+    [Fact]
+    public void VariantInRangeFaction()
+    {
+        var ic = EmptyInfocards();
+        ic.SetStringResource(196893, "Testers"); //F
+        ic.SetStringResource(328727, "Testers"); //F0v0
+        ic.SetStringResource(328827, "the Testers");
+        ic.SetStringResource(328927, "Tester");
+        ic.SetStringResource(329027, "The Testers");
+
+        var fmt = "%F0v3 have been bad. Send a message to %F0v1 by blowing up a %F0v2 ship.";
+        var exp = "The Testers have been bad. Send a message to the Testers by blowing up a Tester ship.";
+        var result = IdsFormatting.Format(fmt, ic, new IdsFormatItem('F', 0, 196893));
+        Assert.Equal(exp, result);
+    }
+
+    [Fact]
+    public void VariantInRangeZone()
+    {
+        var ic = EmptyInfocards();
+        ic.SetStringResource(261208, "Big City Zone");
+        ic.SetStringResource(331681, "Big City Zone");
+        ic.SetStringResource(331881, "the Big City Zone");
+        var result = IdsFormatting.Format("Go to %Z0v1.",
+            ic, new IdsFormatItem('Z', 0, 261208));
+        Assert.Equal("Go to the Big City Zone.", result);
+    }
+
+    [Fact]
+    public void VariantOutOfRangeZone()
+    {
+        var ic = EmptyInfocards();
+        ic.SetStringResource(12, "Big City Zone");
+        ic.SetStringResource(13, "the Big City Zone");
+        var result = IdsFormatting.Format("Go to %Z0v1.",
+            ic, new IdsFormatItem('Z', 0, 12));
+        Assert.Equal("Go to the Big City Zone.", result);
+    }
 
     [Fact]
     public void RemovesM()
