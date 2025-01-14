@@ -1,0 +1,53 @@
+// [Script]
+// name = Extract icons from 3db
+// [Argument]
+// name = Input Directory
+// type = folder
+// [Argument]
+// name = Output Directory
+// type = folder
+// [Argument]
+// name = PNG
+// type = flag
+// flag = png
+
+using System.Linq;
+using LibreLancer.Thn;
+using LibreLancer.ContentEdit;
+using LibreLancer.ContentEdit.Texture;
+
+ScriptUsage("folder_full_of_3db_files output_folder");
+
+bool usePng = false;
+FlagOption("png", "Convert the tga file to png", v => usePng = v);
+
+var args = ParseArguments(2);
+string inputFolder = args[0];
+string outputFolder = args[1];
+
+if (!Directory.Exists(inputFolder))
+{
+    Console.WriteLine($"{inputFolder} does not exist.");
+    Environment.Exit(2);
+}
+
+if (!Directory.Exists(outputFolder))
+{
+    Directory.CreateDirectory(outputFolder);
+}
+
+var files = Directory.EnumerateFiles(inputFolder, "*.3db", SearchOption.TopDirectoryOnly);
+foreach (var file in files)
+{
+    EditableUtf utf = new(file);
+    
+    var textureLibraryNode = utf.Root.Children.First(x => x.Name.Equals("texture library", StringComparison.OrdinalIgnoreCase));
+    var mip = textureLibraryNode.Children.First().Children.First(x => x.Name.Equals("mip0", StringComparison.OrdinalIgnoreCase) || x.Name.Equals("mips", StringComparison.OrdinalIgnoreCase));
+    var isDds = mip.Name.Equals("mip0", StringComparison.OrdinalIgnoreCase);
+    
+    string newPath = Path.Combine(outputFolder, Path.GetFileNameWithoutExtension(file) + (usePng ? ".png" : (isDds ? ".dds" : ".tga")));
+    Console.WriteLine("Writing to " + newPath);
+
+    var bytes = usePng ? TextureExporter.ExportTexture(new ImageResource(isDds ? ImageType.TGA : ImageType.DDS, mip.Data), false) : mip.Data;
+    File.WriteAllBytes(newPath, bytes);
+}
