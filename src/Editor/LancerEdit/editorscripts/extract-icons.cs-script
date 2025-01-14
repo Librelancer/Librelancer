@@ -41,13 +41,13 @@ foreach (var file in files)
 {
     EditableUtf utf = new(file);
     
-    var textureLibraryNode = utf.Root.Children.FirstOrDefault(x => x.Name.Equals("texture library", StringComparison.OrdinalIgnoreCase));
-    var mip = textureLibraryNode.Children.First(x => x.Name.Equals("mip0", StringComparison.OrdinalIgnoreCase) || x.Name.Equals("mips", StringComparison.OrdinalIgnoreCase));
+    var textureLibraryNode = utf.Root.Children.First(x => x.Name.Equals("texture library", StringComparison.OrdinalIgnoreCase));
+    var mip = textureLibraryNode.Children.First().Children.First(x => x.Name.Equals("mip0", StringComparison.OrdinalIgnoreCase) || x.Name.Equals("mips", StringComparison.OrdinalIgnoreCase));
     var isDds = mip.Name.Equals("mip0", StringComparison.OrdinalIgnoreCase);
     
     string newPath = Path.Combine(outputFolder, Path.GetFileNameWithoutExtension(file) + (usePng ? ".png" : (isDds ? ".dds" : ".tga")));
     Console.WriteLine("Writing to " + newPath);
 
-    var bytes = usePng ? TextureExporter.ExportTexture(new ImageResource(isDds ? ImageType.TGA : ImageType.DDS, mip.Data), false) : mip0.Data;
+    var bytes = usePng ? TextureExporter.ExportTexture(new ImageResource(isDds ? ImageType.TGA : ImageType.DDS, mip.Data), false) : mip.Data;
     File.WriteAllBytes(newPath, bytes);
 }
