@@ -1,10 +1,9 @@
 // Auto-generated code - DO NOT Modify.
 // This code was generated with the following command-line:
-// 	flini-reader-test Comments.ini --csharp
+// 	Z:\home\cmcging\src\Librelancer\src\LibreLancer.Tests\Ini\TestAssets\flini-reader-test.exe Comments.ini --csharp
 
 using System.Linq;
 
-using FluentAssertions;
 using Xunit;
 
 namespace LibreLancer.Tests.Ini;
@@ -15,34 +14,34 @@ public partial class IniTests
     public void CommentsTest()
     {
         var ini = ParseFile(TestAsset.Open<IniTests>("Comments.ini"), false, false).ToList();
-        ini[0].Name.Should().Be("Section  ;This is a Section");
-        ini[0].Count.Should().Be(0);
-        ini[1].Name.Should().Be("Section2");
-        ini[1].Count.Should().Be(0);
-        ini[2].Name.Should().Be("Section3");
-        ini[2][0].Name.Should().Be("Key");
-        ini[2][0].Should().HaveCount(0);
-        ini[2][1].Name.Should().Be("Key");
-        ini[2][1].Should().HaveCount(0);
-        ini[2][2].Name.Should().Be("Key");
-        ini[2][2].Should().HaveCount(0);
-        ini[2][3].Name.Should().Be("Key");
-        ini[2][3].Should().HaveCount(0);
-        ini[2][4].Name.Should().Be("");
-        ini[2][4].Should().HaveCount(0);
-        ini[2][5].Name.Should().Be("");
-        ini[2][5].Should().HaveCount(1);
-        ini[2][5][0].ToString().Should().Be("Value");
-        ini[2][5][0].ToBoolean().Should().Be(false);
-        ini[2][5][0].ToInt32().Should().Be(0);
-        ini[2][5][0].ToSingle().Should().Be((float)0.000000);
-        ini[2][6].Name.Should().Be("");
-        ini[2][6].Should().HaveCount(1);
-        ini[2][6][0].ToString().Should().Be("Value");
-        ini[2][6][0].ToBoolean().Should().Be(false);
-        ini[2][6][0].ToInt32().Should().Be(0);
-        ini[2][6][0].ToSingle().Should().Be((float)0.000000);
-        ini[2].Count.Should().Be(7);
-        ini.Count.Should().Be(3);
+        Assert.Equal("Section  ;This is a Section", ini[0].Name);
+        Assert.Empty(ini[0]);
+        Assert.Equal("Section2", ini[1].Name);
+        Assert.Empty(ini[1]);
+        Assert.Equal("Section3", ini[2].Name);
+        Assert.Equal("Key", ini[2][0].Name);
+        Assert.Empty(ini[2][0]);
+        Assert.Equal("Key", ini[2][1].Name);
+        Assert.Empty(ini[2][1]);
+        Assert.Equal("Key", ini[2][2].Name);
+        Assert.Empty(ini[2][2]);
+        Assert.Equal("Key", ini[2][3].Name);
+        Assert.Empty(ini[2][3]);
+        Assert.Equal("", ini[2][4].Name);
+        Assert.Empty(ini[2][4]);
+        Assert.Equal("", ini[2][5].Name);
+        Assert.Single(ini[2][5]);
+        Assert.Equal("Value", ini[2][5][0].ToString());
+        Assert.False(ini[2][5][0].ToBoolean());
+        Assert.Equal(0, ini[2][5][0].ToInt32());
+        Assert.Equal(0.000000f, ini[2][5][0].ToSingle());
+        Assert.Equal("", ini[2][6].Name);
+        Assert.Single(ini[2][6]);
+        Assert.Equal("Value", ini[2][6][0].ToString());
+        Assert.False(ini[2][6][0].ToBoolean());
+        Assert.Equal(0, ini[2][6][0].ToInt32());
+        Assert.Equal(0.000000f, ini[2][6][0].ToSingle());
+        Assert.Equal(7, ini[2].Count);
+        Assert.Equal(3, ini.Count);
     }
 }

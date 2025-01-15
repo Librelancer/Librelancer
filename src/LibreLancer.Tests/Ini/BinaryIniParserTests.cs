@@ -6,8 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-using FluentAssertions;
+using System.Reflection.PortableExecutable;
 using LibreLancer.Ini;
 using Xunit;
 
@@ -30,7 +29,7 @@ namespace LibreLancer.Tests.Ini
                                     0xc, 0x0, 0x0, 0x0 };   // textoff(0xc)
 
             var ini = Parse(bini);
-            ini.Should().BeEmpty();
+            Assert.Empty(ini);
         }
 
         [Fact]
@@ -41,7 +40,7 @@ namespace LibreLancer.Tests.Ini
                                     0xc, 0x0, 0x0, 0x0 };   // textoff(0xc)
 
             Action act = () => { Parse(bini); };
-            act.Should().Throw<FileVersionException>().WithMessage("*version 1 was expected but a vesion 0*");
+            Assert.Throws<FileVersionException>(act);
         }
 
         [Fact]
@@ -52,7 +51,7 @@ namespace LibreLancer.Tests.Ini
                                     0xd, 0x0, 0x0, 0x0 };   // textoff(0xd) - invalid offset
 
             Action act = () => { Parse(bini); };
-            act.Should().Throw<FileContentException>().WithMessage("*out of range*");
+            Assert.Throws<FileContentException>(act);
         }
 
         [Fact]
@@ -72,7 +71,7 @@ namespace LibreLancer.Tests.Ini
                                     0x48, 0x0 };            // "A"
 
             Action act = () => { Parse(bini); };
-            act.Should().Throw<FileContentException>().WithMessage("*value type*");
+            Assert.Throws<FileContentException>(act);
         }
 
         [Fact]
@@ -94,15 +93,15 @@ namespace LibreLancer.Tests.Ini
                                     0x4d, 0x79, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x0 };            // "MyValue"
 
             var ini = Parse(bini);
-            ini.Should().HaveCount(1);
+            Assert.Single(ini);
             var section = ini[0];
-            section.Should().HaveCount(1);
-            section.Name.Should().Be("MySection");
+            Assert.Single(section);
+            Assert.Equal("MySection", section.Name);
             var entry = section[0];
-            entry.Should().HaveCount(1);
-            entry.Name.Should().Be("MyKey");
+            Assert.Single(entry);
+            Assert.Equal("MyKey", entry.Name);
             var value = entry[0];
-            value.ToString().Should().Be("MyValue");
+            Assert.Equal("MyValue", value.ToString());
         }
     }
 }

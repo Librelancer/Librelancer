@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-
-using FluentAssertions;
 using LibreLancer.Ini;
 using Xunit;
 
@@ -34,7 +32,7 @@ namespace LibreLancer.Tests.Ini
         public void ParseEmptyIniSucceeds()
         {
             var ini = ParseAsAscii("");
-            ini.Should().BeEmpty();
+            Assert.Empty(ini);
         }
 
         [Theory]
@@ -43,10 +41,10 @@ namespace LibreLancer.Tests.Ini
         public void ParseSectionSucceeds(string iniString, string result)
         {
             var ini = ParseAsAscii(iniString).ToList();
-            ini.Should().HaveCount(1);
+            Assert.Single(ini);
             var section = ini[0];
-            section.Should().HaveCount(0);
-            section.Name.Should().Be(result);
+            Assert.Empty(section);
+            Assert.Equal(result, section.Name);
         }
 
         // The UK pound sign is a unicode character and cannot be encoded to ASCII using
@@ -57,23 +55,23 @@ namespace LibreLancer.Tests.Ini
         public void ParseSectionUtf8Succeeds(string iniString, string result)
         {
             var ini = ParseAsUTF8(iniString).ToList();
-            ini.Should().HaveCount(1);
+            Assert.Single(ini);
             var section = ini[0];
-            section.Should().HaveCount(0);
-            section.Name.Should().Be(result);
+            Assert.Empty(section);
+            Assert.Equal(result, section.Name);
         }
 
         [Fact]
         public void ParseEmptyEntryValueSucceeds()
         {
             var ini = ParseAsAscii("[MySection]\nMyKey =").ToList();
-            ini.Should().HaveCount(1);
+            Assert.Single(ini);
             var section = ini[0];
-            section.Should().HaveCount(1);
-            section.Name.Should().Be("MySection");
+            Assert.Single(section);
+            Assert.Equal("MySection", section.Name);
             var entry = section[0];
-            entry.Should().HaveCount(0);
-            entry.Name.Should().Be("MyKey");
+            Assert.Empty(entry);
+            Assert.Equal("MyKey", entry.Name);
         }
 
         [Theory]
@@ -84,7 +82,7 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii(iniString);
             var section = ini[0];
-            section.Name.Should().Be(result);
+            Assert.Equal(result, section.Name);
         }
 
         [Theory]
@@ -99,8 +97,8 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeAssignableTo<SingleValue>();
-            value.ToSingle().Should().Be(result);
+            Assert.IsAssignableFrom<SingleValue>(value);
+            Assert.Equal(result, value.ToSingle());
         }
 
         // This is required for mods loading ALEs
@@ -109,7 +107,7 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii("[A]\nK=3949920388");
             var value = ini[0][0][0];
-            value.ToInt32().Should().Be(-345046908);
+            Assert.Equal(-345046908, value.ToInt32());
         }
 
         [Theory]
@@ -121,8 +119,8 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeAssignableTo<Int32Value>();
-            value.ToInt32().Should().Be(result);
+            Assert.IsAssignableFrom<Int32Value>(value);
+            Assert.Equal(result, value.ToInt32());
         }
 
         [Theory]
@@ -136,8 +134,8 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeAssignableTo<BooleanValue>();
-            value.ToBoolean().Should().Be(result);
+            Assert.IsAssignableFrom<BooleanValue>(value);
+            Assert.Equal(result, value.ToBoolean());
         }
 
         [Theory]
@@ -152,38 +150,38 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii(iniString);
             var value = ini[0][0][0];
-            value.Should().BeAssignableTo<StringValue>();
-            value.ToString().Should().Be(result);
+            Assert.IsAssignableFrom<StringValue>(value);
+            Assert.Equal(result, value.ToString());
         }
 
         [Fact]
         public void ParseIncompleteEntryValueIsIgnored()
         {
             var ini = ParseAsAscii("[MySection]\nMyKey");
-            ini.Should().HaveCount(1);
-            ini[0].Should().HaveCount(1);
-            ini[0][0].Should().HaveCount(0);
+            Assert.Single(ini);
+            Assert.Single(ini[0]);
+            Assert.Empty(ini[0][0]);
         }
 
         [Fact]
         public void ParseMultipleValueTypesSucceeds()
         {
             var ini = ParseAsAscii("[Commodities]\niron = 1.42, 300, icons\\iron.bmp, \"+1\"");
-            ini.Should().HaveCount(1);
+            Assert.Single(ini);
             var section = ini[0];
-            section.Name.Should().Be("Commodities");
-            section.Should().HaveCount(1);
+            Assert.Equal("Commodities", section.Name);
+            Assert.Single(section);
             var entry = section[0];
-            entry.Name.Should().Be("iron");
-            entry.Should().HaveCount(4);
-            entry[0].Should().BeAssignableTo<SingleValue>();
-            entry[0].ToSingle().Should().Be((float)1.42);
-            entry[1].Should().BeAssignableTo<Int32Value>();
-            entry[1].ToInt32().Should().Be(300);
-            entry[2].Should().BeAssignableTo<StringValue>();
-            entry[2].ToString().Should().Be("icons\\iron.bmp");
-            entry[3].Should().BeAssignableTo<StringValue>();
-            entry[3].ToString().Should().Be("\"+1\"");
+            Assert.Equal("iron", entry.Name);
+            Assert.Equal(4, entry.Count);
+            Assert.IsAssignableFrom<SingleValue>(entry[0]);
+            Assert.Equal((float)1.42, entry[0].ToSingle());
+            Assert.IsAssignableFrom<Int32Value>(entry[1]);
+            Assert.Equal(300, entry[1].ToInt32());
+            Assert.IsAssignableFrom<StringValue>(entry[2]);
+            Assert.Equal("icons\\iron.bmp", entry[2].ToString());
+            Assert.IsAssignableFrom<StringValue>(entry[3]);
+            Assert.Equal("\"+1\"", entry[3].ToString());
         }
 
         [Fact]
@@ -191,9 +189,9 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii("[A]\nname = texture = MaterialNoBendy", preparse: true, allowmaps: false);
             var section = ini[0];
-            section[0].Name.Should().Be("name");
-            section[0][0].Should().BeAssignableTo<StringValue>();
-            section[0][0].ToString().Should().Be("texture = MaterialNoBendy");
+            Assert.Equal("name", section[0].Name);
+            Assert.IsAssignableFrom<StringValue>(section[0][0]);
+            Assert.Equal("texture = MaterialNoBendy", section[0][0].ToString());
         }
 
         [Fact]
@@ -201,10 +199,10 @@ namespace LibreLancer.Tests.Ini
         {
             var ini = ParseAsAscii("[A]\nname = texture = MaterialNoBendy", preparse: true, allowmaps: true);
             var section = ini[0];
-            section[0].Name.Should().Be("name");
-            section[0][0].Should().BeAssignableTo<StringKeyValue>();
-            section[0][0].ToKeyValue().Key.Should().Be("texture");
-            section[0][0].ToKeyValue().Value.Should().Be("MaterialNoBendy");
+            Assert.Equal("name", section[0].Name);
+            Assert.IsAssignableFrom<StringKeyValue>(section[0][0]);
+            Assert.Equal("texture", section[0][0].ToKeyValue().Key);
+            Assert.Equal("MaterialNoBendy", section[0][0].ToKeyValue().Value);
         }
     }
 }

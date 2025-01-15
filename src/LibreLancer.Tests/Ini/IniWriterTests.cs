@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using FluentAssertions;
 using LibreLancer.Ini;
 using Xunit;
 
@@ -38,8 +37,8 @@ public class IniWriterTests
     [Fact]
     public void EmptyWriteSucceeds()
     {
-        RoundTripBini(Array.Empty<Section>()).Should().HaveCount(0);
-        RoundTripText(Array.Empty<Section>()).Should().HaveCount(0);
+        Assert.Empty(RoundTripBini(Array.Empty<Section>()));
+        Assert.Empty(RoundTripText(Array.Empty<Section>()));
     }
 
     [Theory]
@@ -52,39 +51,38 @@ public class IniWriterTests
 
         // Compare all for bini
         var bini = RoundTripBini(sections);
-        bini.Length.Should().Be(sections.Length);
+        Assert.Equal(sections.Length, bini.Length);
         for (int i = 0; i < bini.Length; i++)
         {
-            bini[i].Name.Should().Be(sections[i].Name);
-            bini[i].Count.Should().Be(sections[i].Count);
+            Assert.Equal(sections[i].Name, bini[i].Name);
+            Assert.Equal(sections[i].Count, bini[i].Count);
             for (int j = 0; j < bini[i].Count; j++)
             {
-                bini[i][j].Name.Should().Be(sections[i][j].Name);
-                bini[i][j].Count.Should().Be(sections[i][j].Count);
+                Assert.Equal(sections[i][j].Name, bini[i][j].Name);
+                Assert.Equal(sections[i][j].Count, bini[i][j].Count);
                 for (int k = 0; k < bini[i][j].Count; k++)
                 {
-                    bini[i][j][k].ToString().Should().Be(sections[i][j][k].ToString());
+                    Assert.Equal(sections[i][j][k].ToString(), bini[i][j][k].ToString());
                 }
             }
         }
 
         // Make sure all the same
         var tini = RoundTripText(sections);
-        tini.Length.Should().Be(sections.Length);
+        Assert.Equal(sections.Length, tini.Length);
         for (int i = 0; i < tini.Length; i++)
         {
-            tini[i].Name.Should().Be(sections[i].Name);
-            tini[i].Count.Should().Be(sections[i].Count);
+            Assert.Equal(sections[i].Name, tini[i].Name);
+            Assert.Equal(sections[i].Count, tini[i].Count);
             for (int j = 0; j < tini[i].Count; j++)
             {
-                tini[i][j].Name.Should().Be(sections[i][j].Name);
-                tini[i][j].Count.Should().Be(sections[i][j].Count);
+                Assert.Equal(sections[i][j].Name, tini[i][j].Name);
+                Assert.Equal(sections[i][j].Count, tini[i][j].Count);
                 for (int k = 0; k < tini[i][j].Count; k++)
                 {
-                    tini[i][j][k].ToString().Should().Be(sections[i][j][k].ToString());
+                    Assert.Equal(sections[i][j][k].ToString(), tini[i][j][k].ToString());
                 }
             }
         }
     }
-
 }

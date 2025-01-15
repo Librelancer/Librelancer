@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using FluentAssertions;
 using LibreLancer.Ini;
 using Xunit;
 
@@ -18,13 +17,13 @@ namespace LibreLancer.Tests.Ini
         {
             var value = new BooleanValue(testValue);
 
-            value.ToBoolean().Should().Be(toBoolean);
-            value.TryToInt32(out int i).Should().BeTrue();
-            i.Should().Be(toInt32);
-            value.ToInt32().Should().Be(toInt32);
-            value.ToInt64().Should().Be(toInt64);
-            value.ToSingle().Should().Be(toSingle);
-            value.ToString().Should().Be(toString);
+            Assert.Equal(toBoolean, value.ToBoolean());
+            Assert.True(value.TryToInt32(out int i));
+            Assert.Equal(toInt32, i);
+            Assert.Equal(toInt32, value.ToInt32());
+            Assert.Equal(toInt64, value.ToInt64());
+            Assert.Equal(toSingle, value.ToSingle());
+            Assert.Equal(toString, value.ToString());
         }
 
         [Theory]
@@ -36,13 +35,13 @@ namespace LibreLancer.Tests.Ini
         {
             var value = new Int32Value(testValue);
 
-            value.ToBoolean().Should().Be(toBoolean);
-            value.TryToInt32(out int i).Should().BeTrue();
-            i.Should().Be(toInt32);
-            value.ToInt32().Should().Be(toInt32);
-            value.ToInt64().Should().Be(toInt64);
-            value.ToSingle().Should().Be(toSingle);
-            value.ToString().Should().Be(toString);
+            Assert.Equal(toBoolean, value.ToBoolean());
+            Assert.True(value.TryToInt32(out int i));
+            Assert.Equal(toInt32, i);
+            Assert.Equal(toInt32, value.ToInt32());
+            Assert.Equal(toInt64, value.ToInt64());
+            Assert.Equal(toSingle, value.ToSingle());
+            Assert.Equal(toString, value.ToString());
         }
 
         [Theory]
@@ -57,13 +56,13 @@ namespace LibreLancer.Tests.Ini
         {
             var value = new SingleValue(testValue, testLongValue);
 
-            value.ToBoolean().Should().Be(toBoolean);
-            value.TryToInt32(out int i).Should().BeTrue();
-            i.Should().Be(toInt32);
-            value.ToInt32().Should().Be(toInt32);
-            value.ToInt64().Should().Be(toInt64);
-            value.ToSingle().Should().Be(toSingle);
-            value.ToString().Should().Be(toString);
+            Assert.Equal(toBoolean, value.ToBoolean());
+            Assert.True(value.TryToInt32(out int i));
+            Assert.Equal(toInt32, i);
+            Assert.Equal(toInt32, value.ToInt32());
+            Assert.Equal(toInt64, value.ToInt64());
+            Assert.Equal(toSingle, value.ToSingle());
+            Assert.Equal(toString, value.ToString());
         }
 
         [Theory]
@@ -78,13 +77,13 @@ namespace LibreLancer.Tests.Ini
         {
             var value = new StringValue(testValue);
 
-            value.ToBoolean().Should().Be(toBoolean);
-            value.TryToInt32(out int i).Should().Be(tryInt32Return);
-            i.Should().Be(tryToInt32);
-            value.ToInt32().Should().Be(toInt32);
-            value.ToInt64().Should().Be(toInt64);
-            value.ToSingle().Should().Be(toSingle);
-            value.ToString().Should().Be(toString);
+            Assert.Equal(toBoolean, value.ToBoolean());
+            Assert.Equal(tryInt32Return, value.TryToInt32(out int i));
+            Assert.Equal(tryToInt32, i);
+            Assert.Equal(toInt32, value.ToInt32());
+            Assert.Equal(toInt64, value.ToInt64());
+            Assert.Equal(toSingle, value.ToSingle());
+            Assert.Equal(toString, value.ToString());
         }
     }
 }

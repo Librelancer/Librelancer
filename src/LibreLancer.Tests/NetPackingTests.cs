@@ -1,4 +1,3 @@
-using FluentAssertions;
 using LibreLancer.Net.Protocol;
 using Xunit;
 
