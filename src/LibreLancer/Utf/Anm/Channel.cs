@@ -254,16 +254,17 @@ namespace LibreLancer.Utf.Anm
             return Quaternion.Slerp(a, b, (time - t0) / (t1 - t0));
         }
 
-        public float AngleAtTime(float time)
+        public ChannelFloat FloatAtTime(float time)
         {
             var idx = GetIndex(time, out float t0, out float t1);
-            if (idx == FrameCount - 1) return GetAngle(FrameCount - 1);
+            if (idx == FrameCount - 1)
+            {
+                return GetAngle(FrameCount - 1);
+            }
             var a = GetAngle(idx);
             var b = GetAngle(idx + 1);
-            var dist = Math.Abs(b - a);
-            if (Math.Abs(t1 - t0) < 0.5f && dist > 1f) return b;
             var blend = (time - t0) / (t1 - t0);
-            return MathHelper.Lerp(a, b, blend);
+            return new ChannelFloat(a, b, blend);
         }
 
         unsafe int ReadHeader(LeafNode node)

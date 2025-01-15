@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Numerics;
+using LibreLancer.Utf.Anm;
 
 namespace LibreLancer.Utf
 {
@@ -30,7 +31,7 @@ namespace LibreLancer.Utf
         public override void Reset()
         {
         }
-        public override void Update(float distance, Quaternion quat)
+        public override void Update(ChannelFloat distance, Quaternion quat)
         {
             throw new NotImplementedException();
         }

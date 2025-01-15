@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.IO;
+using LibreLancer.Utf.Anm;
 
 namespace LibreLancer.Utf
 {
@@ -38,7 +39,7 @@ namespace LibreLancer.Utf
         {
             fixtransform = new Transform3D(Origin, Rotation);
         }
-        public override void Update(float distance, Quaternion quat)
+        public override void Update(ChannelFloat distance, Quaternion quat)
         {
             throw new NotImplementedException();
         }

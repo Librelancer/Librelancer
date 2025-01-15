@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Numerics;
+using LibreLancer.Utf.Anm;
 
 namespace LibreLancer.Utf
 {
@@ -60,6 +61,6 @@ namespace LibreLancer.Utf
             return tr;
         }
         public abstract void Reset();
-        public abstract void Update(float distance, Quaternion quat);
+        public abstract void Update(ChannelFloat distance, Quaternion quat);
     }
 }

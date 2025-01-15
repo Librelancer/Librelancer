@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.IO;
+using LibreLancer.Utf.Anm;
 
 namespace LibreLancer.Utf
 {
@@ -61,7 +62,7 @@ namespace LibreLancer.Utf
         {
             quatRot = Quaternion.Identity;
         }
-        public override void Update(float distance, Quaternion quat)
+        public override void Update(ChannelFloat distance, Quaternion quat)
         {
             quatRot = quat;
         }

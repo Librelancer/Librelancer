@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 using System.Numerics;
-
+using LibreLancer.Utf.Anm;
 
 namespace LibreLancer.Utf
 {
@@ -52,9 +52,9 @@ namespace LibreLancer.Utf
         {
             currentTranslation = Vector3.Zero;
         }
-        public override void Update(float distance, Quaternion quat)
+        public override void Update(ChannelFloat distance, Quaternion quat)
         {
-            currentTranslation = AxisTranslation * MathHelper.Clamp(distance, Min, Max);
+            currentTranslation = AxisTranslation * MathHelper.Clamp(distance.Eval(), Min, Max);
         }
     }
 }

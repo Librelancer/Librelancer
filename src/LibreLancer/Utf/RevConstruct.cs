@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Numerics;
+using LibreLancer.Utf.Anm;
 
 
 namespace LibreLancer.Utf
@@ -48,10 +49,12 @@ namespace LibreLancer.Utf
             currentTransform = Quaternion.Identity;
         }
         public float Current = 0;
-        public override void Update(float distance, Quaternion quat)
+        public override void Update(ChannelFloat distance, Quaternion quat)
         {
-            Current = MathHelper.Clamp(distance, Min, Max);
-			currentTransform = Quaternion.CreateFromAxisAngle(AxisRotation, Current);
+            var a = Quaternion.CreateFromAxisAngle(AxisRotation, distance.A);
+            var b = Quaternion.CreateFromAxisAngle(AxisRotation, distance.B);
+            Current = distance.Eval();
+            currentTransform = Quaternion.Slerp(a, b, distance.Weight);
         }
     }
 }

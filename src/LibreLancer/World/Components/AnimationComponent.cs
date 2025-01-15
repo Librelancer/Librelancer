@@ -61,12 +61,12 @@ namespace LibreLancer.World.Components
                     foreach (var jm in sc.JointMaps) {
                         var mdl = Parent == null ? rm : Parent.RigidModel;
                         var joint = mdl.Parts[jm.ChildName].Construct;
-                        float angle = 0;
+                        ChannelFloat angles = 0;
                         float t = a.Reverse ? 0 : jm.Channel.Duration;
-                        if (jm.Channel.HasAngle) angle = jm.Channel.AngleAtTime((float) t);
+                        if (jm.Channel.HasAngle) angles = jm.Channel.FloatAtTime((float) t);
                         var quat = Quaternion.Identity;
                         if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float) t);
-                        joint.Update(angle, quat);
+                        joint.Update(angles, quat);
                     }
                     completeAnimations.Add(new ActiveAnimation()
                     {
@@ -222,8 +222,8 @@ namespace LibreLancer.World.Components
 			}
             if (reverse)
                 t = jm.Channel.Duration - t;
-            float angle = 0;
-            if (jm.Channel.HasAngle) angle = jm.Channel.AngleAtTime((float) t);
+            ChannelFloat angle = 0;
+            if (jm.Channel.HasAngle) angle = jm.Channel.FloatAtTime((float) t);
             var quat = Quaternion.Identity;
             if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float) t);
             joint.Update(angle, quat);
