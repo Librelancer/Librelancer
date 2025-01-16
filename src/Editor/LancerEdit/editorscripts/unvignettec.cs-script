@@ -1,0 +1,22 @@
+// [Script]
+// name = Decompile vignetteparams
+// [Argument]
+// name = Input vignetteparams.ini
+// type = file
+// [Argument]
+// name = Output file
+// type = savefile
+using LibreLancer.Data.RandomMissions;
+using LibreLancer.ContentEdit.RandomMissions;
+using LibreLancer.Ini;
+
+ScriptUsage(@"vignetteparams.ini vignettescript.txt
+- Decompiles vignetteparams.ini to a vignettescript");
+
+var args = ParseArguments(2);
+AssertFileExists(args[0]);
+
+var vp = new VignetteParamsIni();
+vp.AddFile(args[0], null);
+var script = VignetteParamsDecompiler.Decompile(vp);
+File.WriteAllText(args[1], script);

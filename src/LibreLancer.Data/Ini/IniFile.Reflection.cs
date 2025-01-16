@@ -96,7 +96,7 @@ namespace LibreLancer.Ini
                 return $" in {file} (line not available)";
         }
 
-        private static string FormatLine(string file, int line, string section)
+        internal static string FormatLine(string file, int line, string section)
         {
             if (line >= 0)
                 return $" at section {section}: {file}, line {line}";

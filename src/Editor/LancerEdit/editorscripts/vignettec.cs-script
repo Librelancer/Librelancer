@@ -1,0 +1,22 @@
+// [Script]
+// name = Compile vignetteparams
+// [Argument]
+// name = Input script
+// type = file
+// [Argument]
+// name = Output vignetteparams.ini
+// type = savefile
+using LibreLancer.Data.RandomMissions;
+using LibreLancer.ContentEdit.RandomMissions;
+using LibreLancer.Ini;
+
+ScriptUsage(@"vignettescript.txt vignetteparams.ini
+- Compiles a script to vignetteparams");
+
+var args = ParseArguments(2);
+AssertFileExists(args[0]);
+
+var src = File.ReadAllText(args[0]);
+var sections = VignetteParamsCompiler.Compile(src, args[0]);
+IniWriter.WriteIniFile(args[1], sections);
+
