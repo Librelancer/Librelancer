@@ -10,17 +10,17 @@ public sealed class NodeActSetNNState : BlueprintNode
 {
     protected override string Name => "Set NN State";
 
-    private readonly Act_SetNNState data;
+    public readonly Act_SetNNState Data;
     public NodeActSetNNState(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetNNState(action);
+        Data = action is null ? new() : new Act_SetNNState(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Objective", ref data.Objective);
-        ImGui.Checkbox("Complete", ref data.Complete);
+        Controls.InputTextId("Objective", ref Data.Objective);
+        ImGui.Checkbox("Complete", ref Data.Complete);
     }
 }

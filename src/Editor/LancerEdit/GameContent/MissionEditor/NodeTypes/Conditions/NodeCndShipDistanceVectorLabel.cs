@@ -21,7 +21,7 @@ public class NodeCndShipDistanceVectorLabel : BlueprintNode
 
     public NodeCndShipDistanceVectorLabel(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 6)
+        if (entry?.Count >= 6)
         {
             inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
             sourceShip = entry[1].ToString();
@@ -29,11 +29,11 @@ public class NodeCndShipDistanceVectorLabel : BlueprintNode
             position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
             distance = entry[6].ToSingle();
 
-            tickAway = entry.Count >= 8 &&
+            tickAway = entry?.Count >= 8 &&
                        entry[7].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase);
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

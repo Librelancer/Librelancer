@@ -11,12 +11,12 @@ public sealed class NodeActNagDistTowards : BlueprintNode
     protected override string Name => "Nag Dist Leaving";
 
     private int radioIndex = 0;
-    private readonly Act_NagDistTowards data;
+    public readonly Act_NagDistTowards Data;
     public NodeActNagDistTowards(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_NagDistTowards(action);
+        Data = action is null ? new() : new Act_NagDistTowards(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
@@ -24,21 +24,21 @@ public sealed class NodeActNagDistTowards : BlueprintNode
         ImGui.RadioButton("Point", ref radioIndex, 0);
         ImGui.RadioButton("Object", ref radioIndex, 1);
 
-        Controls.InputTextId("Nickname", ref data.Nickname);
-        Controls.InputTextId("Nagger", ref data.Nagger);
-        Controls.IdsInputString("Mission Fail IDS", gameData, popup, ref data.MissionFailIds, (ids) => data.MissionFailIds = ids);
-        ImGui.InputFloat("Distance", ref data.Distance);
+        Controls.InputTextId("Nickname", ref Data.Nickname);
+        Controls.InputTextId("Nagger", ref Data.Nagger);
+        Controls.IdsInputString("Mission Fail IDS", gameData, popup, ref Data.MissionFailIds, (ids) => Data.MissionFailIds = ids);
+        ImGui.InputFloat("Distance", ref Data.Distance);
         // ImGui.Combo("Nag Type");
 
         if (radioIndex == 0)
         {
-            data.IsObject = true;
-            ImGui.InputFloat3("Position", ref data.Position);
+            Data.IsObject = true;
+            ImGui.InputFloat3("Position", ref Data.Position);
         }
         else
         {
-            data.IsObject = false;
-            Controls.InputTextId("Object", ref data.Object);
+            Data.IsObject = false;
+            Controls.InputTextId("Object", ref Data.Object);
         }
     }
 }

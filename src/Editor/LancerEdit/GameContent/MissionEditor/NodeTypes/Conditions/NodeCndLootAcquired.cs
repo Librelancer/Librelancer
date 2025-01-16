@@ -16,13 +16,13 @@ public class NodeCndLootAcquired : BlueprintNode
 
     public NodeCndLootAcquired(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 2)
+        if (entry?.Count >= 2)
         {
             target = entry[0].ToString();
             sourceShip = entry[1].ToString();
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

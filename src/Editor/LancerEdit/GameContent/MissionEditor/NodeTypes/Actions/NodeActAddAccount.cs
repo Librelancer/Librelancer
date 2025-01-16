@@ -10,16 +10,16 @@ public sealed class NodeActAdjustAccount : BlueprintNode
 {
     protected override string Name => "Adjust Account";
 
-    private readonly Act_AdjAcct data;
+    public readonly Act_AdjAcct Data;
     public NodeActAdjustAccount(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_AdjAcct(action);
+        Data = action is null ? new() : new Act_AdjAcct(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.InputInt("Amount", ref data.Amount);
+        ImGui.InputInt("Amount", ref Data.Amount);
     }
 }

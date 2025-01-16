@@ -2,27 +2,41 @@ using System;
 
 namespace LibreLancer.ImUI.NodeEditor;
 
-public struct NodeId
+public record struct NodeId
 {
-    public IntPtr Value;
-    public static implicit operator IntPtr(NodeId n) => n.Value;
-    public static implicit operator NodeId(IntPtr p) => new () { Value = p };
-    public static implicit operator NodeId(int i) => new () { Value = (IntPtr)i };
+    private IntPtr value;
+    public static implicit operator IntPtr(NodeId n) => n.value;
+    public static implicit operator NodeId(IntPtr p) => new () { value = p };
+    public static implicit operator NodeId(int i) => new () { value = (IntPtr)i };
+
+    public override string ToString()
+    {
+        return value.ToString();
+    }
 }
 
-public struct LinkId
+public record struct LinkId
 {
-    public IntPtr Value;
-    public static implicit operator IntPtr(LinkId n) => n.Value;
-    public static implicit operator LinkId(IntPtr p) => new LinkId() { Value = p };
-    public static implicit operator LinkId(int i) => new () { Value = (IntPtr)i };
+    private IntPtr value;
+    public static implicit operator IntPtr(LinkId n) => n.value;
+    public static implicit operator LinkId(IntPtr p) => new LinkId() { value = p };
+    public static implicit operator LinkId(int i) => new () { value = (IntPtr)i };
 
+    public override string ToString()
+    {
+        return value.ToString();
+    }
 }
 
-public struct PinId
+public record struct PinId
 {
-    public IntPtr Value;
-    public static implicit operator IntPtr(PinId n) => n.Value;
-    public static implicit operator PinId(IntPtr p) => new PinId() { Value = p };
-    public static implicit operator PinId(int i) => new () { Value = (IntPtr)i };
+    private IntPtr value;
+    public static implicit operator IntPtr(PinId n) => n.value;
+    public static implicit operator PinId(IntPtr p) => new PinId() { value = p };
+    public static implicit operator PinId(int i) => new () { value = (IntPtr)i };
+
+    public override string ToString()
+    {
+        return value.ToString();
+    }
 }

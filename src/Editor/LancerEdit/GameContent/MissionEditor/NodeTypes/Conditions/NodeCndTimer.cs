@@ -13,12 +13,12 @@ public class NodeCndTimer : BlueprintNode
     private int seconds;
     public NodeCndTimer(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 1)
+        if (entry?.Count >= 1)
         {
             seconds = entry[0].ToInt32();
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

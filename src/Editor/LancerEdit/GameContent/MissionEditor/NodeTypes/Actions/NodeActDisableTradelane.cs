@@ -9,16 +9,16 @@ public sealed class NodeActDisableTradelane : BlueprintNode
 {
     protected override string Name => "Disable Tradelane";
 
-    private readonly Act_DisableTradelane data;
+    public readonly Act_DisableTradelane Data;
     public NodeActDisableTradelane(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_DisableTradelane(action);
+        Data = action is null ? new() : new Act_DisableTradelane(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target TL", ref data.Tradelane);
+        Controls.InputTextId("Target TL", ref Data.Tradelane);
     }
 }

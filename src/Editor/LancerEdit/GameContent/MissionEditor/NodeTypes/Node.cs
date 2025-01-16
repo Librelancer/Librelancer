@@ -11,9 +11,9 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public abstract class Node(int id, VertexDiffuse? color = null)
+public abstract class Node(VertexDiffuse? color = null)
 {
-    public NodeId Id { get; } = id;
+    public NodeId Id { get; } = NodeEditorId.Next();
     protected abstract string Name  { get; }
     public List<NodePin> Inputs  { get; } = [];
     public List<NodePin> Outputs  { get; } = [];
@@ -58,6 +58,10 @@ public abstract class Node(int id, VertexDiffuse? color = null)
     }
 
     public virtual void OnLinkCreated(NodeLink link)
+    {
+    }
+
+    public virtual void OnLinkRemoved(NodeLink link)
     {
     }
 }

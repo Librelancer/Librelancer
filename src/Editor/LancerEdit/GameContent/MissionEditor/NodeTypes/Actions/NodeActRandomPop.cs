@@ -10,16 +10,16 @@ public sealed class NodeActRandomPop : BlueprintNode
 {
     protected override string Name => "Toggle Global Random Population";
 
-    private readonly Act_RandomPop data;
+    public readonly Act_RandomPop Data;
     public NodeActRandomPop(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RandomPop(action);
+        Data = action is null ? new() : new Act_RandomPop(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Enable", ref data.On);
+        ImGui.Checkbox("Enable", ref Data.On);
     }
 }

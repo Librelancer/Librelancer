@@ -10,17 +10,17 @@ public sealed class NodeActCanTradeLane : BlueprintNode
 {
     protected override string Name => "Toggle Player Docking (Tradelane) Ability";
 
-    private readonly Act_PlayerCanTradelane data;
+    public readonly Act_PlayerCanTradelane Data;
     public NodeActCanTradeLane(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PlayerCanTradelane(action);
+        Data = action is null ? new() : new Act_PlayerCanTradelane(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Can Dock", ref data.CanDock);
-        Controls.InputStringList("Exceptions", data.Exceptions);
+        ImGui.Checkbox("Can Dock", ref Data.CanDock);
+        Controls.InputStringList("Exceptions", Data.Exceptions);
     }
 }

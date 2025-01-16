@@ -10,17 +10,17 @@ public sealed class NodeActMarkObject : BlueprintNode
 {
     protected override string Name => "Mark Object";
 
-    private readonly Act_MarkObj data;
+    public readonly Act_MarkObj Data;
     public NodeActMarkObject(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_MarkObj(action);
+        Data = action is null ? new() : new Act_MarkObj(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Object", ref data.Object);
-        ImGui.InputInt("Value", ref data.Value); // TODO: An enum value of some kind
+        Controls.InputTextId("Object", ref Data.Object);
+        ImGui.InputInt("Value", ref Data.Value); // TODO: An enum value of some kind
     }
 }

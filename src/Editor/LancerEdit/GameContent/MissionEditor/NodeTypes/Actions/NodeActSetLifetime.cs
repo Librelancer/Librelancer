@@ -11,19 +11,19 @@ public sealed class NodeActSetLifetime : BlueprintNode
 {
     protected override string Name => "Set Lifetime";
 
-    private readonly Act_SetLifetime data;
+    public readonly Act_SetLifetime Data;
     public NodeActSetLifetime(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetLifetime(action);
+        Data = action is null ? new() : new Act_SetLifetime(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Object", ref data.Object);
-        ImGui.InputInt("Seconds", ref data.Seconds, 1, 10);
+        Controls.InputTextId("Object", ref Data.Object);
+        ImGui.InputInt("Seconds", ref Data.Seconds, 1, 10);
 
-        data.Seconds = Math.Clamp(data.Seconds, 0, 100000);
+        Data.Seconds = Math.Clamp(Data.Seconds, 0, 100000);
     }
 }

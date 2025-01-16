@@ -10,18 +10,18 @@ public sealed class NodeActRandomPopSphere : BlueprintNode
 {
     protected override string Name => "Toggle Random Population Sphere";
 
-    private readonly Act_RandomPopSphere data;
+    public readonly Act_RandomPopSphere Data;
     public NodeActRandomPopSphere(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RandomPopSphere(action);
+        Data = action is null ? new() : new Act_RandomPopSphere(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.InputFloat3("Position", ref data.Position);
-        ImGui.InputFloat("Radius", ref data.Radius);
-        ImGui.Checkbox("Enable", ref data.On);
+        ImGui.InputFloat3("Position", ref Data.Position);
+        ImGui.InputFloat("Radius", ref Data.Radius);
+        ImGui.Checkbox("Enable", ref Data.On);
     }
 }

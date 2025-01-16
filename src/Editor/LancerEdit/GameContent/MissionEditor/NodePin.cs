@@ -9,26 +9,17 @@ using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit.GameContent.MissionEditor;
 
-public class NodePin
+public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity = int.MaxValue - 1)
 {
     private static readonly List<NodeLink> _allLinks = [];
     public static ReadOnlyCollection<NodeLink> AllLinks => _allLinks.AsReadOnly();
 
-    public PinId Id { get; }
-    public Node OwnerNode { get; }
-    public LinkType LinkType { get; }
-    public PinKind PinKind { get; }
+    public PinId Id { get; } = NodeEditorId.Next();
+    public Node OwnerNode { get; } = owner;
+    public LinkType LinkType { get; } = type;
+    public PinKind PinKind { get; } = kind;
     public List<NodeLink> Links { get; } = [];
-    public int LinkCapacity { get; }
-
-    public NodePin(int id, Node owner, LinkType type, PinKind kind, int linkCapacity = int.MaxValue - 1)
-    {
-        Id = id;
-        OwnerNode = owner;
-        LinkType = type;
-        PinKind = kind;
-        LinkCapacity = linkCapacity;
-    }
+    public int LinkCapacity { get; } = linkCapacity;
 
     [SuppressMessage("ReSharper", "InvertIf")]
     public NodeLink CreateLink(ref int nextId, [NotNull] NodePin endPin, Action<string, bool> labelCallback)
@@ -111,7 +102,7 @@ public class NodePin
             }
         }
 
-        var nodeLink = new NodeLink(nextId++, this, endPin)
+        var nodeLink = new NodeLink(this, endPin)
         {
             Color = endPin.OwnerNode.Color
         };
@@ -129,6 +120,9 @@ public class NodePin
         {
             return;
         }
+
+        link.StartPin.OwnerNode.OnLinkRemoved(link);
+        link.EndPin.OwnerNode.OnLinkRemoved(link);
 
         _allLinks.Remove(link);
         link.StartPin.Links.Remove(link);

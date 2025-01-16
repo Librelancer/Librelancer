@@ -10,16 +10,16 @@ public sealed class NodeActSetOffer : BlueprintNode
 {
     protected override string Name => "Set Mission Offer";
 
-    private readonly Act_SetOffer data;
+    public readonly Act_SetOffer Data;
     public NodeActSetOffer(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetOffer(action);
+        Data = action is null ? new() : new Act_SetOffer(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.IdsInputString("IDS", gameData, popup, ref data.Ids, (ids) => data.Ids = ids);
+        Controls.IdsInputString("IDS", gameData, popup, ref Data.Ids, (ids) => Data.Ids = ids);
     }
 }

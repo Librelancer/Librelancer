@@ -1,4 +1,5 @@
 using System;
+using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer;
 using LibreLancer.ImUI.NodeEditor;
 
@@ -23,18 +24,10 @@ public enum LinkType
     Action = 1 << 4,
 }
 
-public class NodeLink
+public class NodeLink(NodePin startPin, NodePin endPin, VertexDiffuse? color = null)
 {
-    public LinkId Id { get; }
-    public NodePin StartPin  { get; set; }
-    public NodePin EndPin  { get; set; }
-    public VertexDiffuse Color  { get; set; }
-
-    public NodeLink(LinkId id, NodePin startPin, NodePin endPin, VertexDiffuse? color = null)
-    {
-        Id = id;
-        StartPin = startPin;
-        EndPin = endPin;
-        Color = color ?? (VertexDiffuse)Color4.White;
-    }
+    public LinkId Id { get; } = NodeEditorId.Next();
+    public NodePin StartPin  { get; set; } = startPin;
+    public NodePin EndPin  { get; set; } = endPin;
+    public VertexDiffuse Color  { get; set; } = color ?? (VertexDiffuse)Color4.White;
 }

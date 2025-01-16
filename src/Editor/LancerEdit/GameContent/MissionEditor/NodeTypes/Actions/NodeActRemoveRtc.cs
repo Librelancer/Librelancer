@@ -9,16 +9,16 @@ public sealed class NodeActRemoveRtc : BlueprintNode
 {
     protected override string Name => "Remove Real-Time Cutscene";
 
-    private readonly Act_RemoveRTC data;
+    public readonly Act_RemoveRTC Data;
     public NodeActRemoveRtc(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RemoveRTC(action);
+        Data = action is null ? new() :  new Act_RemoveRTC(action);;
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("RTC", ref data.RTC);
+        Controls.InputTextId("RTC", ref Data.RTC);
     }
 }

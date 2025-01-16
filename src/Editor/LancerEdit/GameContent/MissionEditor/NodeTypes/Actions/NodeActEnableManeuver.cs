@@ -10,17 +10,17 @@ public sealed class NodeActEnableManeuver : BlueprintNode
 {
     protected override string Name => "Enable Maneuver";
 
-    private readonly Act_EnableManeuver data;
+    public readonly Act_EnableManeuver Data;
     public NodeActEnableManeuver(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_EnableManeuver(action);
+        Data = action is null ? new() : new Act_EnableManeuver(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         // ImGui.Combo("Maneuver");
-        ImGui.Checkbox("Lock", ref data.Lock);
+        ImGui.Checkbox("Lock", ref Data.Lock);
     }
 }

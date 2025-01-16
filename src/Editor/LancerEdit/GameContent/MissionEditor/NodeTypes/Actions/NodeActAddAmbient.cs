@@ -9,18 +9,18 @@ public sealed class NodeActAddAmbient : BlueprintNode
 {
     protected override string Name => "Add Ambient";
 
-    private readonly Act_AddAmbient data;
+    public readonly Act_AddAmbient Data;
     public NodeActAddAmbient(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_AddAmbient(action);
+        Data = action is null ? new() : new Act_AddAmbient(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Script", ref data.Script);
-        Controls.InputTextId("Base", ref data.Base);
-        Controls.InputTextId("Room", ref data.Room);
+        Controls.InputTextId("Script", ref Data.Script);
+        Controls.InputTextId("Base", ref Data.Base);
+        Controls.InputTextId("Room", ref Data.Room);
     }
 }

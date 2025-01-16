@@ -9,18 +9,18 @@ public sealed class NodeActPopupDialog : BlueprintNode
 {
     protected override string Name => "Popup Dialog";
 
-    private readonly Act_PopupDialog data;
+    public readonly Act_PopupDialog Data;
     public NodeActPopupDialog(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PopupDialog(action);
+        Data = action is null ? new() : new Act_PopupDialog(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Sound Id", ref data.ID);
-        Controls.IdsInputString("Title IDS", gameData, popup, ref data.Title, (ids) => data.Title = ids);
-        Controls.IdsInputInfocard("Contents IDS", gameData, popup, ref data.Contents, (ids) => data.Title = ids);
+        Controls.InputTextId("Sound Id", ref Data.ID);
+        Controls.IdsInputString("Title IDS", gameData, popup, ref Data.Title, (ids) => Data.Title = ids);
+        Controls.IdsInputInfocard("Contents IDS", gameData, popup, ref Data.Contents, (ids) => Data.Title = ids);
     }
 }

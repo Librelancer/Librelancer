@@ -11,20 +11,20 @@ public sealed class NodeActPlayerEnemyClamp : BlueprintNode
 {
     protected override string Name => "Clamp Amount of Enemies Attacking Player";
 
-    private readonly Act_PlayerEnemyClamp data;
+    public readonly Act_PlayerEnemyClamp Data;
     public NodeActPlayerEnemyClamp(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PlayerEnemyClamp(action);
+        Data = action is null ? new() : new Act_PlayerEnemyClamp(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.InputInt("Min", ref data.Min, 1, 10);
-        ImGui.InputInt("Max", ref data.Max, 1, 10);
+        ImGui.InputInt("Min", ref Data.Min, 1, 10);
+        ImGui.InputInt("Max", ref Data.Max, 1, 10);
 
-        data.Min = Math.Clamp(data.Min, 0, data.Max);
-        data.Max = Math.Clamp(data.Max, data.Min, 100);
+        Data.Min = Math.Clamp(Data.Min, 0, Data.Max);
+        Data.Max = Math.Clamp(Data.Max, Data.Min, 100);
     }
 }

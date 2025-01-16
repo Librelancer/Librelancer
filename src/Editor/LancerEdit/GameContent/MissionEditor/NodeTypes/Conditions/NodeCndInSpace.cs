@@ -13,12 +13,12 @@ public class NodeCndInSpace : BlueprintNode
     private bool inSpace;
     public NodeCndInSpace(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 1)
+        if (entry?.Count >= 1)
         {
             inSpace = entry[0].ToString()!.Equals("yes", System.StringComparison.InvariantCultureIgnoreCase);
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

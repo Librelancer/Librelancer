@@ -9,16 +9,16 @@ public sealed class NodeActSpawnSolar : BlueprintNode
 {
     protected override string Name => "Spawn Solar";
 
-    private readonly Act_SpawnSolar data;
+    public readonly Act_SpawnSolar Data;
     public NodeActSpawnSolar(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SpawnSolar(action);
+        Data = action is null ? new() : new Act_SpawnSolar(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Solar", ref data.Solar);
+        Controls.InputTextId("Solar", ref Data.Solar);
     }
 }

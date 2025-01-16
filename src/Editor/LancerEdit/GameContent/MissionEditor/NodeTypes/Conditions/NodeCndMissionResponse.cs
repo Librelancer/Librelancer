@@ -14,12 +14,12 @@ public class NodeCndMissionResponse : BlueprintNode
     private bool accept;
     public NodeCndMissionResponse(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 1)
+        if (entry?.Count >= 1)
         {
             accept = entry[0].ToString()!.Equals("accept", StringComparison.InvariantCultureIgnoreCase);
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

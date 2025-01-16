@@ -10,18 +10,18 @@ public sealed class NodeActLockDock : BlueprintNode
 {
     protected override string Name => "Toggle Docking Lock";
 
-    private readonly Act_LockDock data;
+    public readonly Act_LockDock Data;
     public NodeActLockDock(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_LockDock(action);
+        Data = action is null ? new() : new Act_LockDock(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref data.Target);
-        Controls.InputTextId("Object", ref data.Object);
-        ImGui.Checkbox("Lock", ref data.Lock);
+        Controls.InputTextId("Target", ref Data.Target);
+        Controls.InputTextId("Object", ref Data.Object);
+        ImGui.Checkbox("Lock", ref Data.Lock);
     }
 }

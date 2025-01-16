@@ -13,12 +13,12 @@ public class NodeCndRtcComplete : BlueprintNode
     private string iniFile = string.Empty;
     public NodeCndRtcComplete(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 1)
+        if (entry?.Count >= 1)
         {
             iniFile = entry[0].ToString();
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

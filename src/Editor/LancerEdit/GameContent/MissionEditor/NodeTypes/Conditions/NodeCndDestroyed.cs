@@ -14,12 +14,12 @@ public class NodeCndDestroyed : BlueprintNode
     // TODO: INI has an extra two elements, one int, one enum. Figure out what they do
     public NodeCndDestroyed(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 1)
+        if (entry?.Count >= 1)
         {
             label = entry[0].ToString();
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

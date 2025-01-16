@@ -10,16 +10,16 @@ public sealed class NodeActGcsClamp : BlueprintNode
 {
     protected override string Name => "Toggle GCS Clamp";
 
-    private readonly Act_GcsClamp data;
+    public readonly Act_GcsClamp Data;
     public NodeActGcsClamp(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_GcsClamp(action);
+        Data = action is null ? new() : new Act_GcsClamp(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Enable", ref data.Clamp);
+        ImGui.Checkbox("Enable", ref Data.Clamp);
     }
 }

@@ -9,12 +9,12 @@ public sealed class NodeActCallThorn : BlueprintNode
 {
     protected override string Name => "Call Thorn";
 
-    private readonly Act_CallThorn data;
+    public readonly Act_CallThorn Data;
     public NodeActCallThorn(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_CallThorn(action);
+        Data = action is null ? new() : new Act_CallThorn(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

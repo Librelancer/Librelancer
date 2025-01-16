@@ -5,13 +5,15 @@ using LibreLancer;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class BlueprintNode : Node
 {
     protected virtual float NodeInnerWidth => 200f;
-    protected BlueprintNode(ref int id, VertexDiffuse? color = null) : base(id++, color)
+
+    protected BlueprintNode(ref int id, VertexDiffuse? color = null) : base(color)
     {
     }
 

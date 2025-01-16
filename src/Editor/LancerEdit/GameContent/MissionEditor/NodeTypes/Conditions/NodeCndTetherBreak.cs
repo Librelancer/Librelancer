@@ -19,16 +19,16 @@ public class NodeCndTetherBreak : BlueprintNode
 
     public NodeCndTetherBreak(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 4)
+        if (entry?.Count >= 4)
         {
             sourceShip = entry[0].ToString()!;
             destShip = entry[1].ToString();
             distance = entry[2].ToSingle();
             count = entry[3].ToInt32();
-            unknown = entry.Count >= 5 ? entry[4].ToSingle() : 0.0f;
+            unknown = entry?.Count >= 5 ? entry[4].ToSingle() : 0.0f;
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

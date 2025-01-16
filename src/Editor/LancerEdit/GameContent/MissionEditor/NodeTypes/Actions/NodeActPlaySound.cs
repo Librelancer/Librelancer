@@ -9,16 +9,16 @@ public sealed class NodeActPlaySound : BlueprintNode
 {
     protected override string Name => "Play sound";
 
-    private readonly Act_PlaySoundEffect data;
+    public readonly Act_PlaySoundEffect Data;
     public NodeActPlaySound(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PlaySoundEffect(action);
+        Data = action is null ? new() : new Act_PlaySoundEffect(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Sound Id", ref data.Effect);
+        Controls.InputTextId("Sound Id", ref Data.Effect);
     }
 }

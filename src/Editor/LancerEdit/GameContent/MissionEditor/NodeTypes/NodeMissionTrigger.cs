@@ -13,11 +13,11 @@ public sealed class NodeMissionTrigger : BlueprintNode
     public readonly MissionTrigger Data;
     public NodeMissionTrigger(ref int id, MissionTrigger data) : base(ref id, NodeColours.Trigger)
     {
-        this.Data = data;
+        this.Data = data ?? new MissionTrigger();
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Trigger, PinKind.Input));
-        Outputs.Add(new NodePin(id++,  this, LinkType.Action, PinKind.Output));
-        Outputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Output));
+        Inputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Input));
+        Outputs.Add(new NodePin(this, LinkType.Action, PinKind.Output));
+        Outputs.Add(new NodePin(this, LinkType.Condition, PinKind.Output));
     }
 
     private readonly string[] initStateOptions = Enum.GetNames<TriggerInitState>();

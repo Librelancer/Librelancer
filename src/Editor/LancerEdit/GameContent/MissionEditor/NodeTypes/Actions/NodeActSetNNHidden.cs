@@ -10,17 +10,17 @@ public sealed class NodeActSetNNHidden : BlueprintNode
 {
     protected override string Name => "Set NN Hidden";
 
-    private readonly Act_SetNNHidden data;
+    public readonly Act_SetNNHidden Data;
     public NodeActSetNNHidden(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetNNHidden(action);
+        Data = action is null ? new() : new Act_SetNNHidden(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Objective", ref data.Objective);
-        ImGui.Checkbox("Hidden", ref data.Hide);
+        Controls.InputTextId("Objective", ref Data.Objective);
+        ImGui.Checkbox("Hidden", ref Data.Hide);
     }
 }

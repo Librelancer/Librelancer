@@ -9,16 +9,16 @@ public sealed class NodeActDisableEncounter : BlueprintNode
 {
     protected override string Name => "Disable Encounter";
 
-    private readonly Act_DisableEnc data;
+    public readonly Act_DisableEnc Data;
     public NodeActDisableEncounter(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_DisableEnc(action);
+        Data = action is null ? new() : new Act_DisableEnc(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Encounter", ref data.Encounter);
+        Controls.InputTextId("Encounter", ref Data.Encounter);
     }
 }

@@ -90,8 +90,13 @@ namespace LibreLancer.Missions
 
     public class Act_EtherComm : ScriptedAction
     {
-        public string Voice;
-        public string Line;
+        public string Voice = string.Empty;
+        public string Line = string.Empty;
+
+        public Act_EtherComm()
+        {
+        }
+
         public Act_EtherComm(MissionAction act) : base(act)
         {
             Voice = act.Entry[0].ToString();

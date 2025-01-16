@@ -10,23 +10,23 @@ public sealed class NodeActPlayMusic : BlueprintNode
 {
     protected override string Name => "Play Music";
 
-    private readonly Act_PlayMusic data;
+    public readonly Act_PlayMusic Data;
     public NodeActPlayMusic(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PlayMusic(action);
+        Data = action is null ? new() : new Act_PlayMusic(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Music Id", ref data.Music);
+        Controls.InputTextId("Music Id", ref Data.Music);
         ImGui.SameLine();
         if (ImGui.Button("Clear"))
         {
-            data.Music = "none";
+            Data.Music = "none";
         }
 
-        ImGui.InputFloat("Fade", ref data.Fade);
+        ImGui.InputFloat("Fade", ref Data.Fade);
     }
 }

@@ -10,16 +10,16 @@ public sealed class NodeActRPopClamp : BlueprintNode
 {
     protected override string Name => "Toggle Random Pop Clamp";
 
-    private readonly Act_RpopAttClamp data;
+    public readonly Act_RpopAttClamp Data;
     public NodeActRPopClamp(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RpopAttClamp(action);
+        Data = action is null ? new() : new Act_RpopAttClamp(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Enable", ref data.Enabled);
+        ImGui.Checkbox("Enable", ref Data.Enabled);
     }
 }

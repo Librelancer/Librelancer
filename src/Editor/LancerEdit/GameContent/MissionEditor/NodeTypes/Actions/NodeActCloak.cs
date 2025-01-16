@@ -10,17 +10,17 @@ public sealed class NodeActCloak : BlueprintNode
 {
     protected override string Name => "Act Cloak";
 
-    private readonly Act_Cloak data;
+    public readonly Act_Cloak Data;
     public NodeActCloak(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_Cloak(action);
+        Data = action is null ? new() : new Act_Cloak(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref data.Target);
-        ImGui.Checkbox("Cloak", ref data.Cloaked);
+        Controls.InputTextId("Target", ref Data.Target);
+        ImGui.Checkbox("Cloak", ref Data.Cloaked);
     }
 }

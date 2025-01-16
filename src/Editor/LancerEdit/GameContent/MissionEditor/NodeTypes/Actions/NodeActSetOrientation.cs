@@ -9,17 +9,17 @@ public sealed class NodeActSetOrientation : BlueprintNode
 {
     protected override string Name => "Set Orientation";
 
-    private readonly Act_SetOrient data;
+    public readonly Act_SetOrient Data;
     public NodeActSetOrientation(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetOrient(action);
+        Data = action is null ? new() : new Act_SetOrient(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref data.Target);
-        Controls.InputFlQuaternion("Target", ref data.Orientation);
+        Controls.InputTextId("Target", ref Data.Target);
+        Controls.InputFlQuaternion("Target", ref Data.Orientation);
     }
 }

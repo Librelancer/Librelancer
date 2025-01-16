@@ -9,16 +9,16 @@ public sealed class NodeActNagOff : BlueprintNode
 {
     protected override string Name => "Disable Nag";
 
-    private readonly Act_NagOff data;
+    public readonly Act_NagOff Data;
     public NodeActNagOff(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_NagOff(action);
+        Data = action is null ? new() : new Act_NagOff(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Nag", ref data.Nag);
+        Controls.InputTextId("Nag", ref Data.Nag);
     }
 }

@@ -9,16 +9,16 @@ public sealed class NodeActAddRtc : BlueprintNode
 {
     protected override string Name => "Add Real-Time Cutscene";
 
-    private readonly Act_AddRTC data;
+    public readonly Act_AddRTC Data;
     public NodeActAddRtc(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_AddRTC(action);
+        Data = action is null ? new() : new Act_AddRTC(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("RTC", ref data.RTC);
+        Controls.InputTextId("RTC", ref Data.RTC);
     }
 }

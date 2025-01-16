@@ -10,17 +10,17 @@ public sealed class NodeActStaticCamera : BlueprintNode
 {
     protected override string Name => "Set Static Camera";
 
-    private readonly Act_StaticCam data;
+    public readonly Act_StaticCam Data;
     public NodeActStaticCamera(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_StaticCam(action);
+        Data = action is null ? new() : new Act_StaticCam(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.InputFloat3("Position", ref data.Position);
-        Controls.InputFlQuaternion("Orientation", ref data.Orientation);
+        ImGui.InputFloat3("Position", ref Data.Position);
+        Controls.InputFlQuaternion("Orientation", ref Data.Orientation);
     }
 }

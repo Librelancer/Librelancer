@@ -9,16 +9,16 @@ public sealed class NodeActDockRequest : BlueprintNode
 {
     protected override string Name => "Start Dock Request with Object";
 
-    private readonly Act_DockRequest data;
+    public readonly Act_DockRequest Data;
     public NodeActDockRequest(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_DockRequest(action);
+        Data = action is null ? new() : new Act_DockRequest(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Object", ref data.Object);
+        Controls.InputTextId("Object", ref Data.Object);
     }
 }

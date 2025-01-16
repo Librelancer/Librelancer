@@ -10,17 +10,17 @@ public sealed class NodeActNagGreet : BlueprintNode
 {
     protected override string Name => "Nag Greet";
 
-    private readonly Act_NagGreet data;
+    public readonly Act_NagGreet Data;
     public NodeActNagGreet(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_NagGreet(action);
+        Data = action is null ? new() : new Act_NagGreet(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Source", ref data.Source);
-        Controls.InputTextId("Target", ref data.Target);
+        Controls.InputTextId("Source", ref Data.Source);
+        Controls.InputTextId("Target", ref Data.Target);
     }
 }

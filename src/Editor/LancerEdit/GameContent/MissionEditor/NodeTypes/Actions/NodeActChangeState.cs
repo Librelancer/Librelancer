@@ -10,16 +10,16 @@ public sealed class NodeActChangeState : BlueprintNode
 {
     protected override string Name => "Change State";
 
-    private readonly Act_ChangeState data;
+    public readonly Act_ChangeState Data;
     public NodeActChangeState(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_ChangeState(action);
+        Data = action is null ? new() : new Act_ChangeState(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Success", ref data.Succeed);
+        ImGui.Checkbox("Success", ref Data.Succeed);
     }
 }

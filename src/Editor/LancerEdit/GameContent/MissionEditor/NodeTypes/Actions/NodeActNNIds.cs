@@ -10,16 +10,16 @@ public sealed class NodeActNNIds : BlueprintNode
 {
     protected override string Name => "Add IDS To NN Log";
 
-    private readonly Act_NNIds data;
+    public readonly Act_NNIds Data;
     public NodeActNNIds(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_NNIds(action);
+        Data = action is null ? new() : new Act_NNIds(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.IdsInputString("IDS", gameData, popup, ref data.Ids, (ids) => data.Ids = ids);
+        Controls.IdsInputString("IDS", gameData, popup, ref Data.Ids, (ids) => Data.Ids = ids);
     }
 }

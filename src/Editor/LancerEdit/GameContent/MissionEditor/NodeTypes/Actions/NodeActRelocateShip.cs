@@ -10,18 +10,18 @@ public sealed class NodeActRelocateShip : BlueprintNode
 {
     protected override string Name => "Set Initial Player Position";
 
-    private readonly Act_RelocateShip data;
+    public readonly Act_RelocateShip Data;
     public NodeActRelocateShip(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RelocateShip(action);
+        Data = action is null ? new() : new Act_RelocateShip(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.InputFloat3("Position", ref data.Position);
+        ImGui.InputFloat3("Position", ref Data.Position);
         // TODO: Orientation can be null?
-        // Controls.InputFlQuaternion("Orientation", ref data.Orientation);
+        // Controls.InputFlQuaternion("Orientation", ref Data.Orientation);
     }
 }

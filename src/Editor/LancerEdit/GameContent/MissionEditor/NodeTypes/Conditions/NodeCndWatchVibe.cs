@@ -32,9 +32,14 @@ public class NodeCndWatchVibe : BlueprintNode
         "gte"
     };
 
+    public NodeCndWatchVibe(ref int id) : base(ref id, NodeColours.Condition)
+    {
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
+    }
+
     public NodeCndWatchVibe(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 4)
+        if (entry?.Count >= 4)
         {
             sourceObject = entry[0].ToString();
             targetObject = entry[1].ToString();
@@ -47,8 +52,7 @@ public class NodeCndWatchVibe : BlueprintNode
             }
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
-        Outputs.Add(new NodePin(id++, this, LinkType.Trigger, PinKind.Output));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

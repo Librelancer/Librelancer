@@ -9,16 +9,16 @@ public sealed class NodeActForceLand : BlueprintNode
 {
     protected override string Name => "Force Land";
 
-    private readonly Act_ForceLand data;
+    public readonly Act_ForceLand Data;
     public NodeActForceLand(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_ForceLand(action);
+        Data = action is null ? new() : new Act_ForceLand(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Base", ref data.Base);
+        Controls.InputTextId("Base", ref Data.Base);
     }
 }

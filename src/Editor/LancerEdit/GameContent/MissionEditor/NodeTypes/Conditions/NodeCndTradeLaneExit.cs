@@ -17,18 +17,18 @@ public class NodeCndTradeLaneExit : BlueprintNode
 
     public NodeCndTradeLaneExit(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 2)
+        if (entry?.Count >= 2)
         {
             source = entry[0].ToString();
             startRing = entry[1].ToString();
 
-            if (entry.Count >= 3)
+            if (entry?.Count >= 3)
             {
                 nextRing = entry[2].ToString();
             }
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

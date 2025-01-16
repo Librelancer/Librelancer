@@ -201,10 +201,14 @@ namespace LibreLancer.Missions
 
     public class Act_SpawnShip : ShipSpawnBase
     {
-        public string Ship;
-        public string ObjList;
+        public string Ship = string.Empty;
+        public string ObjList = string.Empty;
         public Vector3? Position;
         public Quaternion? Orientation;
+
+        public Act_SpawnShip()
+        {
+        }
 
         public Act_SpawnShip(MissionAction act) : base(act)
         {
@@ -232,7 +236,12 @@ namespace LibreLancer.Missions
 
     public class Act_Destroy : ScriptedAction
     {
-        public string Target;
+        public string Target = string.Empty;
+
+        public Act_Destroy()
+        {
+
+        }
 
         public Act_Destroy(MissionAction act) : base(act)
         {

@@ -9,17 +9,17 @@ public sealed class NodeActSpawnFormation : BlueprintNode
 {
     protected override string Name => "Spawn Formation";
 
-    private readonly Act_SpawnFormation data;
+    public readonly Act_SpawnFormation Data;
     public NodeActSpawnFormation(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SpawnFormation(action);
+        Data = action is null ? new() : new Act_SpawnFormation(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Formation", ref data.Formation);
-        // ImGui.InputFloat3("Position", ref data.Position); // TODO: Handle null position on formation
+        Controls.InputTextId("Formation", ref Data.Formation);
+        // ImGui.InputFloat3("Position", ref Data.Position); // TODO: Handle null position on formation
     }
 }

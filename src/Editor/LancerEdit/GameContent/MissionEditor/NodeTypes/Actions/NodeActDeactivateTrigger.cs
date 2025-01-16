@@ -13,16 +13,18 @@ public sealed class NodeActDeactivateTrigger : BlueprintNode
     public readonly Act_DeactTrig Data;
     public NodeActDeactivateTrigger(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        Data = new Act_DeactTrig(action);
+        Data = action is null ? new() : new Act_DeactTrig(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
-        Outputs.Add(new NodePin(id++, this, LinkType.Trigger, PinKind.Output, linkCapacity: 1));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
+        Outputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Output, linkCapacity: 1));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
+        var text = string.IsNullOrWhiteSpace(Data.Trigger) ? "No Trigger" : Data.Trigger;
+
         ImGui.BeginDisabled();
-        Controls.InputTextId("Trigger", ref Data.Trigger);
+        Controls.InputTextId("Trigger", ref text);
         ImGui.EndDisabled();
     }
 
@@ -31,6 +33,14 @@ public sealed class NodeActDeactivateTrigger : BlueprintNode
         if (link.StartPin.OwnerNode == this)
         {
             Data.Trigger = (link.EndPin.OwnerNode as NodeMissionTrigger)!.Data.Nickname;
+        }
+    }
+
+    public override void OnLinkRemoved(NodeLink link)
+    {
+        if (link.EndPin.OwnerNode == this)
+        {
+            Data.Trigger = string.Empty;
         }
     }
 }

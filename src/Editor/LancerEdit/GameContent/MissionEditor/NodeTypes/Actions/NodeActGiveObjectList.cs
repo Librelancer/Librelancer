@@ -9,17 +9,17 @@ public sealed class NodeActGiveObjectList : BlueprintNode
 {
     protected override string Name => "Give Object List";
 
-    private readonly Act_GiveObjList data;
+    public readonly Act_GiveObjList Data;
     public NodeActGiveObjectList(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_GiveObjList(action);
+        Data = action is null ? new() : new Act_GiveObjList(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("List", ref data.List);
-        Controls.InputTextId("Target", ref data.Target);
+        Controls.InputTextId("List", ref Data.List);
+        Controls.InputTextId("Target", ref Data.Target);
     }
 }

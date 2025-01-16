@@ -9,16 +9,16 @@ public sealed class NodeActSpawnLoot : BlueprintNode
 {
     protected override string Name => "Spawn Loot";
 
-    private readonly Act_SpawnLoot data;
+    public readonly Act_SpawnLoot Data;
     public NodeActSpawnLoot(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SpawnLoot(action);
+        Data = action is null ? new() : new Act_SpawnLoot(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Loot", ref data.Loot);
+        Controls.InputTextId("Loot", ref Data.Loot);
     }
 }

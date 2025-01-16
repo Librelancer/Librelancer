@@ -10,16 +10,16 @@ public sealed class NodeActLockManeuvers : BlueprintNode
 {
     protected override string Name => "Lock Maneuvers";
 
-    private readonly Act_LockManeuvers data;
+    public readonly Act_LockManeuvers Data;
     public NodeActLockManeuvers(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_LockManeuvers(action);
+        Data = action is null ? new() : new Act_LockManeuvers(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Lock", ref data.Lock);
+        ImGui.Checkbox("Lock", ref Data.Lock);
     }
 }

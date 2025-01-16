@@ -10,16 +10,16 @@ public sealed class NodeActSetVibeOfferBaseHack : BlueprintNode
 {
     protected override string Name => "Set Base To Friendly";
 
-    private readonly Act_SetVibeOfferBaseHack data;
+    public readonly Act_SetVibeOfferBaseHack Data;
     public NodeActSetVibeOfferBaseHack(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetVibeOfferBaseHack(action);
+        Data = action is null ? new() : new Act_SetVibeOfferBaseHack(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Base", ref data.Id);
+        Controls.InputTextId("Base", ref Data.Id);
     }
 }

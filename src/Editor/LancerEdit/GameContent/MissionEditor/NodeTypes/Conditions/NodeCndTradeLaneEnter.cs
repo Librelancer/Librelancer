@@ -16,14 +16,14 @@ public class NodeCndTradeLaneEnter : BlueprintNode
 
     public NodeCndTradeLaneEnter(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry.Count >= 3)
+        if (entry?.Count >= 3)
         {
             source = entry[0].ToString();
             startRing = entry[1].ToString();
             nextRing = entry[2].ToString();
         }
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

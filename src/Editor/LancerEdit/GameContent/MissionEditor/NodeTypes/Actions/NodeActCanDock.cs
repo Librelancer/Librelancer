@@ -10,17 +10,17 @@ public sealed class NodeActCanDock : BlueprintNode
 {
     protected override string Name => "Toggle Player Docking Ability";
 
-    private readonly Act_PlayerCanDock data;
+    public readonly Act_PlayerCanDock Data;
     public NodeActCanDock(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PlayerCanDock(action);
+        Data = action is null ? new() : new Act_PlayerCanDock(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Can Dock", ref data.CanDock);
-        Controls.InputStringList("Exceptions", data.Exceptions);
+        ImGui.Checkbox("Can Dock", ref Data.CanDock);
+        Controls.InputStringList("Exceptions", Data.Exceptions);
     }
 }

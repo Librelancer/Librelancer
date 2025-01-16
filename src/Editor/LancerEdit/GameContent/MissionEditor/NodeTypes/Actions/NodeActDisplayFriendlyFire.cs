@@ -9,16 +9,16 @@ public sealed class NodeActDisableFriendlyFire : BlueprintNode
 {
     protected override string Name => "Disable Friendly Fire";
 
-    private readonly Act_DisableFriendlyFire data;
+    public readonly Act_DisableFriendlyFire Data;
     public NodeActDisableFriendlyFire(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_DisableFriendlyFire(action);
+        Data = action is null ? new() : new Act_DisableFriendlyFire(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputStringList("Objects & Labels", data.ObjectsAndLabels);
+        Controls.InputStringList("Objects & Labels", Data.ObjectsAndLabels);
     }
 }

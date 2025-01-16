@@ -10,20 +10,20 @@ public sealed class NodeActSpawnShip : BlueprintNode
     protected override string Name => "Spawn Ship";
     protected override float NodeInnerWidth => 320;
 
-    private readonly Act_SpawnShip data;
+    public readonly Act_SpawnShip Data;
     public NodeActSpawnShip(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SpawnShip(action);
+        Data = action is null ? new() : new Act_SpawnShip(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Ship", ref data.Ship);
-        Controls.InputTextId("Object List", ref data.ObjList);
+        Controls.InputTextId("Ship", ref Data.Ship);
+        Controls.InputTextId("Object List", ref Data.ObjList);
         // TODO: Handle null values for pos and orient
-        Controls.InputVec3Nullable("Position", ref data.Position);
-        Controls.InputFlQuaternionNullable("Orientation", ref data.Orientation);
+        Controls.InputVec3Nullable("Position", ref Data.Position);
+        Controls.InputFlQuaternionNullable("Orientation", ref Data.Orientation);
     }
 }

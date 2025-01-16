@@ -9,12 +9,12 @@ public sealed class NodeActRevertCamera : BlueprintNode
 {
     protected override string Name => "Revert Camera";
 
-    private readonly Act_RevertCam data;
+    public readonly Act_RevertCam Data;
     public NodeActRevertCamera(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RevertCam(action);
+        Data = action is null ? new() : new Act_RevertCam(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

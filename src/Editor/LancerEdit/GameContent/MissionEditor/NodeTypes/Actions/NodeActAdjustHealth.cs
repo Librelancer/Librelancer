@@ -10,17 +10,17 @@ public sealed class NodeActAdjustHealth : BlueprintNode
 {
     protected override string Name => "Adjust Health";
 
-    private readonly Act_AdjHealth data;
+    public readonly Act_AdjHealth Data;
     public NodeActAdjustHealth(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_AdjHealth(action);
+        Data = action is null ? new Act_AdjHealth() : new Act_AdjHealth(action);;
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref data.Target);
-        ImGui.SliderFloat("Health", ref data.Adjustment, -1f, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputTextId("Target", ref Data.Target);
+        ImGui.SliderFloat("Health", ref Data.Adjustment, -1f, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
     }
 }

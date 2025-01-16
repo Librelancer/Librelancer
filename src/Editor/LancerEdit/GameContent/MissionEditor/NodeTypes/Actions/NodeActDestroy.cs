@@ -9,16 +9,16 @@ public sealed class NodeActDestroy : BlueprintNode
 {
     protected override string Name => "Destroy";
 
-    private readonly Act_Destroy data;
+    public readonly Act_Destroy Data;
     public NodeActDestroy(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_Destroy(action);
+        Data = action is null ? new() : new Act_Destroy(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref data.Target);
+        Controls.InputTextId("Target", ref Data.Target);
     }
 }

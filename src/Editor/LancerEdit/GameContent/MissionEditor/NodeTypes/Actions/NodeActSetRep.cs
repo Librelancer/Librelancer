@@ -12,23 +12,23 @@ public sealed class NodeActSetRep : BlueprintNode
 {
     protected override string Name => "Set Reputation";
 
-    private readonly Act_SetRep data;
+    public readonly Act_SetRep Data;
 
     public NodeActSetRep(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetRep(action);
+        Data = action is null ? new() : new Act_SetRep(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Object", ref data.Object);
-        Controls.InputTextId("Faction", ref data.Faction);
-        VibeComboBox(ref data.VibeSet);
+        Controls.InputTextId("Object", ref Data.Object);
+        Controls.InputTextId("Faction", ref Data.Faction);
+        VibeComboBox(ref Data.VibeSet);
 
-        ImGui.BeginDisabled(data.VibeSet != VibeSet.None);
-        ImGui.SliderFloat("Value", ref data.NewValue, -1, 1, "%.2f");
+        ImGui.BeginDisabled(Data.VibeSet != VibeSet.None);
+        ImGui.SliderFloat("Value", ref Data.NewValue, -1, 1, "%.2f");
         ImGui.EndDisabled();
     }
 

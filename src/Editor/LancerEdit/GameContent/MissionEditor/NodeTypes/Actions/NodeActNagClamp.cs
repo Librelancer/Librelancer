@@ -10,16 +10,16 @@ public sealed class NodeActNagClamp : BlueprintNode
 {
     protected override string Name => "Toggle Nag Clamp";
 
-    private readonly Act_NagClamp data;
+    public readonly Act_NagClamp Data;
     public NodeActNagClamp(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_NagClamp(action);
+        Data = action is null ? new() : new Act_NagClamp(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Enable", ref data.Clamp);
+        ImGui.Checkbox("Enable", ref Data.Clamp);
     }
 }

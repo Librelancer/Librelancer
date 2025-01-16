@@ -9,12 +9,12 @@ public sealed class NodeActPObjectIdle : BlueprintNode
 {
     protected override string Name => "PObject Idle";
 
-    private readonly Act_PobjIdle data;
+    public readonly Act_PobjIdle Data;
     public NodeActPObjectIdle(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_PobjIdle(action);
+        Data = action is null ? new() : new Act_PobjIdle(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

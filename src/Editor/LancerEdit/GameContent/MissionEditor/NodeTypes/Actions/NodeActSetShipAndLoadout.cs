@@ -9,17 +9,17 @@ public sealed class NodeActSetShipAndLoadout : BlueprintNode
 {
     protected override string Name => "Set Ship and Loadout";
 
-    private readonly Act_SetShipAndLoadout data;
+    public readonly Act_SetShipAndLoadout Data;
     public NodeActSetShipAndLoadout(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SetShipAndLoadout(action);
+        Data = action is null ? new() : new Act_SetShipAndLoadout(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Ship", ref data.Ship);
-        Controls.InputTextId("Loadout", ref data.Loadout);
+        Controls.InputTextId("Ship", ref Data.Ship);
+        Controls.InputTextId("Loadout", ref Data.Loadout);
     }
 }

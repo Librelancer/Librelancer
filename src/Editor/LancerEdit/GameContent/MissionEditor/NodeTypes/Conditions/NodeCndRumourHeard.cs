@@ -15,7 +15,7 @@ public class NodeCndRumourHeard : BlueprintNode
     private bool hasHeardRumour;
     public NodeCndRumourHeard(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        Inputs.Add(new NodePin(id++, this, LinkType.Condition, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)

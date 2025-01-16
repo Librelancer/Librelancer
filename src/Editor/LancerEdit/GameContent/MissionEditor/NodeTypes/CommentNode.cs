@@ -7,7 +7,7 @@ using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public class CommentNode(int id) : Node(id)
+public class CommentNode(int id) : Node()
 {
     public Vector2 Size = new(100, 100);
     private string previousName;

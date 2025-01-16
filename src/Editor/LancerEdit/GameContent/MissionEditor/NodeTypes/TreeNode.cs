@@ -7,7 +7,7 @@ using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public abstract class TreeNode(int id) : Node(id)
+public abstract class TreeNode(int id) : Node()
 {
     protected abstract void RenderContent(GameDataContext gameData, MissionIni missionIni);
 

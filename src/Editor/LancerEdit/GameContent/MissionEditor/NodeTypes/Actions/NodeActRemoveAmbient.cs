@@ -9,16 +9,16 @@ public sealed class NodeActRemoveAmbient : BlueprintNode
 {
     protected override string Name => "Remove Ambient";
 
-    private readonly Act_RemoveAmbient data;
+    public readonly Act_RemoveAmbient Data;
     public NodeActRemoveAmbient(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_RemoveAmbient(action);
+        Data = action is null ? new() : new Act_RemoveAmbient(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Script", ref data.Script);
+        Controls.InputTextId("Script", ref Data.Script);
     }
 }

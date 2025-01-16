@@ -10,16 +10,16 @@ public sealed class NodeActInvulnerable : BlueprintNode
 {
     protected override string Name => "Set Invulnerable";
 
-    private readonly Act_Invulnerable data;
+    public readonly Act_Invulnerable Data;
     public NodeActInvulnerable(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_Invulnerable(action);
+        Data = action is null ? new() : new Act_Invulnerable(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Is Invulnerable", ref data.Invulnerable);
+        ImGui.Checkbox("Is Invulnerable", ref Data.Invulnerable);
     }
 }

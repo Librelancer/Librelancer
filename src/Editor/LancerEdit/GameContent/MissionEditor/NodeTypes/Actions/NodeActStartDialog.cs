@@ -9,16 +9,16 @@ public sealed class NodeActStartDialog : BlueprintNode
 {
     protected override string Name => "Start Dialog";
 
-    private readonly Act_StartDialog data;
+    public readonly Act_StartDialog Data;
     public NodeActStartDialog(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_StartDialog(action);
+        Data = action is null ? new() : new Act_StartDialog(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Dialog", ref data.Dialog);
+        Controls.InputTextId("Dialog", ref Data.Dialog);
     }
 }

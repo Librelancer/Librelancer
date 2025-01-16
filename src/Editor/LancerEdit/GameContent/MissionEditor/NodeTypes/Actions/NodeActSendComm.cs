@@ -9,18 +9,18 @@ public sealed class NodeActSendComm : BlueprintNode
 {
     protected override string Name => "Send Comm";
 
-    private readonly Act_SendComm data;
+    public readonly Act_SendComm Data;
     public NodeActSendComm(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_SendComm(action);
+        Data = action is null ? new() : new Act_SendComm(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        Controls.InputTextId("Source", ref data.Source);
-        Controls.InputTextId("Destination", ref data.Destination);
-        Controls.InputTextId("Line", ref data.Line);
+        Controls.InputTextId("Source", ref Data.Source);
+        Controls.InputTextId("Destination", ref Data.Destination);
+        Controls.InputTextId("Line", ref Data.Line);
     }
 }

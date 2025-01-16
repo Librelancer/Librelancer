@@ -487,7 +487,11 @@ namespace LibreLancer.Missions
 
     public class Act_DisableTradelane : ScriptedAction
     {
-        public string Tradelane;
+        public string Tradelane = string.Empty;
+
+        public Act_DisableTradelane()
+        {
+        }
 
         public Act_DisableTradelane(MissionAction act) : base(act)
         {

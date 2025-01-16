@@ -10,16 +10,16 @@ public sealed class NodeActHostileClamp : BlueprintNode
 {
     protected override string Name => "Toggle Hostile Clamp";
 
-    private readonly Act_HostileClamp data;
+    public readonly Act_HostileClamp Data;
     public NodeActHostileClamp(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
-        data = new Act_HostileClamp(action);
+        Data = action is null ? new() : new Act_HostileClamp(action);
 
-        Inputs.Add(new NodePin(id++, this, LinkType.Action, PinKind.Input));
+        Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
-        ImGui.Checkbox("Enable", ref data.Enabled);
+        ImGui.Checkbox("Enable", ref Data.Enabled);
     }
 }
