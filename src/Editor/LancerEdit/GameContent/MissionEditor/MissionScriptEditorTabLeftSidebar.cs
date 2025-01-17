@@ -19,6 +19,11 @@ public sealed partial class MissionScriptEditorTab
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoCollapse);
 
+        if (ImGui.Button("Save Changes"))
+        {
+            SaveMission();
+        }
+
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
         if (ImGui.CollapsingHeader("Mission Information", ImGuiTreeNodeFlags.DefaultOpen))
         {

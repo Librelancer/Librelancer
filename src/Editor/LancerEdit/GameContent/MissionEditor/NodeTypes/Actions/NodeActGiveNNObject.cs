@@ -12,7 +12,7 @@ public sealed class NodeActGiveNNObjectives : TriggerEntryNode
 {
     protected override string Name => "Give NN Objectives";
 
-    public Act_GiveNNObjs Data;
+    public Act_GiveNNObjs Data = new();
     public NodeActGiveNNObjectives(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
     {
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));

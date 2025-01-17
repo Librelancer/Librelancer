@@ -41,7 +41,31 @@ public sealed class NodeMissionTrigger : BlueprintNode
     {
         var s = builder.Section("Trigger");
 
-        var actions = missionEditor.GetLinkedNodes(this, PinKind.Output, LinkType.Action);
-        var conditions = missionEditor.GetLinkedNodes(this, PinKind.Output, LinkType.Condition);
+        var actions = missionEditor.GetLinkedNodes(this, PinKind.Output, LinkType.Action).OfType<TriggerEntryNode>().ToArray();
+        var conditions = missionEditor.GetLinkedNodes(this, PinKind.Output, LinkType.Condition).OfType<TriggerEntryNode>().ToArray();
+
+        if (string.IsNullOrWhiteSpace(Data.Nickname))
+        {
+            return;
+        }
+
+        s.Entry("nickname", Data.Nickname);
+        s.Entry("InitState", Data.InitState.ToString());
+        if (Data.System != string.Empty)
+        {
+            s.Entry("system", Data.System);
+        }
+
+        s.Entry("repeatable", Data.Repeatable);
+
+        foreach (var condition in conditions)
+        {
+            condition.WriteEntry(s);
+        }
+
+        foreach (var action in actions)
+        {
+            action.WriteEntry(s);
+        }
     }
 }

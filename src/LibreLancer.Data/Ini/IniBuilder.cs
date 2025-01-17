@@ -35,6 +35,7 @@ public class IniBuilder
                 e.Add(new StringValue(value));
                 Section.Add(e);
             }
+
             return this;
         }
 
@@ -53,6 +54,7 @@ public class IniBuilder
                 e.Add(new Int32Value(value));
                 Section.Add(e);
             }
+
             return this;
         }
 
@@ -64,6 +66,7 @@ public class IniBuilder
                 e.Add(new Int32Value((int)value));
                 Section.Add(e);
             }
+
             return this;
         }
 
@@ -76,6 +79,7 @@ public class IniBuilder
                 e.Add(new SingleValue(value, null));
                 Section.Add(e);
             }
+
             return this;
         }
 
@@ -87,6 +91,7 @@ public class IniBuilder
                 e.Add(new BooleanValue(value));
                 Section.Add(e);
             }
+
             return this;
         }
 
@@ -115,10 +120,13 @@ public class IniBuilder
         public IniSectionBuilder Entry(string name, Vector3 value)
             => Entry(name, value.X, value.Y, value.Z);
 
+        public IniSectionBuilder Entry(string name, Quaternion value) =>
+            Entry(name, value.W, value.X, value.Y, value.Z);
+
         public IniSectionBuilder Entry(string name, IEnumerable<string> values)
         {
             var e = new Entry(Section, name);
-            foreach(var v in values)
+            foreach (var v in values)
                 e.Add(new StringValue(v));
             Section.Add(e);
             return this;
@@ -140,6 +148,7 @@ public class IniBuilder
                 foreach (var v in values)
                     e.Add(v);
             }
+
             Section.Add(e);
             return this;
         }

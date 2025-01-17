@@ -24,7 +24,7 @@ public sealed class NodeActPopupDialog : TriggerEntryNode
     {
         Controls.InputTextId("Sound Id", ref Data.ID);
         Controls.IdsInputString("Title IDS", gameData, popup, ref Data.Title, (ids) => Data.Title = ids);
-        Controls.IdsInputInfocard("Contents IDS", gameData, popup, ref Data.Contents, (ids) => Data.Title = ids);
+        Controls.IdsInputString("Contents IDS", gameData, popup, ref Data.Contents, (ids) => Data.Title = ids);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

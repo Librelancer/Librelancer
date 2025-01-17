@@ -11,6 +11,7 @@ using LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 using LancerEdit.GameContent.MissionEditor.Popups;
 using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -421,6 +422,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         {
             var node = new NodeMissionTrigger(ref nextId, null);
             nodes.Add(node);
+            triggers.Add(node);
             nodeRelocationQueue.Enqueue((node.Id, position));
         }
 
@@ -677,5 +679,63 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         context.Dispose();
         config.Dispose();
         base.Dispose();
+    }
+
+    private void SaveMission(string filename = null)
+    {
+        IniBuilder ini = new();
+
+        ini.Section("Mission")
+            .Entry("mission_title", missionIni.Info.MissionTitle)
+            .Entry("mission_offer", missionIni.Info.MissionOffer)
+            .Entry("reward", missionIni.Info.Reward)
+            .Entry("npc_ship_file", missionIni.Info.NpcShipFile);
+
+        foreach (var npc in missionIni.NPCs)
+        {
+            IniSerializer.SerializeMissionNpc(npc, ini);
+        }
+
+        foreach (var objective in missionIni.Objectives)
+        {
+            IniSerializer.SerializeMissionObjective(objective, ini);
+        }
+
+        foreach (var loot in missionIni.Loots)
+        {
+            IniSerializer.SerializeMissionLoot(loot, ini);
+        }
+
+        foreach (var dialog in missionIni.Dialogs)
+        {
+            IniSerializer.SerializeMissionDialog(dialog, ini);
+        }
+
+        foreach (var objectiveList in missionIni.ObjLists)
+        {
+            IniSerializer.SerializeMissionObjectiveList(objectiveList, ini);
+        }
+
+        foreach (var solar in missionIni.Solars)
+        {
+            IniSerializer.SerializeMissionSolar(solar, ini);
+        }
+
+        foreach (var ship in missionIni.Ships)
+        {
+            IniSerializer.SerializeMissionShip(ship, ini);
+        }
+
+        foreach (var formation in missionIni.Formations)
+        {
+            IniSerializer.SerializeMissionFormation(formation, ini);
+        }
+
+        foreach (var trigger in triggers)
+        {
+            trigger.WriteNode(this, ini);
+        }
+
+        IniWriter.WriteIniFile("/mnt/ssd3/Freelancer/DATA/MISSIONS/M02/M02_new.ini", ini.Sections);
     }
 }
