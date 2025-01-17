@@ -17,7 +17,8 @@ public abstract class BlueprintNode : Node
     {
     }
 
-    protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni);
+    protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni);
 
     public sealed override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
@@ -63,7 +64,7 @@ public abstract class BlueprintNode : Node
 
         StartFixed();
 
-        RenderContent(gameData, popup, missionIni);
+        RenderContent(gameData, popup, ref nb.Popups, missionIni);
 
         EndNodeLayout();
 

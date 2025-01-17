@@ -25,7 +25,8 @@ public class NodeCndLootAcquired : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("Source Ship", ref sourceShip);
         Controls.InputTextId("Target", ref target);

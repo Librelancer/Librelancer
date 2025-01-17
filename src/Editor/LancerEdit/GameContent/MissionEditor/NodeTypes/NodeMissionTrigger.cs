@@ -21,14 +21,15 @@ public sealed class NodeMissionTrigger : BlueprintNode
     }
 
     private readonly string[] initStateOptions = Enum.GetNames<TriggerInitState>();
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("ID", ref Data.Nickname);
         Controls.InputTextId("System", ref Data.System);
         ImGui.Checkbox("Repeatable", ref Data.Repeatable);
 
         var index = (int)Data.InitState;
-        ImGui.Combo("Initial State", ref index, initStateOptions, initStateOptions.Length);
+        nodePopups.Combo("Initial State", index, i => index = i, initStateOptions);
         Data.InitState = (TriggerInitState)index;
     }
 }

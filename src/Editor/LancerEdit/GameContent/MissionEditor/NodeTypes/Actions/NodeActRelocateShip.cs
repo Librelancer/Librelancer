@@ -18,7 +18,8 @@ public sealed class NodeActRelocateShip : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         ImGui.InputFloat3("Position", ref Data.Position);
         // TODO: Orientation can be null?

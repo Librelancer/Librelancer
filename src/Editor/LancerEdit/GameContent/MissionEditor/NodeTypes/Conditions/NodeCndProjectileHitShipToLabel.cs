@@ -30,7 +30,8 @@ public class NodeCndProjectileHitShipToLabel : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("Source Label", ref source);
         Controls.InputTextId("Target", ref target);

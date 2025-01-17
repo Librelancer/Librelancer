@@ -18,9 +18,10 @@ public sealed class NodeActSetVibeShipToLabel : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
-        NodeActSetVibe.VibeComboBox(ref Data.Vibe);
+        NodeActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
         Controls.InputTextId("Ship", ref Data.Ship);
         Controls.InputTextId("Label", ref Data.Label);
     }

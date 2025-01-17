@@ -19,7 +19,8 @@ public sealed class NodeActPlayerEnemyClamp : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         ImGui.InputInt("Min", ref Data.Min, 1, 10);
         ImGui.InputInt("Max", ref Data.Max, 1, 10);

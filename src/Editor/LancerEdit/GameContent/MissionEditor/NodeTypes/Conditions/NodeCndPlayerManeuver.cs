@@ -30,11 +30,11 @@ public class NodeCndPlayerManeuver : BlueprintNode
     }
 
     private readonly string[] maneuverTypes = Enum.GetNames<ManeuverType>();
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         var index = (int)type;
-        ImGui.Combo("Maneuver", ref index, maneuverTypes, maneuverTypes.Length);
-        type = (ManeuverType)index;
+        nodePopups.Combo("Maneuver", index, i => type = (ManeuverType)i, maneuverTypes);
 
         // TODO: transform this into a combobox of different ships or a object depending on type
         Controls.InputTextId("Target", ref target);

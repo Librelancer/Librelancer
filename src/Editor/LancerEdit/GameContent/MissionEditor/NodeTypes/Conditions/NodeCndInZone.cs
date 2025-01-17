@@ -21,7 +21,8 @@ public class NodeCndInZone : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         ImGui.Checkbox("In Zone", ref inZone);
     }

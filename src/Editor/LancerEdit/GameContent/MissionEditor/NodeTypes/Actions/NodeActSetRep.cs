@@ -21,11 +21,12 @@ public sealed class NodeActSetRep : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("Object", ref Data.Object);
         Controls.InputTextId("Faction", ref Data.Faction);
-        VibeComboBox(ref Data.VibeSet);
+        VibeComboBox(ref Data.VibeSet, nodePopups);
 
         ImGui.BeginDisabled(Data.VibeSet != VibeSet.None);
         ImGui.SliderFloat("Value", ref Data.NewValue, -1, 1, "%.2f");
@@ -33,10 +34,10 @@ public sealed class NodeActSetRep : BlueprintNode
     }
 
     private static readonly string[] _vibeList = Enum.GetValues<VibeSet>().Select(x => x.ToString()).ToArray();
-    public static void VibeComboBox(ref VibeSet vibeSet)
+    public static void VibeComboBox(ref VibeSet vibeSet, NodePopups nodePopups)
     {
         var index = (int)vibeSet;
-        ImGui.Combo("Vibe", ref index, _vibeList, _vibeList.Length);
+        nodePopups.Combo("Vibe", index, i => index = i, _vibeList);
         vibeSet = (VibeSet)index;
     }
 }

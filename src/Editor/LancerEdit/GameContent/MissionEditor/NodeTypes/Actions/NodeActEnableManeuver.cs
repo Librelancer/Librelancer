@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using System;
+using System.Linq;
+using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -18,9 +20,12 @@ public sealed class NodeActEnableManeuver : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    private static readonly string[] _maneuvers = Enum.GetValues<ManeuverType>().Select(x => x.ToString()).ToArray();
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
-        // ImGui.Combo("Maneuver");
+        var index = (int)Data.Maneuver;
+        nodePopups.Combo("Maneuver", index, i => Data.Maneuver = (ManeuverType)i, _maneuvers);
         ImGui.Checkbox("Lock", ref Data.Lock);
     }
 }

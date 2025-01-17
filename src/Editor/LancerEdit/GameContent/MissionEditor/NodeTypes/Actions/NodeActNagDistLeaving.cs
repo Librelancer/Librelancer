@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using System;
+using System.Linq;
+using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -19,7 +21,9 @@ public sealed class NodeActNagDistLeaving : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    private static readonly string[] _nags = Enum.GetValues<NagType>().Select(x => x.ToString()).Append("NULL").ToArray();
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         ImGui.RadioButton("Point", ref radioIndex, 0);
         ImGui.RadioButton("Object", ref radioIndex, 1);
@@ -28,7 +32,19 @@ public sealed class NodeActNagDistLeaving : BlueprintNode
         Controls.InputTextId("Nagger", ref Data.Nagger);
         Controls.IdsInputString("Mission Fail IDS", gameData, popup, ref Data.MissionFailIds, (ids) => Data.MissionFailIds = ids);
         ImGui.InputFloat("Distance", ref Data.Distance);
-        // ImGui.Combo("Nag Type");
+
+        var index = Data.NagType is null ? _nags.Length - 1 : (int)Data.NagType;
+        nodePopups.Combo("Nag Type", index, i =>
+        {
+            if (i == _nags.Length - 1)
+            {
+                Data.NagType = null;
+            }
+            else
+            {
+                Data.NagType = (NagType)i;
+            }
+        }, _nags);
 
         if (radioIndex == 0)
         {

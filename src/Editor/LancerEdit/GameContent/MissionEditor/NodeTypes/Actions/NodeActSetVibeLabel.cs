@@ -18,9 +18,10 @@ public sealed class NodeActSetVibeLabel : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
-        NodeActSetVibe.VibeComboBox(ref Data.Vibe);
+        NodeActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
         Controls.InputTextId("Label 1", ref Data.Label1);
         Controls.InputTextId("Label 2", ref Data.Label2);
     }

@@ -21,18 +21,19 @@ public sealed class NodeActSetVibe : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
-        VibeComboBox(ref Data.Vibe);
+        VibeComboBox(ref Data.Vibe, nodePopups);
         Controls.InputTextId("Target", ref Data.Target);
         Controls.InputTextId("Other", ref Data.Other);
     }
 
     private static readonly string[] _vibeList = Enum.GetValues<VibeSet>().Select(x => x.ToString()).ToArray();
-    public static void VibeComboBox(ref VibeSet vibeSet)
+    public static void VibeComboBox(ref VibeSet vibeSet, NodePopups nodePopups)
     {
         var index = (int)vibeSet;
-        ImGui.Combo("Vibe", ref index, _vibeList, _vibeList.Length);
+        nodePopups.Combo("Vibe", index, (idx) => index = idx, _vibeList);
         vibeSet = (VibeSet)index;
     }
 }

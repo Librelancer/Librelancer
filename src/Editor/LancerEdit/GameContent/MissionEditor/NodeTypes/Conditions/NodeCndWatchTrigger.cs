@@ -26,7 +26,8 @@ public class NodeCndWatchTrigger : BlueprintNode
         Outputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Output));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         ImGui.Checkbox("Trigger On", ref TriggerOn);
         Controls.HelpMarker(

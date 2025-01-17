@@ -19,7 +19,8 @@ public sealed class NodeActSetLifetime : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("Object", ref Data.Object);
         ImGui.InputInt("Seconds", ref Data.Seconds, 1, 10);

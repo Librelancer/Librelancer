@@ -17,7 +17,8 @@ public sealed class NodeActSpawnFormation : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("Formation", ref Data.Formation);
         // ImGui.InputFloat3("Position", ref Data.Position); // TODO: Handle null position on formation

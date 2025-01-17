@@ -55,12 +55,13 @@ public class NodeCndWatchVibe : BlueprintNode
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni)
     {
         Controls.InputTextId("Source Object", ref sourceObject);
         Controls.InputTextId("Target Object", ref targetObject);
 
-        NodeActSetVibe.VibeComboBox(ref vibe);
-        ImGui.Combo("Modifier", ref modifierIndex, options, options.Length);
+        NodeActSetVibe.VibeComboBox(ref vibe, nodePopups);
+        nodePopups.Combo("Modifier", modifierIndex, i => modifierIndex = i, options);
     }
 }

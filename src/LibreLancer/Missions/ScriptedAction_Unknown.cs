@@ -332,7 +332,7 @@ public class Act_NagDistLeaving : ScriptedAction
 
             if (act.Entry.Count > 5)
             {
-                NagType = Enum.Parse<NagType>(act.Entry[4].ToString()!, ignoreCase: true);
+                NagType = Enum.Parse<NagType>(act.Entry[5].ToString()!, ignoreCase: true);
             }
         }
         else if (act.Entry.Count is >= 7 and <= 9)
