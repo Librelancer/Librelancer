@@ -3,11 +3,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActNNPath : BlueprintNode
+public sealed class NodeActNNPath : TriggerEntryNode
 {
     protected override string Name => "Set NN Path";
 
@@ -22,11 +24,16 @@ public sealed class NodeActNNPath : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var systems = gameData.GameData.Systems.Select(x => x.Nickname).ToArray();
+        var systems = gameData.GameData.Systems.Select(x => x.Nickname).Order().ToArray();
 
         Controls.InputTextId("Object", ref Data.ObjectId);
         nodePopups.StringCombo("System", Data.SystemId, s => Data.SystemId = s, systems);
         Controls.IdsInputString("IDS 1", gameData, popup, ref Data.Ids1, (ids) => Data.Ids1 = ids);
         Controls.IdsInputString("IDS 2", gameData, popup, ref Data.Ids2, (ids) => Data.Ids2 = ids);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

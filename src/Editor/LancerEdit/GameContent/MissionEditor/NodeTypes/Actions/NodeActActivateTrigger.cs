@@ -4,11 +4,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActActivateTrigger : BlueprintNode
+public sealed class NodeActActivateTrigger : TriggerEntryNode
 {
     protected override string Name => "Activate Trigger";
 
@@ -45,5 +47,10 @@ public sealed class NodeActActivateTrigger : BlueprintNode
         {
             Data.Trigger = string.Empty;
         }
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActNagOff : BlueprintNode
+public sealed class NodeActNagOff : TriggerEntryNode
 {
     protected override string Name => "Disable Nag";
 
@@ -21,5 +23,10 @@ public sealed class NodeActNagOff : BlueprintNode
         MissionIni missionIni)
     {
         Controls.InputTextId("Nag", ref Data.Nag);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

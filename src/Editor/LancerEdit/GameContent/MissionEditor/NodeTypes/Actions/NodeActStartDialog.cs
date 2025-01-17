@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActStartDialog : BlueprintNode
+public sealed class NodeActStartDialog : TriggerEntryNode
 {
     protected override string Name => "Start Dialog";
 
@@ -21,8 +23,13 @@ public sealed class NodeActStartDialog : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var dialogs = missionIni.Dialogs.Select(x => x.Nickname).ToArray();
+        var dialogs = missionIni.Dialogs.Select(x => x.Nickname).Order().ToArray();
 
         nodePopups.StringCombo("Dialog", Data.Dialog, s => Data.Dialog = s, dialogs);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

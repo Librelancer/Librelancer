@@ -4,28 +4,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndProjectileHit : BlueprintNode
+public class NodeCndProjectileHit : TriggerEntryNode
 {
     protected override string Name => "On Projectile Hit";
 
-    private string target = string.Empty;
-    private int count = 1;
-    private string source = string.Empty;
-
+    public Cnd_ProjHit Data;
     public NodeCndProjectileHit(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 2)
-        {
-            target = entry[0].ToString();
-            count = entry[1].ToInt32();
-            if (entry?.Count >= 3)
-            {
-                source = entry[2].ToString();
-            }
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -33,9 +23,14 @@ public class NodeCndProjectileHit : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref target);
-        Controls.InputTextId("Source", ref source);
-        ImGui.InputInt("Count", ref count, 1, 100);
-        count = Math.Clamp(count, 1, 10000);
+        Controls.InputTextId("Target", ref Data.target);
+        Controls.InputTextId("Source", ref Data.source);
+        ImGui.InputInt("Count", ref Data.count, 1, 100);
+        Data.count = Math.Clamp(Data.count, 1, 10000);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

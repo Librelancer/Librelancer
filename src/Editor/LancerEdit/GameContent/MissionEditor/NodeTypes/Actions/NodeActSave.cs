@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSave : BlueprintNode
+public sealed class NodeActSave : TriggerEntryNode
 {
     protected override string Name => "Save Game";
 
@@ -44,5 +46,10 @@ public sealed class NodeActSave : BlueprintNode
         ImGui.EndDisabled();
 
         Controls.IdsInputString("IDS", gameData, popup, ref Data.Ids, (ids) => Data.Ids = ids);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

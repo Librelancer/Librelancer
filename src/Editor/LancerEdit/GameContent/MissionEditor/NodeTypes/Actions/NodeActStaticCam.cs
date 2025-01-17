@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActStaticCamera : BlueprintNode
+public sealed class NodeActStaticCamera : TriggerEntryNode
 {
     protected override string Name => "Set Static Camera";
 
@@ -23,5 +25,10 @@ public sealed class NodeActStaticCamera : BlueprintNode
     {
         ImGui.InputFloat3("Position", ref Data.Position);
         Controls.InputFlQuaternion("Orientation", ref Data.Orientation);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

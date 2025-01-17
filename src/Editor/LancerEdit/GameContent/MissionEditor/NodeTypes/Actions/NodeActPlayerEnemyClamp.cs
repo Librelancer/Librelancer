@@ -3,11 +3,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActPlayerEnemyClamp : BlueprintNode
+public sealed class NodeActPlayerEnemyClamp : TriggerEntryNode
 {
     protected override string Name => "Clamp Amount of Enemies Attacking Player";
 
@@ -27,5 +29,10 @@ public sealed class NodeActPlayerEnemyClamp : BlueprintNode
 
         Data.Min = Math.Clamp(Data.Min, 0, Data.Max);
         Data.Max = Math.Clamp(Data.Max, Data.Min, 100);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

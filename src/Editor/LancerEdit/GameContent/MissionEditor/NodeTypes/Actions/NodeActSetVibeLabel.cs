@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetVibeLabel : BlueprintNode
+public sealed class NodeActSetVibeLabel : TriggerEntryNode
 {
     protected override string Name => "Set Vibe Label";
 
@@ -27,5 +29,10 @@ public sealed class NodeActSetVibeLabel : BlueprintNode
         NodeActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
         nodePopups.StringCombo("Label 1", Data.Label1, s => Data.Label1 = s, labels);
         nodePopups.StringCombo("Label 2", Data.Label2, s => Data.Label2 = s, labels);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetOrientation : BlueprintNode
+public sealed class NodeActSetOrientation : TriggerEntryNode
 {
     protected override string Name => "Set Orientation";
 
@@ -22,5 +24,10 @@ public sealed class NodeActSetOrientation : BlueprintNode
     {
         Controls.InputTextId("Target", ref Data.Target);
         Controls.InputFlQuaternion("Target", ref Data.Orientation);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

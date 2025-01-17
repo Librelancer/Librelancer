@@ -4,9 +4,8 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Missions;
 using LibreLancer.Ini;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace LibreLancer.Missions;
+namespace LibreLancer.Missions.Actions;
 
 public class Act_NNIds : ScriptedAction
 {

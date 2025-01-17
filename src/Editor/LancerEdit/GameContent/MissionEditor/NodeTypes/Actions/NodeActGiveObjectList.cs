@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActGiveObjectList : BlueprintNode
+public sealed class NodeActGiveObjectList : TriggerEntryNode
 {
     protected override string Name => "Give Object List";
 
@@ -22,5 +24,10 @@ public sealed class NodeActGiveObjectList : BlueprintNode
     {
         Controls.InputTextId("List", ref Data.List);
         Controls.InputTextId("Target", ref Data.Target);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

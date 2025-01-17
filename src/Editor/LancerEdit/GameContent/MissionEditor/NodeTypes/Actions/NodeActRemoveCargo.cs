@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActRemoveCargo : BlueprintNode
+public sealed class NodeActRemoveCargo : TriggerEntryNode
 {
     protected override string Name => "Remove Cargo";
 
@@ -21,7 +23,12 @@ public sealed class NodeActRemoveCargo : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var objects = gameData.GameData.Goods.Select(x => x.Nickname).ToArray();
+        var objects = gameData.GameData.Goods.Select(x => x.Nickname).Order().ToArray();
         nodePopups.StringCombo("Cargo", Data.Cargo, s => Data.Cargo = s, objects);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

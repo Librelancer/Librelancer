@@ -3,27 +3,29 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndBaseExit : BlueprintNode
+public class NodeCndBaseExit : TriggerEntryNode
 {
     protected override string Name => "On Base Exit";
 
-    private string @base = string.Empty;
+    public Cnd_BaseExit Data;
     public NodeCndBaseExit(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 1)
-        {
-            @base = entry[0].ToString();
-        }
-
+        Data = entry is null ? new() : new(entry);
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Base", ref @base);
+        Controls.InputTextId("Base", ref Data.@base); // TODO: Comboify
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

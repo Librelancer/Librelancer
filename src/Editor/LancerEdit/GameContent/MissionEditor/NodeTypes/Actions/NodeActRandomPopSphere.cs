@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActRandomPopSphere : BlueprintNode
+public sealed class NodeActRandomPopSphere : TriggerEntryNode
 {
     protected override string Name => "Toggle Random Population Sphere";
 
@@ -24,5 +26,10 @@ public sealed class NodeActRandomPopSphere : BlueprintNode
         ImGui.InputFloat3("Position", ref Data.Position);
         ImGui.InputFloat("Radius", ref Data.Radius);
         ImGui.Checkbox("Enable", ref Data.On);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -4,21 +4,19 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndEncounterLaunched : BlueprintNode
+public class NodeCndEncounterLaunched : TriggerEntryNode
 {
     protected override string Name => "On Encounter Launched";
 
-    private string encounter = string.Empty;
+    public Cnd_EncLaunched Data;
 
     public NodeCndEncounterLaunched(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 1)
-        {
-            encounter = entry[0].ToString();
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -26,6 +24,11 @@ public class NodeCndEncounterLaunched : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Encounter", ref encounter);
+        Controls.InputTextId("Encounter", ref Data.encounter);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

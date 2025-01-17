@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActNagGreet : BlueprintNode
+public sealed class NodeActNagGreet : TriggerEntryNode
 {
     protected override string Name => "Nag Greet";
 
@@ -23,5 +25,10 @@ public sealed class NodeActNagGreet : BlueprintNode
     {
         Controls.InputTextId("Source", ref Data.Source);
         Controls.InputTextId("Target", ref Data.Target);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

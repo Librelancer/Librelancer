@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActRandomPop : BlueprintNode
+public sealed class NodeActRandomPop : TriggerEntryNode
 {
     protected override string Name => "Toggle Global Random Population";
 
@@ -22,5 +24,10 @@ public sealed class NodeActRandomPop : BlueprintNode
         MissionIni missionIni)
     {
         ImGui.Checkbox("Enable", ref Data.On);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

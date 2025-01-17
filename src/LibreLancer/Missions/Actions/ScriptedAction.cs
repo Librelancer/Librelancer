@@ -3,10 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Numerics;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+using System.Numerics;
 using LibreLancer.Data.Missions;
 using LibreLancer.Ini;
 using LibreLancer.Net;
@@ -15,7 +14,7 @@ using LibreLancer.Server.Ai.ObjList;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 
-namespace LibreLancer.Missions
+namespace LibreLancer.Missions.Actions
 {
     public abstract class ScriptedAction
     {
@@ -182,6 +181,11 @@ namespace LibreLancer.Missions
             Objective = act.Entry[0].ToString();
         }
 
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SetNNObj", Objective);
+        }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             if (!script.Objectives.TryGetValue(Objective, out var v))
@@ -239,6 +243,11 @@ namespace LibreLancer.Missions
         {
             runtime.ActivateTrigger(Trigger);
         }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_ActTrig", Trigger);
+        }
     }
 
     public class Act_DeactTrig : ScriptedAction
@@ -256,6 +265,11 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.DeactivateTrigger(Trigger);
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_DeactTrig", Trigger);
         }
     }
 
@@ -276,6 +290,11 @@ namespace LibreLancer.Missions
         {
             runtime.Player.AddRTC(RTC);
         }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_AddRTC", RTC);
+        }
     }
 
     public class Act_RemoveRTC : ScriptedAction
@@ -293,6 +312,11 @@ namespace LibreLancer.Missions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.RemoveRTC(RTC);
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_RemoveRTC", RTC);
         }
     }
 
@@ -317,6 +341,11 @@ namespace LibreLancer.Missions
         {
             runtime.Player.AddAmbient(Script, Room, Base);
         }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_AddAmbient", Script, Room, Base);
+        }
     }
 
     public class Act_RemoveAmbient : ScriptedAction
@@ -335,6 +364,11 @@ namespace LibreLancer.Missions
         {
             runtime.Player.RemoveAmbient(Script);
         }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_RemoveAmbient", Script);
+        }
     }
 
     public class Act_Invulnerable : ScriptedAction
@@ -350,6 +384,11 @@ namespace LibreLancer.Missions
         {
             Object = act.Entry[0].ToString();
             Invulnerable = act.Entry[1].ToBoolean();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_Invulnerable", Object, Invulnerable);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -378,6 +417,11 @@ namespace LibreLancer.Missions
         {
             Ship = act.Entry[0].ToString();
             Loadout = act.Entry[1].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SetShipAndLoadout", Ship, Loadout);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -438,14 +482,23 @@ namespace LibreLancer.Missions
         {
             runtime.Player.RpcClient.PlaySound(Effect);
         }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_PlaySoundEffect", Effect);
+        }
     }
 
     //Sometimes 4 parameters, with the music track being the 4th
     //Sometimes no_params (= stop music? not sure)
     public class Act_PlayMusic : ScriptedAction
     {
-        public string Music = string.Empty;
-        public float Fade = 0.0f;
+        public bool Reset;
+        public string Space = string.Empty;
+        public string Danger = string.Empty;
+        public string Battle = string.Empty;
+        public string Motif = string.Empty;
+        public float Fade;
 
         public Act_PlayMusic()
         {
@@ -453,16 +506,47 @@ namespace LibreLancer.Missions
 
         public Act_PlayMusic(MissionAction act) : base(act)
         {
-            if(act.Entry.Count > 3) //4th entry seems to = specific music. First 3 maybe change ambient?
-                Music = act.Entry[3].ToString();
+            if (act.Entry[0].ToString()!
+                .Equals("no_params", StringComparison.OrdinalIgnoreCase)) {
+                Reset = true;
+                return;
+            }
+            Space = act.Entry[0].ToString();
+            Danger = act.Entry[1].ToString();
+            Battle = act.Entry[2].ToString();
+            if(act.Entry.Count > 3)
+                Motif = act.Entry[3].ToString();
             if (act.Entry.Count > 4)
                 Fade = act.Entry[4].ToSingle();
         }
 
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            var space = Space == "" ? "none" : Space;
+            var danger = Danger == "" ? "none" : Danger;
+            var battle = Battle == "" ? "none" : Battle;
+            if (Reset)
+            {
+                section.Entry("Act_PlayMusic", "no_params");
+            }
+            else if (Fade != 0)
+            {
+                section.Entry("Act_PlayMusic", space, danger, battle, Motif, Fade);
+            }
+            else if (Motif != "")
+            {
+                section.Entry("Act_PlayMusic", space, danger, battle, Motif);
+            }
+            else
+            {
+                section.Entry("Act_PlayMusic", space, danger, battle);
+            }
+        }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if(Music != null)
-                runtime.Player.RpcClient.PlayMusic(Music, Fade);
+            if(!Reset)
+                runtime.Player.RpcClient.PlayMusic(Motif == "" ? Battle : Motif, Fade);
         }
     }
 
@@ -477,6 +561,11 @@ namespace LibreLancer.Missions
         public Act_ForceLand(MissionAction act) : base(act)
         {
             Base = act.Entry[0].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_ForceLand", Base);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -496,6 +585,11 @@ namespace LibreLancer.Missions
         public Act_DisableTradelane(MissionAction act) : base(act)
         {
             Tradelane = act.Entry[0].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_DisableTradelane", Tradelane);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -525,6 +619,11 @@ namespace LibreLancer.Missions
             Amount = act.Entry[0].ToInt32();
         }
 
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_AdjAcct", Amount);
+        }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.AddCash(Amount);
@@ -544,6 +643,11 @@ namespace LibreLancer.Missions
         {
             Target = act.Entry[0].ToString();
             Fuse = act.Entry[1].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_LightFuse", Target, Fuse);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -583,6 +687,11 @@ namespace LibreLancer.Missions
             ID = act.Entry[2].ToString();
         }
 
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_PopupDialog", Title, Contents, ID);
+        }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.RpcClient.PopupOpen(Title, Contents, ID);
@@ -602,6 +711,11 @@ namespace LibreLancer.Missions
         {
             Target = act.Entry[0].ToString();
             List = act.Entry[1].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_GiveObjList", Target, List);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -675,6 +789,10 @@ namespace LibreLancer.Missions
             Succeed = act.Entry[0].ToString().Equals("SUCCEED", StringComparison.OrdinalIgnoreCase);
         }
 
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAILED");
+        }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
@@ -692,6 +810,11 @@ namespace LibreLancer.Missions
         }
 
         public Act_RevertCam(MissionAction act) : base(act) { }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_RevertCam", "no_params");
+        }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
@@ -712,6 +835,17 @@ namespace LibreLancer.Missions
             Thorn = act.Entry[0].ToString();
             if (act.Entry.Count > 1)
                 MainObject = act.Entry[1].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            List<ValueBase> values = [Thorn];
+            if (string.IsNullOrEmpty(MainObject))
+            {
+                values.Add(MainObject);
+            }
+
+            section.Entry("Act_CallThorn", values.ToArray());
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)

@@ -4,11 +4,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetRep : BlueprintNode
+public sealed class NodeActSetRep : TriggerEntryNode
 {
     protected override string Name => "Set Reputation";
 
@@ -24,7 +26,7 @@ public sealed class NodeActSetRep : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var factions = gameData.GameData.Factions.Select(x => x.Nickname).OrderBy(x => x).ToArray();
+        var factions = gameData.GameData.Factions.Select(x => x.Nickname).OrderBy(x => x).Order().ToArray();
 
         Controls.InputTextId("Object", ref Data.Object);
         nodePopups.StringCombo("Faction", Data.Faction, s => Data.Faction = s, factions);
@@ -41,5 +43,10 @@ public sealed class NodeActSetRep : BlueprintNode
         var index = (int)vibeSet;
         nodePopups.Combo("Vibe", index, i => index = i, _vibeList);
         vibeSet = (VibeSet)index;
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

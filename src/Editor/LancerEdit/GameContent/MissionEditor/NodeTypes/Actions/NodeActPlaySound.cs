@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActPlaySound : BlueprintNode
+public sealed class NodeActPlaySound : TriggerEntryNode
 {
     protected override string Name => "Play sound";
 
@@ -21,5 +23,10 @@ public sealed class NodeActPlaySound : BlueprintNode
         MissionIni missionIni)
     {
         Controls.InputTextId("Sound Id", ref Data.Effect);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

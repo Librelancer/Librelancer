@@ -3,20 +3,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndInSpace : BlueprintNode
+public class NodeCndInSpace : TriggerEntryNode
 {
     protected override string Name => "In Space";
 
-    private bool inSpace;
+    public Cnd_InSpace Data;
     public NodeCndInSpace(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 1)
-        {
-            inSpace = entry[0].ToString()!.Equals("yes", System.StringComparison.InvariantCultureIgnoreCase);
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -24,6 +22,11 @@ public class NodeCndInSpace : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        ImGui.Checkbox("In Space", ref inSpace);
+        ImGui.Checkbox("In Space", ref Data.inSpace);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

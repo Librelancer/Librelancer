@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActForceLand : BlueprintNode
+public sealed class NodeActForceLand : TriggerEntryNode
 {
     protected override string Name => "Force Land";
 
@@ -21,7 +23,12 @@ public sealed class NodeActForceLand : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var bases = gameData.GameData.Bases.Select(x => x.Nickname).ToArray();
+        var bases = gameData.GameData.Bases.Select(x => x.Nickname).Order().ToArray();
         nodePopups.StringCombo("Base", Data.Base, s => Data.Base = s, bases);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

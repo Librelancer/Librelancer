@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActDeactivateTrigger : BlueprintNode
+public sealed class NodeActDeactivateTrigger : TriggerEntryNode
 {
     protected override string Name => "Deactivate Trigger";
 
@@ -43,5 +45,10 @@ public sealed class NodeActDeactivateTrigger : BlueprintNode
         {
             Data.Trigger = string.Empty;
         }
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

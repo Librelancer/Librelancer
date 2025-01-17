@@ -5,29 +5,17 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
-public class NodeCndNpcSystemExit : BlueprintNode
+public class NodeCndNpcSystemExit : TriggerEntryNode
 {
     protected override string Name => "On NPC System Exit";
 
-    private List<string> systems = [];
-    private bool any;
-    private List<string> ships = [];
-
+    public Cnd_NPCSystemExit Data;
     public NodeCndNpcSystemExit(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        foreach (var system in entry)
-        {
-            if (system.ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase))
-            {
-                systems = [];
-                any = true;
-                break;
-            }
-
-            systems.Add(system.ToString()!);
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -35,11 +23,13 @@ public class NodeCndNpcSystemExit : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        ImGui.Checkbox("Any", ref any);
-        ImGui.BeginDisabled(any);
-        Controls.InputStringList("System", systems);
-        ImGui.EndDisabled();
+        ImGui.Text("This node type has not been tested. Proceed with caution.");
+        Controls.InputTextId("System", ref Data.system);
+        Controls.InputStringList("Ships", Data.ships);
+    }
 
-        Controls.InputStringList("Ships", ships);
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

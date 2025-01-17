@@ -3,11 +3,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActInvulnerable : BlueprintNode
+public sealed class NodeActInvulnerable : TriggerEntryNode
 {
     protected override string Name => "Set Invulnerable";
 
@@ -22,9 +24,14 @@ public sealed class NodeActInvulnerable : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var objects = missionIni.Ships.Select(x => x.Nickname).Concat(missionIni.Solars.Select(x => x.Nickname)).ToArray();
+        var objects = missionIni.Ships.Select(x => x.Nickname).Concat(missionIni.Solars.Select(x => x.Nickname)).Order().ToArray();
         nodePopups.StringCombo("Objective", Data.Object, s => Data.Object = s, objects);
 
         ImGui.Checkbox("Is Invulnerable", ref Data.Invulnerable);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

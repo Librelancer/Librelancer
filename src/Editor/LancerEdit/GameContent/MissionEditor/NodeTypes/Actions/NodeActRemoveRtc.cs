@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActRemoveRtc : BlueprintNode
+public sealed class NodeActRemoveRtc : TriggerEntryNode
 {
     protected override string Name => "Remove Real-Time Cutscene";
 
@@ -21,5 +23,10 @@ public sealed class NodeActRemoveRtc : BlueprintNode
         MissionIni missionIni)
     {
         Controls.InputTextId("RTC", ref Data.RTC);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

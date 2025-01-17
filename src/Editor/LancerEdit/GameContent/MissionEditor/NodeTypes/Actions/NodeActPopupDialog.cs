@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActPopupDialog : BlueprintNode
+public sealed class NodeActPopupDialog : TriggerEntryNode
 {
     protected override string Name => "Popup Dialog";
 
@@ -23,5 +25,10 @@ public sealed class NodeActPopupDialog : BlueprintNode
         Controls.InputTextId("Sound Id", ref Data.ID);
         Controls.IdsInputString("Title IDS", gameData, popup, ref Data.Title, (ids) => Data.Title = ids);
         Controls.IdsInputInfocard("Contents IDS", gameData, popup, ref Data.Contents, (ids) => Data.Title = ids);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

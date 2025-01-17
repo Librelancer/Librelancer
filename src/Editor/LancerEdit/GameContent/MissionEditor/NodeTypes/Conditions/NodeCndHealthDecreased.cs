@@ -3,23 +3,19 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndHealthDecreased : BlueprintNode
+public class NodeCndHealthDecreased : TriggerEntryNode
 {
     protected override string Name => "On Health Decreased";
 
-    private string target = string.Empty;
-    private float percent;
+    public Cnd_HealthDec Data;
 
     public NodeCndHealthDecreased(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 2)
-        {
-            target = entry[0].ToString();
-            percent = entry[1].ToSingle();
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -27,7 +23,12 @@ public class NodeCndHealthDecreased : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref target);
-        ImGui.SliderFloat("Health", ref percent, 0, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputTextId("Target", ref Data.target);
+        ImGui.SliderFloat("Health", ref Data.percent, 0, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

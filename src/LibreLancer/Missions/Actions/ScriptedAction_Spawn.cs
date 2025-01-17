@@ -12,7 +12,7 @@ using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 
-namespace LibreLancer.Missions
+namespace LibreLancer.Missions.Actions
 {
     public class Act_SpawnSolar : ScriptedAction
     {
@@ -59,6 +59,11 @@ namespace LibreLancer.Missions
         {
             Object = act.Entry[0].ToString();
             Value = act.Entry[1].ToInt32();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_MarkObj", Object, Value);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -174,12 +179,26 @@ namespace LibreLancer.Missions
             new Vector3(0, -60, 0),
             new Vector3(0, 60, 0)
         });
+
         public Act_SpawnFormation(MissionAction act) : base(act)
         {
             Formation = act.Entry[0].ToString();
             if (act.Entry.Count > 1)
                 Position = new Vector3(act.Entry[1].ToSingle(), act.Entry[2].ToSingle(),
                     act.Entry[3].ToSingle());
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            List<ValueBase> entry = [Formation];
+            if (Position.HasValue)
+            {
+                entry.Add(Position.Value.X);
+                entry.Add(Position.Value.Y);
+                entry.Add(Position.Value.Z);
+            }
+
+            section.Entry("Act_SpawnFormation", entry.ToArray());
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -226,6 +245,32 @@ namespace LibreLancer.Missions
                 Orientation = new Quaternion(act.Entry[6].ToSingle(), act.Entry[7].ToSingle(), act.Entry[8].ToSingle(),
                     act.Entry[5].ToSingle());
             }
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            List<ValueBase> entry = [Ship];
+            if (ObjList != "NULL")
+            {
+                entry.Add(ObjList);
+
+                if (Position is not null)
+                {
+                    entry.Add(Position.Value.X);
+                    entry.Add(Position.Value.Y);
+                    entry.Add(Position.Value.Z);
+
+                    if (Orientation is not null)
+                    {
+                        entry.Add(Orientation.Value.W);
+                        entry.Add(Orientation.Value.X);
+                        entry.Add(Orientation.Value.Y);
+                        entry.Add(Orientation.Value.Z);
+                    }
+                }
+            }
+
+            section.Entry("Act_SpawnShip", entry.ToArray());
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)

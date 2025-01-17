@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActMarkObject : BlueprintNode
+public sealed class NodeActMarkObject : TriggerEntryNode
 {
     protected override string Name => "Mark Object";
 
@@ -23,5 +25,10 @@ public sealed class NodeActMarkObject : BlueprintNode
     {
         Controls.InputTextId("Object", ref Data.Object);
         ImGui.InputInt("Value", ref Data.Value); // TODO: An enum value of some kind
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

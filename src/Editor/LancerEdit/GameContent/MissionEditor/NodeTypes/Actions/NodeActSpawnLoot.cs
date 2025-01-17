@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSpawnLoot : BlueprintNode
+public sealed class NodeActSpawnLoot : TriggerEntryNode
 {
     protected override string Name => "Spawn Loot";
 
@@ -21,8 +23,13 @@ public sealed class NodeActSpawnLoot : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var loots = missionIni.Loots.Select(x => x.Nickname).ToArray();
+        var loots = missionIni.Loots.Select(x => x.Nickname).Order().ToArray();
 
         nodePopups.StringCombo("Loot", Data.Loot, s => Data.Loot = s, loots);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

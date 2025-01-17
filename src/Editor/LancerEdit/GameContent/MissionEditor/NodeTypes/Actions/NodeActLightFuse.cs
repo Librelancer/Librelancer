@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActLightFuse : BlueprintNode
+public sealed class NodeActLightFuse : TriggerEntryNode
 {
     protected override string Name => "Light Fuse";
 
@@ -22,5 +24,10 @@ public sealed class NodeActLightFuse : BlueprintNode
     {
         Controls.InputTextId("Fuse", ref Data.Fuse);
         Controls.InputTextId("Target", ref Data.Target);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActCanDock : BlueprintNode
+public sealed class NodeActCanDock : TriggerEntryNode
 {
     protected override string Name => "Toggle Player Docking Ability";
 
@@ -23,5 +25,10 @@ public sealed class NodeActCanDock : BlueprintNode
     {
         ImGui.Checkbox("Can Dock", ref Data.CanDock);
         Controls.InputStringList("Exceptions", Data.Exceptions);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -521,7 +521,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         return null;
     }
 
-    private List<Node> GetLinkedNodes([NotNull] Node node, PinKind kind, LinkType? pinFilter = null)
+    internal List<Node> GetLinkedNodes([NotNull] Node node, PinKind kind, LinkType? pinFilter = null)
     {
         var linkedNodes = new List<Node>();
         var inPins = kind == PinKind.Input;

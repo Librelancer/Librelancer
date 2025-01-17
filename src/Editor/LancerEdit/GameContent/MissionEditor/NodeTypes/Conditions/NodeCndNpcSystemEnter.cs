@@ -5,28 +5,17 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
-public class NodeCndNpcSystemEnter : BlueprintNode
+public class NodeCndNpcSystemEnter : TriggerEntryNode
 {
     protected override string Name => "On NPC System Enter";
 
-    private string system = string.Empty;
-    private List<string> ships = [];
-
+    public Cnd_NPCSystemEnter Data;
     public NodeCndNpcSystemEnter(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        foreach (var value in entry)
-        {
-            if (system == string.Empty)
-            {
-                system = value.ToString()!;
-            }
-            else
-            {
-                ships.Add(value.ToString()!);
-            }
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -34,7 +23,12 @@ public class NodeCndNpcSystemEnter : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("System", ref system);
-        Controls.InputStringList("Ships", ships);
+        Controls.InputTextId("System", ref Data.system);
+        Controls.InputStringList("Ships", Data.ships);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

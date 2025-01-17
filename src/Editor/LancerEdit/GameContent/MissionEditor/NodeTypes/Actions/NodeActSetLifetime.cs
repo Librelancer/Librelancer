@@ -3,11 +3,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetLifetime : BlueprintNode
+public sealed class NodeActSetLifetime : TriggerEntryNode
 {
     protected override string Name => "Set Lifetime";
 
@@ -26,5 +28,10 @@ public sealed class NodeActSetLifetime : BlueprintNode
         ImGui.InputInt("Seconds", ref Data.Seconds, 1, 10);
 
         Data.Seconds = Math.Clamp(Data.Seconds, 0, 100000);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActRemoveAmbient : BlueprintNode
+public sealed class NodeActRemoveAmbient : TriggerEntryNode
 {
     protected override string Name => "Remove Ambient";
 
@@ -21,5 +23,10 @@ public sealed class NodeActRemoveAmbient : BlueprintNode
         MissionIni missionIni)
     {
         Controls.InputTextId("Script", ref Data.Script);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

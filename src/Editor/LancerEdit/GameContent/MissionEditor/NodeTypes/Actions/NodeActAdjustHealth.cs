@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActAdjustHealth : BlueprintNode
+public sealed class NodeActAdjustHealth : TriggerEntryNode
 {
     protected override string Name => "Adjust Health";
 
@@ -23,5 +25,10 @@ public sealed class NodeActAdjustHealth : BlueprintNode
     {
         Controls.InputTextId("Target", ref Data.Target);
         ImGui.SliderFloat("Health", ref Data.Adjustment, -1f, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

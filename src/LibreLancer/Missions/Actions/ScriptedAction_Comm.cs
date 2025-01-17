@@ -4,9 +4,10 @@
 
 using System;
 using LibreLancer.Data.Missions;
+using LibreLancer.Ini;
 using LibreLancer.Net.Protocol;
 
-namespace LibreLancer.Missions
+namespace LibreLancer.Missions.Actions
 {
     public class Act_StartDialog : ScriptedAction
     {
@@ -18,6 +19,11 @@ namespace LibreLancer.Missions
         public Act_StartDialog(MissionAction act) : base(act)
         {
             Dialog = act.Entry[0].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_StartDialog", Dialog);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -66,6 +72,12 @@ namespace LibreLancer.Missions
             Destination = act.Entry[1].ToString();
             Line = act.Entry[2].ToString();
         }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SendComm", Source, Destination, Line);
+        }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             var netdlg = new NetDlgLine[1];
@@ -91,7 +103,13 @@ namespace LibreLancer.Missions
     public class Act_EtherComm : ScriptedAction
     {
         public string Voice = string.Empty;
+        public int IdsName;
+        public string Target = string.Empty;
         public string Line = string.Empty;
+        // Priority or maybe duration.
+        public int Unknown = -1;
+        public string Head = string.Empty;
+        public string Body = string.Empty;
 
         public Act_EtherComm()
         {
@@ -100,20 +118,37 @@ namespace LibreLancer.Missions
         public Act_EtherComm(MissionAction act) : base(act)
         {
             Voice = act.Entry[0].ToString();
+            IdsName = act.Entry[1].ToInt32();
+            Target = act.Entry[2].ToString();
             Line = act.Entry[3].ToString();
+            Unknown = act.Entry[4].ToInt32();
+            Head = act.Entry[5].ToString()!;
+            if (Head.Equals("no_head", StringComparison.OrdinalIgnoreCase))
+            {
+                Head = string.Empty;
+            }
+
+            Body = act.Entry[6].ToString();
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_EtherComm", Voice, IdsName, Target, Line, Unknown, string.IsNullOrWhiteSpace(Head) ? "no_head" : Head, Body);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             var hash = FLHash.CreateID(Line);
             runtime.EnqueueLine(hash, Line);
-            runtime.Player.RpcClient.RunMissionDialog(new NetDlgLine[] { new NetDlgLine()
+            runtime.Player.RpcClient.RunMissionDialog([
+                new NetDlgLine()
             {
                 Source = 0,
                 TargetIsPlayer = true,
                 Voice = Voice,
                 Hash = hash
-            }});
+            }
+            ]);
         }
     }
 }

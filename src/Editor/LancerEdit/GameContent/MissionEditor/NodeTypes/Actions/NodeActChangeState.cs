@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActChangeState : BlueprintNode
+public sealed class NodeActChangeState : TriggerEntryNode
 {
     protected override string Name => "Change State";
 
@@ -22,5 +24,10 @@ public sealed class NodeActChangeState : BlueprintNode
         MissionIni missionIni)
     {
         ImGui.Checkbox("Success", ref Data.Succeed);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

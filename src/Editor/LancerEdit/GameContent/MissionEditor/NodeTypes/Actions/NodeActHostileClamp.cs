@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActHostileClamp : BlueprintNode
+public sealed class NodeActHostileClamp : TriggerEntryNode
 {
     protected override string Name => "Toggle Hostile Clamp";
 
@@ -22,5 +24,10 @@ public sealed class NodeActHostileClamp : BlueprintNode
         MissionIni missionIni)
     {
         ImGui.Checkbox("Enable", ref Data.Enabled);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

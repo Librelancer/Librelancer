@@ -4,29 +4,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndTetherBreak : BlueprintNode
+public class NodeCndTetherBreak : TriggerEntryNode
 {
     protected override string Name => "On Tether Break";
 
-    private string sourceShip;
-    private string destShip;
-    private float distance;
-    private int count;
-    private float unknown;
-
+    public Cnd_TetherBroke Data;
     public NodeCndTetherBreak(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 4)
-        {
-            sourceShip = entry[0].ToString()!;
-            destShip = entry[1].ToString();
-            distance = entry[2].ToSingle();
-            count = entry[3].ToInt32();
-            unknown = entry?.Count >= 5 ? entry[4].ToSingle() : 0.0f;
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -34,13 +23,18 @@ public class NodeCndTetherBreak : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Source Ship", ref sourceShip);
-        Controls.InputTextId("Dest Ship", ref destShip);
+        Controls.InputTextId("Source Ship", ref Data.SourceShip);
+        Controls.InputTextId("Dest Ship", ref Data.DestShip);
 
-        ImGui.SliderFloat("Distance", ref distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
-        ImGui.InputInt("Count", ref count, 1, 10);
-        count = Math.Clamp(count, 1, 300);
+        ImGui.SliderFloat("Distance", ref Data.Distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        ImGui.InputInt("Count", ref Data.Count, 1, 10);
+        Data.Count = Math.Clamp(Data.Count, 1, 300);
 
-        ImGui.SliderFloat("Unknown", ref unknown, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        ImGui.SliderFloat("Unknown", ref Data.Unknown, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

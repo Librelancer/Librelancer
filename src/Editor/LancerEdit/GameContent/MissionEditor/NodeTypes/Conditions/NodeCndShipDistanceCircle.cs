@@ -4,23 +4,19 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndShipDistanceCircle : BlueprintNode
+public class NodeCndShipDistanceCircle : TriggerEntryNode
 {
     protected override string Name => "On Ship Distance Change (Circle)";
 
-    private string sourceShip;
-    private string destObject;
+    public Cnd_DistCircle Data;
 
     public NodeCndShipDistanceCircle(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 2)
-        {
-            sourceShip = entry[0].ToString();
-            destObject = entry[1].ToString();
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -28,7 +24,12 @@ public class NodeCndShipDistanceCircle : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Source Ship", ref sourceShip);
-        Controls.InputTextId("Dest Object", ref destObject);
+        Controls.InputTextId("Source Ship", ref Data.sourceShip);
+        Controls.InputTextId("Dest Object", ref Data.destObject);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

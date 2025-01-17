@@ -5,33 +5,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndShipDistanceVectorLabel : BlueprintNode
+public class NodeCndShipDistanceVectorLabel : TriggerEntryNode
 {
     protected override string Name => "On Ship Distance Change (Label)";
 
-    private string label;
-    private bool inside;
-    private Vector3 position;
-    private float distance;
-    private string sourceShip;
-    private bool tickAway;
-
+    public Cnd_DistVecLbl Data;
     public NodeCndShipDistanceVectorLabel(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 6)
-        {
-            inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
-            sourceShip = entry[1].ToString();
-            label = entry[2].ToString();
-            position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
-            distance = entry[6].ToSingle();
-
-            tickAway = entry?.Count >= 8 &&
-                       entry[7].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase);
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -39,18 +24,23 @@ public class NodeCndShipDistanceVectorLabel : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Source Ship", ref sourceShip);
+        Controls.InputTextId("Source Ship", ref Data.sourceShip);
 
-        ImGui.Checkbox("Inside", ref inside);
+        ImGui.Checkbox("Inside", ref Data.inside);
         Controls.HelpMarker(
             "Whether the source ship should be within (true) the specified distance, or if the condition is " +
             "triggered when the source ship is at least the specified distance away from the destination object.",
             true);
 
         // TODO: Transform label into combo selection
-        Controls.InputTextId("Label", ref label);
-        ImGui.InputFloat3("Position", ref position, "%.0f");
-        ImGui.SliderFloat("Radius", ref distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
-        ImGui.Checkbox("Tick Away", ref tickAway);
+        Controls.InputTextId("Label", ref Data.label);
+        ImGui.InputFloat3("Position", ref Data.position, "%.0f");
+        ImGui.SliderFloat("Radius", ref Data.distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        ImGui.Checkbox("Tick Away", ref Data.tickAway);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

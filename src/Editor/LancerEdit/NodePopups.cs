@@ -18,7 +18,7 @@ public struct NodePopups
 
     private StringComboData[] strCombos;
     private int strComboIndex;
-    record struct StringComboData(bool Open, Action<string> Set, string Id, IEnumerable<string> Values);
+    record struct StringComboData(bool Open, Action<string> Set, string Id, IEnumerable<string> Values, bool AllowEmpty);
 
     public NodeId CurrentId;
 
@@ -42,14 +42,20 @@ public struct NodePopups
         combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
     }
 
-    public void StringCombo(string title, string selectedValue, Action<string> set, IEnumerable<string> values)
+    public void StringCombo(string title, string selectedValue, Action<string> set, IEnumerable<string> values, bool allowEmpty = false)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(title);
         ImGui.SameLine();
 
         var enumerable = values as string[] ?? values.ToArray();
-        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, enumerable.FirstOrDefault(x => x.Equals(selectedValue, StringComparison.OrdinalIgnoreCase)) ?? selectedValue), set, title, enumerable);
+        var display = enumerable.FirstOrDefault(x => x.Equals(selectedValue, StringComparison.OrdinalIgnoreCase)) ?? selectedValue;
+        if (allowEmpty && string.IsNullOrEmpty(display))
+        {
+            display = "(none)";
+        }
+
+        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, display), set, title, enumerable, allowEmpty);
     }
 
 
@@ -100,6 +106,11 @@ public struct NodePopups
             if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
             {
                 continue;
+            }
+
+            if (c.AllowEmpty && ImGui.MenuItem("(none)##Empty"))
+            {
+                c.Set("");
             }
 
             var j = 0;

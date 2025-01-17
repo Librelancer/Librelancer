@@ -3,20 +3,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndTimer : BlueprintNode
+public class NodeCndTimer : TriggerEntryNode
 {
     protected override string Name => "On Timer";
 
-    private int seconds;
+    public Cnd_Timer Data;
     public NodeCndTimer(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 1)
-        {
-            seconds = entry[0].ToInt32();
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -24,6 +22,11 @@ public class NodeCndTimer : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        ImGui.SliderInt("Seconds", ref seconds, 1, 300);
+        ImGui.SliderFloat("Seconds", ref Data.Seconds, 0.1f, 300f, "%.2f");
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

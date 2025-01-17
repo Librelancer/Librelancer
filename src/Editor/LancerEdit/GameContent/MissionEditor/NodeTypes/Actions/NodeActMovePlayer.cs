@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActMovePlayer : BlueprintNode
+public sealed class NodeActMovePlayer : TriggerEntryNode
 {
     protected override string Name => "Move Player";
 
@@ -23,5 +25,10 @@ public sealed class NodeActMovePlayer : BlueprintNode
     {
         ImGui.InputFloat3("Position", ref Data.Position);
         ImGui.InputFloat("Unknown", ref Data.Unknown);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

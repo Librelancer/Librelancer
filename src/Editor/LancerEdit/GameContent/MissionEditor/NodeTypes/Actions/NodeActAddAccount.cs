@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActAdjustAccount : BlueprintNode
+public sealed class NodeActAdjustAccount : TriggerEntryNode
 {
     protected override string Name => "Adjust Account";
 
@@ -22,5 +24,10 @@ public sealed class NodeActAdjustAccount : BlueprintNode
         MissionIni missionIni)
     {
         ImGui.InputInt("Amount", ref Data.Amount);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

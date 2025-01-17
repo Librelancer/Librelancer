@@ -3,22 +3,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndLocationEnter : BlueprintNode
+public class NodeCndLocationEnter : TriggerEntryNode
 {
     protected override string Name => "On Location Enter";
 
-    private string location = string.Empty;
-    private string @base = string.Empty;
+    public Cnd_LocEnter Data;
     public NodeCndLocationEnter(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 2)
-        {
-            location = entry[0].ToString();
-            @base = entry[1].ToString();
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -26,7 +22,12 @@ public class NodeCndLocationEnter : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Location", ref location);
-        Controls.InputTextId("Base", ref @base);
+        Controls.InputTextId("Location", ref Data.location);
+        Controls.InputTextId("Base", ref Data.@base);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

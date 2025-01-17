@@ -3,20 +3,19 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndHasMission : BlueprintNode
+public class NodeCndHasMission : TriggerEntryNode
 {
     protected override string Name => "Has Mission";
 
-    private bool hasMission;
+    public Cnd_HasMsn Data;
+
     public NodeCndHasMission(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 1)
-        {
-            hasMission = entry[0].ToString()!.Equals("yes", System.StringComparison.InvariantCultureIgnoreCase);
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -24,6 +23,11 @@ public class NodeCndHasMission : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        ImGui.Checkbox("Has Mission", ref hasMission);
+        ImGui.Checkbox("Has Mission", ref Data.hasMission);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

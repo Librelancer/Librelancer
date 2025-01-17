@@ -3,39 +3,32 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndTradeLaneExit : BlueprintNode
+public class NodeCndTradeLaneExit : TriggerEntryNode
 {
     protected override string Name => "On TL Exit";
 
-    private string startRing = string.Empty;
-    private string nextRing = string.Empty;
-    private string source = string.Empty;
-
+    public Cnd_TLExited Data;
     public NodeCndTradeLaneExit(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 2)
-        {
-            source = entry[0].ToString();
-            startRing = entry[1].ToString();
-
-            if (entry?.Count >= 3)
-            {
-                nextRing = entry[2].ToString();
-            }
-        }
-
+        Data = entry is null ? new() : new(entry);
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Source", ref source);
-        Controls.InputTextId("Start Ring", ref startRing);
-        Controls.InputTextId("Next Ring", ref nextRing);
+        Controls.InputTextId("Source", ref Data.Source);
+        Controls.InputTextId("Start Ring", ref Data.StartRing);
+        Controls.InputTextId("Next Ring", ref Data.NextRing);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

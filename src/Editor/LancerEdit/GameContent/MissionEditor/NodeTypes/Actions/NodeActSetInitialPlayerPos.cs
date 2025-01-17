@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetInitialPlayerPos : BlueprintNode
+public sealed class NodeActSetInitialPlayerPos : TriggerEntryNode
 {
     protected override string Name => "Set Initial Player Position";
 
@@ -23,5 +25,10 @@ public sealed class NodeActSetInitialPlayerPos : BlueprintNode
     {
         ImGui.InputFloat3("Position", ref Data.Position);
         Controls.InputFlQuaternion("Orientation", ref Data.Orientation);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

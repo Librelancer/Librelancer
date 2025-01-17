@@ -1,9 +1,9 @@
 using System;
 using LibreLancer.Data.Missions;
-using LibreLancer.Missions;
+using LibreLancer.Ini;
 using LibreLancer.Server.Components;
 
-namespace LibreLancer.Missions
+namespace LibreLancer.Missions.Actions
 {
     public enum VibeSet
     {
@@ -71,9 +71,15 @@ namespace LibreLancer.Missions
             Other = act.Entry[1].ToString();
             Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
         }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             SetVibe(runtime, Target, Other, Vibe);
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SetVibe", Target, Other, Vibe.ToString());
         }
     }
 
@@ -93,6 +99,7 @@ namespace LibreLancer.Missions
             Label2 = act.Entry[1].ToString();
             Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
         }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             foreach (var ship1 in script.GetShipsByLabel(Label1))
@@ -102,6 +109,11 @@ namespace LibreLancer.Missions
                     SetVibe(runtime, ship1.Nickname, ship2.Nickname, Vibe);
                 }
             }
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SetVibeLbl", Label1, Label2, Vibe.ToString());
         }
     }
 
@@ -121,10 +133,16 @@ namespace LibreLancer.Missions
             Label = act.Entry[1].ToString();
             Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
         }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             foreach (var ship in script.GetShipsByLabel(Label))
                 SetVibe(runtime, Ship, ship.Nickname, Vibe);
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SetVibeShipToLbl", Ship, Label, Vibe.ToString());
         }
     }
 
@@ -144,10 +162,16 @@ namespace LibreLancer.Missions
             Ship = act.Entry[1].ToString();
             Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
         }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             foreach (var ship in script.GetShipsByLabel(Label))
                 SetVibe(runtime, ship.Nickname, Ship, Vibe);
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SetVibeLblToShip", Label, Ship, Vibe.ToString());
         }
     }
 }

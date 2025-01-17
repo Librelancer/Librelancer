@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
@@ -24,12 +26,22 @@ public sealed class NodeMissionTrigger : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
+        var systems = gameData.GameData.Systems.Select(x => x.Nickname).Order().Order().ToArray();
+
         Controls.InputTextId("ID", ref Data.Nickname);
-        Controls.InputTextId("System", ref Data.System);
+        nodePopups.StringCombo("System", Data.System, s => Data.System = s, systems, true);
         ImGui.Checkbox("Repeatable", ref Data.Repeatable);
 
         var index = (int)Data.InitState;
         nodePopups.Combo("Initial State", index, i => index = i, initStateOptions);
         Data.InitState = (TriggerInitState)index;
+    }
+
+    public void WriteNode(MissionScriptEditorTab missionEditor, IniBuilder builder)
+    {
+        var s = builder.Section("Trigger");
+
+        var actions = missionEditor.GetLinkedNodes(this, PinKind.Output, LinkType.Action);
+        var conditions = missionEditor.GetLinkedNodes(this, PinKind.Output, LinkType.Condition);
     }
 }

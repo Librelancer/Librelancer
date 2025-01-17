@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetVibeOfferBaseHack : BlueprintNode
+public sealed class NodeActSetVibeOfferBaseHack : TriggerEntryNode
 {
     protected override string Name => "Set Base To Friendly";
 
@@ -23,5 +25,10 @@ public sealed class NodeActSetVibeOfferBaseHack : BlueprintNode
     {
         // TODO: Transform into combo if possible
         Controls.InputTextId("Base", ref Data.Id);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

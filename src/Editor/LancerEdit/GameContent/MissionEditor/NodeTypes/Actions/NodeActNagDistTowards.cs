@@ -4,11 +4,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActNagDistTowards : BlueprintNode
+public sealed class NodeActNagDistTowards : TriggerEntryNode
 {
     protected override string Name => "Nag Dist Leaving";
 
@@ -56,5 +58,10 @@ public sealed class NodeActNagDistTowards : BlueprintNode
             Data.IsObject = false;
             Controls.InputTextId("Object", ref Data.Object);
         }
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

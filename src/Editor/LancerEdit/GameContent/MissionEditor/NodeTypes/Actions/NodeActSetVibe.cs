@@ -4,11 +4,13 @@ using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActSetVibe : BlueprintNode
+public sealed class NodeActSetVibe : TriggerEntryNode
 {
     protected override string Name => "Set Vibe";
 
@@ -35,5 +37,10 @@ public sealed class NodeActSetVibe : BlueprintNode
         var index = (int)vibeSet;
         nodePopups.Combo("Vibe", index, (idx) => index = idx, _vibeList);
         vibeSet = (VibeSet)index;
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

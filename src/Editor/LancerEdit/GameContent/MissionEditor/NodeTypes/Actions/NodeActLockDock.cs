@@ -2,11 +2,13 @@
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActLockDock : BlueprintNode
+public sealed class NodeActLockDock : TriggerEntryNode
 {
     protected override string Name => "Toggle Docking Lock";
 
@@ -24,5 +26,10 @@ public sealed class NodeActLockDock : BlueprintNode
         Controls.InputTextId("Target", ref Data.Target);
         Controls.InputTextId("Object", ref Data.Object);
         ImGui.Checkbox("Lock", ref Data.Lock);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

@@ -5,26 +5,18 @@ using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndPlayerManeuver : BlueprintNode
+public class NodeCndPlayerManeuver : TriggerEntryNode
 {
     protected override string Name => "On Player Maneuver";
 
-    private ManeuverType type = ManeuverType.Dock;
-    private string target = string.Empty;
-
+    public Cnd_PlayerManeuver Data;
     public NodeCndPlayerManeuver(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 1)
-        {
-            Enum.TryParse(entry[0].ToString()!, true, out type);
-            if (entry?.Count >= 2)
-            {
-                target = entry[1].ToString();
-            }
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -33,10 +25,15 @@ public class NodeCndPlayerManeuver : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var index = (int)type;
-        nodePopups.Combo("Maneuver", index, i => type = (ManeuverType)i, maneuverTypes);
+        var index = (int)Data.type;
+        nodePopups.Combo("Maneuver", index, i => Data.type = (ManeuverType)i, maneuverTypes);
 
         // TODO: transform this into a combobox of different ships or a object depending on type
-        Controls.InputTextId("Target", ref target);
+        Controls.InputTextId("Target", ref Data.target);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

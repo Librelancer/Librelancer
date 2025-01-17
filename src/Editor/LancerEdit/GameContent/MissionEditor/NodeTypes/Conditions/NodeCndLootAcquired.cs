@@ -4,23 +4,18 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 
-public class NodeCndLootAcquired : BlueprintNode
+public class NodeCndLootAcquired : TriggerEntryNode
 {
     protected override string Name => "On Loot Acquired (Tractored)";
 
-    private string target = string.Empty;
-    private string sourceShip = string.Empty;
-
+    public Cnd_LootAcquired Data;
     public NodeCndLootAcquired(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
-        if (entry?.Count >= 2)
-        {
-            target = entry[0].ToString();
-            sourceShip = entry[1].ToString();
-        }
+        Data = entry is null ? new() : new(entry);
 
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
     }
@@ -28,7 +23,12 @@ public class NodeCndLootAcquired : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Source Ship", ref sourceShip);
-        Controls.InputTextId("Target", ref target);
+        Controls.InputTextId("Source Ship", ref Data.sourceShip);
+        Controls.InputTextId("Target", ref Data.target);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }

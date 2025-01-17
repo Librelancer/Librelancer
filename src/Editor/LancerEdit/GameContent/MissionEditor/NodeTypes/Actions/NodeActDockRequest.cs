@@ -1,11 +1,13 @@
 ﻿using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActDockRequest : BlueprintNode
+public sealed class NodeActDockRequest : TriggerEntryNode
 {
     protected override string Name => "Start Dock Request with Object";
 
@@ -21,5 +23,10 @@ public sealed class NodeActDockRequest : BlueprintNode
         MissionIni missionIni)
     {
         Controls.InputTextId("Object", ref Data.Object);
+    }
+
+    public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
+    {
+        Data.Write(sectionBuilder);
     }
 }
