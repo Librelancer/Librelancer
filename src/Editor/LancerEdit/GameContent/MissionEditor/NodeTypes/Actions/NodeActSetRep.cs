@@ -24,8 +24,10 @@ public sealed class NodeActSetRep : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
+        var factions = gameData.GameData.Factions.Select(x => x.Nickname).OrderBy(x => x).ToArray();
+
         Controls.InputTextId("Object", ref Data.Object);
-        Controls.InputTextId("Faction", ref Data.Faction);
+        nodePopups.StringCombo("Faction", Data.Faction, s => Data.Faction = s, factions);
         VibeComboBox(ref Data.VibeSet, nodePopups);
 
         ImGui.BeginDisabled(Data.VibeSet != VibeSet.None);

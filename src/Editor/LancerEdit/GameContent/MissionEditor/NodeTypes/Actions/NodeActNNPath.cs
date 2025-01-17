@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System.Linq;
+using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -21,8 +22,10 @@ public sealed class NodeActNNPath : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
+        var systems = gameData.GameData.Systems.Select(x => x.Nickname).ToArray();
+
         Controls.InputTextId("Object", ref Data.ObjectId);
-        Controls.InputTextId("System", ref Data.SystemId);
+        nodePopups.StringCombo("System", Data.SystemId, s => Data.SystemId = s, systems);
         Controls.IdsInputString("IDS 1", gameData, popup, ref Data.Ids1, (ids) => Data.Ids1 = ids);
         Controls.IdsInputString("IDS 2", gameData, popup, ref Data.Ids2, (ids) => Data.Ids2 = ids);
     }

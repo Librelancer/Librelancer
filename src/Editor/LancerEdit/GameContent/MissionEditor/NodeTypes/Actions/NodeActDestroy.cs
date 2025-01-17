@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -20,6 +21,7 @@ public sealed class NodeActDestroy : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref Data.Target);
+        var targets = missionIni.Ships.Select(x => x.Nickname).Concat(missionIni.Solars.Select(x => x.Nickname)).ToArray();
+        nodePopups.StringCombo("Target", Data.Target, s => Data.Target = s, targets);
     }
 }

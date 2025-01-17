@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -8,7 +9,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 // ReSharper disable once InconsistentNaming
 public sealed class NodeActSetNNObject : BlueprintNode
 {
-    protected override string Name => "Set NN Object";
+    protected override string Name => "Set NN Objective";
 
     public readonly Act_SetNNObj Data;
     public NodeActSetNNObject(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
@@ -21,6 +22,7 @@ public sealed class NodeActSetNNObject : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Objective", ref Data.Objective);
+        var objectives = missionIni.Objectives.Select(x => x.Nickname).ToArray();
+        nodePopups.StringCombo("Objective", Data.Objective, s => Data.Objective = s, objectives);
     }
 }

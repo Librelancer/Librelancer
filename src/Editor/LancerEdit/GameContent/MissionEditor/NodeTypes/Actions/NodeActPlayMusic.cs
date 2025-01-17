@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using System.Linq;
+using ImGuiNET;
+using LibreLancer.Data.Audio;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -21,7 +23,8 @@ public sealed class NodeActPlayMusic : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Music Id", ref Data.Music);
+        var music = gameData.GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).ToArray();
+        nodePopups.StringCombo("Music", Data.Music, s => Data.Music = s, music);
         ImGui.SameLine();
         if (ImGui.Button("Clear"))
         {

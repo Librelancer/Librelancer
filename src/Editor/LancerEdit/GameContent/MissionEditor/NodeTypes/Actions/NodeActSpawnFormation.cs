@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -20,7 +21,8 @@ public sealed class NodeActSpawnFormation : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Formation", ref Data.Formation);
-        // ImGui.InputFloat3("Position", ref Data.Position); // TODO: Handle null position on formation
+        var formations = missionIni.Formations.Select(x => x.Nickname).ToArray();
+        nodePopups.StringCombo("Formation", Data.Formation, s => Data.Formation = s, formations);
+        Controls.InputVec3Nullable("Position", ref Data.Position);
     }
 }

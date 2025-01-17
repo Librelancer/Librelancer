@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System.Linq;
+using ImGuiNET;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -21,7 +22,8 @@ public sealed class NodeActCloak : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Target", ref Data.Target);
+        var ships = missionIni.Ships.Select(x => x.Nickname).ToArray();
+        nodePopups.StringCombo("Ship", Data.Target, s => Data.Target = s, ships);
         ImGui.Checkbox("Cloak", ref Data.Cloaked);
     }
 }

@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -21,9 +22,11 @@ public sealed class NodeActSpawnShip : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Ship", ref Data.Ship);
-        Controls.InputTextId("Object List", ref Data.ObjList);
-        // TODO: Handle null values for pos and orient
+        var objectives = missionIni.ObjLists.Select(x => x.Nickname).ToArray();
+        var ships = missionIni.Ships.Select(x => x.Nickname).ToArray();
+
+        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
+        nodePopups.StringCombo("Objective List", Data.ObjList, s => Data.ObjList = s, objectives);
         Controls.InputVec3Nullable("Position", ref Data.Position);
         Controls.InputFlQuaternionNullable("Orientation", ref Data.Orientation);
     }

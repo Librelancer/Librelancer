@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -21,8 +22,10 @@ public sealed class NodeActSetVibeLabel : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
+        var labels = missionIni.Ships.SelectMany(x => x.Labels).ToArray();
+
         NodeActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
-        Controls.InputTextId("Label 1", ref Data.Label1);
-        Controls.InputTextId("Label 2", ref Data.Label2);
+        nodePopups.StringCombo("Label 1", Data.Label1, s => Data.Label1 = s, labels);
+        nodePopups.StringCombo("Label 2", Data.Label2, s => Data.Label2 = s, labels);
     }
 }

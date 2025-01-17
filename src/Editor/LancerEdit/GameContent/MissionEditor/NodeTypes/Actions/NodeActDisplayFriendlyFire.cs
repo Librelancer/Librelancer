@@ -20,6 +20,7 @@ public sealed class NodeActDisableFriendlyFire : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
+        // TODO: Comboify some how?
         Controls.InputStringList("Objects & Labels", Data.ObjectsAndLabels);
     }
 }

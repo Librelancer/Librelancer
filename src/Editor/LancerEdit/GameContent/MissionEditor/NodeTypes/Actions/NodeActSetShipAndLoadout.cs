@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -20,7 +21,10 @@ public sealed class NodeActSetShipAndLoadout : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Ship", ref Data.Ship);
-        Controls.InputTextId("Loadout", ref Data.Loadout);
+        var ships = missionIni.Ships.Select(x => x.Nickname).ToArray();
+        var loadouts = gameData.GameData.Loadouts.Select(x => x.Nickname).OrderBy(x => x).ToArray();
+
+        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
+        nodePopups.StringCombo("Loadout", Data.Loadout, s => Data.Loadout = s, loadouts);
     }
 }

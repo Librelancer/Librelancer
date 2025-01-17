@@ -21,6 +21,7 @@ public sealed class NodeActSetVibeOfferBaseHack : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
+        // TODO: Transform into combo if possible
         Controls.InputTextId("Base", ref Data.Id);
     }
 }

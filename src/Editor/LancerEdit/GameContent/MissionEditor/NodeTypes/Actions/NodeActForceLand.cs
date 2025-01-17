@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -20,6 +21,7 @@ public sealed class NodeActForceLand : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Base", ref Data.Base);
+        var bases = gameData.GameData.Bases.Select(x => x.Nickname).ToArray();
+        nodePopups.StringCombo("Base", Data.Base, s => Data.Base = s, bases);
     }
 }

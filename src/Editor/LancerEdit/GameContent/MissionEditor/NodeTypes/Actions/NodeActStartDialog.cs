@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -20,6 +21,8 @@ public sealed class NodeActStartDialog : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Dialog", ref Data.Dialog);
+        var dialogs = missionIni.Dialogs.Select(x => x.Nickname).ToArray();
+
+        nodePopups.StringCombo("Dialog", Data.Dialog, s => Data.Dialog = s, dialogs);
     }
 }

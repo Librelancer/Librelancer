@@ -1,4 +1,5 @@
-﻿using LibreLancer.Data.Missions;
+﻿using System.Linq;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -20,6 +21,8 @@ public sealed class NodeActSpawnSolar : BlueprintNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        Controls.InputTextId("Solar", ref Data.Solar);
+        var solars = missionIni.Solars.Select(x => x.Nickname).ToArray();
+
+        nodePopups.StringCombo("Solar", Data.Solar, s => Data.Solar = s, solars);
     }
 }
