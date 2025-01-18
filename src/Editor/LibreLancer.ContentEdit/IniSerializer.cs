@@ -643,7 +643,7 @@ public static class IniSerializer
         var s = ini.Section("NPC");
         s.Entry("nickname", npc.Nickname)
             .Entry("npc_ship_arch", npc.NpcShipArch)
-            .Entry("affiliation", npc.NpcShipArch)
+            .Entry("affiliation", npc.Affiliation)
             .Entry("individual_name", npc.IndividualName)
             .OptionalEntry("voice", npc.Voice);
 
