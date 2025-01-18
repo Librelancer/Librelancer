@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,46 @@ namespace LibreLancer.ContentEdit;
 public class Blender
 {
     private static readonly string ExportScript;
+
+    class TempFiles : IDisposable
+    {
+        private List<string> allFiles = new List<string>();
+
+        public string GetPath(string extension = "")
+        {
+            var p = Path.GetTempFileName();
+            File.Delete(p);
+            p += extension;
+            allFiles.Add(p);
+            return p;
+        }
+
+        public string WriteText(string text)
+        {
+            var p = Path.GetTempFileName();
+            File.WriteAllText(p, text);
+            allFiles.Add(p);
+            return p;
+        }
+
+        public void Dispose()
+        {
+            if (allFiles == null)
+                return;
+            foreach (var f in allFiles)
+            {
+                try
+                {
+                    File.Delete(f);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+            allFiles = null;
+        }
+    }
 
     static Blender()
     {
@@ -90,8 +131,11 @@ public class Blender
     private const int CANCELLED = -255;
     static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null)
     {
+        using var temp = new TempFiles();
+        var pythonFile = temp.WriteText(pythonCode);
+
         var processName = blenderPath;
-        var processArgs = $"{args} --background --factory-startup --python-console";
+        var processArgs = $"{args} --background --factory-startup --python {pythonFile}";
         if (blenderPath == "FLATPAK")
         {
             processName = "flatpak";
@@ -103,7 +147,6 @@ public class Blender
             UseShellExecute = false,
             RedirectStandardOutput = log != null,
             RedirectStandardError = log != null,
-            RedirectStandardInput = true
         };
         log?.Invoke($"Running {processName} {processArgs}\n");
         log?.Invoke("Python:\n" + pythonCode + "\n");
@@ -121,8 +164,6 @@ public class Blender
             process.BeginErrorReadLine();
             process.BeginOutputReadLine();
         }
-        await process.StandardInput.WriteAsync(pythonCode);
-        process.StandardInput.Close();
         try
         {
             await process.WaitForExitAsync(cancellation);
@@ -149,17 +190,17 @@ public class Blender
             blenderPath = AutodetectBlender();
         if (string.IsNullOrWhiteSpace(blenderPath))
             return EditResult<SimpleMesh.Model>.Error("Could not locate blender executable");
+        using var temp = new TempFiles();
         string tmpblend = null;
-        string tmpfile = Path.GetTempFileName();
-        File.Delete(tmpfile);
+        string tmpfile = temp.GetPath(".glb");
         if (blenderPath == "FLATPAK")
         {
-            tmpblend = Path.GetTempFileName();
+            tmpblend = temp.GetPath();
             File.Copy(file, tmpblend, true);
         }
         var exportCode =
             "import bpy\n"
-            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', export_extras=True, use_mesh_edges=True, export_image_format='AUTO')";
+            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', check_existing=False, filter_glob='', export_extras=True, use_mesh_edges=True, export_image_format='AUTO')";
         var result = await RunBlender(blenderPath, Shell.Quote(tmpblend ?? file), exportCode, cancellation, log);
         if (result == CANCELLED)
         {
@@ -168,8 +209,6 @@ public class Blender
             return EditResult<SimpleMesh.Model>.Error("Operation was cancelled");
         }
         log?.Invoke($"Exit Code: {result}\n");
-        DeleteIfExists(tmpblend);
-        tmpfile += ".glb";
         if(File.Exists(tmpfile))
         {
             return await EditResult<SimpleMesh.Model>.RunBackground(() =>
@@ -205,9 +244,9 @@ public class Blender
             blenderPath = AutodetectBlender();
         if (string.IsNullOrWhiteSpace(blenderPath))
             return EditResult<bool>.Error("Could not locate blender executable");
-        var tmpblend = Path.GetTempFileName();
-        File.Delete(tmpblend);
-        var tmpfile = Path.GetTempFileName();
+        using var temp = new TempFiles();
+        var tmpblend = temp.GetPath();
+        var tmpfile = temp.GetPath();
         using (var gltfStream = File.Create(tmpfile)) {
             exported.SaveTo(gltfStream, ModelSaveFormat.GLTF2);
         }
@@ -231,7 +270,6 @@ public class Blender
         );
         if(result != CANCELLED)
             logLine?.Invoke($"Exit Code: {result}\n");
-        File.Delete(tmpfile);
         if (File.Exists(tmpblend))
         {
             File.Move(tmpblend, file, true);
