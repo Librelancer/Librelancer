@@ -631,7 +631,18 @@ public class Act_SetRep : ScriptedAction
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Act_SetRep", Object);
+        List<ValueBase> entries = [Object, Faction];
+
+        if (VibeSet is not VibeSet.None)
+        {
+            entries.Add(VibeSet.ToString());
+        }
+        else
+        {
+            entries.Add(NewValue);
+        }
+
+        section.Entry("Act_SetRep", entries.ToArray());
     }
 }
 
