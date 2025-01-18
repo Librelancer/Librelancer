@@ -16,6 +16,7 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Ini;
+using Microsoft.EntityFrameworkCore.Query;
 using SimpleMesh.Formats.Collada.Schema;
 using ImGui = ImGuiNET.ImGui;
 
@@ -108,6 +109,77 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             }
 
             TryLinkNodes(action, trigger, LinkType.Trigger);
+        }
+
+        using var fileStream = File.OpenRead(file);
+        var sections = IniFile.ParseFile(file, fileStream);
+        var nodesSection = sections.FirstOrDefault(x => x.Name.Equals("nodes", StringComparison.OrdinalIgnoreCase));
+        if (nodesSection is not null)
+        {
+            foreach (var nodePos in nodesSection)
+            {
+                if (nodePos.Count < 4)
+                {
+                    FLLog.Warning("MissionScriptEditor", "Invalid node position in nodes section!");
+                    continue;
+                }
+
+                var type = nodePos[0].ToString()!;
+
+                if (type.Equals("comment", StringComparison.OrdinalIgnoreCase))
+                {
+                    var name = nodePos[1].ToString()!;
+                    var pos = new Vector2(nodePos[2].ToSingle(), nodePos[3].ToSingle());
+                    var comment = new CommentNode()
+                    {
+                        BlockName = name
+                    };
+                    nodes.Add(comment);
+                    nodeRelocationQueue.Enqueue((comment.Id, pos));
+                    continue;
+                }
+
+                var triggerNickname = nodePos[1].ToString()!;
+                var xPos = nodePos[2].ToSingle();
+                var yPos = nodePos[3].ToSingle();
+                var index = nodePos.Count >= 5 ? nodePos[4].ToInt32() : -1;
+
+                var trigger = triggers.FirstOrDefault(x => x.Data.Nickname == triggerNickname);
+                if (trigger is null)
+                {
+                    FLLog.Warning("MissionScriptEditor", $"Trigger from {type} node in the nodes section was not found.");
+                    continue;
+                }
+
+                if (type.Equals("trigger", StringComparison.OrdinalIgnoreCase))
+                {
+                    nodeRelocationQueue.Enqueue((trigger.Id, new Vector2(xPos, yPos)));
+                }
+                else if (type.Equals("action", StringComparison.OrdinalIgnoreCase))
+                {
+                    var actions = GetLinkedNodes(trigger, PinKind.Output, LinkType.Action);
+                    if (actions.Count <= index || index == -1)
+                    {
+                        FLLog.Warning("MissionScriptEditor", $"Action in the nodes section had a bad index.");
+                        continue;
+                    }
+
+                    nodeRelocationQueue.Enqueue((actions.ElementAt(index).Id, new Vector2(xPos, yPos)));
+                }
+                else if (type.Equals("condition", StringComparison.OrdinalIgnoreCase))
+                {
+                    var conditions = GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition);
+                    if (conditions.Count <= index || index == -1)
+                    {
+                        FLLog.Warning("MissionScriptEditor", $"Condition in the nodes section had a bad index.");
+                        continue;
+                    }
+
+                    nodeRelocationQueue.Enqueue((conditions.ElementAt(index).Id, new Vector2(xPos, yPos)));
+                }
+            }
+
+            return;
         }
 
         // Arrange initial positions for all nodes if needed
@@ -445,6 +517,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 nodeRelocationQueue.Enqueue((node.Id, position));
             }));
         }
+
+        if (ImGui.MenuItem("Comment Node"))
+        {
+            var node = new CommentNode();
+            nodes.Add(node);
+            nodeRelocationQueue.Enqueue((node.Id, position));
+        }
     }
 
     private void NodeContextMenu()
@@ -731,11 +810,48 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             IniSerializer.SerializeMissionFormation(formation, ini);
         }
 
+        Dictionary<NodeMissionTrigger, (TriggerEntryNode[] Actions, TriggerEntryNode[] Conditions)> triggerToActionAndConditions = new();
         foreach (var trigger in triggers)
         {
             trigger.WriteNode(this, ini);
+
+            var actions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Action).OfType<TriggerEntryNode>().ToArray();
+            var conditions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition).OfType<TriggerEntryNode>().ToArray();
+
+            triggerToActionAndConditions.Add(trigger, (actions, conditions));
         }
 
-        IniWriter.WriteIniFile("/mnt/ssd3/Freelancer/DATA/MISSIONS/M02/M02_new.ini", ini.Sections);
+        // Store the locations of our nodes
+        var s = ini.Section("Nodes");
+
+        NodeEditor.SetCurrentEditor(context);
+        foreach (var pair in triggerToActionAndConditions)
+        {
+            var pos = NodeEditor.GetNodePosition(pair.Key.Id);
+            s.Entry("node", "Trigger", pair.Key.Data.Nickname, pos.X, pos.Y);
+
+            var i = 0;
+            foreach (var action in pair.Value.Actions)
+            {
+                pos = NodeEditor.GetNodePosition(action.Id);
+                s.Entry("node", "Action", pair.Key.Data.Nickname, pos.X, pos.Y, i++);
+            }
+
+            i = 0;
+            foreach (var condition in pair.Value.Conditions)
+            {
+                pos = NodeEditor.GetNodePosition(condition.Id);
+                s.Entry("node", "Condition", pair.Key.Data.Nickname, pos.X, pos.Y, i++);
+            }
+        }
+
+        foreach (var node in nodes.OfType<CommentNode>())
+        {
+            var pos = NodeEditor.GetNodePosition(node.Id);
+            s.Entry("node", "Comment", node.BlockName, pos.X, pos.Y);
+        }
+
+        NodeEditor.SetCurrentEditor(null);
+        IniWriter.WriteIniFile("/mnt/ssd3/Freelancer/DATA/MISSIONS/M02/m02_new.ini", ini.Sections);
     }
 }
