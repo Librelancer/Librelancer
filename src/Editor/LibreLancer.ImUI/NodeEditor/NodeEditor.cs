@@ -68,10 +68,10 @@ public static unsafe class NodeEditor
 
     public static ImDrawListPtr GetNodeBackgroundDrawList(NodeId nodeId) => new((IntPtr)axGetNodeBackgroundDrawList(nodeId));
 
-    public static bool Link(LinkId id, PinId startPinId, PinId endPinId, Color4? color = null, float thickness = 1.0f)
+    public static bool Link(LinkId id, PinId startPinId, PinId endPinId, VertexDiffuse? color = null, float thickness = 1.0f)
     {
-        Vector4 v = color ?? Color4.White;
-        return axLink(id, startPinId, endPinId, &v, thickness) != 0;
+        Vector4 floatColor = (Color4)(color ?? (VertexDiffuse)Color4.White);
+        return axLink(id, startPinId, endPinId, &floatColor, thickness) != 0;
     }
 
     public static void Flow(LinkId id, FlowDirection direction = FlowDirection.Forward) => axFlow(id, direction);

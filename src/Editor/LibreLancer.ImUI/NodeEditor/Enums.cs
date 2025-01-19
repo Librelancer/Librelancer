@@ -4,35 +4,35 @@ namespace LibreLancer.ImUI.NodeEditor;
 
 public enum StyleVar
 {
-NodePadding,
-NodeRounding,
-NodeBorderWidth,
-HoveredNodeBorderWidth,
-SelectedNodeBorderWidth,
-PinRounding,
-PinBorderWidth,
-LinkStrength,
-SourceDirection,
-TargetDirection,
-ScrollDuration,
-FlowMarkerDistance,
-FlowSpeed,
-FlowDuration,
-PivotAlignment,
-PivotSize,
-PivotScale,
-PinCorners,
-PinRadius,
-PinArrowSize,
-PinArrowWidth,
-GroupRounding,
-GroupBorderWidth,
-HighlightConnectedLinks,
-SnapLinkToPinDir,
-HoveredNodeBorderOffset,
-SelectedNodeBorderOffset,
+    NodePadding,
+    NodeRounding,
+    NodeBorderWidth,
+    HoveredNodeBorderWidth,
+    SelectedNodeBorderWidth,
+    PinRounding,
+    PinBorderWidth,
+    LinkStrength,
+    SourceDirection,
+    TargetDirection,
+    ScrollDuration,
+    FlowMarkerDistance,
+    FlowSpeed,
+    FlowDuration,
+    PivotAlignment,
+    PivotSize,
+    PivotScale,
+    PinCorners,
+    PinRadius,
+    PinArrowSize,
+    PinArrowWidth,
+    GroupRounding,
+    GroupBorderWidth,
+    HighlightConnectedLinks,
+    SnapLinkToPinDir,
+    HoveredNodeBorderOffset,
+    SelectedNodeBorderOffset,
 
-Count
+    Count
 }
 
 public enum StyleColor
@@ -62,32 +62,32 @@ public enum StyleColor
 
 public enum PinKind
 {
-Input,
-Output,
+    Input,
+    Output,
 }
 
 public enum FlowDirection
 {
-Forward,
-Backward
+    Forward,
+    Backward
 }
 
 public enum CanvasSizeMode
 {
-FitVerticalView,
-FitHorizontalView,
-CenterOnly
+    FitVerticalView,
+    FitHorizontalView,
+    CenterOnly
 }
 
 [Flags]
 public enum SaveReasonFlags
 {
-None       = 0x00000000,
-Navigation = 0x00000001,
-Position   = 0x00000002,
-Size       = 0x00000004,
-Selection  = 0x00000008,
-AddNode    = 0x00000010,
-RemoveNode = 0x00000020,
-User       = 0x00000040
+    None = 0x00000000,
+    Navigation = 0x00000001,
+    Position = 0x00000002,
+    Size = 0x00000004,
+    Selection = 0x00000008,
+    AddNode = 0x00000010,
+    RemoveNode = 0x00000020,
+    User = 0x00000040
 }

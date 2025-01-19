@@ -1,28 +1,28 @@
-using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public class CommentNode : Node
 {
-    public Vector2 Size = new Vector2(100, 100);
-    private string previousName = null;
-
-    public CommentNode(int id, string name) : base(id, name, null, null)
-    {
-    }
+    public Vector2 Size = new(100, 100);
+    private string previousName;
 
     static (Vector2 min, Vector2 max) Expand(Vector2 min, Vector2 max, float x, float y)
     {
         return (new Vector2(min.X - x, min.Y - y),
             new Vector2(max.X + x, max.Y + y));
     }
-    public override void Render(GameDataContext gameData, MissionScript missionScript)
+
+    protected override string Name => BlockName;
+
+    public string BlockName { get; set; } = "Comment Node";
+
+    public override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         const float CommentAlpha = 0.75f;
 
@@ -90,7 +90,7 @@ public class CommentNode : Node
             ImGui.PushItemWidth(200 * ImGuiHelper.Scale);
             ImGui.InputText("##name", ref n, 255);
             ImGui.PopItemWidth();
-            Name = n;
+            BlockName = n;
             if (ImGui.Button("Ok"))
             {
                 ImGui.CloseCurrentPopup();
@@ -98,7 +98,7 @@ public class CommentNode : Node
             ImGui.SameLine();
             if (ImGui.Button("Cancel"))
             {
-                Name = previousName;
+                BlockName = previousName;
                 ImGui.CloseCurrentPopup();
             }
             ImGui.EndPopup();

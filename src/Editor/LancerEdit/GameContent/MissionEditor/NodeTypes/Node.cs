@@ -4,42 +4,23 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Ini;
 using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public abstract class Node
+public abstract class Node(VertexDiffuse? color = null)
 {
-    public NodeId Id { get; }
-    public string Name  { get; protected set; }
-    public List<NodePin> Inputs  { get; }
-    public List<NodePin> Outputs  { get; }
-    public Color4 Color  { get; }
-    public object Data { get; }
+    public NodeId Id { get; } = NodeEditorId.Next();
+    protected abstract string Name  { get; }
+    public List<NodePin> Inputs  { get; } = [];
+    public List<NodePin> Outputs  { get; } = [];
+    public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
 
-    protected static readonly Dictionary<Type, NodeValueRenderer<object>> NodeValueRenders = new();
-
-    public delegate void NodeValueRenderer<in T>(GameDataContext context, MissionScript script, ref NodePopups popups, T item);
-    public static void RegisterNodeValueRenderer<T>(NodeValueRenderer<T> values)
-    {
-        NodeValueRenders[typeof(T)] = (GameDataContext context, MissionScript script, ref NodePopups popups, object obj)
-            => values(context, script, ref popups, (T)obj);
-    }
-
-    protected Node(int id, string name, object data, Color4? color = null)
-    {
-        Id = id;
-        Name = name;
-        Data = data;
-        Color = color ?? Color4.White;
-
-        Inputs = new List<NodePin>();
-        Outputs = new List<NodePin>();
-    }
-
-    public abstract void Render(GameDataContext gameData, MissionScript missionScript);
+    public abstract void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni);
 
     protected static void LayoutNode(IEnumerable<string> pinsIn, IEnumerable<string> pinsOut, float fixedWidth)
     {
@@ -75,5 +56,13 @@ public abstract class Node
     protected static void EndNodeLayout()
     {
         ImGui.EndTable();
+    }
+
+    public virtual void OnLinkCreated(NodeLink link)
+    {
+    }
+
+    public virtual void OnLinkRemoved(NodeLink link)
+    {
     }
 }

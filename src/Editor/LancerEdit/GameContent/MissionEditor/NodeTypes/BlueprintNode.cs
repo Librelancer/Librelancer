@@ -1,40 +1,54 @@
-using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
+using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public class BlueprintNode<T> : Node where T : class
+public abstract class BlueprintNode : Node
 {
-    public BlueprintNode(ref int id, string name, object data, Color4? color = null) : base(id++, name, data, color)
+    protected virtual float NodeInnerWidth => 200f;
+
+    protected BlueprintNode(ref int id, VertexDiffuse? color = null) : base(color)
     {
-        Registers.Registers.RegisterNodeIo<T>(this, ref id);
     }
 
-    public override void Render(GameDataContext gameData, MissionScript missionScript)
+    protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+        MissionIni missionIni);
+
+    public sealed override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
     {
         var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
         var nb = NodeBuilder.Begin(Id);
 
-        nb.Header(new Color4(Color.R, Color.G, Color.B, 255f));
+        nb.Header(Color);
         ImGui.Text(Name);
         nb.EndHeader();
 
-        LayoutNode(Inputs.Select(x => x.Name), Outputs.Select(x => x.Name), 200);
+        LayoutNode(Inputs.Select(x => x.LinkType.ToString()), Outputs.Select(x => x.LinkType.ToString()), NodeInnerWidth * ImGuiHelper.Scale);
         StartInputs();
 
         foreach (var pin in Inputs)
         {
             NodeEditor.BeginPin(pin.Id, PinKind.Input);
-            VectorIcons.Icon(iconSize, VectorIcon.Flow, false);
+
+            Color4 color = pin.LinkType switch
+            {
+                LinkType.Command => Color4.Cyan,
+                LinkType.CommandList => Color4.DarkBlue,
+                LinkType.Condition => Color4.Orange,
+                LinkType.Trigger => Color4.Green,
+                LinkType.Action => Color4.Red,
+                _ => Color4.White,
+            };
+
+            VectorIcons.Icon(iconSize, VectorIcon.Flow, false, color);
             ImGui.SameLine();
-            ImGui.Text(pin.Name);
+            ImGui.Text(pin.LinkType.ToString());
             NodeEditor.EndPin();
         }
 
@@ -44,15 +58,13 @@ public class BlueprintNode<T> : Node where T : class
             NodeEditor.BeginPin(pin.Id, PinKind.Output);
             VectorIcons.Icon(iconSize, VectorIcon.Flow, false);
             ImGui.SameLine();
-            ImGui.Text(pin.Name);
+            ImGui.Text(pin.LinkType.ToString());
             NodeEditor.EndPin();
         }
 
         StartFixed();
-        if (NodeValueRenders.TryGetValue(Data.GetType(), out var renderer))
-        {
-            renderer(gameData, missionScript, ref nb.Popups, Data);
-        }
+
+        RenderContent(gameData, popup, ref nb.Popups, missionIni);
 
         EndNodeLayout();
 

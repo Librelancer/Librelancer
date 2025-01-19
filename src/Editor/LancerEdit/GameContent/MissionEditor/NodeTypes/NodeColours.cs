@@ -1,16 +1,12 @@
+using LibreLancer;
+
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
-public enum NodeColours : uint
+public static class NodeColours
 {
-    Dialog = 0xFFF1C400,
-    MissionFormation = 0xFFFF9E1B,
-    MissionLoot = 0xFF00C7B1,
-    MissionShip = 0xFF97D700,
-    MissionSolar = 0xFFFC4C02,
-    NNObjective = 0xFF2E008B,
-    Command = 0xFF730e99,
-    CommandList = 0xFF730e99,
-    Trigger = 0xFFC3C6A8,
-    Action = 0xFF00965E,
-    Condition = 0xFFCEDC00
+    public static VertexDiffuse Command => new(0x73, 0x0e, 0x99, 0xFF);
+    public static VertexDiffuse CommandList => new(0x73, 0x0e, 0x99, 0xFF);
+    public static VertexDiffuse Trigger => new(0x4E, 0xBF, 0xFF, 0xFF);
+    public static VertexDiffuse Action => new(0xFF, 0x4E, 0x4E, 0xFF);
+    public static VertexDiffuse Condition => new(0xCE, 0xDC, 0x00, 0xFF);
 }

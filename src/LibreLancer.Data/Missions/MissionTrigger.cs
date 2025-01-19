@@ -1,7 +1,7 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using LibreLancer.Ini;
@@ -10,13 +10,13 @@ namespace LibreLancer.Data.Missions
     public class MissionTrigger : IEntryHandler
     {
         [Entry("nickname")]
-        public string Nickname;
+        public string Nickname = string.Empty;
         [Entry("system")]
-        public string System;
+        public string System = string.Empty;
         [Entry("repeatable")]
         public bool Repeatable;
         [Entry("InitState")]
-        public TriggerInitState InitState;
+        public TriggerInitState InitState = TriggerInitState.INACTIVE;
         public List<MissionAction> Actions = new List<MissionAction>();
         public List<MissionCondition> Conditions = new List<MissionCondition>();
 

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices.ComTypes;
 using LibreLancer.GameData.World;
 using System.Text;
+using Castle.Core.Internal;
 using LibreLancer.Data;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
@@ -109,6 +111,7 @@ public static class IniSerializer
 
         return ib.Sections;
     }
+
     public static List<Section> SerializeAsteroidField(AsteroidField ast)
     {
         var builder = new IniBuilder();
@@ -131,7 +134,7 @@ public static class IniSerializer
 
         if (ast.Band != null)
         {
-             builder.Section("Band")
+            builder.Section("Band")
                 .Entry("render_parts", ast.Band.RenderParts)
                 .Entry("shape", ast.Band.Shape)
                 .Entry("height", ast.Band.Height)
@@ -163,7 +166,7 @@ public static class IniSerializer
         if (ast.Flags != 0)
         {
             var s = builder.Section("properties"); //intentional lower case
-            foreach(var flag in ast.Flags.GetStringValues())
+            foreach (var flag in ast.Flags.GetStringValues())
                 s.Entry("flag", flag);
         }
 
@@ -181,7 +184,8 @@ public static class IniSerializer
                 var a = c.Rotation.GetEulerDegrees();
                 if (!string.IsNullOrWhiteSpace(c.Info))
                 {
-                    cb.Entry("asteroid", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z, c.Info);
+                    cb.Entry("asteroid", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z,
+                        c.Info);
                 }
                 else
                 {
@@ -222,14 +226,17 @@ public static class IniSerializer
                 .Entry("dynamic_loot_count", lz.LootCount)
                 .Entry("dynamic_loot_difficulty", lz.LootDifficulty);
         }
-        if(ast.FieldLoot != null)
+
+        if (ast.FieldLoot != null)
         {
             AddLootZone(ast.FieldLoot);
         }
+
         foreach (var lz in ast.LootZones)
         {
             AddLootZone(lz);
         }
+
         return builder.Sections;
     }
 
@@ -261,6 +268,7 @@ public static class IniSerializer
         if (!float.IsNaN(ln) && ln > float.Epsilon)
             sb.Entry("rotate", euler);
     }
+
     static void SerializeRotation(IniBuilder.IniSectionBuilder sb, Quaternion rotation)
     {
         var euler = Matrix4x4.CreateFromQuaternion(rotation).GetEulerDegrees();
@@ -303,7 +311,8 @@ public static class IniSerializer
                     .Entry("size", z.Size.X, z.Size.Z, z.Size.Y);
                 break;
         }
-        sb.OptionalEntry("property_flags", (uint) z.PropertyFlags);
+
+        sb.OptionalEntry("property_flags", (uint)z.PropertyFlags);
         if (z.PropertyFogColor != null)
             sb.Entry("property_fog_color", z.PropertyFogColor.Value);
         sb.OptionalEntry("damage", z.Damage)
@@ -360,7 +369,7 @@ public static class IniSerializer
         SerializeRotation(sb, obj.Rotation);
         if (obj.AmbientColor != null)
             sb.Entry("ambient_color", obj.AmbientColor.Value);
-        sb.OptionalEntry( "Archetype", obj.Archetype?.Nickname)
+        sb.OptionalEntry("Archetype", obj.Archetype?.Nickname)
             .OptionalEntry("star", obj.Star?.Nickname)
             .OptionalEntry("msg_id_prefix", obj.MsgIdPrefix);
         foreach (var i in obj.IdsInfo)
@@ -389,16 +398,16 @@ public static class IniSerializer
         }
 
         sb.OptionalEntry("behavior", obj.Behavior)
-        .OptionalEntry("voice", obj.Voice)
-        .OptionalEntry("space_costume", obj.SpaceCostume)
-        .OptionalEntry("faction", obj.Faction?.Nickname)
-        .OptionalEntry("difficulty_level", obj.DifficultyLevel)
-        .OptionalEntry("loadout", obj.Loadout?.Nickname)
-        .OptionalEntry("pilot", obj.Pilot?.Nickname)
-        .OptionalEntry("reputation", obj.Reputation?.Nickname)
-        .OptionalEntry("tradelane_space_name", obj.TradelaneSpaceName)
-        .OptionalEntry("parent", obj.Parent)
-        .OptionalEntry("visit", (int) obj.Visit);
+            .OptionalEntry("voice", obj.Voice)
+            .OptionalEntry("space_costume", obj.SpaceCostume)
+            .OptionalEntry("faction", obj.Faction?.Nickname)
+            .OptionalEntry("difficulty_level", obj.DifficultyLevel)
+            .OptionalEntry("loadout", obj.Loadout?.Nickname)
+            .OptionalEntry("pilot", obj.Pilot?.Nickname)
+            .OptionalEntry("reputation", obj.Reputation?.Nickname)
+            .OptionalEntry("tradelane_space_name", obj.TradelaneSpaceName)
+            .OptionalEntry("parent", obj.Parent)
+            .OptionalEntry("visit", (int)obj.Visit);
     }
 
     public static List<Section> SerializeUniverse(IEnumerable<StarSystem> systems, IEnumerable<Base> bases)
@@ -478,6 +487,7 @@ public static class IniSerializer
                 .OptionalEntry("virtual_room", hotspot.VirtualRoom)
                 .OptionalEntry("set_virtual_room", hotspot.SetVirtualRoom);
         }
+
         return ib.Sections;
     }
 
@@ -532,18 +542,21 @@ public static class IniSerializer
                 {
                     section.Entry("bribe", br.Faction, br.Price, br.Ids);
                 }
+
                 foreach (var r in npc.Rumors.Where(x => !x.Type2))
                 {
                     section.Entry("rumor", r.Start, r.End, r.RepRequired, r.Ids);
                     if (r.Objects != null)
                         section.Entry("rumorknowdb", r.Objects);
                 }
+
                 foreach (var r2 in npc.Rumors.Where(x => x.Type2))
                 {
                     section.Entry("rumor_type2", r2.Start, r2.End, r2.RepRequired, r2.Ids);
                     if (r2.Objects != null)
                         section.Entry("rumorknowdb", r2.Objects);
                 }
+
                 foreach (var k in npc.Know)
                 {
                     section.Entry("know", k.Ids1, k.Ids2, k.Price, k.RepRequired);
@@ -590,5 +603,145 @@ public static class IniSerializer
         }
 
         return ib.Sections;
+    }
+
+    public static void SerializeMissionShip(MissionShip ship, IniBuilder builder)
+    {
+        var s = builder.Section("MsnShip");
+
+        s.Entry("nickname", ship.Nickname)
+            .Entry("NPC", ship.NPC)
+            .Entry("random_name", ship.RandomName)
+            .Entry("orientation", ship.Orientation)
+            .OptionalEntry("system", ship.System)
+            .OptionalEntry("radius", ship.Radius)
+            .OptionalEntry("jumper", ship.Jumper)
+            .OptionalEntry("arrival_obj", ship.ArrivalObj)
+            .OptionalEntry("init_objectives", ship.InitObjectives);
+
+        if (ship.Position.Length() is 0f && ship.RelativePosition.MinRange > 0f &&
+            ship.RelativePosition.MaxRange != 0f && !string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName))
+        {
+            s.Entry("rel_pos", ship.RelativePosition.MinRange, ship.RelativePosition.ObjectName,
+                ship.RelativePosition.MaxRange);
+        }
+        else
+        {
+            s.Entry("position", ship.Position);
+        }
+
+        foreach (var cargo in ship.Cargo)
+        {
+            s.Entry("cargo", cargo.Cargo, cargo.Count);
+        }
+    }
+
+    public static void SerializeMissionNpc(MissionNPC npc, IniBuilder ini)
+    {
+        var s = ini.Section("NPC");
+        s.Entry("nickname", npc.Nickname)
+            .Entry("npc_ship_arch", npc.NpcShipArch)
+            .Entry("affiliation", npc.Affiliation)
+            .Entry("individual_name", npc.IndividualName)
+            .OptionalEntry("voice", npc.Voice);
+
+        if (npc.SpaceCostume.All(x => x != null))
+        {
+            s.OptionalEntry("space_costume", npc.SpaceCostume);
+        }
+    }
+
+    public static void SerializeMissionObjective(NNObjective objective, IniBuilder ini)
+    {
+        ini.Section("NNObjective")
+            .Entry("nickname", objective.Nickname)
+            .Entry("state", objective.State)
+            .Entry("type", objective.Type);
+    }
+
+    public static void SerializeMissionFormation(MissionFormation formation, IniBuilder ini)
+    {
+        var s = ini.Section("MsnFormation");
+        s.Entry("nickname", formation.Nickname)
+            .Entry("orientation", formation.Orientation)
+            .Entry("formation", formation.Formation)
+            .Entry("ship", formation.Ships);
+
+        if (formation.Position.Length() is 0f && formation.RelativePosition.MinRange > 0f &&
+            formation.RelativePosition.MaxRange != 0f && !string.IsNullOrWhiteSpace(formation.RelativePosition.ObjectName))
+        {
+            s.Entry("rel_pos", formation.RelativePosition.MinRange, formation.RelativePosition.ObjectName,
+                formation.RelativePosition.MaxRange);
+        }
+        else
+        {
+            s.Entry("position", formation.Position);
+        }
+    }
+
+    public static void SerializeMissionSolar(MissionSolar solar, IniBuilder ini)
+    {
+        var s = ini.Section("MsnSolar");
+        s.Entry("nickname", solar.Nickname)
+            .Entry("faction", solar.Faction)
+            .Entry("system", solar.System)
+            .Entry("position", solar.Position)
+            .Entry("orientation", solar.Orientation)
+            .Entry("archetype", solar.Archetype)
+            .Entry("radius", solar.Radius)
+            .OptionalEntry("costume", solar.Costume)
+            .OptionalEntry("label", solar.Labels.ToArray())
+            .OptionalEntry("voice", solar.Voice)
+            .OptionalEntry("loadout", solar.Loadout)
+            .OptionalEntry("string_id", solar.StringId)
+            .OptionalEntry("pilot", solar.Pilot)
+            .OptionalEntry("visit", solar.Visit);
+    }
+
+    public static void SerializeMissionLoot(MissionLoot loot, IniBuilder ini)
+    {
+        var s = ini.Section("MsnLoot");
+
+        s.Entry("nickname", loot.Nickname)
+            .Entry("archetype", loot.Archetype)
+            .Entry("string_id", loot.StringId)
+            .Entry("velocity", loot.Velocity)
+            .Entry("equip_amount", loot.EquipAmount)
+            .Entry("health", loot.Health)
+            .Entry("can_jettison", loot.CanJettison);
+
+        if (loot.Position.Length() is 0f && loot.RelPosOffset.Length() > 0f && !string.IsNullOrWhiteSpace(loot.RelPosObj))
+        {
+            s.Entry("rel_pos_offset", loot.RelPosOffset);
+            s.Entry("rel_pos_obj", loot.RelPosObj);
+        }
+        else
+        {
+            s.Entry("position", loot.Position);
+        }
+    }
+
+    public static void SerializeMissionDialog(MissionDialog dialog, IniBuilder ini)
+    {
+        var s = ini.Section("Dialog");
+        s.Entry("nickname", dialog.Nickname)
+            .Entry("system", dialog.System);
+
+        foreach (var line in dialog.Lines)
+        {
+            s.Entry("line", line.Source, line.Target, line.Line);
+        }
+    }
+
+    public static void SerializeMissionObjectiveList(ObjList objectiveList, IniBuilder ini)
+    {
+        var s = ini.Section("ObjList");
+        s.Entry("nickname", objectiveList.Nickname)
+            .OptionalEntry("system", objectiveList.System);
+
+        foreach (var cmd in objectiveList.Commands)
+        {
+            s.Entry(cmd.Command.ToString(), cmd.Entry.Select(x => (ValueBase)x).ToArray());
+        }
     }
 }

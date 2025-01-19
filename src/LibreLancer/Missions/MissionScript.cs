@@ -9,6 +9,7 @@ using System.Numerics;
 using LibreLancer.Data;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData;
+using LibreLancer.Missions.Actions;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Ai.ObjList;
 
