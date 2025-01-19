@@ -486,8 +486,6 @@ namespace LancerEdit
                 {
                     OpenDataContext = c;
                     FinishLoadingSpinner();
-
-                    QueueUIThread(() => AddTab(new MissionScriptEditorTab(OpenDataContext, this, @"/mnt/ssd3/Freelancer/DATA/MISSIONS/M02/m02_new.ini")));
                 }, e =>
                 {
                     FinishLoadingSpinner();

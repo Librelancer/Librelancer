@@ -37,16 +37,19 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     private readonly Queue<(NodeId Id, Vector2 Pos)> nodeRelocationQueue = [];
 
     private readonly MissionIni missionIni;
+    public string FileSaveLocation;
 
     public MissionScriptEditorTab(GameDataContext gameData, MainWindow win, string file)
     {
         Title = $"Mission Script Editor - {Path.GetFileName(file)}";
+        FileSaveLocation = file;
         this.gameData = gameData;
         this.win = win;
         popup = new PopupManager();
 
         config = new NodeEditorConfig();
         context = new NodeEditorContext(config);
+        SaveStrategy = new MissionSaveStrategy(win, this);
 
         NodeBuilder.LoadTexture(win.RenderContext);
 
@@ -760,8 +763,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         base.Dispose();
     }
 
-    private void SaveMission(string filename = null)
+    internal EditResult<bool> SaveMission(string savePath = null)
     {
+        if (savePath != null)
+        {
+            FileSaveLocation = savePath;
+        }
+
         IniBuilder ini = new();
 
         ini.Section("Mission")
@@ -852,6 +860,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         NodeEditor.SetCurrentEditor(null);
-        IniWriter.WriteIniFile("/mnt/ssd3/Freelancer/DATA/MISSIONS/M02/m02_new.ini", ini.Sections);
+        IniWriter.WriteIniFile(FileSaveLocation, ini.Sections);
+
+        return new EditResult<bool>(true);
     }
 }
