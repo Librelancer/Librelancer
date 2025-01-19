@@ -37,19 +37,46 @@ def add_gizmo_mesh(parent, scale):
     gz.hide_select = True
     bpy.context.scene.collection.objects.link(gz)
 
+def link_object_to_collection(obj, col):
+        for collection in obj.users_collection:
+            collection.objects.unlink(obj)
+        bpy.data.collections[col].objects.link(obj) 
+        
 bpy.ops.wm.read_homefile(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=GLTF_FILEPATH)
 
+hardpoint_collection = bpy.data.collections.new("Hardpoints")
+bpy.context.scene.collection.children.link(hardpoint_collection)
+hull_collection = bpy.data.collections.new("Hulls")
+bpy.context.scene.collection.children.link(hull_collection)
+lod_collection = bpy.data.collections.new("LODs")
+bpy.context.scene.collection.children.link(lod_collection)
+wireframe_collection = bpy.data.collections.new("Wireframes")
+bpy.context.scene.collection.children.link(wireframe_collection)
+
 for obj in bpy.context.scene.objects:
+        
     if 'hardpoint' in obj:
         obj.empty_display_size = HARDPOINT_SCALE * 0.3
         obj.empty_display_type = 'CUBE'
         add_gizmo_mesh(obj, HARDPOINT_SCALE)
+        link_object_to_collection(obj, "Hardpoints")
     elif 'construct' in obj:
         obj.empty_display_size = 0.5
         obj.empty_display_type = 'CUBE'
-    elif 'hull' in obj or re.search(r'\$lod\d$', obj.name):
+    elif re.search(r'\$lod\d$', obj.name):
+        link_object_to_collection(obj, "LODs")
         obj.hide_set(True)
         obj.hide_render = True
+    elif 'hull' in obj or re.search(r'\$hull\d$', obj.name):
+        link_object_to_collection(obj, "Hulls")
+        obj.hide_set(True)
+        obj.hide_render = True
+    elif 'vmeshwire' in obj or re.search(r'\.vmeshwire$', obj.name):
+        link_object_to_collection(obj, "Wireframes")
+        obj.hide_set(True)
+        obj.hide_render = True
+    elif 'HardpointGizmo' in obj.name:
+        link_object_to_collection(obj, "Hardpoints")    
 
 bpy.ops.wm.save_as_mainfile(filepath=BLEND_FILEPATH)
