@@ -84,19 +84,11 @@ namespace LibreLancer
             IntPtr surface;
             fixed (Bgra8* ptr = &data.GetPinnableReference())
             {
-                /*surface = SDL3.SDL_CreateSur(
-                    (IntPtr)ptr,
-                    width,
-                    height,
-                    32,
-                    width * 4,
-                    0xFF000000,
-                    0x0000FF00,
-                    0x000000FF,
-                    0xFF000000);*/
+                surface = (IntPtr)SDL3.SDL_CreateSurfaceFrom(width, height, SDL3.SDL_PixelFormat.SDL_PIXELFORMAT_RGBA32,
+                    (IntPtr)ptr, width * 4);
             }
-            //SDL3.SDL_SetWindowIcon(windowptr, surface);
-            //SDL3.SDL_FreeSurface(surface);
+            SDL3.SDL_SetWindowIcon(windowptr, surface);
+            SDL3.SDL_DestroySurface(surface);
         }
 
         public ClipboardContents ClipboardStatus()
