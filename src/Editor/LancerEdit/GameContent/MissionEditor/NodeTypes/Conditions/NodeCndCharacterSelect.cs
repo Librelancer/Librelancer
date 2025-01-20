@@ -15,6 +15,8 @@ public class NodeCndCharacterSelect : TriggerEntryNode
     public NodeCndCharacterSelect(ref int id, Entry entry) : base(ref id, NodeColours.Condition)
     {
         Inputs.Add(new NodePin(this, LinkType.Condition, PinKind.Input));
+        Data = entry is null ? new() : new(entry);
+
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
