@@ -92,7 +92,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static bool GLES = false;
 		static Dictionary<int, string> errors;
         public static bool ErrorChecking = false;
-        public static void LoadSDL()
+        public static void LoadSDL(Func<string,IntPtr> getProcAddress)
 		{
             tid = Thread.CurrentThread.ManagedThreadId;
             errors = new Dictionary<int, string>();
@@ -103,7 +103,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             errors.Add(0x0504, "Stack Underflow");
             errors.Add(0x0505, "Out Of Memory");
             errors.Add(0x0506, "Invalid Framebuffer Operation");
-            GL.Load(SDL.SDL_GL_GetProcAddress, GLES);
+            GL.Load(getProcAddress, GLES);
             if (GLExtensions.DebugInfo)
             {
                 GL.Enable(GL_DEBUG_OUTPUT_KHR);
@@ -132,7 +132,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 
         public static bool CheckStringSDL(bool checkGles = false)
         {
-            GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL.SDL_GL_GetProcAddress("glGetString");
+            if(SDL3.Supported)
+                GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL3.SDL_GL_GetProcAddress("glGetString");
+            else
+                GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL2.SDL_GL_GetProcAddress("glGetString");
             var str = GL.GetString(GL.GL_VERSION);
             FLLog.Info("GL", "Version String: " + GL.GetString(GL.GL_VERSION));
             if (checkGles) return str.StartsWith("OpenGL ES 3");

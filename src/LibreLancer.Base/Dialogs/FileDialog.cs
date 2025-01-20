@@ -32,24 +32,30 @@ namespace LibreLancer.Dialogs
             Extensions = exts;
         }
     }
-	public class FileDialog
-	{
-        unsafe struct NFDString : IDisposable
+	public static class FileDialog
+    {
+        // SDL3 dialogs are reliant on the main loop
+        // Use NFD if a script needs a dialog
+        internal static IntPtr SDL3Handle = IntPtr.Zero;
+
+        unsafe struct Utf8Native : IDisposable
         {
             public IntPtr Pointer;
-            public static implicit operator void*(NFDString str) => (void*)str.Pointer;
+            public static implicit operator void*(Utf8Native str) => (void*)str.Pointer;
+            public static implicit operator byte*(Utf8Native str) => (byte*)str.Pointer;
+
             public void Dispose()
             {
                 if(Pointer != IntPtr.Zero)
                     Marshal.FreeHGlobal(Pointer);
             }
-            public static NFDString Create(string str)
+            public static Utf8Native Create(string str)
             {
-                if (str == null) return new NFDString();
+                if (str == null) return new Utf8Native();
                 if (Platform.RunningOS == OS.Windows)
-                    return new NFDString() {Pointer = Marshal.StringToHGlobalUni(str)};
+                    return new Utf8Native() {Pointer = Marshal.StringToHGlobalUni(str)};
                 else
-                    return new NFDString() {Pointer = UnsafeHelpers.StringToHGlobalUTF8(str)};
+                    return new Utf8Native() {Pointer = UnsafeHelpers.StringToHGlobalUTF8(str)};
             }
         }
 
@@ -69,8 +75,8 @@ namespace LibreLancer.Dialogs
                     (NFD.NFDFilterItem*) Marshal.AllocHGlobal(sizeof(NFD.NFDFilterItem) * filters.Filters.Length);
                 for (int i = 0; i < filters.Filters.Length; i++)
                 {
-                    var n = NFDString.Create(filters.Filters[i].Name);
-                    var spec = NFDString.Create(string.Join(',', filters.Filters[i].Extensions));
+                    var n = Utf8Native.Create(filters.Filters[i].Name);
+                    var spec = Utf8Native.Create(string.Join(',', filters.Filters[i].Extensions));
                     items[i].name = n;
                     items[i].spec = spec;
                     f.ToFree.Add(n.Pointer);
@@ -99,13 +105,79 @@ namespace LibreLancer.Dialogs
         }
 
 
+        unsafe struct SDLFilters : IDisposable
+        {
+            public IntPtr Pointer;
+            public uint Count;
+            public List<IntPtr> ToFree;
+            public static SDLFilters Create(FileDialogFilters filters)
+            {
+                var f = new SDLFilters();
+                f.ToFree = new List<IntPtr>();
+                var fitems = filters.Filters ?? [];
+                SDL3.SDL_DialogFileFilter* items =
+                    (SDL3.SDL_DialogFileFilter*) Marshal.AllocHGlobal(sizeof(SDL3.SDL_DialogFileFilter) * (fitems.Length + 1));
+                for (int i = 0; i < fitems.Length; i++)
+                {
+                    var n = Utf8Native.Create(fitems[i].Name);
+                    var spec = Utf8Native.Create(string.Join(';', fitems[i].Extensions));
+                    items[i].name = n;
+                    items[i].pattern = spec;
+                    f.ToFree.Add(n.Pointer);
+                    f.ToFree.Add(spec.Pointer);
+                }
+                var afn = Utf8Native.Create("All Files");
+                var afp = Utf8Native.Create("*");
+                items[fitems.Length].name = afn;
+                items[fitems.Length].pattern = afp;
+                f.ToFree.Add(afn.Pointer);
+                f.ToFree.Add(afp.Pointer);
+                f.Count = (uint)(fitems.Length + 1);
+                f.Pointer = (IntPtr) items;
+                f.ToFree.Add((IntPtr)items);
+                return f;
+            }
+
+            public void Dispose()
+            {
+                foreach(var p in ToFree)
+                    Marshal.FreeHGlobal(p);
+            }
+        }
+
+
         static unsafe void ThrowNFDError() => throw new Exception(Marshal.PtrToStringUTF8((IntPtr) NFD.NFD_GetError()));
         public static unsafe void Open(Action<string> onOpen, FileDialogFilters filters = null, string defaultPath = null)
         {
+            if (SDL3Handle != IntPtr.Zero)
+            {
+                using var sf = SDLFilters.Create(filters);
+                void Callback(IntPtr userdata, IntPtr filelist, int filter)
+                {
+                    var self = GCHandle.FromIntPtr(userdata);
+                    self.Free();
+                    if (filelist == IntPtr.Zero)
+                        return;
+                    IntPtr* files = (IntPtr*)filelist;
+                    if (*files == IntPtr.Zero)
+                        return;
+                    onOpen(Marshal.PtrToStringUTF8(*files));
+                }
+                SDL3.SDL_DialogFileCallback cb = Callback;
+                var cbh = GCHandle.Alloc(cb, GCHandleType.Normal);
+                SDL3.SDL_ShowOpenFileDialog(cb,
+                    (IntPtr)cbh,
+                    SDL3Handle,
+                    new Span<SDL3.SDL_DialogFileFilter>((void*)sf.Pointer, (int)sf.Count),
+                    (int)sf.Count,
+                    defaultPath,
+                    true);
+                return;
+            }
             NFD.NFD_ClearError();
             var f = NFDFilters.Create(filters);
             void* path = null;
-            using var def = NFDString.Create(defaultPath);
+            using var def = Utf8Native.Create(defaultPath);
             var res = NFD.NFD_OpenDialogN(&path, f, f.Count, (void*)def.Pointer);
             if (res == NFDResult.NFD_OKAY)
             {
@@ -119,6 +191,24 @@ namespace LibreLancer.Dialogs
 
         public static unsafe void ChooseFolder(Action<string> onOpen)
         {
+            if (SDL3Handle != IntPtr.Zero)
+            {
+                void Callback(IntPtr userdata, IntPtr filelist, int filter)
+                {
+                    var self = GCHandle.FromIntPtr(userdata);
+                    self.Free();
+                    if (filelist == IntPtr.Zero)
+                        return;
+                    IntPtr* files = (IntPtr*)filelist;
+                    if (*files == IntPtr.Zero)
+                        return;
+                    onOpen(Marshal.PtrToStringUTF8(*files));
+                }
+                SDL3.SDL_DialogFileCallback cb = Callback;
+                var cbh = GCHandle.Alloc(cb, GCHandleType.Normal);
+                SDL3.SDL_ShowOpenFolderDialog(cb, (IntPtr)cbh, SDL3Handle, null, false);
+                return;
+            }
             NFD.NFD_ClearError();
             void* path = null;
             var res = NFD.NFD_PickFolderN(&path, null);
@@ -134,6 +224,30 @@ namespace LibreLancer.Dialogs
 
         public static unsafe void Save(Action<string> onSave, FileDialogFilters filters = null)
 		{
+            if (SDL3Handle != IntPtr.Zero)
+            {
+                using var sf = SDLFilters.Create(filters);
+                void Callback(IntPtr userdata, IntPtr filelist, int filter)
+                {
+                    var self = GCHandle.FromIntPtr(userdata);
+                    self.Free();
+                    if (filelist == IntPtr.Zero)
+                        return;
+                    IntPtr* files = (IntPtr*)filelist;
+                    if (*files == IntPtr.Zero)
+                        return;
+                    onSave(Marshal.PtrToStringUTF8(*files));
+                }
+                SDL3.SDL_DialogFileCallback cb = Callback;
+                var cbh = GCHandle.Alloc(cb, GCHandleType.Normal);
+                SDL3.SDL_ShowSaveFileDialog(cb,
+                    (IntPtr)cbh,
+                    SDL3Handle,
+                    new Span<SDL3.SDL_DialogFileFilter>((void*)sf.Pointer, (int)sf.Count),
+                    (int)sf.Count,
+                    null);
+                return;
+            }
             NFD.NFD_ClearError();
             var f = NFDFilters.Create(filters);
             void* path = null;

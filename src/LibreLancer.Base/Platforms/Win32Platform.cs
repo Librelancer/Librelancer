@@ -88,14 +88,13 @@ namespace LibreLancer.Platforms
             private const int DBT_DEVICEREMOVECOMPLETE = 0x8004;
             private const int DBT_DEVNODES_CHANGED = 0x0007;
 
-            public override unsafe void WndProc(ref SDL.SDL_Event e)
+            public override void WndProc(uint msg, UIntPtr wParam)
             {
-                SDL.SDL_SysWMmsg_WINDOWS* ev = (SDL.SDL_SysWMmsg_WINDOWS*) e.syswm.msg;
-                if (ev->msg == WM_DEVICECHANGE)
+                if (msg == WM_DEVICECHANGE)
                 {
-                    if(ev->wParam == DBT_DEVICEARRIVAL ||
-                       ev->wParam == DBT_DEVICEREMOVECOMPLETE ||
-                       ev->wParam == DBT_DEVNODES_CHANGED)
+                    if(wParam == DBT_DEVICEARRIVAL ||
+                       wParam == DBT_DEVICEREMOVECOMPLETE ||
+                       wParam == DBT_DEVNODES_CHANGED)
                         Platform.OnMountsChanged(Platform.GetMounts());
                 }
             }

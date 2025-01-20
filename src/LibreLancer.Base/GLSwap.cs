@@ -10,7 +10,7 @@ static class GLSwap
 
     private static bool doDwmFlush = true;
     private static bool loggedDwmFlush = false;
-    
+
     // We disable using DwmFlush() on wine because the OpenGL calls work correctly there,
     // and DwmFlush() is a stub
 
@@ -33,11 +33,11 @@ static class GLSwap
         {
             wine = false;
             return false;
-        }    
+        }
     }
-    
+
     // DwmFlush(), but log and disable the functionality if the call fails for any reason.
-    
+
     static void TryDwmFlush()
     {
         if (IsWine()) {
@@ -64,36 +64,36 @@ static class GLSwap
             doDwmFlush = false;
         }
     }
-    
+
     // Set swap interval and swap window. Use DwmFlush for windowed mode on Win32
     // to help frame timings.
 
     public static void SwapWindow(IntPtr window, bool vsyncEnabled, bool fullscreen)
     {
-        var interval = SDL.SDL_GL_GetSwapInterval();
+        var interval = SDLCommon.SDL_GL_GetSwapInterval();
         if (Platform.RunningOS != OS.Windows || fullscreen || !doDwmFlush)
         {
             if (vsyncEnabled && interval == 0) {
-                if (SDL.SDL_GL_SetSwapInterval(-1) < 0)
-                    SDL.SDL_GL_SetSwapInterval(1);
+                if (SDLCommon.SDL_GL_SetSwapInterval(-1) < 0)
+                    SDLCommon.SDL_GL_SetSwapInterval(1);
             }
             else if (!vsyncEnabled && interval != 0) {
-                SDL.SDL_GL_SetSwapInterval(0);
+                SDLCommon.SDL_GL_SetSwapInterval(0);
             }
-            SDL.SDL_GL_SwapWindow(window);
+            SDLCommon.SDL_GL_SwapWindow(window);
         }
         else if (!vsyncEnabled)
         {
             if (interval != 0)
-                SDL.SDL_GL_SetSwapInterval(0);
-            SDL.SDL_GL_SwapWindow(window);
+                SDLCommon.SDL_GL_SetSwapInterval(0);
+            SDLCommon.SDL_GL_SwapWindow(window);
         }
         else
         {
             //DwmFlush vsync
             if (interval != 0)
-                SDL.SDL_GL_SetSwapInterval(0);
-            SDL.SDL_GL_SwapWindow(window);
+                SDLCommon.SDL_GL_SetSwapInterval(0);
+            SDLCommon.SDL_GL_SwapWindow(window);
             TryDwmFlush();
         }
     }

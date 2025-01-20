@@ -38,12 +38,24 @@ public class HeadlessContext : IGLWindow, IUIThread
 
     public static HeadlessContext Create()
     {
-        if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
-            throw new Exception("SDL_Init failed");
-        var win = SDL.SDL_CreateWindow("Headless Librelancer",
-            SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
-            128, 128,
-            SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+        IntPtr win;
+        if (SDL3.Supported)
+        {
+            if (!SDL3.SDL_Init(SDL3.SDL_InitFlags.SDL_INIT_VIDEO))
+                throw new Exception("SDL_Init failed");
+            win = SDL3.SDL_CreateWindow("Headless Librelancer", 128, 128,
+                SDL3.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL3.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+
+        }
+        else
+        {
+            if (SDL2.SDL_Init(SDL2.SDL_INIT_VIDEO) != 0)
+                throw new Exception("SDL_Init failed");
+            win = SDL2.SDL_CreateWindow("Headless Librelancer",
+                SDL2.SDL_WINDOWPOS_UNDEFINED, SDL2.SDL_WINDOWPOS_UNDEFINED,
+                128, 128,
+                SDL2.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL2.SDL_WindowFlags.SDL_WINDOW_OPENGL);
+        }
         if (win == IntPtr.Zero)
             throw new Exception("Failed to create hidden SDL window");
         var ctx = GLRenderContext.Create(win);

@@ -40,20 +40,50 @@ class GLRenderContext : IRenderContext
                 return IntPtr.Zero;
             }
         }
-        GL.LoadSDL();
+        GL.LoadSDL(SDL3.Supported ? SDL3.SDL_GL_GetProcAddress : SDL2.SDL_GL_GetProcAddress);
         return glcontext;
+    }
+
+    static IntPtr SDLGL_Create(IntPtr sdlWin, int major, int minor, bool gles)
+    {
+        if (SDL3.Supported)
+        {
+            const int SDL3_CORE = 0x1;
+            const int SDL3_GLES = 0x4;
+            SDL3.SDL_GL_SetAttribute(SDL3.SDL_GLAttr.SDL_GL_CONTEXT_MAJOR_VERSION, major);
+            SDL3.SDL_GL_SetAttribute(SDL3.SDL_GLAttr.SDL_GL_CONTEXT_MINOR_VERSION, minor);
+            SDL3.SDL_GL_SetAttribute(SDL3.SDL_GLAttr.SDL_GL_CONTEXT_PROFILE_MASK, gles ? SDL3_GLES : SDL3_CORE);
+        }
+        else
+        {
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, major);
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, minor);
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK,
+                (int)(gles
+                    ? SDL2.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES
+                    : SDL2.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE));
+        }
+        return SDL3.Supported
+            ? SDL3.SDL_GL_CreateContext(sdlWin)
+            : SDL2.SDL_GL_CreateContext(sdlWin);
+    }
+
+    static void SDLGL_Delete(IntPtr ctx)
+    {
+        if (SDL3.Supported)
+            SDL3.SDL_GL_DestroyContext(ctx);
+        else
+            SDL2.SDL_GL_DeleteContext(ctx);
     }
 
 
     static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 2);
-        SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
-        ctx = SDL.SDL_GL_CreateContext(sdlWin);
+        ctx = SDLGL_Create(sdlWin, 3, 2, false);
         if (ctx == IntPtr.Zero) return false;
-        if (!GL.CheckStringSDL()) {
-            SDL.SDL_GL_DeleteContext(ctx);
+        if (!GL.CheckStringSDL())
+        {
+            SDLGL_Delete(ctx);
             ctx = IntPtr.Zero;
         }
         return true;
@@ -62,13 +92,11 @@ class GLRenderContext : IRenderContext
     {
         //mesa on raspberry pi OS won't give you a 3.1 context if you request it
         //but it will give you 3.1 if you request 3.0  ¯\_(ツ)_/¯
-        SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_MINOR_VERSION, 0);
-        SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL.SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_ES);
-        ctx = SDL.SDL_GL_CreateContext(sdlWin);
+        ctx = SDLGL_Create(sdlWin, 3, 0, true);
         if (ctx == IntPtr.Zero) return false;
-        if (!GL.CheckStringSDL(true)) {
-            SDL.SDL_GL_DeleteContext(ctx);
+        if (!GL.CheckStringSDL(true))
+        {
+            SDLGL_Delete(ctx);
             ctx = IntPtr.Zero;
         }
         GL.GLES = true;
@@ -349,7 +377,10 @@ class GLRenderContext : IRenderContext
 
     public void MakeCurrent(IntPtr sdlWindow)
     {
-        SDL.SDL_GL_MakeCurrent(sdlWindow, glContext);
+        if (SDL3.Supported)
+            SDL3.SDL_GL_MakeCurrent(sdlWindow, glContext);
+        else
+            SDL2.SDL_GL_MakeCurrent(sdlWindow, glContext);
     }
 
     public void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen)
@@ -361,8 +392,16 @@ class GLRenderContext : IRenderContext
 
     public Point GetDrawableSize(IntPtr sdlWindow)
     {
-        SDL.SDL_GL_GetDrawableSize(sdlWindow, out  var width, out var height);
-        return new Point(width, height);
+        if (SDL3.Supported)
+        {
+            SDL3.SDL_GetWindowSizeInPixels(sdlWindow, out  var width, out var height);
+            return new Point(width, height);
+        }
+        else
+        {
+            SDL2.SDL_GL_GetDrawableSize(sdlWindow, out  var width, out var height);
+            return new Point(width, height);
+        }
     }
 
     public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>

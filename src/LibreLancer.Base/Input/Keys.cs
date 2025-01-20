@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using static LibreLancer.SDL.SDL_Keycode;
+using static LibreLancer.SDL2.SDL_Keycode;
 namespace LibreLancer
 {
     /* SDL_Scancode with entries renamed */
@@ -274,15 +274,51 @@ namespace LibreLancer
     }
     public static class KeysExtensions
     {
+
+        static SDL3.SDL_Scancode ToSDL3(Keys scancode)
+        {
+            if (scancode <= Keys.Mode) {
+                // They're the same
+                return (SDL3.SDL_Scancode)scancode;
+            }
+
+            switch (scancode) {
+                case Keys.AudioMute:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MUTE;
+                case Keys.AudioNext:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MEDIA_NEXT_TRACK;
+                case Keys.AudioPlay:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MEDIA_PLAY;
+                case Keys.AudioPrev:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MEDIA_PREVIOUS_TRACK;
+                case Keys.AudioStop:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MEDIA_STOP;
+                case Keys.Eject:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MEDIA_EJECT;
+                case Keys.MediaSelect:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_MEDIA_SELECT;
+                default:
+                    return SDL3.SDL_Scancode.SDL_SCANCODE_UNKNOWN;
+            }
+        }
+
         internal static Dictionary<Keys, string> KeyNames = new Dictionary<Keys, string>();
         private static bool UseSDL = false;
         internal static void FillKeyNamesSDL()
         {
             UseSDL = true;
-            foreach (var k in Enum.GetValues<Keys>())
+            if (SDL3.Supported)
             {
-                KeyNames[k] = SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode((SDL.SDL_Scancode)k));
+
             }
+            else
+            {
+                foreach (var k in Enum.GetValues<Keys>())
+                {
+                    KeyNames[k] = SDL2.SDL_GetKeyName(SDL2.SDL_GetKeyFromScancode((SDL2.SDL_Scancode)k));
+                }
+            }
+
         }
 
         public static string GetDisplayName(this Keys k)
@@ -290,12 +326,15 @@ namespace LibreLancer
             string n;
             if (!KeyNames.TryGetValue(k, out n))
             {
-                n = SDL.SDL_GetKeyName(SDL.SDL_GetKeyFromScancode((SDL.SDL_Scancode)k));
+                if (SDL3.Supported)
+                    n = SDL3.SDL_GetKeyName(SDL3.SDL_GetKeyFromScancode(ToSDL3(k), 0, false));
+                else
+                    n = SDL2.SDL_GetKeyName(SDL2.SDL_GetKeyFromScancode((SDL2.SDL_Scancode)k));
                 KeyNames.Add(k, n);
             }
             return n;
         }
-        static readonly SDL.SDL_Keycode[] defaultMapping =
+        static readonly SDL2.SDL_Keycode[] defaultMapping =
         {
             0, 0, 0, 0, SDLK_a, SDLK_b, SDLK_c, SDLK_d, SDLK_e, SDLK_f, SDLK_g, SDLK_h,
             SDLK_i, SDLK_j, SDLK_k, SDLK_l, SDLK_m, SDLK_n, SDLK_o, SDLK_p, SDLK_q, SDLK_r,
@@ -344,7 +383,9 @@ namespace LibreLancer
                 var idx = (int)input;
                 if (idx < 0 || idx > defaultMapping.Length)
                     return input;
-                return (Keys)SDL.SDL_GetScancodeFromKey(defaultMapping[(int)input]);
+                if (SDL3.Supported)
+                    return (Keys)SDL3.SDL_GetScancodeFromKey((uint)defaultMapping[(int)input], IntPtr.Zero);
+                return (Keys)SDL2.SDL_GetScancodeFromKey(defaultMapping[(int)input]);
             }
             return input;
         }

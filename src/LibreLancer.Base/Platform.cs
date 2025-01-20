@@ -16,7 +16,7 @@ namespace LibreLancer
 {
     abstract class PlatformEvents : IDisposable
     {
-        public virtual void WndProc(ref SDL.SDL_Event e)
+        public virtual void WndProc(uint msg, UIntPtr wParam)
         {
 
         }

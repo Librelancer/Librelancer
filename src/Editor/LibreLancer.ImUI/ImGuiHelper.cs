@@ -267,7 +267,7 @@ namespace LibreLancer.ImUI
             io.PlatformLocaleDecimalPoint = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
 		}
 
-        private void MouseOnMouseWheel(int amountx, int amounty)
+        private void MouseOnMouseWheel(float amountx, float amounty)
         {
             ImGui.GetIO().AddMouseWheelEvent(amountx, amounty);
         }

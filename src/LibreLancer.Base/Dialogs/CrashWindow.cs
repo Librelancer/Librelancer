@@ -24,8 +24,12 @@ namespace LibreLancer.Dialogs
             }
             else if (DialogPlatform.Backend == DialogPlatform.SDL)
             {
-                SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, title,
-                    message + "\n\n" + details, IntPtr.Zero);
+                if (SDL3.Supported)
+                    SDL3.SDL_ShowSimpleMessageBox(SDL3.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, title,
+                        message + "\n\n" + details, IntPtr.Zero);
+                else
+                    SDL2.SDL_ShowSimpleMessageBox(SDL2.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR, title,
+                        message + "\n\n" + details, IntPtr.Zero);
             }
             else
                 ShellDialog(title, message, details);

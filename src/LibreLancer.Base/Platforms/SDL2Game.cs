@@ -60,7 +60,7 @@ namespace LibreLancer
             set
             {
                 if (value != _relativeMouseMode)
-                    SDL.SDL_SetRelativeMouseMode(value ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
+                    SDL2.SDL_SetRelativeMouseMode(value ? SDL2.SDL_bool.SDL_TRUE : SDL2.SDL_bool.SDL_FALSE);
                 _relativeMouseMode = value;
             }
         }
@@ -81,7 +81,7 @@ namespace LibreLancer
             IntPtr surface;
             fixed (Bgra8* ptr = &data.GetPinnableReference())
             {
-                surface = SDL.SDL_CreateRGBSurfaceFrom(
+                surface = SDL2.SDL_CreateRGBSurfaceFrom(
                     (IntPtr)ptr,
                     width,
                     height,
@@ -92,15 +92,15 @@ namespace LibreLancer
                     0x000000FF,
                     0xFF000000);
             }
-            SDL.SDL_SetWindowIcon(windowptr, surface);
-            SDL.SDL_FreeSurface(surface);
+            SDL2.SDL_SetWindowIcon(windowptr, surface);
+            SDL2.SDL_FreeSurface(surface);
         }
 
         public ClipboardContents ClipboardStatus()
         {
-            if (SDL.SDL_HasClipboardText() == SDL.SDL_bool.SDL_TRUE)
+            if (SDL2.SDL_HasClipboardText() == SDL2.SDL_bool.SDL_TRUE)
             {
-                var text = SDL.SDL_GetClipboardText();
+                var text = SDL2.SDL_GetClipboardText();
                 if (L85.IsL85String(text))
                     return ClipboardContents.Array;
                 return ClipboardContents.Text;
@@ -110,7 +110,7 @@ namespace LibreLancer
 
         public string GetClipboardText()
         {
-            var text = SDL.SDL_GetClipboardText();
+            var text = SDL2.SDL_GetClipboardText();
             if (L85.IsL85String(text))
                 return null;
             return text;
@@ -118,12 +118,12 @@ namespace LibreLancer
 
         public void SetClipboardText(string text)
         {
-            SDL.SDL_SetClipboardText(text);
+            SDL2.SDL_SetClipboardText(text);
         }
 
         public byte[] GetClipboardArray()
         {
-            var text = SDL.SDL_GetClipboardText();
+            var text = SDL2.SDL_GetClipboardText();
             if (L85.IsL85String(text))
                 return L85.FromL85String(text);
             return null;
@@ -131,7 +131,7 @@ namespace LibreLancer
 
         public void SetClipboardArray(byte[] array)
         {
-            SDL.SDL_SetClipboardText(L85.ToL85String(array));
+            SDL2.SDL_SetClipboardText(L85.ToL85String(array));
         }
         IntPtr curArrow;
         IntPtr curMove;
@@ -155,31 +155,31 @@ namespace LibreLancer
                 switch (cursorKind)
                 {
                     case CursorKind.Arrow:
-                        SDL.SDL_SetCursor(curArrow);
+                        SDL2.SDL_SetCursor(curArrow);
                         break;
                     case CursorKind.Move:
-                        SDL.SDL_SetCursor(curMove);
+                        SDL2.SDL_SetCursor(curMove);
                         break;
                     case CursorKind.TextInput:
-                        SDL.SDL_SetCursor(curTextInput);
+                        SDL2.SDL_SetCursor(curTextInput);
                         break;
                     case CursorKind.ResizeNS:
-                        SDL.SDL_SetCursor(curResizeNS);
+                        SDL2.SDL_SetCursor(curResizeNS);
                         break;
                     case CursorKind.ResizeEW:
-                        SDL.SDL_SetCursor(curResizeEW);
+                        SDL2.SDL_SetCursor(curResizeEW);
                         break;
                     case CursorKind.ResizeNESW:
-                        SDL.SDL_SetCursor(curResizeNESW);
+                        SDL2.SDL_SetCursor(curResizeNESW);
                         break;
                     case CursorKind.ResizeNWSE:
-                        SDL.SDL_SetCursor(curResizeNWSE);
+                        SDL2.SDL_SetCursor(curResizeNWSE);
                         break;
                     case CursorKind.NotAllowed:
-                        SDL.SDL_SetCursor(curNotAllowed);
+                        SDL2.SDL_SetCursor(curNotAllowed);
                         break;
                 }
-                SDL.SDL_ShowCursor(value == CursorKind.None ? 0 : 1);
+                SDL2.SDL_ShowCursor(value == CursorKind.None ? 0 : 1);
             }
         }
         public int Height
@@ -214,7 +214,7 @@ namespace LibreLancer
             set
             {
                 title = value;
-                SDL.SDL_SetWindowTitle(windowptr, title);
+                SDL2.SDL_SetWindowTitle(windowptr, title);
             }
         }
 
@@ -282,14 +282,14 @@ namespace LibreLancer
             {
                 minWindowSize = value;
                 if (windowptr != IntPtr.Zero)
-                    SDL.SDL_SetWindowMinimumSize(windowptr, value.X, value.Y);
+                    SDL2.SDL_SetWindowMinimumSize(windowptr, value.X, value.Y);
             }
         }
 
         public void BringToFront()
         {
             if(windowptr != IntPtr.Zero)
-                SDL.SDL_RaiseWindow(windowptr);
+                SDL2.SDL_RaiseWindow(windowptr);
         }
 
         private bool waitForEvent = false;
@@ -302,9 +302,9 @@ namespace LibreLancer
 
         public void InterruptWait()
         {
-            var ev = new SDL.SDL_Event();
-            ev.type = (SDL.SDL_EventType) wakeEvent;
-            SDL.SDL_PushEvent(ref ev);
+            var ev = new SDL2.SDL_Event();
+            ev.type = (SDL2.SDL_EventType) wakeEvent;
+            SDL2.SDL_PushEvent(ref ev);
         }
 
         public void Yield()
@@ -326,7 +326,7 @@ namespace LibreLancer
 
         public void Run(Game loop)
         {
-            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
+            SDL2.SDL_SetHint(SDL2.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
             //Try to set DPI Awareness on Win32
             if (Platform.RunningOS == OS.Windows)
             {
@@ -341,65 +341,65 @@ namespace LibreLancer
             //TODO: This makes i5-7200U on mesa 18 faster, but this should probably be a configurable option
             bool setMesaThread = string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("mesa_glthread"));
             if(setMesaThread) Environment.SetEnvironmentVariable("mesa_glthread", "true");
-            if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
+            if (SDL2.SDL_Init(SDL2.SDL_INIT_VIDEO) != 0)
             {
                 FLLog.Error("SDL", "SDL_Init failed, exiting.");
                 return;
             }
             KeysExtensions.FillKeyNamesSDL();
 
-            wakeEvent = SDL.SDL_RegisterEvents(1);
-            SDL.SDL_SetHint(SDL.SDL_HINT_IME_INTERNAL_EDITING, "1");
-            SDL.SDL_SetHint(SDL.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+            wakeEvent = SDL2.SDL_RegisterEvents(1);
+            SDL2.SDL_SetHint(SDL2.SDL_HINT_IME_INTERNAL_EDITING, "1");
+            SDL2.SDL_SetHint(SDL2.SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
             //Set GL states
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_RED_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_RED_SIZE, 8);
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_GREEN_SIZE, 8);
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_BLUE_SIZE, 8);
+            SDL2.SDL_GL_SetAttribute(SDL2.SDL_GLattr.SDL_GL_DEPTH_SIZE, 24);
             //Create Window
 
-            var hiddenFlag = loop.Splash ? SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN :  0;
-            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
-                        SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | hiddenFlag;
+            var hiddenFlag = loop.Splash ? SDL2.SDL_WindowFlags.SDL_WINDOW_HIDDEN :  0;
+            var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                        SDL2.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | hiddenFlag;
             if (fullscreen)
-                flags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
-            var sdlWin = SDL.SDL_CreateWindow(
+                flags |= SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
+            var sdlWin = SDL2.SDL_CreateWindow(
                              "LibreLancer",
-                             SDL.SDL_WINDOWPOS_CENTERED,
-                             SDL.SDL_WINDOWPOS_CENTERED,
+                             SDL2.SDL_WINDOWPOS_CENTERED,
+                             SDL2.SDL_WINDOWPOS_CENTERED,
                              width,
                              height,
                              flags
                          );
-            Platform.Init(SDL.SDL_GetCurrentVideoDriver());
+            Platform.Init(SDL2.SDL_GetCurrentVideoDriver());
             //Cursors
-            curArrow = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
-            curMove = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR);
-            curTextInput = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
-            curResizeNS = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS);
-            curResizeEW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
-            curResizeNESW = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW);
-            curResizeNWSE = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
-            curNotAllowed = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
+            curArrow = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
+            curMove = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR);
+            curTextInput = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_IBEAM);
+            curResizeNS = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENS);
+            curResizeEW = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
+            curResizeNESW = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENESW);
+            curResizeNWSE = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZENWSE);
+            curNotAllowed = SDL2.SDL_CreateSystemCursor(SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_NO);
             //Window sizing
             if (sdlWin == IntPtr.Zero)
             {
                 Dialogs.CrashWindow.Run("Librelancer", "Failed to create SDL window",
-                    "SDL Error: " + (SDL.SDL_GetError() ?? ""));
+                    "SDL Error: " + (SDL2.SDL_GetError() ?? ""));
                 return;
             }
             if (minWindowSize != Point.Zero)
             {
-                SDL.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
+                SDL2.SDL_SetWindowMinimumSize(sdlWin, minWindowSize.X, minWindowSize.Y);
             }
-            SDL.SDL_EventState(SDL.SDL_EventType.SDL_DROPFILE, SDL.SDL_ENABLE);
-            SDL.SDL_EventState(SDL.SDL_EventType.SDL_SYSWMEVENT, SDL.SDL_ENABLE);
+            SDL2.SDL_EventState(SDL2.SDL_EventType.SDL_DROPFILE, SDL2.SDL_ENABLE);
+            SDL2.SDL_EventState(SDL2.SDL_EventType.SDL_SYSWMEVENT, SDL2.SDL_ENABLE);
             windowptr = sdlWin;
             IRenderContext renderBackend = GLRenderContext.Create(sdlWin);
             if (renderBackend == null)
             {
                 Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
-                    "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" + SDL.SDL_GetError() ?? "");
+                    "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" + SDL2.SDL_GetError() ?? "");
             }
 
             Renderer = renderBackend.GetRenderer();
@@ -409,7 +409,7 @@ namespace LibreLancer
             RenderContext = new RenderContext(renderBackend);
             FLLog.Info("Graphics", $"Max Anisotropy: {RenderContext.MaxAnisotropy}");
             FLLog.Info("Graphics", $"Max AA: {RenderContext.MaxSamples}");
-            SDL.SDL_GetWindowSize(sdlWin, out int windowWidth, out int windowHeight);
+            SDL2.SDL_GetWindowSize(sdlWin, out int windowWidth, out int windowHeight);
             var drawable = RenderContext.Backend.GetDrawableSize(sdlWin);
             width = drawable.X;
             height = drawable.Y;
@@ -418,7 +418,7 @@ namespace LibreLancer
             if (Platform.RunningOS != OS.Windows) DpiScale = scaleH;
             else
             {
-                if (SDL.SDL_GetDisplayDPI(0, out float ddpi, out _, out _) == 0)
+                if (SDL2.SDL_GetDisplayDPI(0, out float ddpi, out _, out _) == 0)
                 {
                     DpiScale = ddpi / 96.0f;
                 }
@@ -427,14 +427,14 @@ namespace LibreLancer
             Texture2D splashTexture;
             if (loop.Splash && (splashTexture = loop.GetSplashInternal()) != null)
             {
-                var win2 = SDL.SDL_CreateWindow(
+                var win2 = SDL2.SDL_CreateWindow(
                     "Librelancer",
-                    SDL.SDL_WINDOWPOS_CENTERED,
-                    SDL.SDL_WINDOWPOS_CENTERED,
-                    750, 250, SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL |
-                              SDL.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
-                              SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS |
-                              SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+                    SDL2.SDL_WINDOWPOS_CENTERED,
+                    SDL2.SDL_WINDOWPOS_CENTERED,
+                    750, 250, SDL2.SDL_WindowFlags.SDL_WINDOW_OPENGL |
+                              SDL2.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI |
+                              SDL2.SDL_WindowFlags.SDL_WINDOW_BORDERLESS |
+                              SDL2.SDL_WindowFlags.SDL_WINDOW_SHOWN);
                 RenderContext.Backend.MakeCurrent(win2);
                 RenderContext.ClearColor = Color4.Black;
                 var dw = RenderContext.Backend.GetDrawableSize(win2);
@@ -446,13 +446,13 @@ namespace LibreLancer
                 loop.OnLoad();
                 splashTexture.Dispose();
                 RenderContext.Backend.MakeCurrent(sdlWin);
-                SDL.SDL_DestroyWindow(win2);
+                SDL2.SDL_DestroyWindow(win2);
             }
             else
             {
                 loop.OnLoad();
             }
-            SDL.SDL_ShowWindow(sdlWin);
+            SDL2.SDL_ShowWindow(sdlWin);
             NFD.NFD_Init();
             using var events = Platform.SubscribeEvents(this);
             //kill the value we set so it doesn't crash child processes
@@ -463,21 +463,21 @@ namespace LibreLancer
             timer.Start();
             double last = 0;
             double elapsed = 0;
-            SDL.SDL_Event e = new SDL.SDL_Event();
-            SDL.SDL_StopTextInput();
+            SDL2.SDL_Event e = new SDL2.SDL_Event();
+            SDL2.SDL_StopTextInput();
             MouseButtons doRelease = 0;
             while (running)
             {
                 events.Poll();
                 //Window State
-                var winFlags = (SDL.SDL_WindowFlags)SDL.SDL_GetWindowFlags(sdlWin);
-                Focused = (winFlags & SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS) ==
-                          SDL.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS ||
-                          (winFlags & SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) ==
-                          SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS;
+                var winFlags = (SDL2.SDL_WindowFlags)SDL2.SDL_GetWindowFlags(sdlWin);
+                Focused = (winFlags & SDL2.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS) ==
+                          SDL2.SDL_WindowFlags.SDL_WINDOW_MOUSE_FOCUS ||
+                          (winFlags & SDL2.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) ==
+                          SDL2.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS;
                 EventsThisFrame = false;
                 //Get Size
-                SDL.SDL_GetWindowSize(sdlWin, out  windowWidth, out  windowHeight);
+                SDL2.SDL_GetWindowSize(sdlWin, out  windowWidth, out  windowHeight);
                 var dw = RenderContext.Backend.GetDrawableSize(sdlWin);
                 width = dw.X;
                 height = dw.Y;
@@ -493,26 +493,26 @@ namespace LibreLancer
                 if (waitForEvent)
                 {
                     waitForEvent = false;
-                    if (SDL.SDL_WaitEventTimeout(out e, waitTimeout) != 0)
+                    if (SDL2.SDL_WaitEventTimeout(out e, waitTimeout) != 0)
                     {
                         eventWaited = true;
                     }
                 }
                 Mouse.Wheel = 0;
                 //Pump message queue
-                while (eventWaited || SDL.SDL_PollEvent(out e) != 0)
+                while (eventWaited || SDL2.SDL_PollEvent(out e) != 0)
                 {
                     eventWaited = false;
                     EventsThisFrame = true;
                     switch (e.type)
                     {
-                        case SDL.SDL_EventType.SDL_QUIT:
+                        case SDL2.SDL_EventType.SDL_QUIT:
                             {
                                 if(loop.OnWillClose())
                                     running = false;
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_MOUSEMOTION:
+                        case SDL2.SDL_EventType.SDL_MOUSEMOTION:
                         {
                             var x = RelativeMouseMode ? e.motion.xrel : e.motion.x;
                             var y = RelativeMouseMode ? e.motion.yrel : e.motion.y;
@@ -521,7 +521,7 @@ namespace LibreLancer
                                 Mouse.OnMouseMove((int)(scaleW * x),(int)(scaleH * y));
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
+                        case SDL2.SDL_EventType.SDL_MOUSEBUTTONDOWN:
                             {
                                 Mouse.X = (int) (scaleW * e.button.x);
                                 Mouse.Y = (int) (scaleH * e.button.y);
@@ -533,7 +533,7 @@ namespace LibreLancer
                                     Mouse.OnMouseDoubleClick(btn);
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                        case SDL2.SDL_EventType.SDL_MOUSEBUTTONUP:
                             {
                                 Mouse.X = (int) (scaleW * e.button.x);
                                 Mouse.Y = (int) (scaleH * e.button.y);
@@ -545,48 +545,55 @@ namespace LibreLancer
                                 Mouse.OnMouseUp(btn);
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                        case SDL2.SDL_EventType.SDL_MOUSEWHEEL:
                             {
                                 Mouse.OnMouseWheel(e.wheel.x, e.wheel.y);
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_TEXTINPUT:
+                        case SDL2.SDL_EventType.SDL_TEXTINPUT:
                             {
                                 Keyboard.OnTextInput(GetEventText(ref e));
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_KEYDOWN:
+                        case SDL2.SDL_EventType.SDL_KEYDOWN:
                             {
                                 Keyboard.OnKeyDown((Keys)e.key.keysym.scancode, (KeyModifiers)e.key.keysym.mod, e.key.repeat != 0);
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_KEYUP:
+                        case SDL2.SDL_EventType.SDL_KEYUP:
                             {
                                 Keyboard.OnKeyUp((Keys)e.key.keysym.scancode, (KeyModifiers)e.key.keysym.mod);
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_SYSWMEVENT:
+                        case SDL2.SDL_EventType.SDL_SYSWMEVENT:
                             {
-                                events.WndProc(ref e);
+                                if (Platform.RunningOS == OS.Windows)
+                                {
+                                    unsafe
+                                    {
+                                        SDL2.SDL_SysWMmsg_WINDOWS* ev = (SDL2.SDL_SysWMmsg_WINDOWS*) e.syswm.msg;
+                                        events.WndProc(ev->msg, ev->wParam);
+                                    }
+                                }
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_KEYMAPCHANGED:
+                        case SDL2.SDL_EventType.SDL_KEYMAPCHANGED:
                             KeysExtensions.ResetKeyNames();
                             break;
-                        case SDL.SDL_EventType.SDL_WINDOWEVENT:
-                            if (e.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
+                        case SDL2.SDL_EventType.SDL_WINDOWEVENT:
+                            if (e.window.windowEvent == SDL2.SDL_WindowEventID.SDL_WINDOWEVENT_RESIZED)
                             {
                                 loop.SignalResize();
                             }
                             break;
-                        case SDL.SDL_EventType.SDL_DROPFILE:
+                        case SDL2.SDL_EventType.SDL_DROPFILE:
                             {
                                 var file = UnsafeHelpers.PtrToStringUTF8(e.drop.file);
                                 loop.SignalDrop(file);
-                                SDL.SDL_free(e.drop.file);
+                                SDL2.SDL_free(e.drop.file);
                                 break;
                             }
-                        case SDL.SDL_EventType.SDL_CLIPBOARDUPDATE:
+                        case SDL2.SDL_EventType.SDL_CLIPBOARDUPDATE:
                             {
                                 loop.SignalClipboardUpdate();
                                 break;
@@ -628,22 +635,22 @@ namespace LibreLancer
             loop.OnCleanup();
             Platform.Shutdown();
             NFD.NFD_Quit();
-            SDL.SDL_Quit();
+            SDL2.SDL_Quit();
         }
 
         public void ToggleFullScreen()
         {
             if (fullscreen)
-                SDL.SDL_SetWindowFullscreen(windowptr, 0);
+                SDL2.SDL_SetWindowFullscreen(windowptr, 0);
             else
-                SDL.SDL_SetWindowFullscreen(windowptr, (int)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+                SDL2.SDL_SetWindowFullscreen(windowptr, (int)SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
             fullscreen = !fullscreen;
         }
 
         //TODO: Terrible Hack
         public void Crashed()
         {
-            SDL.SDL_Quit();
+            SDL2.SDL_Quit();
         }
 
         const int FPS_MAXSAMPLES = 50;
@@ -678,25 +685,25 @@ namespace LibreLancer
         //Convert from SDL2 button to saner button
         MouseButtons GetMouseButton(byte b)
         {
-            if (b == SDL.SDL_BUTTON_LEFT)
+            if (b == SDL2.SDL_BUTTON_LEFT)
                 return MouseButtons.Left;
-            if (b == SDL.SDL_BUTTON_MIDDLE)
+            if (b == SDL2.SDL_BUTTON_MIDDLE)
                 return MouseButtons.Middle;
-            if (b == SDL.SDL_BUTTON_RIGHT)
+            if (b == SDL2.SDL_BUTTON_RIGHT)
                 return MouseButtons.Right;
-            if (b == SDL.SDL_BUTTON_X1)
+            if (b == SDL2.SDL_BUTTON_X1)
                 return MouseButtons.X1;
-            if (b == SDL.SDL_BUTTON_X2)
+            if (b == SDL2.SDL_BUTTON_X2)
                 return MouseButtons.X2;
             throw new Exception("SDL2 gave undefined mouse button"); //should never happen
         }
 
-        unsafe string GetEventText(ref SDL.SDL_Event e)
+        unsafe string GetEventText(ref SDL2.SDL_Event e)
         {
-            byte[] rawBytes = new byte[SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE];
+            byte[] rawBytes = new byte[SDL2.SDL_TEXTINPUTEVENT_TEXT_SIZE];
             fixed (byte* txtPtr = e.text.text)
             {
-                Marshal.Copy((IntPtr)txtPtr, rawBytes, 0, SDL.SDL_TEXTINPUTEVENT_TEXT_SIZE);
+                Marshal.Copy((IntPtr)txtPtr, rawBytes, 0, SDL2.SDL_TEXTINPUTEVENT_TEXT_SIZE);
             }
             int nullIndex = Array.IndexOf(rawBytes, (byte)0);
             string text = Encoding.UTF8.GetString(rawBytes, 0, nullIndex);
@@ -717,7 +724,7 @@ namespace LibreLancer
         {
             if (!textInputEnabled)
             {
-                SDL.SDL_StartTextInput();
+                SDL2.SDL_StartTextInput();
                 textInputEnabled = true;
             }
         }
@@ -725,7 +732,7 @@ namespace LibreLancer
         {
             if (textInputEnabled)
             {
-                SDL.SDL_StopTextInput();
+                SDL2.SDL_StopTextInput();
                 textInputEnabled = false;
             }
         }

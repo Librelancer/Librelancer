@@ -36,7 +36,7 @@ namespace LibreLancer
 	/// <summary>
 	/// Entry point for all SDL-related (non-extension) types and methods
 	/// </summary>
-	static class SDL
+	static class SDL2
 	{
 		#region SDL2# Variables
 

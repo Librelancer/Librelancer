@@ -115,19 +115,42 @@ class NullRenderContext : IRenderContext
 
     public unsafe void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen)
     {
-        SDL.SDL_Surface* window_surface = (SDL.SDL_Surface*)SDL.SDL_GetWindowSurface(sdlWindow);
-        var r = new SDL.SDL_Rect();
-        r.x = 0;
-        r.y = 0;
-        r.w = window_surface->w;
-        r.h = window_surface->h;
-        SDL.SDL_FillRect((IntPtr)window_surface, ref r, 0xFFFF0000);
-        SDL.SDL_UpdateWindowSurface(sdlWindow);
+        if (SDL3.Supported)
+        {
+            SDL3.SDL_Surface* window_surface = (SDL3.SDL_Surface*)SDL3.SDL_GetWindowSurface(sdlWindow);
+            var r = new SDL3.SDL_Rect();
+            r.x = 0;
+            r.y = 0;
+            r.w = window_surface->w;
+            r.h = window_surface->h;
+            SDL3.SDL_FillSurfaceRect((IntPtr)window_surface, (IntPtr)(&r), 0xFFFF0000);
+            SDL3.SDL_UpdateWindowSurface(sdlWindow);
+        }
+        else
+        {
+            SDL2.SDL_Surface* window_surface = (SDL2.SDL_Surface*)SDL2.SDL_GetWindowSurface(sdlWindow);
+            var r = new SDL2.SDL_Rect();
+            r.x = 0;
+            r.y = 0;
+            r.w = window_surface->w;
+            r.h = window_surface->h;
+            SDL2.SDL_FillRect((IntPtr)window_surface, ref r, 0xFFFF0000);
+            SDL2.SDL_UpdateWindowSurface(sdlWindow);
+        }
+
     }
 
     public Point GetDrawableSize(IntPtr sdlWindow)
     {
-        SDL.SDL_GetWindowSize(sdlWindow, out int windowWidth, out int windowHeight);
-        return new Point(windowWidth, windowHeight);
+        if (SDL3.Supported)
+        {
+            SDL3.SDL_GetWindowSize(sdlWindow, out int windowWidth, out int windowHeight);
+            return new Point(windowWidth, windowHeight);
+        }
+        else
+        {
+            SDL2.SDL_GetWindowSize(sdlWindow, out int windowWidth, out int windowHeight);
+            return new Point(windowWidth, windowHeight);
+        }
     }
 }
