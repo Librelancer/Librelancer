@@ -503,13 +503,26 @@ namespace LibreLancer.ImUI
             toFree = new List<RenderTarget2D>();
 		}
 
+        [StructLayout(LayoutKind.Sequential)]
+        struct DrawVert : IVertexType
+        {
+            public Vector2 pos;
+            public Vector2 uv;
+            public uint col;
+
+            public VertexDeclaration GetVertexDeclaration() => new(
+                sizeof(float) * 5,
+                new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0),
+                new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, 2 * sizeof(float)),
+                new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, 4 * sizeof(float))
+            );
+        }
+
         public bool SetCursor = true;
         public bool HandleKeyboard = true;
 
 		VertexBuffer vbo;
 		ElementBuffer ibo;
-		ushort[] ibuffer;
-		Vertex2D[] vbuffer;
 		int vboSize = -1;
 		int iboSize = -1;
 		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderContext rstate)
@@ -559,11 +572,13 @@ namespace LibreLancer.ImUI
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
 			rstate.DepthEnabled = false;
+            //
+            Rectangle currScissor = new Rectangle(0, 0, game.Width, game.Height);
+            rstate.PushScissor(currScissor);
+            //
 			for (int n = 0; n < draw_data.CmdListsCount; n++)
 			{
                 var cmd_list = draw_data.CmdLists[n];
-                byte* vtx_buffer = (byte*)cmd_list.VtxBuffer.Data;
-				ushort* idx_buffer = (ushort*)cmd_list.IdxBuffer.Data;
 				var vtxCount = cmd_list.VtxBuffer.Size;
 				var idxCount = cmd_list.IdxBuffer.Size;
                 if (vboSize < vtxCount || iboSize < idxCount)
@@ -572,28 +587,12 @@ namespace LibreLancer.ImUI
 					if (ibo != null) ibo.Dispose();
 					vboSize = Math.Max(vboSize, vtxCount);
 					iboSize = Math.Max(iboSize, idxCount);
-					vbo = new VertexBuffer(game.RenderContext, typeof(Vertex2D), vboSize, true);
+					vbo = new VertexBuffer(game.RenderContext, typeof(DrawVert), vboSize, true);
 					ibo = new ElementBuffer(game.RenderContext, iboSize, true);
 					vbo.SetElementBuffer(ibo);
-					vbuffer = new Vertex2D[vboSize];
-					ibuffer = new ushort[iboSize];
 				}
-				for (int i = 0; i < cmd_list.IdxBuffer.Size; i++)
-				{
-					ibuffer[i] = idx_buffer[i];
-				}
-				for (int i = 0; i < cmd_list.VtxBuffer.Size; i++)
-				{
-					var ptr = (ImDrawVert*)vtx_buffer;
-					var unint = ptr[i].col;
-					var a = unint >> 24 & 0xFF;
-					var b = unint >> 16 & 0xFF;
-					var g = unint >> 8 & 0xFF;
-					var r = unint & 0xFF;
-					vbuffer[i] = new Vertex2D(ptr[i].pos, ptr[i].uv, new Color4(r / 255f, g / 255f, b / 255f, a / 255f));
-				}
-				vbo.SetData<Vertex2D>(vbuffer.AsSpan().Slice(0, cmd_list.VtxBuffer.Size));
-				ibo.SetData(ibuffer, cmd_list.IdxBuffer.Size);
+                vbo.SetData(new ReadOnlySpan<DrawVert>((void*)cmd_list.VtxBuffer.Data, vtxCount));
+                ibo.SetData(new ReadOnlySpan<ushort>((void*)cmd_list.IdxBuffer.Data, idxCount));
 				for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
 				{
                     var pcmd = cmd_list.CmdBuffer[cmd_i];
@@ -636,13 +635,17 @@ namespace LibreLancer.ImUI
 						dot.BindTo(0);
 					}
 
-                    rstate.PushScissor(new Rectangle((int)pcmd.ClipRect.X, (int)pcmd.ClipRect.Y,
+                    var newScissor = new Rectangle((int)pcmd.ClipRect.X, (int)pcmd.ClipRect.Y,
                         (int)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
-                        (int)(pcmd.ClipRect.W - pcmd.ClipRect.Y)));
+                        (int)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
+                    if (currScissor != newScissor) {
+                        rstate.ReplaceScissor(newScissor);
+                        currScissor = newScissor;
+                    }
                     vbo.Draw(PrimitiveTypes.TriangleList, (int)pcmd.VtxOffset, (int)pcmd.IdxOffset, (int)pcmd.ElemCount / 3);
-                    rstate.PopScissor();
 				}
-			}
+            }
+            rstate.PopScissor();
 
             for (int i = 0; i < cbIndex; i++)
                 callbacks[i] = null;

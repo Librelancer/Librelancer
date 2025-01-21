@@ -1,3 +1,5 @@
+using System;
+
 namespace LibreLancer.Graphics.Backends.Null;
 
 class NullElementBuffer : IElementBuffer
@@ -13,7 +15,7 @@ class NullElementBuffer : IElementBuffer
     {
     }
 
-    public void SetData(ushort[] data)
+    public void SetData(ReadOnlySpan<ushort> data)
     {
     }
 

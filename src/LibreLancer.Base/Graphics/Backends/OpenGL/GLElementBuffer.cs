@@ -42,10 +42,15 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
         }
 
-        public void SetData(ushort[] data)
+        public void SetData(ReadOnlySpan<ushort> data)
         {
             maxSet = Math.Max(maxSet, data.Length * 2);
-            SetData(data, data.Length);
+            GLBind.VertexArray(context.NullVAO);
+            GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, Handle);
+            fixed (ushort* ptr = data)
+            {
+                GL.BufferSubData(GL.GL_ELEMENT_ARRAY_BUFFER, 0, new IntPtr(data.Length * 2), (IntPtr)ptr);
+            }
         }
 
         public void SetData(ushort[] data, int count, int start = 0)

@@ -243,6 +243,14 @@ namespace LibreLancer.Graphics
             return true;
         }
 
+        public bool ReplaceScissor(Rectangle newRect, bool parentClip = true)
+        {
+            if (clips.Count == 0)
+                throw new InvalidOperationException();
+            clips.Pop();
+            return PushScissor(newRect, parentClip);
+        }
+
         public void PopScissor()
         {
             if (clips.Count == 0)

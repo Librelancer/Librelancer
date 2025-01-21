@@ -16,7 +16,7 @@ namespace LibreLancer.Graphics
             Backend = context.Backend.CreateElementBuffer(count, isDynamic);
 		}
         public void SetData(short[] data) => Backend.SetData(data);
-        public void SetData(ushort[] data) => Backend.SetData(data);
+        public void SetData(ReadOnlySpan<ushort> data) => Backend.SetData(data);
         public void SetData(ushort[] data, int count, int start = 0) => Backend.SetData(data, count, start);
 
         public void Expand(int newSize) => Backend.Expand(newSize);
