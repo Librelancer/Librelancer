@@ -26,24 +26,16 @@ public sealed class NodeActSetRep : TriggerEntryNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var factions = gameData.GameData.Factions.Select(x => x.Nickname).OrderBy(x => x).Order().ToArray();
 
         Controls.InputTextId("Object", ref Data.Object);
-        nodePopups.StringCombo("Faction", Data.Faction, s => Data.Faction = s, factions);
-        VibeComboBox(ref Data.VibeSet, nodePopups);
+        nodePopups.StringCombo("Faction", Data.Faction, s => Data.Faction = s, gameData.FactionsByName);
+        nodePopups.Combo("Vibe", Data.VibeSet, x => Data.VibeSet = x);
 
         ImGui.BeginDisabled(Data.VibeSet != VibeSet.None);
         ImGui.SliderFloat("Value", ref Data.NewValue, -1, 1, "%.2f");
         ImGui.EndDisabled();
     }
 
-    private static readonly string[] _vibeList = Enum.GetValues<VibeSet>().Select(x => x.ToString()).ToArray();
-    public static void VibeComboBox(ref VibeSet vibeSet, NodePopups nodePopups)
-    {
-        var index = (int)vibeSet;
-        nodePopups.Combo("Vibe", index, i => index = i, _vibeList);
-        vibeSet = (VibeSet)index;
-    }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
     {

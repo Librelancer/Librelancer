@@ -28,6 +28,9 @@ public class GameDataContext : IDisposable
     public GameResourceManager Resources;
     public SoundManager Sounds;
     public FontManager Fonts;
+    // Used for mission editor cache
+    public string[] SystemsByName;
+    public string[] FactionsByName;
 
     private MainWindow win;
 
@@ -72,6 +75,12 @@ public class GameDataContext : IDisposable
         return awaiter.Result;
     }
 
+    public void RefreshLists()
+    {
+        SystemsByName = GameData.Systems.Select(x => x.Nickname).Order().ToArray();
+        FactionsByName = GameData.Factions.Select(x => x.Nickname).Order().ToArray();
+    }
+
     public void Load(MainWindow win, string folder, string cache, Action onComplete, Action<Exception> onError)
     {
         Folder = folder;
@@ -113,6 +122,7 @@ public class GameDataContext : IDisposable
                 char[] splits = ['\\', '/'];
                 var uniSplit = GameData.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
                 UniverseVfsFolder = $"{string.Join('\\', uniSplit.Take(uniSplit.Length - 1))}\\";
+                RefreshLists();
                 sw.Stop();
                 FLLog.Info("Game", $"Finished loading game data in {sw.Elapsed.TotalSeconds:0.000} seconds");
                 win.QueueUIThread(() =>

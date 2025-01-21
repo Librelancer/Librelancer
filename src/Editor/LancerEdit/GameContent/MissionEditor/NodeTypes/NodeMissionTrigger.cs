@@ -22,19 +22,14 @@ public sealed class NodeMissionTrigger : BlueprintNode
         Outputs.Add(new NodePin(this, LinkType.Condition, PinKind.Output));
     }
 
-    private readonly string[] initStateOptions = Enum.GetNames<TriggerInitState>();
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var systems = gameData.GameData.Systems.Select(x => x.Nickname).Order().Order().ToArray();
-
         Controls.InputTextId("ID", ref Data.Nickname);
-        nodePopups.StringCombo("System", Data.System, s => Data.System = s, systems, true);
+        nodePopups.StringCombo("System", Data.System, s => Data.System = s, gameData.SystemsByName, true);
         ImGui.Checkbox("Repeatable", ref Data.Repeatable);
 
-        var index = (int)Data.InitState;
-        nodePopups.Combo("Initial State", index, i => index = i, initStateOptions);
-        Data.InitState = (TriggerInitState)index;
+        nodePopups.Combo("Initial State", Data.InitState, x => Data.InitState = x);
     }
 
     public void WriteNode(MissionScriptEditorTab missionEditor, IniBuilder builder)

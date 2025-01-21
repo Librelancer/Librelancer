@@ -22,12 +22,10 @@ public sealed class NodeActEnableManeuver : TriggerEntryNode
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    private static readonly string[] _maneuvers = Enum.GetValues<ManeuverType>().Select(x => x.ToString()).ToArray();
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var index = (int)Data.Maneuver;
-        nodePopups.Combo("Maneuver", index, i => Data.Maneuver = (ManeuverType)i, _maneuvers);
+        nodePopups.Combo("Maneuver", Data.Maneuver, x => Data.Maneuver = x);
         ImGui.Checkbox("Lock", ref Data.Lock);
     }
 
