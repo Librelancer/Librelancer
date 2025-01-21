@@ -21,7 +21,7 @@ public sealed class NodeActCanDock : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("Can Dock", ref Data.CanDock);
         Controls.InputStringList("Exceptions", Data.Exceptions);

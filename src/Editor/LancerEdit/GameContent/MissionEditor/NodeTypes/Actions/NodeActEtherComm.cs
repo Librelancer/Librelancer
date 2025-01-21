@@ -20,7 +20,7 @@ public sealed class NodeActEtherComm : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         // TODO: FLESH OUT
         Controls.InputTextId("Line", ref Data.Line);

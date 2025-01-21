@@ -70,6 +70,12 @@ public struct NodePopups
 
     public void End()
     {
+        // Skip processing this if not needed
+        // Suspend()/Resume() can be expensive added up
+        if (comboIndex <= 0 && strComboIndex <= 0 &&
+            string.IsNullOrWhiteSpace(setTooltip))
+            return;
+
         NodeEditor.Suspend();
 
         if(!string.IsNullOrWhiteSpace(setTooltip))

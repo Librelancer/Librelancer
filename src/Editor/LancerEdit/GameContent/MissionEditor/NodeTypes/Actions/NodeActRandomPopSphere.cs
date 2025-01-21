@@ -21,7 +21,7 @@ public sealed class NodeActRandomPopSphere : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.InputFloat3("Position", ref Data.Position);
         ImGui.InputFloat("Radius", ref Data.Radius);

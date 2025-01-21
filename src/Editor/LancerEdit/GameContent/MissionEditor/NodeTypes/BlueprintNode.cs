@@ -18,9 +18,9 @@ public abstract class BlueprintNode : Node
     }
 
     protected abstract void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni);
+        ref NodeLookups lookups);
 
-    public sealed override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    public sealed override void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups)
     {
         var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
         var nb = NodeBuilder.Begin(Id);
@@ -29,7 +29,7 @@ public abstract class BlueprintNode : Node
         ImGui.Text(Name);
         nb.EndHeader();
 
-        LayoutNode(Inputs.Select(x => x.LinkType.ToString()), Outputs.Select(x => x.LinkType.ToString()), NodeInnerWidth * ImGuiHelper.Scale);
+        LayoutNode(NodeInnerWidth * ImGuiHelper.Scale);
         StartInputs();
 
         foreach (var pin in Inputs)
@@ -64,7 +64,7 @@ public abstract class BlueprintNode : Node
 
         StartFixed();
 
-        RenderContent(gameData, popup, ref nb.Popups, missionIni);
+        RenderContent(gameData, popup, ref nb.Popups, ref lookups);
 
         EndNodeLayout();
 

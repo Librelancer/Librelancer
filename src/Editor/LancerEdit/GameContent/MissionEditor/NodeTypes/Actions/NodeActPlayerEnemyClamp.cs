@@ -22,7 +22,7 @@ public sealed class NodeActPlayerEnemyClamp : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.InputInt("Min", ref Data.Min, 1, 10);
         ImGui.InputInt("Max", ref Data.Max, 1, 10);

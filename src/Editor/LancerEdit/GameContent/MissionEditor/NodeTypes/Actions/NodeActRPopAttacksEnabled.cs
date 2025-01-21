@@ -21,7 +21,7 @@ public sealed class NodeActRPopAttacksEnabled : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("Enable", ref Data.Enabled);
     }

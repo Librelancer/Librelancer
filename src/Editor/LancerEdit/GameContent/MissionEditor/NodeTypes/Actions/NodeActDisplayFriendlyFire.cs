@@ -20,7 +20,7 @@ public sealed class NodeActDisableFriendlyFire : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         // TODO: Comboify some how?
         Controls.InputStringList("Objects & Labels", Data.ObjectsAndLabels);

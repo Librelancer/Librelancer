@@ -22,10 +22,9 @@ public sealed class NodeActInvulnerable : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var objects = missionIni.Ships.Select(x => x.Nickname).Concat(missionIni.Solars.Select(x => x.Nickname)).Order().ToArray();
-        nodePopups.StringCombo("Objective", Data.Object, s => Data.Object = s, objects);
+        nodePopups.StringCombo("Object", Data.Object, s => Data.Object = s, lookups.ShipsAndSolars);
 
         ImGui.Checkbox("Is Invulnerable", ref Data.Invulnerable);
     }

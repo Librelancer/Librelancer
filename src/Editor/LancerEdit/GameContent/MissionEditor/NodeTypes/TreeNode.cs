@@ -9,9 +9,9 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public abstract class TreeNode(int id) : Node()
 {
-    protected abstract void RenderContent(GameDataContext gameData, MissionIni missionIni);
+    protected abstract void RenderContent(GameDataContext gameData, ref NodeLookups lookups);
 
-    public override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    public override void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups)
     {
         const float Rounding = 5.0f;
         const float Padding = 12.0f;
@@ -48,7 +48,7 @@ public abstract class TreeNode(int id) : Node()
         ImGui.BeginGroup();
         ImGui.TextUnformatted(Name);
 
-        RenderContent(gameData, missionIni);
+        RenderContent(gameData, ref lookups);
 
         ImGui.EndGroup();
         var topSz = ImGui.GetItemRectSize();

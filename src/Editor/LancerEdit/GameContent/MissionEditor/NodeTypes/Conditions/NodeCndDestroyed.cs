@@ -22,10 +22,9 @@ public class NodeCndDestroyed : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var shipsAndLabels = missionIni.Ships.Select(x => x.Nickname).Concat(missionIni.Ships.SelectMany(x => x.Labels)).Order().ToArray();
-        nodePopups.StringCombo("Target", Data.label, s => Data.label = s, shipsAndLabels);
+        nodePopups.StringCombo("Target", Data.label, s => Data.label = s, lookups.ShipsAndLabels);
 
         ImGui.InputInt("Unknown Int", ref Data.UnknownNumber);
         Controls.InputTextId("Unknown Enum", ref Data.UnknownEnum);

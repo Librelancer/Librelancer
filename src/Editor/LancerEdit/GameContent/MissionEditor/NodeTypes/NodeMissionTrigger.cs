@@ -23,7 +23,7 @@ public sealed class NodeMissionTrigger : BlueprintNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("ID", ref Data.Nickname);
         nodePopups.StringCombo("System", Data.System, s => Data.System = s, gameData.SystemsByName, true);

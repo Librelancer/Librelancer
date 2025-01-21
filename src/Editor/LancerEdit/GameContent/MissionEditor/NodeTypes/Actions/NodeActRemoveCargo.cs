@@ -21,7 +21,7 @@ public sealed class NodeActRemoveCargo : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         nodePopups.StringCombo("Cargo", Data.Cargo, s => Data.Cargo = s, gameData.GoodsByName);
     }

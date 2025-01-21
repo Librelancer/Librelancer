@@ -21,7 +21,7 @@ public sealed class NodeActSetVibeOfferBaseHack : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         // TODO: Transform into combo if possible
         Controls.InputTextId("Base", ref Data.Id);

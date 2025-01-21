@@ -24,7 +24,7 @@ public sealed class NodeActSetRep : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
 
         Controls.InputTextId("Object", ref Data.Object);

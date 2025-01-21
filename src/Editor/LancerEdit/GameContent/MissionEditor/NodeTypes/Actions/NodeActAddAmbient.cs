@@ -20,7 +20,7 @@ public sealed class NodeActAddAmbient : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Script", ref Data.Script);
         Controls.InputTextId("Base", ref Data.Base);

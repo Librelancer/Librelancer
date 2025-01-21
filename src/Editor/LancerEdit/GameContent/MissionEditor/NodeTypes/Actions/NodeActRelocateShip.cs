@@ -21,7 +21,7 @@ public sealed class NodeActRelocateShip : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.InputFloat3("Position", ref Data.Position);
         // TODO: Orientation can be null?

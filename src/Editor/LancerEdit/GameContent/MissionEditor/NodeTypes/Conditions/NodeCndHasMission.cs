@@ -21,7 +21,7 @@ public class NodeCndHasMission : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("Has Mission", ref Data.hasMission);
     }

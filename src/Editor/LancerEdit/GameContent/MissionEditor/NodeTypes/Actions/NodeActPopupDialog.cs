@@ -20,7 +20,7 @@ public sealed class NodeActPopupDialog : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Sound Id", ref Data.ID);
         Controls.IdsInputString("Title IDS", gameData, popup, ref Data.Title, (ids) => Data.Title = ids);

@@ -20,7 +20,7 @@ public class NodeCndTimer : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.SliderFloat("Seconds", ref Data.Seconds, 0.1f, 300f, "%.2f");
     }

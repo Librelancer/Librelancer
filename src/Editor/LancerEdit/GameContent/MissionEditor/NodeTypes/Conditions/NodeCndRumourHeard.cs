@@ -20,7 +20,7 @@ public class NodeCndRumourHeard : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Text("This node has not been tested in game, and the values may be incorrect.");
         ImGui.Checkbox("Has Heard Rumour", ref Data.hasHeardRumour);

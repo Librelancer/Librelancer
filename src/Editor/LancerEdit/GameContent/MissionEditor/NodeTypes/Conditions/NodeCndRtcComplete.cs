@@ -20,7 +20,7 @@ public class NodeCndRtcComplete : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Rtc INI File", ref Data.iniFile);
     }

@@ -20,15 +20,33 @@ public abstract class Node(VertexDiffuse? color = null)
     public List<NodePin> Outputs  { get; } = [];
     public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
 
-    public abstract void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni);
+    public abstract void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups);
 
-    protected static void LayoutNode(IEnumerable<string> pinsIn, IEnumerable<string> pinsOut, float fixedWidth)
+    private Vector2? cachedSizes = null;
+
+    // May not ever be called
+    protected void PinsChanged()
+    {
+        cachedSizes = null;
+    }
+
+
+    protected void LayoutNode(float fixedWidth)
     {
         var iconSize= 24 * ImGuiHelper.Scale;
         var padding = 15 * ImGuiHelper.Scale;
 
-        var maxIn = pinsIn.Select(p => ImGui.CalcTextSize(p).X).Select(x => x + iconSize + padding).Prepend(0).Max();
-        var maxOut = pinsOut.Select(p => ImGui.CalcTextSize(p).X).Select(x => x + iconSize + padding).Prepend(0).Max();
+        if (cachedSizes == null)
+        {
+            var pinsIn = Inputs.Select(x => x.LinkType.ToString());
+            var pinsOut = Outputs.Select(x => x.LinkType.ToString());
+            var mIn = pinsIn.Select(p => ImGui.CalcTextSize(p).X).Select(x => x + iconSize + padding).Prepend(0).Max();
+            var mOut = pinsOut.Select(p => ImGui.CalcTextSize(p).X).Select(x => x + iconSize + padding).Prepend(0).Max();
+            cachedSizes = new Vector2(mIn, mOut);
+        }
+
+        var maxIn = cachedSizes.Value.X;
+        var maxOut = cachedSizes.Value.Y;
 
         ImGui.BeginTable("##layout", 3, ImGuiTableFlags.PreciseWidths, new Vector2(maxIn + maxOut + fixedWidth + 4 * ImGuiHelper.Scale, 0),
             maxIn + maxOut + fixedWidth);

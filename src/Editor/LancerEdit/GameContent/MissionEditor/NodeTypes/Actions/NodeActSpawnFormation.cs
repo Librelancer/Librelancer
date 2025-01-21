@@ -21,10 +21,9 @@ public sealed class NodeActSpawnFormation : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var formations = missionIni.Formations.Select(x => x.Nickname).Order().ToArray();
-        nodePopups.StringCombo("Formation", Data.Formation, s => Data.Formation = s, formations);
+        nodePopups.StringCombo("Formation", Data.Formation, s => Data.Formation = s, lookups.Formations);
         Controls.InputVec3Nullable("Position", ref Data.Position);
     }
 

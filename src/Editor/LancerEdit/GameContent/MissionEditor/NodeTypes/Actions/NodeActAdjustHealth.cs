@@ -21,7 +21,7 @@ public sealed class NodeActAdjustHealth : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Target", ref Data.Target);
         ImGui.SliderFloat("Health", ref Data.Adjustment, -1f, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);

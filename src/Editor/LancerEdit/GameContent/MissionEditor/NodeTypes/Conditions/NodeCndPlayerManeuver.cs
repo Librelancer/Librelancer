@@ -23,7 +23,7 @@ public class NodeCndPlayerManeuver : TriggerEntryNode
 
     private readonly string[] maneuverTypes = Enum.GetNames<ManeuverType>();
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         var index = (int)Data.type;
         nodePopups.Combo("Maneuver", index, i => Data.type = (ManeuverType)i, maneuverTypes);

@@ -22,7 +22,7 @@ public sealed class NodeActNNPath : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Object", ref Data.ObjectId);
         nodePopups.StringCombo("System", Data.SystemId, s => Data.SystemId = s, gameData.SystemsByName);

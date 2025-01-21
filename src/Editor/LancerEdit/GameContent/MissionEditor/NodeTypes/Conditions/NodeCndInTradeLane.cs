@@ -21,11 +21,10 @@ public class NodeCndInTradeLane : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("In Trade Lane", ref Data.inTL);
-        var ships = missionIni.Ships.Select(x => x.Nickname).Order().ToArray();
-        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
+        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, lookups.Ships);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

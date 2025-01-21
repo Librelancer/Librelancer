@@ -22,7 +22,7 @@ public class NodeCndCargoScanned : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         // TODO: transform this into a combobox of different ships or a object depending on type
         Controls.InputTextId("Scanning Ship", ref Data.scanningShip);

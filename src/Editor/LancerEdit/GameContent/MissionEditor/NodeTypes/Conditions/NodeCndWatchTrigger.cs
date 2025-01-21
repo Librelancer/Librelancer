@@ -26,7 +26,7 @@ public class NodeCndWatchTrigger : TriggerEntryNode
 
     private readonly string[] triggerStates = Enum.GetNames<TriggerState>().ToArray();
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         nodePopups.Combo("Trigger State", (int)Data.TriggerState, i => Data.TriggerState = (TriggerState)i, triggerStates);
         Controls.HelpMarker(

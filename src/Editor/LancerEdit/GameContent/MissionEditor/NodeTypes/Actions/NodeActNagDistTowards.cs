@@ -25,7 +25,7 @@ public sealed class NodeActNagDistTowards : TriggerEntryNode
 
     private static readonly string[] _nags = Enum.GetValues<NagType>().Select(x => x.ToString()).Append("NULL").ToArray();
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.RadioButton("Point", ref radioIndex, 0);
         ImGui.RadioButton("Object", ref radioIndex, 1);

@@ -21,11 +21,9 @@ public sealed class NodeActStartDialog : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var dialogs = missionIni.Dialogs.Select(x => x.Nickname).Order().ToArray();
-
-        nodePopups.StringCombo("Dialog", Data.Dialog, s => Data.Dialog = s, dialogs);
+        nodePopups.StringCombo("Dialog", Data.Dialog, s => Data.Dialog = s, lookups.Dialogs);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

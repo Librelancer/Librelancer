@@ -20,7 +20,7 @@ public class NodeCndLocationExit : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Location", ref Data.location);
         Controls.InputTextId("Base", ref Data.@base);

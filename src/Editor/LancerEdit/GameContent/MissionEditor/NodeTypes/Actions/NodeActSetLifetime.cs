@@ -22,7 +22,7 @@ public sealed class NodeActSetLifetime : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Object", ref Data.Object);
         ImGui.InputInt("Seconds", ref Data.Seconds, 1, 10);

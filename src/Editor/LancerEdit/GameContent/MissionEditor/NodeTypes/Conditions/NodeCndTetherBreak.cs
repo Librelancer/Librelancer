@@ -21,7 +21,7 @@ public class NodeCndTetherBreak : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Source Ship", ref Data.SourceShip);
         Controls.InputTextId("Dest Ship", ref Data.DestShip);

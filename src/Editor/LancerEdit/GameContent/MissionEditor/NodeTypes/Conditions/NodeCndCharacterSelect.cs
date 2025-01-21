@@ -20,7 +20,7 @@ public class NodeCndCharacterSelect : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Character", ref Data.character);
         Controls.InputTextId("Location", ref Data.location);

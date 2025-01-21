@@ -22,7 +22,7 @@ public class NodeCndSystemExit : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("Any", ref Data.any);
         ImGui.BeginDisabled(Data.any);

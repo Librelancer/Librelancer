@@ -21,7 +21,7 @@ public class NodeCndHealthDecreased : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Target", ref Data.target);
         ImGui.SliderFloat("Health", ref Data.percent, 0, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);

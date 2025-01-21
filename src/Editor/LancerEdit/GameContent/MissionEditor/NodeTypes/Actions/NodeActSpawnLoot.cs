@@ -21,11 +21,9 @@ public sealed class NodeActSpawnLoot : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var loots = missionIni.Loots.Select(x => x.Nickname).Order().ToArray();
-
-        nodePopups.StringCombo("Loot", Data.Loot, s => Data.Loot = s, loots);
+        nodePopups.StringCombo("Loot", Data.Loot, s => Data.Loot = s, lookups.Loots);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -20,7 +20,7 @@ public class NodeCndInSpace : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("In Space", ref Data.inSpace);
     }

@@ -21,10 +21,9 @@ public sealed class NodeActDestroy : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var targets = missionIni.Ships.Select(x => x.Nickname).Concat(missionIni.Solars.Select(x => x.Nickname)).Order().ToArray();
-        nodePopups.StringCombo("Target", Data.Target, s => Data.Target = s, targets);
+        nodePopups.StringCombo("Target", Data.Target, s => Data.Target = s, lookups.ShipsAndSolars);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

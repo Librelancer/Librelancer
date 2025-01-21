@@ -21,7 +21,7 @@ public class NodeCndNpcSystemExit : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Text("This node type has not been tested. Proceed with caution.");
         Controls.InputTextId("System", ref Data.system);

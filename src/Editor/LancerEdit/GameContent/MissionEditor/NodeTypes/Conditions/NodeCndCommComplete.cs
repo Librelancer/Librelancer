@@ -19,7 +19,7 @@ public class NodeCndCommComplete : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Dialog", ref Data.label);
     }

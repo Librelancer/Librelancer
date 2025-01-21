@@ -22,13 +22,10 @@ public sealed class NodeActSpawnShip : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var objectives = missionIni.ObjLists.Select(x => x.Nickname).Order().ToArray();
-        var ships = missionIni.Ships.Select(x => x.Nickname).Order().ToArray();
-
-        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
-        nodePopups.StringCombo("Objective List", Data.ObjList, s => Data.ObjList = s, objectives);
+        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, lookups.Ships);
+        nodePopups.StringCombo("Objective List", Data.ObjList, s => Data.ObjList = s, lookups.ObjLists);
         Controls.InputVec3Nullable("Position", ref Data.Position);
         Controls.InputFlQuaternionNullable("Orientation", ref Data.Orientation);
     }

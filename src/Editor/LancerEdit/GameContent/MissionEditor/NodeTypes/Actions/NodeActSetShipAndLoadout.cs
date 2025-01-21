@@ -21,11 +21,9 @@ public sealed class NodeActSetShipAndLoadout : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var ships = missionIni.Ships.Select(x => x.Nickname).Order().ToArray();
-
-        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
+        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, lookups.Ships);
         nodePopups.StringCombo("Loadout", Data.Loadout, s => Data.Loadout = s, gameData.LoadoutsByName);
     }
 

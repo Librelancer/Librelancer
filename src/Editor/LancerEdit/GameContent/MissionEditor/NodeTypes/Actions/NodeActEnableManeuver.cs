@@ -23,7 +23,7 @@ public sealed class NodeActEnableManeuver : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         nodePopups.Combo("Maneuver", Data.Maneuver, x => Data.Maneuver = x);
         ImGui.Checkbox("Lock", ref Data.Lock);

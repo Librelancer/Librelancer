@@ -22,7 +22,7 @@ public class CommentNode : Node
 
     public string BlockName { get; set; } = "Comment Node";
 
-    public override void Render(GameDataContext gameData, PopupManager popup, MissionIni missionIni)
+    public override void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups)
     {
         const float CommentAlpha = 0.75f;
 

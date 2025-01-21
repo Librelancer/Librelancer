@@ -344,9 +344,10 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             NodeEditor.SetNodePosition(node.Id, node.Pos);
         }
 
+        var lookups = new NodeLookups() { MissionIni = missionIni };
         foreach (var node in nodes)
         {
-            node.Render(gameData, popup, missionIni);
+            node.Render(gameData, popup, ref lookups);
         }
 
         foreach (var link in NodePin.AllLinks)

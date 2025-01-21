@@ -21,11 +21,9 @@ public sealed class NodeActSpawnSolar : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var solars = missionIni.Solars.Select(x => x.Nickname).Order().ToArray();
-
-        nodePopups.StringCombo("Solar", Data.Solar, s => Data.Solar = s, solars);
+        nodePopups.StringCombo("Solar", Data.Solar, s => Data.Solar = s, lookups.Solars);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

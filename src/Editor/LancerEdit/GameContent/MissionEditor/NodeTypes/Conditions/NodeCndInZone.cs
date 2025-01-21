@@ -19,7 +19,7 @@ public class NodeCndInZone : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         ImGui.Checkbox("In Zone", ref Data.InZone);
         Controls.InputTextId("Ship", ref Data.Ship); // TODO: Swap out for combo

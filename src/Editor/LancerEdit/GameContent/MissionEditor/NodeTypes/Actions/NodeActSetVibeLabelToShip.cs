@@ -22,14 +22,11 @@ public sealed class NodeActSetVibeLabelToShip : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var labels = missionIni.Ships.SelectMany(x => x.Labels).Order().ToArray();
-        var ships = missionIni.Ships.Select(x => x.Nickname).Order().ToArray();
-
         NodeActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
-        nodePopups.StringCombo("Label", Data.Label, s => Data.Label = s, labels);
-        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
+        nodePopups.StringCombo("Label", Data.Label, s => Data.Label = s, lookups.Labels);
+        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, lookups.Ships);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

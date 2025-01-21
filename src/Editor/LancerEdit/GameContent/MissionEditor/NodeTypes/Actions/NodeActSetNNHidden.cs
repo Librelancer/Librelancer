@@ -22,10 +22,9 @@ public sealed class NodeActSetNNHidden : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
-        var objectives = missionIni.Objectives.Select(x => x.Nickname).Order().ToArray();
-        nodePopups.StringCombo("Objective", Data.Objective, s => Data.Objective = s, objectives);
+        nodePopups.StringCombo("Objective", Data.Objective, s => Data.Objective = s, lookups.Objectives);
         ImGui.Checkbox("Hidden", ref Data.Hide);
     }
 

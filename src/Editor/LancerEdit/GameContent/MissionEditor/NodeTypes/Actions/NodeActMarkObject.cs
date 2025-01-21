@@ -21,7 +21,7 @@ public sealed class NodeActMarkObject : TriggerEntryNode
     }
 
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
-        MissionIni missionIni)
+        ref NodeLookups lookups)
     {
         Controls.InputTextId("Object", ref Data.Object);
         ImGui.InputInt("Value", ref Data.Value); // TODO: An enum value of some kind
