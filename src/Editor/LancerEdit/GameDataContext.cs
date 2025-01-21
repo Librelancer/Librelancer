@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
+using LibreLancer.Data.Audio;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Data.IO;
@@ -28,9 +29,13 @@ public class GameDataContext : IDisposable
     public GameResourceManager Resources;
     public SoundManager Sounds;
     public FontManager Fonts;
-    // Used for mission editor cache
+    // Used for mission editor lookups
     public string[] SystemsByName;
+    public string[] BasesByName;
     public string[] FactionsByName;
+    public string[] GoodsByName;
+    public string[] MusicByName;
+    public string[] LoadoutsByName;
 
     private MainWindow win;
 
@@ -78,7 +83,11 @@ public class GameDataContext : IDisposable
     public void RefreshLists()
     {
         SystemsByName = GameData.Systems.Select(x => x.Nickname).Order().ToArray();
+        BasesByName = GameData.Bases.Select(x => x.Nickname).Order().ToArray();
         FactionsByName = GameData.Factions.Select(x => x.Nickname).Order().ToArray();
+        LoadoutsByName = GameData.Loadouts.Select(x => x.Nickname).Order().ToArray();
+        GoodsByName = GameData.Goods.Select(x => x.Nickname).Order().ToArray();
+        MusicByName = GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).Order().ToArray();
     }
 
     public void Load(MainWindow win, string folder, string cache, Action onComplete, Action<Exception> onError)

@@ -24,10 +24,9 @@ public sealed class NodeActSetShipAndLoadout : TriggerEntryNode
         MissionIni missionIni)
     {
         var ships = missionIni.Ships.Select(x => x.Nickname).Order().ToArray();
-        var loadouts = gameData.GameData.Loadouts.Select(x => x.Nickname).Order().ToArray();
 
         nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, ships);
-        nodePopups.StringCombo("Loadout", Data.Loadout, s => Data.Loadout = s, loadouts);
+        nodePopups.StringCombo("Loadout", Data.Loadout, s => Data.Loadout = s, gameData.LoadoutsByName);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

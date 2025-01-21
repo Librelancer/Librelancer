@@ -23,8 +23,7 @@ public sealed class NodeActForceLand : TriggerEntryNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var bases = gameData.GameData.Bases.Select(x => x.Nickname).Order().ToArray();
-        nodePopups.StringCombo("Base", Data.Base, s => Data.Base = s, bases);
+        nodePopups.StringCombo("Base", Data.Base, s => Data.Base = s, gameData.BasesByName);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

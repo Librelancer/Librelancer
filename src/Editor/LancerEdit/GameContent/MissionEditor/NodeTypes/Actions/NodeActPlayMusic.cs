@@ -25,14 +25,12 @@ public sealed class NodeActPlayMusic : TriggerEntryNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var music = gameData.GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).Order().ToArray();
-
         ImGui.Checkbox("Reset to Default", ref Data.Reset);
 
-        nodePopups.StringCombo("Space", Data.Space, s => Data.Space = s, music, true);
-        nodePopups.StringCombo("Danger", Data.Danger, s => Data.Danger = s, music, true);
-        nodePopups.StringCombo("Battle", Data.Battle, s => Data.Battle = s, music, true);
-        nodePopups.StringCombo("Motif", Data.Motif, s => Data.Motif = s, music, true);
+        nodePopups.StringCombo("Space", Data.Space, s => Data.Space = s, gameData.MusicByName, true);
+        nodePopups.StringCombo("Danger", Data.Danger, s => Data.Danger = s, gameData.MusicByName, true);
+        nodePopups.StringCombo("Battle", Data.Battle, s => Data.Battle = s, gameData.MusicByName, true);
+        nodePopups.StringCombo("Motif", Data.Motif, s => Data.Motif = s, gameData.MusicByName, true);
 
         ImGui.InputFloat("Fade", ref Data.Fade);
     }

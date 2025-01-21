@@ -24,10 +24,8 @@ public sealed class NodeActNNPath : TriggerEntryNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var systems = gameData.GameData.Systems.Select(x => x.Nickname).Order().ToArray();
-
         Controls.InputTextId("Object", ref Data.ObjectId);
-        nodePopups.StringCombo("System", Data.SystemId, s => Data.SystemId = s, systems);
+        nodePopups.StringCombo("System", Data.SystemId, s => Data.SystemId = s, gameData.SystemsByName);
         Controls.IdsInputString("IDS 1", gameData, popup, ref Data.Ids1, (ids) => Data.Ids1 = ids);
         Controls.IdsInputString("IDS 2", gameData, popup, ref Data.Ids2, (ids) => Data.Ids2 = ids);
     }

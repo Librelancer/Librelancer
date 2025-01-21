@@ -23,8 +23,7 @@ public sealed class NodeActRemoveCargo : TriggerEntryNode
     protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         MissionIni missionIni)
     {
-        var objects = gameData.GameData.Goods.Select(x => x.Nickname).Order().ToArray();
-        nodePopups.StringCombo("Cargo", Data.Cargo, s => Data.Cargo = s, objects);
+        nodePopups.StringCombo("Cargo", Data.Cargo, s => Data.Cargo = s, gameData.GoodsByName);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
