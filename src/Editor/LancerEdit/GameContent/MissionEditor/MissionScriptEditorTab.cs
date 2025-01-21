@@ -48,6 +48,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         popup = new PopupManager();
 
         config = new NodeEditorConfig();
+        config.SettingsFile = null;
         context = new NodeEditorContext(config);
         SaveStrategy = new MissionSaveStrategy(win, this);
 

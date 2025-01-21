@@ -70,9 +70,20 @@ public class NodeEditorConfig : NativeObject, IDisposable
         get => UnsafeHelpers.PtrToStringUTF8(axConfig_get_SettingsFile(Handle));
         set
         {
-            if(lastSet != 0) Marshal.FreeHGlobal(lastSet);
-            lastSet = UnsafeHelpers.StringToHGlobalUTF8(value);
-            axConfig_set_SettingsFile(Handle, lastSet);
+            if (lastSet != 0)
+            {
+                Marshal.FreeHGlobal(lastSet);
+            }
+            if (value == null)
+            {
+                axConfig_set_SettingsFile(Handle, 0);
+                lastSet = 0;
+            }
+            else
+            {
+                lastSet = UnsafeHelpers.StringToHGlobalUTF8(value);
+                axConfig_set_SettingsFile(Handle, lastSet);
+            }
         }
     }
 
