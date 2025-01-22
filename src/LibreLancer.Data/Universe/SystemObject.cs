@@ -83,8 +83,12 @@ namespace LibreLancer.Data.Universe
         public string RingZone;
         public string RingFile;
 
-        [EntryHandler("goto", MinComponents = 3)]
-        void HandleGoto(Entry e) => Goto = new JumpReference(e[0].ToString(), e[1].ToString(), e[2].ToString());
+        [EntryHandler("goto", MinComponents = 2)]
+        void HandleGoto(Entry e)
+        {
+            var tunnel = e.Count > 2 ? e[2].ToString() : "";
+            Goto = new JumpReference(e[0].ToString(), e[1].ToString(), tunnel);
+        }
 
         [EntryHandler("ring", MinComponents = 2)]
         void HandleRing(Entry e)
