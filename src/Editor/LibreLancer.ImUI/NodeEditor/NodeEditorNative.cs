@@ -70,6 +70,18 @@ static unsafe partial class NodeEditorNative
     [LibraryImport("cimgui")]
     public static partial void axConfig_set_UserPointer(IntPtr config, void* userPointer);
 
+    [LibraryImport("cimgui")]
+    public static partial int axConfig_get_EnableSmoothZoom(IntPtr config);
+
+    [LibraryImport("cimgui")]
+    public static partial void axConfig_set_EnableSmoothZoom(IntPtr config, int enableSmoothZoom);
+
+    [LibraryImport("cimgui")]
+    public static partial float axConfig_get_SmoothZoomPower(IntPtr config);
+
+    [LibraryImport("cimgui")]
+    public static partial void axConfig_set_SmoothZoomPower(IntPtr config, float smoothZoomPower);
+
 //TODO: Custom Zoom Levels
 
     [LibraryImport("cimgui")]

@@ -270,6 +270,30 @@ IGEXPORT void axConfig_set_ContextMenuButtonIndex(axConfig* config, int contextM
     cfg->ContextMenuButtonIndex = contextMenuButtonIndex;
 }
 
+IGEXPORT int axConfig_get_EnableSmoothZoom(axConfig* config)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    return cfg->EnableSmoothZoom ? 1 : 0;
+}
+
+IGEXPORT void axConfig_set_EnableSmoothZoom(axConfig* config, int smoothZoom)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    cfg->EnableSmoothZoom = smoothZoom != 0;
+}
+
+IGEXPORT float axConfig_get_SmoothZoomPower(axConfig* config)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    return cfg->SmoothZoomPower;
+}
+
+IGEXPORT void axConfig_set_SmoothZoomPower(axConfig* config, float smoothZoomPower)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    cfg->SmoothZoomPower = smoothZoomPower;
+}
+
 //Editor Context
 IGEXPORT void axSetCurrentEditor(axEditorContext* ctx)
 {

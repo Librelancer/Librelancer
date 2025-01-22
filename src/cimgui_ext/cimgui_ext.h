@@ -254,6 +254,13 @@ IGEXPORT void axConfig_set_NavigateButtonIndex(axConfig* config, int navigateBut
 IGEXPORT int axConfig_get_ContextMenuButtonIndex(axConfig* config);
 IGEXPORT void axConfig_set_ContextMenuButtonIndex(axConfig* config, int contextMenuButtonIndex);
 
+IGEXPORT int axConfig_get_EnableSmoothZoom(axConfig* config);
+IGEXPORT void axConfig_set_EnableSmoothZoom(axConfig* config, int smoothZoom);
+
+IGEXPORT float axConfig_get_SmoothZoomPower(axConfig* config);
+IGEXPORT void axConfig_set_SmoothZoomPower(axConfig* config, float smoothZoomPower);
+
+
 struct axEditorContext;
 
 IGEXPORT void axSetCurrentEditor(axEditorContext* ctx);

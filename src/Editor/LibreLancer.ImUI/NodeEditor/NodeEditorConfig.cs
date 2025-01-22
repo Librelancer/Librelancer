@@ -23,6 +23,8 @@ public class NodeEditorConfig : NativeObject, IDisposable
     public NodeEditorConfig()
     {
         Handle = axConfigNew();
+        EnableSmoothZoom = true;
+        SmoothZoomPower = 1.15f;
     }
 
     public void SetBeginSaveSession(ConfigSession cb)
@@ -115,6 +117,18 @@ public class NodeEditorConfig : NativeObject, IDisposable
     {
         get => axConfig_get_ContextMenuButtonIndex(Handle);
         set => axConfig_set_ContextMenuButtonIndex(Handle, value);
+    }
+
+    public bool EnableSmoothZoom
+    {
+        get => axConfig_get_EnableSmoothZoom(Handle) != 0;
+        set => axConfig_set_EnableSmoothZoom(Handle, value ? 1 : 0);
+    }
+
+    public float SmoothZoomPower
+    {
+        get => axConfig_get_SmoothZoomPower(Handle);
+        set => axConfig_set_SmoothZoomPower(Handle, value);
     }
 
     internal NodeEditorConfig(IntPtr handle)
