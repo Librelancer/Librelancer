@@ -8,19 +8,22 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class ActGiveNnObjectives : NodeTriggerEntry
+public sealed class ActHostileClamp : NodeTriggerEntry
 {
-    public override string Name => "Give NN Objectives";
+    public override string Name => "Toggle Hostile Clamp";
 
-    public Act_GiveNNObjs Data = new();
-    public ActGiveNnObjectives(MissionAction action): base( NodeColours.Action)
+    public readonly Act_HostileClamp Data;
+    public ActHostileClamp(MissionAction action): base( NodeColours.Action)
     {
+        Data = action is null ? new() : new Act_HostileClamp(action);
+
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
+        ImGui.Checkbox("Enable", ref Data.Enabled);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

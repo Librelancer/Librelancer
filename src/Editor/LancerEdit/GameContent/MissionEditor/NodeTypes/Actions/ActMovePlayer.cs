@@ -8,19 +8,23 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class ActGiveNnObjectives : NodeTriggerEntry
+public sealed class ActMovePlayer : NodeTriggerEntry
 {
-    public override string Name => "Give NN Objectives";
+    public override string Name => "Move Player";
 
-    public Act_GiveNNObjs Data = new();
-    public ActGiveNnObjectives(MissionAction action): base( NodeColours.Action)
+    public readonly Act_MovePlayer Data;
+    public ActMovePlayer(MissionAction action): base( NodeColours.Action)
     {
+        Data = action is null ? new() : new Act_MovePlayer(action);
+
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
+        ImGui.InputFloat3("Position", ref Data.Position);
+        ImGui.InputFloat("Unknown", ref Data.Unknown);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

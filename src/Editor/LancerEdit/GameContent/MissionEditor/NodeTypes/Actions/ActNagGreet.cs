@@ -8,19 +8,23 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class ActGiveNnObjectives : NodeTriggerEntry
+public sealed class ActNagGreet : NodeTriggerEntry
 {
-    public override string Name => "Give NN Objectives";
+    public override string Name => "Nag Greet";
 
-    public Act_GiveNNObjs Data = new();
-    public ActGiveNnObjectives(MissionAction action): base( NodeColours.Action)
+    public readonly Act_NagGreet Data;
+    public ActNagGreet(MissionAction action): base( NodeColours.Action)
     {
+        Data = action is null ? new() : new Act_NagGreet(action);
+
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
+        Controls.InputTextId("Source", ref Data.Source);
+        Controls.InputTextId("Target", ref Data.Target);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

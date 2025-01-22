@@ -63,63 +63,74 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             missionIni.ShipIni = new NPCShipIni(npcPath, null);
         }
 
-        var actionsThatLinkToTriggers = new List<BlueprintNode>();
-        foreach (var trigger in missionIni.Triggers)
+        var pos = new Vector2(0, 0);
+
+        Queue<(Node Source, string Target, bool Input)> toLink = new();
+
+        var triggerNodes = new Dictionary<string, NodeMissionTrigger>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<NodeMissionTrigger, int> counts = new Dictionary<NodeMissionTrigger, int>();
+
+
+        foreach (var t in missionIni.Triggers)
         {
-            var triggerNode = new NodeMissionTrigger(ref nextId, trigger);
-            foreach (var action in trigger.Actions)
-            {
-                var node = ActionToNode(action.Type, action);
-                var linked = TryLinkNodes(triggerNode, node, LinkType.Action);
-                Debug.Assert(linked);
-
-                if (node is NodeActActivateTrigger or NodeActDeactivateTrigger or NodeActSave)
+            var n = new NodeMissionTrigger(t);
+            triggerNodes[t.Nickname] = n;
+            nodes.Add(n);
+            counts[n] = 0;
+            foreach (var c in n.Actions) {
+                if (c is ActActivateNodeTrigger or ActDeactivateNodeTrigger or ActSave)
                 {
-                    actionsThatLinkToTriggers.Add(node);
+                    var triggerTarget = c switch
+                    {
+                        ActActivateNodeTrigger act => act.Data.Trigger,
+                        ActDeactivateNodeTrigger deactivate => deactivate.Data.Trigger,
+                        ActSave save => save.Data.Trigger,
+                        _ => throw new InvalidCastException()
+                    };
+                    toLink.Enqueue((c, triggerTarget, false));
                 }
-
-                nodes.Add(node);
             }
-
-            foreach (var condition in trigger.Conditions)
+            foreach (var c in n.Conditions)
             {
-                var node = ConditionToNode(condition.Type, condition.Entry);
-
-                var linked = TryLinkNodes(triggerNode, node, LinkType.Condition);
-                Debug.Assert(linked);
-
-                nodes.Add(node);
+                if (c is CndWatchNodeTrigger watch)
+                {
+                    toLink.Enqueue((watch, watch.Data.Trigger, true));
+                }
             }
-
-            triggers.Add(triggerNode);
-            nodes.Add(triggerNode);
         }
 
-        foreach (var action in actionsThatLinkToTriggers)
+        while (toLink.Count > 0)
         {
-            var triggerTarget = action switch
-            {
-                NodeActActivateTrigger act => act.Data.Trigger,
-                NodeActDeactivateTrigger deactivate => deactivate.Data.Trigger,
-                NodeActSave save => save.Data.Trigger,
-                _ => throw new InvalidCastException()
-            };
-
-            var trigger = triggers.FirstOrDefault(x => x.Data.Nickname == triggerTarget);
-            if (trigger is null)
-            {
-                FLLog.Warning("MissionScriptEditor", $"An activate trigger action had a trigger that was not valid! ({triggerTarget})");
+            var x= toLink.Dequeue();
+            if (!triggerNodes.TryGetValue(x.Target, out var target)) {
+                // warning
                 continue;
             }
-
-            TryLinkNodes(action, trigger, LinkType.Trigger);
+            if (x.Input)
+            {
+                TryLinkNodes(target, x.Source, LinkType.Trigger);
+            }
+            else
+            {
+                TryLinkNodes(x.Source, target, LinkType.Trigger);
+            }
+            counts[target]++;
         }
 
+        if (!ReadSavedPositions(file))
+        {
+            AutoPositionNodes(triggerNodes, counts);
+        }
+    }
+
+    bool ReadSavedPositions(string file)
+    {
         using var fileStream = File.OpenRead(file);
         var sections = IniFile.ParseFile(file, fileStream);
         var nodesSection = sections.FirstOrDefault(x => x.Name.Equals("nodes", StringComparison.OrdinalIgnoreCase));
         if (nodesSection is not null)
         {
+            int count = 0;
             foreach (var nodePos in nodesSection)
             {
                 if (nodePos.Count < 4)
@@ -146,7 +157,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 var triggerNickname = nodePos[1].ToString()!;
                 var xPos = nodePos[2].ToSingle();
                 var yPos = nodePos[3].ToSingle();
-                var index = nodePos.Count >= 5 ? nodePos[4].ToInt32() : -1;
 
                 var trigger = triggers.FirstOrDefault(x => x.Data.Nickname == triggerNickname);
                 if (trigger is null)
@@ -158,120 +168,82 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 if (type.Equals("trigger", StringComparison.OrdinalIgnoreCase))
                 {
                     nodeRelocationQueue.Enqueue((trigger.Id, new Vector2(xPos, yPos)));
-                }
-                else if (type.Equals("action", StringComparison.OrdinalIgnoreCase))
-                {
-                    var actions = GetLinkedNodes(trigger, PinKind.Output, LinkType.Action);
-                    if (actions.Count <= index || index == -1)
-                    {
-                        FLLog.Warning("MissionScriptEditor", $"Action in the nodes section had a bad index.");
-                        continue;
-                    }
-
-                    nodeRelocationQueue.Enqueue((actions.ElementAt(index).Id, new Vector2(xPos, yPos)));
-                }
-                else if (type.Equals("condition", StringComparison.OrdinalIgnoreCase))
-                {
-                    var conditions = GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition);
-                    if (conditions.Count <= index || index == -1)
-                    {
-                        FLLog.Warning("MissionScriptEditor", $"Condition in the nodes section had a bad index.");
-                        continue;
-                    }
-
-                    nodeRelocationQueue.Enqueue((conditions.ElementAt(index).Id, new Vector2(xPos, yPos)));
+                    count++;
                 }
             }
+            return count > 0;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-            return;
+    void AutoPositionNodes(
+        Dictionary<string, NodeMissionTrigger> triggerNodes,
+        Dictionary<NodeMissionTrigger, int> counts)
+    {
+        var columns = new List<List<NodeMissionTrigger>>();
+
+        HashSet<NodeMissionTrigger> setColumns = new HashSet<NodeMissionTrigger>();
+
+        columns.Add(new List<NodeMissionTrigger>());
+
+        void IterateChildren(NodeMissionTrigger triggerNode, int index)
+        {
+            while(columns.Count <= index)
+                columns.Add(new List<NodeMissionTrigger>());
+            foreach (var c in triggerNode.Actions) {
+                if (c is ActActivateNodeTrigger or ActDeactivateNodeTrigger or ActSave)
+                {
+                    var triggerTarget = c switch
+                    {
+                        ActActivateNodeTrigger act => act.Data.Trigger,
+                        ActDeactivateNodeTrigger deactivate => deactivate.Data.Trigger,
+                        ActSave save => save.Data.Trigger,
+                        _ => throw new InvalidCastException()
+                    };
+                    if (!triggerNodes.TryGetValue(triggerTarget, out var target))
+                    {
+                        continue;
+                    }
+
+                    if (!setColumns.Contains(target))
+                    {
+                        setColumns.Add(target);
+                        columns[index].Add(target);
+                        IterateChildren(target, index + 1);
+                    }
+                }
+            }
         }
 
-        // Arrange initial positions for all nodes if needed
-        List<NodeMissionTrigger> processedTriggers = [];
-        Dictionary<int, float> columnHeights = [];
-        Dictionary<NodeMissionTrigger, float> triggerColumnMinMaxHeight = [];
-
-        var firstTrigger = triggers.FirstOrDefault(x => x.Data.InitState == TriggerInitState.ACTIVE);
-        if (firstTrigger != null)
+        foreach (var startNode in counts.Where(x => x.Value == 0)
+                     .Select(x => x.Key))
         {
-            void CalculateNodeTreeSize(NodeMissionTrigger trigger, int column)
+            setColumns.Add(startNode);
+            columns[0].Add(startNode);
+            IterateChildren(startNode, 1);
+        }
+
+        for (int i = 0; i < columns.Count; i++)
+        {
+            float totalHeight = 0;
+            foreach (var item in columns[i])
+                totalHeight += item.EstimateHeight();
+            float cHeight = -(totalHeight / 2);
+            for (int j = 0; j < columns[i].Count; j++)
             {
-                if (processedTriggers.Contains(trigger))
-                {
-                    return;
-                }
-
-                Dictionary<string, NodeMissionTrigger> triggersDictionary = triggers.ToDictionary(x => x.Data.Nickname, x => x);
-                var actions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Action);
-                var conditions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition);
-                var triggerActions = actions.OfType<NodeActActivateTrigger>().Select(x => x.Data.Trigger).Concat(actions.OfType<NodeActSave>().Select(x => x.Data.Trigger));
-                var nextTriggers = triggersDictionary.Where(x => triggerActions.Any(y => y == x.Key)).ToDictionary().Values;
-
-                float maxY = 200 * actions.Count + 200 * conditions.Count;
-                if (!columnHeights.TryAdd(column + 1, maxY))
-                {
-                    var height = columnHeights[column + 1] + maxY;
-                    columnHeights[column + 1] = height;
-                }
-
-                triggerColumnMinMaxHeight[trigger] = 100f * (actions.Count + conditions.Count);
-                processedTriggers.Add(trigger);
-
-                foreach (var nextTrigger in nextTriggers)
-                {
-                    CalculateNodeTreeSize(nextTrigger, column + 2);
-                }
+                var x = (i * 1000);
+                nodeRelocationQueue.Enqueue((columns[i][j].Id, new Vector2(x, cHeight)));
+                cHeight += columns[i][j].EstimateHeight();
             }
-
-            void ProcessTrigger(NodeMissionTrigger trigger, int column)
-            {
-                if (processedTriggers.Contains(trigger))
-                {
-                    return;
-                }
-
-                Dictionary<string, NodeMissionTrigger> triggersDictionary = triggers.ToDictionary(x => x.Data.Nickname, x => x);
-                var actions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Action);
-                var conditions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition);
-                var triggerActions = actions.OfType<NodeActActivateTrigger>().Select(x => x.Data.Trigger);
-                var nextTriggers = triggersDictionary.Where(x => triggerActions.Any(y => y == x.Key)).ToDictionary().Values;
-
-                processedTriggers.Add(trigger);
-
-                var nextYPos = columnHeights[column + 1];
-                foreach (var action in actions)
-                {
-                    var height = columnHeights[column + 1];
-                    columnHeights[column + 1] -= 200;
-                    nodeRelocationQueue.Enqueue((action.Id, new Vector2((column + 1) * 500f, height)));
-                }
-
-                foreach (var condition in conditions)
-                {
-                    var height = columnHeights[column + 1];
-                    columnHeights[column + 1] -= 200;
-                    nodeRelocationQueue.Enqueue((condition.Id, new Vector2((column + 1) * 500f, height)));
-                }
-
-                foreach (var nextTrigger in nextTriggers)
-                {
-                    nextYPos -= triggerColumnMinMaxHeight[trigger];
-                    nodeRelocationQueue.Enqueue((nextTrigger.Id, new Vector2((column + 2) * 500f, nextYPos)));
-                    ProcessTrigger(nextTrigger, column + 2);
-                }
-            }
-
-            CalculateNodeTreeSize(firstTrigger, 0);
-            processedTriggers.Clear();
-
-            ProcessTrigger(firstTrigger, 0);
-            nodeRelocationQueue.Enqueue((firstTrigger.Id, Vector2.Zero));
         }
     }
 
     public override void Draw(double elapsed)
     {
-        ImGuiHelper.AnimatingElement();
+        //ImGuiHelper.AnimatingElement();
         if (!ImGui.BeginTable("ME Table", 3, ImGuiTableFlags.None))
         {
             return;
@@ -497,30 +469,10 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         if (ImGui.MenuItem("Trigger"))
         {
-            var node = new NodeMissionTrigger(ref nextId, null);
+            var node = new NodeMissionTrigger(null);
             nodes.Add(node);
             triggers.Add(node);
             nodeRelocationQueue.Enqueue((node.Id, position));
-        }
-
-        if (ImGui.MenuItem("Action"))
-        {
-            popup.OpenPopup(new NewActionPopup(action =>
-            {
-                var node = ActionToNode(action, null);
-                nodes.Add(node);
-                nodeRelocationQueue.Enqueue((node.Id, position));
-            }));
-        }
-
-        if (ImGui.MenuItem("Condition"))
-        {
-            popup.OpenPopup(new NewConditionPopup(condition =>
-            {
-                var node = ConditionToNode(condition, null);
-                nodes.Add(node);
-                nodeRelocationQueue.Enqueue((node.Id, position));
-            }));
         }
 
         if (ImGui.MenuItem("Comment Node"))
@@ -561,7 +513,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         ImGui.Separator();
-        if (!ImGui.MenuItem("Delete"))
+        if (!node.OnContextMenu(popup))
         {
             return;
         }
@@ -582,6 +534,38 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         contextNodeId = 0;
     }
 
+    NodePin FindIn(PinId id, Node node)
+    {
+        var pin = node.Inputs.FirstOrDefault(x => x.Id == id);
+        if (pin is not null)
+        {
+            return pin;
+        }
+
+        pin = node.Outputs.FirstOrDefault(x => x.Id == id);
+        if (pin is not null)
+        {
+            return pin;
+        }
+
+        if (node is NodeMissionTrigger trigger)
+        {
+            foreach (var cond in trigger.Conditions)
+            {
+                var r = FindIn(id, cond);
+                if (r is not null)
+                    return r;
+            }
+            foreach (var act in trigger.Actions)
+            {
+                var r = FindIn(id, act);
+                if (r is not null)
+                    return r;
+            }
+        }
+        return null;
+    }
+
     private NodePin FindPin(PinId id)
     {
         if (id == 0)
@@ -591,171 +575,12 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         foreach (var node in nodes)
         {
-            var pin = node.Inputs.FirstOrDefault(x => x.Id == id);
-            if (pin is not null)
-            {
-                return pin;
-            }
-
-            pin = node.Outputs.FirstOrDefault(x => x.Id == id);
-            if (pin is not null)
-            {
-                return pin;
-            }
+            var r = FindIn(id, node);
+            if (r is not null)
+                return r;
         }
 
         return null;
-    }
-
-    internal List<Node> GetLinkedNodes([NotNull] Node node, PinKind kind, LinkType? pinFilter = null)
-    {
-        var linkedNodes = new List<Node>();
-        var inPins = kind == PinKind.Input;
-        var pins = inPins ? node.Inputs : node.Outputs;
-        foreach (var pin in pins.Where(x => pinFilter == null || x.LinkType == pinFilter))
-        {
-            linkedNodes.AddRange(NodePin.AllLinks
-                .Where(x => inPins ? x.EndPin == pin : x.StartPin == pin)
-                .Select(link => inPins ? link.StartPin.OwnerNode : link.EndPin.OwnerNode));
-        }
-
-        return linkedNodes;
-    }
-
-    private BlueprintNode ActionToNode(TriggerActions type, MissionAction action)
-    {
-        return type switch
-        {
-            TriggerActions.Act_PlaySoundEffect => new NodeActPlaySound(ref nextId, action),
-            TriggerActions.Act_Invulnerable => new NodeActInvulnerable(ref nextId, action),
-            TriggerActions.Act_PlayMusic => new NodeActPlayMusic(ref nextId, action),
-            TriggerActions.Act_SetShipAndLoadout => new NodeActSetShipAndLoadout(ref nextId, action),
-            TriggerActions.Act_RemoveAmbient => new NodeActRemoveAmbient(ref nextId, action),
-            TriggerActions.Act_AddAmbient => new NodeActAddAmbient(ref nextId, action),
-            TriggerActions.Act_RemoveRTC => new NodeActRemoveRtc(ref nextId, action),
-            TriggerActions.Act_AddRTC => new NodeActAddRtc(ref nextId, action),
-            TriggerActions.Act_AdjAcct => new NodeActAdjustAccount(ref nextId, action),
-            TriggerActions.Act_DeactTrig => new NodeActDeactivateTrigger(ref nextId, action),
-            TriggerActions.Act_ActTrig => new NodeActActivateTrigger(ref nextId, action),
-            TriggerActions.Act_SetNNObj => new NodeActSetNNObject(ref nextId, action),
-            TriggerActions.Act_ForceLand => new NodeActForceLand(ref nextId, action),
-            TriggerActions.Act_LightFuse => new NodeActLightFuse(ref nextId, action),
-            TriggerActions.Act_PopUpDialog => new NodeActPopupDialog(ref nextId, action),
-            TriggerActions.Act_ChangeState => new NodeActChangeState(ref nextId, action),
-            TriggerActions.Act_RevertCam => new NodeActRevertCamera(ref nextId, action),
-            TriggerActions.Act_CallThorn => new NodeActCallThorn(ref nextId, action),
-            TriggerActions.Act_MovePlayer => new NodeActMovePlayer(ref nextId, action),
-            TriggerActions.Act_Cloak => new NodeActCloak(ref nextId, action),
-            TriggerActions.Act_PobjIdle => new NodeActPObjectIdle(ref nextId, action),
-            TriggerActions.Act_SetInitialPlayerPos => new NodeActSetInitialPlayerPos(ref nextId, action),
-            TriggerActions.Act_RelocateShip => new NodeActRelocateShip(ref nextId, action),
-            TriggerActions.Act_StartDialog => new NodeActStartDialog(ref nextId, action),
-            TriggerActions.Act_SendComm => new NodeActSendComm(ref nextId, action),
-            TriggerActions.Act_EtherComm => new NodeActEtherComm(ref nextId, action),
-            TriggerActions.Act_SetVibe => new NodeActSetVibe(ref nextId, action),
-            TriggerActions.Act_SetVibeLbl => new NodeActSetVibeLabel(ref nextId, action),
-            TriggerActions.Act_SetVibeShipToLbl => new NodeActSetVibeShipToLabel(ref nextId, action),
-            TriggerActions.Act_SetVibeLblToShip => new NodeActSetVibeLabelToShip(ref nextId, action),
-            TriggerActions.Act_SpawnSolar => new NodeActSpawnSolar(ref nextId, action),
-            TriggerActions.Act_SpawnShip => new NodeActSpawnShip(ref nextId, action),
-            TriggerActions.Act_SpawnFormation => new NodeActSpawnFormation(ref nextId, action),
-            TriggerActions.Act_MarkObj => new NodeActMarkObject(ref nextId, action),
-            TriggerActions.Act_Destroy => new NodeActDestroy(ref nextId, action),
-            TriggerActions.Act_StaticCam => new NodeActStaticCamera(ref nextId, action),
-            TriggerActions.Act_SpawnLoot => new NodeActSpawnLoot(ref nextId, action),
-            TriggerActions.Act_SetVibeOfferBaseHack => new NodeActSetVibeOfferBaseHack(ref nextId, action),
-            TriggerActions.Act_SetTitle => new NodeActSetTitle(ref nextId, action),
-            TriggerActions.Act_SetRep => new NodeActSetRep(ref nextId, action),
-            TriggerActions.Act_SetOrient => new NodeActSetOrientation(ref nextId, action),
-            TriggerActions.Act_SetOffer => new NodeActSetOffer(ref nextId, action),
-            TriggerActions.Act_SetNNState => new NodeActSetNNState(ref nextId, action),
-            TriggerActions.Act_SetNNHidden => new NodeActSetNNHidden(ref nextId, action),
-            TriggerActions.Act_SetLifeTime => new NodeActSetLifetime(ref nextId, action),
-            TriggerActions.Act_Save => new NodeActSave(ref nextId, action),
-            TriggerActions.Act_RpopTLAttacksEnabled => new NodeActRPopAttacksEnabled(ref nextId, action),
-            TriggerActions.Act_RpopAttClamp => new NodeActRPopClamp(ref nextId, action),
-            TriggerActions.Act_RemoveCargo => new NodeActRemoveCargo(ref nextId, action),
-            TriggerActions.Act_RandomPopSphere => new NodeActRandomPopSphere(ref nextId, action),
-            TriggerActions.Act_RandomPop => new NodeActRandomPop(ref nextId, action),
-            TriggerActions.Act_SetPriority => new NodeActSetPriority(ref nextId, action),
-            TriggerActions.Act_PlayerEnemyClamp => new NodeActPlayerEnemyClamp(ref nextId, action),
-            TriggerActions.Act_PlayerCanTradelane => new NodeActCanTradeLane(ref nextId, action),
-            TriggerActions.Act_PlayerCanDock => new NodeActCanDock(ref nextId, action),
-            TriggerActions.Act_NNIds => new NodeActNNIds(ref nextId, action),
-            TriggerActions.Act_NNPath => new NodeActNNPath(ref nextId, action),
-            TriggerActions.Act_NagOff => new NodeActNagOff(ref nextId, action),
-            TriggerActions.Act_NagGreet => new NodeActNagGreet(ref nextId, action),
-            TriggerActions.Act_NagDistTowards => new NodeActNagDistTowards(ref nextId, action),
-            TriggerActions.Act_NagDistLeaving => new NodeActNagDistLeaving(ref nextId, action),
-            TriggerActions.Act_NagClamp => new NodeActNagClamp(ref nextId, action),
-            TriggerActions.Act_LockManeuvers => new NodeActLockManeuvers(ref nextId, action),
-            TriggerActions.Act_LockDock => new NodeActLockDock(ref nextId, action),
-            TriggerActions.Act_Jumper => new NodeActJumper(ref nextId, action),
-            TriggerActions.Act_HostileClamp => new NodeActHostileClamp(ref nextId, action),
-            TriggerActions.Act_GiveObjList => new NodeActGiveObjectList(ref nextId, action),
-            TriggerActions.Act_GiveNNObjs => new NodeActGiveNNObjectives(ref nextId, action),
-            TriggerActions.Act_GCSClamp => new NodeActGcsClamp(ref nextId, action),
-            TriggerActions.Act_EnableManeuver => new NodeActEnableManeuver(ref nextId, action),
-            TriggerActions.Act_EnableEnc => new NodeActEnableEncounter(ref nextId, action),
-            TriggerActions.Act_DockRequest => new NodeActDockRequest(ref nextId, action),
-            TriggerActions.Act_DisableTradelane => new NodeActDisableTradelane(ref nextId, action),
-            TriggerActions.Act_DisableFriendlyFire => new NodeActDisableFriendlyFire(ref nextId, action),
-            TriggerActions.Act_DisableEnc => new NodeActDisableEncounter(ref nextId, action),
-            TriggerActions.Act_AdjHealth => new NodeActAdjustHealth(ref nextId, action),
-            _ => throw new NotImplementedException($"Unable to render node for action type: {action.Type}"),
-        };
-    }
-
-    private BlueprintNode ConditionToNode(TriggerConditions condition, Entry entry)
-    {
-        return condition switch
-                {
-                    TriggerConditions.Cnd_WatchVibe => new NodeCndWatchVibe(ref nextId, entry),
-                    TriggerConditions.Cnd_WatchTrigger => new NodeCndWatchTrigger(ref nextId, entry),
-                    TriggerConditions.Cnd_True => new NodeCndTrue(ref nextId, entry),
-                    TriggerConditions.Cnd_TLExited => new NodeCndTradeLaneExit(ref nextId, entry),
-                    TriggerConditions.Cnd_TLEntered => new NodeCndTradeLaneEnter(ref nextId, entry),
-                    TriggerConditions.Cnd_Timer => new NodeCndTimer(ref nextId, entry),
-                    TriggerConditions.Cnd_TetherBroke => new NodeCndTetherBreak(ref nextId, entry),
-                    TriggerConditions.Cnd_SystemExit => new NodeCndSystemExit(ref nextId, entry),
-                    TriggerConditions.Cnd_SystemEnter => new NodeCndSystemEnter(ref nextId, entry),
-                    TriggerConditions.Cnd_SpaceExit => new NodeCndSpaceExit(ref nextId, entry),
-                    TriggerConditions.Cnd_SpaceEnter => new NodeCndSpaceEnter(ref nextId, entry),
-                    TriggerConditions.Cnd_RumorHeard => new NodeCndRumourHeard(ref nextId, entry),
-                    TriggerConditions.Cnd_RTCDone => new NodeCndRtcComplete(ref nextId, entry),
-                    TriggerConditions.Cnd_ProjHitShipToLbl => new NodeCndProjectileHitShipToLabel(ref nextId, entry),
-                    TriggerConditions.Cnd_ProjHit => new NodeCndProjectileHit(ref nextId, entry),
-                    TriggerConditions.Cnd_PopUpDialog => new NodeCndPopUpDialog(ref nextId, entry),
-                    TriggerConditions.Cnd_PlayerManeuver => new NodeCndPlayerManeuver(ref nextId, entry),
-                    TriggerConditions.Cnd_PlayerLaunch => new NodeCndPlayerLaunch(ref nextId, entry),
-                    TriggerConditions.Cnd_NPCSystemExit => new NodeCndNpcSystemExit(ref nextId, entry),
-                    TriggerConditions.Cnd_NPCSystemEnter => new NodeCndNpcSystemEnter(ref nextId, entry),
-                    TriggerConditions.Cnd_MsnResponse => new NodeCndMissionResponse(ref nextId, entry),
-                    TriggerConditions.Cnd_LootAcquired => new NodeCndLootAcquired(ref nextId, entry),
-                    TriggerConditions.Cnd_LocExit => new NodeCndLocationExit(ref nextId, entry),
-                    TriggerConditions.Cnd_LocEnter => new NodeCndLocationEnter(ref nextId, entry),
-                    TriggerConditions.Cnd_LaunchComplete => new NodeCndLaunchComplete(ref nextId, entry),
-                    TriggerConditions.Cnd_JumpInComplete => new NodeCndJumpInComplete(ref nextId, entry),
-                    //TriggerConditions.Cnd_JumpgateAct => // need examples of what this one looks like
-                    TriggerConditions.Cnd_InZone => new NodeCndInZone(ref nextId, entry),
-                    TriggerConditions.Cnd_InTradelane => new NodeCndInTradeLane(ref nextId, entry),
-                    TriggerConditions.Cnd_InSpace => new NodeCndInSpace(ref nextId, entry),
-                    TriggerConditions.Cnd_HealthDec => new NodeCndHealthDecreased(ref nextId, entry),
-                    TriggerConditions.Cnd_HasMsn => new NodeCndHasMission(ref nextId, entry),
-                    TriggerConditions.Cnd_EncLaunched => new NodeCndEncounterLaunched(ref nextId, entry),
-                    TriggerConditions.Cnd_DistVecLbl => new NodeCndShipDistanceVectorLabel(ref nextId, entry),
-                    TriggerConditions.Cnd_DistVec => new NodeCndShipDistanceVector(ref nextId, entry),
-                    TriggerConditions.Cnd_DistShip => new NodeCndShipDistance(ref nextId, entry),
-                    TriggerConditions.Cnd_DistCircle => new NodeCndShipDistanceCircle(ref nextId, entry),
-                    TriggerConditions.Cnd_Destroyed => new NodeCndDestroyed(ref nextId, entry),
-                    //TriggerConditions.Cnd_CmpToPlane => need examples of this one too
-                    TriggerConditions.Cnd_CommComplete => new NodeCndCommComplete(ref nextId, entry),
-                    TriggerConditions.Cnd_CharSelect => new NodeCndCharacterSelect(ref nextId, entry),
-                    TriggerConditions.Cnd_CargoScanned => new NodeCndCargoScanned(ref nextId, entry),
-                    TriggerConditions.Cnd_BaseExit => new NodeCndBaseExit(ref nextId, entry),
-                    TriggerConditions.Cnd_BaseEnter => new NodeCndBaseEnter(ref nextId, entry),
-                    _ => throw new NotImplementedException($"{condition} is not implemented")
-                };
     }
 
     public override void Dispose()
@@ -820,41 +645,15 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             IniSerializer.SerializeMissionFormation(formation, ini);
         }
 
-        Dictionary<NodeMissionTrigger, (TriggerEntryNode[] Actions, TriggerEntryNode[] Conditions)> triggerToActionAndConditions = new();
-        foreach (var trigger in triggers)
-        {
-            trigger.WriteNode(this, ini);
-
-            var actions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Action).OfType<TriggerEntryNode>().ToArray();
-            var conditions =  GetLinkedNodes(trigger, PinKind.Output, LinkType.Condition).OfType<TriggerEntryNode>().ToArray();
-
-            triggerToActionAndConditions.Add(trigger, (actions, conditions));
-        }
-
         // Store the locations of our nodes
         var s = ini.Section("Nodes");
 
         NodeEditor.SetCurrentEditor(context);
-        foreach (var pair in triggerToActionAndConditions)
+        foreach (var trigger in triggers)
         {
-            var pos = NodeEditor.GetNodePosition(pair.Key.Id);
-            s.Entry("node", "Trigger", pair.Key.Data.Nickname, pos.X, pos.Y);
-
-            var i = 0;
-            foreach (var action in pair.Value.Actions)
-            {
-                pos = NodeEditor.GetNodePosition(action.Id);
-                s.Entry("node", "Action", pair.Key.Data.Nickname, pos.X, pos.Y, i++);
-            }
-
-            i = 0;
-            foreach (var condition in pair.Value.Conditions)
-            {
-                pos = NodeEditor.GetNodePosition(condition.Id);
-                s.Entry("node", "Condition", pair.Key.Data.Nickname, pos.X, pos.Y, i++);
-            }
+            var pos = NodeEditor.GetNodePosition(trigger.Id);
+            s.Entry("node", "Trigger", trigger.Data.Nickname, pos.X, pos.Y);
         }
-
         foreach (var node in nodes.OfType<CommentNode>())
         {
             var pos = NodeEditor.GetNodePosition(node.Id);

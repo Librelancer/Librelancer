@@ -8,19 +8,19 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActStaticCamera : TriggerEntryNode
+public sealed class ActStaticCamera : NodeTriggerEntry
 {
-    protected override string Name => "Set Static Camera";
+    public override string Name => "Set Static Camera";
 
     public readonly Act_StaticCam Data;
-    public NodeActStaticCamera(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
+    public ActStaticCamera(MissionAction action): base( NodeColours.Action)
     {
         Data = action is null ? new() : new Act_StaticCam(action);
 
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         ImGui.InputFloat3("Position", ref Data.Position);

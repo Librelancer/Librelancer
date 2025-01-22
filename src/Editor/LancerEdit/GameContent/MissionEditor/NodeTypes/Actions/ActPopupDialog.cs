@@ -7,14 +7,14 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class ActDisableFriendlyFire : NodeTriggerEntry
+public sealed class ActPopupDialog : NodeTriggerEntry
 {
-    public override string Name => "Disable Friendly Fire";
+    public override string Name => "Popup Dialog";
 
-    public readonly Act_DisableFriendlyFire Data;
-    public ActDisableFriendlyFire(MissionAction action): base( NodeColours.Action)
+    public readonly Act_PopupDialog Data;
+    public ActPopupDialog(MissionAction action): base( NodeColours.Action)
     {
-        Data = action is null ? new() : new Act_DisableFriendlyFire(action);
+        Data = action is null ? new() : new Act_PopupDialog(action);
 
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
@@ -22,8 +22,9 @@ public sealed class ActDisableFriendlyFire : NodeTriggerEntry
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        // TODO: Comboify some how?
-        Controls.InputStringList("Objects & Labels", Data.ObjectsAndLabels);
+        Controls.InputTextId("Sound Id", ref Data.ID);
+        Controls.IdsInputString("Title IDS", gameData, popup, ref Data.Title, (ids) => Data.Title = ids);
+        Controls.IdsInputString("Contents IDS", gameData, popup, ref Data.Contents, (ids) => Data.Title = ids);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

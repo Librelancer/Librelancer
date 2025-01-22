@@ -8,19 +8,23 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class ActGiveNnObjectives : NodeTriggerEntry
+public sealed class ActMarkObject : NodeTriggerEntry
 {
-    public override string Name => "Give NN Objectives";
+    public override string Name => "Mark Object";
 
-    public Act_GiveNNObjs Data = new();
-    public ActGiveNnObjectives(MissionAction action): base( NodeColours.Action)
+    public readonly Act_MarkObj Data;
+    public ActMarkObject(MissionAction action): base( NodeColours.Action)
     {
+        Data = action is null ? new() : new Act_MarkObj(action);
+
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
+        Controls.InputTextId("Object", ref Data.Object);
+        ImGui.InputInt("Value", ref Data.Value); // TODO: An enum value of some kind
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

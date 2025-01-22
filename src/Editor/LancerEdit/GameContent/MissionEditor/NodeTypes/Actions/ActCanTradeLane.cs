@@ -8,19 +8,23 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class ActGiveNnObjectives : NodeTriggerEntry
+public sealed class ActCanTradeLane : NodeTriggerEntry
 {
-    public override string Name => "Give NN Objectives";
+    public override string Name => "Toggle Player Docking (Tradelane) Ability";
 
-    public Act_GiveNNObjs Data = new();
-    public ActGiveNnObjectives(MissionAction action): base( NodeColours.Action)
+    public readonly Act_PlayerCanTradelane Data;
+    public ActCanTradeLane(MissionAction action): base( NodeColours.Action)
     {
+        Data = action is null ? new() : new Act_PlayerCanTradelane(action);
+
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
+        ImGui.Checkbox("Can Dock", ref Data.CanDock);
+        Controls.InputStringList("Exceptions", Data.Exceptions);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

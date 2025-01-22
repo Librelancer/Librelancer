@@ -18,7 +18,7 @@ public class CommentNode : Node
             new Vector2(max.X + x, max.Y + y));
     }
 
-    protected override string Name => BlockName;
+    public override string Name => BlockName;
 
     public string BlockName { get; set; } = "Comment Node";
 

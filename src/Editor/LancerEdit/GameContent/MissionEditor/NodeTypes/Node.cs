@@ -15,7 +15,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 public abstract class Node(VertexDiffuse? color = null)
 {
     public NodeId Id { get; } = NodeEditorId.Next();
-    protected abstract string Name  { get; }
+    public abstract string Name  { get; }
     public List<NodePin> Inputs  { get; } = [];
     public List<NodePin> Outputs  { get; } = [];
     public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
@@ -29,7 +29,6 @@ public abstract class Node(VertexDiffuse? color = null)
     {
         cachedSizes = null;
     }
-
 
     protected void LayoutNode(float fixedWidth)
     {
@@ -83,4 +82,7 @@ public abstract class Node(VertexDiffuse? color = null)
     public virtual void OnLinkRemoved(NodeLink link)
     {
     }
+
+    public virtual bool OnContextMenu(PopupManager popups) =>
+        ImGui.MenuItem("Delete");
 }

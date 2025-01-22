@@ -8,19 +8,19 @@ using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
-public sealed class NodeActAdjustAccount : TriggerEntryNode
+public sealed class ActAdjustAccount : NodeTriggerEntry
 {
-    protected override string Name => "Adjust Account";
+    public override string Name => "Adjust Account";
 
     public readonly Act_AdjAcct Data;
-    public NodeActAdjustAccount(ref int id, MissionAction action) : base(ref id, NodeColours.Action)
+    public ActAdjustAccount(MissionAction action): base( NodeColours.Action)
     {
         Data = action is null ? new() : new Act_AdjAcct(action);
 
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    protected override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         ImGui.InputInt("Amount", ref Data.Amount);
