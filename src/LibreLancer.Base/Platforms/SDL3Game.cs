@@ -383,7 +383,8 @@ namespace LibreLancer
             if (fullscreen)
                 flags |= SDL3.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
             var sdlWin = SDL3.SDL_CreateWindow(Title, width, height, flags);
-            FileDialog.SDL3Handle = sdlWin;
+            if(Platform.RunningOS != OS.Windows)
+                FileDialog.SDL3Handle = sdlWin; //NFD currently handles windows better than SDL3. May change in future.
             Platform.Init(SDL3.SDL_GetCurrentVideoDriver());
             //Cursors
             curArrow = SDL3.SDL_CreateSystemCursor(SDL3.SDL_SystemCursor.SDL_SYSTEM_CURSOR_DEFAULT);
