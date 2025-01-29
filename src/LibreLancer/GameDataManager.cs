@@ -1278,6 +1278,9 @@ namespace LibreLancer
                 });
                 Systems.Add(sys);
             }
+            FLLog.Info("Game", "Calculating shortest paths");
+            ShortestPaths.CalculateShortestPaths(this);
+            FLLog.Info("Game", "Shortest paths calculated");
         }
         public IEnumerator<object> LoadSystemResources(StarSystem sys)
         {

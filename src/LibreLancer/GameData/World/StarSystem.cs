@@ -59,6 +59,11 @@ namespace LibreLancer.GameData.World
         //Resource files to load
         public UniqueList<string> ResourceFiles = new UniqueList<string>();
 
+        //Calculated
+        public Dictionary<StarSystem, List<StarSystem>> ShortestPathsLegal = new();
+        public Dictionary<StarSystem, List<StarSystem>> ShortestPathsIllegal = new();
+        public Dictionary<StarSystem, List<StarSystem>> ShortestPathsAny = new();
+
         public StarSystem ()
 		{
         }
