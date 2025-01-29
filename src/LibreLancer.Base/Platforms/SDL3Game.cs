@@ -56,6 +56,7 @@ namespace LibreLancer
             height = h;
             mythread = Thread.CurrentThread.ManagedThreadId;
             this.allowScreensaver = allowScreensaver;
+            windowsCb = WindowsCallback;
         }
 
         private bool _relativeMouseMode = false;
@@ -338,6 +339,15 @@ namespace LibreLancer
         private const uint SDL_WINDOWPOS_CENTERED_MASK = 0x2FFF0000u;
         static uint SDL_WINDOWPOS_CENTERED_DISPLAY(uint idx) => SDL_WINDOWPOS_CENTERED_MASK | idx;
 
+        private PlatformEvents events;
+        private SDL3.SDL_WindowsMessageHook windowsCb;
+
+        unsafe bool WindowsCallback(IntPtr userdata, SDL3.MSG* msg)
+        {
+            // ReSharper disable once AccessToDisposedClosure
+            events?.WndProc(msg->message, msg->wParam);
+            return true;
+        }
 
         public unsafe void Run(Game loop)
         {
@@ -474,19 +484,11 @@ namespace LibreLancer
             }
 
             SDL3.SDL_ShowWindow(sdlWin);
-            using var events = Platform.SubscribeEvents(this);
+            events = Platform.SubscribeEvents(this);
 
-            unsafe bool WindowsCallback(IntPtr userdata, SDL3.MSG* msg)
-            {
-                // ReSharper disable once AccessToDisposedClosure
-                events.WndProc(msg->message, msg->wParam);
-                return true;
-            }
-
-            SDL3.SDL_WindowsMessageHook winCb = WindowsCallback;
             if (Platform.RunningOS == OS.Windows)
             {
-                SDL3.SDL_SetWindowsMessageHook(winCb, 0);
+                SDL3.SDL_SetWindowsMessageHook(windowsCb, 0);
             }
 
             //kill the value we set so it doesn't crash child processes
@@ -653,6 +655,9 @@ namespace LibreLancer
                     FLLog.Warning("Timing", "Stopwatch returned negative time!");
                 }
             }
+
+            events?.Dispose();
+            events = null;
             FileDialog.SDL3Handle = IntPtr.Zero;
             loop.OnCleanup();
             Platform.Shutdown();
@@ -671,6 +676,8 @@ namespace LibreLancer
         //TODO: Terrible Hack
         public void Crashed()
         {
+            events?.Dispose();
+            events = null;
             SDL3.SDL_Quit();
         }
 
