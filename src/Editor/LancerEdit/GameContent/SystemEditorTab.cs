@@ -293,17 +293,36 @@ public class SystemEditorTab : GameContentTab
             Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts,
                 newIds =>
                 {
-                    sel.IdsName = newIds;
+                   UndoBuffer.Commit(new SysZoneSetIdsName(sel, this, sel.IdsName, newIds));
                 }));
+        }
+
+        //Infocard
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Infocard");
+        ImGui.TableNextColumn();
+        Controls.TruncText(InfocardPreview(sel.IdsInfo), 20);
+        ImGui.TableNextColumn();
+        if (ImGui.Button($"{Icons.Edit}##infocard"))
+        {
+            Popups.OpenPopup(new InfocardSelection(sel.IdsInfo, win, Data.Infocards, Data.Fonts, x =>
+            {
+                UndoBuffer.Commit(new SysZoneSetIdsInfo(sel, this, sel.IdsInfo, x));
+            }));
         }
 
         //Position
         Controls.PropertyRow("Position", $"{sel.Position.X:0.00}, {sel.Position.Y:0.00}, {sel.Position.Z: 0.00}");
         if (ImGui.Button($"{Icons.Edit}##position"))
         {
-            Popups.OpenPopup(new Vector3Popup("Position", sel.Position, (v, d) =>
+            var origPosition = sel.Position;
+            Popups.OpenPopup(new Vector3Popup("Position", sel.Position, (v, commit) =>
             {
-                sel.Position = v;
+                if (commit)
+                    UndoBuffer.Commit(new SysZoneSetPosition(sel, this, origPosition, v));
+                else
+                    sel.Position = v;
             }));
         }
 
@@ -530,6 +549,25 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
+    private string lastPreview = null;
+    private int lastPreviewId = -1;
+    string InfocardPreview(int id)
+    {
+        if (id <= 0)
+        {
+            return "";
+        }
+        if (id != lastPreviewId)
+        {
+            lastPreviewId = id;
+            var infocard = Data.Infocards.GetXmlResource(id);
+            var parsed = RDLParse.Parse(infocard, Data.Fonts);
+            lastPreview = parsed.ExtractText();
+        }
+
+        return lastPreview;
+    }
+
     void ObjectProperties(GameObject sel)
     {
         var ed = GetEditData(sel, false);
@@ -574,7 +612,21 @@ public class SystemEditorTab : GameContentTab
             Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts,
                 newIds => UndoBuffer.Commit(new ObjectSetIdsName(sel, oldName, newIds))));
         }
-
+        //Infocard
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted("Infocard");
+        ImGui.TableNextColumn();
+        Controls.TruncText(InfocardPreview(gc.IdsInfo), 20);
+        ImGui.TableNextColumn();
+        if (ImGui.Button($"{Icons.Edit}##infocard"))
+        {
+            var oldIc = ed?.IdsInfo ?? sel.SystemObject.IdsInfo;
+            Popups.OpenPopup(new InfocardSelection(oldIc, win, Data.Infocards, Data.Fonts, x =>
+            {
+                UndoBuffer.Commit(new ObjectSetIdsInfo(sel, oldIc, x));
+            }));
+        }
         //Position
         var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
@@ -663,7 +715,6 @@ public class SystemEditorTab : GameContentTab
         var sysobj = new SystemObject()
         {
             Nickname = nickname,
-            IdsInfo = Array.Empty<int>(),
             Archetype = archetype,
             Position = pos ?? to,
         };

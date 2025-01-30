@@ -12,24 +12,22 @@ namespace LibreLancer.Data.Universe
 {
 	public abstract class SystemPart : NamedObject
 	{
-        [Entry("ids_name")] 
+        [Entry("ids_name")]
         public int IdsName;
-        
-        [Entry("info_card")]
-        [Entry("info_card_ids")]
-        [Entry("ids_info")]
-		public List<int> IdsInfo = new List<int>();
 
-        [Entry("size", Mode = Vec3Mode.Size)] 
+        [Entry("ids_info")]
+        public int IdsInfo;
+
+        [Entry("size", Mode = Vec3Mode.Size)]
         public Vector3? Size;
 
         [Entry("spin", Mode = Vec3Mode.OptionalComponents)]
         public Vector3? Spin;
 
-        [Entry("reputation")] 
+        [Entry("reputation")]
         public string Reputation;
 
-        [Entry("visit")] 
+        [Entry("visit")]
         public int? Visit;
     }
 }

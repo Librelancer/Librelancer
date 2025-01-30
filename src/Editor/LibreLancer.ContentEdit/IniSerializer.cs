@@ -282,11 +282,10 @@ public static class IniSerializer
     {
         var sb = builder.Section("Zone")
             .Entry("nickname", z.Nickname)
-            .OptionalEntry("ids_name", z.IdsName);
-        foreach (var info in z.IdsInfo)
-            sb.Entry("ids_info", info);
-        sb.OptionalEntry("comment", CommentEscaping.Escape(z.Comment));
-        sb.Entry("pos", z.Position);
+            .OptionalEntry("ids_name", z.IdsName)
+            .OptionalEntry("ids_info", z.IdsInfo)
+            .OptionalEntry("comment", CommentEscaping.Escape(z.Comment))
+            .Entry("pos", z.Position);
         SerializeRotation(sb, z.RotationMatrix);
         switch (z.Shape)
         {
@@ -372,8 +371,7 @@ public static class IniSerializer
         sb.OptionalEntry("Archetype", obj.Archetype?.Nickname)
             .OptionalEntry("star", obj.Star?.Nickname)
             .OptionalEntry("msg_id_prefix", obj.MsgIdPrefix);
-        foreach (var i in obj.IdsInfo)
-            sb.Entry("ids_info", i);
+        sb.OptionalEntry("ids_info", obj.IdsInfo);
         if (obj.Spin != Vector3.Zero)
             sb.Entry("spin", obj.Spin);
         sb.OptionalEntry("atmosphere_range", obj.AtmosphereRange);

@@ -54,6 +54,26 @@ public class SysZoneSetNickname(Zone target, SystemEditorTab tab, string old, st
     }
 }
 
+public class SysZoneSetIdsName(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneIdsName")
+{
+    public override void Set(int value)
+    {
+        Target.IdsName = value;
+        tab.ZoneList.CheckDirty();
+    }
+}
+
+public class SysZoneSetIdsInfo(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneIdsInfo")
+{
+    public override void Set(int value)
+    {
+        Target.IdsInfo = value;
+        tab.ZoneList.CheckDirty();
+    }
+}
+
 public class SysZoneSetPosition(Zone target, SystemEditorTab tab, Vector3 old, Vector3 updated)
     : SysZoneModification<Vector3>(target, old, updated, "SetZonePosition")
 {

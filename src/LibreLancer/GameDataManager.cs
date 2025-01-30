@@ -1172,7 +1172,7 @@ namespace LibreLancer
                         var z = new Zone();
                         z.Nickname = zne.Nickname;
                         z.IdsName = zne.IdsName;
-                        z.IdsInfo = zne.IdsInfo.ToArray();
+                        z.IdsInfo = zne.IdsInfo;
                         z.EdgeFraction = zne.EdgeFraction ?? 0.25f;
                         z.PropertyFlags = (ZonePropFlags) zne.PropertyFlags;
                         z.PropertyFogColor = zne.PropertyFogColor;
@@ -1958,7 +1958,7 @@ namespace LibreLancer
             obj.Position = o.Pos ?? Vector3.Zero;
             obj.Parent = o.Parent;
             obj.Spin = o.Spin ?? Vector3.Zero;
-            obj.IdsInfo = o.IdsInfo.ToArray();
+            obj.IdsInfo = o.IdsInfo;
             obj.Base = Bases.Get(o.Base);
             obj.Faction = Factions.Get(o.Faction);
             obj.Pilot = GetPilot(o.Pilot);

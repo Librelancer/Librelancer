@@ -164,7 +164,15 @@ public static class Controls
             ImGui.PopStyleColor();
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(text);
+            {
+                ImGui.SetNextWindowSize(new Vector2(300, 0), ImGuiCond.Always);
+                if (ImGui.BeginTooltip())
+                {
+                    ImGui.TextWrapped(text);
+                    ImGui.EndTooltip();
+                }
+            }
+
         }
         else
         {

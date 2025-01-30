@@ -74,7 +74,7 @@ public class IdsSearch : PopupWindow
 
     public override void Draw()
     {
-        if (searchResultsOpen) SearchResults();
+        if (searchResultsOpen) DrawSearchResults();
         if (dialogState == 0)
         {
             SearchWindow();
@@ -85,9 +85,53 @@ public class IdsSearch : PopupWindow
         }
         else
         {
-            SearchResults();
+            DrawSearchResults();
         }
     }
+
+    public record SearchResults(int[] Ids, string[] Values);
+
+    public static Task<SearchResults> Search(
+        InfocardManager infocards,
+        string searchText,
+        bool isStrings,
+        bool ignoreCase,
+        bool wholeWord)
+        => Task.Run(() =>
+        {
+            Regex r;
+            var regOptions = ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None;
+            if (wholeWord)
+                r = new Regex($"\\b{Regex.Escape(searchText)}\\b", regOptions);
+            else
+                r = new Regex(Regex.Escape(searchText), regOptions);
+            var results = new List<int>();
+            var resStrings = new List<string>();
+            if (isStrings)
+            {
+                foreach (var kv in infocards.AllStrings)
+                {
+                    if (r.IsMatch(kv.Value))
+                    {
+                        results.Add(kv.Key);
+                        resStrings.Add(kv.Value);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var kv in infocards.AllXml)
+                {
+                    if (r.IsMatch(kv.Value))
+                    {
+                        results.Add(kv.Key);
+                        resStrings.Add(kv.Value);
+                    }
+                }
+            }
+            return new SearchResults(results.ToArray(), resStrings.ToArray());
+        });
+
 
     private void SearchWindow()
     {
@@ -101,44 +145,13 @@ public class IdsSearch : PopupWindow
             {
                 resultTitle = ImGuiExt.IDSafe($"Results for '{searchText}'");
                 dialogState = 1;
-                Regex r;
-                var regOptions = searchCaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
-                if (searchWholeWord)
-                    r = new Regex($"\\b{Regex.Escape(searchText)}\\b", regOptions);
-                else
-                    r = new Regex(Regex.Escape(searchText), regOptions);
 
-                if (isSearchInfocards)
-                    Task.Run(() =>
+                Search(manager, searchText, !isSearchInfocards, !searchCaseSensitive, searchWholeWord)
+                    .ContinueWith(res =>
                     {
-                        var results = new List<int>();
-                        var resStrings = new List<string>();
-                        foreach (var kv in manager.AllXml)
-                            if (r.IsMatch(kv.Value))
-                            {
-                                results.Add(kv.Key);
-                                resStrings.Add(kv.Value);
-                            }
-
-                        searchResults = results.ToArray();
-                        searchStrings = resStrings.ToArray();
+                        searchResults = res.Result.Ids;
+                        searchStrings = res.Result.Values;
                         searchStringPreviews = new string[searchStrings.Length];
-                        dialogState = 2;
-                    });
-                else
-                    Task.Run(() =>
-                    {
-                        var results = new List<int>();
-                        var resStrings = new List<string>();
-                        foreach (var kv in manager.AllStrings)
-                            if (r.IsMatch(kv.Value))
-                            {
-                                results.Add(kv.Key);
-                                resStrings.Add(kv.Value);
-                            }
-
-                        searchResults = results.ToArray();
-                        searchStrings = resStrings.ToArray();
                         dialogState = 2;
                     });
             }
@@ -155,7 +168,7 @@ public class IdsSearch : PopupWindow
         ImGui.Text("Searching");
     }
 
-    private void SearchResults()
+    private void DrawSearchResults()
     {
         ImGui.TextUnformatted(resultTitle);
         ImGui.BeginChild("##results", new Vector2(200, 200), ImGuiChildFlags.Border);

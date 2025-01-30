@@ -25,6 +25,7 @@ namespace LibreLancer.GameData.World
         struct ZoneData
         {
             public int IdsName;
+            public int IdsInfo;
             public Vector3 Position;
             public ShapeKind Shape;
             public Vector3 Size;
@@ -230,7 +231,7 @@ namespace LibreLancer.GameData.World
 
 		public string Nickname;
         public ref int IdsName => ref data.IdsName;
-        public int[] IdsInfo = Array.Empty<int>();
+        public ref int IdsInfo => ref data.IdsInfo;
 
         public Vector3 Position
         {
@@ -483,7 +484,6 @@ namespace LibreLancer.GameData.World
                    other.Music == Music &&
                    other.Spacedust == Spacedust &&
                    StructsEqual(ref data, ref other.data) &&
-                   ArraysEqual(IdsInfo, other.IdsInfo) &&
                    ArraysEqual(PopType, other.PopType) &&
                    ArraysEqual(AttackIds, other.AttackIds) &&
                    ArraysEqual(MissionType, other.MissionType) &&
@@ -498,7 +498,6 @@ namespace LibreLancer.GameData.World
             other.Nickname = Nickname;
             other.data = data;
             other._shape = _shape;
-            other.IdsInfo = IdsInfo.ShallowCopy();
             other.PopType = PopType.ShallowCopy();
             other.Music = Music;
             other.Spacedust = Spacedust;

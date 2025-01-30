@@ -564,10 +564,7 @@ World Time: {12:F2}
             {
                 if (g.Selection.Selected?.SystemObject != null)
                 {
-                    int ids = 0;
-                    if (g.Selection.Selected.SystemObject.IdsInfo.Length > 0) {
-                        ids = g.Selection.Selected.SystemObject.IdsInfo[0];
-                    }
+                    int ids = g.Selection.Selected.SystemObject.IdsInfo;
                     return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
                 }
                 return null;

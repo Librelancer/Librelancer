@@ -12,7 +12,7 @@ namespace LibreLancer.GameData.World
 	{
 		public string Nickname;
         public int IdsName;
-        public int[] IdsInfo;
+        public int IdsInfo;
         public Base Base; //used for linking IdsInfo
 		public Archetype Archetype;
         public Sun Star;
@@ -47,8 +47,7 @@ namespace LibreLancer.GameData.World
         public SystemObject Clone()
         {
             var o = (SystemObject)MemberwiseClone();
-            o.IdsInfo = IdsInfo.ShallowCopy();
-            o.SpaceCostume = SpaceCostume.ShallowCopy();
+             o.SpaceCostume = SpaceCostume.ShallowCopy();
             return o;
         }
 

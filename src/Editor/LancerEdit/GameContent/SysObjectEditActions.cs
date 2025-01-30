@@ -53,6 +53,16 @@ public class ObjectSetIdsName(GameObject target, int old, int updated)
     }
 }
 
+public class ObjectSetIdsInfo(GameObject target, int old, int updated)
+    : SysObjectModification<int>(target, old,updated, "SetIdsInfo")
+{
+    public override void Set(int value)
+    {
+        Target.GetEditData().IdsInfo = value;
+        Target.UpdateDirty();
+    }
+}
+
 public class ObjectSetVisit(GameObject target, VisitFlags old, VisitFlags updated)
     : SysObjectModification<VisitFlags>(target, old, updated, "SetVisit")
 {

@@ -11,7 +11,7 @@ namespace LancerEdit.GameContent;
 public interface IObjectData
 {
     int IdsName { get; }
-    int[] IdsInfo { get;  }
+    int IdsInfo { get;  }
     int IdsLeft { get; }
     int IdsRight { get; }
     VisitFlags Visit { get; }
@@ -29,7 +29,7 @@ class SystemObjectAccessor : IObjectData
     public SystemObjectAccessor(SystemObject obj) => sysobj = obj;
     private SystemObject sysobj;
     public int IdsName => sysobj.IdsName;
-    public int[] IdsInfo => sysobj.IdsInfo;
+    public int IdsInfo => sysobj.IdsInfo;
     public int IdsLeft => sysobj.IdsLeft;
     public int IdsRight => sysobj.IdsRight;
     public VisitFlags Visit => sysobj.Visit;
@@ -78,7 +78,7 @@ public class ObjectEditData : GameComponent, IObjectData
     public bool IsNewObject { get; set; }
 
     public int IdsName { get; set; }
-    public int[] IdsInfo { get; set; }
+    public int IdsInfo { get; set; }
     public int IdsLeft { get; set; }
     public int IdsRight { get; set; }
     public VisitFlags Visit { get; set; }
@@ -99,7 +99,7 @@ public class ObjectEditData : GameComponent, IObjectData
     {
         sysobj = parent.SystemObject;
         IdsName = sysobj.IdsName;
-        IdsInfo = sysobj.IdsInfo.ToArray();
+        IdsInfo = sysobj.IdsInfo;
         IdsLeft = sysobj.IdsLeft;
         IdsRight = sysobj.IdsRight;
         Loadout = sysobj.Loadout;
@@ -116,7 +116,6 @@ public class ObjectEditData : GameComponent, IObjectData
     {
         var o = (ObjectEditData) MemberwiseClone();
         o.IsNewObject = true;
-        o.IdsInfo = IdsInfo?.ToArray();
         o.sysobj = sysobj.Clone();
         if(Parent != null)
             o.Apply();
@@ -143,7 +142,7 @@ public class ObjectEditData : GameComponent, IObjectData
             sysobj.Position != Parent.LocalTransform.Position ||
             sysobj.Rotation != Parent.LocalTransform.Orientation ||
             sysobj.IdsName != IdsName ||
-            !ArrayEqual(sysobj.IdsInfo, IdsInfo.ToArray()) ||
+            sysobj.IdsInfo != IdsInfo ||
             sysobj.IdsLeft != IdsLeft ||
             sysobj.IdsRight != IdsRight ||
             sysobj.Archetype != Archetype ||
@@ -171,7 +170,7 @@ public class ObjectEditData : GameComponent, IObjectData
         }
 
         sysobj.IdsName = IdsName;
-        sysobj.IdsInfo = IdsInfo.ToArray();
+        sysobj.IdsInfo = IdsInfo;
         sysobj.IdsLeft = IdsLeft;
         sysobj.IdsRight = IdsRight;
         sysobj.Archetype = Archetype;
