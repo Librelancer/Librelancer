@@ -317,18 +317,45 @@ public class SystemEditorTab : GameContentTab
         if (ImGui.Button($"{Icons.Edit}##position"))
         {
             var origPosition = sel.Position;
-            Popups.OpenPopup(new Vector3Popup("Position", sel.Position, (v, commit) =>
+            Popups.OpenPopup(new Vector3Popup("Position", false, sel.Position, (value, kind) =>
             {
-                if (commit)
-                    UndoBuffer.Commit(new SysZoneSetPosition(sel, this, origPosition, v));
+                if (kind == SetActionKind.Commit)
+                    UndoBuffer.Commit(new SysZoneSetPosition(sel, this, origPosition, value));
                 else
-                    sel.Position = v;
+                    sel.Position = value;
             }));
         }
 
         var rot = sel.RotationMatrix.GetEulerDegrees();
         Controls.PropertyRow("Rotation",
             $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
+        if (ImGui.Button($"{Icons.Edit}##rotation"))
+        {
+            var origMatrix = sel.RotationMatrix;
+            var origAngles = sel.RotationAngles;
+            Popups.OpenPopup(new Vector3Popup("Rotation", false, rot, (value, kind) =>
+            {
+                var mat = MathHelper.MatrixFromEulerDegrees(value);
+                if (kind == SetActionKind.Commit)
+                {
+                    UndoBuffer.Commit(SysZoneSetRotation.Create(sel, this, mat));
+                }
+                else if (kind == SetActionKind.Revert)
+                {
+                    sel.RotationMatrix = origMatrix;
+                    sel.RotationAngles = origAngles;
+                }
+                else
+                {
+                    sel.RotationMatrix = mat;
+                    sel.RotationAngles = new Vector3(
+                        MathHelper.DegreesToRadians(value.X),
+                        MathHelper.DegreesToRadians(value.Y),
+                        MathHelper.DegreesToRadians(value.Z));
+                }
+            }));
+        }
+
         if (ImGui.Button("0##rot"))
         {
             UndoBuffer.Commit(SysZoneSetRotation.Create(sel, this, Matrix4x4.Identity));
@@ -631,11 +658,48 @@ public class SystemEditorTab : GameContentTab
         var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
         Controls.PropertyRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
-        Controls.PropertyRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
-        if (ImGui.Button("0##rot"))
+        if (ImGui.Button($"{Icons.Edit}##position"))
         {
-            UndoBuffer.Commit(new ObjectSetTransform(sel, sel.LocalTransform, new Transform3D(pos, Quaternion.Identity),
-                ObjectsList));
+            var oldTr = sel.LocalTransform;
+            Popups.OpenPopup(new Vector3Popup("Position", false, oldTr.Position, (value, kind) =>
+            {
+                if (kind == SetActionKind.Commit)
+                {
+                    UndoBuffer.Commit(new ObjectSetTransform(sel, oldTr, oldTr with { Position = value },
+                        ObjectsList));
+                }
+                else if (kind == SetActionKind.Revert)
+                {
+                    sel.SetLocalTransform(oldTr);
+                }
+                else
+                {
+                    sel.SetLocalTransform(oldTr with { Position = value });
+                }
+            }));
+        }
+        Controls.PropertyRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
+        if (ImGui.Button($"{Icons.Edit}##rotation"))
+        {
+            var oldTr = sel.LocalTransform;
+            var angles = oldTr.Orientation.GetEulerDegrees();
+            Popups.OpenPopup(new Vector3Popup("Position", true, angles, (value, kind) =>
+            {
+                var newOrient = MathHelper.QuatFromEulerDegrees(value);
+                if (kind == SetActionKind.Commit)
+                {
+                    UndoBuffer.Commit(new ObjectSetTransform(sel, oldTr, oldTr with { Orientation = newOrient },
+                        ObjectsList));
+                }
+                else if (kind == SetActionKind.Revert)
+                {
+                    sel.SetLocalTransform(oldTr);
+                }
+                else
+                {
+                    sel.SetLocalTransform(oldTr with { Orientation = newOrient });
+                }
+            }));
         }
 
         var oldArchetype = ed?.Archetype ?? sel.SystemObject.Archetype;
@@ -921,6 +985,17 @@ public class SystemEditorTab : GameContentTab
             }
             var pos = sel.Light.Position;
             Controls.PropertyRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
+            if (ImGui.Button($"{Icons.Edit}##position"))
+            {
+                var origPosition = sel.Light.Position;
+                Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
+                {
+                    if (kind == SetActionKind.Commit)
+                        UndoBuffer.Commit(new SysLightSetPosition(sel, origPosition, value));
+                    else
+                        sel.Light.Position = value;
+                }));
+            }
             ColorProperty("Color", new Color4(sel.Light.Color, 1), x =>
                 UndoBuffer.Commit(new SysLightSetColor(sel, sel.Light.Color, x.Rgb)));
             Controls.PropertyRow("Type", sel.Light.Kind == LightKind.Directional ? "Directional" : "Point");
