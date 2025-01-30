@@ -645,6 +645,12 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             IniSerializer.SerializeMissionFormation(formation, ini);
         }
 
+        // Save nodes
+        foreach (var tr in nodes.OfType<NodeMissionTrigger>())
+        {
+            tr.WriteNode(this, ini);
+        }
+
         // Store the locations of our nodes
         var s = ini.Section("Nodes");
 

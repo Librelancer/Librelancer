@@ -27,11 +27,11 @@ public class NodeMissionTrigger : Node
         Inputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Input));
         Outputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Output));
 
-        foreach (var c in data.Conditions)
+        foreach (var c in this.Data.Conditions)
         {
             Conditions.Add(NodeTriggerEntry.ConditionToNode(c.Type, c.Entry));
         }
-        foreach (var a in data.Actions)
+        foreach (var a in this.Data.Actions)
         {
             Actions.Add(NodeTriggerEntry.ActionToNode(a.Type, a));
         }
