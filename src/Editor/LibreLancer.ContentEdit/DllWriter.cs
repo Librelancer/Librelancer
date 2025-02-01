@@ -39,16 +39,16 @@ public static class DllWriter
     private const uint RT_STRING = 6;
     private const uint RT_VERSION = 16;
     private const uint RT_RCDATA = 23;
-    
+
     static uint DirOffset(uint value) => value | 0x80000000;
-    
+
     public static unsafe void Write(ResourceDll resourceDll, Stream outfile)
     {
         bool hasStrings = resourceDll.Strings.Count > 0;
         bool hasInfocards = resourceDll.Infocards.Count > 0;
         bool hasDialogs = resourceDll.Dialogs.Count > 0;
         bool hasMenus = resourceDll.Menus.Count > 0;
-        
+
         using var mem = new MemoryStream();
         //Set up PE template
         var writer = new BinaryWriter(mem);
@@ -65,7 +65,7 @@ public static class DllWriter
         {
             writer.Write((uint)0); //characteristics
             writer.Write((uint)0); //timedatestamp
-            writer.Write((ushort)1); //majorversion
+            writer.Write((ushort)4); //majorversion
             writer.Write((ushort)0); //minorversion
             writer.Write((ushort)0); //numberOfNamedEntries
             writer.Write((ushort)entryCount); //numberOfIdEntries
@@ -81,20 +81,12 @@ public static class DllWriter
         int stringsWriteOffset = 0;
         int dialogsWriteOffset = 0;
         int menusWriteOffset = 0;
-        //version entry
-        writer.Write(RT_VERSION);
-        writer.Write(DirOffset((uint)(16 + typeCount * 8))); //offsetToData
-        var versionData = resourceDll.VersionInfo?.Data ?? Convert.FromBase64String(VERSION_INFO);
-        //strings entry
-        if (hasStrings) {
-            writer.Write(RT_STRING);
-            stringsWriteOffset = (int) mem.Position;
-            writer.Write((uint)0);
-        }
-        //infocards entry
-        if (hasInfocards) {
-            writer.Write(RT_RCDATA);
-            infocardWriteOffset = (int)mem.Position;
+        // FindResourceW expects these entries to be ordered by ID number
+        // API calls will fail otherwise
+        //menus entry
+        if (hasMenus) {
+            writer.Write(RT_MENU);
+            menusWriteOffset = (int) mem.Position;
             writer.Write((uint)0);
         }
         //dialogs entry
@@ -103,10 +95,20 @@ public static class DllWriter
             dialogsWriteOffset = (int) mem.Position;
             writer.Write((uint)0);
         }
-        //menus entry
-        if (hasDialogs) {
-            writer.Write(RT_MENU);
-            menusWriteOffset = (int) mem.Position;
+        //strings entry
+        if (hasStrings) {
+            writer.Write(RT_STRING);
+            stringsWriteOffset = (int) mem.Position;
+            writer.Write((uint)0);
+        }
+        //version entry
+        writer.Write(RT_VERSION);
+        writer.Write(DirOffset((uint)(16 + typeCount * 8))); //offsetToData
+        var versionData = resourceDll.VersionInfo?.Data ?? Convert.FromBase64String(VERSION_INFO);
+        //infocards entry
+        if (hasInfocards) {
+            writer.Write(RT_RCDATA);
+            infocardWriteOffset = (int)mem.Position;
             writer.Write((uint)0);
         }
         // version directory: IMAGE_RESOURCE_DIRECTORY, size: 16
@@ -117,9 +119,9 @@ public static class DllWriter
         //version language directory
         ResourceDirectory(1);
         //version language data entry
-        writer.Write((uint)0); //no language code
+        writer.Write((uint)1033); //no language code
         writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
-        //write data 
+        //write data
         writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
         writer.Write((uint)versionData.Length);
         writer.Write((uint)0); //codepage
@@ -158,7 +160,7 @@ public static class DllWriter
                 //string table language data entry
                 writer.Write((uint)1033); //english
                 writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
-                //write data 
+                //write data
                 writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
                 int sizeOffset = (int) mem.Position;
                 writer.Write((uint)0);
@@ -170,7 +172,7 @@ public static class DllWriter
                 for (int j = 0; j < 16; j++)
                 {
                     var idx = blockIdx * 16 + j;
-                    
+
                     if(resourceDll.Strings.TryGetValue(idx, out var str) && !string.IsNullOrEmpty(str))
                     {
                         var bytes = Encoding.Unicode.GetBytes(str);
@@ -208,7 +210,7 @@ public static class DllWriter
                 //infocard language data entry
                 writer.Write((uint)1033); //english
                 writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
-                //write data 
+                //write data
                 var bytes = Encoding.Unicode.GetBytes(infocards[i].Value);
                 writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
                 writer.Write(bytes.Length + 2);
@@ -239,7 +241,7 @@ public static class DllWriter
                 //infocard language data entry
                 writer.Write((uint)1033); //english
                 writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
-                //write data 
+                //write data
                 writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
                 writer.Write(resourceDll.Dialogs[i].Data.Length);
                 writer.Write((uint)0); //codepage
@@ -267,7 +269,7 @@ public static class DllWriter
                 //infocard language data entry
                 writer.Write((uint)1033); //english
                 writer.Write((uint)(mem.Position + 4 - 512)); //offset to data
-                //write data 
+                //write data
                 writer.Write((uint)(mem.Position + 16 - 512 + RSRC_VIRTUAL_OFFSET));
                 writer.Write(resourceDll.Menus[i].Data.Length);
                 writer.Write((uint)0); //codepage
