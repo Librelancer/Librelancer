@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Setup .NET
@@ -27,22 +27,22 @@ jobs:
     - name: Build
       run: ./build.sh -j$(nproc) LinuxDaily --with-win64
     - name: Archive ubuntu amd64 build (Engine Only)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: librelancer-daily-ubuntu-amd64
         path: packaging/packages/librelancer-daily-ubuntu-amd64.tar.gz
     - name: Archive ubuntu amd64 build (SDK)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: librelancer-sdk-daily-ubuntu-amd64
         path: packaging/packages/librelancer-sdk-daily-ubuntu-amd64.tar.gz
     - name: Archive win64 build (Engine only)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: librelancer-daily-win64
         path: packaging/packages/librelancer-daily-win64.zip
     - name: Archive win64 build (SDK)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: librelancer-sdk-daily-win64
         path: packaging/packages/librelancer-sdk-daily-win64.zip
