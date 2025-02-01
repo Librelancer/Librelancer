@@ -185,11 +185,6 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
-    void DrawRight(int tag)
-    {
-
-    }
-
     private void ViewportOnDoubleClicked(Vector2 pos)
     {
         if (layout.ActiveLeftTab == 1)
@@ -366,7 +361,8 @@ public class SystemEditorTab : GameContentTab
             IniWindow(ib, "zone.txt");
         }
 
-        Controls.BeginPropertyTable("properties", true, false, true);
+        if (!Controls.BeginPropertyTable("properties", true, false, true))
+            return;
         Controls.PropertyRow("Nickname", sel.Nickname);
         if (ImGui.Button($"{Icons.Edit}##nickname"))
         {
@@ -712,7 +708,8 @@ public class SystemEditorTab : GameContentTab
             IniWindow(ib, "object.txt");
         }
 
-        Controls.BeginPropertyTable("properties", true, false, true);
+        if (!Controls.BeginPropertyTable("properties", true, false, true))
+            return;
         Controls.PropertyRow("Nickname", sel.Nickname);
         if (ImGui.Button($"{Icons.Edit}##nickname"))
         {
@@ -836,7 +833,8 @@ public class SystemEditorTab : GameContentTab
                 new VisitFlagEditor(gc.Visit, x => UndoBuffer.Commit(new ObjectSetVisit(sel, gc.Visit, x))));
         FactionRow("Reputation", gc.Reputation, x => UndoBuffer.Commit(new ObjectSetReputation(sel, gc.Reputation, x)));
         Controls.EndPropertyTable();
-        Controls.BeginPropertyTable("base and docking", true, false, true);
+        if (!Controls.BeginPropertyTable("base and docking", true, false, true))
+            return;
         BaseRow(
             "Base",
             gc.Base,
@@ -847,7 +845,8 @@ public class SystemEditorTab : GameContentTab
         Controls.EndPropertyTable();
 
         //Comment
-        Controls.BeginPropertyTable("comment", true, false, true);
+        if(!Controls.BeginPropertyTable("comment", true, false, true))
+            return;
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.TextUnformatted("Comment");
@@ -901,11 +900,12 @@ public class SystemEditorTab : GameContentTab
 
     private float h1 = 150, h2 = 200;
 
-    private bool propertiesWindow = false;
+    private Action propertiesPanel;
+    private int propertiesMode = 0;
 
     void PanelWithProperties(string id, Action panel, Action properties)
     {
-        if (!propertiesWindow)
+        if (propertiesMode == 0)
         {
             var totalH = ImGui.GetWindowHeight();
             ImGuiExt.SplitterV(2f, ref h1, ref h2, 15 * ImGuiHelper.Scale, 60 * ImGuiHelper.Scale, -1);
@@ -919,25 +919,55 @@ public class SystemEditorTab : GameContentTab
 
         panel();
         ImGui.EndChild();
-        if (propertiesWindow)
+        if (propertiesMode == 2)
         {
             ImGui.SetNextWindowSize(new Vector2(400, 300) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("Properties", ref propertiesWindow))
+            if (ImGui.Begin("Properties"))
             {
+                ImGuiExt.UseTitlebar(out var restoreX, out var restoreY);
+                var titleWidth = ImGui.CalcTextSize("Properties").X;
+                ImGui.SetCursorPos(new Vector2(titleWidth + 40 * ImGuiHelper.Scale, 0));
+                if (ImGui.Button($"{Icons.ArrowLeft}")) {
+                    propertiesMode = 0;
+                }
+                ImGui.SetItemTooltip("Dock Left");
+                ImGui.SameLine();
+                if (ImGui.Button($"{Icons.ArrowRight}")) {
+                    propertiesMode = 1;
+                }
+                ImGui.SetItemTooltip("Dock Right");
+                ImGui.PopClipRect();
+                ImGui.SetCursorPos(new Vector2(restoreX, restoreY));
                 properties();
-                ImGui.End();
             }
+            ImGui.End();
         }
-        else
+        else if (propertiesMode == 1)
+        {
+            propertiesPanel = properties;
+        }
+        else if (propertiesMode == 0)
         {
             ImGui.BeginChild("##properties", new Vector2(ImGui.GetWindowWidth(), h2));
             ImGui.Text("Properties");
             ImGui.SameLine();
             if (Controls.SmallButton($"{Icons.UpRightFromSquare}"))
-                propertiesWindow = true;
+                propertiesMode = 2;
             ImGui.Separator();
             properties();
             ImGui.EndChild();
+        }
+    }
+
+    void DrawRight(int tag)
+    {
+        if (tag == 0)
+        {
+            if (Controls.SmallButton($"{Icons.UpRightFromSquare}"))
+                propertiesMode = 2;
+            ImGui.Separator();
+            propertiesPanel?.Invoke();
+            propertiesPanel = null;
         }
     }
 
@@ -1063,7 +1093,8 @@ public class SystemEditorTab : GameContentTab
                 IniSerializer.SerializeLightSource(sel, ib);
                 IniWindow(ib, "LightSource.txt");
             }
-            Controls.BeginPropertyTable("Props", true, false, true);
+            if (!Controls.BeginPropertyTable("Props", true, false, true))
+                return;
             Controls.PropertyRow("Nickname", sel.Nickname);
             if (ImGui.Button($"{Icons.Edit}##nickname"))
             {
@@ -1234,7 +1265,8 @@ public class SystemEditorTab : GameContentTab
         }
 
         ImGui.Separator();
-        Controls.BeginPropertyTable("Props", true, false, true);
+        if (!Controls.BeginPropertyTable("Props", true, false, true))
+            return;
         Controls.PropertyRow("Name", Data.Infocards.GetStringResource(SystemData.IdsName));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
@@ -1249,7 +1281,8 @@ public class SystemEditorTab : GameContentTab
         Controls.EndPropertyTable();
         ImGui.Separator();
         ImGui.Text("Music");
-        Controls.BeginPropertyTable("Music", true, false, true, true, true);
+        if (!Controls.BeginPropertyTable("Music", true, false, true, true, true))
+            return;
         MusicProp("Space", SystemData.MusicSpace, x =>
             UndoBuffer.Commit(new SysDataSetMusic(SystemData, SystemData.MusicSpace, x, "Space")));
         MusicProp("Battle", SystemData.MusicBattle, x =>
@@ -1259,7 +1292,8 @@ public class SystemEditorTab : GameContentTab
         Controls.EndPropertyTable();
         ImGui.Separator();
         ImGui.Text("Stars");
-        Controls.BeginPropertyTable("Stars", true, false, true, true);
+        if (!Controls.BeginPropertyTable("Stars", true, false, true, true))
+            return;
         StarsphereProp("Layer 1", SystemData.StarsBasic, x =>
             UndoBuffer.Commit(new SysDataSetStars(SystemData, SystemData.StarsBasic, x, "Basic", this)));
         StarsphereProp("Layer 2", SystemData.StarsComplex, x =>
@@ -1502,6 +1536,8 @@ public class SystemEditorTab : GameContentTab
     private bool historyOpen = false;
     private bool cameraOpen = false;
     EditMap2D map2D = new();
+    List<VerticalTab> blankTabs = new();
+    private List<VerticalTab> propertiesTab = new() { new($"{Icons.PenSquare} Properties", 0) };
 
     public override unsafe void Draw(double elapsed)
     {
@@ -1523,6 +1559,17 @@ public class SystemEditorTab : GameContentTab
         var curSysName = Data.Infocards.GetStringResource(SystemData.IdsName);
         Title = $"{curSysName} ({CurrentSystem.Nickname})";
         World.RenderUpdate(elapsed);
+        if (propertiesMode == 1 &&
+            layout.ActiveLeftTab >= 0 &&
+            layout.ActiveLeftTab <= 2)
+        {
+            layout.TabsRight = propertiesTab;
+        }
+        else
+        {
+            layout.TabsRight = blankTabs;
+            layout.ActiveRightTab = -1;
+        }
         layout.Draw();
         DrawMaps();
         DrawInfocard();

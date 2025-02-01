@@ -138,14 +138,16 @@ public static class Controls
     }
 
     private static readonly string[] columnNames = new string[] { "A", "B", "C", "D", "E", "F", "G", "H" };
-    public static void BeginPropertyTable(string name, params bool[] columns)
+    public static bool BeginPropertyTable(string name, params bool[] columns)
     {
-        ImGui.BeginTable(name, columns.Length, ImGuiTableFlags.Borders);
+        if (!ImGui.BeginTable(name, columns.Length, ImGuiTableFlags.Borders))
+            return false;
         for (int i = 0; i < columns.Length; i++)
         {
             ImGui.TableSetupColumn(columnNames[i], columns[i] ? ImGuiTableColumnFlags.WidthFixed : ImGuiTableColumnFlags.WidthStretch);
         }
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+        return true;
     }
 
     public static void TruncText(string text, int maxLength)

@@ -89,7 +89,7 @@ public class VerticalTabLayout
         else
         {
             var sz = ImGui.GetContentRegionAvail();
-            sz.X -= ImGui.GetFrameHeightWithSpacing();
+            sz.X -= (ImGui.GetFrameHeightWithSpacing() + ImGui.GetStyle().ItemSpacing.X);
             if (sz.X < 0) sz.X = 0;
             if (sz.Y < 0) sz.Y = 0;
             ImGui.BeginChild("##middle", sz);
@@ -119,11 +119,11 @@ public class VerticalTabLayout
                 ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg))
             return;
         if (ActiveLeftTab >= 0) {
-            ImGui.TableSetupColumn("##left", ImGuiTableColumnFlags.None, 0.25f);
+            ImGui.TableSetupColumn("##left", ImGuiTableColumnFlags.WidthStretch, 0.25f);
         }
         ImGui.TableSetupColumn("##middle", ImGuiTableColumnFlags.WidthStretch);
         if (ActiveRightTab >= 0) {
-            ImGui.TableSetupColumn("##right", ImGuiTableColumnFlags.None, 0.25f);
+            ImGui.TableSetupColumn("##right", ImGuiTableColumnFlags.WidthStretch, 0.25f);
         }
         ImGui.TableNextRow();
         if (ActiveLeftTab >= 0) {

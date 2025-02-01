@@ -165,6 +165,16 @@ static void igExtSeparatorTextEx(int id, const char* label, const char* label_en
     }
 }
 
+IGEXPORT void igExtUseTitlebar(float *restoreX, float *restoreY)
+{
+    const ImGuiWindow* window = ImGui::GetCurrentWindow();
+    const ImRect titleBarRect = window->TitleBarRect();
+    auto cursorPos = ImGui::GetCursorPos();
+    *restoreX = cursorPos.x;
+    *restoreY = cursorPos.y;
+    ImGui::PushClipRect( titleBarRect.Min, titleBarRect.Max, false);
+}
+
 //Backporting ImGui::SeparatorText
 IGEXPORT void igExtSeparatorText(const char* label)
 {
