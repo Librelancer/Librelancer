@@ -114,7 +114,7 @@ namespace LibreLancer.Dialogs
             {
                 var f = new SDLFilters();
                 f.ToFree = new List<IntPtr>();
-                var fitems = filters.Filters ?? [];
+                var fitems = filters?.Filters ?? [];
                 SDL3.SDL_DialogFileFilter* items =
                     (SDL3.SDL_DialogFileFilter*) Marshal.AllocHGlobal(sizeof(SDL3.SDL_DialogFileFilter) * (fitems.Length + 1));
                 for (int i = 0; i < fitems.Length; i++)
