@@ -15,6 +15,12 @@ using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.ImUI
 {
+    public enum ImGuiProcessing
+    {
+        Sleep,
+        Slow,
+        Full
+    }
 	public partial class ImGuiHelper
 	{
 		Game game;
@@ -369,7 +375,8 @@ namespace LibreLancer.ImUI
         public bool PauseWhenUnfocused = false;
         private double renderTimer = 0.47;
         private const double RENDER_TIME = 0.47;
-        public bool DoRender(double elapsed)
+        private bool lastWantedKeyboard = false;
+        public ImGuiProcessing DoRender(double elapsed)
         {
             if (elapsed > 0.05) elapsed = 0;
             if (game.EventsThisFrame ||
@@ -379,7 +386,12 @@ namespace LibreLancer.ImUI
             animating = false;
             renderTimer -= elapsed;
             if (renderTimer <= 0) renderTimer = 0;
-            return renderTimer != 0;
+            if (renderTimer > 0)
+                return ImGuiProcessing.Full;
+            else if (lastWantedKeyboard)
+                return ImGuiProcessing.Slow;
+            else
+                return ImGuiProcessing.Sleep;
         }
 
         public void ResetRenderTimer()
@@ -388,7 +400,7 @@ namespace LibreLancer.ImUI
         }
         public bool DoUpdate()
         {
-            return renderTimer != 0;
+            return renderTimer != 0 || lastWantedKeyboard;
         }
 
         private static bool animating = false;
@@ -413,7 +425,7 @@ namespace LibreLancer.ImUI
             UpdateKeyMods(e);
             if (keyMapping.TryGetValue(e.Key, out var imk))
                 io.AddKeyEvent(imk, true);
-		}
+        }
 
         void UpdateKeyMods(KeyEventArgs e)
         {
@@ -438,13 +450,9 @@ namespace LibreLancer.ImUI
 			ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new Vector2(game.Width, game.Height);
 			io.DisplayFramebufferScale = new Vector2(1, 1);
-			io.DeltaTime = elapsed > 1 ? 1 : (float)elapsed;
+            const float MAX_DELTA = 0.1f;
+			io.DeltaTime = elapsed > MAX_DELTA ? MAX_DELTA : (float)elapsed;
 			//Update input
-			/*io.MousePos = new Vector2(game.Mouse.X, game.Mouse.Y);
-			io.MouseDown[0] = game.Mouse.IsButtonDown(MouseButtons.Left);
-			io.MouseDown[1] = game.Mouse.IsButtonDown(MouseButtons.Right);
-			io.MouseDown[2] = game.Mouse.IsButtonDown(MouseButtons.Middle);
-            io.MouseWheel = game.Mouse.Wheel;*/
             if(HandleKeyboard)
                 game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
@@ -492,6 +500,7 @@ namespace LibreLancer.ImUI
         List<RenderTarget2D> toFree = new List<RenderTarget2D>();
 		public void Render(RenderContext rstate)
 		{
+            lastWantedKeyboard = ImGui.GetIO().WantCaptureKeyboard;
             FileModal();
             _modalDrawn = false;
 			ImGui.Render();

@@ -47,9 +47,14 @@ public class MainWindow : Game
 
     protected override void Draw(double elapsed)
     {
-        if(!guiRender.DoRender(elapsed))
+        var process = guiRender.DoRender(elapsed);
+        if(process == ImGuiProcessing.Sleep)
         {
             WaitForEvent(500); //Yield like a regular GUI program (0.5s)
+        }
+        else if (process == ImGuiProcessing.Slow)
+        {
+            WaitForEvent(50); //Push enough frames for keyboad input
         }
         guiRender.NewFrame(elapsed);
         RenderContext.ReplaceViewport(0, 0, Width, Height);

@@ -534,14 +534,23 @@ namespace LancerEdit
 		protected override void Draw(double elapsed)
         {
             //Don't process all the imgui stuff when it isn't needed
-            if (!loadingSpinnerActive && !guiHelper.DoRender(elapsed))
+            if (!loadingSpinnerActive)
             {
-                if(Width !=0 && Height != 0 && lastFrame != null)
-                    lastFrame.BlitToScreen();
-                WaitForEvent(); //Yield like a regular GUI program
-                return;
+                var m = guiHelper.DoRender(elapsed);
+                if (m == ImGuiProcessing.Sleep)
+                {
+                    if(Width !=0 && Height != 0 && lastFrame != null)
+                        lastFrame.BlitToScreen();
+                    WaitForEvent(); //Yield like a regular GUI program
+                    return;
+                }
+                else if (m == ImGuiProcessing.Slow)
+                {
+                    // Push enough frames to get good keyboard input
+                    WaitForEvent(50);
+                }
             }
-            //
+
             TimeStep = elapsed;
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
