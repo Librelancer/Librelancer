@@ -25,8 +25,8 @@ namespace LancerEdit
         public float ModelScale = 0.25f;
         public Vector2 ModelRotation = Vector2.Zero;
         public Vector2 CameraRotation = Vector2.Zero;
-        public int MarginH = (int) (40 * ImGuiHelper.Scale);
-        public int MarginW = (int)(15 * ImGuiHelper.Scale);
+        public float MarginH = 0;
+        public float MarginW = 0;
         public int MinWidth = 120;
         public int MinHeight = 120;
 
@@ -60,8 +60,9 @@ namespace LancerEdit
             if (mw.Width <= 0 || mw.Height <= 0)
                 return false;
             ImGuiHelper.AnimatingElement();
-            var renderWidth = Math.Max(120, (int)ImGui.GetWindowWidth() - MarginW);
-            var renderHeight = Math.Max(120, (int)ImGui.GetWindowHeight() - MarginH);
+            var avail = ImGui.GetContentRegionAvail();
+            var renderWidth = Math.Max(MinWidth, (int)(avail.X - MarginW));
+            var renderHeight = Math.Max(MinHeight, (int)(avail.Y - MarginH));
             if (fixWidth > 0) renderWidth = fixWidth;
             if (fixHeight > 0) renderHeight = fixHeight;
             //Generate render target
@@ -125,8 +126,6 @@ namespace LancerEdit
             //Viewport Control
             if (view)
             {
-                ImGui.Dummy(Vector2.One);
-                ImGui.SameLine();
                 var cpos = ImGui.GetCursorScreenPos();
                 MousePos = ImGui.GetMousePos() - cpos;
                 ImGuizmo.SetRect(cpos.X, cpos.Y, rw, rh);

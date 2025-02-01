@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using ImGuiNET;
 namespace LibreLancer.ImUI
@@ -19,9 +20,11 @@ namespace LibreLancer.ImUI
             var dlist = ImGuiNative.igGetWindowDrawList();
 
             var style = ImGui.GetStyle();
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0);
             var text_color = ImGui.GetColorU32(ImGuiCol.Text);
-            var color = style.Colors[(int)ImGuiCol.Button];
-            if (v) color = style.Colors[(int)ImGuiCol.ButtonActive];
+            var color = Theme.VTabInactive;
+            if (v) color = style.Colors[(int)ImGuiCol.FrameBgActive];
 
             var textSize = ImGui.CalcTextSize(text);
             float pad = style.FramePadding.X;
@@ -32,6 +35,8 @@ namespace LibreLancer.ImUI
             bool ret = ImGui.Button("", new Vector2(textSize.Y + pad * 2,
                                                     textSize.X + pad * 2));
             ImGui.PopStyleColor();
+            ImGui.PopStyleVar(2);
+
             for(int i = 0; i < text.Length; i++) {
                 var glyph = ImGuiExt.igFontFindGlyph(font, text[i]);
                 ImGuiNative.ImDrawList_PrimReserve(
@@ -54,21 +59,5 @@ namespace LibreLancer.ImUI
             ImGui.PopID();
             return ret;
         }
-        
-        public static void TabButton(string name, int idx, ref BitArray128 openTabs)
-        {
-            if (VerticalTab($"{name}", openTabs[idx]))
-            {
-                if (!openTabs[idx])
-                {
-                    openTabs = new BitArray128();
-                    openTabs[idx] = true;
-                }
-                else
-                    openTabs = new BitArray128();
-            }
-        }
-
     }
-
 }

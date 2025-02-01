@@ -62,6 +62,8 @@ public class SystemEditorTab : GameContentTab
 
     public EditorUndoBuffer UndoBuffer = new EditorUndoBuffer();
 
+    private VerticalTabLayout layout;
+
     public SystemEditorTab(GameDataContext gameData, MainWindow mw, StarSystem system)
     {
         Title = "System Editor";
@@ -98,11 +100,99 @@ public class SystemEditorTab : GameContentTab
         ObjectsList.OnDelete += DeleteObject;
 
         LoadSystem(system);
+
+        layout = new VerticalTabLayout(DrawLeft, DrawRight, DrawMiddle);
+        layout.TabsLeft.Add(new($"{Icons.VectorSquare} Zones", 0));
+        layout.TabsLeft.Add(new($"{Icons.Cube} Objects", 1));
+        layout.TabsLeft.Add(new($"{Icons.Lightbulb} Lights", 2));
+        layout.TabsLeft.Add(new($"{Icons.Globe} System", 3));
+        layout.TabsLeft.Add(new($"{Icons.Eye} View", 4));
+    }
+
+    void DrawLeft(int tag)
+    {
+        switch (tag)
+        {
+            case 0:
+                ZonesPanel();
+                break;
+            case 1:
+                ObjectsPanel();
+                break;
+            case 2:
+                LightsPanel();
+                break;
+            case 3:
+                SystemPanel();
+                break;
+            case 4:
+                ViewPanel();
+                break;
+        }
+    }
+
+    void DrawMiddle()
+    {
+        using (var tb = Toolbar.Begin("##toolbar", false))
+        {
+            tb.CheckItem("3D", ref render3d);
+            if (render3d)
+            {
+                tb.CheckItem("Grid", ref renderGrid);
+            }
+            else
+            {
+                tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 10, "%.2fx");
+            }
+            tb.ToggleButtonItem("Map", ref mapOpen);
+            tb.ToggleButtonItem("Infocard", ref infocardOpen);
+            tb.ToggleButtonItem("History", ref historyOpen);
+            if (render3d)
+            {
+                tb.ToggleButtonItem("Camera", ref cameraOpen);
+            }
+        }
+        if (render3d)
+        {
+            ImGuiHelper.AnimatingElement();
+            renderer.BackgroundOverride = SystemData.SpaceColor;
+            renderer.SystemLighting.Ambient = SystemData.Ambient;
+            renderer.SystemLighting.Lights = new List<DynamicLight>(LightsList.Sources.Count);
+            for (int i = 0; i < LightsList.Sources.Count; i++)
+            {
+                renderer.SystemLighting.Lights.Add(new() { Active = LightsList.Visible[i], Light = LightsList.Sources[i].Light });
+            }
+            if (viewport.Begin())
+            {
+                win.RenderContext.Wireframe = drawWireframe;
+                renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
+                viewport.End();
+                win.RenderContext.Wireframe = false;
+            }
+
+            if (ManipulateObjects() || ManipulateZone() || ManipulateLight())
+            {
+                viewport.SetInputsEnabled(false);
+            }
+            else
+            {
+                viewport.SetInputsEnabled(true);
+            }
+        }
+        else
+        {
+            map2D.Draw(SystemData, World, Data, this);
+        }
+    }
+
+    void DrawRight(int tag)
+    {
+
     }
 
     private void ViewportOnDoubleClicked(Vector2 pos)
     {
-        if (openTabs[1])
+        if (layout.ActiveLeftTab == 1)
         {
             var sel = World.GetSelection(camera, null, pos.X, pos.Y, viewport.RenderWidth, viewport.RenderHeight);
             if (ShouldAddSecondary())
@@ -116,7 +206,7 @@ public class SystemEditorTab : GameContentTab
                 ObjectsList.ScrollToSelection();
             }
         }
-        else if (openTabs[2])
+        else if (layout.ActiveLeftTab == 2)
         {
             var cameraProjection = camera.Projection;
             var cameraView = camera.View;
@@ -1407,20 +1497,6 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
-    BitArray128 openTabs;
-
-    void TabButtons()
-    {
-        ImGui.BeginGroup();
-        TabHandler.TabButton("Zones", 0, ref openTabs);
-        TabHandler.TabButton("Objects", 1, ref openTabs);
-        TabHandler.TabButton("Lights", 2, ref openTabs);
-        TabHandler.TabButton("System", 3, ref openTabs);
-        TabHandler.TabButton("View", 4, ref openTabs);
-        ImGui.EndGroup();
-        ImGui.SameLine();
-    }
-
     private bool firstTab = true;
     bool render3d = true;
     private bool historyOpen = false;
@@ -1447,82 +1523,7 @@ public class SystemEditorTab : GameContentTab
         var curSysName = Data.Infocards.GetStringResource(SystemData.IdsName);
         Title = $"{curSysName} ({CurrentSystem.Nickname})";
         World.RenderUpdate(elapsed);
-        var contentw = ImGui.GetContentRegionAvail().X;
-        if (openTabs.Any())
-        {
-            ImGui.Columns(2, "##panels", true);
-            if (firstTab)
-            {
-                ImGui.SetColumnWidth(0, contentw * 0.23f);
-                firstTab = false;
-            }
-
-            ImGui.BeginChild("##tabchild");
-            if (openTabs[0]) ZonesPanel();
-            if (openTabs[1]) ObjectsPanel();
-            if (openTabs[2]) LightsPanel();
-            if (openTabs[3]) SystemPanel();
-            if (openTabs[4]) ViewPanel();
-            ImGui.EndChild();
-            ImGui.NextColumn();
-        }
-
-        TabButtons();
-        ImGui.BeginChild("##main");
-        ImGui.SameLine();
-        using (var tb = Toolbar.Begin("##toolbar", false))
-        {
-            tb.CheckItem("3D", ref render3d);
-            if (render3d)
-            {
-                tb.CheckItem("Grid", ref renderGrid);
-            }
-            else
-            {
-                tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 10, "%.2fx");
-            }
-            tb.ToggleButtonItem("Map", ref mapOpen);
-            tb.ToggleButtonItem("Infocard", ref infocardOpen);
-            tb.ToggleButtonItem("History", ref historyOpen);
-            if (render3d)
-            {
-                tb.ToggleButtonItem("Camera", ref cameraOpen);
-            }
-        }
-
-        if (render3d)
-        {
-            ImGuiHelper.AnimatingElement();
-            renderer.BackgroundOverride = SystemData.SpaceColor;
-            renderer.SystemLighting.Ambient = SystemData.Ambient;
-            renderer.SystemLighting.Lights = new List<DynamicLight>(LightsList.Sources.Count);
-            for (int i = 0; i < LightsList.Sources.Count; i++)
-            {
-                renderer.SystemLighting.Lights.Add(new() { Active = LightsList.Visible[i], Light = LightsList.Sources[i].Light });
-            }
-            if (viewport.Begin())
-            {
-                win.RenderContext.Wireframe = drawWireframe;
-                renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
-                viewport.End();
-                win.RenderContext.Wireframe = false;
-            }
-
-            if (ManipulateObjects() || ManipulateZone() || ManipulateLight())
-            {
-                viewport.SetInputsEnabled(false);
-            }
-            else
-            {
-                viewport.SetInputsEnabled(true);
-            }
-        }
-        else
-        {
-            map2D.Draw(SystemData, World, Data, this);
-        }
-
-        ImGui.EndChild();
+        layout.Draw();
         DrawMaps();
         DrawInfocard();
         DrawCamera();
@@ -1531,9 +1532,9 @@ public class SystemEditorTab : GameContentTab
         Popups.Run();
     }
 
-    private bool ZonesMode => openTabs[0];
-    private bool ObjectMode => openTabs[1];
-    private bool LightsMode => openTabs[2];
+    private bool ZonesMode => layout.ActiveLeftTab == 0;
+    private bool ObjectMode => layout.ActiveLeftTab == 1;
+    private bool LightsMode => layout.ActiveLeftTab == 2;
 
     private List<(GameObject Object, Transform3D Transform)> originalObjTransforms =
         new List<(GameObject Object, Transform3D Transform)>();

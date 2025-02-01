@@ -16,6 +16,7 @@ using LancerEdit.Materials;
 using LibreLancer.Data;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.ImUI;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -41,7 +42,8 @@ namespace LancerEdit
         void SetupViewport()
         {
             modelViewport = new Viewport3D(_window);
-            modelViewport.MarginH = 60;
+            modelViewport.MarginH = modelViewport.MarginW = 0;
+
             ResetCamera();
             previewViewport = new Viewport3D(_window);
             imageViewport = new Viewport3D(_window);
@@ -240,7 +242,7 @@ namespace LancerEdit
         void DoViewport()
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
-            modelViewport.MarginH = (int) (4.25 * ImGui.GetFontSize());
+            modelViewport.MarginH = 1.25f * ImGui.GetFrameHeightWithSpacing();
             ICamera camera = null;
             if (modelViewport.Begin())
             {

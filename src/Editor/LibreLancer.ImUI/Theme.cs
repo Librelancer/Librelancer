@@ -17,10 +17,14 @@ namespace LibreLancer.ImUI
         {
             ImGui.GetStyle().Colors[(int)col] = rgba;
         }
+
+        public static Vector4 VTabInactive = RGBA(56, 56, 56, 255);
+        public static Vector4 VTabActive = RGBA(95, 97, 98, 255);
+
         public static unsafe void Apply(float scale)
         {
             var s = ImGui.GetStyle();
-           
+
             //Settings
             s.FrameRounding = 2;
             s.ScrollbarSize = 12;
@@ -33,12 +37,12 @@ namespace LibreLancer.ImUI
             SetColor(ImGuiCol.ChildBg, RGBA(0, 0, 0, 0));
             SetColor(ImGuiCol.Border, RGBA(83, 83, 83, 255));
             SetColor(ImGuiCol.BorderShadow, RGBA(0, 0, 0, 0));
-            SetColor(ImGuiCol.FrameBg, RGBA(56, 57, 58, 255));
-            SetColor(ImGuiCol.PopupBg, RGBA(56, 57, 58, 255));
+            SetColor(ImGuiCol.FrameBg, RGBA(48, 48, 48, 255));
+            SetColor(ImGuiCol.PopupBg, RGBA(48, 48, 48, 255));
             SetColor(ImGuiCol.FrameBgHovered, RGBA(66, 133, 190, 255));
             SetColor(ImGuiCol.Header, RGBA(88, 178, 255, 132));
             SetColor(ImGuiCol.HeaderActive, RGBA(88, 178, 255, 164));
-            SetColor(ImGuiCol.FrameBgActive, RGBA(95,97, 98, 255));
+            SetColor(ImGuiCol.FrameBgActive, VTabActive);
             SetColor(ImGuiCol.MenuBarBg, RGBA(66, 67, 69, 255));
             SetColor(ImGuiCol.ScrollbarBg, RGBA(51, 64, 77, 153));
             SetColor(ImGuiCol.Button, RGBA(128, 128, 128, 88));
@@ -51,13 +55,13 @@ namespace LibreLancer.ImUI
         {
             var draw = ImGui.GetWindowDrawList();
             var cen = new Vector2(x, y) + (Vector2)ImGui.GetWindowPos();
-            draw.AddTriangleFilled(cen + new Vector2(2f, -2f) * ImGuiHelper.Scale, cen + new Vector2(-2f, 2f) * ImGuiHelper.Scale,cen + new Vector2(2f, 2f) * ImGuiHelper.Scale, 
+            draw.AddTriangleFilled(cen + new Vector2(2f, -2f) * ImGuiHelper.Scale, cen + new Vector2(-2f, 2f) * ImGuiHelper.Scale,cen + new Vector2(2f, 2f) * ImGuiHelper.Scale,
                 0xFFFFFFFF);
         }
 
         public static bool IconMenuItem(char icon, string text, bool enabled) =>
             ImGui.MenuItem($"{icon}   {text}", enabled);
-        
+
 
         public static void IconMenuToggle(char icon, string text, ref bool v, bool enabled)
             => ImGui.MenuItem($"{icon}   {text}", "", ref v, enabled);
@@ -67,9 +71,9 @@ namespace LibreLancer.ImUI
 
         public static bool IconTreeNode(char icon, string text) =>
             ImGui.TreeNode($"{icon} {text}");
-        
+
         public static bool BeginIconMenu(char icon, string text) => ImGui.BeginMenu($"{icon}   {text}");
-        
+
         static Vector4 RGBA(int r, int g, int b, int a)
         {
             return new Vector4(r / 255f, g / 255f, b / 255f, a / 255f);

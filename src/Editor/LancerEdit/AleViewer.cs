@@ -41,6 +41,8 @@ namespace LancerEdit
 
         float sparam = 1;
         string[] effectNames;
+
+        private VerticalTabLayout layout;
         public AleViewer(string name, AleFile ale, MainWindow main)
         {
             cameraMode = main.Config.DefaultCameraMode;
@@ -62,7 +64,10 @@ namespace LancerEdit
             polyline = main.Polyline;
             debug = main.LineRenderer;
             SetupRender(0);
+            layout = new VerticalTabLayout(DrawLeft, _ => { }, DrawMiddle);
+            layout.TabsLeft.Add(new("Hierarchy", 0));
         }
+
         ParticleEffectInstance instance;
         void SetupRender(int index)
         {
@@ -72,45 +77,16 @@ namespace LancerEdit
             instance.Resources = plib.Resources;
         }
 
-        bool[] openTabs = new bool[] { false, false };
-        void TabButton(string name, int idx)
+        void DrawLeft(int tag)
         {
-            if (TabHandler.VerticalTab(name, openTabs[idx]))
+            if (tag == 0)
             {
-                if (!openTabs[idx])
-                {
-                    for (int i = 0; i < openTabs.Length; i++) openTabs[i] = false;
-                    openTabs[idx] = true;
-                }
-                else
-                    openTabs[idx] = false;
+                NodePanel();
             }
-        }
-        void TabButtons()
-        {
-            ImGuiNative.igBeginGroup();
-            TabButton("Hierachy", 0);
-            //TabButton("Library", 1);
-            ImGuiNative.igEndGroup();
-            ImGui.SameLine();
         }
 
-        public override void Draw(double elapsed)
+        void DrawMiddle()
         {
-            bool doTabs = false;
-            foreach (var t in openTabs) if (t) { doTabs = true; break; }
-            var contentw = ImGui.GetContentRegionAvail().X;
-            if (doTabs)
-            {
-                ImGui.Columns(2, "##alecolumns", true);
-                ImGui.BeginChild("##leftpanel");
-                if (openTabs[0]) NodePanel();
-                ImGui.EndChild();
-                ImGui.NextColumn();
-            }
-            TabButtons();
-            ImGui.SameLine();
-            ImGui.BeginChild("##renderpanel");
             //Fx management
             lastEffect = currentEffect;
             ImGui.Text("Effect:");
@@ -125,7 +101,7 @@ namespace LancerEdit
             ImGui.PopItemWidth();
             ImGui.Separator();
             //Viewport
-            ImGui.BeginChild("##renderchild");
+            aleViewport.MarginH = ImGui.GetFrameHeightWithSpacing() * 1.25f;
             //Generate render target
             if (aleViewport.Begin())
             {
@@ -146,8 +122,12 @@ namespace LancerEdit
             }
             ImGui.SameLine();
             ImGui.Text(string.Format("T: {0:0.000}", instance.GlobalTime));
-            ImGui.EndChild();
-            ImGui.EndChild();
+        }
+
+
+        public override void Draw(double elapsed)
+        {
+            layout.Draw();
         }
 
         void NodePanel()

@@ -101,6 +101,8 @@ namespace LancerEdit
 
         private RigidModel vmsModel;
 
+        private VerticalTabLayout layout;
+
         public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
         {
             blenderEnabled = Blender.BlenderPathValid(win.Config.BlenderPath);
@@ -194,99 +196,48 @@ namespace LancerEdit
                 if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
             }, ImGuiWindowFlags.AlwaysAutoResize);
             popups.AddPopup("New Hardpoint", NewHardpoint, ImGuiWindowFlags.AlwaysAutoResize);
-        }
-        //For warnings
-        bool _isDirtyHp = false;
-        public void OnDirtyHp()
-        {
-            if (_isDirtyHp) return;
-            _isDirtyHp = true;
-            parent.DirtyCountHp++;
-        }
-        bool _isDirtyPart = false;
-        public void OnDirtyPart()
-        {
-            if (_isDirtyPart) return;
-            _isDirtyPart = true;
-            parent.DirtyCountPart++;
-        }
 
-        public override void Update(double elapsed)
-        {
-            if (animator != null)
-                animator.Update(elapsed);
-            if (skel != null) {
-                skel.UpdateScripts(elapsed);
-            }
-            if (newErrorTimer > 0) newErrorTimer -= elapsed;
-        }
-        Vector2 rotation = Vector2.Zero;
-        bool firstTab = true;
-        BitArray128 openTabs;
-        void TabButton(string name, int idx)
-        {
-            if (TabHandler.VerticalTab($"{name}", openTabs[idx]))
-            {
-                if (!openTabs[idx])
-                {
-                    openTabs = new BitArray128();
-                    openTabs[idx] = true;
-                }
-                else
-                    openTabs = new BitArray128();
-            }
-        }
-        void TabButtons()
-        {
-            ImGuiNative.igBeginGroup();
+            layout = new VerticalTabLayout(DrawLeft, _ => { }, DrawMiddle);
+
             if(drawable is CmpFile || drawable is ModelFile)
-                TabButton("Hierarchy", 0);
+                layout.TabsLeft.Add(new($"{Icons.Tree} Hierarchy", 0));
             if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
-                TabButton("Animations", 1);
+                layout.TabsLeft.Add(new($"{Icons.PersonRunning} Animations", 1));
             if (drawable is DF.DfmFile)
-                TabButton("Skeleton", 2);
-            TabButton("Render", 3);
+                layout.TabsLeft.Add(new($"{Icons.Bone} Skeleton", 2));
+            layout.TabsLeft.Add(new($"{Icons.Paintbrush} Render", 3));
             if(drawable is CmpFile || drawable is ModelFile)
-                TabButton("Export", 4);
-            TabButton("Presets", 5);
-            ImGuiNative.igEndGroup();
-            ImGui.SameLine();
+                layout.TabsLeft.Add(new($"{Icons.FileExport} Export", 4));
+            layout.TabsLeft.Add(new($"{Icons.Cog} Presets", 5));
         }
 
-        public override void OnHotkey(Hotkeys hk, bool shiftPressed)
+        void DrawLeft(int tag)
         {
-            if (hk == Hotkeys.Deselect) selectedNode = null;
-            if (hk == Hotkeys.ResetViewport) modelViewport.ResetControls();
-            if (hk == Hotkeys.ToggleGrid) showGrid = !showGrid;
-        }
-        int selectedCam = 0;
-
-        public override void Draw(double elapsed)
-        {
-            popups.Run();
-            HardpointEditor();
-            PartEditor();
-            var contentw = ImGui.GetContentRegionAvail().X;
-            if (openTabs.Any())
+            switch (tag)
             {
-                ImGui.Columns(2, "##panels", true);
-                if (firstTab)
-                {
-                    ImGui.SetColumnWidth(0, contentw * 0.23f);
-                    firstTab = false;
-                }
-                ImGui.BeginChild("##tabchild");
-                if (openTabs[0]) HierarchyPanel();
-                if (openTabs[1]) AnimationPanel();
-                if (openTabs[2]) SkeletonPanel();
-                if (openTabs[3]) RenderPanel();
-                if (openTabs[4]) ExportPanel();
-                if (openTabs[5]) PresetPanel();
-                ImGui.EndChild();
-                ImGui.NextColumn();
+                case 0:
+                    HierarchyPanel();
+                    break;
+                case 1:
+                    AnimationPanel();
+                    break;
+                case 2:
+                    SkeletonPanel();
+                    break;
+                case 3:
+                    RenderPanel();
+                    break;
+                case 4:
+                    ExportPanel();
+                    break;
+                case 5:
+                    PresetPanel();
+                    break;
             }
-            TabButtons();
-            ImGui.BeginChild("##main");
+        }
+
+        void DrawMiddle()
+        {
             var warnings = GetBrokenTextures();
             if (warnings.Length > 0)
             {
@@ -326,15 +277,20 @@ namespace LancerEdit
                 ImGui.PushItemWidth(-1);
                 if (useDistance)
                 {
-                    ImGui.SliderFloat("Distance", ref levelDistance, 0, maxDistance, "%f");
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Distance");
+                    ImGui.SameLine();
+                    ImGui.SliderFloat("##distance", ref levelDistance, 0, maxDistance, "%f");
                 }
                 else
                 {
-                    ImGui.Combo("Level", ref level, levels, levels.Length);
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Level");
+                    ImGui.SameLine();
+                    ImGui.Combo("##level", ref level, levels, levels.Length);
                 }
                 ImGui.PopItemWidth();
             }
-            ImGui.EndChild();
 
             if (drawNormals)
             {
@@ -398,6 +354,50 @@ namespace LancerEdit
                 ImGui.End();
             }
         }
+
+        //For warnings
+        bool _isDirtyHp = false;
+        public void OnDirtyHp()
+        {
+            if (_isDirtyHp) return;
+            _isDirtyHp = true;
+            parent.DirtyCountHp++;
+        }
+        bool _isDirtyPart = false;
+        public void OnDirtyPart()
+        {
+            if (_isDirtyPart) return;
+            _isDirtyPart = true;
+            parent.DirtyCountPart++;
+        }
+
+        public override void Update(double elapsed)
+        {
+            if (animator != null)
+                animator.Update(elapsed);
+            if (skel != null) {
+                skel.UpdateScripts(elapsed);
+            }
+            if (newErrorTimer > 0) newErrorTimer -= elapsed;
+        }
+        Vector2 rotation = Vector2.Zero;
+
+        public override void OnHotkey(Hotkeys hk, bool shiftPressed)
+        {
+            if (hk == Hotkeys.Deselect) selectedNode = null;
+            if (hk == Hotkeys.ResetViewport) modelViewport.ResetControls();
+            if (hk == Hotkeys.ToggleGrid) showGrid = !showGrid;
+        }
+        int selectedCam = 0;
+
+        public override void Draw(double elapsed)
+        {
+            popups.Run();
+            HardpointEditor();
+            PartEditor();
+            layout.Draw();
+        }
+
         float viewButtonsWidth = 100;
 
         TextureReference[] GetBrokenTextures()

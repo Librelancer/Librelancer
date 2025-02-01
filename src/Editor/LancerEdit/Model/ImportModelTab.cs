@@ -63,6 +63,8 @@ public class ImportModelTab : EditorTab
     private bool placeholderTextures = true;
     private bool advancedMaterials = false;
 
+    private VerticalTabLayout layout;
+
     public ImportModelTab(Model model, string fname, MainWindow win, TaskRunPopup popup)
     {
         this.model = model;

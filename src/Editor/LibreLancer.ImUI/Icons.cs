@@ -33,6 +33,7 @@ public static class Icons
     public const char Log = '\uf022';
     public const char Cog = '\uf013';
     public const char FileImport = '\uf56f';
+    public const char FileExport = '\uf56e';
     public const char Palette = '\uf53f';
     public const char Play = '\uf04b';
     public const char SprayCan = '\uf5bd';
@@ -47,11 +48,15 @@ public static class Icons
     public const char Paste = '\uf0ea';
     public const char Eraser = '\uf12d';
     public const char StreetView = '\uf21d';
+    public const char Paintbrush = '\uf1fc';
     public const char Star = '\uf005';
     public const char Table = '\uf0ce';
     public const char UpRightFromSquare = '\uf35d';
+    public const char VectorSquare = '\uf5cb';
     public const char Gift = '\uf06b';
-
+    public const char Tree = '\uf1bb';
+    public const char PersonRunning = '\uf70c';
+    public const char Bone = '\uf5d7';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -77,7 +82,6 @@ public static class Icons
     //Icons to be tinted
     public const char SyncAlt = '\uf2f1';
     private const char ExpandArrowsAlt = '\uf31e';
-    private const char Tree = '\uf1bb';
     private const char SignInAlt = '\uf2f6';
     private const char ExclamationTriangle = '\uf071';
 
@@ -148,6 +152,7 @@ public static class Icons
         yield return X;
         yield return Cog;
         yield return FileImport;
+        yield return FileExport;
         yield return Palette;
         yield return Play;
         yield return SprayCan;
@@ -159,6 +164,7 @@ public static class Icons
         yield return Clone;
         yield return PlusCircle;
         yield return StreetView;
+        yield return Paintbrush;
         yield return Cut;
         yield return Copy;
         yield return Paste;
@@ -166,6 +172,10 @@ public static class Icons
         yield return Star;
         yield return Table;
         yield return UpRightFromSquare;
+        yield return VectorSquare;
+        yield return Tree;
+        yield return PersonRunning;
+        yield return Bone;
 
         yield return Image;
         yield return Lightbulb;
