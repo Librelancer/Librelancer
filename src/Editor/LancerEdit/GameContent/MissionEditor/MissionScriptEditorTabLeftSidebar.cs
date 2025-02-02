@@ -164,6 +164,8 @@ public sealed partial class MissionScriptEditorTab
         {
             ImGui.Text("Cannot add a ship. No ships are setup.  " + Icons.Warning);
         }
+
+        ImGui.PopID();
     }
 
     private int selectedNpcIndex = -1;

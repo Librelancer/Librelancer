@@ -18,7 +18,6 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
 
-        ImGui.NewLine();
         if (ImGui.CollapsingHeader("Ship Manager", ImGuiTreeNodeFlags.DefaultOpen))
         {
             RenderMissionShipManager();
