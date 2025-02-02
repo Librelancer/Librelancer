@@ -327,11 +327,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             NodeEditor.Link(link.Id, link.StartPin.Id, link.EndPin.Id, link.Color, 2.0f);
         }
 
-        if (NodeEditor.BeginCreate())
-        {
-            TryCreateLink();
-        }
-        NodeEditor.EndCreate();
+        TryCreateLink();
+
         ImGui.SetCursorScreenPos(cursorTopLeft);
 
         var contextPos = ImGui.GetMousePos();
@@ -401,6 +398,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         if (!NodeEditor.BeginCreate(Color4.White, 2.0f))
         {
             NodeEditor.EndCreate();
+            return;
         }
 
         if (NodeEditor.QueryNewLink(out var startPinId, out var endPinId))
