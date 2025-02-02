@@ -36,7 +36,7 @@ namespace LancerEdit
             ImGui.Text("Zoom: ");
             ImGui.SameLine();
             ImGui.PushItemWidth(120);
-            ImGui.SliderFloat("", ref zoom, 10, 800, "%.0f%%");
+            ImGui.SliderFloat("##zoom", ref zoom, 10, 800, "%.0f%%");
             ImGui.PopItemWidth();
             ImGui.SameLine();
             if (anim != null)
