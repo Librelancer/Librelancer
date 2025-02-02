@@ -41,6 +41,8 @@ public class TabControl
             var flags = ImGuiTabBarFlags.Reorderable | ImGuiTabBarFlags.FittingPolicyScroll |
                         ImGuiTabBarFlags.AutoSelectNewTabs | ImGuiTabBarFlags.TabListPopupButton;
             ImGui.BeginTabBar("##tabbar", flags);
+            int thisIdx = -1;
+            int closeMode = 0;
             for (int i = 0; i < Tabs.Count; i++)
             {
                 bool isTabOpen = true;
@@ -66,6 +68,32 @@ public class TabControl
                     ImGui.PopStyleColor();
                     ImGui.PopStyleColor();
                 }
+                if (ImGui.BeginPopupContextItem($"tabs{i}"))
+                {
+                    if (ImGui.MenuItem("Close Tab"))
+                    {
+                        isTabOpen = false;
+                    }
+                    if (ImGui.BeginMenu("Close Multiple", Tabs.Count > 1))
+                    {
+                        if (ImGui.MenuItem("Close Other Tabs"))
+                        {
+                            thisIdx = i;
+                        }
+                        else if (ImGui.MenuItem("Close Tabs to Left", i != 0))
+                        {
+                            thisIdx = i;
+                            closeMode = 1;
+                        }
+                        else if (ImGui.MenuItem("Close Tabs to Right", i + 1 < Tabs.Count))
+                        {
+                            thisIdx = i;
+                            closeMode = 2;
+                        }
+                        ImGui.EndMenu();
+                    }
+                    ImGui.EndPopup();
+                }
                 if (!isTabOpen)
                 {
                     if(Selected == Tabs[i]) Selected = null;
@@ -76,6 +104,27 @@ public class TabControl
                     Selected = Tabs[i];
             }
             ImGui.EndTabBar();
+            if (thisIdx >= 0)
+            {
+                int start = closeMode switch {
+                    2 => thisIdx + 1,
+                    _ => 0
+                };
+                int end = closeMode switch {
+                    1 => thisIdx,
+                    _ => Tabs.Count
+                };
+                var self = Tabs[thisIdx];
+                for (int i = start; i < end; i++)
+                {
+                    if (i == thisIdx) continue;
+                    if (Selected == Tabs[i]) Selected = null;
+                    Tabs[i].Dispose();
+                }
+                Tabs.RemoveRange(start, end - start);
+                if (closeMode == 0)
+                    Tabs.Add(self);
+            }
         }
 
         _setSelected = null;
