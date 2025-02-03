@@ -29,9 +29,10 @@ public class FrcCompiler
     }
 
     [SuppressMessage("ReSharper", "UnusedMember.Local")]
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     private enum AvailableColour
     {
-        R,
+        r,
         Gray,
         Blue,
         Green,
@@ -300,6 +301,7 @@ public class FrcCompiler
                 return false;
             }
 
+            bool reprintCharacter = false;
             switch (specialCharacterState)
             {
                 case SpecialCharacterState.Color:
@@ -308,30 +310,26 @@ public class FrcCompiler
 
                     if (Enum.TryParse<AvailableColour>(currentSpecialString, out var color))
                     {
-                        if (color == AvailableColour.R)
+                        if (color == AvailableColour.r)
                         {
                             color = AvailableColour.Red;
                         }
 
                         currentString += $"""<TRA color="{color.ToString().ToLowerInvariant()}"/>""";
+                        break;
                     }
-                    else if (currentSpecialString.Length == 6)
+                    if (currentSpecialString.Length == 6 && currentSpecialString.All(char.IsAsciiHexDigit))
                     {
-                        if (!currentSpecialString.All(char.IsAsciiHexDigit))
-                        {
-                            throw new CompileErrorException(source, reader.Column, reader.Line,
-                                $"Provided colour was not a valid RRGGBB hex string.");
-                        }
-
                         currentString += $"""<TRA color="#{currentSpecialString.ToUpper()}"/>""";
+                        break;
                     }
-                    else if (currentSpecialString.Length > 7 || ch is ' ')
+                    if (currentSpecialString.Length > 7 || ch is ' ')
                     {
                         throw new CompileErrorException(source, reader.Column, reader.Line,
                             $"Provided colour was not a valid colour string.\nProvided String: {currentSpecialString}");
                     }
 
-                    break;
+                    return false;
                 }
                 case SpecialCharacterState.FontNumber:
                     if (ch is not ' ')
@@ -390,13 +388,14 @@ public class FrcCompiler
 
                     var hex = Convert.ToInt32(currentSpecialString, 16);
                     currentString += char.ConvertFromUtf32(hex);
+                    reprintCharacter = true;
                     break;
             }
 
             currentSpecialString = string.Empty;
             specialCharacterState = SpecialCharacterState.None;
             lastSymbol = ch;
-            return true;
+            return reprintCharacter;
         }
 
         bool HandleIds()

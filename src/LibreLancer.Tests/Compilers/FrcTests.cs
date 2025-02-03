@@ -65,13 +65,12 @@ public class FrcTests
     [InlineData("ReD")]
     [InlineData("Black")]
     [InlineData("DarkBlue")]
-    [InlineData("ABCABCA")] // Bad Hex
     public void BadColoursShouldThrowExceptions(string colour)
     {
         FrcCompiler compiler = new FrcCompiler();
         Assert.Throws<CompileErrorException>(() =>
         {
-            _ = compiler.Compile($"I 1 \\c{colour}", "TEST");
+            _ = compiler.Compile($"I 1 \\c{colour} ", "TEST");
         });
     }
 
@@ -139,8 +138,6 @@ public class FrcTests
         { @"I 1 \cWhite", "<TRA color=\"white\"/>" },
         { @"I 1 \cFFFFFF", "<TRA color=\"#FFFFFF\"/>" },
     };
-
-
 
     private string WrapInfocard(string infocard) => $"{FrcCompiler.InfocardStart}{infocard}{FrcCompiler.InfocardEnd}";
 }
