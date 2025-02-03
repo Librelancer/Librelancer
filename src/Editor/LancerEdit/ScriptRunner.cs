@@ -26,6 +26,8 @@ namespace LancerEdit
             public bool BooleanValue = false;
             public int IntegerValue = 0;
 
+            public ScriptArgumentInstance ActiveReference;
+
             string GetString()
             {
                 if (Argument.Type == ScriptArgumentType.Integer) return IntegerValue.ToString();
@@ -49,6 +51,9 @@ namespace LancerEdit
 
             public string GetValue()
             {
+                if (ActiveReference != null &&
+                    ActiveReference.BooleanValue != Argument.ActiveState)
+                    return "";
                 var v = GetString();
                 if (Argument.Type != ScriptArgumentType.Flag && !string.IsNullOrWhiteSpace(v) &&
                     !string.IsNullOrWhiteSpace(Argument.Flag))
@@ -60,6 +65,9 @@ namespace LancerEdit
 
             public void Draw(int i)
             {
+                if (ActiveReference != null &&
+                    ActiveReference.BooleanValue != Argument.ActiveState)
+                    return;
                 ImGui.PushID($"__argument_{i}");
                 switch (Argument.Type)
                 {
@@ -177,6 +185,7 @@ namespace LancerEdit
 
         private EditScript script;
         private List<ScriptArgumentInstance> arguments = new List<ScriptArgumentInstance>();
+
         private MainWindow main;
 
         public ScriptRunner(EditScript script, MainWindow main)
@@ -184,6 +193,47 @@ namespace LancerEdit
             this.script = script;
             unique = _unique++;
             arguments = script.Arguments.Select(x => new ScriptArgumentInstance() { Argument = x }).ToList();
+            var argLookups = new Dictionary<string, ScriptArgumentInstance>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var a in arguments)
+            {
+                argLookups[a.Argument.Name] = a;
+                if (!string.IsNullOrWhiteSpace(a.Argument.Default))
+                {
+                    switch (a.Argument.Type)
+                    {
+                        case ScriptArgumentType.Boolean:
+                        case ScriptArgumentType.Flag:
+                            if (bool.TryParse(a.Argument.Default, out var b))
+                                a.BooleanValue = b;
+                            break;
+                        case ScriptArgumentType.Integer:
+                        case ScriptArgumentType.Dropdown:
+                            if(int.TryParse(a.Argument.Default, out var i))
+                                a.IntegerValue = i;
+                            break;
+                        case ScriptArgumentType.FileArray:
+                        case ScriptArgumentType.FileFolderArray:
+                            a.StringArray.Add(a.Argument.Default);
+                            break;
+                        default:
+                            a.StringValue = a.Argument.Default;
+                            break;
+                    }
+                }
+            }
+
+            foreach (var a in arguments)
+            {
+                if (string.IsNullOrWhiteSpace(a.Argument.ActiveReference))
+                    continue;
+                if (!argLookups.TryGetValue(a.Argument.ActiveReference, out var actref) ||
+                    actref.Argument.Type != ScriptArgumentType.Flag)
+                {
+                    continue;
+                }
+                a.ActiveReference = actref;
+            }
             this.main = main;
         }
 
@@ -199,7 +249,7 @@ namespace LancerEdit
         void Invoke()
         {
             #if DEBUG
-            var lleditscript = Path.Combine(GetBasePath(), "../../../../lleditscript/bin/Debug/net5.0/lleditscript");
+            var lleditscript = Path.Combine(GetBasePath(), "../../../../lleditscript/bin/Debug/net8.0/lleditscript");
             #else
             var lleditscript = Path.Combine(GetBasePath(), "lleditscript");
             #endif
@@ -250,6 +300,7 @@ namespace LancerEdit
 
         private bool isOpen = true;
         private int lastCount = 0;
+
         public bool Draw()
         {
             ImGui.SetNextWindowSize(new Vector2(500,400), ImGuiCond.FirstUseEver);
@@ -286,6 +337,7 @@ namespace LancerEdit
                 }
                 else
                 {
+
                     for(int i =0; i < arguments.Count; i++)
                         arguments[i].Draw(i);
                     ImGui.Separator();

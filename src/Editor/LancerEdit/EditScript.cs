@@ -30,6 +30,17 @@ namespace LancerEdit
         [Entry("type", Required = true)] public ScriptArgumentType Type;
         [Entry("option", Multiline = true)] public List<string> Options = new List<string>();
         [Entry("flag")] public string Flag;
+        [Entry("default")] public string Default;
+
+        public string ActiveReference;
+        public bool ActiveState;
+
+        [EntryHandler("isactive", MinComponents = 2)]
+        void HandleIsActive(Entry e)
+        {
+            ActiveReference = e[0].ToString();
+            ActiveState = e[1].ToBoolean();
+        }
     }
 
     public class EditScript : IniFile
