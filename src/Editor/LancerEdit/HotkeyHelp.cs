@@ -43,12 +43,13 @@ public class HotkeyHelp
                 }
                 ImGui.EndTabBar();
             }
-        }    
+        }
+        ImGui.End();
     }
-    
-    
+
+
     public bool Open = false;
-    
+
     static void DrawKeyboardButton(bool ctrl, bool alt, bool shift, string key)
     {
         ImGui.PushFont(ImGuiHelper.SystemMonospace);
@@ -80,11 +81,8 @@ public class HotkeyHelp
             ImGui.SameLine();
         }
         ImGuiExt.Button(key, false);
-        ImGui.PopStyleVar();
-        ImGui.PopStyleVar();
-        ImGui.PopStyleVar();
-        ImGui.PopStyleColor();
-        ImGui.PopStyleColor();
+        ImGui.PopStyleVar(3);
+        ImGui.PopStyleColor(2);
         ImGui.PopFont();
     }
 
@@ -125,7 +123,7 @@ public class HotkeyHelp
             Description = description;
         }
     }
-    
-   
-    
+
+
+
 }
