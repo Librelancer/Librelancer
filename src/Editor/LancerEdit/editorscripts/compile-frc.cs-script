@@ -1,0 +1,95 @@
+/*
+    ; FRC Compiler Script by Laz
+    [Script]
+    name = Compile FRC file
+    [Argument]
+    name = Directory
+    type = flag
+    flag = d
+    [Argument]
+    name = Input File
+    type = file
+    isactive = Directory, false
+    [Argument]
+    name = Output File
+    type = file
+    isactive = Directory, false
+    [Argument]
+    name = Dll Index
+    type = integer
+    flag = index
+    default = -1
+    isactive = Directory, false
+    [Argument]
+    name = Input Folder
+    type = folder
+    isactive = Directory, true
+    [Argument]
+    name = Output Folder
+    type = folder
+    isactive = Directory, true
+*/
+
+using System.IO;
+using System.Linq;
+using LibreLancer.ContentEdit.Frc;
+using LibreLancer.ContentEdit.RandomMissions;
+
+ScriptUsage(@"input output [-d] [index=int]
+If -d is specified, input and output must be directories, otherwise they will be an frc file and dll file respectively
+If index is specified extra checks will be added to ensure that absolute numbers match the specifed index");
+
+bool directory = false;
+FlagOption("d|directory", "INPUT and OUTPUT are directories", v => directory = v);
+
+int index = -1;
+IntegerOption("index=", "Index of the output file in freelancer.ini (resources.dll == 0)", v => index = v);
+
+var args = ParseArguments(2);
+string input = args[0];
+string output = args[1];
+
+if (!directory)
+{
+    if (!File.Exists(input))
+    {
+        Console.WriteLine("Input file not found");
+        Environment.Exit(2);
+    }
+
+    if (!Directory.Exists(Path.GetDirectoryName(output)))
+    {
+        Console.WriteLine("Output directory not found");
+        Environment.Exit(2);
+    }
+
+    CompileFrcToDll(input, output);
+    return;
+}
+
+if (!Directory.Exists(input))
+{
+    Console.WriteLine("Input directory not found");
+    Environment.Exit(2);
+}
+
+if (!Directory.Exists(output))
+{
+    Directory.CreateDirectory(output);
+}
+
+foreach(var file in Directory.GetFiles(input, "*.frc", SearchOption.TopDirectoryOnly))
+{
+    CompileFrcToDll(file, Path.Combine(output, Path.ChangeExtension(file, ".dll")));
+}
+
+void CompileFrcToDll(string file, string output)
+{
+    string text = File.ReadAllText(file);
+    var compiler = new FrcCompiler();
+    var resourceDll = compiler.Compile(text, file, index);
+
+    using FileStream fs = File.Create(output);
+    DllWriter.Write(resourceDll, fs);
+}
+

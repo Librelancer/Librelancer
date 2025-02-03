@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Text;
 using LibreLancer.ContentEdit.RandomMissions;
@@ -30,6 +31,7 @@ public class FrcCompiler
     [SuppressMessage("ReSharper", "UnusedMember.Local")]
     private enum AvailableColour
     {
+        R,
         Gray,
         Blue,
         Green,
@@ -108,10 +110,10 @@ public class FrcCompiler
                 {
                     // We are changing the state, lets finish what we were doing with the previous state
                     case State.String:
-                        res.Strings[currentIdsNumber] = currentString;
+                        res.Strings[currentIdsNumber & 0xFFFF] = currentString;
                         break;
                     case State.Info:
-                        res.Infocards[currentIdsNumber] = InfocardStart + currentString + InfocardEnd;
+                        res.Infocards[currentIdsNumber & 0xFFFF] = InfocardStart + currentString + InfocardEnd;
                         break;
                     case State.StringIds:
                     case State.InfoIds:
@@ -216,10 +218,10 @@ public class FrcCompiler
         switch (state)
         {
             case State.String:
-                res.Strings[currentIdsNumber] = currentString;
+                res.Strings[currentIdsNumber & 0xFFFF] = currentString;
                 break;
             case State.Info:
-                res.Infocards[currentIdsNumber] = InfocardStart + currentString + InfocardEnd;
+                res.Infocards[currentIdsNumber & 0xFFFF] = InfocardStart + currentString + InfocardEnd;
                 break;
             default:
                 throw new CompileErrorException(source, reader.Column, reader.Line,
@@ -302,14 +304,15 @@ public class FrcCompiler
             {
                 case SpecialCharacterState.Color:
                 {
-                    if (ch is not ' ')
-                    {
-                        currentSpecialString += ch;
-                        return false;
-                    }
+                    currentSpecialString += ch;
 
                     if (Enum.TryParse<AvailableColour>(currentSpecialString, out var color))
                     {
+                        if (color == AvailableColour.R)
+                        {
+                            color = AvailableColour.Red;
+                        }
+
                         currentString += $"""<TRA color="{color.ToString().ToLowerInvariant()}"/>""";
                     }
                     else if (currentSpecialString.Length == 6)
@@ -322,10 +325,10 @@ public class FrcCompiler
 
                         currentString += $"""<TRA color="#{currentSpecialString.ToUpper()}"/>""";
                     }
-                    else
+                    else if (currentSpecialString.Length > 7 || ch is ' ')
                     {
                         throw new CompileErrorException(source, reader.Column, reader.Line,
-                            $"Provided colour was not a valid colour string.");
+                            $"Provided colour was not a valid colour string.\nProvided String: {currentSpecialString}");
                     }
 
                     break;
@@ -418,6 +421,17 @@ public class FrcCompiler
             }
 
             currentIdsNumber = int.Parse(currentString);
+
+            if(resourceIndex is not -1)
+            {
+                var min = resourceIndex * 65536;
+                var max = min + 65535;
+                if (currentIdsNumber < min || currentIdsNumber > max)
+                {
+                    throw new CompileErrorException(source, reader.Column, reader.Line, $"{currentIdsNumber} is out of range ({min}, {max})");
+                }
+            }
+
             currentString = "";
 
             return true;

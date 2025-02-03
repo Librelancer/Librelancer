@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using LibreLancer.ContentEdit.Frc;
 using LibreLancer.ContentEdit.RandomMissions;
 using Xunit;
@@ -97,6 +98,27 @@ public class FrcTests
         Assert.Throws<CompileErrorException>(() => { _ = compiler.Compile($"I 1 \\f{font}", "TEST"); });
     }
 
+    [Theory]
+    [InlineData(1, 1, -1)]
+    [InlineData(65537, 1, 1)]
+    [InlineData(131071, 65535, 1)]
+    [InlineData(131071, 65535, -1)]
+    public void FrcShouldAllowAbsoluteIndexes(int absoluteId, int mappedId, int index)
+    {
+        var input = $"S {absoluteId} some text";
+
+        FrcCompiler compiler = new FrcCompiler();
+        var resourceDll = compiler.Compile(input, "TEST", index);
+
+        Assert.Contains(resourceDll.Strings, x => x.Key == mappedId);
+    }
+
+    [Fact]
+    public void BadResourceIndexShouldThrowExceptions()
+    {
+        FrcCompiler compiler = new FrcCompiler();
+        Assert.Throws<CompileErrorException>(() => { _ = compiler.Compile($"I 131071 EEE", "TEST", 0); });
+    }
 
     public static TheoryData<string, string> ValidInfocardFrcStrings { get; } = new()
     {
