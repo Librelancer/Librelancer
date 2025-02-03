@@ -6,7 +6,26 @@
 #include "cimgui_ext.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include <assert.h>
+
+static assertion_fail_handler fail_handler = 0;
+void igCSharpAssert(bool expr, const char *exprString, const char *file, int line)
+{
+    if(fail_handler) {
+        if(!expr) {
+            fail_handler(exprString, file, line);
+        }
+    } else {
+        assert(expr);
+    }
+}
+
 extern "C" {
+
+IGEXPORT void igInstallAssertHandler(assertion_fail_handler handler)
+{
+    fail_handler = handler;
+}
 IGEXPORT void *igFontFindGlyph(void *font, uint32_t c)
 {
     ImFont *fnt = (ImFont*)font;

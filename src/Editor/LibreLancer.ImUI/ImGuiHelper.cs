@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Mime;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
+using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 
@@ -21,7 +23,7 @@ namespace LibreLancer.ImUI
         Slow,
         Full
     }
-	public partial class ImGuiHelper
+	public unsafe partial class ImGuiHelper
 	{
 		Game game;
 		//TODO: This is duplicated from Renderer2D
@@ -121,6 +123,23 @@ namespace LibreLancer.ImUI
         public static bool DialogOpen = false;
 
         public static IUIThread UiThread => instance.game;
+
+        [DllImport("cimgui")]
+        static extern void igInstallAssertHandler(delegate* unmanaged<IntPtr, IntPtr, int, void> handler);
+
+        [UnmanagedCallersOnly]
+        static void AssertionFailure(IntPtr expr, IntPtr file, int line)
+        {
+            var msg =
+                $"imgui assert failed at {Marshal.PtrToStringUTF8(file)}:{line}: {Marshal.PtrToStringUTF8(expr)}";
+            var st = new System.Diagnostics.StackTrace();
+            CrashWindow.Run("ImGui Error", msg, st.ToString());
+            Environment.Exit(255);
+        }
+        static ImGuiHelper()
+        {
+            igInstallAssertHandler(&AssertionFailure);
+        }
 
         [DllImport("cimgui")]
         static extern void igGuizmoSetImGuiContext(IntPtr ctx);
