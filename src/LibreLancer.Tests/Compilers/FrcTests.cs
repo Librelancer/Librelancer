@@ -39,14 +39,14 @@ public class FrcTests
 
         Assert.NotNull(resourceDll);
 
-        Assert.Equal(expected: WrapInfocard("<TRA bold=\"true\"/>Bold <TRA bold=\"false\"/>Not Bold"),
+        Assert.Equal(expected: WrapInfocard("<TRA bold=\"true\"/><TEXT>Bold </TEXT><TRA bold=\"false\"/><TEXT>Not Bold</TEXT>"),
             actual: resourceDll.Infocards[1]);
-        Assert.Equal(expected: WrapInfocard("MultiLine<PARA/>String"), actual: resourceDll.Infocards[2]);
-        Assert.Equal(expected: WrapInfocard("Two<PARA/>Lines"), actual: resourceDll.Infocards[3]);
-        Assert.Equal(expected: WrapInfocard("One Line"), actual: resourceDll.Infocards[4]);
-        Assert.Equal(expected: WrapInfocard(" Spacing "), actual: resourceDll.Infocards[5]);
-        Assert.Equal(expected: WrapInfocard("Separate Line"), actual: resourceDll.Infocards[6]);
-        Assert.Equal(expected: WrapInfocard("“Read My Quote”"), actual: resourceDll.Infocards[7]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>MultiLine</TEXT><PARA/><TEXT>String</TEXT>"), actual: resourceDll.Infocards[2]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>Two</TEXT><PARA/><TEXT>Lines</TEXT>"), actual: resourceDll.Infocards[3]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>One Line</TEXT>"), actual: resourceDll.Infocards[4]);
+        Assert.Equal(expected: WrapInfocard("<TEXT> Spacing </TEXT>"), actual: resourceDll.Infocards[5]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>Separate Line</TEXT>"), actual: resourceDll.Infocards[6]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>“Read My Quote”</TEXT>"), actual: resourceDll.Infocards[7]);
     }
 
     [Theory]
@@ -61,7 +61,6 @@ public class FrcTests
     }
 
     [Theory]
-    [InlineData("white")]
     [InlineData("ReD")]
     [InlineData("Black")]
     [InlineData("DarkBlue")]
@@ -139,6 +138,16 @@ public class FrcTests
         Assert.Contains(resourceDll.Strings, x => x.Value == "Some Text");
     }
 
+    [Fact]
+    public void BlockCommentsShouldBeIgnored()
+    {
+        FrcCompiler compiler = new FrcCompiler();
+        const string input = @";+ S 1 Some Text ; Comment\nsomsada\n\nasdasd ;-";
+        var resourceDll = compiler.Compile(input, "TEST");
+
+        Assert.Empty(resourceDll.Strings);
+    }
+
     public static TheoryData<string, string> ValidInfocardFrcStrings { get; } = new()
     {
         { @"I 1 \b", "<TRA bold=\"true\"/>" },
@@ -157,6 +166,12 @@ public class FrcTests
         { @"I 1 \C", "<TRA color=\"default\"/>" },
         { @"I 1 \cWhite", "<TRA color=\"white\"/>" },
         { @"I 1 \cFFFFFF", "<TRA color=\"#FFFFFF\"/>" },
+        { @"I 1 \cr", "<TRA color=\"#FF0000\"/>" },
+        { @"I 1 \clr", "<TRA color=\"#C00000\"/>" },
+        { @"I 1 \chg", "<TRA color=\"#008000\"/>" },
+        { @"I 1 \cdw", "<TRA color=\"#404040\"/>" },
+        { """I 1 \<TRA bold="true"/>""", "<TRA bold=\"true\"/>" },
+        { @"I 1 <>&", "<TEXT>&lt;&gt;&amp;</TEXT>" },
     };
 
     private string WrapInfocard(string infocard) => $"{FrcCompiler.InfocardStart}{infocard}{FrcCompiler.InfocardEnd}";

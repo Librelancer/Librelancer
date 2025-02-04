@@ -1,10 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Text;
 using LibreLancer.ContentEdit.RandomMissions;
 using LibreLancer.Dll;
+using Microsoft.Extensions.Primitives;
 
 namespace LibreLancer.ContentEdit.Frc;
 
@@ -17,6 +17,7 @@ public class FrcCompiler
         StringIds,
         Info,
         InfoIds,
+        InfoRaw,
     }
 
     private enum SpecialCharacterState
@@ -25,14 +26,22 @@ public class FrcCompiler
         Color,
         FontNumber,
         Pos,
-        Unicode
+        Unicode,
+        Raw
     }
 
     [SuppressMessage("ReSharper", "UnusedMember.Local")]
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    private enum AvailableColour
+    private enum AvailableColor
     {
         r,
+        z,
+        g,
+        b,
+        c,
+        m,
+        y,
+        w,
         Gray,
         Blue,
         Green,
@@ -43,21 +52,31 @@ public class FrcCompiler
         White
     }
 
-    private int currentIdsNumber = -1;
-    private string currentString = string.Empty;
+    private enum CommentState
+    {
+        None,
+        SingleLine,
+        MultiLine
+    }
 
-    private bool isComment = false;
+    private int currentIdsNumber = -1;
+    private readonly StringBuilder currentString = new();
+    private readonly StringBuilder currentSpecialString = new();
+
+    private uint colorMask;
+    private CommentState commentState = CommentState.None;
     private bool skipWhitespace;
     private char lastSymbol = '\0';
-    private string currentSpecialString = string.Empty;
     private bool lastCharWasNewLine;
     private State state = State.Start;
     private SpecialCharacterState specialCharacterState = SpecialCharacterState.None;
+    private bool inTextNode;
 
     private static bool IsSpace(char c) => c is ' ' or '\t';
 
     public const string InfocardStart = "<?xml version=\"1.0\" encoding=\"UTF-16\"?><RDL><PUSH/>";
     public const string InfocardEnd = "<POP/></RDL>";
+
     public ResourceDll Compile(string text, string source, int resourceIndex = -1)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -98,22 +117,45 @@ public class FrcCompiler
                 continue;
             }
 
-            if (isComment)
+            if (commentState is not CommentState.None)
             {
-                if (ch is '\n')
+                if (commentState is CommentState.SingleLine)
                 {
-                    isComment = false;
+                    commentState = ch switch
+                    {
+                        '\n' => CommentState.None,
+                        '+' when lastSymbol is ';' => CommentState.MultiLine,
+                        _ => commentState
+                    };
+                }
+                else if (lastSymbol is ';' && ch is '-')
+                {
+                    commentState = CommentState.None;
                 }
 
+                lastSymbol = ch;
                 continue;
             }
 
             if (ch is ';')
             {
-                isComment = true;
+                commentState = CommentState.SingleLine;
 
                 // Remove any spaces that were before the comment
-                currentString = currentString.TrimEnd();
+                var index = currentString.Length - 1;
+                for (; index >= 0; index--)
+                {
+                    if (!char.IsWhiteSpace(currentString[index]))
+                    {
+                        break;
+                    }
+                }
+
+                if (index < currentString.Length - 1)
+                {
+                    currentString.Length = index + 1;
+                }
+
                 continue;
             }
 
@@ -132,10 +174,14 @@ public class FrcCompiler
                 {
                     // We are changing the state, lets finish what we were doing with the previous state
                     case State.String:
-                        res.Strings[currentIdsNumber & 0xFFFF] = currentString;
+                        res.Strings[currentIdsNumber & 0xFFFF] = currentString.ToString();
                         break;
                     case State.Info:
-                        res.Infocards[currentIdsNumber & 0xFFFF] = InfocardStart + currentString + InfocardEnd;
+                        res.Infocards[currentIdsNumber & 0xFFFF] = InfocardStart + currentString +
+                                                                   (inTextNode ? "</TEXT>" : "") + InfocardEnd;
+                        break;
+                    case State.InfoRaw:
+                        res.Infocards[currentIdsNumber & 0xFFFF] = currentString.ToString();
                         break;
                     case State.StringIds:
                     case State.InfoIds:
@@ -156,10 +202,11 @@ public class FrcCompiler
                         $"Unexpected character '{ch}'. Expected S, H/I")
                 };
 
-                currentString = string.Empty;
+                currentString.Clear();
                 currentIdsNumber = -1;
                 lastSymbol = ch;
                 lastCharWasNewLine = false;
+                inTextNode = false;
                 continue;
             }
 
@@ -171,6 +218,13 @@ public class FrcCompiler
                 }
 
                 state = state is State.StringIds ? State.String : State.Info;
+            }
+
+            // If tilde is passed as the first character, don't supply RDL structure
+            if (state is State.Info && ch is '~' && currentString.Length is 0)
+            {
+                state = State.InfoRaw;
+                continue;
             }
 
             if (ch is '\n')
@@ -192,7 +246,14 @@ public class FrcCompiler
             {
                 if (currentString.Length is not 0)
                 {
-                    currentString += state is State.String ? "\n" : "<PARA/>";
+                    if (state is State.Info)
+                    {
+                        AppendXmlElement("<PARA/>");
+                    }
+                    else
+                    {
+                        currentString.Append('\n');
+                    }
                 }
 
                 lastCharWasNewLine = false;
@@ -200,10 +261,10 @@ public class FrcCompiler
 
             switch (lastSymbol)
             {
-                case '\\' when ch is ' ':
+                case '\\' when ch is ' ' && specialCharacterState is SpecialCharacterState.None:
                     if (currentString.Length is 0)
                     {
-                        currentString += ch;
+                        AppendText(ch);
                     }
 
                     lastSymbol = '\0';
@@ -213,16 +274,17 @@ public class FrcCompiler
                     {
                         if (ch is not '\\' and not '\n')
                         {
-                            currentString += ch;
+                            AppendText(ch);
                         }
 
                         lastSymbol = ch;
                     }
+
                     break;
                 default:
                     if (ch is not '\\' and not '\n')
                     {
-                        currentString += ch;
+                        AppendText(ch);
                     }
 
                     lastSymbol = ch;
@@ -240,10 +302,14 @@ public class FrcCompiler
         switch (state)
         {
             case State.String:
-                res.Strings[currentIdsNumber & 0xFFFF] = currentString;
+                res.Strings[currentIdsNumber & 0xFFFF] = currentString.ToString();
                 break;
             case State.Info:
-                res.Infocards[currentIdsNumber & 0xFFFF] = InfocardStart + currentString + InfocardEnd;
+                res.Infocards[currentIdsNumber & 0xFFFF] =
+                    InfocardStart + currentString + (inTextNode ? "</TEXT>" : "") + InfocardEnd;
+                break;
+            case State.InfoRaw:
+                res.Infocards[currentIdsNumber & 0xFFFF] = currentString.ToString();
                 break;
             case State.Start:
                 break;
@@ -260,59 +326,74 @@ public class FrcCompiler
             {
                 switch (ch)
                 {
+                    case '\\' when state is State.Info:
+                        AppendText('\\');
+                        break;
                     case '\\':
-                        currentString += '\\';
+                        currentString.Append('\\');
                         break;
-                    case 'b':
-                        currentString += """<TRA bold="true"/>""";
+                    case 'b' when state is State.Info:
+                        AppendXmlElement("""<TRA bold="true"/>""");
                         break;
-                    case 'B':
-                        currentString += """<TRA bold="false"/>""";
+                    case 'B' when state is State.Info:
+                        AppendXmlElement("""<TRA bold="false"/>""");
                         break;
-                    case 'c':
+                    case 'c' when state is State.Info:
                         specialCharacterState = SpecialCharacterState.Color;
+                        colorMask = 0xFFFFFF;
                         return false;
-                    case 'C':
-                        currentString += """<TRA color="default"/>""";
+                    case 'C' when state is State.Info:
+                        AppendXmlElement("""<TRA color="default"/>""");
                         break;
-                    case 'f':
+                    case 'f' when state is State.Info:
                         specialCharacterState = SpecialCharacterState.FontNumber;
                         return false;
-                    case 'F':
-                        currentString += """<TRA font="default"/>""";
+                    case 'F' when state is State.Info:
+                        AppendXmlElement("""<TRA font="default"/>""");
                         break;
-                    case 'h':
+                    case 'h' when state is State.Info:
                         specialCharacterState = SpecialCharacterState.Pos;
                         return false;
-                    case 'i':
-                        currentString += """<TRA italic="true"/>""";
+                    case 'i' when state is State.Info:
+                        AppendXmlElement("""<TRA italic="true"/>""");
                         break;
-                    case 'I':
-                        currentString += """<TRA italic="false"/>""";
+                    case 'I' when state is State.Info:
+                        AppendXmlElement("""<TRA italic="false"/>""");
                         break;
-                    case 'l':
-                        currentString += """<JUST loc="l"/>""";
+                    case 'l' when state is State.Info:
+                        AppendXmlElement("""<JUST loc="l"/>""");
                         break;
-                    case 'm':
-                        currentString += """<JUST loc="c"/>""";
+                    case 'm' when state is State.Info:
+                        AppendXmlElement("""<JUST loc="c"/>""");
                         break;
                     case 'n':
-                        currentString += state is State.Info ? "<PARA/>" : "\n";
+                        if (state is State.Info)
+                        {
+                            AppendXmlElement("<PARA/>");
+                        }
+                        else
+                        {
+                            AppendText('\n');
+                        }
                         break;
-                    case 'r':
-                        currentString += """<JUST loc="r"/>""";
+                    case 'r' when state is State.Info:
+                        AppendXmlElement("""<JUST loc="r"/>""");
                         break;
-                    case 'u':
-                        currentString += """<TRA underline="true"/>""";
+                    case 'u' when state is State.Info:
+                        AppendXmlElement("""<TRA underline="true"/>""");
                         break;
-                    case 'U':
-                        currentString += """<TRA underline="false"/>""";
+                    case 'U' when state is State.Info:
+                        AppendXmlElement("""<TRA underline="false"/>""");
                         break;
                     case 'x':
                         specialCharacterState = SpecialCharacterState.Unicode;
                         return false;
                     case '.':
                         break;
+                    case '<':
+                        specialCharacterState = SpecialCharacterState.Raw;
+                        currentSpecialString.Append('<');
+                        return false;
                     default:
                     {
                         throw new CompileErrorException(source, reader.Column, reader.Line,
@@ -329,27 +410,56 @@ public class FrcCompiler
             {
                 case SpecialCharacterState.Color:
                 {
-                    currentSpecialString += ch;
-
-                    if (Enum.TryParse<AvailableColour>(currentSpecialString, out var color))
+                    if (currentSpecialString.Length is 0 && ch is 'd' or 'h' or 'l')
                     {
-                        if (color == AvailableColour.r)
+                        colorMask = ch switch
                         {
-                            color = AvailableColour.Red;
+                            'd' => 0x404040,
+                            'h' => 0x808080,
+                            'l' => 0xC0C0C0,
+                            _ => 0
+                        };
+                        return false;
+                    }
+
+                    currentSpecialString.Append(ch);
+
+                    if (Enum.TryParse<AvailableColor>(currentSpecialString.ToString(), out var color))
+                    {
+                        uint? singleCharColor = color switch
+                        {
+                            AvailableColor.z => 0x000000,
+                            AvailableColor.r => 0xFF0000,
+                            AvailableColor.g => 0x00FF00,
+                            AvailableColor.b => 0x0000FF,
+                            AvailableColor.c => 0x00FFFF,
+                            AvailableColor.m => 0xFF00FF,
+                            AvailableColor.y => 0xFFFF00,
+                            AvailableColor.w => 0xFFFFFF,
+                            _ => null
+                        };
+
+                        if (singleCharColor is not null)
+                        {
+                            var newCol = singleCharColor.Value & colorMask;
+                            AppendXmlElement($"""<TRA color="#{newCol:X6}"/>""");
+                            break;
                         }
 
-                        currentString += $"""<TRA color="{color.ToString().ToLowerInvariant()}"/>""";
+                        AppendXmlElement($"""<TRA color="{color.ToString().ToLowerInvariant()}"/>""");
                         break;
                     }
-                    if (currentSpecialString.Length == 6 && currentSpecialString.All(char.IsAsciiHexDigit))
+
+                    if (currentSpecialString.Length == 6 && currentSpecialString.ToString().All(char.IsAsciiHexDigit))
                     {
-                        currentString += $"""<TRA color="#{currentSpecialString.ToUpper()}"/>""";
+                        AppendXmlElement($"""<TRA color="#{currentSpecialString.ToString().ToUpper()}"/>""");
                         break;
                     }
+
                     if (currentSpecialString.Length > 7 || ch is ' ')
                     {
                         throw new CompileErrorException(source, reader.Column, reader.Line,
-                            $"Provided colour was not a valid colour string.\nProvided String: {currentSpecialString}");
+                            $"Provided color was not a valid color string.\nProvided String: {currentSpecialString}");
                     }
 
                     return false;
@@ -357,13 +467,14 @@ public class FrcCompiler
                 case SpecialCharacterState.FontNumber:
                     if (ch is not ' ')
                     {
-                        currentSpecialString += ch;
+                        currentSpecialString.Append(ch);
                         return false;
                     }
 
-                    if (int.TryParse(currentSpecialString, out var fontNumber) && fontNumber is > 0 and < 100)
+                    if (int.TryParse(currentSpecialString.ToString(), out var fontNumber) &&
+                        fontNumber is > 0 and < 100)
                     {
-                        currentString += $"""<TRA font="{fontNumber}"/>""";
+                        AppendXmlElement($"""<TRA font="{fontNumber}"/>""");
                     }
                     else
                     {
@@ -375,13 +486,13 @@ public class FrcCompiler
                 case SpecialCharacterState.Pos:
                     if (ch is not ' ')
                     {
-                        currentSpecialString += ch;
+                        currentSpecialString.Append(ch);
                         return false;
                     }
 
-                    if (int.TryParse(currentSpecialString, out var pos) && pos is > 0 and < 1000)
+                    if (int.TryParse(currentSpecialString.ToString(), out var pos) && pos is > 0 and < 1000)
                     {
-                        currentString += $"""<POS h="{pos}" relH="true"/>""";
+                        AppendXmlElement($"""<POS h="{pos}" relH="true"/>""");
                     }
                     else
                     {
@@ -393,7 +504,7 @@ public class FrcCompiler
                 case SpecialCharacterState.Unicode:
                     if (currentSpecialString.Length is not 4 && ch is not ' ')
                     {
-                        currentSpecialString += ch;
+                        currentSpecialString.Append(ch);
                         return false;
                     }
 
@@ -403,19 +514,41 @@ public class FrcCompiler
                             $"Provided unicode string was not four characters.");
                     }
 
-                    if (!currentSpecialString.All(char.IsAsciiHexDigit))
+                    if (!currentSpecialString.ToString().All(char.IsAsciiHexDigit))
                     {
                         throw new CompileErrorException(source, reader.Column, reader.Line,
                             $"Provided unicode was not a valid hex string.");
                     }
 
-                    var hex = Convert.ToInt32(currentSpecialString, 16);
-                    currentString += char.ConvertFromUtf32(hex);
+                    var hex = Convert.ToInt32(currentSpecialString.ToString(), 16);
+
+                    if (state is State.Info)
+                    {
+                        foreach (var c in char.ConvertFromUtf32(hex))
+                        {
+                            AppendText(c);
+                        }
+                    }
+                    else
+                    {
+                        currentString.Append(char.ConvertFromUtf32(hex));
+                    }
+
                     reprintCharacter = true;
+                    break;
+                case SpecialCharacterState.Raw:
+                    if (ch is not '>')
+                    {
+                        currentSpecialString.Append(ch);
+                        return false;
+                    }
+
+                    currentSpecialString.Append(ch);
+                    AppendXmlElement(currentSpecialString.ToString());
                     break;
             }
 
-            currentSpecialString = string.Empty;
+            currentSpecialString.Clear();
             specialCharacterState = SpecialCharacterState.None;
             lastSymbol = ch;
             return reprintCharacter;
@@ -431,7 +564,7 @@ public class FrcCompiler
             // Set the IDS number and start reading text
             if (char.IsNumber(ch))
             {
-                currentString += ch.ToString();
+                currentString.Append(ch.ToString());
                 lastSymbol = ch;
                 return false;
             }
@@ -442,19 +575,20 @@ public class FrcCompiler
                     $"Unexpected character '{ch}'. Expected number or whitespace.");
             }
 
-            currentIdsNumber = int.Parse(currentString);
+            currentIdsNumber = int.Parse(currentString.ToString());
 
-            if(resourceIndex is not -1)
+            if (resourceIndex is not -1)
             {
                 var min = resourceIndex * 65536;
                 var max = min + 65535;
                 if (currentIdsNumber < min || currentIdsNumber > max)
                 {
-                    throw new CompileErrorException(source, reader.Column, reader.Line, $"{currentIdsNumber} is out of range ({min}, {max})");
+                    throw new CompileErrorException(source, reader.Column, reader.Line,
+                        $"{currentIdsNumber} is out of range ({min}, {max})");
                 }
             }
 
-            currentString = "";
+            currentString.Clear();
 
             return true;
         }
@@ -477,5 +611,49 @@ public class FrcCompiler
             return (character != -1);
 
         }
+    }
+
+    private void AppendText(char text)
+    {
+        if (state is not State.Info)
+        {
+            currentString.Append(text);
+            return;
+        }
+
+        if (!inTextNode)
+        {
+            inTextNode = true;
+            currentString.Append("<TEXT>");
+        }
+
+        currentString.Append(EscapeInnerXml(text));
+    }
+
+    private void AppendXmlElement(string node)
+    {
+        if (inTextNode)
+        {
+            inTextNode = false;
+            currentString.Append("</TEXT>");
+        }
+
+        currentString.Append(node);
+    }
+
+    private string EscapeInnerXml(char str)
+    {
+        if (state is not State.Info)
+        {
+            return str.ToString();
+        }
+
+        return str switch
+        {
+            '<' => "&lt;",
+            '>' => "&gt;",
+            '&' => "&amp;",
+            _ => str.ToString()
+        };
     }
 }
