@@ -394,6 +394,24 @@ public class FrcCompiler
                         specialCharacterState = SpecialCharacterState.Raw;
                         currentSpecialString.Append('<');
                         return false;
+                    case '1':
+                        AppendText('\u2081');
+                        break;
+                    case '2':
+                        AppendText('\u2082');
+                        break;
+                    case '3':
+                        AppendText('\u2083');
+                        break;
+                    case '0':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        AppendText((char)(ch - '0' + '\u2070'));
+                        break;
                     default:
                     {
                         throw new CompileErrorException(source, reader.Column, reader.Line,

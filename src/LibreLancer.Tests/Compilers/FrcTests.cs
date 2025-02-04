@@ -172,6 +172,8 @@ public class FrcTests
         { @"I 1 \cdw", "<TRA color=\"#404040\"/>" },
         { """I 1 \<TRA bold="true"/>""", "<TRA bold=\"true\"/>" },
         { @"I 1 <>&", "<TEXT>&lt;&gt;&amp;</TEXT>" },
+        { @"I 1 \1", "<TEXT>\u2081</TEXT>" },
+        { @"I 1 \9", "<TEXT>\u2079</TEXT>" },
     };
 
     private string WrapInfocard(string infocard) => $"{FrcCompiler.InfocardStart}{infocard}{FrcCompiler.InfocardEnd}";
