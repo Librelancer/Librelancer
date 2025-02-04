@@ -46,6 +46,7 @@ public class FrcCompiler
     private int currentIdsNumber = -1;
     private string currentString = string.Empty;
 
+    private bool isComment = false;
     private bool skipWhitespace;
     private char lastSymbol = '\0';
     private string currentSpecialString = string.Empty;
@@ -73,8 +74,9 @@ public class FrcCompiler
         {
             'S' => State.StringIds,
             'H' or 'I' => State.InfoIds,
+            ';' => State.Start,
             _ => throw new CompileErrorException(source, reader.Column, reader.Line,
-                $"Unexpected character '{ch}'. Expected S, H/I")
+                $"Unexpected character '{ch}'. Expected S, H/I (or a comment ;)")
         };
 
         while (reader.Current() != -1)
@@ -93,6 +95,25 @@ public class FrcCompiler
             ch = (char)reader.Current();
             if (ch == '\r')
             {
+                continue;
+            }
+
+            if (isComment)
+            {
+                if (ch is '\n')
+                {
+                    isComment = false;
+                }
+
+                continue;
+            }
+
+            if (ch is ';')
+            {
+                isComment = true;
+
+                // Remove any spaces that were before the comment
+                currentString = currentString.TrimEnd();
                 continue;
             }
 
@@ -223,6 +244,8 @@ public class FrcCompiler
                 break;
             case State.Info:
                 res.Infocards[currentIdsNumber & 0xFFFF] = InfocardStart + currentString + InfocardEnd;
+                break;
+            case State.Start:
                 break;
             default:
                 throw new CompileErrorException(source, reader.Column, reader.Line,

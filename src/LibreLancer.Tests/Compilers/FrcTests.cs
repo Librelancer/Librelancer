@@ -119,6 +119,26 @@ public class FrcTests
         Assert.Throws<CompileErrorException>(() => { _ = compiler.Compile($"I 131071 EEE", "TEST", 0); });
     }
 
+    [Fact]
+    public void LeadingCommentsShouldBeIgnored()
+    {
+        FrcCompiler compiler = new FrcCompiler();
+        const string input = @"; S 1 Some Text\nS 2 Some Text";
+        var resourceDll = compiler.Compile(input, "TEST");
+
+        Assert.DoesNotContain(resourceDll.Strings, x => x.Key == 1);
+    }
+
+    [Fact]
+    public void TrailingCommentsShouldBeIgnored()
+    {
+        FrcCompiler compiler = new FrcCompiler();
+        const string input = @"S 1 Some Text ; Comment";
+        var resourceDll = compiler.Compile(input, "TEST");
+
+        Assert.Contains(resourceDll.Strings, x => x.Value == "Some Text");
+    }
+
     public static TheoryData<string, string> ValidInfocardFrcStrings { get; } = new()
     {
         { @"I 1 \b", "<TRA bold=\"true\"/>" },
