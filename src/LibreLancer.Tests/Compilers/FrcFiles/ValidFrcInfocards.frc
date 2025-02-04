@@ -1,0 +1,12 @@
+H 1
+    \bBold \BNot Bold
+I 2 MultiLine
+    String
+
+I 3 Two\nLines
+I 4 One \
+    Line
+I 5 \ Spacing \.
+I 6
+    Separate Line
+I 7 \x201CRead My Quote\x201D
