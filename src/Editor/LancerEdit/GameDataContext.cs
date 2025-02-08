@@ -51,6 +51,8 @@ public class GameDataContext : IDisposable
     // This ID is more compact, at the cost of complexity + some reduction in hash length
     private const string ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_;-+=,#$@%^!~`()[]{}";
 
+    public string ShortestPathRoot;
+
     static string CacheID(string path)
     {
         var data = SHA256.HashData(Encoding.UTF8.GetBytes(path.ToUpper()));
@@ -131,6 +133,7 @@ public class GameDataContext : IDisposable
                 char[] splits = ['\\', '/'];
                 var uniSplit = GameData.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
                 UniverseVfsFolder = $"{string.Join('\\', uniSplit.Take(uniSplit.Length - 1))}\\";
+                ShortestPathRoot = GameData.Ini.Freelancer.DataPath + "Universe\\";
                 RefreshLists();
                 sw.Stop();
                 FLLog.Info("Game", $"Finished loading game data in {sw.Elapsed.TotalSeconds:0.000} seconds");

@@ -36,9 +36,7 @@ public class SystemEditorTab : GameContentTab
     //public fields
     public SystemEditData SystemData;
     public GameWorld World;
-    public bool ObjectsDirty = false;
     public StarSystem CurrentSystem;
-    public List<SystemObject> DeletedObjects = new();
     public GameDataContext Data;
     public SystemRenderer Renderer => renderer;
 
@@ -587,7 +585,6 @@ public class SystemEditorTab : GameContentTab
             if (create)
             {
                 d = new ObjectEditData(obj);
-                ObjectsDirty = true;
                 obj.AddComponent(d);
             }
         }
@@ -685,16 +682,6 @@ public class SystemEditorTab : GameContentTab
     {
         var ed = GetEditData(sel, false);
         var gc = sel.Content();
-        if (ImGuiExt.Button("Reset", ed != null && !ed.IsNewObject))
-        {
-            sel.Unregister(World.Physics);
-            World.RemoveObject(sel);
-            sel = World.NewObject(sel.SystemObject, Data.Resources, false);
-            ObjectsList.SelectedTransform = sel.LocalTransform.Matrix();
-            ObjectsList.SelectSingle(sel);
-            ObjectsList.SetObjects(World);
-        }
-        ImGui.SameLine();
         if (ImGui.Button("Get Ini"))
         {
             SystemObject obj;
@@ -714,7 +701,7 @@ public class SystemEditorTab : GameContentTab
         if (ImGui.Button($"{Icons.Edit}##nickname"))
         {
             Popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("Rename", n => World.GetObject(n) != null),
-                sel.Nickname, x => UndoBuffer.Commit(new ObjectSetNickname(sel, sel.Nickname, x, ObjectsList))));
+                sel.Nickname, x => UndoBuffer.Commit(new ObjectSetNickname(sel, ObjectsList, sel.Nickname, x))));
         }
 
         Controls.PropertyRow("Name", ed == null
@@ -724,7 +711,7 @@ public class SystemEditorTab : GameContentTab
         {
             var oldName = ed?.IdsName ?? sel.SystemObject.IdsName;
             Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts,
-                newIds => UndoBuffer.Commit(new ObjectSetIdsName(sel, oldName, newIds))));
+                newIds => UndoBuffer.Commit(new ObjectSetIdsName(sel, ObjectsList, oldName, newIds))));
         }
         //Infocard
         ImGui.TableNextRow();
@@ -738,7 +725,7 @@ public class SystemEditorTab : GameContentTab
             var oldIc = ed?.IdsInfo ?? sel.SystemObject.IdsInfo;
             Popups.OpenPopup(new InfocardSelection(oldIc, win, Data.Infocards, Data.Fonts, x =>
             {
-                UndoBuffer.Commit(new ObjectSetIdsInfo(sel, oldIc, x));
+                UndoBuffer.Commit(new ObjectSetIdsInfo(sel, ObjectsList, oldIc, x));
             }));
         }
         //Position
@@ -752,7 +739,7 @@ public class SystemEditorTab : GameContentTab
             {
                 if (kind == SetActionKind.Commit)
                 {
-                    UndoBuffer.Commit(new ObjectSetTransform(sel, oldTr, oldTr with { Position = value },
+                    UndoBuffer.Commit(new ObjectSetTransform(sel, ObjectsList, oldTr, oldTr with { Position = value },
                         ObjectsList));
                 }
                 else if (kind == SetActionKind.Revert)
@@ -775,7 +762,7 @@ public class SystemEditorTab : GameContentTab
                 var newOrient = MathHelper.QuatFromEulerDegrees(value);
                 if (kind == SetActionKind.Commit)
                 {
-                    UndoBuffer.Commit(new ObjectSetTransform(sel, oldTr, oldTr with { Orientation = newOrient },
+                    UndoBuffer.Commit(new ObjectSetTransform(sel, ObjectsList, oldTr, oldTr with { Orientation = newOrient },
                         ObjectsList));
                 }
                 else if (kind == SetActionKind.Revert)
@@ -830,18 +817,18 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow("Visit", VisitFlagEditor.FlagsString(gc.Visit));
         if (ImGui.Button($"{Icons.Edit}##visit"))
             Popups.OpenPopup(
-                new VisitFlagEditor(gc.Visit, x => UndoBuffer.Commit(new ObjectSetVisit(sel, gc.Visit, x))));
-        FactionRow("Reputation", gc.Reputation, x => UndoBuffer.Commit(new ObjectSetReputation(sel, gc.Reputation, x)));
+                new VisitFlagEditor(gc.Visit, x => UndoBuffer.Commit(new ObjectSetVisit(sel, ObjectsList, gc.Visit, x))));
+        FactionRow("Reputation", gc.Reputation, x => UndoBuffer.Commit(new ObjectSetReputation(sel, ObjectsList, gc.Reputation, x)));
         Controls.EndPropertyTable();
         if (!Controls.BeginPropertyTable("base and docking", true, false, true))
             return;
         BaseRow(
             "Base",
             gc.Base,
-            x => UndoBuffer.Commit(new ObjectSetBase(sel, gc.Base, x)),
+            x => UndoBuffer.Commit(new ObjectSetBase(sel, ObjectsList, gc.Base, x)),
             "This is the base entry used when linking infocards.\nDocking requires setting the dock action"
         );
-        DockRow(gc.Dock, gc.Archetype, x => UndoBuffer.Commit(new ObjectSetDock(sel, gc.Dock, x)));
+        DockRow(gc.Dock, gc.Archetype, x => UndoBuffer.Commit(new ObjectSetDock(sel, ObjectsList, gc.Dock, x)));
         Controls.EndPropertyTable();
 
         //Comment
@@ -855,7 +842,7 @@ public class SystemEditorTab : GameContentTab
         ImGui.TableNextColumn();
         if (ImGui.Button($"{Icons.Edit}##comment"))
             Popups.OpenPopup(new CommentPopup(gc.Comment,
-                x => UndoBuffer.Commit(new ObjectSetComment(sel, gc.Comment, x))));
+                x => UndoBuffer.Commit(new ObjectSetComment(sel, ObjectsList, gc.Comment, x))));
         Controls.EndPropertyTable();
     }
 
@@ -875,7 +862,6 @@ public class SystemEditorTab : GameContentTab
         UndoBuffer.Commit(obj);
         ObjectsList.SelectSingle(obj.Object);
         ObjectsList.ScrollToSelection();
-        ObjectsDirty = true;
     }
 
     public void RefreshObjects()
@@ -1024,20 +1010,20 @@ public class SystemEditorTab : GameContentTab
         if (curveName != null && light.Light.Kind != LightKind.PointAttenCurve)
         {
             UndoBuffer.Commit(EditorAggregateAction.Create([
-                new SysLightSetKind(light, light.Light.Kind, LightKind.PointAttenCurve),
-                new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation)
+                new SysLightSetKind(light, light.Light.Kind, LightKind.PointAttenCurve, LightsList),
+                new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation, LightsList)
             ]));
         }
         else if (curveName == null && light.Light.Kind == LightKind.PointAttenCurve)
         {
             UndoBuffer.Commit(EditorAggregateAction.Create([
-                new SysLightSetKind(light, light.Light.Kind, LightKind.Point),
-                new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation)
+                new SysLightSetKind(light, light.Light.Kind, LightKind.Point, LightsList),
+                new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation, LightsList)
             ]));
         }
         else
         {
-            UndoBuffer.Commit(new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation));
+            UndoBuffer.Commit(new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation, LightsList));
         }
     }
 
@@ -1046,13 +1032,13 @@ public class SystemEditorTab : GameContentTab
         if (light.Light.Kind == LightKind.PointAttenCurve) {
             UndoBuffer.Commit(EditorAggregateAction.Create(new EditorAction[]
             {
-                new SysLightSetKind(light, light.Light.Kind, newKind),
-                new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, null, new Vector3(1,0,0))
+                new SysLightSetKind(light, light.Light.Kind, newKind, LightsList),
+                new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, null, new Vector3(1,0,0), LightsList)
             }));
         }
         else
         {
-            UndoBuffer.Commit(new SysLightSetKind(light, light.Light.Kind, newKind));
+            UndoBuffer.Commit(new SysLightSetKind(light, light.Light.Kind, newKind, LightsList));
         }
     }
 
@@ -1101,7 +1087,7 @@ public class SystemEditorTab : GameContentTab
                 Popups.OpenPopup(new NameInputPopup(
                     NameInputConfig.Nickname("Rename", x => LightsList.HasLight(x)),
                     sel.Nickname,
-                    x => UndoBuffer.Commit(new SysLightSetNickname(sel, sel.Nickname, x))
+                    x => UndoBuffer.Commit(new SysLightSetNickname(sel, sel.Nickname, x, LightsList))
                 ));
             }
             var pos = sel.Light.Position;
@@ -1112,13 +1098,13 @@ public class SystemEditorTab : GameContentTab
                 Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
                 {
                     if (kind == SetActionKind.Commit)
-                        UndoBuffer.Commit(new SysLightSetPosition(sel, origPosition, value));
+                        UndoBuffer.Commit(new SysLightSetPosition(sel, origPosition, value, LightsList));
                     else
                         sel.Light.Position = value;
                 }));
             }
             ColorProperty("Color", new Color4(sel.Light.Color, 1), x =>
-                UndoBuffer.Commit(new SysLightSetColor(sel, sel.Light.Color, x.Rgb)));
+                UndoBuffer.Commit(new SysLightSetColor(sel, sel.Light.Color, x.Rgb, LightsList)));
             Controls.PropertyRow("Type", sel.Light.Kind == LightKind.Directional ? "Directional" : "Point");
             if (sel.Light.Kind == LightKind.Directional)
             {
@@ -1129,7 +1115,7 @@ public class SystemEditorTab : GameContentTab
             if (ImGui.Button($"{Icons.Edit}##range"))
             {
                 Popups.OpenPopup(new FloatPopup("Range", sel.Light.Range,
-                    (old, updated) => UndoBuffer.Commit(new SysLightSetRange(sel, old, updated)),
+                    (old, updated) => UndoBuffer.Commit(new SysLightSetRange(sel, old, updated, LightsList)),
                     v => sel.Light.Range = v, 1));
             }
             Vector3 atten3 = sel.Light.Attenuation;
@@ -1258,13 +1244,6 @@ public class SystemEditorTab : GameContentTab
 
     void SystemPanel()
     {
-        if (ImGuiExt.Button("Reset All", SystemData.IsDirty()))
-        {
-            SystemData = new SystemEditData(CurrentSystem);
-            ReloadStarspheres();
-        }
-
-        ImGui.Separator();
         if (!Controls.BeginPropertyTable("Props", true, false, true))
             return;
         Controls.PropertyRow("Name", Data.Infocards.GetStringResource(SystemData.IdsName));
@@ -1607,7 +1586,6 @@ public class SystemEditorTab : GameContentTab
                     manipulatingObjects = true;
                 }
 
-                ObjectsDirty = true;
                 //GetEditData(objectList.Selection[0]);
                 for (int i = 0; i < ObjectsList.Selection.Count; i++)
                 {
@@ -1621,7 +1599,7 @@ public class SystemEditorTab : GameContentTab
             if (!ImGuizmo.IsUsing() && manipulatingObjects)
             {
                 var actions = originalObjTransforms.Select(x => (EditorAction)new
-                    ObjectSetTransform(x.Object, x.Transform, x.Object.LocalTransform, ObjectsList)).ToArray();
+                    ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.LocalTransform, ObjectsList)).ToArray();
                 UndoBuffer.Push(EditorAggregateAction.Create(actions));
                 manipulatingObjects = false;
                 originalObjTransforms = new();
@@ -1660,7 +1638,7 @@ public class SystemEditorTab : GameContentTab
             if (!ImGuizmo.IsUsing() && manipulatingLight)
             {
                 UndoBuffer.Push(new SysLightSetPosition(LightsList.Selected, originalLightPos,
-                    LightsList.Selected.Light.Position));
+                    LightsList.Selected.Light.Position, LightsList));
                 manipulatingLight = false;
             }
 

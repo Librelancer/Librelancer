@@ -44,7 +44,7 @@ public static class ShortestPaths
         foreach (var c in connections)
         {
             c.System.ShortestPathsLegal = CalculateSystem(c, ConnectionKind.Legal);
-            c.System.ShortestPathsIllegal = CalculateSystem(c, ConnectionKind.Legal);
+            c.System.ShortestPathsIllegal = CalculateSystem(c, ConnectionKind.Illegal);
             c.System.ShortestPathsAny = CalculateSystem(c, ConnectionKind.Legal | ConnectionKind.Illegal);
         }
     }

@@ -139,7 +139,7 @@ public class EditMap2D
 
         if (dragCurrent == null && dragTarget != null)
         {
-            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, dragOriginalTransform, dragTarget.LocalTransform, tab.ObjectsList));
+            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform, dragTarget.LocalTransform, tab.ObjectsList));
             dragTarget = null;
         }
 
