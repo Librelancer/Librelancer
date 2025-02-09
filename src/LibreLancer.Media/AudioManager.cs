@@ -60,7 +60,8 @@ namespace LibreLancer.Media
                 catch
                 {
                 }
-
+                var backgroundUpdate = new Thread(AudioUpdateThread) { IsBackground = true };
+                backgroundUpdate.Start();
                 //Matches Freelancer (verified with dsoal)
                 Al.alDopplerFactor(0.1f);
 
@@ -90,44 +91,51 @@ namespace LibreLancer.Media
         static delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool> alcReopenDeviceSOFT;
         int defaultDeviceCounter = 0;
 
-        public Task UpdateAsync()
+        private AutoResetEvent updateSet = new AutoResetEvent(false);
+        void AudioUpdateThread()
         {
-            return Task.Run(() =>
+            while (true)
             {
-                if (running)
-                {
-                    if (tryRecoverAudio) {
-                        int connected = 1;
-                        Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
-                        if (connected == 0 || DeviceEvents.DefaultDeviceChange > defaultDeviceCounter)
-                        {
-                            defaultDeviceCounter = DeviceEvents.DefaultDeviceChange;
-                            alcReopenDeviceSOFT(dev, IntPtr.Zero, IntPtr.Zero);
-                        }
-                    }
-                    //Run actions
-                    Action toRun;
-                    while (actions.TryDequeue(out toRun)) toRun();
-                    //update SFX
-                    for (int i = sfxInstances.Count - 1; i >= 0; i--)
+                updateSet.WaitOne();
+                if (!running)
+                    break;
+                if (tryRecoverAudio) {
+                    int connected = 1;
+                    Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
+                    if (connected == 0 || DeviceEvents.DefaultDeviceChange > defaultDeviceCounter)
                     {
-                        var src = Instances[sfxInstances[i]].Source;
-                        var instance = Instances[sfxInstances[i]].Instance;
-                        if (src == uint.MaxValue) continue;
-                        int state;
-                        Al.alGetSourcei(src, Al.AL_SOURCE_STATE, out state);
-                        if (state == Al.AL_STOPPED)
-                        {
-                            Al.alSourcei(src, Al.AL_BUFFER, 0);
-                            freeSources.Enqueue(src);
-                            Instances[sfxInstances[i]].Source = uint.MaxValue;
-                            instance?.Stopped();
-                            sfxInstances.RemoveAt(i);
-                            i--;
-                        }
+                        defaultDeviceCounter = DeviceEvents.DefaultDeviceChange;
+                        alcReopenDeviceSOFT(dev, IntPtr.Zero, IntPtr.Zero);
                     }
                 }
-            });
+                //Run actions
+                Action toRun;
+                while (actions.TryDequeue(out toRun)) toRun();
+                //update SFX
+                for (int i = sfxInstances.Count - 1; i >= 0; i--)
+                {
+                    var src = Instances[sfxInstances[i]].Source;
+                    var instance = Instances[sfxInstances[i]].Instance;
+                    if (src == uint.MaxValue) continue;
+                    int state;
+                    Al.alGetSourcei(src, Al.AL_SOURCE_STATE, out state);
+                    if (state == Al.AL_STOPPED)
+                    {
+                        Al.alSourcei(src, Al.AL_BUFFER, 0);
+                        freeSources.Enqueue(src);
+                        Instances[sfxInstances[i]].Source = uint.MaxValue;
+                        instance?.Stopped();
+                        sfxInstances.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+            updateSet.Dispose();
+        }
+
+        public void UpdateAsync()
+        {
+            updateSet.Set();
         }
 
 		bool AllocateSource(out uint source, int priority)
@@ -315,8 +323,9 @@ namespace LibreLancer.Media
 
         public void Dispose()
 		{
+            running = false;
+            updateSet.Set();
             DeviceEvents.Deinit();
-			running = false;
             Music.Timer.Dispose();
             Music.Task.Wait();
             //Delete context

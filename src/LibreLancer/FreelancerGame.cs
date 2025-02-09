@@ -182,14 +182,12 @@ namespace LibreLancer
 			Screenshots.Stop();
 		}
 
-        private Task updateTask;
 		protected override void Update (double elapsed)
         {
-            updateTask?.Wait();
 			if (currentState != null)
 				currentState.Update (elapsed);
             Typewriter.Update(elapsed);
-            updateTask = Audio.UpdateAsync();
+            Audio.UpdateAsync();
         }
 
 		const double FPS_INTERVAL = 0.25;

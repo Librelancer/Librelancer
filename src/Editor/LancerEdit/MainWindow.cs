@@ -289,12 +289,11 @@ namespace LancerEdit
         private Task lastAudio = null;
 		protected override void Update(double elapsed)
         {
-            lastAudio?.Wait();
             if (!guiHelper.DoUpdate()) return;
 			foreach (var tab in TabControl.Tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
-            lastAudio = Audio.UpdateAsync();
+            Audio.UpdateAsync();
         }
         public string[] InitOpenFile;
         public void OpenFile(string f)
