@@ -20,6 +20,7 @@ namespace LibreLancer.ImUI
 
         public static Vector4 VTabInactive = RGBA(56, 56, 56, 255);
         public static Vector4 VTabActive = RGBA(95, 97, 98, 255);
+        public static Vector4 WorkspaceBackground = RGBA(34, 34, 34, 255);
 
         public static unsafe void Apply(float scale)
         {

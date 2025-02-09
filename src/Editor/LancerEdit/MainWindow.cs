@@ -552,7 +552,7 @@ namespace LancerEdit
 
             TimeStep = elapsed;
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
-			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearColor = Theme.WorkspaceBackground;
 			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);
             ImGui.PushFont(ImGuiHelper.Noto);
@@ -826,7 +826,9 @@ namespace LancerEdit
                               ImGuiWindowFlags.NoSavedSettings |
                               ImGuiWindowFlags.NoBringToFrontOnFocus |
                               ImGuiWindowFlags.NoMove |
-                              ImGuiWindowFlags.NoResize);
+                              ImGuiWindowFlags.NoResize |
+                              ImGuiWindowFlags.NoBackground |
+                              ImGuiWindowFlags.NoDecoration);
 
             TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();
