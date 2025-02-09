@@ -5,7 +5,7 @@
 
 using System;
 using System.IO;
-using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LibreLancer.Utf
@@ -26,92 +26,93 @@ namespace LibreLancer.Utf
             uint dataBlockLength = reader.ReadUInt32();
             var stringBlock = reader.ReadBytes((int)stringBlockLength);
             //Node block
-            var nodeBlock = reader.ReadBytes((int) nodeBlockLength);
-            var dataBlock = reader.ReadBytes((int) dataBlockLength);
+            var nodeBlock = reader.ReadBytes((int)nodeBlockLength);
+            var dataBlock = reader.ReadBytes((int)dataBlockLength);
             using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
             {
-                var root = Node.FromStreamV2(nodeReader, new StringBlock(stringBlock, true), dataBlock) as IntermediateNode;
+                var root =
+                    Node.FromStreamV2(nodeReader, new StringBlock(stringBlock, true), dataBlock) as IntermediateNode;
                 if (root == null)
                     throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
                 return root;
             }
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct UtfHeader
+        {
+            public int FormatVersion;
+            public int NodeBlockOffset;
+            public int NodeBlockSize;
+            public int Pad;
+            public int EntrySize;
+            public int StringBlockOffset;
+            public int StringBlockAllocated;
+            public int StringBlockSize;
+            public int DataBlockOffset;
+        }
+
         protected static IntermediateNode parseFile(string path, Stream stream)
         {
             byte[] nodeBlock;
             byte[] stringBlock;
             byte[] dataBlock;
 
-			using (BinaryReader reader = new BinaryReader(stream))
+            using var reader = new BinaryReader(stream);
+
+            Span<byte> buffer = stackalloc byte[TAG_LEN];
+            reader.Read(buffer);
+            string fileType = Encoding.ASCII.GetString(buffer);
+            if (buffer.SequenceEqual("XUTF"u8))
             {
-                byte[] buffer = new byte[TAG_LEN];
-                reader.Read(buffer, 0, TAG_LEN);
-                string fileType = Encoding.ASCII.GetString(buffer);
-                if (fileType == "XUTF")
-                {
-                    return ParseV2(path, reader);
-                }
-                if (fileType != FILE_TYPE)
-                    throw new FileFormatException(path, fileType, FILE_TYPE);
-
-                int formatVersion = reader.ReadInt32();
-                if (formatVersion != FILE_VERSION)
-                    throw new FileVersionException(path, fileType, formatVersion, FILE_VERSION);
-
-
-                int nodeBlockOffset = reader.ReadInt32();
-                if (nodeBlockOffset > reader.BaseStream.Length)
-                    throw new FileContentException(fileType, "The node block offset was out of range: " + nodeBlockOffset);
-
-                int nodeBlockSize = reader.ReadInt32();
-                if (nodeBlockOffset + nodeBlockSize > reader.BaseStream.Length)
-                    throw new FileContentException(fileType, "The node block size was out of range: " + nodeBlockSize);
-
-                //int zero = reader.ReadInt32();
-                //int headerSize = reader.ReadInt32();
-                reader.BaseStream.Seek(2 * sizeof(int), SeekOrigin.Current);
-
-                int stringBlockOffset = reader.ReadInt32();
-                if (stringBlockOffset > reader.BaseStream.Length)
-                    throw new FileContentException(fileType, "The string block offset was out of range: " + stringBlockOffset);
-
-                int stringBlockSize = reader.ReadInt32();
-                if (stringBlockOffset + stringBlockSize > reader.BaseStream.Length)
-                    throw new FileContentException(fileType, "The string block size was out of range: " + stringBlockSize);
-
-                //int unknown = reader.ReadInt32();
-                reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
-
-                int dataBlockOffset = reader.ReadInt32();
-                if (dataBlockOffset > reader.BaseStream.Length)
-                    throw new FileContentException(fileType, "The data block offset was out of range: " + dataBlockOffset);
-
-                nodeBlock = new byte[nodeBlockSize];
-                reader.BaseStream.Seek(nodeBlockOffset, SeekOrigin.Begin);
-                reader.Read(nodeBlock, 0, nodeBlockSize);
-
-                Array.Resize<byte>(ref buffer, stringBlockSize);
-                reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
-                reader.Read(buffer, 0, stringBlockSize);
-                stringBlock = buffer;
-
-                dataBlock = new byte[(int)(reader.BaseStream.Length - dataBlockOffset)];
-                reader.BaseStream.Seek(dataBlockOffset, SeekOrigin.Begin);
-                reader.Read(dataBlock, 0, dataBlock.Length);
+                return ParseV2(path, reader);
             }
 
-            IntermediateNode root = null;
+            if (!buffer.SequenceEqual("UTF "u8))
+                throw new FileFormatException(path, fileType, FILE_TYPE);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(nodeBlock)))
+            long fileLength = reader.BaseStream.Length; //This is a syscall, cache.
+
+            var header = reader.ReadStruct<UtfHeader>();
+
+            if (header.FormatVersion != FILE_VERSION)
+                throw new FileVersionException(path, fileType, header.FormatVersion, FILE_VERSION);
+
+            if (header.NodeBlockOffset + header.NodeBlockSize > fileLength)
+                throw new FileContentException(fileType,
+                    $"The node block was out of range ({header.NodeBlockOffset}, {header.NodeBlockSize})");
+
+            if (header.StringBlockOffset + header.StringBlockSize > fileLength)
+                throw new FileContentException(fileType,
+                    $"The string block was out of range ({header.StringBlockOffset}, {header.StringBlockSize})");
+
+            if (header.DataBlockOffset > fileLength)
+                throw new FileContentException(fileType,
+                    "The data block offset was out of range: " + header.DataBlockOffset);
+
+            nodeBlock = new byte[header.NodeBlockSize];
+            reader.BaseStream.Seek(header.NodeBlockOffset, SeekOrigin.Begin);
+            reader.Read(nodeBlock);
+
+            stringBlock = new byte[header.StringBlockSize];
+            reader.BaseStream.Seek(header.StringBlockOffset, SeekOrigin.Begin);
+            reader.Read(stringBlock);
+
+
+            dataBlock = new byte[(int)(fileLength - header.DataBlockOffset)];
+            reader.BaseStream.Seek(header.DataBlockOffset, SeekOrigin.Begin);
+            reader.Read(dataBlock);
+
+            IntermediateNode root;
+
+            using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
             {
-                root = Node.FromStream(reader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
+                root = Node.FromStream(nodeReader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
                 if (root == null)
                     throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
             }
 
             return root;
         }
-
-
     }
 }
