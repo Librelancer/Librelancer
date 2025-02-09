@@ -153,4 +153,8 @@ class NullRenderContext : IRenderContext
             return new Point(windowWidth, windowHeight);
         }
     }
+
+    public void QueryFences()
+    {
+    }
 }

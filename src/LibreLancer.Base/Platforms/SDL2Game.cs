@@ -312,6 +312,7 @@ namespace LibreLancer
             if (mythread != Thread.CurrentThread.ManagedThreadId) {
                 throw new InvalidOperationException();
             }
+            RenderContext.Backend.QueryFences();
             while (actions.TryDequeue(out Action work))
                 work();
         }
@@ -606,6 +607,7 @@ namespace LibreLancer
                     break;
                 while (actions.TryDequeue(out Action work))
                     work();
+                RenderContext.Backend.QueryFences();
                 totalTime = timer.Elapsed.TotalSeconds;
                 loop.OnUpdate(elapsed);
                 if (!running)

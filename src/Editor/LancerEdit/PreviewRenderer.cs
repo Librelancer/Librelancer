@@ -55,7 +55,7 @@ public class PreviewRenderer : IDisposable
 
     public Texture2D Render(Asteroid asteroid, int width, int height)
     {
-        var mdl = asteroid.ModelFile.LoadFile(resources);
+        var mdl = asteroid.ModelFile.LoadFile(resources, MeshLoadMode.GPU | MeshLoadMode.NoCollision);
         var radius = 10f;
         if (mdl.Drawable is IRigidModelFile rmf)
         {
@@ -104,7 +104,7 @@ public class PreviewRenderer : IDisposable
 
     public Texture2D Render(Archetype archetype, int width, int height)
     {
-        var mdl = archetype.ModelFile?.LoadFile(resources).Drawable;
+        var mdl = archetype.ModelFile?.LoadFile(resources, MeshLoadMode.GPU | MeshLoadMode.NoCollision).Drawable;
         var radius = 10f;
         if (mdl is IRigidModelFile rmf)
         {

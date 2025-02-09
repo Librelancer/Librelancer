@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace LibreLancer.Graphics.Backends.Null;
 
@@ -13,6 +14,8 @@ class NullTexture2D : NullTexture, ITexture2D
     public void SetFiltering(TextureFiltering filtering)
     {
     }
+
+    public Task<byte[]> GetDataAsync() => Task.FromResult<byte[]>([]);
 
     public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
     {

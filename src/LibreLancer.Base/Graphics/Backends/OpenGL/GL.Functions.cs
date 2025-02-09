@@ -133,9 +133,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static bool CheckStringSDL(bool checkGles = false)
         {
             if(SDL3.Supported)
-                GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL3.SDL_GL_GetProcAddress("glGetString");
+                GL._glGetString = (delegate*unmanaged<int, byte*>) SDL3.SDL_GL_GetProcAddress("glGetString");
             else
-                GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL2.SDL_GL_GetProcAddress("glGetString");
+                GL._glGetString = (delegate*unmanaged<int, byte*>) SDL2.SDL_GL_GetProcAddress("glGetString");
             var str = GL.GetString(GL.GL_VERSION);
             FLLog.Info("GL", "Version String: " + GL.GetString(GL.GL_VERSION));
             if (checkGles) return str.StartsWith("OpenGL ES 3");

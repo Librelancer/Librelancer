@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using LibreLancer.Graphics.Backends;
 using LibreLancer.Graphics.Backends.OpenGL;
 
@@ -26,6 +27,8 @@ namespace LibreLancer.Graphics
         public Texture2D(RenderContext context, int width, int height) : this(context, width, height, false, SurfaceFormat.Bgra8)
         {
         }
+
+        public Task<byte[]> GetDataAsync() => Backing.GetDataAsync();
 
         protected internal Texture2D()
         {

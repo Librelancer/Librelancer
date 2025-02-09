@@ -324,7 +324,7 @@ namespace LibreLancer
             {
                 throw new InvalidOperationException();
             }
-
+            RenderContext.Backend.QueryFences();
             while (actions.TryDequeue(out Action work))
                 work();
         }
@@ -626,6 +626,7 @@ namespace LibreLancer
                 //Do game things
                 if (!running)
                     break;
+                RenderContext.Backend.QueryFences();
                 while (actions.TryDequeue(out Action work))
                     work();
                 totalTime = timer.Elapsed.TotalSeconds;

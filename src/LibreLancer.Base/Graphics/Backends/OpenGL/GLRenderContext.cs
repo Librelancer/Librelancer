@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Graphics.Vertices;
 
@@ -141,6 +142,27 @@ class GLRenderContext : IRenderContext
         applied.ColorWrite = true;
         applied.DepthWrite = true;
         requested = applied;
+    }
+
+    private List<(IntPtr Fence, Action Callback)> Fences = new();
+
+    public void AddFence(IntPtr fence, Action callback) => Fences.Add((fence, callback));
+
+    public void QueryFences()
+    {
+        for (int i = 0; i < Fences.Count; i++)
+        {
+            var r = GL.ClientWaitSync(Fences[i].Fence, 0, 0);
+            if (r == GL.GL_CONDITION_SATISFIED ||
+                r == GL.GL_ALREADY_SIGNALED)
+            {
+                GL.DeleteSync(Fences[i].Fence);
+                var cb = Fences[i].Callback;
+                Fences.RemoveAt(i);
+                i--;
+                cb();
+            }
+        }
     }
 
     public void ApplyShader(IShader shader)

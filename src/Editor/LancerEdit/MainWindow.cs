@@ -285,13 +285,16 @@ namespace LancerEdit
 		{
 			toAdd.Add(tab);
 		}
+
+        private Task lastAudio = null;
 		protected override void Update(double elapsed)
         {
+            lastAudio?.Wait();
             if (!guiHelper.DoUpdate()) return;
 			foreach (var tab in TabControl.Tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
-            Audio.UpdateAsync().Wait();
+            lastAudio = Audio.UpdateAsync();
         }
         public string[] InitOpenFile;
         public void OpenFile(string f)

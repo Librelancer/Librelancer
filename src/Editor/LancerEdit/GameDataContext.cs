@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -71,15 +72,13 @@ public class GameDataContext : IDisposable
 
     T YieldAndWait<T>(Task<T> task)
     {
-        var awaiter = Task.Run(async () => await task);
-        while(!awaiter.IsCompleted)
+        do
         {
             win.Yield();
-            Thread.Sleep(0);
-        }
-        if (awaiter.Exception != null)
-            throw awaiter.Exception;
-        return awaiter.Result;
+        } while (!task.Wait(1));
+        if (task.Exception != null)
+            throw task.Exception;
+        return task.Result;
     }
 
     public void RefreshLists()
@@ -165,10 +164,11 @@ public class GameDataContext : IDisposable
 
     public float PreviewLoadPercent { get; private set; } = 0;
 
-    private const int MEMORY_BUDGET = 72 * 1024 * 1024; //72MiB
+    private const int MEMORY_BUDGET = 128 * 1024 * 1024; //128MiB
 
     private GameResourceManager rmBulk;
     private PreviewRenderer prevBulk;
+    private Stopwatch sw;
     public bool IterateRenderArchetypePreviews(int max = 120)
     {
         if (allArchetypes == null)
@@ -178,6 +178,7 @@ public class GameDataContext : IDisposable
             renderIndex = 0;
             PreviewLoadPercent = 0;
             drawTasks = new List<Task<int>>();
+            sw = Stopwatch.StartNew();
             FLLog.Debug("ArchetypePreviews", "Render start");
             return true;
         }
@@ -210,6 +211,8 @@ public class GameDataContext : IDisposable
                 rmBulk.Dispose();
                 prevBulk = null;
                 rmBulk = null;
+                sw.Stop();
+                FLLog.Info("ArchetypePreviews", $"Time: {sw.Elapsed.TotalSeconds} seconds");
                 return false;
             }
 
@@ -279,30 +282,33 @@ public class GameDataContext : IDisposable
         {
             var cachePath = Path.Combine(cacheDir, cacheId + ".dds.zstd");
             int w = tx.Width, h = tx.Height;
-            var dat = new Bgra8[tx.Width * tx.Height];
-            tx.GetData(dat);
-            tx.Dispose();
-            return Task.Run(async () =>
+            TaskCompletionSource<int> compSource = new TaskCompletionSource<int>();
+            tx.GetDataAsync().ContinueWith(t =>
             {
-                TaskCompletionSource<int> compSource = new TaskCompletionSource<int>();
-                var dxt1 = TextureImport.CreateDDS(dat, w, h, DDSFormat.DXT1, MipmapMethod.Lanczos4, true);
-                win.QueueUIThread(() =>
+                tx.Dispose();
+                Task.Run(() =>
                 {
-                    using var ms = new MemoryStream(dxt1);
-                    tx = (Texture2D)DDS.FromStream(win.RenderContext, ms);
-                    var arch = (tx, ImGuiHelper.RegisterTexture(tx));
-                    renderedArchetypes[cacheId] = arch;
-                    compSource.SetResult(arch.Item2);
+                    var dxt1 = TextureImport.CreateDDS( MemoryMarshal.Cast<byte, Bgra8>(t.Result), w, h, DDSFormat.DXT1, MipmapMethod.Lanczos4, true);
+                    win.QueueUIThread(() =>
+                    {
+                        using var ms = new MemoryStream(dxt1);
+                        tx = (Texture2D)DDS.FromStream(win.RenderContext, ms);
+                        var arch = (tx, ImGuiHelper.RegisterTexture(tx));
+                        renderedArchetypes[cacheId] = arch;
+                        compSource.SetResult(arch.Item2);
+                    });
+                    using var zstd = new ZstdSharp.CompressionStream(File.Create(cachePath), 3, 0, false);
+                    zstd.Write(dxt1);
                 });
-                await using var zstd = new ZstdSharp.CompressionStream(File.Create(cachePath), 3, 0, false);
-                zstd.Write(dxt1);
-                return await compSource.Task;
             });
+            return compSource.Task;
         }
-
-        var arch = (tx, ImGuiHelper.RegisterTexture(tx));
-        renderedArchetypes[cacheId] = arch;
-        return Task.FromResult(arch.Item2);
+        else
+        {
+            var arch = (tx, ImGuiHelper.RegisterTexture(tx));
+            renderedArchetypes[cacheId] = arch;
+            return Task.FromResult(arch.Item2);
+        }
     }
 
     public int GetArchetypePreview(Archetype archetype) =>

@@ -55,4 +55,6 @@ interface IRenderContext
     void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen);
 
     Point GetDrawableSize(IntPtr sdlWindow);
+
+    void QueryFences();
 }
