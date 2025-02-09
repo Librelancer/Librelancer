@@ -340,7 +340,6 @@ namespace LancerEdit
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
-        private RenderTarget2D lastFrame;
         private bool loadingSpinnerActive = false;
         bool openLoading = false;
 
@@ -542,10 +541,7 @@ namespace LancerEdit
                 var m = guiHelper.DoRender(elapsed);
                 if (m == ImGuiProcessing.Sleep)
                 {
-                    if(Width !=0 && Height != 0 && lastFrame != null)
-                        lastFrame.BlitToScreen();
-                    WaitForEvent(); //Yield like a regular GUI program
-                    return;
+                    WaitForEvent(2000); //Yield like a regular GUI program
                 }
                 else if (m == ImGuiProcessing.Slow)
                 {
@@ -943,23 +939,8 @@ namespace LancerEdit
                 }
             }
 
-            if (Width != 0 && Height != 0)
-            {
-                if (lastFrame == null ||
-                    lastFrame.Width != Width ||
-                    lastFrame.Height != Height)
-                {
-                    if (lastFrame != null) lastFrame.Dispose();
-                    lastFrame = new RenderTarget2D(RenderContext, Width, Height);
-                }
+            guiHelper.Render(RenderContext);
 
-                RenderContext.RenderTarget = lastFrame;
-                RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-                RenderContext.ClearAll();
-                guiHelper.Render(RenderContext);
-                RenderContext.RenderTarget = null;
-                lastFrame.BlitToScreen();
-            }
             foreach (var tab in toAdd)
             {
                 TabControl.Tabs.Add(tab);
