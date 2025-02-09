@@ -33,7 +33,8 @@ class GLRenderContext : IRenderContext
     static IntPtr CreateGLContext(IntPtr sdlWin)
     {
         IntPtr glcontext = IntPtr.Zero;
-        if (Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER") == "GLES" ||
+
+        if ("GLES".Equals(Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER"), StringComparison.OrdinalIgnoreCase) ||
             !CreateContextCore(sdlWin, out glcontext))
         {
             if (!CreateContextES(sdlWin, out glcontext))
@@ -250,13 +251,19 @@ class GLRenderContext : IRenderContext
         }
     }
 
+    private int lastHeight = 768;
+
     public void ApplyViewport(ref GraphicsState requested)
     {
-        if (requested.Viewport != applied.Viewport)
+        var convVp = requested.Viewport;
+        if (requested.RenderTarget == null)
         {
-            GL.Viewport(requested.Viewport.X, requested.Viewport.Y, requested.Viewport.Width,
-                requested.Viewport.Height);
-            applied.Viewport = requested.Viewport;
+            convVp.Y = lastHeight - convVp.Y - convVp.Height;
+        }
+        if (convVp != applied.Viewport)
+        {
+            GL.Viewport(convVp.X, convVp.Y, convVp.Width, convVp.Height);
+            applied.Viewport = convVp;
             applied.ScissorRect = new Rectangle();
         }
     }
@@ -295,14 +302,17 @@ class GLRenderContext : IRenderContext
 
         if (requested.ScissorEnabled)
         {
-            var cr = requested.ScissorRect;
-            applied.ScissorRect = cr;
-            if (cr.Height < 1) cr.Height = 1;
-            if (cr.Width < 1) cr.Width = 1;
-            var conv = new Rectangle(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
-            if (conv != appliedConvertedScissor) {
-                GL.Scissor(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
-                appliedConvertedScissor = conv;
+            var convVp = requested.ScissorRect;
+            if (requested.RenderTarget == null)
+            {
+                convVp.Y = lastHeight - convVp.Y - convVp.Height;
+            }
+            if (convVp != applied.ScissorRect)
+            {
+                if (convVp.Width < 1) convVp.Width = 1;
+                if (convVp.Height < 1) convVp.Height = 1;
+                GL.Scissor(convVp.X, convVp.Y, convVp.Width, convVp.Height);
+                applied.ScissorRect = convVp;
             }
         }
     }
@@ -348,6 +358,11 @@ class GLRenderContext : IRenderContext
     public void ClearAll()
     {
         GL.Clear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+    }
+
+    public void ClearColorOnly()
+    {
+        GL.Clear(GL.GL_COLOR_BUFFER_BIT);
     }
 
     public void ClearDepth()
@@ -403,10 +418,12 @@ class GLRenderContext : IRenderContext
             SDL3.SDL_GL_MakeCurrent(sdlWindow, glContext);
         else
             SDL2.SDL_GL_MakeCurrent(sdlWindow, glContext);
+        lastHeight = GetDrawableSize(sdlWindow).Y;
     }
 
     public void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen)
     {
+        lastHeight = GetDrawableSize(sdlWindow).Y;
         GLSwap.SwapWindow(sdlWindow, vsync, fullscreen);
         if (GL.FrameHadErrors()) //If there was a GL error, track it down.
             GL.ErrorChecking = true;

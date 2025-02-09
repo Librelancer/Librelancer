@@ -75,6 +75,8 @@ public class SystemEditorTab : GameContentTab
         viewport.Background = new Vector4(0.12f, 0.12f, 0.12f, 1f);
         viewport.ResetControls();
         viewport.DoubleClicked += ViewportOnDoubleClicked;
+        viewport.Draw3D = DrawGL;
+        viewport.ClearArea = false;
         camera = new LookAtCamera()
         {
             GameFOV = true,
@@ -160,13 +162,8 @@ public class SystemEditorTab : GameContentTab
             {
                 renderer.SystemLighting.Lights.Add(new() { Active = LightsList.Visible[i], Light = LightsList.Sources[i].Light });
             }
-            if (viewport.Begin())
-            {
-                win.RenderContext.Wireframe = drawWireframe;
-                renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
-                viewport.End();
-                win.RenderContext.Wireframe = false;
-            }
+
+            viewport.Draw();
 
             if (ManipulateObjects() || ManipulateZone() || ManipulateLight())
             {
@@ -183,11 +180,18 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
+    void DrawGL(int width, int height)
+    {
+        win.RenderContext.Wireframe = drawWireframe;
+        renderer.Draw(width, height);
+        win.RenderContext.Wireframe = false;
+    }
+
     private void ViewportOnDoubleClicked(Vector2 pos)
     {
         if (layout.ActiveLeftTab == 1)
         {
-            var sel = World.GetSelection(camera, null, pos.X, pos.Y, viewport.RenderWidth, viewport.RenderHeight);
+            var sel = World.GetSelection(camera, null, pos.X, pos.Y, viewport.ControlWidth, viewport.ControlHeight);
             if (ShouldAddSecondary())
             {
                 if (sel != null && !ObjectsList.Selection.Contains(sel))
@@ -203,7 +207,7 @@ public class SystemEditorTab : GameContentTab
         {
             var cameraProjection = camera.Projection;
             var cameraView = camera.View;
-            var vp = new Vector2(viewport.RenderWidth, viewport.RenderHeight);
+            var vp = new Vector2(viewport.ControlWidth, viewport.ControlHeight);
             var start = Vector3Ex.UnProject(new Vector3(pos.X, pos.Y, 0f), cameraProjection, cameraView, vp);
             var end = Vector3Ex.UnProject(new Vector3(pos.X, pos.Y, 1f), cameraProjection, cameraView, vp);
             var dir = (end - start).Normalized() * 50000;
@@ -1354,7 +1358,7 @@ public class SystemEditorTab : GameContentTab
                   Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
         var dir = Vector3.Transform(-Vector3.UnitZ, rot);
         var to = viewport.CameraOffset + (dir * 10);
-        camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
+        camera.Update(viewport.ControlWidth, viewport.ControlHeight, viewport.CameraOffset, to, rot);
         World.Update(elapsed);
     }
 

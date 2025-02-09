@@ -23,6 +23,7 @@ interface IRenderContext
     void SetBlendMode(ushort mode);
 
     void ClearAll();
+    void ClearColorOnly();
     void ClearDepth();
     void MemoryBarrier();
 

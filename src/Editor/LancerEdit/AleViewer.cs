@@ -59,7 +59,8 @@ namespace LancerEdit
             aleViewport.DefaultOffset =
             aleViewport.CameraOffset = new Vector3(0, 0, 200);
             aleViewport.ModelScale = 25;
-            aleViewport.ResetControls();;
+            aleViewport.ResetControls();
+            aleViewport.Draw3D = DrawGL;
             buffer = main.Commands;
             polyline = main.Polyline;
             debug = main.LineRenderer;
@@ -102,13 +103,7 @@ namespace LancerEdit
             ImGui.Separator();
             //Viewport
             aleViewport.MarginH = ImGui.GetFrameHeightWithSpacing() * 1.25f;
-            //Generate render target
-            if (aleViewport.Begin())
-            {
-                DrawGL(aleViewport.RenderWidth, aleViewport.RenderHeight);
-                //Display + Camera controls
-                aleViewport.End();
-            }
+            aleViewport.Draw();
             //Action Bar
             Controls.DropdownButton("Camera Mode", ref cameraMode, camModes);
             aleViewport.Mode = (CameraModes) camModes[cameraMode].Tag;

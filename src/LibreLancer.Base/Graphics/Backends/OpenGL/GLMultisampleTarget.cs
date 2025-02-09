@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 
 namespace LibreLancer.Graphics.Backends.OpenGL
 {
@@ -14,6 +15,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		public int Height { get; private set; }
 
         private GLRenderContext context;
+
+        private uint resolveTexID;
+        private uint resolveFboID;
 
 		public GLMultisampleTarget(GLRenderContext context, int width, int height, int samples)
         {
@@ -44,10 +48,58 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, fbo);
 			if(!GL.GLES) GL.Enable(GL.GL_MULTISAMPLE);
 		}
-		public void BlitToScreen()
+
+        void CreateResolveFbo()
+        {
+            if (resolveFboID == 0)
+            {
+                resolveFboID = GL.GenFramebuffer();
+                GL.BindFramebuffer(GL.GL_FRAMEBUFFER, resolveFboID);
+                resolveTexID = GL.GenTexture();
+                GLBind.Trash();
+                GLBind.BindTextureForModify(GL.GL_TEXTURE_2D, resolveTexID);
+                GL.TexImage2D(GL.GL_TEXTURE_2D, 0,
+                    GL.GL_RGBA,
+                    Width, Height, 0,
+                    GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, IntPtr.Zero);
+                GL.FramebufferTexture2D (GL.GL_FRAMEBUFFER,
+                    GL.GL_COLOR_ATTACHMENT0,
+                    GL.GL_TEXTURE_2D, resolveTexID, 0);
+                GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+            }
+        }
+
+		public void BlitToScreen(Point offset)
 		{
-            if(!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
             RenderContext.Instance.Renderer2D.Flush();
+            RenderContext.Instance.ApplyViewport();
+            RenderContext.Instance.ApplyScissor();
+            if(!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
+            int Y = RenderContext.Instance.DrawableSize.Y;
+
+            // GLES does not allow an msaa buffer to be blitted with an offset
+            if (offset != default && GL.GLES)
+            {
+                context.PrepareBlit(false);
+                //create 2d rt
+                CreateResolveFbo();
+                //unbind everything
+                GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+                //read from our fbo
+                GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, fbo);
+                //draw to the rt
+                GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, resolveFboID);
+                GL.DrawBuffer(GL.GL_COLOR_ATTACHMENT0);
+                //resolve msaa
+                GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+                //blit resolved to screen
+                GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, resolveFboID);
+                GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
+                GL.DrawBuffer(GL.GL_BACK);
+                GL.BlitFramebuffer(0, Height, Width, 0, offset.X, Y - offset.Y, offset.X + Width, Y - (offset.Y + Height), GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+                GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
+                return;
+            }
             context.PrepareBlit(false);
             //Unbind everything
 			GL.BindFramebuffer(GL.GL_FRAMEBUFFER, 0);
@@ -57,7 +109,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 			GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
 			GL.DrawBuffer(GL.GL_BACK);
 			//blit
-			GL.BlitFramebuffer(0, 0, Width, Height, 0, 0, Width, Height, GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+			GL.BlitFramebuffer(0, Height, Width, 0, offset.X, Y - offset.Y, offset.X + Width, Y - (offset.Y + Height), GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
             GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
         }
 
@@ -86,6 +138,11 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             GL.DeleteFramebuffer(fbo);
 			GL.DeleteRenderbuffer(depthID);
 			GL.DeleteTexture(texID);
+            if (resolveTexID != 0)
+            {
+                GL.DeleteFramebuffer(resolveFboID);
+                GL.DeleteTexture(resolveTexID);
+            }
         }
 	}
 }

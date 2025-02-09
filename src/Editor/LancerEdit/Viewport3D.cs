@@ -12,12 +12,14 @@ using LibreLancer.Graphics;
 
 namespace LancerEdit
 {
+
+    public delegate void ViewportDraw(int width, int height);
+
     public class Viewport3D : IDisposable
     {
         RenderContext rstate;
-        int rw = -1, rh = -1;
+        int rtWidth = -1, rtHeight = -1;
         int mrw = -1, mrh = -1, msamples = 0;
-        int rid;
         public RenderTarget2D RenderTarget;
         MultisampleTarget msaa;
         public Vector3 DefaultOffset = new Vector3(0, 0, 200);
@@ -34,9 +36,7 @@ namespace LancerEdit
         public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         public CameraModes Mode = CameraModes.Arcball;
         public bool EnableMSAA = true;
-
-        public int RenderWidth { get { return rw; }}
-        public int RenderHeight { get { return rh; }}
+        public bool ClearArea = true;
 
         MainWindow mw;
         public Viewport3D(MainWindow mw)
@@ -55,86 +55,85 @@ namespace LancerEdit
             ModelRotation = CameraRotation = Vector2.Zero;
         }
         Color4 cc;
-        public bool Begin(int fixWidth = -1, int fixHeight = -1)
+
+        public ViewportDraw Draw3D;
+
+        public int ControlWidth { get; private set; } = 100;
+        public int ControlHeight { get; private set; } = 100;
+
+        public void DrawRenderTarget(int fixWidth, int fixHeight)
         {
-            if (mw.Width <= 0 || mw.Height <= 0)
-                return false;
-            ImGuiHelper.AnimatingElement();
-            var avail = ImGui.GetContentRegionAvail();
-            var renderWidth = Math.Max(MinWidth, (int)(avail.X - MarginW));
-            var renderHeight = Math.Max(MinHeight, (int)(avail.Y - MarginH));
-            if (fixWidth > 0) renderWidth = fixWidth;
-            if (fixHeight > 0) renderHeight = fixHeight;
             //Generate render target
-            if (rh != renderHeight || rw != renderWidth)
+            if (rtHeight != fixHeight || rtWidth != fixWidth)
             {
                 if (RenderTarget != null)
                 {
                     ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
                     RenderTarget.Dispose();
                 }
-                RenderTarget = new RenderTarget2D(rstate, renderWidth, renderHeight);
-                rid = ImGuiHelper.RegisterTexture(RenderTarget.Texture);
-                rw = renderWidth;
-                rh = renderHeight;
+                RenderTarget = new RenderTarget2D(rstate, fixWidth, fixHeight);
+                rtWidth = fixWidth;
+                rtHeight = fixHeight;
             }
-            if (EnableMSAA && mw.Config.MSAA != 0 && ((mrw != rw) || (mrh != rh) || (msamples != mw.Config.MSAA)))
+
+            bool useMSAA = CheckMSAA(fixWidth, fixHeight);
+            rstate.RenderTarget = useMSAA ? msaa : RenderTarget;
+            rstate.PushViewport(0, 0, fixWidth, fixHeight);
+            rstate.Cull = true;
+            rstate.DepthEnabled = true;
+            rstate.ClearColor = Background;
+            rstate.ClearAll();
+            Draw3D(fixWidth, fixHeight);
+            rstate.PopViewport();
+            rstate.RenderTarget = null;
+            if (useMSAA)
+                msaa.BlitToRenderTarget(RenderTarget);
+            rstate.ClearColor = cc;
+            rstate.DepthEnabled = false;
+            rstate.BlendMode = BlendMode.Normal;
+            rstate.Cull = false;
+        }
+
+        bool CheckMSAA(int width, int height)
+        {
+            bool msaaEnabled = EnableMSAA && mw.Config.MSAA != 0;
+            if (msaaEnabled && ((mrw != width) || (mrh != height) || (msamples != mw.Config.MSAA)))
             {
                 if (msaa != null) msaa.Dispose();
-                msaa = new MultisampleTarget(rstate, rw, rh, mw.Config.MSAA);
-                mrw = rw;
-                mrh = rh;
-
-            } else if(msaa != null)
+                msaa = new MultisampleTarget(rstate, width, height, mw.Config.MSAA);
+                mrw = width;
+                mrh = height;
+            }
+            if(!msaaEnabled && msaa != null)
             {
                 msaa.Dispose();
                 mrw = mrh = -1;
                 msamples = 0;
                 msaa = null;
             }
-            cc = rstate.ClearColor;
-            if (EnableMSAA && mw.Config.MSAA != 0)
-                rstate.RenderTarget = msaa;
-            else
-                rstate.RenderTarget = RenderTarget;
-            rstate.PushViewport(0, 0, rw, rh);
-            rstate.Cull = true;
-            rstate.DepthEnabled = true;
-            rstate.ClearColor = Background;
-            rstate.ClearAll();
-            return true;
+            return msaaEnabled;
         }
 
-        private bool inputsEnabled = true;
-        public void SetInputsEnabled(bool enabled)
+        public void Draw(int fixWidth = -1, int fixHeight = -1, bool view = true)
         {
-            inputsEnabled = enabled;
-        }
-
-        public event Action<Vector2> DoubleClicked;
-        public void End(bool view = true)
-        {
-            rstate.PopViewport();
-            rstate.RenderTarget = null;
-            if (EnableMSAA && mw.Config.MSAA != 0)
-                msaa.BlitToRenderTarget(RenderTarget);
-            rstate.ClearColor = cc;
-            rstate.DepthEnabled = false;
-            rstate.BlendMode = BlendMode.Normal;
-            rstate.Cull = false;
-            MouseInFrame = false;
-            //Viewport Control
+            if (mw.Width <= 0 || mw.Height <= 0)
+                return;
+            ImGuiHelper.AnimatingElement();
+            var avail = ImGui.GetContentRegionAvail();
+            var renderWidth = Math.Max(MinWidth, (int)(avail.X - MarginW));
+            var renderHeight = Math.Max(MinHeight, (int)(avail.Y - MarginH));
+            if (fixWidth > 0) renderWidth = fixWidth;
+            if (fixHeight > 0) renderHeight = fixHeight;
+            ControlWidth = renderWidth;
+            ControlHeight = renderHeight;
             if (view)
             {
                 var cpos = ImGui.GetCursorScreenPos();
                 MousePos = ImGui.GetMousePos() - cpos;
-                ImGuizmo.SetRect(cpos.X, cpos.Y, rw, rh);
+                ImGuizmo.SetRect(cpos.X, cpos.Y, ControlWidth, ControlHeight);
                 ImGuizmo.SetDrawlist();
-                ImGuiHelper.DisableAlpha();
-                ImGui.GetWindowDrawList().AddImage((IntPtr)rid, cpos, cpos + new Vector2(rw,rh),
-                    new Vector2(0,1), new Vector2(1,0), 0xFFFFFFFF);
-                ImGuiHelper.EnableAlpha();
-                ImGui.GetWindowDrawList().AddRect(cpos, cpos + new Vector2(rw,rh), ImGui.GetColorU32(ImGuiCol.Border));
+                ImGui.GetWindowDrawList().AddCallback(IntPtr.MaxValue, ImGuiHelper.Callback(_ => DrawCallback((int)cpos.X, (int)cpos.Y, renderWidth, renderHeight)));
+                ImGui.GetWindowDrawList().AddRect(cpos, cpos + new Vector2(renderWidth, renderHeight), ImGui.GetColorU32(ImGuiCol.Border));
                 bool click = false;
                 //Taken from imgui_internal.h
                 const int MouseButtonLeft = 1 << 0;
@@ -143,9 +142,9 @@ namespace LancerEdit
                 const ImGuiButtonFlags Flags =
                     (ImGuiButtonFlags) (MouseButtonLeft | PressedOnClickRelease | PressedOnDoubleClick);
                 if (inputsEnabled)
-                    click = ImGui.InvisibleButton("##button", new Vector2(rw, rh), Flags);
+                    click = ImGui.InvisibleButton("##button", new Vector2(ControlWidth, ControlHeight), Flags);
                 else
-                    ImGui.Dummy(new Vector2(rw, rh));
+                    ImGui.Dummy(new Vector2(renderWidth, renderHeight));
                 if (Mode == CameraModes.Cockpit) ModelRotation = Vector2.Zero;
                 if (Mode == CameraModes.Arcball) ArcballUpdate();
                 if (click && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
@@ -172,6 +171,59 @@ namespace LancerEdit
 
             }
         }
+
+        void DrawCallback(int x, int y, int w, int h)
+        {
+            cc = rstate.ClearColor;
+            var useMsaa = CheckMSAA(w, h);
+            if (useMsaa)
+            {
+                rstate.RenderTarget = msaa;
+                rstate.PushViewport(0, 0, w, h);
+                rstate.PushScissor(new Rectangle(0, 0, w, h), false);
+            }
+            else
+            {
+                rstate.PushViewport(x, y, w, h);
+                rstate.PushScissor(new Rectangle(x, y, w, h), false);
+            }
+            rstate.Cull = true;
+            rstate.DepthEnabled = true;
+            rstate.ClearColor = Background;
+            if (useMsaa)
+            {
+                rstate.ClearAll();
+            }
+            else if (ClearArea)
+            {
+                rstate.ClearColorOnly();
+            }
+            Draw3D(w, h);
+            rstate.PopViewport();
+            rstate.ClearColor = cc;
+            rstate.DepthEnabled = false;
+            rstate.BlendMode = BlendMode.Normal;
+            rstate.Cull = false;
+            if (useMsaa)
+            {
+                rstate.PopScissor();
+                rstate.RenderTarget = null;
+                msaa.BlitToScreen(new Point(x,y));
+            }
+            else
+            {
+                rstate.PopScissor();
+            }
+
+        }
+
+        private bool inputsEnabled = true;
+        public void SetInputsEnabled(bool enabled)
+        {
+            inputsEnabled = enabled;
+        }
+
+        public event Action<Vector2> DoubleClicked;
 
         struct SavedControls
         {
@@ -403,10 +455,7 @@ namespace LancerEdit
         public void Dispose()
         {
             msaa?.Dispose();
-            if(RenderTarget != null) {
-                ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
-                RenderTarget.Dispose();
-            }
+            RenderTarget?.Dispose();
         }
     }
 }

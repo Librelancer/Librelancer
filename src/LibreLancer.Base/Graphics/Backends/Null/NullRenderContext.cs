@@ -54,6 +54,10 @@ class NullRenderContext : IRenderContext
     {
     }
 
+    public void ClearColorOnly()
+    {
+    }
+
     public void ClearDepth()
     {
     }

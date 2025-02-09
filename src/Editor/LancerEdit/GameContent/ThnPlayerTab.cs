@@ -39,6 +39,7 @@ public class ThnPlayerTab : GameContentTab
         this.win = mw;
         viewport = new Viewport3D(mw);
         viewport.EnableMSAA = false;
+        viewport.Draw3D = DrawGL;
     }
 
     void Open(params string[] files)
@@ -78,6 +79,16 @@ public class ThnPlayerTab : GameContentTab
 
     private int selectedDfmMode = 0;
 
+    private double drawElapsed;
+
+    void DrawGL(int w, int h)
+    {
+        cutscene.Update(drawElapsed);
+        cutscene.UpdateViewport(new Rectangle(0, 0, w, h), (float)w / h);
+        cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
+        cutscene.Draw(drawElapsed, w, h);
+    }
+
     public override void Draw(double elapsed)
     {
         if(ImGui.Button("Open"))
@@ -99,17 +110,11 @@ public class ThnPlayerTab : GameContentTab
         #if DEBUG
         Controls.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
         #endif
-        if (viewport.Begin())
+        if (cutscene != null)
         {
-            if (cutscene != null)
-            {
-                ImGuiHelper.AnimatingElement();
-                cutscene.Update(elapsed);
-                cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight), (float)viewport.RenderWidth / viewport.RenderHeight);
-                cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
-                cutscene.Draw(elapsed, viewport.RenderWidth, viewport.RenderHeight);
-            }
-            viewport.End();
+            drawElapsed = elapsed;
+            ImGuiHelper.AnimatingElement();
+            viewport.Draw();
         }
         bool popupopen = true;
         if (ImGui.BeginPopupModal("Open Multiple##" + Unique, ref popupopen, ImGuiWindowFlags.AlwaysAutoResize))

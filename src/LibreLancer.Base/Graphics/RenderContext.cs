@@ -43,7 +43,12 @@ namespace LibreLancer.Graphics
 
         public bool SupportsWireframe => impl.SupportsWireframe;
 
-		public bool Wireframe
+        private Point _drawableSize;
+        public Point DrawableSize => _drawableSize;
+
+        internal void SetDrawableSize(Point sz) => _drawableSize = sz;
+
+        public bool Wireframe
         {
             get => requested.Wireframe;
             set => requested.Wireframe = value;
@@ -322,6 +327,12 @@ namespace LibreLancer.Graphics
 			Apply();
 			impl.ClearAll();
             frameNumber++;
+        }
+
+        public void ClearColorOnly()
+        {
+            Apply();
+            impl.ClearColorOnly();
         }
 
 		public void ClearDepth()

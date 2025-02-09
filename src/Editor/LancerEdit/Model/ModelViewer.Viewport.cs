@@ -43,10 +43,13 @@ namespace LancerEdit
         {
             modelViewport = new Viewport3D(_window);
             modelViewport.MarginH = modelViewport.MarginW = 0;
+            modelViewport.Draw3D = MainVpDraw;
 
             ResetCamera();
             previewViewport = new Viewport3D(_window);
+            previewViewport.Draw3D = ImageDraw;
             imageViewport = new Viewport3D(_window);
+            imageViewport.Draw3D = ImageDraw;
             gizmoScale = 5;
             if (vmsModel != null)
             {
@@ -239,17 +242,15 @@ namespace LancerEdit
             rstate.Cull = true;
         }
 
+        private ICamera lastCamera = null;
+
         void DoViewport()
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
             modelViewport.MarginH = 1.25f * ImGui.GetFrameHeightWithSpacing();
-            ICamera camera = null;
-            if (modelViewport.Begin())
-            {
-                camera = DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
-                modelViewport.End();
-            }
-            if (camera != null && ManipulateHardpoint(camera))
+            modelViewport.Draw();
+
+            if (lastCamera != null && ManipulateHardpoint(lastCamera))
             {
                 modelViewport.SetInputsEnabled(false);
             }
@@ -260,20 +261,26 @@ namespace LancerEdit
             rotation = modelViewport.ModelRotation;
         }
 
+        void MainVpDraw(int w, int h)
+        {
+            lastCamera = DrawGL(w,h, true, doBackground);
+        }
+
+        void ImageDraw(int w, int h)
+        {
+            DrawGL(w, h, false, renderBackground);
+        }
+
         void DoPreview(int width, int height)
         {
             previewViewport.Background = renderBackground ? _window.Config.Background : Color4.Black;
-            previewViewport.Begin(width, height);
-            DrawGL(width, height, false, renderBackground);
-            previewViewport.End();
+            previewViewport.Draw(width, height);
         }
 
         unsafe void RenderImage(string output)
         {
             imageViewport.Background = renderBackground ? _window.Config.Background : Color4.TransparentBlack;
-            imageViewport.Begin(imageWidth, imageHeight);
-            DrawGL(imageWidth, imageHeight, false, renderBackground);
-            imageViewport.End(false);
+            imageViewport.DrawRenderTarget(imageWidth, imageHeight);
             var data = new Bgra8[imageWidth * imageHeight];
             imageViewport.RenderTarget.Texture.GetData(data);
             using var of = File.Create(output);

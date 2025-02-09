@@ -45,6 +45,7 @@ namespace LancerEdit
             colorTextEdit.SetMode(ColorTextEditMode.Lua);
             thornViewport = new Viewport3D(window);
             thornViewport.EnableMSAA = false;
+            thornViewport.Draw3D = DrawGL;
             SaveStrategy = new ThornSaveStrategy(this);
 
             Reload();
@@ -146,6 +147,16 @@ namespace LancerEdit
             }
         }
 
+        void DrawGL(int w, int h)
+        {
+            if (cutscene != null)
+            {
+                ImGuiHelper.AnimatingElement();
+                cutscene.UpdateViewport(new Rectangle(0, 0, w,h), (float)w / h);
+                cutscene.Draw(ImGui.GetIO().DeltaTime,w,h);
+            }
+        }
+
         private void DrawThornViewer()
         {
             if (ImGui.Button("Refresh"))
@@ -156,16 +167,7 @@ namespace LancerEdit
             int rpanelHeight = Math.Min((int)(rpanelWidth * (3.0 / 4.0)), 4096);
             ImGui.Spacing();
             thornViewport.Background = cutscene == null ? window.Config.Background : Color4.Black;
-            if (thornViewport.Begin(rpanelWidth, rpanelHeight))
-            {
-                if (cutscene != null)
-                {
-                    ImGuiHelper.AnimatingElement();
-                    cutscene.UpdateViewport(new Rectangle(0, 0, thornViewport.RenderWidth, thornViewport.RenderHeight), (float)thornViewport.RenderWidth / thornViewport.RenderHeight);
-                    cutscene.Draw(ImGui.GetIO().DeltaTime, thornViewport.RenderWidth, thornViewport.RenderHeight);
-                }
-                thornViewport.End();
-            }
+            thornViewport.Draw(rpanelWidth, rpanelHeight);
         }
 
         private void DrawThornEditor()

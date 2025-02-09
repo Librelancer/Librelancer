@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer.Graphics.Backends;
-using LibreLancer.Graphics.Backends.OpenGL;
 
 namespace LibreLancer.Graphics
 {
@@ -20,7 +19,7 @@ namespace LibreLancer.Graphics
             Target = impl;
         }
 
-        public void BlitToScreen() => impl.BlitToScreen();
+        public void BlitToScreen(Point offset) => impl.BlitToScreen(offset);
 
         public void BlitToRenderTarget(RenderTarget2D rTarget) =>
             impl.BlitToRenderTarget(rTarget.Backing);

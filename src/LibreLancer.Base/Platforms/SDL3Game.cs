@@ -439,6 +439,7 @@ namespace LibreLancer
             var drawable = RenderContext.Backend.GetDrawableSize(sdlWin);
             width = drawable.X;
             height = drawable.Y;
+            RenderContext.SetDrawableSize(drawable);
             var scaleW = (float)width / windowWidth;
             var scaleH = (float)height / windowHeight;
             if (Platform.RunningOS != OS.Windows) DpiScale = scaleH;
@@ -515,6 +516,7 @@ namespace LibreLancer
                 //Get Size
                 SDL3.SDL_GetWindowSize(sdlWin, out windowWidth, out windowHeight);
                 var dw = RenderContext.Backend.GetDrawableSize(sdlWin);
+                RenderContext.SetDrawableSize(dw);
                 width = dw.X;
                 height = dw.Y;
                 scaleW = (float)width / windowWidth;
