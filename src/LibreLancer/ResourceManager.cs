@@ -561,7 +561,7 @@ namespace LibreLancer
                     drawables.Add(filename, null);
                     return null;
                 }
-                if (drawable is not DfmFile)
+                if (drawable is not DfmFile && (loadMode & MeshLoadMode.NoCollision) != MeshLoadMode.NoCollision)
                 {
                     var surpath = Path.ChangeExtension(filename, "sur");
                     if (VFS.FileExists(surpath))
@@ -610,6 +610,17 @@ namespace LibreLancer
             else
             {
                 res.Drawable.ClearResources();
+                if (!res.Collision.Valid &&
+                    (loadMode & MeshLoadMode.NoCollision) != MeshLoadMode.NoCollision &&
+                    res.Drawable is not DfmFile)
+                {
+                    var surpath = Path.ChangeExtension(filename, "sur");
+                    if (VFS.FileExists(surpath))
+                    {
+                        res.Collision = new CollisionMeshHandle()
+                            { Sur = GetSur(surpath), FileId = ConvexCollection.UseFile(surpath) };
+                    }
+                }
             }
 			return res;
 		}

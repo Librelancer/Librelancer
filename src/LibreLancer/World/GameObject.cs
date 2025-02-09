@@ -296,14 +296,17 @@ namespace LibreLancer.World
         public void InitWithArchetype(Archetype arch, Archs.Sun sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
+            var flags = MeshLoadMode.GPU;
+            if (!phys)
+                flags |= MeshLoadMode.NoCollision;
             if (sun != null)
             {
-                InitWithModel(arch.ModelFile.LoadFile(res), res, false, true);
+                InitWithModel(arch.ModelFile.LoadFile(res, flags), res, false, true);
                 RenderComponent = new SunRenderer(sun);
             }
             else
             {
-                InitWithModel(arch.ModelFile.LoadFile(res), res, draw, phys);
+                InitWithModel(arch.ModelFile.LoadFile(res, flags), res, draw, phys);
             }
         }
 
