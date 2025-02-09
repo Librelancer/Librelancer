@@ -43,16 +43,8 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling IllumDetailMapMaterial");
             variants = new ShaderVariables[2];
-            if (device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430))
-            {
-                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(421741, 1545), sourceBundle.Substring(466341, 7342));
-                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(436962, 4472), sourceBundle.Substring(476628, 3286));
-            }
-            else
-            {
-                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(416171, 1204), sourceBundle.Substring(461604, 4737));
-                variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(430257, 4131), sourceBundle.Substring(473683, 2945));
-            }
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(180273, 1204), sourceBundle.Substring(200231, 4737));
+            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(185843, 4131), sourceBundle.Substring(204968, 2945));
         }
     }
 }

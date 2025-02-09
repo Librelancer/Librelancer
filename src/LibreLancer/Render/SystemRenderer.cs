@@ -62,14 +62,6 @@ namespace LibreLancer.Render
 
         public int ZoneVersion = 0;
 
-		//Fancy Forward+ stuff (GL 4.3 up)
-		List<PointLight> pointLights = new List<PointLight>();
-		static ComputeShader pointLightCull;
-		ShaderStorageBuffer pointLightBuffer;
-		ShaderStorageBuffer transparentLightBuffer;
-		//ShaderStorageBuffer opaqueLightBuffer;
-		const int MAX_POINTS = 1024;
-
 		public Game Game
 		{
 			get
@@ -117,12 +109,6 @@ namespace LibreLancer.Render
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new LineRenderer(rstate);
             Beams = new BeamsBuffer(resources, rstate);
-            if (rstate.HasFeature(GraphicsFeature.Features430))
-            {
-                pointLightBuffer = new ShaderStorageBuffer(rstate, MAX_POINTS * (16 * sizeof(float)));
-                if (pointLightCull == null)
-                    pointLightCull = new ComputeShader(rstate, Resources.LoadString("LibreLancer.Shaders.lightingcull.glcompute"));
-            }
 		}
 
         public void LoadZones(IList<AsteroidField> asteroids, IList<Nebula> nebulae)
@@ -227,23 +213,6 @@ namespace LibreLancer.Render
 			return null;
 		}
 
-		//ExtraLights: Render a point light with DX attenuation
-		//TODO: Allow for cubic / IGraph attenuation
-		public void PointLightDX(Vector3 position, float range, Color4 color, Vector3 attenuation)
-		{
-			if (!rstate.HasFeature(GraphicsFeature.Features430) || !ExtraLights)
-				return;
-			var lt = new PointLight();
-			lt.Position = new Vector4(position, 1);
-			lt.ColorRange = new Vector4(color.R, color.G, color.B, range);
-			lt.Attenuation = new Vector4(attenuation, 0);
-			lock(pointLights) {
-				if (pointLights.Count >= 1023)
-					return;
-				pointLights.Add(lt); //TODO: Alternative to Locking this? Try ConcurrentBag<T> again maybe.
-			}
-		}
-
 		MultisampleTarget msaa;
 		int _mwidth = -1, _mheight = -1;
         public CommandBuffer Commands;
@@ -307,14 +276,6 @@ namespace LibreLancer.Render
 			if (nr != null)
 				transitioned = nr.FogTransitioned() && DrawNebulae;
 			rstate.DepthEnabled = true;
-			//Add Nebula light
-			if (rstate.HasFeature(GraphicsFeature.Features430) && ExtraLights)
-			{
-				//TODO: Re-add [LightSource] to the compute shader, it shouldn't regress.
-				PointLight p2;
-				if (nr != null && nr.DoLightning(out p2))
-					pointLights.Add(p2);
-			}
             Commands.BonesMax = Commands.BonesOffset = 0;
             Commands.BonesBuffer.BeginStreaming();
             QuadBuffer.BeginUpload();
@@ -352,78 +313,13 @@ namespace LibreLancer.Render
 			LightEquipRenderer.FrameStart();
 			//Clear depth buffer for game objects
 			billboards.Begin(camera, Commands);
-			//JThreads.Instance.FinishExecute(); //Make sure visibility calculations are complete
-			if (rstate.HasFeature(GraphicsFeature.Features430) && ExtraLights)
-			{
-				//Forward+ heck yeah!
-				//(WORKED AROUND) Lights being culled too aggressively - Pittsburgh planet light, intro_planet_chunks
-				//Z test doesn't seem to be working (commented out in shader)
-                //May need optimisation
-				int plc = pointLights.Count;
-				using (var h = pointLightBuffer.Map()) {
-					var ptr = (PointLight*)h.Handle;
-					for (int i = 0; i < pointLights.Count; i++)
-					{
-						ptr[i] = pointLights[i];
-					}
-				}
-				pointLights.Clear();
-				//Setup Visible Buffers
-				var tilesW = (Game.Width + (Game.Width % 16)) / 16;
-				var tilesH = (Game.Height + (Game.Height % 16)) / 16;
-				SystemLighting.NumberOfTilesX = tilesW;
-				if (_twidth != tilesW || _theight != tilesH)
-				{
-					_twidth = tilesW;
-					_theight = tilesH;
-					//if (opaqueLightBuffer != null) opaqueLightBuffer.Dispose();
-					if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
-					//opaqueLightBuffer = new ShaderStorageBuffer((tilesW * tilesH) * 512 * sizeof(int));
-					transparentLightBuffer = new ShaderStorageBuffer(rstate, (tilesW * tilesH) * 512 * sizeof(int));
-				}
-				//Depth
-				if (_dwidth != Game.Width || _dheight != Game.Height)
-				{
-					_dwidth = Game.Width;
-					_dheight = Game.Height;
-					if (depthMap != null) depthMap.Dispose();
-					depthMap = new DepthMap(rstate, Game.Width, game.Height);
-				}
-				depthMap.BindFramebuffer();
-				rstate.ClearDepth();
-				rstate.DepthFunction = DepthFunction.Less;
-                foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
-				rstate.DepthFunction = DepthFunction.LessEqual;
-                rstate.RenderTarget = null;
-                if (Settings.SelectedMSAA > 0) rstate.RenderTarget = msaa;
-				//Run compute shader
-				pointLightBuffer.BindIndex(0);
-				transparentLightBuffer.BindIndex(1);
-				//opaqueLightBuffer.BindIndex(2);
-				pointLightCull.Uniform1i("depthTexture", 7);
-				depthMap.BindTo(7);
-				pointLightCull.Uniform1i("numLights", plc);
-				pointLightCull.Uniform1i("windowWidth", Game.Width);
-				pointLightCull.Uniform1i("windowHeight", Game.Height);
-				var v = camera.View;
-				var p = camera.Projection;
-                Matrix4x4.Invert(p, out p);
-				pointLightCull.UniformMatrix4fv("viewMatrix", ref v);
-				pointLightCull.UniformMatrix4fv("invProjection", ref p);
-				rstate.SSBOMemoryBarrier(); //I don't think these need to be here - confirm then remove?
-				pointLightCull.Dispatch((uint)tilesW, (uint)tilesH, 1);
-				rstate.SSBOMemoryBarrier();
-			}
-			else
-			{
-				SystemLighting.NumberOfTilesX = -1;
-                //Simple depth pre-pass
-                rstate.ColorWrite = false;
-				rstate.DepthFunction = DepthFunction.Less;
-                foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
-				rstate.DepthFunction = DepthFunction.LessEqual;
-                rstate.ColorWrite = true;
-			}
+            SystemLighting.NumberOfTilesX = -1;
+            //Simple depth pre-pass
+            rstate.ColorWrite = false;
+            rstate.DepthFunction = DepthFunction.Less;
+            foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
+            rstate.DepthFunction = DepthFunction.LessEqual;
+            rstate.ColorWrite = true;
 			//Actual Drawing
 
             Beams.Begin(Commands, resman, camera);
@@ -521,8 +417,6 @@ namespace LibreLancer.Render
 
 		public void Dispose()
 		{
-			if (pointLightBuffer != null) pointLightBuffer.Dispose();
-			if (transparentLightBuffer != null) transparentLightBuffer.Dispose();
             if (msaa != null) {
                 msaa.Dispose();
             }

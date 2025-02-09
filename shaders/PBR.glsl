@@ -56,10 +56,9 @@ void main()
 #define MAX_LIGHTS 9
 
 uniform ivec4 LightingParameters;
-#define LightingEnabled (LightingParameters.x == 1)
+#define LightingEnabled (LightingParameters.x != 1)
 #define LightCount (LightingParameters.y)
 #define FogMode (LightingParameters.z)
-#define NumberOfTilesX (LightingParameters.w)
 
 #define LightsPos(x) (LightData[(x) * 5])
 #define LightsColorRange(x) (LightData[(x) * 5 + 1])
@@ -72,30 +71,6 @@ uniform vec4 LightData[MAX_LIGHTS * 5];
 uniform vec4 AmbientColor;
 uniform vec4 FogColor;
 uniform vec2 FogRange;
-
-#ifdef FEATURES430
-#define MAX_NUM_LIGHTS_PER_TILE 512
-
-struct PointLight {
-    vec4 position;
-    vec4 colorRange;
-    vec4 attenuation;
-    vec4 blank;
-};
-
-struct VisibleIndex {
-    int index;
-};
-
-// Shader storage buffer objects
-layout(std430, binding = 0) readonly buffer LightBuffer {
-    PointLight data[];
-} lightBuffer;
-
-layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
-    VisibleIndex data[];
-} visibleLightIndicesBuffer;
-#endif
 
 //Material code
 const float M_PI = 3.141592653589793;

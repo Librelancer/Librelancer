@@ -402,8 +402,6 @@ class GLRenderContext : IRenderContext
     public bool HasFeature(GraphicsFeature feature) => feature switch
     {
         GraphicsFeature.Anisotropy => GLExtensions.Anisotropy,
-        GraphicsFeature.Features430 => GLExtensions.Features430,
-        GraphicsFeature.ComputeShaders => GLExtensions.ComputeShaders,
         GraphicsFeature.DebugInfo => GLExtensions.DebugInfo,
         GraphicsFeature.S3TC => GLExtensions.S3TC,
         GraphicsFeature.GLES => GL.GLES,
@@ -455,9 +453,6 @@ class GLRenderContext : IRenderContext
     public IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false) =>
         new GLVertexBuffer(type, length, isStream);
 
-    public IComputeShader CreateComputeShader(string shaderCode) =>
-        new GLComputeShader(shaderCode);
-
     public IDepthBuffer CreateDepthBuffer(int width, int height) =>
         new GLDepthBuffer(width, height);
 
@@ -472,9 +467,6 @@ class GLRenderContext : IRenderContext
 
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new GLRenderTarget2D(this, (GLTexture2D)texture, (GLDepthBuffer)buffer);
-
-    public IShaderStorageBuffer CreateShaderStorageBuffer(int size)
-        => new GLShaderStorageBuffer(size);
 
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);

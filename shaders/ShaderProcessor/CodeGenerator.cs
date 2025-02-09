@@ -264,9 +264,8 @@ public class CodeGenerator
         );
 
         var gl3src = new StringBuilder();
-        var gl4src = new StringBuilder();
 
-        CodeExpression StringBuilderExpression(string src, bool gl3)
+        CodeExpression StringBuilderExpression(string src)
         {
             int vOff;
             int vLen = src.Length;
@@ -280,10 +279,7 @@ public class CodeGenerator
             {
                 Console.WriteLine("Referenced duplicate source");
             }
-            if (gl3)
-                gl3src.AppendLine(src);
-            else
-                gl4src.AppendLine(src);
+            gl3src.AppendLine(src);
             return new CodeMethodInvokeExpression(
                 new CodeArgumentReferenceExpression("sourceBundle"),
                 "Substring",
@@ -292,37 +288,30 @@ public class CodeGenerator
             );
         }
 
-        CodeExpression[] ShaderCompile(string defs, bool gl3)
+        CodeExpression[] ShaderCompile(string defs)
         {
             var ls = new List<CodeExpression>();
             if (opts.DeviceParameter != null) {
                 ls.Add(new CodeVariableReferenceExpression("device"));
             }
-            ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, defs, ShaderCompiler.ShaderKind.Vertex), gl3));
-            ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, defs, ShaderCompiler.ShaderKind.Fragment), gl3));
+            ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.VertexSource, fx.Name, defs, ShaderCompiler.ShaderKind.Vertex)));
+            ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.FragmentSource, fx.Name, defs, ShaderCompiler.ShaderKind.Fragment)));
             if (!string.IsNullOrWhiteSpace(fx.GeometrySource)) {
-                ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.GeometrySource, fx.Name, defs, ShaderCompiler.ShaderKind.Geometry), gl3));
+                ls.Add(StringBuilderExpression(ShaderCompiler.SHCompile(fx.GeometrySource, fx.Name, defs, ShaderCompiler.ShaderKind.Geometry)));
             }
             return ls.ToArray();
         }
 
         var gl3Statements = new List<CodeStatement>();
-        var gl4Statements = new List<CodeStatement>();
 
         //Compile null variant
         Console.WriteLine($"Compiling (GL3) {fx.Name} (basic)");
         gl3Statements.Add(new CodeAssignStatement(
             new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                 new CodePrimitiveExpression(0)),
-            new CodeMethodInvokeExpression(compMeth, ShaderCompile("", true))
+            new CodeMethodInvokeExpression(compMeth, ShaderCompile(""))
             )
         );
-        Console.WriteLine($"Compiling (GL4) {fx.Name} (basic)");
-        gl4Statements.Add(new CodeAssignStatement(
-            new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
-                new CodePrimitiveExpression(0)),
-            new CodeMethodInvokeExpression(compMeth, ShaderCompile("#define FEATURES430\n", false))
-        ));
         //Compile all variants
         idx = 1;
         foreach (var permutation in FeatureHelper.Permute(null, fx.Features))
@@ -335,30 +324,13 @@ public class CodeGenerator
             gl3Statements.Add(new CodeAssignStatement(
                 new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
                     new CodePrimitiveExpression(idx)),
-                new CodeMethodInvokeExpression(compMeth, ShaderCompile(builder.ToString(), true))
-            ));
-            builder.AppendLine("#define FEATURES430");
-            Console.WriteLine($"Compiling (GL4) {fx.Name} ({string.Join(", ", permutation)})");
-            gl4Statements.Add(new CodeAssignStatement(
-                new CodeArrayIndexerExpression(new CodeFieldReferenceExpression(null, "variants"),
-                    new CodePrimitiveExpression(idx)),
-                new CodeMethodInvokeExpression(compMeth, ShaderCompile(builder.ToString(), false))
+                new CodeMethodInvokeExpression(compMeth, ShaderCompile(builder.ToString()))
             ));
             idx++;
         }
 
-        if (gl3src.ToString() == gl4src.ToString())
-        {
-            compile.Statements.Add(new CodeCommentStatement("No GL4 variants detected"));
-            compile.Statements.AddRange(gl3Statements.ToArray());
-        }
-        else
-        {
-            compile.Statements.Add(new CodeConditionStatement(new CodeSnippetExpression(opts.GL430Check),
-                gl4Statements.ToArray(),
-                gl3Statements.ToArray()
-            ));
-        }
+        compile.Statements.AddRange(gl3Statements.ToArray());
+
 
 
 

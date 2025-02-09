@@ -34,8 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling DepthPass_Normal");
             variants = new ShaderVariables[1];
-            // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(415680, 361), sourceBundle.Substring(416041, 130));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(179782, 361), sourceBundle.Substring(180143, 130));
         }
     }
 }

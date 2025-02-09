@@ -34,14 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling AsteroidBand");
             variants = new ShaderVariables[1];
-            if (device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430))
-            {
-                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(0, 727), sourceBundle.Substring(4985, 6863));
-            }
-            else
-            {
-                variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(0, 727), sourceBundle.Substring(727, 4258));
-            }
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(0, 727), sourceBundle.Substring(727, 4258));
         }
     }
 }

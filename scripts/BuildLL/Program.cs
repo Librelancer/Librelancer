@@ -195,7 +195,7 @@ namespace BuildLL
                     if (parallel > 0) pl = "-j" + parallel;
                     RunCommand("make", pl, "shaders/natives/bin");
                 }
-                var args =  $"-d LibreLancer.Graphics.RenderContext -b -g \"device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430)\" -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
+                var args =  $"-d LibreLancer.Graphics.RenderContext -b -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
                 Dotnet.Run("./shaders/ShaderProcessor/ShaderProcessor.csproj", args);
             });
 

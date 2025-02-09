@@ -36,7 +36,6 @@ internal class Program
         var options = new OptionSet
         {
             {"o|output=", "output directory", n => codeOpts.OutputDirectory = n},
-            {"g|gl430check=", "gl430 check expression", g => codeOpts.GL430Check = g},
             {"b|brotli", "compress with brotli (.NET Core only)", b => codeOpts.Brotli = b != null},
             {"l|log", "generate logging code", l => codeOpts.Log = l != null},
             {"x|logmethod=", "logging method name", x => codeOpts.LogMethod = x.Trim()},

@@ -34,8 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling Navmap");
             variants = new ShaderVariables[1];
-            // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(497580, 236), sourceBundle.Substring(497816, 321));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(215273, 236), sourceBundle.Substring(215509, 321));
         }
     }
 }

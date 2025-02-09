@@ -325,9 +325,7 @@ namespace LibreLancer.Shaders
         public static ShaderVariables Compile(RenderContext context, string vertex, string fragment, string geometry = null)
         {
             string prelude;
-            if (context.HasFeature(GraphicsFeature.Features430))
-                prelude = "#version 430\n#define FEATURES430\n";
-            else if (context.HasFeature(GraphicsFeature.GLES))
+            if (context.HasFeature(GraphicsFeature.GLES))
                 prelude = "#version 310 es\n#extension GL_OES_shader_io_blocks: require\n#extension GL_OES_geometry_shader: require\nprecision highp float;\nprecision highp int;\n";
             else
                 prelude = "#version 150\n";

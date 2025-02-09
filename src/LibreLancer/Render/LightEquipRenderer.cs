@@ -118,7 +118,7 @@ namespace LibreLancer.Render
             bool showLight = !equip.Animated || !lt_on;
             if (equip.EmitRange > 0 && showLight && camera.FrustumCheck(new BoundingSphere(pos, equip.EmitRange)))
             {
-                sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
+                //sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
             }
             if (visible) {
                 sys.AddObject(this);

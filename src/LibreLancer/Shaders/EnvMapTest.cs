@@ -34,8 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling EnvMapTest");
             variants = new ShaderVariables[1];
-            // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(460547, 584), sourceBundle.Substring(461131, 473));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(199174, 584), sourceBundle.Substring(199758, 473));
         }
     }
 }

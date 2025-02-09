@@ -35,14 +35,11 @@ interface IRenderContext
     ITexture2D CreateTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format);
 
     ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format);
-    IComputeShader CreateComputeShader(string shaderCode);
 
     IDepthBuffer CreateDepthBuffer(int width, int height);
     IDepthMap CreateDepthMap(int width, int height);
 
     IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer);
-
-    IShaderStorageBuffer CreateShaderStorageBuffer(int size);
 
     IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples);
 

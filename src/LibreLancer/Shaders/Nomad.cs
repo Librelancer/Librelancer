@@ -34,8 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling Nomad");
             variants = new ShaderVariables[1];
-            // No GL4 variants detected
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(501693, 836), sourceBundle.Substring(502529, 502));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(219386, 836), sourceBundle.Substring(220222, 502));
         }
     }
 }

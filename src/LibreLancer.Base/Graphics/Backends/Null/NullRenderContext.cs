@@ -88,10 +88,6 @@ class NullRenderContext : IRenderContext
     public ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format) =>
         new NullTextureCube(size, format, 1, 256 * 256 * 6);
 
-    public IComputeShader CreateComputeShader(string shaderCode) =>
-        throw new PlatformNotSupportedException("Features430 not available in null backend");
-
-
     public IDepthBuffer CreateDepthBuffer(int width, int height) =>
         new NullDepthBuffer();
 
@@ -100,9 +96,6 @@ class NullRenderContext : IRenderContext
 
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new NullRenderTarget2D(texture.Width, texture.Height);
-
-    public IShaderStorageBuffer CreateShaderStorageBuffer(int size) =>
-        throw new PlatformNotSupportedException("Features430 not available in null backend");
 
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
         new NullMultisampleTarget(width, height);
