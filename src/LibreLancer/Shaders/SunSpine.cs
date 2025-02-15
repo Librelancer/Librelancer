@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling SunSpine");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(332165, 1021), sourceBundle.Substring(333660, 377));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(331026, 1089), sourceBundle.Substring(332589, 377));
         }
     }
 }

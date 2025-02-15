@@ -11,7 +11,7 @@ namespace LibreLancer.Shaders
 {
     using System;
     
-    public class Particle
+    public class Quad
     {
         static ShaderVariables[] variants;
         private static bool iscompiled = false;
@@ -32,9 +32,9 @@ namespace LibreLancer.Shaders
                 return;
             }
             iscompiled = true;
-            ShaderVariables.Log("Compiling Particle");
+            ShaderVariables.Log("Compiling Quad");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(327603, 708), sourceBundle.Substring(178686, 236), sourceBundle.Substring(328311, 2127));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(330522, 504), sourceBundle.Substring(179642, 236));
         }
     }
 }

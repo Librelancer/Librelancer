@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling DepthPass_AlphaTest");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(178922, 571), sourceBundle.Substring(179493, 289));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(179878, 609), sourceBundle.Substring(180487, 289));
         }
     }
 }

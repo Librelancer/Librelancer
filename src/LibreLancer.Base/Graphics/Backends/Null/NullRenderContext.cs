@@ -70,7 +70,7 @@ class NullRenderContext : IRenderContext
     {
     }
 
-    public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>
+    public IShader CreateShader(string vertex_source, string fragment_source) =>
         new NullShader();
 
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>

@@ -16,7 +16,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         Dictionary<string, int> progLocations = new Dictionary<string, int>();
         int[] cachedObjects = new int[MAX_UNIFORM_LOC];
         private GLRenderContext context;
-		public GLShader(GLRenderContext context, string vertex_source, string fragment_source, string geometry_source = null)
+		public GLShader(GLRenderContext context, string vertex_source, string fragment_source)
         {
             this.context = context;
 			var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
@@ -38,17 +38,6 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 				throw new Exception ("Fragment shader compilation failed");
 			}
             programID = GL.CreateProgram();
-			if (geometry_source != null) {
-				var geometryHandle = GL.CreateShader (GL.GL_GEOMETRY_SHADER);
-				GL.ShaderSource (geometryHandle, geometry_source);
-				GL.CompileShader (geometryHandle);
-				GL.GetShaderiv (geometryHandle, GL.GL_COMPILE_STATUS, out status);
-				if (status == 0) {
-					Console.WriteLine (GL.GetShaderInfoLog (geometryHandle));
-					throw new Exception ("Geometry shader compilation failed");
-				}
-				GL.AttachShader (programID, geometryHandle);
-			}
             GL.AttachShader(programID, vertexHandle);
             GL.AttachShader(programID, fragmentHandle);
 			//Attributes

@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling PhysicsDebug");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(330438, 612), sourceBundle.Substring(331050, 163));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(329709, 650), sourceBundle.Substring(330359, 163));
         }
     }
 }

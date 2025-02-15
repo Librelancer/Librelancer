@@ -54,6 +54,40 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
         }
 
+        private static bool? _baseVertex;
+
+        public static bool BaseVertex
+        {
+            get
+            {
+                if(_baseVertex == null)
+                {
+                    PopulateExtensions();
+                    _baseVertex = GL.GLES || ExtensionList.Contains("GL_ARB_draw_elements_base_vertex");
+                    if (_baseVertex.Value) FLLog.Info("GL", "drawElementsBaseVertex available");
+                    else FLLog.Info("GL", "drawElementsBaseVertex unavailable, expect performance degradation.");
+                }
+                return _baseVertex.Value;
+            }
+        }
+
+        private static bool? _glFenceSync;
+
+        public static bool Sync
+        {
+            get
+            {
+                if (_glFenceSync == null)
+                {
+                    PopulateExtensions();
+                    _glFenceSync = GL.GLES || ExtensionList.Contains("GL_ARB_sync");
+                    if (_glFenceSync.Value) FLLog.Info("GL", "Fences available");
+                    else FLLog.Info("OpenGL", "Fences not available, falling back to synchronous texture download.");
+                }
+                return _glFenceSync.Value;
+            }
+        }
+
         //Global method for checking extensions. Called upon GraphicsDevice creation
         public static void PopulateExtensions()
 		{

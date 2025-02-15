@@ -81,7 +81,7 @@ class GLRenderContext : IRenderContext
 
     static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        ctx = SDLGL_Create(sdlWin, 3, 2, false);
+        ctx = SDLGL_Create(sdlWin, 3, 1, false);
         if (ctx == IntPtr.Zero) return false;
         if (!GL.CheckStringSDL())
         {
@@ -441,8 +441,8 @@ class GLRenderContext : IRenderContext
         }
     }
 
-    public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>
-        new GLShader(this, vertex_source, fragment_source, geometry_source);
+    public IShader CreateShader(string vertex_source, string fragment_source) =>
+        new GLShader(this, vertex_source, fragment_source);
 
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>
         new GLElementBuffer(this, count, isDynamic);

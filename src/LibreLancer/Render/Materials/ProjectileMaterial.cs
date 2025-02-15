@@ -14,7 +14,7 @@ public class ProjectileMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
-        var shader = Shaders.Projectile.Get(rstate);
+        var shader = Shaders.Quad.Get(rstate);
         shader.SetDtSampler(0);
         BindTexture(rstate, 0, "code_beam", 0, SamplerFlags.ClampToEdgeU | SamplerFlags.ClampToEdgeV);
         rstate.BlendMode = BlendMode.Additive;

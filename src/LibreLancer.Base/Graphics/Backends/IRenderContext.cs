@@ -27,7 +27,7 @@ interface IRenderContext
     void ClearDepth();
     void MemoryBarrier();
 
-    IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null);
+    IShader CreateShader(string vertex_source, string fragment_source);
     IElementBuffer CreateElementBuffer(int count, bool isDynamic = false);
     IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false);
     IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false);

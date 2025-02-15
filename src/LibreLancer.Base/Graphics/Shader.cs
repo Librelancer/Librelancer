@@ -13,9 +13,9 @@ namespace LibreLancer.Graphics
         public ulong UserTag = 0;
         internal IShader Backing;
 
-		public Shader(RenderContext context, string vertex_source, string fragment_source, string geometry_source = null)
+		public Shader(RenderContext context, string vertex_source, string fragment_source)
         {
-            Backing = context.Backend.CreateShader(vertex_source, fragment_source, geometry_source);
+            Backing = context.Backend.CreateShader(vertex_source, fragment_source);
         }
 
 

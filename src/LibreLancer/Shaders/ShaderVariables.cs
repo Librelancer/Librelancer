@@ -322,15 +322,13 @@ namespace LibreLancer.Shaders
             FLLog.Debug("Shader", text);
         }
 
-        public static ShaderVariables Compile(RenderContext context, string vertex, string fragment, string geometry = null)
+        public static ShaderVariables Compile(RenderContext context, string vertex, string fragment)
         {
             string prelude;
             if (context.HasFeature(GraphicsFeature.GLES))
-                prelude = "#version 310 es\n#extension GL_OES_shader_io_blocks: require\n#extension GL_OES_geometry_shader: require\nprecision highp float;\nprecision highp int;\n";
+                prelude = "#version 310 es\n#extension GL_OES_shader_io_blocks: require\nprecision highp float;\nprecision highp int;\n";
             else
-                prelude = "#version 150\n";
-            if(geometry != null)
-                return new ShaderVariables(new Shader(context, prelude + vertex, prelude + fragment, prelude + geometry));
+                prelude = "#version 140\n";
             return new ShaderVariables(new Shader(context, prelude + vertex, prelude + fragment));
         }
 

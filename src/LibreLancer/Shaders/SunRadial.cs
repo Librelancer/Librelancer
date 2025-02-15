@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling SunRadial");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(332165, 1021), sourceBundle.Substring(333186, 474));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(331026, 1089), sourceBundle.Substring(332115, 474));
         }
     }
 }

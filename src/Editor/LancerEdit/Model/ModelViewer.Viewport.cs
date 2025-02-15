@@ -455,19 +455,47 @@ namespace LancerEdit
             }
         }
 
-        void DrawNormals(ICamera cam)
+        private NormalsView normalVis;
+
+        private float builtLength = 0;
+        void BuildNormalVis()
         {
+            var len = normalLength * 0.1f * vmsModel.GetRadius();
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (builtLength == len)
+            {
+                return;
+            }
+            normalVis?.Dispose();
+            normalVis = new NormalsView(_window.RenderContext, drawable, res, len);
+        }
+
+
+        unsafe void DrawNormals(ICamera cam)
+        {
+            BuildNormalVis();
             var matrix = GetModelMatrix();
+            var x = (ulong) Environment.TickCount << 8;
+
             for (int i = 0; i < vmsModel.AllParts.Length; i++)
             {
                 var part = vmsModel.AllParts[i];
                 if (part.Mesh == null) continue;
                 if (!part.Active) continue;
-                var mat = NormalLinesMaterial.GetMaterial(res, normalLength * 0.1f * vmsModel.GetRadius());
                 var lvl = GetLevel(part.Mesh.Switch2);
-                part.Mesh.DrawImmediate(lvl, res, _window.RenderContext, part.LocalTransform.Matrix() * matrix,
-                    ref Lighting.Empty,
-                    null, 0, mat);
+                var n = drawable is ModelFile ? "ROOT" : part.Name;
+                if (!normalVis.TryGet(n, lvl, out var start, out var len))
+                    continue;
+                var transform =  part.LocalTransform.Matrix() * matrix;
+                var whandle = new WorldMatrixHandle()
+                {
+                    ID = x,
+                    Source = &transform,
+                };
+                x++;
+                wireframeMaterial3db.Render.World = whandle;
+                wireframeMaterial3db.Render.Use(rstate, new VertexPositionColor(), ref Lighting.Empty, 0);
+                normalVis.VertexBuffer.Draw(PrimitiveTypes.LineList, start, len / 2);
             }
         }
 

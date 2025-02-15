@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling NebulaExtPuff");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(215830, 1020), sourceBundle.Substring(216850, 463));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(217021, 1088), sourceBundle.Substring(218109, 463));
         }
     }
 }

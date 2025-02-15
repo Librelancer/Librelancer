@@ -15,7 +15,7 @@ int ToGLSL(std::vector<uint32_t>& spirv_binary, std::string& outstr)
         spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
 	    spirv_cross::ShaderResources res = glsl.get_shader_resources();
         spirv_cross::CompilerGLSL::Options options;
-        options.version = 150;
+        options.version = 140;
         options.es = false;
         options.enable_420pack_extension = false;
         glsl.set_common_options(options);

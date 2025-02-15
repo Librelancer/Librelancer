@@ -43,8 +43,8 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling NebulaMaterial");
             variants = new ShaderVariables[2];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(217967, 543), sourceBundle.Substring(218510, 308));
-            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(218818, 568), sourceBundle.Substring(218510, 308));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(219264, 581), sourceBundle.Substring(219845, 308));
+            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(220153, 606), sourceBundle.Substring(219845, 308));
         }
     }
 }

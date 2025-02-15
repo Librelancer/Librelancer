@@ -58,7 +58,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
             if(isStream)
                 buffer = Marshal.AllocHGlobal(length * decl.Stride);
-            SetPointers ();
+            SetPointers (0);
             VertexCount = length;
         }
 
@@ -88,7 +88,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             VBO = newHandle;
             GLBind.VertexArray(VAO);
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
-            SetPointers();
+            SetPointers(0);
             VertexCount = newSize;
         }
 
@@ -97,26 +97,49 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             if (primitiveCount == 0) throw new InvalidOperationException("primitiveCount can't be 0");
             if (glElements == null)
                 throw new InvalidOperationException("Cannot use drawElementsBaseVertex without element buffer");
+            EnsureBaseVertex(baseVertex);
             RenderContext.Instance.Apply ();
 			int indexElementCount = primitiveType.GetArrayLength (primitiveCount);
 			GLBind.VertexArray (VAO);
-			GL.DrawElementsBaseVertex (primitiveType.GLType (),
-				indexElementCount,
-				GL.GL_UNSIGNED_SHORT,
-				(IntPtr)(startIndex * 2),
-				baseVertex);
+            if (GLExtensions.BaseVertex)
+            {
+                GL.DrawElementsBaseVertex (primitiveType.GLType (),
+                    indexElementCount,
+                    GL.GL_UNSIGNED_SHORT,
+                    (IntPtr)(startIndex * 2),
+                    baseVertex);
+            }
+            else
+            {
+                GL.DrawElements(primitiveType.GLType(),
+                    indexElementCount,
+                    GL.GL_UNSIGNED_SHORT,
+                    (IntPtr)(startIndex * 2));
+            }
+
 		}
 
         public unsafe void DrawImmediateElements(PrimitiveTypes primitiveTypes, int baseVertex, ReadOnlySpan<ushort> elements)
         {
             if (elements.Length == 0) throw new InvalidOperationException("elements length can't be 0");
+            EnsureBaseVertex(baseVertex);
             RenderContext.Instance.Apply();
             GLBind.VertexArray(VAO);
             var eb = GL.GenBuffer();
             GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, eb);
             fixed (ushort* ptr = &elements.GetPinnableReference())
                 GL.BufferData(GL.GL_ELEMENT_ARRAY_BUFFER, (IntPtr)(elements.Length * 2), (IntPtr)ptr, GL.GL_STREAM_DRAW);
-            GL.DrawElementsBaseVertex(primitiveTypes.GLType(),elements.Length, GL.GL_UNSIGNED_SHORT, IntPtr.Zero, baseVertex);
+            if (GLExtensions.BaseVertex)
+            {
+                GL.DrawElementsBaseVertex(primitiveTypes.GLType(),elements.Length, GL.GL_UNSIGNED_SHORT, IntPtr.Zero, baseVertex);
+            }
+            else
+            {
+                GL.DrawElements(primitiveTypes.GLType(),
+                    elements.Length,
+                    GL.GL_UNSIGNED_SHORT,
+                    0);
+            }
             GL.DeleteBuffer(eb);
             GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, glElements?.Handle ?? 0);
         }
@@ -140,11 +163,6 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             GL.BufferSubData(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr) (count * decl.Stride), buffer);
         }
 
-        internal void Bind()
-        {
-            GLBind.VertexArray(VAO);
-        }
-
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
 		{
             if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
@@ -152,8 +170,20 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 			DrawNoApply(primitiveType, primitiveCount);
 		}
 
+
+        void EnsureBaseVertex(int baseVertex)
+        {
+            if (GLExtensions.BaseVertex)
+                return;
+            if (baseVertex != _activeBaseVertex)
+            {
+                SetPointers(baseVertex);
+            }
+        }
+
         public void DrawNoApply(PrimitiveTypes primitiveType, int primitiveCount)
         {
+            EnsureBaseVertex(0);
             GLBind.VertexArray (VAO);
             if (glElements != null) {
                 GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, glElements.Handle);
@@ -175,6 +205,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
 			RenderContext.Instance.Apply();
+            EnsureBaseVertex(0);
 			GLBind.VertexArray(VAO);
 			if (glElements != null)
 			{
@@ -195,14 +226,21 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 			}
 		}
 
-        void SetPointers()
+        private int _activeBaseVertex = 0;
+
+
+        void SetPointers(int baseVertex)
         {
+            _activeBaseVertex = baseVertex;
+            IntPtr o = _activeBaseVertex * decl.Stride;
+            GLBind.VertexArray(VAO);
+            GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
             foreach (var e in decl.Elements) {
                 GL.EnableVertexAttribArray (e.Slot);
                 if(e.Integer)
-                    GL.VertexAttribIPointer ((uint)e.Slot, e.Elements, (int)e.Type, decl.Stride, (IntPtr)(e.Offset));
+                    GL.VertexAttribIPointer ((uint)e.Slot, e.Elements, (int)e.Type, decl.Stride, o + (IntPtr)(e.Offset));
                 else
-                    GL.VertexAttribPointer ((uint)e.Slot, e.Elements, (int)e.Type, e.Normalized, decl.Stride, (IntPtr)(e.Offset));
+                    GL.VertexAttribPointer ((uint)e.Slot, e.Elements, (int)e.Type, e.Normalized, decl.Stride, o + (IntPtr)(e.Offset));
             }
         }
 

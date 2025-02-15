@@ -21,7 +21,6 @@ public class CodeGenOptions
     public bool Public = true;
     public string ShaderCompileMethod = "Shader.Compile";
     public string ShaderType = "Shader";
-    public string GL430Check;
     public string DeviceParameter;
 }
 
@@ -139,11 +138,14 @@ internal class Program
         var codeBuilder = new StringBuilder();
         Dictionary<string, int> offsets = new Dictionary<string, int>();
         foreach (var input in inputs)
+        {
+            Console.WriteLine(Path.Combine(options.OutputDirectory, $"{input.Name}.cs"));
             File.WriteAllText(
                 Path.Combine(options.OutputDirectory, $"{input.Name}.cs"),
                 CodeGenerator.Generate(options, codeBuilder, offsets, input, enumVals),
                 Encoding.UTF8
             );
+        }
 
         File.WriteAllText(
             Path.Combine(options.OutputDirectory, "ShaderFeatures.cs"),

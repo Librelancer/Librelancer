@@ -18,10 +18,10 @@ namespace LibreLancer.Render
         VertexPositionColorTexture* vertices;
 		VertexBuffer vbo;
         CommandBuffer buffer;
-        private PolylineMaterial material;
+        private QuadMaterial material;
 		public PolylineRender(RenderContext rstate, CommandBuffer buffer)
         {
-            material = new PolylineMaterial(null);
+            material = new QuadMaterial(null);
 			vbo = new VertexBuffer(rstate, typeof(VertexPositionColorTexture), MAX_VERTICES, true);
 			this.buffer = buffer;
 		}

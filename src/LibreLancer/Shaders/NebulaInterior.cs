@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling NebulaInterior");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(217313, 437), sourceBundle.Substring(217750, 217));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(218572, 475), sourceBundle.Substring(219047, 217));
         }
     }
 }

@@ -34,7 +34,7 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling EnvMapTest");
             variants = new ShaderVariables[1];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(199174, 584), sourceBundle.Substring(199758, 473));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(200289, 622), sourceBundle.Substring(200911, 511));
         }
     }
 }

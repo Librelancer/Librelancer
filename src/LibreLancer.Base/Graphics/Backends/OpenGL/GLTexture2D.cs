@@ -113,6 +113,13 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public Task<byte[]> GetDataAsync()
         {
             var sz = Width * Height * Format.GetSizeEstimate();
+            if (!GLExtensions.Sync)
+            {
+                //Fallback when GL_ARB_sync is not supported
+                var regBytes = new byte[sz];
+                GetData(regBytes);
+                return Task.FromResult(regBytes);
+            }
             var pbo = GL.GenBuffer();
             var fbo = GL.GenFramebuffer();
             GL.BindFramebuffer(GL.GL_FRAMEBUFFER, fbo);

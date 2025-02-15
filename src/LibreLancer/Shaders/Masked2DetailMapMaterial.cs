@@ -43,8 +43,8 @@ namespace LibreLancer.Shaders
             iscompiled = true;
             ShaderVariables.Log("Compiling Masked2DetailMapMaterial");
             variants = new ShaderVariables[2];
-            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(180273, 1204), sourceBundle.Substring(207913, 4576));
-            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(185843, 4131), sourceBundle.Substring(212489, 2784));
+            variants[0] = ShaderVariables.Compile(device, sourceBundle.Substring(181305, 1247), sourceBundle.Substring(209104, 4576));
+            variants[1] = ShaderVariables.Compile(device, sourceBundle.Substring(186918, 4171), sourceBundle.Substring(213680, 2784));
         }
     }
 }
