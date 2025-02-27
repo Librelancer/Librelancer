@@ -44,7 +44,7 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui")]
         static extern void igExtTextEditorSetReadOnly(IntPtr textedit, bool readOnly);
-        
+
         private IntPtr textedit;
 
         public ColorTextEdit()
@@ -54,9 +54,8 @@ namespace LibreLancer.ImUI
 
         public void SetText(string text)
         {
-            var ptr = UnsafeHelpers.StringToHGlobalUTF8(text);
-            igExtTextEditorSetText(textedit, ptr);
-            Marshal.FreeHGlobal(ptr);
+            using var ptr = UnsafeHelpers.StringToNativeUTF8(text);
+            igExtTextEditorSetText(textedit, (IntPtr)ptr);
         }
 
         public string GetText()
@@ -70,9 +69,8 @@ namespace LibreLancer.ImUI
         public void Render(string id)
         {
             ImGui.PushFont(ImGuiHelper.SystemMonospace);
-            var ptr = UnsafeHelpers.StringToHGlobalUTF8(id);
-            igExtTextEditorRender(textedit, ptr);
-            Marshal.FreeHGlobal(ptr);
+            using var ptr = UnsafeHelpers.StringToNativeUTF8(id);
+            igExtTextEditorRender(textedit, (IntPtr)ptr);
             ImGui.PopFont();
         }
 
@@ -95,7 +93,7 @@ namespace LibreLancer.ImUI
         {
             return igExtTextEditorIsTextChanged(textedit);
         }
-        
+
         public void Dispose()
         {
             if(textedit == IntPtr.Zero)

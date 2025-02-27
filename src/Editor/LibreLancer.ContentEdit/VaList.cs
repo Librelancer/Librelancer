@@ -80,10 +80,9 @@ abstract class VaListCallback
         protected override void Callback(string format, IntPtr args)
         {
             var byteLength = msvcrt._vscprintf(format, args) + 1;
-            var utf8 = Marshal.AllocHGlobal(byteLength);
-            msvcrt.vsprintf(utf8, format, args);
-            var str = Marshal.PtrToStringUTF8(utf8);
-            Marshal.FreeHGlobal(utf8);
+            using var utf8 = UnsafeHelpers.Allocate(byteLength);
+            msvcrt.vsprintf((IntPtr)utf8, format, args);
+            var str = Marshal.PtrToStringUTF8((IntPtr)utf8);
             Target(str);
         }
     }
@@ -97,10 +96,9 @@ abstract class VaListCallback
         protected override void Callback(string format, IntPtr args)
         {
             int byteLength = libc.vsnprintf(IntPtr.Zero, UIntPtr.Zero, format, args) + 1;
-            var utf8 = Marshal.AllocHGlobal(byteLength);
-            libc.vsnprintf(utf8, (UIntPtr)byteLength, format, args);
-            var str = Marshal.PtrToStringUTF8(utf8);
-            Marshal.FreeHGlobal(utf8);
+            using var utf8 = UnsafeHelpers.Allocate(byteLength);
+            libc.vsnprintf((IntPtr)utf8, (UIntPtr)byteLength, format, args);
+            var str = Marshal.PtrToStringUTF8((IntPtr)utf8);
             Target(str);
         }
     }
@@ -125,10 +123,9 @@ abstract class VaListCallback
             var list = Marshal.PtrToStructure<valist_x64>(args);
             var byteLength = libc.vsnprintf(IntPtr.Zero, UIntPtr.Zero, format, (IntPtr)(&list)) + 1;
             list = Marshal.PtrToStructure<valist_x64>(args);
-            var utf8 = Marshal.AllocHGlobal(byteLength);
-            libc.vsnprintf(utf8, (UIntPtr)byteLength, format, (IntPtr)(&list));
-            var str = Marshal.PtrToStringUTF8(utf8);
-            Marshal.FreeHGlobal(utf8);
+            using var utf8 = UnsafeHelpers.Allocate(byteLength);
+            libc.vsnprintf((IntPtr)utf8, (UIntPtr)byteLength, format, (IntPtr)(&list));
+            var str = Marshal.PtrToStringUTF8((IntPtr)utf8);
             Target(str);
         }
     }

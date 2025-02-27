@@ -733,6 +733,14 @@ namespace LancerEdit
 					openAbout = true;
 				}
 
+                #if DEBUG
+                if (Theme.IconMenuItem(Icons.Info, "Debug Memory", true))
+                {
+                    GC.Collect();
+                    Popups.MessageBox("Native Memory", DebugDrawing.SizeSuffix(UnsafeHelpers.Allocated));
+                }
+                #endif
+
                 if (Updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
                 {
                     Popups.OpenPopup(Updater.CheckForUpdates());

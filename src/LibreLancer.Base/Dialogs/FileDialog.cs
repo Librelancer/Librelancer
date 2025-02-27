@@ -40,22 +40,21 @@ namespace LibreLancer.Dialogs
 
         unsafe struct Utf8Native : IDisposable
         {
-            public IntPtr Pointer;
-            public static implicit operator void*(Utf8Native str) => (void*)str.Pointer;
-            public static implicit operator byte*(Utf8Native str) => (byte*)str.Pointer;
+            public NativeBuffer Buffer;
+            public static implicit operator void*(Utf8Native str) => (void*)str.Buffer;
+            public static implicit operator byte*(Utf8Native str) => (byte*)str.Buffer;
 
             public void Dispose()
             {
-                if(Pointer != IntPtr.Zero)
-                    Marshal.FreeHGlobal(Pointer);
+                Buffer?.Dispose();
             }
             public static Utf8Native Create(string str)
             {
                 if (str == null) return new Utf8Native();
                 if (Platform.RunningOS == OS.Windows)
-                    return new Utf8Native() {Pointer = Marshal.StringToHGlobalUni(str)};
+                    return new Utf8Native() {Buffer = UnsafeHelpers.StringToNativeUTF16(str)};
                 else
-                    return new Utf8Native() {Pointer = UnsafeHelpers.StringToHGlobalUTF8(str)};
+                    return new Utf8Native() {Buffer = UnsafeHelpers.StringToNativeUTF8(str)};
             }
         }
 
@@ -63,35 +62,35 @@ namespace LibreLancer.Dialogs
         {
             public IntPtr Pointer;
             public uint Count;
-            public List<IntPtr> ToFree;
+            public List<NativeBuffer> ToFree;
             public static implicit operator NFD.NFDFilterItem*(NFDFilters flt) => (NFD.NFDFilterItem*)flt.Pointer;
             public static NFDFilters Create(FileDialogFilters filters)
             {
                 var f = new NFDFilters();
-                f.ToFree = new List<IntPtr>();
+                f.ToFree = new List<NativeBuffer>();
                 if (filters?.Filters == null || filters.Filters.Length == 0)
                     return f;
-                NFD.NFDFilterItem* items =
-                    (NFD.NFDFilterItem*) Marshal.AllocHGlobal(sizeof(NFD.NFDFilterItem) * filters.Filters.Length);
+                var itemsBuffer = UnsafeHelpers.Allocate(sizeof(NFD.NFDFilterItem) * filters.Filters.Length);
+                NFD.NFDFilterItem* items = (NFD.NFDFilterItem*)(IntPtr)itemsBuffer;
                 for (int i = 0; i < filters.Filters.Length; i++)
                 {
                     var n = Utf8Native.Create(filters.Filters[i].Name);
                     var spec = Utf8Native.Create(string.Join(',', filters.Filters[i].Extensions));
                     items[i].name = n;
                     items[i].spec = spec;
-                    f.ToFree.Add(n.Pointer);
-                    f.ToFree.Add(spec.Pointer);
+                    f.ToFree.Add(n.Buffer);
+                    f.ToFree.Add(spec.Buffer);
                 }
                 f.Count = (uint)filters.Filters.Length;
                 f.Pointer = (IntPtr) items;
-                f.ToFree.Add((IntPtr)items);
+                f.ToFree.Add(itemsBuffer);
                 return f;
             }
 
             public void Dispose()
             {
-                foreach(var p in ToFree)
-                    Marshal.FreeHGlobal(p);
+                foreach (var p in ToFree)
+                    p.Dispose();
             }
         }
 
@@ -109,39 +108,41 @@ namespace LibreLancer.Dialogs
         {
             public IntPtr Pointer;
             public uint Count;
-            public List<IntPtr> ToFree;
+            public List<NativeBuffer> ToFree;
             public static SDLFilters Create(FileDialogFilters filters)
             {
                 var f = new SDLFilters();
-                f.ToFree = new List<IntPtr>();
+                f.ToFree = new List<NativeBuffer>();
                 var fitems = filters?.Filters ?? [];
+                var itemsBuffer = UnsafeHelpers.Allocate(sizeof(SDL3.SDL_DialogFileFilter) * (fitems.Length + 1));
                 SDL3.SDL_DialogFileFilter* items =
-                    (SDL3.SDL_DialogFileFilter*) Marshal.AllocHGlobal(sizeof(SDL3.SDL_DialogFileFilter) * (fitems.Length + 1));
+                    (SDL3.SDL_DialogFileFilter*)(IntPtr)itemsBuffer;
                 for (int i = 0; i < fitems.Length; i++)
                 {
                     var n = Utf8Native.Create(fitems[i].Name);
                     var spec = Utf8Native.Create(string.Join(';', fitems[i].Extensions));
                     items[i].name = n;
                     items[i].pattern = spec;
-                    f.ToFree.Add(n.Pointer);
-                    f.ToFree.Add(spec.Pointer);
+                    f.ToFree.Add(n.Buffer);
+                    f.ToFree.Add(spec.Buffer);
                 }
+
                 var afn = Utf8Native.Create("All Files");
                 var afp = Utf8Native.Create("*");
                 items[fitems.Length].name = afn;
                 items[fitems.Length].pattern = afp;
-                f.ToFree.Add(afn.Pointer);
-                f.ToFree.Add(afp.Pointer);
+                f.ToFree.Add(afn.Buffer);
+                f.ToFree.Add(afp.Buffer);
                 f.Count = (uint)(fitems.Length + 1);
                 f.Pointer = (IntPtr) items;
-                f.ToFree.Add((IntPtr)items);
+                f.ToFree.Add(itemsBuffer);
                 return f;
             }
 
             public void Dispose()
             {
-                foreach(var p in ToFree)
-                    Marshal.FreeHGlobal(p);
+                foreach (var p in ToFree)
+                    p.Dispose();
             }
         }
 
@@ -178,7 +179,7 @@ namespace LibreLancer.Dialogs
             var f = NFDFilters.Create(filters);
             void* path = null;
             using var def = Utf8Native.Create(defaultPath);
-            var res = NFD.NFD_OpenDialogN(&path, f, f.Count, (void*)def.Pointer);
+            var res = NFD.NFD_OpenDialogN(&path, f, f.Count, (void*)def.Buffer);
             if (res == NFDResult.NFD_OKAY)
             {
                 var selected = FromNFD(path);

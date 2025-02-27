@@ -26,7 +26,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             GL.BufferData(GL.GL_UNIFORM_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
             GL.GetIntegerv(GL.GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, out int align);
             if(streaming)
-                buffer = Marshal.AllocHGlobal(size * stride);
+                buffer = UnsafeHelpers.Allocate(size * stride);
             this.streaming = streaming;
             var lval = stride % align;
             if (lval == 0) gAlignment = 0;
@@ -76,14 +76,14 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public unsafe ref T Data<T>(int i) where T : unmanaged
         {
             if (i >= size) throw new IndexOutOfRangeException();
-            return ref ((T*)buffer)[i];
+            return ref (((T*)(IntPtr)buffer!)!)[i];
         }
 
-        private IntPtr buffer;
+        private NativeBuffer buffer;
         public IntPtr BeginStreaming()
         {
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
-            return buffer;
+            return (IntPtr)buffer;
         }
 
         //Count is for if emulation is required
@@ -93,14 +93,13 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             if (count == 0) return;
             GLBind.UniformBuffer(ID);
             GL.BufferData(GL.GL_UNIFORM_BUFFER, (IntPtr)(size * stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
-            GL.BufferSubData(GL.GL_UNIFORM_BUFFER, IntPtr.Zero, (IntPtr) (count * stride), buffer);
+            GL.BufferSubData(GL.GL_UNIFORM_BUFFER, IntPtr.Zero, (IntPtr) (count * stride), (IntPtr)buffer);
         }
 
         public void Dispose()
         {
             GL.DeleteBuffers(1, ref ID);
-            if(streaming)
-                Marshal.FreeHGlobal(buffer);
+            buffer?.Dispose();
         }
     }
 }

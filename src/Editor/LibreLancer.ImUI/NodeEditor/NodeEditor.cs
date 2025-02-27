@@ -32,9 +32,8 @@ public static unsafe class NodeEditor
 
     public static void Begin(string id, Vector2 size = default)
     {
-        var idptr = UnsafeHelpers.StringToHGlobalUTF8(id);
-        axBegin(idptr, &size);
-        Marshal.FreeHGlobal(idptr);
+        using var idptr = UnsafeHelpers.StringToNativeUTF8(id);
+        axBegin((IntPtr)idptr, &size);
     }
     public static void End() => axEnd();
 

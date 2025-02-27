@@ -150,20 +150,18 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static string GetProgramInfoLog(uint program)
         {
             int len;
-            var ptr = Marshal.AllocHGlobal (4096);
-            GL._glGetProgramInfoLog (program, 4096,  &len, ptr);
-            var str = Marshal.PtrToStringAnsi (ptr, len);
-            Marshal.FreeHGlobal (ptr);
+            using var ptr = UnsafeHelpers.Allocate (4096);
+            GL._glGetProgramInfoLog (program, 4096,  &len, (IntPtr)ptr);
+            var str = Marshal.PtrToStringAnsi ((IntPtr)ptr, len);
             return str;
         }
 
         public static string GetShaderInfoLog(uint shader)
         {
             int len;
-            var ptr = Marshal.AllocHGlobal (4096);
-            GL._glGetShaderInfoLog (shader, 4096,  &len, ptr);
-            var str = Marshal.PtrToStringAnsi (ptr, len);
-            Marshal.FreeHGlobal (ptr);
+            using var ptr = UnsafeHelpers.Allocate (4096);
+            GL._glGetShaderInfoLog (shader, 4096,  &len, (IntPtr)ptr);
+            var str = Marshal.PtrToStringAnsi ((IntPtr)ptr, len);
             return str;
         }
 

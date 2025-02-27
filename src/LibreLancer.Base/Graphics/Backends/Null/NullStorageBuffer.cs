@@ -5,17 +5,17 @@ namespace LibreLancer.Graphics.Backends.Null;
 
 public class NullStorageBuffer : IStorageBuffer
 {
-    private IntPtr buffer;
+    private NativeBuffer buffer;
     private int size;
 
     public NullStorageBuffer(int size, int stride)
     {
-        buffer = Marshal.AllocHGlobal(size * stride);
+        buffer = UnsafeHelpers.Allocate(size * stride);
     }
 
     public void Dispose()
     {
-        Marshal.FreeHGlobal(buffer);
+        buffer.Dispose();
     }
 
     public int GetAlignedIndex(int input) => input;
@@ -35,12 +35,12 @@ public class NullStorageBuffer : IStorageBuffer
     public unsafe ref T Data<T>(int i) where T : unmanaged
     {
         if (i >= size) throw new IndexOutOfRangeException();
-        return ref ((T*)buffer)[i];
+        return ref (((T*)(IntPtr)buffer)!)[i];
     }
 
     public IntPtr BeginStreaming()
     {
-        return buffer;
+        return (IntPtr)buffer;
     }
 
     public void EndStreaming(int count)

@@ -5,6 +5,8 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using ZstdSharp;
+
 namespace LibreLancer.Media
 {
 	static class SoundLoader
@@ -140,7 +142,7 @@ namespace LibreLancer.Media
 
         public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        private IntPtr csbuffer = IntPtr.Zero;
+        private NativeBuffer csbuffer = null;
         private int csbufferLength = -1;
 
         IntPtr StreamRead(byte* buffer, IntPtr size, ld_stream* stream)
@@ -149,11 +151,8 @@ namespace LibreLancer.Media
 
             if (csbufferLength < sz)
             {
-                if (csbuffer != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(csbuffer);
-                }
-                csbuffer = Marshal.AllocHGlobal(sz);
+                csbuffer?.Dispose();
+                csbuffer = UnsafeHelpers.Allocate(sz);
                 csbufferLength = sz;
             }
             var buf = new Span<byte>((void*) csbuffer, sz);
@@ -269,10 +268,7 @@ namespace LibreLancer.Media
             if (!_disposed)
             {
                 ld_pcmstream_close(decoder);
-                if (csbuffer != IntPtr.Zero) {
-                    Marshal.FreeHGlobal(csbuffer);
-                    csbuffer = IntPtr.Zero;
-                }
+                csbuffer?.Dispose();
                 _disposed = true;
             }
             base.Dispose(disposing);

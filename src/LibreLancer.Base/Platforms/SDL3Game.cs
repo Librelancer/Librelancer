@@ -42,12 +42,14 @@ namespace LibreLancer
         public string Renderer { get; private set; }
 
         private const string ARRAY_MIMETYPE = "application/x-librelancer-array";
-        private static IntPtr mimeTypes;
+        private static NativeBuffer mimeTypes;
+        private static NativeBuffer arrayMimetypeNative;
 
         unsafe static SDL3Game()
         {
-            mimeTypes = Marshal.AllocHGlobal(IntPtr.Size);
-            *((IntPtr*)mimeTypes) = Marshal.StringToHGlobalAnsi(ARRAY_MIMETYPE);
+            mimeTypes = UnsafeHelpers.Allocate(IntPtr.Size);
+            arrayMimetypeNative = UnsafeHelpers.StringToNativeUTF8(ARRAY_MIMETYPE);
+            *((IntPtr*)(IntPtr)mimeTypes) = (IntPtr)arrayMimetypeNative;
         }
 
         public unsafe SDL3Game(int w, int h, bool fullscreen, bool allowScreensaver)
@@ -137,7 +139,7 @@ namespace LibreLancer
             c->Data = clipboard + sizeof(ClipboardData);
             c->Size = array.Length;
             Marshal.Copy(array, 0, c->Data, array.Length);
-            SDL3.SDL_SetClipboardData(&ClipboardCallback, &ClipboardCleanup, clipboard, mimeTypes, 1);
+            SDL3.SDL_SetClipboardData(&ClipboardCallback, &ClipboardCleanup, clipboard, (IntPtr)mimeTypes, 1);
         }
 
         [UnmanagedCallersOnly]

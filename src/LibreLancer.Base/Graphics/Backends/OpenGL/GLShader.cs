@@ -32,7 +32,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             public int SizeInBytes;
         }
 
-        private IntPtr uniformMemory;
+        private NativeBuffer uniformMemoryBuffer;
 
         private int blocksSet = 0;
         private int blocksInteger = 0;
@@ -116,7 +116,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             {
                 var loc = GetLocation(uniform.Identifier);
                 if (loc == -1) // Blocks can be eliminated by implementation
+                {
+                    FLLog.Debug("Shader", $"Block removed {uniform.Identifier}");
                     continue;
+                }
                 blockMax = Math.Max(blockMax, uniform.Location + 1);
                 blocksSet |= (1 << uniform.Location);
             }
@@ -126,6 +129,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             // Array indices can be eliminated by the GLSL compiler, check new lengths
             foreach (var uniform in uniforms)
             {
+                if ((blocksSet & (1 << uniform.Location)) == 0)
+                    continue;
                 int length = uniform.SizeBytes / 16;
                 for (int i = 0; i < length; i++)
                 {
@@ -148,7 +153,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                 // alloc staging + actual buffer
                 totalSz += (length * 16) * 2;
             }
-            uniformMemory = Marshal.AllocHGlobal(totalSz);
+            uniformMemoryBuffer = UnsafeHelpers.Allocate(totalSz);
+            var uniformMemory = (IntPtr)uniformMemoryBuffer;
             int memStart = 0;
             Unsafe.InitBlockUnaligned((void*)uniformMemory, 0, (uint)totalSz);
             //uniforms

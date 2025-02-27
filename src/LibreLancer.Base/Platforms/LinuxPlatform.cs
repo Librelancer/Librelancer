@@ -65,9 +65,8 @@ namespace LibreLancer.Platforms
             {
                 var path = Path.Combine(tempFontsDirectory, Path.GetRandomFileName() + ".ttf");
                 File.WriteAllBytes(path, ttf);
-                var str = UnsafeHelpers.StringToHGlobalUTF8(path);
-                pg_addttfglobal(str);
-                Marshal.FreeHGlobal(str);
+                using var str = UnsafeHelpers.StringToNativeUTF8(path);
+                pg_addttfglobal((IntPtr)str);
             }
         }
 

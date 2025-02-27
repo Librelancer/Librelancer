@@ -57,7 +57,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
             GL.BufferData (GL.GL_ARRAY_BUFFER, (IntPtr)(length * decl.Stride), IntPtr.Zero, usageHint);
             if(isStream)
-                buffer = Marshal.AllocHGlobal(length * decl.Stride);
+                buffer = UnsafeHelpers.Allocate(length * decl.Stride);
             SetPointers (0);
             VertexCount = length;
         }
@@ -145,12 +145,12 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         }
 
         const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT;
-        private IntPtr buffer;
+        private NativeBuffer buffer;
         public IntPtr BeginStreaming()
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
             if (!streaming) throw new InvalidOperationException("not streaming buffer");
-            return buffer;
+            return (IntPtr)buffer;
         }
 
         //Count is for if emulation is required
@@ -160,7 +160,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             if (count == 0) return;
             GL.BindBuffer(GL.GL_ARRAY_BUFFER, VBO);
             GL.BufferData(GL.GL_ARRAY_BUFFER, (IntPtr)(VertexCount * decl.Stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
-            GL.BufferSubData(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr) (count * decl.Stride), buffer);
+            GL.BufferSubData(GL.GL_ARRAY_BUFFER, IntPtr.Zero, (IntPtr) (count * decl.Stride), (IntPtr)buffer);
         }
 
 		public void Draw(PrimitiveTypes primitiveType, int primitiveCount)
@@ -270,8 +270,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         {
             if (isDisposed) return;
             isDisposed = true;
-            if(streaming)
-                Marshal.FreeHGlobal(buffer);
+            buffer?.Dispose();
             GL.DeleteBuffer(VBO);
 			GL.DeleteVertexArray (VAO);
             GLBind.VertexArray(0);

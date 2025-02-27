@@ -65,26 +65,23 @@ public class NodeEditorConfig : NativeObject, IDisposable
     }
 
 
-    private IntPtr lastSet = IntPtr.Zero;
+    private NativeBuffer lastSet = null;
 
     public string SettingsFile
     {
         get => UnsafeHelpers.PtrToStringUTF8(axConfig_get_SettingsFile(Handle));
         set
         {
-            if (lastSet != 0)
-            {
-                Marshal.FreeHGlobal(lastSet);
-            }
+            lastSet?.Dispose();
             if (value == null)
             {
                 axConfig_set_SettingsFile(Handle, 0);
-                lastSet = 0;
+                lastSet = null;
             }
             else
             {
-                lastSet = UnsafeHelpers.StringToHGlobalUTF8(value);
-                axConfig_set_SettingsFile(Handle, lastSet);
+                lastSet = UnsafeHelpers.StringToNativeUTF8(value);
+                axConfig_set_SettingsFile(Handle, (IntPtr)lastSet);
             }
         }
     }
@@ -139,7 +136,6 @@ public class NodeEditorConfig : NativeObject, IDisposable
     public void Dispose()
     {
         axConfigFree(Handle);
-        if(lastSet != 0)
-            Marshal.FreeHGlobal(lastSet);
+        lastSet?.Dispose();
     }
 }
