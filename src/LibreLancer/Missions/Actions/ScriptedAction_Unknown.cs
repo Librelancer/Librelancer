@@ -319,8 +319,11 @@ public class Act_NagDistLeaving : ScriptedAction
     {
         Nickname = act.Entry[0].ToString();
         Nagger = act.Entry[1].ToString();
-
-        if (act.Entry.Count is >= 4 and <= 6)
+        if (act.Entry.Count is 3)
+        {
+            Target = act.Entry[2].ToString();
+        }
+        else if (act.Entry.Count is >= 4 and <= 6)
         {
             Target = act.Entry[2].ToString();
             MissionFailIds = act.Entry[3].ToInt32();
