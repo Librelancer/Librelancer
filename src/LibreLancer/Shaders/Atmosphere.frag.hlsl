@@ -29,10 +29,9 @@ cbuffer AtmosphereParameters : register(b3, UNIFORM_SPACE)
 
 float4 main(Input input) : SV_Target0
 {
-    float ratio = (dot(normalize(input.V), normalize(input.N)) + 1.0) / 2.0;
-    ratio = clamp(ratio, 0.0, 1.0);
+    float facingRatio = clamp(dot(normalize(input.V), normalize(input.N)), 0.0, 1.0);
 
-    float4 tex = DtTexture.Sample(DtSampler, float2(ratio, 0.0));
+    float4 tex = DtTexture.Sample(DtSampler, float2(facingRatio, 0.0));
 #ifdef VERTEX_LIGHTING
     float4 lit = ApplyVertexLighting(ac, ec, Dc * input.color,
         DtTexture.Sample(DtSampler, input.texCoord),

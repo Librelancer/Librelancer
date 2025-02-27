@@ -28,7 +28,7 @@ Output main(VSInput input)
     Output output;
 
     float4x4 modelView = mul(World, View);
-    float3x3 mvNormal = modelView;
+    float3x3 mvNormal = (float3x3)modelView;
 
     float3 n = mul(float4(input.normal, 0), NormalMatrix).xyz;
 
