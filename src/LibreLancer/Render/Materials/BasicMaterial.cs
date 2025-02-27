@@ -60,10 +60,11 @@ namespace LibreLancer.Render.Materials
             NORMALMAP = (1 << 0),
             METALMAP = (1 << 1),
             ROUGHMAP = (1 << 2),
-            ET_ENABLED = (1 << 3)
+            ET_ENABLED = (1 << 3),
+            VERTEX_TEXTURE2 = (1 << 4)
         }
 
-        Shader GetPBRShader()
+        Shader GetPBRShader(IVertexType vertexType)
         {
             var caps = (PBRFeatures)0;
             if (!string.IsNullOrEmpty(RtSampler))
@@ -74,6 +75,14 @@ namespace LibreLancer.Render.Materials
                 caps |= PBRFeatures.METALMAP;
             if(EtEnabled)
                 caps |= PBRFeatures.ET_ENABLED;
+            if (vertexType is FVFVertex fvf)
+            {
+                if (fvf.TexCoords == 2 ||
+                    fvf.TexCoords == 4)
+                {
+                    caps |= PBRFeatures.VERTEX_TEXTURE2;
+                }
+            }
             return AllShaders.PBR.Get(caps);
         }
 
@@ -84,7 +93,9 @@ namespace LibreLancer.Render.Materials
             ALPHATEST_ENABLED = (1 << 1),
             ET_ENABLED = (1 << 2),
             FADE_ENABLED = (1 << 3),
-            NORMALMAP = (1 << 4)
+            NORMALMAP = (1 << 4),
+            VERTEX_DIFFUSE = (1 << 5),
+            VERTEX_TEXTURE2 = (1 << 6)
         }
         Shader GetRegularShader(IVertexType vertexType)
         {
@@ -108,34 +119,26 @@ namespace LibreLancer.Render.Materials
                 {
                     return AllShaders.Basic_Skinned.Get(caps);
                 }
-                return AllShaders.Basic_PositionNormalTexture.Get(caps);
+                return AllShaders.Basic_FVF.Get(caps);
             }
             if (vertexType is FVFVertex fvf)
             {
-                if (fvf.Diffuse && fvf.Normal) {
-                    return AllShaders.Basic_PositionNormalColorTexture.Get(caps);
-                }
-                else if (fvf.Normal)
+                if (fvf.Normal)
                 {
                     bool normalMap = !string.IsNullOrEmpty(NmSampler);
-                    if (fvf.TexCoords == 2)
+                    if(fvf.Diffuse)
                     {
-                        return AllShaders.Basic_PositionNormalTextureTwo.Get(caps);
+                        caps |= ShaderFeatures.VERTEX_DIFFUSE; // DIFFUSE
                     }
-                    else if (fvf.TexCoords == 4)
+                    if (fvf.TexCoords is 2 or 4)
                     {
-                        var x = caps | (normalMap ? ShaderFeatures.NORMALMAP : 0);
-                        return AllShaders.Basic_PositionNormalTextureTwo.Get(x);
+                        caps |= ShaderFeatures.VERTEX_TEXTURE2; // TEXTURE2
                     }
-                    else if (fvf.TexCoords == 1)
+                    if (normalMap && (fvf.TexCoords is 3 or 4))
                     {
-                        return AllShaders.Basic_PositionNormalTexture.Get(caps);
+                        caps |= ShaderFeatures.NORMALMAP;
                     }
-                    else if (fvf.TexCoords == 3)
-                    {
-                        var x = caps | (normalMap ? ShaderFeatures.NORMALMAP : 0);
-                        return AllShaders.Basic_PositionNormalTexture.Get(x);
-                    }
+                    return AllShaders.Basic_FVF.Get(caps);
                 }
                 if (fvf.Diffuse)
                     return AllShaders.Basic_PositionColor.Get(caps);
@@ -143,14 +146,13 @@ namespace LibreLancer.Render.Materials
             }
             if (vertexType is VertexPositionNormalTexture ||
                     vertexType is VertexPositionNormal)
-                return AllShaders.Basic_PositionNormalTexture.Get( caps);
+                return AllShaders.Basic_FVF.Get( caps);
             if (vertexType is VertexPositionNormalDiffuseTexture)
-                return AllShaders.Basic_PositionNormalColorTexture.Get( caps);
+                return AllShaders.Basic_FVF.Get( caps | (ShaderFeatures)(1 << 5));
             if (vertexType is VertexPositionTexture)
                 return AllShaders.Basic_PositionTexture.Get(caps);
             if (vertexType is VertexPosition)
                 return AllShaders.Basic_PositionTexture.Get(caps);
-
             return AllShaders.Basic_PositionColor.Get(caps);
         }
 
@@ -180,7 +182,7 @@ namespace LibreLancer.Render.Materials
                        lights.Enabled;
             var dxt1 = GetDxt1();
 
-			var shader = pbr ? GetPBRShader() : GetRegularShader(vertextype);
+			var shader = pbr ? GetPBRShader(vertextype) : GetRegularShader(vertextype);
             SetWorld(shader);
             //Dt
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
@@ -239,14 +241,16 @@ namespace LibreLancer.Render.Materials
                 }
                 if (!string.IsNullOrEmpty(RtSampler))
                 {
-                    BindTexture(rstate, 5, RtSampler, 5, RtFlags, ResourceManager.WhiteTextureName);
+                    BindTexture(rstate, 4, RtSampler, 4, RtFlags, ResourceManager.WhiteTextureName);
                 }
+                SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags, MtFlags, RtFlags);
             }
             else
             {
                 var param = new BasicParameters()
                     { Dc = dcValue, Ec = Ec, FadeRange = new Vector2(FadeNear, FadeFar), Oc = Oc };
                 shader.SetUniformBlock(3, ref param);
+                SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags);
             }
 			//Set lights
             SetLights(shader, ref lights, rstate.FrameNumber);

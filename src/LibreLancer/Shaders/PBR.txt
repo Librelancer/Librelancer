@@ -1,6 +1,7 @@
-vertex Basic_PositionNormalTexture.vert.hlsl
+vertex Basic_FVF.vert.hlsl
 fragment PBR.frag.hlsl
 feature NORMALMAP 1
 feature METALMAP 2
 feature ROUGHMAP 3
 feature ET_ENABLED 4
+feature VERTEX_TEXTURE2 5

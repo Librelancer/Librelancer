@@ -1,7 +1,9 @@
-vertex Basic_PositionNormalTextureTwo.vert.hlsl
+vertex Basic_FVF.vert.hlsl
 fragment Basic.frag.hlsl
 feature VERTEX_LIGHTING 1
 feature ALPHATEST_ENABLED 2
 feature ET_ENABLED 3
 feature FADE_ENABLED 4
-feature NORMALMAP 5
+feature NORMAL_MAP 5
+feature VERTEX_DIFFUSE 6
+feature VERTEX_TEXTURE2 7

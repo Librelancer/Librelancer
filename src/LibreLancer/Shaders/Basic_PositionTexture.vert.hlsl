@@ -4,14 +4,15 @@
 
 struct Output
 {
-    float2 texCoord: TEXCOORD0;
-    float3 worldPosition: TEXCOORD1;
-    float3 normal: TEXCOORD2;
-    float4 color: TEXCOORD3;
-    float4 viewPosition: TEXCOORD4;
+    float2 texCoord1: TEXCOORD0;
+    float2 texCoord2: TEXCOORD1;
+    float3 worldPosition: TEXCOORD2;
+    float3 normal: TEXCOORD3;
+    float4 color: TEXCOORD4;
+    float4 viewPosition: TEXCOORD5;
 #ifdef VERTEX_LIGHTING
-    float3 diffuseTermFront: TEXCOORD5;
-    float3 diffuseTermBack: TEXCOORD6;
+    float3 diffuseTermFront: TEXCOORD6;
+    float3 diffuseTermBack: TEXCOORD7;
 #endif
     float4 position : SV_Position;
 };
@@ -39,10 +40,12 @@ Output main(VSInput input)
 
     output.normal = n;
 
-    output.texCoord = float2(
+    output.texCoord1 = float2(
         (input.uv.x + MaterialAnim.x) * MaterialAnim.z,
         (input.uv.y + MaterialAnim.y) * MaterialAnim.w
     );
+    output.texCoord2 = output.texCoord1;
+
     output.color = float4(1.0, 1.0, 1.0, 1.0);
 #ifdef VERTEX_LIGHTING
     VertexLightTerms lightTerms = CalculateVertexLighting(output.worldPosition, n);

@@ -13,23 +13,24 @@ SamplerState NtSampler : register(s2, TEXTURE_SPACE);
 Texture2D<float4> MtTexture : register(t3, TEXTURE_SPACE);
 SamplerState MtSampler : register(s3, TEXTURE_SPACE);
 
-Texture2D<float4> RtTexture : register(t5, TEXTURE_SPACE);
-SamplerState RtSampler : register(s5, TEXTURE_SPACE);
+Texture2D<float4> RtTexture : register(t4, TEXTURE_SPACE);
+SamplerState RtSampler : register(s4, TEXTURE_SPACE);
 
 #define M_PI 3.141592653589793
 #define c_MinRoughness 0.04
 
 struct Input
 {
-    float2 texCoord: TEXCOORD0;
-    float3 worldPosition: TEXCOORD1;
+    float2 texCoord1: TEXCOORD0;
+    float2 texCoord2: TEXCOORD1;
+    float3 worldPosition: TEXCOORD2;
 #ifdef NORMALMAP
-    float3x3 tbn: TEXCOORD2;
+    float3x3 tbn: TEXCOORD3;
 #else
-    float3 normal: TEXCOORD2;
+    float3 normal: TEXCOORD3;
 #endif
-    float4 color: TEXCOORD3;
-    float4 viewPosition: TEXCOORD4;
+    float4 color: TEXCOORD4;
+    float4 viewPosition: TEXCOORD5;
 };
 
 cbuffer PBRParameters : register(b3, UNIFORM_SPACE)
@@ -41,10 +42,20 @@ cbuffer PBRParameters : register(b3, UNIFORM_SPACE)
     float Metallic;
 };
 
+cbuffer TexCoordSelectors : register(b5, UNIFORM_SPACE)
+{
+    int TexCoordSelectors[5];
+};
+
+float2 GetTexCoord(int index, Input input)
+{
+    return TexCoordSelectors[index] > 0 ? input.texCoord2 : input.texCoord1;
+}
+
 #ifdef NORMALMAP
 float3 getNormal(Input input)
 {
-    float3 n = NtTexture.Sample(NtSampler, input.texCoord).xyz;
+    float3 n = NtTexture.Sample(NtSampler, GetTexCoord(2, input)).xyz;
     n.xy = (n.xy * 2.0 - 1.0);
     n.z = sqrt(1.0 - dot(n.xy, n.xy));
     n = normalize(n);
@@ -60,7 +71,7 @@ float3 getNormal(Input input)
 #ifdef METALMAP
 float getMetallic(Input input)
 {
-    return clamp(MtTexture.Sample(MtSampler, input.texCoord).r * Metallic, 0.0, 1.0);
+    return clamp(MtTexture.Sample(MtSampler, GetTexCoord(3, input)).r * Metallic, 0.0, 1.0);
 }
 #else
 float getMetallic(Input input)
@@ -72,7 +83,7 @@ float getMetallic(Input input)
 #ifdef ROUGHMAP
 float getRoughness(Input input)
 {
-    return clamp(RtTexture.Sample(RtSampler, input.texCoord).r * Roughness, c_MinRoughness, 1.0);
+    return clamp(RtTexture.Sample(RtSampler, GetTexCoord(4, input)).r * Roughness, c_MinRoughness, 1.0);
 }
 #else
 float getRoughness(Input input)
@@ -156,7 +167,7 @@ float4 main(Input input) : SV_Target0
     float perceptualRoughness = getRoughness(input);
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
 
-    float4 baseColor = SRGBtoLinear(DtTexture.Sample(DtSampler, input.texCoord) * Dc);
+    float4 baseColor = SRGBtoLinear(DtTexture.Sample(DtSampler, GetTexCoord(0, input)) * Dc);
 
     float3 f0 = 0.04;
     float3 diffuseColor = baseColor.rgb * ((float3)1.0 - f0);
@@ -243,7 +254,7 @@ float4 main(Input input) : SV_Target0
     color += AmbientColor.xyz * baseColor.xyz;
 
     #ifdef ET_ENABLED
-    color += SRGBtoLinear(EtTexture.Sample(EtSampler, input.texCoord)).xyz;
+    color += SRGBtoLinear(EtTexture.Sample(EtSampler, GetTexCoord(1, input))).xyz;
     #endif
 
     return  float4(pow(color,(float3)1.0/2.2), baseColor.a);

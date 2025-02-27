@@ -45,5 +45,4 @@ float4 main(Input input) : SV_Target0
 #endif
 
     return tex * float4(lit.rgb, Oc);
-    return 0;
 }

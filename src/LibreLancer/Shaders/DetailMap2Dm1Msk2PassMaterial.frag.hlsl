@@ -9,14 +9,15 @@ SamplerState DmSampler : register(s1, TEXTURE_SPACE);
 
 struct Input
 {
-    float2 texCoord: TEXCOORD0;
-    float3 worldPosition: TEXCOORD1;
-    float3 normal: TEXCOORD2;
-    float4 color: TEXCOORD3;
-    float4 viewPosition: TEXCOORD4;
+    float2 texCoord1: TEXCOORD0;
+    float2 texCoord2: TEXCOORD1;
+    float3 worldPosition: TEXCOORD2;
+    float3 normal: TEXCOORD3;
+    float4 color: TEXCOORD4;
+    float4 viewPosition: TEXCOORD5;
 #ifdef VERTEX_LIGHTING
-    float3 diffuseTermFront: TEXCOORD5;
-    float3 diffuseTermBack: TEXCOORD6;
+    float3 diffuseTermFront: TEXCOORD6;
+    float3 diffuseTermBack: TEXCOORD7;
 #endif
     bool frontFacing: SV_IsFrontFace;
 };
@@ -33,8 +34,8 @@ cbuffer UniformParameters : register(b3, UNIFORM_SPACE)
 float4 main(Input input) : SV_Target0
 {
     float2 uv = float2(
-       FlipU > 0 ? 1 - input.texCoord.x : input.texCoord.x,
-       FlipV > 0 ? 1 - input.texCoord.y : input.texCoord.y);
+       FlipU > 0 ? 1 - input.texCoord1.x : input.texCoord1.x,
+       FlipV > 0 ? 1 - input.texCoord1.y : input.texCoord1.y);
     float4 tex = DtTexture.Sample(DtSampler, uv);
     float4 detail = DmTexture.Sample(DmSampler, uv * TileRate);
 

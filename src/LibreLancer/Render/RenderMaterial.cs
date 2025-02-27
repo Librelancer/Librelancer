@@ -174,6 +174,47 @@ namespace LibreLancer.Render
 			return textures[cacheidx];
 		}
 
+        protected void SetTextureCoordinates(Shader shader, SamplerFlags t0, SamplerFlags t1 = 0, SamplerFlags t2 = 0, SamplerFlags t3 = 0)
+        {
+            Vector4i flags = new(
+                (t0 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t1 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t2 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t3 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0
+            );
+            if (shader.HasUniformBlock(5))
+            {
+                shader.SetUniformBlock(5, ref flags);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct Flags2
+        {
+            public Vector4i A;
+            public Vector4i B;
+        }
+        protected void SetTextureCoordinates(Shader shader, SamplerFlags t0, SamplerFlags t1, SamplerFlags t2, SamplerFlags t3, SamplerFlags t4, SamplerFlags t5 = 0)
+        {
+            var f2 = new Flags2();
+            f2.A = new(
+                (t0 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t1 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t2 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t3 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0
+            );
+            f2.B = new(
+                (t4 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                (t5 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                0, 0
+            );
+
+            if (shader.HasUniformBlock(5))
+            {
+                shader.SetUniformBlock(5, ref f2);
+            }
+        }
+
 		protected void BindTexture(RenderContext rstate, int cacheidx, string tex, int unit, SamplerFlags flags, string nullName = null)
 		{
 			if (tex == null)

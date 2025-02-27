@@ -9,9 +9,7 @@ public static class AllShaders
     public static ShaderBundle AsteroidBand;
     public static ShaderBundle Atmosphere;
     public static ShaderBundle Basic_PositionColor;
-    public static ShaderBundle Basic_PositionNormalColorTexture;
-    public static ShaderBundle Basic_PositionNormalTexture;
-    public static ShaderBundle Basic_PositionNormalTextureTwo;
+    public static ShaderBundle Basic_FVF;
     public static ShaderBundle Basic_PositionTexture;
     public static ShaderBundle Basic_Skinned;
     public static ShaderBundle Billboard;
@@ -51,9 +49,7 @@ public static class AllShaders
         AsteroidBand ??= Compile(context, "AsteroidBand");
         Atmosphere ??= Compile(context, "Atmosphere");
         Basic_PositionColor ??= Compile(context, "Basic_PositionColor");
-        Basic_PositionNormalColorTexture ??= Compile(context, "Basic_PositionNormalColorTexture");
-        Basic_PositionNormalTexture ??= Compile(context, "Basic_PositionNormalTexture");
-        Basic_PositionNormalTextureTwo ??= Compile(context, "Basic_PositionNormalTextureTwo");
+        Basic_FVF ??= Compile(context, "Basic_FVF");
         Basic_PositionTexture ??= Compile(context, "Basic_PositionTexture");
         Basic_Skinned ??= Compile(context, "Basic_Skinned");
         Billboard ??= Compile(context, "Billboard");

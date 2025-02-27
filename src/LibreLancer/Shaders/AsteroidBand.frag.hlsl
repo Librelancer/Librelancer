@@ -7,10 +7,11 @@ SamplerState Sampler : register(s0, TEXTURE_SPACE);
 struct Input
 {
     float2 texCoord: TEXCOORD0;
-    float3 worldPosition: TEXCOORD1;
-    float3 normal: TEXCOORD2;
-    float4 color: TEXCOORD3;
-    float4 viewPosition: TEXCOORD4;
+    float2 texCoord2: TEXCOORD1;
+    float3 worldPosition: TEXCOORD2;
+    float3 normal: TEXCOORD3;
+    float4 color: TEXCOORD4;
+    float4 viewPosition: TEXCOORD5;
     bool frontFacing: SV_IsFrontFace;
 };
 
