@@ -839,19 +839,21 @@ namespace LibreLancer
                 if(letterboxAmount > 0)
                 {
                     Game.RenderContext.ClearColor = Color4.Black;
-                    Game.RenderContext.ClearAll();
+                    Game.RenderContext.ClearColorOnly();
                     var newRatio = ((double)Game.Width / Game.Height) * 1.39;
                     var newHeight = Game.Width / newRatio;
                     var diff = (Game.Height - newHeight);
                     var vp = Game.RenderContext.CurrentViewport;
-                    vp.Y = (int)(vp.Y + (diff / 2) * letterboxAmount);
-                    vp.Height = (int)(vp.Height - (diff) * letterboxAmount);
+                    vp.Y = (int)((diff / 2) * letterboxAmount);
+                    vp.Height = (int)(Game.Height - (diff) * letterboxAmount);
                     Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
+                    Game.RenderContext.PushScissor(new Rectangle(vp.X, vp.Y, vp.Width, vp.Height), false);
                 }
                 scene.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
-                scene.Draw(delta, Game.Width, Game.Height);
+                scene.Draw(delta, Game.RenderContext.CurrentViewport.Width, Game.RenderContext.CurrentViewport.Height);
                 if (letterboxAmount > 0)
                 {
+                    Game.RenderContext.PopScissor();
                     Game.RenderContext.PopViewport();
                 }
             }
