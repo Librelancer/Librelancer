@@ -285,7 +285,7 @@ public class GameDataContext : IDisposable
             TaskCompletionSource<int> compSource = new TaskCompletionSource<int>();
             tx.GetDataAsync().ContinueWith(t =>
             {
-                tx.Dispose();
+                win.QueueUIThread(() => { tx.Dispose(); });
                 Task.Run(() =>
                 {
                     var dxt1 = TextureImport.CreateDDS( MemoryMarshal.Cast<byte, Bgra8>(t.Result), w, h, DDSFormat.DXT1, MipmapMethod.Lanczos4, true);
