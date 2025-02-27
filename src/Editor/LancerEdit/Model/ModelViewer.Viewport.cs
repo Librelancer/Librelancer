@@ -369,7 +369,7 @@ namespace LancerEdit
                         modelViewport.Mode != CameraModes.Starsphere)
                     {
                         var d = Math.Abs(modelViewport.CameraOffset.Y);
-                        GridRender.Draw(rstate, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
+                        GridRender.Draw(rstate, lookAtCam, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
                     }
                     rstate.DepthWrite = false;
                     buffer.DrawTransparent(rstate);
@@ -383,7 +383,7 @@ namespace LancerEdit
                     modelViewport.Mode != CameraModes.Starsphere)
                 {
                     var d = Math.Abs(modelViewport.CameraOffset.Y);
-                    GridRender.Draw(rstate, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
+                    GridRender.Draw(rstate, lookAtCam, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
                 }
             }
             if (doWireframe)

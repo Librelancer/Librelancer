@@ -1,0 +1,3 @@
+vertex Basic_PositionNormalTexture.vert.hlsl
+fragment IllumDetailMapMaterial.frag.hlsl
+feature VERTEX_LIGHTING 1

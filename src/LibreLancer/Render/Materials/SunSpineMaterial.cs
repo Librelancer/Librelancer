@@ -9,28 +9,17 @@ namespace LibreLancer.Render.Materials;
 
 public class SunSpineMaterial : RenderMaterial
 {
-    private static int _sizeMultiplier;
-    private static ShaderVariables shader;
-
     public Vector2 SizeMultiplier;
     public string Texture;
 
-
-    static void Init(RenderContext rstate)
-    {
-        if (shader != null) return;
-        shader = Shaders.SunSpine.Get(rstate);
-        _sizeMultiplier = shader.Shader.GetLocation("SizeMultiplier");
-    }
 
     public SunSpineMaterial(ResourceManager library) : base(library) { }
 
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
-        Init(rstate);
-        shader.Shader.SetVector2(_sizeMultiplier, SizeMultiplier);
-        shader.SetDtSampler(0);
+        var shader = AllShaders.SunSpine.Get(0);
+        shader.SetUniformBlock(3, ref SizeMultiplier);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);
         rstate.BlendMode = BlendMode.Normal;
         rstate.Shader = shader;
@@ -39,8 +28,4 @@ public class SunSpineMaterial : RenderMaterial
     public override bool IsTransparent => true;
     public override bool DisableCull => true;
 
-    public override void ApplyDepthPrepass(RenderContext rstate)
-    {
-        throw new InvalidOperationException();
-    }
 }

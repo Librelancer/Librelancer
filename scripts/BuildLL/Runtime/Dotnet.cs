@@ -21,6 +21,11 @@ namespace BuildLL
             RunCommand("dotnet", $"restore {M()} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
 
+        public static void BuildDebug(string project)
+        {
+            RunCommand("dotnet", $"build -c Debug {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+        }
+
         public static void BuildRelease(string project)
         {
             RunCommand("dotnet", $"build -c Release {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");

@@ -26,8 +26,7 @@ public class QuadMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
-        var shader = Shaders.Quad.Get(rstate);
-        shader.SetDtSampler(0);
+        var shader = AllShaders.Sprite.Get(0);
         Parameters[userData].texture.BindTo(0);
         rstate.BlendMode = Parameters[userData].blendMode;
         rstate.Shader = shader;
@@ -36,9 +35,4 @@ public class QuadMaterial : RenderMaterial
     public override bool IsTransparent => true;
 
     public override bool DisableCull => true;
-
-    public override void ApplyDepthPrepass(RenderContext rstate)
-    {
-        throw new InvalidOperationException();
-    }
 }

@@ -275,7 +275,7 @@ public class SystemEditorTab : GameContentTab
         var y = Math.Abs(cpos.Y);
         if (y <= 100) y = 100;
 
-        GridRender.Draw(win.RenderContext, GridRender.DistanceScale(y), win.Config.GridColor, camera.ZRange.X,
+        GridRender.Draw(win.RenderContext, camera, GridRender.DistanceScale(y), win.Config.GridColor, camera.ZRange.X,
             camera.ZRange.Y);
     }
 

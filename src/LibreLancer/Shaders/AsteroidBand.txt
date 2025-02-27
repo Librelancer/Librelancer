@@ -1,0 +1,2 @@
+vertex Basic_PositionNormalTexture.vert.hlsl
+fragment AsteroidBand.frag.hlsl

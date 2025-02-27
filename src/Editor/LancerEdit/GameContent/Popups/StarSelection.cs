@@ -78,7 +78,7 @@ public class StarSelection : PopupWindow
         {
             if (sunPreview == null)
                 return;
-            renderContext.PushScissor(scissor);
+            renderContext.PushScissor(scissor, false);
             sunPreview.Render(sun, (Color4)(VertexDiffuse)col, renderContext, r);
             renderContext.PopScissor();
         }));

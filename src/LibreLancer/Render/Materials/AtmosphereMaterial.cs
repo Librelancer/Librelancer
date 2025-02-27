@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
@@ -17,41 +18,42 @@ namespace LibreLancer.Render.Materials
 		public Color4 Dc = Color4.White;
 		public string DtSampler;
 		public SamplerFlags DtFlags;
-		public Vector3 CameraPosition;
 		public float Alpha;
 		public float Fade; //TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
 		public float Scale;
 
         public AtmosphereMaterial(ResourceManager library) : base(library) { }
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct AtmosphereParameters
+        {
+            public Color4 Dc;
+            public Color4 Ac;
+            public float Oc;
+            public float Fade;
+        }
 
 
 		public override unsafe void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
-			rstate.DepthEnabled = true;
-			rstate.BlendMode = BlendMode.Normal;
-            var sh = Shaders.Atmosphere.Get(rstate, rstate.HasFeature(GraphicsFeature.GLES) ? ShaderFeatures.VERTEX_LIGHTING : 0);
-			sh.SetAc(Ac);
-			sh.SetDc(Dc);
-			sh.SetOc(Alpha);
-			sh.SetTileRate(Fade);
-            var w = Matrix4x4.CreateScale(Scale) * World.Source[0];
-            sh.SetDtSampler(0);
+            var sh = AllShaders.Atmosphere.Get(rstate.HasFeature(GraphicsFeature.GLES) ? 1U : 0U);
+            SetWorld(sh);
+            var p = new AtmosphereParameters() { Dc = Dc, Ac = Ac, Fade = Fade, Oc = Alpha };
             if (GetTexture(0, DtSampler) == null)
-                sh.SetOc(0);
+                p.Oc = 0;
+            sh.SetUniformBlock(3, ref p);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
+            var w = Matrix4x4.CreateScale(Scale) * World.Source[0];
 			var normalmat = w;
             Matrix4x4.Invert(normalmat, out normalmat);
             normalmat = Matrix4x4.Transpose(normalmat);
 			SetLights(sh, ref lights, rstate.FrameNumber);
-            sh.SetWorld(ref w, ref normalmat);
+            SetWorld(sh, w, normalmat);
+
+            rstate.DepthEnabled = true;
+            rstate.BlendMode = BlendMode.Normal;
             rstate.Shader = sh;
         }
-
-		public override void ApplyDepthPrepass(RenderContext rstate)
-		{
-			throw new InvalidOperationException();
-		}
 
 		public override bool IsTransparent
 		{

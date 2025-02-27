@@ -2,7 +2,9 @@
     <ImportGroup>
         <Import Project="../../CommonVersion.props" />
     </ImportGroup>
-    <PropertyGroup>
+   <Import Project="../../Shader.targets"/>
+
+  <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ApplicationIcon>reactor.ico</ApplicationIcon>
@@ -33,6 +35,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Shader Include="Shaders\*.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
         <None Update="editorscripts\**\*.cs-script">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -52,5 +58,6 @@
         <EmbeddedResource Include="Updater\Sfx-linux" />
         <None Remove="Updater\Sfx-win" />
     </ItemGroup>
+
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

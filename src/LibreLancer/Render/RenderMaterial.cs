@@ -4,6 +4,8 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
@@ -32,7 +34,7 @@ namespace LibreLancer.Render
 		public bool Fade = false;
 		public float FadeNear = 0;
 		public float FadeFar = 0;
-        public UniformBuffer Bones;
+        public StorageBuffer Bones;
         public int BufferOffset;
         public abstract void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData);
 		public abstract bool IsTransparent { get; }
@@ -41,103 +43,122 @@ namespace LibreLancer.Render
 		Texture2D[] textures = new Texture2D[8];
 		bool[] loaded = new bool[8];
 
-        public abstract void ApplyDepthPrepass(RenderContext rstate);
 
-        private const int MAX_SET_LIGHTS = 8;
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
 
         struct PackedLight
         {
-            public Vector4 Position;
-            public Vector4 ColorRange;
-            public Vector4 Attenuation;
-            public Vector4 Direction;
-            public Vector4 SpotlightParams;
+            public Vector3 Position;
+            public float Type;
+            public Color3f Diffuse;
+            public float Range;
+            public Vector3 Attentuation;
+            private float _padding1;
+            public Vector3 Direction;
+            public float Spotlight;
+            public float Falloff;
+            public float Theta;
+            public float Phi;
+            private float _padding2;
         }
-        public static unsafe void SetLights(ShaderVariables shader, ref Lighting lighting, long frameNumber)
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct ShaderLighting
+        {
+            public Vector2 FogRange;
+            public float UseLighting;
+            public float FogMode;
+            public Color3f AmbientColor;
+            public float LightCount;
+            public Color3f FogColor;
+            public float _padding;
+            public PackedLight Light0;
+            public PackedLight Light1;
+            public PackedLight Light2;
+            public PackedLight Light3;
+            public PackedLight Light4;
+            public PackedLight Light5;
+            public PackedLight Light6;
+            public PackedLight Light7;
+            public PackedLight Light8;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct WorldBuffer
+        {
+            public Matrix4x4 WorldMatrix;
+            public Matrix4x4 NormalMatrix;
+        }
+
+        protected unsafe void SetWorld(Shader shader, Matrix4x4 world, Matrix4x4 normal)
+        {
+            shader.UniformBlockTag(0) = ulong.MaxValue;
+            var b = new WorldBuffer() { WorldMatrix = world, NormalMatrix = normal };
+            shader.SetUniformBlock(0, ref b);
+        }
+
+        protected unsafe void SetWorld(Shader shader)
+        {
+            if (World.Source == (Matrix4x4*)0)
+            {
+                SetWorld(shader, Matrix4x4.Identity, Matrix4x4.Identity);
+            }
+            else if (shader.HasUniformBlock(0) &&
+                     World.ID == ulong.MaxValue || shader.UniformBlockTag(0) != World.ID)
+            {
+                shader.SetUniformBlock(0, ref Unsafe.AsRef<WorldBuffer>(World.Source));
+                shader.UniformBlockTag(0) = World.ID;
+            }
+        }
+
+        public static unsafe void SetLights(Shader shader, ref Lighting lighting, long frameNumber)
 		{
-            if (!lighting.Enabled) {
-                shader.SetLightParameters(new Vector4i(0, 0, 0, -1));
+            if (!lighting.Enabled)
+            {
+                var disable = Vector4.Zero;
+                shader.SetUniformBlock(2, ref disable);
                 return;
             }
-            shader.SetAmbientColor(new Color4(lighting.Ambient,1));
-            if (lighting.FogMode == FogModes.Linear)
-            {
-                shader.SetFogColor(new Color4(lighting.FogColor,1));
-                shader.SetFogRange(lighting.FogRange);
-            }
-            else if (lighting.FogMode == FogModes.Exp || lighting.FogMode == FogModes.Exp2)
-            {
-                shader.SetFogColor(new Color4(lighting.FogColor,1));
-                shader.SetFogRange(new Vector2(lighting.FogRange.X, 0));
-            }
 
-            int lightCount;
-            PackedLight* pLights = stackalloc PackedLight[MAX_SET_LIGHTS];
-
-            if (shader.NeedLightData(ref lighting, frameNumber, out lightCount))
+            var data = new ShaderLighting
             {
-                //Prepare shader array (TODO: make faster?)
-                if (lighting.Lights.SourceLighting != null)
+                UseLighting = 1,
+                //fog
+                FogMode = (float)lighting.FogMode,
+                FogRange = lighting.FogRange,
+                FogColor = lighting.FogColor,
+                AmbientColor = lighting.Ambient
+            };
+
+            int lt = 0;
+            var lights = new Span<PackedLight>(&data.Light0, 9);
+            for (int i = 0; i < lighting.Lights.SourceLighting.Lights.Count; i++)
+            {
+                if (!lighting.Lights.SourceEnabled[i])
+                    continue;
+                var src = lighting.Lights.SourceLighting.Lights[i].Light;
+                lights[lt].Position = src.Position;
+                lights[lt].Attentuation = src.Attenuation;
+                lights[lt].Direction = src.Direction;
+                lights[lt].Diffuse = src.Color;
+                lights[lt].Range = src.Range;
+                if (src.Kind == LightKind.Spotlight)
                 {
-                    for (int i = 0; i < lighting.Lights.SourceLighting.Lights.Count; i++)
-                    {
-                        if (lighting.Lights.SourceEnabled[i])
-                        {
-                            var lt = lighting.Lights.SourceLighting.Lights[i].Light;
-                            float kind = 0;
-                            if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
-                                kind = 1;
-                            else if (lt.Kind == LightKind.PointAttenCurve)
-                                kind = 2;
-                            pLights[lightCount].Position =
-                                new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind);
-                            pLights[lightCount].ColorRange = new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range);
-                            pLights[lightCount].Attenuation = new Vector4(lt.Attenuation, 0);
-                            if (lt.Kind == LightKind.Spotlight)
-                            {
-                                pLights[lightCount].Direction = new Vector4(lt.Direction, 1);
-                                pLights[lightCount].SpotlightParams = new Vector4(lt.Falloff,
-                                    MathF.Cos(lt.Theta * 0.5f), MathF.Cos(lt.Phi * 0.5f), 1);
-                            }
-                            else
-                                pLights[lightCount].SpotlightParams = Vector4.Zero;
-
-                            lightCount++;
-                            if (lightCount >= MAX_SET_LIGHTS) break;
-                        }
-                    }
+                    lights[lt].Spotlight = 1;
+                    lights[lt].Theta =  MathF.Cos(src.Theta * 0.5f);
+                    lights[lt].Phi = MathF.Cos(src.Phi * 0.5f);
+                    lights[lt].Falloff = src.Falloff;
                 }
-
-                if (lighting.Lights.NebulaCount == 1)
-                {
-                    if (lightCount >= MAX_SET_LIGHTS) throw new Exception("Internal too many lights");
-                    var lt = lighting.Lights.Nebula0;
-                    float kind = 0;
-                    if (lt.Kind == LightKind.Point || lt.Kind == LightKind.Spotlight)
-                        kind = 1;
-                    else if (lt.Kind == LightKind.PointAttenCurve)
-                        kind = 2;
-                    pLights[lightCount].Position =
-                        new Vector4(lt.Kind == LightKind.Directional ? lt.Direction : lt.Position, kind);
-                    pLights[lightCount].ColorRange = new Vector4(lt.Color.R, lt.Color.G, lt.Color.B, lt.Range);
-                    pLights[lightCount].Attenuation = new Vector4(lt.Attenuation, 0);
-                    if (lt.Kind == LightKind.Spotlight)
-                    {
-                        pLights[lightCount].Direction = new Vector4(lt.Direction, 1);
-                        pLights[lightCount].SpotlightParams = new Vector4(lt.Falloff,
-                            (float) (Math.Cos(lt.Theta / 2.0)),
-                            (float) (Math.Cos(lt.Phi / 2.0)), 1);
-                    }
-                    else
-                        pLights[lightCount].SpotlightParams = Vector4.Zero;
-
-                    lightCount++;
-                }
-                shader.SetLightData((Vector4*)pLights, lightCount * 5);
-                shader.UpdateLightDataCheck(ref lighting, frameNumber, lightCount);
+                if (src.Kind == LightKind.Point || src.Kind == LightKind.Spotlight)
+                    lights[lt].Type = 1;
+                else if (src.Kind == LightKind.PointAttenCurve)
+                    lights[lt].Type = 2;
+                lt++;
+                if(lt >= lights.Length) break;
             }
 
-            shader.SetLightParameters(new Vector4i(1, lightCount, (int)lighting.FogMode, lighting.NumberOfTilesX));
+            data.LightCount = lt;
+            shader.SetUniformBlock<ShaderLighting>(2, ref data);
         }
 
 		protected Texture2D GetTexture(int cacheidx, string tex)

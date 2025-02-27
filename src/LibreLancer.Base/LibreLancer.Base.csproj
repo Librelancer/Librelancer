@@ -23,15 +23,26 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-
+  <Import Project="..\Shader.targets"/>
 
   <ItemGroup>
     <Folder Include="Properties" />
   </ItemGroup>
 
-
-
   <ItemGroup>
     <ProjectReference Include="..\..\extern\blurgtext\dotnet\BlurgText\BlurgText.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Shaders\Shader2D.frag.hlsl" />
+    <None Include="Shaders\Shader2D.vert.hlsl" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Shader Include="Shaders\Shader2D.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.4" />
   </ItemGroup>
 </Project>

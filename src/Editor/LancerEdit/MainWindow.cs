@@ -17,6 +17,7 @@ using LibreLancer.Media;
 using ImGuiNET;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
+using LancerEdit.Shaders;
 using LancerEdit.Updater;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
@@ -150,6 +151,7 @@ namespace LancerEdit
         protected override void Load()
         {
             AllShaders.Compile(RenderContext);
+            EditorShaders.Compile(RenderContext);
             DefaultMaterialMap.Init();
             DisplayMesh.LoadAll(RenderContext);
             #if DEBUG

@@ -65,6 +65,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Net.Generator",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlurgText", "extern\blurgtext\dotnet\BlurgText\BlurgText.csproj", "{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MSBuild", "MSBuild", "{4B79CF0D-577F-4BA9-AF02-AB976F63CC3C}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shader.targets = src\Shader.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

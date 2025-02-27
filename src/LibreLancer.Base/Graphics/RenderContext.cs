@@ -25,16 +25,6 @@ namespace LibreLancer.Graphics
 
 		static internal RenderContext Instance;
 
-        private UniformBuffer cameraBuffer;
-
-        struct CameraMatrices
-        {
-            public Matrix4x4 View;
-            public Matrix4x4 Projection;
-            public Matrix4x4 ViewProjection;
-            public Vector3 CameraPosition;
-            public float Padding;
-        }
 		public Color4 ClearColor
         {
             get => requested.ClearColor;
@@ -179,29 +169,9 @@ namespace LibreLancer.Graphics
             set => requested.CullFaces = value;
         }
 
-        private bool cameraIsIdentity = false;
+        public void SetIdentityCamera() => Backend.SetIdentityCamera();
+        public void SetCamera(ICamera camera) => Backend.SetCamera(camera);
 
-        public void SetIdentityCamera()
-        {
-            if (cameraIsIdentity) return;
-            var matrices = new CameraMatrices();
-            matrices.View = Matrix4x4.Identity;
-            matrices.Projection = Matrix4x4.Identity;
-            matrices.ViewProjection = Matrix4x4.Identity;
-            matrices.CameraPosition = Vector3.Zero;
-            cameraBuffer.SetData(ref matrices);
-            cameraIsIdentity = true;
-        }
-        public void SetCamera(ICamera camera)
-        {
-            var matrices = new CameraMatrices();
-            matrices.View = camera.View;
-            matrices.Projection = camera.Projection;
-            matrices.ViewProjection = camera.ViewProjection;
-            matrices.CameraPosition = camera.Position;
-            cameraBuffer.SetData(ref matrices);
-            cameraIsIdentity = false;
-        }
 
         public Renderer2D Renderer2D { get; }
 
@@ -218,9 +188,7 @@ namespace LibreLancer.Graphics
 			PreferredFilterLevel = TextureFiltering.Trilinear;
             impl.Init(ref requested);
             Renderer2D = new Renderer2D(this);
-            cameraBuffer = new UniformBuffer(this, 1, Marshal.SizeOf<CameraMatrices>(), typeof(CameraMatrices));
             SetIdentityCamera();
-            cameraBuffer.BindTo(2);
         }
 
         public Rectangle CurrentViewport => requested.Viewport;

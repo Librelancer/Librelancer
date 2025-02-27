@@ -17,10 +17,9 @@ public class NebulaInteriorMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
-        var shader = Shaders.NebulaInterior.Get(rstate);
-        shader.SetWorld(World);
-        shader.SetDtSampler(0);
-        shader.SetDc(Dc);
+        var shader = AllShaders.NebulaInterior.Get(0);
+        SetWorld(shader);
+        shader.SetUniformBlock(2, ref Dc);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);
         rstate.BlendMode = BlendMode.Normal;
         rstate.Shader = shader;
@@ -29,8 +28,4 @@ public class NebulaInteriorMaterial : RenderMaterial
     public override bool IsTransparent => true;
     public override bool DisableCull => true;
 
-    public override void ApplyDepthPrepass(RenderContext rstate)
-    {
-        throw new InvalidOperationException();
-    }
 }

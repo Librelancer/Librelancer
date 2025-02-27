@@ -92,6 +92,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static bool GLES = false;
 		static Dictionary<int, string> errors;
         public static bool ErrorChecking = false;
+
         public static void LoadSDL(Func<string,IntPtr> getProcAddress)
 		{
             tid = Thread.CurrentThread.ManagedThreadId;
@@ -113,6 +114,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                 GL.DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, IntPtr.Zero, false);
                 GL._glDebugMessageCallback(Marshal.GetFunctionPointerForDelegate(DebugCallback), IntPtr.Zero);
             }
+            #if DEBUG
+            ErrorChecking = true;
+            #endif
 		}
 
         private static GlDebugProcKHR DebugCallback = DebugCallbackHandler;

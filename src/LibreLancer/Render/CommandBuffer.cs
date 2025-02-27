@@ -21,14 +21,14 @@ namespace LibreLancer.Render
 		int currentCommand = 0;
 		int transparentCommand = 0;
         RenderContext rstate;
-        public UniformBuffer BonesBuffer;
+        public StorageBuffer BonesBuffer;
         public int BonesMax;
         public int BonesOffset;
         public WorldMatrixBuffer WorldBuffer;
         public ICamera Camera;
         public CommandBuffer(RenderContext context)
         {
-            BonesBuffer = new UniformBuffer(context, 65536, 64, typeof(Matrix4x4), true);
+            BonesBuffer = new StorageBuffer(context, 65536, 64, typeof(Matrix4x4), true);
             WorldBuffer = new WorldMatrixBuffer();
         }
         public void StartFrame(RenderContext rstate)

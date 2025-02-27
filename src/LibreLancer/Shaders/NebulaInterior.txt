@@ -1,0 +1,2 @@
+vertex NebulaInterior.vert.hlsl
+fragment NebulaInterior.frag.hlsl

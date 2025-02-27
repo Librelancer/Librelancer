@@ -5,6 +5,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Xml;
 using LibreLancer.Data.Solar;
 using LibreLancer.GameData;
@@ -13,6 +14,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
+using LibreLancer.Shaders;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -188,6 +190,13 @@ namespace LibreLancer.Interface
         public float OffsetX = 0f;
         public float OffsetY = 0f;
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct NavmapParameters
+        {
+            public Vector4 Rectangle;
+            public Vector2 Tiling;
+        }
+
         public override unsafe void Render(UiContext context, RectangleF parentRectangle)
         {
             var parentRect = GetMyRectangle(context, parentRectangle);
@@ -257,12 +266,15 @@ namespace LibreLancer.Interface
             if (!context.RenderContext.PushScissor(zoneclip))
                 return;
             var zoneMat = Matrix4x4.CreateOrthographicOffCenter (0, context.RenderContext.CurrentViewport.Width, context.RenderContext.CurrentViewport.Height, 0, 0, 1);
-            var zoneShader = Shaders.Navmap.Get(context.RenderContext);
-            zoneShader.Shader.SetMatrix(zoneShader.Shader.GetLocation("ViewProjection"), ref zoneMat);
-            zoneShader.Shader.SetVector4(zoneShader.Shader.GetLocation("Rectangle"),
-                new Vector4(zoneclip.X, context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
-                    zoneclip.Width, zoneclip.Height));
-            zoneShader.Shader.SetVector2(zoneShader.Shader.GetLocation("Tiling"), new Vector2(8));
+            var zoneShader = AllShaders.Navmap.Get(0);
+            var np = new NavmapParameters()
+            {
+                Rectangle = new Vector4(zoneclip.X, context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
+                    zoneclip.Width, zoneclip.Height),
+                Tiling = new Vector2(8)
+            };
+            zoneShader.SetUniformBlock(0, ref zoneMat);
+            zoneShader.SetUniformBlock(3, ref np);
             foreach (var zone in zones)
             {
                 Texture2D texture = null;
@@ -271,8 +283,7 @@ namespace LibreLancer.Interface
                 texture?.SetWrapModeS(WrapMode.Repeat);
                 texture?.SetWrapModeT(WrapMode.Repeat);
                 texture?.BindTo(0);
-                zoneShader.SetDtSampler(0);
-                zoneShader.SetDc(zone.Tint);
+                zoneShader.SetUniformBlock(4, ref zone.Tint);
                 var dim = zone.Zone.Shape == ShapeKind.Sphere
                     ? new Vector2(zone.Zone.Size.X)
                     : new Vector2(zone.Zone.Size.X, zone.Zone.Size.Z);
@@ -281,7 +292,7 @@ namespace LibreLancer.Interface
                 var screenPos =
                     context.PointsToPixels(WorldToMap(new Vector2(zone.Zone.Position.X, zone.Zone.Position.Z)));
                 var world =  Matrix4x4.CreateScale(meshScale) * Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
-                zoneShader.SetWorld(ref world, ref world);
+                zoneShader.SetUniformBlock(2, ref world);
                 vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
                 void* dst = (void*)vbo.BeginStreaming();
                 var td = zone.Zone.TopDownMesh();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
@@ -166,14 +167,60 @@ class GLRenderContext : IRenderContext
         }
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    struct CameraMatrices
+    {
+        public Matrix4x4 View;
+        public Matrix4x4 Projection;
+        public Matrix4x4 ViewProjection;
+        public Vector3 CameraPosition;
+        private float _padding;
+    }
+    private ulong cameraTag;
+    private ulong setCameraTag = 0;
+    private CameraMatrices matrices;
+
+    public void SetCamera(ICamera camera)
+    {
+        setCameraTag++;
+        setCameraTag &= 0x3FFFFFFFFFFFFFFF; //top bit free (never ulong.MaxValue)
+        cameraTag = (setCameraTag << 1) | 0x1; // cameraTag is never 0
+        matrices.View = camera.View;
+        matrices.Projection = camera.Projection;
+        matrices.ViewProjection = camera.ViewProjection;
+        matrices.CameraPosition = camera.Position;
+    }
+
+    public void SetIdentityCamera()
+    {
+        if (cameraTag == ulong.MaxValue)
+        {
+            return;
+        }
+        cameraTag = ulong.MaxValue;
+        matrices.View = Matrix4x4.Identity;
+        matrices.Projection = Matrix4x4.Identity;
+        matrices.ViewProjection = Matrix4x4.Identity;
+        matrices.CameraPosition = Vector3.Zero;
+    }
+
     public void ApplyShader(IShader shader)
     {
-        if (applied.Shader != shader && shader != null)
+        if (shader != null)
         {
+            if(shader.HasUniformBlock(1) &&
+               shader.UniformBlockTag(1) != cameraTag)
+            {
+                shader.UniformBlockTag(1) = cameraTag;
+                shader.SetUniformBlock(1, ref matrices);
+            }
             ((GLShader)shader).UseProgram();
             applied.Shader = shader;
         }
     }
+
+
+
     public void ApplyState(ref GraphicsState requested)
     {
         ApplyShader(requested.Shader);
@@ -441,8 +488,8 @@ class GLRenderContext : IRenderContext
         }
     }
 
-    public IShader CreateShader(string vertex_source, string fragment_source) =>
-        new GLShader(this, vertex_source, fragment_source);
+    public IShader CreateShader(ReadOnlySpan<byte> program) =>
+        new GLShader(this, program);
 
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>
         new GLElementBuffer(this, count, isDynamic);
@@ -471,6 +518,6 @@ class GLRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);
 
-    public IUniformBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false)
-        => new GLUniformBuffer(size, stride, type, streaming);
+    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false)
+        => new GLStorageBuffer(size, stride, type, streaming);
 }

@@ -1,0 +1,7 @@
+vertex Basic_PositionNormalTextureTwo.vert.hlsl
+fragment Basic.frag.hlsl
+feature VERTEX_LIGHTING 1
+feature ALPHATEST_ENABLED 2
+feature ET_ENABLED 3
+feature FADE_ENABLED 4
+feature NORMALMAP 5

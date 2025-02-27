@@ -34,6 +34,14 @@ class NullRenderContext : IRenderContext
     {
     }
 
+    public void SetIdentityCamera()
+    {
+    }
+
+    public void SetCamera(ICamera camera)
+    {
+    }
+
     public void ApplyScissor(ref GraphicsState requested)
     {
     }
@@ -73,6 +81,9 @@ class NullRenderContext : IRenderContext
     public IShader CreateShader(string vertex_source, string fragment_source) =>
         new NullShader();
 
+    public IShader CreateShader(ReadOnlySpan<byte> program) =>
+        new NullShader();
+
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>
         new NullElementBuffer(count);
 
@@ -100,8 +111,8 @@ class NullRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
         new NullMultisampleTarget(width, height);
 
-    public IUniformBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false) =>
-        new NullUniformBuffer(size, stride);
+    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false) =>
+        new NullStorageBuffer(size, stride);
 
     public bool HasFeature(GraphicsFeature feature) => false;
 

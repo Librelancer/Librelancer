@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Render.Materials
@@ -26,13 +27,6 @@ namespace LibreLancer.Render.Materials
 
         public NomadMaterial(ResourceManager library) : base(library) { }
 
-
-
-		public override void ApplyDepthPrepass(RenderContext rstate)
-		{
-			throw new InvalidOperationException();
-		}
-
 		public override bool IsTransparent
 		{
 			get
@@ -46,20 +40,17 @@ namespace LibreLancer.Render.Materials
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.BlendMode = BlendMode.Normal;
-            var shader = Shaders.Nomad.Get(rstate);
-			shader.SetWorld(World);
+            var shader = AllShaders.Nomad.Get(0);
+            SetWorld(shader);
             //Colors
-			shader.SetDc(Dc);
+            //Dc unused in shader rn (investigate)
 			//Dt
-			shader.SetDtSampler(0);
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
 			//Nt
-			shader.SetDmSampler(1); //Repurpose DmSampler
 			BindTexture(rstate, 1, NtSampler ?? "NomadRGB1_NomadAlpha1", 1, NtFlags);
 			//Bt
-
-			//Disable MaterialAnim
-			shader.SetMaterialAnim(new Vector4(0, 0, 1, 1));
+            // not implemented
+            // materialanim needs check for impl?
             rstate.Shader = shader;
         }
 	}

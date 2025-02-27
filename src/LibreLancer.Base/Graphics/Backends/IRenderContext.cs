@@ -27,7 +27,8 @@ interface IRenderContext
     void ClearDepth();
     void MemoryBarrier();
 
-    IShader CreateShader(string vertex_source, string fragment_source);
+    IShader CreateShader(ReadOnlySpan<byte> program);
+
     IElementBuffer CreateElementBuffer(int count, bool isDynamic = false);
     IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false);
     IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false);
@@ -43,7 +44,10 @@ interface IRenderContext
 
     IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples);
 
-    IUniformBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false);
+    IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false);
+
+    void SetCamera(ICamera camera);
+    void SetIdentityCamera();
 
     bool HasFeature(GraphicsFeature feature);
 

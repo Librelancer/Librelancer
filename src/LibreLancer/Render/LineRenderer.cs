@@ -5,8 +5,10 @@
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Shaders;
 using LibreLancer.Utf.Cmp;
 
 namespace LibreLancer.Render
@@ -19,10 +21,11 @@ namespace LibreLancer.Render
 		int lineVertices = 0;
         public string SkeletonHighlight;
 
-		Shaders.ShaderVariables shader;
+		Shader shader;
 		public LineRenderer(RenderContext rstate)
         {
-            shader = Shaders.PhysicsDebug.Get(rstate);
+            AllShaders.CompilePhysicsDebug(rstate);
+            shader = AllShaders.PhysicsDebug.Get(0);
 			linebuffer = new VertexBuffer(rstate, typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 
@@ -99,15 +102,22 @@ namespace LibreLancer.Render
             }
         }
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct MaterialParameters
+        {
+            public Color4 Dc;
+            public float Oc;
+        }
+
         public void DrawVWire(VMeshWire wire, VertexResource resource, Matrix4x4 world, Color4 color)
         {
             Render();
             rstate.Cull = false;
             rstate.DepthWrite = false;
             rstate.PolygonOffset = Vector2.One;
-            shader.SetWorld(ref world, ref world);
-            shader.SetDc(color);
-            shader.SetOc(1);
+            shader.SetUniformBlock(0, ref world);
+            var p = new MaterialParameters() { Dc = color, Oc = 1 };
+            shader.SetUniformBlock(3, ref p);
             rstate.Shader = shader;
             resource.VertexBuffer.DrawImmediateElements(
                 PrimitiveTypes.LineList,
@@ -129,8 +139,9 @@ namespace LibreLancer.Render
             var bm = rstate.BlendMode;
             rstate.BlendMode = BlendMode.Normal;
             var w = Matrix4x4.Identity;
-            shader.SetWorld(ref w, ref w);
-            shader.SetOc(0);
+            shader.SetUniformBlock(0, ref w);
+            var p = new MaterialParameters() { Dc = Color4.White, Oc = 0 };
+            shader.SetUniformBlock(3, ref p);
             rstate.Shader = shader;
 			linebuffer.SetData<VertexPositionColor>(lines.AsSpan().Slice(0, lineVertices));
 			linebuffer.Draw(PrimitiveTypes.LineList, lineVertices / 2);

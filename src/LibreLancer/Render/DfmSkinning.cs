@@ -113,7 +113,7 @@ namespace LibreLancer.Render
             UpdateBounds();
         }
 
-        public void SetBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet, Transform3D? connectionBone = null)
+        public void SetBoneData(StorageBuffer bonesBuffer, ref int offset, ref int lastSet, Transform3D? connectionBone = null)
         {
             var cb = connectionBone ?? Transform3D.Identity;
             for (int i = 0; i < instanceArray.Length; i++)

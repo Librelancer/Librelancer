@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
+  <Import Project="../../Shader.targets"/>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -28,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Shader Include="Shaders\*.txt" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Remove="checkerboard.png" />
     <EmbeddedResource Include="checkerboard.png" />
     <None Remove="Roboto-Medium.ttf" />
@@ -43,5 +48,4 @@
     <None Remove="folder.png" />
     <EmbeddedResource Include="folder.png" />
   </ItemGroup>
-
 </Project>

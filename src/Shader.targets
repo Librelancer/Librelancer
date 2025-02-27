@@ -1,0 +1,74 @@
+<Project>
+    <PropertyGroup>
+        <BuildDependsOn>
+            ShaderCompiler
+            $(BuildDependsOn)
+        </BuildDependsOn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvailableItemName Include="Shader">
+            <Visible>true</Visible>
+        </AvailableItemName>
+    </ItemGroup>
+
+    <!--Find a provided DXC Binary-->
+    <PropertyGroup>
+        <DXC Condition="Exists('$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\dxc.exe')">--dxc "$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\dxc.exe"</DXC>
+        <DXC Condition="Exists('$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\dxc')">--dxc "$(MSBuildThisFileDirectory)/../bin/builddeps/bin/dxc"</DXC>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <LLShaderCompiler>$(MSBuildThisFileDirectory)\LLShaderCompiler\bin\Debug\net8.0\LLShaderCompiler</LLShaderCompiler>
+    </PropertyGroup>
+
+    <!-- Writes the arguments out required for LLShaderCompiler. Use files to avoid cmd limit-->
+    <!-- "%0a" gives us a newline in MSBuild so we can interleave input/output-->
+    <Target Name="GatherShaderFiles" Condition="@(Shader)!=''" BeforeTargets="ShaderDependencies">
+        <!-- Files to search for inputs -->
+        <WriteLinesToFile File="$(IntermediateOutputPath)LLAllShaders.rsp.txt" Overwrite="true" Lines="@(Shader->'%(Identity)')"/>
+        <!-- Compilation -->
+        <WriteLinesToFile File="$(IntermediateOutputPath)LLCompileShaders.rsp.txt" Overwrite="true"
+                          Lines="@(Shader->'%(Identity)%0a$(IntermediateOutputPath)%(RelativeDir)%(Filename).bin')"/>
+        <!-- Define Outputs -->
+        <ItemGroup>
+            <ShaderOutputs Include="$(IntermediateOutputPath)%(Shader.RelativeDir)%(Shader.Filename).bin"/>
+        </ItemGroup>
+    </Target>
+
+    <Target Name="CleanShaders" BeforeTargets="Clean">
+        <ItemGroup>
+            <ShaderToClean Include="$(IntermediateOutputPath)%(Shader.RelativeDir)%(Shader.Filename).bin"/>
+        </ItemGroup>
+        <Delete Files="%(ShaderToClean.Identity)" Condition="Exists('%(ShaderToClean.Identity)')"/>
+    </Target>
+
+    <!-- Invokes LLShaderCompiler to find the file dependency tree for all shaders
+         so we don't have to recompile the shaders on every build -->
+    <Target Name="ShaderDependencies" Condition="@(Shader)!=''" BeforeTargets="ShaderCompiler">
+        <Exec Command="$(LLShaderCompiler) $(DXC) --list-deps --rsp $(IntermediateOutputPath)LLAllShaders.rsp.txt"
+            ConsoleToMsBuild="true" StandardOutputImportance="Low">
+            <Output TaskParameter="ConsoleOutput" ItemName="ShaderInputs"/>
+        </Exec>
+    </Target>
+
+    <!-- Compiles all shaders and adds them as EmbeddedResources.
+         We pass all shaders at once to LLShaderCompiler as msbuild does not support
+         running Exec tasks in parallel
+     -->
+    <Target Name="ShaderCompiler" Condition="@(Shader)!=''"
+            Inputs="@(ShaderInputs)"
+            BeforeTargets="BeforeBuild;BeforeRebuild"
+            Outputs="@(ShaderOutputs)">
+        <MakeDir Directories="$(IntermediateOutputPath)%(Shader.RelativeDir)" Condition="!Exists('$(IntermediateOutputPath)%(Shader.RelativeDir)')" />
+        <Exec Command="$(LLShaderCompiler) $(DXC) --rsp $(IntermediateOutputPath)LLCompileShaders.rsp.txt"/>
+        <ItemGroup>
+            <EmbeddedResource Include="%(ShaderOutputs.Identity)">
+                <LogicalName>%(ShaderOutputs.Filename).bin</LogicalName>
+            </EmbeddedResource>
+        </ItemGroup>
+    </Target>
+
+
+
+</Project>

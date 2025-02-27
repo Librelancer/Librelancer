@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Enumeration;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using McMaster.Extensions.CommandLineUtils;
 using Bullseye;
 using static Bullseye.Targets;
@@ -91,7 +94,10 @@ namespace BuildLL
                     CopyDirContents(dir, target.CreateSubdirectory(dir.Name), true, searchPattern);
             }
             foreach (FileInfo file in source.GetFiles()) {
-                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+                if (FileSystemName.MatchesSimpleExpression(searchPattern, file.Name))
+                {
+                    file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+                }
             }
         }
 
@@ -106,6 +112,18 @@ namespace BuildLL
             var process = Process.Start(psi);
             process.WaitForExit();
             if (process.ExitCode != 0) throw new Exception($"Command Failed: {command}");
+        }
+
+        public static bool UnixHasCommand(string cmd)
+        {
+            var startInfo = new ProcessStartInfo("/bin/sh")
+            {
+                UseShellExecute = false,
+                Arguments = $" -c \"command -v {cmd} >/dev/null 2>&1\""
+            };
+            using var p = Process.Start(startInfo);
+            p.WaitForExit();
+            return p.ExitCode == 0;
         }
 
         public static string Bash(string command, bool print = true)
@@ -167,9 +185,15 @@ namespace BuildLL
             });
         }
 
+        public static ConfigFile Config;
+
         static int Main(string[] args)
         {
             using var app = new CommandLineApplication() {UsePagerForHelpText = false};
+            if (File.Exists("build.config"))
+                Config = new ConfigFile("build.config");
+            else
+                Config = new ConfigFile();
             app.Name = IsWindows ? "build.ps1" : "build.sh";
             _app = app;
             app.HelpOption();
@@ -237,6 +261,14 @@ namespace BuildLL
             return app.Execute(args);
         }
 
+        public static void DownloadFile(string file, string destination)
+        {
+            using var http = new HttpDownloader(file, destination);
+            Console.WriteLine($"Downloading {file}");
+            http.ProgressChanged += (size, downloaded, percentage) =>
+                Console.WriteLine($"{percentage:F2}%");
+            http.StartDownload().Wait();
+        }
         static void OnError(Exception e)
         {
             Console.Error.WriteLine(e);

@@ -65,6 +65,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int,float,float,float,float,void> _glUniform4f;
         private static delegate* unmanaged<int,int,IntPtr,void> _glUniform4fv;
         private static delegate* unmanaged<int,int,int,int,int,void> _glUniform4i;
+        private static delegate* unmanaged<int,int,IntPtr,void> _glUniform4iv;
         private static delegate* unmanaged<int,int,int,IntPtr,void> _glUniformMatrix4fv;
         private static delegate* unmanaged<uint,uint,uint,void> _glUniformBlockBinding;
         private static delegate* unmanaged<uint,byte*,int> _glGetUniformBlockIndex;
@@ -173,6 +174,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glUniform4f = (delegate* unmanaged<int,float,float,float,float,void>)getProcAddress("glUniform4f");
             _glUniform4fv = (delegate* unmanaged<int,int,IntPtr,void>)getProcAddress("glUniform4fv");
             _glUniform4i = (delegate* unmanaged<int,int,int,int,int,void>)getProcAddress("glUniform4i");
+            _glUniform4iv = (delegate* unmanaged<int,int,IntPtr,void>)getProcAddress("glUniform4iv");
             _glUniformMatrix4fv = (delegate* unmanaged<int,int,int,IntPtr,void>)getProcAddress("glUniformMatrix4fv");
             _glUniformBlockBinding = (delegate* unmanaged<uint,uint,uint,void>)getProcAddress("glUniformBlockBinding");
             _glGetUniformBlockIndex = (delegate* unmanaged<uint,byte*,int>)getProcAddress("glGetUniformBlockIndex");
@@ -539,6 +541,11 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static void Uniform4i(int location, int v0, int v1, int v2, int v3)
         {
             _glUniform4i(location, v0, v1, v2, v3);
+            ErrorCheck();
+        }
+        public static void Uniform4iv(int location, int count, IntPtr values)
+        {
+            _glUniform4iv(location, count, values);
             ErrorCheck();
         }
         public static void UniformMatrix4fv(int location, int count, bool transpose, IntPtr value)

@@ -14,6 +14,7 @@ using ImGuiNET;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.ImUI.Shaders;
 
 namespace LibreLancer.ImUI
 {
@@ -51,51 +52,7 @@ namespace LibreLancer.ImUI
 				);
 			}
 		}
-		const string vertex_source = @"
-		#version {0}
-		in vec2 vertex_position;
-		in vec2 vertex_texture1;
-		in vec4 vertex_color;
-		out vec2 out_texcoord;
-		out vec4 blendColor;
-		uniform mat4 modelviewproj;
-		void main()
-		{
-    		gl_Position = modelviewproj * vec4(vertex_position, 0.0, 1.0);
-    		blendColor = vertex_color;
-    		out_texcoord = vertex_texture1;
-		}
-		";
 
-		const string text_fragment_source = @"
-		#version {0}
-		in vec2 out_texcoord;
-		in vec4 blendColor;
-		out vec4 out_color;
-		uniform sampler2D tex;
-		void main()
-		{
-			vec4 color = texture(tex, out_texcoord);
-            if(out_texcoord.x > 3.0) color.a = 1.0;
-			out_color = blendColor * color;
-		}
-		";
-
-		const string color_fragment_source = @"
-		#version {0}
-		in vec2 out_texcoord;
-		in vec4 blendColor;
-		out vec4 out_color;
-		uniform sampler2D tex;
-		void main()
-		{
-			vec4 texsample = texture(tex, out_texcoord);
-			out_color = blendColor * texsample;
-		}
-		";
-
-		Shader textShader;
-		Shader colorShader;
 		Texture2D fontTexture;
 		const int FONT_TEXTURE_ID = 8;
 		public static int CheckerboardId;
@@ -273,9 +230,7 @@ namespace LibreLancer.ImUI
 			fontTexture.SetFiltering(TextureFiltering.Linear);
 			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
 			io.Fonts.ClearTexData();
-            string glslVer = game.RenderContext.HasFeature(GraphicsFeature.GLES) ? "300 es\nprecision mediump float;" : "140";
-			textShader = new Shader(game.RenderContext, vertex_source.Replace("{0}", glslVer), text_fragment_source.Replace("{0}", glslVer));
-			colorShader = new Shader(game.RenderContext, vertex_source.Replace("{0}", glslVer), color_fragment_source.Replace("{0}", glslVer));
+            ImGuiShader.Compile(game.RenderContext);
 			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
 			var c = new Bgra8[] { Bgra8.White };
 			dot.SetData(c);
@@ -592,10 +547,10 @@ namespace LibreLancer.ImUI
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);
 
 			var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
-			textShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
-			textShader.SetInteger(textShader.GetLocation("tex"), 0);
-			colorShader.SetMatrix(textShader.GetLocation("modelviewproj"), ref mat);
-			colorShader.SetInteger(textShader.GetLocation("tex"), 0);
+            var textShader = ImGuiShader.Shader.Get(0);
+            var colorShader = ImGuiShader.Shader.Get(0);
+            textShader.SetUniformBlock(2, ref mat);
+            colorShader.SetUniformBlock(2, ref mat);
             rstate.Shader = textShader;
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
