@@ -152,7 +152,7 @@ namespace LibreLancer.Missions.Actions
                     TriggerActions.Act_DisableFriendlyFire => new Act_DisableFriendlyFire(a),
                     TriggerActions.Act_DisableEnc => new Act_DisableEnc(a),
                     TriggerActions.Act_Destroy => new Act_Destroy(a),
-                    // TriggerActions.Act_DebugMsg => new Act_DebugMsg(a),
+                    TriggerActions.Act_DebugMsg => new Act_DebugMsg(a),
                     TriggerActions.Act_DeactTrig => new Act_DeactTrig(a),
                     TriggerActions.Act_Cloak => new Act_Cloak(a),
                     TriggerActions.Act_ChangeState => new Act_ChangeState(a),

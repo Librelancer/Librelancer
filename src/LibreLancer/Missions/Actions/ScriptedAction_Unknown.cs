@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.Missions;
 using LibreLancer.Ini;
 
@@ -944,6 +945,25 @@ public class Act_DisableEnc : ScriptedAction
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Act_DisableEnc", Encounter);
+    }
+}
+
+public class Act_DebugMsg : ScriptedAction
+{
+    public string Message = string.Empty;
+
+    public Act_DebugMsg()
+    {
+    }
+
+    public Act_DebugMsg(MissionAction act) : base(act)
+    {
+        Message = CommentEscaping.Unescape(act.Entry[0].ToString());
+    }
+
+    public override void Write(IniBuilder.IniSectionBuilder section)
+    {
+        section.Entry(CommentEscaping.Escape(Message));
     }
 }
 
