@@ -680,7 +680,7 @@ namespace LibreLancer.Server
                     sg = SaveWriter.CreateSave(Character, description, ids, timeStamp, Game.GameData, thns.Rtcs,
                         thns.Ambients, Story);
                 }
-                MissionRuntime.WriteActiveTriggers(sg);
+                MissionRuntime?.WriteActiveTriggers(sg);
                 IniWriter.WriteIniFile(path, sg.ToIni());
                 completionSource.SetResult();
             });
