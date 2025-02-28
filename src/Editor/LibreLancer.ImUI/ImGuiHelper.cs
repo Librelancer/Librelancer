@@ -159,7 +159,7 @@ namespace LibreLancer.ImUI
             fontConfigC.GlyphRanges = rangesPtrFull;
 
             Default = io.Fonts.AddFontDefault(fontConfigA);
-			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Medium.ttf"))
+			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Regular.ttf"))
 			{
 				var ttf = new byte[stream.Length];
 				stream.Read(ttf, 0, ttf.Length);
