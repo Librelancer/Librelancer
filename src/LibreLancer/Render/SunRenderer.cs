@@ -55,13 +55,11 @@ namespace LibreLancer.Render
             );
         }
 
+        private Vector3 genPos;
+        private int bufferIndex;
+
         public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
-		{
-            if (vertices == null || pos != position)
-            {
-                vertices = new VertexBillboardColor2[GetVertexCount(Sun)];
-                CreateVertices(vertices, position, Sun);
-            }
+        {
             pos = position;
         }
 
@@ -108,8 +106,6 @@ namespace LibreLancer.Render
             }
         }
 
-        private QuadBufferHandle renderIndex;
-
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             if (sysr == null)
@@ -126,22 +122,26 @@ namespace LibreLancer.Render
 
             sysr = sys;
             sys.AddObject(this);
-            if (!renderIndex.Check(sysr.QuadBuffer)) {
-                renderIndex = sysr.QuadBuffer.DoVertices(vertices);
+            if (vertices == null || pos != genPos)
+            {
+                 vertices = new VertexBillboardColor2[GetVertexCount(Sun)];
+                 CreateVertices(vertices, pos, Sun);
             }
+
+            bufferIndex = vertices != null ? sys.QuadBuffer.DoVertices(vertices) : -1;
             return true;
         }
 
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
-            if (sysr == null || vertices == null || renderIndex.Invalid)
+            if (sysr == null || vertices == null || bufferIndex == -1)
                 return;
             float z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
                 z = 900000;
             var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
             var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
-            var idx = renderIndex.Index;
+            var idx = bufferIndex;
             //draw center
             if (Sun.CenterSprite != null)
             {

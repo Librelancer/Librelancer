@@ -49,29 +49,6 @@ namespace LibreLancer.Render
         }
     }
 
-    public struct QuadBufferHandle
-    {
-        private WeakReference<QuadBuffer> parent;
-        private bool valid;
-        public int Index { get; private set; }
-
-        public bool Check(QuadBuffer buf)
-        {
-            if (parent == null) return false;
-            if (!parent.TryGetTarget(out var t) || t != buf)
-                return false;
-            return true;
-        }
-
-        public bool Invalid => parent == null;
-
-        public QuadBufferHandle(QuadBuffer buffer, int index)
-        {
-            parent = new WeakReference<QuadBuffer>(buffer);
-            Index = index;
-        }
-    }
-
     public unsafe class QuadBuffer : IDisposable
     {
         public const int MAX_QUADS = 400;
@@ -145,13 +122,13 @@ namespace LibreLancer.Render
             vertexOffset = 0;
         }
 
-        public QuadBufferHandle DoVertices(ReadOnlySpan<VertexBillboardColor2> vx)
+        public int DoVertices(ReadOnlySpan<VertexBillboardColor2> vx)
         {
             var idxOffset = (vertexOffset / 4) * 6;
-            if (vertexOffset + vx.Length >= gpuVertices.Length) return default;
+            if (vertexOffset + vx.Length >= gpuVertices.Length) return -1;
             vx.CopyTo(gpuVertices.Slice(vertexOffset));
             vertexOffset += vx.Length;
-            return new QuadBufferHandle(this, idxOffset);
+            return idxOffset;
         }
 
         public void Dispose()

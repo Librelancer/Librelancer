@@ -330,7 +330,7 @@ namespace LibreLancer.Render
         }
 
         int puffId = 0;
-        private QuadBufferHandle puffsIdx;
+        private int puffsIdx = -1;
         VertexBillboardColor2[] puffVertices;
 
 
@@ -352,14 +352,14 @@ namespace LibreLancer.Render
                     return;
             }
 
-            if (puffsIdx.Invalid)
+            if (puffsIdx == -1)
                 return;
             var world = Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(Nebula.Zone.Position);
             var wh = buffer.WorldBuffer.SubmitMatrix(ref world);
             /* Actually Render */
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
-            int idx = puffsIdx.Index;
+            int idx = puffsIdx;
             for (int i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
@@ -385,10 +385,7 @@ namespace LibreLancer.Render
         {
             if (puffVertices != null)
             {
-                if (!puffsIdx.Check(sysr.QuadBuffer))
-                {
-                    puffsIdx =  sysr.QuadBuffer.DoVertices(puffVertices);
-                }
+                puffsIdx =  sysr.QuadBuffer.DoVertices(puffVertices);
             }
         }
 
