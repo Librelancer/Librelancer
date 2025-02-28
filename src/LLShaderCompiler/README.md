@@ -10,3 +10,5 @@ LLShaderCompiler also supports transpiling to GLSL 140 (used with GL 3.1). This 
 - Storage buffers are supported only as `StructuredBuffer`, `RWStructuredBuffer` is not supported. Storage buffers are emulated using GL uniform buffers in std140 layout. The compiler will error if it detects the buffer's layout does not match between std430 and std140.
 
 Output files are zstd compressed.
+
+NOTE: dxc seems broken on arm64 linux currently when compiling DXIL, so cross-compilation cannot be complete when using arm64 linux.

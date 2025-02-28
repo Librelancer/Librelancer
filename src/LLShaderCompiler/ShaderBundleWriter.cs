@@ -6,7 +6,7 @@ public record GPUProgram(ReflectedShader Vertex, ReflectedShader Fragment);
 public record BundledShader(
     uint Features,
     GPUProgram SPIRV,
-    GPUProgram DXIL,
+    GPUProgram? DXIL,
     GPUProgram MSL,
     GLShader? GL);
 
@@ -137,8 +137,12 @@ public class ShaderBundleWriter
         writer.Write(bytes);
     }
 
-    static byte[] GetShaderBytes(GPUProgram sh)
+    static byte[] GetShaderBytes(GPUProgram? sh)
     {
+        if (sh == null)
+        {
+            return "NULL\0"u8.ToArray();
+        }
         var ms = new MemoryStream();
         var writer = new BinaryWriter(ms);
         WriteVarUInt32(writer, sh.Vertex.NumSamplers);

@@ -99,7 +99,7 @@ static class Shell
         }
         else
         {
-            return UnixHasCommand(command) ? "command" : null;
+            return UnixHasCommand(command) ? command : null;
         }
     }
 

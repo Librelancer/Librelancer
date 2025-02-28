@@ -4,7 +4,7 @@ namespace LLShaderCompiler;
 
 public static class ShaderCompiler
 {
-    public static async Task Compile(string inputFile, string outputFile, string dumpFolder, bool verbose)
+    public static async Task Compile(string inputFile, string outputFile, string dumpFolder, bool verbose, bool skipDxil)
     {
         var shader = await ShaderInfo.FromFile(inputFile);
 
@@ -38,7 +38,10 @@ public static class ShaderCompiler
             var glCompiled = shader.NoLegacy
                 ? null
                 : GLTranslator.TranslateProgram(shader.FriendlyName, variant.Vertex, variant.Fragment);
-            var dxilCompiled = await DXILTranslator.TranslateProgram(reflected);
+
+            var dxilCompiled = !skipDxil
+                ? await DXILTranslator.TranslateProgram(reflected)
+                : null;
             var mslCompiled = MSLTranslator.TranslateProgram(reflected);
 
             if (!string.IsNullOrWhiteSpace(dumpFolder))
@@ -50,9 +53,13 @@ public static class ShaderCompiler
 
                 await File.WriteAllBytesAsync(Path.Combine(dumpFolder, $"{ident}.vert.spv"), reflected.Vertex.Code);
                 await File.WriteAllBytesAsync(Path.Combine(dumpFolder, $"{ident}.frag.spv"), reflected.Fragment.Code);
-                await File.WriteAllBytesAsync(Path.Combine(dumpFolder, $"{ident}.vert.dxil"), dxilCompiled.Vertex.Code);
-                await File.WriteAllBytesAsync(Path.Combine(dumpFolder, $"{ident}.frag.dxil"),
-                    dxilCompiled.Fragment.Code);
+                if (dxilCompiled != null)
+                {
+                    await File.WriteAllBytesAsync(Path.Combine(dumpFolder, $"{ident}.vert.dxil"),
+                        dxilCompiled.Vertex.Code);
+                    await File.WriteAllBytesAsync(Path.Combine(dumpFolder, $"{ident}.frag.dxil"),
+                        dxilCompiled.Fragment.Code);
+                }
                 //Don't include terminating null in output
                 await File.WriteAllTextAsync(Path.Combine(dumpFolder, $"{ident}.vert.msl"),
                     Encoding.UTF8.GetString(mslCompiled.Vertex.Code, 0, mslCompiled.Vertex.Code.Length - 1));
