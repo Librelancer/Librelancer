@@ -47,10 +47,11 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             RenderContext.Instance.ApplyViewport();
             RenderContext.Instance.ApplyScissor();
             context.PrepareBlit(true);
+            int Y = RenderContext.Instance.DrawableSize.Y;
+
             GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
             GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);
-            GL.BlitFramebuffer(0, 0, texture.Width, texture.Height, offset.X, offset.Y, offset.X + texture.Width, offset.Y + texture.Height,
-                GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+            GL.BlitFramebuffer(0, Height, Width, 0, offset.X, Y - offset.Y, offset.X + Width, Y - (offset.Y + Height), GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
             GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, 0);
         }
 
@@ -60,6 +61,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             RenderContext.Instance.ApplyViewport();
             RenderContext.Instance.ApplyScissor();
             context.PrepareBlit(true);
+
             var Y = ((GLRenderTarget2D)other.Backing).texture.Height;
             GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
             GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, ((GLRenderTarget2D)other.Backing).FBO);
