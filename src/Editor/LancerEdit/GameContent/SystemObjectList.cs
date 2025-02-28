@@ -74,7 +74,9 @@ public class SystemObjectList
             system.Objects.Remove(o);
         OriginalCount = allObjects.Length;
         DeletedObjects = new List<SystemObject>();
-        Debug.Assert(allObjects.Length == system.Objects.Count);
+
+        CheckDirty();
+        Debug.Assert(!Dirty);
     }
 
     public void CheckDirty()

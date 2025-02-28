@@ -191,6 +191,7 @@ public class SysCreateObject : EditorAction
     {
         tab.World.InitObject(Object, false, systemObject, tab.Data.Resources, false);
         Object.GetEditData().IsNewObject = true;
+        tab.ObjectsList.Refresh();
         tab.ObjectsList.CheckDirty();
     }
 
@@ -201,6 +202,7 @@ public class SysCreateObject : EditorAction
         Object.ClearAll(tab.World.Physics);
         Object.Nickname = n;
         tab.OnRemoved(Object);
+        tab.ObjectsList.Refresh();
         tab.ObjectsList.CheckDirty();
     }
 
