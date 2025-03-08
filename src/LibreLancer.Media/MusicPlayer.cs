@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace LibreLancer.Media
 {
-    public class MusicPlayer
+    public class MusicPlayer : IDisposable
     {
         StreamingSource sound;
         StreamingSource oldSound;
@@ -23,6 +23,8 @@ namespace LibreLancer.Media
 
         private float crossFadeTime = 0;
         private float crossFadeDuration = 0;
+
+        AutoResetEvent waitDispose = new AutoResetEvent(false);
 
 
 
@@ -53,12 +55,12 @@ namespace LibreLancer.Media
             for(int i = 0; i < 24; i++)
                 Buffers.Enqueue(Al.GenBuffer());
             Timer = new PeriodicTimer(TimeSpan.FromMilliseconds(16));
-            Task = Task.Run(MusicLoop);
+            Task.Run(MusicLoop);
         }
 
         private ConcurrentQueue<Action> actions = new();
 
-        async void MusicLoop()
+        async Task MusicLoop()
         {
             var sw = Stopwatch.StartNew();
             var ts = sw.Elapsed;
@@ -97,6 +99,8 @@ namespace LibreLancer.Media
                     }
                 }
             } while (await Timer.WaitForNextTickAsync());
+
+            waitDispose.Set();
         }
 
         public void Play(Stream stream, float crossFade, float attenuation = 0, bool loop = false)
@@ -174,6 +178,13 @@ namespace LibreLancer.Media
                 }
             });
 
+        }
+
+        public void Dispose()
+        {
+            Timer.Dispose();
+            waitDispose.WaitOne();
+            waitDispose.Dispose();
         }
 
         public PlayState State { get; private set; } = PlayState.Stopped;

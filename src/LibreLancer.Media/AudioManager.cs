@@ -92,6 +92,7 @@ namespace LibreLancer.Media
         int defaultDeviceCounter = 0;
 
         private AutoResetEvent updateSet = new AutoResetEvent(false);
+        private AutoResetEvent updateDone = new AutoResetEvent(false);
         void AudioUpdateThread()
         {
             while (true)
@@ -130,6 +131,7 @@ namespace LibreLancer.Media
                     }
                 }
             }
+            updateDone.Set();
             updateSet.Dispose();
         }
 
@@ -325,19 +327,15 @@ namespace LibreLancer.Media
 		{
             running = false;
             updateSet.Set();
+            updateDone.WaitOne();
+            updateDone.Dispose();
             DeviceEvents.Deinit();
-            Music.Timer.Dispose();
-            Music.Task.Wait();
+            Music.Dispose();
             //Delete context
             Alc.alcMakeContextCurrent(IntPtr.Zero);
             Alc.alcDestroyContext(ctx);
             Alc.alcCloseDevice(dev);
 		}
-
-		internal void RunActionBlocking(Action action)
-        {
-            action();
-        }
 	}
 }
 

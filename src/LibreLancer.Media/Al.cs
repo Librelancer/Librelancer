@@ -55,7 +55,7 @@ namespace LibreLancer.Media
 
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alSourceUnqueueBuffers(uint sid, int n, ref uint bids);
-            
+
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alSourceQueueBuffers(uint sid, int r, ref uint bids);
 
@@ -157,7 +157,7 @@ namespace LibreLancer.Media
 			return s;
 		}
 
-      
+
 		public static uint GenBuffer()
 		{
 			uint b;
@@ -175,14 +175,14 @@ namespace LibreLancer.Media
             Native.alListenerfv(param, (IntPtr)floats);
             CheckErrors();
         }
-        
+
         public static void alListenerfv(int param, IntPtr value)
         {
             Native.alListenerfv(param, value);
             CheckErrors();
         }
 
-       
+
 
 		public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
 		{
@@ -245,14 +245,14 @@ namespace LibreLancer.Media
 			return Marshal.PtrToStringAnsi(Native.alGetString(param));
 		}
 
-        
+
         [System.Diagnostics.DebuggerHidden]
         static void CheckErrors()
 		{
 			int error;
-			if ((error = Native.alGetError()) != Al.AL_NO_ERROR)
-				throw new InvalidOperationException(Al.GetString(error));
-		}
+            if ((error = Native.alGetError()) != Al.AL_NO_ERROR)
+                throw new Exception($"AL ERROR {error}: {GetString(error)}");
+        }
 	}
 }
 
