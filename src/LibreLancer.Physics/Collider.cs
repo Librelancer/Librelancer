@@ -40,6 +40,6 @@ namespace LibreLancer.Physics
         {
         }
 
-        public abstract Symmetric3x3 CalculateInverseInertia(float mass);
+        internal abstract Symmetric3x3 CalculateInverseInertia(float mass);
     }
 }

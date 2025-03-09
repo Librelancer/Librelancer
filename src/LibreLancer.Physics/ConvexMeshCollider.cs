@@ -112,9 +112,14 @@ namespace LibreLancer.Physics
             childBuilder = new QuickList<CompoundChild>(1, this.pool);
         }
 
-        public override Symmetric3x3 CalculateInverseInertia(float mass)
+        internal override Symmetric3x3 CalculateInverseInertia(float mass)
         {
-            return new Symmetric3x3() {XX = 1, YY = 1, ZZ = 1};
+            var masses = new float[BepuBigCompound().ChildCount];
+            for (int i = 0; i < masses.Length; i++)
+                masses[i] = mass / masses.Length;
+
+            var inertia = BepuBigCompound().ComputeInertia(masses, sim.Shapes);
+            return inertia.InverseInertiaTensor;
         }
 
         internal override void Create(Simulation sim, BufferPool pool)

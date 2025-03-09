@@ -301,13 +301,12 @@ namespace LibreLancer.Physics
             {
                 throw new Exception("Mass must be non-zero");
             }
-
+            col.Create(Simulation, BufferPool);
             Symmetric3x3 invInertia;
             if (inertia != null)
                 invInertia = ToInverseInertia(inertia.Value);
             else
                 invInertia = col.CalculateInverseInertia(mass);
-            col.Create(Simulation, BufferPool);
             var h = Simulation.Bodies.Add(new BodyDescription()
             {
                 LocalInertia = new BodyInertia()

@@ -26,7 +26,7 @@ namespace LibreLancer.Physics
             }
         }
 
-        public override Symmetric3x3 CalculateInverseInertia(float mass)
+        internal override Symmetric3x3 CalculateInverseInertia(float mass)
         {
             return new Sphere(Radius).ComputeInertia(mass).InverseInertiaTensor;
         }
