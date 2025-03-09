@@ -10,10 +10,13 @@ using LibreLancer.Ini;
 namespace LibreLancer.Data.Ships
 {
 	public class ShiparchIni : IniFile
-	{
+    {
         [Section("ship")]
         [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
-		public List<Ship> Ships = new List<Ship>();
+        public List<Ship> Ships = new();
+
+        [Section("simple")]
+        public List<Simple> Simples = new();
 
         public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
 		{

@@ -12,7 +12,7 @@ namespace LibreLancer.Data.Solar
     public class SolararchIni : IniFile
     {
         public Dictionary<string, Archetype> Solars = new Dictionary<string, Archetype>(StringComparer.OrdinalIgnoreCase);
-
+        public List<Simple> Simples = new();
         public void AddSolararchIni(string path, FreelancerData gameData)
         {
             //Solars = new List<Archetype>();
@@ -28,6 +28,9 @@ namespace LibreLancer.Data.Solar
                     case "collisiongroup":
                         if (current != null)
                             current.CollisionGroups.Add(FromSection<CollisionGroup>(s));
+                        break;
+                    case "simple":
+                        Simples.Add(FromSection<Simple>(s));
                         break;
                     default:
                         throw new Exception("Invalid Section in " + path + ": " + s.Name);
