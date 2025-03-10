@@ -21,7 +21,7 @@ namespace LibreLancer.Server
         public NPCManager(ServerWorld world)
         {
             this.World = world;
-            scripting = new NPCWattleScripting(this);
+            scripting = new NPCWattleScripting(this, world.Server.GameData);
         }
 
         public Task<string> RunScript(string src)
@@ -43,7 +43,7 @@ namespace LibreLancer.Server
 
         public void Despawn(GameObject obj, bool exploded)
         {
-            World.RemoveNPC(obj, exploded);
+            World.RemoveSpawnedObject(obj, exploded);
         }
 
         private Dictionary<string, GameObject> missionNPCs = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
@@ -99,10 +99,7 @@ namespace LibreLancer.Server
             MissionRuntime msn = null
             )
         {
-            NetShipLoadout netLoadout = new NetShipLoadout();
-            netLoadout.Items = new List<NetShipCargo>();
             var ship = World.Server.GameData.Ships.Get(loadout.Archetype);
-            netLoadout.ShipCRC = ship.CRC;
             var obj = new GameObject(ship, World.Server.Resources, false, true);
             obj.Name = name;
             obj.Nickname = nickname;
@@ -117,14 +114,13 @@ namespace LibreLancer.Server
             {
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,
                     equipped.Hardpoint, equipped.Equipment);
-                netLoadout.Items.Add(new NetShipCargo(0, equipped.Equipment.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
             var cargo = new SNPCCargoComponent(obj);
             cargo.Cargo.AddRange(loadout.Cargo);
             obj.AddComponent(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
-            var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
+            var npcComponent = new SNPCComponent(obj, this, stateTable) { MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
             npcComponent.CommHead = World.Server.GameData.Bodyparts.Get(head);
             npcComponent.CommBody = World.Server.GameData.Bodyparts.Get(body);

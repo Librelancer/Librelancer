@@ -88,7 +88,6 @@ namespace LibreLancer.World
             else if (arch?.Loadout != null)
                 g.SetLoadout(arch.Loadout);
             g.World = this;
-            g.CollisionGroups = arch.CollisionGroups;
             if (g.RenderComponent is ModelRenderer mr)
             {
                 mr.LODRanges = arch.LODRanges;
@@ -125,9 +124,8 @@ namespace LibreLancer.World
                     CrcTranslation.Add(new CrcIdMap(g.NetID, g.NicknameCRC));
                 }
             }
-
-            g.Register(Physics);
             AddObject(g);
+            g.Register(Physics);
         }
 
         public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
@@ -178,7 +176,6 @@ namespace LibreLancer.World
             {
                 var g = new GameObject();
                 g.Resources = res;
-                g.World = this;
                 g.AddComponent(new AsteroidFieldComponent(field, res, g));
                 AddObject(g);
                 g.Register(Physics);
@@ -212,6 +209,7 @@ namespace LibreLancer.World
 
         public void AddObject(GameObject obj)
         {
+            obj.World = this;
             objects.Add(obj);
             if (timeSource != null)
                 obj.AnimationComponent?.SetTimeSource(timeSource);

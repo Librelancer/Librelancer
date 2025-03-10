@@ -8,6 +8,7 @@ using System.Numerics;
 using LibreLancer.GameData.Items;
 using LibreLancer.Render;
 using LibreLancer.Sounds;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
@@ -43,6 +44,7 @@ namespace LibreLancer.World
             if (obj != null)
             {
                 obj.Parent = parent;
+                obj.AddComponent(new EquipmentComponent(equip, obj));
                 parent.Children.Add(obj);
                 if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
                     mrender.LODRanges = equip.LODRanges;
@@ -80,6 +82,10 @@ namespace LibreLancer.World
                     }
                 }
 
+            }
+            else
+            {
+                parent.AddComponent(new EquipmentComponent(equip, parent));
             }
         }
     }

@@ -1292,7 +1292,7 @@ World Time: {12:F2}
             }
 
             if (Selection.Selected != null) {
-                targetWireframe.Model = Selection.Selected.RigidModel;
+                targetWireframe.Model = Selection.Selected.Model.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(player.LocalTransform.Position,
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform.Matrix()), Vector3.UnitY);
 

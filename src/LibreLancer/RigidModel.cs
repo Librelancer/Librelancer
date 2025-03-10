@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Numerics;
 using LibreLancer.Graphics;
@@ -169,6 +170,38 @@ namespace LibreLancer
         private Transform3D localTransform = Transform3D.Identity;
         public Transform3D LocalTransform => localTransform;
 
+
+        static IEnumerable<RigidModelPart> EnumerateAll(RigidModelPart p)
+        {
+            yield return p;
+            foreach (var child in p.Children)
+            {
+                foreach (var item in EnumerateAll(child))
+                {
+                    yield return item;
+                }
+            }
+        }
+        public RigidModel CloneAsRoot(RigidModel original)
+        {
+            var self = Clone(true);
+            self.Construct = null;
+            var rm = new RigidModel();
+            rm.Path = original.Path;
+            rm.MaterialAnims = original.MaterialAnims;
+            rm.Animation = original.Animation;
+            rm.Root = self;
+            rm.AllParts = EnumerateAll(self).ToArray();
+            rm.Parts = new();
+            foreach (var a in rm.AllParts)
+                rm.Parts.Add(a);
+            rm.Source = rm.AllParts.Length > 1
+                ? RigidModelSource.Compound
+                : RigidModelSource.SinglePart;
+            rm.UpdateTransform();
+            return rm;
+        }
+
         public RigidModelPart Clone(bool withChildren = false)
         {
             var newp = new RigidModelPart()
@@ -235,7 +268,7 @@ namespace LibreLancer
         //Sphere models don't carry a VMeshWire
         public RigidModelSource Source;
         //Lookup for multipart - NULL on single-part
-        public Dictionary<string, RigidModelPart> Parts;
+        public ModelPartCollection Parts;
         public void UpdateTransform()
         {
             Root?.UpdateTransform(Transform3D.Identity);

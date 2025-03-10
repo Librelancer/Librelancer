@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using LibreLancer.GameData;
+using LibreLancer.Net;
 using LibreLancer.World;
 
 namespace LibreLancer.Server.Components;
@@ -11,8 +12,14 @@ public class SRepComponent : GameComponent
 
     public Dictionary<GameObject, RepAttitude> forcedReps = new Dictionary<GameObject, RepAttitude>();
 
-    public void SetAttitude(GameObject go, RepAttitude a) =>
+    public void SetAttitude(GameObject go, RepAttitude a)
+    {
         forcedReps[go] = a;
+        if (go.TryGetComponent<SPlayerComponent>(out var p))
+        {
+            p.Player.RpcClient.UpdateAttitude(new ObjNetId(Parent.NetID), a);
+        }
+    }
 
     static RepAttitude FromNumber(float a)
     {

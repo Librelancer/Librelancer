@@ -14,18 +14,17 @@ public interface IClientPlayer
 
     void SetPreloads(PreloadObject[] preloads);
 
-    void SpawnShip(int id, ShipSpawnInfo spawn);
     void SpawnPlayer(int id, string system, CrcIdMap[] crcMap, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
     void UpdateEffects(ObjNetId id, SpawnedEffect[] effects);
+    void UpdateAttitude(ObjNetId id, RepAttitude attitude);
     void SpawnProjectiles(ProjectileSpawn[] projectiles);
     void UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations);
     void UpdateReputations(NetReputation[] reps);
-    void UpdateInventory(long credits, ulong shipworth, NetShipLoadout ship);
+    void UpdateInventory(long credits, ulong shipworth, NetLoadout ship);
     void UpdateSlotCount(int slot, int count);
     void DeleteSlot(int slot);
-    void SpawnSolar(SolarInfo[] solars);
+    void SpawnObjects(ObjectSpawnInfo[] objects);
     void OnConsoleMessage(string text);
-    void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Vector3 position, Quaternion orientation, float mass);
     void SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation);
     void DestroyMissile(int id, bool explode);
     void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships);
@@ -35,7 +34,7 @@ public interface IClientPlayer
     void DespawnObject(int id, bool explode);
     void PlaySound(string sound);
     void PlayMusic(string music, float fade);
-    void DestroyPart(ObjNetId id, string part);
+    void DestroyPart(ObjNetId id, uint part);
     void RunMissionDialog(NetDlgLine[] lines);
     void StartJumpTunnel();
     void StartTradelane();

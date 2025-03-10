@@ -4,7 +4,7 @@
 
 namespace LibreLancer.Net.Protocol
 {
-    public class SpawnedEffect
+    public struct SpawnedEffect
     {
         public uint ID;
         public string Effect;
@@ -15,7 +15,7 @@ namespace LibreLancer.Net.Protocol
             message.Put(Effect);
             message.PutVariableUInt32((uint)Hardpoints.Length);
             foreach(var hp in Hardpoints)
-                message.Put(hp);
+                message.PutHpid(hp);
         }
 
         public static SpawnedEffect Read(PacketReader message)
@@ -27,7 +27,7 @@ namespace LibreLancer.Net.Protocol
             };
             x.Hardpoints = new string[message.GetVariableUInt32()];
             for (int i = 0; i < x.Hardpoints.Length; i++)
-                x.Hardpoints[i] = message.GetString();
+                x.Hardpoints[i] = message.GetHpid();
             return x;
         }
     }

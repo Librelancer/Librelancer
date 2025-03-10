@@ -336,7 +336,6 @@ public class ObjectUpdate
     public UpdateVector LinearVelocity = new(Vector3.Zero, 24, -32768, 32767);
     public UpdateQuaternion Orientation = Quaternion.Identity;
     public Vector3 Position;
-    public RepAttitude RepToPlayer;
     public long ShieldValue;
     public float Throttle;
     public bool Tradelane;

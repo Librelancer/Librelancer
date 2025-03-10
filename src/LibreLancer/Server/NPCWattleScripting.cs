@@ -17,10 +17,13 @@ namespace LibreLancer.Server
     {
         NPCManager manager;
         Script script;
+        [WattleScriptHidden]
+        public GameDataManager GameData;
 
-        public NPCWattleScripting(NPCManager manager)
+        public NPCWattleScripting(NPCManager manager, GameDataManager gameData)
         {
             this.manager = manager;
+            this.GameData = gameData;
             this.script = new Script(CoreModules.Preset_HardSandboxWattle);
             script.Options.Syntax = ScriptSyntax.Wattle;
             script.Options.IndexTablesFrom = 0;
@@ -109,6 +112,14 @@ namespace LibreLancer.Server
 
         public override string ToString() => Object.NetID.ToString() + " " + Object.ToString();
 
+        public void runfuse(DynValue obj)
+        {
+            var str = obj.CastToString();
+            var fuse = Scripting.GameData.GetFuse(str);
+            if (fuse == null) throw new ScriptRuntimeException($"Could not find fuse {str}");
+            if(Object.TryGetComponent<SFuseRunnerComponent>(out var runner))
+                runner.Run(fuse);
+        }
 
         public void dock(DynValue obj)
         {

@@ -77,11 +77,11 @@ namespace LibreLancer.Server.Components
                     var dst = (FuseDestroyGroup)act;
                     if(dst.Fate == FusePartFate.disappear)
                     {
-                        Parent.DisableCmpPart(dst.GroupName);
+                        Parent.DisableCmpPart(dst.GroupName, GetResourceManager(), out _);
                     }
                     else if (dst.Fate == FusePartFate.debris)
                     {
-                        Parent.SpawnDebris(dst.GroupName);
+                        Parent.SpawnDebris(dst.GroupName, GetResourceManager());
                     }
                 }
                 else if (act is FuseDestroyHpAttachment)

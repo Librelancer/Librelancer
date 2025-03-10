@@ -59,7 +59,7 @@ namespace LibreLancer.World.Components
                 if (a.Finished)
                 {
                     foreach (var jm in sc.JointMaps) {
-                        var mdl = Parent == null ? rm : Parent.RigidModel;
+                        var mdl = Parent == null ? rm : Parent.Model.RigidModel;
                         var joint = mdl.Parts[jm.ChildName].Construct;
                         ChannelFloat angles = 0;
                         float t = a.Reverse ? 0 : jm.Channel.Duration;
@@ -128,8 +128,8 @@ namespace LibreLancer.World.Components
             animations.Clear();
             if (Parent != null)
             {
-                foreach (var p in Parent.RigidModel.AllParts) p.Construct?.Reset();
-                Parent.RigidModel.UpdateTransform();
+                foreach (var p in Parent.Model.RigidModel.AllParts) p.Construct?.Reset();
+                Parent.Model.RigidModel.UpdateTransform();
             } else if (rm != null)
             {
                 foreach (var p in rm.AllParts) p.Construct?.Reset();
@@ -178,7 +178,7 @@ namespace LibreLancer.World.Components
 			}
             if (c > 0 && Parent != null)
             {
-                Parent.RigidModel.UpdateTransform();
+                Parent.Model.RigidModel.UpdateTransform();
                 Parent.UpdateCollision();
             }
             if (c > 0) rm?.UpdateTransform();
@@ -209,7 +209,7 @@ namespace LibreLancer.World.Components
 
 		bool ProcessJointMap(ref JointMap jm, double startTime, float timeScale, bool loop, bool reverse)
         {
-            var mdl = Parent == null ? rm : Parent.RigidModel;
+            var mdl = Parent == null ? rm : Parent.Model.RigidModel;
             var joint = mdl.Parts[jm.ChildName].Construct;
             double t = (getTotalTime() - startTime) * timeScale;
 			//looping?

@@ -43,7 +43,9 @@ namespace LibreLancer.GameData
 
         public string ShieldLinkHull;
         public string ShieldLinkSource;
-        
+
+        public List<SeparablePart> SeparableParts = new();
+
         public Ship ()
 		{
 		}

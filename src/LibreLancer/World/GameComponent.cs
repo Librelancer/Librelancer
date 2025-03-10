@@ -25,6 +25,10 @@ namespace LibreLancer.World
 		{
 		}
 
+        public virtual void HardpointDestroyed(Hardpoint hardpoint)
+        {
+        }
+
         protected SoundManager GetSoundManager()
         {
             if(Parent.GetWorld().Renderer != null)

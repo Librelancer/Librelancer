@@ -303,6 +303,8 @@ public struct PacketReader
     public byte GetByte() => reader.GetByte();
     public short GetShort() => reader.GetShort();
 
+    public ushort GetUShort() => reader.GetUShort();
+
     public bool TryGetULong(out ulong result) => reader.TryGetULong(out result);
 
     public bool TryGetUInt(out uint result) => reader.TryGetUInt(out result);

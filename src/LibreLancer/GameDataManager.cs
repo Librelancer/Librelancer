@@ -519,7 +519,8 @@ namespace LibreLancer
             var pilotTask = tasks.Begin(InitPilots);
             var effectsTask = tasks.Begin(InitEffects);
             var explosionTask = tasks.Begin(InitExplosions, effectsTask);
-            var ships = tasks.Begin(InitShips, explosionTask);
+            var debrisTask = tasks.Begin(InitDebris);
+            var shipsTask = tasks.Begin(InitShips, explosionTask, debrisTask);
             List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
             var baseTask = tasks.Begin(() => introbases.AddRange(InitBases(tasks)));
             tasks.Begin(() =>
@@ -554,7 +555,7 @@ namespace LibreLancer
             var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
             var goodsTask = tasks.Begin(InitGoods, equipmentTask);
             var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
-            var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask);
+            var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
             var starsTask = tasks.Begin(InitStars);
             var astsTask = tasks.Begin(InitAsteroids);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
@@ -563,7 +564,7 @@ namespace LibreLancer
                 baseTask,
                 archetypesTask,
                 equipmentTask,
-                ships,
+                shipsTask,
                 factionsTask,
                 loadoutsTask,
                 pilotTask,
@@ -574,6 +575,8 @@ namespace LibreLancer
             fldata.Universe = null; //Free universe ini!
             GC.Collect(); //We produced a crapload of garbage
         }
+
+
 
         bool cursorsDone = false;
         public void PopulateCursors()
@@ -1686,6 +1689,52 @@ namespace LibreLancer
             }
         }
 
+        public GameItemCollection<SimpleObject> SimpleObjects = new();
+        public GameItemCollection<DebrisInfo> Debris = new();
+
+        void InitDebris()
+        {
+            FLLog.Info("Game", "Initing Debris");
+            foreach (var orig in fldata.Ships.Simples
+                         .Concat(fldata.Solar.Simples)
+                         .Concat(fldata.Explosions.Simples))
+
+            {
+                var db = new SimpleObject();
+                db.Nickname = orig.Nickname;
+                db.CRC = FLHash.CreateID(orig.Nickname);
+                db.Model = ResolveDrawable(orig.MaterialLibrary, orig.DaArchetypeName);
+                SimpleObjects.Add(db);
+            }
+
+            foreach (var orig in fldata.Explosions.Debris)
+            {
+                var db = new DebrisInfo();
+                db.Nickname = orig.Nickname;
+                db.CRC = FLHash.CreateID(orig.Nickname);
+                db.Lifetime = orig.Lifetime;
+                Debris.Add(db);
+            }
+            fldata.Ships.Simples = null;
+            fldata.Solar.Simples = null;
+            fldata.Explosions.Simples = null;
+            fldata.Explosions.Debris = null;
+        }
+
+        SeparablePart FromCollisionGroup(CollisionGroup cg)
+        {
+            var sp = new SeparablePart();
+            sp.Part = cg.obj;
+            sp.ChildDamageCapHardpoint = cg.GroupDmgHp;
+            sp.ChildDamageCap = SimpleObjects.Get(cg.GroupDmgObj);
+            sp.ParentDamageCapHardpoint = cg.DmgHp;
+            sp.ParentDamageCap = SimpleObjects.Get(cg.DmgObj);
+            sp.Mass = cg.Mass <= 0 ? 1 : cg.Mass;
+            sp.ChildImpulse = cg.ChildImpulse;
+            sp.DebrisType = Debris.Get(cg.DebrisType);
+            return sp;
+        }
+
         void InitExplosions()
         {
             FLLog.Info("Game", "Initing Explosions");
@@ -1730,6 +1779,7 @@ namespace LibreLancer
                 ship.MaxRepairKits = orig.NanobotLimit;
                 ship.ShieldLinkHull = orig.ShieldLink?.HardpointMount;
                 ship.ShieldLinkSource = orig.ShieldLink?.HardpointShield;
+                ship.SeparableParts = orig.CollisionGroups.Select(FromCollisionGroup).ToList();
                 foreach (var fuse in orig.Fuses)
                 {
                     ship.Fuses.Add(new DamageFuse()
@@ -1886,12 +1936,9 @@ namespace LibreLancer
                         Radius = 30
                     });
                 }
-                if(arch.CollisionGroups.Count > 0)
-                {
-                    obj.CollisionGroups = arch.CollisionGroups.ToArray();
-                }
+                obj.SeparableParts = arch.CollisionGroups.Select(FromCollisionGroup).ToList();
                 obj.Nickname = arch.Nickname;
-                obj.CRC = CrcTool.FLModelCrc(obj.Nickname);
+                obj.CRC = FLHash.CreateID(obj.Nickname);
                 obj.LODRanges = arch.LODRanges;
                 obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
                 Archetypes.Add(obj);

@@ -53,7 +53,7 @@ namespace LibreLancer.World.Components
             }
             //TODO: Finding barrel construct properly?
             Utf.RevConstruct barrel = null;
-            foreach (var mdl in Parent.RigidModel.AllParts)
+            foreach (var mdl in Parent.Model.RigidModel.AllParts)
                 if (mdl.Construct is Utf.RevConstruct revCon)
                     barrel = revCon;
             if(barrel != null) {
@@ -72,7 +72,7 @@ namespace LibreLancer.World.Components
 
                 barrel.Update(target, Quaternion.Identity);
                 Angles.Y = current;
-                Parent.RigidModel.UpdateTransform();
+                Parent.Model.RigidModel.UpdateTransform();
             }
         }
 

@@ -307,10 +307,10 @@ namespace LibreLancer.Server
             return nc;
         }
 
-        public NetShipLoadout EncodeLoadout()
+        public NetLoadout EncodeLoadout()
         {
-            var sl = new NetShipLoadout();
-            sl.ShipCRC = Ship?.CRC ?? 0;
+            var sl = new NetLoadout();
+            sl.ArchetypeCrc = Ship?.CRC ?? 0;
             sl.Items = new List<NetShipCargo>(Items.Count);
             foreach (var c in Items)
             {

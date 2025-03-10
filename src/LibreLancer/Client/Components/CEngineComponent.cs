@@ -221,7 +221,21 @@ namespace LibreLancer.Client.Components
                 }
             }
         }
-		public override void Unregister(Physics.PhysicsWorld physics)
+
+        public override void HardpointDestroyed(Hardpoint hardpoint)
+        {
+            for (int i = 0; i < fireFx.Count; i++)
+            {
+                if(fireFx[i].Attachment == hardpoint)
+                {
+                    Parent.ExtraRenderers.Remove(fireFx[i]);
+                    fireFx.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
+
+        public override void Unregister(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)
                 Parent.ExtraRenderers.Remove(fireFx[i]);

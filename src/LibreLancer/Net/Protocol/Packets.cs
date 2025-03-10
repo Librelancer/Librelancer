@@ -137,16 +137,162 @@ namespace LibreLancer.Net.Protocol
 
     }
 
-    public class SolarInfo
+    [Flags]
+    public enum ObjectSpawnFlags : byte
     {
-        public int ID;
+        Debris = (1 << 0),
+        Solar = (1 << 1),
+        Friendly = (1 << 2),
+        Hostile = (1 << 3),
+        Neutral = (1 << 4),
+        Important = (1 << 5),
+        Mask = 0x3f
+    }
+
+    public struct ObjectSpawnInfo
+    {
+        [Flags]
+        enum SpawnHeader : ushort
+        {
+            //match ObjectSpawnFlags
+            Debris = (1 << 0),
+            Solar = (1 << 1),
+            Friendly = (1 << 2),
+            Hostile = (1 << 3),
+            Neutral = (1 << 4),
+            Important = (1 << 5),
+            //internal field != default
+            Name = (1 << 6),
+            Affiliation = (1 << 7),
+            Comm = (1 << 8),
+            Dock = (1 << 9),
+            Destroyed = (1 << 10),
+            Effects = (1 << 11)
+        }
+        public ObjNetId ID;
+        public ObjectSpawnFlags Flags;
         public ObjectName Name;
-        public string Nickname;
-        public string Archetype;
-        public string Faction;
-        public DockAction Dock;
         public Vector3 Position;
         public Quaternion Orientation;
+
+        public uint Affiliation;
+
+        public uint CommHead;
+        public uint CommBody;
+        public uint CommHelmet;
+
+        public uint DebrisPart;
+        public NetLoadout Loadout;
+        public DockAction? Dock;
+        public uint[] DestroyedParts;
+        public SpawnedEffect[] Effects;
+
+        public static ObjectSpawnInfo Read(PacketReader message)
+        {
+            var result = new ObjectSpawnInfo()
+            {
+                ID = ObjNetId.Read(message)
+            };
+            var header16 = message.GetShort();
+            var header = (SpawnHeader)header16;
+            result.Flags = (ObjectSpawnFlags)header16 & ObjectSpawnFlags.Mask;
+            result.Position = message.GetVector3();
+            result.Orientation = message.GetQuaternion();
+            if (header.HasFlag(SpawnHeader.Name)) result.Name = message.GetObjectName();
+            if (header.HasFlag(SpawnHeader.Affiliation)) result.Affiliation = message.GetUInt();
+            if (header.HasFlag(SpawnHeader.Comm))
+            {
+                result.CommHead = message.GetUInt();
+                result.CommBody = message.GetUInt();
+                result.CommHelmet = message.GetUInt();
+            }
+            if (header.HasFlag(SpawnHeader.Debris))
+            {
+                result.DebrisPart = message.GetUInt();
+            }
+            result.Loadout = NetLoadout.Read(message);
+            if (header.HasFlag(SpawnHeader.Dock))
+            {
+                result.Dock = GetDock(message);
+            }
+            if (header.HasFlag(SpawnHeader.Destroyed))
+            {
+                result.DestroyedParts = new uint[message.GetVariableUInt32()];
+                for (int i = 0; i < result.DestroyedParts.Length; i++)
+                {
+                    result.DestroyedParts[i] = message.GetUInt();
+                }
+            }
+            else
+            {
+                result.DestroyedParts = [];
+            }
+            if (header.HasFlag(SpawnHeader.Effects))
+            {
+                result.Effects = new SpawnedEffect[message.GetVariableUInt32()];
+                for (int i = 0; i < result.Effects.Length; i++)
+                {
+                    result.Effects[i] = SpawnedEffect.Read(message);
+                }
+            }
+            else
+            {
+                result.Effects = [];
+            }
+            return result;
+        }
+
+        public void Put(PacketWriter message)
+        {
+            // Build header
+            SpawnHeader header = (SpawnHeader)(ushort)Flags;
+            if(Name != null) header |= SpawnHeader.Name;
+            if(Affiliation != 0) header |= SpawnHeader.Affiliation;
+            if(CommHead != 0 || CommBody != 0 || CommHelmet != 0) header |= SpawnHeader.Comm;
+            if(Dock != null) header |= SpawnHeader.Dock;
+            if(DestroyedParts is { Length: >0 }) header |= SpawnHeader.Destroyed;
+            if(Effects is { Length: >0 }) header |= SpawnHeader.Effects;
+            //Write
+            ID.Put(message);
+            message.Put((ushort)header);
+            message.Put(Position);
+            message.Put(Orientation);
+            if(Name != null) message.Put(Name);
+            if(Affiliation != 0) message.Put(Affiliation);
+            if (CommHead != 0 || CommBody != 0 || CommHelmet != 0)
+            {
+                message.Put(CommHead);
+                message.Put(CommBody);
+                message.Put(CommHelmet);
+            }
+            if (header.HasFlag(SpawnHeader.Debris)) // Set from source flags
+            {
+                message.Put(DebrisPart);
+            }
+            Loadout.Put(message);
+            if (Dock != null)
+            {
+                PutDock(message, Dock);
+            }
+
+            if (DestroyedParts is { Length: > 0 })
+            {
+                message.PutVariableUInt32((uint)DestroyedParts.Length);
+                for (int i = 0; i < DestroyedParts.Length; i++)
+                {
+                    message.Put(DestroyedParts[i]);
+                }
+            }
+
+            if (Effects is { Length: > 0 })
+            {
+                message.PutVariableUInt32((uint)Effects.Length);
+                for (int i = 0; i < Effects.Length; i++)
+                {
+                    Effects[i].Put(message);
+                }
+            }
+        }
 
         static DockAction GetDock(PacketReader message)
         {
@@ -157,85 +303,27 @@ namespace LibreLancer.Net.Protocol
                 Kind = (DockKinds) (k >> 4),
                 Target = message.GetString(),
                 TargetLeft = message.GetString(),
-                    Exit = message.GetString(),
-                    Tunnel = message.GetString()
-                };
-        }
-
-        public static SolarInfo Read(PacketReader message)
-        {
-            return new SolarInfo
-            {
-                ID = message.GetVariableInt32(),
-                Name = message.GetObjectName(),
-                Nickname = message.GetString(),
-                Archetype = message.GetString(),
-                Faction = message.GetString(),
-                Dock = GetDock(message),
-                Position = message.GetVector3(),
-                Orientation = message.GetQuaternion()
+                Exit = message.GetString(),
+                Tunnel = message.GetString()
             };
         }
-        public void Put(PacketWriter message)
+
+        static void PutDock(PacketWriter message, DockAction dock)
         {
-            message.PutVariableInt32(ID);
-            message.Put(Name);
-            message.Put(Nickname);
-            message.Put(Archetype);
-            message.Put(Faction);
-            if (Dock != null)
+            if (dock != null)
             {
-                message.Put((byte)(((byte)Dock.Kind << 4) | 1));
-                message.Put(Dock.Target);
-                message.Put(Dock.TargetLeft);
-                message.Put(Dock.Exit);
-                message.Put(Dock.Tunnel);
+                message.Put((byte)(((byte)dock.Kind << 4) | 1));
+                message.Put(dock.Target);
+                message.Put(dock.TargetLeft);
+                message.Put(dock.Exit);
+                message.Put(dock.Tunnel);
             }
             else
             {
                 message.Put((byte)0);
             }
-            message.Put(Position);
-            message.Put(Orientation);
         }
     }
-
-    public struct ShipSpawnInfo
-    {
-        public ObjectName Name;
-        public Vector3 Position;
-        public Quaternion Orientation;
-        public uint CommHead;
-        public uint CommBody;
-        public uint CommHelmet;
-        public uint Affiliation;
-        public NetShipLoadout Loadout;
-
-        public static ShipSpawnInfo Read(PacketReader message) => new ShipSpawnInfo()
-        {
-            Name = message.GetObjectName(),
-            Position = message.GetVector3(),
-            Orientation = message.GetQuaternion(),
-            CommHead = message.GetUInt(),
-            CommBody = message.GetUInt(),
-            CommHelmet = message.GetUInt(),
-            Affiliation = message.GetUInt(),
-            Loadout = NetShipLoadout.Read(message)
-        };
-
-        public void Put(PacketWriter message)
-        {
-            message.Put(Name);
-            message.Put(Position);
-            message.Put(Orientation);
-            message.Put(CommHead);
-            message.Put(CommBody);
-            message.Put(CommHelmet);
-            message.Put(Affiliation);
-            Loadout.Put(message);
-        }
-    }
-
 
     public class NetShipCargo
     {
@@ -253,44 +341,51 @@ namespace LibreLancer.Net.Protocol
             Health = health;
             Count = count;
         }
+
+        public static NetShipCargo Read(PacketReader message) => new(
+            message.GetVariableInt32(),
+            message.GetUInt(),
+            message.GetHpid(),
+            message.GetByte(),
+            (int)message.GetVariableUInt32()
+        );
+
+        public void Put(PacketWriter message)
+        {
+            message.PutVariableInt32(ID);
+            message.Put(EquipCRC);
+            message.PutHpid(Hardpoint);
+            message.Put(Health);
+            message.PutVariableUInt32((uint)Count);
+        }
     }
 
-    public class NetShipLoadout
+    public class NetLoadout
     {
-        public uint ShipCRC;
+        public uint ArchetypeCrc;
         public float Health;
         public List<NetShipCargo> Items;
-        public static NetShipLoadout Read(PacketReader message)
+        public static NetLoadout Read(PacketReader message)
         {
-            var s = new NetShipLoadout();
-            s.ShipCRC = message.GetUInt();
+            var s = new NetLoadout();
+            s.ArchetypeCrc = message.GetUInt();
             s.Health = message.GetFloat();
             var cargoCount = (int)message.GetVariableUInt32();
             s.Items = new List<NetShipCargo>(cargoCount);
             for (int i = 0; i < cargoCount; i++)
             {
-                s.Items.Add(new NetShipCargo(
-                    message.GetVariableInt32(),
-                    message.GetUInt(),
-                    message.GetHpid(),
-                    message.GetByte(),
-                    (int)message.GetVariableUInt32()
-                    ));
+                s.Items.Add(NetShipCargo.Read(message));
             }
             return s;
         }
         public void Put(PacketWriter message)
         {
-            message.Put(ShipCRC);
+            message.Put(ArchetypeCrc);
             message.Put(Health);
             message.PutVariableUInt32((uint) Items.Count);
             foreach (var c in Items)
             {
-                message.PutVariableInt32(c.ID);
-                message.Put(c.EquipCRC);
-                message.PutHpid(c.Hardpoint);
-                message.Put(c.Health);
-                message.PutVariableUInt32((uint)c.Count);
+                c.Put(message);
             }
         }
     }

@@ -18,7 +18,6 @@ namespace LibreLancer.Server.Components
         public Accessory CommHelmet;
 
         public AiState CurrentDirective;
-        public NetShipLoadout Loadout;
         private NPCManager manager;
         public MissionRuntime MissionRuntime;
 

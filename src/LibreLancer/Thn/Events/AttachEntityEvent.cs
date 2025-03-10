@@ -145,13 +145,13 @@ namespace LibreLancer.Thn.Events
             }
             if (TargetType == TargetTypes.Part && !string.IsNullOrEmpty(TargetPart))
             {
-                if (objB.Object == null || objB.Object.RigidModel == null || objB.Object.RigidModel.Parts == null)
+                if (objB.Object == null || objB.Object.Model == null || objB.Object.Model.RigidModel.Parts == null)
                 {
                     FLLog.Error("Thn", "Could not get parts on " + objB.Name);
                 }
                 else
                 {
-                    if (!objB.Object.RigidModel.Parts.TryGetValue(TargetPart, out part))
+                    if (!objB.Object.Model.RigidModel.Parts.TryGetPart(TargetPart, out part))
                     {
                         FLLog.Error("Thn", $"Could not find part {TargetPart} on " + objB.Name);
                     }

@@ -411,45 +411,6 @@ namespace LibreLancer.Server
         public void SendMPUpdate(PackedUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
-        public void SpawnPlayer(Player p)
-        {
-            var lO = p.Character.EncodeLoadout();
-            lO.Health = p.Character.Ship.Hitpoints;
-            var info = new ShipSpawnInfo()
-            {
-                Name = new ObjectName(p.Name),
-                Position = p.Position,
-                Orientation = p.Orientation,
-                Loadout = lO
-            };
-            rpcClient.SpawnShip(p.ID, info);
-        }
-
-        public void SendSolars(Dictionary<string, GameObject> solars)
-        {
-            var si = new List<SolarInfo>();
-            foreach (var solar in solars)
-            {
-                var tr = solar.Value.WorldTransform;
-                var info = new SolarInfo()
-                {
-                    ID = solar.Value.NetID,
-                    Name = solar.Value.Name,
-                    Nickname = solar.Value.Nickname,
-                    Archetype = solar.Value.ArchetypeName,
-                    Position = tr.Position,
-                    Orientation = tr.Orientation
-                };
-                if (solar.Value.TryGetComponent<SRepComponent>(out var rep)){
-                    info.Faction = rep.Faction?.Nickname;
-                }
-                if (solar.Value.TryGetComponent<SDockableComponent>(out var dock)){
-                    info.Dock = dock.Action;
-                }
-                si.Add(info);
-            }
-            rpcClient.SpawnSolar(si.ToArray());
-        }
 
         private BlockingCollection<IPacket> inputPackets = new BlockingCollection<IPacket>();
         private Task packetQueueTask;
@@ -574,11 +535,6 @@ namespace LibreLancer.Server
                 FLLog.Info("Player", $"Char name in use: {name}");
                 return Task.FromResult(false);
             }
-        }
-
-        public void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Transform3D tr, float mass)
-        {
-            rpcClient.SpawnDebris(id, kind, archetype, part, tr.Position, tr.Orientation, mass);
         }
 
         void UpdateCurrentReputations()
