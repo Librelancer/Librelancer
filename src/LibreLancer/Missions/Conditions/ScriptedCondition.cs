@@ -29,6 +29,15 @@ public abstract class ScriptedCondition
         return false;
     }
 
+    public override string ToString()
+    {
+        var s = new IniBuilder.IniSectionBuilder() { Section = new("") };
+        Write(s);
+        if (s.Section.Count == 0)
+            return base.ToString();
+        return s.Section[0].ToString();
+    }
+
     protected static bool IdEqual(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
@@ -1058,7 +1067,7 @@ public class Cnd_DistShip : ScriptedCondition
         distance = entry[3].ToSingle();
 
         if (entry.Count >= 6 &&
-            entry[5].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase))
+            entry[5].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
         {
             tickAway = entry[4].ToSingle();
         }
@@ -1088,6 +1097,10 @@ public class Cnd_DistShip : ScriptedCondition
             if (inside == isInside)
             {
                 st.Value -= elapsed;
+            }
+            if(st.Value <= 0)
+            {
+                FLLog.Debug("Mission", $"Cnd_Dist: {elapsed} satisfied TICK_AWAY");
             }
             return st.Value <= 0;
         }

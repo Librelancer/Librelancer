@@ -133,10 +133,17 @@ namespace LibreLancer.Missions
                 foreach (var t in activeTriggers)
                 {
                     t.ActiveTime += elapsed;
-                    var newSatisfied = t.Satisfied;
+                    var newSatisfied = new BitArray128();
                     for (int i = 0; i < t.Conditions.Count; i++)
                     {
-                        newSatisfied[i] = t.Conditions[i].Condition.CheckCondition(this, t.Conditions[i], elapsed);
+                        var condState =  t.Conditions[i].Condition.CheckCondition(this, t.Conditions[i], elapsed);
+                        #if DEBUG
+                        if (!t.Satisfied[i] && condState)
+                        {
+                            FLLog.Debug("Mission", $"{t.Trigger.Nickname} satisfied cnd: {t.Conditions[i].Condition}");
+                        }
+                        #endif
+                        newSatisfied[i] = condState;
                     }
                     if (t.Satisfied != newSatisfied)
                     {
@@ -159,6 +166,8 @@ namespace LibreLancer.Missions
             ActiveTriggersInfo = GetTriggerInfo().ToArray();
         }
 
+
+
         IEnumerable<TriggerInfo> GetTriggerInfo()
         {
             foreach (var t in activeTriggers)
@@ -171,9 +180,7 @@ namespace LibreLancer.Missions
                 var sb = new IniBuilder.IniSectionBuilder() { Section = new("") };
                 foreach (var c in t.Conditions)
                 {
-                    sb.Section.Clear();
-                    c.Condition.Write(sb);
-                    ti.Conditions.Add(sb.Section[0].ToString());
+                    ti.Conditions.Add(c.Condition.ToString());
                 }
                 yield return ti;
             }
