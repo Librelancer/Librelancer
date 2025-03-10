@@ -44,8 +44,13 @@ namespace LibreLancer.Interface
                     ImGui.PopFont();
                     ImGui.Text("Conditions");
                     ImGui.Separator();
-                    foreach(var c in t.Conditions)
-                        ImGui.Text(c);
+                    for(int j = 0; j < t.Conditions.Count; j++)
+                    {
+                        if(t.Satisfied[j])
+                            ImGui.TextColored(Color4.Green, t.Conditions[j]);
+                        else
+                            ImGui.Text(t.Conditions[j]);
+                    }
                     ImGui.Separator();
                     ImGui.Text("Actions");
                     ImGui.Separator();

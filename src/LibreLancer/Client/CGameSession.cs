@@ -678,8 +678,8 @@ namespace LibreLancer.Client
                     }
 
                     go.AddComponent(new CMissileComponent(go, mn));
-                    go.Register(go.World.Physics);
                     gp.world.AddObject(go);
+                    go.Register(go.World.Physics);
                 }
             });
         }

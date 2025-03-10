@@ -20,7 +20,7 @@ public class CndCommComplete : NodeTriggerEntry
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Dialog", ref Data.label);
+        Controls.InputTextId("Dialog", ref Data.Comm);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

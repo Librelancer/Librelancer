@@ -34,7 +34,19 @@ public class CndShipDistanceVector : NodeTriggerEntry
 
         ImGui.InputFloat3("Position", ref Data.position, "%.0f");
         ImGui.SliderFloat("Distance", ref Data.distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
-        ImGui.Checkbox("Tick Away", ref Data.tickAway);
+
+        bool isTickAway = Data.tickAway != null;
+        ImGui.Checkbox("Tick Away", ref isTickAway);
+        if (isTickAway)
+        {
+            float value = Data.tickAway ?? 0;
+            ImGui.InputFloat("Tick Away", ref value);
+            Data.tickAway = value;
+        }
+        else
+        {
+            Data.tickAway = null;
+        }
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

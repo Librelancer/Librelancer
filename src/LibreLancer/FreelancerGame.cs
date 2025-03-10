@@ -144,6 +144,7 @@ namespace LibreLancer
             Services.Add(Sound);
             Services.Add(Typewriter);
             Debug = new DebugView(this);
+            Debug.Enabled = Config.Settings.Debug;
 			if (useintromovies && IntroMovies.Count > 0)
 				ChangeState(new IntroMovie(this, 0));
 			else

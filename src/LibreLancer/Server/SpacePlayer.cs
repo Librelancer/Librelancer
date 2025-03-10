@@ -1,4 +1,5 @@
 using System.Numerics;
+using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
@@ -55,7 +56,7 @@ public class SpacePlayer : ISpacePlayer
                     other.Formation = new ShipFormation(other, self);
                 }
                 self.Formation = other.Formation;
-                player.MissionRuntime?.PlayerManeuver("formation", other.Nickname);
+                player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, other.Nickname);
             }
             else {
                 FLLog.Warning("Server", $"Could not find object to join formation {ship}");
@@ -68,6 +69,7 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var obj = world.Players[player];
+            player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, "inverse");
             if(obj.Formation != null && obj.Formation.LeadShip != obj)
                 obj.Formation.Remove(obj);
         });

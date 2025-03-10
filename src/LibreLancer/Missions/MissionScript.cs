@@ -10,6 +10,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData;
 using LibreLancer.Missions.Actions;
+using LibreLancer.Missions.Conditions;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Ai.ObjList;
 
@@ -141,7 +142,7 @@ namespace LibreLancer.Missions
                 AvailableTriggers[tr.Nickname] = new ScriptedTrigger() {
                     Nickname = tr.Nickname,
                     Repeatable = tr.Repeatable,
-                    Conditions = tr.Conditions.ToArray(),
+                    Conditions = ScriptedCondition.Convert(tr.Conditions).ToArray(),
                     Actions =  ScriptedAction.Convert(tr.Actions).ToArray()
                 };
                 if(tr.InitState == TriggerInitState.ACTIVE)
@@ -306,7 +307,7 @@ namespace LibreLancer.Missions
     {
         public string Nickname;
         public bool Repeatable;
-        public MissionCondition[] Conditions;
+        public ScriptedCondition[] Conditions;
         public ScriptedAction[] Actions;
     }
 }

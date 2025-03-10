@@ -21,9 +21,9 @@ public class CndCharacterSelect : NodeTriggerEntry
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Character", ref Data.character);
-        Controls.InputTextId("Location", ref Data.location);
-        Controls.InputTextId("Base", ref Data.@base);
+        Controls.InputTextId("Character", ref Data.Character);
+        Controls.InputTextId("Location", ref Data.Room);
+        Controls.InputTextId("Base", ref Data.Base);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
