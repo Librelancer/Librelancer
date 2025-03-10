@@ -24,8 +24,19 @@ public abstract class ScriptedCondition
         self.Condition = this;
     }
 
+
+    class DebugMarker : ConditionStorage
+    {
+        internal static DebugMarker Instance = new();
+    }
+
     public virtual bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
     {
+        if (self.Storage != DebugMarker.Instance)
+        {
+            FLLog.Warning("Missions", $"Condition not implemented: {this}");
+            self.Storage = DebugMarker.Instance;
+        }
         return false;
     }
 
