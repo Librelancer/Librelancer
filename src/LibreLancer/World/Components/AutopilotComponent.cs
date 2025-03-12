@@ -255,15 +255,19 @@ namespace LibreLancer.World.Components
             {
                 SetThrottle(1, control, input);
             }
-            else  if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
+
+            var minThrottle = distance > 100 ? 1 : 0;
+
+            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
             {
-                control.Cruise = leadControl.CruiseEnabled;
-                SetThrottle(leadControl.EnginePower, control, input);
+                control.Cruise = distance > 2000 || leadControl.CruiseEnabled;
+                SetThrottle(MathF.Max(minThrottle, leadControl.EnginePower), control, input);
             }
             else if (lead.TryGetComponent<CEngineComponent>(out var eng))
             {
-                control.Cruise = eng.Speed > 0.9f;
-                SetThrottle(MathHelper.Clamp(eng.Speed / 0.9f, 0, 1), control, input);
+                control.Cruise = distance > 2000 || eng.Speed > 0.9f;
+                var pThrottle = MathHelper.Clamp(eng.Speed / 0.9f, 0, 1);
+                SetThrottle(MathF.Max(minThrottle, pThrottle), control, input);
             }
             if (distance > 30) {
                 TurnTowards(time, targetPoint);
