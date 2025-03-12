@@ -74,15 +74,22 @@ namespace LibreLancer.Missions
             }
         }
 
-        public IEnumerable<MissionShip> GetShipsByLabel(string label)
+        public IEnumerable<MissionLabel> GetLabels()
         {
+            var allLabels = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
             foreach (var sh in Ships)
             {
-                if (sh.Value.Labels.Contains(label, StringComparer.OrdinalIgnoreCase))
+                foreach (var l in sh.Value.Labels)
                 {
-                    yield return sh.Value;
+                    if (!allLabels.TryGetValue(l, out var list))
+                    {
+                        list = new List<string>();
+                        allLabels.Add(l, list);
+                    }
+                    list.Add(sh.Key);
                 }
             }
+            return allLabels.Select(x => new MissionLabel(x.Key, x.Value));
         }
 
         public MissionScript(MissionIni ini)

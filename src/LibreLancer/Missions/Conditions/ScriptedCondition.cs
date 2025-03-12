@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using Castle.Core.Resource;
 using LibreLancer.Data.Missions;
 using LibreLancer.Ini;
 using LibreLancer.Missions.Actions;
 using LibreLancer.Missions.Events;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 namespace LibreLancer.Missions.Conditions;
 
@@ -193,7 +191,12 @@ public class Cnd_WatchTrigger : ScriptedCondition
 
     //TODO : ON/OFF == COMPLETED/ACTIVE?
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
-        => runtime.GetTriggerState(Trigger) == TriggerState;
+    {
+        var current = runtime.GetTriggerState(Trigger);
+        if (current == TriggerState) return true;
+        if (current == TriggerState.ON && TriggerState == TriggerState.ACTIVE) return true; //ON?
+        return false;
+    }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -769,7 +772,7 @@ public class Cnd_LocEnter :
     }
 }
 
-public class Cnd_LaunchComplete : ScriptedCondition
+public class Cnd_LaunchComplete : SingleEventListenerCondition<LaunchCompleteEvent>
 {
     public string ship = string.Empty;
 
@@ -781,6 +784,9 @@ public class Cnd_LaunchComplete : ScriptedCondition
     {
         ship = entry[0].ToString();
     }
+
+    protected override bool EventCheck(LaunchCompleteEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(ship, ev.Ship);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -949,14 +955,14 @@ public class Cnd_EncLaunched : ScriptedCondition
     }
 }
 
+// ASSUMPTION: ALL is valid enum
 public class Cnd_DistVecLbl : ScriptedCondition
 {
-    public string label;
-    public bool inside;
-    public Vector3 position;
-    public float distance;
-    public string sourceShip;
-    public bool tickAway;
+    public string Label;
+    public bool Inside;
+    public Vector3 Position;
+    public float Distance;
+    public bool Any;
 
     public Cnd_DistVecLbl()
     {
@@ -964,25 +970,44 @@ public class Cnd_DistVecLbl : ScriptedCondition
 
     public Cnd_DistVecLbl([NotNull] Entry entry)
     {
-        inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
-        sourceShip = entry[1].ToString();
-        label = entry[2].ToString();
-        position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
-        distance = entry[6].ToSingle();
+        Inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
+        Any = entry[1].ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase);
+        Label = entry[2].ToString();
+        Position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
+        Distance = entry[6].ToSingle();
+    }
 
-        tickAway = entry?.Count >= 8 &&
-                   entry[7].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase);
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (!runtime.Labels.TryGetValue(Label, out var l) ||
+            !runtime.GetSpace(out var space))
+            return false;
+        bool satisfied = false;
+        foreach (var ship in l.Ships)
+        {
+            var obj = space.World.GameWorld.GetObject(ship);
+            if (obj == null)
+            {
+                continue;
+            }
+            bool isInside = Vector3.Distance(obj.WorldTransform.Position, Position) <= Distance;
+            satisfied = isInside == Inside;
+            if (satisfied && Any)
+            {
+                return true;
+            }
+            else if (!satisfied && !Any)
+            {
+                return false;
+            }
+        }
+        return satisfied;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         List<ValueBase> entries =
-            [inside ? "inside" : "outside", sourceShip, label, position.X, position.Y, position.Z, distance];
-
-        if (tickAway)
-        {
-            entries.Add("tick away");
-        }
+            [Inside ? "inside" : "outside", Any ? "ANY" : "ALL", Label, Position.X, Position.Y, Position.Z, Distance];
 
         section.Entry("Cnd_DistVecLbl", entries.ToArray());
     }
@@ -1099,7 +1124,7 @@ public class Cnd_DistShip : ScriptedCondition
             return false;
         var obj = space.World.GameWorld.GetObject(sourceShip);
         var obj2 = space.World.GameWorld.GetObject(destObject);
-        if (obj == null)
+        if (obj == null || obj2 == null)
             return false;
         var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= distance;
         if(tickAway != null)
@@ -1153,14 +1178,25 @@ public class Cnd_DistCircle : ScriptedCondition
     }
 }
 
-// TODO: INI has an extra two elements, one int, one enum. Figure out what they do
-// Most likely not a SingleEventListener condition
+// -1, ALL seems to be every ship in a label destroyed. If the whole label has not yet been spawned,
+// then it cannot be satisfied.
+
+public enum CndDestroyedKind
+{
+    Unset,
+    ALL,
+    EXPLODE,
+    ALL_IGNORE_LANDING,
+    SILENT,
+    IGNORE_LANDING,
+}
+
 public class Cnd_Destroyed :
-    SingleEventListenerCondition<DestroyedEvent>
+    EventListenerCondition<DestroyedEvent>
 {
     public string label = string.Empty;
-    public int UnknownNumber = 0;
-    public string UnknownEnum = string.Empty;
+    public int Count = 0;
+    public CndDestroyedKind Kind = CndDestroyedKind.Unset;
 
     public Cnd_Destroyed()
     {
@@ -1174,27 +1210,59 @@ public class Cnd_Destroyed :
             return;
         }
 
-        UnknownNumber = entry[1].ToInt32();
+        Count = entry[1].ToInt32();
 
         if (entry.Count > 2)
         {
-            UnknownEnum = entry[2].ToString();
+            if (!Enum.TryParse(entry[2].ToString(), out Kind))
+            {
+                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {entry[2]}");
+            }
         }
     }
 
-    protected override bool EventCheck(DestroyedEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(label, ev.Object);
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        self.Storage = new ConditionBoolean();
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (runtime.Labels.TryGetValue(label, out var lbl))
+        {
+            if (Count <= 0)
+            {
+                return lbl.IsAllKilled(); //-1 seems to equal whole label
+            }
+            else
+            {
+                return lbl.DestroyedCount() >= Count;
+            }
+        }
+        // Single object
+        return ((ConditionBoolean)self.Storage).Value;
+    }
+
+    public override void OnEvent(DestroyedEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        // Single object destroyed
+        if (IdEqual(label, ev.Object))
+        {
+            ((ConditionBoolean)self.Storage).Value = true;
+        }
+    }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         List<ValueBase> entries = [label];
 
-        if (UnknownNumber > 0 || UnknownEnum != string.Empty)
+        if (Count != 0 || Kind != CndDestroyedKind.Unset)
         {
-            entries.Add(UnknownNumber);
-            if (UnknownEnum != string.Empty)
+            entries.Add(Count);
+            if (Kind != CndDestroyedKind.Unset)
             {
-                entries.Add(UnknownEnum);
+                entries.Add(Kind.ToString());
             }
         }
 

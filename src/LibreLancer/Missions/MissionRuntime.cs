@@ -24,9 +24,17 @@ namespace LibreLancer.Missions
         object _msnLock = new object();
 
         public MissionScript Script;
+        public Random Random = new();
+
+        public Dictionary<string, MissionLabel> Labels = new(StringComparer.OrdinalIgnoreCase);
+
         public MissionRuntime(MissionIni msn, Player player, uint[] triggerSave)
         {
             Script = new MissionScript(msn);
+            foreach (var lbl in Script.GetLabels())
+            {
+                Labels[lbl.Name] = lbl;
+            }
             this.msn = msn;
             this.Player = player;
             bool doInit = true;
@@ -75,8 +83,14 @@ namespace LibreLancer.Missions
                 var obj = Player.Space.World.GameWorld.GetObject(target);
                 if (obj != null)
                 {
-                    obj.GetComponent<SNPCComponent>().ProjectileHitHook = OnProjectileHit;
-                }else {
+                    if (!obj.TryGetComponent < SNPCComponent>(out var comp))
+                    {
+                        FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not npc {target}");
+                        comp.ProjectileHitHook = OnProjectileHit;
+                    }
+                }
+                else
+                {
                     FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not spawned {target}");
                 }
             });
@@ -85,6 +99,11 @@ namespace LibreLancer.Missions
         public void ActivateTrigger(string trigger)
         {
             var t = Script.AvailableTriggers[trigger];
+            if (t.Conditions.Length == 1 && t.Conditions[0] is Cnd_True)
+            {
+                DoTrigger(t);
+                return;
+            }
             var active = new ActiveTrigger() { Trigger = t };
             var conds = new List<ActiveCondition>();
             foreach (var cond in t.Conditions)
@@ -108,6 +127,10 @@ namespace LibreLancer.Missions
 
         public TriggerState GetTriggerState(string trigger)
         {
+            if (completedTriggers.Contains(trigger))
+            {
+                return TriggerState.COMPLETE;
+            }
             var at = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
             if (at == null)
             {
@@ -205,6 +228,7 @@ namespace LibreLancer.Missions
                         if (tr.Conditions[i].Condition is EventListenerCondition<T> listener)
                         {
                             listener.OnEvent(e, this, tr.Conditions[i]);
+                            tr.Satisfied[i] = listener.CheckCondition(this, tr.Conditions[i], 0);
                         }
                     }
                 }
@@ -212,6 +236,7 @@ namespace LibreLancer.Missions
             }
         }
 
+        private HashSet<string> completedTriggers = new();
         private bool uiUpdate = false;
 
         public void CheckMissionScript()
@@ -234,19 +259,18 @@ namespace LibreLancer.Missions
                             break;
                         }
                     }
+
                     if (activate)
                     {
                         var tr = activeTriggers[i].Trigger;
                         activeTriggers.RemoveAt(i);
                         DoTrigger(tr);
+                        completedTriggers.Add(tr.Nickname);
                         uiUpdate = true;
                     }
                 }
             }
         }
-
-        static bool IdEquals(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
-
 
         public void PlayerLaunch()
         {
@@ -273,8 +297,20 @@ namespace LibreLancer.Missions
             MsnEvent(new CharSelectEvent(name, room, _base));
         }
 
+        public void NpcSpawned(string ship)
+        {
+            foreach (var l in Labels.Values)
+            {
+                l.Spawned(ship);
+            }
+        }
+
         public void NpcKilled(string ship)
         {
+            foreach (var l in Labels.Values)
+            {
+                l.Destroyed(ship);
+            }
             MsnEvent(new DestroyedEvent(ship));
         }
 
@@ -292,37 +328,6 @@ namespace LibreLancer.Missions
         {
             MsnEvent(new PlayerManeuverEvent(type, target));
         }
-
-        //TODO: Bad tracking
-
-        private Dictionary<string, int> labelCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        public void LabelIncrement(string label)
-        {
-            labelCounts.TryGetValue(label, out int c);
-            c++;
-            labelCounts[label] = c;
-        }
-
-        public void LabelKilled(string label)
-        {
-            labelCounts.TryGetValue(label, out int c);
-            c--;
-            if (c <= 0)
-            {
-                c = 0;
-                MsnEvent(new DestroyedEvent(label));
-            }
-            labelCounts[label] = c;
-        }
-
-        public void LabelDecrement(string label)
-        {
-            labelCounts.TryGetValue(label, out int c);
-            c--;
-            if (c <= 0) c = 0;
-            labelCounts[label] = c;
-        }
-
 
         public void MissionAccepted()
         {
@@ -344,7 +349,9 @@ namespace LibreLancer.Missions
         public void EnteredSpace()
         {
             MsnEvent(new SpaceEnteredEvent());
+            MsnEvent(new LaunchCompleteEvent("Player")); //HACK
         }
+
 
         void DoTrigger(ScriptedTrigger tr)
         {

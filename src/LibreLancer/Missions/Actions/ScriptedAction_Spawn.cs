@@ -98,15 +98,14 @@ namespace LibreLancer.Missions.Actions
             var ship = script.Ships[msnShip];
             var npcDef = script.NPCs[ship.NPC];
             script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
-            foreach (var lbl in ship.Labels)
-                runtime.LabelIncrement(lbl);
+            runtime.NpcSpawned(ship.Nickname);
             if (shipArch == null)
             {
                 shipArch = runtime.Player.Game.GameData.Ini.NPCShips.ShipArches.First(x =>
                     x.Nickname.Equals(npcDef.NpcShipArch, StringComparison.OrdinalIgnoreCase));
             }
 
-            var pos = spawnpos ?? ship.Position;
+            var archPos = spawnpos ?? ship.Position;
             var orient = spawnorient ?? ship.Orientation;
             AiState state = null;
             if (!string.IsNullOrEmpty(objList))
@@ -134,6 +133,19 @@ namespace LibreLancer.Missions.Actions
                     oName = new ObjectName(npcDef.IndividualName);
                 }
 
+                var pos = archPos;
+                GameObject relObj;
+                // Spawn relative to object
+                if (ship.RelativePosition != null &&
+                    (relObj = runtime.Player.Space.World.GameWorld.GetObject(ship.RelativePosition.ObjectName)) != null)
+                {
+                    var dir = new Vector3(runtime.Random.NextFloat(-1, 1),
+                        runtime.Random.NextFloat(-0.1f, 0.1f),
+                        runtime.Random.NextFloat(-1, 1)).Normalized();
+                    var range = runtime.Random.NextFloat(ship.RelativePosition.MinRange, ship.RelativePosition.MaxRange);
+                    pos = relObj.WorldTransform.Position + (dir * range);
+                }
+
                 string commHead = null;
                 string commBody = null;
                 string commHelmet = null;
@@ -153,8 +165,6 @@ namespace LibreLancer.Missions.Actions
                 var npcComp = obj.GetComponent<SNPCComponent>();
                 npcComp.OnKilled = () => {
                     runtime.NpcKilled(msnShip);
-                    foreach (var lbl in ship.Labels)
-                        runtime.LabelKilled(lbl);
                 };
                 npcComp.SetState(state);
             });
@@ -295,13 +305,9 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if (script.Ships.ContainsKey(Target))
+            if (script.Ships.TryGetValue(Target, out var ship))
             {
-                var ship = script.Ships[Target];
-                var npcDef = script.NPCs[ship.NPC];
-                script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
-                foreach (var lbl in ship.Labels)
-                    runtime.LabelDecrement(lbl);
+                runtime.NpcKilled(ship.Nickname);
                 runtime.Player.MissionWorldAction(() => { runtime.Player.Space.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target), false); });
             }
         }

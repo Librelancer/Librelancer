@@ -23,19 +23,18 @@ public class CndShipDistanceVectorLabel : NodeTriggerEntry
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Source Ship", ref Data.sourceShip);
+        ImGui.Checkbox("Any", ref Data.Any);
 
-        ImGui.Checkbox("Inside", ref Data.inside);
+        ImGui.Checkbox("Inside", ref Data.Inside);
         Controls.HelpMarker(
             "Whether the source ship should be within (true) the specified distance, or if the condition is " +
             "triggered when the source ship is at least the specified distance away from the destination object.",
             true);
 
         // TODO: Transform label into combo selection
-        Controls.InputTextId("Label", ref Data.label);
-        ImGui.InputFloat3("Position", ref Data.position, "%.0f");
-        ImGui.SliderFloat("Radius", ref Data.distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
-        ImGui.Checkbox("Tick Away", ref Data.tickAway);
+        Controls.InputTextId("Label", ref Data.Label);
+        ImGui.InputFloat3("Position", ref Data.Position, "%.0f");
+        ImGui.SliderFloat("Radius", ref Data.Distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
