@@ -25,6 +25,6 @@ namespace LibreLancer.Graphics
 
         public ref ulong UniformBlockTag(int index) => ref Backing.UniformBlockTag(index);
 
-        public void SetUniformBlock<T>(int index, ref T data) where T : unmanaged => Backing.SetUniformBlock(index, ref data);
+        public void SetUniformBlock<T>(int index, ref T data, bool forceUpdate = false, int forceSize = -1) where T : unmanaged => Backing.SetUniformBlock(index, ref data, forceUpdate, forceSize);
     }
 }

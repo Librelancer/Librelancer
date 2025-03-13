@@ -30,6 +30,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             public int VersionSet;
             public int Version;
             public int SizeInBytes;
+            public int ForceSize;
+            public bool ForceUpdate;
         }
 
         private NativeBuffer uniformMemoryBuffer;
@@ -183,12 +185,21 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
         }
 
-        public unsafe void SetUniformBlock<T>(int index, ref T data) where T : unmanaged
+        public unsafe void SetUniformBlock<T>(int index, ref T data, bool forceUpdate = false, int forceSize = -1) where T : unmanaged
         {
             if ((blocksSet & 1 << index) == 0)
                 return;
             var dst = new Span<byte>((void*)blocks[index].BlockCurrent, blocks[index].SizeInBytes);
             var src = MemoryMarshal.Cast<T, byte>(MemoryMarshal.CreateSpan(ref data, 1));
+            if (forceSize > -1)
+            {
+                src = src.Slice(0, Math.Min(forceSize, dst.Length));
+                blocks[index].ForceSize = Math.Min(forceSize, dst.Length);
+            }
+            if (forceUpdate)
+            {
+                blocks[index].ForceUpdate = true;
+            }
             blocks[index].Version++;
             if (src.Length > dst.Length)
             {
@@ -216,21 +227,23 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                 if ((blocksSet & (1 << i)) == 0) //Block does not exist (array)
                     continue;
                 ref var b = ref blocks[i];
-                if (b.Version == b.VersionSet) // SetUniformBlock<T> not called
+                if (!b.ForceUpdate && b.Version == b.VersionSet) // SetUniformBlock<T> not called
                     continue;
                 b.VersionSet = b.Version;
-                var blockSet = new Span<byte>((void*)b.BlockSet, b.SizeInBytes);
-                var blockCurrent = new Span<byte>((void*)b.BlockCurrent, b.SizeInBytes);
-                if (blockSet.SequenceEqual(blockCurrent))
+                int size = b.ForceSize > 0 ? b.ForceSize : b.SizeInBytes;
+                b.ForceSize = 0;
+                var blockSet = new Span<byte>((void*)b.BlockSet, size);
+                var blockCurrent = new Span<byte>((void*)b.BlockCurrent, size);
+                if (!b.ForceUpdate && blockSet.SequenceEqual(blockCurrent))
                     continue;
                 blockCurrent.CopyTo(blockSet);
                 if ((blocksInteger & (1 << i)) != 0)
                 {
-                    GL.Uniform4iv(b.GLLocation, b.SizeInBytes / 16, b.BlockSet);
+                    GL.Uniform4iv(b.GLLocation, size / 16, b.BlockSet);
                 }
                 else
                 {
-                    GL.Uniform4fv(b.GLLocation, b.SizeInBytes / 16, b.BlockSet);
+                    GL.Uniform4fv(b.GLLocation, size / 16, b.BlockSet);
                 }
             }
         }

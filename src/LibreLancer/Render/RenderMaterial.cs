@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
-using LibreLancer.Shaders;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 
@@ -106,7 +105,7 @@ namespace LibreLancer.Render
             else if (shader.HasUniformBlock(0) &&
                      World.ID == ulong.MaxValue || shader.UniformBlockTag(0) != World.ID)
             {
-                shader.SetUniformBlock(0, ref Unsafe.AsRef<WorldBuffer>(World.Source));
+                shader.SetUniformBlock(0, ref Unsafe.AsRef<WorldBuffer>(World.Source), true);
                 shader.UniformBlockTag(0) = World.ID;
             }
         }
@@ -116,7 +115,7 @@ namespace LibreLancer.Render
             if (!lighting.Enabled)
             {
                 var disable = Vector4.Zero;
-                shader.SetUniformBlock(2, ref disable);
+                shader.SetUniformBlock(2, ref disable, false, 16);
                 return;
             }
 
@@ -158,7 +157,9 @@ namespace LibreLancer.Render
             }
 
             data.LightCount = lt;
-            shader.SetUniformBlock<ShaderLighting>(2, ref data);
+            int szCount = 3 * sizeof(Vector4) + //header
+                          lt * sizeof(PackedLight); //lights
+            shader.SetUniformBlock<ShaderLighting>(2, ref data, false, szCount);
         }
 
 		protected Texture2D GetTexture(int cacheidx, string tex)
