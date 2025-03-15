@@ -372,8 +372,6 @@ namespace LibreLancer.Data
                 else
                     DataVersion = "FL-1";
             });
-            foreach (var t in tasks)
-                t();
             using var pool = new ParallelActionRunner(Environment.ProcessorCount);
             pool.RunActions(x => tasks[x](), tasks.Count);
             Loaded = true;
