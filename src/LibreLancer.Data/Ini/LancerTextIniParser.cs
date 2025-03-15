@@ -46,24 +46,32 @@ namespace LibreLancer.Ini
             return true;
         }
 
-        private static void ParseKeyValue(Section section, string key, string value, int line, bool preparse, bool allowmaps)
+        private static void ParseKeyValue(Section section, string key, ReadOnlySpan<char> value, int line, bool preparse, bool allowmaps)
         {
+            Span<Range> parts = stackalloc Range[256];
             Entry entry;
             var kvIdx = value.IndexOf('=');
             if (allowmaps && kvIdx >= 0)
             {
                 entry = new Entry(section, key, 1) { Line = line };
-                var parts = value.Split('=');
-                entry.Add(new StringKeyValue(parts[0].Trim(), parts[1].Trim()) { Entry = entry });
+                value.Split(parts, '=', StringSplitOptions.TrimEntries);
+                var (v1Start, v1Length) = parts[0].GetOffsetAndLength(value.Length);
+                var (v2Start, v2Length) = parts[1].GetOffsetAndLength(value.Length);
+                entry.Add(new StringKeyValue(
+                    value.Slice(v1Start, v1Length).ToString(),
+                    value.Slice(v2Start, v2Length).ToString()) { Entry = entry });
             }
             else
             {
-                var splits = value.Split(',', StringSplitOptions.TrimEntries);
-                entry = new Entry(section, key, splits.Length) { Line = line };
-                foreach (string part in splits)
+                int valueCount = value.Split(parts, ',', StringSplitOptions.TrimEntries);
+                entry = new Entry(section, key, valueCount) { Line = line };
+                for(int i = 0; i < valueCount; i++)
                 {
-                    if (!string.IsNullOrEmpty(part))
+
+                    if (parts[i].End.Value > parts[i].Start.Value)
                     {
+                        var (vStart, vLength) = parts[i].GetOffsetAndLength(value.Length);
+                        var part = value.Slice(vStart, vLength);
                         if (preparse && (part[0] == '-' || part[0] >= '0' && part[0] <= '9'))
                         {
                             bool isLong = long.TryParse(part, out long tempLong);
@@ -76,12 +84,12 @@ namespace LibreLancer.Ini
                                 entry.Add(new SingleValue(tempFloat, isLong ? tempLong : null) { Entry = entry, Line = line });
                             }
                             else
-                                entry.Add(new LancerStringValue(part) { Entry = entry, Line = line });
+                                entry.Add(new LancerStringValue(part.ToString()) { Entry = entry, Line = line });
                         }
                         else if (preparse && bool.TryParse(part, out bool tempBool))
                             entry.Add(new BooleanValue(tempBool) { Entry = entry, Line = line });
                         else
-                            entry.Add(new LancerStringValue(part) { Entry = entry, Line = line });
+                            entry.Add(new LancerStringValue(part.ToString()) { Entry = entry, Line = line });
                     }
                 }
             }
@@ -105,62 +113,50 @@ namespace LibreLancer.Ini
             while (!reader.EndOfStream)
             {
                 currentLine++;
-                string line = reader.ReadLine().Trim(spacesAndTabs);
+                var line = reader.ReadLine().AsSpan().Trim(spacesAndTabs);
 
                 // Quickly discard lines that we know contain nothing useful
-                if (string.IsNullOrWhiteSpace(line)
+                if (line.IsWhiteSpace()
                     || line[0] == ';'
                     || line[0] == '@')
                     continue;
 
-                for (var i = 0; i < line.Length; i++)
+                if (line[0] == '[')
                 {
-                    if (line[i] == '[')
-                    {
-                        if (currentSection != null) yield return currentSection;
-                        inSection = true;
+                    var toReturn = currentSection;
+                    inSection = true;
 
-                        var sectionIdx = line.IndexOf(']', i) - 1;
-                        if (sectionIdx < 0) sectionIdx = line.Length - 1;
-                        currentSection = new Section(line.Substring(i + 1, sectionIdx - i).TrimEnd(spacesAndTabs))
+                    var sectionIdx = line.IndexOf(']') - 1;
+                    if (sectionIdx < 0) sectionIdx = line.Length - 1;
+                    currentSection = new Section(line.Slice(1, sectionIdx).TrimEnd(spacesAndTabs).ToString())
                         { File = path, Line = currentLine };
-                        break;
-                    }
-                    if (inSection && line[i] == '=')
-                    {
-                        var key = line.Substring(0, i).Trim(spacesAndTabs);
-                        var idx = line.IndexOf(';', i);
-                        if (idx != -1)
-                            ParseKeyValue(currentSection,
-                                key,
-                                line.Substring(i + 1, idx - i - 1).Trim(),
-                                currentLine, preparse, allowmaps);
-                        else
-                            ParseKeyValue(currentSection,
-                                key,
-                                line.Substring(i + 1).Trim(),
-                                currentLine, preparse, allowmaps);
-                        break;
-                    }
-                    else if (inSection && i == line.Length - 1)
-                    {
-                        var key = line;
-                        if (!string.IsNullOrEmpty(key))
-                        {
-                            ParseKeyValue(currentSection, key, "", currentLine, preparse, allowmaps);
-                        }
-                        break;
-                    }
-                    else if (inSection && line[i] == ';')
-                    {
-                        var key = line.Substring(0, i).Trim();
-                        if (!string.IsNullOrEmpty(key))
-                        {
-                            ParseKeyValue(currentSection, key, "", currentLine, preparse, allowmaps);
-                        }
-                        break;
-                    }
-                    if (line[i] == ';') break;
+                    if (toReturn != null) yield return toReturn;
+                    continue;
+                }
+
+                if (!inSection)
+                    continue;
+
+                int commentIndex = line.IndexOf(';');
+                if (commentIndex >= 0)
+                {
+                    line = line.Slice(0, commentIndex);
+                }
+
+                if (line.IsWhiteSpace())
+                    continue;
+
+                int equalsIndex = line.IndexOf('=');
+                if (equalsIndex >= 0)
+                {
+                    var key = line.Slice(0, equalsIndex).Trim(spacesAndTabs);
+                    var value = line.Slice(equalsIndex + 1).Trim();
+                    ParseKeyValue(currentSection, key.ToString(), value, currentLine, preparse, allowmaps);
+                }
+                else
+                {
+                    var key = line.Trim(spacesAndTabs).ToString();
+                    currentSection.Add(new Entry(currentSection, key));
                 }
             }
             if (currentSection != null) yield return currentSection;
