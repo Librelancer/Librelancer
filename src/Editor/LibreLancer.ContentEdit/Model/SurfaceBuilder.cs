@@ -135,7 +135,7 @@ public static class SurfaceBuilder
         var hull = CreateHull(h, tr);
         if (hull.IsError)
         {
-            warnings.Add(EditMessage.Warning($"Hull creation failed: {hull.AllMessages()}"));
+            warnings.Add(EditMessage.Warning($"Hull creation for {h.Name} failed: {hull.AllMessages()}"));
         }
         else
         {
@@ -244,7 +244,7 @@ public static class SurfaceBuilder
         SurfacePartContext parent, bool is3db, List<EditMessage> warnings)
     {
         var modelCrc = is3db ? 0 : CrcTool.FLModelCrc(node.Name);
-        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings)).ToList();
+        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings)).Where(x => x != null).ToList();
         if (convexHulls.Count == 0)
         {
             warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
