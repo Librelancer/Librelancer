@@ -6,7 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
     public partial class LancerStringValue : StringValue
     {

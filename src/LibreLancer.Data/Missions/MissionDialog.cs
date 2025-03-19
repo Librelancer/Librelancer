@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class MissionDialog
+    [ParsedSection]
+    public partial class MissionDialog
     {
         [Entry("nickname")]
         public string Nickname;

@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class LensFlare
+    [ParsedSection]
+	public partial class LensFlare
 	{
         [Entry("nickname")]
 		public string Nickname;

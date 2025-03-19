@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using LibreLancer;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LancerEdit
 {
@@ -24,7 +24,8 @@ namespace LancerEdit
         FileArray,
         FileFolderArray,
     }
-    public class EditScriptArgument
+    [ParsedSection]
+    public partial class EditScriptArgument
     {
         [Entry("name", Required = true)] public string Name;
         [Entry("type", Required = true)] public ScriptArgumentType Type;
@@ -43,13 +44,15 @@ namespace LancerEdit
         }
     }
 
-    public class EditScript : IniFile
+    [ParsedSection]
+    public partial class EditScriptSection
     {
-        public class EditScriptSection
-        {
-            [Entry("name", Required = true)] public string Name;
-        }
+        [Entry("name", Required = true)] public string Name;
+    }
 
+    [ParsedIni]
+    public partial class EditScript
+    {
         [Section("script")] public EditScriptSection Info;
         [Section("argument")] public List<EditScriptArgument> Arguments = new List<EditScriptArgument>();
 
@@ -72,7 +75,7 @@ namespace LancerEdit
             Filename = filename;
             var frontMatter = GetFrontMatter(File.ReadAllText(filename));
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(frontMatter))) {
-                ParseAndFill($"Frontmatter: {Path.GetFileName(filename)}", stream);
+                ParseIni(stream, $"Frontmatter: {Path.GetFileName(filename)}");
             }
         }
 

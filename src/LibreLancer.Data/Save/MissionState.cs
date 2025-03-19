@@ -1,12 +1,13 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Save;
 
 public record struct MissionRtc(string Script, bool Repeatable);
 public record struct MissionAmbient(string Script, HashValue Room, HashValue Base);
 
-public class MissionState : IWriteSection
+[ParsedSection]
+public partial class MissionState : IWriteSection
 {
     [Entry("mission_accepted")] public int MissionAccepted;
     [Entry("att_clamp")] public bool AttClamp;

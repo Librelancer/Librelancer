@@ -2,11 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class ShieldGenerator : AbstractEquipment
+    [ParsedSection]
+    public partial class ShieldGenerator : AbstractEquipment
     {
         [Entry("shield_rebuilt_sound")] public string ShieldRebuiltSound;
         [Entry("shield_collapse_particle")] public string ShieldCollapseParticle;
@@ -20,7 +21,7 @@ namespace LibreLancer.Data.Equipment
         [Entry("hp_type")] public string HpType;
         [Entry("shield_type")] public string ShieldType;
         public List<ShieldHitEffect> ShieldHitEffects = new List<ShieldHitEffect>();
-        
+
         [EntryHandler("shield_hit_effects", Multiline = true, MinComponents = 2)]
         void HandleShieldHitEffects(Entry e)
         {

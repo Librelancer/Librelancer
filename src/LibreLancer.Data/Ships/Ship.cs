@@ -8,11 +8,11 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Solar;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Ships
 {
-    [InheritSection]
-	public class Ship
+    [ParsedSection]
+	public partial class Ship
 	{
         [Entry("ids_name")]
 		public int IdsName;

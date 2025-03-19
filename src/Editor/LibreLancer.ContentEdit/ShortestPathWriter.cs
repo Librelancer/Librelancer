@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 using LibreLancer.Data.Universe;
-using LibreLancer.Ini;
 
 namespace LibreLancer.ContentEdit;
 

@@ -1,8 +1,9 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Solar;
 
-public class DynamicAsteroid
+[ParsedSection]
+public partial class DynamicAsteroid
 {
     [Entry("nickname", Required = true)]
     public string Nickname;

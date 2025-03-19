@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Characters
 {
-	public class Costume
+    [ParsedSection]
+	public partial class Costume
     {
         [Entry("nickname", Required = true)] public string Nickname;
         [Entry("head")] public string Head;

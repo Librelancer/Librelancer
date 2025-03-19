@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class MissionShip
+    [ParsedSection]
+    public partial class MissionShip
     {
         [Entry("nickname")]
         public string Nickname;

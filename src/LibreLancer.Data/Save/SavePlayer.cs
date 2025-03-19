@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Save
 {
@@ -81,8 +81,9 @@ namespace LibreLancer.Data.Save
         public VisitEntry(Entry e) : this(new HashValue(e[0]), e[1].ToInt32()) { }
     }
 
+    [ParsedSection]
 
-    public class SavePlayer : IWriteSection
+    public partial class SavePlayer : IWriteSection
     {
         [Entry("descrip_strid")] public int DescripStrid;
 

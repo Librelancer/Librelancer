@@ -3,18 +3,20 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class ObjList : IEntryHandler
+    [ParsedSection]
+    public partial class ObjList : IEntryHandler
     {
         [Entry("nickname")]
         public string Nickname;
         [Entry("system")]
         public string System;
         public List<ObjCmd> Commands = new List<ObjCmd>();
-        
-        
+
+
         bool IEntryHandler.HandleEntry(Entry e)
         {
             ObjListCommands c;

@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Effects
 {
-    public class EffectsIni : IniFile
+    [ParsedIni]
+    public partial class EffectsIni
     {
         [Section("viseffect")]
         public List<VisEffect> VisEffects = new List<VisEffect>();
@@ -24,6 +26,6 @@ namespace LibreLancer.Data.Effects
         [Section("effectlod")]
         public List<EffectLOD> EffectLODs = new List<EffectLOD>();
 
-        public void AddIni(string ini, FileSystem vfs) => ParseAndFill(ini, vfs);
+        public void AddIni(string ini, FileSystem vfs) => ParseIni(ini, vfs);
 	}
 }

@@ -4,21 +4,23 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Missions
 {
-    public class NewsIni : IniFile
+    [ParsedIni]
+    public partial class NewsIni
     {
         [Section("NewsItem")] public List<NewsItem> NewsItems = new List<NewsItem>();
         public void AddNewsIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, vfs);
+            ParseIni(path, vfs);
         }
     }
 
-    public class NewsItem
+    [ParsedSection]
+    public partial class NewsItem
     {
         [Entry("rank")] public string[] Rank;
         [Entry("icon")] public string Icon;

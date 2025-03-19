@@ -4,10 +4,12 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Universe
 {
-    public class NebulaClouds
+    [ParsedSection]
+    public partial class NebulaClouds
     {
         [Entry("max_distance")]
         public int? MaxDistance;

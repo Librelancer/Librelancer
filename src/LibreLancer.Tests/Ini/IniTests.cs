@@ -1,6 +1,6 @@
-﻿using LibreLancer.Ini;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Tests.Ini;
 

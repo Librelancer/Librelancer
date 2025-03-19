@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 using Xunit;
 
 namespace LibreLancer.Tests.Ini;

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Missions
 {
-    public class RepChangeEffects
+    [ParsedSection]
+    public partial class RepChangeEffects
     {
         [Entry("group", Required = true)]
         public string Group;

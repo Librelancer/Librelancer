@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe.Rooms;
 
-public class RoomSound
+[ParsedSection]
+public partial class RoomSound
 {
     public string Music;
     public bool MusicOneShot;
-    [Entry("ambient")] 
+    [Entry("ambient")]
     public string Ambient;
-    
+
     [EntryHandler("music", MinComponents = 1)]
     void MusicEntry(Entry e)
     {

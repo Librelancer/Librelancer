@@ -4,25 +4,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.IO;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-    [SelfSection("cube")]
-	public class AsteroidField : ZoneReference
+    [ParsedSection]
+    [ParsedIni]
+	public partial class AsteroidField : ZoneReference
     {
+        [Section("cube")]
+        public AsteroidCube Cube;
+
         [Section("field")]
         public Field Field;
-
-        [Entry("xaxis_rotation")]
-        public Vector4? Cube_RotationX;
-        [Entry("yaxis_rotation")]
-        public Vector4? Cube_RotationY;
-        [Entry("zaxis_rotation")]
-        public Vector4? Cube_RotationZ;
-
-        public List<CubeAsteroid> Cube = new List<CubeAsteroid>();
 
         [Section("band")]
         public Band Band;
@@ -40,7 +35,14 @@ namespace LibreLancer.Data.Universe
         [Section("exclusion zones", Delimiters = new[] { "exclude", "exclusion" })]
         public List<AsteroidExclusion> ExclusionZones = new List<AsteroidExclusion>();
 
-        [EntryHandler("asteroid", Multiline = true, MinComponents = 7)]
-        void HandleAsteroid(Entry e) => Cube.Add(new CubeAsteroid(e));
+
+        [OnParseDependent]
+        void ParseDependent(IniParseProperties properties)
+        {
+            if (string.IsNullOrWhiteSpace(IniFile)) return;
+            if (properties["vfs"] is not FileSystem vfs) return;
+            if (properties["dataPath"] is not string dataPath) return;
+            ParseIni(dataPath + IniFile, vfs);
+        }
     }
 }

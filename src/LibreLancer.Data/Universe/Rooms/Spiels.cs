@@ -1,13 +1,14 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe.Rooms;
 
-public class Spiels
+[ParsedSection]
+public partial class Spiels
 {
-    [Entry("EquipmentDealer")] 
+    [Entry("EquipmentDealer")]
     public string EquipmentDealer;
-    [Entry("ShipDealer")] 
+    [Entry("ShipDealer")]
     public string ShipDealer;
-    [Entry("CommodityDealer")] 
+    [Entry("CommodityDealer")]
     public string CommodityDealer;
 }

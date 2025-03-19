@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class MissionTrigger : IEntryHandler
+    [ParsedSection]
+    public partial class MissionTrigger : IEntryHandler
     {
         [Entry("nickname")]
         public string Nickname = string.Empty;

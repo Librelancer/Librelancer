@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Save
 {
-    public class SaveGroup : IWriteSection
+    [ParsedSection]
+    public partial class SaveGroup : IWriteSection
     {
         [Entry("nickname")]
         public string Nickname;

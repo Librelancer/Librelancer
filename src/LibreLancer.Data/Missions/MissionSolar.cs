@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class MissionSolar
+    [ParsedSection]
+    public partial class MissionSolar
     {
         [Entry("nickname")]
         public string Nickname;

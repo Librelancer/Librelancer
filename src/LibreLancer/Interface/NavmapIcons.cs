@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.Data.Interface;
 
 namespace LibreLancer.Interface
@@ -27,8 +28,8 @@ namespace LibreLancer.Interface
                 throw new Exception("Navmap Ini must have nav_depot in [Icons]");
         }
 
-        public IEnumerable<string> Libraries() => ini.LibraryFiles ?? (IEnumerable<string>) Array.Empty<string>();
-        
+        public IEnumerable<string> Libraries() => ini.LibraryFiles.SelectMany(x => x.Files);
+
         public UiRenderable GetSystemObject(string name)
         {
             var type = ini.Type?.Type ?? NavIconType.Model;
@@ -49,7 +50,7 @@ namespace LibreLancer.Interface
                             Name = name, Path = model, XScale = 50, YScale = 50
                         }
                     });
-                } 
+                }
                 else if (type == NavIconType.Texture)
                 {
                     renderable.AddElement(new DisplayImage()
@@ -60,13 +61,13 @@ namespace LibreLancer.Interface
                         }
                     });
                 }
-                
+
 
                 renderables.Add(name, renderable);
             }
             return renderable;
         }
-        
+
         private UiRenderable background;
         public UiRenderable GetBackground()
         {

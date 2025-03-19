@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\GeneratorCommon\AttributeArguments.cs">
+        <Link>GeneratorCommon\AttributeArguments.cs</Link>
+      </Compile>
+      <Compile Include="..\GeneratorCommon\EquatableArray.cs">
+        <Link>GeneratorCommon\EquatableArray.cs</Link>
+      </Compile>
+      <Compile Include="..\GeneratorCommon\Polyfill.cs">
+        <Link>GeneratorCommon\Polyfill.cs</Link>
+      </Compile>
+      <Compile Include="..\GeneratorCommon\TabbedWriter.cs">
+        <Link>GeneratorCommon\TabbedWriter.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+</Project>

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.RandomMissions;
 
-public class DataNode : VignetteNode
+[ParsedSection]
+public partial class DataNode : VignetteNode
 {
     [Entry("offer_group")]
     public string[] OfferGroup;

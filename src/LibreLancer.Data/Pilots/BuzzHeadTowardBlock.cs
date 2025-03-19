@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class BuzzHeadTowardBlock : PilotBlock
+    [ParsedSection]
+    public partial class BuzzHeadTowardBlock : PilotBlock
     {
         [Entry("buzz_min_distance_to_head_toward")]
         public float MinDistanceToHeadToward;
@@ -48,7 +49,7 @@ namespace LibreLancer.Data.Pilots
         [EntryHandler("buzz_dodge_direction_weight", MinComponents = 2, Multiline = true)]
         void HandleDodgeDirection(Entry e) => DodgeDirectionWeights.Add(new DirectionWeight(e));
     }
-    
+
     public class HeadTowardsStyle
     {
         public string Style;

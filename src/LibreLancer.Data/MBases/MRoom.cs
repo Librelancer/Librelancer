@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data
 {
-	public class MRoom
+    [ParsedSection]
+	public partial class MRoom
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -18,7 +20,7 @@ namespace LibreLancer.Data
         [EntryHandler("fixture", MinComponents = 2, Multiline = true)]
         void HandleFixture(Entry e) => NPCs.Add(new MRoomNpcRef(e));
     }
-    
+
 	public class MRoomNpcRef
 	{
 		public string Npc;

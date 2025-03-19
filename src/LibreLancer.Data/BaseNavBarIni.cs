@@ -4,16 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data
 {
-	public class BaseNavBarIni : IniFile
+	public class BaseNavBarIni
 	{
 		public Dictionary<string, string> Navbar = new Dictionary<string, string>();
 		public BaseNavBarIni(string datapath, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile(datapath + "INTERFACE\\BASESIDE\\navbar.ini", vfs, true))
+			foreach (Section s in IniFile.ParseFile(datapath + "INTERFACE\\BASESIDE\\navbar.ini", vfs, true))
 			{
 				if (s.Name.ToLowerInvariant() == "navbar")
 				{

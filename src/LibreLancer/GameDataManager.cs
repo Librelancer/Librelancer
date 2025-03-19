@@ -208,16 +208,27 @@ namespace LibreLancer
         IEnumerable<Data.Universe.Base> InitBases(LoadingTasks tasks)
         {
             FLLog.Info("Game", "Initing " + fldata.Universe.Bases.Count + " bases");
+            Dictionary<string, MBase> mbases = new(StringComparer.OrdinalIgnoreCase);
+            foreach (var mbase in fldata.MBases.MBases)
+            {
+                mbases[mbase.Nickname] = mbase;
+            }
             foreach (var inibase in fldata.Universe.Bases)
             {
                 if (inibase.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
                     yield return inibase;
-                Data.MBase mbase;
-                fldata.MBases.Bases.TryGetValue(inibase.Nickname, out mbase);
+                Dictionary<string, MRoom> mrooms = new(StringComparer.OrdinalIgnoreCase);
+                if (mbases.TryGetValue(inibase.Nickname, out var mbase))
+                {
+                    foreach (var r in mbase.Rooms)
+                    {
+                        mrooms[r.Nickname] = r;
+                    }
+                }
                 var b = new Base();
                 b.Nickname = inibase.Nickname;
                 b.CRC = FLHash.CreateID(b.Nickname);
-                b.SourceFile = inibase.SourceFile;
+                b.SourceFile = inibase.File;
                 b.IdsName = inibase.IdsName;
                 b.BaseRunBy = inibase.BGCSBaseRunBy;
                 b.AutosaveForbidden = inibase.AutosaveForbidden ?? false;
@@ -262,7 +273,7 @@ namespace LibreLancer
                 foreach (var room in inibase.Rooms)
                 {
                     var nr = new BaseRoom();
-                    nr.SourceFile = room.FilePath;
+                    nr.SourceFile = room.File;
                     nr.Music = room.RoomSound?.Music;
                     nr.MusicOneShot = room.RoomSound?.MusicOneShot ?? false;
                     nr.SceneScripts = new List<SceneScript>();
@@ -292,12 +303,10 @@ namespace LibreLancer
                         });
                     nr.Nickname = room.Nickname;
                     nr.CRC = FLHash.CreateLocationID(b.Nickname, nr.Nickname);
-                    if (room.Nickname.Equals(inibase.StartRoom, StringComparison.OrdinalIgnoreCase)) b.StartRoom = nr;
+                    if (room.Nickname.Equals(inibase.BaseInfo?.StartRoom, StringComparison.OrdinalIgnoreCase)) b.StartRoom = nr;
                     nr.Camera = room.Camera?.Name;
                     nr.FixedNpcs = new List<BaseFixedNpc>();
-                    if (mbase == null) continue;
-                    var mroom = mbase.FindRoom(room.Nickname);
-                    if (mroom != null)
+                    if (mrooms.TryGetValue(room.Nickname, out var mroom))
                     {
                         foreach (var npc in mroom.NPCs)
                         {
@@ -518,9 +527,10 @@ namespace LibreLancer
                 tasks.Begin(() => GetCharacterAnimations());
             var pilotTask = tasks.Begin(InitPilots);
             var effectsTask = tasks.Begin(InitEffects);
+            var fusesTask = tasks.Begin(InitFuses, effectsTask);
             var explosionTask = tasks.Begin(InitExplosions, effectsTask);
             var debrisTask = tasks.Begin(InitDebris);
-            var shipsTask = tasks.Begin(InitShips, explosionTask, debrisTask);
+            var shipsTask = tasks.Begin(InitShips, explosionTask, fusesTask, debrisTask);
             List<Data.Universe.Base> introbases = new List<Data.Universe.Base>();
             var baseTask = tasks.Begin(() => introbases.AddRange(InitBases(tasks)));
             tasks.Begin(() =>
@@ -531,7 +541,7 @@ namespace LibreLancer
                 {
                     foreach (var room in b.Rooms)
                     {
-                        if (room.Nickname == b.StartRoom)
+                        if (room.Nickname == b.BaseInfo?.StartRoom)
                         {
                             var isc = new GameData.IntroScene();
                             isc.Scripts = new List<ResolvedThn>();
@@ -1040,23 +1050,23 @@ namespace LibreLancer
                 if (inisys.MultiUniverse) continue; //Skip multiuniverse for now
                 FLLog.Info("System", inisys.Nickname);
                 var sys = new StarSystem();
-                sys.LocalFaction = Factions.Get(inisys.LocalFaction);
+                sys.LocalFaction = Factions.Get(inisys.Info?.LocalFaction);
                 sys.UniversePosition = inisys.Pos ?? Vector2.Zero;
-                sys.AmbientColor = inisys.AmbientColor;
+                sys.AmbientColor = inisys.Ambient?.Color ?? Color3f.Black;
                 sys.IdsName = inisys.IdsName;
                 sys.IdsInfo = inisys.IdsInfo;
                 sys.Nickname = inisys.Nickname;
                 sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
                 sys.MsgIdPrefix = inisys.MsgIdPrefix;
-                sys.BackgroundColor = inisys.SpaceColor;
-                sys.MusicSpace = inisys.MusicSpace;
-                sys.MusicBattle = inisys.MusicBattle;
-                sys.MusicDanger = inisys.MusicDanger;
-                sys.Spacedust = inisys.Spacedust;
-                sys.SpacedustMaxParticles = inisys.SpacedustMaxParticles;
-                sys.FarClip = inisys.SpaceFarClip ?? 20000f;
+                sys.BackgroundColor = inisys.Info?.SpaceColor ?? Color4.Black;
+                sys.MusicSpace = inisys.Music?.Space;
+                sys.MusicBattle = inisys.Music?.Battle;
+                sys.MusicDanger = inisys.Music?.Danger;
+                sys.Spacedust = inisys.Dust?.Spacedust;
+                sys.SpacedustMaxParticles = inisys.Dust?.SpacedustMaxParticles ?? 0;
+                sys.FarClip = inisys.Info?.SpaceFarClip ?? 20000f;
                 sys.NavMapScale = inisys.NavMapScale;
-                sys.SourceFile = inisys.SourceFile;
+                sys.SourceFile = inisys.File;
                 foreach (var ec in inisys.EncounterParameters)
                 {
                     sys.EncounterParameters.Add(new EncounterParameters()
@@ -1067,21 +1077,26 @@ namespace LibreLancer
                 }
 
                 var p = new List<PreloadObject>();
-                foreach(var a in inisys.ArchetypeShip) p.Add(new PreloadObject(PreloadType.Ship, a));
-                foreach(var a in inisys.ArchetypeSimple) p.Add(new PreloadObject(PreloadType.Simple, a));
-                foreach(var a in inisys.ArchetypeEquipment) p.Add(new PreloadObject(PreloadType.Equipment, a));
-                foreach(var a in inisys.ArchetypeSnd) p.Add(new PreloadObject(PreloadType.Sound, a));
-                foreach(var a in inisys.ArchetypeSolar) p.Add(new PreloadObject(PreloadType.Solar, a));
-                foreach(var a in inisys.ArchetypeVoice) p.Add(
-                    new PreloadObject(PreloadType.Voice, a.Select(x => new HashValue(x)).ToArray()));
+                foreach(var a in inisys.Preloads.SelectMany(x => x.ArchetypeShip))
+                    p.Add(new PreloadObject(PreloadType.Ship, a));
+                foreach(var a in inisys.Preloads.SelectMany(x => x.ArchetypeSimple))
+                    p.Add(new PreloadObject(PreloadType.Simple, a));
+                foreach(var a in inisys.Preloads.SelectMany(x => x.ArchetypeEquipment))
+                    p.Add(new PreloadObject(PreloadType.Equipment, a));
+                foreach(var a in inisys.Preloads.SelectMany(x => x.ArchetypeSnd))
+                    p.Add(new PreloadObject(PreloadType.Sound, a));
+                foreach(var a in inisys.Preloads.SelectMany(x => x.ArchetypeSolar))
+                    p.Add(new PreloadObject(PreloadType.Solar, a));
+                foreach(var a in inisys.Preloads.SelectMany(x => x.ArchetypeVoice))
+                    p.Add(new PreloadObject(PreloadType.Voice, a.Select(x => new HashValue(x)).ToArray()));
                 sys.Preloads = p.ToArray();
 
                 if (inisys.TexturePanels != null)
                     sys.TexturePanelsFiles.AddRange(inisys.TexturePanels.Files);
 
-                sys.StarsBasic = ResolveDrawable(inisys.BackgroundBasicStarsPath);
-                sys.StarsComplex = ResolveDrawable(inisys.BackgroundComplexStarsPath);
-                sys.StarsNebula = ResolveDrawable(inisys.BackgroundNebulaePath);
+                sys.StarsBasic = ResolveDrawable(inisys.Background?.BasicStarsPath);
+                sys.StarsComplex = ResolveDrawable(inisys.Background?.ComplexStarsPath);
+                sys.StarsNebula = ResolveDrawable(inisys.Background?.NebulaePath);
                 if (inisys.LightSources != null)
                 {
                     foreach (var src in inisys.LightSources)
@@ -1289,7 +1304,8 @@ namespace LibreLancer
         {
             if (fldata.Stars != null)
             {
-                foreach (var txmfile in fldata.Stars.TextureFiles)
+                foreach (var txmfile in fldata.Stars.TextureFiles
+                             .SelectMany(x => x.Files))
                     resource.LoadResourceFile(DataPath(txmfile));
             }
             yield return null;
@@ -1392,9 +1408,9 @@ namespace LibreLancer
             if (ast.Field != null)
             {
                 a.CubeRotation = new AsteroidCubeRotation();
-                a.CubeRotation.AxisX = ast.Cube_RotationX ?? AsteroidCubeRotation.Default_AxisX;
-                a.CubeRotation.AxisY = ast.Cube_RotationY ?? AsteroidCubeRotation.Default_AxisY;
-                a.CubeRotation.AxisZ = ast.Cube_RotationZ ?? AsteroidCubeRotation.Default_AxisZ;
+                a.CubeRotation.AxisX = ast.Cube?.RotationX ?? AsteroidCubeRotation.Default_AxisX;
+                a.CubeRotation.AxisY = ast.Cube?.RotationY ?? AsteroidCubeRotation.Default_AxisY;
+                a.CubeRotation.AxisZ = ast.Cube?.RotationZ ?? AsteroidCubeRotation.Default_AxisZ;
                 a.CubeSize = ast.Field.CubeSize ?? 100; //HACK: Actually handle null cube correctly
                 a.FillDist = ast.Field.FillDist.Value;
                 a.EmptyCubeFrequency = ast.Field.EmptyCubeFrequency ?? 0f;
@@ -1409,16 +1425,19 @@ namespace LibreLancer
                     a.AmbientColor = ast.Field.AmbientColor ?? Color4.White;
                 }
                 a.AmbientIncrease = ast.Field.AmbientIncrease;
-                foreach (var c in ast.Cube)
+                if (ast.Cube?.Cube != null)
                 {
-                    var sta = new StaticAsteroid()
+                    foreach (var c in ast.Cube.Cube)
                     {
-                        Position = c.Position,
-                        Info = c.Info,
-                        Archetype = Asteroids.Get(c.Name)
-                    };
-                    sta.Rotation = MathHelper.QuatFromEulerDegrees(c.Rotation);
-                    a.Cube.Add(sta);
+                        var sta = new StaticAsteroid()
+                        {
+                            Position = c.Position,
+                            Info = c.Info,
+                            Archetype = Asteroids.Get(c.Name)
+                        };
+                        sta.Rotation = MathHelper.QuatFromEulerDegrees(c.Rotation);
+                        a.Cube.Add(sta);
+                    }
                 }
             }
 
@@ -1784,7 +1803,7 @@ namespace LibreLancer
                 {
                     ship.Fuses.Add(new DamageFuse()
                     {
-                        Fuse = GetFuse(fuse.Fuse),
+                        Fuse = Fuses.Get(fuse.Fuse),
                         Threshold = fuse.Threshold
                     });
                 }
@@ -1898,9 +1917,8 @@ namespace LibreLancer
         void InitArchetypes()
         {
             FLLog.Info("Game", "Initing " + fldata.Solar.Solars.Count + " archetypes");
-            foreach (var ax in fldata.Solar.Solars)
+            foreach (var arch in fldata.Solar.Solars)
             {
-                var arch = ax.Value;
                 var obj = new GameData.Archetype();
                 obj.Type = arch.Type;
                 obj.Loadout = GetLoadout(arch.LoadoutName);
@@ -2063,36 +2081,30 @@ namespace LibreLancer
         public GameData.Archetype GetSolarArchetype(string id) => Archetypes.Get(id);
 
 
+        public GameItemCollection<FuseResources> Fuses = new();
 
-        private Dictionary<string, FuseResources> fuses =
-            new Dictionary<string, FuseResources>(StringComparer.OrdinalIgnoreCase);
-
-        public FuseResources GetFuse(string fusename)
+        void InitFuses()
         {
-            lock (fuses) {
-                FuseResources fuse;
-                if (!fuses.TryGetValue(fusename, out fuse))
+            foreach (var fuse in fldata.Fuses.Fuses)
+            {
+                var fr = new FuseResources() { Fuse = fuse };
+                fr.Nickname = fuse.Name;
+                fr.CRC = FLHash.CreateID(fuse.Name);
+                foreach (var act in fuse.Actions)
                 {
-                    var fz = fldata.Fuses.Fuses[fusename];
-                    fuse = new GameData.FuseResources() {Fuse = fz};
-                    foreach (var act in fz.Actions)
+                    if (resource is GameResourceManager && act is FuseStartEffect fza)
                     {
-                        if (resource is GameResourceManager && act is FuseStartEffect fza)
+                        if(string.IsNullOrEmpty(fza.Effect)) continue;
+                        if (!fr.Fx.ContainsKey(fza.Effect))
                         {
-                            if(string.IsNullOrEmpty(fza.Effect)) continue;
-                            if (!fuse.Fx.ContainsKey(fza.Effect))
-                            {
-                                fuse.Fx[fza.Effect] = Effects.Get(fza.Effect);
-                            }
+                            fr.Fx[fza.Effect] = Effects.Get(fza.Effect);
                         }
                     }
-                    fuse.GameData = this;
-                    fuses.Add(fusename, fuse);
                 }
-                return fuse;
+                fr.GameData = this;
+                Fuses.Add(fr);
             }
         }
-
 
         GameData.Items.EffectEquipment GetAttachedFx(Data.Equipment.AttachedFx fx)
         {

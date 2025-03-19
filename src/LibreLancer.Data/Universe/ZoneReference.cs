@@ -2,14 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Collections.Generic;
-using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public abstract class ZoneReference : IniFile
+	public abstract class ZoneReference
 	{
         [Entry("file")]
 		public string IniFile;
@@ -19,10 +16,5 @@ namespace LibreLancer.Data.Universe
         public TexturePanelsRef TexturePanels;
         [Section("properties")]
         public ObjectProperties Properties;
-        protected override void OnSelfFilled(string datapath, FileSystem vfs)
-        {
-            if(!string.IsNullOrEmpty(IniFile))
-                ParseAndFill(datapath + IniFile, datapath, vfs);
-        }
     }
 }

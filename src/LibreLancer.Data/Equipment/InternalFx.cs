@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Equipment
 {
-	public class InternalFx : AbstractEquipment
+    [ParsedSection]
+	public partial class InternalFx : AbstractEquipment
 	{
         [Entry("use_animation")]
 		public string UseAnimation;

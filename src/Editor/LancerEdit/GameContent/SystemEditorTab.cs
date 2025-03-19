@@ -10,6 +10,7 @@ using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
+using LibreLancer.Data.Ini;
 using LibreLancer.Dialogs;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
@@ -18,7 +19,6 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
-using LibreLancer.Ini;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -156,7 +156,7 @@ public class SystemEditorTab : GameContentTab
         {
             ImGuiHelper.AnimatingElement();
             renderer.BackgroundOverride = SystemData.SpaceColor;
-            renderer.SystemLighting.Ambient = SystemData.Ambient;
+            renderer.SystemLighting.Ambient = new Color4(SystemData.Ambient, 1);
             renderer.SystemLighting.Lights = new List<DynamicLight>(LightsList.Sources.Count);
             for (int i = 0; i < LightsList.Sources.Count; i++)
             {
@@ -1235,6 +1235,25 @@ public class SystemEditorTab : GameContentTab
         ImGui.TableNextColumn();
         ImGui.PushItemWidth(-1);
         if (ImGui.ColorButton(name, color, ImGuiColorEditFlags.NoAlpha,
+                new Vector2(ImGui.CalcItemWidth(), ImGui.GetFrameHeight())))
+        {
+            Popups.OpenPopup(new ColorPicker(name, color, onSet));
+        }
+
+        ImGui.TableNextColumn();
+        if (ImGui.Button($"{Icons.Edit}##{name}"))
+            Popups.OpenPopup(new ColorPicker(name, color, onSet));
+        ImGui.PopItemWidth();
+    }
+
+    void ColorProperty(string name, Color3f color, Action<Color3f> onSet)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(name);
+        ImGui.TableNextColumn();
+        ImGui.PushItemWidth(-1);
+        if (ImGui.ColorButton(name, new Color4(color, 1), ImGuiColorEditFlags.NoAlpha,
                 new Vector2(ImGui.CalcItemWidth(), ImGui.GetFrameHeight())))
         {
             Popups.OpenPopup(new ColorPicker(name, color, onSet));

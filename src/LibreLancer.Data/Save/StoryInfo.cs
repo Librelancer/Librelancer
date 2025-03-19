@@ -4,10 +4,12 @@
 
 using System;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Save
 {
-    public class StoryInfo : IWriteSection
+    [ParsedSection]
+    public partial class StoryInfo : IWriteSection
     {
         [Entry("ship_bought")]
         public bool ShipBought;

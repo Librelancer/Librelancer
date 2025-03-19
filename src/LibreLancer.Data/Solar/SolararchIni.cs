@@ -5,44 +5,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-    public class SolararchIni : IniFile
+    [ParsedIni]
+    public partial class SolararchIni
     {
-        public Dictionary<string, Archetype> Solars = new Dictionary<string, Archetype>(StringComparer.OrdinalIgnoreCase);
+        [Section("solar")]
+        [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
+        public List<Archetype> Solars = new();
+
+        [Section("simple")]
         public List<Simple> Simples = new();
+
         public void AddSolararchIni(string path, FreelancerData gameData)
         {
-            //Solars = new List<Archetype>();
-            Archetype current = null;
-            foreach (Section s in ParseFile(path, gameData.VFS))
-            {
-                switch (s.Name.ToLowerInvariant())
-                {
-                    case "solar":
-                        current = FromSection<Archetype>(s);
-                        Solars[current.Nickname] = current;
-                        break;
-                    case "collisiongroup":
-                        if (current != null)
-                            current.CollisionGroups.Add(FromSection<CollisionGroup>(s));
-                        break;
-                    case "simple":
-                        Simples.Add(FromSection<Simple>(s));
-                        break;
-                    default:
-                        throw new Exception("Invalid Section in " + path + ": " + s.Name);
-                }
-            }
-        }
-
-        public Archetype FindSolar(string nickname)
-        {
-            Archetype a;
-            Solars.TryGetValue(nickname, out a);
-            return a;
+            ParseIni(path, gameData.VFS);
         }
 	}
 }

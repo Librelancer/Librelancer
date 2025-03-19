@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
 	public class Entry : ICollection<IValue>

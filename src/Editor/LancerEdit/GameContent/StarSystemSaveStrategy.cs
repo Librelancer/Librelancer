@@ -5,10 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Universe;
 using LibreLancer.GameData;
 using LibreLancer.ImUI;
-using LibreLancer.Ini;
 using StarSystem = LibreLancer.GameData.World.StarSystem;
 using SystemObject = LibreLancer.GameData.World.SystemObject;
 

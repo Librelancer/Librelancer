@@ -1,8 +1,9 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Save;
 
-public class MissionDebugState
+[ParsedSection]
+public partial class MissionDebugState
 {
     [Entry("MissionStateNum")]
     public int MissionStateNum;

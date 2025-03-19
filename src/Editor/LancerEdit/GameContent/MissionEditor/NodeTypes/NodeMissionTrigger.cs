@@ -5,10 +5,10 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.MissionEditor.Popups;
 using LibreLancer;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 

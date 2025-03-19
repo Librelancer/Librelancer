@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Universe
 {
-	public class TexturePanelsRef
+    [ParsedSection]
+	public partial class TexturePanelsRef
 	{
         [Entry("file", Multiline = true)]
 		public List<string> Files = new List<string>();

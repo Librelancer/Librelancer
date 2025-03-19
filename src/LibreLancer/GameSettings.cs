@@ -5,15 +5,16 @@
 using System.Globalization;
 using System.IO;
 using System.Xml.Serialization;
+using LibreLancer.Data.Ini;
 using LibreLancer.Graphics;
-using LibreLancer.Ini;
 using LibreLancer.Render;
 using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
     [WattleScriptUserData]
-    public class GameSettings : IRendererSettings
+    [ParsedSection]
+    public partial class GameSettings : IRendererSettings
     {
         [Entry("master_volume")]
         public float MasterVolume = 1.0f;

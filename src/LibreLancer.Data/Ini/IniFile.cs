@@ -7,23 +7,23 @@ using System.Collections.Generic;
 using System.IO;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
-	public abstract partial class IniFile
+	public static class IniFile
 	{
         public static IEnumerable<Section> ParseFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
         {
             if (string.IsNullOrEmpty(path)) path = "[Memory]";
 
             IIniParser parser = new BinaryIniParser();
-            if (!parser.CanParse(stream)) 
+            if (!parser.CanParse(stream))
             {
                 parser = new LancerTextIniParser();
             }
             return parser.ParseIniFile(path, stream, preparse, allowmaps);
         }
 
-		protected static IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
+		public static IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
 			if (!path.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))

@@ -32,7 +32,7 @@ namespace LibreLancer.GameData.World
         //Texture Panels
         public List<string> TexturePanelsFiles = new List<string>();
 		//Lighting
-        public Color4 AmbientColor = Color4.Black;
+        public Color3f AmbientColor = Color3f.Black;
 		public List<LightSource> LightSources = new List<LightSource>();
 		//Objects
 		public List<SystemObject> Objects = new List<SystemObject>();

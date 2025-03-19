@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe.Rooms;
 public record SceneEntry(bool AmbientAll, bool TrafficPriority, string Path);
 
-public class RoomInfo
+[ParsedSection]
+public partial class RoomInfo
 {
-    [Entry("set_script")] 
+    [Entry("set_script")]
     public string SetScript;
 
     public List<SceneEntry> SceneScripts = new List<SceneEntry>();
-    
+
     [Entry("goodscart_script")]
     public string GoodscartScript;
-    
+
     [Entry("animation")]
     public string Animation;
 
@@ -34,7 +35,7 @@ public class RoomInfo
             }
             i++;
             var path = e[i].ToString();
-            var trafficPriority = (i + 1 < e.Count) && 
+            var trafficPriority = (i + 1 < e.Count) &&
                               e[i + 1].ToString().Equals("TRAFFIC_PRIORITY", StringComparison.OrdinalIgnoreCase);
             SceneScripts.Add(new SceneEntry(all, trafficPriority, path));
         }

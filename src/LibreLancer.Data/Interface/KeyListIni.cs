@@ -1,32 +1,33 @@
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Interface;
 
-public class KeyGroup
+[ParsedSection]
+public partial class KeyGroup
 {
     [Entry("group_num")]
     public int GroupNum;
     [Entry("name")]
     public int Name; //Undo
-    
+
     public List<string> Keys = new List<string>();
 }
 
-public class KeyListIni : IniFile
+public class KeyListIni
 {
     public List<KeyGroup> Groups = new List<KeyGroup>();
     public KeyListIni(string path, FileSystem VFS)
     {
         KeyGroup currentGroup = null;
-        foreach (var section in ParseFile(path, VFS))
+        foreach (var section in IniFile.ParseFile(path, VFS))
         {
             if (section.Name.Equals("group", StringComparison.OrdinalIgnoreCase))
             {
                 if(currentGroup != null) Groups.Add(currentGroup);
-                currentGroup = FromSection<KeyGroup>(section);
+                KeyGroup.TryParse(section, out currentGroup);
             }
             else if (section.Name.Equals("key", StringComparison.OrdinalIgnoreCase))
             {

@@ -4,17 +4,19 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Audio
 {
-    public class AudioIni : IniFile
+    [ParsedIni]
+    public partial class AudioIni
     {
         [Section("sound")]
         public List<AudioEntry> Entries = new List<AudioEntry>();
         public void AddIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, vfs);
+            ParseIni(path, vfs);
         }
     }
 }

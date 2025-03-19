@@ -1,9 +1,9 @@
 using System.Linq;
 using ImGuiNET;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;

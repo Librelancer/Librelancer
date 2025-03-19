@@ -115,7 +115,7 @@ namespace LibreLancer.Server
         public void runfuse(DynValue obj)
         {
             var str = obj.CastToString();
-            var fuse = Scripting.GameData.GetFuse(str);
+            var fuse = Scripting.GameData.Fuses.Get(str);
             if (fuse == null) throw new ScriptRuntimeException($"Could not find fuse {str}");
             if(Object.TryGetComponent<SFuseRunnerComponent>(out var runner))
                 runner.Run(fuse);

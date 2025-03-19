@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class FormationBlock : PilotBlock
+    [ParsedSection]
+    public partial class FormationBlock : PilotBlock
     {
         [Entry("force_attack_formation_active_time")]
         public float ForceAttackFormationActiveTime;
@@ -30,7 +31,7 @@ namespace LibreLancer.Data.Pilots
         public float FormationExitTopTurnBreakAwayThrottle;
         [Entry("formation_exit_roll_outrun_throttle")]
         public float FormationExitRollOutrunThrottle;
-        [Entry("formation_exit_max_time")] 
+        [Entry("formation_exit_max_time")]
         public float FormationExitMaxTime;
     }
 }

@@ -1,14 +1,15 @@
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Missions
 {
-    public class EmpathyIni : IniFile
+    [ParsedIni]
+    public partial class EmpathyIni
     {
-        [Section("RepChangeEffects")] 
+        [Section("RepChangeEffects")]
         public List<RepChangeEffects> RepChangeEffects = new List<RepChangeEffects>();
 
-        public void AddFile(string path, FileSystem vfs) => ParseAndFill(path, vfs);
+        public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
     }
 }

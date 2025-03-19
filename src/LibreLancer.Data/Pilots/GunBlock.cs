@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class GunBlock : PilotBlock
+    [ParsedSection]
+    public partial class GunBlock : PilotBlock
     {
         [Entry("gun_fire_interval_time")] public float FireIntervalTime;
         [Entry("gun_fire_interval_variance_percent")]

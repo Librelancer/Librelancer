@@ -70,6 +70,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MSBuild", "MSBuild", "{4B79
 		src\Shader.targets = src\Shader.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Data.Generator", "src\LibreLancer.Data.Generator\LibreLancer.Data.Generator.csproj", "{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -416,6 +418,18 @@ Global
 		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x64.Build.0 = Release|Any CPU
 		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x86.ActiveCfg = Release|Any CPU
 		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82}.Release|x86.Build.0 = Release|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Debug|x64.Build.0 = Debug|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Debug|x86.Build.0 = Debug|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x64.ActiveCfg = Release|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x64.Build.0 = Release|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x86.ActiveCfg = Release|Any CPU
+		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,7 +1,7 @@
 using System;
 using JetBrains.Annotations;
 
-namespace LibreLancer.Ini;
+namespace LibreLancer.Data.Ini;
 
 
 

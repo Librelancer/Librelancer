@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 using static LibreLancer.Data.Equipment.HpCategory;
 namespace LibreLancer.Data.Equipment
 {
-    public class HpTypesIni : IniFile
+    public class HpTypesIni
     {
         private static HpType[] defaults = new[]
         {
@@ -82,7 +82,7 @@ namespace LibreLancer.Data.Equipment
             type.SortIndex = Types.Count;
             Types.Add(type.Type, type);
         }
-        
+
         public void LoadDefault()
         {
             foreach (var t in defaults)
@@ -91,7 +91,7 @@ namespace LibreLancer.Data.Equipment
 
         public void LoadFromIni(string path, FileSystem vfs)
         {
-            foreach (var section in ParseFile(path, vfs))
+            foreach (var section in IniFile.ParseFile(path, vfs))
             {
                 if (section.Name.ToLower() == "hardpoints")
                 {
@@ -107,7 +107,7 @@ namespace LibreLancer.Data.Equipment
                                 x[3].ToInt32()
                             ));
                         } else {
-                          FLLog.Error("Ini", $"Invalid entry in hardpoint types '{x.Name}'");  
+                          FLLog.Error("Ini", $"Invalid entry in hardpoint types '{x.Name}'");
                         }
                     }
                 }

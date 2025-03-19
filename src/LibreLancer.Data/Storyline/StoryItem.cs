@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Storyline;
 
@@ -9,7 +9,9 @@ public enum StoryActionType
     AddRTC
 }
 public record StoryAction(StoryActionType Type, string Argument);
-public class StoryItem
+
+[ParsedSection]
+public partial class StoryItem
 {
     [Entry("nickname", Required = true)] public string Nickname;
     [Entry("skip", Presence = true)] public bool Skip;

@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
-namespace LibreLancer.Data
+
+namespace LibreLancer.Data.Mouse
 {
-	public class MouseIni : IniFile
+	public class MouseIni
 	{
 		public string TxmFile;
 		public string TextureName;
@@ -16,7 +17,7 @@ namespace LibreLancer.Data
 		public List<Cursor> Cursors = new List<Cursor>();
 		public MouseIni(string filename, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile(filename, vfs))
+			foreach (Section s in IniFile.ParseFile(filename, vfs))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{
@@ -38,7 +39,10 @@ namespace LibreLancer.Data
 						Shapes.Add(new MouseShape(s));
 						break;
 					case "cursor":
-                        Cursors.Add(FromSection<Cursor>(s));
+                        if (Cursor.TryParse(s, out var cur))
+                        {
+                            Cursors.Add(cur);
+                        }
 						break;
 				}
 			}

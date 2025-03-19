@@ -3,25 +3,19 @@
 // LICENSE, which is part of this source code package
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer.Data.Universe
 {
-    [SelfSection("systeminfo")]
-    [SelfSection("music")]
-    [SelfSection("dust")]
-    [SelfSection("ambient")]
-    [SelfSection("background")]
-    [SelfSection("archetype")]
-    public class StarSystem : UniverseElement
+    [ParsedSection]
+    [ParsedIni]
+    public partial class StarSystem : UniverseElement
     {
         public bool MultiUniverse { get; private set; }
 
-        //TODO: Entry should clarify which self section it's in
         [Entry("pos")]
         public Vector2? Pos;
         [Entry("msg_id_prefix")]
@@ -33,46 +27,21 @@ namespace LibreLancer.Data.Universe
         [Entry("navmapscale")]
         public float NavMapScale = 1;
         [Entry("file")]
-        string systemFile;
-        [Entry("space_color")]
-        public Color4 SpaceColor = Color4.Black;
-        [Entry("local_faction")]
-        public string LocalFaction;
-        [Entry("rpop_solar_detection")]
-        public bool RpopSolarDetection;
-        [Entry("space_farclip")]
-        public float? SpaceFarClip;
-        [Entry("space")]
-        public string MusicSpace;
-        [Entry("danger")]
-        public string MusicDanger;
-        [Entry("battle")]
-        public string MusicBattle;
-        [Entry("ship", Multiline = true)]
-        public List<string> ArchetypeShip = new List<string>();
-        [Entry("simple", Multiline =  true)]
-        public List<string> ArchetypeSimple = new List<string>();
-        [Entry("solar", Multiline = true)]
-        public List<string> ArchetypeSolar = new List<string>();
-        [Entry("equipment", Multiline = true)]
-        public List<string> ArchetypeEquipment = new List<string>();
-        [Entry("snd", Multiline = true)]
-        public List<string> ArchetypeSnd = new List<string>();
-        [Entry("voice", Multiline = true)]
-        public List<string[]> ArchetypeVoice = new List<string[]>();
-        [Entry("basic_stars")]
-        public string BackgroundBasicStarsPath;
-        [Entry("complex_stars")]
-        public string BackgroundComplexStarsPath;
-        [Entry("nebulae")]
-        public string BackgroundNebulaePath;
-        [Entry("dust")]
-        [Entry("spacedust")]
-        public string Spacedust;
-        [Entry("spacedust_maxparticles")]
-        public int SpacedustMaxParticles;
-        [Entry("color")]
-        public Color4 AmbientColor = Color4.Black;
+        public string File;
+
+        [Section("SystemInfo")]
+        public SystemInfo Info;
+        [Section("Archetype")]
+        public List<SystemPreloads> Preloads = new();
+        [Section("Background")]
+        public SystemBackground Background;
+        [Section("Ambient")]
+        public SystemAmbient Ambient;
+        [Section("Dust")]
+        public SystemDust Dust;
+        [Section("Music")]
+        public SystemMusic Music;
+
 
         [Section("nebula")]
         public List<Nebula> Nebulae = new List<Nebula>();
@@ -88,29 +57,20 @@ namespace LibreLancer.Data.Universe
         public TexturePanelsRef TexturePanels;
         [Section("zone")]
         public List<Zone> Zones = new List<Zone>();
-        //[Section("field")]
-        //public Field Field;
-        //[Section("asteroidbillboards")]
-        //public AsteroidBillboards AsteroidBillboards;
-
-        public string SourceFile { get; private set; }
 
 
-        public StarSystem(string universePath, Section section, FreelancerData data)
-            : base(data)
+        [OnParseDependent]
+        void ParseDependent(IniParseProperties properties)
         {
-            if (section == null) throw new ArgumentNullException("section");
-            SelfFromSection(section);
-
-            if (systemFile == null) { //TODO: MultiUniverse
+            if (string.IsNullOrWhiteSpace(File))
+            {
                 FLLog.Warning("Ini", "Unimplemented: Possible MultiUniverse system " + Nickname);
                 MultiUniverse = true;
                 return;
             }
-
-            SourceFile = systemFile;
-
-            ParseAndFill(universePath + systemFile, data.Freelancer.DataPath, data.VFS);
+            if (properties["vfs"] is not FileSystem vfs) return;
+            if (properties["universePath"] is not string universePath) return;
+            ParseIni(universePath + File, vfs, properties);
         }
     }
 }

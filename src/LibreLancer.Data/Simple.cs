@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data;
 
-public class Simple
+[ParsedSection]
+public partial class Simple
 {
     [Entry("nickname", Required = true)]
     public string Nickname;

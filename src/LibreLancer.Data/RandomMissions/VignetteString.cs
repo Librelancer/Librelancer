@@ -1,5 +1,5 @@
 using System.Linq;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.RandomMissions;
 

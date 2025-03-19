@@ -4,16 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data
 {
-	public class RichFontsIni : IniFile
+	public class RichFontsIni
 	{
 		public List<RichFont> Fonts = new List<RichFont>();
 		public void AddRichFontsIni(string path, FileSystem vfs)
 		{
-			foreach (var section in ParseFile(path, vfs))
+			foreach (var section in IniFile.ParseFile(path, vfs))
 			{
 				if (section.Name.ToLowerInvariant() == "truetype")
 				{

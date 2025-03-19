@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Missions.Actions;
 

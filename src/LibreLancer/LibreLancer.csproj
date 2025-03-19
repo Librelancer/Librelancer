@@ -23,6 +23,7 @@
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\Librelancer.Database\LibreLancer.Database.csproj" />
     <ProjectReference Include="..\LibreLancer.Data\LibreLancer.Data.csproj" />
+    <ProjectReference Include="..\LibreLancer.Data.Generator\LibreLancer.Data.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\LibreLancer.Entities\LibreLancer.Entities.csproj" />
     <ProjectReference Include="..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
     <ProjectReference Include="..\LibreLancer.Media\LibreLancer.Media.csproj" />
@@ -57,7 +58,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Interface\Default\interface.json" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Shader Include="Shaders\*.txt" />
   </ItemGroup>

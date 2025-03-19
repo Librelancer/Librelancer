@@ -105,7 +105,7 @@ namespace LibreLancer.Server.Components
                     if (start)
                     {
                         FLLog.Debug("Fuse", $"Igniting {ig.Fuse}");
-                        Run(instance.Fuse.GameData.GetFuse(ig.Fuse));
+                        Run(instance.Fuse.GameData.Fuses.Get(ig.Fuse));
                     }
                 }
                 else if (act is FuseDestroyRoot)

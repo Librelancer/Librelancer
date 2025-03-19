@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data
+namespace LibreLancer.Data.Mouse
 {
-    
-	public class Cursor
+    [ParsedSection]
+	public partial class Cursor
 	{
         [Entry("nickname")]
 		public string Nickname;
@@ -32,7 +32,7 @@ namespace LibreLancer.Data
             Anim0 = e[1].ToSingle();
             Anim1 = e[2].ToSingle();
         }
-        
+
         public string Shape;
         public float Anim0;
         public float Anim1;

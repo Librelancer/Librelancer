@@ -1,15 +1,16 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
-    
+
 namespace LibreLancer.Data.NewCharDB
 {
-    public class NewCharDBIni : IniFile
+    [ParsedIni]
+    public partial class NewCharDBIni
     {
         [Section("faction")]
         public List<NewCharFaction> Factions = new List<NewCharFaction>();
@@ -18,6 +19,6 @@ namespace LibreLancer.Data.NewCharDB
         [Section("pilot")]
         public List<NewCharPilot> Pilots = new List<NewCharPilot>();
 
-        public void AddNewCharDBIni(string path, FileSystem vfs) => ParseAndFill(path, vfs);
+        public void AddNewCharDBIni(string path, FileSystem vfs) => ParseIni(path, vfs);
     }
 }

@@ -4,13 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
 using System.IO;
 using System.Text;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Save
 {
-    public class SaveGame : IniFile
+    [ParsedIni(Preparse = false)]
+    public partial class SaveGame
     {
         [Section("player")]
         public SavePlayer Player;
@@ -72,7 +73,7 @@ namespace LibreLancer.Data.Save
             var sg = new SaveGame();
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(str)))
             {
-                sg.ParseAndFill(name, stream, false);
+                sg.ParseIni(stream, name);
             }
             return sg;
         }
@@ -81,7 +82,7 @@ namespace LibreLancer.Data.Save
             var sg = new SaveGame();
             using (var stream = new MemoryStream(FlCodec.DecodeBytes(bytes)))
             {
-                sg.ParseAndFill(path, stream, false);
+                sg.ParseIni(stream, path);
             }
             return sg;
         }

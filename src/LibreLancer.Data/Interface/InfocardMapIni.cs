@@ -4,18 +4,18 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Interface
 {
-    public class InfocardMapIni : IniFile
+    public class InfocardMapIni
     {
         public Dictionary<int, int> Map = new Dictionary<int, int>();
 
         public void AddMap(string file, FileSystem vfs)
         {
-            foreach (var s in ParseFile(file, vfs))
+            foreach (var s in IniFile.ParseFile(file, vfs))
             {
                 if (!s.Name.Equals("infocardmaptable", StringComparison.OrdinalIgnoreCase))
                 {

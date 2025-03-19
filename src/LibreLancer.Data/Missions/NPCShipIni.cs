@@ -2,23 +2,26 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System.Collections.Generic;
-using LibreLancer.Ini;
 using System;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
 namespace LibreLancer.Data.Missions
 {
-    public class NPCShipIni : IniFile
+    [ParsedIni]
+    public partial class NPCShipIni
     {
         [Section("NPCShipArch")]
         public List<NPCShipArch> ShipArches = new List<NPCShipArch>();
         public NPCShipIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, vfs);
+            ParseIni(path, vfs);
         }
     }
 
-    public class NPCShipArch
+
+    [ParsedSection]
+    public partial class NPCShipArch
     {
         [Entry("nickname")] public string Nickname;
         [Entry("loadout")] public string Loadout;

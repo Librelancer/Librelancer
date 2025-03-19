@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Effects
 {
-	public class Effect
+    [ParsedSection]
+	public partial class Effect
 	{
         [Entry("nickname")]
 		public string Nickname;

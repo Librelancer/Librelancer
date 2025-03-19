@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
@@ -23,8 +23,8 @@ namespace LibreLancer.Data.Pilots
         Low_Density,
         High_Density
     }
-    
-    
+
+
     public enum DifficultyThreshold
     {
         Easiest,
@@ -33,8 +33,9 @@ namespace LibreLancer.Data.Pilots
         Hard,
         Hardest
     }
-    
-    public class JobBlock : PilotBlock
+
+    [ParsedSection]
+    public partial class JobBlock : PilotBlock
     {
         [Entry("wait_for_leader_target")] public bool WaitForLeaderTarget;
 
@@ -45,7 +46,7 @@ namespace LibreLancer.Data.Pilots
 
         [Entry("maximum_leader_target_distance")]
         public float MaximumLeaderTargetDistance;
-        
+
         [Entry("scene_toughness_threshold")] public DifficultyThreshold SceneToughnessThreshold;
         [Entry("flee_scene_threat_style")] public DifficultyThreshold FleeSceneThreatStyle;
 
@@ -59,12 +60,12 @@ namespace LibreLancer.Data.Pilots
         [Entry("loot_preference")] public LootPreference LootPreference;
         [Entry("combat_drift_distance")] public float CombatDriftDistance;
         [Entry("allow_player_targeting")] public bool AllowPlayerTargeting;
-        
+
         public List<AttackPreference> AttackPreferences = new List<AttackPreference>();
 
         [EntryHandler("attack_preference", MinComponents = 3, Multiline = true)]
         void HandleAttackPreference(Entry e) => AttackPreferences.Add(new AttackPreference(e));
-        
+
     }
 
     public class AttackPreference
@@ -87,7 +88,7 @@ namespace LibreLancer.Data.Pilots
                 Flags |= Enum.Parse<AttackFlags>(f, true);
         }
     }
-    
+
     public enum AttackTarget
     {
         Fighter,

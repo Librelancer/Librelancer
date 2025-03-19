@@ -1,12 +1,14 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
+
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Cameras
 {
-    public class CameraIni : IniFile
+    [ParsedIni]
+    public partial class CameraIni
     {
         [Section("WinCamera")] public CameraProps WinCamera = new CameraProps() {FovX = 54.432f};
         [Section("CockpitCamera")] public CameraProps CockpitCamera = new CameraProps();
@@ -15,13 +17,14 @@ namespace LibreLancer.Data.Cameras
         [Section("TurretCamera")] public CameraProps TurretCamera = new CameraProps();
         [Section("RearViewCamera")] public CameraProps RearViewCamera = new CameraProps();
 
-        public CameraIni(string camerasPath, FileSystem vFS)
+        public CameraIni(string camerasPath, FileSystem vfs)
         {
-            ParseAndFill(camerasPath, vFS);
+            ParseIni(camerasPath, vfs);
         }
     }
 
-    public class CameraProps
+    [ParsedSection]
+    public partial class CameraProps
     {
         [Entry("fovx")] public float FovX = 70;
         [Entry("znear")] public float ZNear;

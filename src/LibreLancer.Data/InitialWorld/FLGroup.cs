@@ -1,9 +1,10 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.InitialWorld
 {
-    public class FlGroup
+    [ParsedSection]
+    public partial class FlGroup
     {
         [Entry("nickname", Required = true)] public string Nickname;
         [Entry("ids_name")] public int IdsName;

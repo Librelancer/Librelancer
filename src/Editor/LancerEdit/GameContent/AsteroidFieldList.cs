@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
-using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent;
 

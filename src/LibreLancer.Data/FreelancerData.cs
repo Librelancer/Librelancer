@@ -22,8 +22,11 @@ using LibreLancer.Data.InitialWorld;
 using LibreLancer.Data.Interface;
 using LibreLancer.Data.IO;
 using LibreLancer.Data.Missions;
+using LibreLancer.Data.Mouse;
 using LibreLancer.Data.NewCharDB;
+using LibreLancer.Data.PetalDb;
 using LibreLancer.Data.Pilots;
+using LibreLancer.Data.Save;
 using LibreLancer.Data.Storyline;
 using LibreLancer.Data.Voices;
 
@@ -294,7 +297,7 @@ namespace LibreLancer.Data
             Run(() =>
             {
                 Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
-                Costumes = new CostumesIni(Freelancer.CostumesPath, this);
+                Costumes = new CostumesIni(Freelancer.CostumesPath, VFS);
             });
             Run(() =>
             {

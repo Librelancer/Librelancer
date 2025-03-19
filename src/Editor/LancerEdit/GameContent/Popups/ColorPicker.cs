@@ -12,12 +12,19 @@ public class ColorPicker : PopupWindow
     private Color4 color;
 
     private Action<Color4> onSelect;
-    
+
     public ColorPicker(string title, Color4 initial, Action<Color4> onSelect)
     {
         color = initial;
         Title = title;
         this.onSelect = onSelect;
+    }
+
+    public ColorPicker(string title, Color3f initial, Action<Color3f> onSelect)
+    {
+        color = new Color4(initial, 1);
+        Title = title;
+        this.onSelect = (a) => onSelect(a.Rgb);
     }
 
     public override void Draw()

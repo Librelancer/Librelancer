@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Equipment
 {
-	public class PowerCore : AbstractEquipment
+    [ParsedSection]
+	public partial class PowerCore : AbstractEquipment
 	{
         [Entry("capacity")]
         public int Capacity;

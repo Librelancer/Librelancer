@@ -4,10 +4,12 @@
 
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Effects
 {
-    public class EffectLOD
+    [ParsedSection]
+    public partial class EffectLOD
     {
         [Entry("type", Required = true)]
         public string Type;

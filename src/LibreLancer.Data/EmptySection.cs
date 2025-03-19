@@ -1,7 +1,7 @@
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data;
 
 // Contains nothing
-public sealed class EmptySection
-{
-
-}
+[ParsedSection]
+public sealed partial class EmptySection { }

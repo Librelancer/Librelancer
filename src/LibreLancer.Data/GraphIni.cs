@@ -6,11 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data
 {
-	public class GraphIni : IniFile
+	public class GraphIni
 	{
 		public List<FloatGraph> FloatGraphs = new List<FloatGraph>();
 
@@ -23,7 +24,7 @@ namespace LibreLancer.Data
 
 		public void AddGraphIni(string path, FileSystem vfs)
 		{
-			foreach (var section in ParseFile(path, vfs))
+			foreach (var section in IniFile.ParseFile(path, vfs))
 			{
 				if (section.Name.ToLowerInvariant() != "igraph")
 					throw new Exception("Unexpected section in Graph ini: " + section.Name);

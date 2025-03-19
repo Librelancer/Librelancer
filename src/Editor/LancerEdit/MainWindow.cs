@@ -19,6 +19,7 @@ using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Shaders;
 using LancerEdit.Updater;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
@@ -67,8 +68,8 @@ namespace LancerEdit
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();
-			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
-			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
+			MaterialMap.AddRegex(new StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
+			MaterialMap.AddRegex(new StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
             FLLog.UIThread = this;
             FLLog.AppendLine = (x,severity) =>
             {

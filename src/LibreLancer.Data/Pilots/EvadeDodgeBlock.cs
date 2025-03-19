@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class EvadeDodgeBlock : PilotBlock
+    [ParsedSection]
+    public partial class EvadeDodgeBlock : PilotBlock
     {
         [Entry("evade_dodge_cone_angle")] public float DodgeConeAngle;
         [Entry("evade_dodge_interval_time")] public float DodgeIntervalTime;

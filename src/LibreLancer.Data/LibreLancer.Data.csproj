@@ -21,8 +21,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>obj\Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\LibreLancer.Base\LibreLancer.Base.csproj" />
+    <ProjectReference Include="..\LibreLancer.Data.Generator\LibreLancer.Data.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>

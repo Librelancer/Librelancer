@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace LibreLancer.Ini;
+namespace LibreLancer.Data.Ini;
 
 public static class IniWriter
 {

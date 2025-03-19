@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
-using LibreLancer.Ini;
 using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Ai.ObjList;
@@ -654,7 +654,7 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var fuse = runtime.Player.Space.World.Server.GameData.GetFuse(Fuse);
+                var fuse = runtime.Player.Space.World.Server.GameData.Fuses.Get(Fuse);
                 var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Target);
                 if (gameObj == null)
                 {

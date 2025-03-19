@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-	public class EquipmentIni : IniFile
+    [ParsedIni]
+	public partial class EquipmentIni
 	{
         [Section("light", typeof(Light))]
         [Section("power", typeof(PowerCore))]
@@ -43,10 +43,10 @@ namespace LibreLancer.Data.Equipment
         public List<Explosion> Explosions = new List<Explosion>();
         [Section("mine")]
         public List<Mine> Mines = new List<Mine>();
-        
+
         public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
         {
-            ParseAndFill(paths, fldata.VFS);
+            ParseInis(paths, fldata.VFS);
         }
     }
 }

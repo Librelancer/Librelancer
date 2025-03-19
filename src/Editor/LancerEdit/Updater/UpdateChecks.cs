@@ -10,13 +10,22 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.ImUI;
-using LibreLancer.Ini;
 
 namespace LancerEdit.Updater;
 
-[SelfSection("Updates")]
-public class UpdateChecks : IniFile
+[ParsedSection]
+public partial class UpdateConfig
+{
+    [Entry("channel")]
+    public string Channel;
+    [Entry("server")]
+    public string Url;
+}
+
+[ParsedIni]
+public partial class UpdateChecks
 {
     public bool Enabled;
     private MainWindow win;
@@ -25,10 +34,8 @@ public class UpdateChecks : IniFile
     private string thisRid;
     private long thisBuild;
 
-    [Entry("channel")]
-    public string UpdateChannel;
-    [Entry("server")]
-    public string UpdateUrl;
+    [Section("Updates")]
+    public UpdateConfig Config;
 
     public UpdateChecks(MainWindow window, string baseFolder)
     {
@@ -63,7 +70,7 @@ public class UpdateChecks : IniFile
         Task.Run(async () =>
         {
             using var http = new HttpClient();
-            var json = await http.GetFromJsonAsync<JsonUpdates>(UpdateUrl + UpdateChannel + ".json", popup.Token);
+            var json = await http.GetFromJsonAsync<JsonUpdates>(Config.Url + Config.Channel + ".json", popup.Token);
             var b = json.Builds[thisRid];
             return b.Timestamp > thisBuild ? b.URL : null;
         }).ContinueWith(res =>
@@ -160,11 +167,11 @@ public class UpdateChecks : IniFile
         thisRid = x[0];
         if (!long.TryParse(x[1], out thisBuild))
             return;
-        ParseAndFill(Path.Combine(path, "updates.ini"), null);
-        if (string.IsNullOrWhiteSpace(UpdateUrl))
+        ParseIni(Path.Combine(path, "updates.ini"), null);
+        if (string.IsNullOrWhiteSpace(Config?.Url))
             return;
-        win.Config.UpdateChannel ??= UpdateChannel;
-        UpdateChannel = win.Config.UpdateChannel;
-        Enabled = !string.IsNullOrEmpty(UpdateChannel);
+        win.Config.UpdateChannel ??= Config.Channel;
+        Config.Channel = win.Config.UpdateChannel;
+        Enabled = !string.IsNullOrEmpty(Config.Channel);
     }
 }

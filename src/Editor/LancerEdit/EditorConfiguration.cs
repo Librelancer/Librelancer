@@ -11,8 +11,8 @@ using System.Text;
 using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Data.Ini;
 using LibreLancer.Graphics;
-using LibreLancer.Ini;
 using LibreLancer.Render;
 using static System.FormattableString;
 namespace LancerEdit
@@ -31,8 +31,8 @@ namespace LancerEdit
         public string Preset = preset;
     }
 
-    [SelfSection("Config")]
-    public class EditorConfiguration : IniFile, IRendererSettings
+    [ParsedSection]
+    public partial class EditorConfiguration : IRendererSettings
     {
         [Entry("msaa")]
         public int MSAA;
@@ -180,6 +180,12 @@ namespace LancerEdit
         {
             canSave = isFile;
         }
+
+        private EditorConfiguration() : this(true)
+        {
+
+        }
+
         public static EditorConfiguration Load(bool isFile)
         {
             if (!isFile)
@@ -192,19 +198,21 @@ namespace LancerEdit
             {
                 if (File.Exists(configPath))
                 {
-                    var ec = new EditorConfiguration(true);
-                    ec.ParseAndFill(configPath, null);
+                    /*TryParse()
+                    //var ec = new EditorConfiguration(true);
+                    //ec.ParseAndFill(configPath, null);
                     if (ec.UiScale < 1 || ec.UiScale > 2.5f)
                         ec.UiScale = 1;
-                    return ec;
+                    return ec;*/
+                    return new EditorConfiguration();
                 }
                 else
-                    return new EditorConfiguration(true);
+                    return new EditorConfiguration();
             }
             catch (Exception)
             {
                 FLLog.Error("Config", "Error loading lanceredit.ini");
-                return new EditorConfiguration(true);
+                return new EditorConfiguration();
             }
         }
 

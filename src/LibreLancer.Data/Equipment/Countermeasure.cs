@@ -2,19 +2,20 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class Countermeasure : Munition
+    [ParsedSection]
+    public partial class Countermeasure : Munition
     {
-        [Entry("range")] 
+        [Entry("range")]
         public float Range;
-        [Entry("owner_safe_time")] 
+        [Entry("owner_safe_time")]
         public float OwnerSafeTime;
-        [Entry("diversion_pctg")] 
+        [Entry("diversion_pctg")]
         public float DiversionPercentage;
-        [Entry("linear_drag")] 
+        [Entry("linear_drag")]
         public float LinearDrag;
     }
 }

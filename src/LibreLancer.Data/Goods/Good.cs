@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Goods
 {
-    public class Good
+    [ParsedSection]
+    public partial class Good
     {
         [Entry("nickname")]
         public string Nickname;

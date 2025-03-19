@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using System.IO;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
 	public class SingleValue : ValueBase
 	{

@@ -4,28 +4,29 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class AsteroidBillboards
+    [ParsedSection]
+	public partial class AsteroidBillboards
     {
-        [Entry("count")] 
+        [Entry("count")]
         public int? Count;
 
-        [Entry("start_dist")] 
+        [Entry("start_dist")]
         public int? StartDist;
 
-        [Entry("fade_dist_percent")] 
+        [Entry("fade_dist_percent")]
         public float? FadeDistPercent;
 
-        [Entry("shape")] 
+        [Entry("shape")]
         public string Shape;
 
-        [Entry("color_shift")] 
+        [Entry("color_shift")]
         public Vector3? ColorShift;
 
-        [Entry("ambient_intensity")] 
+        [Entry("ambient_intensity")]
         public float? AmbientIntensity;
 
         [Entry("size")]

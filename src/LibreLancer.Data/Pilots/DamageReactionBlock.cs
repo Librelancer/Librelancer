@@ -1,14 +1,15 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class DamageReactionBlock : PilotBlock
+    [ParsedSection]
+    public partial class DamageReactionBlock : PilotBlock
     {
         [Entry("evade_break_damage_trigger_percent")]
         public float EvadeBreakDamageTriggerPercent;

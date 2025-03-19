@@ -4,10 +4,12 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class MissionLoot
+    [ParsedSection]
+    public partial class MissionLoot
     {
         [Entry("nickname")]
         public string Nickname;

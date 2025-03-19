@@ -308,7 +308,7 @@ namespace LancerEdit
             }
             ImGui.Combo("Channel", ref index, updateChannels, updateChannels.Length);
             config.UpdateChannel = updateChannels[index].ToLowerInvariant();
-            win.Updater.UpdateChannel = config.UpdateChannel;
+            win.Updater.Config.Channel = config.UpdateChannel;
         }
 
         public void Draw()

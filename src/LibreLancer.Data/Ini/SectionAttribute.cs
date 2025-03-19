@@ -3,7 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.Ini
+
+namespace LibreLancer.Data.Ini
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class SectionAttribute : Attribute

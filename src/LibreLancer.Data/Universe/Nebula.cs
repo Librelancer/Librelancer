@@ -5,11 +5,14 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer.Data.Universe
 {
-	public class Nebula : ZoneReference
+    [ParsedIni]
+    [ParsedSection]
+	public partial class Nebula : ZoneReference
     {
         [Section("fog")]
         public NebulaFog Fog;
@@ -31,5 +34,14 @@ namespace LibreLancer.Data.Universe
 
         [Section("exclusion zones", Delimiters = new[] { "exclude", "exclusion" })]
         public List<NebulaExclusion> ExclusionZones = new List<NebulaExclusion>();
+
+        [OnParseDependent]
+        void ParseDependent(IniParseProperties properties)
+        {
+            if (string.IsNullOrWhiteSpace(IniFile)) return;
+            if (properties["vfs"] is not FileSystem vfs) return;
+            if (properties["dataPath"] is not string dataPath) return;
+            ParseIni(dataPath + IniFile, vfs);
+        }
     }
 }

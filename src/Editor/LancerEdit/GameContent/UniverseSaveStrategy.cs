@@ -1,7 +1,7 @@
 using System.IO;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.ImUI;
-using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent;
 

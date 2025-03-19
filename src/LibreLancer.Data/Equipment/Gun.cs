@@ -3,10 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Equipment
 {
-    public class Gun : AbstractEquipment
+    [ParsedSection]
+    [BaseSection]
+    public partial class Gun : AbstractEquipment
     {
         [Entry("turn_rate")]
         public float TurnRate;

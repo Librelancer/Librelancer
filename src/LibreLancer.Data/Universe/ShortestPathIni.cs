@@ -1,21 +1,23 @@
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe;
 
-public class ShortestPathIni : IniFile
+[ParsedIni]
+public partial class ShortestPathIni
 {
     [Section("SystemConnections")]
     public List<SystemConnections> SystemConnections = new();
 
-    public void AddFile(string path, FileSystem vfs) => ParseAndFill(path, vfs);
+    public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
 }
 
 public record ShortestPathEntry(string Start, string End, string[] Hops);
 
-public class SystemConnections
+[ParsedSection]
+public partial class SystemConnections
 {
     public List<ShortestPathEntry> Entries = new();
 

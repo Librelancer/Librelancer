@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class MissileBlock : PilotBlock
+    [ParsedSection]
+    public partial class MissileBlock : PilotBlock
     {
         [Entry("missile_launch_interval_time")]
         public float LaunchIntervalTime;

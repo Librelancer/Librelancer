@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Data;
 
-namespace LibreLancer.Ini;
+namespace LibreLancer.Data.Ini;
 
 public class IniBuilder
 {

@@ -3,48 +3,26 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Fuses
 {
-    public class FuseIni : IniFile
+    [ParsedIni]
+    public partial class FuseIni
     {
-        public Dictionary<string, Fuse> Fuses = new Dictionary<string, Fuse>(StringComparer.OrdinalIgnoreCase);
-
+        [Section("fuse")]
+        [Section("start_effect", Type = typeof(FuseStartEffect), Child = true)]
+        [Section("destroy_group", Type = typeof(FuseDestroyGroup), Child = true)]
+        [Section("destroy_hp_attachment", Type = typeof(FuseDestroyHpAttachment), Child = true)]
+        [Section("start_cam_particles", Type = typeof(FuseStartCamParticles), Child = true)]
+        [Section("ignite_fuse", Type = typeof(FuseIgniteFuse), Child = true)]
+        [Section("impulse", Type = typeof(FuseImpulse), Child = true)]
+        [Section("destroy_root", Type = typeof(FuseDestroyRoot), Child = true)]
+        public List<Fuse> Fuses = new();
         public void AddFuseIni(string path, FileSystem vfs)
         {
-            Fuse current = null;
-            foreach(var section in ParseFile(path, vfs))
-            {
-                switch(section.Name.ToLowerInvariant())
-                {
-                    case "fuse":
-                        current = FromSection<Fuse>(section);
-                        Fuses[current.Name] = current;
-                        break;
-                    case "start_effect":
-                        current.Actions.Add(FromSection<FuseStartEffect>(section));
-                        break;
-                    case "destroy_group":
-                        current.Actions.Add(FromSection<FuseDestroyGroup>(section));
-                        break;
-                    case "destroy_hp_attachment":
-                        current.Actions.Add(FromSection<FuseDestroyHpAttachment>(section));
-                        break;
-                    case "start_cam_particles":
-                        current.Actions.Add(FromSection<FuseStartCamParticles>(section));
-                        break;
-                    case "ignite_fuse":
-                        current.Actions.Add(FromSection<FuseIgniteFuse>(section));
-                        break;
-                    case "impulse":
-                        current.Actions.Add(FromSection<FuseImpulse>(section));
-                        break;
-                    case "destroy_root":
-                        current.Actions.Add(FromSection<FuseDestroyRoot>(section));
-                        break;
-                }
-            }
+            ParseIni(path, vfs);
         }
 
     }

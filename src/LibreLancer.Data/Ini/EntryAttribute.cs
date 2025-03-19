@@ -3,7 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.Ini
+
+namespace LibreLancer.Data.Ini
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class EntryAttribute : Attribute
@@ -21,7 +22,6 @@ namespace LibreLancer.Ini
         }
     }
 
-    [Flags]
     public enum Vec3Mode
     {
         None = 0,

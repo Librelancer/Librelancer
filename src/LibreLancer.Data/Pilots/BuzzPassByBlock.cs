@@ -1,14 +1,15 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class BuzzPassByBlock : PilotBlock
+    [ParsedSection]
+    public partial class BuzzPassByBlock : PilotBlock
     {
         [Entry("buzz_distance_to_pass_by")] public float DistanceToPassBy;
         [Entry("buzz_pass_by_time")] public float PassByTime;

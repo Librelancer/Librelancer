@@ -155,7 +155,7 @@ namespace LibreLancer.Render
         public void LoadLights(StarSystem system)
         {
             SystemLighting = new SystemLighting();
-            SystemLighting.Ambient = system.AmbientColor;
+            SystemLighting.Ambient = new Color4(system.AmbientColor, 1);
             foreach (var lt in system.LightSources)
                 SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
         }

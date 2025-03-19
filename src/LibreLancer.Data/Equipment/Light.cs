@@ -4,12 +4,12 @@
 
 using System;
 using System.Numerics;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class Light : AbstractEquipment
+    [ParsedSection]
+    public partial class Light : AbstractEquipment
     {
         [Entry("always_on")] public bool? AlwaysOn;
         [Entry("docking_light")] public bool? DockingLight;
@@ -25,6 +25,6 @@ namespace LibreLancer.Data.Equipment
         [Entry("blink_duration")] public float? BlinkDuration;
         [Entry("emit_range")] public float? EmitRange;
         [Entry("emit_attenuation")] public Vector3? EmitAttenuation;
-        [Entry("shape")] public string Shape; 
+        [Entry("shape")] public string Shape;
     }
 }

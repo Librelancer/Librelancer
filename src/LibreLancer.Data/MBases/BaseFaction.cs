@@ -1,21 +1,22 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data;
 
-public class BaseFaction
+[ParsedSection]
+public partial class BaseFaction
 {
-    [Entry("faction")] 
+    [Entry("faction")]
     public string Faction;
-    [Entry("weight")] 
+    [Entry("weight")]
     public float Weight;
-    [Entry("npc", Multiline = true)] 
+    [Entry("npc", Multiline = true)]
     public List<string> Npcs = new List<string>();
 
     public List<BaseFactionMission> Missions = new List<BaseFactionMission>();
 
     //Unused, removed by JFLP
-    [Entry("offers_missions", Presence = true)] 
+    [Entry("offers_missions", Presence = true)]
     public bool OffersMissions;
 
     [EntryHandler("mission_type", MinComponents = 3, Multiline = true)]

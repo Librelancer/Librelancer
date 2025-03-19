@@ -3,15 +3,16 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class NebulaLight
+    [ParsedSection]
+	public partial class NebulaLight
     {
-        [Entry("ambient")] 
+        [Entry("ambient")]
         public Color4? Ambient;
-        [Entry("sun_burnthrough_intensity")] 
+        [Entry("sun_burnthrough_intensity")]
         public float? SunBurnthroughIntensity;
         [Entry("sun_burnthrough_scaler")]
         public float? SunBurnthroughScaler;

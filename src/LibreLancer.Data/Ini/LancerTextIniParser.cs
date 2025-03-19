@@ -6,10 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
     /// <summary>
     /// Implementation of a text ini parser which comes as close to the original as possible.
@@ -84,12 +83,12 @@ namespace LibreLancer.Ini
                                 entry.Add(new SingleValue(tempFloat, isLong ? tempLong : null) { Entry = entry, Line = line });
                             }
                             else
-                                entry.Add(new LancerStringValue(part.ToString()) { Entry = entry, Line = line });
+                                entry.Add(new Data.Ini.LancerStringValue(part.ToString()) { Entry = entry, Line = line });
                         }
                         else if (preparse && bool.TryParse(part, out bool tempBool))
                             entry.Add(new BooleanValue(tempBool) { Entry = entry, Line = line });
                         else
-                            entry.Add(new LancerStringValue(part.ToString()) { Entry = entry, Line = line });
+                            entry.Add(new Data.Ini.LancerStringValue(part.ToString()) { Entry = entry, Line = line });
                     }
                 }
             }

@@ -4,11 +4,12 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-    public class LootableZone
+    [ParsedSection]
+    public partial class LootableZone
     {
         [Entry("zone")] public string Zone;
         [Entry("asteroid_loot_container")] public string AsteroidLootContainer;

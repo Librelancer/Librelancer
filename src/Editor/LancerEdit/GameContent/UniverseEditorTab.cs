@@ -6,11 +6,11 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
-using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent;
 

@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Characters
 {
-	public class BodypartsIni : IniFile
+	public class BodypartsIni
 	{
         public List<string> Animations { get; private set; }
         public List<Bodypart> Bodyparts { get; private set; }
@@ -23,8 +22,8 @@ namespace LibreLancer.Data.Characters
 			Accessories = new List<Accessory>();
 
             string currentSkeletonSex = "";
-
-			foreach (Section s in ParseFile(path, gdata.VFS))
+            using var stream = gdata.VFS.Open(path);
+			foreach (Section s in IniFile.ParseFile(path, stream))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{
@@ -55,11 +54,17 @@ namespace LibreLancer.Data.Characters
 				case "head":
 				case "righthand":
 				case "lefthand":
-                    Bodyparts.Add(FromSection<Bodypart>(s));
-                    Bodyparts[^1].Sex = currentSkeletonSex;
+                    if (Bodypart.TryParse(s, out var bp))
+                    {
+                        bp.Sex = currentSkeletonSex;
+                        Bodyparts.Add(bp);
+                    }
 					break;
 				case "accessory":
-                    Accessories.Add(FromSection<Accessory>(s));
+                    if (Accessory.TryParse(s, out var a))
+                    {
+                        Accessories.Add(a);
+                    }
 					break;
 				default: throw new Exception("Invalid Section in " + path + ": " + s.Name);
 				}

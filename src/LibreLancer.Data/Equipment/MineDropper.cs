@@ -1,11 +1,13 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-using LibreLancer.Ini;
+
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class MineDropper : AbstractEquipment
+    [ParsedSection]
+    public partial class MineDropper : AbstractEquipment
     {
         [Entry("projectile_archetype")] public string ProjectileArchetype;
         [Entry("dry_fire_sound")] public string DryFireSound;

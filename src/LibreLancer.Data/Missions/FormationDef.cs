@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Missions;
 
-public class FormationDef
+[ParsedSection]
+public partial class FormationDef
 {
     [Entry("nickname", Required = true)] public string Nickname;
     [Entry("pos", Multiline = true)] public List<Vector3> Positions = new List<Vector3>();

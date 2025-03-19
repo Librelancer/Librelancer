@@ -2,11 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-    public class NebulaExterior
+    [ParsedSection]
+    public partial class NebulaExterior
     {
         [Entry("shape", Multiline = true)]
         public List<string> Shape = new List<string>();
@@ -30,7 +31,7 @@ namespace LibreLancer.Data.Universe
         public float? EquatorBias;
         [Entry("color")]
         public Color4? Color;
-        [Entry("opacity")] 
+        [Entry("opacity")]
         public float Opacity;
     }
 }

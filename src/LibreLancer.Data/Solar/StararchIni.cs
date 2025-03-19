@@ -5,66 +5,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class StararchIni : IniFile
+    [ParsedIni]
+	public partial class StararchIni
 	{
+        [Section("star")]
         public List<Star> Stars = new List<Star>();
+        [Section("star_glow")]
         public List<StarGlow> StarGlows = new List<StarGlow>();
+        [Section("lens_flare")]
         public List<LensFlare> LensFlares = new List<LensFlare>();
+        [Section("lens_glow")]
         public List<LensGlow> LensGlows = new List<LensGlow>();
+        [Section("spines")]
         public List<Spines> Spines = new List<Spines>();
-        public List<string> TextureFiles = new List<string>();
+        [Section("texture")]
+        public List<TextureSection> TextureFiles = new List<TextureSection>();
 
 		public StararchIni(string path, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile(path, vfs))
-			{
-				switch (s.Name.ToLowerInvariant())
-				{
-					case "texture":
-						foreach (var e in s)
-							if (e.Name.ToLowerInvariant() == "file")
-								TextureFiles.Add(e[0].ToString());
-						break;
-					case "star":
-                        Stars.Add(FromSection<Star>(s));
-						break;
-					case "star_glow":
-						StarGlows.Add(FromSection<StarGlow>(s));
-						break;
-					case "lens_flare":
-                        LensFlares.Add(FromSection<LensFlare>(s));
-						break;
-					case "lens_glow":
-						LensGlows.Add(FromSection<LensGlow>(s));
-						break;
-					case "spines":
-						Spines.Add(FromSection<Spines>(s));
-						break;
-					default:
-						FLLog.Warning("Ini", "Invalid Section in " + path + ": " + s.Name + ", " + s.Line);
-                        break;
-				}
-			}
+            ParseIni(path, vfs);
 		}
 
-		public Star FindStar(string nickname)
-		{
-			return (from Star s in Stars where s.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select s).First<Star>();
-		}
-
-		public StarGlow FindStarGlow(string nickname)
-		{
-			return (from StarGlow s in StarGlows where s.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select s).First();
-		}
-
-		public Spines FindSpines(string nickname)
-		{
-			return (from Spines s in Spines where s.Nickname.ToLowerInvariant() == nickname.ToLowerInvariant() select s).FirstOrDefault();
-		}
 	}
 }

@@ -7,17 +7,17 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer
 {
-    [SelfSection("Librelancer")]
-	public class GameConfig : IniFile
+    [ParsedSection]
+	public partial class GameConfig
 	{
+        public GameSettings Settings = new GameSettings();
+
         [Entry("freelancer_path")]
 		public string FreelancerPath = "";
-        [Section("Settings")]
-        public GameSettings Settings = new GameSettings();
         [Entry("intro_movies")]
         public bool IntroMovies = true;
         [Entry("res_width")]
@@ -30,7 +30,7 @@ namespace LibreLancer
         [XmlIgnore]
 		public Func<FreelancerGame, GameState> CustomState;
 
-		private GameConfig(Func<string> filePath) 
+		private GameConfig(Func<string> filePath)
 		{
 			this.filePath = filePath;
 		}
@@ -80,8 +80,24 @@ namespace LibreLancer
 			var cfgpath = (filePath ?? DefaultConfigPath)();
             if (File.Exists(cfgpath))
             {
-                var cfg = new GameConfig((filePath ?? DefaultConfigPath));
-                cfg.ParseAndFill(cfgpath, null);
+                var allS = IniFile.ParseFile(cfgpath, null, false).ToArray();
+                var lS = allS.FirstOrDefault(x => x.Name == "Librelancer");
+                var set = allS.FirstOrDefault(x => x.Name == "Settings");
+                GameConfig cfg;
+                if (lS != null)
+                {
+                    TryParse(lS, out cfg);
+                    cfg.filePath = (filePath ?? DefaultConfigPath);
+                }
+                else
+                {
+                    cfg = new((filePath ?? DefaultConfigPath));
+                }
+                if (set != null)
+                {
+                    GameSettings.TryParse(set, out cfg.Settings);
+                    cfg.Settings ??= new();
+                }
                 if (cfg.UUID == null)
                     cfg.UUID = Guid.NewGuid();
                 return cfg;
@@ -99,22 +115,20 @@ namespace LibreLancer
 		public void Save()
         {
             Saved?.Invoke(this);
-            
-			using (var writer = new StreamWriter(filePath()))
-			{
-				writer.WriteLine("[Librelancer]");
-                writer.WriteLine($"freelancer_path = {FreelancerPath}");
-                writer.WriteLine($"res_width = {BufferWidth}");
-                writer.WriteLine($"res_height = {BufferHeight}");
-                writer.WriteLine($"intro_movies = {IntroMovies}");
-                writer.WriteLine($"uuid = {UUID.Value:D}");
-                writer.WriteLine();
-                Settings.Write(writer);
-			}
-		}
+
+            using var writer = new StreamWriter(filePath());
+            writer.WriteLine("[Librelancer]");
+            writer.WriteLine($"freelancer_path = {FreelancerPath}");
+            writer.WriteLine($"res_width = {BufferWidth}");
+            writer.WriteLine($"res_height = {BufferHeight}");
+            writer.WriteLine($"intro_movies = {IntroMovies}");
+            writer.WriteLine($"uuid = {UUID.Value:D}");
+            writer.WriteLine();
+            Settings.Write(writer);
+        }
 
         public event Action<GameConfig> Saved;
-        
+
 		static string DefaultConfigPath()
 		{
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.ini");
