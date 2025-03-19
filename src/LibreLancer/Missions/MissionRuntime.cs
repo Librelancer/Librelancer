@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.Save;
-using LibreLancer.Ini;
 using LibreLancer.Missions.Conditions;
 using LibreLancer.Missions.Events;
 using LibreLancer.Server;
@@ -83,15 +83,19 @@ namespace LibreLancer.Missions
                 var obj = Player.Space.World.GameWorld.GetObject(target);
                 if (obj != null)
                 {
-                    if (!obj.TryGetComponent < SNPCComponent>(out var comp))
+                    if (obj.TryGetComponent <SNPCComponent>(out var comp))
                     {
-                        FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not npc {target}");
+                        //Needs a fix for solars I think or the player
                         comp.ProjectileHitHook = OnProjectileHit;
+                    }
+                    else
+                    {
+                        FLLog.Error("Mission", $"Cnd_ProjHit won't register for not npc {target}");
                     }
                 }
                 else
                 {
-                    FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not spawned {target}");
+                    FLLog.Error("Mission", $"Cnd_ProjHit won't register for not spawned {target}");
                 }
             });
         }
