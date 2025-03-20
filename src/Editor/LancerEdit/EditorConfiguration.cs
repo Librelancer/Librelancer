@@ -198,13 +198,17 @@ namespace LancerEdit
             {
                 if (File.Exists(configPath))
                 {
-                    /*TryParse()
-                    //var ec = new EditorConfiguration(true);
-                    //ec.ParseAndFill(configPath, null);
+                    using var strm = File.OpenRead(configPath);
+                    var section = IniFile.ParseFile(configPath, strm).FirstOrDefault();
+                    EditorConfiguration ec = null;
+                    if (section != null)
+                    {
+                        TryParse(section, out ec);
+                    }
+                    ec ??= new EditorConfiguration(true);
                     if (ec.UiScale < 1 || ec.UiScale > 2.5f)
                         ec.UiScale = 1;
-                    return ec;*/
-                    return new EditorConfiguration();
+                    return ec;
                 }
                 else
                     return new EditorConfiguration();
