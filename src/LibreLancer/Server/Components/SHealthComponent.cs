@@ -22,6 +22,13 @@ namespace LibreLancer.Server.Components
 
         private bool isKilled = false;
 
+        public Action<GameObject, GameObject> ProjectileHitHook;
+
+        public void OnProjectileHit(GameObject attacker)
+        {
+            ProjectileHitHook?.Invoke(Parent, attacker);
+        }
+
         public void UseRepairKits()
         {
             if (!Parent.TryGetComponent<AbstractCargoComponent>(out var cargo))
@@ -86,10 +93,10 @@ namespace LibreLancer.Server.Components
                         if(fuseRunner == null || !fuseRunner.RunningDeathFuse)
                         {
                             FLLog.Debug("World", $"No death fuse, killing {Parent}");
-                            if (Parent.TryGetComponent<SNPCComponent>(out var npc))
-                                npc.Killed();
-                            if (Parent.TryGetComponent<SPlayerComponent>(out var player))
-                                player.Killed();
+                            if (Parent.TryGetComponent<SDestroyableComponent>(out var dst))
+                            {
+                                dst.Destroy(true);
+                            }
                         }
                     }
                 }

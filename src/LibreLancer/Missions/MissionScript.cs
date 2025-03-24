@@ -89,6 +89,18 @@ namespace LibreLancer.Missions
                     list.Add(sh.Key);
                 }
             }
+            foreach (var sl in Solars)
+            {
+                foreach (var l in sl.Value.Labels)
+                {
+                    if (!allLabels.TryGetValue(l, out var list))
+                    {
+                        list = new List<string>();
+                        allLabels.Add(l, list);
+                    }
+                    list.Add(sl.Key);
+                }
+            }
             return allLabels.Select(x => new MissionLabel(x.Key, x.Value));
         }
 

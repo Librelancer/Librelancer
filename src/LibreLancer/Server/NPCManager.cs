@@ -131,6 +131,7 @@ namespace LibreLancer.Server
             obj.AddComponent(new ShipSteeringComponent(obj));
             obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = ship });
             obj.AddComponent(new WeaponControlComponent(obj));
+            obj.AddComponent(new SDestroyableComponent(obj, World));
             World.OnNPCSpawn(obj);
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;

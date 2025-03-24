@@ -13,6 +13,7 @@ using LibreLancer.Client;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Save;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Net;
@@ -73,11 +74,11 @@ namespace LibreLancer.Server
             rpcClient = new RemoteClientPlayer(client, ResponseHandler);
         }
 
-        public void SetObjective(NetObjective objective)
+        public void SetObjective(NetObjective objective, bool history)
         {
             FLLog.Info("Server", $"Set player objective to {objective.Kind}: {objective.Ids}");
             Objective = objective;
-            rpcClient.SetObjective(objective);
+            rpcClient.SetObjective(objective, history);
         }
 
 
@@ -193,6 +194,23 @@ namespace LibreLancer.Server
             return (ulong) (Game.GameData.GetShipPrice(Character.Ship) * TradeConstants.SHIP_RESALE_MULTIPLIER);
         }
 
+        public long CalculateNetWorth()
+        {
+            var worth = Character.Credits + (long)GetShipWorth();
+            foreach (var item in Character.Items)
+            {
+                if (item.Equipment.Good == null)
+                {
+                    continue;
+                }
+                long unitPrice = item.Equipment.Good.Ini.Price;
+                if (item.Equipment is not CommodityEquipment)
+                    unitPrice = (long) (unitPrice * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                worth += unitPrice * item.Count;
+            }
+            return worth;
+        }
+
 
         void BeginGame(NetCharacter c, SaveGame sg)
         {
@@ -200,7 +218,7 @@ namespace LibreLancer.Server
             Name = Character.Name;
             rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
             UpdateCurrentReputations();
-            rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
+            UpdateCurrentInventory();
             Base = Character.Base;
             System = Character.System;
             Position = Character.Position;
@@ -546,7 +564,11 @@ namespace LibreLancer.Server
             }).ToArray());
         }
 
-        public void UpdateCurrentInventory() => rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
+        public void UpdateCurrentInventory()
+        {
+            rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), (ulong)CalculateNetWorth(), Character.EncodeLoadout());
+            Story?.Update(this);
+        }
 
         public void ForceLand(string target)
         {

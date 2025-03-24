@@ -111,13 +111,9 @@ namespace LibreLancer.Server.Components
                 else if (act is FuseDestroyRoot)
                 {
                     FLLog.Debug("Fuse", $"Killing {Parent}");
-                    if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+                    if (Parent.TryGetComponent<SDestroyableComponent>(out var destroy))
                     {
-                        player.Killed();
-                    }
-                    if (Parent.TryGetComponent<SNPCComponent>(out var npc))
-                    {
-                        npc.Killed();
+                        destroy.Destroy(true);
                     }
                 }
             }

@@ -44,7 +44,12 @@ namespace LibreLancer.Server.Ai.ObjList
             foreach (var tgt in Others)
             {
                 var o = obj.World.GetObject(tgt);
-                if (tgt != null) {
+                if (o == null)
+                {
+                    continue;
+                }
+                if (tgt != null)
+                {
                     o.Formation?.Remove(o);
                     form.Add(o);
                     o.Formation = form;

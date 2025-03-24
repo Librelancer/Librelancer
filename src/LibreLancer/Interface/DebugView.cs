@@ -33,12 +33,15 @@ namespace LibreLancer.Interface
         {
             if (triggers != null)
             {
+                var fsize = ImGui.GetFrameHeightWithSpacing();
+
                 ImGui.SetNextWindowSize(new Vector2(600, 500), ImGuiCond.FirstUseEver);
                 ImGui.Begin("Triggers");
                 int i = 0;
                 foreach (var t in triggers)
                 {
-                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 250), ImGuiChildFlags.Border);
+                    float height = fsize * 3 + (t.Conditions.Count * fsize) + (t.Actions.Count * fsize);
+                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, height), ImGuiChildFlags.Border);
                     ImGui.PushFont(ImGuiHelper.SystemMonospace);
                     ImGui.Text(t.Name);
                     ImGui.PopFont();

@@ -15,9 +15,11 @@ public class MissionLabel
     public string Name;
     private Dictionary<string, NpcState> states = new();
 
-    public IEnumerable<string> Ships => states.Keys;
+    public IEnumerable<string> Objects => states.Keys;
 
     public bool IsAllKilled() => states.Values.All(x => x == NpcState.Dead);
+
+    public bool AnyAlive() => states.Values.All(x => x == NpcState.Alive);
 
     public int DestroyedCount() => states.Values.Count(x => x == NpcState.Dead);
 

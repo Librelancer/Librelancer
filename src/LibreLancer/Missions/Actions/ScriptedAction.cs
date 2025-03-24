@@ -171,6 +171,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_SetNNObj : ScriptedAction
     {
         public string Objective = string.Empty;
+        public bool History = false;
 
         public Act_SetNNObj()
         {
@@ -179,11 +180,23 @@ namespace LibreLancer.Missions.Actions
         public Act_SetNNObj(MissionAction act) : base(act)
         {
             Objective = act.Entry[0].ToString();
+            if (act.Entry.Count > 1 &&
+                act.Entry[1].ToString()!.Equals("OBJECTIVE_HISTORY", StringComparison.OrdinalIgnoreCase))
+            {
+                History = true;
+            }
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_SetNNObj", Objective);
+            if (History)
+            {
+                section.Entry("Act_SetNNObj", Objective, "OBJECTIVE_HISTORY");
+            }
+            else
+            {
+                section.Entry("Act_SetNNObj", Objective);
+            }
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -195,7 +208,7 @@ namespace LibreLancer.Missions.Actions
 
             if (v.Type[0].Equals("ids", StringComparison.OrdinalIgnoreCase))
             {
-                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])));
+                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])), History);
             }
             else if (v.Type[0].Equals("navmarker", StringComparison.OrdinalIgnoreCase))
             {
@@ -209,7 +222,8 @@ namespace LibreLancer.Missions.Actions
                             float.Parse(v.Type[5], CultureInfo.InvariantCulture),
                             float.Parse(v.Type[6], CultureInfo.InvariantCulture)
                         )
-                    )
+                    ),
+                    History
                 );
             }
             else if (v.Type[0].Equals("rep_inst", StringComparison.OrdinalIgnoreCase))
@@ -220,7 +234,8 @@ namespace LibreLancer.Missions.Actions
                         int.Parse(v.Type[3]),
                         v.Type[1],
                         v.Type[7]
-                    )
+                    ),
+                    History
                 );
             }
         }

@@ -190,12 +190,17 @@ public class Cnd_WatchTrigger : ScriptedCondition
     }
 
     //TODO : ON/OFF == COMPLETED/ACTIVE?
+    // Including better guess from M01B here.
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
     {
         var current = runtime.GetTriggerState(Trigger);
-        if (current == TriggerState) return true;
-        if (current == TriggerState.ON && TriggerState == TriggerState.ACTIVE) return true; //ON?
-        return false;
+        return TriggerState switch {
+            TriggerState.ON => current == TriggerState.ACTIVE || current == TriggerState.ON,
+            TriggerState.OFF => current == TriggerState.COMPLETE || current == TriggerState.OFF,
+            TriggerState.COMPLETE => current == TriggerState.COMPLETE,
+            TriggerState.ACTIVE => current == TriggerState.ACTIVE || current == TriggerState.ON,
+            _ => false,
+        };
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -983,7 +988,7 @@ public class Cnd_DistVecLbl : ScriptedCondition
             !runtime.GetSpace(out var space))
             return false;
         bool satisfied = false;
-        foreach (var ship in l.Ships)
+        foreach (var ship in l.Objects)
         {
             var obj = space.World.GameWorld.GetObject(ship);
             if (obj == null)
@@ -1233,7 +1238,16 @@ public class Cnd_Destroyed :
         {
             if (Count <= 0)
             {
-                return lbl.IsAllKilled(); //-1 seems to equal whole label
+                if (Kind != CndDestroyedKind.ALL)
+                {
+                    return !lbl.AnyAlive(); //we just want to know that all ships are gone
+                    // M01B -1, EXPLODE rogue base fighter
+                }
+                else
+                {
+                    return lbl.IsAllKilled(); //ALL = all ships must have been spawned and killed
+                    // M01B -1, ALL XT-19 attack
+                }
             }
             else
             {

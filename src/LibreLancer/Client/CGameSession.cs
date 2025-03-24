@@ -30,6 +30,7 @@ namespace LibreLancer.Client
     {
         public long Credits;
         public ulong ShipWorth;
+        public ulong NetWorth;
         public Ship PlayerShip;
         public List<string> PlayerComponents = new List<string>();
         public List<NetCargo> Items = new List<NetCargo>();
@@ -645,10 +646,13 @@ namespace LibreLancer.Client
 
         public Action ObjectiveUpdated;
 
-        void IClientPlayer.SetObjective(NetObjective objective)
+        void IClientPlayer.SetObjective(NetObjective objective, bool history)
         {
             CurrentObjective = objective;
-            ObjectiveUpdated?.Invoke();
+            if (!history)
+            {
+                ObjectiveUpdated?.Invoke();
+            }
         }
 
         void IClientPlayer.Killed()
@@ -750,10 +754,11 @@ namespace LibreLancer.Client
             }
         }
 
-        void IClientPlayer.UpdateInventory(long credits, ulong shipWorth, NetLoadout loadout)
+        void IClientPlayer.UpdateInventory(long credits, ulong shipWorth, ulong netWorth, NetLoadout loadout)
         {
             Credits = credits;
             ShipWorth = shipWorth;
+            NetWorth = netWorth;
             SetSelfLoadout(loadout);
             if (OnUpdateInventory != null)
             {
@@ -809,6 +814,11 @@ namespace LibreLancer.Client
                                 DockHardpoint = solar.DockSpheres[0].Hardpoint,
                                 TriggerRadius = solar.DockSpheres[0].Radius
                             });
+                        }
+                        if (solar.Hitpoints > 0)
+                        {
+                            newobj.AddComponent(new CHealthComponent(newobj)
+                                { CurrentHealth = objInfo.Loadout.Health, MaxHealth = solar.Hitpoints });
                         }
                     }
                     else
@@ -1046,7 +1056,7 @@ namespace LibreLancer.Client
         void IClientPlayer.StopShip() =>
             RunSync(() => gp.StopShip());
 
-        void IClientPlayer.MarkImportant(int id)
+        void IClientPlayer.MarkImportant(int id, bool important)
         {
             RunSync(() =>
             {
@@ -1054,7 +1064,16 @@ namespace LibreLancer.Client
                 if (o == null)
                     FLLog.Warning("Client", $"Could not find obj {id} to mark as important");
                 else
-                    o.Flags |= GameObjectFlags.Important;
+                {
+                    if (important)
+                    {
+                        o.Flags |= GameObjectFlags.Important;
+                    }
+                    else
+                    {
+                        o.Flags &= ~GameObjectFlags.Important;
+                    }
+                }
             });
         }
 

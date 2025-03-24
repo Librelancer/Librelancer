@@ -1959,6 +1959,12 @@ namespace LibreLancer
                 obj.CRC = FLHash.CreateID(obj.Nickname);
                 obj.LODRanges = arch.LODRanges;
                 obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
+                obj.Hitpoints = arch.Hitpoints ?? -1;
+                if (!arch.Destructible ||
+                    float.IsInfinity(obj.Hitpoints))
+                {
+                    obj.Hitpoints = -1;
+                }
                 Archetypes.Add(obj);
             }
         }

@@ -31,17 +31,23 @@ namespace LibreLancer.Missions.Actions
         {
             var sol = script.Solars[Solar];
             var arch = sol.Archetype;
+            runtime.ObjectSpawned(sol.Nickname);
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.Space.World.SpawnSolar(
+                var obj = runtime.Player.Space.World.SpawnSolar(
                     sol.Nickname,
                     arch,
                     sol.Loadout,
+                    sol.Faction,
                     sol.Position,
                     sol.Orientation,
                     sol.StringId,
                     sol.Base
                     );
+                var dstComp = obj.GetComponent<SDestroyableComponent>();
+                dstComp.OnKilled = () => {
+                    runtime.ObjectDestroyed(Solar);
+                };
             });
         }
     }
@@ -68,23 +74,25 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if (Value != 1)
+            runtime.Player.MissionWorldAction(() =>
             {
-                FLLog.Warning("Mission", $"MarkObj val {Value} not implemented");
-                return;
-            }
-            if (script.Ships.TryGetValue(Object, out var ship))
-            {
-                runtime.Player.Space.World.NPCs.NpcDoAction(Object, (o) =>
+                var obj = runtime.Player.Space.World.GameWorld.GetObject(Object);
+                if (obj == null)
                 {
-                    o.Flags |= GameObjectFlags.Important;
-                    runtime.Player.RpcClient.MarkImportant(o.NetID);
-                });
-            }
-            else
-            {
-                FLLog.Warning("Mission", $"Ship not found for MarkObj {Object}");
-            }
+                    FLLog.Warning("Mission", $"Object not found for MarkObj `{Object}`");
+                    return;
+                }
+                if (Value != 0)
+                {
+                    obj.Flags |= GameObjectFlags.Important;
+                    runtime.Player.RpcClient.MarkImportant(obj.NetID, true);
+                }
+                else
+                {
+                    obj.Flags &= ~GameObjectFlags.Important;
+                    runtime.Player.RpcClient.MarkImportant(obj.NetID, false);
+                }
+            });
         }
     }
 
@@ -98,7 +106,7 @@ namespace LibreLancer.Missions.Actions
             var ship = script.Ships[msnShip];
             var npcDef = script.NPCs[ship.NPC];
             script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
-            runtime.NpcSpawned(ship.Nickname);
+            runtime.ObjectSpawned(ship.Nickname);
             if (shipArch == null)
             {
                 shipArch = runtime.Player.Game.GameData.Ini.NPCShips.ShipArches.First(x =>
@@ -163,10 +171,11 @@ namespace LibreLancer.Missions.Actions
                     commHead, commBody, commHelmet,
                     ld, pilot, pos, orient, runtime);
                 var npcComp = obj.GetComponent<SNPCComponent>();
-                npcComp.OnKilled = () => {
-                    runtime.NpcKilled(msnShip);
-                };
                 npcComp.SetState(state);
+                var dstComp = obj.GetComponent<SDestroyableComponent>();
+                dstComp.OnKilled = () => {
+                    runtime.ObjectDestroyed(msnShip);
+                };
             });
         }
     }
@@ -307,7 +316,7 @@ namespace LibreLancer.Missions.Actions
         {
             if (script.Ships.TryGetValue(Target, out var ship))
             {
-                runtime.NpcKilled(ship.Nickname);
+                runtime.ObjectDestroyed(ship.Nickname);
                 runtime.Player.MissionWorldAction(() => { runtime.Player.Space.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target), false); });
             }
         }

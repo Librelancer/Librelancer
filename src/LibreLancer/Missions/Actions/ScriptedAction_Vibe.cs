@@ -105,9 +105,9 @@ namespace LibreLancer.Missions.Actions
             if (!runtime.Labels.TryGetValue(Label1, out var l1) ||
                 !runtime.Labels.TryGetValue(Label2, out var l2))
                 return;
-            foreach (var ship1 in l1.Ships)
+            foreach (var ship1 in l1.Objects)
             {
-                foreach (var ship2 in l2.Ships)
+                foreach (var ship2 in l2.Objects)
                 {
                     SetVibe(runtime, ship1, ship2, Vibe);
                 }
@@ -141,7 +141,7 @@ namespace LibreLancer.Missions.Actions
         {
             if (!runtime.Labels.TryGetValue(Label, out var l))
                 return;
-            foreach (var labelShip in l.Ships)
+            foreach (var labelShip in l.Objects)
                 SetVibe(runtime, Ship, labelShip, Vibe);
         }
 
@@ -172,7 +172,7 @@ namespace LibreLancer.Missions.Actions
         {
             if (!runtime.Labels.TryGetValue(Label, out var l))
                 return;
-            foreach (var labelShip in l.Ships)
+            foreach (var labelShip in l.Objects)
                 SetVibe(runtime, labelShip, Ship, Vibe);
         }
 

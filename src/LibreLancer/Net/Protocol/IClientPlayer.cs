@@ -20,7 +20,7 @@ public interface IClientPlayer
     void SpawnProjectiles(ProjectileSpawn[] projectiles);
     void UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations);
     void UpdateReputations(NetReputation[] reps);
-    void UpdateInventory(long credits, ulong shipworth, NetLoadout ship);
+    void UpdateInventory(long credits, ulong shipWorth, ulong netWorth, NetLoadout ship);
     void UpdateSlotCount(int slot, int count);
     void DeleteSlot(int slot);
     void SpawnObjects(ObjectSpawnInfo[] objects);
@@ -29,7 +29,7 @@ public interface IClientPlayer
     void DestroyMissile(int id, bool explode);
     void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships);
     void UpdateThns(NetThnInfo thns);
-    void SetObjective(NetObjective objective);
+    void SetObjective(NetObjective objective, bool history);
     void Killed();
     void DespawnObject(int id, bool explode);
     void PlaySound(string sound);
@@ -43,7 +43,7 @@ public interface IClientPlayer
     void UpdateFormation(NetFormation formation);
     void TradelaneActivate(uint id, bool left);
     void TradelaneDeactivate(uint id, bool left);
-    void MarkImportant(int objId);
+    void MarkImportant(int objId, bool important);
     [Channel(1)]
     void ReceiveChatMessage(ChatCategory category, BinaryChatMessage player, BinaryChatMessage message);
     void PopupOpen(int title, int contents, string id);

@@ -21,10 +21,6 @@ namespace LibreLancer.Server.Components
         private NPCManager manager;
         public MissionRuntime MissionRuntime;
 
-        public Action<GameObject, GameObject> ProjectileHitHook;
-        public Action OnKilled;
-
-
         private GameData.Pilot Pilot;
         private StateGraph _stateGraph;
 
@@ -39,10 +35,7 @@ namespace LibreLancer.Server.Components
             return tableRow[(int) column];
         }
 
-        public void OnProjectileHit(GameObject attacker)
-        {
-            ProjectileHitHook?.Invoke(Parent, attacker);
-        }
+
 
         public SNPCComponent(GameObject parent, NPCManager manager, StateGraph stateGraph) : base(parent)
         {
@@ -57,12 +50,6 @@ namespace LibreLancer.Server.Components
                 component.Active = false;
         }
 
-
-        public void Killed()
-        {
-            OnKilled?.Invoke();
-            manager.Despawn(Parent, true);
-        }
         public void Docked()
         {
             manager.Despawn(Parent, false);

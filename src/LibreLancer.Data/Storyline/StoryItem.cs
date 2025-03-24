@@ -17,6 +17,7 @@ public partial class StoryItem
     [Entry("skip", Presence = true)] public bool Skip;
     [Entry("acceptance", Presence = true)] public bool Acceptance;
     [Entry("mission")] public string Mission;
+    [Entry("cash_up")] public int CashUp;
 
     public List<StoryAction> Actions = new List<StoryAction>();
 

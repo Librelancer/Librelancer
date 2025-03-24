@@ -20,6 +20,7 @@ namespace LibreLancer.GameData
         public float[] LODRanges;
         public List<SeparablePart> SeparableParts = new List<SeparablePart>();
         public float SolarRadius;
+        public float Hitpoints;
 
         public bool IsUpdatableSolar()
         {

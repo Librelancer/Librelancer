@@ -83,14 +83,14 @@ namespace LibreLancer.Missions
                 var obj = Player.Space.World.GameWorld.GetObject(target);
                 if (obj != null)
                 {
-                    if (obj.TryGetComponent <SNPCComponent>(out var comp))
+                    if (obj.TryGetComponent <SHealthComponent>(out var comp))
                     {
-                        //Needs a fix for solars I think or the player
                         comp.ProjectileHitHook = OnProjectileHit;
                     }
                     else
                     {
-                        FLLog.Error("Mission", $"Cnd_ProjHit won't register for not npc {target}");
+                        // This could still be wrong (?)
+                        FLLog.Error("Mission", $"Cnd_ProjHit won't register for invincible {target}");
                     }
                 }
                 else
@@ -301,7 +301,7 @@ namespace LibreLancer.Missions
             MsnEvent(new CharSelectEvent(name, room, _base));
         }
 
-        public void NpcSpawned(string ship)
+        public void ObjectSpawned(string ship)
         {
             foreach (var l in Labels.Values)
             {
@@ -309,13 +309,13 @@ namespace LibreLancer.Missions
             }
         }
 
-        public void NpcKilled(string ship)
+        public void ObjectDestroyed(string nickname)
         {
             foreach (var l in Labels.Values)
             {
-                l.Destroyed(ship);
+                l.Destroyed(nickname);
             }
-            MsnEvent(new DestroyedEvent(ship));
+            MsnEvent(new DestroyedEvent(nickname));
         }
 
         public void TradelaneEntered(string ship, string pointA, string pointB)
