@@ -34,13 +34,27 @@ namespace LibreLancer.Net.Protocol
         {
             var pkt = packetTypes.IndexOf(p.GetType());
             if(pkt == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
-            outPacket.PutVariableUInt32((uint) pkt);
+            if (pkt > 254)
+            {
+                outPacket.Put((byte)255);
+                outPacket.PutVariableUInt32((uint)(pkt - 255));
+            }
+            else
+            {
+                outPacket.Put((byte)pkt);
+            }
             p.WriteContents(outPacket);
         }
 
         public static IPacket Read(PacketReader inPacket)
         {
-            return (IPacket)parsers[(int)inPacket.GetVariableUInt32()](inPacket);
+            var b1 = inPacket.GetByte();
+            uint pkt = b1;
+            if (b1 == 255)
+            {
+                pkt += inPacket.GetVariableUInt32();
+            }
+            return (IPacket)parsers[(int)pkt](inPacket);
         }
 
 #if DEBUG
