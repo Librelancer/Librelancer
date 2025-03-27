@@ -463,6 +463,11 @@ World Time: {12:F2}
                 container.Children.Add(IndicatorLayer);
             }
 
+            public int CurrentRank => g.session.CurrentRank;
+            public double NetWorth => (double)g.session.NetWorth;
+            public double NextLevelWorth => (double)g.session.NextLevelWorth;
+            public PlayerStats Statistics => g.session.Statistics;
+
             [WattleScriptHidden] public WidgetTemplate Reticle;
             [WattleScriptHidden] public WidgetTemplate UnselectedArrow;
             [WattleScriptHidden] public WidgetTemplate SelectedArrow;

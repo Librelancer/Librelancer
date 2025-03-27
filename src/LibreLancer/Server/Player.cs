@@ -229,6 +229,7 @@ namespace LibreLancer.Server
                 player.RpcClient.OnPlayerJoin(ID, Name);
             rpcClient.ListPlayers(Character.Admin);
             if (sg != null) InitStory(sg);
+            rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
             if (Base != null) {
                 PlayerEnterBase();
             } else {
@@ -342,6 +343,12 @@ namespace LibreLancer.Server
                 msnRuntime.Update(0.0);
             }
         }
+
+        public void UpdateProgress()
+        {
+            rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
+        }
+
         void InitStory(Data.Save.SaveGame sg)
         {
             var msn = sg.StoryInfo?.Mission ?? "No_Mission";
@@ -492,6 +499,7 @@ namespace LibreLancer.Server
         {
             using var c= Character.BeginTransaction();
             c.UpdateRank(Character.Rank + 1);
+            rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
         }
 
         void IServerPlayer.RequestCharacterDB()

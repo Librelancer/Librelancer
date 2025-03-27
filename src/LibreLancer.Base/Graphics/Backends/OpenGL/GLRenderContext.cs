@@ -354,6 +354,10 @@ class GLRenderContext : IRenderContext
             {
                 convVp.Y = lastHeight - convVp.Y - convVp.Height;
             }
+            else if (requested.RenderTarget is GLRenderTarget2D r2d)
+            {
+                convVp.Y = r2d.Height - convVp.Y - convVp.Height;
+            }
             if (convVp != applied.ScissorRect)
             {
                 if (convVp.Width < 1) convVp.Width = 1;

@@ -7,6 +7,7 @@ using LibreLancer;
 using LibreLancer.Interface;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Client;
 using LibreLancer.Infocards;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
@@ -188,6 +189,23 @@ namespace InterfaceEdit
         static readonly NavbarButtonInfo trader = new NavbarButtonInfo("IDS_HOTSPOT_COMMODITYTRADER_ROOM", "Trader");
         static readonly NavbarButtonInfo equip = new NavbarButtonInfo("IDS_HOTSPOT_EQUIPMENTDEALER_ROOM", "Equipment");
         static readonly NavbarButtonInfo shipDealer = new NavbarButtonInfo("IDS_HOTSPOT_SHIPDEALER_ROOM", "ShipDealer");
+
+        public int CurrentRank = 1;
+        public double NetWorth = 93884;
+        public double NextLevelWorth = 0;
+
+        public PlayerStats Statistics = new()
+        {
+            BasesVisited = 3,
+            SystemsVisited = 2,
+            JumpHolesFound = 1,
+            TotalMissions = 4,
+            TotalKills = 37,
+            FreightersKilled = 32,
+            FightersKilled =  2,
+            BattleshipsKilled = 1,
+            TransportsKilled = 2
+        };
 
         public bool HasBar = true;
         public bool HasTrader = true;

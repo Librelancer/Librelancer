@@ -10,8 +10,8 @@ namespace LibreLancer.Interface
     //Output of InterfaceEdit, works OK with version control
     public class InterfaceTextBundle
     {
-        public SortedDictionary<string, string> db { get; set; } = new SortedDictionary<string, string>();
-        
+        public SortedDictionary<string, byte[]> db { get; set; } = new();
+
         public string ToJSON()
         {
             return JsonSerializer.Serialize(this, new JsonSerializerOptions() {WriteIndented = true});
@@ -21,25 +21,26 @@ namespace LibreLancer.Interface
         {
             return db.ContainsKey(key);
         }
-        
+
         public static InterfaceTextBundle FromJSON(string text)
         {
             //Quicker to use JsonDocument than to spin up a serializer
             var doc = JsonDocument.Parse(text);
             var tb = new InterfaceTextBundle();
             var db = doc.RootElement.GetProperty("db");
-            foreach (var kv in db.EnumerateObject()) {
-                tb.db[kv.Name] = kv.Value.GetString();
+            foreach (var kv in db.EnumerateObject())
+            {
+                tb.db[kv.Name] = kv.Value.GetBytesFromBase64();
             }
             return tb;
         }
-        
+
         public void AddStringCompressed(string key, string value)
         {
             var bytes = GetBytes(value);
-            db.Add(key, Convert.ToBase64String(bytes));
+            db.Add(key, bytes);
         }
-        
+
         public static byte[] GetBytes(string s)
         {
             using (var strm = new MemoryStream())
@@ -55,7 +56,7 @@ namespace LibreLancer.Interface
 
         public string GetStringCompressed(string key)
         {
-            using (var strmIn = new MemoryStream(Convert.FromBase64String(db[key])))
+            using (var strmIn = new MemoryStream(db[key]))
             {
                 using (var strmOut = new MemoryStream())
                 {

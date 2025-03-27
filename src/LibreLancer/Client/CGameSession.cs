@@ -29,10 +29,12 @@ namespace LibreLancer.Client
     public class CGameSession : IClientPlayer
     {
         public long Credits;
+        public int CurrentRank;
         public ulong ShipWorth;
-        public ulong NetWorth;
+        public long NetWorth;
+        public long NextLevelWorth;
         public Ship PlayerShip;
-        public List<string> PlayerComponents = new List<string>();
+        public PlayerStats Statistics = new();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
         public DynamicThn Thns = new();
@@ -153,6 +155,19 @@ namespace LibreLancer.Client
         public void RoomEntered(string room, string bse)
         {
             rpcServer.OnLocationEnter(bse, room);
+        }
+
+        void IClientPlayer.UpdateStatistics(NetPlayerStatistics stats)
+        {
+            Statistics.TotalMissions = stats.TotalMissions;
+            Statistics.TotalKills = stats.TotalKills;
+            Statistics.SystemsVisited = stats.SystemsVisited;
+            Statistics.BasesVisited = stats.BasesVisited;
+            Statistics.JumpHolesFound = stats.JumpHolesFound;
+            Statistics.FightersKilled = stats.FightersKilled;
+            Statistics.FreightersKilled = stats.FreightersKilled;
+            Statistics.TransportsKilled = stats.TransportsKilled;
+            Statistics.BattleshipsKilled = stats.BattleshipsKilled;
         }
 
         void IClientPlayer.SetPreloads(PreloadObject[] preloadObjects) => Preloads = preloadObjects;
@@ -758,7 +773,7 @@ namespace LibreLancer.Client
         {
             Credits = credits;
             ShipWorth = shipWorth;
-            NetWorth = netWorth;
+            NetWorth = (long)netWorth;
             SetSelfLoadout(loadout);
             if (OnUpdateInventory != null)
             {
@@ -766,6 +781,12 @@ namespace LibreLancer.Client
                 if (gp == null && OnUpdatePlayerShip != null)
                     uiActions.Enqueue(OnUpdatePlayerShip);
             }
+        }
+
+        void IClientPlayer.UpdateCharacterProgress(int rank, long nextNetWorth)
+        {
+            CurrentRank = rank;
+            NextLevelWorth = nextNetWorth;
         }
 
         public void UpdateSlotCount(int slot, int count)

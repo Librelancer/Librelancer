@@ -7,14 +7,17 @@
 		<Panel Width="429" Height="271" ID="contents">
 			<TextBlock id="title" Anchor="TopCenter" Width="427" Height="40" TextSize="14" Y="2" TextColor="text" Strid="931"></TextBlock>
 			<TextBlock id="reputation" X="18" Width="166" Height="40" TextSize="11" Y="21" TextColor="text" Strid="1586"></TextBlock>
+			<TextBlock id="statsLabel" X="18" Width="566" Height="40" TextSize="11" Y="21" TextColor="text" Strid="1600"></TextBlock>
 			<Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
 			<ListBox id="factions" X="18" Y="52" Width="185" Height="200" ItemHeight="33">
 			</ListBox>
+			<DataTable id="stats" X="210" Y="42" Width="200" Height="207" DisplayRowCount="15" BodyFont="$Normal" BodyTextSize="8" BodyColor="text" BodyHoverColor="text" ShowHeaders="false" ShowColumnBorders="false" ShowRowBorders="false">
+				<DataTable.Columns>
+					<TableColumn Label="name" Data="name" InitialWidthPercent="60" Clip="false" TextAlignment="left" />
+					<TableColumn Label="value" Data="value" InitialWidthPercent="40" Clip="false" TextAlignment="left" />
+				</DataTable.Columns>
+			</DataTable>
 		</Panel>
 	</Panel>
 </Panel>
 </Scene>
-
-
-
-

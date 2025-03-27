@@ -182,6 +182,10 @@ namespace LibreLancer
                 ShipDealer = new ShipDealer(g.session);
             }
 
+            public int CurrentRank => g.session.CurrentRank;
+            public double NetWorth => (double)g.session.NetWorth;
+            public double NextLevelWorth => (double)g.session.NextLevelWorth;
+            public PlayerStats Statistics => g.session.Statistics;
             public bool HasShip() => g.session.PlayerShip != null;
 
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();

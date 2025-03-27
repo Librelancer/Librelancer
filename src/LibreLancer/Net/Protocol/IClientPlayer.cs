@@ -19,6 +19,7 @@ public interface IClientPlayer
     void UpdateAttitude(ObjNetId id, RepAttitude attitude);
     void SpawnProjectiles(ProjectileSpawn[] projectiles);
     void UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations);
+    void UpdateStatistics(NetPlayerStatistics stats);
     void UpdateReputations(NetReputation[] reps);
     void UpdateInventory(long credits, ulong shipWorth, ulong netWorth, NetLoadout ship);
     void UpdateSlotCount(int slot, int count);
@@ -52,4 +53,6 @@ public interface IClientPlayer
     [Channel(1)]
     void OnPlayerLeave(int id, string name);
     void StopShip();
+
+    void UpdateCharacterProgress(int level, long nextNetWorth);
 }

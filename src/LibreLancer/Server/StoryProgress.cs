@@ -37,6 +37,7 @@ public class StoryProgress
             FLLog.Info("Mission", $"SET Next Level Worth: {NextLevelWorth} (+{CurrentStory.CashUp})");
         }
         FLLog.Info("Mission", $"Transitioned from {old} to {next.Nickname}");
+        player.UpdateProgress();
         // Skip if needed
         Update(player);
     }
