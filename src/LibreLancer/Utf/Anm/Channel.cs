@@ -114,7 +114,7 @@ namespace LibreLancer.Utf.Anm
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        int GetOffset(int index, uint mask, int shift)
+        readonly int GetOffset(int index, uint mask, int shift)
         {
             var stride = (header & STRIDE_MASK);
             var off = (header & mask) >> shift;
@@ -122,7 +122,7 @@ namespace LibreLancer.Utf.Anm
         }
 
 
-        public unsafe Vector3 GetPosition(int index)
+        public readonly unsafe Vector3 GetPosition(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if ((header & VEC_TYPE_MASK) != TYPE_VEC3)
@@ -133,7 +133,7 @@ namespace LibreLancer.Utf.Anm
         }
 
 
-        public Quaternion GetQuaternion(int index)
+        public readonly Quaternion GetQuaternion(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             var offset = GetOffset(index, QUAT_OFFSET_MASK, 12);
@@ -153,7 +153,7 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        unsafe Quaternion GetFullQuat(int offset)
+        readonly unsafe Quaternion GetFullQuat(int offset)
         {
             fixed (byte* ptr = buffer.Buffer)
             {
@@ -162,7 +162,7 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        unsafe Quaternion GetQuat0x40(int offset)
+        readonly unsafe Quaternion GetQuat0x40(int offset)
         {
             fixed (byte* ptr = buffer.Buffer)
             {
@@ -182,7 +182,7 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        unsafe Quaternion GetQuat0x80(int offset)
+        readonly unsafe Quaternion GetQuat0x80(int offset)
         {
             fixed (byte* ptr = buffer.Buffer)
             {
@@ -204,7 +204,7 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        int GetIndex(float time, out float t0, out float t1)
+        readonly int GetIndex(float time, out float t0, out float t1)
         {
             if (Interval < 0)
             {
@@ -235,7 +235,7 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        public Vector3 PositionAtTime(float time)
+        public readonly Vector3 PositionAtTime(float time)
         {
             var idx = GetIndex(time, out float t0, out float t1);
             if (idx == FrameCount - 1) return GetPosition(FrameCount - 1);
@@ -245,7 +245,7 @@ namespace LibreLancer.Utf.Anm
             return a + ((b - a) * blend);
         }
 
-        public Quaternion QuaternionAtTime(float time)
+        public readonly Quaternion QuaternionAtTime(float time)
         {
             var idx = GetIndex(time, out float t0, out float t1);
             if (idx == FrameCount - 1) return GetQuaternion(FrameCount - 1);
@@ -254,7 +254,7 @@ namespace LibreLancer.Utf.Anm
             return Quaternion.Slerp(a, b, (time - t0) / (t1 - t0));
         }
 
-        public ChannelFloat FloatAtTime(float time)
+        public readonly ChannelFloat FloatAtTime(float time)
         {
             var idx = GetIndex(time, out float t0, out float t1);
             if (idx == FrameCount - 1)
