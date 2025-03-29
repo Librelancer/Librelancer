@@ -71,6 +71,10 @@ public static class Mp3Encoder
         int mp3buf_size);
 
     [DllImport("libmp3lame")]
+    static extern int lame_encode_buffer(IntPtr gfp, IntPtr buffer_l, IntPtr buffer_r, int numsamples, IntPtr mp3buf,
+        int mp3buf_size);
+
+    [DllImport("libmp3lame")]
     static extern int lame_encode_flush(IntPtr gfp, IntPtr mp3buf, int size);
 
     [DllImport("libmp3lame")]
@@ -164,10 +168,20 @@ public static class Mp3Encoder
                 }
                 else
                 {
-                    write = lame_encode_buffer_interleaved(
-                        lame,
-                        (IntPtr)wav, stereo ? read / 4 : read / 2,
-                        (IntPtr)mp3, 8192);
+                    if (stereo)
+                    {
+                        write = lame_encode_buffer_interleaved(
+                            lame,
+                            (IntPtr)wav, read / 4,
+                            (IntPtr)mp3, 8192);
+                    }
+                    else
+                    {
+                        write = lame_encode_buffer(
+                            lame,
+                            (IntPtr)wav, IntPtr.Zero, read / 2,
+                            (IntPtr)mp3, 8192);
+                    }
                 }
 
                 if (write > 0)
