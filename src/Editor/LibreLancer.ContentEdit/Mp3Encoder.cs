@@ -108,9 +108,9 @@ public static class Mp3Encoder
         log(stereo ? "Stereo" : "Mono");
         log($"Input sample rate: {audio.Frequency}");
 
-        var msgf = VaListCallback.Create((msg) => log($"info: {msg}"));
-        var errorf = VaListCallback.Create((msg) => log($"error: {msg}"));
-        var debugf = VaListCallback.Create((msg) => log($"debug: {msg}"));
+        using var msgf = VaListCallback.Create((msg) => log($"info: {msg}"));
+        using var errorf = VaListCallback.Create((msg) => log($"error: {msg}"));
+        using var debugf = VaListCallback.Create((msg) => log($"debug: {msg}"));
 
         var lame = lame_init();
         lame_set_msgf(lame, msgf.GetFunctionPointer());

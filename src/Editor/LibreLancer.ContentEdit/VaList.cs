@@ -5,7 +5,7 @@ namespace LibreLancer.ContentEdit;
 
 // provides a method that native code can call with (const char*, va_list)
 // which gives a string to C#
-abstract class VaListCallback
+abstract class VaListCallback : IDisposable
 {
     public static VaListCallback Create(Action<string> onCallback)
     {
@@ -46,6 +46,12 @@ abstract class VaListCallback
         }
 
         return ptr;
+    }
+
+    // No-op really but used to keep the pointer in scope
+    public void Dispose()
+    {
+        cb = null;
     }
 
     class libc
