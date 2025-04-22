@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.ImageLib", "src\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj", "{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lancer", "src\lancer\lancer.csproj", "{F25C3752-0AB4-45CA-90DA-EFD276C4322A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibreLancer.Data", "src\LibreLancer.Data\LibreLancer.Data.csproj", "{9B0FD3DC-41D9-4018-AEB3-FC775B3514BE}"
@@ -82,18 +80,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Debug|x64.Build.0 = Debug|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Debug|x86.Build.0 = Debug|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Release|x64.ActiveCfg = Release|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Release|x64.Build.0 = Release|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Release|x86.ActiveCfg = Release|Any CPU
-		{C5A7F58E-2B72-4D74-BA5B-F9C06534AA67}.Release|x86.Build.0 = Release|Any CPU
 		{F25C3752-0AB4-45CA-90DA-EFD276C4322A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F25C3752-0AB4-45CA-90DA-EFD276C4322A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F25C3752-0AB4-45CA-90DA-EFD276C4322A}.Debug|x64.ActiveCfg = Debug|Any CPU

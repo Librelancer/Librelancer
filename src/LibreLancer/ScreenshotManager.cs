@@ -53,8 +53,8 @@ namespace LibreLancer
 					if (toSave.TryDequeue(out s))
                     {
                         using var output = File.Create(s.Filename);
-						ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
-					}
+                        ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
+                    }
 				}
 				Thread.Sleep(100);
 			}

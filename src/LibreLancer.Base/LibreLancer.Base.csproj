@@ -43,6 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
     <PackageReference Include="ZstdSharp.Port" Version="0.8.4" />
   </ItemGroup>
 </Project>

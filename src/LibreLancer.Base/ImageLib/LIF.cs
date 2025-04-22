@@ -49,8 +49,8 @@ public static class LIF
 
         public int CompareTo(Color3b other)
         {
-            uint cA = ((uint)R << 16 | (uint)G << 8 | (uint)B);
-            uint cB = ((uint)other.R << 16 | (uint)other.G << 8 | (uint)other.B);
+            var cA = ((uint)R << 16 | (uint)G << 8 | B);
+            var cB = ((uint)other.R << 16 | (uint)other.G << 8 | other.B);
             return cA < cB ? -1 : cA > cB ? 1 : 0;
         }
     }
@@ -60,9 +60,9 @@ public static class LIF
     static void WriteAlpha(Image image, BinaryWriter writer)
     {
         var blen = image.Width * image.Height * 4;
-        bool alphaChannel = false;
+        var alphaChannel = false;
         // Check if we should write an alpha channel
-        for (int i = 0; i < blen; i += 4)
+        for (var i = 0; i < blen; i += 4)
         {
             if (image.Data[i + 3] != 255)
             {
@@ -76,7 +76,7 @@ public static class LIF
         if (alphaChannel)
         {
             byte lastAlpha = 0;
-            for (int i = 0; i < blen; i += 4)
+            for (var i = 0; i < blen; i += 4)
             {
                 var b = (image.Data[i + 3] - lastAlpha) & 0xFF;
                 lastAlpha = image.Data[i + 3];
@@ -92,9 +92,9 @@ public static class LIF
 
         // Color data
         Color3b prev = new Color3b();
-        int prevIndex = 0;
-        int run = 0;
-        for (int i = 0; i < blen; i += 4)
+        var prevIndex = 0;
+        var run = 0;
+        for (var i = 0; i < blen; i += 4)
         {
             var px = new Color3b(image.Data[i], image.Data[i + 1], image.Data[i + 2]);
             if (px == prev)
@@ -174,9 +174,9 @@ public static class LIF
                     if (lookupIndex == index.Length)
                         lookupIndex = 1;
 
-                    var vr = (int)px.R - prev.R;
-                    var vg = (int)px.G - prev.G;
-                    var vb = (int)px.B - prev.B;
+                    var vr = px.R - prev.R;
+                    var vg = px.G - prev.G;
+                    var vb = px.B - prev.B;
 
                     if (enableD1 &&
                         vr > -3 && vr < 2 &&
@@ -239,22 +239,22 @@ public static class LIF
         paletteCount = 0;
         index[0] = new Color3b();
         index[1] = new Color3b(255, 255, 255);
-        int lookupIndex = 2;
+        var lookupIndex = 2;
         Color3b prev = new Color3b();
-        int cD1 = 0;
+        var cD1 = 0;
 
         var px0 = new Color3b(data[0], data[1], data[2]);
         if (px0 == prev)
             palette[paletteCount++] = px0;
-        bool grayscale = true;
-        for (int i = 0; i < data.Length; i += 4)
+        var grayscale = true;
+        for (var i = 0; i < data.Length; i += 4)
         {
             var px = new Color3b(data[i], data[i + 1], data[i + 2]);
             if (px == prev)
                 continue;
             if (px.R != px.G || px.G != px.B)
                 grayscale = false;
-            int cacheIndex = 0;
+            var cacheIndex = 0;
             for (cacheIndex = 0; cacheIndex < index.Length; cacheIndex++)
             {
                 if (px == index[cacheIndex])
@@ -289,9 +289,9 @@ public static class LIF
                 index[lookupIndex++] = px;
                 if (lookupIndex == index.Length)
                     lookupIndex = 1;
-                var vr = (int)px.R - prev.R;
-                var vg = (int)px.G - prev.G;
-                var vb = (int)px.B - prev.B;
+                var vr = px.R - prev.R;
+                var vg = px.G - prev.G;
+                var vb = px.B - prev.B;
                 if (vr > -3 && vr < 2 &&
                     vg > -3 && vg < 2 &&
                     vb > -3 && vb < 2)
@@ -339,8 +339,8 @@ public static class LIF
         WriteAlpha(image, writer);
 
         var prev = palette[0];
-        int run = 0;
-        for (int i = 0; i < blen; i += 4)
+        var run = 0;
+        for (var i = 0; i < blen; i += 4)
         {
             var px = new Color3b(image.Data[i], image.Data[i + 1], image.Data[i + 2]);
             if (px == prev)
@@ -381,7 +381,7 @@ public static class LIF
 
     static int MaxUnused(ref BitArray512 array)
     {
-        for (int i = 0; i < 256; i++)
+        for (var i = 0; i < 256; i++)
         {
             if (!array[i])
                 return i;
@@ -395,10 +395,10 @@ public static class LIF
     {
         BitArray512 used = new BitArray512();
         Span<Color3b> newColors = stackalloc Color3b[48];
-        int newColorIndex = 0;
+        var newColorIndex = 0;
         modificationCount = 0;
         newLength = 0;
-        for (int i = 0; i < data.Length; i += 4)
+        for (var i = 0; i < data.Length; i += 4)
         {
             var px = new Color3b(data[i], data[i + 1], data[i + 2]);
             var idx = mainPalette.IndexOf(px);
@@ -422,7 +422,7 @@ public static class LIF
             }
         }
 
-        for (int i = 0; i < mainPalette.Length; i++)
+        for (var i = 0; i < mainPalette.Length; i++)
         {
             if (used[i])
             {
@@ -431,7 +431,7 @@ public static class LIF
             }
         }
 
-        for (int i = 0; i < newColorIndex; i++)
+        for (var i = 0; i < newColorIndex; i++)
         {
             var idx = MaxUnused(ref used);
             if (idx == -1)
@@ -444,7 +444,7 @@ public static class LIF
             if (newLength < idx + 1)
                 newLength = idx + 1;
             newPalette[idx] = newColors[i];
-            modifications[modificationCount++] = new PaletteModification()
+            modifications[modificationCount++] = new PaletteModification
                 { Index = (byte)idx, NewColor = newColors[i] };
         }
 
@@ -454,9 +454,9 @@ public static class LIF
     static void WriteGray(Image image, BinaryWriter writer)
     {
         WriteAlpha(image, writer);
-        int blen = image.Width * image.Height * 4;
-        int lastG = 0;
-        for (int i = 0; i < blen; i += 4)
+        var blen = image.Width * image.Height * 4;
+        var lastG = 0;
+        for (var i = 0; i < blen; i += 4)
         {
             writer.Write((byte)(image.Data[i] - lastG));
         }
@@ -464,7 +464,7 @@ public static class LIF
 
     static bool IsGray(Image image)
     {
-        for (int i = 0; i < image.Data.Length; i += 4)
+        for (var i = 0; i < image.Data.Length; i += 4)
         {
             if(image.Data[i] != image.Data[i + 1] || image.Data[i + 1] != image.Data[i + 2])
                 return false;
@@ -476,7 +476,7 @@ public static class LIF
     {
         var mW = mipLevels[0].Width;
         var mH = mipLevels[0].Height;
-        for (int i = 0; i < mipLevels.Length; i++)
+        for (var i = 0; i < mipLevels.Length; i++)
         {
             if (mipLevels[i].Width != mW ||
                 mipLevels[i].Height != mH)
@@ -492,16 +492,16 @@ public static class LIF
         writer.Write(mipLevels[0].Width);
         writer.Write(mipLevels[0].Height);
         Span<Color3b> mainPalette = stackalloc Color3b[256];
-        var mode = AnalyzeTexture(mipLevels[0].Width, mipLevels[0].Height, mipLevels[0].Data, mainPalette, out int paletteCount);
+        var mode = AnalyzeTexture(mipLevels[0].Width, mipLevels[0].Height, mipLevels[0].Data, mainPalette, out var paletteCount);
         var levels = ((int)mode << 4) | mipLevels.Length;
         writer.Write((byte)levels);
         Span<Color3b> index = stackalloc Color3b[mode == EncodeMethod.ColorIdx2 ? 192 : 128];
         index[0] = new Color3b();
         index[1] = new Color3b(255, 255, 255);
-        int lookupIndex = 2;
+        var lookupIndex = 2;
         if (mode == EncodeMethod.Color || mode == EncodeMethod.ColorIdx2)
         {
-            for (int i = 0; i < mipLevels.Length; i++)
+            for (var i = 0; i < mipLevels.Length; i++)
             {
                 WriteColor(writer, index, ref lookupIndex, mode == EncodeMethod.Color, mipLevels[i]);
             }
@@ -509,7 +509,7 @@ public static class LIF
         else if (mode == EncodeMethod.Gray)
         {
             WriteGray(mipLevels[0], writer);
-            for (int i = 1; i < mipLevels.Length; i++)
+            for (var i = 1; i < mipLevels.Length; i++)
             {
                 if (IsGray(mipLevels[i]))
                 {
@@ -528,7 +528,7 @@ public static class LIF
             mainPalette.Slice(0, paletteCount).Sort();
             writer.Write((byte)paletteCount);
             var palPrev = new Color3b();
-            for (int i = 0; i < paletteCount; i++)
+            for (var i = 0; i < paletteCount; i++)
             {
                 writer.Write((byte)(mainPalette[i].R - palPrev.R));
                 writer.Write((byte)(mainPalette[i].G - palPrev.G));
@@ -540,13 +540,13 @@ public static class LIF
 
             Span<Color3b> mipPalette = stackalloc Color3b[256];
             Span<PaletteModification> paletteChanges = stackalloc PaletteModification[48];
-            for (int i = 1; i < mipLevels.Length; i++)
+            for (var i = 1; i < mipLevels.Length; i++)
             {
                 if (ModifyPalette(mipLevels[i].Data, mainPalette, mipPalette, paletteChanges,
-                        out int modCount, out int mipPaletteLength))
+                        out var modCount, out var mipPaletteLength))
                 {
                     writer.Write((byte)modCount);
-                    for (int j = 0; j < modCount; j++)
+                    for (var j = 0; j < modCount; j++)
                     {
                         writer.Write(paletteChanges[j].Index);
                         writer.Write(paletteChanges[j].NewColor.R);
@@ -571,7 +571,7 @@ public static class LIF
         if (alphaChannel)
         {
             byte lastAlpha = 0;
-            for (int i = 0; i < pixels.Length; i += 4)
+            for (var i = 0; i < pixels.Length; i += 4)
             {
                 var b = reader.ReadByte();
                 lastAlpha = (byte)(lastAlpha + b);
@@ -580,7 +580,7 @@ public static class LIF
         }
         else
         {
-            for (int i = 0; i < pixels.Length; i += 4)
+            for (var i = 0; i < pixels.Length; i += 4)
             {
                 pixels[i + 3] = 255;
             }
@@ -591,14 +591,14 @@ public static class LIF
     static Image ReadSurface(int width, int height, Span<Color3b> index, ref int lookupIndex, bool enableD1,
         BinaryReader reader)
     {
-        int blen = width * height * 4;
+        var blen = width * height * 4;
         var pixels = new byte[blen];
         var alphaChannel = ReadAlpha(reader, pixels);
 
         //Color data
-        int run = 0;
+        var run = 0;
         Color3b px = new Color3b();
-        for (int i = 0; i < blen; i += 4)
+        for (var i = 0; i < blen; i += 4)
         {
             if (run > 0)
             {
@@ -686,18 +686,18 @@ public static class LIF
             pixels[i + 2] = px.B;
         }
 
-        return new Image() { Width = (int)width, Height = (int)height, Data = pixels, Alpha = alphaChannel };
+        return new Image { Width = width, Height = height, Data = pixels, Alpha = alphaChannel };
     }
 
     static Image ReadPaletted(Span<Color3b> palette, BinaryReader reader, int width, int height)
     {
-        int blen = width * height * 4;
+        var blen = width * height * 4;
         var pixels = new byte[blen];
         var alphaChannel = ReadAlpha(reader, pixels);
 
-        int run = 0;
+        var run = 0;
         Color3b px = palette[0];
-        for (int i = 0; i < blen; i += 4)
+        for (var i = 0; i < blen; i += 4)
         {
             if (run > 0)
             {
@@ -729,23 +729,23 @@ public static class LIF
             pixels[i + 2] = px.B;
         }
 
-        return new Image() { Width = width, Height = height, Data = pixels, Alpha = alphaChannel };
+        return new Image { Width = width, Height = height, Data = pixels, Alpha = alphaChannel };
     }
 
     static Image ReadGray(BinaryReader reader, int width, int height)
     {
-        int blen = width * height * 4;
+        var blen = width * height * 4;
         var pixels = new byte[blen];
         var alphaChannel = ReadAlpha(reader, pixels);
-        int lastB = 0;
-        for (int i = 0; i < blen; i += 4)
+        var lastB = 0;
+        for (var i = 0; i < blen; i += 4)
         {
             var b = (byte)(lastB + reader.ReadByte());
             pixels[i] = b;
             pixels[i + 1] = b;
             pixels[i + 2] = b;
         }
-        return new Image() { Width = width, Height = height, Data = pixels, Alpha = alphaChannel };
+        return new Image { Width = width, Height = height, Data = pixels, Alpha = alphaChannel };
     }
 
     public static Image[] ImagesFromStream(Stream stream)
@@ -758,18 +758,18 @@ public static class LIF
         var width = reader.ReadInt32();
         var height = reader.ReadInt32();
         var b = reader.ReadByte();
-        int mipmapCount = (b & 0xF);
+        var mipmapCount = (b & 0xF);
         var mode = (EncodeMethod)((b >> 4) & 0xF);
 
         var images = new Image[mipmapCount];
         Span<Color3b> index = stackalloc Color3b[mode == EncodeMethod.ColorIdx2 ? 192 : 128];
         index[0] = new Color3b();
         index[1] = new Color3b(255, 255, 255);
-        int lookupIndex = 2;
+        var lookupIndex = 2;
 
         if (mode == EncodeMethod.Color || mode == EncodeMethod.ColorIdx2)
         {
-            for (int i = 0; i < images.Length; i++)
+            for (var i = 0; i < images.Length; i++)
             {
                 images[i] = ReadSurface(width, height, index, ref lookupIndex, mode == 0, reader);
                 width /= 2;
@@ -781,13 +781,13 @@ public static class LIF
         else if (mode == EncodeMethod.Gray)
         {
             images[0] = ReadGray(reader, width, height);
-            for (int i = 1; i < images.Length; i++)
+            for (var i = 1; i < images.Length; i++)
             {
                 width /= 2;
                 height /= 2;
                 if (width < 1) width = 1;
                 if (height < 1) height = 1;
-                bool isGrey = reader.ReadByte() == 0;
+                var isGrey = reader.ReadByte() == 0;
                 if (isGrey)
                     images[i] = ReadGray(reader, width, height);
                 else
@@ -800,7 +800,7 @@ public static class LIF
             Span<Color3b> mipPalette = stackalloc Color3b[256];
             var mainCount = reader.ReadByte();
             var palPrev = new Color3b();
-            for (int i = 0; i < mainCount; i++)
+            for (var i = 0; i < mainCount; i++)
             {
                 mainPalette[i].R = (byte)(palPrev.R + reader.ReadByte());
                 mainPalette[i].G = (byte)(palPrev.G + reader.ReadByte());
@@ -809,7 +809,7 @@ public static class LIF
             }
 
             images[0] = ReadPaletted(mainPalette, reader, width, height);
-            for (int i = 1; i < images.Length; i++)
+            for (var i = 1; i < images.Length; i++)
             {
                 width /= 2;
                 height /= 2;
@@ -824,10 +824,10 @@ public static class LIF
                 else
                 {
                     mainPalette.CopyTo(mipPalette);
-                    for (int j = 0; j < mods; j++)
+                    for (var j = 0; j < mods; j++)
                     {
                         var idx = reader.ReadByte();
-                        var c = new Color3b()
+                        var c = new Color3b
                         {
                             R = reader.ReadByte(),
                             G = reader.ReadByte(),
@@ -849,7 +849,7 @@ public static class LIF
         var tex = new Texture2D(context, image[0].Width, image[0].Height, image.Length > 1, SurfaceFormat.Bgra8);
         tex.SetData(image[0].Data);
         tex.WithAlpha = image[0].Alpha;
-        for (int i = 1; i < image.Length; i++)
+        for (var i = 1; i < image.Length; i++)
             tex.SetData(i, null, image[i].Data, 0, image[i].Data.Length);
         return tex;
     }

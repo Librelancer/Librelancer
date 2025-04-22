@@ -23,7 +23,6 @@
         <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
         <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
         <ProjectReference Include="..\..\LibreLancer.Data.Generator\LibreLancer.Data.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-        <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
         <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
         <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
         <ProjectReference Include="..\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />

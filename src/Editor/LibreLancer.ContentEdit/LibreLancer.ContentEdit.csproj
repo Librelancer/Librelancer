@@ -18,7 +18,6 @@
       <ProjectReference Include="..\..\..\extern\SimpleMesh\SimpleMesh\SimpleMesh.csproj" />
       <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
       <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
-      <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
       <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
     </ItemGroup>
 
