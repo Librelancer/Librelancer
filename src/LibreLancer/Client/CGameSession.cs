@@ -261,7 +261,6 @@ namespace LibreLancer.Client
             var elapsed = (uint)((Game.TotalTime - totalTimeForTick) / (1 / 60.0f));
             FLLog.Info("Player", $"{elapsed} ticks elapsed after load");
             WorldTick += elapsed;
-            gp.world.SetCrcTranslation(crcMap);
         }
 
         public void GameplayUpdate(SpaceGameplay gp, double delta)
@@ -455,6 +454,7 @@ namespace LibreLancer.Client
 
         public void WorldReady()
         {
+            gp.world.SetCrcTranslation(crcMap);
             while (gameplayActions.TryDequeue(out var act))
                 act();
         }
@@ -811,6 +811,30 @@ namespace LibreLancer.Client
         {
         }
 
+        private ObjNetId undockFromTarget = default;
+        private uint undockFromTick;
+
+        void IClientPlayer.UndockFrom(ObjNetId netId)
+        {
+            RunSync(() =>
+            {
+                var obj = gp.world.GetObject(netId);
+                if(obj != null)
+                {
+                    gp.pilotcomponent.Undock(obj);
+                }
+            });
+        }
+
+        void IClientPlayer.RunDirectives(MissionDirective[] directives)
+        {
+            FLLog.Debug("Client", "Received directives for player");
+            RunSync(() =>
+            {
+                gp.Directives.SetDirectives(directives);
+            });
+        }
+
         void IClientPlayer.SpawnObjects(ObjectSpawnInfo[] objects)
         {
             RunSync(() =>
@@ -831,7 +855,6 @@ namespace LibreLancer.Client
                             newobj.AddComponent(new CDockComponent(newobj)
                             {
                                 Action = objInfo.Dock,
-                                DockAnimation = solar.DockSpheres[0].Script,
                                 DockHardpoint = solar.DockSpheres[0].Hardpoint,
                                 TriggerRadius = solar.DockSpheres[0].Radius
                             });
@@ -859,6 +882,7 @@ namespace LibreLancer.Client
 
                     newobj.Name = objInfo.Name;
                     newobj.NetID = objInfo.ID.Value;
+                    newobj.Nickname = objInfo.Nickname;
                     newobj.SetLocalTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
                     var head = Game.GameData.Bodyparts.Get(objInfo.CommHead);
                     var body = Game.GameData.Bodyparts.Get(objInfo.CommBody);

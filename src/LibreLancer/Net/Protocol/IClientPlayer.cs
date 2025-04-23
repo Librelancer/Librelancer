@@ -1,5 +1,6 @@
 using System.Numerics;
 using LibreLancer.GameData;
+using LibreLancer.Missions;
 using LibreLancer.World;
 
 namespace LibreLancer.Net.Protocol;
@@ -55,4 +56,6 @@ public interface IClientPlayer
     void StopShip();
 
     void UpdateCharacterProgress(int level, long nextNetWorth);
+    void UndockFrom(ObjNetId id);
+    void RunDirectives(MissionDirective[] directives);
 }

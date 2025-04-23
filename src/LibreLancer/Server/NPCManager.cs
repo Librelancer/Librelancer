@@ -96,10 +96,19 @@ namespace LibreLancer.Server
             GameData.Pilot pilot,
             Vector3 position,
             Quaternion orient,
+            string arrivalObj,
             MissionRuntime msn = null
             )
         {
             var ship = World.Server.GameData.Ships.Get(loadout.Archetype);
+            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj);
+            SDockableComponent sdock = null;
+            if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
+            {
+                var p = sdock.GetSpawnPoint(0);
+                position = p.Position;
+                orient = p.Orientation;
+            }
             var obj = new GameObject(ship, World.Server.Resources, false, true);
             obj.Name = name;
             obj.Nickname = nickname;
@@ -132,7 +141,13 @@ namespace LibreLancer.Server
             obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = ship });
             obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SDestroyableComponent(obj, World));
+            obj.AddComponent(new DirectiveRunnerComponent(obj));
             World.OnNPCSpawn(obj);
+            if (sdock != null)
+            {
+                sdock.UndockShip(obj);
+                obj.GetComponent<AutopilotComponent>().Undock(spawnPoint);
+            }
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;
         }

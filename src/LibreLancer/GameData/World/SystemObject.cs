@@ -40,6 +40,7 @@ namespace LibreLancer.GameData.World
         public string Parent;
         public string Voice;
         public string[] SpaceCostume;
+        public string JumpEffect;
 
         //Editor only
         public string Comment;

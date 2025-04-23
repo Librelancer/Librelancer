@@ -113,10 +113,19 @@ namespace LibreLancer.Server
             }
         }
 
+        public void LaunchComplete(GameObject obj)
+        {
+            if (!string.IsNullOrWhiteSpace(obj.Nickname))
+            {
+                Server.LocalPlayer?.MissionRuntime?.LaunchComplete(obj.Nickname);
+            }
+        }
+
         ObjectSpawnInfo BuildSpawnInfo(GameObject obj, GameObject self)
         {
             var info = new ObjectSpawnInfo();
             info.ID = new ObjNetId(obj.NetID);
+            info.Nickname = obj.Nickname;
             info.Name = obj.Name;
             var tr = obj.WorldTransform;
             info.Position = tr.Position;
@@ -204,7 +213,7 @@ namespace LibreLancer.Server
 
         public int PlayerCount;
 
-        public void SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
+        public GameObject SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
         {
             Interlocked.Increment(ref PlayerCount);
             var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
@@ -246,6 +255,7 @@ namespace LibreLancer.Server
             foreach (var o in withAnimations)
                 UpdateAnimations(o, player);
             updatingObjects.Add(obj);
+            return obj;
         }
 
         public void EffectSpawned(GameObject obj)
@@ -463,10 +473,7 @@ namespace LibreLancer.Server
             if (!string.IsNullOrWhiteSpace(dockWith))
             {
                 var act = new DockAction() { Kind = DockKinds.Base, Target = dockWith };
-                gameobj.AddComponent(new SDockableComponent(gameobj, arch.DockSpheres.ToArray())
-                {
-                    Action = act
-                });
+                gameobj.AddComponent(new SDockableComponent(gameobj, act, arch.DockSpheres.ToArray()));
             }
 
             if (arch.Hitpoints > 0)

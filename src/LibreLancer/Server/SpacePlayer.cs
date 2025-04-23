@@ -36,6 +36,14 @@ public class SpacePlayer : ISpacePlayer
         });
     }
 
+    public void RunDirectiveIndex(int index)
+    {
+        world.EnqueueAction(() =>
+        {
+            World.Players[player].GetComponent<SPlayerComponent>().RunDirective(index);
+        });
+    }
+
     public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
 
     public void FireMissiles(MissileFireCmd[] missiles) => world.FireMissiles(missiles, player);

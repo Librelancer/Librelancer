@@ -115,12 +115,12 @@ namespace LibreLancer.Missions.Actions
 
             var archPos = spawnpos ?? ship.Position;
             var orient = spawnorient ?? ship.Orientation;
-            AiState state = null;
+            MissionDirective[] directives = null;
             if (!string.IsNullOrEmpty(objList))
             {
                 if (script.ObjLists.TryGetValue(objList, out var ol))
                 {
-                    state = ol.AiState;
+                    directives = ol.Directives;
                 }
                 else {
                     FLLog.Warning("Mission", $"Missing object list {objList}");
@@ -169,9 +169,9 @@ namespace LibreLancer.Missions.Actions
                     npcDef.Affiliation,
                     shipArch?.StateGraph ?? "FIGHTER",
                     commHead, commBody, commHelmet,
-                    ld, pilot, pos, orient, runtime);
-                var npcComp = obj.GetComponent<SNPCComponent>();
-                npcComp.SetState(state);
+                    ld, pilot, pos, orient, null, runtime);
+                var drComp = obj.GetComponent<DirectiveRunnerComponent>();
+                drComp.SetDirectives(directives);
                 var dstComp = obj.GetComponent<SDestroyableComponent>();
                 dstComp.OnKilled = () => {
                     runtime.ObjectDestroyed(msnShip);

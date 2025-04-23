@@ -773,8 +773,25 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
+                    GameObject undockFrom = world.GameWorld.GetObject(obj.Nickname);
+                    SDockableComponent sd = null;
+                    if (undockFrom?.TryGetComponent(out sd) ?? false)
+                    {
+                        var tr = sd.GetSpawnPoint(0);
+                        Position = tr.Position;
+                        Orientation = tr.Orientation;
+                    }
+                    else
+                    {
+                        undockFrom = null;
+                    }
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
-                    world.SpawnPlayer(this, Position, Orientation);
+                    var pship = world.SpawnPlayer(this, Position, Orientation);
+                    if (undockFrom != null)
+                    {
+                        rpcClient.UndockFrom(undockFrom);
+                        sd!.UndockShip(pship);
+                    }
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();

@@ -1238,7 +1238,8 @@ public class Cnd_Destroyed :
         {
             if (Count <= 0)
             {
-                if (Kind != CndDestroyedKind.ALL)
+                if (Kind != CndDestroyedKind.ALL &&
+                    Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
                 {
                     return !lbl.AnyAlive(); //we just want to know that all ships are gone
                     // M01B -1, EXPLODE rogue base fighter

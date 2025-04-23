@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.GameData.Items;
+using LibreLancer.Missions;
+using LibreLancer.Missions.Directives;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
@@ -43,6 +45,36 @@ namespace LibreLancer.Server.Components
 
         private Dictionary<int, int> priorities = new();
         private BitArray found = new BitArray(512);
+
+        private MissionDirective[] directives;
+        public void SetDirectives(MissionDirective[] directives)
+        {
+            this.directives = directives;
+            Player.RpcClient.RunDirectives(directives);
+        }
+
+        public void RunDirective(int index)
+        {
+            if (directives == null ||
+                index < 0 || index >= directives.Length)
+            {
+                FLLog.Warning("Player", $"Tried to run invalid directive index: {index}");
+                return;
+            }
+            if (directives[index] is MakeNewFormationDirective form)
+            {
+                FormationTools.MakeNewFormation(Parent, form.Formation, form.Ships);
+            }
+            else if (directives[index] is FollowPlayerDirective followPlayer)
+            {
+                FormationTools.MakeNewFormation(Parent, followPlayer.Formation, followPlayer.Ships);
+            }
+            else if (directives[index] is FollowDirective followOther)
+            {
+                var tgtObject = Parent.World.GetObject(followOther.Target);
+                FormationTools.EnterFormation(Parent, tgtObject, followOther.Offset);
+            }
+        }
 
         public void GetUpdates(GameObject[] objs, FetchedDelta[] deltas)
         {

@@ -60,6 +60,7 @@ World Time: {12:F2}
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
         CHealthComponent playerHealth;
+        public DirectiveRunnerComponent Directives;
         public SelectedTargetComponent Selection;
         private ContactList contactList;
 
@@ -120,6 +121,7 @@ World Time: {12:F2}
             pilotcomponent = new AutopilotComponent(player) { LocalPlayer = true };
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
+            Directives = new DirectiveRunnerComponent(player);
             player.AddComponent(Selection);
             //Order components in terms of inputs (very important)
             player.AddComponent(pilotcomponent);
@@ -132,6 +134,7 @@ World Time: {12:F2}
             player.AddComponent(new CExplosionComponent(player, session.PlayerShip.Explosion));
             cargo = new CPlayerCargoComponent(player, session);
             player.AddComponent(cargo);
+            player.AddComponent(Directives);
             FLLog.Debug("Client", $"Spawning self with rotation {session.PlayerOrientation}");
             player.SetLocalTransform(new Transform3D(session.PlayerPosition, session.PlayerOrientation));
             playerHealth = new CHealthComponent(player);
@@ -680,20 +683,24 @@ World Time: {12:F2}
             public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length());
         }
 
-        private void BehaviorChanged(AutopilotBehaviors obj)
+        private void BehaviorChanged(AutopilotBehaviors newBehavior, AutopilotBehaviors oldBehavior)
         {
-            uiApi.SetManeuver(obj switch
+            uiApi.SetManeuver(newBehavior switch
             {
                 AutopilotBehaviors.Dock => "Dock",
                 AutopilotBehaviors.Formation => "Formation",
                 AutopilotBehaviors.Goto => "Goto",
                 _ => "FreeFlight"
             });
-            if (obj != AutopilotBehaviors.Formation &&
+            if (newBehavior != AutopilotBehaviors.Formation &&
                 player.Formation != null &&
                 player.Formation.LeadShip != player)
             {
                 session.SpaceRpc.LeaveFormation();
+            }
+            if (oldBehavior == AutopilotBehaviors.Undock)
+            {
+                shipInput.Throttle = 1;
             }
         }
 

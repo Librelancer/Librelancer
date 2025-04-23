@@ -85,7 +85,7 @@ namespace LibreLancer
             //Find infocard
             sys = g.GameData.Systems.Get(currentBase.System);
             var obj = sys.Objects.FirstOrDefault((o) => o.Base == currentBase);
-            int ids = obj.IdsInfo;
+            int ids = obj?.IdsInfo ?? 0;
             roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
             if (g.GameData.GetRelatedInfocard(ids, g.Fonts, out var ic2))
             {

@@ -927,6 +927,11 @@ namespace LancerEdit
                 {
                     animator.StartAnimation(sc.Key, false);
                 }
+                ImGui.SameLine();
+                if (ImGui.Button(ImGuiExt.IDWithExtra("(Rev)", j++)))
+                {
+                    animator.StartAnimation(sc.Key, false, 0, 1, 0, true);
+                }
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                     ImGui.OpenPopup(popup);
                 if (ImGui.BeginPopupContextItem(popup))

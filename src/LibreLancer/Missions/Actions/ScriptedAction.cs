@@ -10,7 +10,6 @@ using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Net;
 using LibreLancer.Server;
-using LibreLancer.Server.Ai.ObjList;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 
@@ -733,60 +732,57 @@ namespace LibreLancer.Missions.Actions
             section.Entry("Act_GiveObjList", Target, List);
         }
 
-        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        void GiveObjList(GameObject obj, MissionDirective[] directives)
         {
-            if (!script.ObjLists.ContainsKey(List))
+            if (obj.TryGetComponent<SPlayerComponent>(out var player))
             {
-                FLLog.Error("Mission", $"Could not find objlist {List}");
-                return;
+                player.SetDirectives(directives);
             }
-            if (Target.Equals("player", StringComparison.OrdinalIgnoreCase))
+            else if (obj.TryGetComponent<DirectiveRunnerComponent>(out var dr))
             {
-                runtime.Player.MissionWorldAction(() => { ObjListForPlayer(runtime, script); });
-            }
-            else
-            {
-                var ol = script.ObjLists[List].AiState;
-                if (script.Ships.ContainsKey(Target))
-                {
-                    runtime.Player.Space.World.NPCs.NpcDoAction(Target,
-                        (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
-                }
-                else if (script.Formations.TryGetValue(Target, out var formation))
-                {
-                    foreach (var s in formation.Ships)
-                    {
-                        runtime.Player.Space.World.NPCs.NpcDoAction(s,
-                            (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
-                    }
-                }
+                dr.SetDirectives(directives);
             }
         }
 
-        void ObjListForPlayer(MissionRuntime runtime, MissionScript script)
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            var ol = script.ObjLists[List];
-            var pObject = runtime.Player.Space.World.Players[runtime.Player];
-            var world = runtime.Player.Space.World;
-            foreach (var a in ol.Ini.Commands)
+            MissionDirective[] ol;
+            if ("no_ol".Equals(List, StringComparison.OrdinalIgnoreCase))
             {
-                if (a.Command == ObjListCommands.BreakFormation)
+                ol = null;
+            }
+            else
+            {
+                if (!script.ObjLists.ContainsKey(List))
                 {
-                    //Break formation somehow?
+                    FLLog.Error("Mission", $"Could not find objlist {List}");
+                    return;
                 }
-                else if (a.Command == ObjListCommands.FollowPlayer)
+                ol = script.ObjLists[List].Directives;
+            }
+
+            if (script.Formations.TryGetValue(Target, out var formation))
+            {
+                foreach (var s in formation.Ships)
                 {
-                    var newFormation = new ShipFormation(pObject);
-                    pObject.Formation = newFormation;
-                    for (int i = 1; i < a.Entry.Count; i++)
+                    runtime.Player.Space.World.NPCs.NpcDoAction(s,
+                            (npc) => { GiveObjList(npc, ol); });
+                }
+            }
+            else
+            {
+                runtime.Player.Space.World.EnqueueAction(() =>
+                {
+                    var tgt = runtime.Player.Space.World.GameWorld.GetObject(Target);
+                    if (tgt == null)
                     {
-                        var obj = world.GameWorld.GetObject(a.Entry[i].ToString());
-                        if (obj != null && obj.TryGetComponent<SNPCComponent>(out var c))
-                        {
-                            c.SetState(new AiFollowState("player", new Vector3(0,10, 15)));
-                        }
+                        FLLog.Error("Server", $"Act_GiveObjList can't find '{Target}'");
                     }
-                }
+                    else
+                    {
+                        GiveObjList(tgt, ol);
+                    }
+                });
             }
         }
     }

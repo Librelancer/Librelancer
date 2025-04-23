@@ -87,7 +87,11 @@ namespace LibreLancer.Data
         void HandleDockingSphere(Entry e)
         {
             string scr = e.Count == 4 ? e[3].ToString() : null;
-            DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
+            if (!Enum.TryParse<DockSphereType>(e[0].ToString(), out var type))
+            {
+                IniDiagnostic.InvalidEnum(e, e.Section);
+            }
+            DockingSpheres.Add(new DockSphere() { Type = type, Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
         }
 
     }

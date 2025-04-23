@@ -67,25 +67,6 @@ namespace LibreLancer.Server.Components
             state?.OnStart(Parent, this);
         }
 
-        public void EnterFormation(GameObject tgt, Vector3 offset)
-        {
-            if (tgt.Formation == null)
-            {
-                tgt.Formation = new ShipFormation(tgt, Parent);
-            }
-            else
-            {
-                if(!tgt.Formation.Contains(Parent))
-                    tgt.Formation.Add(Parent);
-            }
-            Parent.Formation = tgt.Formation;
-            if(offset != Vector3.Zero)
-                tgt.Formation.SetShipOffset(Parent, offset);
-            if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
-            {
-                ap.StartFormation();
-            }
-        }
 
         private Dictionary<GameObjectKind, int> attackPref = new Dictionary<GameObjectKind, int>();
         public void SetPilot(GameData.Pilot pilot)
@@ -351,6 +332,12 @@ namespace LibreLancer.Server.Components
         }
         public override void Update(double time)
         {
+            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+            if (ap.CurrentBehavior == AutopilotBehaviors.Undock)
+            {
+                return; //no npc yet
+            }
+
             damageTimer -= time;
             if (damageTimer < 0)
             {
@@ -362,9 +349,11 @@ namespace LibreLancer.Server.Components
             var shootAt = GetHostileAndFire(time);
             lastShootAt = shootAt;
 
-            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+            var runningDirective = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) &&
+                     directiveRunner.Active;
 
             if (CurrentDirective != null ||
+                runningDirective ||
                 shootAt == null ||
                 ap.CurrentBehavior == AutopilotBehaviors.Formation) {
                 currentState = StateGraphEntry.NULL;

@@ -28,6 +28,7 @@ namespace LibreLancer.Server
             script.Options.Syntax = ScriptSyntax.Wattle;
             script.Options.IndexTablesFrom = 0;
             script.Globals["spawnnpc"] = DynValue.FromObject(script, spawnnpc);
+            script.Globals["spawnnpcbase"] = DynValue.FromObject(script, spawnnpcbase);
             script.Globals["getnpc"] = DynValue.FromObject(script, getnpc);
             script.Globals["runscript"] = DynValue.FromObject(script, runscript);
         }
@@ -84,13 +85,24 @@ namespace LibreLancer.Server
 
         public NPCWattleInstance spawnnpc(string loadout, string pilot, float x, float y, float z)
         {
+            return DoSpawn(loadout, pilot, x, y, z, null);
+        }
+
+        public NPCWattleInstance spawnnpcbase(string loadout, string pilot, string arrivalObj)
+        {
+            return DoSpawn(loadout, pilot, 0, 0, 0, arrivalObj);
+        }
+
+
+        NPCWattleInstance DoSpawn(string loadout, string pilot, float x, float y, float z, string arrivalObj)
+        {
             if (!manager.World.Server.GameData.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
             Pilot p = null;
             if (pilot != null)
                 p = manager.World.Server.GameData.GetPilot(pilot);
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null,  "FIGHTER", null, null, null, resolved, p, position, Quaternion.Identity);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null,  "FIGHTER", null, null, null, resolved, p, position, Quaternion.Identity, arrivalObj);
             return new NPCWattleInstance(obj, this);
         }
     }
@@ -137,19 +149,6 @@ namespace LibreLancer.Server
                 n.SetAttitude(tgt, RepAttitude.Hostile);
         }
 
-        void PrintState(AiState state, StringBuilder builder)
-        {
-            if (state == null) builder.Append("none");
-            else
-            {
-                builder.AppendLine(state.ToString());
-                if (state is AiObjListState obj)
-                {
-                    builder.Append("-> ");
-                    PrintState(obj.Next, builder);
-                }
-            }
-        }
         public string state()
         {
             var builder = new StringBuilder();
@@ -157,10 +156,12 @@ namespace LibreLancer.Server
             {
                 builder.AppendLine($"Autopilot: {ap.CurrentBehavior}");
             }
-            if (Object.TryGetComponent<SNPCComponent>(out var n))
+            if (Object.TryGetComponent<DirectiveRunnerComponent>(out var run))
             {
-                PrintState(n.CurrentDirective, builder);
-                return builder.ToString();
+                if (run.Active)
+                {
+                    builder.AppendLine("directive runner active");
+                }
             }
             return "(null)";
         }

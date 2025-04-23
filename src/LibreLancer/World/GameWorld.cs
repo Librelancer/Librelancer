@@ -99,15 +99,11 @@ namespace LibreLancer.World
                 {
                     if (server)
                     {
-                        g.AddComponent(new SDockableComponent(g, arch.DockSpheres.ToArray())
-                        {
-                            Action = obj.Dock,
-                        });
+                        g.AddComponent(new SDockableComponent(g, obj.Dock, arch.DockSpheres.ToArray()));
                     }
                     g.AddComponent(new CDockComponent(g)
                     {
                         Action = obj.Dock,
-                        DockAnimation = arch.DockSpheres[0].Script,
                         DockHardpoint = arch.DockSpheres[0].Hardpoint,
                         TriggerRadius = arch.DockSpheres[0].Radius
                     });

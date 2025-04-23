@@ -1928,7 +1928,7 @@ namespace LibreLancer
                 {
                     obj.DockSpheres.Add(new DockSphere()
                     {
-                        Name = dockSphere.Name,
+                        Type = dockSphere.Type,
                         Hardpoint = dockSphere.Hardpoint,
                         Radius = dockSphere.Radius,
                         Script = dockSphere.Script
@@ -1943,13 +1943,13 @@ namespace LibreLancer
                 {
                     obj.DockSpheres.Add(new DockSphere()
                     {
-                        Name = "tradelane",
+                        Type = DockSphereType.moor_large,
                         Hardpoint = "HpRightLane",
                         Radius = 30
                     });
                     obj.DockSpheres.Add(new DockSphere()
                     {
-                        Name = "tradelane",
+                        Type = DockSphereType.moor_large,
                         Hardpoint = "HpLeftLane",
                         Radius = 30
                     });
@@ -2042,6 +2042,7 @@ namespace LibreLancer
             obj.Parent = o.Parent;
             obj.Voice = o.Voice;
             obj.SpaceCostume = o.SpaceCostume;
+            obj.JumpEffect = o.JumpEffect;
             obj.Comment = Data.CommentEscaping.Unescape(o.Comment);
             if (o.DockWith != null)
             {

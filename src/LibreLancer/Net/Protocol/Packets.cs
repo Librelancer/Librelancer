@@ -181,9 +181,11 @@ namespace LibreLancer.Net.Protocol
             Comm = (1 << 8),
             Dock = (1 << 9),
             Destroyed = (1 << 10),
-            Effects = (1 << 11)
+            Effects = (1 << 11),
+            NicknameNotNull = (1 << 12),
         }
         public ObjNetId ID;
+        public string Nickname;
         public ObjectSpawnFlags Flags;
         public ObjectName Name;
         public Vector3 Position;
@@ -213,6 +215,7 @@ namespace LibreLancer.Net.Protocol
             result.Position = message.GetVector3();
             result.Orientation = message.GetQuaternion();
             if (header.HasFlag(SpawnHeader.Name)) result.Name = message.GetObjectName();
+            if (header.HasFlag(SpawnHeader.NicknameNotNull)) result.Nickname = message.GetString();
             if (header.HasFlag(SpawnHeader.Affiliation)) result.Affiliation = message.GetUInt();
             if (header.HasFlag(SpawnHeader.Comm))
             {
@@ -261,6 +264,7 @@ namespace LibreLancer.Net.Protocol
             // Build header
             SpawnHeader header = (SpawnHeader)(ushort)Flags;
             if(Name != null) header |= SpawnHeader.Name;
+            if(!string.IsNullOrEmpty(Nickname)) header |= SpawnHeader.NicknameNotNull;
             if(Affiliation != 0) header |= SpawnHeader.Affiliation;
             if(CommHead != 0 || CommBody != 0 || CommHelmet != 0) header |= SpawnHeader.Comm;
             if(Dock != null) header |= SpawnHeader.Dock;
@@ -272,6 +276,7 @@ namespace LibreLancer.Net.Protocol
             message.Put(Position);
             message.Put(Orientation);
             if(Name != null) message.Put(Name);
+            if(!string.IsNullOrEmpty(Nickname)) message.Put(Nickname);
             if(Affiliation != 0) message.Put(Affiliation);
             if (CommHead != 0 || CommBody != 0 || CommHelmet != 0)
             {

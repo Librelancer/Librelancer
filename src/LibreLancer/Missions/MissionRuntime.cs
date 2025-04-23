@@ -281,6 +281,11 @@ namespace LibreLancer.Missions
             MsnEvent(new PlayerLaunchedEvent());
         }
 
+        public void LaunchComplete(string nickname)
+        {
+            MsnEvent(new LaunchCompleteEvent(nickname));
+        }
+
         void OnProjectileHit(GameObject victim, GameObject attacker)
         {
             MsnEvent(new ProjectileHitEvent(victim.Nickname, attacker.Nickname));
@@ -353,7 +358,6 @@ namespace LibreLancer.Missions
         public void EnteredSpace()
         {
             MsnEvent(new SpaceEnteredEvent());
-            MsnEvent(new LaunchCompleteEvent("Player")); //HACK
         }
 
 

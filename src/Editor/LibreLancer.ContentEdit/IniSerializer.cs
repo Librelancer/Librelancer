@@ -395,7 +395,8 @@ public static class IniSerializer
             }
         }
 
-        sb.OptionalEntry("behavior", obj.Behavior)
+        sb.OptionalEntry("jump_effect", obj.JumpEffect)
+            .OptionalEntry("behavior", obj.Behavior)
             .OptionalEntry("voice", obj.Voice)
             .OptionalEntry("space_costume", obj.SpaceCostume)
             .OptionalEntry("faction", obj.Faction?.Nickname)
