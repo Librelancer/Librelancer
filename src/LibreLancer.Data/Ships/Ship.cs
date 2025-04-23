@@ -11,6 +11,17 @@ using LibreLancer.Data.Solar;
 
 namespace LibreLancer.Data.Ships
 {
+    public enum ShipType
+    {
+        Fighter,
+        Freighter,
+        Gunboat,
+        Cruiser,
+        Transport,
+        Capital,
+        Mining,
+    }
+
     [ParsedSection]
 	public partial class Ship
 	{
@@ -51,7 +62,7 @@ namespace LibreLancer.Data.Ships
         [Entry("ship_class")]
 		public int ShipClass;
         [Entry("type")]
-		public string Type;
+		public ShipType Type;
         [Entry("steering_torque")]
 		public Vector3 SteeringTorque;
         [Entry("angular_drag")]

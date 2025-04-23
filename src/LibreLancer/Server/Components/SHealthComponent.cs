@@ -3,7 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Data.Ships;
 using LibreLancer.GameData.Items;
+using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
@@ -66,7 +68,7 @@ namespace LibreLancer.Server.Components
                 shield.Health = shield.Equip.Def.MaxCapacity;
         }
 
-        public void Damage(float hullDamage, float energyDamage)
+        public void Damage(float hullDamage, float energyDamage, GameObject attacker)
         {
             if (energyDamage <= 0) energyDamage = hullDamage / 2.0f;
 
@@ -76,8 +78,11 @@ namespace LibreLancer.Server.Components
             {
                 if (InfiniteHealth) return;
                 CurrentHealth -= hullDamage;
-                if (Parent.TryGetComponent<SNPCComponent>(out var n))
-                    n.TakingDamage(hullDamage);
+                if (Parent.TryGetComponent<SNPCComponent>(out var npc))
+                {
+                    npc.TakingDamage(hullDamage);
+                }
+
                 if (Invulnerable && CurrentHealth < (MaxHealth * 0.09f)) {
                     CurrentHealth = MaxHealth * 0.09f;
                 }
@@ -89,6 +94,32 @@ namespace LibreLancer.Server.Components
                     if (!isKilled)
                     {
                         isKilled = true;
+
+                        // If the attacker is a player, and the thing being destroyed is an NPC, increment stats
+                        if (attacker is not null && npc is not null && attacker.TryGetComponent<SPlayerComponent>(out var attackingPlayer))
+                        {
+                            var ship = Parent.GetComponent<ShipPhysicsComponent>().Ship;
+
+                            NetPlayerStatistics statistics = attackingPlayer.Player.Character.Statistics;
+                            switch (ship.ShipType)
+                            {
+                                case ShipType.Fighter:
+                                    statistics.FightersKilled++;
+                                    break;
+                                case ShipType.Freighter:
+                                    statistics.FreightersKilled++;
+                                    break;
+                                case ShipType.Capital:
+                                    statistics.BattleshipsKilled++;
+                                    break;
+                                case ShipType.Transport:
+                                    statistics.TransportsKilled++;
+                                    break;
+                            }
+
+                            attackingPlayer.Player.UpdateStatistics(statistics);
+                        }
+
                         fuseRunner?.RunAtHealth(0);
                         if(fuseRunner == null || !fuseRunner.RunningDeathFuse)
                         {
