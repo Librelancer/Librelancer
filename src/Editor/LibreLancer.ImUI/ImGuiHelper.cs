@@ -89,7 +89,7 @@ namespace LibreLancer.ImUI
         {
             var msg =
                 $"imgui assert failed at {Marshal.PtrToStringUTF8(file)}:{line}: {Marshal.PtrToStringUTF8(expr)}";
-            var st = new System.Diagnostics.StackTrace();
+            var st = new System.Diagnostics.StackTrace(true);
             CrashWindow.Run("ImGui Error", msg, st.ToString());
             Environment.Exit(255);
         }

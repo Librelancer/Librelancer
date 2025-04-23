@@ -210,6 +210,7 @@ public class ImportModelTab : EditorTab
             var i = 0;
             if (output.Root != null)
                 FLTree(output.Root, ref i);
+            ImGui.TreePop();
         }
 
         ImGui.EndChild();
