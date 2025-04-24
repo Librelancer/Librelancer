@@ -92,6 +92,12 @@ namespace LibreLancer.Server
             }
         }
 
+        public void UpdateStatistics(NetPlayerStatistics statistics)
+        {
+            Character.Statistics = statistics;
+            RpcClient.UpdateStatistics(statistics);
+        }
+
         public bool InTradelane;
         public void StartTradelane()
         {

@@ -25,6 +25,7 @@ namespace LibreLancer.Server
         public Vector3 Position { get; private set; }
         public Quaternion Orientation { get; private set; } = Quaternion.Identity;
         public long Credits { get; private set; }
+        public NetPlayerStatistics Statistics { get; internal set; }
 
         public uint Rank { get; private set; }
 
