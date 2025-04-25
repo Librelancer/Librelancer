@@ -282,36 +282,8 @@ public static class ModelExporter
         return sm.AsResult();
     }
 
-    static int HashVert(ref Vertex vert)
-    {
-        unchecked
-        {
-            int hash = (int) 2166136261;
-            hash = hash * 16777619 ^ vert.Position.GetHashCode();
-            hash = hash * 16777619 ^ vert.Normal.GetHashCode();
-            hash = hash * 16777619 ^ vert.Texture1.GetHashCode();
-            hash = hash * 16777619 ^ vert.Texture2.GetHashCode();
-            hash = hash * 16777619 ^ vert.Diffuse.GetHashCode();
-            return hash;
-        }
-    }
 
-    static int FindDuplicate(List<int> hashes, List<Vertex> buf, int startIndex,
-        ref Vertex search, int hash)
-    {
-        for (int i = startIndex; i < buf.Count; i++)
-        {
-            if (hashes[i] != hash) continue;
-            if (buf[i].Position != search.Position) continue;
-            if (buf[i].Normal != search.Normal) continue;
-            if (buf[i].Texture1 != search.Texture1) continue;
-            if (buf[i].Diffuse != search.Diffuse) continue;
-            if (buf[i].Texture2 != search.Texture2) continue;
-            return i;
-        }
 
-        return -1;
-    }
 
     static int IndexFromFlags(int flags)
     {
@@ -360,6 +332,29 @@ public static class ModelExporter
         return m;
     }
 
+    class VertexBufferBuilder
+    {
+        public List<Vertex> Vertices = new List<Vertex>();
+        public int BaseVertex { get; private set; }
+
+        private Dictionary<Vertex, int> indices = new Dictionary<Vertex, int>();
+        public void Chunk()
+        {
+            indices = new Dictionary<Vertex, int>();
+            BaseVertex = Vertices.Count;
+        }
+        public int Add(ref Vertex vert)
+        {
+            if (!indices.TryGetValue(vert, out int idx))
+            {
+                idx = Vertices.Count;
+                Vertices.Add(vert);
+                indices.Add(vert, idx);
+            }
+            return idx;
+        }
+    }
+
     static Geometry GeometryFromSur(string name, ConvexMesh ms, ResourceManager resources, Dictionary<string, Material> materials)
     {
         var geo = new Geometry();
@@ -387,25 +382,15 @@ public static class ModelExporter
         geo.Name = name + "." + ".wire.mesh";
         geo.Attributes = VertexAttributes.Position;
         var mesh = resources.FindMeshData(wire.MeshCRC);
-        List<Vertex> verts = new List<Vertex>();
-        List<int> hashes = new List<int>();
+        var vbo = new VertexBufferBuilder();
         List<uint> indices = new List<uint>();
         for (int i = 0; i < wire.NumIndices; i++)
         {
             var idx = wire.VertexOffset + wire.Indices[i];
             var vert = new Vertex() {Position = mesh.GetPosition(idx)};
-            var hash = HashVert(ref vert);
-            int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
-            if (newIndex == -1)
-            {
-                newIndex = verts.Count;
-                verts.Add(vert);
-                hashes.Add(hash);
-            }
-
-            indices.Add((uint) newIndex);
+            indices.Add((uint) vbo.Add(ref vert));
         }
-        geo.Vertices = verts.ToArray();
+        geo.Vertices = vbo.Vertices.ToArray();
         geo.Indices = Indices.FromBuffer(indices.ToArray());
         geo.Groups = new TriangleGroup[] {
             new TriangleGroup()
@@ -430,8 +415,7 @@ public static class ModelExporter
         if ((mesh == null))
             return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
         geo.Name = name + "." + (int) mesh.VertexFormat.FVF + ".level" + level;
-        List<Vertex> verts = new List<Vertex>();
-        List<int> hashes = new List<int>();
+        var vbo = new VertexBufferBuilder();
         List<uint> indices = new List<uint>();
         List<TriangleGroup> groups = new List<TriangleGroup>();
         geo.Attributes = VertexAttributes.Position;
@@ -469,19 +453,11 @@ public static class ModelExporter
                 {
                     vert.Texture1 = mesh.GetTexCoord(idx, 0);
                 }
-                var hash = HashVert(ref vert);
-                int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
-                if (newIndex == -1)
-                {
-                    newIndex = verts.Count;
-                    verts.Add(vert);
-                    hashes.Add(hash);
-                }
-                indices.Add((uint)newIndex);
+                indices.Add((uint)vbo.Add(ref vert));
             }
             groups.Add(dc);
         }
-        geo.Vertices = verts.ToArray();
+        geo.Vertices = vbo.Vertices.ToArray();
         //Reconstruct base vertex
         foreach (var group in groups)
         {
