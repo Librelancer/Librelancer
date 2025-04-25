@@ -395,6 +395,12 @@ public static class IniSerializer
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(obj.RingZone) &&
+            !string.IsNullOrWhiteSpace(obj.RingFile))
+        {
+            sb.Entry("ring", obj.RingZone, obj.RingFile);
+        }
+
         sb.OptionalEntry("jump_effect", obj.JumpEffect)
             .OptionalEntry("behavior", obj.Behavior)
             .OptionalEntry("voice", obj.Voice)

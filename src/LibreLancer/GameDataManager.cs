@@ -2043,6 +2043,8 @@ namespace LibreLancer
             obj.Voice = o.Voice;
             obj.SpaceCostume = o.SpaceCostume;
             obj.JumpEffect = o.JumpEffect;
+            obj.RingZone = o.RingZone;
+            obj.RingFile = o.RingFile;
             obj.Comment = Data.CommentEscaping.Unescape(o.Comment);
             if (o.DockWith != null)
             {
