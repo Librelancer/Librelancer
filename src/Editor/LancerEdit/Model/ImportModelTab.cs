@@ -152,34 +152,43 @@ public class ImportModelTab : EditorTab
                 ForceCompound = forceCompound,
                 AdvancedMaterials = advancedMaterials
             });
+
+            EditResult<SurFile> sur = null;
+            if (generateSur &&
+                SurfaceBuilder.HasHulls(output))
+            {
+                sur = SurfaceBuilder.CreateSur(output, forceCompound);
+            }
+
+            var allMessages = result.Messages.Concat(sur?.Messages ?? []).ToArray();
+            var createResult = new EditResult<bool>(true, allMessages);
+
+            var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
+            var modelPath = Path.Combine(outputPath, output.Name + ext);
+
+            if (createResult.IsSuccess)
+            {
+                var saved = result.Data.Save(modelPath, 0);
+                createResult.Messages.AddRange(saved.Messages);
+                if (saved.IsSuccess)
+                {
+                    if (sur != null)
+                    {
+                        using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
+                        {
+                            sur.Data.Save(surOut);
+                        }
+                    }
+                    win.Config.LastExportPath = outputPath;
+                }
+            }
+
             win.QueueUIThread(() =>
             {
-                win.ResultMessages(result);
-                EditResult<SurFile> sur = null;
-                if (SurfaceBuilder.HasHulls(output))
+                win.ResultMessages(createResult);
+                if (createResult.IsSuccess)
                 {
-                    sur = SurfaceBuilder.CreateSur(output, forceCompound);
-                }
-                var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
-                var modelPath = Path.Combine(outputPath, output.Name + ext);
-                if (sur != null) win.ResultMessages(sur);
-                if (result.IsSuccess &&
-                    ((sur?.IsSuccess) ?? true))
-                {
-                    var saved = result.Data.Save(modelPath, 0);
-                    win.ResultMessages(saved);
-                    if (saved.IsSuccess)
-                    {
-                        if (sur != null)
-                        {
-                            using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
-                            {
-                                sur.Data.Save(surOut);
-                            }
-                        }
-                        win.Config.LastExportPath = outputPath;
-                        win.OpenFile(modelPath);
-                    }
+                    win.OpenFile(modelPath);
                 }
                 win.FinishLoadingSpinner();
             });
