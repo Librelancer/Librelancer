@@ -13,6 +13,11 @@ namespace LibreLancer.Interface
     [UiLoadable]
     public class HSlider : UiWidget
     {
+        public HSlider()
+        {
+            UpdateMinMax();
+        }
+
         [WattleScriptHidden]
         public HSliderStyle Style;
 
@@ -29,8 +34,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        private float ThumbSize = 0.75f;
-
+        private float ThumbSize;
         private float _min = 0;
         private float _max = 1;
 
@@ -69,13 +73,13 @@ namespace LibreLancer.Interface
             else
             {
                 var scrollCount = Max - Min;
-                ThumbSize = 1.0f - (Math.Min(scrollCount, 9) * 0.1f);
+                ThumbSize = Math.Clamp(1.0f - (Math.Min(scrollCount, 9) * 0.1f), 0.0f, 0.5f);
                 Tick = 1.0f / scrollCount;
             }
         }
 
         private bool updateThumb = true;
-        
+
         public override void ApplyStylesheet(Stylesheet stylesheet)
         {
             Style = stylesheet.Lookup<HSliderStyle>(null);
@@ -92,7 +96,7 @@ namespace LibreLancer.Interface
         {
             Anchor = AnchorKind.CenterLeft
         };
-        
+
         private Button rightbutton = new Button()
         {
             Anchor = AnchorKind.CenterRight

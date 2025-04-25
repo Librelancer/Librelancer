@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.Equipment;
+using LibreLancer.Data.Ships;
 
 namespace LibreLancer.GameData
 {
 	public class Ship : IdentifiableItem
 	{
-        public string ShipType;
+        public ShipType ShipType;
         public int Class;
         public int HoldSize;
         public float[] LODRanges;
