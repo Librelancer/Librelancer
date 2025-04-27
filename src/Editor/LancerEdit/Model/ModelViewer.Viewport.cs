@@ -44,6 +44,7 @@ namespace LancerEdit
             modelViewport = new Viewport3D(_window);
             modelViewport.MarginH = modelViewport.MarginW = 0;
             modelViewport.Draw3D = MainVpDraw;
+            lookAtCam.ZRange.Y = 150000;
 
             ResetCamera();
             previewViewport = new Viewport3D(_window);
@@ -110,6 +111,23 @@ namespace LancerEdit
                 var rad = (drawable as DF.DfmFile).GetRadius();
                 modelViewport.CameraOffset = modelViewport.DefaultOffset = new Vector3(0,0, rad  * 2);
                 modelViewport.ModelScale = rad / 2.6f;
+            }
+            // This calculation could be better
+            if (modelViewport.ModelScale > 750f)
+            {
+                lookAtCam.ZRange.X = 0.3f;
+            }
+            if (modelViewport.ModelScale > 2000f)
+            {
+                lookAtCam.ZRange.X = 0.6f;
+            }
+            if (modelViewport.ModelScale > 8000f)
+            {
+                lookAtCam.ZRange.X = 0.9f;
+            }
+            if (modelViewport.ModelScale > 13000f)
+            {
+                lookAtCam.ZRange.X = 3f;
             }
             modelViewport.ResetControls();
         }
