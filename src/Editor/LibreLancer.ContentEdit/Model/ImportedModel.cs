@@ -531,8 +531,16 @@ public class ImportedModel
             foreach (var mat in materials)
                 mats.Children.Add(DefaultMaterialNode(mats,mat,i++, settings));
 
-            utf.Root.Children.Add(mats);
-            utf.Root.Children.Add(txms);
+            if (mats.Children.Count > 0)
+            {
+                mats.Children.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
+                utf.Root.Children.Add(mats);
+            }
+            if (txms.Children.Count > 0)
+            {
+                txms.Children.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
+                utf.Root.Children.Add(txms);
+            }
         }
         tasks.Wait();
         return new EditResult<EditableUtf>(utf, warnings);

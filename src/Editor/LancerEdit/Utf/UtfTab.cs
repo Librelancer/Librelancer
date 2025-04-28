@@ -869,6 +869,11 @@ namespace LancerEdit
                 {
                     Theme.IconMenuItem(Icons.Paste, "Paste", false);
                 }
+                ImGui.Separator();
+                if (Theme.IconMenuItem(Icons.List, "Sort Children", node.Children is { Count: > 1 }))
+                {
+                    node.Children.Sort((x, y) => x.Name.CompareTo(y.Name));
+                }
                 ImGui.EndPopup();
             }
         }
