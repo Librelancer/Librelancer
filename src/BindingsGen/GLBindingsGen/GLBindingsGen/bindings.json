@@ -1,0 +1,432 @@
+[
+  {
+    "function": "void glEnable(int flags)",
+    "name": "Enable"
+  },
+  {
+    "function": "void glDisable(int flags)",
+    "name": "Disable"
+  },
+  {
+    "function": "void glGetIntegerv(int val, out int param)",
+    "name": "GetIntegerv"
+  },
+  {
+    "function": "string glGetStringi(int name, int index)",
+    "name": "GetStringi"
+  },
+  {
+    "function": "string glGetString(int name)",
+    "name": "GetString"
+  },
+  {
+    "function": "void glClearColor(float r, float g, float b, float a)",
+    "name": "ClearColor"
+  },
+  {
+    "function": "void glClear(int flags)",
+    "name": "Clear"
+  },
+  {
+    "function": "void glViewport(int x, int y, int width, int height)",
+    "name": "Viewport"
+  },
+  {
+    "function": "void glScissor(int x, int y, int width, int height)",
+    "name": "Scissor"
+  },
+  {
+    "function": "void glBlendFunc(int sfactor, int dfactor)",
+    "name": "BlendFunc"
+  },
+  {
+    "function": "void glBlendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)",
+    "name": "BlendFuncSeparate"
+  },
+  {
+    "function": "void glDepthRangef(float near, float far)",
+    "name": "DepthRange"
+  },
+  {
+    "function": "void glPolygonMode(int faces, int mode)",
+    "name": "PolygonMode"
+  },
+  {
+    "function": "void glLineWidth(float width)",
+    "name": "LineWidth"
+  },
+  {
+    "function": "void glDepthFunc(int func)",
+    "name": "DepthFunc"
+  },
+  {
+    "function": "void glCullFace(int face)",
+    "name": "CullFace"
+  },
+  {
+    "function": "void glPixelStorei(int pname, int param)",
+    "name": "PixelStorei"
+  },
+  {
+    "function": "void glDepthMask(bool flag)",
+    "name": "DepthMask"
+  },
+  {
+    "function": "void glColorMask(bool r, bool g, bool b, bool a)",
+    "name": "ColorMask"
+  },
+  {
+    "function": "void glAlphaFunc(int func, float _ref)",
+    "name": "AlphaFunc"
+  },
+  {
+    "function": "void glPolygonOffset(float factor, float units)",
+    "name": "PolygonOffset"
+  },
+  {
+    "function": "void glGenTextures(int n, out uint textures)",
+    "name": "GenTextures"
+  },
+  {
+    "function": "void glDeleteTextures(int n, ref uint textures)",
+    "name": "DeleteTextures"
+  },
+  {
+    "function": "void glTexParameteri(int target, int pname, int param)",
+    "name": "TexParameteri"
+  },
+  {
+    "function": "void glTexParameterf(int target, int pname, float param)",
+    "name": "TexParameterf"
+  },
+  {
+    "function": "void glTexParameterfv(int target, int pname, ref Vector4 param)",
+    "name": "TexParameterfv"
+  },
+  {
+    "function": "void glBindTexture(int target, uint id)",
+    "name": "BindTexture"
+  },
+  {
+    "function": "void glActiveTexture(int unit)",
+    "name": "ActiveTexture"
+  },
+  {
+    "function": "void glTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, IntPtr data)",
+    "name": "TexImage2D"
+  },
+  {
+    "function": "void glTexStorage2DMultisample(int target, int samples, int internalFormat, int width, int height, bool fixedsamplelocations)",
+    "name": "TexStorage2DMultisample"
+  },
+  {
+    "function": "void glTexImage2DMultisample(int target, int samples, int internalFormat, int width, int height, bool fixedsamplelocations)",
+    "name": "TexImage2DMultisample"
+  },
+  {
+    "function": "void glCompressedTexImage2D(int target, int level, int internalFormat, int width, int height, int border, int imageSize, IntPtr data)",
+    "name": "CompressedTexImage2D"
+  },
+  {
+    "function": "void glTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, int type, IntPtr data)",
+    "name": "TexSubImage2D"
+  },
+  {
+    "function": "void glGetTexImage(int target, int level, int format, int type, IntPtr pixels)",
+    "name": "GetTexImage"
+  },
+  {
+    "function": "void glDispatchCompute(uint num_groups_x, uint num_groups_y, uint num_groups_z)",
+    "name": "DispatchCompute"
+  },
+  {
+    "function": "uint glCreateShader(int shaderType)",
+    "name": "CreateShader"
+  },
+  {
+    "function": "void glShaderSource(uint shader, int count, ref IntPtr str, IntPtr length)",
+    "name": "ShaderSource",
+    "manual": true
+  },
+  {
+    "function": "void glCompileShader(uint shader)",
+    "name": "CompileShader"
+  },
+  {
+    "function": "void glGetShaderInfoLog(uint shader, int maxLength, out int length, IntPtr infoLog)",
+    "name": "GetShaderInfoLog",
+    "manual": true
+  },
+  {
+    "function": "void glGetProgramInfoLog(uint shader, int maxLength, out int length, IntPtr infoLog)",
+    "name": "GetProgramInfoLog",
+    "manual": true
+  },
+  {
+    "function": "uint glCreateProgram()",
+    "name": "CreateProgram"
+  },
+  {
+    "function": "void glAttachShader(uint program, uint shader)",
+    "name": "AttachShader"
+  },
+  {
+    "function": "void glBindAttribLocation(uint program, uint index, string name)",
+    "name": "BindAttribLocation"
+  },
+  {
+    "function": "void glBindFragDataLocation(uint program, uint colorNumber, string name)",
+    "name": "BindFragDataLocation"
+  },
+  {
+    "function": "void glLinkProgram(uint program)",
+    "name": "LinkProgram"
+  },
+  {
+    "function": "void glUseProgram(uint program)",
+    "name": "UseProgram"
+  },
+  {
+    "function": "void glGetShaderiv(uint shader, int pname, out int param)",
+    "name": "GetShaderiv"
+  },
+  {
+    "function": "void glGetProgramiv(uint program, int pname, out int param)",
+    "name": "GetProgramiv"
+  },
+  {
+    "function": "int glGetUniformLocation(uint program, string name)",
+    "name": "GetUniformLocation"
+  },
+  {
+    "function": "void glUniform1i(int location, int v0)",
+    "name": "Uniform1i"
+  },
+  {
+    "function": "void glUniform1f(int location, float v0)",
+    "name": "Uniform1f"
+  },
+  {
+    "function": "void glUniform2i(int location, int v1, int v2)",
+    "name": "Uniform2i"
+  },
+  {
+    "function": "void glUniform2f(int location, float v0, float v1)",
+    "name": "Uniform2f"
+  },
+  {
+    "function": "void glUniform3f(int location, float v0, float v1, float v2)",
+    "name": "Uniform3f"
+  },
+  {
+    "function": "void glUniform3fv(int location, int count, IntPtr values)",
+    "name": "Uniform3fv"
+  },
+  {
+    "function": "void glUniform4f(int location, float v0, float v1, float v2, float v3)",
+    "name": "Uniform4f"
+  },
+  {
+    "function": "void glUniform4fv(int location, int count, IntPtr values)",
+    "name": "Uniform4fv"
+  },
+  {
+    "function": "void glUniform4i(int location, int v0, int v1, int v2, int v3)",
+    "name": "Uniform4i"
+  },
+  {
+    "function": "void glUniform4iv(int location, int count, IntPtr values)",
+    "name": "Uniform4iv"
+  },
+  {
+    "function": "void glUniformMatrix4fv(int location, int count, bool transpose, IntPtr value)",
+    "name": "UniformMatrix4fv"
+  },
+  {
+    "function": "void glUniformBlockBinding(uint program, uint uniformBlockIndex, uint uniformBlockBinding)",
+    "name": "UniformBlockBinding"
+  },
+  {
+    "function": "int glGetUniformBlockIndex(uint program, string name)",
+    "name": "GetUniformBlockIndex"
+  },
+  {
+    "function": "void glGenBuffers(int n, out uint buffers)",
+    "name": "GenBuffers"
+  },
+  {
+    "function": "void glDeleteBuffers(int n, ref uint id)",
+    "name": "DeleteBuffers"
+  },
+  {
+    "function": "void glBindBuffer(int target, uint id)",
+    "name": "BindBuffer"
+  },
+  {
+    "function": "void glBindBufferRange(int target, uint index, uint buffer, IntPtr offset, IntPtr size)",
+    "name": "BindBufferRange"
+  },
+  {
+    "function": "void glBufferData(int target, IntPtr size, IntPtr data, int usage)",
+    "name": "BufferData"
+  },
+  {
+    "function": "void glBufferSubData(int target, IntPtr offset, IntPtr size, IntPtr data)",
+    "name": "BufferSubData"
+  },
+  {
+    "function": "void glCopyBufferSubData(int readtarget, int writetarget, IntPtr readoffset, IntPtr writeoffset, IntPtr size)",
+    "name": "CopyBufferSubData"
+  },
+  {
+    "function": "void glGenVertexArrays(int n, out uint arrays)",
+    "name": "GenVertexArrays"
+  },
+  {
+    "function": "void glDeleteVertexArrays(int n, ref uint id)",
+    "name": "DeleteVertexArrays"
+  },
+  {
+    "function": "void glBindVertexArray(uint array)",
+    "name": "BindVertexArray"
+  },
+  {
+    "function": "void glEnableVertexAttribArray(int index)",
+    "name": "EnableVertexAttribArray"
+  },
+  {
+    "function": "void glVertexAttribPointer(uint index, int size, int type, bool normalized, int stride, IntPtr data)",
+    "name": "VertexAttribPointer"
+  },
+  {
+    "function": "void glVertexAttribIPointer(uint index, int size, int type, int stride, IntPtr data)",
+    "name": "VertexAttribIPointer"
+  },
+  {
+    "function": "void glDrawBuffer(int buffer)",
+    "name": "DrawBuffer",
+    "manual": true
+  },
+  {
+    "function": "void glDrawBuffers(int count, ref int buffer)",
+    "name": "DrawBuffers",
+    "manual": true
+  },
+  {
+    "function": "IntPtr glMapBuffer(uint target, uint access)",
+    "name": "MapBuffer"
+  },
+  {
+    "function": "IntPtr glMapBufferRange(uint target, IntPtr offset, IntPtr length, uint access)",
+    "name": "MapBufferRange"
+  },
+  {
+    "function": "bool glUnmapBuffer(uint target)",
+    "name": "UnmapBuffer"
+  },
+  {
+    "function": "void glBindBufferBase(uint target, uint index, uint buffer)",
+    "name": "BindBufferBase"
+  },
+  {
+    "function": "void glMemoryBarrier(int barriers)",
+    "name": "MemoryBarrier"
+  },
+  {
+    "function": "void glDrawElements(int mode, int count, int type, IntPtr indices)",
+    "name": "DrawElements"
+  },
+  {
+    "function": "void glDrawArrays(int mode, int first, int count)",
+    "name": "DrawArrays"
+  },
+  {
+    "function": "void glDrawElementsBaseVertex(int mode, int count, int type, IntPtr indices, int basevertex)",
+    "name": "DrawElementsBaseVertex"
+  },
+  {
+    "function": "void glGenFramebuffers(int n, out uint framebuffers)",
+    "name": "GenFramebuffers"
+  },
+  {
+    "function": "int glCheckFramebufferStatus(int target)",
+    "name": "CheckFramebufferStatus"
+  },
+  {
+    "function": "void glBindFramebuffer(int target, uint framebuffer)",
+    "name": "BindFramebuffer"
+  },
+  {
+    "function": "void glBlitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter)",
+    "name": "BlitFramebuffer"
+  },
+  {
+    "function": "void glGenRenderbuffers(int n, out uint renderbuffers)",
+    "name": "GenRenderbuffers"
+  },
+  {
+    "function": "void glBindRenderbuffer(int target, uint renderbuffer)",
+    "name": "BindRenderbuffer"
+  },
+  {
+    "function": "void glRenderbufferStorage(int target, int internalformat, int width, int height)",
+    "name": "RenderbufferStorage"
+  },
+  {
+    "function": "void glRenderbufferStorageMultisample(int target, int samples, int internalformat, int width, int height)",
+    "name": "RenderbufferStorageMultisample"
+  },
+  {
+    "function": "void glFramebufferRenderbuffer(int target, int attachment, int renderbuffertarget, uint renderbuffer)",
+    "name": "FramebufferRenderbuffer"
+  },
+  {
+    "function": "void glFramebufferTexture2D(int target, int attachment, int textarget, uint texture, int level)",
+    "name": "FramebufferTexture2D"
+  },
+  {
+    "function": "void glDeleteFramebuffers(int n, ref uint framebuffers)",
+    "name": "DeleteFramebuffers"
+  },
+  {
+    "function": "void glDeleteRenderbuffers(int n, ref uint renderbuffers)",
+    "name": "DeleteRenderbuffers"
+  },
+  {
+    "function": "void glReadBuffer(int buffer)",
+    "name": "ReadBuffer"
+  },
+  {
+    "function": "void glReadPixels(int x, int y, int width, int height, int format, int type, IntPtr data)",
+    "name": "ReadPixels"
+  },
+  {
+    "function": "int glGetError()",
+    "name": "GetError"
+  },
+  {
+    "function": "void glDebugMessageCallback(IntPtr callback, IntPtr userParam)",
+    "name": "DebugMessageCallback",
+    "manual": true
+  },
+  {
+    "function": "void glDebugMessageControl(int source, int type, int severity, int count, IntPtr ids, bool enabled)",
+    "name": "DebugMessageControl"
+  },
+  {
+    "function": "IntPtr glFenceSync(uint condition, uint flags)",
+    "name": "FenceSync"
+  },
+  {
+    "function": "void glDeleteSync(IntPtr sync)",
+    "name": "DeleteSync"
+  },
+  {
+    "function": "uint glClientWaitSync(IntPtr sync, uint flags, ulong timeout)",
+    "name": "ClientWaitSync"
+  },
+  {
+    "function": "void glFlush()",
+    "name": "Flush"
+  }
+]
