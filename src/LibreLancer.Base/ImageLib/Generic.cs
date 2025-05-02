@@ -12,11 +12,6 @@ public static class Generic
 {
     public static Image ImageFromStream(Stream stream, bool flip = false)
     {
-        if (LIF.StreamIsLIF(stream))
-        {
-            return LIF.ImagesFromStream(stream)[0];
-        }
-
         var len = (int)stream.Length;
         var b = new byte[len];
         var pos = 0;
@@ -45,11 +40,6 @@ public static class Generic
         if (DDS.StreamIsDDS(stream))
         {
             return DDS.FromStream(context, stream);
-        }
-
-        if (LIF.StreamIsLIF(stream))
-        {
-            return LIF.TextureFromStream(context, stream);
         }
 
         /* Read full stream */

@@ -36,8 +36,6 @@ namespace LibreLancer.Utf.Mat
             {
                 if (type.Equals("mips", StringComparison.OrdinalIgnoreCase))
                     return new ImageResource(ImageType.DDS, data.Value.ToArray());
-                else if (type.Equals("mipu", StringComparison.OrdinalIgnoreCase))
-                    return new ImageResource(ImageType.LIF, data.Value.ToArray());
                 else if (type.StartsWith("mip", StringComparison.OrdinalIgnoreCase))
                     return new ImageResource(ImageType.TGA, data.Value.ToArray());
             }
@@ -53,10 +51,6 @@ namespace LibreLancer.Utf.Mat
                     {
                         Texture = ImageLib.DDS.FromStream(context, stream);
 					}
-                    else if (type.Equals("mipu", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Texture = ImageLib.LIF.TextureFromStream(context, stream);
-                    }
                     else if (type.StartsWith ("mip", StringComparison.OrdinalIgnoreCase))
                     {
 						var tga = ImageLib.TGA.TextureFromStream(context, stream, levels != null);

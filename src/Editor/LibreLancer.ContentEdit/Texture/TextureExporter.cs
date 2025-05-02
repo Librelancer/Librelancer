@@ -49,10 +49,9 @@ public static class TextureExporter
     /// <exception cref="InvalidOperationException">Internal error</exception>
     public static byte[] ExportTexture(ImageResource resource, bool embedDDS)
     {
-        if (resource.Type == ImageType.LIF ||
-            resource.Type == ImageType.TGA)
+        if (resource.Type == ImageType.TGA)
         {
-            var toEncode = Generic.ImageFromStream(new MemoryStream(resource.Data));
+            var toEncode = TGA.ImageFromStream(new MemoryStream(resource.Data));
             using var output = new MemoryStream();
             if (toEncode.Format == SurfaceFormat.Bgra8)
             {
