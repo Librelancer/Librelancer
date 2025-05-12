@@ -9,23 +9,36 @@ namespace LibreLancer
 	public class WeightedRandomCollection<T>
 	{
 		T[] items;
-		float[] weights;
+		float[] cutoffs;
+        int[] weights;
 		float max;
 		public WeightedRandomCollection(T[] items, int[] weights)
 		{
-			if (items.Length != weights.Length)
-			{
-				throw new InvalidOperationException();
-			}
-			max = weights.Sum();
-			float current = 0;
-			this.weights = new float[weights.Length];
-			for (int i = 0; i < weights.Length; i++)
-			{
-				this.weights[i] = current + weights[i];
-				current += weights[i];
-			}
+            if (items.Length < weights.Length)
+            {
+                weights = weights.Take(items.Length).ToArray();
+            }
+            else if (items.Length > weights.Length)
+            {
+                var w2 = new int[items.Length];
+                weights.CopyTo(w2, 0);
+                weights = w2;
+            }
+            CalculateCutoffs(weights);
             this.items = items.ShallowCopy();
+        }
+
+        void CalculateCutoffs(int[] inWeights)
+        {
+            this.weights = inWeights;
+            max = inWeights.Sum();
+            float current = 0;
+            cutoffs = new float[inWeights.Length];
+            for (int i = 0; i < inWeights.Length; i++)
+            {
+                cutoffs[i] = current + inWeights[i];
+                current += inWeights[i];
+            }
         }
 
         private WeightedRandomCollection()
@@ -35,9 +48,9 @@ namespace LibreLancer
         public T GetNext(Random random)
 		{
 			var val = (float)(random.NextDouble() * max);
-			for (int i = 0; i < weights.Length; i++)
+			for (int i = 0; i < cutoffs.Length; i++)
 			{
-				if (val < weights[i])
+				if (val < cutoffs[i])
 					return items[i];
 			}
 			return items[items.Length - 1];
@@ -46,7 +59,7 @@ namespace LibreLancer
         public WeightedRandomCollection<T> Clone() => new WeightedRandomCollection<T>()
         {
             items = items.ShallowCopy(),
-            weights = weights.ShallowCopy(),
+            cutoffs = cutoffs.ShallowCopy(),
             max = max,
         };
     }

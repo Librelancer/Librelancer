@@ -1539,21 +1539,24 @@ namespace LibreLancer
             if (nbl.Clouds.Count > 0)
             {
                 var clds = nbl.Clouds[0];
-                n.HasInteriorClouds = true;
-                n.InteriorCloudShapes = new WeightedRandomCollection<string>(
-                    clds.PuffShape.ToArray(),
-                    clds.PuffWeights
-                );
-                n.InteriorCloudColorA = clds.PuffColorA.Value;
-                n.InteriorCloudColorB = clds.PuffColorB.Value;
-                n.InteriorCloudRadius = clds.PuffRadius.Value;
-                n.InteriorCloudCount = clds.PuffCount.Value;
-                n.InteriorCloudMaxDistance = clds.MaxDistance.Value;
-                n.InteriorCloudMaxAlpha = clds.PuffMaxAlpha ?? 1f;
-                n.InteriorCloudFadeDistance = clds.NearFadeDistance.Value;
-                n.InteriorCloudDrift = clds.PuffDrift.Value;
+                if (clds.PuffShape.Count > 0)
+                {
+                    n.HasInteriorClouds = true;
+                    n.InteriorCloudShapes = new WeightedRandomCollection<string>(
+                        clds.PuffShape.ToArray(),
+                        clds.PuffWeights
+                    );
+                    n.InteriorCloudColorA = clds.PuffColorA.Value;
+                    n.InteriorCloudColorB = clds.PuffColorB.Value;
+                    n.InteriorCloudRadius = clds.PuffRadius.Value;
+                    n.InteriorCloudCount = clds.PuffCount.Value;
+                    n.InteriorCloudMaxDistance = clds.MaxDistance.Value;
+                    n.InteriorCloudMaxAlpha = clds.PuffMaxAlpha ?? 1f;
+                    n.InteriorCloudFadeDistance = clds.NearFadeDistance.Value;
+                    n.InteriorCloudDrift = clds.PuffDrift.Value;
+                }
             }
-            if (nbl.Exterior != null && nbl.Exterior.Shape != null)
+            if (nbl.Exterior != null && nbl.Exterior.Shape is { Count : > 0 })
             {
                 n.HasExteriorBits = true;
                 n.ExteriorCloudShapes = new WeightedRandomCollection<string>(
