@@ -28,7 +28,7 @@ public class MissionLabel
         Name = name;
         foreach (var sh in ships)
         {
-            states.Add(sh, NpcState.NotSpawned);
+            states[sh] = NpcState.NotSpawned;
         }
     }
 
