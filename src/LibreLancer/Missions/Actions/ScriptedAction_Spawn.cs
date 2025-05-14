@@ -44,10 +44,12 @@ namespace LibreLancer.Missions.Actions
                     sol.StringId,
                     sol.Base
                     );
-                var dstComp = obj.GetComponent<SDestroyableComponent>();
-                dstComp.OnKilled = () => {
-                    runtime.ObjectDestroyed(Solar);
-                };
+                if(obj.TryGetComponent<SDestroyableComponent>(out var dstComp))
+                {
+                    dstComp.OnKilled = () => {
+                        runtime.ObjectDestroyed(Solar);
+                    };
+                }
             });
         }
     }
