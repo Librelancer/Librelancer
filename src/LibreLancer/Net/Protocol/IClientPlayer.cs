@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using LibreLancer.GameData;
 using LibreLancer.Missions;
@@ -58,4 +59,5 @@ public interface IClientPlayer
     void UpdateCharacterProgress(int level, long nextNetWorth);
     void UndockFrom(ObjNetId id);
     void RunDirectives(MissionDirective[] directives);
+    void UpdatePlayTime(double time, DateTime startTime);
 }

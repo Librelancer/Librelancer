@@ -16,7 +16,7 @@ namespace LibreLancer.Data.Save
 
         public void WriteTo(IniBuilder builder)
         {
-            builder.Section("SaveTime")
+            builder.Section("Time")
                 .Entry("seconds", Seconds);
         }
     }

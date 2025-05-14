@@ -25,6 +25,8 @@ namespace LibreLancer.Server
         public Vector3 Position { get; private set; }
         public Quaternion Orientation { get; private set; } = Quaternion.Identity;
         public long Credits { get; private set; }
+
+        public double Time { get; private set; }
         public NetPlayerStatistics Statistics { get; internal set; }
 
         public uint Rank { get; private set; }
@@ -83,6 +85,11 @@ namespace LibreLancer.Server
             public void UpdateCredits(long credits)
             {
                 nc.Credits = credits;
+            }
+
+            public void UpdateTime(double time)
+            {
+                nc.Time = time;
             }
 
             public void UpdateShip(GameData.Ship ship)
@@ -170,6 +177,7 @@ namespace LibreLancer.Server
                 c.Costume = _costume;
                 c.ComCostume = _comCostume;
                 c.Rank = nc.Rank;
+                c.Time = nc.Time;
                 if (cargoDirty)
                 {
                     foreach (var item in cargoToDelete)
@@ -247,6 +255,7 @@ namespace LibreLancer.Server
                 c.UpdateComCostume(sg.Player.ComCostume);
                 c.UpdatePosition(sg.Player.Base, sg.Player.System, sg.Player.Position, Quaternion.Identity);
                 c.UpdateRank((uint)sg.Player.Rank);
+                c.UpdateTime(sg.Time?.Seconds ?? 0);
                 foreach (var eq in sg.Player.Equip)
                 {
                     var hp = eq.Hardpoint;
@@ -282,6 +291,7 @@ namespace LibreLancer.Server
                 if (f != null) nc.Reputation.Reputations[f] = rep.ReputationValue;
             }
             nc.Name = c.Name;
+            nc.Time = c.Time;
             nc.gData = game.GameData;
             nc.dbChar = db;
             nc.charId = id;

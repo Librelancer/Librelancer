@@ -147,6 +147,12 @@ public struct PacketReader
         return pack.GetQuaternion();
     }
 
+    public DateTime GetDateTime()
+    {
+        var isLocal = reader.GetBool();
+        var dt = new DateTime(GetVariableInt64(), DateTimeKind.Utc);
+        return isLocal ? dt.ToLocalTime() : dt;
+    }
 
     public Vector3 GetNormal()
     {
@@ -280,6 +286,7 @@ public struct PacketReader
 
     public bool GetBool() => reader.GetBool();
     public float GetFloat() => reader.GetFloat();
+    public double GetDouble() => reader.GetDouble();
     public int GetInt() => reader.GetInt();
     public uint GetUInt() => reader.GetUInt();
     public byte GetByte() => reader.GetByte();

@@ -363,6 +363,7 @@ class {packetName} : {IPacket}
         {"System.UInt64" , "GetVariableUInt64"},
         {"System.UInt16" , "GetUShort"},
         {"System.Boolean" , "GetBool"},
+        {"System.DateTime", "GetDateTime" },
         {"LibreLancer.World.ObjectName", "GetObjectName"}
     };
 

@@ -124,7 +124,12 @@ class playerstatus : playerstatus_Designer with ChildWindow
 		local missionString = StringFromID(1568);
         local creditString = StringFromID(STRID_CREDIT_SIGN);
         local formatMoney = (credits) => creditString + NumberToStringCS(credits, "N0");
-
+		local formatTime = (time) => {
+			local hours = math.floor(time / 3600);
+			local minutes = math.floor((time / 60) - (hours * 60));
+			local seconds = math.floor(time % 60);
+			return string.format("%02d:%02d:%02d", hours, minutes, seconds);
+		};
 		local playerData = {
             { "name": StringFromID(1565), "value": () => Game.CurrentRank }, // current level
             { "name": StringFromID(1566), "value": () => formatMoney(Game.NetWorth) }, // current worth
@@ -132,7 +137,7 @@ class playerstatus : playerstatus_Designer with ChildWindow
             { "name": "", "value": "" }, // blank line
             { "name": StringFromID(1611), "value": () => Game.Statistics.TotalMissions }, // total missions
             { "name": StringFromID(1601), "value": () => Game.Statistics.TotalKills }, // total kills
-            { "name": StringFromID(1606), "value": "0" }, // total time
+            { "name": StringFromID(1606), "value": () => formatTime(Game.CharacterPlayTime) }, // total time
             { "name": StringFromID(1607), "value": () => Game.Statistics.SystemsVisited }, // systems visited
             { "name": StringFromID(1608), "value": () => Game.Statistics.BasesVisited }, // bases visited
             { "name": StringFromID(1609), "value": () => Game.Statistics.JumpHolesFound }, // jump holes found

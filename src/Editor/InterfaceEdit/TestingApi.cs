@@ -173,6 +173,7 @@ namespace InterfaceEdit
 
     public class TestingApi
     {
+        static DateTime startTime = DateTime.UtcNow;
         static TestingApi()
         {
             LuaContext.RegisterType<TestingApi>();
@@ -193,6 +194,7 @@ namespace InterfaceEdit
         public int CurrentRank = 1;
         public double NetWorth = 93884;
         public double NextLevelWorth = 0;
+        public double CharacterPlayTime => 3600 + (DateTime.UtcNow - startTime).TotalSeconds;
 
         public PlayerStats Statistics = new()
         {

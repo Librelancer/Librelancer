@@ -28,6 +28,10 @@ namespace LibreLancer.Entities.Character
 
         public long Money { get; set; }
 
+        // Total play time in seconds
+
+        public double Time { get; set; }
+
         // voice = trent_voice
         public string Voice { get; set; }
 

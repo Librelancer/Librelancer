@@ -141,6 +141,7 @@ World Time: {12:F2}
             playerHealth.MaxHealth = session.PlayerShip.Hitpoints;
             playerHealth.CurrentHealth = session.PlayerShip.Hitpoints;
             player.AddComponent(playerHealth);
+            player.AddComponent(new CLocalPlayerComponent(player, session));
             player.Flags |= GameObjectFlags.Player;
             if(session.PlayerShip.Mass < 0)
             {
@@ -470,6 +471,7 @@ World Time: {12:F2}
             public double NetWorth => (double)g.session.NetWorth;
             public double NextLevelWorth => (double)g.session.NextLevelWorth;
             public PlayerStats Statistics => g.session.Statistics;
+            public double CharacterPlayTime => g.session.CharacterPlayTime;
 
             [WattleScriptHidden] public WidgetTemplate Reticle;
             [WattleScriptHidden] public WidgetTemplate UnselectedArrow;

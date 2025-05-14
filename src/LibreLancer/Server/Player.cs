@@ -44,6 +44,7 @@ namespace LibreLancer.Server
         private ConcurrentQueue<Action> saveActions = new ConcurrentQueue<Action>();
         //State
         public NetCharacter Character;
+        public DateTime StartTime;
         public string Name = "Player";
         public string System;
         public string Base;
@@ -221,7 +222,9 @@ namespace LibreLancer.Server
         void BeginGame(NetCharacter c, SaveGame sg)
         {
             Character = c;
+            StartTime = DateTime.UtcNow;
             Name = Character.Name;
+            rpcClient.UpdatePlayTime(c.Time, StartTime);
             rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
             UpdateCurrentReputations();
             UpdateCurrentInventory();
@@ -665,6 +668,9 @@ namespace LibreLancer.Server
                 {
                     using var c = Character.BeginTransaction();
                     c.UpdatePosition(Base, System, Position, Orientation);
+                    var n = DateTime.UtcNow;
+                    c.UpdateTime(Character.Time + (n - StartTime).Seconds);
+                    StartTime = n;
                 }
                 SaveGame sg;
                 lock (thns)
@@ -680,12 +686,15 @@ namespace LibreLancer.Server
         }
 
 
+
+
         void LoggedOut()
         {
             if (Character != null)
             {
                 using var c = Character.BeginTransaction();
                 c.UpdatePosition(Base, System, Position, Orientation);
+                c.UpdateTime(Character.Time + (DateTime.UtcNow - StartTime).Seconds);
                 Space?.Leave(false);
                 Space = null;
                 foreach(var player in Game.AllPlayers.Where(x => x != this))

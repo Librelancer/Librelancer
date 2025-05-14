@@ -53,6 +53,8 @@ namespace LibreLancer.Client
         private IServerPlayer rpcServer;
         private ISpacePlayer spaceRpc;
         private IBasesidePlayer baseRpc;
+        private double playerTotalTime = 0;
+        private DateTime playerSessionStart = DateTime.UtcNow;
         public NetObjective CurrentObjective;
         public IServerPlayer RpcServer => rpcServer;
         public IBasesidePlayer BaseRpc => baseRpc;
@@ -169,6 +171,8 @@ namespace LibreLancer.Client
             Statistics.TransportsKilled = stats.TransportsKilled;
             Statistics.BattleshipsKilled = stats.BattleshipsKilled;
         }
+
+        public double CharacterPlayTime => playerTotalTime + (DateTime.UtcNow - playerSessionStart).TotalSeconds;
 
         void IClientPlayer.SetPreloads(PreloadObject[] preloadObjects) => Preloads = preloadObjects;
 
@@ -1428,6 +1432,12 @@ namespace LibreLancer.Client
                     else tl.DeactivateRight();
                 }
             });
+        }
+
+        void IClientPlayer.UpdatePlayTime(double time, DateTime startTime)
+        {
+            playerSessionStart = startTime;
+            playerTotalTime = time;
         }
 
         GameObject ObjOrPlayer(int id)

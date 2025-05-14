@@ -40,6 +40,7 @@ namespace LibreLancer.Server
             sg.Player.Position = ch.Position;
             sg.Player.Money = ch.Credits;
             sg.Player.Rank = (int)ch.Rank;
+            sg.Time = new SaveTime() { Seconds = (float)ch.Time };
             if (ch.Ship != null)
                 sg.Player.ShipArchetype = new HashValue(ch.Ship.Nickname);
             foreach (var item in ch.Items) {

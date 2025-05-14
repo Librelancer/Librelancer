@@ -195,6 +195,24 @@ public class PacketWriter
         else PutVariableUInt32(hpids.GetIndex(hpid) + 2);
     }
 
+    public void Put(DateTime time)
+    {
+        Put(time.Kind == DateTimeKind.Local);
+        if (time.Kind == DateTimeKind.Local)
+        {
+            PutVariableInt64(time.ToUniversalTime().Ticks);
+        }
+        else
+        {
+            PutVariableInt64(time.Ticks);
+        }
+    }
+
+    public void Put(double d)
+    {
+        writer.Put(d);
+    }
+
     public void Put(string s)
     {
         if (s == null)
