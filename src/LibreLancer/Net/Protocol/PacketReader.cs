@@ -239,52 +239,34 @@ public struct PacketReader
     {
         str = null;
         if (reader.AvailableBytes < 1) return false;
-        var firstByte = reader.PeekByte();
-        if (firstByte == 0) { reader.SkipBytes(1); return true; }
-        if (firstByte == 1) { reader.SkipBytes(1); str = ""; return true; }
-        var type = (firstByte >> 6);
-        uint len;
-        if (type == 0 || type == 2)
+        int off = 0;
+        if (!TryPeekVariableUInt32(ref off,  out uint len))
         {
-            len = (uint) ((firstByte & 0x3f) - 1);
-            if (len > maxLength) return false;
-            if (reader.AvailableBytes < len + 1) return false;
-            reader.SkipBytes(1);
+            return false;
         }
-        else
+        if (len == 0)
         {
-            if (reader.AvailableBytes < 64) return false; //63 + reader.GetByte()
-            int off = 1;
-            if (!TryPeekVariableUInt32(ref off, out len)) return false;
-            len += 63;
-            if (len > maxLength) return false;
-            if (reader.AvailableBytes < off + len) return false;
-            reader.SkipBytes(off);
+            str = null;
+            return true;
         }
-        var bytes = GetBytes((int)len);
-        if (type == 0 || type == 1)
-            str = NetPacking.DecodeString(bytes);
-        else
-            str = Encoding.UTF8.GetString(bytes);
+        if (len == 1)
+        {
+            str = "";
+            return true;
+        }
+        len--;
+        if (reader.AvailableBytes < off + len) return false;
+        reader.SkipBytes(off);
+        str = StringSquash.StringSquasher.Unpack(GetBytes((int)len));
         return true;
     }
 
     public string GetString()
     {
-        var firstByte = reader.GetByte();
-        if (firstByte == 0) return null;
-        if (firstByte == 1) return "";
-        var type = (firstByte >> 6);
-        int len;
-        if (type == 0 || type == 2)
-            len = (firstByte & 0x3f) - 1;
-        else
-            len = (int)GetVariableUInt32() + 63;
-        var bytes = GetBytes(len);
-        if (type == 0 || type == 1)
-            return NetPacking.DecodeString(bytes);
-        else
-            return Encoding.UTF8.GetString(bytes);
+        var len = GetVariableUInt32();
+        if (len == 0) return null;
+        if (len == 1) return "";
+        return StringSquash.StringSquasher.Unpack(GetBytes((int)(len - 1)));
     }
 
     public string GetHpid()

@@ -1,4 +1,5 @@
 using LibreLancer.Net.Protocol;
+using LiteNetLib.Utils;
 using Xunit;
 
 namespace LibreLancer.Tests;
@@ -73,5 +74,57 @@ public class NetPackingTests
         r.Align();
         Assert.Equal(0x33, r.GetByte());
         r.Align();
+    }
+
+    [Theory]
+    [InlineData("abcdefg")]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("123")]
+    [InlineData("li01_01_base")]
+    [InlineData("The quick brown fox jumps over the lazy dog.")]
+    [InlineData(@"案ずるより産むが易し。 - Giving birth to a baby is easier than worrying about it.
+出る杭は打たれる。 - The stake that sticks up gets hammered down.
+知らぬが仏。 - Not knowing is Buddha. - Ignorance is bliss.
+見ぬが花。 - Not seeing is a flower. - Reality can't compete with imagination.
+花は桜木人は武士 - Of flowers, the cherry blossom; of men, the warrior.")]
+    public void Strings(string s)
+    {
+        var pw = new PacketWriter();
+        pw.Put(s);
+        var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
+        Assert.Equal(s, pr.GetString());
+    }
+
+    [Theory]
+    [InlineData("abcdefg")]
+    [InlineData(null)]
+    [InlineData("123")]
+    [InlineData("")]
+    [InlineData("The quick brown fox jumps over the lazy dog.")]
+    public void TryGetStrings(string s)
+    {
+        var pw = new PacketWriter();
+        pw.Put(s);
+        var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
+        Assert.True(pr.TryGetString(out string s2));
+        Assert.Equal(s, s2);
+    }
+
+    [Fact]
+    public void TryGetStringEmpty()
+    {
+        var pw = new PacketWriter();
+        var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
+        Assert.False(pr.TryGetString(out _));
+    }
+
+    [Fact]
+    public void TryGetStringInvalid()
+    {
+        var pw = new PacketWriter();
+        pw.Put((byte)0x45);
+        var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
+        Assert.False(pr.TryGetString(out _));
     }
 }

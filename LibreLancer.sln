@@ -70,6 +70,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MSBuild", "MSBuild", "{4B79
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Data.Generator", "src\LibreLancer.Data.Generator\LibreLancer.Data.Generator.csproj", "{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringSquash", "extern\StringSquash\StringSquash\StringSquash.csproj", "{BF225004-7B9E-4316-BBC9-54D787C9A605}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -416,6 +418,18 @@ Global
 		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x64.Build.0 = Release|Any CPU
 		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x86.ActiveCfg = Release|Any CPU
 		{ED540B48-96A0-41E6-B402-1D3EDDAA0D81}.Release|x86.Build.0 = Release|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Debug|x86.Build.0 = Debug|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Release|x64.Build.0 = Release|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Release|x86.ActiveCfg = Release|Any CPU
+		{BF225004-7B9E-4316-BBC9-54D787C9A605}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -433,6 +447,7 @@ Global
 		{45F57047-5BF4-41BF-A13C-A1CD3BFCFD8A} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 		{5D321AB5-DF7F-4988-B432-000E24EBE9F2} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 		{F3D9EEED-0336-45C5-9A11-EAE3295A0E82} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
+		{BF225004-7B9E-4316-BBC9-54D787C9A605} = {7C43D186-1DB4-4BD2-B8C1-FDCF8619D366}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93BAD06D-C79A-48A8-9687-91EAE0EA2332}

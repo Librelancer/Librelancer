@@ -53,3 +53,6 @@
 [submodule "extern/blurgtext"]
 	path = extern/blurgtext
 	url = https://github.com/CallumDev/blurgtext
+[submodule "extern/StringSquash"]
+	path = extern/StringSquash
+	url = https://github.com/CallumDev/StringSquash

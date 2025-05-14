@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extern\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
+    <ProjectReference Include="..\..\extern\StringSquash\StringSquash\StringSquash.csproj" />
     <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.HardwireGen\WattleScript.HardwireGen.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\LibreLancer.Net.Generator\LibreLancer.Net.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\extern\wattlescript\src\WattleScript.Interpreter\WattleScript.Interpreter.csproj" />
