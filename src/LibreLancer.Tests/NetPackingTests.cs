@@ -1,5 +1,8 @@
+using System.Numerics;
+using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LiteNetLib.Utils;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Xunit;
 
 namespace LibreLancer.Tests;
@@ -126,5 +129,88 @@ public class NetPackingTests
         pw.Put((byte)0x45);
         var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
         Assert.False(pr.TryGetString(out _));
+    }
+
+    static ObjectUpdate GetUpdate()
+    {
+        var srcUpdate = new ObjectUpdate();
+        srcUpdate.SetVelocity(Vector3.Zero, Vector3.Zero);
+        srcUpdate.Position = new(-33000, 0, -28000);
+        srcUpdate.ShieldValue = 821;
+        srcUpdate.Orientation = Quaternion.Identity;
+        srcUpdate.HullValue = 1300;
+        srcUpdate.CruiseThrust = CruiseThrustState.None;
+        srcUpdate.ID = new ObjNetId(-1);
+        srcUpdate.EngineKill = false;
+        srcUpdate.Guns =
+        [
+            new GunOrient() { AnglePitch = 0, AngleRot = 0 },
+            new GunOrient() { AnglePitch = 0, AngleRot = 0 }
+        ];
+        return srcUpdate;
+    }
+
+    [Fact]
+    public void UpdateWithNonZeroBuffer()
+    {
+        byte[] srcArray = "hff&YHudjewnjlaufjelkfeoiayf7ouiwu570983274ifjalhdfy8e9oiadw"u8.ToArray();
+
+        var srcUpdate = GetUpdate();
+        var bw = new BitWriter(srcArray, true);
+        srcUpdate.WriteDelta(ObjectUpdate.Blank, 35, 36, ref bw);
+
+        var br = new BitReader(bw.GetCopy(), 0);
+        var dstUpdate = ObjectUpdate.ReadDelta(ref br, 36, -1, (_, _) => ObjectUpdate.Blank);
+
+        // These should all be the same (no floating point error)
+        Assert.Equal(srcUpdate.ID, dstUpdate.ID);
+        Assert.Equal(srcUpdate.EngineKill, dstUpdate.EngineKill);
+        Assert.Equal(srcUpdate.HullValue, dstUpdate.HullValue);
+        Assert.Equal(srcUpdate.ShieldValue, dstUpdate.ShieldValue);
+        Assert.Equal(srcUpdate.Guns.Length, dstUpdate.Guns.Length);
+        Assert.Equal(srcUpdate.AngularVelocity, dstUpdate.AngularVelocity);
+        Assert.Equal(srcUpdate.LinearVelocity, dstUpdate.LinearVelocity);
+    }
+
+
+    [Fact]
+    public void TestNoDeltaUpdate()
+    {
+
+        var srcUpdate = GetUpdate();
+        var bw = new BitWriter();
+        srcUpdate.WriteDelta(ObjectUpdate.Blank, 35, 36, ref bw);
+
+        var br = new BitReader(bw.GetCopy(), 0);
+        var dstUpdate = ObjectUpdate.ReadDelta(ref br, 36, -1, (_, _) => ObjectUpdate.Blank);
+
+        // These should all be the same
+        Assert.Equal(srcUpdate.ID, dstUpdate.ID);
+        Assert.Equal(srcUpdate.EngineKill, dstUpdate.EngineKill);
+        Assert.Equal(srcUpdate.HullValue, dstUpdate.HullValue);
+        Assert.Equal(srcUpdate.ShieldValue, dstUpdate.ShieldValue);
+        Assert.Equal(srcUpdate.Guns.Length, dstUpdate.Guns.Length);
+        Assert.Equal(srcUpdate.AngularVelocity, dstUpdate.AngularVelocity);
+        Assert.Equal(srcUpdate.LinearVelocity, dstUpdate.LinearVelocity);
+    }
+
+    [Fact]
+    public void TestIdenticalUpdate()
+    {
+        var srcUpdate = GetUpdate();
+        var bw = new BitWriter();
+        srcUpdate.WriteDelta(srcUpdate, 35, 36, ref bw);
+
+        var br = new BitReader(bw.GetCopy(), 0);
+        var dstUpdate = ObjectUpdate.ReadDelta(ref br, 36, -1, (_, _) => srcUpdate);
+
+        // These should all be the same (no floating point error)
+        Assert.Equal(srcUpdate.ID, dstUpdate.ID);
+        Assert.Equal(srcUpdate.EngineKill, dstUpdate.EngineKill);
+        Assert.Equal(srcUpdate.HullValue, dstUpdate.HullValue);
+        Assert.Equal(srcUpdate.ShieldValue, dstUpdate.ShieldValue);
+        Assert.Equal(srcUpdate.Guns.Length, dstUpdate.Guns.Length);
+        Assert.Equal(srcUpdate.AngularVelocity, dstUpdate.AngularVelocity);
+        Assert.Equal(srcUpdate.LinearVelocity, dstUpdate.LinearVelocity);
     }
 }

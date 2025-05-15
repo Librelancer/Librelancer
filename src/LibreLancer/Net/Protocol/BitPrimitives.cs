@@ -63,9 +63,8 @@ static class BitPrimitives
 
         if (value)
             destination[bitOffset >> 3] |= (byte)mask;
-        // Our bit array is always initialized to 0, don't need to modify
-        //else
-        //    destination[bitOffset >> 3] &= (byte)~mask;
+        else
+            destination[bitOffset >> 3] &= (byte)~mask;
     }
 
 

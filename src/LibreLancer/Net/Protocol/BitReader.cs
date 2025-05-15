@@ -13,6 +13,9 @@ namespace LibreLancer.Net.Protocol
 {
     public ref struct BitReader
     {
+        public ReadOnlySpan<byte> Buffer => array;
+        public int Position => bitsOffset;
+
         private ReadOnlySpan<byte> array;
         private int bitsOffset;
         public int BitsLeft => (array.Length * 8) - bitsOffset;
