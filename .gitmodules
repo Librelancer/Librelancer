@@ -15,7 +15,7 @@
 	url = https://github.com/cimgui/cimgui
 [submodule "extern/ImGuiColorTextEdit"]
 	path = extern/ImGuiColorTextEdit
-	url = https://github.com/pthom/ImGuiColorTextEdit
+	url = https://github.com/santaclose/ImGuiColorTextEdit
 [submodule "extern/lua"]
 	path = extern/lua
 	url = https://github.com/lua/lua
@@ -56,3 +56,6 @@
 [submodule "extern/StringSquash"]
 	path = extern/StringSquash
 	url = https://github.com/CallumDev/StringSquash
+[submodule "extern/regex"]
+	path = extern/regex
+	url = https://github.com/boostorg/regex

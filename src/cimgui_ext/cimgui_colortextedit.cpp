@@ -11,8 +11,7 @@
 IGEXPORT texteditor_t igExtTextEditorInit()
 {
 	TextEditor *editor = new TextEditor();
-    editor->SetShowWhitespaces(false);
-	editor->SetColorizerEnable(false);
+    editor->SetShowWhitespacesEnabled(false);
 	return (texteditor_t)editor;
 }
 
@@ -20,17 +19,16 @@ IGEXPORT void igExtTextEditorSetMode(texteditor_t textedit, texteditor_mode_t mo
 {
     TextEditor *editor = (TextEditor*)textedit;
     if(mode == TEXTEDITOR_MODE_LUA) {
-        editor->SetLanguageDefinition(TextEditor::LanguageDefinition::Lua());
-        editor->SetColorizerEnable(true);
+        editor->SetLanguageDefinition(TextEditor::LanguageDefinitionId::Lua);
     }
     else {
-        editor->SetColorizerEnable(false);
+        editor->SetLanguageDefinition(TextEditor::LanguageDefinitionId::None);
     }
 }
 IGEXPORT void igExtTextEditorSetReadOnly(texteditor_t textedit, int readonly)
 {
     TextEditor *editor = (TextEditor*)textedit;
-    editor->SetReadOnly(readonly != 0 ? true : false);
+    editor->SetReadOnlyEnabled(readonly != 0 ? true : false);
 }
 
 IGEXPORT const char *igExtTextEditorGetText(texteditor_t textedit)
@@ -50,18 +48,19 @@ IGEXPORT void igExtTextEditorSetText(texteditor_t textedit, const char *text)
 	editor->SetText(text);
 }
 
-IGEXPORT int igExtTextEditorIsTextChanged(texteditor_t textedit)
+IGEXPORT int igExtTextEditorGetUndoIndex(texteditor_t textedit)
 {
 	TextEditor *editor = (TextEditor*)textedit;
-	return editor->IsTextChanged() ? 1 : 0;
+	return editor->GetUndoIndex();
 }
 
 IGEXPORT void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x, int32_t *y)
 {
 	TextEditor *editor = (TextEditor*)textedit;
-	auto cpos = editor->GetCursorPosition();
-	*x = (int32_t)cpos.mColumn;
-	*y = (int32_t)cpos.mLine;
+    int cposX = 0, cposY = 0;
+	editor->GetCursorPosition(cposX, cposY);
+	*x = cposX;
+	*y = cposY;
 }
 
 IGEXPORT void igExtTextEditorRender(texteditor_t textedit, const char *id)

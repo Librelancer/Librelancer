@@ -32,6 +32,8 @@ target_include_directories(cimgui PRIVATE "." "../../extern/cimgui/imgui" "../..
 
 target_compile_definitions(cimgui PUBLIC -DIMGUI_ENABLE_FREETYPE -DCIMGUI_FREETYPE -DIMGUI_ENABLE_STB_TRUETYPE -DIMGUI_USER_CONFIG=<imconfig_ext.h>)
 
+target_link_libraries (cimgui PRIVATE boost_regex)
+
 if(NOT WIN32)
     find_package(Freetype REQUIRED)
     target_link_libraries(cimgui PRIVATE ${FREETYPE_LIBRARIES})

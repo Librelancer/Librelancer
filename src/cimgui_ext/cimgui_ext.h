@@ -51,7 +51,7 @@ IGEXPORT void igExtTextEditorSetMode(texteditor_t textedit, texteditor_mode_t mo
 IGEXPORT void igExtTextEditorSetReadOnly(texteditor_t textedit, int readonly);
 IGEXPORT void igExtFree(void *mem);
 IGEXPORT void igExtTextEditorSetText(texteditor_t textedit, const char *text);
-IGEXPORT int igExtTextEditorIsTextChanged(texteditor_t textedit);
+IGEXPORT int igExtTextEditorGetUndoIndex(texteditor_t textedit);
 IGEXPORT void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x, int32_t *y);
 IGEXPORT void igExtTextEditorRender(texteditor_t textedit, const char *id);
 IGEXPORT void igExtTextEditorFree(texteditor_t textedit);
