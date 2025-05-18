@@ -73,7 +73,10 @@ namespace LibreLancer.Entities.Character
         // The amount of fighters killed
         public long FightersKilled { get; set; }
 
-        // The amount of Freighters/Transports killed
+        // The amount of Freighters killed
+        public long FreightersKilled { get; set; }
+
+        // The amount of Transports killed
         public long TransportsKilled { get; set; }
 
         // The amount of capital ships killed

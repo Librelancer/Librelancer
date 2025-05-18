@@ -8,10 +8,12 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer.Data.Save;
+using LibreLancer.Data.Ships;
 using LibreLancer.Entities.Character;
 using LibreLancer.GameData;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
+using Ship = LibreLancer.GameData.Ship;
 
 namespace LibreLancer.Server
 {
@@ -27,7 +29,9 @@ namespace LibreLancer.Server
         public long Credits { get; private set; }
 
         public double Time { get; private set; }
-        public NetPlayerStatistics Statistics { get; internal set; }
+
+        private NetPlayerStatistics statistics;
+        public NetPlayerStatistics Statistics => statistics;
 
         public uint Rank { get; private set; }
 
@@ -43,6 +47,18 @@ namespace LibreLancer.Server
         public long ID => charId;
 
         private int transactionCount;
+
+        // Individual ship kill types are for Single player saves only.
+        // In MP we simply store the statistics.
+        Dictionary<uint, int> shipKillCounts = new Dictionary<uint, int>();
+        public void IncrementShipKillCount(Ship ship)
+        {
+            shipKillCounts.TryGetValue(ship.CRC, out var count);
+            shipKillCounts[ship.CRC] = count + 1;
+        }
+
+        public (uint Ship, int Count)[] GetShipKillCounts() =>
+            shipKillCounts.Select(x => (x.Key, x.Value)).ToArray();
 
         public CharacterTransaction BeginTransaction()
         {
@@ -81,6 +97,26 @@ namespace LibreLancer.Server
             }
 
             public void UpdateName(string name) => nc.Name = name;
+
+            public void UpdateFightersKilled(long killed)
+            {
+                nc.statistics.FightersKilled = killed;
+            }
+
+            public void UpdateFreightersKilled(long killed)
+            {
+                nc.statistics.FreightersKilled = killed;
+            }
+
+            public void UpdateBattleshipsKilled(long killed)
+            {
+                nc.statistics.BattleshipsKilled = killed;
+            }
+
+            public void UpdateTransportsKilled(long killed)
+            {
+                nc.statistics.TransportsKilled = killed;
+            }
 
             public void UpdateCredits(long credits)
             {
@@ -178,6 +214,10 @@ namespace LibreLancer.Server
                 c.ComCostume = _comCostume;
                 c.Rank = nc.Rank;
                 c.Time = nc.Time;
+                c.FightersKilled = nc.statistics.FightersKilled;
+                c.TransportsKilled = nc.statistics.TransportsKilled;
+                c.CapitalKills = nc.statistics.BattleshipsKilled;
+                c.FreightersKilled = nc.statistics.FreightersKilled;
                 if (cargoDirty)
                 {
                     foreach (var item in cargoToDelete)
@@ -246,6 +286,7 @@ namespace LibreLancer.Server
             nc.gData = game.GameData;
             nc.Admin = db == null;
             nc.transactionCount++;
+            var stats = new NetPlayerStatistics();
             using (var c = new CharacterTransaction(nc, db))
             {
                 c.UpdateName(sg.Player.Name);
@@ -274,6 +315,36 @@ namespace LibreLancer.Server
                 {
                     c.UpdateReputation(rep.fac, rep.rep);
                 }
+
+                foreach (var ks in sg.MPlayer.ShipTypeKilled)
+                {
+                    var ship = game.GameData.Ships.Get(ks.Item);
+                    if (ship == null)
+                    {
+                        continue;
+                    }
+                    switch (ship.ShipType)
+                    {
+                        case ShipType.Fighter:
+                            stats.FightersKilled += ks.Count;
+                            break;
+                        case ShipType.Freighter:
+                            stats.FreightersKilled += ks.Count;
+                            break;
+                        case ShipType.Capital:
+                            stats.BattleshipsKilled += ks.Count;
+                            break;
+                        case ShipType.Transport:
+                            stats.TransportsKilled += ks.Count;
+                            break;
+                    }
+                    nc.shipKillCounts.TryGetValue(ship.CRC, out var count);
+                    nc.shipKillCounts[ship.CRC] = count + ks.Count;
+                }
+                c.UpdateFightersKilled(stats.FightersKilled);
+                c.UpdateFreightersKilled(stats.FreightersKilled);
+                c.UpdateTransportsKilled(stats.TransportsKilled);
+                c.UpdateBattleshipsKilled(stats.BattleshipsKilled);
             }
             return nc;
         }
@@ -302,6 +373,13 @@ namespace LibreLancer.Server
             nc.Ship = game.GameData.Ships.Get(c.Ship);
             nc.Credits = c.Money;
             nc.Items = new List<NetCargo>();
+            nc.statistics = new()
+            {
+                FightersKilled = c.FightersKilled,
+                FreightersKilled = c.FreightersKilled,
+                BattleshipsKilled = c.CapitalKills,
+                TransportsKilled = c.TransportsKilled
+            };
             foreach (var cargo in c.Items)
             {
                 var resolved = game.GameData.Equipment.Get(cargo.ItemName);

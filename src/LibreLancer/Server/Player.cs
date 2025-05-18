@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using LibreLancer.Client;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Save;
+using LibreLancer.Data.Ships;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
@@ -21,6 +22,7 @@ using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using Ship = LibreLancer.GameData.Ship;
 
 namespace LibreLancer.Server
 {
@@ -93,10 +95,26 @@ namespace LibreLancer.Server
             }
         }
 
-        public void UpdateStatistics(NetPlayerStatistics statistics)
+        public void ShipKilledByPlayer(Ship ship)
         {
-            Character.Statistics = statistics;
-            RpcClient.UpdateStatistics(statistics);
+            Character.IncrementShipKillCount(ship); //SP only
+            using var nc = Character.BeginTransaction();
+            switch (ship.ShipType)
+            {
+                case ShipType.Fighter:
+                    nc.UpdateFightersKilled(Character.Statistics.FightersKilled + 1);
+                    break;
+                case ShipType.Freighter:
+                    nc.UpdateFreightersKilled(Character.Statistics.FreightersKilled + 1);
+                    break;
+                case ShipType.Capital:
+                    nc.UpdateBattleshipsKilled(Character.Statistics.BattleshipsKilled + 1);
+                    break;
+                case ShipType.Transport:
+                    nc.UpdateTransportsKilled(Character.Statistics.TransportsKilled + 1);
+                    break;
+            }
+            rpcClient.UpdateStatistics(Character.Statistics);
         }
 
         public bool InTradelane;
@@ -228,6 +246,7 @@ namespace LibreLancer.Server
             rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
             UpdateCurrentReputations();
             UpdateCurrentInventory();
+            rpcClient.UpdateStatistics(c.Statistics);
             Base = Character.Base;
             System = Character.System;
             Position = Character.Position;

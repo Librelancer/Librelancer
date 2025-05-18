@@ -162,7 +162,7 @@ namespace LibreLancer.Client
         void IClientPlayer.UpdateStatistics(NetPlayerStatistics stats)
         {
             Statistics.TotalMissions = stats.TotalMissions;
-            Statistics.TotalKills = stats.TotalKills;
+            Statistics.TotalKills = (stats.FightersKilled + stats.FreightersKilled + stats.TransportsKilled + stats.BattleshipsKilled);
             Statistics.SystemsVisited = stats.SystemsVisited;
             Statistics.BasesVisited = stats.BasesVisited;
             Statistics.JumpHolesFound = stats.JumpHolesFound;

@@ -67,6 +67,15 @@ namespace LibreLancer.Server
             }
             sg.Player.Interface = 3; //Unknown, matching vanilla
 
+            sg.MPlayer = new MPlayer();
+            sg.MPlayer.CanDock = 1;
+            sg.MPlayer.CanTl = 1;
+            sg.MPlayer.TotalTimePlayed = (float)ch.Time;
+            foreach (var kc in ch.GetShipKillCounts())
+            {
+                sg.MPlayer.ShipTypeKilled.Add(new SaveItemCount(kc.Ship, kc.Count));
+            }
+
             if (story != null)
             {
                 sg.StoryInfo = new StoryInfo();

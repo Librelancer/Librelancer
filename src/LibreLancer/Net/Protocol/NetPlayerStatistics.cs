@@ -2,42 +2,39 @@ namespace LibreLancer.Net.Protocol;
 
 public struct NetPlayerStatistics
 {
-    public int TotalMissions;
-    public int TotalKills;
-    public int SystemsVisited;
-    public int BasesVisited;
-    public int JumpHolesFound;
+    public long TotalMissions;
+    public long SystemsVisited;
+    public long BasesVisited;
+    public long JumpHolesFound;
 
-    public int FightersKilled;
-    public int FreightersKilled;
-    public int TransportsKilled;
-    public int BattleshipsKilled;
+    public long FightersKilled;
+    public long FreightersKilled;
+    public long TransportsKilled;
+    public long BattleshipsKilled;
 
     public static NetPlayerStatistics Read(PacketReader reader) => new()
     {
-        TotalMissions = reader.GetVariableInt32(),
-        TotalKills = reader.GetVariableInt32(),
-        SystemsVisited = reader.GetVariableInt32(),
-        BasesVisited = reader.GetVariableInt32(),
-        JumpHolesFound = reader.GetVariableInt32(),
+        TotalMissions = (long)reader.GetVariableUInt64(),
+        SystemsVisited = (long)reader.GetVariableUInt64(),
+        BasesVisited = (long)reader.GetVariableUInt64(),
+        JumpHolesFound = (long)reader.GetVariableUInt64(),
 
-        FightersKilled = reader.GetVariableInt32(),
-        FreightersKilled = reader.GetVariableInt32(),
-        TransportsKilled = reader.GetVariableInt32(),
-        BattleshipsKilled = reader.GetVariableInt32(),
+        FightersKilled = (long)reader.GetVariableUInt64(),
+        FreightersKilled = (long)reader.GetVariableUInt64(),
+        TransportsKilled = (long)reader.GetVariableUInt64(),
+        BattleshipsKilled = (long)reader.GetVariableUInt64(),
     };
 
     public void Put(PacketWriter message)
     {
-        message.PutVariableInt32(TotalMissions);
-        message.PutVariableInt32(TotalKills);
-        message.PutVariableInt32(SystemsVisited);
-        message.PutVariableInt32(BasesVisited);
-        message.PutVariableInt32(JumpHolesFound);
+        message.PutVariableUInt64((ulong)TotalMissions);
+        message.PutVariableUInt64((ulong)SystemsVisited);
+        message.PutVariableUInt64((ulong)BasesVisited);
+        message.PutVariableUInt64((ulong)JumpHolesFound);
 
-        message.PutVariableInt32(FightersKilled);
-        message.PutVariableInt32(FreightersKilled);
-        message.PutVariableInt32(TransportsKilled);
-        message.PutVariableInt32(BattleshipsKilled);
+        message.PutVariableUInt64((ulong)FightersKilled);
+        message.PutVariableUInt64((ulong)FreightersKilled);
+        message.PutVariableUInt64((ulong)TransportsKilled);
+        message.PutVariableUInt64((ulong)BattleshipsKilled);
     }
 }

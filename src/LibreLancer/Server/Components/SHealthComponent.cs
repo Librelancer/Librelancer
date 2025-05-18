@@ -110,25 +110,7 @@ namespace LibreLancer.Server.Components
                 if (attacker is not null && npc is not null && attacker.TryGetComponent<SPlayerComponent>(out var attackingPlayer))
                 {
                     var ship = Parent.GetComponent<ShipPhysicsComponent>().Ship;
-
-                    NetPlayerStatistics statistics = attackingPlayer.Player.Character.Statistics;
-                    switch (ship.ShipType)
-                    {
-                        case ShipType.Fighter:
-                            statistics.FightersKilled++;
-                            break;
-                        case ShipType.Freighter:
-                            statistics.FreightersKilled++;
-                            break;
-                        case ShipType.Capital:
-                            statistics.BattleshipsKilled++;
-                            break;
-                        case ShipType.Transport:
-                            statistics.TransportsKilled++;
-                            break;
-                    }
-
-                    attackingPlayer.Player.UpdateStatistics(statistics);
+                    attackingPlayer.Player.ShipKilledByPlayer(ship);
                 }
 
                 fuseRunner?.RunAtHealth(0);

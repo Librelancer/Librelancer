@@ -5,14 +5,14 @@ namespace LibreLancer.Client;
 [WattleScriptUserData]
 public class PlayerStats
 {
-    public int TotalMissions;
-    public int TotalKills;
-    public int SystemsVisited;
-    public int BasesVisited;
-    public int JumpHolesFound;
+    public long TotalMissions;
+    public long TotalKills;
+    public long SystemsVisited;
+    public long BasesVisited;
+    public long JumpHolesFound;
 
-    public int FightersKilled;
-    public int FreightersKilled;
-    public int TransportsKilled;
-    public int BattleshipsKilled;
+    public long FightersKilled;
+    public long FreightersKilled;
+    public long TransportsKilled;
+    public long BattleshipsKilled;
 }
