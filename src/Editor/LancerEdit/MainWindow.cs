@@ -689,6 +689,10 @@ namespace LancerEdit
                 {
                     TabControl.Tabs.Add(new ParamCurveVis());
                 }
+                if (Theme.IconMenuItem(Icons.Calculator, "Hash Tool", true))
+                {
+                    TabControl.Tabs.Add(new HashToolTab());
+                }
                 ImGui.EndMenu();
 			}
             if (ImGui.BeginMenu("Window"))

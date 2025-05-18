@@ -57,6 +57,7 @@ public static class Icons
     public const char Tree = '\uf1bb';
     public const char PersonRunning = '\uf70c';
     public const char Bone = '\uf5d7';
+    public const char Calculator = '\uf1ec';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -176,6 +177,7 @@ public static class Icons
         yield return Tree;
         yield return PersonRunning;
         yield return Bone;
+        yield return Calculator;
 
         yield return Image;
         yield return Lightbulb;
