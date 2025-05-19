@@ -9,6 +9,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using LibreLancer.Client;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Save;
@@ -421,12 +422,13 @@ namespace LibreLancer.Server
             worldActions.Enqueue(a);
         }
 
-        public void OnLoggedIn()
+        public async Task OnLoggedIn()
         {
             try
             {
                 FLLog.Info("Server", "Account logged in");
-                if (!Game.Database.PlayerLogin(playerGuid, out CharacterList)) {
+                CharacterList = await Game.Database.PlayerLogin(playerGuid);
+                if (CharacterList == null) {
                     FLLog.Info("Server", $"Account {playerGuid} is banned, kicking.");
                     Client.Disconnect(DisconnectReason.Banned);
                     return;
@@ -442,8 +444,7 @@ namespace LibreLancer.Server
                         Characters = CharacterList,
                     }
                 }, PacketDeliveryMethod.ReliableOrdered);
-
-                packetQueueTask = Task.Run(ProcessPacketQueue);
+                packetQueueTask = Task.Factory.StartNew(ProcessPacketQueue, TaskCreationOptions.LongRunning);
             }
             catch (Exception ex)
             {
@@ -465,22 +466,23 @@ namespace LibreLancer.Server
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
 
-        private BlockingCollection<IPacket> inputPackets = new BlockingCollection<IPacket>();
+        private BufferBlock<IPacket> inputPackets = new();
         private Task packetQueueTask;
 
         public void EnqueuePacket(IPacket packet)
         {
-            inputPackets.Add(packet);
+            inputPackets.Post(packet);
         }
 
         //Long running task, quits when we finish consuming the collection
         async Task ProcessPacketQueue()
         {
-            foreach (var pkt in inputPackets.GetConsumingEnumerable())
+            while (await inputPackets.OutputAvailableAsync())
             {
+                var pkt = await inputPackets.ReceiveAsync();
                 try
                 {
-                    await ProcessPacketDirect(pkt);
+                    await ProcessPacketDirect(pkt).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -540,7 +542,7 @@ namespace LibreLancer.Server
             }, PacketDeliveryMethod.ReliableOrdered);
         }
 
-        Task<bool> IServerPlayer.SelectCharacter(int index)
+        async Task<bool> IServerPlayer.SelectCharacter(int index)
         {
             if (index >= 0 && index < CharacterList.Count)
             {
@@ -548,14 +550,14 @@ namespace LibreLancer.Server
                 FLLog.Info("Server", $"opening id {sc.Id}");
                 if (!Game.CharactersInUse.Add(sc.Id)) {
                     FLLog.Info("Server", $"Character `{sc.Name}` is already in use");
-                    return Task.FromResult(false);
+                    return false;
                 }
-                BeginGame(NetCharacter.FromDb(sc.Id, Game), null);
-                return Task.FromResult(true);
+                BeginGame(await NetCharacter.FromDb(sc.Id, Game), null);
+                return true;
             }
             else
             {
-                return Task.FromResult(false);
+                return false;
             }
         }
 
@@ -569,25 +571,25 @@ namespace LibreLancer.Server
             return Task.FromResult(true);
         }
 
-        Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
+        async Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
         {
             if (!Game.Database.NameInUse(name))
             {
                 FLLog.Info("Player", $"New char: {name}");
                 SelectableCharacter sel = null;
-                long id = Game.Database.AddCharacter(playerGuid, (db) => {
+                long id = await Game.Database.AddCharacter(playerGuid, (db) => {
                     NetCharacter.FromSaveGame(Game, Game.NewCharacter(name, index), db);
                 });
-                sel = NetCharacter.FromDb(id, Game).ToSelectable();
+                sel = (await NetCharacter.FromDb(id, Game)).ToSelectable();
                 CharacterList.Add(sel);
                 Client.SendPacket(new AddCharacterPacket()
                 {
                     Character = sel
                 }, PacketDeliveryMethod.ReliableOrdered);
-                return Task.FromResult(true);
+                return true;
             } else {
                 FLLog.Info("Player", $"Char name in use: {name}");
-                return Task.FromResult(false);
+                return false;
             }
         }
 
@@ -727,7 +729,7 @@ namespace LibreLancer.Server
         {
             if (packetQueueTask != null)
             {
-                inputPackets.CompleteAdding();
+                inputPackets.Complete();
                 packetQueueTask.Wait(1000);
             }
             LoggedOut();

@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using LibreLancer.Database;
 using LibreLancer.Entities.Character;
 using LibreLancer.Net.Protocol;
@@ -28,33 +30,37 @@ namespace LibreLancer.Server
             this.db = db;
         }
 
-        public void Update(Action<Character> update)
+        public async Task Update(Action<Character> update)
         {
-            using (var ctx = db.CreateDbContext())
+            await db.Run(async () =>
             {
-                cached = ctx.Characters
+                await using var ctx = db.CreateDbContext();
+                var self =  await ctx.Characters
                     .Include(c => c.Items)
                     .Include(c => c.Reputations)
                     .Include(c => c.VisitEntries)
-                    .First(c => c.Id == Id);
-                update(cached);
-                ctx.SaveChanges();
-            }
+                    .AsSplitQuery()
+                    .FirstAsync(c => c.Id == Id);
+                update(self);
+                cached = self;
+                await ctx.SaveChangesAsync();
+            });
         }
 
-        public Character GetCharacter()
+        public async Task<Character> GetCharacter()
         {
-            if (cached != null)
-                return cached;
-            using (var ctx = db.CreateDbContext())
+            return await db.Run(async () =>
             {
+                if (cached != null)
+                    return cached;
+                await using var ctx = db.CreateDbContext();
                 cached = ctx.Characters
                     .Include(c => c.Items)
                     .Include(c => c.Reputations)
                     .Include(c => c.VisitEntries)
                     .First(c => c.Id == Id);
-            }
-            return cached;
+                return cached;
+            });
         }
     }
 
@@ -62,36 +68,81 @@ namespace LibreLancer.Server
 
     public record AdminCharacterDescription(long Id, string Name);
 
-    public class ServerDatabase
+    public class ServerDatabase : IDisposable
     {
         private GameServer server;
+        private BufferBlock<Func<Task>> actions = new();
+        private Task actionQueueTask;
+
 		public ServerDatabase(GameServer server)
 		{
 		    this.server = server;
+            actionQueueTask = Task.Run(ProcessTaskQueue);
 		}
+
+        internal Task<T> Run<T>(Func<Task<T>> func)
+        {
+            var compSrc = new TaskCompletionSource<T>();
+            actions.Post(async () =>
+            {
+                try
+                {
+                    var result = await func();
+                    compSrc.SetResult(result);
+                }
+                catch (Exception e)
+                {
+                    compSrc.SetException(e);
+                }
+            });
+            return compSrc.Task;
+        }
+
+        internal Task Run(Func<Task> func)
+        {
+            var compSrc = new TaskCompletionSource();
+            actions.Post(async () =>
+            {
+                try
+                {
+                    await func();
+                    compSrc.SetResult();
+                }
+                catch (Exception e)
+                {
+                    compSrc.SetException(e);
+                }
+            });
+            return compSrc.Task;
+        }
+
+        async Task ProcessTaskQueue()
+        {
+            while (await actions.OutputAvailableAsync())
+            {
+                var item = await actions.ReceiveAsync();
+                await item().ConfigureAwait(false);
+            }
+        }
 
         public LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext(new string[0]);
 
         public async Task BanAccount(Guid playerGuid, DateTime expiryUtc)
         {
-            using (var ctx = CreateDbContext())
-            {
-                var acc = ctx.Accounts.FirstOrDefault(x => x.AccountIdentifier == playerGuid);
-                if(acc != null)
-                    acc.BanExpiry = expiryUtc;
-                await ctx.SaveChangesAsync();
-            }
+            await using var ctx = CreateDbContext();
+            var acc = ctx.Accounts.FirstOrDefault(x => x.AccountIdentifier == playerGuid);
+            if(acc != null)
+                acc.BanExpiry = expiryUtc;
+            await ctx.SaveChangesAsync();
         }
 
         public async Task UnbanAccount(Guid playerGuid)
         {
-            using (var ctx = CreateDbContext())
-            {
-                var acc = ctx.Accounts.FirstOrDefault(x => x.AccountIdentifier == playerGuid);
-                if (acc != null)
-                    acc.BanExpiry = null;
-                await ctx.SaveChangesAsync();
-            }
+            await using var ctx = CreateDbContext();
+            var acc = ctx.Accounts.FirstOrDefault(x => x.AccountIdentifier == playerGuid);
+            if (acc != null)
+                acc.BanExpiry = null;
+            await ctx.SaveChangesAsync();
         }
 
         public AdminCharacterDescription[] GetAdmins()
@@ -103,69 +154,72 @@ namespace LibreLancer.Server
 
         public BannedPlayerDescription[] GetBannedPlayers()
         {
-            using (var ctx = CreateDbContext())
-            {
-                var c = ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
-                    .Select(x => new
-                    {
-                        AccountId = x.AccountIdentifier,
-                        BanExpiry = x.BanExpiry,
-                        Characters = x.Characters.Select(y => y.Name).ToArray()
-                    });
-                return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
-            }
+            using var ctx = CreateDbContext();
+            var c = ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
+                .Select(x => new
+                {
+                    AccountId = x.AccountIdentifier,
+                    BanExpiry = x.BanExpiry,
+                    Characters = x.Characters.Select(y => y.Name).ToArray()
+                });
+            return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
         }
 
-        public long? FindCharacter(string character)
+        public async Task<long?> FindCharacter(string character)
         {
-            using (var ctx = CreateDbContext())
+            return await Run(async () =>
             {
+                await using var ctx = CreateDbContext();
                 var c = ctx.Characters.Select(x => new {x.Id, x.Name}).FirstOrDefault(c => c.Name == character);
                 return c?.Id;
-            }
+            });
         }
 
 
         public async Task AdminCharacter(long character)
         {
-            using (var ctx = CreateDbContext())
+            await Run(async () =>
             {
-                var c = ctx.Characters.FirstOrDefault(x => x.Id == character);
-                if (c != null)
-                {
-                    c.IsAdmin = true;
-                    await ctx.SaveChangesAsync();
-                }
-            }
-        }
-
-        public async Task DeadminCharacter(long character)
-        {
-            using (var ctx = CreateDbContext())
-            {
+                await using var ctx = CreateDbContext();
                 var c = ctx.Characters.FirstOrDefault(x => x.Id == character);
                 if (c != null)
                 {
                     c.IsAdmin = false;
                     await ctx.SaveChangesAsync();
                 }
-            }
+            });
         }
 
-        public Guid? FindAccount(string character)
+        public async Task DeadminCharacter(long character)
         {
-            using (var ctx = CreateDbContext())
+            await Run(async () =>
             {
+                await using var ctx = CreateDbContext();
+                var c = ctx.Characters.FirstOrDefault(x => x.Id == character);
+                if (c != null)
+                {
+                    c.IsAdmin = false;
+                    await ctx.SaveChangesAsync();
+                }
+            });
+        }
+
+        public async Task<Guid?> FindAccount(string character)
+        {
+            return await Run(async () =>
+            {
+                await using var ctx = CreateDbContext();
                 var c = ctx.Characters.Include(x => x.Account).FirstOrDefault(x => x.Name == character);
                 c ??= ctx.Characters.Include(x => x.Account).FirstOrDefault(x => x.Name.Contains(character));
                 return c?.Account?.AccountIdentifier;
-            }
+            });
         }
 
-        public bool PlayerLogin(Guid playerGuid, out List<SelectableCharacter> characters)
+        public async Task<List<SelectableCharacter>> PlayerLogin(Guid playerGuid)
         {
-            using (var ctx = CreateDbContext())
+            return await Run(async () =>
             {
+                await using var ctx = CreateDbContext();
                 ctx.ChangeTracker.AutoDetectChangesEnabled = false;
                 var acc = ctx.Accounts.Where(x => x.AccountIdentifier == playerGuid)
                     .Include(x => x.Characters)
@@ -181,17 +235,15 @@ namespace LibreLancer.Server
                     };
                     ctx.Accounts.Add(acc);
                     ctx.SaveChanges();
-                    characters = new List<SelectableCharacter>();
-                    return true;
+                    return new List<SelectableCharacter>();
                 }
                 if (acc.BanExpiry.HasValue && acc.BanExpiry > DateTime.UtcNow)
                 {
-                    characters = null;
-                    return false;
+                    return null;
                 }
                 ctx.Entry(acc).Property(x => x.LastLogin).CurrentValue = DateTime.UtcNow;
                 ctx.SaveChanges();
-                characters = new List<SelectableCharacter>();
+                var characters = new List<SelectableCharacter>();
                 foreach (var c in acc.Characters)
                 {
                     characters.Add(new SelectableCharacter()
@@ -204,43 +256,48 @@ namespace LibreLancer.Server
                         Id = c.Id
                     });
                 }
-                return true;
-            }
+                return characters;
+            });
+
         }
 
         public void DeleteCharacter(long characterId)
         {
-            using (var ctx = CreateDbContext())
+            Run(async () =>
             {
+                await using var ctx = CreateDbContext();
                 var ch = ctx.Characters.First(x => x.Id == characterId);
                 ctx.Characters.Remove(ch);
-                ctx.SaveChanges();
-            }
+                await ctx.SaveChangesAsync();
+            });
         }
 
         public bool NameInUse(string name)
         {
-            using (var ctx = CreateDbContext())
-            {
-                return ctx.Characters.Any(x => x.Name.Equals(name));
-            }
+            using var ctx = CreateDbContext();
+            return ctx.Characters.Any(x => x.Name.Equals(name));
         }
 
-        public DatabaseCharacter GetCharacter(long id)
+        public async Task<DatabaseCharacter> GetCharacter(long id)
         {
-            var ctx = CreateDbContext();
-            var character = ctx.Characters
+            return await Run(async () =>
+            {
+                await using var ctx = CreateDbContext();
+                var character = await ctx.Characters
                     .Include(c => c.Items)
                     .Include(c => c.Reputations)
                     .Include(c => c.VisitEntries)
-                    .First(c => c.Id == id);
-            return new DatabaseCharacter(character, this);
+                    .AsSplitQuery()
+                    .FirstAsync(c => c.Id == id);
+                return new DatabaseCharacter(character, this);
+            });
         }
 
-        public long AddCharacter(Guid playerGuid, Action<Character> fillCharacter)
+        public async Task<long> AddCharacter(Guid playerGuid, Action<Character> fillCharacter)
         {
-            using (var ctx = CreateDbContext())
+            return await Run(async () =>
             {
+                await using var ctx = CreateDbContext();
                 //Get account
                 var acc = ctx.Accounts.First(x => x.AccountIdentifier == playerGuid);
                 //Init object
@@ -250,10 +307,15 @@ namespace LibreLancer.Server
                 c.Account = acc;
                 //Add
                 ctx.Characters.Add(c);
-                ctx.SaveChanges();
+                await ctx.SaveChangesAsync();
                 return c.Id;
-            }
+            });
         }
 
+        public void Dispose()
+        {
+            actions.Complete();
+            actionQueueTask.Wait();
+        }
     }
 }

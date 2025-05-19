@@ -304,6 +304,8 @@ namespace LibreLancer.Server
             processingLoop = new FixedTimestepLoop(Process);
             processingLoop.Start();
             Listener?.Stop();
+            Database.Dispose();
+            Database = null;
         }
     }
 }

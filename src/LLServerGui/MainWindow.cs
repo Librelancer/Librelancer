@@ -147,7 +147,7 @@ public class MainWindow : Game
         return ImGui.BeginPopupModal(id, ref x);
     }
 
-    unsafe void RunningServer()
+    void RunningServer()
     {
         if (startupError)
         {
@@ -166,15 +166,18 @@ public class MainWindow : Game
                 ImGui.SameLine();
                 if (ImGui.Button("Make Admin"))
                 {
-                    var adminId = server.Server.Database.FindCharacter(adminSearchString);
-                    if (adminId != null)
+                    Task.Run(async () =>
                     {
-                        FLLog.Info("Server", $"Making {adminId.Value} admin");
-                        server.Server.Database.AdminCharacter(adminId.Value).Wait();
-                        server.Server.AdminChanged(adminId.Value, true);
-                        admins = server.Server.Database.GetAdmins();
-                        adminSearchString = "";
-                    }
+                        var adminId = await server.Server.Database.FindCharacter(adminSearchString);
+                        if (adminId != null)
+                        {
+                            FLLog.Info("Server", $"Making {adminId.Value} admin");
+                            server.Server.Database.AdminCharacter(adminId.Value).Wait();
+                            server.Server.AdminChanged(adminId.Value, true);
+                            admins = server.Server.Database.GetAdmins();
+                            adminSearchString = "";
+                        }
+                    });
                 }
                 foreach (var a in admins)
                 {
@@ -195,7 +198,12 @@ public class MainWindow : Game
                 InputTextLabel("Character: ", "##character", ref banSearchString);
                 ImGui.SameLine();
                 if (ImGui.Button("Find Account"))
-                    banId = server.Server.Database.FindAccount(banSearchString);
+                {
+                    Task.Run(async () =>
+                    {
+                        banId = await server.Server.Database.FindAccount(banSearchString);
+                    });
+                }
                 if (banId != null)
                 {
                     ImGui.TextUnformatted($"Found account: {banId}");
@@ -262,7 +270,7 @@ public class MainWindow : Game
             ImGui.TextUnformatted($"Server Running on Port {server.Server.Listener.Port}");
             ImGui.TextUnformatted(
                 $"Players Connected: {server.Server.Listener.Server.ConnectedPeersCount}/{server.Server.Listener.MaxConnections}");
-            float* values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
+            Span<float> values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
             var len = server.Server.PerformanceStats.Timings.Count;
             double avg = 0;
             double max = 0;

@@ -75,7 +75,7 @@ namespace LLServer
                             if (Guid.TryParse(cmdargs, out var v))
                                 g = v;
                             else
-                                g = app.Server.Database.FindAccount(cmdargs);
+                                g = await app.Server.Database.FindAccount(cmdargs);
                         }
                         if (g.HasValue)
                         {
@@ -92,7 +92,7 @@ namespace LLServer
                             if (Guid.TryParse(cmdargs, out var v))
                                 g = v;
                             else
-                                g = app.Server.Database.FindAccount(cmdargs);
+                                g = await app.Server.Database.FindAccount(cmdargs);
                         }
                         if (g.HasValue)
                         {
@@ -105,7 +105,7 @@ namespace LLServer
                     {
                         long? id = null;
                         if (cmdargs.Length > 0)
-                            id = app.Server.Database.FindCharacter(cmdargs);
+                            id = await app.Server.Database.FindCharacter(cmdargs);
                         if (id.HasValue)
                         {
                             FLLog.Info("Server", $"Making '{cmdargs}' admin");
@@ -118,7 +118,7 @@ namespace LLServer
                     {
                         long? id = null;
                         if (cmdargs.Length > 0)
-                            id = app.Server.Database.FindCharacter(cmdargs);
+                            id = await app.Server.Database.FindCharacter(cmdargs);
                         if (id.HasValue)
                         {
                             FLLog.Info("Server", $"Removing '{cmdargs}' admin");
@@ -150,7 +150,7 @@ namespace LLServer
             }
             return (cmd, args);
         }
-        
+
 		static void MakeConfig(string configPath)
 		{
 			ServerConfig config = new ServerConfig();
