@@ -276,7 +276,17 @@ namespace LibreLancer
             public void PopulateNavmap(Navmap navmap)
             {
                 navmap.PopulateIcons(g.ui, g.sys);
+                navmap.SetVisitFunction(g.session.IsVisited);
             }
+
+            bool IsVisited(uint hash)
+            {
+                if (!g.session.Visits.TryGetValue(hash, out var visit))
+                    return false;
+                return (visit & VisitFlags.Hidden) != VisitFlags.Hidden &&
+                       (visit & VisitFlags.Visited) == VisitFlags.Visited;
+            }
+
             public NavbarButtonInfo[] GetNavbarButtons()
             {
                 var buttons = new NavbarButtonInfo[g.tophotspots.Count];

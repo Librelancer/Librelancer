@@ -54,6 +54,10 @@ public interface IClientPlayer
     void OnPlayerJoin(int id, string name);
     [Channel(1)]
     void OnPlayerLeave(int id, string name);
+
+    [Channel(1)] //Low prio
+    void VisitObject(uint hash, byte flags);
+    void UpdateVisits(VisitBundle visits);
     void StopShip();
 
     void UpdateCharacterProgress(int level, long nextNetWorth);

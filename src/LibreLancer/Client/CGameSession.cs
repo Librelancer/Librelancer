@@ -13,6 +13,7 @@ using LibreLancer.Client.Components;
 using LibreLancer.Data.Missions;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
+using LibreLancer.GameData.World;
 using LibreLancer.Interface;
 using LibreLancer.Missions;
 using LibreLancer.Net;
@@ -37,6 +38,7 @@ namespace LibreLancer.Client
         public PlayerStats Statistics = new();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
+        public Dictionary<uint, VisitFlags> Visits = new();
         public DynamicThn Thns = new();
         public PreloadObject[] Preloads;
         public FreelancerGame Game;
@@ -600,6 +602,28 @@ namespace LibreLancer.Client
         {
             inTradelane = true;
             RunSync(gp.StartTradelane);
+        }
+
+        void IClientPlayer.UpdateVisits(VisitBundle bundle)
+        {
+            Visits = new();
+            foreach (var b in bundle.Visits)
+            {
+                Visits[b.Obj.Hash] = (VisitFlags)b.Visit;
+            }
+        }
+
+        void IClientPlayer.VisitObject(uint hash, byte flags)
+        {
+            Visits[hash] = (VisitFlags)flags;
+        }
+
+        public bool IsVisited(uint hash)
+        {
+            if (!Visits.TryGetValue(hash, out var visit))
+                return false;
+            return (visit & VisitFlags.Hidden) != VisitFlags.Hidden &&
+                   (visit & VisitFlags.Visited) == VisitFlags.Visited;
         }
 
         void IClientPlayer.TradelaneDisrupted()

@@ -65,6 +65,9 @@ namespace LibreLancer.Server
             foreach (var rep in ch.Reputation.Reputations) {
                 sg.Player.House.Add(new SaveRep() { Group = rep.Key.Nickname, Reputation = rep.Value });
             }
+
+            sg.Player.Visit.AddRange(ch.GetAllVisited());
+
             sg.Player.Interface = 3; //Unknown, matching vanilla
 
             sg.MPlayer = new MPlayer();

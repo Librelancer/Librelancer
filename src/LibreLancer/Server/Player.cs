@@ -14,6 +14,7 @@ using LibreLancer.Client;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Save;
 using LibreLancer.Data.Ships;
+using LibreLancer.Data.Universe;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
@@ -24,6 +25,8 @@ using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using Ship = LibreLancer.GameData.Ship;
+using StarSystem = LibreLancer.GameData.World.StarSystem;
+using SystemObject = LibreLancer.GameData.World.SystemObject;
 
 namespace LibreLancer.Server
 {
@@ -248,6 +251,7 @@ namespace LibreLancer.Server
             UpdateCurrentReputations();
             UpdateCurrentInventory();
             rpcClient.UpdateStatistics(c.Statistics);
+            rpcClient.UpdateVisits(VisitBundle.Compress(c.GetAllVisited()));
             Base = Character.Base;
             System = Character.System;
             Position = Character.Position;
@@ -266,7 +270,7 @@ namespace LibreLancer.Server
             }
         }
 
-        public void OpenSaveGame(SaveGame sg) => BeginGame(NetCharacter.FromSaveGame(Game, sg), sg);
+        public void OpenSaveGame(SaveGame sg) => BeginGame(NetCharacter.OpenSaveGame(Game, sg), sg);
 
         public void AddCash(long credits)
         {
@@ -577,8 +581,9 @@ namespace LibreLancer.Server
             {
                 FLLog.Info("Player", $"New char: {name}");
                 SelectableCharacter sel = null;
-                long id = await Game.Database.AddCharacter(playerGuid, (db) => {
-                    NetCharacter.FromSaveGame(Game, Game.NewCharacter(name, index), db);
+                long id = await Game.Database.AddCharacter(playerGuid, (db) =>
+                {
+                    NetCharacter.SaveToDbCharacter(Game, Game.NewCharacter(name, index), db);
                 });
                 sel = (await NetCharacter.FromDb(id, Game)).ToSelectable();
                 CharacterList.Add(sel);
@@ -590,6 +595,35 @@ namespace LibreLancer.Server
             } else {
                 FLLog.Info("Player", $"Char name in use: {name}");
                 return false;
+            }
+        }
+
+        public void VisitSystem(StarSystem system)
+        {
+            if ((Character.GetVisited(system.CRC) & VisitFlags.Visited) != VisitFlags.Visited)
+            {
+                using var ts = Character.BeginTransaction();
+                ts.UpdateVisitValue(system.CRC, VisitFlags.Visited);
+                rpcClient.VisitObject(system.CRC, (byte)VisitFlags.Visited);
+            }
+        }
+
+        public void VisitObject(SystemObject obj, uint hash)
+        {
+            if ((obj.Visit & VisitFlags.Hidden) ==
+                VisitFlags.Hidden)
+            {
+                return;
+            }
+            if (!obj.Archetype.CanVisit)
+            {
+                return;
+            }
+            if ((Character.GetVisited(hash) & VisitFlags.Visited) != VisitFlags.Visited)
+            {
+                using var ts = Character.BeginTransaction();
+                ts.UpdateVisitValue(hash, obj.Visit | VisitFlags.Visited);
+                rpcClient.VisitObject(hash, (byte)(obj.Visit | VisitFlags.Visited));
             }
         }
 

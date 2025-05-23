@@ -225,6 +225,15 @@ namespace LibreLancer.Server.Components
                 formationHash = Parent.Formation.Hash;
                 Player.RpcClient.UpdateFormation(Parent.Formation.ToNetFormation(Parent));
             }
+
+            foreach (var obj in Parent.GetWorld().SpatialLookup
+                         .GetNearbyObjects(Parent, Parent.WorldTransform.Position, 10000))
+            {
+                if (obj.SystemObject != null)
+                {
+                    Player.VisitObject(obj.SystemObject, obj.NicknameCRC);
+                }
+            }
         }
 
         public override int TryConsume(Equipment item, int maxCount = 1)

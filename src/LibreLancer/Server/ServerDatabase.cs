@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using LibreLancer.Database;
 using LibreLancer.Entities.Character;
+using LibreLancer.Entities.Enums;
+using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,20 +32,45 @@ namespace LibreLancer.Server
             this.db = db;
         }
 
-        public async Task Update(Action<Character> update)
+        public async Task Update(Action<Character> update, bool updatingCargo)
         {
             await db.Run(async () =>
             {
                 await using var ctx = db.CreateDbContext();
-                var self =  await ctx.Characters
-                    .Include(c => c.Items)
-                    .Include(c => c.Reputations)
-                    .Include(c => c.VisitEntries)
-                    .AsSplitQuery()
-                    .FirstAsync(c => c.Id == Id);
+                Character self;
+                if (updatingCargo)
+                {
+                    self = await ctx.Characters
+                        .Include(c => c.Items)
+                        .AsSplitQuery()
+                        .FirstAsync(c => c.Id == Id);
+                }
+                else
+                {
+                    self = await ctx.Characters
+                        .FirstAsync(c => c.Id == Id);
+                }
                 update(self);
                 cached = self;
                 await ctx.SaveChangesAsync();
+            });
+        }
+
+        public async Task UpdateFactionReps(KeyValuePair<string, float>[] reps)
+        {
+            await db.Run(async () =>
+            {
+                await using var ctx = db.CreateDbContext();
+                await ctx.UpsertRepValues(Id, reps);
+            });
+        }
+
+        public async Task UpdateVisitFlags(KeyValuePair<uint, Visit>[] flags)
+        {
+            await db.Run(async () =>
+            {
+                await using var ctx = db.CreateDbContext();
+                await ctx.UpsertVisitValues(Id, flags);
             });
         }
 
@@ -303,7 +330,8 @@ namespace LibreLancer.Server
                 //Init object
                 var c = new Character();
                 fillCharacter(c);
-                c.UpdateDate = c.CreationDate = DateTime.UtcNow;
+                var nowUtc = DateTime.UtcNow;
+                c.UpdateDate = c.CreationDate = nowUtc;
                 c.Account = acc;
                 //Add
                 ctx.Characters.Add(c);

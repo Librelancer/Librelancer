@@ -30,6 +30,7 @@ namespace LibreLancer.Interface
             public Vector2 XZ;
             public float SolarRadius;
             public bool IconZoomedOut;
+            public uint Hash;
         }
         List<DrawObject> objects = new List<DrawObject>();
 
@@ -67,9 +68,12 @@ namespace LibreLancer.Interface
                 (8, new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0));
         }
 
+        private Func<uint, bool> isVisited = _ => true;
 
-
-
+        public void SetVisitFunction(Func<uint, bool> isVisited)
+        {
+            this.isVisited = isVisited;
+        }
 
         public void PopulateIcons(UiContext ctx, StarSystem sys)
         {
@@ -126,7 +130,8 @@ namespace LibreLancer.Interface
                     Name = nm,
                     XZ = new Vector2(obj.Position.X, obj.Position.Z),
                     SolarRadius = obj.Archetype.SolarRadius,
-                    IconZoomedOut = iconZoomOut
+                    IconZoomedOut = iconZoomOut,
+                    Hash = FLHash.CreateID(obj.Nickname)
                 });
             }
 
@@ -326,6 +331,8 @@ namespace LibreLancer.Interface
             jj = 0;
             foreach (var obj in objects)
             {
+                if (!isVisited(obj.Hash))
+                    continue;
                 var posAbs = WorldToMap(obj.XZ);
                 if (obj.Renderable != null && obj.IconZoomedOut)
                 {

@@ -55,7 +55,7 @@ namespace LibreLancer.Net.Protocol
                 writer.PutBigVarUInt32(p2[i].GoodCRC - p2[i - 1].GoodCRC);
             for (int i = 0; i < p2.Length; i++)
                 writer.PutVariableUInt64(p2[i].Price);
-            using var comp = new ZstdSharp.Compressor(19);
+            using var comp = new ZstdSharp.Compressor(22);
             return new BaselinePriceBundle() { Compressed = comp.Wrap(writer.GetCopy()).ToArray() };
         }
 

@@ -76,8 +76,15 @@ namespace LibreLancer.Data.Save
         public LogEntry(Entry e) => Data = e.Select(x => x.ToInt32()).ToArray();
     }
 
-    public record VisitEntry(HashValue Obj, int Visit)
+    public struct VisitEntry
     {
+        public HashValue Obj;
+        public int Visit;
+        public VisitEntry(HashValue obj, int visit)
+        {
+            Obj = obj;
+            Visit = visit;
+        }
         public VisitEntry(Entry e) : this(new HashValue(e[0]), e[1].ToInt32()) { }
     }
 

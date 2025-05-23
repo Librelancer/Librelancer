@@ -172,7 +172,7 @@ public class MainWindow : Game
                         if (adminId != null)
                         {
                             FLLog.Info("Server", $"Making {adminId.Value} admin");
-                            server.Server.Database.AdminCharacter(adminId.Value).Wait();
+                            await server.Server.Database.AdminCharacter(adminId.Value).ConfigureAwait(false);
                             server.Server.AdminChanged(adminId.Value, true);
                             admins = server.Server.Database.GetAdmins();
                             adminSearchString = "";

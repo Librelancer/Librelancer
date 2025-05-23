@@ -637,6 +637,7 @@ World Time: {12:F2}
             public void PopulateNavmap(Navmap nav)
             {
                 nav.PopulateIcons(g.ui, g.sys);
+                nav.SetVisitFunction(g.session.IsVisited);
             }
 
             public ChatSource GetChats() => g.session.Chats;

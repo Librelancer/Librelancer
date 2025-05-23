@@ -175,7 +175,7 @@ namespace LibreLancer.World
                 if (value == null)
                     NicknameCRC = 0;
                 else
-                    NicknameCRC = CrcTool.FLModelCrc(value);
+                    NicknameCRC = FLHash.CreateID(value);
             }
         }
 

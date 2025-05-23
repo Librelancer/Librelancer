@@ -215,6 +215,7 @@ namespace LibreLancer.Server
 
         public GameObject SpawnPlayer(Player player, Vector3 position, Quaternion orientation)
         {
+            player.VisitSystem(System);
             Interlocked.Increment(ref PlayerCount);
             var obj = new GameObject(player.Character.Ship, Server.Resources, false, true) { World = GameWorld };
             foreach (var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
