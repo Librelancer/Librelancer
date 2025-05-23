@@ -61,10 +61,10 @@ namespace LibreLancer.Database
             foreach (var f in reps)
             {
                 await Database.ExecuteSqlInterpolatedAsync(@$"
-INSERT INTO VisitEntry(Id, CharacterId, RepGroup, ReputationValue, UpdateDate, CreationDate)
+INSERT INTO Reputation(Id, CharacterId, RepGroup, ReputationValue, UpdateDate, CreationDate)
 VALUES (NULL, {characterId}, {f.Key}, {f.Value}, {nowUtc}, {nowUtc})
-ON CONFLICT(CharacterId, Hash) DO UPDATE SET
-VisitValue=excluded.VisitValue, UpdateDate=excluded.UpdateDate WHERE VisitValue <> excluded.VisitValue");
+ON CONFLICT(CharacterId, RepGroup) DO UPDATE SET
+ReputationValue=excluded.ReputationValue, UpdateDate=excluded.UpdateDate WHERE ReputationValue <> excluded.ReputationValue");
             }
             await transaction.CommitAsync();
         }
