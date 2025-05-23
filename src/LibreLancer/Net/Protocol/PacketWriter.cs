@@ -58,6 +58,35 @@ public class PacketWriter
         writer.Put((byte)reason);
     }
 
+    public void PutBigVarUInt32(uint u)
+    {
+        if (u <= 32767) //15 bits
+        {
+            writer.Put((ushort)u);
+        }
+        else if (u <= 4227071) //4194303 22 bits + 32768
+        {
+            u -= 32768;
+            writer.Put((ushort)((u & 0x7FFF) | 0x8000));
+            writer.Put((byte)((u >> 15) & 0x7f));
+        }
+        else if (u <= 541097983) //536870911 29 bits + 4227072
+        {
+            u -= 4227072;
+            writer.Put((ushort)((u & 0x7FFF) | 0x8000));
+            writer.Put((byte)(((u >> 15) & 0x7f) | 0x80));
+            writer.Put((byte)((u >> 22) & 0x7f));
+        }
+        else
+        {
+            u -= 541097984;
+            writer.Put((ushort)((u & 0x7FFF) | 0x8000));
+            writer.Put((byte)(((u >> 15) & 0x7f) | 0x80));
+            writer.Put((byte)(((u >> 22) & 0x7f) | 0x80));
+            writer.Put((byte)(u >> 29));
+        }
+    }
+
     public void PutVariableUInt64(ulong u)
     {
         if (u <= 127)

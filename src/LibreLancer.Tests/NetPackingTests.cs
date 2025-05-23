@@ -62,6 +62,44 @@ public class NetPackingTests
         Assert.Equal(v, r.GetUInt());
     }
 
+    [Theory]
+    [InlineData(0xFFFFFFFF, 5)]
+    [InlineData(541097984, 5)]
+    [InlineData(541097983, 4)]
+    [InlineData(4227072, 4)]
+    [InlineData(4227071, 3)]
+    [InlineData(32768, 3)]
+    [InlineData(32767, 2)]
+    public void BigVarUInt32(uint v, int expectedCount)
+    {
+        var pw = new PacketWriter(new NetDataWriter());
+        pw.PutBigVarUInt32(v);
+        var bytes = pw.GetCopy();
+        Assert.Equal(expectedCount, bytes.Length);
+        var pr = new PacketReader(new NetDataReader(bytes));
+        Assert.Equal(v, pr.GetBigVarUInt32());
+    }
+
+    [Theory]
+    [InlineData(0xFFFFFFFF, 5)]
+    [InlineData(270549119, 5)]
+    [InlineData(270549118, 4)]
+    [InlineData(2113663, 4)]
+    [InlineData(2113662, 3)]
+    [InlineData(16512, 3)]
+    [InlineData(16511, 2)]
+    [InlineData(128, 2)]
+    [InlineData(127, 1)]
+    public void VariableUInt32(uint v, int expectedCount)
+    {
+        var pw = new PacketWriter(new NetDataWriter());
+        pw.PutVariableUInt32(v);
+        var bytes = pw.GetCopy();
+        Assert.Equal(expectedCount, bytes.Length);
+        var pr = new PacketReader(new NetDataReader(bytes));
+        Assert.Equal(v, pr.GetVariableUInt32());
+    }
+
     [Fact]
     public void Alignment()
     {

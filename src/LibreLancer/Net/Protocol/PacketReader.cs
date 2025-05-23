@@ -32,6 +32,43 @@ public struct PacketReader
         return true;
     }
 
+    public uint GetBigVarUInt32()
+    {
+        uint b = reader.GetUShort();
+        uint a = (b & 0x7FFF);
+        if ((b & 0x8000) != 0x8000)
+        {
+            return b;
+        }
+
+        int extraCount = 1;
+        b = reader.GetByte();
+        a |= (uint)((b & 0x7f) << 15);
+
+        if ((b & 0x80) == 0x80)
+        {
+            b = reader.GetByte();
+            a |= (uint)((b & 0x7f) << 22);
+            extraCount++;
+        }
+
+        if ((b & 0x80) == 0x80)
+        {
+            b = reader.GetByte();
+            a |= (uint)((b & 0x7f) << 29);
+            extraCount++;
+        }
+
+        return extraCount switch
+        {
+            1 => (uint)(a + 32768),
+            2 => (uint)(a + 4227072),
+            3 => (uint)(a + 541097984),
+            // Unreachable
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
     public ulong GetVariableUInt64()
     {
         long b = reader.GetByte();
