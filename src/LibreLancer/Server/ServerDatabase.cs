@@ -107,9 +107,10 @@ namespace LibreLancer.Server
             actionQueueTask = Task.Run(ProcessTaskQueue);
 		}
 
+        // RunContinuationsAsynchronously seems to avoid deadlocks
         internal Task<T> Run<T>(Func<Task<T>> func)
         {
-            var compSrc = new TaskCompletionSource<T>();
+            var compSrc = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
             actions.Post(async () =>
             {
                 try
@@ -127,7 +128,7 @@ namespace LibreLancer.Server
 
         internal Task Run(Func<Task> func)
         {
-            var compSrc = new TaskCompletionSource();
+            var compSrc = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             actions.Post(async () =>
             {
                 try
@@ -211,7 +212,7 @@ namespace LibreLancer.Server
                 var c = ctx.Characters.FirstOrDefault(x => x.Id == character);
                 if (c != null)
                 {
-                    c.IsAdmin = false;
+                    c.IsAdmin = true;
                     await ctx.SaveChangesAsync();
                 }
             });
