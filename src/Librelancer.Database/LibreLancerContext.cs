@@ -25,6 +25,13 @@ namespace LibreLancer.Database
         public DbSet<Character> Characters { get; set; }
         public DbSet<Account> Accounts { get; set; }
 
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder
+                .Properties<DateTime>()
+                .HaveConversion(typeof(DateTimeToJulianConverter));
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Sqlite things
@@ -57,7 +64,7 @@ namespace LibreLancer.Database
         public async Task UpsertRepValues(long characterId, KeyValuePair<string, float>[] reps)
         {
             await using var transaction = await Database.BeginTransactionAsync();
-            var nowUtc = DateTime.UtcNow;
+            var nowUtc = DateTimeToJulianConverter.ToJulianDays(DateTime.UtcNow);
             foreach (var f in reps)
             {
                 await Database.ExecuteSqlInterpolatedAsync(@$"
@@ -72,7 +79,7 @@ ReputationValue=excluded.ReputationValue, UpdateDate=excluded.UpdateDate WHERE R
         public async Task UpsertVisitValues(long characterId, KeyValuePair<uint, Visit>[] flags)
         {
             await using var transaction = await Database.BeginTransactionAsync();
-            var nowUtc = DateTime.UtcNow;
+            var nowUtc = DateTimeToJulianConverter.ToJulianDays(DateTime.UtcNow);
             foreach (var f in flags)
             {
                 await Database.ExecuteSqlInterpolatedAsync(@$"
@@ -86,6 +93,7 @@ VisitValue=excluded.VisitValue, UpdateDate=excluded.UpdateDate WHERE VisitValue 
 
         void UpdateTimestamps()
         {
+            var nowUtc = DateTime.UtcNow;
             foreach (var update in ChangeTracker
                          .Entries()
                          .Where(x => x.Entity is BaseEntity && x.State == EntityState.Modified ||
@@ -93,7 +101,6 @@ VisitValue=excluded.VisitValue, UpdateDate=excluded.UpdateDate WHERE VisitValue 
                          .Select(x => new { Entity = (BaseEntity)x.Entity, State = x.State })
                     )
             {
-                var nowUtc = DateTime.UtcNow;
                 update.Entity.UpdateDate = nowUtc;
                 if (update.State == EntityState.Added)
                     update.Entity.CreationDate = nowUtc;

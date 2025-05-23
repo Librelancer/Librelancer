@@ -26,17 +26,17 @@ namespace LibreLancer.Database.Migrations
                     b.Property<Guid>("AccountIdentifier")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("BanExpiry")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("BanExpiry")
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTime>("LastLogin")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("LastLogin")
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -54,8 +54,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<long?>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Hardpoint")
                         .HasColumnType("TEXT");
@@ -72,8 +72,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("ItemName")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -109,8 +109,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("Costume")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
@@ -166,8 +166,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<long>("TransportsKilled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Voice")
                         .HasColumnType("TEXT");
@@ -197,8 +197,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<long>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("RepGroup")
                         .HasColumnType("TEXT COLLATE NOCASE");
@@ -206,8 +206,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<float>("ReputationValue")
                         .HasColumnType("REAL");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -228,14 +228,14 @@ namespace LibreLancer.Database.Migrations
                     b.Property<long>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<uint>("Hash")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("VisitValue")
                         .HasColumnType("INTEGER");

@@ -452,9 +452,14 @@ namespace LibreLancer.Server
             }
             catch (Exception ex)
             {
-                FLLog.Error("Player",ex.Message);
-                FLLog.Error("Player",
-                    ex.StackTrace);
+                while (ex != null)
+                {
+                    FLLog.Error("Player",ex.Message);
+                    FLLog.Error("Player", ex.StackTrace);
+                    ex = ex.InnerException;
+                }
+
+
                 Client.Disconnect(DisconnectReason.LoginError);
             }
         }

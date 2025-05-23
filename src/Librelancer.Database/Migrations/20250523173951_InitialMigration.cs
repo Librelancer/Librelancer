@@ -1,10 +1,14 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
+#nullable disable
+
 namespace LibreLancer.Database.Migrations
 {
+    /// <inheritdoc />
     public partial class InitialMigration : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -14,9 +18,10 @@ namespace LibreLancer.Database.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AccountIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
-                    LastLogin = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdateDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    LastLogin = table.Column<double>(type: "REAL", nullable: false),
+                    BanExpiry = table.Column<double>(type: "REAL", nullable: true),
+                    CreationDate = table.Column<double>(type: "REAL", nullable: false),
+                    UpdateDate = table.Column<double>(type: "REAL", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -30,8 +35,10 @@ namespace LibreLancer.Database.Migrations
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT COLLATE NOCASE", nullable: true),
+                    IsAdmin = table.Column<bool>(type: "INTEGER", nullable: false),
                     Rank = table.Column<uint>(type: "INTEGER", nullable: false),
                     Money = table.Column<long>(type: "INTEGER", nullable: false),
+                    Time = table.Column<double>(type: "REAL", nullable: false),
                     Voice = table.Column<string>(type: "TEXT", nullable: true),
                     Costume = table.Column<string>(type: "TEXT", nullable: true),
                     ComCostume = table.Column<string>(type: "TEXT", nullable: true),
@@ -40,19 +47,24 @@ namespace LibreLancer.Database.Migrations
                     X = table.Column<float>(type: "REAL", nullable: false),
                     Y = table.Column<float>(type: "REAL", nullable: false),
                     Z = table.Column<float>(type: "REAL", nullable: false),
+                    RotationX = table.Column<float>(type: "REAL", nullable: false),
+                    RotationY = table.Column<float>(type: "REAL", nullable: false),
+                    RotationZ = table.Column<float>(type: "REAL", nullable: false),
+                    RotationW = table.Column<float>(type: "REAL", nullable: false),
                     Ship = table.Column<string>(type: "TEXT", nullable: true),
                     Affiliation = table.Column<string>(type: "TEXT", nullable: true),
                     AffiliationLocked = table.Column<bool>(type: "INTEGER", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     FightersKilled = table.Column<long>(type: "INTEGER", nullable: false),
+                    FreightersKilled = table.Column<long>(type: "INTEGER", nullable: false),
                     TransportsKilled = table.Column<long>(type: "INTEGER", nullable: false),
                     CapitalKills = table.Column<long>(type: "INTEGER", nullable: false),
                     PlayersKilled = table.Column<long>(type: "INTEGER", nullable: false),
                     MissionsCompleted = table.Column<long>(type: "INTEGER", nullable: false),
                     MissionsFailed = table.Column<long>(type: "INTEGER", nullable: false),
                     AccountId = table.Column<long>(type: "INTEGER", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdateDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    CreationDate = table.Column<double>(type: "REAL", nullable: false),
+                    UpdateDate = table.Column<double>(type: "REAL", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -77,8 +89,8 @@ namespace LibreLancer.Database.Migrations
                     Health = table.Column<float>(type: "REAL", nullable: false),
                     IsMissionItem = table.Column<bool>(type: "INTEGER", nullable: false),
                     CharacterId = table.Column<long>(type: "INTEGER", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdateDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    CreationDate = table.Column<double>(type: "REAL", nullable: false),
+                    UpdateDate = table.Column<double>(type: "REAL", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -97,11 +109,11 @@ namespace LibreLancer.Database.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    CharacterId = table.Column<long>(type: "INTEGER", nullable: false),
                     ReputationValue = table.Column<float>(type: "REAL", nullable: false),
-                    RepGroup = table.Column<string>(type: "TEXT", nullable: true),
-                    CharacterId = table.Column<long>(type: "INTEGER", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdateDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    RepGroup = table.Column<string>(type: "TEXT COLLATE NOCASE", nullable: true),
+                    CreationDate = table.Column<double>(type: "REAL", nullable: false),
+                    UpdateDate = table.Column<double>(type: "REAL", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -120,11 +132,11 @@ namespace LibreLancer.Database.Migrations
                 {
                     Id = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    CharacterId = table.Column<long>(type: "INTEGER", nullable: false),
                     VisitValue = table.Column<int>(type: "INTEGER", nullable: false),
-                    SolarNickname = table.Column<string>(type: "TEXT", nullable: true),
-                    CharacterId = table.Column<long>(type: "INTEGER", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdateDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Hash = table.Column<uint>(type: "INTEGER", nullable: false),
+                    CreationDate = table.Column<double>(type: "REAL", nullable: false),
+                    UpdateDate = table.Column<double>(type: "REAL", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -158,11 +170,24 @@ namespace LibreLancer.Database.Migrations
                 column: "CharacterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reputation_CharacterId_RepGroup",
+                table: "Reputation",
+                columns: new[] { "CharacterId", "RepGroup" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_VisitEntry_CharacterId",
                 table: "VisitEntry",
                 column: "CharacterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VisitEntry_CharacterId_Hash",
+                table: "VisitEntry",
+                columns: new[] { "CharacterId", "Hash" },
+                unique: true);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
