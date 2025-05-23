@@ -74,13 +74,6 @@ namespace LibreLancer.Platforms
 
         public MountInfo[] GetMounts() => Directory.GetLogicalDrives().Select(x => new MountInfo(x, x)).ToArray();
 
-        public List<byte[]> TtfFiles = new List<byte[]>();
-
-        public void AddTtfFile(byte[] file)
-        {
-            TtfFiles.Add(file);
-        }
-
         class Win32Events : PlatformEvents
         {
             private const uint WM_DEVICECHANGE = 0x0219;

@@ -19,6 +19,8 @@ namespace LibreLancer.Graphics.Text
             float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0);
         public abstract Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, float maxWidth, string text,
             bool underline, bool shadow, TextAlignment alignment);
+
+        public abstract void AddTtfFile(string id, ReadOnlySpan<byte> data);
     }
 
     public abstract class BuiltRichText : IDisposable

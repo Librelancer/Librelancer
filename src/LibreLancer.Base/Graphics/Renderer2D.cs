@@ -116,7 +116,7 @@ namespace LibreLancer.Graphics
 			dot.SetData (new byte[] { 255 });
 		}
 
-        private RichTextEngine richText;
+        private BlurgEngine richText;
         public RichTextEngine CreateRichTextEngine()
         {
             if (richText == null)
@@ -125,7 +125,6 @@ namespace LibreLancer.Graphics
             }
             return richText;
         }
-
 
         public Point MeasureString(string fontName, float size, string str)
 		{

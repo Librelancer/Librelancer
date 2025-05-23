@@ -101,7 +101,7 @@ namespace InterfaceEdit
             catch (Exception)
             {
             }
-            window.Fonts.LoadFontsFromIni(flIni, UiData.FileSystem);
+            window.Fonts.LoadFontsFromIni(flIni, window.RenderContext, UiData.FileSystem);
             //unioners infocard
             var im = new InfocardManager(flIni.Resources);
             TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);

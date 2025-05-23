@@ -128,16 +128,6 @@ namespace LibreLancer
             return RunningPlatform.GetMonospaceBytes();
         }
 
-        internal static List<string> LoadedTTFs = new List<string>();
-        internal static event Action FontLoaded;
-        public static void AddTtfFile(string id, byte[] ttf)
-        {
-            if (LoadedTTFs.Contains(id)) return;
-            LoadedTTFs.Add(id);
-            RunningPlatform.AddTtfFile(ttf);
-            FontLoaded?.Invoke();
-        }
-
         internal static void Shutdown()
         {
             RunningPlatform.Shutdown();

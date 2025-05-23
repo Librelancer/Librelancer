@@ -140,7 +140,7 @@ public class GameDataContext : IDisposable
                 {
                     Sounds = new SoundManager(GameData, win.Audio, win);
                     Fonts = new FontManager();
-                    Fonts.LoadFontsFromGameData(GameData);
+                    Fonts.LoadFontsFromGameData(win.RenderContext, GameData);
                     onComplete();
                 });
             }

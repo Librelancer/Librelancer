@@ -11,7 +11,6 @@ namespace LibreLancer.Platforms
         void Init(string sdlBackend);
         string GetLocalConfigFolder();
 		bool IsDirCaseSensitive(string directory);
-        void AddTtfFile(byte[] ttf);
         byte[] GetMonospaceBytes();
         PlatformEvents SubscribeEvents(IUIThread mainThread);
 

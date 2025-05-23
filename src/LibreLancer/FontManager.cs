@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Graphics;
 
 namespace LibreLancer
 {
@@ -35,12 +36,12 @@ namespace LibreLancer
             return nicknames["normal"];
         }
 
-        void LoadFonts(FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
+        void LoadFonts(RenderContext context, FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
         {
             foreach(var f in fonts.FontFiles)
             {
                 if (fs.FileExists(dataPath + f))
-                    Platform.AddTtfFile(f, fs.ReadAllBytes(dataPath + f));
+                    context.Renderer2D.CreateRichTextEngine().AddTtfFile(f, fs.ReadAllBytes(dataPath + f));
                 else
                     FLLog.Error("Fonts", "Could not find ttf file " + dataPath + f);
             }
@@ -59,7 +60,7 @@ namespace LibreLancer
             }
             _loaded = true;
         }
-        public void LoadFontsFromIni(FreelancerIni fl, FileSystem fs)
+        public void LoadFontsFromIni(FreelancerIni fl, RenderContext render, FileSystem fs)
         {
             var rf = new RichFontsIni();
             foreach (var file in fl.RichFontPaths) {
@@ -69,11 +70,11 @@ namespace LibreLancer
             foreach(var file in fl.FontPaths) {
                 fn.AddFontsIni(file, fs);
             }
-            LoadFonts(fn, rf, fs, fl.DataPath);
+            LoadFonts(render, fn, rf, fs, fl.DataPath);
         }
-        public void LoadFontsFromGameData(GameDataManager gd)
+        public void LoadFontsFromGameData(RenderContext render, GameDataManager gd)
         {
-            LoadFonts(gd.Ini.Fonts, gd.Ini.RichFonts, gd.VFS, gd.Ini.Freelancer.DataPath);
+            LoadFonts(render, gd.Ini.Fonts, gd.Ini.RichFonts, gd.VFS, gd.Ini.Freelancer.DataPath);
         }
 
         public FontDescription GetInfocardFont (int index)

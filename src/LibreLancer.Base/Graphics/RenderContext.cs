@@ -172,7 +172,6 @@ namespace LibreLancer.Graphics
         public void SetIdentityCamera() => Backend.SetIdentityCamera();
         public void SetCamera(ICamera camera) => Backend.SetCamera(camera);
 
-
         public Renderer2D Renderer2D { get; }
 
         private IRenderContext impl;

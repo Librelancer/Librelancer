@@ -55,21 +55,6 @@ namespace LibreLancer.Platforms
 			return true;
 		}
 
-        //TODO: This is a wrapper around FontConfig, add to FontConfigSharp
-        [DllImport("pangogame")]
-        static extern void pg_addttfglobal(IntPtr file);
-
-        public void AddTtfFile(byte[] ttf)
-        {
-            if (!string.IsNullOrWhiteSpace(tempFontsDirectory))
-            {
-                var path = Path.Combine(tempFontsDirectory, Path.GetRandomFileName() + ".ttf");
-                File.WriteAllBytes(path, ttf);
-                using var str = UnsafeHelpers.StringToNativeUTF8(path);
-                pg_addttfglobal((IntPtr)str);
-            }
-        }
-
         static LibFontConfig.FcResult GetString(IntPtr pattern, string obj, int n, ref string val)
         {
             var ptr = IntPtr.Zero;
