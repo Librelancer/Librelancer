@@ -45,6 +45,12 @@ namespace LibreLancer.Database
 
             modelBuilder.Entity<Reputation>().HasIndex(x => new { x.CharacterId, x.RepGroup }).IsUnique();
             modelBuilder.Entity<Reputation>().HasIndex(x => x.CharacterId);
+
+            modelBuilder.Entity<VisitHistoryEntry>().HasIndex(x => x.CharacterId);
+            modelBuilder.Entity<VisitHistoryEntry>()
+                .HasIndex(x => new { x.CharacterId, x.Kind, x.Hash })
+                .IsUnique();
+
             // Define relationships
             modelBuilder.Entity<Account>().HasMany(x => x.Characters).WithOne(x => x.Account);
             modelBuilder.Entity<Character>().HasMany(x => x.Items).WithOne().OnDelete(DeleteBehavior.Cascade);
@@ -59,9 +65,29 @@ namespace LibreLancer.Database
                 .HasForeignKey(x => x.CharacterId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
+
+            modelBuilder.Entity<Character>().HasMany(x => x.VisitHistoryEntries)
+                .WithOne(x => x.Character)
+                .HasForeignKey(x => x.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
         }
 
-        public async Task UpsertRepValues(long characterId, KeyValuePair<string, float>[] reps)
+        public async Task InsertVisitHistoryNonConflicting(long characterId, IEnumerable<VisitHistoryInput> history)
+        {
+            await using var transaction = await Database.BeginTransactionAsync();
+            var nowUtc = DateTimeToJulianConverter.ToJulianDays(DateTime.UtcNow);
+            foreach (var h in history)
+            {
+                await Database.ExecuteSqlInterpolatedAsync(@$"
+INSERT INTO VisitHistory(Id, CharacterId, Kind, Hash, UpdateDate, CreationDate)
+VALUES (NULL, {characterId}, {h.Kind}, {h.Hash}, {nowUtc}, {nowUtc})
+ON CONFLICT IGNORE;");
+            }
+            await transaction.CommitAsync();
+        }
+
+        public async Task UpsertRepValues(long characterId, IEnumerable<KeyValuePair<string, float>> reps)
         {
             await using var transaction = await Database.BeginTransactionAsync();
             var nowUtc = DateTimeToJulianConverter.ToJulianDays(DateTime.UtcNow);
@@ -76,7 +102,7 @@ ReputationValue=excluded.ReputationValue, UpdateDate=excluded.UpdateDate WHERE R
             await transaction.CommitAsync();
         }
 
-        public async Task UpsertVisitValues(long characterId, KeyValuePair<uint, Visit>[] flags)
+        public async Task UpsertVisitValues(long characterId, IEnumerable<KeyValuePair<uint, Visit>> flags)
         {
             await using var transaction = await Database.BeginTransactionAsync();
             var nowUtc = DateTimeToJulianConverter.ToJulianDays(DateTime.UtcNow);

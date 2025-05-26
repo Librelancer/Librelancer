@@ -56,7 +56,7 @@ namespace LibreLancer.Server
             });
         }
 
-        public async Task UpdateFactionReps(KeyValuePair<string, float>[] reps)
+        public async Task UpdateFactionReps(IEnumerable<KeyValuePair<string, float>> reps)
         {
             await db.Run(async () =>
             {
@@ -65,12 +65,21 @@ namespace LibreLancer.Server
             });
         }
 
-        public async Task UpdateVisitFlags(KeyValuePair<uint, Visit>[] flags)
+        public async Task UpdateVisitFlags(IEnumerable<KeyValuePair<uint, Visit>> flags)
         {
             await db.Run(async () =>
             {
                 await using var ctx = db.CreateDbContext();
                 await ctx.UpsertVisitValues(Id, flags);
+            });
+        }
+
+        public async Task AddVisitHistory(IEnumerable<VisitHistoryInput> history)
+        {
+            await db.Run(async () =>
+            {
+                await using var ctx = db.CreateDbContext();
+                await ctx.InsertVisitHistoryNonConflicting(Id, history);
             });
         }
 

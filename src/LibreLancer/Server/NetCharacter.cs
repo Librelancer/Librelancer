@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Data.Save;
 using LibreLancer.Data.Ships;
+using LibreLancer.Database;
 using LibreLancer.Entities.Character;
 using LibreLancer.Entities.Enums;
 using LibreLancer.GameData;
@@ -44,6 +45,9 @@ namespace LibreLancer.Server
         public Ship Ship { get; private set; }
         public List<NetCargo> Items = new List<NetCargo>();
         Dictionary<uint, VisitFlags> visited = new Dictionary<uint, VisitFlags>();
+        private HashSet<uint> basesVisited = new();
+        private HashSet<uint> systemsVisited = new();
+        private HashSet<uint> holesVisited = new();
 
         private long charId;
         GameDataManager gData;
@@ -65,14 +69,22 @@ namespace LibreLancer.Server
         public (uint Ship, int Count)[] GetShipKillCounts() =>
             shipKillCounts.Select(x => (x.Key, x.Value)).ToArray();
 
-        public VisitEntry[] GetAllVisited() =>
+        public VisitEntry[] GetAllVisitFlags() =>
             visited.Select(x => new VisitEntry(x.Key, (int)x.Value)).ToArray();
 
-        public VisitFlags GetVisited(uint hash)
+        public VisitFlags GetVisitFlags(uint hash)
         {
             visited.TryGetValue(hash, out var flags);
             return flags;
         }
+
+        public bool IsSystemVisited(uint hash) => systemsVisited.Contains(hash);
+        public bool IsBaseVisited(uint hash) => basesVisited.Contains(hash);
+        public bool IsJumpholeVisited(uint hash) => holesVisited.Contains(hash);
+
+        public uint[] GetSystemsVisited() => systemsVisited.ToArray();
+        public uint[] GetBasesVisited() => basesVisited.ToArray();
+        public uint[] GetHolesVisited() => holesVisited.ToArray();
 
         public CharacterTransaction BeginTransaction()
         {
@@ -89,6 +101,7 @@ namespace LibreLancer.Server
             private bool cargoDirty = false;
             private Dictionary<uint, Visit> updatedVisits = new();
             private Dictionary<Faction, float> updatedReputations = new();
+            private List<VisitHistoryInput> visitHistory = new();
 
             internal CharacterTransaction(NetCharacter n, Character newEntity)
             {
@@ -128,13 +141,40 @@ namespace LibreLancer.Server
                 nc.statistics.BattleshipsKilled = killed;
             }
 
-            public void UpdateVisitValue(uint hash, VisitFlags visit)
+            public void UpdateVisitFlags(uint hash, VisitFlags visit)
             {
                 if (!nc.visited.TryGetValue(hash, out VisitFlags old) ||
                     old != visit)
                 {
                     updatedVisits[hash] = (Visit)(uint)visit;
                     nc.visited[hash] = visit;
+                }
+            }
+
+            public void VisitBase(uint hash)
+            {
+                if (nc.basesVisited.Add(hash))
+                {
+                    visitHistory.Add(new(VisitHistoryKind.Base, hash));
+                    nc.statistics.BasesVisited++;
+                }
+            }
+
+            public void VisitSystem(uint hash)
+            {
+                if (nc.systemsVisited.Add(hash))
+                {
+                    visitHistory.Add(new(VisitHistoryKind.System, hash));
+                    nc.statistics.SystemsVisited++;
+                }
+            }
+
+            public void VisitJumphole(uint hash)
+            {
+                if (nc.holesVisited.Add(hash))
+                {
+                    visitHistory.Add(new(VisitHistoryKind.Jumphole, hash));
+                    nc.statistics.JumpHolesFound++;
                 }
             }
 
@@ -250,7 +290,8 @@ namespace LibreLancer.Server
                         var dbItem = c.Items.FirstOrDefault(x => item == x.Id);
                         if (dbItem != null) c.Items.Remove(dbItem);
                     }
-                    foreach (var item in nc.Items) {
+                    foreach (var item in nc.Items)
+                    {
                         var dbItem = item.DbItemId == 0 ? null :
                             c.Items.FirstOrDefault(x => item.DbItemId == x.Id);
                         //Add new items
@@ -284,6 +325,15 @@ namespace LibreLancer.Server
                             VisitValue = (Visit)(uint)visit.Value
                         });
                     }
+
+                    foreach (var history in visitHistory)
+                    {
+                        newEntity.VisitHistoryEntries.Add(new()
+                        {
+                            Kind = history.Kind,
+                            Hash = history.Hash,
+                        });
+                    }
                     foreach (var rep in updatedReputations)
                     {
                         newEntity.Reputations.Add(new Reputation() { RepGroup = rep.Key.Nickname, ReputationValue = rep.Value });
@@ -305,7 +355,11 @@ namespace LibreLancer.Server
                     });
                     if (updatedVisits.Count > 0)
                     {
-                        nc.dbChar?.UpdateVisitFlags(updatedVisits.ToArray());
+                        nc.dbChar?.UpdateVisitFlags(updatedVisits);
+                    }
+                    if (visitHistory.Count > 0)
+                    {
+                        nc.dbChar?.AddVisitHistory(visitHistory);
                     }
                     if (updatedReputations.Count > 0)
                     {
@@ -364,7 +418,19 @@ namespace LibreLancer.Server
                 }
                 foreach (var visit in sg.Player.Visit)
                 {
-                    c.UpdateVisitValue(visit.Obj.Hash, (VisitFlags)visit.Visit);
+                    c.UpdateVisitFlags(visit.Obj.Hash, (VisitFlags)visit.Visit);
+                }
+                foreach (var v in (sg.MPlayer?.BaseVisited) ?? [])
+                {
+                    c.VisitBase((uint)v);
+                }
+                foreach (var v in (sg.MPlayer?.SysVisited) ?? [])
+                {
+                    c.VisitSystem((uint)v);
+                }
+                foreach (var v in (sg.MPlayer?.HolesVisited) ?? [])
+                {
+                    c.VisitJumphole((uint)v);
                 }
                 foreach (var ks in (sg.MPlayer?.ShipTypeKilled) ?? [])
                 {
@@ -453,6 +519,31 @@ namespace LibreLancer.Server
             foreach (var visit in c.VisitEntries)
             {
                 nc.visited[visit.Hash] = (VisitFlags)(uint)visit.VisitValue;
+            }
+
+            foreach (var h in c.VisitHistoryEntries)
+            {
+                switch (h.Kind)
+                {
+                    case VisitHistoryKind.Base:
+                        if (nc.basesVisited.Add(h.Hash))
+                        {
+                            nc.statistics.BasesVisited++;
+                        }
+                        break;
+                    case VisitHistoryKind.Jumphole:
+                        if (nc.holesVisited.Add(h.Hash))
+                        {
+                            nc.statistics.JumpHolesFound++;
+                        }
+                        break;
+                    case VisitHistoryKind.System:
+                        if (nc.systemsVisited.Add(h.Hash))
+                        {
+                            nc.statistics.SystemsVisited++;
+                        }
+                        break;
+                }
             }
             return nc;
         }

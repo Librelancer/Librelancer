@@ -14,6 +14,7 @@ using LibreLancer.Client;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Save;
 using LibreLancer.Data.Ships;
+using LibreLancer.Data.Solar;
 using LibreLancer.Data.Universe;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
@@ -251,7 +252,14 @@ namespace LibreLancer.Server
             UpdateCurrentReputations();
             UpdateCurrentInventory();
             rpcClient.UpdateStatistics(c.Statistics);
-            rpcClient.UpdateVisits(VisitBundle.Compress(c.GetAllVisited()));
+            if (SinglePlayer)
+            {
+                rpcClient.UpdateVisits(new VisitBundle() { Visits = c.GetAllVisitFlags() });
+            }
+            else
+            {
+                rpcClient.UpdateVisits(VisitBundle.Compress(c.GetAllVisitFlags()));
+            }
             Base = Character.Base;
             System = Character.System;
             Position = Character.Position;
@@ -346,6 +354,7 @@ namespace LibreLancer.Server
             using (var c = Character.BeginTransaction())
             {
                 c.UpdatePosition(Base, System, Position, Orientation);
+                c.VisitBase(Baseside.BaseData.CRC);
             }
             MissionRuntime?.SpaceExit();
             MissionRuntime?.BaseEnter(Base);
@@ -353,6 +362,7 @@ namespace LibreLancer.Server
             //send to player
             lock (thns)
             {
+                rpcClient.UpdateStatistics(Character.Statistics);
                 rpcClient.BaseEnter(Base, Objective, thns.Pack(), news.ToArray(), Baseside.BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
@@ -605,11 +615,21 @@ namespace LibreLancer.Server
 
         public void VisitSystem(StarSystem system)
         {
-            if ((Character.GetVisited(system.CRC) & VisitFlags.Visited) != VisitFlags.Visited)
+            var needsFlag = (Character.GetVisitFlags(system.CRC) & VisitFlags.Visited) != VisitFlags.Visited;
+            var needsList = Character.IsSystemVisited(system.CRC);
+            if (needsFlag || needsList)
             {
                 using var ts = Character.BeginTransaction();
-                ts.UpdateVisitValue(system.CRC, VisitFlags.Visited);
-                rpcClient.VisitObject(system.CRC, (byte)VisitFlags.Visited);
+                if (needsFlag)
+                {
+                    ts.UpdateVisitFlags(system.CRC, VisitFlags.Visited);
+                    rpcClient.VisitObject(system.CRC, (byte)VisitFlags.Visited);
+                }
+                if (needsList)
+                {
+                    ts.VisitSystem(system.CRC);
+                    rpcClient.UpdateStatistics(Character.Statistics);
+                }
             }
         }
 
@@ -624,11 +644,22 @@ namespace LibreLancer.Server
             {
                 return;
             }
-            if ((Character.GetVisited(hash) & VisitFlags.Visited) != VisitFlags.Visited)
+            var needsFlag = (Character.GetVisitFlags(hash) & VisitFlags.Visited) != VisitFlags.Visited;
+            var needsList = (obj.Archetype.Type == ArchetypeType.jumphole ||
+                             obj.Archetype.Type == ArchetypeType.jump_hole) && !Character.IsJumpholeVisited(hash);
+            if (needsFlag || needsList)
             {
                 using var ts = Character.BeginTransaction();
-                ts.UpdateVisitValue(hash, obj.Visit | VisitFlags.Visited);
-                rpcClient.VisitObject(hash, (byte)(obj.Visit | VisitFlags.Visited));
+                if (needsFlag)
+                {
+                    ts.UpdateVisitFlags(hash, obj.Visit | VisitFlags.Visited);
+                    rpcClient.VisitObject(hash, (byte)(obj.Visit | VisitFlags.Visited));
+                }
+                if (needsList)
+                {
+                    ts.VisitJumphole(hash);
+                    rpcClient.UpdateStatistics(Character.Statistics);
+                }
             }
         }
 

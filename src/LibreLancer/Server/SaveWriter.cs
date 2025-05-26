@@ -66,7 +66,7 @@ namespace LibreLancer.Server
                 sg.Player.House.Add(new SaveRep() { Group = rep.Key.Nickname, Reputation = rep.Value });
             }
 
-            sg.Player.Visit.AddRange(ch.GetAllVisited());
+            sg.Player.Visit.AddRange(ch.GetAllVisitFlags());
 
             sg.Player.Interface = 3; //Unknown, matching vanilla
 
@@ -74,6 +74,9 @@ namespace LibreLancer.Server
             sg.MPlayer.CanDock = 1;
             sg.MPlayer.CanTl = 1;
             sg.MPlayer.TotalTimePlayed = (float)ch.Time;
+            sg.MPlayer.SysVisited = ch.GetSystemsVisited().Select(x => (int)x).ToList();
+            sg.MPlayer.BaseVisited = ch.GetBasesVisited().Select(x => (int)x).ToList();
+            sg.MPlayer.HolesVisited = ch.GetHolesVisited().Select(x => (int)x).ToList();
             foreach (var kc in ch.GetShipKillCounts())
             {
                 sg.MPlayer.ShipTypeKilled.Add(new SaveItemCount(kc.Ship, kc.Count));
