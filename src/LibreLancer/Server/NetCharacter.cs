@@ -516,12 +516,12 @@ namespace LibreLancer.Server
                     DbItemId = cargo.Id
                 });
             }
-            foreach (var visit in c.VisitEntries)
+            foreach (var visit in (c.VisitEntries ?? []))
             {
                 nc.visited[visit.Hash] = (VisitFlags)(uint)visit.VisitValue;
             }
 
-            foreach (var h in c.VisitHistoryEntries)
+            foreach (var h in (c.VisitHistoryEntries ?? []))
             {
                 switch (h.Kind)
                 {
