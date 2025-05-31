@@ -1,3 +1,4 @@
+using BlurgText;
 using ImGuiNET;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
@@ -11,6 +12,7 @@ public class TextEditBase
     private int richTextWidth = -1;
 
     private string _text = "";
+    private GraphemeBreak[] breaks = [];
     private string _fontName = "Arial";
     private float _fontSize = 12;
     private Color4 _fontColor = Color4.White;
@@ -28,13 +30,21 @@ public class TextEditBase
         set {
             if (_text != value)
             {
-                if (CaretPosition > value.Length)
-                    CaretPosition = value.Length;
                 _allSelected = false;
-                _text = value;
-                richTextDirty = true;
+                SetText(value);
             }
         }
+    }
+
+    void SetText(string v)
+    {
+        _text = v;
+        breaks = GraphemeBreaks.Get(_text);
+        richTextDirty = true;
+        if (CaretPosition > _text.Length)
+            CaretPosition = _text.Length;
+        if (CaretPosition < 0)
+            CaretPosition = 0;
     }
 
     private bool _wrap = true;
@@ -155,22 +165,20 @@ public class TextEditBase
             return;
         if (_allSelected)
         {
-            _text = chars;
-            _allSelected = false;
+            Text = chars;
         }
         else
         {
             if (CaretPosition == Text.Length)
             {
-                _text += chars;
+                SetText(_text + chars);
             }
             else
             {
-                _text = Text.Insert(CaretPosition, chars);
+                SetText(_text.Insert(CaretPosition, chars));
             }
             CaretPosition += chars.Length;
         }
-        richTextDirty = true;
     }
 
     public void SelectAll()
@@ -198,8 +206,25 @@ public class TextEditBase
         else
         {
             if (CaretPosition > 0)
-                CaretPosition--;
+            {
+                var x = CaretPosition - 1;
+                x--;
+                while (x >= 0 && breaks[x] != GraphemeBreak.Break)
+                {
+                    x--;
+                }
+                CaretPosition = x + 1;
+            }
         }
+    }
+
+    int GetNextCaret()
+    {
+        var x = CaretPosition - 1;
+        x++;
+        while (x < breaks.Length && breaks[x] != GraphemeBreak.Break)
+            x++;
+        return x + 1;
     }
 
     public void CaretRight()
@@ -213,42 +238,44 @@ public class TextEditBase
         else
         {
             if (CaretPosition < Text.Length)
-                CaretPosition++;
+            {
+                var x = CaretPosition - 1;
+                x++;
+                while (x < breaks.Length && breaks[x] != GraphemeBreak.Break)
+                    x++;
+                CaretPosition = GetNextCaret();
+            }
         }
     }
 
     public void Backspace()
     {
-        if(_allSelected) {
-            _text = "";
-            CaretPosition = 0;
-            richTextDirty = true;
-            _allSelected = false;
+        if(_allSelected)
+        {
+            Text = "";
         }
-        else if (Text.Length > 0 && CaretPosition == Text.Length) {
-            _text = Text.Substring(0, Text.Length - 1);
+        else if (Text.Length > 0 && CaretPosition == Text.Length)
+        {
             CaretLeft();
-            richTextDirty = true;
-        } else if (Text.Length > 0 && CaretPosition > 0) {
-            _text = Text.Remove(CaretPosition - 1, 1);
+            SetText(Text.Substring(0, CaretPosition));
+        }
+        else if (Text.Length > 0 && CaretPosition > 0)
+        {
+            var p = CaretPosition;
             CaretLeft();
-            richTextDirty = true;
+            SetText(Text.Remove(CaretPosition, p - CaretPosition));
         }
     }
 
     public void Delete()
     {
-        if(_allSelected) {
-            _text = "";
-            CaretPosition = 0;
-            richTextDirty = true;
-            _allSelected = false;
+        if(_allSelected)
+        {
+            Text = "";
         }
-        else if (Text.Length > 0 && CaretPosition < Text.Length) {
-            _text = Text.Remove(CaretPosition, 1);
-            if (CaretPosition > _text.Length)
-                CaretPosition = _text.Length;
-            richTextDirty = true;
+        else if (Text.Length > 0 && CaretPosition < Text.Length)
+        {
+            SetText(Text.Remove(CaretPosition, GetNextCaret() - CaretPosition));
         }
     }
 
