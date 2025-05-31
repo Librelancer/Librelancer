@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Define directories.
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $SCRIPT_DIR/build.config
@@ -29,4 +28,5 @@ if [ $? -ne 0 ]; then
 fi
 
 cd $SCRIPT_DIR
-dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
+# Fix fedora RSA+SHA1 disabled
+OPENSSL_ENABLE_SHA1_SIGNATURES=1 dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
