@@ -24,7 +24,7 @@ Note for developers: .\build.ps1 or build.sh _must_ be ran before opening the .s
 * Visual Studio 2022 with:
 * * .NET 8.0 SDK
 * *  Desktop C++ Development Workflow
-* [CMake](https://cmake.org/)
+* [CMake](https://cmake.org/) version 3.15+
 
 **Steps:**
 
@@ -50,12 +50,12 @@ You need to either uninstall the 32-bit dotnet SDK (recommended), or modify your
 
 **Prerequisites:**
 
-* .NET 8.0 SDK
-* SDL2
+* x86-64 or arm64 .NET 8.0 SDK
+* SDL2 (or SDL3)
 * openal-soft
 * gcc and g++
-* CMake
-* GTK3, Pango and Cairo headers
+* CMake 3.15+
+* GTK3 headers (will contain freetype etc.)
 
 
 **Steps:**

@@ -1,4 +1,5 @@
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.15)
+
 project (librelancernatives)
 set(CMAKE_C_STANDARD 99)
 set(LIBOUTPUTDIR ${CMAKE_BINARY_DIR}/binaries)
