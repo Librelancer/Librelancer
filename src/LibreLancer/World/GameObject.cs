@@ -29,7 +29,8 @@ namespace LibreLancer.World
         Solar,
         Missile,
         Waypoint,
-        Debris
+        Debris,
+        Loot
     }
 
     public class TradelaneName : ObjectName

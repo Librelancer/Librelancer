@@ -893,6 +893,17 @@ namespace LibreLancer.Client
                                 { CurrentHealth = objInfo.Loadout.Health, MaxHealth = solar.Hitpoints });
                         }
                     }
+                    else if ((objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
+                    {
+                        var crate = (LootCrateEquipment)Game.GameData.Equipment.Get(objInfo.Loadout.ArchetypeCrc);
+                        var model = crate.ModelFile.LoadFile(Game.ResourceManager);
+                        newobj = new GameObject(model, Game.ResourceManager);
+                        newobj.Kind = GameObjectKind.Loot;
+                        newobj.PhysicsComponent.Mass = crate.Mass;
+                        newobj.ArchetypeName = crate.Nickname;
+                        newobj.AddComponent(new CHealthComponent(newobj)
+                            { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
+                    }
                     else
                     {
                         var shp = Game.GameData.Ships.Get((int)objInfo.Loadout.ArchetypeCrc);
@@ -953,7 +964,8 @@ namespace LibreLancer.Client
                     }
                     gp.world.AddObject(newobj);
                     newobj.Register(gp.world.Physics);
-                    if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris)
+                    if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris ||
+                        (objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
                     {
                         newobj.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                     }

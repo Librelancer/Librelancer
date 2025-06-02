@@ -187,6 +187,11 @@ namespace LibreLancer.Server
                 info.Flags |= ObjectSpawnFlags.Solar;
                 info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName);
             }
+            else if (obj.Kind == GameObjectKind.Loot)
+            {
+                info.Flags |= ObjectSpawnFlags.Loot;
+                info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName);
+            }
             else
             {
                 //Shouldn't occur
@@ -495,6 +500,36 @@ namespace LibreLancer.Server
             }
 
             return gameobj;
+        }
+
+        public void SpawnLoot(
+            LootCrateEquipment crate,
+            ResolvedGood good,
+            int count,
+            Transform3D transform)
+        {
+            actions.Enqueue(() =>
+            {
+                var model = crate.ModelFile.LoadFile(Server.Resources);
+                var go = new GameObject(model, Server.Resources, false);
+                go.Kind = GameObjectKind.Loot;
+                go.PhysicsComponent.Mass = crate.Mass;
+                go.NetID = IdGenerator.Allocate();
+                go.ArchetypeName = crate.Nickname;
+                go.SetLocalTransform(transform);
+                GameWorld.AddObject(go);
+                updatingObjects.Add(go);
+                go.Register(GameWorld.Physics);
+                go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
+                spawnedObjects.Add(go);
+                go.AddComponent(new SHealthComponent(go) { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
+                go.AddComponent(new SDestroyableComponent(go, this));
+                //Spawn debris
+                foreach (var p in Players)
+                {
+                    p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
+                }
+            });
         }
 
         public void SpawnDebris(

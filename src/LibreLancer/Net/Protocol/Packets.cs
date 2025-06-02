@@ -12,6 +12,8 @@ using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 using Microsoft.EntityFrameworkCore.Internal;
+using SharpDX.MediaFoundation;
+using Quaternion = System.Numerics.Quaternion;
 
 namespace LibreLancer.Net.Protocol
 {
@@ -160,7 +162,8 @@ namespace LibreLancer.Net.Protocol
         Hostile = (1 << 3),
         Neutral = (1 << 4),
         Important = (1 << 5),
-        Mask = 0x3f
+        Loot = (1 << 6),
+        Mask = 0x7f
     }
 
     public struct ObjectSpawnInfo
@@ -175,14 +178,15 @@ namespace LibreLancer.Net.Protocol
             Hostile = (1 << 3),
             Neutral = (1 << 4),
             Important = (1 << 5),
+            Loot = (1 << 6),
             //internal field != default
-            Name = (1 << 6),
-            Affiliation = (1 << 7),
-            Comm = (1 << 8),
-            Dock = (1 << 9),
-            Destroyed = (1 << 10),
-            Effects = (1 << 11),
-            NicknameNotNull = (1 << 12),
+            Name = (1 << 7),
+            Affiliation = (1 << 8),
+            Comm = (1 << 9),
+            Dock = (1 << 10),
+            Destroyed = (1 << 11),
+            Effects = (1 << 12),
+            NicknameNotNull = (1 << 13),
         }
         public ObjNetId ID;
         public string Nickname;

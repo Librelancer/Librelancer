@@ -959,6 +959,9 @@ namespace LibreLancer
                 if (val is Data.Equipment.LootCrate lc)
                 {
                     var eq = new GameData.Items.LootCrateEquipment();
+                    eq.ModelFile = ResolveDrawable(lc.MaterialLibrary, lc.DaArchetype);
+                    eq.Mass = lc.Mass;
+                    eq.Hitpoints = lc.Hitpoints;
                     equip = eq;
                 }
 
