@@ -159,8 +159,9 @@ namespace BuildLL
                     DownloadFile(Config["DXC_WINX64"], "obj/dxc.zip");
                 }
                 using var zip = File.OpenRead("obj/dxc.zip");
-                ZipFile.ExtractToDirectory(zip, "bin/builddeps");
+                ZipFile.ExtractToDirectory(zip, "bin/builddeps", true);
                 Console.WriteLine("Pre-built dxc extracted");
+                return;
             }
             if (UnixHasCommand("dxc"))
             {
