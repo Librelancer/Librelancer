@@ -149,7 +149,7 @@ namespace BuildLL
                     Console.WriteLine("dxc.exe located on PATH");
                     return;
                 }
-                if (File.Exists("bin/builddeps/bin/dxc.exe"))
+                if (File.Exists("bin/builddeps/bin/x64/dxc.exe"))
                 {
                     Console.WriteLine("dxc.exe located");
                     return;
@@ -277,6 +277,10 @@ namespace BuildLL
                 }
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.so");
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dll");
+                if(IsWindows)
+                {
+                    CopyDirContents("obj/spirvcross/MinSizeRel", "bin/builddeps", false, "*.dll");
+                }
                 FindDXC();
                 Dotnet.BuildDebug("src/LLShaderCompiler/LLShaderCompiler.csproj");
             });

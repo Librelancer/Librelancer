@@ -14,7 +14,7 @@
 
     <!--Find a provided DXC Binary-->
     <PropertyGroup>
-        <DXC Condition="Exists('$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\dxc.exe')">--dxc "$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\dxc.exe"</DXC>
+        <DXC Condition="Exists('$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\x64\dxc.exe')">--dxc "$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\x64\dxc.exe"</DXC>
         <DXC Condition="Exists('$(MSBuildThisFileDirectory)\..\bin\builddeps\bin\dxc')">--dxc "$(MSBuildThisFileDirectory)/../bin/builddeps/bin/dxc"</DXC>
     </PropertyGroup>
 
