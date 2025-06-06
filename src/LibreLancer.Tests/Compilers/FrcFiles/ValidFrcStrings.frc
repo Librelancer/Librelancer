@@ -1,0 +1,11 @@
+S 1 File Starts Here
+S 2 MultiLine
+    String
+
+S 3 Two\nLines
+S 4 One \
+    Line
+S 5 \ Spacing \.
+S 6 
+    Separate Line
+S 7 \x201CRead My Quote\x201D
