@@ -67,6 +67,26 @@ static class DXC
         }
     }
 
+    static async Task<int> RunWithRetries(string path, params string[] args)
+    {
+        int retryCount = 0;
+        int result = 0;
+        while (retryCount++ < 4)
+        {
+            result = await Shell.Run(path, args);
+            if (result != 0)
+            {
+                await Console.Error.WriteLineAsync($"Invoke {path} failed with code {result}, retrying with 500ms delay.");
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
+            }
+            else
+            {
+                break;
+            }
+        }
+        return result;
+    }
+
     public static async Task<byte[]> CompileDXIL(string hlslSource, ShaderStage stage)
     {
         var path = GetDXCPath();
@@ -80,7 +100,7 @@ static class DXC
 
         await File.WriteAllTextAsync(input.Path, hlslSource);
 
-        var result = await Shell.Run(path,
+        var result = await RunWithRetries(path,
             "-T",
             StageTarget(stage),
             "-O3",
