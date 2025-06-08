@@ -161,7 +161,9 @@ namespace LibreLancer.Render
             //next
             idx += 6;
             //draw spines
-            if (Sun.SpinesSprite != null && nr == null)
+            if (Sun.SpinesSprite != null
+                && Sun.Spines.Count > 0
+                && nr == null)
             {
                 commands.AddCommand(spineMaterial, null, commands.WorldBuffer.Identity,
                     Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,

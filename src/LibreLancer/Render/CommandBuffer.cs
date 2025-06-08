@@ -54,6 +54,10 @@ namespace LibreLancer.Render
             int offset = 0,
             int userData = 0)
 		{
+            if (count == 0)
+            {
+                throw new ArgumentException("count cannot be 0");
+            }
 			if (material.IsTransparent)
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
