@@ -1003,6 +1003,16 @@ namespace LibreLancer
                 eq.CRC = FLHash.CreateID(eq.Nickname);
                 Equipment.Add(eq);
             }
+
+            // LootCrateEquipment references
+            foreach (var val in fldata.Equipment.Equip)
+            {
+                var eq = Equipment.Get(val.Nickname);
+                if (eq == null)
+                    continue;
+                eq.LootAppearance = Equipment.Get(val.LootAppearance) as LootCrateEquipment;
+            }
+
             fldata.Equipment = null; //Free memory
         }
 

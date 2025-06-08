@@ -66,6 +66,38 @@ namespace LibreLancer.World
         }
     }
 
+    public class LootName : ObjectName
+    {
+        private GameObject Parent;
+        public LootName(GameObject parent)
+        {
+            Parent = parent;
+        }
+
+        private Equipment cacheEq;
+        private int cacheCount;
+        private string cacheStr;
+
+        public override string GetName(GameDataManager gameData, Vector3 other)
+        {
+            if (!(Parent?.TryGetComponent<LootComponent>(out var loot) ?? false))
+                return "NULL";
+            if (loot.Cargo.Count == 0)
+                return "NULL";
+            var cg = loot.Cargo[0];
+            if (cacheStr == null || cacheEq != cg.Item ||
+                cacheCount != cg.Count)
+            {
+                cacheStr = cg.Count > 1
+                    ? $"{gameData.GetString(cg.Item.IdsName)} ({cg.Count})"
+                    : gameData.GetString(cg.Item.IdsName);
+                cacheEq = cg.Item;
+                cacheCount = cg.Count;
+            }
+            return cacheStr;
+        }
+    }
+
     public class ObjectName
     {
         internal string _NameString = null;

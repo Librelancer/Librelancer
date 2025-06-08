@@ -343,7 +343,7 @@ World Time: {12:F2}
             bool ShipFilter(GameObject o) => o.Kind == GameObjectKind.Ship;
             bool StationFilter(GameObject o) => o.Kind == GameObjectKind.Solar;
 
-            bool LootFilter(GameObject o) => false;
+            bool LootFilter(GameObject o) => o.Kind == GameObjectKind.Loot;
 
             bool ImportantFilter(GameObject o)
             {
@@ -384,7 +384,8 @@ World Time: {12:F2}
                 Contacts = game.world.Objects.Where(x => x != game.player &&
                                                          (x.Kind == GameObjectKind.Ship ||
                                                            x.Kind == GameObjectKind.Solar ||
-                                                         x.Kind == GameObjectKind.Waypoint) &&
+                                                         x.Kind == GameObjectKind.Waypoint ||
+                                                           x.Kind == GameObjectKind.Loot) &&
                                                          !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData, Vector3.Zero)))
                     .Where(contactFilter)
                     .Select(GetContact)

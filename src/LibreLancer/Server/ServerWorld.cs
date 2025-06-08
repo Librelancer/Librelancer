@@ -126,7 +126,10 @@ namespace LibreLancer.Server
             var info = new ObjectSpawnInfo();
             info.ID = new ObjNetId(obj.NetID);
             info.Nickname = obj.Nickname;
-            info.Name = obj.Name;
+            if (obj.Name is not LootName)
+            {
+                info.Name = obj.Name;
+            }
             var tr = obj.WorldTransform;
             info.Position = tr.Position;
             info.Orientation = tr.Orientation;
@@ -196,6 +199,14 @@ namespace LibreLancer.Server
             {
                 //Shouldn't occur
                 throw new InvalidOperationException("BuildSpawnInfo called on non-archetype object");
+            }
+
+            if (obj.TryGetComponent<LootComponent>(out var l))
+            {
+                foreach (var item in l.Cargo)
+                {
+                    info.Loadout.Items.Add(new NetShipCargo(0, item.Item.CRC, null, 255, item.Count));
+                }
             }
 
             if (obj.TryGetComponent<SHealthComponent>(out var health))
@@ -504,7 +515,7 @@ namespace LibreLancer.Server
 
         public void SpawnLoot(
             LootCrateEquipment crate,
-            ResolvedGood good,
+            Equipment good,
             int count,
             Transform3D transform)
         {
@@ -524,6 +535,9 @@ namespace LibreLancer.Server
                 spawnedObjects.Add(go);
                 go.AddComponent(new SHealthComponent(go) { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
                 go.AddComponent(new SDestroyableComponent(go, this));
+                var lt = new LootComponent(go);
+                lt.Cargo.Add(new BasicCargo(good, count));
+                go.AddComponent(lt);
                 //Spawn debris
                 foreach (var p in Players)
                 {

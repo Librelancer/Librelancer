@@ -903,6 +903,7 @@ namespace LibreLancer.Client
                         newobj.ArchetypeName = crate.Nickname;
                         newobj.AddComponent(new CHealthComponent(newobj)
                             { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
+                        newobj.Name = new LootName(newobj);
                     }
                     else
                     {
@@ -918,8 +919,7 @@ namespace LibreLancer.Client
                     {
                         newobj.DisableCmpPart(p, Game.ResourceManager, out _);
                     }
-
-                    newobj.Name = objInfo.Name;
+                    newobj.Name ??= objInfo.Name;
                     newobj.NetID = objInfo.ID.Value;
                     newobj.Nickname = objInfo.Nickname;
                     newobj.SetLocalTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
@@ -961,6 +961,17 @@ namespace LibreLancer.Client
                         if (equip == null) continue;
                         EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, Game.Sound,
                             EquipmentType.LocalPlayer, eq.Hardpoint, equip);
+                    }
+                    if (newobj.Kind == GameObjectKind.Loot)
+                    {
+                        var lt = new LootComponent(newobj);
+                        newobj.AddComponent(lt);
+                        foreach (var eq in objInfo.Loadout.Items.Where(x => string.IsNullOrWhiteSpace(x.Hardpoint)))
+                        {
+                            var equip = Game.GameData.Equipment.Get(eq.EquipCRC);
+                            if (equip == null) continue;
+                            lt.Cargo.Add(new BasicCargo(equip, eq.Count));
+                        }
                     }
                     gp.world.AddObject(newobj);
                     newobj.Register(gp.world.Physics);

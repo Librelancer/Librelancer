@@ -18,6 +18,9 @@ namespace LibreLancer.GameData.Items
         public ResolvedModel ModelFile;
         public ResolvedGood Good;
         public float Volume;
+
+        public LootCrateEquipment? LootAppearance;
+        public int UnitsPerContainer;
     }
 }
 
