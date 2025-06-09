@@ -428,5 +428,9 @@
   {
     "function": "void glFlush()",
     "name": "Flush"
+  },
+  {
+    "function": "void glClipControl(int origin, int depth)",
+    "name": "ClipControl"
   }
 ]

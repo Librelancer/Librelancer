@@ -179,6 +179,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public const int GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117;
         public const int GL_ALREADY_SIGNALED = 0x911A;
         public const int GL_CONDITION_SATISFIED = 0x911C;
+
+        //Clip control
+        public const int GL_LOWER_LEFT = 0x8ca1;
+        public const int GL_ZERO_TO_ONE = 0x935f;
     }
 }
 
