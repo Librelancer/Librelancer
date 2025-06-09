@@ -1185,6 +1185,7 @@ namespace LancerEdit
             previewViewport.Dispose();
             newHpBuffer.Dispose();
             parent?.DereferenceDetached();
+            normalVis?.Dispose();
         }
     }
 }
