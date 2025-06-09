@@ -4,6 +4,7 @@ using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Utf.Cmp;
+using LibreLancer.Utf.Vms;
 
 namespace LancerEdit;
 
@@ -55,6 +56,8 @@ public class NormalsView : IDisposable
             var lvl = mf.Levels[lidx];
             int start = verts.Count;
             var vms = res.FindMeshData(lvl.MeshCrc);
+            if (!vms.VertexFormat.Normal)
+                continue;
             for (int t = lvl.StartMesh; t < lvl.StartMesh + lvl.MeshCount; t++)
             {
                 var tmesh = vms.Meshes[t];

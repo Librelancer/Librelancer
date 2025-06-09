@@ -486,6 +486,7 @@ namespace LancerEdit
             }
             normalVis?.Dispose();
             normalVis = new NormalsView(_window.RenderContext, drawable, res, len);
+            builtLength = len;
         }
 
 
