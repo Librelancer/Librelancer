@@ -52,10 +52,17 @@ static class DXC
     struct TempFile : IDisposable
     {
         public string Path;
-        public static TempFile Create() => new() { Path = System.IO.Path.GetTempFileName() };
+        private bool _kept;
+        public static TempFile Create() => new() { Path = System.IO.Path.GetTempFileName(), _kept = false };
 
+        public void Keep()
+        {
+            _kept = true;
+        }
         public void Dispose()
         {
+            if (_kept)
+                return;
             try
             {
                 File.Delete(Path);
@@ -76,7 +83,7 @@ static class DXC
             result = await Shell.Run(path, args);
             if (result != 0)
             {
-                await Console.Error.WriteLineAsync($"Invoke {path} failed with code {result}, retrying with 500ms delay.");
+                await Console.Error.WriteLineAsync($"Invoke {Shell.CommandString(path, args)} failed with code {result}, retrying with 500ms delay.");
                 await Task.Delay(TimeSpan.FromMilliseconds(500));
             }
             else
@@ -110,7 +117,8 @@ static class DXC
 
         if (result != 0)
         {
-            throw new ShaderCompilerException(ShaderError.DXILCompileFailure, "",0,0, "dxc failed compiling transpiled SPIR-V");
+            input.Keep();
+            throw new ShaderCompilerException(ShaderError.DXILCompileFailure, "",0,0, $"dxc failed compiling transpiled SPIR-V at '{input.Path}'");
         }
 
         return await File.ReadAllBytesAsync(output.Path);

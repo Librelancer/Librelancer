@@ -11,7 +11,7 @@ public static class DXILTranslator
         await TranslateShader(source.Fragment, ShaderStage.Fragment)
     );
 
-    static async Task<ReflectedShader> TranslateShader(ReflectedShader shader, ShaderStage stage)
+    static (string source, string entry) RunSPIRVCross(ReflectedShader shader, ShaderStage stage)
     {
         using var ctx = ContextHandle.Create();
         spvc_parsed_ir ir;
@@ -39,8 +39,12 @@ public static class DXILTranslator
             RC(ctx,Spvc.compiler_compile(compiler, &nativePtr));
             translatedSource = Marshal.PtrToStringUTF8((IntPtr)nativePtr)!;
         }
-        var newCode = await DXC.CompileDXIL(translatedSource, stage);
-        var sh = shader.CloneWithCode(newCode);
+
+        if (string.IsNullOrWhiteSpace(translatedSource))
+        {
+            throw new ShaderCompilerException(ShaderError.SPIRVCrossError, "", 0, 0, "SPIRV->DXIL failed");
+        }
+
         SpvExecutionModel model = stage switch
         {
             ShaderStage.Fragment => SpvExecutionModel.SpvExecutionModelFragment,
@@ -48,7 +52,16 @@ public static class DXILTranslator
             ShaderStage.Compute => SpvExecutionModel.SpvExecutionModelGLCompute,
             _ => throw new NotSupportedException()
         };
-        sh.EntryPoint = Spvc.compiler_get_cleansed_entry_point_name(compiler, shader.EntryPoint, model);
+
+        return (translatedSource, Spvc.compiler_get_cleansed_entry_point_name(compiler, shader.EntryPoint, model));
+    }
+
+    static async Task<ReflectedShader> TranslateShader(ReflectedShader shader, ShaderStage stage)
+    {
+        var (translatedSource, entryPointName) = RunSPIRVCross(shader, stage);
+        var newCode = await DXC.CompileDXIL(translatedSource, stage);
+        var sh = shader.CloneWithCode(newCode);
+        sh.EntryPoint = entryPointName;
         return sh;
     }
 }

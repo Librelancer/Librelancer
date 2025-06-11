@@ -43,6 +43,9 @@ static class Shell
         return await p.StandardOutput.ReadToEndAsync();
     }
 
+    public static string CommandString(string cmd, params string[] arguments) =>
+        $"{cmd} {string.Join(' ', arguments.Select(Quote))}";
+
 
     // https://learn.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way
     private static readonly char[] escapeChars = ['\t', '\n', ' ', '\v', '\"'];

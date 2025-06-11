@@ -55,13 +55,11 @@ namespace BuildLL
             "src/LLServerGui/LLServerGui.csproj",
         };
 
-        static void Clean(string rid)
+        static void Clean()
         {
             Dotnet.Clean("LibreLancer.sln");
-            RmDir("./obj/projs-" + rid);
-            RmDir("./obj/projs-sdk-" + rid);
-            RmDir("./bin/librelancer-" + rid);
-            RmDir("./bin/librelancer-sdk-" + rid);
+            RmDir("./obj/");
+            RmDir("./bin/");
         }
 
        static  List<string> publishedProjects = new List<string>();
@@ -371,12 +369,7 @@ namespace BuildLL
 
             Target("Clean", () =>
             {
-                if (withWin32)
-                    Clean("win-x86");
-                if (IsWindows || withWin64)
-                    Clean("win-x64");
-                if(!IsWindows)
-                    Clean(GetLinuxRid());
+                Clean();
             });
 
 

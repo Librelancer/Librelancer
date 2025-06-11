@@ -29,4 +29,4 @@ fi
 
 cd $SCRIPT_DIR
 # Fix fedora RSA+SHA1 disabled
-OPENSSL_ENABLE_SHA1_SIGNATURES=1 dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
+OPENSSL_ENABLE_SHA1_SIGNATURES=1 MSBUILDTERMINALLOGGER=off dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
