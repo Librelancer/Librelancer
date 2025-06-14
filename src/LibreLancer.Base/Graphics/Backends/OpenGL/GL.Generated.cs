@@ -113,8 +113,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<IntPtr,void> _glDeleteSync;
         private static delegate* unmanaged<IntPtr,uint,ulong,uint> _glClientWaitSync;
         private static delegate* unmanaged<void> _glFlush;
-        private static delegate* unmanaged<int,int,void> _glClipControl;
-        
+
         public static void Load(Func<string,IntPtr> getProcAddress, bool isGles)
         {
             _glEnable = (delegate* unmanaged<int,void>)getProcAddress("glEnable");
@@ -223,7 +222,6 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glDeleteSync = (delegate* unmanaged<IntPtr,void>)getProcAddress("glDeleteSync");
             _glClientWaitSync = (delegate* unmanaged<IntPtr,uint,ulong,uint>)getProcAddress("glClientWaitSync");
             _glFlush = (delegate* unmanaged<void>)getProcAddress("glFlush");
-            _glClipControl = (delegate* unmanaged<int,int,void>)getProcAddress("glClipControl");
         }
         public static void Enable(int flags)
         {
@@ -814,11 +812,5 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glFlush();
             ErrorCheck();
         }
-        public static void ClipControl(int origin, int depth)
-        {
-            _glClipControl(origin, depth);
-            ErrorCheck();
-        }
     }
 }
-

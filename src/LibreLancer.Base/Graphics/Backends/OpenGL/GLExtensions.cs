@@ -88,23 +88,6 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
         }
 
-        private static bool? _glClipControl;
-
-        public static bool ClipControl
-        {
-            get
-            {
-                if (_glClipControl == null)
-                {
-                    PopulateExtensions();
-                    _glClipControl = ExtensionList.Contains("GL_ARB_clip_control");
-                    if (_glClipControl.Value) FLLog.Info("GL", "Clip control available");
-                    else FLLog.Info("OpenGL", "Clip control not available.");
-                }
-                return _glClipControl.Value;
-            }
-        }
-
         //Global method for checking extensions. Called upon GraphicsDevice creation
         public static void PopulateExtensions()
 		{

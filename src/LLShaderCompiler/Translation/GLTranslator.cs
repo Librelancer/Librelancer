@@ -290,13 +290,6 @@ public static class GLTranslator
 
     record struct Varying(string OriginalName, string Name, string Type);
 
-    private const string FIXUP_STATEMENT = "gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;";
-    private const string FIXUP_CONDITIONAL = @"
-#if !CLIP_CONTROL_ENABLED
-gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;
-#endif
-";
-
     static unsafe (string, Varying[]) ToGLSL(string shName, byte[] spirv, GLShader compiled, ShaderStage stage)
     {
         if (stage == ShaderStage.Compute)
@@ -323,7 +316,6 @@ gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;
         RC(ctx, Spvc.compiler_create_compiler_options(compiler, &options));
         RC(ctx, Spvc.compiler_options_set_bool(options, spvc_compiler_option.GlslEnable420packExtension, false));
         RC(ctx, Spvc.compiler_options_set_uint(options, spvc_compiler_option.GlslVersion, 140));
-        RC(ctx, Spvc.compiler_options_set_bool(options, spvc_compiler_option.FixupDepthConvention, true));
 
         spvc_resources res;
         RC(ctx,Spvc.compiler_create_shader_resources(compiler, &res));
@@ -452,7 +444,7 @@ gl_Position.z = 2.0 * gl_Position.z - gl_Position.w;
         RC(ctx,Spvc.compiler_compile(compiler, &translatedSource));
 
         var source = ReplaceFirst(Marshal.PtrToStringUTF8((IntPtr)translatedSource)!, 0, "#version 140\n",
-            "").Replace(FIXUP_STATEMENT, FIXUP_CONDITIONAL);
+            "");
 
         while (ProcessStorageBuffer(bufferSizes, ref source)) ;
 

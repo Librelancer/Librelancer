@@ -131,11 +131,6 @@ class GLRenderContext : IRenderContext
             FLLog.Debug("GL", "Anisotropic Filter Not Supported!");
         }
 
-        if (GLExtensions.ClipControl)
-        {
-            GL.ClipControl(GL.GL_LOWER_LEFT, GL.GL_ZERO_TO_ONE);
-        }
-
         applied = new GraphicsState();
         applied.BlendEnabled = true;
         applied.ClearColor = Color4.Black;

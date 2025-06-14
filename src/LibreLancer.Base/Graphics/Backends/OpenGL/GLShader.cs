@@ -76,10 +76,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             string vertexSource = reader.ReadUTF8();
             string fragmentSource = reader.ReadUTF8();
             var version =
-                GL.GLES ? "#version 300 es\nprecision highp float;\nprecision highp int;\n" :
-                    GLExtensions.ClipControl
-            ? "#version 140\n#define CLIP_CONTROL_ENABLED 1\n"
-            : "#version 140\n";
+                GL.GLES ? "#version 300 es\nprecision highp float;\nprecision highp int;\n" : "#version 140\n";
             //compile shaders
             var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
             var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
