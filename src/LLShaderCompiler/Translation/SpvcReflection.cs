@@ -98,10 +98,6 @@ public static class SpvcReflection
             }
         }
 
-        return new ReflectedShader()
-        {
-            EntryPoint = "main",
-            Code = spirv,
-        };
+        return new ReflectedShader("main", spirv);
     }
 }

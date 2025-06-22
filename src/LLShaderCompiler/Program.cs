@@ -106,24 +106,12 @@ if (positional.Length > 2 && positional.Length % 2 != 0)
     Environment.Exit(1);
 }
 
-bool skipDxil = false;
-if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
-    RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ||
-    RuntimeInformation.ProcessArchitecture == Architecture.Armv6 ||
-    RuntimeInformation.ProcessArchitecture == Architecture.Arm)
-{
-    Console.Error.WriteLine("warning: DXIL compilation not supported on ARM linux due to dxc crashing.");
-    skipDxil = true;
-}
-
-
-
 var files = positional.Chunk(2).Select(x => (x[0], x[1]));
 try
 {
     await Parallel.ForEachAsync(files, async (f, _) =>
     {
-        await ShaderCompiler.Compile(f.Item1, f.Item2, dumpFolder, verbose, skipDxil);
+        await ShaderCompiler.Compile(f.Item1, f.Item2, dumpFolder, verbose);
     });
 }
 catch (ShaderCompilerException e)

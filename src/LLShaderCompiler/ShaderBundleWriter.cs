@@ -31,13 +31,11 @@ public class ShaderBundleWriter
         for (int i = 0; i < bundle.Shaders.Length; i++)
         {
             var shader = bundle.Shaders[i];
-            written[i] = new ShaderBytes()
-            {
-                SPIRV = GetShaderBytes(shader.SPIRV),
-                DXIL = GetShaderBytes(shader.DXIL),
-                MSL = GetShaderBytes(shader.MSL),
-                GL = shader.GL == null ? null : GetGLBytes(shader.GL)
-            };
+            written[i] = new ShaderBytes(
+                spirv: GetShaderBytes(shader.SPIRV),
+                dxil: GetShaderBytes(shader.DXIL),
+                msl: GetShaderBytes(shader.MSL),
+                gl: shader.GL == null ? null : GetGLBytes(shader.GL));
         }
 
         int[] offsets = new int[bundle.Shaders.Length];
@@ -111,6 +109,14 @@ public class ShaderBundleWriter
         public byte[]? GL;
 
         public int LengthBytes => 24 + SPIRV.Length + DXIL.Length + MSL.Length + (GL?.Length ?? 0);
+
+        public ShaderBytes(byte[] spirv, byte[] dxil, byte[] msl, byte[]? gl)
+        {
+            SPIRV = spirv;
+            DXIL = dxil;
+            MSL = msl;
+            GL = gl;
+        }
 
         public void Write(BinaryWriter writer)
         {

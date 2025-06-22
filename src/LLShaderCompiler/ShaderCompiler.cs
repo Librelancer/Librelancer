@@ -4,7 +4,7 @@ namespace LLShaderCompiler;
 
 public static class ShaderCompiler
 {
-    public static async Task Compile(string inputFile, string outputFile, string dumpFolder, bool verbose, bool skipDxil)
+    public static async Task Compile(string inputFile, string outputFile, string dumpFolder, bool verbose)
     {
         var shader = await ShaderInfo.FromFile(inputFile);
 
@@ -39,9 +39,8 @@ public static class ShaderCompiler
                 ? null
                 : GLTranslator.TranslateProgram(shader.FriendlyName, variant.Vertex, variant.Fragment);
 
-            var dxilCompiled = !skipDxil
-                ? await DXILTranslator.TranslateProgram(reflected)
-                : null;
+            var dxilCompiled = await DXILTranslator.TranslateProgram(reflected);
+            
             var mslCompiled = MSLTranslator.TranslateProgram(reflected);
 
             if (!string.IsNullOrWhiteSpace(dumpFolder))

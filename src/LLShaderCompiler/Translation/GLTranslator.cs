@@ -386,7 +386,7 @@ public static class GLTranslator
         nuint numBuffers;
         RC(ctx,Spvc.resources_get_resource_list_for_type(res, spvc_resource_type.StorageBuffer, &buffers, &numBuffers));
         Dictionary<string, int> bufferSizes = new Dictionary<string, int>();
-        int remappableIndex = 0;
+
         for(nuint i = 0; i < numBuffers; i++)
         {
             var name = Marshal.PtrToStringUTF8((IntPtr)buffers[i].name)!;

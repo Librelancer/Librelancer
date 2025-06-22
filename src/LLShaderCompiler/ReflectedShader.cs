@@ -9,6 +9,11 @@ public class ReflectedShader
     public string EntryPoint;
     public byte[] Code;
 
+    public ReflectedShader(string entryPoint, byte[] code)
+    {
+        EntryPoint = entryPoint;
+        Code = code;
+    }
     public ReflectedShader CloneWithCode(byte[] code)
     {
         var n = (ReflectedShader)MemberwiseClone();
