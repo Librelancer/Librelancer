@@ -161,3 +161,17 @@ public class SysZoneSetSizeZ(Zone target, SystemEditorTab tab, float old, float 
         tab.World.Renderer.ZoneVersion++;
     }
 }
+
+public class SysAddZoneAction(SystemEditorTab tab, Zone zone) : EditorAction
+{
+    private EditZone z;
+    public override void Commit()
+    {
+        z = tab.ZoneList.AddZone(zone);
+    }
+
+    public override void Undo()
+    {
+        tab.ZoneList.RemoveZone(z);
+    }
+}

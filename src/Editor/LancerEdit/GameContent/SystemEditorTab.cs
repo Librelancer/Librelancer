@@ -26,6 +26,13 @@ using LibreLancer.World;
 using SimpleMesh;
 using Archetype = LibreLancer.GameData.Archetype;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
+using DataEncounter = LibreLancer.Data.Universe.Encounter;
+using DataFactionSpawn = LibreLancer.Data.Universe.FactionSpawn;
+using DataDensityRestriction = LibreLancer.Data.Universe.DensityRestriction;
+using DataStarSystem = LibreLancer.Data.Universe.StarSystem;
+using DataZone = LibreLancer.Data.Universe.Zone;
+using DataBase = LibreLancer.Data.Universe.Base;
+using DataLightSource = LibreLancer.Data.Universe.LightSource;
 
 namespace LancerEdit.GameContent;
 
@@ -52,6 +59,10 @@ public class SystemEditorTab : GameContentTab
 
     private bool mapOpen = false;
     private bool infocardOpen = false;
+
+    //Patrols
+    internal bool isCreatingPatrol = false;
+    internal List<Vector3> newPatrolPoints = new List<Vector3>();
 
     Infocard systemInfocard;
     private InfocardControl icard;
@@ -176,7 +187,7 @@ public class SystemEditorTab : GameContentTab
         }
         else
         {
-            map2D.Draw(SystemData, World, Data, this);
+            map2D.Draw(SystemData, World, Data, this, isCreatingPatrol, newPatrolPoints);
         }
     }
 
@@ -335,8 +346,24 @@ public class SystemEditorTab : GameContentTab
                     ZoneList.Selected = c.Zone;
                 }));
             }
-
-            ImGui.SameLine();
+            ImGui.Separator();
+            if (ImGui.Button(isCreatingPatrol ? "Finish Path" : "New Patrol Path"))
+            {
+                if (!isCreatingPatrol)
+                {
+                    isCreatingPatrol = true;
+                    newPatrolPoints.Clear();
+                }
+                else
+                {
+                    FinishPatrolRoute();
+                }
+            }
+            if (isCreatingPatrol)
+            {
+                ImGui.TextWrapped("Patrol zone controls: Left click to create point, double click to finish, right click to cancel.");
+            }
+            ImGui.Separator();
             if (ImGui.Button("Show All"))
                 ZoneList.ShowAll();
             ImGui.SameLine();
@@ -405,7 +432,7 @@ public class SystemEditorTab : GameContentTab
         if (ImGui.Button($"{Icons.Edit}##position"))
         {
             var origPosition = sel.Position;
-            Popups.OpenPopup(new Vector3Popup("Position", false, sel.Position, (value, kind) =>
+            Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
             {
                 if (kind == SetActionKind.Commit)
                     UndoBuffer.Commit(new SysZoneSetPosition(sel, this, origPosition, value));
@@ -1113,7 +1140,7 @@ public class SystemEditorTab : GameContentTab
             if (sel.Light.Kind == LightKind.Directional)
             {
                 var dir = sel.Light.Direction;
-                Controls.PropertyRow("Direction", $"{dir.X:0.00000}, {dir.Y:0.0000}, {dir.Z: 0.0000}");
+                Controls.PropertyRow("Direction", $"{dir.X:0.00000}, {dir.Y:0.0000}, {dir.Z:0.0000}");
             }
             Controls.PropertyRow("Range", $"{sel.Light.Range:0.00}");
             if (ImGui.Button($"{Icons.Edit}##range"))
@@ -1738,6 +1765,137 @@ public class SystemEditorTab : GameContentTab
         return false;
     }
 
+    public void AddPatrolPoint(Vector3 point)
+    {
+        newPatrolPoints.Add(point);
+    }
+
+    public void CancelPatrolRoute()
+    {
+        isCreatingPatrol = false;
+        newPatrolPoints.Clear();
+    }
+
+    public void FinishPatrolRoute()
+    {
+        // Remove last point if it's from a double click and too close to the previous point
+        if (newPatrolPoints.Count >= 2)
+        {
+            var pLast = newPatrolPoints[newPatrolPoints.Count - 1];
+            var pPrev = newPatrolPoints[newPatrolPoints.Count - 2];
+            if (Vector3.Distance(pLast, pPrev) < 1.0f) // A small threshold to detect double-click point
+            {
+                newPatrolPoints.RemoveAt(newPatrolPoints.Count - 1);
+            }
+        }
+        
+        if (newPatrolPoints.Count < 2) {
+            CancelPatrolRoute();
+            return;
+        }
+
+        // Open patrol route configuration dialog
+        var pointsCopy = new List<Vector3>(newPatrolPoints);
+        Popups.OpenPopup(new PatrolRouteDialog(pointsCopy, config =>
+        {
+            CreatePatrolRoute(config);
+        }, () => {
+            // Cancel callback - reset patrol creation state
+            CancelPatrolRoute();
+        }, Data, CurrentSystem));
+    }
+
+    private void CreatePatrolRoute(PatrolRouteConfig config)
+    {
+        var actions = new List<EditorAction>();
+
+        foreach (var encounter in config.Encounters)
+        {
+            if (!CurrentSystem.EncounterParameters.Any(x =>
+                    x.Nickname.Equals(encounter.Archetype, StringComparison.OrdinalIgnoreCase)))
+            {
+                actions.Add(new SysAddEncounterParameter(CurrentSystem, new EncounterParameters()
+                {
+                    Nickname = encounter.Archetype,
+                    SourceFile = $"missions\\encounters\\{encounter.Archetype}.ini"
+                }));
+            }
+        }
+
+        for (int i = 0; i < newPatrolPoints.Count - 1; i++)
+        {
+            var p1 = newPatrolPoints[i];
+            var p2 = newPatrolPoints[i + 1];
+
+            var center = (p1 + p2) / 2;
+            var height = Vector3.Distance(p1, p2);
+
+            if (height < 0.1f) continue;
+
+            var direction = (p2 - p1).Normalized();
+            
+            Matrix4x4 rotation;
+            // Align cylinder's local Y with `direction`
+            var startVec = Vector3.UnitY;
+            var dot = Vector3.Dot(startVec, direction);
+
+            if (Math.Abs(dot) > 0.99999f) // Parallel vectors
+            {
+                rotation = dot > 0 ? Matrix4x4.Identity : Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+            }
+            else
+            {
+                var rotAxis = Vector3.Cross(startVec, direction);
+                rotAxis = Vector3.Normalize(rotAxis);
+                var angle = MathF.Acos(dot);
+                rotation = Matrix4x4.CreateFromAxisAngle(rotAxis, angle);
+            }
+
+            string baseName = $"{CurrentSystem.Nickname}_path_{config.PathLabel}";
+            string zoneName = $"{baseName}_{i + 1}";
+            int count = 1;
+            while(ZoneList.ZoneExists(zoneName)) {
+                zoneName = $"{baseName}_{i + 1}_{count++}";
+            }
+
+            var zone = new Zone()
+            {
+                Nickname = zoneName,
+                Position = center,
+                RotationMatrix = rotation,
+                Shape = ShapeKind.Cylinder,
+                Size = new Vector3(500, height, 0), //Radius, Height
+                Sort = config.Sort,
+                Toughness = config.Toughness,
+                Density = config.Density,
+                RepopTime = config.RepopTime,
+                MaxBattleSize = config.MaxBattleSize,
+                ReliefTime = config.ReliefTime,
+                PopType = new[] { "attack_patrol" },
+                PathLabel = new[] { config.PathLabel, (i + 1).ToString() },
+                Usage = new[] { "patrol" },
+                Encounters = config.Encounters.Select(e => new DataEncounter
+                {
+                    Archetype = e.Archetype,
+                    Difficulty = e.Difficulty,
+                    Chance = e.Chance,
+                    FactionSpawns = e.Factions.Select(f => new DataFactionSpawn
+                    {
+                        Faction = f.Faction.Nickname,
+                        Chance = f.Chance
+                    }).ToList()
+                }).ToArray(),
+                DensityRestrictions = Array.Empty<DataDensityRestriction>()
+            };
+            actions.Add(new SysAddZoneAction(this, zone));
+        }
+
+        if(actions.Count > 0)
+            UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
+
+        isCreatingPatrol = false;
+        newPatrolPoints.Clear();
+    }
 
     public override void Dispose()
     {

@@ -339,17 +339,23 @@ public static class IniSerializer
         sb.OptionalEntry("relief_time", z.ReliefTime)
             .OptionalEntry("path_label", z.PathLabel)
             .OptionalEntry("usage", z.Usage);
-        foreach (var dr in z.DensityRestrictions)
+        if (z.DensityRestrictions != null)
         {
-            sb.Entry("density_restriction", dr.Count, dr.Type);
+            foreach (var dr in z.DensityRestrictions)
+            {
+                sb.Entry("density_restriction", dr.Count, dr.Type);
+            }
         }
 
-        foreach (var e in z.Encounters)
+        if (z.Encounters != null)
         {
-            sb.Entry("encounter", e.Archetype, e.Difficulty, e.Chance);
-            foreach (var f in e.FactionSpawns)
+            foreach (var e in z.Encounters)
             {
-                sb.Entry("faction", f.Faction, f.Chance);
+                sb.Entry("encounter", e.Archetype, e.Difficulty, e.Chance);
+                foreach (var f in e.FactionSpawns)
+                {
+                    sb.Entry("faction", f.Faction, f.Chance);
+                }
             }
         }
 
