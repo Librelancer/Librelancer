@@ -10,5 +10,6 @@ public interface ISpacePlayer
     void LeaveFormation();
     void UseRepairKits();
     void UseShieldBatteries();
+    void Tractor(ObjNetId target);
     void RunDirectiveIndex(int index);
 }

@@ -35,6 +35,11 @@ public class SNPCCargoComponent : AbstractCargoComponent
         return 0;
     }
 
+    public override int TryAdd(Equipment equipment, int maxCount)
+    {
+        return 0;
+    }
+
     public override T FirstOf<T>()
     {
         var slot = Cargo.FirstOrDefault(x => x.Item is T);

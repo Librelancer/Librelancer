@@ -36,6 +36,19 @@ public class SpacePlayer : ISpacePlayer
         });
     }
 
+    public void Tractor(ObjNetId target)
+    {
+        world.EnqueueAction(() =>
+        {
+            var obj = World.Players[player];
+            var other = world.GameWorld.GetObject(target);
+            if (other != null && obj.TryGetComponent<STractorComponent>(out var tractor))
+            {
+                tractor.TryTractor(other);
+            }
+        });
+    }
+
     public void RunDirectiveIndex(int index)
     {
         world.EnqueueAction(() =>

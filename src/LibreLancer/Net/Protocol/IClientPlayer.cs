@@ -26,6 +26,7 @@ public interface IClientPlayer
     void UpdateInventory(long credits, ulong shipWorth, ulong netWorth, NetLoadout ship);
     void UpdateSlotCount(int slot, int count);
     void DeleteSlot(int slot);
+    void UpdateLootObject(ObjNetId id, NetBasicCargo[] items);
     void SpawnObjects(ObjectSpawnInfo[] objects);
     void OnConsoleMessage(string text);
     void SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation);
@@ -43,6 +44,10 @@ public interface IClientPlayer
     void StartTradelane();
     void TradelaneDisrupted();
     void EndTradelane();
+
+    void StartTractor(ObjNetId ship, ObjNetId target);
+    void EndTractor(ObjNetId ship, ObjNetId target);
+    void TractorFailed();
     void UpdateFormation(NetFormation formation);
     void TradelaneActivate(uint id, bool left);
     void TradelaneDeactivate(uint id, bool left);

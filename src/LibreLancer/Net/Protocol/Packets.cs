@@ -348,6 +348,18 @@ namespace LibreLancer.Net.Protocol
         }
     }
 
+    public record struct NetBasicCargo(uint EquipCRC, int Count)
+    {
+        public static NetBasicCargo Read(PacketReader message) => new(
+            message.GetUInt(), message.GetVariableInt32());
+
+        public void Put(PacketWriter message)
+        {
+            message.Put(EquipCRC);
+            message.PutVariableInt32(Count);
+        }
+    }
+
     public class NetShipCargo
     {
         public int ID;

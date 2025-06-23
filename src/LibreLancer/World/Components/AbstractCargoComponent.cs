@@ -9,4 +9,6 @@ public abstract class AbstractCargoComponent : GameComponent
     public abstract int TryConsume(Equipment item, int maxCount = 1);
 
     public abstract T FirstOf<T>() where T : Equipment;
+
+    public abstract int TryAdd(Equipment equipment, int maxCount);
 }

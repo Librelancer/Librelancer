@@ -253,6 +253,22 @@ namespace LibreLancer.Server.Components
             return 0;
         }
 
+        public override int TryAdd(Equipment equipment, int maxCount)
+        {
+            var limit = CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, equipment);
+            var count = Math.Min(limit, maxCount);
+            if (count == 0)
+            {
+                return 0;
+            }
+            using (var c = Player.Character.BeginTransaction())
+            {
+                c.AddCargo(equipment, null, count);
+            }
+            Player.UpdateCurrentInventory();
+            return count;
+        }
+
         public override T FirstOf<T>()
         {
             var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment is T);
