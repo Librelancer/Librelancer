@@ -216,6 +216,10 @@ public class EditMap2D
                 FLLog.Info("Obj", $"Add at {pos - wPos}");
                 tab.Popups.OpenPopup(new NewObjectPopup(ctx, world, MapToWorld(pos - wPos), tab.CreateObject));
             }
+            if (!isCreatingPatrol && ImGui.MenuItem("New Patrol Path"))
+            {
+                tab.StartPatrolRoute();
+            }
             ImGui.EndPopup();
         }
         
@@ -246,6 +250,20 @@ public class EditMap2D
             {
                 tab.CancelPatrolRoute();
             }
+        }
+
+        // Optionally show documentation when creating patrol
+        if (isCreatingPatrol)
+        {
+            // Draw help text at the bottom right of the canvas, a bit higher
+            var canvasWidth = ImGui.GetWindowWidth();
+            var canvasHeight = ImGui.GetWindowHeight();
+            var helpText = "Patrol zone controls: Left click to create point, double click to finish, right click to cancel.";
+            var textSize = ImGui.CalcTextSize(helpText);
+            ImGui.SetCursorPos(new Vector2(canvasWidth - textSize.X - 20, canvasHeight - 60)); // 20px from right, 60px from bottom
+            ImGui.PushTextWrapPos(canvasWidth - 20);
+            ImGui.TextColored(new Vector4(1, 1, 0.7f, 1), helpText);
+            ImGui.PopTextWrapPos();
         }
 
         ImGui.EndChild();
