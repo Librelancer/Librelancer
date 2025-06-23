@@ -23,4 +23,9 @@ public class LootComponent : AbstractCargoComponent
         var slot = Cargo.FirstOrDefault(x => x.Item is T);
         return (T) slot.Item;
     }
+
+    public override int TryAdd(Equipment equipment, int maxCount)
+    {
+        return 0;
+    }
 }

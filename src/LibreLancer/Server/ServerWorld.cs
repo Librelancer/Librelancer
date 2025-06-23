@@ -87,6 +87,69 @@ namespace LibreLancer.Server
             }
         }
 
+        public void StartTractor(GameObject obj, GameObject target)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RpcClient.StartTractor(obj, target);
+            }
+        }
+
+        public void PickupObject(GameObject obj, GameObject pickup)
+        {
+            if (!pickup.Flags.HasFlag(GameObjectFlags.Exists) ||
+                !pickup.TryGetComponent<LootComponent>(out var loot))
+            {
+                return;
+            }
+            if (obj.TryGetComponent<AbstractCargoComponent>(out var cargo))
+            {
+                var newLoot = new List<BasicCargo>();
+                int totalRemain = 0;
+                int totalCount = 0;
+                foreach (var c in loot.Cargo)
+                {
+                    var remaining = c.Count - cargo.TryAdd(c.Item, c.Count);
+                    totalCount += c.Count;
+                    totalRemain += remaining;
+                    if (remaining > 0)
+                    {
+                        newLoot.Add(new BasicCargo(c.Item, remaining));
+                    }
+                }
+
+                if (totalRemain == totalCount)
+                {
+                    if (obj.TryGetComponent<SPlayerComponent>(out var player))
+                    {
+                        player.Player.RpcClient.TractorFailed();
+                    }
+                }
+                else if(totalRemain == 0)
+                {
+                    RemoveSpawnedObject(pickup, false);
+                }
+                else
+                {
+                    loot.Cargo = newLoot;
+                    foreach (var p in Players)
+                    {
+                        p.Key.RpcClient.UpdateLootObject(pickup,
+                            loot.Cargo.Select(x => new NetBasicCargo(x.Item.CRC, x.Count)).ToArray());
+                    }
+                }
+            }
+        }
+
+
+        public void EndTractor(GameObject obj, GameObject target)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RpcClient.EndTractor(obj, target);
+            }
+        }
+
         public void ExplodeMissile(GameObject obj)
         {
             if ((obj.Flags & GameObjectFlags.Exists) == 0)
