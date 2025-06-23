@@ -9,7 +9,7 @@ public class EncounterLookup : ObjectLookup<string>
     public string[] Archetypes { get; private set; }
     public EncounterLookup(string id, GameDataContext gd, string initial)
     {
-        // Usar la ruta base de Freelancer para acceder a la carpeta de encuentros
+        // Access encounter folder to grab their ini files
         var encountersDir = gd.GameData.Ini.Freelancer.DataPath + "MISSIONS\\ENCOUNTERS\\";
         var encounterParams = gd.GameData.VFS.GetFiles(encountersDir)
             .Where(x => x.EndsWith(".ini", System.StringComparison.OrdinalIgnoreCase))
