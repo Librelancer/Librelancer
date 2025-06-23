@@ -56,9 +56,6 @@ public class SystemEditorTab : GameContentTab
     private bool mapOpen = false;
     private bool infocardOpen = false;
 
-    //Patrols
-    private PatrolRouteBuilder patrolBuilder = new PatrolRouteBuilder();
-
     Infocard systemInfocard;
     private InfocardControl icard;
 
@@ -182,7 +179,7 @@ public class SystemEditorTab : GameContentTab
         }
         else
         {
-            map2D.Draw(SystemData, World, Data, this, patrolBuilder.IsActive, patrolBuilder.Points);
+            map2D.Draw(SystemData, World, Data, this);
         }
     }
 
@@ -1745,17 +1742,17 @@ public class SystemEditorTab : GameContentTab
 
     public void AddPatrolPoint(Vector3 point)
     {
-        patrolBuilder.AddPoint(point);
+        map2D.Patrol.AddPoint(point);
     }
 
     public void CancelPatrolRoute()
     {
-        patrolBuilder.Cancel();
+        map2D.Patrol.Cancel();
     }
 
     public void FinishPatrolRoute()
     {
-        var points = patrolBuilder.Finish();
+        var points = map2D.Patrol.Finish();
         Popups.OpenPopup(new PatrolRouteDialog(points, config =>
         {
             CreatePatrolRoute(points, config);
@@ -1852,12 +1849,12 @@ public class SystemEditorTab : GameContentTab
         if(actions.Count > 0)
             UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
 
-        patrolBuilder.Cancel();
+        map2D.Patrol.Cancel();
     }
 
     public void StartPatrolRoute()
     {
-        patrolBuilder.Start();
+        map2D.Patrol.Start();
     }
 
     public override void Dispose()

@@ -53,7 +53,7 @@ public class PatrolRouteDialog : PopupWindow
 
         // Add a default encounter
         var defaultEncounter = new PatrolEncounter();
-        defaultEncounter.EncounterLookup = new EncounterLookup("##encounter_0", gameData, defaultEncounter.Archetype);
+        defaultEncounter.EncounterLookup = new EncounterLookup("##encounter_0", gameData, null);
         defaultEncounter.SetDefaultArchetype();
         var defaultFactionInfo = defaultFaction;
         var defaultPatrolFaction = new PatrolFaction
@@ -149,8 +149,8 @@ public class PatrolRouteDialog : PopupWindow
         if (ImGui.Button("Add Encounter"))
         {
             var newEncounter = new PatrolEncounter();
-            newEncounter.EncounterLookup = new EncounterLookup($"##encounter_{encounters.Count}", gameData, "patrolp_inter");
-            newEncounter.Archetype = newEncounter.EncounterLookup.Archetypes?.FirstOrDefault();
+            newEncounter.EncounterLookup = new EncounterLookup($"##encounter_{encounters.Count}", gameData, null);
+            newEncounter.SetDefaultArchetype();
             var newFaction = new PatrolFaction();
             newFaction.Faction = gameData.GameData.Factions.FirstOrDefault();
             newFaction.FactionLookup = new FactionLookup($"##faction_{encounters.Count}_0", gameData, newFaction.Faction);
@@ -179,6 +179,7 @@ public class PatrolRouteDialog : PopupWindow
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
                     encounter.EncounterLookup.Draw();
+                    encounter.Archetype = encounter.EncounterLookup.Selected;
                     ImGui.PopItemWidth();
 
                     ImGui.TableNextRow();
