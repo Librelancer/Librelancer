@@ -44,6 +44,7 @@ namespace LibreLancer.GameData
 
         public string ShieldLinkHull;
         public string ShieldLinkSource;
+        public string TractorSource;
 
         public List<SeparablePart> SeparableParts = new();
 

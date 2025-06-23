@@ -1814,6 +1814,7 @@ namespace LibreLancer
                 ship.MaxRepairKits = orig.NanobotLimit;
                 ship.ShieldLinkHull = orig.ShieldLink?.HardpointMount;
                 ship.ShieldLinkSource = orig.ShieldLink?.HardpointShield;
+                ship.TractorSource = orig.HpTractorSource;
                 ship.SeparableParts = orig.CollisionGroups.Select(FromCollisionGroup).ToList();
                 foreach (var fuse in orig.Fuses)
                 {

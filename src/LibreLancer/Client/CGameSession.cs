@@ -24,6 +24,7 @@ using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 using LibreLancer.Net.Protocol.RpcPackets;
+using LibreLancer.Sounds.VoiceLines;
 
 namespace LibreLancer.Client
 {
@@ -636,6 +637,58 @@ namespace LibreLancer.Client
         {
             inTradelane = false;
             RunSync(gp.EndTradelane);
+        }
+
+        void IClientPlayer.StartTractor(ObjNetId ship, ObjNetId target)
+        {
+            RunSync(() =>
+            {
+                var src = gp.world.GetObject(ship);
+                var dst = gp.world.GetObject(target);
+                if (src != null &&
+                    dst != null &&
+                    src.TryGetComponent<CTractorComponent>(out var tractor))
+                {
+                    tractor.AddBeam(dst);
+                }
+            });
+        }
+
+        void IClientPlayer.EndTractor(ObjNetId ship, ObjNetId target)
+        {
+            RunSync(() =>
+            {
+                var src = gp.world.GetObject(ship);
+                var dst = gp.world.GetObject(target);
+                if (src != null &&
+                    dst != null &&
+                    src.TryGetComponent<CTractorComponent>(out var tractor))
+                {
+                    tractor.RemoveBeam(dst);
+                }
+            });
+        }
+
+        void IClientPlayer.TractorFailed()
+        {
+            // empty
+            Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.TractorFailure);
+        }
+
+        void IClientPlayer.UpdateLootObject(ObjNetId id, NetBasicCargo[] cargo)
+        {
+            var newCargo = cargo.Select(x
+                    => new BasicCargo(Game.GameData.Equipment.Get(x.EquipCRC), x.Count))
+                .Where(x => x.Item != null)
+                .ToList();
+            RunSync(() =>
+            {
+                var loot = gp.world.GetObject(id);
+                if (loot.TryGetComponent<LootComponent>(out var l))
+                {
+                    l.Cargo = newCargo;
+                }
+            });
         }
 
 

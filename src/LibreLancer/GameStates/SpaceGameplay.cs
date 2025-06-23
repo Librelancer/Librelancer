@@ -275,6 +275,11 @@ World Time: {12:F2}
                     case InputAction.USER_CHAT:
                         ui.ChatboxEvent();
                         break;
+                    case InputAction.USER_TRACTOR_BEAM:
+                    {
+                        session.SpaceRpc.Tractor(Selection.Selected);
+                        break;
+                    }
                 }
             }
         }

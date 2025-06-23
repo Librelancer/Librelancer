@@ -25,4 +25,9 @@ public class CPlayerCargoComponent : AbstractCargoComponent
         var slot = session.Items.FirstOrDefault(x => x.Equipment is T);
         return (T) slot?.Equipment;
     }
+
+    public override int TryAdd(Equipment equipment, int maxCount)
+    {
+        return 0;
+    }
 }
