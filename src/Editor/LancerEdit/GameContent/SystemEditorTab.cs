@@ -29,10 +29,6 @@ using ModelRenderer = LibreLancer.Render.ModelRenderer;
 using DataEncounter = LibreLancer.Data.Universe.Encounter;
 using DataFactionSpawn = LibreLancer.Data.Universe.FactionSpawn;
 using DataDensityRestriction = LibreLancer.Data.Universe.DensityRestriction;
-using DataStarSystem = LibreLancer.Data.Universe.StarSystem;
-using DataZone = LibreLancer.Data.Universe.Zone;
-using DataBase = LibreLancer.Data.Universe.Base;
-using DataLightSource = LibreLancer.Data.Universe.LightSource;
 
 namespace LancerEdit.GameContent;
 
@@ -61,8 +57,7 @@ public class SystemEditorTab : GameContentTab
     private bool infocardOpen = false;
 
     //Patrols
-    internal bool isCreatingPatrol = false;
-    internal List<Vector3> newPatrolPoints = new List<Vector3>();
+    private PatrolRouteBuilder patrolBuilder = new PatrolRouteBuilder();
 
     Infocard systemInfocard;
     private InfocardControl icard;
@@ -187,7 +182,7 @@ public class SystemEditorTab : GameContentTab
         }
         else
         {
-            map2D.Draw(SystemData, World, Data, this, isCreatingPatrol, newPatrolPoints);
+            map2D.Draw(SystemData, World, Data, this, patrolBuilder.IsActive, patrolBuilder.Points);
         }
     }
 
@@ -345,23 +340,6 @@ public class SystemEditorTab : GameContentTab
                     UndoBuffer.Commit(c);
                     ZoneList.Selected = c.Zone;
                 }));
-            }
-            ImGui.Separator();
-            if (ImGui.Button(isCreatingPatrol ? "Finish Path" : "New Patrol Path"))
-            {
-                if (!isCreatingPatrol)
-                {
-                    isCreatingPatrol = true;
-                    newPatrolPoints.Clear();
-                }
-                else
-                {
-                    FinishPatrolRoute();
-                }
-            }
-            if (isCreatingPatrol)
-            {
-                ImGui.TextWrapped("Patrol zone controls: Left click to create point, double click to finish, right click to cancel.");
             }
             ImGui.Separator();
             if (ImGui.Button("Show All"))
@@ -1767,45 +1745,26 @@ public class SystemEditorTab : GameContentTab
 
     public void AddPatrolPoint(Vector3 point)
     {
-        newPatrolPoints.Add(point);
+        patrolBuilder.AddPoint(point);
     }
 
     public void CancelPatrolRoute()
     {
-        isCreatingPatrol = false;
-        newPatrolPoints.Clear();
+        patrolBuilder.Cancel();
     }
 
     public void FinishPatrolRoute()
     {
-        // Remove last point if it's from a double click and too close to the previous point
-        if (newPatrolPoints.Count >= 2)
+        var points = patrolBuilder.Finish();
+        Popups.OpenPopup(new PatrolRouteDialog(points, config =>
         {
-            var pLast = newPatrolPoints[newPatrolPoints.Count - 1];
-            var pPrev = newPatrolPoints[newPatrolPoints.Count - 2];
-            if (Vector3.Distance(pLast, pPrev) < 1.0f) // A small threshold to detect double-click point
-            {
-                newPatrolPoints.RemoveAt(newPatrolPoints.Count - 1);
-            }
-        }
-        
-        if (newPatrolPoints.Count < 2) {
-            CancelPatrolRoute();
-            return;
-        }
-
-        // Open patrol route configuration dialog
-        var pointsCopy = new List<Vector3>(newPatrolPoints);
-        Popups.OpenPopup(new PatrolRouteDialog(pointsCopy, config =>
-        {
-            CreatePatrolRoute(config);
+            CreatePatrolRoute(points, config);
         }, () => {
-            // Cancel callback - reset patrol creation state
-            CancelPatrolRoute();
+            // Cancel callback - nothing to do, state already reset
         }, Data, CurrentSystem));
     }
 
-    private void CreatePatrolRoute(PatrolRouteConfig config)
+    private void CreatePatrolRoute(List<Vector3> points, PatrolRouteConfig config)
     {
         var actions = new List<EditorAction>();
 
@@ -1822,10 +1781,10 @@ public class SystemEditorTab : GameContentTab
             }
         }
 
-        for (int i = 0; i < newPatrolPoints.Count - 1; i++)
+        for (int i = 0; i < points.Count - 1; i++)
         {
-            var p1 = newPatrolPoints[i];
-            var p2 = newPatrolPoints[i + 1];
+            var p1 = points[i];
+            var p2 = points[i + 1];
 
             var center = (p1 + p2) / 2;
             var height = Vector3.Distance(p1, p2);
@@ -1893,8 +1852,12 @@ public class SystemEditorTab : GameContentTab
         if(actions.Count > 0)
             UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
 
-        isCreatingPatrol = false;
-        newPatrolPoints.Clear();
+        patrolBuilder.Cancel();
+    }
+
+    public void StartPatrolRoute()
+    {
+        patrolBuilder.Start();
     }
 
     public override void Dispose()
