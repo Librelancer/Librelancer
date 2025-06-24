@@ -9,6 +9,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security;
 using LibreLancer.Data;
+using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Fuses;
@@ -177,21 +178,29 @@ namespace LibreLancer
                 VisEffect visfx = null;
                 BeamSpear spear = null;
                 BeamBolt bolt = null;
-                if(!string.IsNullOrWhiteSpace(effect.VisEffect))
+                AudioEntry sound = null;
+
+                if (!string.IsNullOrWhiteSpace(effect.VisEffect))
                     fxdata.VisFx.TryGetValue(effect.VisEffect, out visfx);
+
                 if (!string.IsNullOrWhiteSpace(effect.VisBeam))
                 {
                     fxdata.BeamSpears.TryGetValue(effect.VisBeam, out spear);
                     fxdata.BeamBolts.TryGetValue(effect.VisBeam, out bolt);
                 }
+
+                if (!string.IsNullOrWhiteSpace(effect.SndEffect))
+                {
+                    sound = fldata.Audio.Entries.FirstOrDefault(x => x.Nickname.Equals(effect.SndEffect, StringComparison.OrdinalIgnoreCase));
+                }
+
                 string alepath = null;
                 if (!string.IsNullOrWhiteSpace(visfx?.AlchemyPath))
                 {
                     alepath = DataPath(visfx.AlchemyPath);
                 }
-                var lib = visfx != null
-                    ? visfx.Textures.Select(DataPath).Where(x => x != null).ToArray()
-                    : null;
+
+                var lib = visfx?.Textures.Select(DataPath).Where(x => x != null).ToArray();
                 Effects.Add(new ResolvedFx()
                 {
                     AlePath = alepath,
@@ -200,7 +209,8 @@ namespace LibreLancer
                     Spear = spear,
                     Bolt = bolt,
                     CRC = FLHash.CreateID(effect.Nickname),
-                    Nickname = effect.Nickname
+                    Nickname = effect.Nickname,
+                    Sound = sound
                 });
             }
         }
@@ -2136,7 +2146,7 @@ namespace LibreLancer
         {
             var equip = new GameData.Items.EffectEquipment()
             {
-                Particles = Effects.Get(fx.Particles)
+                Particles = Effects.Get(fx.Particles),
             };
             return equip;
         }

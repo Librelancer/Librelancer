@@ -16,6 +16,7 @@ using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
 using LibreLancer.Physics;
 using LibreLancer.Render;
+using LibreLancer.Sounds;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World.Components;
 using Archs = LibreLancer.GameData.Archetypes;
@@ -510,7 +511,7 @@ namespace LibreLancer.World
             }
 		}
 
-        public void SetLoadout(ObjectLoadout loadout, bool cutscene = false)
+        public void SetLoadout(ObjectLoadout loadout, SoundManager snd, bool cutscene = false)
         {
             foreach (var item in loadout.Items)
             {
@@ -523,7 +524,7 @@ namespace LibreLancer.World
                 }
                 else
                 {
-                    EquipmentObjectManager.InstantiateEquipment(this, Resources, null,
+                    EquipmentObjectManager.InstantiateEquipment(this, Resources, snd,
                         type, item.Hardpoint ?? "internal", item.Equipment);
                 }
             }
