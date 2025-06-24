@@ -26,6 +26,9 @@ using LibreLancer.World;
 using SimpleMesh;
 using Archetype = LibreLancer.GameData.Archetype;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
+using DataEncounter = LibreLancer.Data.Universe.Encounter;
+using DataFactionSpawn = LibreLancer.Data.Universe.FactionSpawn;
+using DataDensityRestriction = LibreLancer.Data.Universe.DensityRestriction;
 
 namespace LancerEdit.GameContent;
 
@@ -335,8 +338,7 @@ public class SystemEditorTab : GameContentTab
                     ZoneList.Selected = c.Zone;
                 }));
             }
-
-            ImGui.SameLine();
+            ImGui.Separator();
             if (ImGui.Button("Show All"))
                 ZoneList.ShowAll();
             ImGui.SameLine();
@@ -405,7 +407,7 @@ public class SystemEditorTab : GameContentTab
         if (ImGui.Button($"{Icons.Edit}##position"))
         {
             var origPosition = sel.Position;
-            Popups.OpenPopup(new Vector3Popup("Position", false, sel.Position, (value, kind) =>
+            Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
             {
                 if (kind == SetActionKind.Commit)
                     UndoBuffer.Commit(new SysZoneSetPosition(sel, this, origPosition, value));
@@ -1113,7 +1115,7 @@ public class SystemEditorTab : GameContentTab
             if (sel.Light.Kind == LightKind.Directional)
             {
                 var dir = sel.Light.Direction;
-                Controls.PropertyRow("Direction", $"{dir.X:0.00000}, {dir.Y:0.0000}, {dir.Z: 0.0000}");
+                Controls.PropertyRow("Direction", $"{dir.X:0.00000}, {dir.Y:0.0000}, {dir.Z:0.0000}");
             }
             Controls.PropertyRow("Range", $"{sel.Light.Range:0.00}");
             if (ImGui.Button($"{Icons.Edit}##range"))
@@ -1738,6 +1740,122 @@ public class SystemEditorTab : GameContentTab
         return false;
     }
 
+    public void AddPatrolPoint(Vector3 point)
+    {
+        map2D.Patrol.AddPoint(point);
+    }
+
+    public void CancelPatrolRoute()
+    {
+        map2D.Patrol.Cancel();
+    }
+
+    public void FinishPatrolRoute()
+    {
+        var points = map2D.Patrol.Finish();
+        Popups.OpenPopup(new PatrolRouteDialog(points, config =>
+        {
+            CreatePatrolRoute(points, config);
+        }, () => {
+            // Cancel callback - nothing to do, state already reset
+        }, Data, CurrentSystem));
+    }
+
+    private void CreatePatrolRoute(List<Vector3> points, PatrolRouteConfig config)
+    {
+        var actions = new List<EditorAction>();
+
+        foreach (var encounter in config.Encounters)
+        {
+            if (!CurrentSystem.EncounterParameters.Any(x =>
+                    x.Nickname.Equals(encounter.Archetype, StringComparison.OrdinalIgnoreCase)))
+            {
+                actions.Add(new SysAddEncounterParameter(CurrentSystem, new EncounterParameters()
+                {
+                    Nickname = encounter.Archetype,
+                    SourceFile = $"missions\\encounters\\{encounter.Archetype}.ini"
+                }));
+            }
+        }
+
+        for (int i = 0; i < points.Count - 1; i++)
+        {
+            var p1 = points[i];
+            var p2 = points[i + 1];
+
+            var center = (p1 + p2) / 2;
+            var height = Vector3.Distance(p1, p2);
+
+            if (height < 0.1f) continue;
+
+            var direction = (p2 - p1).Normalized();
+            
+            Matrix4x4 rotation;
+            // Align cylinder's local Y with `direction`
+            var startVec = Vector3.UnitY;
+            var dot = Vector3.Dot(startVec, direction);
+
+            if (Math.Abs(dot) > 0.99999f) // Parallel vectors
+            {
+                rotation = dot > 0 ? Matrix4x4.Identity : Matrix4x4.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+            }
+            else
+            {
+                var rotAxis = Vector3.Cross(startVec, direction);
+                rotAxis = Vector3.Normalize(rotAxis);
+                var angle = MathF.Acos(dot);
+                rotation = Matrix4x4.CreateFromAxisAngle(rotAxis, angle);
+            }
+
+            string baseName = $"{CurrentSystem.Nickname}_path_{config.PathLabel}";
+            string zoneName = $"{baseName}_{i + 1}";
+            int count = 1;
+            while(ZoneList.ZoneExists(zoneName)) {
+                zoneName = $"{baseName}_{i + 1}_{count++}";
+            }
+
+            var zone = new Zone()
+            {
+                Nickname = zoneName,
+                Position = center,
+                RotationMatrix = rotation,
+                Shape = ShapeKind.Cylinder,
+                Size = new Vector3(500, height, 0), //Radius, Height
+                Sort = config.Sort,
+                Toughness = config.Toughness,
+                Density = config.Density,
+                RepopTime = config.RepopTime,
+                MaxBattleSize = config.MaxBattleSize,
+                ReliefTime = config.ReliefTime,
+                PopType = new[] { "attack_patrol" },
+                PathLabel = new[] { config.PathLabel, (i + 1).ToString() },
+                Usage = new[] { "patrol" },
+                Encounters = config.Encounters.Select(e => new DataEncounter
+                {
+                    Archetype = e.Archetype,
+                    Difficulty = e.Difficulty,
+                    Chance = e.Chance,
+                    FactionSpawns = e.Factions.Select(f => new DataFactionSpawn
+                    {
+                        Faction = f.Faction.Nickname,
+                        Chance = f.Chance
+                    }).ToList()
+                }).ToArray(),
+                DensityRestrictions = Array.Empty<DataDensityRestriction>()
+            };
+            actions.Add(new SysAddZoneAction(this, zone));
+        }
+
+        if(actions.Count > 0)
+            UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
+
+        map2D.Patrol.Cancel();
+    }
+
+    public void StartPatrolRoute()
+    {
+        map2D.Patrol.Start();
+    }
 
     public override void Dispose()
     {

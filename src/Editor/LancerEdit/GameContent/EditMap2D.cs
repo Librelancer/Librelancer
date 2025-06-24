@@ -1,5 +1,7 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
@@ -28,6 +30,10 @@ public class EditMap2D
 
     private GameObject dragTarget;
     private Transform3D dragOriginalTransform;
+    
+    // Patrol state as part of EditMap2D
+    public PatrolEditor Patrol { get; } = new();
+
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab)
     {
         var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
@@ -49,7 +55,6 @@ public class EditMap2D
         ImGui.BeginChild("##edit2d", new Vector2(renderWidth, renderHeight), ImGuiChildFlags.None);
 
         var gridMargin = 15 * ImGuiHelper.Scale;
-
 
         var dlist = ImGui.GetWindowDrawList();
         var wPos = (Vector2)ImGui.GetWindowPos();
@@ -94,6 +99,15 @@ public class EditMap2D
             return new Vector2(gridMargin) + relPos * new Vector2(renderWidth, renderHeight);
         }
 
+        Vector3 MapToWorld(Vector2 pos)
+        {
+            var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
+            scale.Y = 0;
+            var relPos = (pos - new Vector2(gridMargin)) /
+                         new Vector2(renderWidth, renderHeight);
+            return new Vector3(relPos.X, 0, relPos.Y) * scale - new Vector3(scale.X / 2, 0, scale.Z / 2);
+        }
+
         int obji = 0;
         bool grabbed = false;
 
@@ -106,41 +120,64 @@ public class EditMap2D
             var objPos = obj.LocalTransform.Position;
             ImGui.SetCursorPos(WorldToMap(objPos) - new Vector2(buttonSize * 0.5f));
             var id = $"##{obj.Nickname}";
-            ImGui.PushStyleColor(ImGuiCol.Button, Color4.LightGray);
-            ImGui.Button(id, new Vector2(buttonSize));
-            ImGui.PopStyleColor();
-            if (ImGui.IsItemActive() && ImGui.IsMouseDragging(0) && !grabbed &&
-                (dragTarget == null || dragTarget == obj))
+
+            var buttonColor = Color4.LightGray;
+            if(Patrol.IsActive)
             {
-                grabbed = true;
-                if (dragTarget == null) {
-                    dragTarget = obj;
-                    dragOriginalTransform = obj.LocalTransform;
-                }
-                var delta = (ImGui.GetIO().MouseDelta / new Vector2(renderWidth, renderHeight)) * mapScale;
-                Console.WriteLine($"dragging {delta}");
-                objPos += new Vector3(delta.X, 0, delta.Y);
-                obj.SetLocalTransform(new Transform3D(objPos, obj.LocalTransform.Orientation));
-                dragCurrent = obj;
+                buttonColor.A = 0.5f;
+                ImGui.BeginDisabled();
             }
 
-            if (ImGui.BeginItemTooltip())
+            ImGui.PushStyleColor(ImGuiCol.Button, buttonColor);
+            ImGui.Button(id, new Vector2(buttonSize));
+            ImGui.PopStyleColor();
+
+            if(Patrol.IsActive)
             {
-                ImGui.TextUnformatted(obj.Nickname);
-                if (obj.SystemObject?.Archetype != null)
+                ImGui.EndDisabled();
+            }
+            else
+            {
+                // Interaction logic only when not creating patrol
+                if (ImGui.IsItemActive() && ImGui.IsMouseDragging(0) && !grabbed &&
+                    (dragTarget == null || dragTarget == obj))
                 {
-                    var img = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
-                    ImGui.Image((IntPtr)img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1), new Vector2(1, 0));
+                    grabbed = true;
+                    if (dragTarget == null)
+                    {
+                        dragTarget = obj;
+                        dragOriginalTransform = obj.LocalTransform;
+                    }
+
+                    var delta = (ImGui.GetIO().MouseDelta / new Vector2(renderWidth, renderHeight)) * mapScale;
+                    objPos += new Vector3(delta.X, 0, delta.Y);
+                    obj.SetLocalTransform(new Transform3D(objPos, obj.LocalTransform.Orientation));
+                    dragCurrent = obj;
                 }
 
-                ImGui.EndTooltip();
+                if (ImGui.BeginItemTooltip())
+                {
+                    ImGui.TextUnformatted(obj.Nickname);
+                    if (obj.SystemObject?.Archetype != null)
+                    {
+                        var img = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
+                        ImGui.Image((IntPtr)img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1),
+                            new Vector2(1, 0));
+                    }
+
+                    ImGui.EndTooltip();
+                }
             }
         }
 
-        if (dragCurrent == null && dragTarget != null)
+        if (!Patrol.IsActive)
         {
-            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform, dragTarget.LocalTransform, tab.ObjectsList));
-            dragTarget = null;
+            if (dragCurrent == null && dragTarget != null)
+            {
+                tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform,
+                    dragTarget.LocalTransform, tab.ObjectsList));
+                dragTarget = null;
+            }
         }
 
         foreach (var lt in tab.LightsList.Sources)
@@ -175,15 +212,6 @@ public class EditMap2D
         ImGui.SetCursorPos(new Vector2(gridMargin));
         ImGui.InvisibleButton("##canvas", new Vector2(renderWidth, renderHeight));
 
-        Vector3 MapToWorld(Vector2 pos)
-        {
-            var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
-            scale.Y = 0;
-            var relPos = (pos - new Vector2(renderWidth / 2f, renderHeight / 2f)) /
-                         new Vector2(renderWidth, renderHeight);
-            return new Vector3(relPos.X, 0, relPos.Y) * scale;
-        }
-
         if (ImGui.BeginPopupContextItem())
         {
             var pos = ImGui.GetMousePosOnOpeningCurrentPopup();
@@ -192,13 +220,98 @@ public class EditMap2D
                 FLLog.Info("Obj", $"Add at {pos - wPos}");
                 tab.Popups.OpenPopup(new NewObjectPopup(ctx, world, MapToWorld(pos - wPos), tab.CreateObject));
             }
+            if (!Patrol.IsActive && ImGui.MenuItem("New Patrol Path"))
+            {
+                tab.StartPatrolRoute();
+            }
             ImGui.EndPopup();
         }
+        
+        // Draw patrol path and handle patrol interactions
+        Patrol.Draw(dlist, wPos, WorldToMap, MapToWorld, tab);
 
         ImGui.EndChild();
         ImGui.EndChild();
     }
+}
 
+// Patrol state management as part of EditMap2D
+public class PatrolEditor
+{
+    public bool IsActive { get; private set; }
+    public List<Vector3> Points { get; } = new();
 
+    public void Start()
+    {
+        IsActive = true;
+        Points.Clear();
+    }
 
+    public void Cancel()
+    {
+        IsActive = false;
+        Points.Clear();
+    }
+
+    public void AddPoint(Vector3 point)
+    {
+        if (IsActive)
+        {
+            Points.Add(point);
+        }
+    }
+
+    public List<Vector3> Finish()
+    {
+        var result = new List<Vector3>(Points);
+        IsActive = false;
+        Points.Clear();
+        return result;
+    }
+
+    public void Draw(ImDrawListPtr dlist, Vector2 wPos, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
+    {
+        if (!IsActive) return;
+
+        var mousePos = ImGui.GetMousePos();
+
+        // Draw existing patrol path
+        for (int i = 0; i < Points.Count - 1; i++)
+        {
+            dlist.AddLine(wPos + worldToMap(Points[i]), wPos + worldToMap(Points[i + 1]), ImGui.GetColorU32(Color4.LimeGreen), 2f);
+        }
+        
+        // Draw line from last point to mouse
+        if (Points.Count > 0)
+        {
+            dlist.AddLine(wPos + worldToMap(Points.Last()), mousePos, ImGui.GetColorU32(Color4.LightGreen), 1.5f);
+        }
+
+        // Handle mouse interactions
+        if (ImGui.IsItemHovered() && !ImGui.IsPopupOpen(null, ImGuiPopupFlags.AnyPopup) && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+        {
+            AddPoint(mapToWorld(ImGui.GetMousePos() - wPos));
+        }
+
+        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+        {
+            tab.FinishPatrolRoute();
+        }
+
+        // Right-click to cancel patrol creation
+        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+        {
+            tab.CancelPatrolRoute();
+        }
+
+        // Draw help text
+        var canvasWidth = ImGui.GetWindowWidth();
+        var canvasHeight = ImGui.GetWindowHeight();
+        var helpText = "Patrol zone controls: Left click to create point, double click to finish, right click to cancel.";
+        var textSize = ImGui.CalcTextSize(helpText);
+        ImGui.SetCursorPos(new Vector2(canvasWidth - textSize.X - 20, canvasHeight - 60)); // 20px from right, 60px from bottom
+        ImGui.PushTextWrapPos(canvasWidth - 20);
+        ImGui.TextColored(new Vector4(1, 1, 0.7f, 1), helpText);
+        ImGui.PopTextWrapPos();
+    }
 }
