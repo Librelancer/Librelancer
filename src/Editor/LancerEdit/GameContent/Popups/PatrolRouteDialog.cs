@@ -45,7 +45,7 @@ public class PatrolRouteDialog : PopupWindow
         this.system = system;
         
         // Generate default path label using the current system's nickname
-        pathLabel = $"patrol";
+        pathLabel = $"{system.Nickname.ToLowerInvariant()}_patrol";
         
         // Initialize faction lookup with first available faction
         var defaultFaction = gameData.GameData.Factions.FirstOrDefault();
@@ -78,11 +78,17 @@ public class PatrolRouteDialog : PopupWindow
             // Path Label
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Path Label");
+            ImGui.TextUnformatted("Base Path Name");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputText("##pathLabel", ref pathLabel, 128);
             ImGui.PopItemWidth();
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.BeginTooltip();
+                ImGui.TextUnformatted("This is the base name for the patrol route. It must be unique within the entire universe or Freelancer could confuse it with others.");
+                ImGui.EndTooltip();
+            }
 
             // Zone Properties
             ImGui.TableNextRow();
