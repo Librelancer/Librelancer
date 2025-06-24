@@ -808,6 +808,12 @@ World Time: {12:F2}
                 if (updateStartDelay == 0)
                 {
                     session.GameplayUpdate(this, FixedDelta);
+
+                    if (isLeftDown)
+                    {
+                        leftDownTimer -= FixedDelta;
+                    }
+
                     if (!musicTriggered)
                     {
                         if (!RtcMusic) Game.Sound.PlayMusic(sys.MusicSpace, 0);
@@ -833,6 +839,7 @@ World Time: {12:F2}
                 }
                 return;
             }
+
             if (ShowHud && (Thn == null || !Thn.Running))
             {
                 contactList.UpdateList();
@@ -884,6 +891,7 @@ World Time: {12:F2}
             _turretViewCamera.Viewport = Game.RenderContext.CurrentViewport;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
+
             //Has to be here or glitches
             if (!Dead)
             {
@@ -891,6 +899,7 @@ World Time: {12:F2}
                 _chaseCamera.ChasePosition = player.LocalTransform.Position;
                 _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
             }
+
             _turretViewCamera.Update(delta);
             _chaseCamera.Update(delta);
             if ((Thn == null ||
@@ -925,7 +934,7 @@ World Time: {12:F2}
 		}
 
         private bool isLeftDown = false;
-
+        private double leftDownTimer = 0;
 
         void Mouse_MouseDown(MouseEventArgs e)
         {
@@ -935,11 +944,17 @@ World Time: {12:F2}
                 {
                     var newSelection = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
                     if (newSelection != null) Selection.Selected = newSelection;
-                    isLeftDown = true;
+
+                    if (!isLeftDown)
+                    {
+                        isLeftDown = true;
+                        leftDownTimer = 0.25;
+                    }
                 }
                 else
                 {
                     isLeftDown = false;
+                    leftDownTimer = 0;
                 }
             }
         }
@@ -948,6 +963,7 @@ World Time: {12:F2}
         {
             if ((e.Buttons & MouseButtons.Left) > 0)
             {
+                leftDownTimer = 0;
                 isLeftDown = false;
             }
         }
@@ -1078,7 +1094,7 @@ World Time: {12:F2}
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
             shipInput.Camera = _chaseCamera;
-            if ((isLeftDown || mouseFlight) && control.Active)
+            if (((isLeftDown && leftDownTimer < 0) || mouseFlight) && control.Active)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
