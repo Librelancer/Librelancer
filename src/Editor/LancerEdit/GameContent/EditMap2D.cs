@@ -240,24 +240,29 @@ public class PatrolEditor
 {
     public bool IsActive { get; private set; }
     public List<Vector3> Points { get; } = new();
+    public float YOffset { get; private set; } = 0f; // Y-axis offset for 3D positioning
 
     public void Start()
     {
         IsActive = true;
         Points.Clear();
+        YOffset = 0f;
     }
 
     public void Cancel()
     {
         IsActive = false;
         Points.Clear();
+        YOffset = 0f;
     }
 
     public void AddPoint(Vector3 point)
     {
         if (IsActive)
         {
-            Points.Add(point);
+            // Apply Y offset to the point
+            var adjustedPoint = new Vector3(point.X, point.Y + YOffset, point.Z);
+            Points.Add(adjustedPoint);
         }
     }
 
@@ -266,6 +271,7 @@ public class PatrolEditor
         var result = new List<Vector3>(Points);
         IsActive = false;
         Points.Clear();
+        YOffset = 0f;
         return result;
     }
 
@@ -274,6 +280,18 @@ public class PatrolEditor
         if (!IsActive) return;
 
         var mousePos = ImGui.GetMousePos();
+        var io = ImGui.GetIO();
+
+        // Handle scroll wheel for Y-axis adjustment
+        if (ImGui.IsItemHovered() && io.MouseWheel != 0)
+        {
+            // Adjust Y offset based on scroll wheel
+            // Positive scroll = increase Y (up), Negative scroll = decrease Y (down)
+            YOffset += io.MouseWheel * 100f; // Adjust sensitivity as needed
+            
+            // Optional: Add some bounds to prevent extreme values
+            YOffset = MathHelper.Clamp(YOffset, -1000000f, 1000000f);
+        }
 
         // Draw existing patrol path
         for (int i = 0; i < Points.Count - 1; i++)
@@ -281,16 +299,20 @@ public class PatrolEditor
             dlist.AddLine(wPos + worldToMap(Points[i]), wPos + worldToMap(Points[i + 1]), ImGui.GetColorU32(Color4.LimeGreen), 2f);
         }
         
-        // Draw line from last point to mouse
+        // Draw line from last point to mouse (with Y offset applied)
         if (Points.Count > 0)
         {
-            dlist.AddLine(wPos + worldToMap(Points.Last()), mousePos, ImGui.GetColorU32(Color4.LightGreen), 1.5f);
+            var mouseWorldPos = mapToWorld(ImGui.GetMousePos() - wPos);
+            var adjustedMousePos = new Vector3(mouseWorldPos.X, mouseWorldPos.Y + YOffset, mouseWorldPos.Z);
+            dlist.AddLine(wPos + worldToMap(Points.Last()), wPos + worldToMap(adjustedMousePos), ImGui.GetColorU32(Color4.LightGreen), 1.5f);
         }
 
         // Handle mouse interactions
         if (ImGui.IsItemHovered() && !ImGui.IsPopupOpen(null, ImGuiPopupFlags.AnyPopup) && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
-            AddPoint(mapToWorld(ImGui.GetMousePos() - wPos));
+            var mouseWorldPos = mapToWorld(ImGui.GetMousePos() - wPos);
+            var adjustedPoint = new Vector3(mouseWorldPos.X, mouseWorldPos.Y + YOffset, mouseWorldPos.Z);
+            AddPoint(mouseWorldPos); // AddPoint will apply the Y offset
         }
 
         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
@@ -304,12 +326,12 @@ public class PatrolEditor
             tab.CancelPatrolRoute();
         }
 
-        // Draw help text
+        // Draw help text with scroll wheel instructions
         var canvasWidth = ImGui.GetWindowWidth();
         var canvasHeight = ImGui.GetWindowHeight();
-        var helpText = "Patrol zone controls: Left click to create point, double click to finish, right click to cancel.";
+        var helpText = $"Patrol zone controls: Left click to create point, double click to finish, right click to cancel.\nScroll wheel to adjust Y-axis (height): {YOffset:F0}";
         var textSize = ImGui.CalcTextSize(helpText);
-        ImGui.SetCursorPos(new Vector2(canvasWidth - textSize.X - 20, canvasHeight - 60)); // 20px from right, 60px from bottom
+        ImGui.SetCursorPos(new Vector2(canvasWidth - textSize.X - 20, canvasHeight - 80)); // Adjusted position for two lines
         ImGui.PushTextWrapPos(canvasWidth - 20);
         ImGui.TextColored(new Vector4(1, 1, 0.7f, 1), helpText);
         ImGui.PopTextWrapPos();
