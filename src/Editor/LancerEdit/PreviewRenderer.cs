@@ -121,7 +121,7 @@ public class PreviewRenderer : IDisposable
         var world = new GameWorld(renderer, resources, null, false);
         var obj = new GameObject(archetype, null, resources, true, false);
         if(archetype.Loadout != null)
-            obj.SetLoadout(archetype.Loadout);
+            obj.SetLoadout(archetype.Loadout, null);
         obj.SetLocalTransform(Transform3D.Identity);
         obj.World = world;
         world.AddObject(obj);

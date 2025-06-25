@@ -249,7 +249,7 @@ public class SystemEditorTab : GameContentTab
         systemInfocard = Data.GameData.GetInfocard(CurrentSystem.IdsInfo, Data.Fonts);
         if (icard != null) icard.SetInfocard(systemInfocard);
         Data.GameData.LoadAllSystem(CurrentSystem);
-        World.LoadSystem(CurrentSystem, Data.Resources, false, false);
+        World.LoadSystem(CurrentSystem, Data.Resources, null, false, false);
         World.Renderer.LoadLights(CurrentSystem);
         World.Renderer.LoadStarspheres(CurrentSystem);
         systemMap.SetObjects(CurrentSystem);
@@ -606,7 +606,7 @@ public class SystemEditorTab : GameContentTab
         ed.Loadout = loadout;
         ed.Star = star;
         var tr = obj.LocalTransform;
-        World.InitObject(obj, true, obj.SystemObject, Data.Resources, false, true, ed.Loadout, ed.Archetype, (OptionalArgument<Sun>)ed.Star);
+        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null, false, true, ed.Loadout, ed.Archetype, (OptionalArgument<Sun>)ed.Star);
         obj.AddComponent(ed);
         obj.SetLocalTransform(tr);
     }
@@ -997,7 +997,7 @@ public class SystemEditorTab : GameContentTab
                         var sel = ObjectsList.Selection[i];
                         sel.Unregister(World.Physics);
                         World.RemoveObject(sel);
-                        sel = World.NewObject(sel.SystemObject, Data.Resources, false);
+                        sel = World.NewObject(sel.SystemObject, Data.Resources, null, false);
                         if (i == 0)
                             ObjectsList.SelectedTransform = sel.LocalTransform.Matrix();
                         ObjectsList.Selection[i] = sel;
@@ -1789,7 +1789,7 @@ public class SystemEditorTab : GameContentTab
             if (height < 0.1f) continue;
 
             var direction = (p2 - p1).Normalized();
-            
+
             Matrix4x4 rotation;
             // Align cylinder's local Y with `direction`
             var startVec = Vector3.UnitY;

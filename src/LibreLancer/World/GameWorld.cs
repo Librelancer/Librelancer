@@ -16,6 +16,7 @@ using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
+using LibreLancer.Sounds;
 using LibreLancer.World.Components;
 
 namespace LibreLancer.World
@@ -63,7 +64,7 @@ namespace LibreLancer.World
                 Projectiles = new ProjectileManager(this);
         }
 
-        public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, bool server,
+        public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, SoundManager snd, bool server,
             bool changeLoadout = false, ObjectLoadout newLoadout = default, Archetype changedArch = null, OptionalArgument<Sun> changedStar = default,
             Func<int> netId = null)
         {
@@ -84,9 +85,9 @@ namespace LibreLancer.World
             g.SystemObject = obj;
             g.SetLocalTransform(new Transform3D(obj.Position, obj.Rotation));
             if (loadout != null)
-                g.SetLoadout(loadout);
+                g.SetLoadout(loadout, snd);
             else if (arch?.Loadout != null)
-                g.SetLoadout(arch.Loadout);
+                g.SetLoadout(arch.Loadout, snd);
             g.World = this;
             if (g.RenderComponent is ModelRenderer mr)
             {
@@ -124,16 +125,16 @@ namespace LibreLancer.World
             g.Register(Physics);
         }
 
-        public GameObject NewObject(SystemObject obj, ResourceManager res, bool server,
+        public GameObject NewObject(SystemObject obj, ResourceManager res, SoundManager snd, bool server,
             bool changeLoadout = false, ObjectLoadout newLoadout = null, Archetype changedArch = null, OptionalArgument<Sun> changedStar = default, Func<int> netId = null)
         {
             var g = new GameObject();
-            InitObject(g, false, obj, res, server, changeLoadout, newLoadout, changedArch, changedStar, netId);
+            InitObject(g, false, obj, res, snd, server, changeLoadout, newLoadout, changedArch, changedStar, netId);
             return g;
         }
 
 
-        public void LoadSystem(StarSystem sys, ResourceManager res, bool server, bool loadRenderer = true)
+        public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager snd, bool server, bool loadRenderer = true)
         {
             foreach (var g in objects)
                 g.Unregister(Physics);
@@ -160,7 +161,7 @@ namespace LibreLancer.World
 
             foreach (var obj in sys.Objects)
             {
-                NewObject(obj, res, server, false, null, null, default, netId);
+                NewObject(obj, res, snd, server, false, null, null, default, netId);
             }
 
             if (server) {

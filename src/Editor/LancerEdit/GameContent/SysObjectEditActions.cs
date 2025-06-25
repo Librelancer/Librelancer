@@ -189,7 +189,7 @@ public class SysCreateObject : EditorAction
     }
     public override void Commit()
     {
-        tab.World.InitObject(Object, false, systemObject, tab.Data.Resources, false);
+        tab.World.InitObject(Object, false, systemObject, tab.Data.Resources, null, false);
         Object.GetEditData().IsNewObject = true;
         tab.ObjectsList.Refresh();
         tab.ObjectsList.CheckDirty();
