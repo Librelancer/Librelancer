@@ -56,7 +56,7 @@ namespace LibreLancer.Server
             System = system;
             GameWorld = new GameWorld(null, server.Resources, () => server.TotalTime);
             GameWorld.Server = this;
-            GameWorld.LoadSystem(system, server.Resources, true);
+            GameWorld.LoadSystem(system, server.Resources, null, true);
             GameWorld.Physics.OnCollision += PhysicsOnCollision;
             NPCs = new NPCManager(this);
         }

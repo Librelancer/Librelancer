@@ -177,7 +177,7 @@ World Time: {12:F2}
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
             Game.GameData.PreloadObjects(session.Preloads);
-            world.LoadSystem(sys, Game.ResourceManager, false);
+            world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
             player.World = world;
             world.AddObject(player);
