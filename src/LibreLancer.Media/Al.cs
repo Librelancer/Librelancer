@@ -74,7 +74,11 @@ namespace LibreLancer.Media
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alDisable(int name);
 
+            [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+            public static extern IntPtr alGetProcAddress([MarshalAs(UnmanagedType.LPUTF8Str)]string proc);
+
         }
+
 
         //CONSTANTS
         public const int AL_CONE_INNER_ANGLE = 0x1001;
@@ -112,6 +116,11 @@ namespace LibreLancer.Media
         public const int AL_STOP_SOURCES_ON_DISCONNECT_SOFT = 0x19AB;
 
         //FUNCTIONS
+
+        public static IntPtr alGetProcAddress(string procName)
+        {
+            return Native.alGetProcAddress(procName);
+        }
 
         public static void alListenerf(int param, float value)
         {

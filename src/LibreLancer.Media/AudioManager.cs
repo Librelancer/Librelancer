@@ -293,6 +293,8 @@ namespace LibreLancer.Media
             alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.alcGetProcAddress(dev, "alcReopenDeviceSOFT");
             var ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
             Alc.alcMakeContextCurrent(ctx);
+            alBufferDataStatic =
+                (delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>)Al.alGetProcAddress("alBufferDataStatic");
             bool tryRecoverAudio = false;
             int defaultDeviceCounter = 0;
             try
