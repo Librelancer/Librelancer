@@ -19,7 +19,7 @@ namespace LibreLancer.Media
 	{
 		// openal-soft has a max of 256 sources
         // but we don't want priority-based culling to take too long.
-		const int MAX_SOURCES = 64;
+		const int MAX_SOURCES = 128;
 
         public MusicPlayer Music { get; }
         internal IUIThread UIThread;
