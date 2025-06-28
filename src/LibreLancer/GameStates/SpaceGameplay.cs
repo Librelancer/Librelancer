@@ -1440,6 +1440,9 @@ World Time: {12:F2}
                     world.Physics.DebugRenderer = sysrender.DebugRenderer;
                 else
                     world.Physics.DebugRenderer = null;
+                ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
+                ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
+                ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

@@ -211,8 +211,13 @@ namespace LibreLancer.World
                     inst = snd.GetInstance(soundName, 0, -1, -1, position);
                     _instances[soundID] = inst;
                 }
-
-                if (inst != null) inst.Priority = -2;
+                if (inst != null)
+                {
+                    if (owner.NetID > 0)
+                        inst.Priority = -1;
+                    else
+                        inst.Priority = -2;
+                }
                 inst?.Set3D();
                 inst?.SetPosition(position);
                 inst?.Stop();

@@ -205,6 +205,7 @@ namespace LibreLancer.Sounds
                 ui.QueueUIThread(() =>
                 {
                     var instance = audio.CreateInstance(sn, SoundCategory.Voice);
+                    instance.Priority = 2;
                     instance.OnStop = () => {
                         sn.Dispose();
                         onEnd?.Invoke();

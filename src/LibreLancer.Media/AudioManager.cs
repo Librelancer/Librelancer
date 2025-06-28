@@ -27,6 +27,11 @@ namespace LibreLancer.Media
         private float _voiceVolumeValue = 1.0f;
         private Thread audioThread;
 
+        public float UpdateTime;
+        public int FreeSources;
+        public int PlayingInstances;
+
+
         // public API
 		public AudioManager(IUIThread uithread)
 		{
@@ -153,6 +158,7 @@ namespace LibreLancer.Media
 
         // AudioThread only
         private List<SoundInstance> playingSounds = new();
+        private List<SoundInstance> allocatedSounds = new();
         private Vector3 listenerPosition;
         private float _sfxVolumeGain = 1.0f;
         private float _voiceVolumeGain = 1.0f;
@@ -248,13 +254,46 @@ namespace LibreLancer.Media
             }
             else
             {
-                var sid = freeSources.Dequeue();
+                if (freeSources.Count == 0)
+                {
+                    // Remove a sound with lesser priority
+                    var prio = instance.Priority;
+                    int idx = -1;
+                    for (int i = 0; i < allocatedSounds.Count; i++)
+                    {
+                        Al.alGetSourcei((uint)allocatedSounds[i].Source, Al.AL_SOURCE_STATE, out var state);
+                        if (state == Al.AL_STOPPED)
+                        {
+                            // stopped source we haven't picked up in an update yet
+                            idx = i;
+                            break;
+                        }
+                        if (allocatedSounds[i].Priority < prio)
+                        {
+                            idx = i;
+                            prio = allocatedSounds[i].Priority;
+                        }
+                    }
+                    if (idx != -1)
+                    {
+                        StopSource(allocatedSounds[idx]);
+                        //StopSource queues up a free source
+                        //So count will == 1 after this
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                uint sid = freeSources.Dequeue();
                 instance.Source = (int)sid;
                 InitSourceProperties(sid, ref instance.SetProperties, instance.Category);
                 instance.Buffer = BufferData(instance.Data);
                 Al.alSourcei(sid, Al.AL_BUFFER, (int)instance.Buffer);
                 Al.alSourcei(sid, Al.AL_LOOPING, looping ? 1 : 0);
                 Al.alSourcePlay(sid);
+                allocatedSounds.Add(instance);
             }
         }
 
@@ -268,6 +307,7 @@ namespace LibreLancer.Media
                 UnBufferData(instance.Buffer, instance.Data);
                 instance.Source = -1;
                 freeSources.Enqueue(sid);
+                allocatedSounds.Remove(instance);
             }
         }
 
@@ -389,6 +429,7 @@ namespace LibreLancer.Media
                 }
                 accumulatedTime -= timeStep;
 
+                var startTime = audioClock.Elapsed.TotalSeconds;
                 if (tryRecoverAudio) {
                     int connected = 1;
                     Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
@@ -593,6 +634,11 @@ namespace LibreLancer.Media
                         }
                     }
                 }
+
+                var endTime = audioClock.Elapsed.TotalSeconds;
+                UpdateTime = (float)((endTime - startTime) * 1000.0);
+                FreeSources = freeSources.Count;
+                PlayingInstances = playingSounds.Count;
             }
             FLLog.Debug("Audio", "Quit music");
             Music.StopInternal(0);
