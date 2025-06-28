@@ -32,7 +32,7 @@ namespace LibreLancer.Media
 		{
 			UIThread = uithread;
             Music = new(this);
-            audioThread = new Thread(AudioThread) { IsBackground = true };
+            audioThread = new Thread(AudioThread) { Name="Audio Thread", IsBackground = true };
             audioThread.Start();
         }
 
@@ -145,12 +145,11 @@ namespace LibreLancer.Media
         {
             QueueMessage(new AudioEventMessage() { Type = AudioEvent.Quit });
             audioThread.Join(5000);
-            messages.Dispose();
         }
 
         // shared state
-        internal void QueueMessage(AudioEventMessage msg) => messages.Add(msg);
-        private BlockingCollection<AudioEventMessage> messages = new();
+        internal void QueueMessage(AudioEventMessage msg) => messages.Enqueue(msg);
+        private ConcurrentQueue<AudioEventMessage> messages = new();
 
         // AudioThread only
         private List<SoundInstance> playingSounds = new();
@@ -292,12 +291,45 @@ namespace LibreLancer.Media
                 Interlocked.Increment(ref defaultDeviceChanges);
             }
         }
+
+        const int SLEEP_TIME_COUNT = 64;
+        CircularBuffer<TimeSpan> sleepTimes = new CircularBuffer<TimeSpan>(SLEEP_TIME_COUNT);
+
+        TimeSpan sleepPrecision = TimeSpan.FromMilliseconds(1);
+        void UpdateSleepPrecision(TimeSpan sleepTime)
+        {
+            if (sleepTime > TimeSpan.FromMilliseconds(5))
+                sleepTime = TimeSpan.FromMilliseconds(5);
+            sleepTimes.Enqueue(sleepTime);
+            var precision = TimeSpan.MinValue;
+            for (int i = 0; i < sleepTimes.Count; i++)
+            {
+                if (sleepTimes[i] > precision)
+                    precision = sleepTimes[i];
+            }
+            sleepPrecision = precision;
+        }
+
+        private TimeSpan accumulatedTime;
+        private TimeSpan lastTime;
+        private Stopwatch audioClock;
+        TimeSpan timeStep = TimeSpan.FromTicks(166667);
+
+        TimeSpan Accumulate()
+        {
+            var current = audioClock.Elapsed;
+            var diff = (current - lastTime);
+            accumulatedTime += diff;
+            lastTime = current;
+            return diff;
+        }
+
         void AudioThread()
         {
             Platform.RegisterDllMap(typeof(AudioManager).Assembly);
             //Init context
             var dev = Alc.alcOpenDevice(null);
-           
+
             var ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
             Alc.alcMakeContextCurrent(ctx);
             alBufferDataStatic =
@@ -330,13 +362,33 @@ namespace LibreLancer.Media
 
             Music.Init(Al.GenSource(), Al.GenSource(), Al.GenSource());
             Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
-            var audioClock = Stopwatch.StartNew();
+            audioClock = Stopwatch.StartNew();
             FLLog.Debug("Audio", "Audio initialised");
 
             bool quitRequested = false;
             var last = audioClock.Elapsed.TotalSeconds;
+
             while (!quitRequested)
             {
+                //approximate 60 updates
+                Accumulate();
+                while (accumulatedTime + sleepPrecision < timeStep)
+                {
+                    Thread.Sleep(1);
+                    UpdateSleepPrecision(Accumulate());
+                }
+                while (accumulatedTime < timeStep)
+                {
+                    Thread.SpinWait(1);
+                    Accumulate();
+                }
+                // don't run too many in a row without sleeping
+                if (accumulatedTime > timeStep * 4)
+                {
+                    accumulatedTime = timeStep * 3;
+                }
+                accumulatedTime -= timeStep;
+
                 if (tryRecoverAudio) {
                     int connected = 1;
                     Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
@@ -352,9 +404,8 @@ namespace LibreLancer.Media
                     }
                 }
                 bool updateGain = false;
-                bool anyPlaying = Music.State == PlayState.Playing ||
-                                  playingSounds.Count > 0;
-                while (messages.TryTake(out var message, anyPlaying ? 10 : 100))
+
+                while (messages.TryDequeue(out var message))
                 {
                     switch (message.Type)
                     {
@@ -543,7 +594,7 @@ namespace LibreLancer.Media
                     }
                 }
             }
-
+            FLLog.Debug("Audio", "Quit music");
             Music.StopInternal(0);
             //Delete context
             Alc.alcMakeContextCurrent(IntPtr.Zero);
