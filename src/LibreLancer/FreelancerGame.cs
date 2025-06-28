@@ -70,7 +70,7 @@ namespace LibreLancer
 
         public void ChangeState(GameState state)
 		{
-            Audio.ReleaseAllSfx();
+            Audio.StopAllSfx();
 			if (currentState != null)
 				currentState.Unload();
 			currentState = state;
@@ -100,7 +100,6 @@ namespace LibreLancer
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
-            Audio.WaitReady();
             Audio.MasterVolume = _cfg.Settings.MasterVolume;
             Audio.Music.Volume = _cfg.Settings.MusicVolume;
             Audio.SfxVolume = _cfg.Settings.SfxVolume;
@@ -190,7 +189,6 @@ namespace LibreLancer
 			if (currentState != null)
 				currentState.Update (elapsed);
             Typewriter.Update(elapsed);
-            Audio.UpdateAsync();
         }
 
 		const double FPS_INTERVAL = 0.25;

@@ -64,7 +64,6 @@ namespace LibreLancer.World
             foreach (var kv in _instances) {
                 if (!kv.Value.Playing)
                 {
-                    kv.Value.Dispose();
                     toRemove.Add(kv.Key);
                 }
             }

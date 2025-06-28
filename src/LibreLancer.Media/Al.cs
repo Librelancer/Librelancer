@@ -183,8 +183,18 @@ namespace LibreLancer.Media
         }
 
 
+        public static unsafe void BufferData(uint bid, int format, IntPtr buffer, int size, int freq)
+        {
+            Native.alBufferData(bid, format, buffer, size, freq);
+            int error;
+            if ((error = Native.alGetError()) != Al.AL_NO_ERROR)
+            {
+                var str = $"alBufferData({bid}, {format}, void*, {size}, {freq}) - {GetString(error)}";
+                throw new InvalidOperationException(str);
+            }
+        }
 
-		public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
+        public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
 		{
 			fixed(byte* ptr = buffer)
 			{

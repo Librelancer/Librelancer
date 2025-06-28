@@ -121,7 +121,7 @@ namespace LancerEdit
             SoundData soundData;
             try
             {
-                soundData = Audio.AllocateData();
+                soundData = new SoundData();
                 using(var stream = new MemoryStream(buffer))
                     soundData.LoadStream(stream);
             }
@@ -131,10 +131,9 @@ namespace LancerEdit
                 ErrorDialog("Error:\n" + ex.Message);
                 return;
             }
-            bufferInstance = Audio.CreateInstance(soundData, SoundType.Sfx);
+            bufferInstance = Audio.CreateInstance(soundData, SoundCategory.Sfx);
             if (bufferInstance != null)
             {
-                bufferInstance.DisposeOnStop = true;
                 bufferInstance.OnStop = () => soundData.Dispose();
                 bufferInstance.Play(loop);
             }
@@ -142,7 +141,7 @@ namespace LancerEdit
 
         public void StopBuffer()
         {
-            if (bufferInstance != null && !bufferInstance.Disposed)
+            if (bufferInstance != null)
             {
                 bufferInstance.Stop();
                 bufferInstance = null;
@@ -296,7 +295,6 @@ namespace LancerEdit
 			foreach (var tab in TabControl.Tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
-            Audio.UpdateAsync();
         }
         public string[] InitOpenFile;
         public void OpenFile(string f)
