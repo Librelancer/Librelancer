@@ -277,7 +277,12 @@ World Time: {12:F2}
                         break;
                     case InputAction.USER_TRACTOR_BEAM:
                     {
-                        session.SpaceRpc.Tractor(Selection.Selected);
+                        TractorSelected();
+                        break;
+                    }
+                    case InputAction.USER_COLLECT_LOOT:
+                    {
+                        TractorAll();
                         break;
                     }
                 }
@@ -492,6 +497,20 @@ World Time: {12:F2}
             public void UseRepairKits() => g.UseRepairKits();
 
             public void UseShieldBatteries() => g.UseShieldBatteries();
+
+            public bool CanTractorAll() => g.canTractorAll;
+
+            public bool CanTractorSelected()
+            {
+                return g.canTractorAny && g.Selection.Selected != null &&
+                       g.Selection.Selected.Kind == GameObjectKind.Loot &&
+                       Vector3.Distance(g.Selection.Selected.WorldTransform.Position, g.tractorOrigin) <
+                       g.maxTractorDistance;
+            }
+
+            public void TractorSelected() => g.TractorSelected();
+
+            public void TractorAll() => g.TractorAll();
 
 
             public void SetReticleTemplate(UiWidget template, Closure callback) =>
@@ -879,8 +898,56 @@ World Time: {12:F2}
                 }
             }
             if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; //Object has been blown up/despawned
+            // do tractor beam things
+            if (player.TryGetComponent<CTractorComponent>(out var tractor))
+            {
+                tractorOrigin = tractor.WorldOrigin;
+                maxTractorDistance = tractor.Equipment.Def.MaxLength;
+                canTractorAny = true;
+                if (tractor.BeamCount > 0)
+                {
+                    canTractorAll = false;
+                }
+                else
+                {
+                    canTractorAll = world.SpatialLookup.GetNearbyObjects(player, tractorOrigin, maxTractorDistance)
+                        .Any(x => x.Kind == GameObjectKind.Loot);
+                }
+            }
+            else
+            {
+                canTractorAny = false;
+                canTractorAll = false;
+            }
 		}
 
+        void TractorSelected()
+        {
+            if (!canTractorAny)
+            {
+                return;
+            }
+            session.SpaceRpc.Tractor(Selection.Selected);
+        }
+
+        void TractorAll()
+        {
+            if (!canTractorAll)
+            {
+                return;
+            }
+            foreach (var obj in world.SpatialLookup
+                         .GetNearbyObjects(player, tractorOrigin, maxTractorDistance)
+                         .Where(x => x.Kind == GameObjectKind.Loot))
+            {
+                session.SpaceRpc.Tractor(obj);
+            }
+        }
+
+        private Vector3 tractorOrigin;
+        private bool canTractorAny;
+        private bool canTractorAll;
+        private float maxTractorDistance;
 
 		bool thrust = false;
 
@@ -967,8 +1034,6 @@ World Time: {12:F2}
                 isLeftDown = false;
             }
         }
-
-		const float ACCEL = 85;
 
         public bool Dead = false;
         public void Killed()

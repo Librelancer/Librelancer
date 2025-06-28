@@ -161,6 +161,8 @@ class hud : hud_Designer
 
 		e.usenanobots.OnClick(() => Game.UseRepairKits());
 		e.useshieldbats.OnClick(() => Game.UseShieldBatteries());
+		e.tractorselected.OnClick(() => Game.TractorSelected());
+		e.tractorall.OnClick(() => Game.TractorAll());
 
 		this.Map = new mapwindow()
 		this.InfoWindow = new infowindow()
@@ -262,6 +264,8 @@ class hud : hud_Designer
 	    e.powergauge.PercentFilled = Game.GetPlayerPower()
 	    e.shieldgauge.PercentFilled = Game.GetPlayerShield()
 		e.wireframe.SetWireframe(Game.SelectionWireframe())
+		e.tractorall.Visible = Game.CanTractorAll();
+		e.tractorselected.Visible = Game.CanTractorSelected();
 	    local cruise = Game.CruiseCharge()
 	    
 	    if (cruise >= 0) {

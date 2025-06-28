@@ -40,6 +40,8 @@
 		<Button id="nextenemy" X="22" Y="3" Width="21" height="20">
 			<Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
 		</Button>
+		<Button id="tractorselected" X="64" Y="3" Width="19" Height="20" Style="hud_tractorbeam">
+		</Button>
 		<Button id="showwireframe" X="106" Y="3" Width="18" Height="18" Style="hud_targetedobject">
 		</Button>
 		<Button id="showcontactlist" X="126.5" Y="2" Style="hud_contactlist" Selected="true">
@@ -90,6 +92,7 @@
 				<DisplayModel model="hullgauge" />
 			</Gauge.Fill>
 		</Gauge>
+		<Button ID="tractorall" style="hud_contactloot" Anchor="BottomRight" Y="5" X="-68" Width="20" Height="20"/>
 	</Panel>
 	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
 		<Panel id="sel_tl" Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>

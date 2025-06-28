@@ -59,6 +59,9 @@ public class CTractorComponent : GameComponent
         return Parent.WorldTransform.Position;
     }
 
+    public Vector3 WorldOrigin;
+    public int BeamCount => renderer.TractorBeams.Count;
+
     public override void Update(double time)
     {
         for (int i = 0; i < renderer.TractorBeams.Count; i++)
@@ -72,7 +75,7 @@ public class CTractorComponent : GameComponent
             renderer.TractorBeams[i].Distance += (float)(time * Equipment.Def.ReachSpeed);
         }
         renderer.Color = Equipment.Def.Color;
-        renderer.Origin = GetBeamOrigin();
+        WorldOrigin = renderer.Origin = GetBeamOrigin();
     }
 
     public override void Register(PhysicsWorld physics)

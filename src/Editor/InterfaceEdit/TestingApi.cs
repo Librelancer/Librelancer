@@ -627,6 +627,18 @@ namespace InterfaceEdit
         public void DeleteCharacter() { }
 
         public void NewCharacter(string name, int index) { }
+
+
+        public bool CanTractorSelected() => true;
+        public bool CanTractorAll() => true;
+
+        public void TractorSelected()
+        {
+        }
+
+        public void TractorAll()
+        {
+        }
     }
 
 
@@ -672,5 +684,6 @@ namespace InterfaceEdit
 
         public UIInventoryItem[] GetPlayerGoods(string filter) => TestingApi.TraderFake.pitems;
         public UIInventoryItem[] GetDealerGoods(string filter) => TestingApi.TraderFake.titems;
+
     }
 }
