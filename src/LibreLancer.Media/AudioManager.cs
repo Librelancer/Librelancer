@@ -17,8 +17,9 @@ namespace LibreLancer.Media
 {
 	public unsafe class AudioManager
 	{
-		//TODO: Heuristics to determine max number of sources
-		const int MAX_SOURCES = 48;
+		// openal-soft has a max of 256 sources
+        // but we don't want priority-based culling to take too long.
+		const int MAX_SOURCES = 64;
 
         public MusicPlayer Music { get; }
         internal IUIThread UIThread;
