@@ -11,6 +11,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer.Media
 {
@@ -25,10 +26,6 @@ namespace LibreLancer.Media
         private float _sfxVolumeValue = 1.0f;
         private float _voiceVolumeValue = 1.0f;
         private Thread audioThread;
-
-
-        static delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool> alcReopenDeviceSOFT;
-        static delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void> alBufferDataStatic;
 
         // public API
 		public AudioManager(IUIThread uithread)
@@ -161,6 +158,7 @@ namespace LibreLancer.Media
         private float _sfxVolumeGain = 1.0f;
         private float _voiceVolumeGain = 1.0f;
         Queue<uint> freeSources = new Queue<uint>();
+        delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void> alBufferDataStatic; // pointers are context specific
 
         float GetVolume(SoundCategory category)
         {
@@ -218,7 +216,7 @@ namespace LibreLancer.Media
             Al.alListenerfv(Al.AL_ORIENTATION, (IntPtr)ori);
         }
 
-        static uint BufferData(SoundData data)
+        uint BufferData(SoundData data)
         {
             var id = Al.GenBuffer();
             data.Reference();
@@ -285,22 +283,40 @@ namespace LibreLancer.Media
             }
         }
 
+        static int defaultDeviceChanges = 0;
+        [UnmanagedCallersOnly]
+        static void AlcEventCallback(int eventType, int deviceType, IntPtr device, IntPtr length, IntPtr message, IntPtr userParam)
+        {
+            if (eventType == Alc.ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT)
+            {
+                Interlocked.Increment(ref defaultDeviceChanges);
+            }
+        }
         void AudioThread()
         {
             Platform.RegisterDllMap(typeof(AudioManager).Assembly);
             //Init context
             var dev = Alc.alcOpenDevice(null);
-            alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.alcGetProcAddress(dev, "alcReopenDeviceSOFT");
+           
             var ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
             Alc.alcMakeContextCurrent(ctx);
             alBufferDataStatic =
                 (delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>)Al.alGetProcAddress("alBufferDataStatic");
             bool tryRecoverAudio = false;
             int defaultDeviceCounter = 0;
+            var alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.alcGetProcAddress(dev, "alcReopenDeviceSOFT");
             try
             {
                 Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
-                tryRecoverAudio = alcReopenDeviceSOFT != null;
+                var alcEventControlSOFT = (delegate* unmanaged<IntPtr, IntPtr, int, int>)Alc.alcGetProcAddress(dev, "alcEventControlSOFT");
+                var alcEventCallbackSOFT = (delegate* unmanaged<IntPtr, IntPtr, void>)Alc.alcGetProcAddress(dev, "alcEventCallbackSOFT");
+                tryRecoverAudio = alcReopenDeviceSOFT != null && alcEventCallbackSOFT != null && alcEventControlSOFT != null;
+                if (tryRecoverAudio)
+                {
+                    int ev = Alc.ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT;
+                    alcEventControlSOFT(1, (IntPtr)(&ev), 1);
+                    alcEventCallbackSOFT((IntPtr)(delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, IntPtr, void>)(&AlcEventCallback), IntPtr.Zero);
+                }
             }
             // ReSharper disable once EmptyGeneralCatchClause
             catch
@@ -313,7 +329,6 @@ namespace LibreLancer.Media
             }
 
             Music.Init(Al.GenSource(), Al.GenSource(), Al.GenSource());
-            DeviceEvents.Init();
             Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
             var audioClock = Stopwatch.StartNew();
             FLLog.Debug("Audio", "Audio initialised");
@@ -325,9 +340,14 @@ namespace LibreLancer.Media
                 if (tryRecoverAudio) {
                     int connected = 1;
                     Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
-                    if (connected == 0 || DeviceEvents.DefaultDeviceChange > defaultDeviceCounter)
+                    var devCounter = defaultDeviceChanges;
+                    if(devCounter > defaultDeviceCounter)
                     {
-                        defaultDeviceCounter = DeviceEvents.DefaultDeviceChange;
+                        FLLog.Info("Audio", "Default device changed");
+                    }
+                    if (connected == 0 ||  devCounter > defaultDeviceCounter)
+                    {
+                        defaultDeviceCounter = devCounter;
                         alcReopenDeviceSOFT(dev, IntPtr.Zero, IntPtr.Zero);
                     }
                 }
@@ -525,7 +545,6 @@ namespace LibreLancer.Media
             }
 
             Music.StopInternal(0);
-            DeviceEvents.Deinit();
             //Delete context
             Alc.alcMakeContextCurrent(IntPtr.Zero);
             Alc.alcDestroyContext(ctx);

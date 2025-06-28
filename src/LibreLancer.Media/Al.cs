@@ -8,7 +8,7 @@ namespace LibreLancer.Media
 {
     static class Al
     {
-        const string lib = "openal32.dll";
+        const string lib = "soft_oal.dll";
 
         class Native
         {
@@ -114,7 +114,6 @@ namespace LibreLancer.Media
 
         //OpenAL SOFT extensions
         public const int AL_STOP_SOURCES_ON_DISCONNECT_SOFT = 0x19AB;
-
         //FUNCTIONS
 
         public static IntPtr alGetProcAddress(string procName)
