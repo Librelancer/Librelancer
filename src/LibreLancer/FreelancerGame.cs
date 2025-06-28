@@ -38,8 +38,6 @@ namespace LibreLancer
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
         public InputMap InputMap;
-		int uithread;
-		bool useintromovies;
 		GameState currentState;
 
 		public GameConfig Config
@@ -92,8 +90,6 @@ namespace LibreLancer
 			SetVSync(Config.Settings.VSync);
             Config.Settings.RenderContext = RenderContext;
             Config.Settings.Validate();
-			uithread = Thread.CurrentThread.ManagedThreadId;
-			useintromovies = _cfg.IntroMovies;
             //Cache
             var vfs = FileSystem.FromPath(_cfg.FreelancerPath);
 			ResourceManager = new GameResourceManager(this, vfs);
@@ -146,10 +142,7 @@ namespace LibreLancer
             Services.Add(Typewriter);
             Debug = new DebugView(this);
             Debug.Enabled = Config.Settings.Debug;
-			if (useintromovies && IntroMovies.Count > 0)
-				ChangeState(new IntroMovie(this, 0));
-			else
-				ChangeState(new LoadingDataState(this));
+			ChangeState(new LoadingDataState(this));
         }
 
         public string GetSaveFolder()

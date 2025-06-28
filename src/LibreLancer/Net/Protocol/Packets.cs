@@ -4,16 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.World;
 using LibreLancer.World.Components;
-using Microsoft.EntityFrameworkCore.Internal;
-using SharpDX.MediaFoundation;
-using Quaternion = System.Numerics.Quaternion;
 
 namespace LibreLancer.Net.Protocol
 {

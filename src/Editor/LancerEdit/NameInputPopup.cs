@@ -3,7 +3,6 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.World;
-using SharpDX.DXGI;
 
 namespace LancerEdit;
 

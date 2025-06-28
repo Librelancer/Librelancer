@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
-using LibreLancer.Render.Cameras;
-using SharpDX.MediaFoundation;
 
 namespace LibreLancer.Interface
 {

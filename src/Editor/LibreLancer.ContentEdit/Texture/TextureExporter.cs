@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
-using SharpDX.MediaFoundation;
 
 namespace LibreLancer.ContentEdit.Texture;
 

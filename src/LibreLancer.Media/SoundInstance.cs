@@ -3,8 +3,6 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Numerics;
-using System.Threading;
-using SharpDX.MediaFoundation;
 
 namespace LibreLancer.Media
 {

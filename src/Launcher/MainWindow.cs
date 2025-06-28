@@ -47,16 +47,13 @@ namespace Launcher
             resolutionX = config.BufferWidth;
             resolutionY = config.BufferHeight;
             vsync = config.Settings.VSync;
-            skipIntroMovies = !config.IntroMovies;
             masterVolume = config.Settings.MasterVolume;
             musicVolume = config.Settings.MusicVolume;
             sfxVolume = config.Settings.SfxVolume;
-            if (Program.introForceDisable) skipIntroMovies = true;
         }
         int resolutionX = 640;
         int resolutionY = 480;
         bool vsync;
-        bool skipIntroMovies;
         float masterVolume;
         float musicVolume;
         float sfxVolume;
@@ -67,7 +64,7 @@ namespace Launcher
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             imGui.NewFrame(elapsed);
-            var fontSize = (int) (DpiScale * 16);
+            var fontSize = (int) (DpiScale * 24);
             RenderContext.Renderer2D.DrawString("Arial", fontSize, "Librelancer", new Vector2(8), Color4.Black);
             RenderContext.Renderer2D.DrawString("Arial", fontSize, "Librelancer", new Vector2(6), Color4.White);
             var startY = RenderContext.Renderer2D.LineHeight("Arial", fontSize) + (int) (8 * DpiScale);
@@ -114,10 +111,6 @@ namespace Launcher
             SoundSlider("Music Volume: ", ref musicVolume);
             SoundSlider("Sfx Volume: ", ref sfxVolume);
             ImGui.Checkbox("VSync", ref vsync);
-            if (Program.introForceDisable)
-                ImGui.Text("Intro Movies Disabled");
-            else
-                ImGui.Checkbox("Skip Intro Movies", ref skipIntroMovies);
             ImGui.Dummy(new Vector2(16));
             ImGui.Dummy(new Vector2(1));
             ImGui.SameLine(ImGui.GetWindowWidth() - 70 * ImGuiHelper.Scale);
@@ -134,7 +127,6 @@ namespace Launcher
             try
             {
                 config.FreelancerPath = freelancerFolder.GetText();
-                config.IntroMovies = !skipIntroMovies;
                 config.Settings.MasterVolume = masterVolume;
                 config.Settings.MusicVolume = musicVolume;
                 config.Settings.SfxVolume = sfxVolume;
