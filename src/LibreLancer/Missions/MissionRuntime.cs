@@ -153,6 +153,9 @@ namespace LibreLancer.Missions
             return space != null;
         }
 
+        public void SystemEnter(string system, string ship) =>
+            MsnEvent(new SystemEnteredEvent(system, ship));
+
         public void Update(double elapsed)
         {
             lock (_msnLock)

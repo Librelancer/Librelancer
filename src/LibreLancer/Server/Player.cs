@@ -805,7 +805,7 @@ namespace LibreLancer.Server
             LoggedOut();
         }
 
-        public void JumpTo(string system, string target)
+        public void JumpTo(string system, string target, JumperNpc[] jumpers)
         {
             rpcClient.StartJumpTunnel();
             FLLog.Debug("Player", $"Jumping to {system} - {target}");
@@ -841,7 +841,12 @@ namespace LibreLancer.Server
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
+                    msnRuntime?.SystemEnter(system, "Player");
                 });
+                world.DelayAction(() =>
+                {
+                    world.SpawnJumpers(target, jumpers);
+                }, 4);
             }, msnPreload);
         }
 

@@ -17,6 +17,8 @@ public record struct DestroyedEvent(string Object);
 
 public record struct MissionResponseEvent(bool Accept);
 
+public record struct SystemEnteredEvent(string System, string Ship);
+
 public record struct CommCompleteEvent(string Comm);
 
 public record struct ClosePopupEvent(string Button);

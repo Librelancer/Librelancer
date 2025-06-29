@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
@@ -663,7 +664,7 @@ public class Cnd_NPCSystemExit : ScriptedCondition
     }
 }
 
-public class Cnd_NPCSystemEnter : ScriptedCondition
+public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
 {
     public string system = string.Empty;
     public List<string> ships = [];
@@ -679,6 +680,27 @@ public class Cnd_NPCSystemEnter : ScriptedCondition
         {
             ships.Add(value.ToString()!);
         }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        var checking = new ConditionHashSet();
+        foreach (var sh in ships)
+            checking.Values.Add(sh);
+        self.Storage = checking;
+    }
+
+    public override void OnEvent(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        if (!ev.System.Equals(system, StringComparison.OrdinalIgnoreCase))
+            return;
+        var v = (ConditionHashSet)self.Storage;
+        v.Values.Remove(ev.Ship);
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return ((ConditionHashSet)self.Storage).Values.Count == 0;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)

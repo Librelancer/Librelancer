@@ -1,4 +1,5 @@
 using LibreLancer.GameData.Items;
+using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server;
 
@@ -12,6 +13,12 @@ public class EquipmentComponent : GameComponent
     {
         var hp = Parent.Attachment?.Name ?? "internal";
         return new NetShipCargo(0, Equipment.CRC, hp, 255, 1);
+    }
+
+    public LoadoutItem GetLoadoutItem()
+    {
+        var hp = Parent.Attachment?.Name ?? "internal";
+        return new LoadoutItem(hp, Equipment);
     }
 
     public EquipmentComponent(Equipment equipment, GameObject parent) : base(parent)
