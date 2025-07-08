@@ -93,12 +93,17 @@ public class EditMap2D
 
         var mapScale = new Vector2(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
 
-        Vector2 WorldToMap(Vector3 pos)
+        // Takes in Vector3 from the game world, outputs Vector2 relative to the #scrollchild window
+        // drawlist calls should use windowpos + this return value
+        // controls should set the cursor position to this value
+        Vector2 WorldToWindow(Vector3 pos)
         {
             var relPos = (new Vector2(pos.X, pos.Z) + (mapScale / 2)) / mapScale;
             return new Vector2(gridMargin) + relPos * new Vector2(renderWidth, renderHeight);
         }
 
+        // Takes in Vector2 relative to top left of map grid, returns Vector3 world coordinate
+        // To convert to map position, subtract mapScreenPos from a screen position.
         Vector3 MapToWorld(Vector2 pos)
         {
             var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
@@ -119,7 +124,7 @@ public class EditMap2D
             if (obj.SystemObject == null)
                 continue;
             var objPos = obj.LocalTransform.Position;
-            ImGui.SetCursorPos(WorldToMap(objPos) - new Vector2(buttonSize * 0.5f));
+            ImGui.SetCursorPos(WorldToWindow(objPos) - new Vector2(buttonSize * 0.5f));
             var id = $"##{obj.Nickname}";
 
             var buttonColor = Color4.LightGray;
@@ -184,7 +189,7 @@ public class EditMap2D
         var windowPos = ImGui.GetWindowPos();
         foreach (var lt in tab.LightsList.Sources)
         {
-            ImGui.SetCursorPos(WorldToMap(lt.Light.Position) - new Vector2(buttonSize * 0.5f));
+            ImGui.SetCursorPos(WorldToWindow(lt.Light.Position) - new Vector2(buttonSize * 0.5f));
             var id = $"##{lt.Nickname}";
             ImGui.PushStyleColor(ImGuiCol.Button, Color4.LightYellow);
             ImGui.Button(id, new Vector2(buttonSize));
@@ -192,7 +197,7 @@ public class EditMap2D
             if (tab.LightsList.Selected == lt)
             {
                 var radius = (lt.Light.Range / mapScale.X) * renderWidth;
-                dlist.AddCircle(windowPos + WorldToMap(lt.Light.Position), radius,
+                dlist.AddCircle(windowPos + WorldToWindow(lt.Light.Position), radius,
                     (VertexDiffuse)Color4.Yellow);
             }
         }
@@ -204,7 +209,7 @@ public class EditMap2D
             var mesh = z.Current.TopDownMesh();
             var transformed = ArrayPool<Vector2>.Shared.Rent(mesh.Length);
             for (int i = 0; i < mesh.Length; i++)
-                transformed[i] = windowPos + WorldToMap(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
+                transformed[i] = windowPos + WorldToWindow(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
             dlist.AddTriangleMesh(transformed, mesh.Length, (VertexDiffuse)Color4.Pink);
             ArrayPool<Vector2>.Shared.Return(transformed);
         }
@@ -229,7 +234,7 @@ public class EditMap2D
         }
 
         // Draw patrol path and handle patrol interactions
-        Patrol.Draw(dlist, windowPos, mapScreenPos, WorldToMap, MapToWorld, tab);
+        Patrol.Draw(dlist, windowPos, mapScreenPos, WorldToWindow, MapToWorld, tab);
 
         ImGui.EndChild();
         ImGui.EndChild();
