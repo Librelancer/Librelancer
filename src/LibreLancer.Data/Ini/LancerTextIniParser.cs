@@ -66,12 +66,14 @@ namespace LibreLancer.Data.Ini
                 entry = new Entry(section, key, valueCount) { Line = line };
                 for(int i = 0; i < valueCount; i++)
                 {
-
-                    if (parts[i].End.Value > parts[i].Start.Value)
+                    // valueCount > 1 = we can have some empty values
+                    // otherwise we want to skip if the entire value section is empty
+                    if ((valueCount > 1 && parts[i].End.Value >= parts[i].Start.Value) ||
+                        (parts[i].End.Value > parts[i].Start.Value))
                     {
                         var (vStart, vLength) = parts[i].GetOffsetAndLength(value.Length);
                         var part = value.Slice(vStart, vLength);
-                        if (preparse && (part[0] == '-' || part[0] >= '0' && part[0] <= '9'))
+                        if (preparse && part.Length > 0 && (part[0] == '-' || part[0] >= '0' && part[0] <= '9'))
                         {
                             bool isLong = long.TryParse(part, out long tempLong);
                             if (isLong && tempLong >= int.MinValue && tempLong <= int.MaxValue)
