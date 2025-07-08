@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Items;
+using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
@@ -33,6 +34,14 @@ public class SNPCCargoComponent : AbstractCargoComponent
             }
         }
         return 0;
+    }
+
+    public override IEnumerable<NetShipCargo> GetCargo(int firstId)
+    {
+        foreach (var c in Cargo)
+        {
+            yield return new NetShipCargo(firstId++, c.Item.CRC, null, 255, c.Count);
+        }
     }
 
     public override int TryAdd(Equipment equipment, int maxCount)

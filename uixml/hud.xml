@@ -40,9 +40,11 @@
 		<Button id="nextenemy" X="22" Y="3" Width="21" height="20">
 			<Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
 		</Button>
-		<Button id="tractorselected" X="64" Y="3" Width="19" Height="20" Style="hud_tractorbeam">
+		<Button id="scanship" X="64" Y="3" Width="20" Height="20" Style="hud_scanship">
 		</Button>
-		<Button id="showwireframe" X="106" Y="3" Width="18" Height="18" Style="hud_targetedobject">
+		<Button id="tractorselected" X="64" Y="3" Width="19" Height="20" Style="hud_tractorbeam" Visible="false">
+		</Button>
+		<Button id="showwireframe" X="106" Y="4" Width="18" Height="18" Style="hud_targetedobject">
 		</Button>
 		<Button id="showcontactlist" X="126.5" Y="2" Style="hud_contactlist" Selected="true">
 		</Button>

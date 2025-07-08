@@ -12,4 +12,7 @@ public interface ISpacePlayer
     void UseShieldBatteries();
     void Tractor(ObjNetId target);
     void RunDirectiveIndex(int index);
+
+    void StopScan();
+    void Scan(ObjNetId id);
 }

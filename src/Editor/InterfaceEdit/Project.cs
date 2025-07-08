@@ -29,6 +29,7 @@ namespace InterfaceEdit
         public string ProjectFile;
 
         public Infocard TestingInfocard;
+        public Infocard ShipInfocard;
         private MainWindow window;
         public Project(MainWindow window)
         {
@@ -105,6 +106,7 @@ namespace InterfaceEdit
             //unioners infocard
             var im = new InfocardManager(flIni.Resources);
             TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
+            ShipInfocard = RDLParse.Parse(im.GetXmlResource(66598), window.Fonts);
         }
 
         public bool Open(string projectpath)

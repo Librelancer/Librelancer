@@ -203,6 +203,35 @@ namespace LibreLancer.Server
             return jumpers.ToArray();
         }
 
+        public bool TryScanCargo(GameObject obj, out NetLoadout ld)
+        {
+            if (obj.TryGetComponent<ShipComponent>(out var ship))
+            {
+                ld = new NetLoadout();
+                ld.Items = new();
+                ld.ArchetypeCrc = ship.Ship.CRC;
+            }
+            else
+            {
+                ld = null;
+                return false;
+            }
+            int id = 1;
+            foreach (var item in obj.GetComponents<EquipmentComponent>())
+            {
+                ld.Items.Add(item.GetDescription(id++));
+            }
+            foreach (var item in obj.GetChildComponents<EquipmentComponent>())
+            {
+                ld.Items.Add(item.GetDescription(id++));
+            }
+            if (obj.TryGetComponent<AbstractCargoComponent>(out var cargo))
+            {
+                ld.Items.AddRange(cargo.GetCargo(id));
+            }
+            return true;
+        }
+
         ObjectSpawnInfo BuildSpawnInfo(GameObject obj, GameObject self)
         {
             var info = new ObjectSpawnInfo();

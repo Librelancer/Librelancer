@@ -206,6 +206,12 @@ namespace LibreLancer.Interface
                 handler.Call();
             };
         }
+
+        public void ClearClick()
+        {
+            Clicked = null;
+        }
+
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible || !Enabled) return;

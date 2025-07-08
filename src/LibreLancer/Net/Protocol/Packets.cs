@@ -356,7 +356,7 @@ namespace LibreLancer.Net.Protocol
         }
     }
 
-    public class NetShipCargo
+    public class NetShipCargo : ICloneable
     {
         public int ID;
         public uint EquipCRC;
@@ -389,13 +389,333 @@ namespace LibreLancer.Net.Protocol
             message.Put(Health);
             message.PutVariableUInt32((uint)Count);
         }
+
+        protected bool Equals(NetShipCargo other)
+        {
+            return ID == other.ID && EquipCRC == other.EquipCRC && Hardpoint == other.Hardpoint && Health == other.Health && Count == other.Count;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((NetShipCargo)obj);
+        }
+
+        public NetShipCargo Clone() => (NetShipCargo)MemberwiseClone();
+        object ICloneable.Clone() => MemberwiseClone();
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ID, EquipCRC, Hardpoint, Health, Count);
+        }
+
+        public static bool operator ==(NetShipCargo left, NetShipCargo right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(NetShipCargo left, NetShipCargo right)
+        {
+            return !Equals(left, right);
+        }
+    }
+
+    public class PlayerInventory
+    {
+        public long Credits;
+        public ulong ShipWorth;
+        public ulong NetWorth;
+        public NetLoadout Loadout;
+        public PlayerInventory()
+        {
+            Loadout = new();
+            Loadout.Items = new();
+        }
+    }
+
+    public class PlayerInventoryDiff
+    {
+        public byte Header;
+        public long CreditDiff;
+        public long ShipWorthDiff;
+        public long NetWorthDiff;
+        public NetLoadoutDiff LoadoutDiff;
+
+        public PlayerInventory Apply(PlayerInventory a)
+        {
+            var b = new PlayerInventory()
+            {
+                Credits = a.Credits + CreditDiff,
+                NetWorth = (ulong)((long)a.NetWorth + NetWorthDiff),
+                ShipWorth = (ulong)((long)a.ShipWorth + ShipWorthDiff),
+                Loadout = LoadoutDiff.Apply(a.Loadout)
+            };
+            return b;
+        }
+
+        public void Put(PacketWriter writer)
+        {
+            writer.Put(Header);
+            if(CreditDiff != 0)
+                writer.PutVariableInt64(CreditDiff);
+            if(ShipWorthDiff != 0)
+                writer.PutVariableInt64(ShipWorthDiff);
+            if (NetWorthDiff != 0)
+                writer.PutVariableInt64(NetWorthDiff);
+            if((Header & (1 << 3)) != 0)
+                writer.Put(LoadoutDiff.Archetype);
+            if((Header & (1 << 4)) != 0)
+                writer.Put(LoadoutDiff.Health);
+            LoadoutDiff.WriteItems(writer);
+        }
+
+        public static PlayerInventoryDiff Read(PacketReader reader)
+        {
+            var d = new PlayerInventoryDiff() { LoadoutDiff = new() };
+            var h = reader.GetByte();
+            d.Header = h;
+            if((h & (1 << 0)) != 0)
+                d.CreditDiff = reader.GetVariableInt64();
+            if((h & (1 << 1)) != 0)
+                d.ShipWorthDiff = reader.GetVariableInt64();
+            if((h & (1 << 2)) != 0)
+                d.NetWorthDiff = reader.GetVariableInt64();
+            if ((h & (1 << 3)) != 0)
+            {
+                d.LoadoutDiff.ApplyArchetype = true;
+                d.LoadoutDiff.Archetype = reader.GetUInt();
+            }
+            if ((h & (1 << 4)) != 0)
+            {
+                d.LoadoutDiff.ApplyHealth = true;
+                d.LoadoutDiff.Health = reader.GetFloat();
+            }
+            if ((h & (1 << 5)) != 0)
+            {
+                d.LoadoutDiff.Items = NetLoadoutDiff.ReadItems(reader);
+            }
+            return d;
+        }
+
+        public static PlayerInventoryDiff Create(PlayerInventory a, PlayerInventory b)
+        {
+            byte header = 0;
+            if (a.Credits != b.Credits)
+                header |= (1 << 0);
+            if(a.ShipWorth != b.ShipWorth)
+                header |= (1 << 1);
+            if (a.NetWorth != b.NetWorth)
+                header |= (1 << 2);
+
+            var loadoutDiff = NetLoadoutDiff.Create(a.Loadout, b.Loadout);
+            if (loadoutDiff.ApplyArchetype)
+                header |= (1 << 3);
+            if(loadoutDiff.ApplyHealth)
+                header |= (1 << 4);
+            if (loadoutDiff.Items != null)
+                header |= (1 << 5);
+            if(a.Loadout.ArchetypeCrc != b.Loadout.ArchetypeCrc)
+                header |= (1 << 3);
+
+            var diff = new PlayerInventoryDiff()
+            {
+                Header = header,
+                CreditDiff = b.Credits - a.Credits,
+                ShipWorthDiff = (long)b.ShipWorth - (long)a.ShipWorth,
+                NetWorthDiff = (long)b.NetWorth - (long)a.NetWorth,
+                LoadoutDiff = loadoutDiff
+            };
+            return diff;
+        }
+    }
+
+    public class NetLoadoutDiff
+    {
+        public bool ApplyArchetype;
+        public bool ApplyHealth;
+        public uint Archetype;
+        public float Health;
+        public List<ItemDiff> Items;
+
+        public record struct ItemDiff(int SourceIndex, NetShipCargo NewCargo);
+
+        public NetLoadout Apply(NetLoadout a)
+        {
+            var b = new NetLoadout();
+            b.ArchetypeCrc = ApplyArchetype ? Archetype : a.ArchetypeCrc;
+            b.Health = ApplyHealth ? Health : a.Health;
+            if (Items == null)
+            {
+                b.Items = a.Items.CloneCopy();
+            }
+            else
+            {
+                b.Items = new List<NetShipCargo>();
+                foreach (var d in Items)
+                {
+                    if (d.NewCargo != null)
+                        b.Items.Add(d.NewCargo);
+                    else
+                        b.Items.Add(a.Items[d.SourceIndex].Clone());
+                }
+            }
+            return b;
+        }
+
+        public void Put(PacketWriter writer)
+        {
+            byte header = 0;
+            if (ApplyArchetype)
+            {
+                header |= (1 << 0);
+            }
+            if (ApplyHealth)
+            {
+                header |= (1 << 1);
+            }
+            if (Items != null)
+            {
+                header |= (1 << 2);
+            }
+            writer.Put(header);
+            if (ApplyArchetype)
+            {
+                writer.Put(Archetype);
+            }
+            if (ApplyHealth)
+            {
+                writer.Put(Health);
+            }
+            WriteItems(writer);
+        }
+
+        public static NetLoadoutDiff Read(PacketReader reader)
+        {
+            var header = reader.GetByte();
+            var d = new NetLoadoutDiff();
+            if ((header & (1 << 0)) != 0)
+            {
+                d.ApplyArchetype = true;
+                d.Archetype = reader.GetUInt();
+            }
+            if ((header & (1 << 1)) != 0)
+            {
+                d.ApplyHealth = true;
+                d.Health = reader.GetFloat();
+            }
+            if ((header & (1 << 2)) != 0)
+            {
+                d.Items = ReadItems(reader);
+            }
+            return d;
+        }
+
+        public void WriteItems(PacketWriter writer)
+        {
+            if (Items == null)
+                return;
+            writer.PutVariableUInt32((uint)Items.Count);
+            foreach (var item in Items)
+            {
+                writer.PutVariableUInt32((uint)(item.SourceIndex + 1));
+                item.NewCargo?.Put(writer);
+            }
+        }
+
+        public static List<ItemDiff> ReadItems(PacketReader reader)
+        {
+            var count = reader.GetVariableUInt32();
+            var items = new List<ItemDiff>((int)count);
+            for (uint i = 0; i < count; i++)
+            {
+                var idx = ((int)reader.GetVariableUInt32()) - 1;
+                if (idx == -1)
+                {
+                    items.Add(new(-1, NetShipCargo.Read(reader)));
+                }
+                else
+                {
+                    items.Add(new(idx, null));
+                }
+            }
+            return items;
+        }
+
+        public static NetLoadoutDiff Create(NetLoadout a, NetLoadout b)
+        {
+            var diff = new NetLoadoutDiff();
+            if (a.ArchetypeCrc != b.ArchetypeCrc)
+            {
+                diff.ApplyArchetype = true;
+                diff.Archetype = b.ArchetypeCrc;
+            }
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (a.Health != b.Health)
+            {
+                diff.ApplyHealth = true;
+                diff.Health = b.Health;
+            }
+
+            bool applyItems = false;
+            if (a.Items.Count != b.Items.Count)
+            {
+                applyItems = true;
+            }
+            else
+            {
+                for (int i = 0; i < a.Items.Count && i < b.Items.Count; i++)
+                {
+                    if (a.Items[i] != b.Items[i])
+                    {
+                        applyItems = true;
+                        break;
+                    }
+                }
+            }
+            if (applyItems)
+            {
+                diff.Items = new List<ItemDiff>();
+                for (int i = 0; i < b.Items.Count; i++)
+                {
+                    if (i < a.Items.Count &&
+                        a.Items[i].ID == b.Items[i].ID)
+                    {
+                        // fast path, our ID is at the same index
+                        if (a.Items[i] == b.Items[i])
+                        {
+                            diff.Items.Add(new(i, null));
+                        }
+                        else
+                        {
+                            diff.Items.Add(new(-1, b.Items[i]));
+                        }
+                    }
+                    else
+                    {
+                        var index = a.Items.IndexOf(b.Items[i]);
+                        if (index == -1)
+                        {
+                            diff.Items.Add(new(-1, b.Items[i].Clone()));
+                        }
+                        else
+                        {
+                            diff.Items.Add(new ItemDiff(index, null));
+                        }
+                    }
+
+                }
+            }
+            return diff;
+        }
     }
 
     public class NetLoadout
     {
         public uint ArchetypeCrc;
         public float Health;
-        public List<NetShipCargo> Items;
+        public List<NetShipCargo> Items = new();
         public static NetLoadout Read(PacketReader message)
         {
             var s = new NetLoadout();

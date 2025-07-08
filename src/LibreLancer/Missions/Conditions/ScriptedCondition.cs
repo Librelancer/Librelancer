@@ -8,6 +8,7 @@ using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Missions.Actions;
 using LibreLancer.Missions.Events;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.Missions.Conditions;
 
@@ -938,6 +939,21 @@ public class Cnd_HealthDec : ScriptedCondition
         percent = entry[1].ToSingle();
     }
 
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if(!runtime.GetSpace(out var space))
+            return false;
+        var obj = space.World.GameWorld.GetObject(target);
+        if (obj == null)
+            return false;
+        if (obj.TryGetComponent<SHealthComponent>(out var health))
+        {
+            var pct = health.CurrentHealth / health.MaxHealth;
+            return pct <= percent;
+        }
+        return false;
+    }
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_HealthDec", target, percent);
@@ -1373,10 +1389,10 @@ public class Cnd_CharSelect : SingleEventListenerCondition<CharSelectEvent>
     }
 }
 
-public class Cnd_CargoScanned : ScriptedCondition
+public class Cnd_CargoScanned : SingleEventListenerCondition<CargoScannedEvent>
 {
-    public string scanningShip = string.Empty;
-    public string scannedShip = string.Empty;
+    public string ScanningShip = string.Empty;
+    public string ScannedShip = string.Empty;
 
     public Cnd_CargoScanned()
     {
@@ -1384,14 +1400,17 @@ public class Cnd_CargoScanned : ScriptedCondition
 
     public Cnd_CargoScanned([NotNull] Entry entry)
     {
-        scanningShip = entry[0].ToString();
-        scannedShip = entry[1].ToString();
+        ScanningShip = entry[0].ToString();
+        ScannedShip = entry[1].ToString();
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_CargoScanned", scanningShip, scannedShip);
+        section.Entry("Cnd_CargoScanned", ScanningShip, ScannedShip);
     }
+
+    protected override bool EventCheck(CargoScannedEvent ev, MissionRuntime runtime, ActiveCondition self) =>
+        IdEqual(ScanningShip, ev.ScanningShip) && IdEqual(ScannedShip, ev.ScannedShip);
 }
 
 public class Cnd_BaseExit : ScriptedCondition

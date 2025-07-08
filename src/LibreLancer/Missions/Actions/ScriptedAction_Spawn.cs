@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
+using LibreLancer.Server;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -236,6 +237,14 @@ namespace LibreLancer.Missions.Actions
                 var pos = Vector3.Transform(positions[i], mat);
                 SpawnShip(form.Ships[i], pos, form.Orientation, null, script, runtime);
             }
+
+            // make them into a formation
+            runtime.Player.MissionWorldAction(() =>
+            {
+                var world = runtime.Player.Space.World;
+                var lead = world.GameWorld.GetObject(form.Ships[0]);
+                FormationTools.MakeNewFormation(lead, formDef?.Nickname, form.Ships.Skip(1).ToList());
+            });
         }
     }
 

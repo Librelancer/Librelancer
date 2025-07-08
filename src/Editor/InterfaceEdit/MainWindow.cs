@@ -158,6 +158,7 @@ namespace InterfaceEdit
                 projectWindow.IsOpen = true;
                 tabControl.Tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
                 TestApi._Infocard = Project.TestingInfocard;
+                TestApi._ScannedInfocard = Project.ShipInfocard;
                 var str = new StringDeduplication();
                 var anm = new AnmFile();
                 using(var f = Project.UiData.FileSystem.Open(Project.UiData.DataPath + @"characters\animations\bodygenericmale.anm"))

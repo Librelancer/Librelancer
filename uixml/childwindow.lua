@@ -40,7 +40,7 @@ mixin ChildWindow
 	    this.Elements.background.Height = 0
     }
     
-    AnimateOut()
+    AnimateOut(cb)
     {
         PlaySound('ui_motion_swish')
 	    this.OutCallback = cb
@@ -86,7 +86,11 @@ mixin ChildWindow
     
     Close(cb)
     {
-        if (this.Opened) this.AnimateOut(cb);
+        if (this.Opened && !this.AnimatingOut)
+        {
+        	if (this.Closing) this.Closing();
+			this.AnimateOut(cb);
+        }
     }
 }
 

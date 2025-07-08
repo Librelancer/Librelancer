@@ -158,7 +158,7 @@ class hud : hud_Designer
 			e.contactlist.Visible = true;
 			e.targetwireframe.Visible = false;
 		});
-
+		
 		e.usenanobots.OnClick(() => Game.UseRepairKits());
 		e.useshieldbats.OnClick(() => Game.UseShieldBatteries());
 		e.tractorselected.OnClick(() => Game.TractorSelected());
@@ -168,16 +168,32 @@ class hud : hud_Designer
 		this.InfoWindow = new infowindow()
 		this.PlayerStatus = new playerstatus()
 		this.ChatHistory = new chathistory()
+		this.ScanCargo = new scancargo()
 	    this.Map.InitMap()
 		
 		var windows = {
 			{ e.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
 			{ this.Elements.nn_playerstatus, this.PlayerStatus },
-			{ this.Elements.nn_chat, this.ChatHistory }
+			{ this.Elements.nn_chat, this.ChatHistory },
+			{ this.Elements.scanship, this.ScanCargo }
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
+		
+		e.scanship.ClearClick(); // We don't want the childwindowmanager click handler for this. We're async
+		e.scanship.OnClick(() => Game.ScanSelected());
 
+		Game.OnUpdateScannedInventory((valid) => {
+			if(!valid)
+			{
+				this.ScanCargo.Close();
+			}
+			else
+			{
+				this.ScanCargo.construct_inventory();
+				this.WindowManager.OpenWindow(this.Widget, this.ScanCargo, true);
+			}
+		});
 		this.SetupIndicators()
     }
 
@@ -266,6 +282,8 @@ class hud : hud_Designer
 		e.wireframe.SetWireframe(Game.SelectionWireframe())
 		e.tractorall.Visible = Game.CanTractorAll();
 		e.tractorselected.Visible = Game.CanTractorSelected();
+		e.scanship.Visible = Game.CanScanSelected();
+		
 	    local cruise = Game.CruiseCharge()
 	    
 	    if (cruise >= 0) {

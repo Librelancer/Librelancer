@@ -9,10 +9,10 @@ public class EquipmentComponent : GameComponent
 {
     public Equipment Equipment;
 
-    public NetShipCargo GetDescription()
+    public NetShipCargo GetDescription(int id = 0)
     {
         var hp = Parent.Attachment?.Name ?? "internal";
-        return new NetShipCargo(0, Equipment.CRC, hp, 255, 1);
+        return new NetShipCargo(id, Equipment.CRC, hp, 255, 1);
     }
 
     public LoadoutItem GetLoadoutItem()

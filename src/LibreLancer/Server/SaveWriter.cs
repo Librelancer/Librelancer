@@ -48,7 +48,7 @@ namespace LibreLancer.Server
                 {
                     sg.Player.Equip.Add(new PlayerEquipment()
                     {
-                        Item = new HashValue(item.Equipment.CRC),
+                        Item = new HashValue(item.Equipment.Nickname),
                         Hardpoint = item.Hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase)
                             ? ""
                             : item.Hardpoint
@@ -57,7 +57,7 @@ namespace LibreLancer.Server
                 else
                 {
                     sg.Player.Cargo.Add(new PlayerCargo() {
-                        Item = new HashValue(item.Equipment.CRC),
+                        Item = new HashValue(item.Equipment.Nickname),
                         Count = item.Count
                     });
                 }

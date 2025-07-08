@@ -478,6 +478,35 @@ World Time: {12:F2}
                 container.Children.Add(IndicatorLayer);
             }
 
+            public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
+
+            public Infocard GetScannedShipInfocard()
+            {
+                if (g.Selection.Selected == null) return null;
+                if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
+                {
+                    return g.Game.GameData.GetInfocard(ship.Ship.Infocard, g.Game.Fonts);
+                }
+                return null;
+            }
+
+            public bool CanScanSelected()
+            {
+                if (g.Selection.Selected == null)
+                    return false;
+                return g.scanner.CanScan(g.Selection.Selected);
+            }
+
+            public void ScanSelected() => g.session.SpaceRpc.Scan(g.Selection.Selected);
+
+            public void StopScan() => g.session.SpaceRpc.StopScan();
+
+            public Closure ScanHandler;
+            public void OnUpdateScannedInventory(Closure handler)
+            {
+                ScanHandler = handler;
+            }
+
             public int CurrentRank => g.session.CurrentRank;
             public double NetWorth => (double)g.session.NetWorth;
             public double NextLevelWorth => (double)g.session.NextLevelWorth;
@@ -919,6 +948,8 @@ World Time: {12:F2}
                 canTractorAny = false;
                 canTractorAll = false;
             }
+            // query scanner
+            player.TryGetComponent<ScannerComponent>(out scanner);
 		}
 
         void TractorSelected()
@@ -944,6 +975,7 @@ World Time: {12:F2}
             }
         }
 
+        private ScannerComponent scanner;
         private Vector3 tractorOrigin;
         private bool canTractorAny;
         private bool canTractorAll;
@@ -1220,6 +1252,16 @@ World Time: {12:F2}
         public void ClearComm()
         {
             ui.Event("Comm", new object[] { null });
+        }
+
+        public void ClearScan()
+        {
+            uiApi.ScanHandler?.Call(false);
+        }
+
+        public void UpdateScan()
+        {
+            uiApi.ScanHandler?.Call(true);
         }
 
         public void OpenComm(GameObject obj, string voice)
