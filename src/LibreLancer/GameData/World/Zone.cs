@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Data.Universe;
@@ -93,7 +94,10 @@ namespace LibreLancer.GameData.World
             }
 
             if (!isPosition)
+            {
                 topDown = null;
+                outline = null;
+            }
         }
 
         public float ScaledDistance(Vector3 point)
@@ -271,6 +275,7 @@ namespace LibreLancer.GameData.World
         }
 
         private Vector2[] topDown = null;
+        private Vector2[] outline = null;
 
         private static readonly Vector3[] _cubeVertices =
         {
@@ -331,6 +336,91 @@ namespace LibreLancer.GameData.World
         };
 
         private const int SECTORS = 48;
+
+        public Vector2[] OutlineMesh()
+        {
+            if (outline != null)
+                return outline;
+
+            if (Shape == ShapeKind.Ellipsoid)
+            {
+                outline = new Vector2[(SECTORS - 1) * 2];
+                int j = 0;
+                for (int i = 1; i < SECTORS; i++)
+                {
+                    var lastT = ((2 * MathF.PI) / (SECTORS - 1)) * (i - 1);
+                    var t = ((2 * MathF.PI) / (SECTORS - 1)) * i;
+                    var p0 = Vector3.Transform(PrimitiveMath.GetPointOnRadius(Size, 0, lastT), RotationMatrix);
+                    var p1 = Vector3.Transform(PrimitiveMath.GetPointOnRadius(Size, 0, t), RotationMatrix);
+                    outline[j++] = new Vector2(p0.X, p0.Z);
+                    outline[j++] = new Vector2(p1.X, p1.Z);
+                }
+            }
+            else if (Shape == ShapeKind.Sphere)
+            {
+                // Don't rotate for sphere
+                outline = new Vector2[(SECTORS - 1) * 2];
+                int j = 0;
+                var sz = new Vector3(Size.X);
+                for (int i = 1; i < SECTORS; i++)
+                {
+                    var lastT = ((2 * MathF.PI) / (SECTORS - 1)) * (i - 1);
+                    var t = ((2 * MathF.PI) / (SECTORS - 1)) * i;
+                    var p0 = PrimitiveMath.GetPointOnRadius(sz, 0, lastT);
+                    var p1 = PrimitiveMath.GetPointOnRadius(sz, 0, t);
+                    outline[j++] = new Vector2(p0.X, p0.Z);
+                    outline[j++] = new Vector2(p1.X, p1.Z);
+                }
+            }
+            else if (Shape == ShapeKind.Box)
+            {
+                //Flatten a mesh + create convex hull
+                List<Vector2> points = new List<Vector2>(_cubeVertices.Length);
+                foreach (var v in _cubeVertices) {
+                    var p0 = Vector3.Transform(v * Size, RotationMatrix);
+                    points.Add(new Vector2(p0.X, p0.Z));
+                }
+                outline = Outline2D(points);
+            }
+            else // Cylinder and ring
+            {
+                //Flatten a mesh + create convex hull
+                List<Vector2> points = new List<Vector2>(_cylinderVertices.Length);
+                var sz = new Vector3(Size.X, Size.Y, Size.X);
+                foreach (var v in _cylinderVertices) {
+                    var p0 = Vector3.Transform(v * sz, RotationMatrix);
+                    points.Add(new Vector2(p0.X, p0.Z));
+                }
+                outline = Outline2D(points);
+            }
+            return outline;
+        }
+
+        static Vector2[] Outline2D(List<Vector2> points)
+        {
+            if (points == null || points.Count <= 1)
+                throw new InvalidOperationException();
+            int n = points.Count, k = 0;
+            var H = new Vector2[2 * n];
+            points.Sort((a, b) =>
+                MathF.Abs(a.X - b.X) < float.Epsilon ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
+            // Build lower hull
+            for (int i = 0; i < n; ++i)
+            {
+                while (k >= 2 && Cross2D(H[k - 2], H[k - 1], points[i]) <= 0)
+                    k--;
+                H[k++] = points[i];
+            }
+            // Build upper hull
+            for (int i = n - 2, t = k + 1; i >= 0; i--)
+            {
+                while (k >= t && Cross2D(H[k - 2], H[k - 1], points[i]) <= 0)
+                    k--;
+                H[k++] = points[i];
+            }
+            // Don't triangulate
+            return H.Take(k).ToArray();
+        }
 
         public Vector2[] TopDownMesh()
         {

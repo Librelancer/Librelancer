@@ -210,7 +210,11 @@ public class EditMap2D
             var transformed = ArrayPool<Vector2>.Shared.Rent(mesh.Length);
             for (int i = 0; i < mesh.Length; i++)
                 transformed[i] = windowPos + WorldToWindow(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
-            dlist.AddTriangleMesh(transformed, mesh.Length, (VertexDiffuse)Color4.Pink);
+            dlist.AddTriangleMesh(transformed, mesh.Length, (VertexDiffuse)Color4.Pink.ChangeAlpha(0.12f));
+            mesh = z.Current.OutlineMesh();
+            for (int i = 0; i < mesh.Length; i++)
+                transformed[i] = windowPos + WorldToWindow(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
+            dlist.AddPolyline(ref transformed[0], mesh.Length, (VertexDiffuse)Color4.Red, ImDrawFlags.None, 2f);
             ArrayPool<Vector2>.Shared.Return(transformed);
         }
 
