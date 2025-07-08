@@ -30,7 +30,7 @@ public class EditMap2D
 
     private GameObject dragTarget;
     private Transform3D dragOriginalTransform;
-    
+
     // Patrol state as part of EditMap2D
     public PatrolEditor Patrol { get; } = new();
 
@@ -57,7 +57,7 @@ public class EditMap2D
         var gridMargin = 15 * ImGuiHelper.Scale;
 
         var dlist = ImGui.GetWindowDrawList();
-        var wPos = (Vector2)ImGui.GetWindowPos();
+        var mapScreenPos = (Vector2)ImGui.GetWindowPos();
 
         var cellWidth = (renderWidth / 8f);
         var cellHeight = (renderHeight / 8f);
@@ -66,28 +66,28 @@ public class EditMap2D
         for (int i = 0; i < 8; i++)
         {
             var sz = ImGui.CalcTextSize(GRIDLETTERS[i]);
-            var xPos = wPos.X + i * cellWidth + (cellWidth / 2 - sz.X / 2);
-            dlist.AddText(new Vector2(xPos, wPos.Y), 0xFFFFFFFF, GRIDLETTERS[i]);
-            var yPos = wPos.Y + i * cellHeight + (cellHeight / 2 - sz.Y / 2);
-            dlist.AddText(new Vector2(wPos.X, yPos), 0xFFFFFFFF, GRIDNUMBERS[i]);
+            var xPos = mapScreenPos.X + i * cellWidth + (cellWidth / 2 - sz.X / 2);
+            dlist.AddText(new Vector2(xPos, mapScreenPos.Y), 0xFFFFFFFF, GRIDLETTERS[i]);
+            var yPos = mapScreenPos.Y + i * cellHeight + (cellHeight / 2 - sz.Y / 2);
+            dlist.AddText(new Vector2(mapScreenPos.X, yPos), 0xFFFFFFFF, GRIDNUMBERS[i]);
         }
         ImGui.PopFont();
         //Draw Grid
-        wPos += new Vector2(gridMargin);
+        mapScreenPos += new Vector2(gridMargin);
         renderWidth -= 2 * gridMargin;
         renderHeight -= 2 * gridMargin;
-        dlist.AddRectFilled(wPos, wPos + new Vector2(renderWidth, renderHeight), 0xFF1C0812);
-        dlist.AddRect(wPos, wPos + new Vector2(renderWidth, renderHeight), 0xFFFFFFFF);
+        dlist.AddRectFilled(mapScreenPos, mapScreenPos + new Vector2(renderWidth, renderHeight), 0xFF1C0812);
+        dlist.AddRect(mapScreenPos, mapScreenPos + new Vector2(renderWidth, renderHeight), 0xFFFFFFFF);
         for (int x = 1; x < 8; x++)
         {
-            var pos0 = wPos + new Vector2(x * (renderWidth / 8f), 0);
-            var pos1 = wPos + new Vector2(x * (renderWidth / 8f), renderHeight);
+            var pos0 = mapScreenPos + new Vector2(x * (renderWidth / 8f), 0);
+            var pos1 = mapScreenPos + new Vector2(x * (renderWidth / 8f), renderHeight);
             dlist.AddLine(pos0, pos1, 0xFFFFFFFF, 1.5f);
         }
         for (int y = 1; y < 8; y++)
         {
-            var pos0 = wPos + new Vector2(0, y * (renderHeight / 8f));
-            var pos1 = wPos + new Vector2(renderWidth, y * (renderHeight / 8f));
+            var pos0 = mapScreenPos + new Vector2(0, y * (renderHeight / 8f));
+            var pos1 = mapScreenPos + new Vector2(renderWidth, y * (renderHeight / 8f));
             dlist.AddLine(pos0, pos1, 0xFFFFFFFF, 1.5f);
         }
 
@@ -103,10 +103,11 @@ public class EditMap2D
         {
             var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
             scale.Y = 0;
-            var relPos = (pos - new Vector2(gridMargin)) /
+            var relPos = (pos - new Vector2(renderWidth / 2f, renderHeight / 2f)) /
                          new Vector2(renderWidth, renderHeight);
-            return new Vector3(relPos.X, 0, relPos.Y) * scale - new Vector3(scale.X / 2, 0, scale.Z / 2);
+            return new Vector3(relPos.X, 0, relPos.Y) * scale;
         }
+
 
         int obji = 0;
         bool grabbed = false;
@@ -180,6 +181,7 @@ public class EditMap2D
             }
         }
 
+        var windowPos = ImGui.GetWindowPos();
         foreach (var lt in tab.LightsList.Sources)
         {
             ImGui.SetCursorPos(WorldToMap(lt.Light.Position) - new Vector2(buttonSize * 0.5f));
@@ -190,7 +192,7 @@ public class EditMap2D
             if (tab.LightsList.Selected == lt)
             {
                 var radius = (lt.Light.Range / mapScale.X) * renderWidth;
-                dlist.AddCircle(ImGui.GetWindowPos() + WorldToMap(lt.Light.Position), radius,
+                dlist.AddCircle(windowPos + WorldToMap(lt.Light.Position), radius,
                     (VertexDiffuse)Color4.Yellow);
             }
         }
@@ -201,9 +203,8 @@ public class EditMap2D
                 continue;
             var mesh = z.Current.TopDownMesh();
             var transformed = ArrayPool<Vector2>.Shared.Rent(mesh.Length);
-            var wp = ImGui.GetWindowPos();
             for (int i = 0; i < mesh.Length; i++)
-                transformed[i] = wp + WorldToMap(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
+                transformed[i] = windowPos + WorldToMap(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
             dlist.AddTriangleMesh(transformed, mesh.Length, (VertexDiffuse)Color4.Pink);
             ArrayPool<Vector2>.Shared.Return(transformed);
         }
@@ -217,8 +218,8 @@ public class EditMap2D
             var pos = ImGui.GetMousePosOnOpeningCurrentPopup();
             if (ImGui.MenuItem("Add Object"))
             {
-                FLLog.Info("Obj", $"Add at {pos - wPos}");
-                tab.Popups.OpenPopup(new NewObjectPopup(ctx, world, MapToWorld(pos - wPos), tab.CreateObject));
+                FLLog.Info("Obj", $"Add at {pos - mapScreenPos}");
+                tab.Popups.OpenPopup(new NewObjectPopup(ctx, world, MapToWorld(pos - mapScreenPos), tab.CreateObject));
             }
             if (!Patrol.IsActive && ImGui.MenuItem("New Patrol Path"))
             {
@@ -226,9 +227,9 @@ public class EditMap2D
             }
             ImGui.EndPopup();
         }
-        
+
         // Draw patrol path and handle patrol interactions
-        Patrol.Draw(dlist, wPos, WorldToMap, MapToWorld, tab);
+        Patrol.Draw(dlist, windowPos, mapScreenPos, WorldToMap, MapToWorld, tab);
 
         ImGui.EndChild();
         ImGui.EndChild();
@@ -275,7 +276,7 @@ public class PatrolEditor
         return result;
     }
 
-    public void Draw(ImDrawListPtr dlist, Vector2 wPos, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
+    public void Draw(ImDrawListPtr dlist, Vector2 windowPos, Vector2 mapScreenPos, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
     {
         if (!IsActive) return;
 
@@ -288,7 +289,7 @@ public class PatrolEditor
             // Adjust Y offset based on scroll wheel
             // Positive scroll = increase Y (up), Negative scroll = decrease Y (down)
             YOffset += io.MouseWheel * 100f; // Adjust sensitivity as needed
-            
+
             // Optional: Add some bounds to prevent extreme values
             YOffset = MathHelper.Clamp(YOffset, -1000000f, 1000000f);
         }
@@ -296,21 +297,21 @@ public class PatrolEditor
         // Draw existing patrol path
         for (int i = 0; i < Points.Count - 1; i++)
         {
-            dlist.AddLine(wPos + worldToMap(Points[i]), wPos + worldToMap(Points[i + 1]), ImGui.GetColorU32(Color4.LimeGreen), 2f);
+            dlist.AddLine(windowPos + worldToMap(Points[i]), windowPos + worldToMap(Points[i + 1]), ImGui.GetColorU32(Color4.LimeGreen), 2f);
         }
-        
+
         // Draw line from last point to mouse (with Y offset applied)
         if (Points.Count > 0)
         {
-            var mouseWorldPos = mapToWorld(ImGui.GetMousePos() - wPos);
+            var mouseWorldPos = mapToWorld(mousePos - mapScreenPos);
             var adjustedMousePos = new Vector3(mouseWorldPos.X, mouseWorldPos.Y + YOffset, mouseWorldPos.Z);
-            dlist.AddLine(wPos + worldToMap(Points.Last()), wPos + worldToMap(adjustedMousePos), ImGui.GetColorU32(Color4.LightGreen), 1.5f);
+            dlist.AddLine(windowPos + worldToMap(Points.Last()), windowPos + worldToMap(adjustedMousePos), ImGui.GetColorU32(Color4.LightGreen), 1.5f);
         }
 
         // Handle mouse interactions
         if (ImGui.IsItemHovered() && !ImGui.IsPopupOpen(null, ImGuiPopupFlags.AnyPopup) && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
-            var mouseWorldPos = mapToWorld(ImGui.GetMousePos() - wPos);
+            var mouseWorldPos = mapToWorld(mousePos - mapScreenPos);
             var adjustedPoint = new Vector3(mouseWorldPos.X, mouseWorldPos.Y + YOffset, mouseWorldPos.Z);
             AddPoint(mouseWorldPos); // AddPoint will apply the Y offset
         }
