@@ -195,28 +195,9 @@ namespace LancerEdit
             doError = true;
         }
 
-        bool floatEditor = false;
-        float[] floats;
-        bool intEditor = false;
-        int[] ints;
-        bool intHex = false;
-
         void Popups()
         {
             popups.Run();
-            //Float Editor
-            if (floatEditor)
-            {
-                ImGui.OpenPopup("Float Editor##" + Unique);
-                floatEditor = false;
-            }
-            DataEditors.FloatEditor("Float Editor##" + Unique, ref floats, selectedNode);
-            if (intEditor)
-            {
-                ImGui.OpenPopup("Int Editor##" + Unique);
-                intEditor = false;
-            }
-            DataEditors.IntEditor("Int Editor##" + Unique, ref ints, ref intHex, selectedNode);
             //Error
             if (doError)
             {

@@ -17,7 +17,7 @@ using LibreLancer.ContentEdit.Model;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
-using LibreLancer.Utf.Cmp;
+using LancerEdit.Utf.Popups;
 
 namespace LancerEdit
 {
@@ -468,21 +468,11 @@ namespace LancerEdit
                     }
                     if (ImGui.MenuItem("Float Editor"))
                     {
-                        floats = new float[selectedNode.Data.Length / 4];
-                        for (int i = 0; i < selectedNode.Data.Length / 4; i++)
-                        {
-                            floats[i] = BitConverter.ToSingle(selectedNode.Data, i * 4);
-                        }
-                        floatEditor = true;
+                        popups.OpenPopup(new FloatEditorPopup(selectedNode));
                     }
                     if (ImGui.MenuItem("Int Editor"))
                     {
-                        ints = new int[selectedNode.Data.Length / 4];
-                        for (int i = 0; i < selectedNode.Data.Length / 4; i++)
-                        {
-                            ints[i] = BitConverter.ToInt32(selectedNode.Data, i * 4);
-                        }
-                        intEditor = true;
+                        popups.OpenPopup(new IntEditorPopup(selectedNode));
                     }
                     if (ImGui.MenuItem("Color Picker"))
                     {
@@ -698,7 +688,7 @@ namespace LancerEdit
                 else
                 {
                     var target = selectedNode;
-                    popups.OpenPopup(new TextureImportDialog(src.Data, ch =>
+                    popups.OpenPopup(new TextureImportPopup(src.Data, ch =>
                     {
                         foreach (var child in ch)
                             child.Parent = target;

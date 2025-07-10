@@ -6,9 +6,9 @@ using ImGuiNET;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 
-namespace LancerEdit;
+namespace LancerEdit.Utf.Popups;
 
-public class TextureImportDialog : PopupWindow
+public class TextureImportPopup : PopupWindow
 {
     private Action<List<LUtfNode>> callback;
     private AnalyzedTexture source;
@@ -25,7 +25,7 @@ public class TextureImportDialog : PopupWindow
 
     private MainWindow win;
 
-    public TextureImportDialog(AnalyzedTexture source, Action<List<LUtfNode>> onImported, MainWindow win)
+    public TextureImportPopup(AnalyzedTexture source, Action<List<LUtfNode>> onImported, MainWindow win)
     {
         this.source = source;
         this.callback = onImported;
