@@ -158,6 +158,7 @@ namespace LibreLancer.ImUI
             fontConfigB.GlyphRanges = rangesPtrFull;
             fontConfigC.GlyphRanges = rangesPtrFull;
 
+            fontConfigA.SizePixels = (int)(15 * Scale);
             Default = io.Fonts.AddFontDefault(fontConfigA);
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Regular.ttf"))
 			{

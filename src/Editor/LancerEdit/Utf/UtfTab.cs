@@ -56,7 +56,6 @@ namespace LancerEdit
             Utf = utf;
             DocumentName = title;
             Title = title;
-            text = new TextBuffer();
             if(generated) utf.Source = utf.Export();
             if (utf.Source != null)
             {
@@ -64,7 +63,6 @@ namespace LancerEdit
                 utf.Source = null;
             }
             SaveStrategy = new UtfSaveStrategy(main, this);
-            RegisterPopups();
             ReferenceDetached();
         }
         public void UpdateTitle()
@@ -73,11 +71,9 @@ namespace LancerEdit
         }
 
         ImGuiTreeNodeFlags tflags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
-        TextBuffer text;
 
         public override void Dispose()
         {
-            text.Dispose();
             DereferenceDetached();
             main.Resources.RemoveResourcesForId(Unique.ToString());
         }
@@ -102,17 +98,17 @@ namespace LancerEdit
             try
             {
                 LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+                Confirm("This action will overwrite any existing tangent data. Continue?", () =>
+                {
+                    var result = Tangents.GenerateForUtf(Utf);
+                    main.ResultMessages(result);
+                    ReloadResources();
+                });
             }
             catch  (Exception ex)
             {
                 ErrorPopup("Could not open as model\n" + ex.Message + "\n" + ex.StackTrace);
             }
-            Confirm("This action will overwrite any existing tangent data. Continue?", () =>
-            {
-                var result = Tangents.GenerateForUtf(Utf);
-                main.ResultMessages(result);
-                ReloadResources();
-            });
         }
 
         public void ReloadResources()
@@ -141,22 +137,13 @@ namespace LancerEdit
             {
                 var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
                 if (cpy == null) return;
-                if (selectedNode.Data != null)
+                ConfirmIf(selectedNode.Data != null, "Adding children will delete this node's data. Continue?", () =>
                 {
-                    Confirm("Adding children will delete this node's data. Continue?", () =>
-                    {
-                        selectedNode.Data = null;
-                        selectedNode.Children = new List<LUtfNode>();
-                        cpy.Parent = selectedNode;
-                        selectedNode.Children.Add(cpy);
-                    });
-                }
-                else
-                {
+                    selectedNode.Data = null;
                     selectedNode.Children ??= new List<LUtfNode>();
                     cpy.Parent = selectedNode;
                     selectedNode.Children.Add(cpy);
-                }
+                });
             }
         }
 
@@ -234,8 +221,7 @@ namespace LancerEdit
             //Action Bar
             ImGui.EndChild();
             ImGui.Separator();
-            //if (ImGui.Button("Actions"))
-                //ImGui.OpenPopup("actions");
+
             using (var tb = Toolbar.Begin("##actions", false))
             {
                 if (tb.ButtonItem("View Model"))
@@ -331,13 +317,7 @@ namespace LancerEdit
                 }
             }
 
-            Popups();
-        }
-
-        private bool isDetached = false;
-        unsafe int DummyCallback(ImGuiInputTextCallbackData* data)
-        {
-            return 0;
+            popups.Run();
         }
 
         unsafe void NodeInformation()
@@ -415,7 +395,7 @@ namespace LancerEdit
                     //String Preview
                     ImGui.Text("String:");
                     ImGui.SameLine();
-                    ImGui.InputText("##strpreview", selectedNode.Data, (uint)Math.Min(selectedNode.Data.Length, 32), ImGuiInputTextFlags.ReadOnly, DummyCallback);
+                    ImGui.InputText("##strpreview", selectedNode.Data, (uint)Math.Min(selectedNode.Data.Length, 32), ImGuiInputTextFlags.ReadOnly);
                     //Float Preview
                     ImGui.Text("Float:");
                     fixed (byte* ptr = selectedNode.Data)
@@ -451,20 +431,11 @@ namespace LancerEdit
                 {
                     if (ImGui.MenuItem("String Editor"))
                     {
-                        if (selectedNode.Data.Length > 255)
-                            popups.OpenPopup("Confirm?##stringedit");
-                        else
-                        {
-                            text.SetBytes(selectedNode.Data, selectedNode.Data.Length);
-                            popups.OpenPopup("String Editor");
-                        }
+                        EditString(selectedNode);
                     }
                     if (ImGui.MenuItem("Hex Editor"))
                     {
-                        hexdata = new byte[selectedNode.Data.Length];
-                        selectedNode.Data.CopyTo(hexdata, 0);
-                        mem = new MemoryEditor();
-                        popups.OpenPopup("Hex Editor");
+                        popups.OpenPopup(new HexEditorPopup(selectedNode));
                     }
                     if (ImGui.MenuItem("Float Editor"))
                     {
@@ -476,30 +447,7 @@ namespace LancerEdit
                     }
                     if (ImGui.MenuItem("Color Picker"))
                     {
-                        var len = selectedNode.Data.Length / 4;
-                        if (len < 3)
-                        {
-                            pickcolor4 = true;
-                            color4 = Color4.Black;
-                        }
-                        else if (len == 3)
-                        {
-                            pickcolor4 = false;
-                            color3 = new Vector3(
-                                BitConverter.ToSingle(selectedNode.Data, 0),
-                                BitConverter.ToSingle(selectedNode.Data, 4),
-                                BitConverter.ToSingle(selectedNode.Data, 8));
-                        }
-                        else if (len > 3)
-                        {
-                            pickcolor4 = true;
-                            color4 = new Vector4(
-                                BitConverter.ToSingle(selectedNode.Data, 0),
-                                BitConverter.ToSingle(selectedNode.Data, 4),
-                                BitConverter.ToSingle(selectedNode.Data, 8),
-                                BitConverter.ToSingle(selectedNode.Data, 12));
-                        }
-                        popups.OpenPopup("Color Picker");
+                        popups.OpenPopup(new ColorPickerPopup(selectedNode));
                     }
                     ImGui.EndPopup();
                 }
@@ -699,17 +647,10 @@ namespace LancerEdit
             });
         }
 
-        LUtfNode pasteInto;
         LUtfNode clearNode;
-
-        LUtfNode renameNode;
 
         LUtfNode deleteNode;
         LUtfNode deleteParent;
-
-        int addOffset = 0;
-        LUtfNode addNode;
-        LUtfNode addParent;
 
         private bool canPaste = false;
 
@@ -725,9 +666,7 @@ namespace LancerEdit
                 ImGui.Separator();
                 if(Theme.IconMenuItem(Icons.Edit, "Rename", node != Utf.Root))
                 {
-                    text.SetText(node.Name);
-                    renameNode = node;
-                    popups.OpenPopup("Rename Node");
+                    RenameNode(node);
                 }
                 if (Theme.IconMenuItem(Icons.TrashAlt, "Delete", node != Utf.Root))
                 {
@@ -759,34 +698,18 @@ namespace LancerEdit
                 {
                     if (ImGui.MenuItem("Child"))
                     {
-                        text.SetText("");
-                        addParent = null;
-                        addNode = node;
-                        if (node.Data != null)
+                        ConfirmIf(node.Data != null, "Adding a node will clear data. Continue?", () =>
                         {
-                            Confirm("Adding a node will clear data. Continue?", () =>
-                            {
-                                popups.OpenPopup("New Node");
-                            });
-                        }
-                        else
-                            popups.OpenPopup("New Node");
+                            AddNode(null, node, 0);
+                        });
                     }
                     if (ImGui.MenuItem("Before", node != Utf.Root))
                     {
-                        text.SetText("");
-                        addParent = parent;
-                        addNode = node;
-                        addOffset = 0;
-                        popups.OpenPopup("New Node");
+                        AddNode(parent, node, 0);
                     }
                     if (ImGui.MenuItem("After", node != Utf.Root))
                     {
-                        text.SetText("");
-                        addParent = parent;
-                        addNode = node;
-                        addOffset = 1;
-                        popups.OpenPopup("New Node");
+                        AddNode(parent, node, 1);
                     }
                     ImGui.EndMenu();
                 }
@@ -824,8 +747,9 @@ namespace LancerEdit
                         }
                         if (ImGui.MenuItem("Into"))
                         {
-                            if (node.Data == null)
+                            ConfirmIf(node.Data != null, "Adding children will delete this node's data. Continue?", () =>
                             {
+                                node.Data = null;
                                 if (node.Children == null) node.Children = new List<LUtfNode>();
                                 var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
                                 if (cpy != null)
@@ -833,22 +757,7 @@ namespace LancerEdit
                                     cpy.Parent = node;
                                     node.Children.Add(cpy);
                                 }
-                            }
-                            else
-                            {
-                                pasteInto = node;
-                                Confirm("Adding children will delete this node's data. Continue?", () =>
-                                {
-                                    pasteInto.Data = null;
-                                    pasteInto.Children = new List<LUtfNode>();
-                                    var cpy = UtfClipboard.FromBytes(main.GetClipboardArray());
-                                    if (cpy != null)
-                                    {
-                                        cpy.Parent = pasteInto;
-                                        pasteInto.Children.Add(cpy);
-                                    }
-                                });
-                            }
+                            });
                         }
                         ImGui.EndMenu();
                     }
@@ -1048,8 +957,6 @@ namespace LancerEdit
             }
             if (isOpen)
                 ImGui.TreePop();
-
-
         }
     }
 }

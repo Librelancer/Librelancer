@@ -24,7 +24,7 @@ public class ArchetypeSelection : PopupWindow
         list = new ArchetypeList(gd, initial);
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         var sel = list.Draw("##archetypes");
         if (sel != null)

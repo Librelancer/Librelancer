@@ -21,7 +21,7 @@ public class NewActionPopup(Action<TriggerActions> onCreate) : PopupWindow
             .OrderBy(x => x.Item1)
             .ToArray();
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Action: ");

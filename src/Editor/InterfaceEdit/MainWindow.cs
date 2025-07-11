@@ -219,7 +219,7 @@ namespace InterfaceEdit
                 {
                     FileDialog.Open(OpenGui, projectFilters);
                 }
-                recentFiles.Menu();
+                recentFiles.Menu(Popups);
                 if (!playing && tabControl.Selected is SaveableTab saveable)
                 {
                     if (Theme.IconMenuItem(Icons.Save, $"Save '{saveable.Title}'",  true))
@@ -362,7 +362,6 @@ namespace InterfaceEdit
             }
             ImGui.End();
             variableEditor.Draw();
-            recentFiles.DrawErrors();
             if (openError)
             {
                 ImGui.OpenPopup("Error");

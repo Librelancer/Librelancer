@@ -76,7 +76,7 @@ public sealed class InfocardSelection : PopupWindow
 
     private bool searching = false;
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Search: ");

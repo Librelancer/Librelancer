@@ -82,7 +82,7 @@ namespace LibreLancer.ImUI
             return Path.Combine(path, file);
         }
 
-        public override void Draw()
+        public override void Draw(bool appearing)
         {
             bool hasFilename = fileNameSelected >= 0 && fileNameSelected < fileNames.Length;
             string selected = hasFilename

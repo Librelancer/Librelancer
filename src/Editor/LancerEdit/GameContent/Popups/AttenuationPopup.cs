@@ -43,7 +43,7 @@ public class AttenuationPopup : PopupWindow
         SetCurve(curve);
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (EnableAttenCurve)
         {

@@ -196,21 +196,6 @@ namespace LancerEdit
             Services.Add(Config);
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();
-            int loadFrames = 0;
-            Popups.AddPopup("Loading##systemviewer", _ =>
-            {
-                ImGui.TextUnformatted($"Loading Universe Editor");
-                ImGui.ProgressBar(OpenDataContext.PreviewLoadPercent, new Vector2(180, 0) * ImGuiHelper.Scale);
-                ImGuiHelper.AnimatingElement();
-                loadFrames++;
-                if ((loadFrames > 8 || loadFrames % 2 == 0) &&
-                    !OpenDataContext.IterateRenderArchetypePreviews(loadFrames > 8 ? 120 : 8))
-                {
-                    this.AddTab(new UniverseEditorTab(OpenDataContext, this));
-                    loadFrames = 0;
-                    ImGui.CloseCurrentPopup();
-                }
-            }, ImGuiWindowFlags.NoResize, true, new Vector2(200, 100) * ImGuiHelper.Scale);
             MinimumWindowSize = new Point(200, 200);
             h1 *= ImGuiHelper.Scale;
             h2 *= ImGuiHelper.Scale;
@@ -570,7 +555,7 @@ namespace LancerEdit
                     FileDialog.Open(OpenFile, AppFilters.UtfFilters + AppFilters.ThnFilters);
                 }
 
-                recentFiles.Menu();
+                recentFiles.Menu(Popups);
 
                 if (TabControl.Selected is EditorTab editorTab)
                     editorTab.SaveStrategy.DrawMenuOptions();
@@ -611,7 +596,7 @@ namespace LancerEdit
                         TabControl.SetSelected(fd);
                     else
                     {
-                        Popups.OpenPopup("Loading##systemviewer");
+                        Popups.OpenPopup(new UniverseLoadPopup(this));
                     }
                 }
 
@@ -772,7 +757,6 @@ namespace LancerEdit
             bool pOpen = true;
 
             Popups.Run();
-            recentFiles.DrawErrors();
             pOpen = true;
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{
@@ -790,32 +774,12 @@ namespace LancerEdit
 				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
-            pOpen = true;
             if(ImGuiExt.BeginModalNoClose("Processing", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGuiExt.Spinner("##spinner", 10, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
                 ImGui.Text("Processing");
                 if (finishLoading) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
-            //Confirmation
-            if (doConfirm)
-            {
-                ImGui.OpenPopup("Confirm?##mainwindow");
-                doConfirm = false;
-            }
-            pOpen = true;
-            if (ImGui.BeginPopupModal("Confirm?##mainwindow", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(confirmText);
-                if (ImGui.Button("Yes"))
-                {
-                    confirmAction();
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
             var menu_height = ImGui.GetWindowSize().Y;
@@ -970,15 +934,16 @@ namespace LancerEdit
             quickFileBrowser.Draw();
         }
 
-        string confirmText;
-        bool doConfirm = false;
-        Action confirmAction;
-
         public void Confirm(string text, Action action)
         {
-            doConfirm = true;
-            confirmAction = action;
-            confirmText = text;
+            Popups.MessageBox("Confirm?", text, false, MessageBoxButtons.YesNo,
+                x =>
+                {
+                    if (x == MessageBoxResponse.Yes)
+                    {
+                        action();
+                    }
+                });
         }
 
         void CenterText(string text)

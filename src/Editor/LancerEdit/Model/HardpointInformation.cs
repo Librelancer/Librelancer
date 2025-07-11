@@ -71,5 +71,38 @@ namespace LancerEdit
             AddRev("HpWeapon", HpNaming.Number, Icons.Rev_LightGreen);
             AddRev("HpConnect", HpNaming.None, Icons.Rev_Coral);
         }
+
+        public static int GetHpNumbering(string name, IEnumerable<string> existingNames)
+        {
+            int val = 0;
+            foreach (var hpName in existingNames)
+            {
+                if (hpName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    int a;
+                    if (int.TryParse(hpName.Substring(name.Length), out a))
+                    {
+                        val = Math.Max(a, val);
+                    }
+                }
+            }
+            return val + 1;
+        }
+
+        public static char GetHpLettering(string name, IEnumerable<string> existingNames)
+        {
+            int letter = (int)'`';
+            foreach (var hpName in existingNames)
+            {
+                if (hpName.StartsWith(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (hpName.Length > name.Length)
+                    {
+                        letter = Math.Max(char.ToLowerInvariant(hpName[name.Length]), letter);
+                    }
+                }
+            }
+            return char.ToUpperInvariant((char)(letter + 1));
+        }
     }
 }

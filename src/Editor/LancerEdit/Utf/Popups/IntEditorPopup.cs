@@ -29,7 +29,7 @@ public class IntEditorPopup : PopupWindow
         node = selectedNode;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(string.Format("Count: {0} ({1} bytes)", ints.Length, ints.Length * 4));

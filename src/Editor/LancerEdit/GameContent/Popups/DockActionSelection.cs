@@ -125,7 +125,7 @@ public class DockActionSelection : PopupWindow
     }
 
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         Combo("Kind: ", ref selectedKind, kindNames);
         if (selectedKind == baseKind)

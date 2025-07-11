@@ -167,7 +167,7 @@ public class TextureImportPopup : PopupWindow
         }
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (step == 2)
         {

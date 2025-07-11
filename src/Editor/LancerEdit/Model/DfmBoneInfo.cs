@@ -19,7 +19,7 @@ public class DfmBoneInfo : PopupWindow
         get => instance.Name;
         set { }
     }
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.Text("InvBindPose");
         ImGui.Text(instance.InvBindPose.ToString().Replace("} {", "}\n{"));

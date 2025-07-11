@@ -43,10 +43,10 @@ public class PatrolRouteDialog : PopupWindow
         this.onCancel = onCancel;
         this.gameData = gameData;
         this.system = system;
-        
+
         // Generate default path label using the current system's nickname
         pathLabel = $"{system.Nickname.ToLowerInvariant()}_patrol";
-        
+
         // Initialize faction lookup with first available faction
         var defaultFaction = gameData.GameData.Factions.FirstOrDefault();
         factionLookup = new FactionLookup("##faction", gameData, defaultFaction);
@@ -65,7 +65,7 @@ public class PatrolRouteDialog : PopupWindow
         encounters.Add(defaultEncounter);
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.Text("Configure patrol route parameters:");
         ImGui.Separator();
@@ -207,7 +207,7 @@ public class PatrolRouteDialog : PopupWindow
                     if(ImGui.InputInt("##chance", ref chance, 1))
                         encounter.Chance = chance;
                     ImGui.PopItemWidth();
-                    
+
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.SeparatorText("Factions");
@@ -271,7 +271,7 @@ public class PatrolRouteDialog : PopupWindow
                 ReliefTime = reliefTime,
                 Sort = sort
             };
-            
+
             // Collect encounters
             config.Encounters.AddRange(encounters);
 
@@ -279,7 +279,7 @@ public class PatrolRouteDialog : PopupWindow
             onConfirm(config);
             ImGui.CloseCurrentPopup();
         }
-        
+
         ImGui.SameLine();
         if (ImGui.Button("Cancel"))
         {
@@ -327,4 +327,4 @@ public class PatrolRouteConfig
     public int ReliefTime { get; set; }
     public float Sort { get; set; }
     public List<PatrolEncounter> Encounters { get; set; } = new();
-} 
+}

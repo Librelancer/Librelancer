@@ -20,7 +20,7 @@ public class FloatPopup : PopupWindow
     private PreviewValue preview;
     private bool setOk = false;
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         float last = current;
         ImGui.PushItemWidth(150 * ImGuiHelper.Scale);

@@ -19,7 +19,7 @@ public class DfmHpInfo : PopupWindow
         set { }
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.Text("Hardpoint Information\n---");
         ImGui.Text($"Translation: {hp.Hp.Position}");

@@ -72,7 +72,7 @@ public class IdsSearch : PopupWindow
         return dlg;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (searchResultsOpen) DrawSearchResults();
         if (dialogState == 0)
