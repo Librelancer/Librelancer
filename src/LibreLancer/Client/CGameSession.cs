@@ -574,6 +574,18 @@ namespace LibreLancer.Client
 
         public Action<IPacket> ExtraPackets;
 
+        NetCargo ResolveCargo(NetShipCargo cg)
+        {
+            var equip = Game.GameData.Equipment.Get(cg.EquipCRC);
+            return new NetCargo(cg.ID)
+            {
+                Equipment = equip,
+                Hardpoint = cg.Hardpoint,
+                Health = cg.Health / 255f,
+                Count = cg.Count
+            };
+        }
+
 
         void SetSelfLoadout(NetLoadout ld)
         {
@@ -585,14 +597,7 @@ namespace LibreLancer.Client
             {
                 foreach (var cg in ld.Items)
                 {
-                    var equip = Game.GameData.Equipment.Get(cg.EquipCRC);
-                    Items.Add(new NetCargo(cg.ID)
-                    {
-                        Equipment = equip,
-                        Hardpoint = cg.Hardpoint,
-                        Health = cg.Health / 255f,
-                        Count = cg.Count
-                    });
+                    Items.Add(ResolveCargo(cg));
                 }
             }
         }
@@ -850,12 +855,14 @@ namespace LibreLancer.Client
             }
         }
 
-        void IClientPlayer.UpdateInventory(long credits, ulong shipWorth, ulong netWorth, NetLoadout loadout)
+        private PlayerInventory lastInventory = new();
+        void IClientPlayer.UpdateInventory(PlayerInventoryDiff diff)
         {
-            Credits = credits;
-            ShipWorth = shipWorth;
-            NetWorth = (long)netWorth;
-            SetSelfLoadout(loadout);
+            lastInventory = diff.Apply(lastInventory);
+            Credits = lastInventory.Credits;
+            ShipWorth = lastInventory.ShipWorth;
+            NetWorth = (long)lastInventory.NetWorth;
+            SetSelfLoadout(lastInventory.Loadout);
             if (OnUpdateInventory != null)
             {
                 uiActions.Enqueue(OnUpdateInventory);
@@ -1533,6 +1540,63 @@ namespace LibreLancer.Client
                 }
             });
         }
+
+        private ObjNetId scanId;
+        private NetLoadout scanLoadout;
+        private UIInventoryItem[] scannedInventory = [];
+        void IClientPlayer.ClearScan()
+        {
+            scanLoadout = null;
+            scanId = null;
+            scannedInventory = [];
+            gameplayActions.Enqueue(() => gp.ClearScan());
+        }
+
+        void IClientPlayer.UpdateScan(ObjNetId id, NetLoadoutDiff diff)
+        {
+            scanLoadout ??= new NetLoadout();
+            scanId = id;
+            scanLoadout = diff.Apply(scanLoadout);
+            scannedInventory = BuildScanList(scanLoadout);
+            gameplayActions.Enqueue(() => { gp.UpdateScan(); });
+        }
+
+        public static UIInventoryItem FromNetCargo(NetCargo item)
+        {
+            return new UIInventoryItem()
+            {
+                ID = item.ID,
+                Count = item.Count,
+                Icon = item.Equipment.Good.Ini.ItemIcon,
+                Good = item.Equipment.Good.Ini.Nickname,
+                IdsInfo = item.Equipment.IdsInfo,
+                IdsName = item.Equipment.IdsName,
+                Volume = item.Equipment.Volume,
+                Combinable = item.Equipment.Good.Ini.Combinable,
+                CanMount = false,
+                Equipment = item.Equipment,
+                Hardpoint = item.Hardpoint
+            };
+        }
+
+        UIInventoryItem[] BuildScanList(NetLoadout loadout)
+        {
+            var list = loadout.Items
+                .Select(ResolveCargo)
+                .Where(x => x.Equipment.Good != null)
+                .Select(FromNetCargo)
+                .ToList();
+            Trader.SortGoods(this, list);
+            return list.ToArray();
+        }
+
+
+        public UIInventoryItem[] GetScannedInventory(string filter)
+        {
+            var predicate = Trader.GetFilter(filter);
+            return scannedInventory.Where(x => predicate(x.Equipment)).ToArray();
+        }
+
 
         void IClientPlayer.UpdatePlayTime(double time, DateTime startTime)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using LibreLancer.Sounds;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.GameData.Items
 {
@@ -13,7 +14,8 @@ namespace LibreLancer.GameData.Items
         static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type,
             string hardpoint, Equipment equip)
         {
-            //Nop out
+            var scan = new ScannerComponent(parent, (ScannerEquipment)equip);
+            parent.AddComponent(scan);
             return null;
         }
     }

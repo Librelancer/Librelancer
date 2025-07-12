@@ -36,7 +36,6 @@ namespace LibreLancer.Thn
                     Instance.SetPosition(Object.Translate);
                     lastTranslate = Object.Translate;
                 }
-                Instance.UpdateProperties();
             }
         }
     }
@@ -64,7 +63,6 @@ namespace LibreLancer.Thn
             var inst = man.GetInstance(SoundName, Attenuation, Props.Dmin, Props.Dmax,
                 Spatial ? (Vector3?) Object.Translate : null);
             if(inst == null) return null;
-            inst.DisposeOnStop = oneShot;
             return new ThnSoundInstance(this, inst);
         }
 

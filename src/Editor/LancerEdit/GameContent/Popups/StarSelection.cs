@@ -47,7 +47,7 @@ public class StarSelection : PopupWindow
         textCallback = OnTextChanged;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (DrawTable("##suns", out var sel))
         {

@@ -18,8 +18,6 @@ namespace LibreLancer
 
         [Entry("freelancer_path")]
 		public string FreelancerPath = "";
-        [Entry("intro_movies")]
-        public bool IntroMovies = true;
         [Entry("res_width")]
 		public int BufferWidth = 1024;
         [Entry("res_height")]
@@ -121,7 +119,6 @@ namespace LibreLancer
             writer.WriteLine($"freelancer_path = {FreelancerPath}");
             writer.WriteLine($"res_width = {BufferWidth}");
             writer.WriteLine($"res_height = {BufferHeight}");
-            writer.WriteLine($"intro_movies = {IntroMovies}");
             writer.WriteLine($"uuid = {UUID.Value:D}");
             writer.WriteLine();
             Settings.Write(writer);

@@ -111,6 +111,40 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Selected>
 	</ButtonStyle>
+	<ButtonStyle Width="18" Height="18" Name="hud_tractorbeam">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_tractorbeam2" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_tractorbeam2" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_tractorbeam2" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+	<ButtonStyle Width="18" Height="18" Name="hud_scanship">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_scanship" Tint="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_scanship" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="hud_scanship" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
 	<ButtonStyle Width="16" Height="16" Name="hud_contactall">
 		<ButtonStyle.Normal>
 			<ButtonAppearance.Background>

@@ -4,7 +4,7 @@
 
 namespace LibreLancer.Media
 {
-    public enum SoundType
+    public enum SoundCategory
     {
         Sfx,
         Voice

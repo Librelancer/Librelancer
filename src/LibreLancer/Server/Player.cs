@@ -25,6 +25,8 @@ using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using LiteNetLib;
+using DisconnectReason = LibreLancer.Net.DisconnectReason;
 using Ship = LibreLancer.GameData.Ship;
 using StarSystem = LibreLancer.GameData.World.StarSystem;
 using SystemObject = LibreLancer.GameData.World.SystemObject;
@@ -291,6 +293,7 @@ namespace LibreLancer.Server
 
         void SpaceInitialSpawn(SaveGame sg)
         {
+            ClearScan();
             var sys = Game.GameData.Systems.Get(System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
@@ -534,6 +537,31 @@ namespace LibreLancer.Server
             }
         }
 
+        private NetLoadout _scanLoadout;
+        private ObjNetId _scanId;
+        public void ClearScan()
+        {
+            if (_scanLoadout != null)
+            {
+                _scanLoadout = null;
+                RpcClient.ClearScan();
+            }
+        }
+
+        public void UpdateScan(ObjNetId id, NetLoadout loadout)
+        {
+            _scanLoadout ??= new();
+            var diff = NetLoadoutDiff.Create(_scanLoadout, loadout);
+            if (_scanId != id ||
+                diff.ApplyArchetype || diff.ApplyHealth ||
+                diff.Items != null)
+            {
+                RpcClient.UpdateScan(id, diff);
+            }
+            _scanLoadout = loadout;
+            _scanId = id;
+        }
+
         void IServerPlayer.RTCMissionAccepted()
         {
             msnRuntime?.MissionAccepted();
@@ -672,9 +700,23 @@ namespace LibreLancer.Server
             }).ToArray());
         }
 
+        private PlayerInventory lastInventory = new();
+
         public void UpdateCurrentInventory()
         {
-            rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), (ulong)CalculateNetWorth(), Character.EncodeLoadout());
+            PlayerInventory newInventory = new()
+            {
+                Credits = Character.Credits,
+                ShipWorth = GetShipWorth(),
+                NetWorth = (ulong)CalculateNetWorth(),
+                Loadout = Character.EncodeLoadout()
+            };
+            var diff = PlayerInventoryDiff.Create(lastInventory, newInventory);
+            lastInventory = newInventory;
+            if (diff.Header != 0)
+            {
+                rpcClient.UpdateInventory(diff);
+            }
             Story?.Update(this);
         }
 
@@ -805,13 +847,13 @@ namespace LibreLancer.Server
             LoggedOut();
         }
 
-        public void JumpTo(string system, string target)
+        public void JumpTo(string system, string target, JumperNpc[] jumpers)
         {
             rpcClient.StartJumpTunnel();
             FLLog.Debug("Player", $"Jumping to {system} - {target}");
             if(Space != null) Space.Leave(false);
             Space = null;
-
+            ClearScan();
             var sys = Game.GameData.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
@@ -841,7 +883,12 @@ namespace LibreLancer.Server
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
+                    msnRuntime?.SystemEnter(system, "Player");
                 });
+                world.DelayAction(() =>
+                {
+                    world.SpawnJumpers(target, jumpers);
+                }, 4);
             }, msnPreload);
         }
 
@@ -851,6 +898,7 @@ namespace LibreLancer.Server
                 FLLog.Error("Server", $"{Name} cannot launch without a ship");
                 return;
             }
+            ClearScan();
             var b = Game.GameData.Bases.Get(Base);
             var sys = Game.GameData.Systems.Get(b.System);
             Game.Worlds.RequestWorld(sys, (world) =>

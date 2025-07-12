@@ -34,14 +34,11 @@ namespace LibreLancer.GameData.Items
             obj.RenderComponent = new ParticleEffectRenderer(e.Particles.GetEffect(res));
             obj.AddComponent(new CUpdateSParamComponent(obj));
 
-            if (e.Particles.Sound is not null)
+            if (e.Particles.Sound is not null &&
+                snd != null)
             {
                 snd.LoadSound(e.Particles.Sound.Nickname);
-                obj.AddComponent(new CSoundEffectComponent(parent, new AttachedSound(snd)
-                {
-                    Active = true,
-                    Sound = e.Particles.Sound.Nickname,
-                }));
+                obj.AddComponent(new CSoundEffectComponent(parent, snd, e.Particles.Sound.Nickname));
             }
 
             return obj;

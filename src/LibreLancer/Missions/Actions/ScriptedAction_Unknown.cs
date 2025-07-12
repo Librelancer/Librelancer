@@ -690,24 +690,7 @@ public class Act_StaticCam : ScriptedAction
     }
 }
 
-public class Act_SpawnLoot : ScriptedAction
-{
-    public string Loot = string.Empty;
 
-    public Act_SpawnLoot()
-    {
-    }
-
-    public Act_SpawnLoot(MissionAction act) : base(act)
-    {
-        Loot = act.Entry[0].ToString();
-    }
-
-    public override void Write(IniBuilder.IniSectionBuilder section)
-    {
-        section.Entry("Act_SpawnLoot", Loot);
-    }
-}
 
 public class Act_SetNNState : ScriptedAction
 {

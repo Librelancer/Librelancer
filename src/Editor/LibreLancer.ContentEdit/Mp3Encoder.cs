@@ -211,8 +211,17 @@ public static class Mp3Encoder
             return;
         }
 
-        AudioImporter.ImportMp3(mp3file.ToArray(), output);
-        log("Done");
+        var result = AudioImporter.ImportMp3(mp3file.ToArray(), output);
+        foreach (var msg in result.Messages)
+            log(msg.ToString());
+        if (result.IsError)
+        {
+            log("Failed!");
+        }
+        else
+        {
+            log("Done");
+        }
     }
 
 

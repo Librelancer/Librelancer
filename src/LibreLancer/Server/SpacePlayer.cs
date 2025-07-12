@@ -113,4 +113,24 @@ public class SpacePlayer : ISpacePlayer
             obj.GetComponent<SHealthComponent>()?.UseShieldBatteries();
         });
     }
+
+    public void StopScan()
+    {
+        world.EnqueueAction(() =>
+        {
+            World.Players[player].GetComponent<SPlayerComponent>().StopScan();
+        });
+    }
+
+    public void Scan(ObjNetId id)
+    {
+        world.EnqueueAction(() =>
+        {
+            var other = world.GameWorld.GetObject(id);
+            if (other != null)
+            {
+                World.Players[player].GetComponent<SPlayerComponent>().Scan(other);
+            }
+        });
+    }
 }

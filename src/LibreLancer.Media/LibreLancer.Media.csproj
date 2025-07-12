@@ -22,9 +22,4 @@
     <Folder Include="Properties" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CoreAudio" Version="1.37.0" />
-    <PackageReference Include="SharpDX.MediaFoundation" Version="4.2.0" />
-  </ItemGroup>
-
 </Project>

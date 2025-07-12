@@ -34,7 +34,7 @@ public class MusicSelection : PopupWindow
         this.gd = gd;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.PushItemWidth(200 * ImGuiHelper.Scale);
         dropdown.Draw();

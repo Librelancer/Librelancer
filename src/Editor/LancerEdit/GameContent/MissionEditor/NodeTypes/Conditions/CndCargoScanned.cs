@@ -24,8 +24,8 @@ public class CndCargoScanned : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         // TODO: transform this into a combobox of different ships or a object depending on type
-        Controls.InputTextId("Scanning Ship", ref Data.scanningShip);
-        Controls.InputTextId("Scanned Ship", ref Data.scannedShip);
+        Controls.InputTextId("Scanning Ship", ref Data.ScanningShip);
+        Controls.InputTextId("Scanned Ship", ref Data.ScannedShip);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -67,12 +67,9 @@ namespace LibreLancer
             return new NativeBuffer(mem, size, callerName);
         }
 
-        public static byte[] CastArray<T>(T[] src) where T : struct
+        public static byte[] CastArray<T>(T[] src) where T : unmanaged
         {
-            var sz = Marshal.SizeOf(typeof(T));
-            byte[] dst = new byte[src.Length * sz];
-            Buffer.BlockCopy(src, 0, dst, 0, dst.Length);
-            return dst;
+            return MemoryMarshal.AsBytes(src.AsSpan()).ToArray();
         }
         public static unsafe string PtrToStringUTF8(IntPtr intptr, int maxBytes = int.MaxValue)
         {

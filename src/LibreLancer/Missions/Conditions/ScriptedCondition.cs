@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Missions.Actions;
 using LibreLancer.Missions.Events;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.Missions.Conditions;
 
@@ -663,7 +665,7 @@ public class Cnd_NPCSystemExit : ScriptedCondition
     }
 }
 
-public class Cnd_NPCSystemEnter : ScriptedCondition
+public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
 {
     public string system = string.Empty;
     public List<string> ships = [];
@@ -679,6 +681,27 @@ public class Cnd_NPCSystemEnter : ScriptedCondition
         {
             ships.Add(value.ToString()!);
         }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        var checking = new ConditionHashSet();
+        foreach (var sh in ships)
+            checking.Values.Add(sh);
+        self.Storage = checking;
+    }
+
+    public override void OnEvent(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        if (!ev.System.Equals(system, StringComparison.OrdinalIgnoreCase))
+            return;
+        var v = (ConditionHashSet)self.Storage;
+        v.Values.Remove(ev.Ship);
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return ((ConditionHashSet)self.Storage).Values.Count == 0;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -914,6 +937,21 @@ public class Cnd_HealthDec : ScriptedCondition
     {
         target = entry[0].ToString();
         percent = entry[1].ToSingle();
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if(!runtime.GetSpace(out var space))
+            return false;
+        var obj = space.World.GameWorld.GetObject(target);
+        if (obj == null)
+            return false;
+        if (obj.TryGetComponent<SHealthComponent>(out var health))
+        {
+            var pct = health.CurrentHealth / health.MaxHealth;
+            return pct <= percent;
+        }
+        return false;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -1351,10 +1389,10 @@ public class Cnd_CharSelect : SingleEventListenerCondition<CharSelectEvent>
     }
 }
 
-public class Cnd_CargoScanned : ScriptedCondition
+public class Cnd_CargoScanned : SingleEventListenerCondition<CargoScannedEvent>
 {
-    public string scanningShip = string.Empty;
-    public string scannedShip = string.Empty;
+    public string ScanningShip = string.Empty;
+    public string ScannedShip = string.Empty;
 
     public Cnd_CargoScanned()
     {
@@ -1362,14 +1400,17 @@ public class Cnd_CargoScanned : ScriptedCondition
 
     public Cnd_CargoScanned([NotNull] Entry entry)
     {
-        scanningShip = entry[0].ToString();
-        scannedShip = entry[1].ToString();
+        ScanningShip = entry[0].ToString();
+        ScannedShip = entry[1].ToString();
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_CargoScanned", scanningShip, scannedShip);
+        section.Entry("Cnd_CargoScanned", ScanningShip, ScannedShip);
     }
+
+    protected override bool EventCheck(CargoScannedEvent ev, MissionRuntime runtime, ActiveCondition self) =>
+        IdEqual(ScanningShip, ev.ScanningShip) && IdEqual(ScannedShip, ev.ScannedShip);
 }
 
 public class Cnd_BaseExit : ScriptedCondition

@@ -134,7 +134,7 @@ namespace LibreLancer.ImUI
 
 
         [DllImport("cimgui")]
-        static extern unsafe bool igButtonEx2(byte* label, float sizeX, float sizeY, int drawFlags);
+        static extern unsafe byte igButtonEx2(byte* label, float sizeX, float sizeY, int drawFlags);
 
         public static unsafe void ButtonDivided(string id, string label1, string label2, ref bool isOne)
         {
@@ -149,7 +149,7 @@ namespace LibreLancer.ImUI
             fixed (byte* a = z1.ToUTF8Z()) {
                 if (wasOne)
                     ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
-                if (igButtonEx2(a, 0, 0, (int)ImDrawFlags.RoundCornersLeft))
+                if (igButtonEx2(a, 0, 0, (int)ImDrawFlags.RoundCornersLeft) != 0)
                 {
                     isOne = true;
                 }
@@ -161,7 +161,7 @@ namespace LibreLancer.ImUI
             fixed (byte* b = z2.ToUTF8Z()) {
                 if (!wasOne)
                     ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
-                if (igButtonEx2(b, 0, 0, (int)ImDrawFlags.RoundCornersRight))
+                if (igButtonEx2(b, 0, 0, (int)ImDrawFlags.RoundCornersRight) != 0)
                     isOne = false;
                 if (!wasOne)
                     ImGui.PopStyleColor();

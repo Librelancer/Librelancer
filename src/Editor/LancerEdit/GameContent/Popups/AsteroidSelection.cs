@@ -36,7 +36,7 @@ public class AsteroidSelection : PopupWindow
     }
 
     private bool showIncompatible = true;
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if(compatibleCrc != 0)
             ImGui.Checkbox("Show incompatible asteroids", ref showIncompatible);

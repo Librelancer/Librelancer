@@ -258,7 +258,7 @@ namespace LibreLancer.Server.Components
                     {
                         if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                         {
-                            player.Player.JumpTo(Action.Target, Action.Exit);
+                            player.Player.JumpTo(Action.Target, Action.Exit, Parent.World.Server.GatherJumpers());
                         }
                         else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                         {

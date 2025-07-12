@@ -21,16 +21,16 @@ namespace LibreLancer.Server.Components
         private NPCManager manager;
         public MissionRuntime MissionRuntime;
 
-        private GameData.Pilot Pilot;
-        private StateGraph _stateGraph;
+        public GameData.Pilot Pilot;
+        public StateGraph StateGraph;
 
         private Random random = new Random();
 
         public float GetStateValue(StateGraphEntry row, StateGraphEntry column, float defaultVal = 0.0f)
         {
-            if (_stateGraph == null) return defaultVal;
-            if ((int) row >= _stateGraph.Data.Count) return defaultVal;
-            var tableRow = _stateGraph.Data[(int) row];
+            if (StateGraph == null) return defaultVal;
+            if ((int) row >= StateGraph.Data.Count) return defaultVal;
+            var tableRow = StateGraph.Data[(int) row];
             if ((int) column >= tableRow.Length) return defaultVal;
             return tableRow[(int) column];
         }
@@ -40,7 +40,7 @@ namespace LibreLancer.Server.Components
         public SNPCComponent(GameObject parent, NPCManager manager, StateGraph stateGraph) : base(parent)
         {
             this.manager = manager;
-            _stateGraph = stateGraph;
+            StateGraph = stateGraph;
         }
 
         public void StartTradelane()

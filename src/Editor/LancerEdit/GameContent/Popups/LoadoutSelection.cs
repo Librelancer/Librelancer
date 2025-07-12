@@ -48,7 +48,7 @@ public class LoadoutSelection : PopupWindow
         return 0;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (doFiltering)
             filteredLoadouts = filters.Filter(filterText, allLoadouts, filterCompatible ? "compatible" : "").ToArray();

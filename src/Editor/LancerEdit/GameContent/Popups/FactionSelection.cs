@@ -21,7 +21,7 @@ public class FactionSelection : PopupWindow
         Title = title;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.PushItemWidth(300 * ImGuiHelper.Scale);
         lookup.Draw();

@@ -156,7 +156,7 @@ public class AudioImportPopup : PopupWindow
     private bool finished = false;
     private AppLog log;
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (converting)
         {

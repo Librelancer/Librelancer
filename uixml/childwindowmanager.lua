@@ -14,8 +14,11 @@ class childwindowmanager
         this.CanOpen = true;
     }
     
-    OpenWindow(widget, window)
+    OpenWindow(widget, window, override)
     {
+    	if(override && this.ActiveWindow == window) {
+    		return;
+    	}
         if(this.ActiveWindow == window) {
             this.CanOpen = false;
             window.Close();

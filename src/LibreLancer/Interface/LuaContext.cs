@@ -12,6 +12,7 @@ using LibreLancer.Infocards;
 using LibreLancer.Interface.WattleMaths;
 using LibreLancer.Net;
 using WattleScript.Interpreter;
+using WattleScript.Interpreter.CoreLib;
 using WattleScript.Interpreter.Interop.BasicDescriptors;
 using WattleScript.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
 using WattleScript.Interpreter.Loaders;
@@ -60,6 +61,9 @@ namespace LibreLancer.Interface
             script.Globals["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>();
             script.Globals["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>();
             script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
+            var debugTable = DynValue.NewTable(script);
+            debugTable.Table["traceback"] = DebugModule.traceback;
+            script.Globals["debug"] = debugTable;
             script.Options.ScriptLoader = new UiScriptLoader(context);
             var globalTable = script.Globals;
             globalTable["ScreenWidth"] = () => 480 * (context.ViewportWidth / context.ViewportHeight);

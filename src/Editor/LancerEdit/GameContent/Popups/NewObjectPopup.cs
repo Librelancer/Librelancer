@@ -32,7 +32,7 @@ public class NewObjectPopup : PopupWindow
         this.Position = position;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Nickname: ");

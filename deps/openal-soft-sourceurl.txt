@@ -1,1 +1,1 @@
-http://kcat.strangesoft.net/openal-releases/openal-soft-1.23.1.tar.bz2
+http://kcat.strangesoft.net/openal-releases/openal-soft-1.24.3.tar.bz2

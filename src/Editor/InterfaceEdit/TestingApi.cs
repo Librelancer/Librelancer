@@ -154,6 +154,10 @@ namespace InterfaceEdit
 
         private int selIndex = -1;
         public int Count => contacts.Length;
+
+        [WattleScriptHidden]
+        public int SelectedIndex => selIndex;
+
         public bool IsSelected(int index) => selIndex == index;
 
         public void SelectIndex(int index) => selIndex = index;
@@ -235,7 +239,9 @@ namespace InterfaceEdit
 
         public GameSettings GetCurrentSettings() => settings.MakeCopy();
 
-        public FakeContactList GetContactList() => new FakeContactList();
+        private FakeContactList contacts = new();
+
+        public FakeContactList GetContactList() => contacts;
 
         public UiNewCharacter[] GetNewCharacters()
         {
@@ -417,6 +423,69 @@ namespace InterfaceEdit
         public float GetPlayerShield() => 0.8f;
 
         public float GetPlayerPower() => 1f;
+
+
+        public static UIInventoryItem[] scanitems = new[]
+            {
+                new UIInventoryItem()
+                {
+                    Hardpoint = "HpWeapon01",
+                    IdsHardpoint = 1526,
+                    IdsHardpointDescription = 907,
+                    Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
+                    IdsName = 263175,
+                    IdsInfo = 264175,
+                    Volume = 0,
+                },
+                new UIInventoryItem()
+                {
+                    Hardpoint = "HpWeapon02",
+                    IdsHardpoint = 1527,
+                    IdsHardpointDescription = 907
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"Equipment\models\commodities\nn_icons\COMMOD_chemicals.3db",
+                    Price = 240,
+                    IdsName = 261626,
+                    IdsInfo = 65908,
+                    Combinable = true,
+                    Count = 32,
+                    Volume = 1
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"Equipment\models\commodities\nn_icons\COMMOD_metals.3db",
+                    Price = 40,
+                    IdsName = 261627,
+                    IdsInfo = 65908,
+                    Combinable = true,
+                    Count = 1,
+                    Volume = 1
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
+                    Price = 1000,
+                    IdsName = 263175,
+                    IdsInfo = 264175,
+                    Combinable = false,
+                    Count = 1,
+                    MountIcon = false,
+                    CanMount = false
+                },
+                new UIInventoryItem()
+                {
+                    Icon = @"equipment\models\commodities\nn_icons\EQUIPICON_gun.3db",
+                    Price = 2000,
+                    IdsName = 263177,
+                    IdsInfo = 264177,
+                    Combinable = false,
+                    Count = 1,
+                    MountIcon = false,
+                    CanMount = false
+                },
+            };
 
         public class TraderFake
         {
@@ -627,6 +696,53 @@ namespace InterfaceEdit
         public void DeleteCharacter() { }
 
         public void NewCharacter(string name, int index) { }
+
+
+        public bool CanScanSelected() => contacts.SelectedIndex == 0;
+
+        public void ScanSelected()
+        {
+            if (contacts.SelectedIndex == 0)
+            {
+                scanHandler.Call(true);
+            }
+        }
+
+        public void StopScan()
+        {
+
+        }
+
+        public bool CanTractorSelected() => contacts.SelectedIndex == 1;
+        public bool CanTractorAll() => true;
+
+        public void TractorSelected()
+        {
+        }
+
+        public void TractorAll()
+        {
+        }
+
+        public Infocard _ScannedInfocard;
+        public Infocard GetScannedShipInfocard()
+        {
+            return _ScannedInfocard;
+        }
+
+        public UIInventoryItem[] GetScannedInventory(string filter) => scanitems;
+
+        public UIInventoryItem[] GetPlayerInventory(string filter) => scanitems;
+
+        private Closure scanHandler;
+        public void OnUpdateScannedInventory(Closure handler)
+        {
+            this.scanHandler = handler;
+        }
+
+        public void OnUpdatePlayerInventory(Closure handler)
+        {
+        }
     }
 
 
@@ -672,5 +788,6 @@ namespace InterfaceEdit
 
         public UIInventoryItem[] GetPlayerGoods(string filter) => TestingApi.TraderFake.pitems;
         public UIInventoryItem[] GetDealerGoods(string filter) => TestingApi.TraderFake.titems;
+
     }
 }

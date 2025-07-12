@@ -158,6 +158,7 @@ namespace InterfaceEdit
                 projectWindow.IsOpen = true;
                 tabControl.Tabs.Add(new StylesheetEditor(Project.XmlFolder, Project.XmlLoader, Project.UiData));
                 TestApi._Infocard = Project.TestingInfocard;
+                TestApi._ScannedInfocard = Project.ShipInfocard;
                 var str = new StringDeduplication();
                 var anm = new AnmFile();
                 using(var f = Project.UiData.FileSystem.Open(Project.UiData.DataPath + @"characters\animations\bodygenericmale.anm"))
@@ -218,7 +219,7 @@ namespace InterfaceEdit
                 {
                     FileDialog.Open(OpenGui, projectFilters);
                 }
-                recentFiles.Menu();
+                recentFiles.Menu(Popups);
                 if (!playing && tabControl.Selected is SaveableTab saveable)
                 {
                     if (Theme.IconMenuItem(Icons.Save, $"Save '{saveable.Title}'",  true))
@@ -361,7 +362,6 @@ namespace InterfaceEdit
             }
             ImGui.End();
             variableEditor.Draw();
-            recentFiles.DrawErrors();
             if (openError)
             {
                 ImGui.OpenPopup("Error");

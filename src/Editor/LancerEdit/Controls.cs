@@ -40,7 +40,7 @@ public static class Controls
         return ImGuiExt.ToggleButton(id, !set);
     }
 
-    public static void InputTextId(string label, ref string value, float width = 0.0f)
+    public static bool InputTextId(string label, ref string value, float width = 0.0f)
     {
         if (width != 0.0f)
         {
@@ -48,7 +48,8 @@ public static class Controls
         }
 
         value ??= "";
-        ImGui.InputText(label, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
+        return ImGui.InputText(label, ref value, 250,
+            ImGuiInputTextFlags.CallbackCharFilter | ImGuiInputTextFlags.EnterReturnsTrue, callback);
     }
 
     public static bool SmallButton(string text)

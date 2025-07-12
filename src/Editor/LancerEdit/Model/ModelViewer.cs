@@ -183,20 +183,6 @@ namespace LancerEdit
             maxDistance += 50;
 
             popups = new PopupManager();
-            popups.AddPopup("Confirm Delete", ConfirmDelete, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Warning", MinMaxWarning, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Apply Complete", (x) =>
-            {
-                ImGui.Text("Hardpoints successfully written");
-                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            },ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Apply Complete##Parts", (x) =>
-            {
-                ImGui.Text("Parts successfully written");
-                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            }, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("New Hardpoint", NewHardpoint, ImGuiWindowFlags.AlwaysAutoResize);
-
             layout = new VerticalTabLayout(DrawLeft, _ => { }, DrawMiddle);
 
             if(drawable is CmpFile || drawable is ModelFile)
@@ -378,7 +364,6 @@ namespace LancerEdit
             if (skel != null) {
                 skel.UpdateScripts(elapsed);
             }
-            if (newErrorTimer > 0) newErrorTimer -= elapsed;
         }
         Vector2 rotation = Vector2.Zero;
 
@@ -576,10 +561,7 @@ namespace LancerEdit
             switch(act) {
                 case ContextActions.NewFixed:
                 case ContextActions.NewRevolute:
-                    newIsFixed = act == ContextActions.NewFixed;
-                    addTo = part;
-                    newHpBuffer.Clear();
-                    popups.OpenPopup("New Hardpoint");
+                    NewHardpoint(act == ContextActions.NewFixed, part);
                     break;
             }
             if (open)
@@ -619,9 +601,7 @@ namespace LancerEdit
                     var action = EditDeleteHpMenu(part.Path + hp.Name);
                     if (action == ContextActions.Delete)
                     {
-                        hpDelete = hp;
-                        hpDeleteFrom = part.Hardpoints;
-                        popups.OpenPopup("Confirm Delete");
+                        DeleteHardpoint(hp, part.Hardpoints);
                     }
                     if (action == ContextActions.Edit) hpEditing = hp;
                     if (action == ContextActions.Dup)
@@ -847,7 +827,7 @@ namespace LancerEdit
                     _isDirtyHp = false;
                     parent.DirtyCountHp--;
                 }
-                popups.OpenPopup("Apply Complete");
+                popups.MessageBox("Apply Complete", "Hardpoints successfully written");
             }
             if (vmsModel.AllParts.Length > 1 && ImGuiExt.Button("Apply Parts", _isDirtyPart))
             {
@@ -857,7 +837,8 @@ namespace LancerEdit
                     _isDirtyPart = false;
                     parent.DirtyCountPart--;
                 }
-                popups.OpenPopup("Apply Complete##Parts");
+
+                popups.MessageBox("Apply Complete", "Parts successfully written");
             }
             if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
             if (doFilter) {
@@ -1183,7 +1164,6 @@ namespace LancerEdit
             modelViewport.Dispose();
             imageViewport.Dispose();
             previewViewport.Dispose();
-            newHpBuffer.Dispose();
             parent?.DereferenceDetached();
             normalVis?.Dispose();
         }

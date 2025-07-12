@@ -185,6 +185,36 @@ namespace LibreLancer.Server.Components
             return found;
         }
 
+        public GameObject Scanning;
+
+        public void StopScan()
+        {
+            Player.ClearScan();
+            Scanning = null;
+        }
+
+        public void Scan(GameObject obj)
+        {
+            if (TryScan(obj, out _))
+            {
+                Scanning = obj;
+                Player.MissionRuntime?.CargoScanned("Player", obj.Nickname);
+            }
+            else
+            {
+                Scanning = null;
+                Player.ClearScan();
+            }
+        }
+
+        bool TryScan(GameObject obj, out NetLoadout loadout)
+        {
+            loadout = null;
+            return Parent.TryGetComponent<ScannerComponent>(out var scanner) &&
+                   scanner.CanScan(obj) &&
+                   Parent.GetWorld().Server.TryScanCargo(obj, out loadout);
+        }
+
         private ulong formationHash = 0;
         public override void Update(double time)
         {
@@ -234,6 +264,18 @@ namespace LibreLancer.Server.Components
                     Player.VisitObject(obj.SystemObject, obj.NicknameCRC);
                 }
             }
+
+            if (Scanning != null)
+            {
+                if (TryScan(Scanning, out var ld))
+                {
+                    Player.UpdateScan(Scanning, ld);
+                }
+                else
+                {
+                    Player.ClearScan();
+                }
+            }
         }
 
         public override int TryConsume(Equipment item, int maxCount = 1)
@@ -273,6 +315,14 @@ namespace LibreLancer.Server.Components
         {
             var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment is T);
             return (T)slot?.Equipment;
+        }
+
+        public override IEnumerable<NetShipCargo> GetCargo(int firstId)
+        {
+            foreach (var i in Player.Character.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
+            {
+                yield return new NetShipCargo(i.ID, i.Equipment.CRC, null, 255, i.Count);
+            }
         }
     }
 }

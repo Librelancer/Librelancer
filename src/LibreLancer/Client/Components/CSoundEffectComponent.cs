@@ -10,14 +10,21 @@ public class CSoundEffectComponent : GameComponent
     private readonly GameObject parent;
     private readonly AttachedSound sound;
 
-    public CSoundEffectComponent(GameObject obj, AttachedSound snd) : base(obj)
+    public CSoundEffectComponent(GameObject obj, SoundManager snd, string soundName) : base(obj)
     {
-        sound = snd;
         parent = obj;
+        if (snd != null)
+        {
+            sound = new AttachedSound(snd);
+            sound.Sound = soundName;
+        }
     }
 
     public override void Update(double time)
     {
+        if (sound == null)
+            return;
+
         var tr = parent.WorldTransform;
         var pos = tr.Position;
         var vel = Vector3.Zero;
@@ -27,11 +34,11 @@ public class CSoundEffectComponent : GameComponent
             vel = parent.PhysicsComponent.Body.LinearVelocity;
         }
 
-        sound.Active = true;
         sound.Position = pos;
         sound.Velocity = vel;
+        sound.PlayIfInactive(true);
         sound.Update();
     }
 
-    public override void Unregister(PhysicsWorld physics) => sound.Kill();
+    public override void Unregister(PhysicsWorld physics) => sound?.Stop();
 }

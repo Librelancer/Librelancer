@@ -27,7 +27,7 @@ public class ColorPicker : PopupWindow
         this.onSelect = (a) => onSelect(a.Rgb);
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGuiExt.ColorPicker3("##color", ref color);
         if (ImGui.Button("Ok")) {

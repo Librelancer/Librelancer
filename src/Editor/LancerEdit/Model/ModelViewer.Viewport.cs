@@ -23,8 +23,6 @@ using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
 using LibreLancer.Sur;
 using LibreLancer.Thn;
-using SharpDX.MediaFoundation;
-using Quaternion = System.Numerics.Quaternion;
 
 namespace LancerEdit
 {

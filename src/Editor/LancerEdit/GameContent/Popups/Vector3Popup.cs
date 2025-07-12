@@ -35,7 +35,7 @@ public class Vector3Popup : PopupWindow
         angle -= 180;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         Vector3 last = current;
         ImGui.PushItemWidth(150 * ImGuiHelper.Scale);

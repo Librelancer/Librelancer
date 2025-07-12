@@ -18,6 +18,7 @@ namespace LibreLancer.Server
     {
         private NPCWattleScripting scripting;
         public ServerWorld World;
+        private Random rand = new();
         public NPCManager(ServerWorld world)
         {
             this.World = world;
@@ -82,6 +83,31 @@ namespace LibreLancer.Server
                 firstName = fac.Properties.FirstNameMale;
             }
             return new ObjectName(firstName != null ? rand.Next(firstName.Value) : 0, rand.Next(fac.Properties.LastName));
+        }
+
+        public GameObject SpawnJumper(JumperNpc jumper, MissionRuntime msn, string jumpObject)
+        {
+            var jumpPoint = World.GameWorld.GetObject(jumpObject);
+            var pos = jumpPoint.WorldTransform.Position;
+            var orient = jumpPoint.WorldTransform.Orientation;
+            pos = Vector3.Transform(new Vector3(rand.Next(-50, 50), rand.Next(-50, 50), rand.Next(-300, -100)),
+                orient) + pos;
+            var newObj = DoSpawn(
+                jumper.Name,
+                jumper.Nickname,
+                jumper.Faction?.Nickname,
+                jumper.StateGraph?.Description?.Name,
+                jumper.CommHead?.Nickname,
+                jumper.CommBody?.Nickname,
+                jumper.CommHelmet?.Nickname,
+                jumper.Loadout,
+                jumper.Pilot,
+                pos,
+                orient,
+                null,
+                msn);
+            msn.SystemEnter(World.System.Nickname, jumper.Nickname);
+            return newObj;
         }
 
         public GameObject DoSpawn(

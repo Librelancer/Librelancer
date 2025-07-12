@@ -85,7 +85,7 @@ public class VmsMaterialEditor : PopupWindow
     }
 
     public override string Title { get; set; } = "Materials";
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         int idx = 0;
         foreach (var e in materials) {

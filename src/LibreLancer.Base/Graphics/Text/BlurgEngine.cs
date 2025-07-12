@@ -249,6 +249,7 @@ class BlurgEngine : RichTextEngine
     {
         var f = blurg.QueryFont(fontName, FontWeight.Regular, false)!;
         var bt = new BlurgFormattedText(text, f);
+        bt.DefaultSize = size;
         bt.DefaultColor = Col(color);
         if (underline)
             bt.DefaultUnderline = new BlurgUnderline() { Enabled = true };

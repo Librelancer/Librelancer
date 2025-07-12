@@ -42,7 +42,7 @@ namespace LibreLancer.Thn.Events
                 FLLog.Error("Thn", "Sfx overflow");
             }
         }
-        
+
         class SoundRoutine : ThnEventProcessor
         {
             public ThnSoundInstance Sound;
@@ -56,8 +56,7 @@ namespace LibreLancer.Thn.Events
                 time += delta;
                 if (time >= Duration)
                 {
-                    if(!Sound.Instance.Disposed) Sound.Instance.Stop();
-                    if(!Sound.Instance.Disposed) Sound.Instance.Dispose();
+                    Sound.Instance.Stop();
                     if (SI.Sounds.ContainsKey(Name))
                         SI.Sounds.Remove(Name);
                     Sound.Instance = null;

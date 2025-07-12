@@ -142,6 +142,7 @@ namespace InterfaceEdit
                 {
                     ImGui.CloseCurrentPopup();
                 }
+                ImGui.EndPopup();
             }
         }
 

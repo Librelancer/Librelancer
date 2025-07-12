@@ -46,9 +46,7 @@ namespace LibreLancer.ImUI
             }
         }
 
-        private bool openError = false;
-        private string errorText;
-        public void Menu()
+        public void Menu(PopupManager popups)
         {
             if (data.Files.Count <= 0)
             {
@@ -87,8 +85,7 @@ namespace LibreLancer.ImUI
                         {
                             if (!File.Exists(item))
                             {
-                                openError = true;
-                                errorText = $"File {item} was not found";
+                                popups.MessageBox("Error", $"File {item} was not found");
                                 toDelete = item;
                             }
                             else toOpen = item;
@@ -114,23 +111,6 @@ namespace LibreLancer.ImUI
             }
             catch (Exception)
             {
-            }
-        }
-        public void DrawErrors()
-        {
-            if (openError)
-            {
-                ImGui.OpenPopup("Error##RecentFiles");
-                openError = false;
-            }
-
-            bool pOpen = true;
-            if (ImGui.BeginPopupModal("Error##RecentFiles", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text("Error:");
-                ImGui.Text(errorText);
-                if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
             }
         }
 

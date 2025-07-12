@@ -23,7 +23,7 @@ public interface IClientPlayer
     void UpdateAnimations(ObjNetId id, NetCmpAnimation[] animations);
     void UpdateStatistics(NetPlayerStatistics stats);
     void UpdateReputations(NetReputation[] reps);
-    void UpdateInventory(long credits, ulong shipWorth, ulong netWorth, NetLoadout ship);
+    void UpdateInventory(PlayerInventoryDiff diff);
     void UpdateSlotCount(int slot, int count);
     void DeleteSlot(int slot);
     void UpdateLootObject(ObjNetId id, NetBasicCargo[] items);
@@ -69,4 +69,6 @@ public interface IClientPlayer
     void UndockFrom(ObjNetId id);
     void RunDirectives(MissionDirective[] directives);
     void UpdatePlayTime(double time, DateTime startTime);
+    void ClearScan();
+    void UpdateScan(ObjNetId id, NetLoadoutDiff diff);
 }

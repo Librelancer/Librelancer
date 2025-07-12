@@ -63,7 +63,7 @@ function good_list_item(good, purpose, preview, onmount)
 	if (good.Icon != nil) {
 		good_icon_3db(good.Icon, li.ItemA)
 		if (purpose != "ship" && good.MountIcon && !preview) {
-			local mount_button = mount_icon(good.IdsHardpoint != 0, good.CanMount, onmount)
+			local mount_button = mount_icon(good.IdsHardpoint != 0, good.CanMount && (onmount != nil), onmount)
 			mount_button.X = 3
 			mount_button.Y = 2
 			li.ItemA.Children.Add(mount_button)

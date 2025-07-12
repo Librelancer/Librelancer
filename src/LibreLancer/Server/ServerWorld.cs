@@ -184,6 +184,54 @@ namespace LibreLancer.Server
             }
         }
 
+        public JumperNpc[] GatherJumpers()
+        {
+            var msn = Server.LocalPlayer?.MissionRuntime;
+            if (msn == null)
+                return [];
+            var jumpers = new List<JumperNpc>();
+            foreach (var npc in msn.Script.Ships.Values)
+            {
+                if (!npc.Jumper)
+                    continue;
+                var go = GameWorld.GetObject(npc.Nickname);
+                if (go == null)
+                    continue;
+                jumpers.Add(JumperNpc.FromGameObject(go));
+                RemoveSpawnedObject(go, false);
+            }
+            return jumpers.ToArray();
+        }
+
+        public bool TryScanCargo(GameObject obj, out NetLoadout ld)
+        {
+            if (obj.TryGetComponent<ShipComponent>(out var ship))
+            {
+                ld = new NetLoadout();
+                ld.Items = new();
+                ld.ArchetypeCrc = ship.Ship.CRC;
+            }
+            else
+            {
+                ld = null;
+                return false;
+            }
+            int id = 1;
+            foreach (var item in obj.GetComponents<EquipmentComponent>())
+            {
+                ld.Items.Add(item.GetDescription(id++));
+            }
+            foreach (var item in obj.GetChildComponents<EquipmentComponent>())
+            {
+                ld.Items.Add(item.GetDescription(id++));
+            }
+            if (obj.TryGetComponent<AbstractCargoComponent>(out var cargo))
+            {
+                ld.Items.AddRange(cargo.GetCargo(id));
+            }
+            return true;
+        }
+
         ObjectSpawnInfo BuildSpawnInfo(GameObject obj, GameObject self)
         {
             var info = new ObjectSpawnInfo();
@@ -338,6 +386,14 @@ namespace LibreLancer.Server
             return obj;
         }
 
+        public void SpawnJumpers(string target, JumperNpc[] jumpers)
+        {
+            foreach (var j in jumpers)
+            {
+                NPCs.SpawnJumper(j, Server.LocalPlayer?.MissionRuntime, target);
+            }
+        }
+
         public void EffectSpawned(GameObject obj)
         {
             foreach (var p in Players)
@@ -377,6 +433,14 @@ namespace LibreLancer.Server
                 }
             });
         }
+
+        private ConcurrentQueue<(Action, double)> delayedActions = new();
+
+        public void DelayAction(Action action, double delay)
+        {
+            delayedActions.Enqueue((action, Server.TotalTime + delay));
+        }
+
 
         public void EnqueueAction(Action a)
         {
@@ -737,6 +801,15 @@ namespace LibreLancer.Server
             while (actions.Count > 0 && actions.TryDequeue(out act))
             {
                 act();
+            }
+
+            while (delayedActions.Count > 0 && delayedActions.TryPeek(out var delayedAct)
+                                            && delayedAct.Item2 <= Server.TotalTime)
+            {
+                if (delayedActions.TryDequeue(out delayedAct))
+                {
+                    delayedAct.Item1();
+                }
             }
 
             //pause

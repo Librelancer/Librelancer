@@ -147,11 +147,16 @@ namespace LibreLancer.Missions
 
         public void BaseEnter(string _base) => MsnEvent(new BaseEnteredEvent(_base));
 
+        public void CargoScanned(string scanningShip, string scannedShip) => MsnEvent(new CargoScannedEvent(scanningShip, scannedShip));
+
         public bool GetSpace(out SpacePlayer space)
         {
             space = Player.Space;
             return space != null;
         }
+
+        public void SystemEnter(string system, string ship) =>
+            MsnEvent(new SystemEnteredEvent(system, ship));
 
         public void Update(double elapsed)
         {

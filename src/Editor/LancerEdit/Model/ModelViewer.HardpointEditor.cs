@@ -9,7 +9,6 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Utf.Cmp;
-using LibreLancer.Utf;
 using LibreLancer.ImUI;
 using LibreLancer.World;
 
@@ -18,31 +17,24 @@ namespace LancerEdit
     public partial class ModelViewer
     {
         Hardpoint hpEditing;
-        Hardpoint hpDelete;
-        List<Hardpoint> hpDeleteFrom;
-        void ConfirmDelete(PopupData data)
+        void DeleteHardpoint(Hardpoint hpDelete, List<Hardpoint> hpDeleteFrom)
         {
-            ImGui.Text(string.Format("Are you sure you wish to delete '{0}'?", hpDelete.Name));
-            if (ImGui.Button("Yes"))
-            {
-                hpDeleteFrom.Remove(hpDelete);
-                var gz = gizmos.Where((x) => x.Hardpoint == hpDelete).First();
-                if (hpDelete == hpEditing) hpEditing = null;
-                gizmos.Remove(gz);
-                OnDirtyHp();
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("No"))
-            {
-                ImGui.CloseCurrentPopup();
-            }
+            popups.MessageBox("Confirm?", $"Are you sure you wish to delete '{hpDelete.Name}'?",
+                false, MessageBoxButtons.YesNo, r =>
+                {
+                    if (r == MessageBoxResponse.Yes)
+                    {
+                        hpDeleteFrom.Remove(hpDelete);
+                        var gz = gizmos.Where((x) => x.Hardpoint == hpDelete).First();
+                        if (hpDelete == hpEditing) hpEditing = null;
+                        gizmos.Remove(gz);
+                        OnDirtyHp();
+                    }
+                });
         }
-        void MinMaxWarning(PopupData data)
-        {
-            ImGui.Text("Min was bigger than max, swapped.");
-            if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-        }
+
+        IEnumerable<string> HardpointNames() => gizmos.Select(gz => gz.Hardpoint.Definition.Name);
+
         string GetDupName(string name)
         {
             foreach(var hp in HardpointInformation.All())
@@ -52,9 +44,10 @@ namespace LancerEdit
                     if (hp.Autoname == HpNaming.None)
                         return GetCopyName(name);
                     else if (hp.Autoname == HpNaming.Letter)
-                        return (hp.Name + GetHpLettering(hp.Name));
+                        return (hp.Name + HardpointInformation.GetHpLettering(hp.Name, HardpointNames()));
                     else if (hp.Autoname == HpNaming.Number)
-                        return (hp.Name + GetHpNumbering(hp.Name).ToString("00"));
+                        return (hp.Name + HardpointInformation.GetHpNumbering(hp.Name, HardpointNames())
+                            .ToString("00"));
                 }
             }
             return GetCopyName(name);
@@ -69,106 +62,23 @@ namespace LancerEdit
             }
             return src;
         }
-        int GetHpNumbering(string name)
+
+        void NewHardpoint(bool newIsFixed, RigidModelPart addTo)
         {
-            int val = 0;
-            foreach (var gz in gizmos)
-            {
-                if (gz.Hardpoint.Definition.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
-                {
-                    int a;
-                    if (int.TryParse(gz.Hardpoint.Definition.Name.Substring(name.Length), out a))
-                    {
-                        val = Math.Max(a, val);
-                    }
-                }
-            }
-            return val + 1;
-        }
-        char GetHpLettering(string name)
-        {
-            int letter = (int)'`';
-            foreach (var gz in gizmos)
-            {
-                if (gz.Hardpoint.Definition.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (gz.Hardpoint.Definition.Name.Length > name.Length)
-                    {
-                        letter = Math.Max(char.ToLowerInvariant(gz.Hardpoint.Definition.Name[name.Length]), letter);
-                    }
-                }
-            }
-            return char.ToUpperInvariant((char)(letter + 1));
-        }
-        TextBuffer newHpBuffer = new TextBuffer(256);
-        bool newIsFixed = false;
-        private RigidModelPart addTo;
-        double newErrorTimer = 0;
-        void NewHardpoint(PopupData data)
-        {
-            ImGui.Text("Name: ");
-            ImGui.SameLine();
-            newHpBuffer.InputText("##hpname", ImGuiInputTextFlags.None);
-            ImGui.SameLine();
-            if (ImGui.Button(".."))
-            {
-                ImGui.OpenPopup("names");
-            }
-            if (ImGui.BeginPopupContextItem("names"))
-            {
-                var infos = newIsFixed ? HardpointInformation.Fix : HardpointInformation.Rev;
-                foreach (var item in infos)
-                {
-                    if (Theme.IconMenuItem(item.Icon, item.Name, true))
-                    {
-                        switch (item.Autoname)
-                        {
-                            case HpNaming.None:
-                                newHpBuffer.SetText(item.Name);
-                                break;
-                            case HpNaming.Number:
-                                newHpBuffer.SetText(item.Name + GetHpNumbering(item.Name).ToString("00"));
-                                break;
-                            case HpNaming.Letter:
-                                newHpBuffer.SetText(item.Name + GetHpLettering(item.Name));
-                                break;
-                        }
-                    }
-                }
-                ImGui.EndPopup();
-            }
-            ImGui.Text("Type: " + (newIsFixed ? "Fixed" : "Revolute"));
-            if (newErrorTimer > 0)
-            {
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Hardpoint with that name already exists.");
-            }
-            if (ImGui.Button("Ok"))
-            {
-                var txt = newHpBuffer.GetText();
-                if (txt.Length == 0)
-                {
-                    return;
-                }
-                if (gizmos.Any((x) => x.Hardpoint.Definition.Name.Equals(txt, StringComparison.OrdinalIgnoreCase)))
-                    newErrorTimer = 6;
-                else
+            popups.OpenPopup(new NewHardpointPopup(newIsFixed,
+                HardpointNames,
+                name =>
                 {
                     HardpointDefinition def;
-                    if (newIsFixed) def = new FixedHardpointDefinition(txt);
-                    else def = new RevoluteHardpointDefinition(txt);
+                    if (newIsFixed) def = new FixedHardpointDefinition(name);
+                    else def = new RevoluteHardpointDefinition(name);
                     var hp = new Hardpoint(def, addTo);
                     gizmos.Add(new HardpointGizmo(hp, addTo));
                     addTo.Hardpoints.Add(hp);
                     OnDirtyHp();
-                    ImGui.CloseCurrentPopup();
-                }
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-            }
+                }));
         }
+
         bool hpEditOpen = false;
         HardpointGizmo editingGizmo;
         float HPpitch, HPyaw, HProll;
@@ -251,7 +161,7 @@ namespace LancerEdit
                             var t = HPmin;
                             HPmin = HPmax;
                             HPmax = t;
-                            popups.OpenPopup("Warning");
+                            popups.MessageBox("Warning", "Min was bigger than max, swapped.");
                         }
                         rev.Min = MathHelper.DegreesToRadians(HPmin);
                         rev.Max = MathHelper.DegreesToRadians(HPmax);

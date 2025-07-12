@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
+using LibreLancer.Server;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -236,6 +237,14 @@ namespace LibreLancer.Missions.Actions
                 var pos = Vector3.Transform(positions[i], mat);
                 SpawnShip(form.Ships[i], pos, form.Orientation, null, script, runtime);
             }
+
+            // make them into a formation
+            runtime.Player.MissionWorldAction(() =>
+            {
+                var world = runtime.Player.Space.World;
+                var lead = world.GameWorld.GetObject(form.Ships[0]);
+                FormationTools.MakeNewFormation(lead, formDef?.Nickname, form.Ships.Skip(1).ToList());
+            });
         }
     }
 
@@ -297,6 +306,59 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             SpawnShip(Ship, Position, Orientation, ObjList, script, runtime);
+        }
+    }
+
+    public class Act_SpawnLoot : ScriptedAction
+    {
+        public string Loot = string.Empty;
+
+        public Act_SpawnLoot()
+        {
+        }
+
+        public Act_SpawnLoot(MissionAction act) : base(act)
+        {
+            Loot = act.Entry[0].ToString();
+        }
+
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        {
+            if (!script.Loot.TryGetValue(Loot, out var lootDef))
+            {
+                FLLog.Error("Mission", $"{this}: Loot Missing");
+                return;
+            }
+            runtime.Player.MissionWorldAction(() =>
+            {
+                var world = runtime.Player.Space.World;
+                var pos = lootDef.Position;
+                var arch = world.Server.GameData.Equipment.Get(lootDef.Archetype);
+                if (arch == null)
+                {
+                    FLLog.Error("Mission", $"{this}: Invalid archetype {lootDef.Archetype}");
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(lootDef.RelPosObj))
+                {
+                    var obj = world.GameWorld.GetObject(lootDef.RelPosObj);
+                    if (obj == null)
+                    {
+                        FLLog.Warning("Mission", $"{this}: Loot missing relposobj {lootDef.RelPosObj}");
+                        pos = lootDef.RelPosOffset;
+                    }
+                    else
+                    {
+                        pos = obj.WorldTransform.Transform(lootDef.RelPosOffset);
+                    }
+                }
+                world.SpawnLoot(arch.LootAppearance, arch, lootDef.EquipAmount, new Transform3D(pos, Quaternion.Identity));
+            });
+        }
+
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SpawnLoot", Loot);
         }
     }
 
