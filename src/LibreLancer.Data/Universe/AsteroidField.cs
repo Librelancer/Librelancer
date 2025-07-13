@@ -35,7 +35,6 @@ namespace LibreLancer.Data.Universe
         [Section("exclusion zones", Delimiters = new[] { "exclude", "exclusion" })]
         public List<AsteroidExclusion> ExclusionZones = new List<AsteroidExclusion>();
 
-
         [OnParseDependent]
         void ParseDependent(IniParseProperties properties)
         {

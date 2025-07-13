@@ -28,7 +28,8 @@ namespace LibreLancer.Data
 		public string Script;
 		public string Action;
 
-		public MRoomNpcRef(Entry e)
+		public MRoomNpcRef() { }
+        public MRoomNpcRef(Entry e)
 		{
 			Npc = e[0].ToString();
 			StandMarker = e[1].ToString();

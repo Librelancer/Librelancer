@@ -11,6 +11,7 @@ namespace LibreLancer.Data
 	{
 		public string Name;
 		public Rectangle Dimensions;
+		public MouseShape() { }
 		public MouseShape(Section s)
 		{
 			int x = 0, y = 0, w = 0, h = 0;

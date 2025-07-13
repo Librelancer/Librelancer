@@ -22,6 +22,7 @@ public partial class KeymapIni
     [Section("KeyCmd")]
     public List<KeyCmd> KeyCmd = new List<KeyCmd>();
 
+    public KeymapIni() { }
     public KeymapIni(string path, FileSystem vfs)
     {
         ParseIni(path, vfs);

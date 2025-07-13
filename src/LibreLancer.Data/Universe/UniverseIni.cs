@@ -20,6 +20,8 @@ namespace LibreLancer.Data.Universe
         [Section("system")]
         public List<StarSystem> Systems = new();
 
+        public UniverseIni() { }
+
 		public UniverseIni(string path, FreelancerData data)
         {
             var props = new IniParseProperties([

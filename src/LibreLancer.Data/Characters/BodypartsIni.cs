@@ -15,6 +15,8 @@ namespace LibreLancer.Data.Characters
         public List<Bodypart> Bodyparts { get; private set; }
 		public List<Accessory> Accessories { get; private set; }
 
+		public BodypartsIni() { }
+
 		public BodypartsIni(string path, FreelancerData gdata)
         {
             Animations = new List<string>();

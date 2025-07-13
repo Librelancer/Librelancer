@@ -12,7 +12,9 @@ namespace LibreLancer.Data
 	public class BaseNavBarIni
 	{
 		public Dictionary<string, string> Navbar = new Dictionary<string, string>();
-		public BaseNavBarIni(string datapath, FileSystem vfs)
+
+		public BaseNavBarIni() { }
+        public BaseNavBarIni(string datapath, FileSystem vfs)
 		{
 			foreach (Section s in IniFile.ParseFile(datapath + "INTERFACE\\BASESIDE\\navbar.ini", vfs, true))
 			{

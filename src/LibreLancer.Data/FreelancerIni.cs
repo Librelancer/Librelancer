@@ -14,63 +14,63 @@ namespace LibreLancer.Data
 {
 	public class FreelancerIni
 	{
-        public bool IsLibrelancer { get; private set; }
-		public List<ResourceDll> Resources { get; private set; }
-		public List<string> StartupMovies { get; private set; }
+        public bool IsLibrelancer { get; set; }
+		public List<ResourceDll> Resources { get; set; }
+		public List<string> StartupMovies { get; set; }
 
-		public string DataPath { get; private set; }
-		public List<string> SolarPaths { get; private set; }
-		public string UniversePath { get; private set; }
-		public string HudPath { get; private set; }
-        public string XInterfacePath { get; private set; }
-        public string DataVersion { get; private set; }
+		public string DataPath { get; set; }
+		public List<string> SolarPaths { get; set; }
+		public string UniversePath { get; set; }
+		public string HudPath { get; set; }
+        public string XInterfacePath { get; set; }
+        public string DataVersion { get; set; }
 
-        public List<string> EquipmentPaths { get; private set; }
-		public List<string> LoadoutPaths { get; private set; }
-		public List<string> ShiparchPaths { get; private set; }
-        public List<string> GoodsPaths { get; private set; }
-        public List<string> MarketsPaths { get; private set; }
-        public List<string> SoundPaths { get; private set; }
-		public List<string> GraphPaths { get; private set; }
-		public List<string> EffectPaths { get; private set; }
+        public List<string> EquipmentPaths { get; set; }
+		public List<string> LoadoutPaths { get; set; }
+		public List<string> ShiparchPaths { get; set; }
+        public List<string> GoodsPaths { get; set; }
+        public List<string> MarketsPaths { get; set; }
+        public List<string> SoundPaths { get; set; }
+		public List<string> GraphPaths { get; set; }
+		public List<string> EffectPaths { get; set; }
 
-        public List<string> ExplosionPaths { get; private set; }
-		public List<string> AsteroidPaths { get; private set; }
-		public List<string> RichFontPaths { get; private set; }
-        public List<string> FontPaths { get; private set;  }
-        public List<string> PetalDbPaths { get; private set; }
-        public List<string> FusePaths { get; private set;  }
-        public List<string> NewCharDBPaths { get; private set;  }
+        public List<string> ExplosionPaths { get; set; }
+		public List<string> AsteroidPaths { get; set; }
+		public List<string> RichFontPaths { get; set; }
+        public List<string> FontPaths { get; set;  }
+        public List<string> PetalDbPaths { get; set; }
+        public List<string> FusePaths { get; set;  }
+        public List<string> NewCharDBPaths { get; set;  }
 
-        public List<string> VoicePaths { get; private set; }
+        public List<string> VoicePaths { get; set; }
 
-        public string StarsPath { get; private set; }
-		public string BodypartsPath { get; private set; }
-		public string CostumesPath { get; private set; }
-		public string EffectShapesPath { get; private set; }
+        public string StarsPath { get; set; }
+		public string BodypartsPath { get; set; }
+		public string CostumesPath { get; set; }
+		public string EffectShapesPath { get; set; }
         //Extended. Not in vanilla
-        public string DacomPath { get; private set; } = "EXE\\dacom.ini";
+        public string DacomPath { get; set; } = "EXE\\dacom.ini";
 
-        public string NewPlayerPath { get; private set; } = "EXE\\newplayer.fl";
+        public string NewPlayerPath { get; set; } = "EXE\\newplayer.fl";
 
-        public string MpNewCharacterPath { get; private set; } = "EXE\\mpnewcharacter.fl";
+        public string MpNewCharacterPath { get; set; } = "EXE\\mpnewcharacter.fl";
 
-        public List<string> MBasesPaths { get; private set; }
+        public List<string> MBasesPaths { get; set; }
 
-        public string MousePath { get; private set; }
-        public string CamerasPath { get; private set; }
-        public string ConstantsPath { get; private set; }
+        public string MousePath { get; set; }
+        public string CamerasPath { get; set; }
+        public string ConstantsPath { get; set; }
 
-        public string NavmapPath { get; private set; }
+        public string NavmapPath { get; set; }
 
-        public List<string> NoNavmapSystems { get; private set; }
+        public List<string> NoNavmapSystems { get; set; }
         static readonly string[] NoNavmaps = {
             "St02c",
             "St03b",
             "St03",
             "St02"
         };
-        public List<string> HiddenFactions { get; private set;  }
+        public List<string> HiddenFactions { get; set;  }
         static readonly string[] NoShowFactions =  {
             "fc_uk_grp",
             "fc_ouk_grp",
@@ -98,6 +98,9 @@ namespace LibreLancer.Data
                 return path;
             return path + Path.DirectorySeparatorChar;
         }
+
+        public FreelancerIni() { }
+
         public FreelancerIni(FileSystem vfs) : this(FindIni(vfs), vfs) { }
 
         public FreelancerIni (string path, FileSystem vfs)

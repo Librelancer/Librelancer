@@ -93,6 +93,5 @@ namespace LibreLancer.Data
             }
             DockingSpheres.Add(new DockSphere() { Type = type, Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
         }
-
     }
 }

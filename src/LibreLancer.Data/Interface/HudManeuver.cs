@@ -15,6 +15,7 @@ namespace LibreLancer.Data.Interface
 		public string ActiveModel;
 		public string InactiveModel;
 
+		public HudManeuver() { }
 		public HudManeuver(Entry e)
 		{
 			Action = e[0].ToString();

@@ -12,8 +12,9 @@ namespace LibreLancer.Data
 {
 	public class InfocardManager
 	{
-        public List<ResourceDll> Dlls;
-		public InfocardManager (List<ResourceDll> res)
+        public List<ResourceDll> Dlls { get; set; } = new List<ResourceDll>();
+        public InfocardManager() { }
+        public InfocardManager (List<ResourceDll> res)
         {
             Dlls = res ?? new List<ResourceDll>();
         }

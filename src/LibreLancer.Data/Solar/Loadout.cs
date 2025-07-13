@@ -17,8 +17,8 @@ namespace LibreLancer.Data.Solar
 
         [Entry("archetype")] public string Archetype;
 
-        public List<LoadoutCargo> Cargo = new List<LoadoutCargo>();
-        public List<LoadoutEquip> Equip = new List<LoadoutEquip>();
+        public List<LoadoutCargo> Cargo { get; set; } = new List<LoadoutCargo>();
+        public List<LoadoutEquip> Equip { get; set; } = new List<LoadoutEquip>();
 
         [EntryHandler("cargo", MinComponents = 1, Multiline = true)]
         void HandleCargo(Entry e) => Cargo.Add(new LoadoutCargo(e));
@@ -29,8 +29,8 @@ namespace LibreLancer.Data.Solar
 
     public class LoadoutEquip
     {
-        public string Nickname;
-        public string Hardpoint;
+        public string Nickname { get; set; }
+        public string Hardpoint { get; set; }
 
         public LoadoutEquip()
         {
@@ -46,8 +46,9 @@ namespace LibreLancer.Data.Solar
 
     public class LoadoutCargo
     {
-        public string Nickname;
-        public int Count;
+        public string Nickname { get; set; }
+        public int Count { get; set; }
+        public LoadoutCargo() { }
         public LoadoutCargo(Entry e)
         {
             Nickname = e[0].ToString();

@@ -23,16 +23,11 @@ namespace LibreLancer.Data.Universe
 
     public class TexturePanels
     {
-        public List<string> Files { get; private set; }
-        public List<string> TextureShapes { get; private set; }
-        public Dictionary<string, TextureShape> Shapes { get; private set; }
+        public List<string> Files { get; set; } = new List<string>();
+        public List<string> TextureShapes { get; set; } = new List<string>();
+        public Dictionary<string, TextureShape> Shapes { get; set; } = new Dictionary<string, TextureShape>();
 
-        public TexturePanels()
-        {
-            Files = new List<string>();
-            TextureShapes = new List<string>();
-            Shapes = new Dictionary<string, TextureShape>();
-        }
+        public TexturePanels() { }
 
         string shapeTexName = "";
 

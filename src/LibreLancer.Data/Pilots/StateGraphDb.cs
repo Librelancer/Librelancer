@@ -10,20 +10,22 @@ namespace LibreLancer.Data.Pilots
 
     public class StateGraph
     {
+        public StateGraph() { }
         public StateGraph(StateGraphDescription desc)
         {
             Description = desc;
         }
-        public StateGraphDescription Description;
+        public StateGraphDescription Description { get; set; }
         public List<float[]> Data = new List<float[]>();
     }
 
     public class StateGraphDb
     {
-        public int StateGraphCount;
-        public int BehaviorCount;
+        public int StateGraphCount {  get; set; }
+        public int BehaviorCount {  get; set; } = 21;
 
-        public Dictionary<StateGraphDescription, StateGraph> Tables = new Dictionary<StateGraphDescription, StateGraph>();
+        public Dictionary<StateGraphDescription, StateGraph> Tables 
+            = new();
 
         static bool TryParseFloats(string s, out float[] f)
         {
@@ -39,10 +41,7 @@ namespace LibreLancer.Data.Pilots
             return true;
         }
 
-        public StateGraphDb()
-        {
-            BehaviorCount = 21;
-        }
+        public StateGraphDb() { }
 
         public StateGraphDb(string path, FileSystem vfs)
         {

@@ -105,6 +105,8 @@ namespace LibreLancer.Data
 
         public string[] Objects;
 
+        public NpcKnow() { }
+
         public NpcKnow(int ids1, int ids2, int price, int rep)
         {
             Ids1 = ids1;
@@ -126,6 +128,7 @@ namespace LibreLancer.Data
 
         public string[] Objects;
 
+        public NpcRumor() { }
         public NpcRumor(string start, string end, int rep, int ids, bool type2)
         {
             Start = start;
@@ -134,5 +137,4 @@ namespace LibreLancer.Data
             Ids = ids;
         }
     }
-
 }

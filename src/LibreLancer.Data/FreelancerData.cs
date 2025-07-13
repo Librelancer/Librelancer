@@ -3,10 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 using LibreLancer.Data.Equipment;
 using LibreLancer.Data.Solar;
@@ -29,6 +27,7 @@ using LibreLancer.Data.Pilots;
 using LibreLancer.Data.Save;
 using LibreLancer.Data.Storyline;
 using LibreLancer.Data.Voices;
+using Newtonsoft.Json;
 
 namespace LibreLancer.Data
 {
@@ -37,6 +36,7 @@ namespace LibreLancer.Data
         //Config
         public DacomIni Dacom;
         public FreelancerIni Freelancer;
+        [JsonIgnore]
         public FileSystem VFS;
         //Data
         public CameraIni Cameras;
@@ -77,6 +77,7 @@ namespace LibreLancer.Data
         public NavmapIni Navmap; //Extension
         public NPCShipIni NPCShips;
         public PilotsIni Pilots;
+        [JsonIgnore]//TODO
         public StateGraphDb StateGraphDb;
         public KeymapIni Keymap;
         public KeyListIni KeyList;
@@ -103,6 +104,10 @@ namespace LibreLancer.Data
             return null;
         }
 
+        public FreelancerData()
+        {
+            // Пустой конструктор для десериализации
+        }
 
         public FreelancerData (FreelancerIni fli, FileSystem vfs)
         {
@@ -110,16 +115,18 @@ namespace LibreLancer.Data
             VFS = vfs;
         }
 
-        public void LoadData()
+        public void LoadData(Action<string> progress = null)
         {
             if (Loaded)
                 return;
             if (LoadDacom)
             {
-                if (!string.IsNullOrEmpty(Freelancer.DacomPath)) {
+                if (!string.IsNullOrEmpty(Freelancer.DacomPath))
+                {
                     Dacom = new DacomIni(Freelancer.DacomPath, VFS);
                 }
-                else {
+                else
+                {
                     new MaterialMap(); //no dacom, make default global thing
                     //todo: fix this
                 }
@@ -139,7 +146,8 @@ namespace LibreLancer.Data
             Run(() =>
             {
                 Solar = new SolararchIni();
-                foreach (var file in Freelancer.SolarPaths) {
+                foreach (var file in Freelancer.SolarPaths)
+                {
                     Solar.AddSolararchIni(file, this);
                 }
                 if (Freelancer.StarsPath != null)
@@ -208,7 +216,7 @@ namespace LibreLancer.Data
             Run(() =>
             {
                 Explosions = new ExplosionsIni();
-                foreach(var fx in Freelancer.ExplosionPaths)
+                foreach (var fx in Freelancer.ExplosionPaths)
                     Explosions.AddFile(fx, VFS);
             });
             Run(() =>
@@ -251,7 +259,7 @@ namespace LibreLancer.Data
                 MBases = new MBasesIni();
                 if (Freelancer.MBasesPaths != null)
                 {
-                    foreach(var f in Freelancer.MBasesPaths)
+                    foreach (var f in Freelancer.MBasesPaths)
                         MBases.AddFile(f, VFS);
                 }
                 else
@@ -270,7 +278,7 @@ namespace LibreLancer.Data
             Run(() =>
             {
                 Voices = new VoicesIni();
-                foreach(var voice in Freelancer.VoicePaths)
+                foreach (var voice in Freelancer.VoicePaths)
                     Voices.AddVoicesIni(voice, VFS);
             });
             Run(() =>
@@ -376,7 +384,14 @@ namespace LibreLancer.Data
                     DataVersion = "FL-1";
             });
             using var pool = new ParallelActionRunner(Environment.ProcessorCount);
-            pool.RunActions(x => tasks[x](), tasks.Count);
+            int completed = 0;
+            int total = tasks.Count;
+            pool.RunActions(x =>
+            {
+                tasks[x](); // Выполнить задачу
+                int done = Interlocked.Increment(ref completed); // Безопасное увеличение счётчика
+                progress.Invoke($"Прогресс: {done}/{total} ({(done * 100 / total)}%)");
+            }, total);
             Loaded = true;
         }
     }

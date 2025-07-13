@@ -22,7 +22,6 @@ namespace LibreLancer.Data.Solar
 
         public List<Bead> Beads = new List<Bead>();
 
-
         [EntryHandler("bead", MinComponents = 6, Multiline = true)]
         void HandleBead(Entry e) => Beads.Add(new Bead(e));
     }
@@ -36,6 +35,7 @@ namespace LibreLancer.Data.Solar
         public float E;
         public float F;
 
+        public Bead () { }
         public Bead(Entry e)
         {
             A = e[0].ToSingle();

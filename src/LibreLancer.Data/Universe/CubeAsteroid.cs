@@ -10,12 +10,14 @@ namespace LibreLancer.Data.Universe
 {
 	public class CubeAsteroid
 	{
-		public string Name { get; private set; }
-		public Vector3 Rotation { get; private set; }
-		public Vector3 Position { get; private set; }
-		public string Info { get; private set; }
+		public string Name { get; set; }
+		public Vector3 Rotation { get; set; }
+		public Vector3 Position { get; set; }
+		public string Info { get; set; }
 
-		public CubeAsteroid (Entry e)
+		public CubeAsteroid () { }
+
+        public CubeAsteroid (Entry e)
 		{
 			Name = e[0].ToString();
 			Position =  new Vector3(e[1].ToSingle(), e[2].ToSingle(), e[3].ToSingle());

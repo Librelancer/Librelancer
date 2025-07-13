@@ -19,6 +19,7 @@ public partial class KeyGroup
 public class KeyListIni
 {
     public List<KeyGroup> Groups = new List<KeyGroup>();
+    public KeyListIni() { }
     public KeyListIni(string path, FileSystem VFS)
     {
         KeyGroup currentGroup = null;

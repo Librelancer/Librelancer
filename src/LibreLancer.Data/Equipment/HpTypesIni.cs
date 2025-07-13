@@ -75,7 +75,7 @@ namespace LibreLancer.Data.Equipment
             new HpType("hp_countermeasure_dropper", Weapon, 0, 1523, 910),
         };
 
-        public Dictionary<string, HpType> Types = new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, HpType> Types { get; set; }  = new(StringComparer.OrdinalIgnoreCase);
 
         void AddType(HpType type)
         {
@@ -130,6 +130,7 @@ namespace LibreLancer.Data.Equipment
         public int IdsHpDescription;
         public HpCategory Category;
         public int SortIndex;
+        public HpType() { }
         public HpType(string type, HpCategory category, int cls, int idsname, int idshpdescription)
         {
             Type = type;
