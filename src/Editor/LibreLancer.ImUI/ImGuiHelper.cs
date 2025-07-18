@@ -481,7 +481,7 @@ namespace LibreLancer.ImUI
                 var gpuTex = textures[texture.TexID];
                 DeregisterTexture(gpuTex);
                 gpuTex.Dispose();
-                texture.SetTexID(ulong.MaxValue);
+                texture.SetTexID(0);
                 texture.SetStatus(ImTextureStatus.Destroyed);
             }
         }
