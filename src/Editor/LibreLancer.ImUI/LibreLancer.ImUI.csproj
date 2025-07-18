@@ -36,5 +36,7 @@
     <EmbeddedResource Include="file.png" />
     <EmbeddedResource Include="folder.png" />
     <None Remove="InterDisplay-Regular.ttf" />
+    <None Remove="DroidSansFallbackFull.ttf" />
+    <EmbeddedResource Include="DroidSansFallbackFull.ttf" />
   </ItemGroup>
 </Project>

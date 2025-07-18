@@ -60,7 +60,7 @@ public class MainWindow : Game
         RenderContext.ReplaceViewport(0, 0, Width, Height);
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
-        ImGui.PushFont(ImGuiHelper.Noto, 0);
+        ImGui.PushFont(ImGuiHelper.Roboto, 0);
         var size = (Vector2)ImGui.GetIO().DisplaySize;
         ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
         ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);

@@ -110,7 +110,7 @@ namespace LibreLancer.Interface
             if (Enabled)
             {
                 igrender.NewFrame(elapsed);
-                ImGui.PushFont(ImGuiHelper.Noto, 0);
+                ImGui.PushFont(ImGuiHelper.Roboto, 0);
                 ImGui.Begin("Debug");
                 ImGui.Text($"FPS: {game.RenderFrequency:F2}");
                 debugWindow?.Invoke();

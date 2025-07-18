@@ -19,6 +19,7 @@ namespace BuildLL
         private static int parallel = -1;
         private static string glslangValidatorPath = null;
         private static bool buildDebug = false;
+        private static bool buildO0 = false;
         private static bool withWin32 = false;
         private static bool withWin64 = false;
         private static bool withUpdates = true;
@@ -32,6 +33,7 @@ namespace BuildLL
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
             StringArg("--glslangValidator", x => glslangValidatorPath = x);
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
+            FlagArg("--O0", () => buildO0 = true, "Build natives with -O0 debug");
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
             FlagArg("--no-updates", () => withUpdates = false, "Disables built in updater (SDK only)");
@@ -286,10 +288,13 @@ namespace BuildLL
             Target("BuildNatives", () =>
             {
                 if (buildDebug) Console.WriteLine("Building natives with debug info");
+                if (buildO0) Console.WriteLine("Building natives with O0 level debug");
                 Directory.CreateDirectory("obj");
                 Directory.CreateDirectory("bin/natives/x86");
                 Directory.CreateDirectory("bin/natives/x64");
                 string config = buildDebug ? "RelWithDebInfo" : "MinSizeRel";
+                if(buildO0)
+                    config = "Debug";
                 if (IsWindows)
                 {
                     Directory.CreateDirectory("obj/x86");
@@ -309,7 +314,7 @@ namespace BuildLL
                         MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}",
                             VSVersion.VS2022, MSBuildPlatform.x86);
                         CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
-                        if (buildDebug) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
+                        if (buildDebug || buildO0) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
                     }
                     //build 64-bit
                     CMake.Run(".", new CMakeSettings() {
@@ -320,7 +325,7 @@ namespace BuildLL
                     });
                     MSBuild.Run("./obj/x64/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x64);
                     CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.dll");
-                    if (buildDebug) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
+                    if (buildDebug || buildO0) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
 
                 }
                 else

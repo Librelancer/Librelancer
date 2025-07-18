@@ -63,7 +63,7 @@ public class StructPtrWrappers
             {
                 if (member.IsArray)
                 {
-                    var type = types.GetConversion(si.Name, member.Type);
+                    var type = types.GetConversion($"{si.Name}_{member.Name}", member.Type);
                     cw.AppendComments(member.Comments);
                     var ident = ItemUtilities.FixIdentifier(member.Name);
                     cw.AppendLine($"public Span<{type.ArrayTypeName()}> {ident} => Handle->{ident};");
@@ -74,7 +74,7 @@ public class StructPtrWrappers
                 }
                 else
                 {
-                    var type = types.GetConversion(si.Name, member.Type);
+                    var type = types.GetConversion($"{si.Name}_{member.Name}", member.Type);
                     var ident = ItemUtilities.FixIdentifier(member.Name);
                     if (type.ShouldMakeProperty || member.Width != 0)
                     {

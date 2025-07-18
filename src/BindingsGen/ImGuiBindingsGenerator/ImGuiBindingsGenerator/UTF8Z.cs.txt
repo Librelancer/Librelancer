@@ -66,7 +66,7 @@ internal unsafe ref struct UTF8ZHelper
     byte* buffer;
     IntPtr marshalled;
     string original;
-    
+
     public int ByteCount;
 
     public UTF8ZHelper(byte* initialBuffer, int initialBufferLength, string value)
@@ -85,7 +85,7 @@ internal unsafe ref struct UTF8ZHelper
             {
                 int maxSize = Encoding.UTF8.GetMaxByteCount(value.Length) + 1;
                 marshalled = Marshal.AllocHGlobal(maxSize);
-                var bytes = new Span<byte>(buffer, maxSize);
+                var bytes = new Span<byte>((byte*)marshalled, maxSize);
                 ByteCount = Encoding.UTF8.GetBytes(value, bytes);
                 bytes[ByteCount] = 0;
                 buffer = (byte*)marshalled;

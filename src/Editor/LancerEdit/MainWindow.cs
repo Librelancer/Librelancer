@@ -48,6 +48,7 @@ namespace LancerEdit
         private RecentFilesHandler recentFiles;
         bool openError = false;
         bool finishLoading = false;
+        private bool showDemoWindow = false;
         public bool RequestExit = false;
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
@@ -540,7 +541,7 @@ namespace LancerEdit
             RenderContext.ClearColor = Theme.WorkspaceBackground;
 			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);
-            ImGui.PushFont(ImGuiHelper.Noto, 0);
+            ImGui.PushFont(ImGuiHelper.Roboto, 0);
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
             {
@@ -727,6 +728,11 @@ namespace LancerEdit
                     GC.Collect();
                     Popups.MessageBox("Native Memory", DebugDrawing.SizeSuffix(UnsafeHelpers.Allocated));
                 }
+
+                if (Theme.IconMenuItem(Icons.Info, "ImGui Demo", true))
+                {
+                    showDemoWindow = true;
+                }
                 #endif
 
                 if (Updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
@@ -743,6 +749,11 @@ namespace LancerEdit
 				ImGui.OpenPopup("About");
 				openAbout = false;
 			}
+
+            if (showDemoWindow)
+            {
+                ImGui.ShowDemoWindow(ref showDemoWindow);
+            }
 
             if (openLoading)
             {

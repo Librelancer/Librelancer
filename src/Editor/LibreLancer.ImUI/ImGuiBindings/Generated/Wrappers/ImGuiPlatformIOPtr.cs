@@ -35,7 +35,7 @@ public unsafe partial class ImGuiPlatformIOPtr
         set => Handle->Platform_GetClipboardTextFn = value;
     }
 
-    public delegate* unmanaged<IntPtr, byte*> Platform_SetClipboardTextFn
+    public delegate* unmanaged<IntPtr, byte*, void> Platform_SetClipboardTextFn
     {
         get => Handle->Platform_SetClipboardTextFn;
         set => Handle->Platform_SetClipboardTextFn = value;
@@ -51,7 +51,7 @@ public unsafe partial class ImGuiPlatformIOPtr
     /// <para>Optional: Open link/folder/file in OS Shell</para>
     /// (default to use ShellExecuteW() on Windows, system() on Linux/Mac)
     /// </summary>
-    public delegate* unmanaged<IntPtr, byte*> Platform_OpenInShellFn
+    public delegate* unmanaged<IntPtr, byte*, byte> Platform_OpenInShellFn
     {
         get => Handle->Platform_OpenInShellFn;
         set => Handle->Platform_OpenInShellFn = value;
@@ -67,7 +67,7 @@ public unsafe partial class ImGuiPlatformIOPtr
     /// <para>Optional: Notify OS Input Method Editor of the screen position of your cursor for text input position (e.g. when using Japanese/Chinese IME on Windows)</para>
     /// (default to use native imm32 api on Windows)
     /// </summary>
-    public delegate* unmanaged<IntPtr, byte*> Platform_SetImeDataFn
+    public delegate* unmanaged<IntPtr, ImGuiViewport*, ImGuiPlatformImeData*, void> Platform_SetImeDataFn
     {
         get => Handle->Platform_SetImeDataFn;
         set => Handle->Platform_SetImeDataFn = value;

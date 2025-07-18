@@ -97,7 +97,7 @@ public static class Structs
                     {
                         if (isUnion)
                             cw.AppendLine("[FieldOffset(0)]");
-                        var type = types.GetConversion(structName, member.Type);
+                        var type = types.GetConversion($"{structName}_{member.Name}", member.Type);
                         var ident = ItemUtilities.FixIdentifier(member.Name);
 
                         if (member.Width != 0)

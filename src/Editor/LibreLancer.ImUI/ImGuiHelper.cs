@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -67,13 +69,8 @@ namespace LibreLancer.ImUI
 
 		IntPtr ttfPtr;
         ImGuiContextPtr context;
-		public static ImFontPtr Noto;
+		public static ImFontPtr Roboto;
         public static ImFontPtr SystemMonospace;
-
-        //Not shown in current version of ImGui.NET,
-        //can probably remove when I update the dependencies
-        [DllImport("cimgui")]
-        static extern IntPtr ImFontConfig_ImFontConfig();
 
         public static float Scale { get; private set; } = 1;
 
@@ -110,6 +107,13 @@ namespace LibreLancer.ImUI
             }
         }
 
+        static (IntPtr Handle, int Length) GetManifestResource(string name) {
+            using(var s = (UnmanagedMemoryStream)typeof(ImGuiHelper).Assembly.GetManifestResourceStream(name))
+            {
+                return new ( (IntPtr)s.PositionPointer, checked((int)s.Length) );
+            }
+        }
+
 		public unsafe ImGuiHelper(Game game, float scale)
         {
             Scale = scale;
@@ -136,43 +140,35 @@ namespace LibreLancer.ImUI
 
             Icons.Init();
 
-			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Regular.ttf"))
-			{
-				var ttf = new byte[stream.Length];
-				stream.Read(ttf, 0, ttf.Length);
-				ttfPtr = Marshal.AllocHGlobal(ttf.Length);
-				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
-                Noto.AddRemapChar(ImGuiExt.ReplacementHash, '#');
+            {
+                var (robotoPtr, robotoLength) = GetManifestResource("LibreLancer.ImUI.Roboto-Regular.ttf");
+                Roboto = io.Fonts.AddFontFromMemoryTTF(robotoPtr, robotoLength, 15);
+                Roboto.AddRemapChar(ImGuiExt.ReplacementHash, '#');
             }
 
-            using (var stream =
-                   typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.fa-solid-900.ttf"))
             {
+                var (iconsPtr, iconsLength) = GetManifestResource("LibreLancer.ImUI.fa-solid-900.ttf");
                 var fontConfigStruct = new ImFontConfig();
                 var iconFontConfig = new ImFontConfigPtr(&fontConfigStruct);
                 iconFontConfig.MergeMode = true;
                 iconFontConfig.GlyphMinAdvanceX = iconFontConfig.GlyphMaxAdvanceX = 20;
-                var ttf = new byte[stream.Length];
-                stream.Read(ttf, 0, ttf.Length);
-                ttfPtr = Marshal.AllocHGlobal(ttf.Length);
-                Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15, iconFontConfig);
+                io.Fonts.AddFontFromMemoryTTF(iconsPtr, iconsLength, 15, iconFontConfig);
             }
 
-            using (var stream =
-                   typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.empty-bullet.ttf"))
             {
+                var (emptyBulletConfig, emptyBulletLength) = GetManifestResource("LibreLancer.ImUI.empty-bullet.ttf");
                 var fontConfigStruct = new ImFontConfig();
+                var emptyBulletFontConfig = new ImFontConfigPtr(&fontConfigStruct);
+                emptyBulletFontConfig.MergeMode = true;
+                io.Fonts.AddFontFromMemoryTTF(emptyBulletConfig, emptyBulletLength, 15, emptyBulletFontConfig);
+            }
 
-                var iconFontConfig = new ImFontConfigPtr(&fontConfigStruct);
-                iconFontConfig.MergeMode = true;
-                //var glyphs = new ushort[] {Icons.BulletEmpty, Icons.BulletEmpty, 0};
-                var ttf = new byte[stream.Length];
-                stream.Read(ttf, 0, ttf.Length);
-                ttfPtr = Marshal.AllocHGlobal(ttf.Length);
-                Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15, iconFontConfig);
+            {
+                var (fallbackPtr, fallbackLength) = GetManifestResource("LibreLancer.ImUI.DroidSansFallbackFull.ttf");
+                var fontConfigStruct = new ImFontConfig();
+                var fallbackFontConfig = new ImFontConfigPtr(&fontConfigStruct);
+                fallbackFontConfig.MergeMode = true;
+                io.Fonts.AddFontFromMemoryTTF(fallbackPtr, fallbackLength, 15, fallbackFontConfig);
             }
 
             (checkerboard, CheckerboardId) = LoadTexture(game.RenderContext, "checkerboard.png");
@@ -195,9 +191,11 @@ namespace LibreLancer.ImUI
             instance = this;
             setTextDel = SetClipboardText;
             getTextDel = GetClipboardText;
-            //io.GetClipboardTextFn = (delegate* unmanaged<IntPtr, byte*>)Marshal.GetFunctionPointerForDelegate(getTextDel);
-            //io.SetClipboardTextFn = (delegate* unmanaged<IntPtr, byte*>)Marshal.GetFunctionPointerForDelegate(setTextDel);
             var platform = ImGui.GetPlatformIO();
+            platform.Platform_GetClipboardTextFn =
+                (delegate* unmanaged<IntPtr, byte*>)Marshal.GetFunctionPointerForDelegate(getTextDel);
+            platform.Platform_SetClipboardTextFn =
+                (delegate* unmanaged<IntPtr, byte*, void>)Marshal.GetFunctionPointerForDelegate(setTextDel);
             platform.Renderer_TextureMaxWidth = 2048;
             platform.Renderer_TextureMaxHeight = 2048;
             ImGui.GetPlatformIO().Platform_LocaleDecimalPoint =
@@ -248,21 +246,20 @@ namespace LibreLancer.ImUI
 
         static ImGuiHelper instance;
         static IntPtr utf8buf;
-        static GetClipboardTextType getTextDel;
-        static SetClipboardTextType setTextDel;
-        delegate IntPtr GetClipboardTextType(IntPtr userdata);
-        delegate void SetClipboardTextType(IntPtr userdata, IntPtr text);
-        static IntPtr GetClipboardText(IntPtr userdata)
+        static ImGuiPlatformIO_Platform_GetClipboardTextFnDelegate getTextDel;
+        static ImGuiPlatformIO_Platform_SetClipboardTextFnDelegate setTextDel;
+
+        static byte* GetClipboardText(IntPtr userdata)
         {
             var str = instance.game.GetClipboardText();
             var bytes = Encoding.UTF8.GetBytes(str);
             Marshal.Copy(bytes, 0, utf8buf, bytes.Length);
             Marshal.WriteByte(utf8buf, bytes.Length, 0);
-            return utf8buf;
+            return (byte*)utf8buf;
         }
-        static unsafe void SetClipboardText(IntPtr userdata, IntPtr text)
+        static void SetClipboardText(IntPtr ctx, byte* text)
         {
-            instance.game.SetClipboardText(UnsafeHelpers.PtrToStringUTF8(text));
+            instance.game.SetClipboardText(UnsafeHelpers.PtrToStringUTF8((IntPtr)text));
         }
 		static Dictionary<ulong, Texture2D> textures = new Dictionary<ulong, Texture2D>();
 		static Dictionary<Texture2D, ulong> textureIds = new Dictionary<Texture2D, ulong>();

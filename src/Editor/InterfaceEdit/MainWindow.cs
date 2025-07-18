@@ -198,7 +198,7 @@ namespace InterfaceEdit
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             guiHelper.NewFrame(elapsed);
-            ImGui.PushFont(ImGuiHelper.Noto, 0);
+            ImGui.PushFont(ImGuiHelper.Roboto, 0);
             ImGui.BeginMainMenuBar();
             if (ImGui.BeginMenu("File"))
             {

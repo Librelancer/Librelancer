@@ -15,19 +15,19 @@ public unsafe partial struct ImGuiPlatformIO
     /// (default to use native Win32 clipboard on Windows, otherwise uses a private clipboard. Override to access OS clipboard on other architectures)
     /// </summary>
     public delegate* unmanaged<IntPtr, byte*> Platform_GetClipboardTextFn;
-    public delegate* unmanaged<IntPtr, byte*> Platform_SetClipboardTextFn;
+    public delegate* unmanaged<IntPtr, byte*, void> Platform_SetClipboardTextFn;
     public IntPtr Platform_ClipboardUserData;
     /// <summary>
     /// <para>Optional: Open link/folder/file in OS Shell</para>
     /// (default to use ShellExecuteW() on Windows, system() on Linux/Mac)
     /// </summary>
-    public delegate* unmanaged<IntPtr, byte*> Platform_OpenInShellFn;
+    public delegate* unmanaged<IntPtr, byte*, byte> Platform_OpenInShellFn;
     public IntPtr Platform_OpenInShellUserData;
     /// <summary>
     /// <para>Optional: Notify OS Input Method Editor of the screen position of your cursor for text input position (e.g. when using Japanese/Chinese IME on Windows)</para>
     /// (default to use native imm32 api on Windows)
     /// </summary>
-    public delegate* unmanaged<IntPtr, byte*> Platform_SetImeDataFn;
+    public delegate* unmanaged<IntPtr, ImGuiViewport*, ImGuiPlatformImeData*, void> Platform_SetImeDataFn;
     public IntPtr Platform_ImeUserData;
     /// <summary>
     /// <para>Optional: Platform locale</para>

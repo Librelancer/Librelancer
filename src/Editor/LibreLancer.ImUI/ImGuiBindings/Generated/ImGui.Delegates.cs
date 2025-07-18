@@ -15,11 +15,17 @@ public unsafe delegate void ImGuiMemFreeFunc(IntPtr ptr, IntPtr user_data);
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 public unsafe delegate void ImDrawCallback(ImDrawList* parent_list, ImDrawCmd* cmd);
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public unsafe delegate uint ImGuiSelectionBasicStorageDelegate(ImGuiSelectionBasicStorage* self, int idx);
+public unsafe delegate uint ImGuiSelectionBasicStorage_AdapterIndexToStorageIdDelegate(ImGuiSelectionBasicStorage* self, int idx);
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public unsafe delegate void ImGuiSelectionExternalStorageDelegate(ImGuiSelectionExternalStorage* self, int idx, byte selected);
+public unsafe delegate void ImGuiSelectionExternalStorage_AdapterSetItemSelectedDelegate(ImGuiSelectionExternalStorage* self, int idx, byte selected);
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public unsafe delegate byte* ImGuiPlatformIODelegate(IntPtr ctx);
+public unsafe delegate byte* ImGuiPlatformIO_Platform_GetClipboardTextFnDelegate(IntPtr ctx);
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+public unsafe delegate void ImGuiPlatformIO_Platform_SetClipboardTextFnDelegate(IntPtr ctx, byte* text);
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+public unsafe delegate byte ImGuiPlatformIO_Platform_OpenInShellFnDelegate(IntPtr ctx, byte* path);
+[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+public unsafe delegate void ImGuiPlatformIO_Platform_SetImeDataFnDelegate(IntPtr ctx, ImGuiViewport* viewport, ImGuiPlatformImeData* data);
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 public unsafe delegate byte* ImGui_ComboCallback_getterDelegate(IntPtr user_data, int idx);
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
