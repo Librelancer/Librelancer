@@ -108,7 +108,7 @@ public sealed class InfocardSelection : PopupWindow
             }
         }
         if (!string.IsNullOrWhiteSpace(resultText)) {
-            ImGui.TextUnformatted(resultText);
+            ImGui.Text(resultText);
         }
 
         if (searching) {

@@ -87,7 +87,7 @@ namespace LancerEdit
                     RecreateCurve();
                 }
                 var height = ImGui.GetWindowHeight() - (95 * ImGuiHelper.Scale);
-                ImGui.BeginChild("##points", new Vector2(-1, height), ImGuiChildFlags.Border);
+                ImGui.BeginChild("##points", new Vector2(-1, height), ImGuiChildFlags.Borders);
                 int ik = 0;
                 foreach (var p in points)
                 {

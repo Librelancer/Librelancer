@@ -122,7 +122,7 @@ namespace LibreLancer.ImUI
             }
 
             ImGui.Dummy(new Vector2(1, 1));
-            ImGui.BeginChild("##currentDir", new Vector2(-1, -1), ImGuiChildFlags.Border);
+            ImGui.BeginChild("##currentDir", new Vector2(-1, -1), ImGuiChildFlags.Borders);
             for (int i = 0; i < directoryNames.Length; i++)
             {
                 IconSelectable(

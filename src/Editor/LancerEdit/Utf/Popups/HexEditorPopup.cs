@@ -30,7 +30,7 @@ public class HexEditorPopup : PopupWindow
         }
         ImGui.SameLine(ImGui.GetWindowWidth() - 60 * ImGuiHelper.Scale);
         if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
-        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         mem.DrawContents(data, data.Length);
         ImGui.PopFont();
     }

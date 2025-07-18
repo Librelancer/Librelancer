@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
@@ -151,7 +152,7 @@ public class GameDataContext : IDisposable
         });
     }
 
-    private Dictionary<string, (Texture2D, int)> renderedArchetypes = new Dictionary<string, (Texture2D, int)>();
+    private Dictionary<string, (Texture2D, ImTextureRef)> renderedArchetypes = new Dictionary<string, (Texture2D, ImTextureRef)>();
 
     record struct AsteroidInfo(string Asteroid, string Material, uint MaterialCrc);
 
@@ -160,7 +161,7 @@ public class GameDataContext : IDisposable
     private Archetype[] allArchetypes;
     private Asteroid[] allAsteroids;
     private int renderIndex = 0;
-    private List<Task<int>> drawTasks;
+    private List<Task<ImTextureRef>> drawTasks;
 
     public float PreviewLoadPercent { get; private set; } = 0;
 
@@ -177,7 +178,7 @@ public class GameDataContext : IDisposable
             allAsteroids = GameData.Asteroids.ToArray();
             renderIndex = 0;
             PreviewLoadPercent = 0;
-            drawTasks = new List<Task<int>>();
+            drawTasks = new List<Task<ImTextureRef>>();
             sw = Stopwatch.StartNew();
             FLLog.Debug("ArchetypePreviews", "Render start");
             return true;
@@ -273,7 +274,7 @@ public class GameDataContext : IDisposable
         return false;
     }
 
-    Task<int> RenderAndCache(string cacheId, Func<Texture2D> render)
+    Task<ImTextureRef> RenderAndCache(string cacheId, Func<Texture2D> render)
     {
         if (renderedArchetypes.TryGetValue(cacheId, out var existing))
             return Task.FromResult(existing.Item2);
@@ -282,7 +283,7 @@ public class GameDataContext : IDisposable
         {
             var cachePath = Path.Combine(cacheDir, cacheId + ".dds.zstd");
             int w = tx.Width, h = tx.Height;
-            TaskCompletionSource<int> compSource = new TaskCompletionSource<int>();
+            TaskCompletionSource<ImTextureRef> compSource = new TaskCompletionSource<ImTextureRef>();
             tx.GetDataAsync().ContinueWith(t =>
             {
                 win.QueueUIThread(() => { tx.Dispose(); });
@@ -311,10 +312,10 @@ public class GameDataContext : IDisposable
         }
     }
 
-    public int GetArchetypePreview(Archetype archetype) =>
+    public ImTextureRef GetArchetypePreview(Archetype archetype) =>
         YieldAndWait(RegisterArchetypePreview(archetype, null));
 
-    Task<int> RegisterArchetypePreview(Archetype archetype, PreviewRenderer renderer) =>
+    Task<ImTextureRef> RegisterArchetypePreview(Archetype archetype, PreviewRenderer renderer) =>
         RenderAndCache(archetype.CRC.ToString("X"), () =>
         {
             if (renderer != null)
@@ -357,7 +358,7 @@ public class GameDataContext : IDisposable
         return ai;
     }
 
-    public (int, string, uint) GetAsteroidPreview(Asteroid archetype)
+    public (ImTextureRef, string, uint) GetAsteroidPreview(Asteroid archetype)
     {
         var tex =  YieldAndWait(DrawAsteroidPreview(archetype, null));
         var info = GetMatInfo(archetype, Resources);
@@ -365,7 +366,7 @@ public class GameDataContext : IDisposable
     }
 
 
-    Task<int> DrawAsteroidPreview(Asteroid archetype, PreviewRenderer renderer) =>
+    Task<ImTextureRef> DrawAsteroidPreview(Asteroid archetype, PreviewRenderer renderer) =>
         RenderAndCache("AST_" + archetype.CRC.ToString("X"), () =>
         {
             if (renderer != null) {

@@ -300,12 +300,12 @@ namespace LancerEdit
                     if(!first) ImGui.Separator();
                     if (w.Width != w.Height)
                     {
-                        ImGui.TextUnformatted($"{w.Name}: Dimensions are not square ({w.Width} != {w.Height})");
+                        ImGui.Text($"{w.Name}: Dimensions are not square ({w.Width} != {w.Height})");
                     }
                     if (!MathHelper.IsPowerOfTwo(w.Width) ||
                         !MathHelper.IsPowerOfTwo(w.Height))
                     {
-                        ImGui.TextUnformatted($"{w.Name}: Dimensions are not powers of two ({w.Width}x{w.Height})");
+                        ImGui.Text($"{w.Name}: Dimensions are not powers of two ({w.Width}x{w.Height})");
                     }
                     first = false;
                 }
@@ -842,7 +842,7 @@ namespace LancerEdit
             }
             if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
             if (doFilter) {
-                ImGui.InputText("##filter", filterText.Pointer, (uint)filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
+                ImGui.InputText("##filter", filterText.Pointer, filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
                 currentFilter = filterText.GetText();
             }
             else

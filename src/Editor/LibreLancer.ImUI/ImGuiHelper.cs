@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Mime;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
@@ -55,19 +56,18 @@ namespace LibreLancer.ImUI
 
 		Texture2D fontTexture;
 		const int FONT_TEXTURE_ID = 8;
-		public static int CheckerboardId;
+		public static ImTextureRef CheckerboardId;
 		Texture2D dot;
 		Texture2D checkerboard;
 
-        public static int FileId;
+        public static ImTextureRef FileId;
         private Texture2D file;
-        public static int FolderId;
+        public static ImTextureRef FolderId;
         private Texture2D folder;
 
 		IntPtr ttfPtr;
-        IntPtr context;
+        ImGuiContextPtr context;
 		public static ImFontPtr Noto;
-		public static ImFontPtr Default;
         public static ImFontPtr SystemMonospace;
 
         //Not shown in current version of ImGui.NET,
@@ -101,7 +101,7 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui")]
         static extern void igGuizmoSetImGuiContext(IntPtr ctx);
 
-        static (Texture2D, int) LoadTexture(RenderContext context, string path)
+        static (Texture2D, ImTextureRef) LoadTexture(RenderContext context, string path)
         {
             using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream($"LibreLancer.ImUI.{path}"))
             {
@@ -112,7 +112,6 @@ namespace LibreLancer.ImUI
 
 		public unsafe ImGuiHelper(Game game, float scale)
         {
-            ImGuiExt.igFtLoad();
             Scale = scale;
 			this.game = game;
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
@@ -125,87 +124,55 @@ namespace LibreLancer.ImUI
 
             context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
-            igGuizmoSetImGuiContext(context);
+            igGuizmoSetImGuiContext(context.Handle);
             SetKeyMappings();
             var io = ImGui.GetIO();
             io.WantSaveIniSettings = false;
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
-            io.NativePtr->IniFilename = (byte*)0; //disable ini!!
-            io.Fonts.Flags |= ImFontAtlasFlags.NoMouseCursors;
-            var fontConfigA = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
-            var fontConfigB = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
-            var fontConfigC = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
-            ushort[] glyphRangesFull = new ushort[]
-            {
-                0x0020, 0x00FF, //Basic Latin + Latin Supplement,
-                0x0400, 0x052F, //Cyrillic + Cyrillic Supplement
-                0x2DE0, 0x2DFF, //Cyrillic Extended-A
-                0xA640, 0xA69F, //Cyrillic Extended-B
-                ImGuiExt.ReplacementHash, ImGuiExt.ReplacementHash,
-                0
-            };
-            var rangesPtrFull = Marshal.AllocHGlobal(sizeof(short) * glyphRangesFull.Length);
-            for (int i = 0; i < glyphRangesFull.Length; i++) ((ushort*)rangesPtrFull)[i] = glyphRangesFull[i];
-            ushort[] glyphRangesLatin = new ushort[]
-            {
-                0x0020, 0x00FF, //Basic Latin + Latin Supplement
-                ImGuiExt.ReplacementHash, ImGuiExt.ReplacementHash,
-                0
-            };
-            var rangesPtrLatin = Marshal.AllocHGlobal(sizeof(short) * glyphRangesLatin.Length);
-            for (int i = 0; i < glyphRangesLatin.Length; i++) ((ushort*)rangesPtrLatin)[i] = glyphRangesLatin[i];
-            fontConfigA.GlyphRanges = rangesPtrLatin;
-            fontConfigB.GlyphRanges = rangesPtrFull;
-            fontConfigC.GlyphRanges = rangesPtrFull;
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasTextures;
+            io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors;
+            io.IniFilename = (byte*)0; //disable ini!!
+            //io.Fonts.Flags |= ImFontAtlasFlags.NoMouseCursors;
 
-            fontConfigA.SizePixels = (int)(15 * Scale);
-            Default = io.Fonts.AddFontDefault(fontConfigA);
+            Icons.Init();
+
 			using (var stream = typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.Roboto-Regular.ttf"))
 			{
 				var ttf = new byte[stream.Length];
 				stream.Read(ttf, 0, ttf.Length);
 				ttfPtr = Marshal.AllocHGlobal(ttf.Length);
 				Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), fontConfigB);
-			}
+                Noto = io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15);
+                Noto.AddRemapChar(ImGuiExt.ReplacementHash, '#');
+            }
 
             using (var stream =
                    typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.fa-solid-900.ttf"))
             {
-                var iconFontConfig = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+                var fontConfigStruct = new ImFontConfig();
+                var iconFontConfig = new ImFontConfigPtr(&fontConfigStruct);
                 iconFontConfig.MergeMode = true;
-                iconFontConfig.GlyphMinAdvanceX = iconFontConfig.GlyphMaxAdvanceX = (int) (20 * Scale);
-                var glyphs = new List<ushort>();
-                foreach (var chars in Icons.GetChars())
-                {
-                    glyphs.Add(chars);
-                    glyphs.Add(chars);
-                }
-                glyphs.Add(0);
-                var rangesPtrIcon = Marshal.AllocHGlobal(sizeof(short) * glyphs.Count);
-                for (int i = 0; i < glyphs.Count; i++) ((ushort*)rangesPtrIcon)[i] = glyphs[i];
-                iconFontConfig.GlyphRanges = rangesPtrIcon;
+                iconFontConfig.GlyphMinAdvanceX = iconFontConfig.GlyphMaxAdvanceX = 20;
                 var ttf = new byte[stream.Length];
                 stream.Read(ttf, 0, ttf.Length);
                 ttfPtr = Marshal.AllocHGlobal(ttf.Length);
                 Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
+                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15, iconFontConfig);
             }
 
             using (var stream =
                    typeof(ImGuiHelper).Assembly.GetManifestResourceStream("LibreLancer.ImUI.empty-bullet.ttf"))
             {
-                var iconFontConfig = new ImFontConfigPtr(ImFontConfig_ImFontConfig());
+                var fontConfigStruct = new ImFontConfig();
+
+                var iconFontConfig = new ImFontConfigPtr(&fontConfigStruct);
                 iconFontConfig.MergeMode = true;
-                var glyphs = new ushort[] {Icons.BulletEmpty, Icons.BulletEmpty, 0};
-                var rangesPtrIcon = Marshal.AllocHGlobal(sizeof(short) * glyphs.Length);
-                for (int i = 0; i < glyphs.Length; i++) ((ushort*)rangesPtrIcon)[i] = glyphs[i];
-                iconFontConfig.GlyphRanges = rangesPtrIcon;
+                //var glyphs = new ushort[] {Icons.BulletEmpty, Icons.BulletEmpty, 0};
                 var ttf = new byte[stream.Length];
                 stream.Read(ttf, 0, ttf.Length);
                 ttfPtr = Marshal.AllocHGlobal(ttf.Length);
                 Marshal.Copy(ttf, 0, ttfPtr, ttf.Length);
-                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, (int)(15 * Scale), iconFontConfig);
+                io.Fonts.AddFontFromMemoryTTF(ttfPtr, ttf.Length, 15, iconFontConfig);
             }
 
             (checkerboard, CheckerboardId) = LoadTexture(game.RenderContext, "checkerboard.png");
@@ -213,24 +180,11 @@ namespace LibreLancer.ImUI
             (folder, FolderId) = LoadTexture(game.RenderContext, "folder.png");
 
             var monospace = Platform.GetMonospaceBytes();
-            fixed (byte* mmPtr = monospace)
-            {
-                SystemMonospace = io.Fonts.AddFontFromMemoryTTF((IntPtr) mmPtr, monospace.Length, (int)(16 * Scale), fontConfigC);
-            }
+            var monospacePtr = Marshal.AllocHGlobal(monospace.Length);
+            Marshal.Copy(monospace, 0, monospacePtr, monospace.Length);
+            SystemMonospace = io.Fonts.AddFontFromMemoryTTF(monospacePtr, monospace.Length, 15);
+            SystemMonospace.AddRemapChar(ImGuiExt.ReplacementHash, '#');
 
-            io.Fonts.Build();
-            byte* fontBytes;
-            int fontWidth, fontHeight;
-            io.Fonts.GetTexDataAsRGBA32(out fontBytes, out fontWidth, out fontHeight);
-            io.Fonts.TexUvWhitePixel = new Vector2(10, 10);
-            Icons.TintGlyphs(fontBytes, fontWidth, fontHeight, Noto);
-            fontTexture = new Texture2D(game.RenderContext, fontWidth,fontHeight, false, SurfaceFormat.Bgra8);
-			var bytes = new byte[fontWidth * fontHeight * 4];
-            Marshal.Copy((IntPtr)fontBytes, bytes, 0, fontWidth * fontHeight * 4);
-			fontTexture.SetData(bytes);
-			fontTexture.SetFiltering(TextureFiltering.Linear);
-			io.Fonts.SetTexID((IntPtr)FONT_TEXTURE_ID);
-			io.Fonts.ClearTexData();
             ImGuiShader.Compile(game.RenderContext);
 			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
 			var c = new Bgra8[] { Bgra8.White };
@@ -241,11 +195,13 @@ namespace LibreLancer.ImUI
             instance = this;
             setTextDel = SetClipboardText;
             getTextDel = GetClipboardText;
-
-            io.GetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(getTextDel);
-            io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(setTextDel);
-
-            io.PlatformLocaleDecimalPoint = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+            //io.GetClipboardTextFn = (delegate* unmanaged<IntPtr, byte*>)Marshal.GetFunctionPointerForDelegate(getTextDel);
+            //io.SetClipboardTextFn = (delegate* unmanaged<IntPtr, byte*>)Marshal.GetFunctionPointerForDelegate(setTextDel);
+            var platform = ImGui.GetPlatformIO();
+            platform.Renderer_TextureMaxWidth = 2048;
+            platform.Renderer_TextureMaxHeight = 2048;
+            ImGui.GetPlatformIO().Platform_LocaleDecimalPoint =
+                (ushort)CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
 		}
 
         private void MouseOnMouseWheel(float amountx, float amounty)
@@ -308,16 +264,16 @@ namespace LibreLancer.ImUI
         {
             instance.game.SetClipboardText(UnsafeHelpers.PtrToStringUTF8(text));
         }
-		static Dictionary<int, Texture2D> textures = new Dictionary<int, Texture2D>();
-		static Dictionary<Texture2D, int> textureIds = new Dictionary<Texture2D, int>();
-		static int nextId = 8192;
+		static Dictionary<ulong, Texture2D> textures = new Dictionary<ulong, Texture2D>();
+		static Dictionary<Texture2D, ulong> textureIds = new Dictionary<Texture2D, ulong>();
+		static ulong nextId = 32768;
 
 		//Useful for crap like FBO resizing where textures will be thrown out a ton
-		static Queue<int> freeIds = new Queue<int>();
+		static Queue<ulong> freeIds = new Queue<ulong>();
 
-		public static int RegisterTexture(Texture2D tex)
+		public static ImTextureRef RegisterTexture(Texture2D tex)
 		{
-			int id = 0;
+			ulong id = 0;
 			if (!textureIds.TryGetValue(tex, out id)) {
 				if (freeIds.Count > 0)
 					id = freeIds.Dequeue();
@@ -326,15 +282,16 @@ namespace LibreLancer.ImUI
 				textureIds.Add(tex, id);
 				textures.Add(id, tex);
 			}
-			return id;
-		}
 
-        public static int RenderGradient( Color4 top, Color4 bottom)
+            return new ImTextureRef() { _TexID = id };
+        }
+
+        public static ImTextureRef RenderGradient( Color4 top, Color4 bottom)
         {
             return instance.RenderGradientInternal(top, bottom);
         }
 
-        int RenderGradientInternal(Color4 top, Color4 bottom)
+        ImTextureRef RenderGradientInternal(Color4 top, Color4 bottom)
         {
             var target = new RenderTarget2D(game.RenderContext, 128,128);
             var r2d = game.RenderContext.Renderer2D;
@@ -405,10 +362,10 @@ namespace LibreLancer.ImUI
         void UpdateKeyMods(KeyEventArgs e)
         {
             var io = ImGui.GetIO();
-            io.AddKeyEvent(ImGuiKey.ModCtrl, (e.Modifiers & KeyModifiers.Control) != 0);
-            io.AddKeyEvent(ImGuiKey.ModAlt, (e.Modifiers & KeyModifiers.Alt) != 0);
-            io.AddKeyEvent(ImGuiKey.ModShift, (e.Modifiers & KeyModifiers.Shift) != 0);
-            io.AddKeyEvent(ImGuiKey.ModSuper, (e.Modifiers & KeyModifiers.GUI) != 0);
+            io.AddKeyEvent(ImGuiKey.ImGuiMod_Ctrl, (e.Modifiers & KeyModifiers.Control) != 0);
+            io.AddKeyEvent(ImGuiKey.ImGuiMod_Alt, (e.Modifiers & KeyModifiers.Alt) != 0);
+            io.AddKeyEvent(ImGuiKey.ImGuiMod_Shift, (e.Modifiers & KeyModifiers.Shift) != 0);
+            io.AddKeyEvent(ImGuiKey.ImGuiMod_Super, (e.Modifiers & KeyModifiers.GUI) != 0);
         }
 
 		void Keyboard_KeyUp(KeyEventArgs e)
@@ -434,25 +391,6 @@ namespace LibreLancer.ImUI
 			ImGui.NewFrame();
             ImGuizmo.BeginFrame();
         }
-        //These are required as FBOs with 1 - SrcAlpha will end up with alpha != 1
-        public static void DisableAlpha()
-        {
-            ImGui.GetWindowDrawList().AddCallback((IntPtr)1, (IntPtr)BlendMode.Opaque);
-        }
-        public static void EnableAlpha()
-        {
-            ImGui.GetWindowDrawList().AddCallback((IntPtr) 1, (IntPtr) BlendMode.Normal);
-        }
-
-        private static Action<Rectangle>[] callbacks = new Action<Rectangle>[4096];
-        private static int cbIndex = 0;
-        public static IntPtr Callback(Action<Rectangle> callback)
-        {
-            var retval = cbIndex;
-            callbacks[cbIndex++] = callback;
-            return (IntPtr)retval;
-        }
-
 
         // Draw over the the top to block input while a file dialog is showing
         // Needed as a separate method as stacked modals require you to call within the parent modal
@@ -505,18 +443,71 @@ namespace LibreLancer.ImUI
         public bool SetCursor = true;
         public bool HandleKeyboard = true;
 
+        public static Rectangle GetClipRect(ImDrawCmd* pcmd)
+        {
+            return new Rectangle((int)pcmd->ClipRect.X, (int)pcmd->ClipRect.Y,
+                (int)(pcmd->ClipRect.Z - pcmd->ClipRect.X),
+                (int)(pcmd->ClipRect.W - pcmd->ClipRect.Y));
+        }
+
+        void UpdateTexture(ImTextureDataPtr texture, RenderContext rstate)
+        {
+            if (texture.Status == ImTextureStatus.WantCreate)
+            {
+                var gpuTex = new Texture2D(rstate, texture.Width, texture.Height);
+                gpuTex.SetData(0, new Rectangle(0, 0, texture.Width, texture.Height), texture.GetPixels());
+                texture.SetTexID(RegisterTexture(gpuTex)._TexID);
+                texture.SetStatus(ImTextureStatus.OK);
+            }
+            else if (texture.Status == ImTextureStatus.WantUpdates)
+            {
+                for (int i = 0; i < texture.Updates.Size; i++)
+                {
+                    var r = texture.Updates[i];
+                    var buf = new byte[r.h * r.w * 4];
+                    for (int y = 0; y < r.h; y++)
+                    {
+                        var row = new Span<byte>((void*)texture.GetPixelsAt(r.x, r.y + y), r.w * 4);
+                        row.CopyTo(buf.AsSpan(y * r.w * 4));
+                    }
+                    var gpuTex = textures[texture.TexID];
+                    gpuTex.SetData(0, new Rectangle(r.x, r.y, r.w, r.h), buf, 0, buf.Length);
+                }
+
+                texture.SetStatus(ImTextureStatus.OK);
+            }
+            else if (texture.Status == ImTextureStatus.WantDestroy && texture.UnusedFrames > 0)
+            {
+                var gpuTex = textures[texture.TexID];
+                DeregisterTexture(gpuTex);
+                gpuTex.Dispose();
+                texture.SetTexID(ulong.MaxValue);
+                texture.SetStatus(ImTextureStatus.Destroyed);
+            }
+        }
+
 		VertexBuffer vbo;
 		ElementBuffer ibo;
 		int vboSize = -1;
 		int iboSize = -1;
 		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderContext rstate)
 		{
+            if (draw_data.Textures != null)
+            {
+                ref ImPtrVector<ImTextureData> drawTextures = ref Unsafe.AsRef<ImPtrVector<ImTextureData>>(draw_data.Textures);
+                for (int i = 0; i < drawTextures.Size; i++)
+                {
+                    if (drawTextures[i]->Status != ImTextureStatus.OK)
+                    {
+                        UpdateTexture(new(drawTextures[i]), rstate);
+                    }
+                }
+            }
 			var io = ImGui.GetIO();
             //Set cursor
             if (SetCursor)
             {
-                var cur = ImGuiNative.igGetMouseCursor();
-                switch (cur)
+                switch (ImGui.GetMouseCursor())
                 {
                     case ImGuiMouseCursor.Arrow:
                         game.CursorKind = CursorKind.Arrow;
@@ -548,11 +539,9 @@ namespace LibreLancer.ImUI
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);
 
 			var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
-            var textShader = ImGuiShader.Shader.Get(0);
-            var colorShader = ImGuiShader.Shader.Get(0);
-            textShader.SetUniformBlock(2, ref mat);
-            colorShader.SetUniformBlock(2, ref mat);
-            rstate.Shader = textShader;
+            var uiShader = ImGuiShader.Shader.Get(0);
+            uiShader.SetUniformBlock(2, ref mat);
+            rstate.Shader = uiShader;
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;
 			rstate.DepthEnabled = false;
@@ -563,8 +552,8 @@ namespace LibreLancer.ImUI
 			for (int n = 0; n < draw_data.CmdListsCount; n++)
 			{
                 var cmd_list = draw_data.CmdLists[n];
-				var vtxCount = cmd_list.VtxBuffer.Size;
-				var idxCount = cmd_list.IdxBuffer.Size;
+				var vtxCount = cmd_list->VtxBuffer.Size;
+				var idxCount = cmd_list->IdxBuffer.Size;
                 if (vboSize < vtxCount || iboSize < idxCount)
 				{
 					if (vbo != null) vbo.Dispose();
@@ -575,43 +564,22 @@ namespace LibreLancer.ImUI
 					ibo = new ElementBuffer(game.RenderContext, iboSize, true);
 					vbo.SetElementBuffer(ibo);
 				}
-                vbo.SetData(new ReadOnlySpan<DrawVert>((void*)cmd_list.VtxBuffer.Data, vtxCount));
-                ibo.SetData(new ReadOnlySpan<ushort>((void*)cmd_list.IdxBuffer.Data, idxCount));
-				for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
+                vbo.SetData(new ReadOnlySpan<DrawVert>((void*)cmd_list->VtxBuffer.Data, vtxCount));
+                ibo.SetData(new ReadOnlySpan<ushort>((void*)cmd_list->IdxBuffer.Data, idxCount));
+				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
 				{
-                    var pcmd = cmd_list.CmdBuffer[cmd_i];
-                    if (pcmd.UserCallback != IntPtr.Zero)
+                    ref var pcmd = ref cmd_list->CmdBuffer[cmd_i];
+                    if (pcmd.UserCallback != null)
                     {
-                        if (pcmd.UserCallback == 2)
-                        {
-                            rstate.BlendMode = (ushort)pcmd.UserCallbackData;
-                        }
-                        else if (pcmd.UserCallback == IntPtr.MaxValue)
-                        {
-                            callbacks[(int)pcmd.UserCallbackData](new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
-                                (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),
-                                (int) (pcmd.ClipRect.W - pcmd.ClipRect.Y)));
-                        }
-                        else if (pcmd.UserCallback > 8)
-                        {
-                            var cb = (delegate* unmanaged<IntPtr,IntPtr, void>)pcmd.UserCallback;
-                            cb((IntPtr)cmd_list.NativePtr, (IntPtr)pcmd.NativePtr);
-                        }
+                        pcmd.UserCallback(cmd_list, (ImDrawCmd*)Unsafe.AsPointer(ref pcmd));
                         continue;
                     }
-
                     if (pcmd.ElemCount == 0)
                         continue;
-					var tid = pcmd.TextureId.ToInt32();
-					Texture2D tex;
-					if (tid == FONT_TEXTURE_ID)
+                    rstate.Shader = uiShader;
+                    var tid = pcmd.TexRef.GetTexID();
+					if (textures.TryGetValue(tid, out var tex))
                     {
-                        rstate.Shader = textShader;
-						fontTexture.BindTo(0);
-                    }
-					else if (textures.TryGetValue(tid, out tex))
-                    {
-                        rstate.Shader = colorShader;
 						tex.BindTo(0);
 					}
 					else
@@ -630,10 +598,6 @@ namespace LibreLancer.ImUI
 				}
             }
             rstate.PopScissor();
-
-            for (int i = 0; i < cbIndex; i++)
-                callbacks[i] = null;
-            cbIndex = 0;
         }
 	}
 }

@@ -21,7 +21,7 @@ namespace LancerEdit
         private string iconName = "";
         private string warning = "";
         private Texture2D teximportprev;
-        private int teximportid;
+        private ImTextureRef teximportid;
         private bool compress = false;
         private bool error = false;
         private MainWindow win;
@@ -74,8 +74,8 @@ namespace LancerEdit
                 ImGui.Dummy(new Vector2(w / 2 - 64 - 4, 1));
                 ImGui.SameLine();
                 bool dds = (loadType == TexLoadType.DDS);
-                ImGui.Image((IntPtr)teximportid, new Vector2(128, 128),
-                    new Vector2(0, dds ? 1 : 0), new Vector2(1, dds ? 0 : 1), Vector4.One, Vector4.Zero);
+                ImGui.Image(teximportid, new Vector2(128, 128),
+                    new Vector2(0, dds ? 1 : 0), new Vector2(1, dds ? 0 : 1));
                 ImGui.Text(string.Format("Dimensions: {0}x{1}", teximportprev.Width, teximportprev.Height));
                 if (warning != null) {
                     ImGui.PushStyleColor(ImGuiCol.Text, Color4.Orange);

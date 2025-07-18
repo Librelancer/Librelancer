@@ -113,7 +113,7 @@ public class UpdatePopup : PopupWindow
     {
         if (msg != null)
         {
-            ImGui.TextUnformatted(msg);
+            ImGui.Text(msg);
             if(ImGui.Button("Ok"))
                 ImGui.CloseCurrentPopup();
         }

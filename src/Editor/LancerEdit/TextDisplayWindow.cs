@@ -44,7 +44,7 @@ public class TextDisplayWindow
             FileDialog.Save(x => File.WriteAllText(x, Text), TextFilter);
         }
         ImGui.PushItemWidth(-1);
-        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         var height = ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - 10 * ImGuiHelper.Scale;
         ImGui.InputTextMultiline("##text", ref Text, UInt32.MaxValue, new Vector2(0,height), ImGuiInputTextFlags.ReadOnly);
         ImGui.PopFont();

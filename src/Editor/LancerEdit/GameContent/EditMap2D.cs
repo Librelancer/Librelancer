@@ -62,7 +62,7 @@ public class EditMap2D
         var cellWidth = (renderWidth / 8f);
         var cellHeight = (renderHeight / 8f);
 
-        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         for (int i = 0; i < 8; i++)
         {
             var sz = ImGui.CalcTextSize(GRIDLETTERS[i]);
@@ -163,11 +163,11 @@ public class EditMap2D
 
                 if (ImGui.BeginItemTooltip())
                 {
-                    ImGui.TextUnformatted(obj.Nickname);
+                    ImGui.Text(obj.Nickname);
                     if (obj.SystemObject?.Archetype != null)
                     {
                         var img = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
-                        ImGui.Image((IntPtr)img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1),
+                        ImGui.Image(img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1),
                             new Vector2(1, 0));
                     }
 

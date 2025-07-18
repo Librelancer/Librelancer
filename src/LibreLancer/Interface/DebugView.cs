@@ -41,8 +41,8 @@ namespace LibreLancer.Interface
                 foreach (var t in triggers)
                 {
                     float height = fsize * 3 + (t.Conditions.Count * fsize) + (t.Actions.Count * fsize);
-                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, height), ImGuiChildFlags.Border);
-                    ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, height), ImGuiChildFlags.Borders);
+                    ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                     ImGui.Text(t.Name);
                     ImGui.PopFont();
                     ImGui.Text("Conditions");
@@ -110,7 +110,7 @@ namespace LibreLancer.Interface
             if (Enabled)
             {
                 igrender.NewFrame(elapsed);
-                ImGui.PushFont(ImGuiHelper.Noto);
+                ImGui.PushFont(ImGuiHelper.Noto, 0);
                 ImGui.Begin("Debug");
                 ImGui.Text($"FPS: {game.RenderFrequency:F2}");
                 debugWindow?.Invoke();

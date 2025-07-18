@@ -15,13 +15,12 @@ public class AppLog : IDisposable
     private int bufferSize;
     private List<int> lineOffsets = new List<int>();
     private bool autoScroll = true;
-    private ListClipper listClipper;
+    private ImGuiListClipper listClipper;
     public AppLog()
     {
         buffer = Marshal.AllocHGlobal(START_CAPACITY);
         bufferCapacity = START_CAPACITY;
         lineOffsets.Add(0);
-        listClipper = new ListClipper();
     }
 
     public unsafe void AppendText(string s)
@@ -67,7 +66,7 @@ public class AppLog : IDisposable
         IntPtr bufferEnd = buffer + bufferSize;
         if (ImGui.BeginChild("scrolling", size, ImGuiChildFlags.None, ImGuiWindowFlags.HorizontalScrollbar))
         {
-            ImGui.PushFont(ImGuiHelper.SystemMonospace);
+            ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
             listClipper.Begin(lineOffsets.Count);
             while (listClipper.Step())
@@ -76,7 +75,7 @@ public class AppLog : IDisposable
                 {
                     IntPtr line_start = buffer + lineOffsets[line_no];
                     IntPtr line_end = (line_no + 1 < lineOffsets.Count) ? (buffer + lineOffsets[line_no + 1] - 1) : bufferEnd;
-                    ImGuiNative.igTextUnformatted((byte*)line_start, (byte*)line_end);
+                    ImGuiNative.ImGui_TextUnformatted((byte*)line_start, (byte*)line_end);
                 }
             }
             listClipper.End();
@@ -91,6 +90,5 @@ public class AppLog : IDisposable
     public void Dispose()
     {
         Marshal.FreeHGlobal(buffer);
-        listClipper.Dispose();
     }
 }

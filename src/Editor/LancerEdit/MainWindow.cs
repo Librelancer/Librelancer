@@ -100,7 +100,7 @@ namespace LancerEdit
             }
         }
         double errorTimer = 0;
-        private int logoTexture;
+        private ImTextureRef logoTexture;
 
         protected override bool UseSplash => true;
 
@@ -540,7 +540,7 @@ namespace LancerEdit
             RenderContext.ClearColor = Theme.WorkspaceBackground;
 			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);
-            ImGui.PushFont(ImGuiHelper.Noto);
+            ImGui.PushFont(ImGuiHelper.Noto, 0);
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
             {
@@ -761,7 +761,7 @@ namespace LancerEdit
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
-                ImGui.Image((IntPtr) logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image(logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
                 CenterText(Version);
                 CenterText($"ImGui version: {ImGuiExt.Version}");
                 CenterText("Callum McGing");
@@ -908,7 +908,7 @@ namespace LancerEdit
             ImGui.PopFont();
             unsafe
             {
-                if (ImGui.GetDragDropPayload().NativePtr != null)
+                if (ImGui.GetDragDropPayload() != null)
                     dragActive = 3;
                 else
                 {

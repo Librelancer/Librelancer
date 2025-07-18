@@ -31,14 +31,14 @@ public class InfocardBrowserTab : GameContentTab
 
     private int gotoItem = -1;
     private int id;
-    private readonly ListClipper infocardClipper;
+    private ImGuiListClipper infocardClipper;
     private int[] infocardsIds;
     private bool isSearchInfocards;
     private readonly EditableInfocardManager manager;
 
     private bool showStrings = true;
 
-    private readonly ListClipper stringClipper;
+    private ImGuiListClipper stringClipper;
     private int[] stringsIds;
 
     private readonly MainWindow win;
@@ -54,8 +54,6 @@ public class InfocardBrowserTab : GameContentTab
         fonts = gameData.Fonts;
         manager = gameData.Infocards;
         ResetListContent();
-        stringClipper = new ListClipper();
-        infocardClipper = new ListClipper();
         Title = "Infocard Browser";
         display = new InfocardControl(win, blankInfocard, 100);
     }
@@ -205,9 +203,9 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.Separator();
         if (showDllList && ImGui.Begin("Dll List", ref showDllList))
         {
-            ImGui.PushFont(ImGuiHelper.SystemMonospace);
+            ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
             for (int i = 0; i < manager.Dlls.Count; i++) {
-                ImGui.TextUnformatted($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(manager.Dlls[i].SavePath)}");
+                ImGui.Text($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(manager.Dlls[i].SavePath)}");
             }
             ImGui.PopFont();
             ImGui.End();
@@ -276,7 +274,7 @@ public class InfocardBrowserTab : GameContentTab
         {
             if (currentString != -1)
             {
-                ImGui.TextUnformatted(stringsIds[currentString].ToString());
+                ImGui.Text(stringsIds[currentString].ToString());
                 ImGui.SameLine();
                 if (ImGui.Button("Copy Text"))
                     win.SetClipboardText(manager.GetStringResource(stringsIds[currentString]));
@@ -298,7 +296,7 @@ public class InfocardBrowserTab : GameContentTab
             if (currentInfocard != -1)
             {
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted(infocardsIds[currentInfocard].ToString());
+                ImGui.Text(infocardsIds[currentInfocard].ToString());
                 ImGui.SameLine();
                 if (ImGui.Button("View Xml")) popups.OpenPopup(new XmlPopup(win, currentXml));
                 ImGui.SameLine();
@@ -366,7 +364,7 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.Columns(2);
         ImGui.BeginChild("##edit");
         ImGui.Text("Xml");
-        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         ImGui.InputTextMultiline("##xmltext", ref xmlEditText, 800000, new Vector2(
             ImGui.GetColumnWidth() - 2 * ImGuiHelper.Scale,
             ImGui.GetWindowHeight() - 40 * ImGuiHelper.Scale));
@@ -409,7 +407,7 @@ public class InfocardBrowserTab : GameContentTab
         public override void Draw(bool appearing)
         {
             ImGui.Text($"Editing: {ids}");
-            ImGui.TextUnformatted($"Original: {original}");
+            ImGui.Text($"Original: {original}");
             ImGui.InputTextMultiline("New Text", ref text, ushort.MaxValue, Vector2.Zero);
             if (ImGui.Button("Save"))
             {
@@ -515,7 +513,7 @@ public class InfocardBrowserTab : GameContentTab
         public override void Draw(bool appearing)
         {
             if (ImGui.Button("Copy To Clipboard")) win.SetClipboardText(xmlText);
-            ImGui.PushFont(ImGuiHelper.SystemMonospace);
+            ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
             ImGui.InputTextMultiline("##xml", ref xmlText, uint.MaxValue, new Vector2(400),
                 ImGuiInputTextFlags.ReadOnly);
             ImGui.PopFont();
@@ -524,8 +522,6 @@ public class InfocardBrowserTab : GameContentTab
 
     public override void Dispose()
     {
-        stringClipper.Dispose();
-        infocardClipper.Dispose();
         display.Dispose();
         xmlEditPreview?.Dispose();
     }

@@ -390,7 +390,7 @@ public class SystemEditorTab : GameContentTab
         //Infocard
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Infocard");
+        ImGui.Text("Infocard");
         ImGui.TableNextColumn();
         Controls.TruncText(InfocardPreview(sel.IdsInfo), 20);
         ImGui.TableNextColumn();
@@ -466,7 +466,7 @@ public class SystemEditorTab : GameContentTab
         Controls.BeginPropertyTable("comment", true, false, true);
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Comment");
+        ImGui.Text("Comment");
         ImGui.TableNextColumn();
         Controls.TruncText(sel.Comment, 20);
         ImGui.TableNextColumn();
@@ -722,7 +722,7 @@ public class SystemEditorTab : GameContentTab
         //Infocard
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Infocard");
+        ImGui.Text("Infocard");
         ImGui.TableNextColumn();
         Controls.TruncText(InfocardPreview(gc.IdsInfo), 20);
         ImGui.TableNextColumn();
@@ -842,7 +842,7 @@ public class SystemEditorTab : GameContentTab
             return;
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Comment");
+        ImGui.Text("Comment");
         ImGui.TableNextColumn();
         Controls.TruncText(gc.Comment, 20);
         ImGui.TableNextColumn();
@@ -1402,21 +1402,21 @@ public class SystemEditorTab : GameContentTab
                 }
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted(pos);
+                ImGui.Text(pos);
                 ImGui.SeparatorText("WXYZ Rotation");
                 if (ImGui.Button($"{Icons.Copy}##wxyz")) {
                     win.SetClipboardText(rotWXYZ);
                 }
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted(rotWXYZ);
+                ImGui.Text(rotWXYZ);
                 ImGui.SeparatorText("Euler Rotation");
                 if (ImGui.Button($"{Icons.Copy}##euler")) {
                     win.SetClipboardText(rotEuler);
                 }
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
-                ImGui.TextUnformatted(rotEuler);
+                ImGui.Text(rotEuler);
             }
 
             ImGui.End();

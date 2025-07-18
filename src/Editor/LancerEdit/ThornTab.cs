@@ -135,7 +135,7 @@ namespace LancerEdit
                     }
                     ImGui.SetNextItemWidth(-1);
                     var th = ImGui.GetWindowHeight() - 100;
-                    ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                    ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                     ImGui.InputTextMultiline("##lastError",
                         ref lastError,
                         uint.MaxValue,

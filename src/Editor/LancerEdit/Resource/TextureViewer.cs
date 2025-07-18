@@ -13,7 +13,7 @@ namespace LancerEdit
 {
     public class TextureViewer : EditorTab
     {
-        int tid;
+        ImTextureRef tid;
         Texture2D tex;
         bool checkerboard = true;
         bool dispose;
@@ -68,8 +68,8 @@ namespace LancerEdit
                 ImGui.Text("Mipmaps: " + ((tex.LevelCount > 1) ? "Yes" : "No"));
                 ImGui.EndPopup();
             }
-            ImGuiNative.igSetNextWindowContentSize(new Vector2(sz.X, 0));
-            ImGui.BeginChild("##scroll", new Vector2(-1), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.SetNextWindowContentSize(new Vector2(sz.X, 0));
+            ImGui.BeginChild("##scroll", new Vector2(-1), ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar);
             var pos = ImGui.GetCursorScreenPos();
             var windowH = ImGui.GetWindowHeight();
             var windowW = ImGui.GetWindowWidth();
@@ -77,15 +77,11 @@ namespace LancerEdit
             var cbY = Math.Max(windowH, sz.Y);
             if (checkerboard)
             {
-                unsafe
-                {
-                    var lst = ImGuiNative.igGetWindowDrawList();
-                    ImGuiNative.ImDrawList_AddImage(lst, (IntPtr)ImGuiHelper.CheckerboardId,
-                                                    pos, new Vector2(pos.X + cbX, pos.Y + cbY),
-                                                    new Vector2(0, 0),
-                                                    new Vector2(cbX / 16, cbY / 16),
-                                                    uint.MaxValue);
-                }
+                var lst = ImGui.GetWindowDrawList();
+                lst.AddImage(ImGuiHelper.CheckerboardId,
+                    pos, new Vector2(pos.X + cbX, pos.Y + cbY),
+                    new Vector2(0, 0),
+                    new Vector2(cbX / 16, cbY / 16));
             }
             if (sz.Y < windowH) //Centre
             {
@@ -104,9 +100,8 @@ namespace LancerEdit
                 tl = new Vector2(f.UV1.X, 1 - f.UV1.Y);
                 br = new Vector2(f.UV2.X, 1 - f.UV2.Y);
             }
-            ImGui.Image((IntPtr)tid, sz, tl,br,
-                        Vector4.One, Vector4.Zero);
 
+            ImGui.Image(tid, sz, tl, br);
             ImGui.EndChild();
         }
 

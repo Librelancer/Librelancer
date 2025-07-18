@@ -21,7 +21,7 @@ public class UniverseLoadPopup : PopupWindow
     }
     public override void Draw(bool appearing)
     {
-        ImGui.TextUnformatted($"Loading Universe Editor");
+        ImGui.Text($"Loading Universe Editor");
         ImGui.ProgressBar(mw.OpenDataContext.PreviewLoadPercent, new Vector2(180, 0) * ImGuiHelper.Scale);
         ImGuiHelper.AnimatingElement();
         loadFrames++;

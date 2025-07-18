@@ -777,7 +777,7 @@ namespace LancerEdit
 
         static unsafe bool AcceptDragDropPayload(string type, ImGuiDragDropFlags flags, out ImGuiPayloadPtr ptr)
         {
-            return (ptr = ImGui.AcceptDragDropPayload(type, flags)).NativePtr != null;
+            return (ptr = ImGui.AcceptDragDropPayload(type, flags)) != null;
         }
 
         private int[] dragDropBuffer = new int[256];
@@ -935,8 +935,8 @@ namespace LancerEdit
             {
                 var path = GetDragDropPath(node);
                 fixed(int* buffer = &path.GetPinnableReference())
-                    ImGui.SetDragDropPayload("_UTFNODE", (IntPtr)buffer, (uint)(path.Length * sizeof(int)));
-                ImGui.TextUnformatted(node.Name);
+                    ImGui.SetDragDropPayload("_UTFNODE", (IntPtr)buffer, (IntPtr)(path.Length * sizeof(int)));
+                ImGui.Text(node.Name);
                 ImGui.EndDragDropSource();
             }
             if (node.ResolvedName != null)

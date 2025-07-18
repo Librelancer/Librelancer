@@ -70,7 +70,7 @@ namespace LibreLancer.ImUI
 
         public void Render(string id)
         {
-            ImGui.PushFont(ImGuiHelper.SystemMonospace);
+            ImGui.PushFont(ImGuiHelper.SystemMonospace, 17);
             using var ptr = UnsafeHelpers.StringToNativeUTF8(id);
             igExtTextEditorRender(textedit, (IntPtr)ptr);
             int idx = igExtTextEditorGetUndoIndex(textedit);

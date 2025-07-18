@@ -170,8 +170,8 @@ public class IdsSearch : PopupWindow
 
     private void DrawSearchResults()
     {
-        ImGui.TextUnformatted(resultTitle);
-        ImGui.BeginChild("##results", new Vector2(200, 200), ImGuiChildFlags.Border);
+        ImGui.Text(resultTitle);
+        ImGui.BeginChild("##results", new Vector2(200, 200), ImGuiChildFlags.Borders);
         for (var i = 0; i < searchResults.Length; i++)
         {
             if (ImGui.Selectable(searchResults[i].ToString()))

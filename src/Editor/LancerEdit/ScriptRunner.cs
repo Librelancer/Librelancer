@@ -326,7 +326,7 @@ namespace LancerEdit
                         ImGui.Text("Finished");
                     }
                     ImGui.BeginChild($"##SCRIPTlog{unique}");
-                    ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                    ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                     foreach (var line in lines)
                         ImGui.TextWrapped(line);
                     if(lines.Count != lastCount && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())

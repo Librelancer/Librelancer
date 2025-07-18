@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ImGuiNET;
@@ -107,6 +108,8 @@ public static class Icons
 
     public static readonly char Warning;
 
+    public static void Init() => GC.KeepAlive(Warning); //Run static constructor
+
     static Icons()
     {
         Tint(out Con_Pris, ExpandArrowsAlt, Color4.LightPink);
@@ -128,140 +131,13 @@ public static class Icons
         Tint(out Warning, ExclamationTriangle, Color4.Orange);
     }
 
-    public static IEnumerable<char> GetChars()
-    {
-        yield return ArrowUp;
-        yield return ArrowLeft;
-        yield return ArrowRight;
-        yield return ArrowDown;
-        yield return TurnUp;
-        yield return BezierCurve;
-        yield return Book;
-        yield return BookOpen;
-        yield return Check;
-        yield return Info;
-        yield return File;
-        yield return Fire;
-        yield return Grip;
-        yield return Export;
-        yield return Import;
-        yield return Keyboard;
-        yield return List;
-        yield return Open;
-        yield return Save;
-        yield return Quit;
-        yield return X;
-        yield return Cog;
-        yield return FileImport;
-        yield return FileExport;
-        yield return Palette;
-        yield return Play;
-        yield return SprayCan;
-        yield return Log;
-        yield return Exchange;
-        yield return Edit;
-        yield return Eye;
-        yield return TrashAlt;
-        yield return Clone;
-        yield return PlusCircle;
-        yield return StreetView;
-        yield return Paintbrush;
-        yield return Cut;
-        yield return Copy;
-        yield return Paste;
-        yield return Eraser;
-        yield return Star;
-        yield return Table;
-        yield return UpRightFromSquare;
-        yield return VectorSquare;
-        yield return Tree;
-        yield return PersonRunning;
-        yield return Bone;
-        yield return Calculator;
-
-        yield return Image;
-        yield return Lightbulb;
-        yield return ArrowsAltH;
-        yield return PenSquare;
-        yield return EyeSlash;
-        yield return Video;
-
-        yield return Bolt;
-        yield return Cloud;
-        yield return Wind;
-        yield return Bullseye;
-        yield return Cube;
-        yield return Globe;
-        yield return AngleDoubleDown;
-        yield return Leaf;
-        yield return Fan;
-        yield return CarCrash;
-        yield return Images;
-        yield return Stop;
-        yield return IceCream;
-        yield return Gift;
-        yield return SyncAlt;
-
-        yield return Cube_LightYellow;
-        yield return Cube_Purple;
-        yield return Cube_LightPink;
-        yield return Cube_LightSkyBlue;
-        yield return Cube_LightGreen;
-        yield return Cube_Coral;
-
-        yield return Rev_LightSeaGreen;
-        yield return Rev_LightCoral;
-        yield return Rev_Coral;
-        yield return Rev_LightGreen;
-
-
-        yield return Con_Pris;
-        yield return Con_Sph;
-        yield return Tree_DarkGreen;
-        yield return Hardpoints;
-
-        yield return Warning;
-    }
-
-
-    public static unsafe void TintGlyphs(byte* data, int atlasWidth, int atlasHeight, ImFontPtr font)
-    {
-        foreach (var t in tints)
-        {
-            var glyph = ImGuiExt.igFontFindGlyph(font.NativePtr, t.Item1);
-            var color = t.Item2;
-            var offx = (int) (glyph->U0 * atlasWidth);
-            var width = (int) (glyph->U1 * atlasWidth) - offx;
-            var offy = (int) (glyph->V0 * atlasHeight);
-            var height = (int) (glyph->V1 * atlasHeight) - offy;
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    var offset = ((offy + y) * atlasWidth + offx + x) * 4;
-                    var r = data[offset + 2] / 255f;
-                    var g = data[offset + 1] / 255f;
-                    var b = data[offset] / 255f;
-                    r *= color.R;
-                    g *= color.G;
-                    b *= color.B;
-                    data[offset + 2] = (byte) (r * 255f);
-                    data[offset + 1] = (byte) (g * 255f);
-                    data[offset] = (byte) (b * 255f);
-                }
-            }
-        }
-    }
-
-    static List<(char, Color4)> tints = new List<(char, Color4)>();
     private static ushort pmap = 0xE100;
     static void Tint(out char dst, char src, Color4 color)
     {
         dst = (char)(pmap++);
-        tints.Add((dst,color));
-        igMapGlyph((int)dst, (int)src);
+        ImGuiFreeType_AddTintIcon(dst, src, (VertexDiffuse)color);
     }
 
     [DllImport("cimgui")]
-    static extern void igMapGlyph(int glyph, int actual);
+    static extern void ImGuiFreeType_AddTintIcon(ushort glyph, ushort icon, uint color);
 }

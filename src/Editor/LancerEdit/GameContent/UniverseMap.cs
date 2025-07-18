@@ -31,7 +31,7 @@ namespace LancerEdit.GameContent
 
         private Vector2 newPos = Vector2.Zero;
 
-        public string Draw(int imageId, List<EditorSystem> systems, GameDataManager gameData, List<(EditorSystem, EditorSystem)> connections, int width, int height, int offsetY)
+        public string Draw(ImTextureRef? imageId, List<EditorSystem> systems, GameDataManager gameData, List<(EditorSystem, EditorSystem)> connections, int width, int height, int offsetY)
         {
             var minPos = ImGui.GetCursorScreenPos();
             var maxPos = minPos + new Vector2(width, height);
@@ -41,8 +41,8 @@ namespace LancerEdit.GameContent
             float buttonSize = (int) ((width / 838.0f) * 16f);
             if (buttonSize < 2) buttonSize = 2;
 
-            if (imageId != -1) {
-                drawList.AddImage((IntPtr) imageId, minPos, maxPos, new Vector2(0, 1), new Vector2(1, 0));
+            if (imageId != null) {
+                drawList.AddImage(imageId.Value, minPos, maxPos, new Vector2(0, 1), new Vector2(1, 0));
             }
             else {
                 drawList.AddRectFilled(minPos, maxPos, 0xFF000000);
@@ -50,7 +50,7 @@ namespace LancerEdit.GameContent
 
 
 
-            drawList.AddText(ImGuiHelper.Default, ImGuiHelper.Default.FontSize, minPos, 0xFFFFFFFF, "Double-click to open. Click+drag to move. Shift to disable snapping");
+            drawList.AddText(ImGuiHelper.SystemMonospace, ImGui.GetFontSize(), minPos, 0xFFFFFFFF, "Double-click to open. Click+drag to move. Shift to disable snapping");
 
             float margin = 0.15f;
             var min = ImGui.GetCursorPos() + new Vector2(width, height) * margin;
@@ -108,7 +108,7 @@ namespace LancerEdit.GameContent
 
                     newPos += (ImGui.GetIO().MouseDelta / factor);
                     sys.Position = MathHelper.Snap(newPos,
-                        ImGui.IsKeyDown(ImGuiKey.ModShift) ? Vector2.Zero : Vector2.One);
+                        ImGui.IsKeyDown(ImGuiKey.ImGuiMod_Shift) ? Vector2.Zero : Vector2.One);
                     dragCurrent = sys;
                 }
 

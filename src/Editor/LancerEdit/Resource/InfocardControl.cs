@@ -18,7 +18,8 @@ namespace LancerEdit
         BuiltRichText icard;
         MainWindow window;
         RenderTarget2D renderTarget;
-        int renderWidth = -1, renderHeight = -1, rid = -1;
+        private int renderWidth = -1, renderHeight = -1;
+        private ImTextureRef rid;
         public string InfocardText { get; private set; }
         public InfocardControl(MainWindow win, Infocard infocard, float initWidth)
         {
@@ -31,7 +32,7 @@ namespace LancerEdit
             InfocardText = infocard.ExtractText();
             icard = window.RichText.BuildText(infocard.Nodes, renderWidth > 0 ? renderWidth : 400, 0.7f * ImGuiHelper.Scale);
         }
-        public void Draw(float width)
+        public unsafe void Draw(float width)
         {
             icard.Recalculate(width);
             if (icard.Height < 1 || width < 1) {
@@ -43,21 +44,21 @@ namespace LancerEdit
             var scrPos = -ImGui.GetScrollY();
             var mOffset = cPos + wPos + new Vector2(0, scrPos);
             var drawList = ImGui.GetWindowDrawList();
-            drawList.AddImage((IntPtr)rid,
+            drawList.AddImage(rid,
                 new Vector2((int)mOffset.X, (int)mOffset.Y),
                 new Vector2((int)(mOffset.X + renderWidth), (int)(mOffset.Y + icard.Height)),
                 new Vector2(0, 1), new Vector2(1, 0));
 
-            drawList.AddCallback(IntPtr.MaxValue, ImGuiHelper.Callback(s =>
+            drawList.AddCallback((_, pcmd) =>
             {
-                if (window.RenderContext.PushScissor(s))
+                if (window.RenderContext.PushScissor(ImGuiHelper.GetClipRect(pcmd)))
                 {
                     window.RichText.RenderText(icard, (int)mOffset.X, (int)mOffset.Y);
                     window.RenderContext.PopScissor();
                 }
-            }));
+            }, IntPtr.Zero);
 
-            ImGui.InvisibleButton("##infocardbutton", new System.Numerics.Vector2(renderWidth, icard.Height));
+            ImGui.InvisibleButton("##infocardbutton", new Vector2(renderWidth, icard.Height));
         }
         public void Dispose()
         {

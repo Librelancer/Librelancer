@@ -366,9 +366,9 @@ public class QuickFileBrowser
         childWatcher.EnableRaisingEvents = true;
     }
 
-    int DrawGridItem(string name, bool isSelected ,float itemWidth, float iconSize, int icon)
+    int DrawGridItem(string name, bool isSelected ,float itemWidth, float iconSize, ImTextureRef icon)
     {
-        var sz = ImGui.CalcTextSize(name, itemWidth);
+        var sz = ImGui.CalcTextSize(name, null, false, itemWidth);
         var dl = ImGui.GetWindowDrawList();
         var pos = ImGui.GetCursorScreenPos();
         var textHMax = Math.Min(sz.Y, ImGui.GetTextLineHeight() * 2);
@@ -376,7 +376,7 @@ public class QuickFileBrowser
         var hovered = ImGui.IsItemHovered();
         if (hovered)
         {
-            dl.AddRectFilled(pos, pos + new Vector2(itemWidth, iconSize + textHMax), ImGui.GetColorU32(ImGuiCol.NavHighlight));
+            dl.AddRectFilled(pos, pos + new Vector2(itemWidth, iconSize + textHMax), ImGui.GetColorU32(ImGuiCol.NavCursor));
             if(textHMax < sz.Y)
                 ImGui.SetTooltip(name);
         }
@@ -387,28 +387,12 @@ public class QuickFileBrowser
 
         var imagePos = pos + new Vector2((itemWidth / 2) - (iconSize / 2), 0);
         dl.AddImage(icon, imagePos, imagePos + new Vector2(iconSize), new Vector2(0, 1), new Vector2(1, 0));
-        AddText(dl, pos + new Vector2((itemWidth / 2) - (sz.X / 2), iconSize), sz.X, textHMax, ImGui.GetColorU32(ImGuiCol.Text), name, itemWidth);
+        //dl.AddText(ImGui.GetFont(), ImGui.GetFontSize(), pos + new Vector2((itemWidth / 2) - (sz.X / 2), iconSize), sz.X, textHMax, ImGui.GetColorU32(ImGuiCol.Text), name, itemWidth);
         if (hovered && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             return 2;
         if (btn)
             return 1;
         return 0;
-    }
-
-
-    // Not bound in ImGui.NET
-    static unsafe void AddText(ImDrawListPtr list, Vector2 pos, float w, float h, uint col, string text_begin, float wrap_width)
-    {
-        int text_begin_byteCount = Encoding.UTF8.GetByteCount(text_begin);
-        byte* native_text_begin = stackalloc byte[text_begin_byteCount + 1];
-        fixed (char* text_begin_ptr = text_begin)
-        {
-            int native_text_begin_offset = Encoding.UTF8.GetBytes(text_begin_ptr, text_begin.Length, native_text_begin, text_begin_byteCount);
-            native_text_begin[native_text_begin_offset] = 0;
-        }
-        byte* native_text_end = null;
-        Vector4 clip = new Vector4(pos.X, pos.Y, pos.X + w, pos.Y + h);
-        ImGuiNative.ImDrawList_AddText_FontPtr(list.NativePtr, ImGui.GetFont().NativePtr, ImGui.GetFontSize(), pos, col, native_text_begin, native_text_end, wrap_width, &clip);
     }
 
     bool Star(bool fav)

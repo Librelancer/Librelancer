@@ -105,7 +105,7 @@ public class ThnPlayerTab : GameContentTab
         if(ImGuiExt.Button("Reload", cutscene != null))
             Reload();
         ImGui.SameLine();
-        ImGui.TextUnformatted($"T: {(cutscene?.CurrentTime ?? 0):F4}");
+        ImGui.Text($"T: {(cutscene?.CurrentTime ?? 0):F4}");
         ImGui.SameLine();
         #if DEBUG
         Controls.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
@@ -123,7 +123,7 @@ public class ThnPlayerTab : GameContentTab
             {
                 FileDialog.Open(file => openFiles.Add(file));
             }
-            ImGui.BeginChild("##files", new Vector2(200, 200), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("##files", new Vector2(200, 200), ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar);
             int j = 0;
             foreach (var f in openFiles)
                 ImGui.Selectable(ImGuiExt.IDWithExtra(f, j++));
@@ -160,7 +160,7 @@ public class ThnPlayerTab : GameContentTab
 
                         ImGui.SetNextItemWidth(-1);
                         var th = ImGui.GetWindowHeight() - 100;
-                        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                         ImGui.InputTextMultiline("##src", ref file.Text, uint.MaxValue, new Vector2(0, th),
                             ImGuiInputTextFlags.ReadOnly);
                         ImGui.PopFont();

@@ -198,7 +198,7 @@ namespace InterfaceEdit
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
             guiHelper.NewFrame(elapsed);
-            ImGui.PushFont(ImGuiHelper.Noto);
+            ImGui.PushFont(ImGuiHelper.Noto, 0);
             ImGui.BeginMainMenuBar();
             if (ImGui.BeginMenu("File"))
             {
@@ -442,7 +442,7 @@ namespace InterfaceEdit
 
         private int rtX = -1, rtY = -1;
         private RenderTarget2D renderTarget;
-        private int renderTargetImage;
+        private ImTextureRef renderTargetImage;
         private bool lastDown = false;
         bool mouseWanted = false;
         void Player(double delta)
@@ -482,7 +482,7 @@ namespace InterfaceEdit
             RenderContext.RenderTarget = null;
             //We don't use ImageButton because we need to be specific about sizing
             var cPos = ImGui.GetCursorPos();
-            ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
+            ImGui.Image(renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
             ImGui.SetCursorPos(cPos);
             var wPos = ImGui.GetWindowPos();
             var mX = (int) (Mouse.X - cPos.X - wPos.X);

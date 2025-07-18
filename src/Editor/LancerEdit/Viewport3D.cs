@@ -114,7 +114,7 @@ namespace LancerEdit
             return msaaEnabled;
         }
 
-        public void Draw(int fixWidth = -1, int fixHeight = -1, bool view = true)
+        public unsafe void Draw(int fixWidth = -1, int fixHeight = -1, bool view = true)
         {
             if (mw.Width <= 0 || mw.Height <= 0)
                 return;
@@ -132,7 +132,10 @@ namespace LancerEdit
                 MousePos = ImGui.GetMousePos() - cpos;
                 ImGuizmo.SetRect(cpos.X, cpos.Y, ControlWidth, ControlHeight);
                 ImGuizmo.SetDrawlist();
-                ImGui.GetWindowDrawList().AddCallback(IntPtr.MaxValue, ImGuiHelper.Callback(_ => DrawCallback((int)cpos.X, (int)cpos.Y, renderWidth, renderHeight)));
+                ImGui.GetWindowDrawList().AddCallback((_, _) =>
+                {
+                    DrawCallback((int)cpos.X, (int)cpos.Y, renderWidth, renderHeight);
+                }, IntPtr.Zero);
                 ImGui.GetWindowDrawList().AddRect(cpos, cpos + new Vector2(renderWidth, renderHeight), ImGui.GetColorU32(ImGuiCol.Border));
                 bool click = false;
                 //Taken from imgui_internal.h
@@ -414,7 +417,7 @@ namespace LancerEdit
                     WalkthroughKeyboardControls();
                 }
             }
-            else if (io.MouseDown[1])
+            else if (io.MouseDown[1] != 0)
                 WalkthroughKeyboardControls();
         }
         void WalkthroughKeyboardControls()

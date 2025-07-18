@@ -22,7 +22,7 @@ public class SaveGameTab : EditorTab
 
     public override void Draw(double elapsed)
     {
-        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         var avail = ImGui.GetContentRegionAvail();
         var sz = new Vector2(avail.X - ImGuiHelper.Scale * 8, avail.Y - ImGuiHelper.Scale * 16);
         ImGui.InputTextMultiline("##text", ref saveGameText, (uint)saveGameText.Length, sz,

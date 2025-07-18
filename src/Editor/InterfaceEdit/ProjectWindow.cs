@@ -84,7 +84,7 @@ namespace InterfaceEdit
                     openNew = true;
                     newFileBuffer = new byte[48];
                 }
-                ImGui.BeginChild("##files", Vector2.Zero, ImGuiChildFlags.Border);
+                ImGui.BeginChild("##files", Vector2.Zero, ImGuiChildFlags.Borders);
                 for (int i = 0; i < files.Length; i++)
                 {
                     ImGui.Selectable(ImGuiExt.IDWithExtra(files[i], i));

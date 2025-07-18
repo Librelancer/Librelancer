@@ -52,7 +52,7 @@ public class HotkeyHelp
 
     static void DrawKeyboardButton(bool ctrl, bool alt, bool shift, string key)
     {
-        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         var plusCol = ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
         ImGui.PushStyleColor(ImGuiCol.Text, new Color4(31, 35, 40, 255));
         ImGui.PushStyleColor(ImGuiCol.Button, new Color4(246, 248, 250, 255));
@@ -99,7 +99,7 @@ public class HotkeyHelp
                 ImGui.TableNextColumn();
                 DrawKeyboardButton(hk.Control, hk.Alt, hk.Shift, hk.Key);
                 ImGui.TableNextColumn();
-                ImGui.TextUnformatted(hk.Description);
+                ImGui.Text(hk.Description);
             }
 
             ImGui.EndTable();

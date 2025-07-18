@@ -57,14 +57,14 @@ sealed class MessageBoxPopup : PopupWindow
             ImGui.InputTextMultiline(
                 "##label",
                 ref text,
-                UInt32.MaxValue,
+                uint.MaxValue,
                 new Vector2(350, 150) * ImGuiHelper.Scale,
                 ImGuiInputTextFlags.ReadOnly
             );
         }
         else
         {
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
         }
         if (buttons == MessageBoxButtons.Ok)
         {

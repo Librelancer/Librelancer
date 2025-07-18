@@ -93,3 +93,9 @@ ${CRUNCH_DIR}/crnlib/lzma_LzmaLib.cpp
 ${CRNLIB_THREAD_SRCS}
 crnlibglue.cpp
 )
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+    # link libgcc/libstdc++ into our .dll
+    target_link_options(crnlibglue PRIVATE -static-libgcc -static-libstdc++ -static)
+endif()
+

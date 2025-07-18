@@ -112,14 +112,14 @@ public class DockActionSelection : PopupWindow
 
     void Combo(string label, ref int selectedIndex, string[] names)
     {
-        ImGui.TextUnformatted(label);
+        ImGui.Text(label);
         ImGui.SetNextItemWidth(300 * ImGuiHelper.Scale);
         ImGui.Combo($"##{label}", ref selectedIndex, names, names.Length);
     }
 
     void Combo<T>(string label, ObjectLookup<T> lookup) where T : class
     {
-        ImGui.TextUnformatted(label);
+        ImGui.Text(label);
         ImGui.SetNextItemWidth(300 * ImGuiHelper.Scale);
         lookup.Draw();
     }

@@ -12,8 +12,6 @@ namespace LibreLancer.ImUI
 {
     public static unsafe class ImGuiExt
     {
-        [DllImport("cimgui", CallingConvention =  CallingConvention.Cdecl)]
-        internal static extern void igFtLoad();
 
         [DllImport("cimgui", EntryPoint = "igExtSplitterV", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool SplitterV(float thickness, ref float size1, ref float size2, float min_size1, float min_size2, float splitter_long_axis_size);
@@ -47,16 +45,13 @@ namespace LibreLancer.ImUI
         }
 
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern ImFontGlyph* igFontFindGlyph(ImFont* font, uint c);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         static extern void igExtDrawListAddTriangleMesh(IntPtr drawlist, IntPtr vertices, int count, uint color);
 
         public static void AddTriangleMesh(this ImDrawListPtr drawList, Vector2[] vertices, int count, VertexDiffuse color)
         {
             fixed (Vector2* ptr = vertices)
             {
-                igExtDrawListAddTriangleMesh((IntPtr)drawList.NativePtr, (IntPtr)ptr, count, color);
+                igExtDrawListAddTriangleMesh((IntPtr)drawList.Handle, (IntPtr)ptr, count, color);
             }
         }
 
@@ -65,14 +60,11 @@ namespace LibreLancer.ImUI
             Span<byte> nbytes = stackalloc byte[512];
             using var native_name = new UTF8ZHelper(nbytes, name);
             fixed (byte* p = native_name.ToUTF8Z())
-                return ImGuiNative.igBeginPopupModal(p, (byte*)0, flags) != 0;
+                return ImGuiNative.ImGui_BeginPopupModal(p, (byte*)0, flags) != 0;
         }
 
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         public static extern void igExtRenderArrow(float x, float y);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int igExtGetNextWidth(out float nextWidth);
 
         public static unsafe bool ComboButton(string id, string preview)
         {
@@ -127,7 +119,7 @@ namespace LibreLancer.ImUI
             ImGui.BeginDisabled(!enabled);
             bool r;
             fixed(byte* b = str)
-                r = ImGuiNative.igButton(b, new Vector2()) != 0;
+                r = ImGuiNative.ImGui_Button(b, new Vector2()) != 0;
             ImGui.EndDisabled();
             return r;
         }
@@ -244,16 +236,5 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
         static extern bool _Spinner(string label, float radius, int thickness, uint color);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        static extern bool igExtSeparatorText(IntPtr text);
-
-        public static void SeparatorText(string text)
-        {
-            Span<byte> nbytes = stackalloc byte[512];
-            using var native_name = new UTF8ZHelper(nbytes, text);
-            fixed(byte* p = native_name.ToUTF8Z())
-                igExtSeparatorText((IntPtr)p);
-        }
 	}
 }

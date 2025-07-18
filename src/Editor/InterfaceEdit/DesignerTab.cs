@@ -134,7 +134,7 @@ namespace InterfaceEdit
         }
 
         private RenderTarget2D renderTarget;
-        private int renderTargetImage;
+        private ImTextureRef renderTargetImage;
         private int rtX = -1, rtY = -1;
         private bool lastDown = false;
         void DoViewport(double delta)
@@ -171,7 +171,7 @@ namespace InterfaceEdit
             mainWindow.RenderContext.RenderTarget = null;
             //We don't use ImageButton because we need to be specific about sizing
             var cPos = ImGui.GetCursorPos();
-            ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
+            ImGui.Image(renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
             ImGui.SetCursorPos(cPos);
             var wPos = ImGui.GetWindowPos();
             var mX = (int) (mainWindow.Mouse.X - cPos.X - wPos.X);

@@ -228,6 +228,7 @@ namespace LancerEdit
             ImGui.Text("Ui Scale (Requires Restart)");
             ImGui.SameLine();
             ImGui.SliderFloat("##uiscale", ref config.UiScale, 1, 2.5f);
+
             if (Platform.RunningOS == OS.Windows && ImGui.Button("Set File Assocations"))
             {
                 Win32Integration.FileTypes();
@@ -272,7 +273,7 @@ namespace LancerEdit
                 FileDialog.Open(path => config.BlenderPath = path);
             ImGui.BeginDisabled(true);
             if (!string.IsNullOrWhiteSpace(autodetectedPath)) {
-                ImGui.TextUnformatted($"Blender was detected at '{autodetectedPath}'");
+                ImGui.Text($"Blender was detected at '{autodetectedPath}'");
                 if (!string.IsNullOrWhiteSpace(config.BlenderPath)) {
                     ImGui.Text("But importer will use specified path");
                 }

@@ -204,8 +204,8 @@ public class SearchDropdown<T>
         // PopupShown is 2 frames to allow scroll logic to work
         if (popupShown == 2)
         {
-            cb->BufDirty = 1;
-            cb->Buf[0] = 0;
+            cb->BufDirty = true;
+            ((byte*)cb->Buf)![0] = 0;
             cb->BufTextLen = 0;
         }
         return 0;

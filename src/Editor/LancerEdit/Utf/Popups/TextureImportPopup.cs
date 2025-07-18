@@ -12,7 +12,7 @@ public class TextureImportPopup : PopupWindow
 {
     private Action<List<LUtfNode>> callback;
     private AnalyzedTexture source;
-    private int textureId;
+    private ImTextureRef textureId;
 
     private int step = 0;
 
@@ -80,8 +80,8 @@ public class TextureImportPopup : PopupWindow
         if (wsz > sz) {
             ImGui.SameLine((wsz - sz) / 2);
         }
-        ImGui.Image((IntPtr)textureId, new Vector2(sz),
-            new Vector2(0, 1), new Vector2(1, 0), Vector4.One, Vector4.Zero);
+
+        ImGui.Image(textureId, new Vector2(sz), new Vector2(0, 1), new Vector2(1, 0));
         ImGui.Text(string.Format("Dimensions: {0}x{1}", source.Texture.Width, source.Texture.Height));
         if (source.Type == TexLoadType.Opaque)
         {

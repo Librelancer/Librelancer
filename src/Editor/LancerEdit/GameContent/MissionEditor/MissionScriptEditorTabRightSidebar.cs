@@ -12,7 +12,7 @@ public sealed partial class MissionScriptEditorTab
     private void RenderRightSidebar()
     {
         var padding = ImGui.GetStyle().FramePadding.Y + ImGui.GetStyle().FrameBorderSize;
-        ImGui.BeginChild("NavbarRight", new Vector2(300f * ImGuiHelper.Scale, ImGui.GetContentRegionMax().Y - padding), ImGuiChildFlags.None,
+        ImGui.BeginChild("NavbarRight", new Vector2(300f * ImGuiHelper.Scale, ImGui.GetContentRegionAvail().Y - padding), ImGuiChildFlags.None,
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoCollapse);
 

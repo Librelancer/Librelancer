@@ -78,7 +78,7 @@ public class PatrolRouteDialog : PopupWindow
             // Path Label
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Base Path Name");
+            ImGui.Text("Base Path Name");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputText("##pathLabel", ref pathLabel, 128);
@@ -86,7 +86,7 @@ public class PatrolRouteDialog : PopupWindow
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.TextUnformatted("This is the base name for the patrol route. It must be unique within the entire universe or Freelancer could confuse it with others.");
+                ImGui.Text("This is the base name for the patrol route. It must be unique within the entire universe or Freelancer could confuse it with others.");
                 ImGui.EndTooltip();
             }
 
@@ -97,7 +97,7 @@ public class PatrolRouteDialog : PopupWindow
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Toughness");
+            ImGui.Text("Toughness");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputInt("##toughness", ref toughness, 1);
@@ -105,7 +105,7 @@ public class PatrolRouteDialog : PopupWindow
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Density");
+            ImGui.Text("Density");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputInt("##density", ref density, 1);
@@ -113,7 +113,7 @@ public class PatrolRouteDialog : PopupWindow
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Repop Time");
+            ImGui.Text("Repop Time");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputInt("##repopTime", ref repopTime, 1);
@@ -121,7 +121,7 @@ public class PatrolRouteDialog : PopupWindow
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Max Battle Size");
+            ImGui.Text("Max Battle Size");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputInt("##maxBattleSize", ref maxBattleSize, 1);
@@ -129,7 +129,7 @@ public class PatrolRouteDialog : PopupWindow
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Relief Time");
+            ImGui.Text("Relief Time");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputInt("##reliefTime", ref reliefTime, 1);
@@ -137,7 +137,7 @@ public class PatrolRouteDialog : PopupWindow
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.TextUnformatted("Sort");
+            ImGui.Text("Sort");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
             ImGui.InputFloat("##sort", ref sort, 0, 0, "%.3f");
@@ -181,7 +181,7 @@ public class PatrolRouteDialog : PopupWindow
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted("Archetype");
+                    ImGui.Text("Archetype");
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
                     encounter.EncounterLookup.Draw();
@@ -190,7 +190,7 @@ public class PatrolRouteDialog : PopupWindow
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted("Difficulty");
+                    ImGui.Text("Difficulty");
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
                     var difficulty = encounter.Difficulty;
@@ -200,7 +200,7 @@ public class PatrolRouteDialog : PopupWindow
 
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted("Chance");
+                    ImGui.Text("Chance");
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
                     var chance = encounter.Chance;
@@ -222,7 +222,7 @@ public class PatrolRouteDialog : PopupWindow
                         if (ImGuiExt.Button(Icons.TrashAlt,encounter.Factions.Count > 1))
                             factionToDelete = j;
                         ImGui.SameLine();
-                        ImGui.TextUnformatted($"Faction #{j + 1}");
+                        ImGui.Text($"Faction #{j + 1}");
                         ImGui.TableNextColumn();
                         faction.FactionLookup.Draw();
                         faction.Faction = faction.FactionLookup.Selected;

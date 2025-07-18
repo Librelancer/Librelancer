@@ -14,10 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <Compile Include="..\..\..\extern\ImGui.NET\src\ImGui.NET\**\*.cs" LinkBase="ImGui.NET" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
     <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />

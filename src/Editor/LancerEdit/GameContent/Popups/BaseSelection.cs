@@ -27,7 +27,7 @@ public class BaseSelection : PopupWindow
     {
         var width = 300 * ImGuiHelper.Scale;
         if (message != null) {
-            ImGui.TextUnformatted(message);
+            ImGui.Text(message);
             width = Math.Max(width, ImGui.CalcTextSize(message).X);
         }
         ImGui.PushItemWidth(width);

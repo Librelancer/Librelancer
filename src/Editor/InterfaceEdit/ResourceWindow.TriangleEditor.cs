@@ -18,7 +18,7 @@ namespace InterfaceEdit
             ImGui.Text("Texture Coordinates");
             EditPoints("##texcoords",  mdl.TexCoords, (x,y,w,h) =>
             {
-                ImGui.Image((IntPtr) foundTextureId, new Vector2(w, h), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image(foundTextureId, new Vector2(w, h), new Vector2(0, 1), new Vector2(1, 0));
             },new Point(foundTexture.Width, foundTexture.Height));
             ImGui.Text("Vertices");
             EditPoints("##vertices", mdl.DisplayCoords, (x, y, w, h) =>
@@ -34,7 +34,7 @@ namespace InterfaceEdit
                 var tA = new Vector2(tc.X0, 1- tc.Y0);
                 var tB = new Vector2(tc.X1, 1- tc.Y1);
                 var tC = new Vector2(tc.X2, 1- tc.Y2);
-                drawList.AddImageQuad((IntPtr)foundTextureId,pA,pB,pC,pC,tA,tB,tC,tC, UInt32.MaxValue);
+                drawList.AddImageQuad(foundTextureId,pA,pB,pC,pC,tA,tB,tC,tC, UInt32.MaxValue);
             });
         }
         void EditPoints(string label, InterfacePoints points, Action<int,int,int,int> renderResult, Point? pixels = null)

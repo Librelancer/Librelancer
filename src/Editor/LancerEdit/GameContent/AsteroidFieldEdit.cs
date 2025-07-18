@@ -246,7 +246,7 @@ public class AsteroidFieldEdit
             Field.CubeRotation.AxisZ = z;
 
         //Colour
-        ImGuiExt.SeparatorText("Color");
+        ImGui.SeparatorText("Color");
         if (ImGui.BeginTable("##color", 2, ImGuiTableFlags.Borders))
         {
             ImGui.TableNextRow();

@@ -62,7 +62,7 @@ public class StarSelection : PopupWindow
         sunPreview = null;
     }
 
-    bool SunButton(Sun sun, Vector2 size, bool isSelected)
+    unsafe bool SunButton(Sun sun, Vector2 size, bool isSelected)
     {
         ImGui.PushID(sun.Nickname);
         uint col = isSelected ? ImGui.GetColorU32(ImGuiCol.ButtonActive) : ImGui.GetColorU32(ImGuiCol.FrameBg);
@@ -74,14 +74,15 @@ public class StarSelection : PopupWindow
         var max = ImGui.GetItemRectMax();
         var r = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
         var dl = ImGui.GetWindowDrawList();
-        dl.AddCallback(IntPtr.MaxValue, ImGuiHelper.Callback(scissor =>
+        dl.AddCallback((_, cmd) =>
         {
             if (sunPreview == null)
                 return;
-            renderContext.PushScissor(scissor, false);
+            renderContext.PushScissor(ImGuiHelper.GetClipRect(cmd), false);
             sunPreview.Render(sun, (Color4)(VertexDiffuse)col, renderContext, r);
             renderContext.PopScissor();
-        }));
+        }, IntPtr.Zero);
+
         dl.AddRect(min, max, ImGui.GetColorU32(ImGuiCol.Border));
         ImGui.PopID();
         return retval;
@@ -113,9 +114,9 @@ public class StarSelection : PopupWindow
         bool doReturn = false;
         returnValue = null;
         ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth() - 12 * ImGuiHelper.Scale,
-            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Border);
+            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Borders);
         ImGui.BeginTable("##table", 4);
-        using var clipper = new ListClipper();
+        var clipper = new ImGuiListClipper();
         int itemsLen = (displayList.Length + 1) / 4;
         if ((displayList.Length + 1) % 4 != 0) itemsLen++;
         clipper.Begin(itemsLen);

@@ -60,7 +60,7 @@ namespace LibreLancer.Graphics
         public void SetWrapModeT(WrapMode mode) =>
             Backing.SetWrapModeT(mode);
 
-        internal void SetData(int level, Rectangle rect, IntPtr data) =>
+        public void SetData(int level, Rectangle rect, IntPtr data) =>
             Backing.SetData(level, rect, data);
 
         public void SetData<T>(T[] data) where T : unmanaged =>
