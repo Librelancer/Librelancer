@@ -507,21 +507,37 @@ public class ObjectUpdate
         }
 
         //Guns
-        if (Guns.Length != (src.Guns?.Length ?? 0))
+        if (Guns == null)
         {
-            msg.PutBool(true);
-            msg.PutVarUInt32((uint)Guns.Length);
+            if ((src.Guns?.Length ?? 0) != 0)
+            {
+                msg.PutBool(true);
+                msg.PutVarUInt32(0);
+            }
+            else
+            {
+                msg.PutBool(false);
+            }
         }
         else
         {
-            msg.PutBool(false);
+            if (Guns.Length != (src.Guns?.Length ?? 0))
+            {
+                msg.PutBool(true);
+                msg.PutVarUInt32((uint)Guns.Length);
+            }
+            else
+            {
+                msg.PutBool(false);
+            }
+
+            for (var i = 0; i < Guns.Length; i++)
+            {
+                var sg = (src.Guns?.Length ?? 0) > i ? src.Guns[i] : default;
+                Guns[i].WriteDelta(sg, ref msg);
+            }
         }
 
-        for (var i = 0; i < Guns.Length; i++)
-        {
-            var sg = (src.Guns?.Length ?? 0) > i ? src.Guns[i] : default;
-            Guns[i].WriteDelta(sg, ref msg);
-        }
 #if DEBUG
         msg.PutByte(0xA1);
 #endif
