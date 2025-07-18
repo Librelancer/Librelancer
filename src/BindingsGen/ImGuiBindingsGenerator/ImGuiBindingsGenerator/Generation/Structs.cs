@@ -2,20 +2,21 @@ namespace ImGuiBindingsGenerator.Generation;
 
 public static class Structs
 {
-    public static void WriteStructs(ProcessedDefinitions definitions, TypeConversions types, 
+    public static void WriteStructs(ProcessedDefinitions definitions, TypeConversions types,
         StructPtrWrappers structPtrs, string outputDir)
     {
         // Create types
         foreach (var structDef in definitions.Structs)
         {
-            if (structDef.IsAnonymous ||
-                structDef.Name.StartsWith("ImVector_"))
+            var si = structDef.Struct;
+            if (si.IsAnonymous ||
+                si.Name.StartsWith("ImVector_"))
                 continue;
-    
-            if (structDef.ForwardDeclaration)
+
+            if (structDef.Struct.ForwardDeclaration)
             {
-                structPtrs.AddStructPtr(structDef.Name);
-                types.RegisterForwardDeclaration(structDef.Name);
+                structPtrs.AddStructPtr(si.Name);
+                types.RegisterForwardDeclaration(si.Name);
                 continue;
             }
 
@@ -26,26 +27,27 @@ public static class Structs
             cw.AppendLine("using System.Runtime.InteropServices;");
             cw.AppendLine("namespace ImGuiNET;");
             cw.AppendLine();
-            WriteStruct(cw, structDef.Name, definitions.Functions, structDef, definitions, types);
-   
-            File.WriteAllText(Path.Combine(outputDir, "Structs", structDef.Name + ".cs"), cw.ToString());
+            WriteStruct(cw, si.Name, definitions.Functions, structDef, definitions, types);
+
+            File.WriteAllText(Path.Combine(outputDir, "Structs", si.Name + ".cs"), cw.ToString());
         }
     }
-    
+
     public static void WriteStruct(
-        CodeWriter cw, 
-        string structName, 
-        List<ProcessedFunction> functions, 
-        StructItem structDef,
+        CodeWriter cw,
+        string structName,
+        List<ProcessedFunction> functions,
+        ProcessedStruct ps,
         ProcessedDefinitions definitions,
         TypeConversions types)
     {
+        var structDef = ps.Struct;
         bool isUnion = structDef.Kind == "union";
 
         cw.AppendComments(structDef.Comments);
         if (isUnion)
             cw.AppendLine("[StructLayout(LayoutKind.Explicit)]");
-        cw.AppendLine($"public unsafe partial struct {structName}");
+        cw.AppendLine($"public unsafe {(ps.IsRefStruct ? "ref " : "")}partial struct {structName}");
         int widthAmount = 0;
         int bitfieldID = 0;
         using (cw.Block())
@@ -55,14 +57,14 @@ public static class Structs
             {
                 if (member.IsAnonymous)
                 {
-                    var anonType = definitions.Structs.FirstOrDefault(x => x.Name == member.Type.Declaration);
+                    var anonType = definitions.Structs.FirstOrDefault(x => x.Struct.Name == member.Type.Declaration);
                     if (anonType == null)
                     {
                         throw new Exception($"Could not find anonymous type {member.Type.Declaration}");
                     }
-                    if (anonType.Fields is { Count: > 0 })
+                    if (anonType.Struct.Fields is { Count: > 0 })
                     {
-                        var n = structName + "_" + anonType.Name;
+                        var n = structName + "_" + anonType.Struct.Name;
                         WriteStruct(cw, n, functions, anonType, definitions, types);
                         cw.AppendComments(member.Comments);
                         if (isUnion)
@@ -136,7 +138,7 @@ public static class Structs
             }
 
             // Methods (for byValue structs)
-            if (!structDef.ByValue)
+            if (!structDef.ByValue && !ps.IsRefStruct)
                 return;
 
             foreach (var f in functions)

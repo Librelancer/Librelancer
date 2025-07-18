@@ -4,7 +4,7 @@ public class ProcessedFunction
 {
     public string? RemappedName { get; set; }
     public FunctionItem Function { get; init; }
-    
+
     public bool SkipWrapping { get; set; }
 
     public ProcessedFunction(FunctionItem function)
@@ -19,14 +19,26 @@ public class ProcessedFunction
             : $"R: {RemappedName}";
     }
 }
+
+public class ProcessedStruct
+{
+    public bool IsRefStruct { get; set; }
+    public StructItem Struct { get; init; }
+
+    public ProcessedStruct(StructItem structItem)
+    {
+        Struct = structItem;
+    }
+}
+
 public class ProcessedDefinitions
 {
     public ImGuiDefines Defines;
     public List<ProcessedFunction> Functions = new();
-    public List<StructItem> Structs = new();
+    public List<ProcessedStruct> Structs = new();
     public List<EnumItem> Enums = new();
     public List<TypedefItem> Typedefs = new();
-    
+
     public List<ReplacementStruct> Replacements;
 
     public ProcessedDefinitions(JsonDefinitions json, ExtraDefinitions extraDefinitions)
@@ -36,8 +48,8 @@ public class ProcessedDefinitions
         {
             Defines.Define(d, "1");
         }
-        Defines.AddDefines(json.Defines);   
-        
+        Defines.AddDefines(json.Defines);
+
         foreach (var cppEnum in json.Enums)
         {
             if (ShouldSkip(Defines, cppEnum.Conditionals))
@@ -97,7 +109,7 @@ public class ProcessedDefinitions
 
         foreach (var i in toRemove)
             Functions.Remove(i);
-        
+
         // Remap overloads
 
         foreach (var newFunction in Functions)
@@ -128,8 +140,8 @@ public class ProcessedDefinitions
                 newFunction.RemappedName = remapName;
             }
         }
-        
-        
+
+
 
         string[] skipStruct = extraDefinitions.Replacements.Select(x => x.cpp).ToArray();
 
@@ -153,20 +165,26 @@ public class ProcessedDefinitions
                 members.Add(fi);
             }
 
-            if (extraDefinitions.StructClasses.Contains(cppStruct.Name))
+            ProcessedStruct ps;
+            if (extraDefinitions.ByvalueStructs.Contains(cppStruct.Name))
             {
                 Console.WriteLine($"[ByValue] S: {cppStruct.Name} forced on");
-                Structs.Add(cppStruct with { ByValue = true, Fields = members });
+                ps= new(cppStruct with { ByValue = true, Fields = members });
             }
             else
             {
-                Structs.Add(cppStruct with { Fields = members });
+                ps = new(cppStruct with { Fields = members });
             }
+            if (extraDefinitions.RefStructs.Contains(cppStruct.Name))
+            {
+                ps.IsRefStruct = true;
+            }
+            Structs.Add(ps);
         }
 
         Replacements = extraDefinitions.Replacements;
     }
-    
+
     static bool ShouldSkip(ImGuiDefines defines, List<ConditionalItem>? conditionals)
     {
         if (conditionals == null)

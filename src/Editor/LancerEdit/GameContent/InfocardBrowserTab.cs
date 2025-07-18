@@ -31,14 +31,12 @@ public class InfocardBrowserTab : GameContentTab
 
     private int gotoItem = -1;
     private int id;
-    private ImGuiListClipper infocardClipper;
     private int[] infocardsIds;
     private bool isSearchInfocards;
     private readonly EditableInfocardManager manager;
 
     private bool showStrings = true;
 
-    private ImGuiListClipper stringClipper;
     private int[] stringsIds;
 
     private readonly MainWindow win;
@@ -217,6 +215,7 @@ public class InfocardBrowserTab : GameContentTab
         {
             if (gotoItem == -1)
             {
+                var stringClipper = new ImGuiListClipper();
                 stringClipper.Begin(stringsIds.Length);
                 while (stringClipper.Step())
                     for (var i = stringClipper.DisplayStart; i < stringClipper.DisplayEnd; i++)
@@ -243,6 +242,7 @@ public class InfocardBrowserTab : GameContentTab
         {
             if (gotoItem == -1)
             {
+                var infocardClipper = new ImGuiListClipper();
                 infocardClipper.Begin(infocardsIds.Length);
                 while (infocardClipper.Step())
                     for (var i = infocardClipper.DisplayStart; i < infocardClipper.DisplayEnd; i++)

@@ -66,7 +66,7 @@ internal unsafe ref struct UTF8ZHelper
     byte* buffer;
     IntPtr marshalled;
     string original;
-
+    
     public int ByteCount;
 
     public UTF8ZHelper(byte* initialBuffer, int initialBufferLength, string value)

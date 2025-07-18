@@ -15,7 +15,6 @@ public class AppLog : IDisposable
     private int bufferSize;
     private List<int> lineOffsets = new List<int>();
     private bool autoScroll = true;
-    private ImGuiListClipper listClipper;
     public AppLog()
     {
         buffer = Marshal.AllocHGlobal(START_CAPACITY);
@@ -68,6 +67,7 @@ public class AppLog : IDisposable
         {
             ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+            var listClipper = new ImGuiListClipper();
             listClipper.Begin(lineOffsets.Count);
             while (listClipper.Step())
             {

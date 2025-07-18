@@ -27,7 +27,7 @@ namespace ImGuiNET;
 /// <para>- User code submit visible elements.</para>
 /// - The clipper also handles various subtleties related to keyboard/gamepad navigation, wrapping etc.
 /// </summary>
-public unsafe partial struct ImGuiListClipper
+public unsafe ref partial struct ImGuiListClipper
 {
     private IntPtr __Ctx;
     /// <summary>

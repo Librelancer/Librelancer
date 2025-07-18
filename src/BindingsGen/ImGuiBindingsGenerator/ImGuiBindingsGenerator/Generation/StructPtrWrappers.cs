@@ -3,12 +3,12 @@ namespace ImGuiBindingsGenerator.Generation;
 public class StructPtrWrappers
 {
     private HashSet<string> generatedStructs = new();
-    private List<StructItem> structs;
+    private List<ProcessedStruct> structs;
     private string outputPath;
 
-    private List<StructItem> toGenerate = new();
+    private List<ProcessedStruct> toGenerate = new();
 
-    public StructPtrWrappers(List<StructItem> structs, string outputPath)
+    public StructPtrWrappers(List<ProcessedStruct> structs, string outputPath)
     {
         this.structs = structs;
         this.outputPath = outputPath;
@@ -18,7 +18,7 @@ public class StructPtrWrappers
     {
         if (!generatedStructs.Add(structName))
             return;
-        toGenerate.Add(structs.First(x => x.Name == structName));
+        toGenerate.Add(structs.First(x => x.Struct.Name == structName));
     }
 
     void WriteStructPtr(StructItem si, TypeConversions types, List<ProcessedFunction> functions)
@@ -44,21 +44,21 @@ public class StructPtrWrappers
                 cw.AppendLine("Handle = handle;");
             }
             cw.AppendLine();
-            
+
             cw.AppendLine($"internal static {si.Name}Ptr Create({pointerType} handle)");
             using (cw.Block())
             {
                 cw.AppendLine($"return handle == {nullPtr} ? null : new(handle);");
             }
             cw.AppendLine();
-            
+
             cw.AppendLine($"internal static {pointerType} GetHandle({si.Name}Ptr self)");
             using (cw.Block())
             {
                 cw.AppendLine($"return self == null ? {nullPtr} : self.Handle;");
             }
             cw.AppendLine();
-            
+
             foreach (var member in si.Fields)
             {
                 if (member.IsArray)
@@ -90,7 +90,7 @@ public class StructPtrWrappers
                             }
                         }
                     }
-                    else if (type.Kind == TypeKind.Pointer || 
+                    else if (type.Kind == TypeKind.Pointer ||
                              type.Kind == TypeKind.Function ||
                              type.Kind == TypeKind.String ||
                              type.InteropName == "void*")
@@ -111,7 +111,7 @@ public class StructPtrWrappers
                 }
                 cw.AppendLine();
             }
-            
+
             foreach (var f in functions)
             {
                 if (f.Function.OriginalClass == si.Name &&
@@ -122,13 +122,13 @@ public class StructPtrWrappers
             }
         }
 
-        
+
         File.WriteAllText(Path.Combine(outputPath, "Wrappers", $"{si.Name}Ptr.cs"), cw.ToString());
     }
 
     public void GenerateWrappers(TypeConversions types, List<ProcessedFunction> functions)
     {
         foreach (var si in toGenerate)
-            WriteStructPtr(si, types, functions);
+            WriteStructPtr(si.Struct, types, functions);
     }
 }

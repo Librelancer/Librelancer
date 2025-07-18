@@ -29,20 +29,20 @@ public class TypeConversions
         // Register struct types
         foreach (var structDef in definitions.Structs)
         {
-            if (structDef.IsAnonymous)
+            if (structDef.Struct.IsAnonymous)
                 continue;
 
-            if (structDef.ForwardDeclaration)
+            if (structDef.Struct.ForwardDeclaration)
             {
-                RegisterForwardDeclaration(structDef.Name);
+                RegisterForwardDeclaration(structDef.Struct.Name);
             }
-            else if (structDef.Name.StartsWith("ImVector_"))
+            else if (structDef.Struct.Name.StartsWith("ImVector_"))
             {
-                ImVectors.Add(structDef);
+                ImVectors.Add(structDef.Struct);
             }
             else
             {
-                RegisterStruct(structDef.Name, structDef.ByValue);
+                RegisterStruct(structDef.Struct.Name, structDef.Struct.ByValue || structDef.IsRefStruct);
             }
         }
 
@@ -142,7 +142,7 @@ public class TypeConversions
             {
                 return TypeConversion.String;
             }
-            
+
             // char *
             // These will use manual overloads to handle complexity
             if (conv.InteropName == "sbyte")

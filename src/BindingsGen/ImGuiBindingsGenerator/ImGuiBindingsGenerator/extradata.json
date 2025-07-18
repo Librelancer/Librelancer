@@ -1,5 +1,6 @@
 {
-  "struct_classes": ["ImGuiListClipper"],
+  "byvalue_structs": [],
+  "ref_structs": ["ImGuiListClipper"],
   "defines": [
     "IMGUI_DISABLE_OBSOLETE_FUNCTIONS",
     "IMGUI_DISABLE_OBSOLETE_KEYIO"
