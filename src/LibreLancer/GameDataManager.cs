@@ -1162,6 +1162,8 @@ namespace LibreLancer
                 foreach (var obj in inisys.Objects)
                 {
                     var o = GetSystemObject(inisys.Nickname, obj);
+                    if (o == null)
+                        continue;
                     objDict[o.Nickname] = obj;
                     sys.Objects.Add(o);
                 }
@@ -2106,6 +2108,7 @@ namespace LibreLancer
             }
             else if (obj.Archetype == null) {
                 FLLog.Error("Systems", $"Object {obj.Nickname} in {system} has bad archetype '{o.Archetype ?? "NULL"}'");
+                return null;
             }
             obj.Star = Stars.Get(o.Star);
             obj.Loadout = GetLoadout(o.Loadout);
