@@ -1743,17 +1743,17 @@ public class SystemEditorTab : GameContentTab
 
     public void AddPatrolPoint(Vector3 point)
     {
-        map2D.Patrol.AddPoint(point);
+        map2D.CreationTools.Patrol.AddPoint(point);
     }
 
     public void CancelPatrolRoute()
     {
-        map2D.Patrol.Cancel();
+        map2D.CreationTools.Patrol.Cancel();
     }
 
     public void FinishPatrolRoute()
     {
-        var points = map2D.Patrol.Finish();
+        var points = map2D.CreationTools.Patrol.Finish();
         Popups.OpenPopup(new PatrolRouteDialog(points, config =>
         {
             CreatePatrolRoute(points, config);
@@ -1850,12 +1850,12 @@ public class SystemEditorTab : GameContentTab
         if(actions.Count > 0)
             UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
 
-        map2D.Patrol.Cancel();
+        map2D.CreationTools.Patrol.Cancel();
     }
 
     public void StartPatrolRoute()
     {
-        map2D.Patrol.Start();
+        map2D.CreationTools.Patrol.Start();
     }
 
     public override void Dispose()

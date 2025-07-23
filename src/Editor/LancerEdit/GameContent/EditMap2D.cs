@@ -31,8 +31,8 @@ public class EditMap2D
     private GameObject dragTarget;
     private Transform3D dragOriginalTransform;
 
-    // Patrol state as part of EditMap2D
-    public PatrolEditor Patrol { get; } = new();
+ // Creation tools (patrols, zones)
+    public Map2DCreationTools CreationTools { get; } = new();
 
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab)
     {
@@ -106,10 +106,14 @@ public class EditMap2D
         // To convert to map position, subtract mapScreenPos from a screen position.
         Vector3 MapToWorld(Vector2 pos)
         {
+            // Account for grid margin when converting map position to world
+            var gridMargin = 15 * ImGuiHelper.Scale;
+            pos -= new Vector2(gridMargin);
+            
             var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
             scale.Y = 0;
-            var relPos = (pos - new Vector2(renderWidth / 2f, renderHeight / 2f)) /
-                         new Vector2(renderWidth, renderHeight);
+            var relPos = (pos - new Vector2(renderWidth / 2f, renderHeight / 2f)) / new Vector2(renderWidth, renderHeight);
+
             return new Vector3(relPos.X, 0, relPos.Y) * scale;
         }
 
@@ -128,7 +132,7 @@ public class EditMap2D
             var id = $"##{obj.Nickname}";
 
             var buttonColor = Color4.LightGray;
-            if(Patrol.IsActive)
+             if(CreationTools.Patrol.IsActive)
             {
                 buttonColor.A = 0.5f;
                 ImGui.BeginDisabled();
@@ -138,7 +142,7 @@ public class EditMap2D
             ImGui.Button(id, new Vector2(buttonSize));
             ImGui.PopStyleColor();
 
-            if(Patrol.IsActive)
+             if(CreationTools.Patrol.IsActive)
             {
                 ImGui.EndDisabled();
             }
@@ -176,7 +180,7 @@ public class EditMap2D
             }
         }
 
-        if (!Patrol.IsActive)
+        if(CreationTools.Patrol.IsActive)
         {
             if (dragCurrent == null && dragTarget != null)
             {
@@ -230,120 +234,30 @@ public class EditMap2D
                 FLLog.Info("Obj", $"Add at {pos - mapScreenPos}");
                 tab.Popups.OpenPopup(new NewObjectPopup(ctx, world, MapToWorld(pos - mapScreenPos), tab.CreateObject));
             }
-            if (!Patrol.IsActive && ImGui.MenuItem("New Patrol Path"))
+            if (!CreationTools.Patrol.IsActive && ImGui.MenuItem("New Patrol Path"))
             {
                 tab.StartPatrolRoute();
+            }
+
+            ImGui.Separator();
+            if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Sphere Zone"))
+            {
+                CreationTools.ZoneShape.Start(LibreLancer.GameData.World.ShapeKind.Sphere, pos - windowPos, MapToWorld(pos - windowPos));
+            }
+            if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Ellipsoid Zone"))
+            {
+                CreationTools.ZoneShape.Start(LibreLancer.GameData.World.ShapeKind.Ellipsoid, pos - windowPos, MapToWorld(pos - windowPos));
             }
             ImGui.EndPopup();
         }
 
-        // Draw patrol path and handle patrol interactions
-        Patrol.Draw(dlist, windowPos, mapScreenPos, WorldToWindow, MapToWorld, tab);
+
+        // Draw creation tools (patrol and zones)
+        CreationTools.Draw(dlist, windowPos, renderWidth, WorldToWindow, MapToWorld, tab);
 
         ImGui.EndChild();
         ImGui.EndChild();
     }
 }
 
-// Patrol state management as part of EditMap2D
-public class PatrolEditor
-{
-    public bool IsActive { get; private set; }
-    public List<Vector3> Points { get; } = new();
-    public float YOffset { get; private set; } = 0f; // Y-axis offset for 3D positioning
 
-    public void Start()
-    {
-        IsActive = true;
-        Points.Clear();
-        YOffset = 0f;
-    }
-
-    public void Cancel()
-    {
-        IsActive = false;
-        Points.Clear();
-        YOffset = 0f;
-    }
-
-    public void AddPoint(Vector3 point)
-    {
-        if (IsActive)
-        {
-            // Apply Y offset to the point
-            var adjustedPoint = new Vector3(point.X, point.Y + YOffset, point.Z);
-            Points.Add(adjustedPoint);
-        }
-    }
-
-    public List<Vector3> Finish()
-    {
-        var result = new List<Vector3>(Points);
-        IsActive = false;
-        Points.Clear();
-        YOffset = 0f;
-        return result;
-    }
-
-    public void Draw(ImDrawListPtr dlist, Vector2 windowPos, Vector2 mapScreenPos, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
-    {
-        if (!IsActive) return;
-
-        var mousePos = ImGui.GetMousePos();
-        var io = ImGui.GetIO();
-
-        // Handle scroll wheel for Y-axis adjustment
-        if (ImGui.IsItemHovered() && io.MouseWheel != 0)
-        {
-            // Adjust Y offset based on scroll wheel
-            // Positive scroll = increase Y (up), Negative scroll = decrease Y (down)
-            YOffset += io.MouseWheel * 100f; // Adjust sensitivity as needed
-
-            // Optional: Add some bounds to prevent extreme values
-            YOffset = MathHelper.Clamp(YOffset, -1000000f, 1000000f);
-        }
-
-        // Draw existing patrol path
-        for (int i = 0; i < Points.Count - 1; i++)
-        {
-            dlist.AddLine(windowPos + worldToMap(Points[i]), windowPos + worldToMap(Points[i + 1]), ImGui.GetColorU32(Color4.LimeGreen), 2f);
-        }
-
-        // Draw line from last point to mouse (with Y offset applied)
-        if (Points.Count > 0)
-        {
-            var mouseWorldPos = mapToWorld(mousePos - mapScreenPos);
-            var adjustedMousePos = new Vector3(mouseWorldPos.X, mouseWorldPos.Y + YOffset, mouseWorldPos.Z);
-            dlist.AddLine(windowPos + worldToMap(Points.Last()), windowPos + worldToMap(adjustedMousePos), ImGui.GetColorU32(Color4.LightGreen), 1.5f);
-        }
-
-        // Handle mouse interactions
-        if (ImGui.IsItemHovered() && !ImGui.IsPopupOpen(null, ImGuiPopupFlags.AnyPopup) && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-        {
-            var mouseWorldPos = mapToWorld(mousePos - mapScreenPos);
-            var adjustedPoint = new Vector3(mouseWorldPos.X, mouseWorldPos.Y + YOffset, mouseWorldPos.Z);
-            AddPoint(mouseWorldPos); // AddPoint will apply the Y offset
-        }
-
-        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-        {
-            tab.FinishPatrolRoute();
-        }
-
-        // Right-click to cancel patrol creation
-        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
-        {
-            tab.CancelPatrolRoute();
-        }
-
-        // Draw help text with scroll wheel instructions
-        var canvasWidth = ImGui.GetWindowWidth();
-        var canvasHeight = ImGui.GetWindowHeight();
-        var helpText = $"Patrol zone controls: Left click to create point, double click to finish, right click to cancel.\nScroll wheel to adjust Y-axis (height): {YOffset:F0}";
-        var textSize = ImGui.CalcTextSize(helpText);
-        ImGui.SetCursorPos(new Vector2(canvasWidth - textSize.X - 20, canvasHeight - 80)); // Adjusted position for two lines
-        ImGui.PushTextWrapPos(canvasWidth - 20);
-        ImGui.TextColored(new Vector4(1, 1, 0.7f, 1), helpText);
-        ImGui.PopTextWrapPos();
-    }
-}
