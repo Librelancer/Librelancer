@@ -24,6 +24,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Physics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Thorn.VM;
 using LibreLancer.Utf.Anm;
 using Archetype = LibreLancer.GameData.Archetype;

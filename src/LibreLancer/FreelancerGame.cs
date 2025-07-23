@@ -16,6 +16,7 @@ using LibreLancer.Render;
 using LibreLancer.Sounds;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Resources;
 
 namespace LibreLancer
 {

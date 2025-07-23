@@ -16,6 +16,7 @@ using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
 using LibreLancer.Physics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World.Components;

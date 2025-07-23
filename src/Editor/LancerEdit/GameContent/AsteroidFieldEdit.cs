@@ -20,6 +20,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.World;
 using AsteroidField = LibreLancer.GameData.World.AsteroidField;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;

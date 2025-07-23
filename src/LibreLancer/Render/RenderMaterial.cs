@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 

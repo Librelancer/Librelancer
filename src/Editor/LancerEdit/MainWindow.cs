@@ -25,6 +25,7 @@ using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 
 namespace LancerEdit

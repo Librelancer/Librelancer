@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 
 namespace LibreLancer.World

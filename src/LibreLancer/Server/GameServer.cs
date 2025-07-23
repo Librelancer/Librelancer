@@ -20,6 +20,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace LibreLancer.Server

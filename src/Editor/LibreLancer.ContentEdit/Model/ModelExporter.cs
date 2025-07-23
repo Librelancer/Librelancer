@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.ContentEdit.Texture;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;

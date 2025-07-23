@@ -9,6 +9,7 @@ using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Graphics;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 
 namespace LibreLancer.Interface

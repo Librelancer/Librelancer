@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 

@@ -19,6 +19,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Sur;
 using SimpleMesh;

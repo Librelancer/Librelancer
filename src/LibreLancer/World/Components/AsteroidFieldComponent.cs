@@ -9,6 +9,7 @@ using System.Numerics;
 using BepuUtilities.Collections;
 using LibreLancer.GameData.World;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 
 namespace LibreLancer.World.Components
 {

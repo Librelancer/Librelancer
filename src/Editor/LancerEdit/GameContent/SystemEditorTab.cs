@@ -22,6 +22,7 @@ using LibreLancer.Infocards;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Resources;
 using LibreLancer.World;
 using SimpleMesh;
 using Archetype = LibreLancer.GameData.Archetype;

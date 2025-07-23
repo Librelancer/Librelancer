@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Resources;
 using LibreLancer.Server;
 
 namespace LibreLancer.Net

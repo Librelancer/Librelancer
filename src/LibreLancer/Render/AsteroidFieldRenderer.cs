@@ -12,6 +12,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Primitives;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;

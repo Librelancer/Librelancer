@@ -9,6 +9,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 
 namespace LibreLancer.Fx
 {

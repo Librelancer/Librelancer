@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;

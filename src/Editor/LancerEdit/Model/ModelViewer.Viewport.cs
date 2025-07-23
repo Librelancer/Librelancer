@@ -21,6 +21,7 @@ using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Sur;
 using LibreLancer.Thn;
 

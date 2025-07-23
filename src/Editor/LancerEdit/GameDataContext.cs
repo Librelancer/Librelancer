@@ -20,6 +20,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Data.IO;
 using LibreLancer.GameData;
 using LibreLancer.ImageLib;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using Archetype = LibreLancer.GameData.Archetype;
 

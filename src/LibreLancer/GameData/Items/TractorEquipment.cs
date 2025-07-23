@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LibreLancer.Client.Components;
+using LibreLancer.Resources;
 using LibreLancer.Server.Components;
 using LibreLancer.Sounds;
 using LibreLancer.World;

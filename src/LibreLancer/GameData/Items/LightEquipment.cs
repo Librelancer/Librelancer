@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 

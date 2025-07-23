@@ -7,6 +7,7 @@ using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 
 namespace LancerEdit.GameContent.Popups;
 

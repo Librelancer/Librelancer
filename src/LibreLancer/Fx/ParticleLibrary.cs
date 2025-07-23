@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using LibreLancer.Data.Effects;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {

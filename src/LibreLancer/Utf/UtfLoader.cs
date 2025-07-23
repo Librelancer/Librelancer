@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;

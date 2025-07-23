@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer.Client.Components;
+using LibreLancer.Resources;
 using LibreLancer.Server.Components;
 using LibreLancer.Sounds;
 using LibreLancer.World;

@@ -5,6 +5,7 @@
 using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
 using LibreLancer.Fx;
+using LibreLancer.Resources;
 
 namespace LibreLancer.GameData
 {

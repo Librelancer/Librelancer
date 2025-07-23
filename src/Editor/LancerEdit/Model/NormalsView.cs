@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 

@@ -10,6 +10,8 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
+using LibreLancer.Resources;
+
 namespace LancerEdit
 {
     public class ResourcesTab : EditorTab

@@ -14,6 +14,7 @@ using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.Sounds;

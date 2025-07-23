@@ -4,6 +4,7 @@ using System.Net;
 using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Graphics;
+using LibreLancer.Resources;
 
 namespace LibreLancer.Render;
 

@@ -6,6 +6,7 @@ using LibreLancer.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World;
 

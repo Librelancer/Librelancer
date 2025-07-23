@@ -9,6 +9,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 
 namespace LancerEdit.Materials
 {

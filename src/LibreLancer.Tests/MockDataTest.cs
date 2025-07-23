@@ -3,6 +3,7 @@ using System.IO;
 using LibreLancer.Data.IO;
 using LibreLancer.GameData.Items;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using Xunit;
 
 namespace LibreLancer.Tests;

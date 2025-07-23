@@ -6,6 +6,7 @@ using System;
 using LibreLancer.Client.Components;
 using LibreLancer.Fx;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 

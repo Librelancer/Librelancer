@@ -18,6 +18,7 @@ using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
 using LancerEdit.Utf.Popups;
+using LibreLancer.Resources;
 
 namespace LancerEdit
 {

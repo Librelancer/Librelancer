@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using LibreLancer.Resources;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;

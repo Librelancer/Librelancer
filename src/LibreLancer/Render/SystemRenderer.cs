@@ -11,6 +11,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Backends.OpenGL;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Thn;
 using LibreLancer.World;
 

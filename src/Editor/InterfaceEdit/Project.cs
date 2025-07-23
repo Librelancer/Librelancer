@@ -7,6 +7,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
+using LibreLancer.Resources;
 
 namespace InterfaceEdit
 {

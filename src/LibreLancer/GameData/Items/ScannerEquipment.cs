@@ -1,4 +1,5 @@
 ﻿using System;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 using LibreLancer.World.Components;

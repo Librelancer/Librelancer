@@ -5,6 +5,7 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Vms;
 
 namespace LancerEdit;

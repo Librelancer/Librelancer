@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.GameData.Items;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World.Components;
 

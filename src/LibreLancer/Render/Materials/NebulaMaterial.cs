@@ -5,6 +5,7 @@
 using System;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;

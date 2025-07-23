@@ -3,6 +3,7 @@ using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Resources;
 
 namespace LibreLancer.ContentEdit;
 

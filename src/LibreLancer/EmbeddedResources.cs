@@ -7,7 +7,7 @@ using System.IO;
 using System.Reflection;
 namespace LibreLancer
 {
-	public class Resources
+	public class EmbeddedResources
 	{
 		public static string LoadString(string name)
 		{

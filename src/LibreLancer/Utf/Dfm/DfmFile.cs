@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Vms;
 
