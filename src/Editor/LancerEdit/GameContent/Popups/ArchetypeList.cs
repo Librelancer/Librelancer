@@ -36,10 +36,12 @@ public class ArchetypeList
 
     static bool SelectableImageButton(ImTextureRef image, Vector2 size, bool selected)
     {
+        ImGui.PushID((IntPtr)image._TexID);
         if (selected) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetColorU32(ImGuiCol.ButtonActive));
-        var retval = ImGui.ImageButton(image.ToString(), image, size, new Vector2(0, 1),
+        var retval = ImGui.ImageButton("a", image, size, new Vector2(0, 1),
             new Vector2(1, 0));
         if (selected) ImGui.PopStyleColor();
+        ImGui.PopID();
         return retval;
     }
 
