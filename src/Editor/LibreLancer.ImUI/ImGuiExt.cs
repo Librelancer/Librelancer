@@ -22,9 +22,6 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
         static extern bool igExtComboButton(IntPtr idstr, IntPtr preview_value);
 
-        [DllImport("cimgui", EntryPoint = "igSeparatorEx", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SeparatorEx(int flags, float thickness); //not bound in imgui.net ?
-
         [DllImport("cimgui", EntryPoint = "igExtUseTitlebar", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UseTitlebar(out float restoreX, out float restoreY);
 

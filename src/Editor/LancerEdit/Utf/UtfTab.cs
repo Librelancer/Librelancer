@@ -832,7 +832,8 @@ namespace LancerEdit
             if (main.DrawDragTargets)
             {
                 ImGui.PushID($"{id};dropTarget;{sibling?.Name ?? "///NULL"}");
-                ImGuiExt.SeparatorEx(1 | (1 << 2), 3);
+                ImGui.Separator();
+                ImGui.SeparatorEx(ImGuiSeparatorFlags.Horizontal | ImGuiSeparatorFlags.SpanAllColumns, 3);
                 if (ImGui.BeginDragDropTarget())
                 {
                     if (AcceptDragDropPayload("_UTFNODE", ImGuiDragDropFlags.None, out var ptr))
