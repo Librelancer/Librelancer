@@ -3,11 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Effects
 {
-    public class BeamBolt
+    [ParsedSection]
+    public partial class BeamBolt
     {
         [Entry("nickname")]
         public string Nickname;

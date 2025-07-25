@@ -32,6 +32,43 @@ public struct PacketReader
         return true;
     }
 
+    public uint GetBigVarUInt32()
+    {
+        uint b = reader.GetUShort();
+        uint a = (b & 0x7FFF);
+        if ((b & 0x8000) != 0x8000)
+        {
+            return b;
+        }
+
+        int extraCount = 1;
+        b = reader.GetByte();
+        a |= (uint)((b & 0x7f) << 15);
+
+        if ((b & 0x80) == 0x80)
+        {
+            b = reader.GetByte();
+            a |= (uint)((b & 0x7f) << 22);
+            extraCount++;
+        }
+
+        if ((b & 0x80) == 0x80)
+        {
+            b = reader.GetByte();
+            a |= (uint)((b & 0x7f) << 29);
+            extraCount++;
+        }
+
+        return extraCount switch
+        {
+            1 => (uint)(a + 32768),
+            2 => (uint)(a + 4227072),
+            3 => (uint)(a + 541097984),
+            // Unreachable
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
     public ulong GetVariableUInt64()
     {
         long b = reader.GetByte();
@@ -147,6 +184,12 @@ public struct PacketReader
         return pack.GetQuaternion();
     }
 
+    public DateTime GetDateTime()
+    {
+        var isLocal = reader.GetBool();
+        var dt = new DateTime(GetVariableInt64(), DateTimeKind.Utc);
+        return isLocal ? dt.ToLocalTime() : dt;
+    }
 
     public Vector3 GetNormal()
     {
@@ -239,52 +282,34 @@ public struct PacketReader
     {
         str = null;
         if (reader.AvailableBytes < 1) return false;
-        var firstByte = reader.PeekByte();
-        if (firstByte == 0) { reader.SkipBytes(1); return true; }
-        if (firstByte == 1) { reader.SkipBytes(1); str = ""; return true; }
-        var type = (firstByte >> 6);
-        uint len;
-        if (type == 0 || type == 2)
+        int off = 0;
+        if (!TryPeekVariableUInt32(ref off,  out uint len))
         {
-            len = (uint) ((firstByte & 0x3f) - 1);
-            if (len > maxLength) return false;
-            if (reader.AvailableBytes < len + 1) return false;
-            reader.SkipBytes(1);
+            return false;
         }
-        else
+        if (len == 0)
         {
-            if (reader.AvailableBytes < 64) return false; //63 + reader.GetByte()
-            int off = 1;
-            if (!TryPeekVariableUInt32(ref off, out len)) return false;
-            len += 63;
-            if (len > maxLength) return false;
-            if (reader.AvailableBytes < off + len) return false;
-            reader.SkipBytes(off);
+            str = null;
+            return true;
         }
-        var bytes = GetBytes((int)len);
-        if (type == 0 || type == 1)
-            str = NetPacking.DecodeString(bytes);
-        else
-            str = Encoding.UTF8.GetString(bytes);
+        if (len == 1)
+        {
+            str = "";
+            return true;
+        }
+        len--;
+        if (reader.AvailableBytes < off + len) return false;
+        reader.SkipBytes(off);
+        str = StringSquash.StringSquasher.Unpack(GetBytes((int)len));
         return true;
     }
 
     public string GetString()
     {
-        var firstByte = reader.GetByte();
-        if (firstByte == 0) return null;
-        if (firstByte == 1) return "";
-        var type = (firstByte >> 6);
-        int len;
-        if (type == 0 || type == 2)
-            len = (firstByte & 0x3f) - 1;
-        else
-            len = (int)GetVariableUInt32() + 63;
-        var bytes = GetBytes(len);
-        if (type == 0 || type == 1)
-            return NetPacking.DecodeString(bytes);
-        else
-            return Encoding.UTF8.GetString(bytes);
+        var len = GetVariableUInt32();
+        if (len == 0) return null;
+        if (len == 1) return "";
+        return StringSquash.StringSquasher.Unpack(GetBytes((int)(len - 1)));
     }
 
     public string GetHpid()
@@ -298,10 +323,13 @@ public struct PacketReader
 
     public bool GetBool() => reader.GetBool();
     public float GetFloat() => reader.GetFloat();
+    public double GetDouble() => reader.GetDouble();
     public int GetInt() => reader.GetInt();
     public uint GetUInt() => reader.GetUInt();
     public byte GetByte() => reader.GetByte();
     public short GetShort() => reader.GetShort();
+
+    public ushort GetUShort() => reader.GetUShort();
 
     public bool TryGetULong(out ulong result) => reader.TryGetULong(out result);
 

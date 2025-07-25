@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <None Remove="WMPMessage.txt" />
-    <EmbeddedResource Include="WMPMessage.txt" />
   </ItemGroup>
 
   <ItemGroup>

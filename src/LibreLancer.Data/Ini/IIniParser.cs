@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
     public interface IIniParser
     {

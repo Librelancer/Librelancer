@@ -3,7 +3,7 @@ namespace LibreLancer.Net.Protocol;
 public struct NetCmpAnimation
 {
     public string Name;
-    public float StartTime;
+    public float WorldStartTime;
     public bool Reverse;
     public bool Finished;
     public bool Loop;
@@ -12,7 +12,7 @@ public struct NetCmpAnimation
     {
         var os = new NetCmpAnimation();
         os.Name = message.GetString();
-        os.StartTime = message.GetFloat();
+        os.WorldStartTime = message.GetFloat();
         var flags = message.GetByte();
         os.Finished = (flags & (1 << 0)) != 0;
         os.Loop = (flags & (1 << 1)) != 0;
@@ -23,7 +23,7 @@ public struct NetCmpAnimation
     public void Put(PacketWriter message)
     {
         message.Put(Name);
-        message.Put(StartTime);
+        message.Put(WorldStartTime);
         byte flags = 0;
         if (Finished) flags |= (1 << 0);
         if (Loop) flags |= (1 << 1);

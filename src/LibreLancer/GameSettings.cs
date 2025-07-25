@@ -5,15 +5,16 @@
 using System.Globalization;
 using System.IO;
 using System.Xml.Serialization;
+using LibreLancer.Data.Ini;
 using LibreLancer.Graphics;
-using LibreLancer.Ini;
 using LibreLancer.Render;
 using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
     [WattleScriptUserData]
-    public class GameSettings : IRendererSettings
+    [ParsedSection]
+    public partial class GameSettings : IRendererSettings
     {
         [Entry("master_volume")]
         public float MasterVolume = 1.0f;
@@ -29,6 +30,8 @@ namespace LibreLancer
         public int MSAA = 0;
         [Entry("lod_multiplier")]
         public float LodMultiplier = 1.3f;
+        [Entry("debug")]
+        public bool Debug = false;
 
         float IRendererSettings.LodMultiplier => LodMultiplier;
 
@@ -52,6 +55,7 @@ namespace LibreLancer
             writer.WriteLine($"anisotropy = {Anisotropy}");
             writer.WriteLine($"msaa = {MSAA}");
             writer.WriteLine($"lod_multiplier = {Fmt(LodMultiplier)}");
+            writer.WriteLine($"debug = {(Debug ? "true" : "false")}");
         }
 
         [WattleScriptHidden]
@@ -69,6 +73,7 @@ namespace LibreLancer
             gs.MSAA = MSAA;
             gs.LodMultiplier = LodMultiplier;
             gs.RenderContext = RenderContext;
+            gs.Debug = Debug;
             return gs;
         }
 

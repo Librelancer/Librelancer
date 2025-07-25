@@ -45,6 +45,7 @@ namespace LancerEdit
             colorTextEdit.SetMode(ColorTextEditMode.Lua);
             thornViewport = new Viewport3D(window);
             thornViewport.EnableMSAA = false;
+            thornViewport.Draw3D = DrawGL;
             SaveStrategy = new ThornSaveStrategy(this);
 
             Reload();
@@ -134,7 +135,7 @@ namespace LancerEdit
                     }
                     ImGui.SetNextItemWidth(-1);
                     var th = ImGui.GetWindowHeight() - 100;
-                    ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                    ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                     ImGui.InputTextMultiline("##lastError",
                         ref lastError,
                         uint.MaxValue,
@@ -143,6 +144,16 @@ namespace LancerEdit
                     ImGui.PopFont();
                     ImGui.EndTabItem();
                 }
+            }
+        }
+
+        void DrawGL(int w, int h)
+        {
+            if (cutscene != null)
+            {
+                ImGuiHelper.AnimatingElement();
+                cutscene.UpdateViewport(new Rectangle(0, 0, w,h), (float)w / h);
+                cutscene.Draw(ImGui.GetIO().DeltaTime,w,h);
             }
         }
 
@@ -156,16 +167,7 @@ namespace LancerEdit
             int rpanelHeight = Math.Min((int)(rpanelWidth * (3.0 / 4.0)), 4096);
             ImGui.Spacing();
             thornViewport.Background = cutscene == null ? window.Config.Background : Color4.Black;
-            if (thornViewport.Begin(rpanelWidth, rpanelHeight))
-            {
-                if (cutscene != null)
-                {
-                    ImGuiHelper.AnimatingElement();
-                    cutscene.UpdateViewport(new Rectangle(0, 0, thornViewport.RenderWidth, thornViewport.RenderHeight), (float)thornViewport.RenderWidth / thornViewport.RenderHeight);
-                    cutscene.Draw(ImGui.GetIO().DeltaTime, thornViewport.RenderWidth, thornViewport.RenderHeight);
-                }
-                thornViewport.End();
-            }
+            thornViewport.Draw(rpanelWidth, rpanelHeight);
         }
 
         private void DrawThornEditor()

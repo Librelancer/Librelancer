@@ -4,33 +4,34 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class Band
+    [ParsedSection]
+	public partial class Band
     {
-        [Entry("zone")] 
+        [Entry("zone")]
         public string Zone;
-        [Entry("render_parts")] 
+        [Entry("render_parts")]
         public int? RenderParts;
-        [Entry("shape")] 
+        [Entry("shape")]
         public string Shape;
-        [Entry("height")] 
+        [Entry("height")]
         public int? Height;
-        [Entry("offset_dist")] 
+        [Entry("offset_dist")]
         public int? OffsetDist;
         [Entry("fade")]
         public float[] Fade;
-        [Entry("texture_aspect")] 
+        [Entry("texture_aspect")]
         public float? TextureAspect;
-        [Entry("color_shift")] 
+        [Entry("color_shift")]
         public Vector3? ColorShift;
-        [Entry("ambient_intensity")] 
+        [Entry("ambient_intensity")]
         public float? AmbientIntensity;
         [Entry("cull_mode")]
         public int? CullMode;
-        [Entry("vert_increase")] 
+        [Entry("vert_increase")]
         public int? VertIncrease;
     }
 }

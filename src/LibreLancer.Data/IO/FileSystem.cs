@@ -119,6 +119,8 @@ namespace LibreLancer.Data.IO
 
         public bool FileExists(string filename)
         {
+            if (string.IsNullOrEmpty(filename))
+                return false;
             for (int i = FileProviders.Count - 1; i >= 0; i--)
             {
                 if (FileProviders[i].FileExists(filename))

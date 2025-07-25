@@ -17,7 +17,7 @@ public class DamageSelfCommand : IConsoleCommand
         player.Space?.World?.EnqueueAction(() =>
         {
             var component = player.Space.World.Players[player].GetComponent<SHealthComponent>();
-            component.Damage(x, x);
+            component.Damage(x, x, null);
         });
     }
 }

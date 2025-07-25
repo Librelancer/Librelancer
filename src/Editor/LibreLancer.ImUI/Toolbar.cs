@@ -108,7 +108,7 @@ public class Toolbar : IDisposable
         }
         else
         {
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
         }
     }
 

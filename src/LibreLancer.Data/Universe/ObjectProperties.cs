@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Universe
 {
-    public class ObjectProperties
+    [ParsedSection]
+    public partial class ObjectProperties
     {
         [Entry("flag", Multiline = true)]
         public List<string> Flag = new List<string>();

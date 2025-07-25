@@ -14,7 +14,7 @@ class NullMultisampleTarget : IMultisampleTarget
 
     public int Width { get; }
     public int Height { get; }
-    public void BlitToScreen()
+    public void BlitToScreen(Point offset)
     {
     }
 

@@ -8,11 +8,22 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Solar;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Ships
 {
-    [InheritSection]
-	public class Ship
+    public enum ShipType
+    {
+        Fighter,
+        Freighter,
+        Gunboat,
+        Cruiser,
+        Transport,
+        Capital,
+        Mining,
+    }
+
+    [ParsedSection]
+	public partial class Ship
 	{
         [Entry("ids_name")]
 		public int IdsName;
@@ -51,7 +62,7 @@ namespace LibreLancer.Data.Ships
         [Entry("ship_class")]
 		public int ShipClass;
         [Entry("type")]
-		public string Type;
+		public ShipType Type;
         [Entry("steering_torque")]
 		public Vector3 SteeringTorque;
         [Entry("angular_drag")]

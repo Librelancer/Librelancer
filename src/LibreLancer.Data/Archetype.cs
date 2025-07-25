@@ -6,13 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Ships;
-using LibreLancer.Ini;
 using LibreLancer.Data.Solar;
 
 namespace LibreLancer.Data
 {
-	public class Archetype
+    [ParsedSection]
+	public partial class Archetype
 	{
         [Entry("nickname")]
         public string Nickname = "";
@@ -46,6 +47,7 @@ namespace LibreLancer.Data
         [Entry("loadout")]
 		public string LoadoutName;
         //Set from parent ini
+        [Section("collisiongroup", Child = true)]
         public List<CollisionGroup> CollisionGroups = new List<CollisionGroup>();
         //Handled manually
         public List<DockSphere> DockingSpheres = new List<DockSphere>();
@@ -65,7 +67,7 @@ namespace LibreLancer.Data
         public float DistanceRender;
         [Entry("nomad")]
         public bool Nomad;
-        [Entry("animated_textures")] 
+        [Entry("animated_textures")]
         public bool AnimatedTextures;
 
         public ShieldLink ShieldLink;
@@ -80,13 +82,17 @@ namespace LibreLancer.Data
 
         [EntryHandler("shield_link", MinComponents = 3)]
         void HandleShieldLink(Entry e) => ShieldLink = new ShieldLink(e);
-        
+
         [EntryHandler("docking_sphere", MinComponents = 3, Multiline = true)]
         void HandleDockingSphere(Entry e)
         {
             string scr = e.Count == 4 ? e[3].ToString() : null;
-            DockingSpheres.Add(new DockSphere() { Name = e[0].ToString(), Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
+            if (!Enum.TryParse<DockSphereType>(e[0].ToString(), out var type))
+            {
+                IniDiagnostic.InvalidEnum(e, e.Section);
+            }
+            DockingSpheres.Add(new DockSphere() { Type = type, Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
         }
-        
+
     }
 }

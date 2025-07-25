@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 using System;
 using LibreLancer.Graphics.Text;
-using SharpDX.MediaFoundation;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface

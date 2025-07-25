@@ -6,6 +6,7 @@ using LibreLancer.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World;
 
@@ -55,7 +56,7 @@ public class PreviewRenderer : IDisposable
 
     public Texture2D Render(Asteroid asteroid, int width, int height)
     {
-        var mdl = asteroid.ModelFile.LoadFile(resources);
+        var mdl = asteroid.ModelFile.LoadFile(resources, MeshLoadMode.GPU | MeshLoadMode.NoCollision);
         var radius = 10f;
         if (mdl.Drawable is IRigidModelFile rmf)
         {
@@ -104,7 +105,7 @@ public class PreviewRenderer : IDisposable
 
     public Texture2D Render(Archetype archetype, int width, int height)
     {
-        var mdl = archetype.ModelFile?.LoadFile(resources).Drawable;
+        var mdl = archetype.ModelFile?.LoadFile(resources, MeshLoadMode.GPU | MeshLoadMode.NoCollision).Drawable;
         var radius = 10f;
         if (mdl is IRigidModelFile rmf)
         {
@@ -121,7 +122,7 @@ public class PreviewRenderer : IDisposable
         var world = new GameWorld(renderer, resources, null, false);
         var obj = new GameObject(archetype, null, resources, true, false);
         if(archetype.Loadout != null)
-            obj.SetLoadout(archetype.Loadout);
+            obj.SetLoadout(archetype.Loadout, null);
         obj.SetLocalTransform(Transform3D.Identity);
         obj.World = world;
         world.AddObject(obj);

@@ -10,77 +10,72 @@ namespace LibreLancer.Sounds
 {
     public class AttachedSound
     {
-        public bool Active;
-        public bool PlayOnce;
-        public bool Played = false;
         public string Sound;
         public AudioEntry Entry;
         public Vector3 Position;
         public Vector3 Velocity;
+        public Vector3? Cone;
         public float Pitch = 1f;
         public float Attenuation = 0;
         public SoundInstance Instance;
         private SoundManager manager;
-        
-        public AttachedSound(SoundManager manager, bool playOnce = false)
+
+        public AttachedSound(SoundManager manager)
         {
             this.manager = manager;
-            PlayOnce = playOnce;
         }
 
-        public void Update()
+        void UpdateProperties()
         {
-            if (manager == null) return;
-            if (Entry == null)
-                Entry = manager.GetEntry(Sound);
-            if (Active)
-            {
-                if (Entry.Range.Y > 0 && (Vector3.Distance(manager.ListenerPosition, Position) > Entry.Range.Y))
-                    EnsureStopped();
-                else
-                    TryMakeActive();
-                if (PlayOnce && Played && !(Instance?.Playing ?? false))
-                {
-                    EnsureStopped();
-                    Active = false;
-                }
-            }
-            else
-                EnsureStopped();
-            //Update properties
             if (Instance != null)
             {
                 Instance.SetPosition(Position);
                 Instance.SetVelocity(Velocity);
                 Instance.SetAttenuation(Entry.Attenuation + Attenuation);
                 Instance.SetPitch(Pitch);
-                Instance.UpdateProperties();
-            }
-        }
-        void TryMakeActive()
-        {
-            if (PlayOnce && Played) return;
-            if (Instance == null)
-            {
-                Instance = manager.GetInstance(Sound, Attenuation + Entry.Attenuation, -1, 1, Position);
-                if (Instance != null)
+                if (Cone != null)
                 {
-                    Instance.SetPitch(Pitch);
-                    Instance.Play(!PlayOnce);
-                    Played = true;
+                    Instance.SetCone(Cone.Value.X, Cone.Value.Y, Cone.Value.Z);
                 }
             }
         }
-        void EnsureStopped()
+
+        public bool Active => Instance != null && Instance.Playing;
+
+        public void PlayIfInactive(bool loop)
         {
-            if (Instance != null)
+            if (!Active)
             {
-                Instance.Stop();
-                Instance.Dispose();
-                Instance = null;
+                Play(loop);
             }
         }
 
-        public void Kill() => EnsureStopped();
+        public void Play(bool loop)
+        {
+            if (manager == null)
+                return;
+            if(Entry == null)
+                Entry = manager.GetEntry(Sound);
+            if (Entry == null)
+                return;
+            Instance = manager.GetInstance(Sound);
+            Instance.Set3D();
+            UpdateProperties();
+            Instance.Play(loop);
+        }
+
+        public void Stop()
+        {
+            if (Active)
+            {
+                Instance.Stop();
+            }
+        }
+
+        public void Update()
+        {
+            UpdateProperties();
+        }
+
     }
 }

@@ -11,15 +11,16 @@ using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
 using LibreLancer.ImUI;
-using LibreLancer.Ini;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.World;
 using AsteroidField = LibreLancer.GameData.World.AsteroidField;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
@@ -69,6 +70,7 @@ public class AsteroidFieldEdit
         viewport.ModelScale = 8;
         viewport.Mode = CameraModes.Walkthrough;
         viewport.Background = new Vector4(0.12f, 0.12f, 0.12f, 1f);
+        viewport.Draw3D = DrawGL;
         viewport.ResetControls();
         renderer = new SystemRenderer(camera, mw.OpenDataContext.Resources, mw);
         renderer.SystemLighting.Ambient = Color4.White;
@@ -170,13 +172,15 @@ public class AsteroidFieldEdit
         }
     }
 
+    private int lastW = 100;
+    private int lastH = 100;
     public void Update(double elapsed)
     {
         var rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
                   Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
         var dir = Vector3.Transform(-Vector3.UnitZ, rot);
         var to = viewport.CameraOffset + (dir * 10);
-        camera.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
+        camera.Update(lastW, lastH, viewport.CameraOffset, to, rot);
         world.Update(elapsed);
         world.RenderUpdate(elapsed);
     }
@@ -189,6 +193,19 @@ public class AsteroidFieldEdit
     }
 
     private float fl_h1 = 200, fl_h2 = 200;
+
+    void DrawGL(int w, int h)
+    {
+        lastW = w;
+        lastH = h;
+        var mat = (renderer.ResourceManager.FindMaterial(matCrc)?.Render as BasicMaterial);
+        var restoreDc = mat?.Dc ?? Color4.Black;
+        if (mat != null)
+            mat.Dc = Field.DiffuseColor;
+        renderer.Draw(w, h);
+        if (mat != null)
+            mat.Dc = restoreDc;
+    }
 
     void Cube()
     {
@@ -230,7 +247,7 @@ public class AsteroidFieldEdit
             Field.CubeRotation.AxisZ = z;
 
         //Colour
-        ImGuiExt.SeparatorText("Color");
+        ImGui.SeparatorText("Color");
         if (ImGui.BeginTable("##color", 2, ImGuiTableFlags.Borders))
         {
             ImGui.TableNextRow();
@@ -247,7 +264,7 @@ public class AsteroidFieldEdit
             ImGui.TableNextColumn();
             ImGui.TextWrapped("Ambient = (System Ambient + Ambient Increase) * Ambient Color");
             ImGui.Text("Final Ambient: ");
-            ImGui.ColorButton("##famb", (parent.SystemData.Ambient + Field.AmbientIncrease) * Field.AmbientColor,
+            ImGui.ColorButton("##famb", (new Color4(parent.SystemData.Ambient, 1) + Field.AmbientIncrease) * Field.AmbientColor,
                 ImGuiColorEditFlags.NoAlpha);
             ImGui.EndTable();
         }
@@ -306,19 +323,8 @@ public class AsteroidFieldEdit
         ImGuiHelper.AnimatingElement();
         var vpSize = ImGui.GetColumnWidth() - 15 * ImGuiHelper.Scale;
         //Set ambient color
-        renderer.SystemLighting.Ambient = (parent.SystemData.Ambient + Field.AmbientIncrease)* Field.AmbientColor;
-        if (viewport.Begin((int)vpSize, (int)(fl_h1 - 15 * ImGuiHelper.Scale)))
-        {
-            //Draw with proper diffuse
-            var mat = (renderer.ResourceManager.FindMaterial(matCrc)?.Render as BasicMaterial);
-            var restoreDc = mat?.Dc ?? Color4.Black;
-            if (mat != null)
-                mat.Dc = Field.DiffuseColor;
-            renderer.Draw(viewport.RenderWidth, viewport.RenderHeight);
-            if (mat != null)
-                mat.Dc = restoreDc;
-            viewport.End();
-        }
+        renderer.SystemLighting.Ambient = (new Color4(parent.SystemData.Ambient, 1) + Field.AmbientIncrease)* Field.AmbientColor;
+        viewport.Draw((int)vpSize, (int)(fl_h1 - 15 * ImGuiHelper.Scale));
         ImGui.EndChild();
         ImGui.BeginChild("2", new Vector2(-1, fl_h2));
         ImGui.Text("Asteroids");

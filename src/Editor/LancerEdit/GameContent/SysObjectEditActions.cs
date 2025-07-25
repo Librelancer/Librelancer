@@ -8,7 +8,7 @@ using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
 
-public abstract class SysObjectModification<T>(GameObject target, T old, T updated, string name)
+public abstract class SysObjectModification<T>(GameObject target, SystemObjectList list, T old, T updated, string name)
     : EditorModification<T>(old, updated)
 {
     protected GameObject Target = target;
@@ -16,100 +16,98 @@ public abstract class SysObjectModification<T>(GameObject target, T old, T updat
 
     public override string ToString() =>
         $"{name}: {Target.Nickname ?? "No Nickname"}\nOld: {Print(Old)}\nUpdated: {Print(Updated)}";
+
+    public override void Set(T value)
+    {
+        SetData(Target.GetEditData(), value);
+        Target.UpdateDirty();
+        list.CheckDirty();
+    }
+
+    protected abstract void SetData(ObjectEditData data, T value);
 }
 
-public class ObjectSetTransform(GameObject target, Transform3D old, Transform3D updated, SystemObjectList objList)
-    : SysObjectModification<Transform3D>(target, old, updated, "SetTransform")
+public class ObjectSetTransform(GameObject target, SystemObjectList list,Transform3D old, Transform3D updated, SystemObjectList objList)
+    : SysObjectModification<Transform3D>(target, list, old, updated, "SetTransform")
 {
-    public override void Set(Transform3D value)
+    protected override void SetData(ObjectEditData data, Transform3D value)
     {
         Target.SetLocalTransform(value);
-        Target.GetEditData();
-        Target.UpdateDirty();
         if (objList.Selection.Count > 0 && objList.Selection[0] == Target)
             objList.SelectedTransform = value.Matrix();
     }
 }
 
-public class ObjectSetNickname(GameObject target, string old, string updated, SystemObjectList objList)
-    : SysObjectModification<string>(target, old, updated, "SetNickname")
+public class ObjectSetNickname(GameObject target, SystemObjectList list, string old, string updated)
+    : SysObjectModification<string>(target, list, old, updated, "SetNickname")
 {
-    public override void Set(string value)
+    protected override void SetData(ObjectEditData data, string value)
     {
-        Target.GetEditData();
         Target.Nickname = value;
-        objList.Refresh();
-        Target.UpdateDirty();
+        list.Refresh();
     }
 }
 
-public class ObjectSetIdsName(GameObject target, int old, int updated)
-    : SysObjectModification<int>(target, old,updated, "SetIdsName")
+public class ObjectSetIdsName(GameObject target, SystemObjectList list, int old, int updated)
+    : SysObjectModification<int>(target, list, old,updated, "SetIdsName")
 {
-    public override void Set(int value)
+    protected override void SetData(ObjectEditData data, int value)
     {
-        Target.GetEditData().IdsName = value;
-        Target.UpdateDirty();
+        data.IdsName = value;
     }
 }
 
-public class ObjectSetIdsInfo(GameObject target, int old, int updated)
-    : SysObjectModification<int>(target, old,updated, "SetIdsInfo")
+public class ObjectSetIdsInfo(GameObject target, SystemObjectList list, int old, int updated)
+    : SysObjectModification<int>(target, list, old,updated, "SetIdsInfo")
 {
-    public override void Set(int value)
+    protected override void SetData(ObjectEditData data, int value)
     {
-        Target.GetEditData().IdsInfo = value;
-        Target.UpdateDirty();
+        data.IdsInfo = value;
     }
 }
 
-public class ObjectSetVisit(GameObject target, VisitFlags old, VisitFlags updated)
-    : SysObjectModification<VisitFlags>(target, old, updated, "SetVisit")
+public class ObjectSetVisit(GameObject target, SystemObjectList list, VisitFlags old, VisitFlags updated)
+    : SysObjectModification<VisitFlags>(target, list, old, updated, "SetVisit")
 {
-    public override void Set(VisitFlags value)
+    protected override void SetData(ObjectEditData data, VisitFlags value)
     {
-        Target.GetEditData().Visit = value;
-        Target.UpdateDirty();
+        data.Visit = value;
     }
 }
 
-public class ObjectSetReputation(GameObject target, Faction old, Faction updated)
-    : SysObjectModification<Faction>(target, old, updated, "SetReputation")
+public class ObjectSetReputation(GameObject target, SystemObjectList list, Faction old, Faction updated)
+    : SysObjectModification<Faction>(target, list, old, updated, "SetReputation")
 {
-    public override void Set(Faction value)
+    protected override void SetData(ObjectEditData data, Faction value)
     {
-        Target.GetEditData().Reputation = value;
-        Target.UpdateDirty();
+        data.Reputation = value;
     }
 }
 
-public class ObjectSetBase(GameObject target, Base old, Base updated)
-    : SysObjectModification<Base>(target, old, updated, "SetBase")
+public class ObjectSetBase(GameObject target, SystemObjectList list, Base old, Base updated)
+    : SysObjectModification<Base>(target, list, old, updated, "SetBase")
 {
-    public override void Set(Base value)
+    protected override void SetData(ObjectEditData data, Base value)
     {
-        Target.GetEditData().Base = value;
-        Target.UpdateDirty();
+        data.Base = value;
     }
 }
 
-public class ObjectSetDock(GameObject target, DockAction old, DockAction updated)
-    : SysObjectModification<DockAction>(target, old, updated, "SetDock")
+public class ObjectSetDock(GameObject target, SystemObjectList list, DockAction old, DockAction updated)
+    : SysObjectModification<DockAction>(target, list, old, updated, "SetDock")
 {
-    public override void Set(DockAction value)
+    protected override void SetData(ObjectEditData data, DockAction value)
     {
-        Target.GetEditData().Dock = value;
-        Target.UpdateDirty();
+        data.Dock = value;
     }
 }
 
-public class ObjectSetComment(GameObject target, string old, string updated)
-    : SysObjectModification<string>(target, old, updated, "SetComment")
+public class ObjectSetComment(GameObject target, SystemObjectList list, string old, string updated)
+    : SysObjectModification<string>(target, list, old, updated, "SetComment")
 {
-    public override void Set(string value)
+    protected override void SetData(ObjectEditData data, string value)
     {
-        Target.GetEditData().Comment = value;
-        Target.UpdateDirty();
+        data.Comment = value;
     }
 }
 
@@ -126,6 +124,7 @@ public class ObjectSetArchetypeLoadoutStar(
     {
         tab.SetArchetypeLoadout(target, value.Archetype, value.Loadout, value.Star);
         target.UpdateDirty();
+        tab.ObjectsList.CheckDirty();
     }
 
     public override string ToString()
@@ -157,7 +156,7 @@ public class SysDeleteObject : EditorAction
         tab.World.RemoveObject(obj);
         if (!obj.TryGetComponent<ObjectEditData>(out var ed) ||
             !ed.IsNewObject) {
-            tab.DeletedObjects.Add(obj.SystemObject);
+            tab.ObjectsList.DeletedObjects.Add(obj.SystemObject);
         }
         tab.OnRemoved(obj);
     }
@@ -166,8 +165,8 @@ public class SysDeleteObject : EditorAction
     {
         obj.Register(tab.World.Physics);
         tab.World.AddObject(obj);
-        if (tab.DeletedObjects.Contains(obj.SystemObject))
-            tab.DeletedObjects.Remove(obj.SystemObject);
+        if (tab.ObjectsList.DeletedObjects.Contains(obj.SystemObject))
+            tab.ObjectsList.DeletedObjects.Remove(obj.SystemObject);
         else
             obj.GetEditData().IsNewObject = true;
         tab.RefreshObjects();
@@ -190,9 +189,10 @@ public class SysCreateObject : EditorAction
     }
     public override void Commit()
     {
-        tab.World.InitObject(Object, false, systemObject, tab.Data.Resources, false);
+        tab.World.InitObject(Object, false, systemObject, tab.Data.Resources, null, false);
         Object.GetEditData().IsNewObject = true;
-        tab.RefreshObjects();
+        tab.ObjectsList.Refresh();
+        tab.ObjectsList.CheckDirty();
     }
 
     public override void Undo()
@@ -202,6 +202,8 @@ public class SysCreateObject : EditorAction
         Object.ClearAll(tab.World.Physics);
         Object.Nickname = n;
         tab.OnRemoved(Object);
+        tab.ObjectsList.Refresh();
+        tab.ObjectsList.CheckDirty();
     }
 
     public override string ToString() => $"CreateObject: {systemObject.Nickname}, {systemObject.Archetype.Nickname}";

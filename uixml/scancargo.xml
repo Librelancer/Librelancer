@@ -1,0 +1,33 @@
+<Scene>
+<Panel Width="640" Height="480" Anchor="Center">
+	<!--<ImageFile Fill="true" Path="scancargo.png"/>-->
+	<Panel Anchor="Center" X="2" Y="-37" Width="429" Height="271" ID="background">
+		<Panel.Background>
+			<DisplayModel model="char_infowindow"/>
+		</Panel.Background>
+		<Panel Width="429" Height="271" ID="contents">
+			<TextBlock id="title" Anchor="TopCenter" Width="427" Height="40" TextSize="14" Y="2" TextColor="text" TextShadow="black" Strid="3019"></TextBlock>
+			<Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
+			<ListBox id="inv_list" X = "14" Y = "65" Width = "186" Height="170" ItemHeight="32">
+			</ListBox>
+			<Panel id="inv_categories">
+				<Button X="101" Y="233" id="category_weapons" Style="inv_category_weapons"/>
+				<Button X="118" Y="233" id="category_ammo" Style="inv_category_ammo"/>
+				<Button X="135" Y="233" id="category_external" Style="inv_category_external"/>
+				<Button X="153" Y="233" id="category_internal" Style="inv_category_internal"/>
+				<Button X="171" Y="233" id="category_commodity" Style="inv_category_commodity"/>
+			</Panel>
+			<Panel id="ship_infocard_panel" Anchor="TopRight" X="23" Y="36" Width="200" height="210">
+				<TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="903" TextColor="text" TextShadow="Black"/>
+				<InfocardDisplay Anchor="TopCenter" id="ship_infocard" X="0" Y="20" Width="200" Height="190" >
+				</InfocardDisplay>
+			</Panel>
+			<Panel id="item_infocard_panel" Anchor="TopRight" X="23" Y="36" Width="200" height="210" Visible="false">
+				<TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="904" TextColor="text" TextShadow="Black"/>
+				<InfocardDisplay Anchor="TopCenter" id="item_infocard" X="0" Y="20" Width="200" Height="190" >
+				</InfocardDisplay>
+			</Panel>
+		</Panel>
+	</Panel>
+</Panel>
+</Scene>

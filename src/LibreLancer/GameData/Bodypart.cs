@@ -1,3 +1,4 @@
+using LibreLancer.Resources;
 using LibreLancer.Utf.Dfm;
 
 namespace LibreLancer.GameData;

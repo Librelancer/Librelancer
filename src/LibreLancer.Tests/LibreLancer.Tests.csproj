@@ -45,14 +45,7 @@
       <Content Include="Thorn\Scripts\**\*.*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="Ini\TestAssets\Comments.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\Complex.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\EmptyEntities.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\EmptySections.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\Nbsp.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\TypedEntities.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\Unformatted.ini" />
-      <EmbeddedResource Include="Ini\TestAssets\Valid.ini" />
+      <EmbeddedResource Include="Ini\TestAssets\*.ini" />
       <EmbeddedResource Include="TestAssets\plainzip.zip" />
       <EmbeddedResource Include="TestAssets\zipwithextra.dat" />
     </ItemGroup>

@@ -60,6 +60,7 @@ World Time: {12:F2}
         WeaponControlComponent weapons;
 		PowerCoreComponent powerCore;
         CHealthComponent playerHealth;
+        public DirectiveRunnerComponent Directives;
         public SelectedTargetComponent Selection;
         private ContactList contactList;
 
@@ -120,6 +121,7 @@ World Time: {12:F2}
             pilotcomponent = new AutopilotComponent(player) { LocalPlayer = true };
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
+            Directives = new DirectiveRunnerComponent(player);
             player.AddComponent(Selection);
             //Order components in terms of inputs (very important)
             player.AddComponent(pilotcomponent);
@@ -132,12 +134,14 @@ World Time: {12:F2}
             player.AddComponent(new CExplosionComponent(player, session.PlayerShip.Explosion));
             cargo = new CPlayerCargoComponent(player, session);
             player.AddComponent(cargo);
+            player.AddComponent(Directives);
             FLLog.Debug("Client", $"Spawning self with rotation {session.PlayerOrientation}");
             player.SetLocalTransform(new Transform3D(session.PlayerPosition, session.PlayerOrientation));
             playerHealth = new CHealthComponent(player);
             playerHealth.MaxHealth = session.PlayerShip.Hitpoints;
             playerHealth.CurrentHealth = session.PlayerShip.Hitpoints;
             player.AddComponent(playerHealth);
+            player.AddComponent(new CLocalPlayerComponent(player, session));
             player.Flags |= GameObjectFlags.Player;
             if(session.PlayerShip.Mass < 0)
             {
@@ -173,7 +177,7 @@ World Time: {12:F2}
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
             Game.GameData.PreloadObjects(session.Preloads);
-            world.LoadSystem(sys, Game.ResourceManager, false);
+            world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
             player.World = world;
             world.AddObject(player);
@@ -271,6 +275,16 @@ World Time: {12:F2}
                     case InputAction.USER_CHAT:
                         ui.ChatboxEvent();
                         break;
+                    case InputAction.USER_TRACTOR_BEAM:
+                    {
+                        TractorSelected();
+                        break;
+                    }
+                    case InputAction.USER_COLLECT_LOOT:
+                    {
+                        TractorAll();
+                        break;
+                    }
                 }
             }
         }
@@ -339,7 +353,7 @@ World Time: {12:F2}
             bool ShipFilter(GameObject o) => o.Kind == GameObjectKind.Ship;
             bool StationFilter(GameObject o) => o.Kind == GameObjectKind.Solar;
 
-            bool LootFilter(GameObject o) => false;
+            bool LootFilter(GameObject o) => o.Kind == GameObjectKind.Loot;
 
             bool ImportantFilter(GameObject o)
             {
@@ -380,7 +394,8 @@ World Time: {12:F2}
                 Contacts = game.world.Objects.Where(x => x != game.player &&
                                                          (x.Kind == GameObjectKind.Ship ||
                                                            x.Kind == GameObjectKind.Solar ||
-                                                         x.Kind == GameObjectKind.Waypoint) &&
+                                                         x.Kind == GameObjectKind.Waypoint ||
+                                                           x.Kind == GameObjectKind.Loot) &&
                                                          !string.IsNullOrWhiteSpace(x.Name?.GetName(game.Game.GameData, Vector3.Zero)))
                     .Where(contactFilter)
                     .Select(GetContact)
@@ -463,6 +478,41 @@ World Time: {12:F2}
                 container.Children.Add(IndicatorLayer);
             }
 
+            public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
+
+            public Infocard GetScannedShipInfocard()
+            {
+                if (g.Selection.Selected == null) return null;
+                if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
+                {
+                    return g.Game.GameData.GetInfocard(ship.Ship.Infocard, g.Game.Fonts);
+                }
+                return null;
+            }
+
+            public bool CanScanSelected()
+            {
+                if (g.Selection.Selected == null)
+                    return false;
+                return g.scanner.CanScan(g.Selection.Selected);
+            }
+
+            public void ScanSelected() => g.session.SpaceRpc.Scan(g.Selection.Selected);
+
+            public void StopScan() => g.session.SpaceRpc.StopScan();
+
+            public Closure ScanHandler;
+            public void OnUpdateScannedInventory(Closure handler)
+            {
+                ScanHandler = handler;
+            }
+
+            public int CurrentRank => g.session.CurrentRank;
+            public double NetWorth => (double)g.session.NetWorth;
+            public double NextLevelWorth => (double)g.session.NextLevelWorth;
+            public PlayerStats Statistics => g.session.Statistics;
+            public double CharacterPlayTime => g.session.CharacterPlayTime;
+
             [WattleScriptHidden] public WidgetTemplate Reticle;
             [WattleScriptHidden] public WidgetTemplate UnselectedArrow;
             [WattleScriptHidden] public WidgetTemplate SelectedArrow;
@@ -476,6 +526,20 @@ World Time: {12:F2}
             public void UseRepairKits() => g.UseRepairKits();
 
             public void UseShieldBatteries() => g.UseShieldBatteries();
+
+            public bool CanTractorAll() => g.canTractorAll;
+
+            public bool CanTractorSelected()
+            {
+                return g.canTractorAny && g.Selection.Selected != null &&
+                       g.Selection.Selected.Kind == GameObjectKind.Loot &&
+                       Vector3.Distance(g.Selection.Selected.WorldTransform.Position, g.tractorOrigin) <
+                       g.maxTractorDistance;
+            }
+
+            public void TractorSelected() => g.TractorSelected();
+
+            public void TractorAll() => g.TractorAll();
 
 
             public void SetReticleTemplate(UiWidget template, Closure callback) =>
@@ -627,6 +691,7 @@ World Time: {12:F2}
             public void PopulateNavmap(Navmap nav)
             {
                 nav.PopulateIcons(g.ui, g.sys);
+                nav.SetVisitFunction(g.session.IsVisited);
             }
 
             public ChatSource GetChats() => g.session.Chats;
@@ -675,20 +740,24 @@ World Time: {12:F2}
             public int Speed() => ((int)g.player.PhysicsComponent.Body.LinearVelocity.Length());
         }
 
-        private void BehaviorChanged(AutopilotBehaviors obj)
+        private void BehaviorChanged(AutopilotBehaviors newBehavior, AutopilotBehaviors oldBehavior)
         {
-            uiApi.SetManeuver(obj switch
+            uiApi.SetManeuver(newBehavior switch
             {
                 AutopilotBehaviors.Dock => "Dock",
                 AutopilotBehaviors.Formation => "Formation",
                 AutopilotBehaviors.Goto => "Goto",
                 _ => "FreeFlight"
             });
-            if (obj != AutopilotBehaviors.Formation &&
+            if (newBehavior != AutopilotBehaviors.Formation &&
                 player.Formation != null &&
                 player.Formation.LeadShip != player)
             {
                 session.SpaceRpc.LeaveFormation();
+            }
+            if (oldBehavior == AutopilotBehaviors.Undock)
+            {
+                shipInput.Throttle = 1;
             }
         }
 
@@ -787,6 +856,12 @@ World Time: {12:F2}
                 if (updateStartDelay == 0)
                 {
                     session.GameplayUpdate(this, FixedDelta);
+
+                    if (isLeftDown)
+                    {
+                        leftDownTimer -= FixedDelta;
+                    }
+
                     if (!musicTriggered)
                     {
                         if (!RtcMusic) Game.Sound.PlayMusic(sys.MusicSpace, 0);
@@ -812,6 +887,7 @@ World Time: {12:F2}
                 }
                 return;
             }
+
             if (ShowHud && (Thn == null || !Thn.Running))
             {
                 contactList.UpdateList();
@@ -851,8 +927,59 @@ World Time: {12:F2}
                 }
             }
             if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; //Object has been blown up/despawned
+            // do tractor beam things
+            if (player.TryGetComponent<CTractorComponent>(out var tractor))
+            {
+                tractorOrigin = tractor.WorldOrigin;
+                maxTractorDistance = tractor.Equipment.Def.MaxLength;
+                canTractorAny = true;
+                if (tractor.BeamCount > 0)
+                {
+                    canTractorAll = false;
+                }
+                else
+                {
+                    canTractorAll = world.SpatialLookup.GetNearbyObjects(player, tractorOrigin, maxTractorDistance)
+                        .Any(x => x.Kind == GameObjectKind.Loot);
+                }
+            }
+            else
+            {
+                canTractorAny = false;
+                canTractorAll = false;
+            }
+            // query scanner
+            player.TryGetComponent<ScannerComponent>(out scanner);
 		}
 
+        void TractorSelected()
+        {
+            if (!canTractorAny)
+            {
+                return;
+            }
+            session.SpaceRpc.Tractor(Selection.Selected);
+        }
+
+        void TractorAll()
+        {
+            if (!canTractorAll)
+            {
+                return;
+            }
+            foreach (var obj in world.SpatialLookup
+                         .GetNearbyObjects(player, tractorOrigin, maxTractorDistance)
+                         .Where(x => x.Kind == GameObjectKind.Loot))
+            {
+                session.SpaceRpc.Tractor(obj);
+            }
+        }
+
+        private ScannerComponent scanner;
+        private Vector3 tractorOrigin;
+        private bool canTractorAny;
+        private bool canTractorAll;
+        private float maxTractorDistance;
 
 		bool thrust = false;
 
@@ -863,6 +990,7 @@ World Time: {12:F2}
             _turretViewCamera.Viewport = Game.RenderContext.CurrentViewport;
             if(Thn == null || !Thn.Running)
 			    ProcessInput(delta);
+
             //Has to be here or glitches
             if (!Dead)
             {
@@ -870,6 +998,7 @@ World Time: {12:F2}
                 _chaseCamera.ChasePosition = player.LocalTransform.Position;
                 _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
             }
+
             _turretViewCamera.Update(delta);
             _chaseCamera.Update(delta);
             if ((Thn == null ||
@@ -904,7 +1033,7 @@ World Time: {12:F2}
 		}
 
         private bool isLeftDown = false;
-
+        private double leftDownTimer = 0;
 
         void Mouse_MouseDown(MouseEventArgs e)
         {
@@ -914,11 +1043,17 @@ World Time: {12:F2}
                 {
                     var newSelection = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
                     if (newSelection != null) Selection.Selected = newSelection;
-                    isLeftDown = true;
+
+                    if (!isLeftDown)
+                    {
+                        isLeftDown = true;
+                        leftDownTimer = 0.25;
+                    }
                 }
                 else
                 {
                     isLeftDown = false;
+                    leftDownTimer = 0;
                 }
             }
         }
@@ -927,11 +1062,10 @@ World Time: {12:F2}
         {
             if ((e.Buttons & MouseButtons.Left) > 0)
             {
+                leftDownTimer = 0;
                 isLeftDown = false;
             }
         }
-
-		const float ACCEL = 85;
 
         public bool Dead = false;
         public void Killed()
@@ -1057,7 +1191,7 @@ World Time: {12:F2}
 			var pc = player.PhysicsComponent;
             shipInput.Viewport = new Vector2(Game.Width, Game.Height);
             shipInput.Camera = _chaseCamera;
-            if ((isLeftDown || mouseFlight) && control.Active)
+            if (((isLeftDown && leftDownTimer < 0) || mouseFlight) && control.Active)
 			{
                 var mX = Game.Mouse.X;
                 var mY = Game.Mouse.Y;
@@ -1118,6 +1252,16 @@ World Time: {12:F2}
         public void ClearComm()
         {
             ui.Event("Comm", new object[] { null });
+        }
+
+        public void ClearScan()
+        {
+            uiApi.ScanHandler?.Call(false);
+        }
+
+        public void UpdateScan()
+        {
+            uiApi.ScanHandler?.Call(true);
         }
 
         public void OpenComm(GameObject obj, string voice)
@@ -1292,7 +1436,7 @@ World Time: {12:F2}
             }
 
             if (Selection.Selected != null) {
-                targetWireframe.Model = Selection.Selected.RigidModel;
+                targetWireframe.Model = Selection.Selected.Model.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(player.LocalTransform.Position,
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform.Matrix()), Vector3.UnitY);
 
@@ -1309,7 +1453,7 @@ World Time: {12:F2}
             world.RenderUpdate(delta);
             sysrender.DebugRenderer.StartFrame(Game.RenderContext);
 
-            sysrender.Draw(Game.Width, Game.Height);
+            sysrender.Draw(Game.RenderContext.CurrentViewport.Width, Game.RenderContext.CurrentViewport.Height);
 
             sysrender.DebugRenderer.Render();
 
@@ -1383,8 +1527,8 @@ World Time: {12:F2}
                     {
                         if (floats.Length > 0)
                         {
-                            ImGui.TextUnformatted($"last ack received: {session.Acks.Tick}");
-                            ImGui.TextUnformatted($"update packet size: {floats[floats.Length - 1]}");
+                            ImGui.Text($"last ack received: {session.Acks.Tick}");
+                            ImGui.Text($"update packet size: {floats[floats.Length - 1]}");
                             ImGui.PlotLines("update packet size", ref floats[0], floats.Length);
                         }
                     }
@@ -1403,6 +1547,9 @@ World Time: {12:F2}
                     world.Physics.DebugRenderer = sysrender.DebugRenderer;
                 else
                     world.Physics.DebugRenderer = null;
+                ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
+                ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
+                ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

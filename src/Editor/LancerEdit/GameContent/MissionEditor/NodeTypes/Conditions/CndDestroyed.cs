@@ -1,9 +1,9 @@
 using System.Linq;
 using ImGuiNET;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
@@ -25,8 +25,8 @@ public class CndDestroyed : NodeTriggerEntry
     {
         nodePopups.StringCombo("Target", Data.label, s => Data.label = s, lookups.ShipsAndLabels);
 
-        ImGui.InputInt("Unknown Int", ref Data.UnknownNumber);
-        Controls.InputTextId("Unknown Enum", ref Data.UnknownEnum);
+        ImGui.InputInt("Count", ref Data.Count);
+        nodePopups.Combo("Kind", Data.Kind, x => Data.Kind = x);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

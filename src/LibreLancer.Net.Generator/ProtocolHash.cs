@@ -7,11 +7,10 @@ namespace LibreLancer.Net.Generator;
 
 public class ProtocolHash
 {
-    public static string Hash(IEnumerable<string> source)
+    public static string Hash(StringBuilder source)
     {
         IncrementalHash sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-        foreach(var m in source)
-            sha256.AppendData(Encoding.UTF8.GetBytes(m));
+        sha256.AppendData(Encoding.UTF8.GetBytes(source.ToString()));
         byte[] hash = sha256.GetHashAndReset();
         return Z85Encode(hash);
     }

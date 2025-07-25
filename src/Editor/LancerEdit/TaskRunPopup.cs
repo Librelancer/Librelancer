@@ -80,7 +80,7 @@ public class TaskRunPopup : PopupWindow
             ImGui.SetClipboardText(log.GetLogString());
         }
     }
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (confirmText != null)
         {

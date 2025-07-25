@@ -120,21 +120,7 @@ public class StateGraphTab : EditorTab
     // ReSharper disable once CompareOfFloatsByEqualityOperator
     bool NeedsChange(float newValue) => ClampRound(newValue) != originalValue;
 
-    static ReadOnlySpan<char> FmtName(Span<char> mem, StateGraph g)
-    {
-        if (g == null)
-            return "";
-        var name = g.Description.Name.AsSpan();
-        var type = g.Description.Type.AsSpan();
-        if (name.Length + type.Length + 3 > mem.Length)
-            mem = new char[name.Length + type.Length + 3];
-        name.CopyTo(mem);
-        mem[name.Length] = ' ';
-        mem[name.Length + 1] = '(';
-        type.CopyTo(mem.Slice(name.Length + 2));
-        mem[name.Length + 2 + type.Length] = ')';
-        return mem.Slice(0, name.Length + type.Length + 3);
-    }
+    string FmtName(StateGraph g) => $"{g.Description.Name} ({g.Description.Type})";
 
     public override void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
@@ -162,10 +148,10 @@ public class StateGraphTab : EditorTab
         ImGui.Text("State Graph: ");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(ImGui.GetWindowWidth() - szX);
-        if(ImGui.BeginCombo("##stateGraph", FmtName(chars, selectedGraph)))
+        if(ImGui.BeginCombo("##stateGraph", FmtName(selectedGraph)))
         {
             foreach (var g in graphs) {
-                if (ImGui.Selectable(FmtName(chars, g)))
+                if (ImGui.Selectable(FmtName(g)))
                 {
                     selectedGraph = g;
                 }
@@ -225,7 +211,7 @@ public class StateGraphTab : EditorTab
                 ImGui.TableHeader(((StateGraphEntry)y).ToString());
                 if(lastHoveredY == y)
                     ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, (VertexDiffuse)Color4.CornflowerBlue);
-                ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                 for (int x = 0; x < (int) StateGraphEntry._Count; x++)
                 {
                     ImGui.TableSetColumnIndex(x + 1);

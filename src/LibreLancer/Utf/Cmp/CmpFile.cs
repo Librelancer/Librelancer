@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using LibreLancer.Resources;
 using LibreLancer.Utf.Vms;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Mat;
@@ -158,7 +158,7 @@ namespace LibreLancer.Utf.Cmp
         public RigidModel CreateRigidModel(bool drawable, ResourceManager resources)
         {
             var mdl = new RigidModel() {Path = Path, Source = RigidModelSource.Compound};
-            mdl.Parts = new Dictionary<string, RigidModelPart>(StringComparer.OrdinalIgnoreCase);
+            mdl.Parts = new ModelPartCollection();
             var rp = GetRootPart();
             List<RigidModelPart> allParts = new List<RigidModelPart>();
             foreach (var p in Parts)
@@ -176,7 +176,7 @@ namespace LibreLancer.Utf.Cmp
             }
             foreach (var p in allParts)
             {
-                mdl.Parts.Add(p.Name, p);
+                mdl.Parts.Add(p);
                 if (p.Construct != null)
                 {
                     var parent = allParts.First(x =>

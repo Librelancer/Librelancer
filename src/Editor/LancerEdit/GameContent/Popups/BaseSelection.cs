@@ -23,11 +23,11 @@ public class BaseSelection : PopupWindow
         Title = title;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         var width = 300 * ImGuiHelper.Scale;
         if (message != null) {
-            ImGui.TextUnformatted(message);
+            ImGui.Text(message);
             width = Math.Max(width, ImGui.CalcTextSize(message).X);
         }
         ImGui.PushItemWidth(width);

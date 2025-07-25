@@ -156,7 +156,7 @@ public class AudioImportPopup : PopupWindow
     private bool finished = false;
     private AppLog log;
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (converting)
         {
@@ -176,16 +176,16 @@ public class AudioImportPopup : PopupWindow
             }
             return;
         }
-        ImGui.TextUnformatted(name);
-        ImGui.TextUnformatted($"Channels: {info.Channels}");
-        ImGui.TextUnformatted($"Sample Rate: {info.Frequency}");
+        ImGui.Text(name);
+        ImGui.Text($"Channels: {info.Channels}");
+        ImGui.Text($"Sample Rate: {info.Frequency}");
         ImGui.Separator();
         switch (info.Kind)
         {
             case AudioImportKind.Mp3 when info.Trim != 0 && info.Samples != 0:
                 ImGui.Text("Input is already mp3 (with LAME trimming info)");
                 ImGui.Text("Wrapping .mp3 in .wav container, converting trim to FL");
-                ImGui.TextUnformatted($"Trim: {info.Trim}, Length {info.Samples}");
+                ImGui.Text($"Trim: {info.Trim}, Length {info.Samples}");
                 break;
             case AudioImportKind.Mp3:
                 ImGui.Text("Input is already mp3 (no trimming info)");

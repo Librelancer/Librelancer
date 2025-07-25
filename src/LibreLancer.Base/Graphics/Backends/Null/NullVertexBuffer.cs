@@ -6,12 +6,11 @@ namespace LibreLancer.Graphics.Backends.Null;
 
 class NullVertexBuffer : IVertexBuffer
 {
-    private IntPtr buffer;
+    private NativeBuffer buffer;
     private bool isStream = false;
     public void Dispose()
     {
-        if (buffer != IntPtr.Zero)
-            Marshal.FreeHGlobal(buffer);
+        buffer?.Dispose();
     }
 
     public NullVertexBuffer(Type type, int length, bool isStream = false)
@@ -26,7 +25,7 @@ class NullVertexBuffer : IVertexBuffer
             throw new Exception(string.Format("{0} is not a valid IVertexType", type.FullName));
         }
         if(isStream)
-            buffer = Marshal.AllocHGlobal(length * decl.Stride);
+            buffer = UnsafeHelpers.Allocate(length * decl.Stride);
         VertexCount = length;
         this.isStream = isStream;
     }
@@ -36,7 +35,7 @@ class NullVertexBuffer : IVertexBuffer
         VertexType = type;
         decl = VertexType.GetVertexDeclaration();
         if(isStream)
-            buffer = Marshal.AllocHGlobal(length * decl.Stride);
+            buffer = UnsafeHelpers.Allocate(length * decl.Stride);
         VertexCount = length;
         this.isStream = isStream;
     }
@@ -56,8 +55,8 @@ class NullVertexBuffer : IVertexBuffer
         VertexCount = newSize;
         if (isStream)
         {
-            Marshal.FreeHGlobal(buffer);
-            buffer = Marshal.AllocHGlobal(newSize * decl.Stride);
+            buffer.Dispose();
+            buffer = UnsafeHelpers.Allocate(newSize * decl.Stride);
         }
     }
 
@@ -69,7 +68,7 @@ class NullVertexBuffer : IVertexBuffer
     {
     }
 
-    public IntPtr BeginStreaming() => buffer;
+    public IntPtr BeginStreaming() => (IntPtr)buffer;
 
     public void EndStreaming(int count)
     {

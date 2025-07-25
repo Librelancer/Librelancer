@@ -111,7 +111,8 @@ public static class SurfaceBuilder
     {
         List<EditMessage> warnings = new List<EditMessage>();
         var parts = new List<SurfacePart>();
-        CreateSurfacePart(model.Root, parts, null, !forceCompound && model.Root.Children.Count == 0, warnings);
+        var nodeKind = !forceCompound && model.Root.Children.Count == 0 ? NodeKind.Node3db : NodeKind.NodeRoot;
+        CreateSurfacePart(model.Root, parts, null, nodeKind, warnings);
         if (parts.Count == 0)
         {
             return EditResult<SurFile>.Error("No valid hulls", warnings);
@@ -135,7 +136,7 @@ public static class SurfaceBuilder
         var hull = CreateHull(h, tr);
         if (hull.IsError)
         {
-            warnings.Add(EditMessage.Warning($"Hull creation failed: {hull.AllMessages()}"));
+            warnings.Add(EditMessage.Warning($"Hull creation for {h.Name} failed: {hull.AllMessages()}"));
         }
         else
         {
@@ -240,11 +241,23 @@ public static class SurfaceBuilder
         }
     }
 
-    static void CreateSurfacePart(ImportedModelNode node, List<SurfacePart> parts,
-        SurfacePartContext parent, bool is3db, List<EditMessage> warnings)
+    enum NodeKind
     {
-        var modelCrc = is3db ? 0 : CrcTool.FLModelCrc(node.Name);
-        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings)).ToList();
+        Node3db,
+        NodeRoot,
+        NodeNormal
+    }
+
+    static void CreateSurfacePart(ImportedModelNode node, List<SurfacePart> parts,
+        SurfacePartContext parent, NodeKind nodeKind, List<EditMessage> warnings)
+    {
+        var modelCrc = nodeKind switch
+        {
+            NodeKind.Node3db => 0U,
+            NodeKind.NodeRoot => CrcTool.FLModelCrc("Root"),
+            _ => CrcTool.FLModelCrc(node.Name),
+        };
+        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings)).Where(x => x != null).ToList();
         if (convexHulls.Count == 0)
         {
             warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
@@ -283,7 +296,7 @@ public static class SurfaceBuilder
         // Pull child hulls into closest dynamic part
         foreach (var child in node.Children)
         {
-            CreateSurfacePart(child, parts, child.Construct is FixConstruct ? ctx : null, false, warnings);
+            CreateSurfacePart(child, parts, child.Construct is FixConstruct ? ctx : null, NodeKind.NodeNormal, warnings);
         }
 
         // Pull hpid info out after children
@@ -312,7 +325,20 @@ public static class SurfaceBuilder
             ctx.Nodes = new List<SurfaceNode>();
             while (unsorted.Count > 1)
             {
-                var index = lengths.IndexOfMin(); // Get pair index of shortest length
+                // Get pair index of shortest length
+                int index = -1;
+                float min = float.MaxValue;
+                for (int i = 0; i < lengths.Count; i++)
+                {
+                    if (float.IsNaN(lengths[i]))
+                        continue;
+                    if (lengths[i] < min)
+                    {
+                        min = lengths[i];
+                        index = i;
+                    }
+                }
+                Debug.Assert(index != -1);
 
                 // Get and remove pair from unsorted list
                 var (leftNode, rightNode) = pairs[index];
@@ -330,8 +356,10 @@ public static class SurfaceBuilder
                         pairs[i].left == rightNode ||
                         pairs[i].right == leftNode)
                     {
-                        lengths.RemoveAt(i);
-                        pairs.RemoveAt(i);
+                        // Replace RemoveAt with marking values invalid
+                        // the copy cost of RemoveAt can be pathological here
+                        lengths[i] = float.NaN;
+                        pairs[i] = default;
                     }
                 }
 

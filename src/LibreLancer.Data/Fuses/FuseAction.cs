@@ -1,11 +1,12 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Fuses
 {
     public abstract class FuseAction
@@ -14,11 +15,13 @@ namespace LibreLancer.Data.Fuses
         public float AtT;
     }
 
-    public class FuseDestroyRoot : FuseAction
+    [ParsedSection]
+    public partial class FuseDestroyRoot : FuseAction
     {
     }
-    
-    public class FuseStartEffect : FuseAction //[start_effect]
+
+    [ParsedSection]
+    public partial class FuseStartEffect : FuseAction //[start_effect]
     {
         [Entry("effect")]
         public string Effect;
@@ -31,7 +34,8 @@ namespace LibreLancer.Data.Fuses
         [Entry("ori_offset")]
         public Vector3 OriOffset;
     }
-    public class FuseDestroyHpAttachment : FuseAction //[destroy_hp_attachment]
+    [ParsedSection]
+    public partial class FuseDestroyHpAttachment : FuseAction //[destroy_hp_attachment]
     {
         [Entry("hardpoint")]
         public string hardpoint;
@@ -44,14 +48,16 @@ namespace LibreLancer.Data.Fuses
         disappear,
         debris
     }
-    public class FuseDestroyGroup : FuseAction //[destroy_group]
+    [ParsedSection]
+    public partial class FuseDestroyGroup : FuseAction //[destroy_group]
     {
         [Entry("group_name")]
         public string GroupName;
         [Entry("fate")]
         public FusePartFate Fate;
     }
-    public class FuseStartCamParticles : FuseAction //[start_cam_particles]
+    [ParsedSection]
+    public partial class FuseStartCamParticles : FuseAction //[start_cam_particles]
     {
         [Entry("effect")]
         public string Effect;
@@ -60,14 +66,16 @@ namespace LibreLancer.Data.Fuses
         [Entry("ori_offset")]
         public Vector3 OriOffset;
     }
-    public class FuseIgniteFuse : FuseAction //[ignite_fuse]
+    [ParsedSection]
+    public partial class FuseIgniteFuse : FuseAction //[ignite_fuse]
     {
         [Entry("fuse")]
         public string Fuse;
         [Entry("fuse_t")]
         public float FuseT;
     }
-    public class FuseImpulse : FuseAction //[impulse]
+    [ParsedSection]
+    public partial class FuseImpulse : FuseAction //[impulse]
     {
         [Entry("hardpoint")]
         public string Hardpoint;

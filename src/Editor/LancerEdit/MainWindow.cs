@@ -17,12 +17,15 @@ using LibreLancer.Media;
 using ImGuiNET;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
+using LancerEdit.Shaders;
 using LancerEdit.Updater;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 
 namespace LancerEdit
@@ -46,6 +49,7 @@ namespace LancerEdit
         private RecentFilesHandler recentFiles;
         bool openError = false;
         bool finishLoading = false;
+        private bool showDemoWindow = false;
         public bool RequestExit = false;
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
@@ -66,8 +70,8 @@ namespace LancerEdit
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
 			MaterialMap = new MaterialMap();
-			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
-			MaterialMap.AddRegex(new LibreLancer.Ini.StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
+			MaterialMap.AddRegex(new StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
+			MaterialMap.AddRegex(new StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
             FLLog.UIThread = this;
             FLLog.AppendLine = (x,severity) =>
             {
@@ -98,7 +102,7 @@ namespace LancerEdit
             }
         }
         double errorTimer = 0;
-        private int logoTexture;
+        private ImTextureRef logoTexture;
 
         protected override bool UseSplash => true;
 
@@ -119,7 +123,7 @@ namespace LancerEdit
             SoundData soundData;
             try
             {
-                soundData = Audio.AllocateData();
+                soundData = new SoundData();
                 using(var stream = new MemoryStream(buffer))
                     soundData.LoadStream(stream);
             }
@@ -129,10 +133,9 @@ namespace LancerEdit
                 ErrorDialog("Error:\n" + ex.Message);
                 return;
             }
-            bufferInstance = Audio.CreateInstance(soundData, SoundType.Sfx);
+            bufferInstance = Audio.CreateInstance(soundData, SoundCategory.Sfx);
             if (bufferInstance != null)
             {
-                bufferInstance.DisposeOnStop = true;
                 bufferInstance.OnStop = () => soundData.Dispose();
                 bufferInstance.Play(loop);
             }
@@ -140,7 +143,7 @@ namespace LancerEdit
 
         public void StopBuffer()
         {
-            if (bufferInstance != null && !bufferInstance.Disposed)
+            if (bufferInstance != null)
             {
                 bufferInstance.Stop();
                 bufferInstance = null;
@@ -150,6 +153,7 @@ namespace LancerEdit
         protected override void Load()
         {
             AllShaders.Compile(RenderContext);
+            EditorShaders.Compile(RenderContext);
             DefaultMaterialMap.Init();
             DisplayMesh.LoadAll(RenderContext);
             #if DEBUG
@@ -194,21 +198,6 @@ namespace LancerEdit
             Services.Add(Config);
             Make3dbDlg = new CommodityIconDialog(this);
             LoadScripts();
-            int loadFrames = 0;
-            Popups.AddPopup("Loading##systemviewer", _ =>
-            {
-                ImGui.TextUnformatted($"Loading Universe Editor");
-                ImGui.ProgressBar(OpenDataContext.PreviewLoadPercent, new Vector2(180, 0) * ImGuiHelper.Scale);
-                ImGuiHelper.AnimatingElement();
-                loadFrames++;
-                if ((loadFrames > 8 || loadFrames % 2 == 0) &&
-                    !OpenDataContext.IterateRenderArchetypePreviews(loadFrames > 8 ? 120 : 8))
-                {
-                    this.AddTab(new UniverseEditorTab(OpenDataContext, this));
-                    loadFrames = 0;
-                    ImGui.CloseCurrentPopup();
-                }
-            }, ImGuiWindowFlags.NoResize, true, new Vector2(200, 100) * ImGuiHelper.Scale);
             MinimumWindowSize = new Point(200, 200);
             h1 *= ImGuiHelper.Scale;
             h2 *= ImGuiHelper.Scale;
@@ -285,13 +274,14 @@ namespace LancerEdit
 		{
 			toAdd.Add(tab);
 		}
+
+        private Task lastAudio = null;
 		protected override void Update(double elapsed)
         {
             if (!guiHelper.DoUpdate()) return;
 			foreach (var tab in TabControl.Tabs)
 				tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
-            Audio.UpdateAsync().Wait();
         }
         public string[] InitOpenFile;
         public void OpenFile(string f)
@@ -337,7 +327,6 @@ namespace LancerEdit
         float h1 = 200, h2 = 200;
         Vector2 errorWindowSize = Vector2.Zero;
         public double TimeStep;
-        private RenderTarget2D lastFrame;
         private bool loadingSpinnerActive = false;
         bool openLoading = false;
 
@@ -539,10 +528,7 @@ namespace LancerEdit
                 var m = guiHelper.DoRender(elapsed);
                 if (m == ImGuiProcessing.Sleep)
                 {
-                    if(Width !=0 && Height != 0 && lastFrame != null)
-                        lastFrame.BlitToScreen();
-                    WaitForEvent(); //Yield like a regular GUI program
-                    return;
+                    WaitForEvent(2000); //Yield like a regular GUI program
                 }
                 else if (m == ImGuiProcessing.Slow)
                 {
@@ -553,10 +539,10 @@ namespace LancerEdit
 
             TimeStep = elapsed;
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
-			RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+            RenderContext.ClearColor = Theme.WorkspaceBackground;
 			RenderContext.ClearAll();
 			guiHelper.NewFrame(elapsed);
-            ImGui.PushFont(ImGuiHelper.Noto);
+            ImGui.PushFont(ImGuiHelper.Roboto, 0);
 			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("File"))
             {
@@ -571,7 +557,7 @@ namespace LancerEdit
                     FileDialog.Open(OpenFile, AppFilters.UtfFilters + AppFilters.ThnFilters);
                 }
 
-                recentFiles.Menu();
+                recentFiles.Menu(Popups);
 
                 if (TabControl.Selected is EditorTab editorTab)
                     editorTab.SaveStrategy.DrawMenuOptions();
@@ -612,7 +598,7 @@ namespace LancerEdit
                         TabControl.SetSelected(fd);
                     else
                     {
-                        Popups.OpenPopup("Loading##systemviewer");
+                        Popups.OpenPopup(new UniverseLoadPopup(this));
                     }
                 }
 
@@ -688,6 +674,10 @@ namespace LancerEdit
                 {
                     TabControl.Tabs.Add(new ParamCurveVis());
                 }
+                if (Theme.IconMenuItem(Icons.Calculator, "Hash Tool", true))
+                {
+                    TabControl.Tabs.Add(new HashToolTab());
+                }
                 ImGui.EndMenu();
 			}
             if (ImGui.BeginMenu("Window"))
@@ -733,6 +723,19 @@ namespace LancerEdit
 					openAbout = true;
 				}
 
+                #if DEBUG
+                if (Theme.IconMenuItem(Icons.Info, "Debug Memory", true))
+                {
+                    GC.Collect();
+                    Popups.MessageBox("Native Memory", DebugDrawing.SizeSuffix(UnsafeHelpers.Allocated));
+                }
+
+                if (Theme.IconMenuItem(Icons.Info, "ImGui Demo", true))
+                {
+                    showDemoWindow = true;
+                }
+                #endif
+
                 if (Updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
                 {
                     Popups.OpenPopup(Updater.CheckForUpdates());
@@ -748,6 +751,11 @@ namespace LancerEdit
 				openAbout = false;
 			}
 
+            if (showDemoWindow)
+            {
+                ImGui.ShowDemoWindow(ref showDemoWindow);
+            }
+
             if (openLoading)
             {
                 ImGui.OpenPopup("Processing");
@@ -761,12 +769,11 @@ namespace LancerEdit
             bool pOpen = true;
 
             Popups.Run();
-            recentFiles.DrawErrors();
             pOpen = true;
 			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
-                ImGui.Image((IntPtr) logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
+                ImGui.Image(logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
                 CenterText(Version);
                 CenterText($"ImGui version: {ImGuiExt.Version}");
                 CenterText("Callum McGing");
@@ -779,32 +786,12 @@ namespace LancerEdit
 				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
 				ImGui.EndPopup();
 			}
-            pOpen = true;
             if(ImGuiExt.BeginModalNoClose("Processing", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGuiExt.Spinner("##spinner", 10, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
                 ImGui.Text("Processing");
                 if (finishLoading) ImGui.CloseCurrentPopup();
-                ImGui.EndPopup();
-            }
-            //Confirmation
-            if (doConfirm)
-            {
-                ImGui.OpenPopup("Confirm?##mainwindow");
-                doConfirm = false;
-            }
-            pOpen = true;
-            if (ImGui.BeginPopupModal("Confirm?##mainwindow", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                ImGui.Text(confirmText);
-                if (ImGui.Button("Yes"))
-                {
-                    confirmAction();
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("No")) ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
             var menu_height = ImGui.GetWindowSize().Y;
@@ -827,7 +814,9 @@ namespace LancerEdit
                               ImGuiWindowFlags.NoSavedSettings |
                               ImGuiWindowFlags.NoBringToFrontOnFocus |
                               ImGuiWindowFlags.NoMove |
-                              ImGuiWindowFlags.NoResize);
+                              ImGuiWindowFlags.NoResize |
+                              ImGuiWindowFlags.NoBackground |
+                              ImGuiWindowFlags.NoDecoration);
 
             TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();
@@ -931,7 +920,7 @@ namespace LancerEdit
             ImGui.PopFont();
             unsafe
             {
-                if (ImGui.GetDragDropPayload().NativePtr != null)
+                if (ImGui.GetDragDropPayload() != null)
                     dragActive = 3;
                 else
                 {
@@ -940,23 +929,8 @@ namespace LancerEdit
                 }
             }
 
-            if (Width != 0 && Height != 0)
-            {
-                if (lastFrame == null ||
-                    lastFrame.Width != Width ||
-                    lastFrame.Height != Height)
-                {
-                    if (lastFrame != null) lastFrame.Dispose();
-                    lastFrame = new RenderTarget2D(RenderContext, Width, Height);
-                }
+            guiHelper.Render(RenderContext);
 
-                RenderContext.RenderTarget = lastFrame;
-                RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-                RenderContext.ClearAll();
-                guiHelper.Render(RenderContext);
-                RenderContext.RenderTarget = null;
-                lastFrame.BlitToScreen();
-            }
             foreach (var tab in toAdd)
             {
                 TabControl.Tabs.Add(tab);
@@ -972,15 +946,16 @@ namespace LancerEdit
             quickFileBrowser.Draw();
         }
 
-        string confirmText;
-        bool doConfirm = false;
-        Action confirmAction;
-
         public void Confirm(string text, Action action)
         {
-            doConfirm = true;
-            confirmAction = action;
-            confirmText = text;
+            Popups.MessageBox("Confirm?", text, false, MessageBoxButtons.YesNo,
+                x =>
+                {
+                    if (x == MessageBoxResponse.Yes)
+                    {
+                        action();
+                    }
+                });
         }
 
         void CenterText(string text)

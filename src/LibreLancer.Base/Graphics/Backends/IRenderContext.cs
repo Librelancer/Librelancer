@@ -23,10 +23,12 @@ interface IRenderContext
     void SetBlendMode(ushort mode);
 
     void ClearAll();
+    void ClearColorOnly();
     void ClearDepth();
     void MemoryBarrier();
 
-    IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null);
+    IShader CreateShader(ReadOnlySpan<byte> program);
+
     IElementBuffer CreateElementBuffer(int count, bool isDynamic = false);
     IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false);
     IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false);
@@ -34,18 +36,18 @@ interface IRenderContext
     ITexture2D CreateTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format);
 
     ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format);
-    IComputeShader CreateComputeShader(string shaderCode);
 
     IDepthBuffer CreateDepthBuffer(int width, int height);
     IDepthMap CreateDepthMap(int width, int height);
 
     IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer);
 
-    IShaderStorageBuffer CreateShaderStorageBuffer(int size);
-
     IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples);
 
-    IUniformBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false);
+    IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false);
+
+    void SetCamera(ICamera camera);
+    void SetIdentityCamera();
 
     bool HasFeature(GraphicsFeature feature);
 
@@ -55,4 +57,6 @@ interface IRenderContext
     void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen);
 
     Point GetDrawableSize(IntPtr sdlWindow);
+
+    void QueryFences();
 }

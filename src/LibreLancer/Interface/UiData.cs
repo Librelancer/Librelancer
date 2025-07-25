@@ -9,6 +9,7 @@ using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Graphics;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 
 namespace LibreLancer.Interface
@@ -107,7 +108,13 @@ namespace LibreLancer.Interface
             if(string.IsNullOrEmpty(path)) return null;
             try
             {
-                return ((IRigidModelFile) ResourceManager.GetDrawable(DataPath + path).Drawable).CreateRigidModel(true, ResourceManager);
+                if(FileSystem.FileExists(path))
+                    return ((IRigidModelFile) ResourceManager.GetDrawable(path).Drawable).CreateRigidModel(true, ResourceManager);
+                else if (FileSystem.FileExists(DataPath + path))
+                    return ((IRigidModelFile)ResourceManager.GetDrawable(DataPath + path).Drawable).CreateRigidModel(
+                        true, ResourceManager);
+                else
+                    return null;
             }
             catch (Exception e)
             {

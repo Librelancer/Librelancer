@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <IsPackable>false</IsPackable>
-        <Nullable>disable</Nullable>
+        <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
 
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -14,13 +14,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.9.0" PrivateAssets="all" />
+      <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
     </ItemGroup>
 
-
+  <ItemGroup>
+    <Compile Include="..\GeneratorCommon\AttributeArguments.cs">
+      <Link>GeneratorCommon\AttributeArguments.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorCommon\EquatableArray.cs">
+      <Link>GeneratorCommon\EquatableArray.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorCommon\Polyfill.cs">
+      <Link>GeneratorCommon\Polyfill.cs</Link>
+    </Compile>
+    <Compile Include="..\GeneratorCommon\TabbedWriter.cs">
+      <Link>GeneratorCommon\TabbedWriter.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>

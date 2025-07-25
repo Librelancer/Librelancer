@@ -2,7 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 using Xunit;
 
 namespace LibreLancer.Tests.Ini

@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 using LibreLancer.Dll;
 
 namespace LibreLancer.Data
 {
-	public class FreelancerIni : IniFile
+	public class FreelancerIni
 	{
         public bool IsLibrelancer { get; private set; }
 		public List<ResourceDll> Resources { get; private set; }
@@ -129,7 +129,7 @@ namespace LibreLancer.Data
             NoNavmapSystems = new List<string>(NoNavmaps);
             HiddenFactions = new List<string>(NoShowFactions);
 
-            foreach (Section s in ParseFile(path, vfs)) {
+            foreach (Section s in IniFile.ParseFile(path, vfs)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "freelancer":
 					foreach (Entry e in s) {

@@ -128,16 +128,15 @@ namespace LibreLancer.Fx
                     new Vector2(Size.GetValue(sparam, time)) * 2,
                     new Color4(c, a),
                     GetFrame((float) instance.GlobalTime, sparam, ref particle),
-                    Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time))
+                    Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
+                    FlipHorizontal, FlipVertical
                 );
             }
             instance.Pool.DrawBuffer(
                 this,
                 instance.Resources,
                 transform,
-                (instance.DrawIndex << 11) + nodeIdx,
-                FlipHorizontal,
-                FlipVertical
+                (instance.DrawIndex << 11) + nodeIdx
             );
         }
 

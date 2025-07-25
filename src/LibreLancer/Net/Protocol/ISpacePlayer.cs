@@ -8,7 +8,11 @@ public interface ISpacePlayer
     void FireMissiles(MissileFireCmd[] missiles);
     void EnterFormation(int ship);
     void LeaveFormation();
-
     void UseRepairKits();
     void UseShieldBatteries();
+    void Tractor(ObjNetId target);
+    void RunDirectiveIndex(int index);
+
+    void StopScan();
+    void Scan(ObjNetId id);
 }

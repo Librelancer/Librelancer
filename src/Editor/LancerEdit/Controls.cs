@@ -40,7 +40,7 @@ public static class Controls
         return ImGuiExt.ToggleButton(id, !set);
     }
 
-    public static void InputTextId(string label, ref string value, float width = 0.0f)
+    public static bool InputTextId(string label, ref string value, float width = 0.0f)
     {
         if (width != 0.0f)
         {
@@ -48,7 +48,8 @@ public static class Controls
         }
 
         value ??= "";
-        ImGui.InputText(label, ref value, 250, ImGuiInputTextFlags.CallbackCharFilter, callback);
+        return ImGui.InputText(label, ref value, 250,
+            ImGuiInputTextFlags.CallbackCharFilter | ImGuiInputTextFlags.EnterReturnsTrue, callback);
     }
 
     public static bool SmallButton(string text)
@@ -105,7 +106,7 @@ public static class Controls
         if (!gradient)
             return ImGui.ColorButton(id, colA, ImGuiColorEditFlags.NoAlpha, size);
         var img = ImGuiHelper.RenderGradient(colA, colB);
-        var retval = ImGui.ImageButton(id, (IntPtr)img, size, new Vector2(0, 1), new Vector2(0, 0));
+        var retval = ImGui.ImageButton(id, img, size, new Vector2(0, 1), new Vector2(0, 0));
         return retval;
     }
 
@@ -115,8 +116,8 @@ public static class Controls
         bool clicked = false;
         string text = $"{options[selected].Icon}  {options[selected].Name}  ";
         var textSize = ImGui.CalcTextSize(text);
-        var cpos = ImGuiNative.igGetCursorPosX();
-        var cposY = ImGuiNative.igGetCursorPosY();
+        var cpos = ImGui.GetCursorPosX();
+        var cposY = ImGui.GetCursorPosY();
         clicked = ImGui.Button($"{options[selected].Icon}  {options[selected].Name}  ");
         var style = ImGui.GetStyle();
         var tPos = new Vector2(cpos, cposY) + new Vector2(textSize.X + style.FramePadding.X, textSize.Y);
@@ -178,7 +179,7 @@ public static class Controls
         }
         else
         {
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
         }
     }
 
@@ -186,9 +187,9 @@ public static class Controls
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(name);
+        ImGui.Text(name);
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(value);
+        ImGui.Text(value);
         ImGui.TableNextColumn();
     }
 
@@ -334,7 +335,7 @@ public static class Controls
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
 
-            ImGui.TextUnformatted(infocard[0] == '<' ? XmlFormatter.Prettify(infocard) : infocard);
+            ImGui.Text(infocard[0] == '<' ? XmlFormatter.Prettify(infocard) : infocard);
 
             ImGui.PopTextWrapPos();
             ImGui.EndTooltip();
@@ -390,7 +391,7 @@ public static class Controls
         }
 
         ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
-        ImGui.TextUnformatted(helpText);
+        ImGui.Text(helpText);
         ImGui.PopTextWrapPos();
         ImGui.EndTooltip();
     }
@@ -400,11 +401,11 @@ public static class Controls
         var i = id.IndexOf("##", StringComparison.Ordinal);
         if(i == -1)
         {
-            ImGui.TextUnformatted(id);
+            ImGui.Text(id);
         }
         else
         {
-            ImGui.TextUnformatted(id.AsSpan(0, i));
+            ImGui.Text(id, i);
         }
     }
 }

@@ -87,8 +87,9 @@ public static class AudioImporter
             }
             return info;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            FLLog.Error("Audio", ex.ToString());
             return null;
         }
     }

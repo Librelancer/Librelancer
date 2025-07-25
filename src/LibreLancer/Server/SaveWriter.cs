@@ -40,6 +40,7 @@ namespace LibreLancer.Server
             sg.Player.Position = ch.Position;
             sg.Player.Money = ch.Credits;
             sg.Player.Rank = (int)ch.Rank;
+            sg.Time = new SaveTime() { Seconds = (float)ch.Time };
             if (ch.Ship != null)
                 sg.Player.ShipArchetype = new HashValue(ch.Ship.Nickname);
             foreach (var item in ch.Items) {
@@ -47,7 +48,7 @@ namespace LibreLancer.Server
                 {
                     sg.Player.Equip.Add(new PlayerEquipment()
                     {
-                        Item = new HashValue(item.Equipment.CRC),
+                        Item = new HashValue(item.Equipment.Nickname),
                         Hardpoint = item.Hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase)
                             ? ""
                             : item.Hardpoint
@@ -56,7 +57,7 @@ namespace LibreLancer.Server
                 else
                 {
                     sg.Player.Cargo.Add(new PlayerCargo() {
-                        Item = new HashValue(item.Equipment.CRC),
+                        Item = new HashValue(item.Equipment.Nickname),
                         Count = item.Count
                     });
                 }
@@ -64,7 +65,22 @@ namespace LibreLancer.Server
             foreach (var rep in ch.Reputation.Reputations) {
                 sg.Player.House.Add(new SaveRep() { Group = rep.Key.Nickname, Reputation = rep.Value });
             }
+
+            sg.Player.Visit.AddRange(ch.GetAllVisitFlags());
+
             sg.Player.Interface = 3; //Unknown, matching vanilla
+
+            sg.MPlayer = new MPlayer();
+            sg.MPlayer.CanDock = 1;
+            sg.MPlayer.CanTl = 1;
+            sg.MPlayer.TotalTimePlayed = (float)ch.Time;
+            sg.MPlayer.SysVisited = ch.GetSystemsVisited().Select(x => (int)x).ToList();
+            sg.MPlayer.BaseVisited = ch.GetBasesVisited().Select(x => (int)x).ToList();
+            sg.MPlayer.HolesVisited = ch.GetHolesVisited().Select(x => (int)x).ToList();
+            foreach (var kc in ch.GetShipKillCounts())
+            {
+                sg.MPlayer.ShipTypeKilled.Add(new SaveItemCount(kc.Ship, kc.Count));
+            }
 
             if (story != null)
             {

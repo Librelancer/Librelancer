@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using LibreLancer.Ini;
 using LibreLancer.Data.Equipment;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class Loadout
+    [ParsedSection]
+	public partial class Loadout
     {
         [Entry("nickname", Required =  true)] public string Nickname;
 

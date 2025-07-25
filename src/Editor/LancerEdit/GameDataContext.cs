@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
@@ -18,6 +20,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Data.IO;
 using LibreLancer.GameData;
 using LibreLancer.ImageLib;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using Archetype = LibreLancer.GameData.Archetype;
 
@@ -51,6 +54,8 @@ public class GameDataContext : IDisposable
     // This ID is more compact, at the cost of complexity + some reduction in hash length
     private const string ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_;-+=,#$@%^!~`()[]{}";
 
+    public string ShortestPathRoot;
+
     static string CacheID(string path)
     {
         var data = SHA256.HashData(Encoding.UTF8.GetBytes(path.ToUpper()));
@@ -69,15 +74,13 @@ public class GameDataContext : IDisposable
 
     T YieldAndWait<T>(Task<T> task)
     {
-        var awaiter = Task.Run(async () => await task);
-        while(!awaiter.IsCompleted)
+        do
         {
             win.Yield();
-            Thread.Sleep(0);
-        }
-        if (awaiter.Exception != null)
-            throw awaiter.Exception;
-        return awaiter.Result;
+        } while (!task.Wait(1));
+        if (task.Exception != null)
+            throw task.Exception;
+        return task.Result;
     }
 
     public void RefreshLists()
@@ -131,6 +134,7 @@ public class GameDataContext : IDisposable
                 char[] splits = ['\\', '/'];
                 var uniSplit = GameData.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
                 UniverseVfsFolder = $"{string.Join('\\', uniSplit.Take(uniSplit.Length - 1))}\\";
+                ShortestPathRoot = GameData.Ini.Freelancer.DataPath + "Universe\\";
                 RefreshLists();
                 sw.Stop();
                 FLLog.Info("Game", $"Finished loading game data in {sw.Elapsed.TotalSeconds:0.000} seconds");
@@ -138,7 +142,7 @@ public class GameDataContext : IDisposable
                 {
                     Sounds = new SoundManager(GameData, win.Audio, win);
                     Fonts = new FontManager();
-                    Fonts.LoadFontsFromGameData(GameData);
+                    Fonts.LoadFontsFromGameData(win.RenderContext, GameData);
                     onComplete();
                 });
             }
@@ -149,7 +153,7 @@ public class GameDataContext : IDisposable
         });
     }
 
-    private Dictionary<string, (Texture2D, int)> renderedArchetypes = new Dictionary<string, (Texture2D, int)>();
+    private Dictionary<string, (Texture2D, ImTextureRef)> renderedArchetypes = new Dictionary<string, (Texture2D, ImTextureRef)>();
 
     record struct AsteroidInfo(string Asteroid, string Material, uint MaterialCrc);
 
@@ -158,14 +162,15 @@ public class GameDataContext : IDisposable
     private Archetype[] allArchetypes;
     private Asteroid[] allAsteroids;
     private int renderIndex = 0;
-    private List<Task<int>> drawTasks;
+    private List<Task<ImTextureRef>> drawTasks;
 
     public float PreviewLoadPercent { get; private set; } = 0;
 
-    private const int MEMORY_BUDGET = 72 * 1024 * 1024; //72MiB
+    private const int MEMORY_BUDGET = 128 * 1024 * 1024; //128MiB
 
     private GameResourceManager rmBulk;
     private PreviewRenderer prevBulk;
+    private Stopwatch sw;
     public bool IterateRenderArchetypePreviews(int max = 120)
     {
         if (allArchetypes == null)
@@ -174,7 +179,8 @@ public class GameDataContext : IDisposable
             allAsteroids = GameData.Asteroids.ToArray();
             renderIndex = 0;
             PreviewLoadPercent = 0;
-            drawTasks = new List<Task<int>>();
+            drawTasks = new List<Task<ImTextureRef>>();
+            sw = Stopwatch.StartNew();
             FLLog.Debug("ArchetypePreviews", "Render start");
             return true;
         }
@@ -207,6 +213,8 @@ public class GameDataContext : IDisposable
                 rmBulk.Dispose();
                 prevBulk = null;
                 rmBulk = null;
+                sw.Stop();
+                FLLog.Info("ArchetypePreviews", $"Time: {sw.Elapsed.TotalSeconds} seconds");
                 return false;
             }
 
@@ -267,7 +275,7 @@ public class GameDataContext : IDisposable
         return false;
     }
 
-    Task<int> RenderAndCache(string cacheId, Func<Texture2D> render)
+    Task<ImTextureRef> RenderAndCache(string cacheId, Func<Texture2D> render)
     {
         if (renderedArchetypes.TryGetValue(cacheId, out var existing))
             return Task.FromResult(existing.Item2);
@@ -276,36 +284,39 @@ public class GameDataContext : IDisposable
         {
             var cachePath = Path.Combine(cacheDir, cacheId + ".dds.zstd");
             int w = tx.Width, h = tx.Height;
-            var dat = new Bgra8[tx.Width * tx.Height];
-            tx.GetData(dat);
-            tx.Dispose();
-            return Task.Run(async () =>
+            TaskCompletionSource<ImTextureRef> compSource = new TaskCompletionSource<ImTextureRef>();
+            tx.GetDataAsync().ContinueWith(t =>
             {
-                TaskCompletionSource<int> compSource = new TaskCompletionSource<int>();
-                var dxt1 = TextureImport.CreateDDS(dat, w, h, DDSFormat.DXT1, MipmapMethod.Lanczos4, true);
-                win.QueueUIThread(() =>
+                win.QueueUIThread(() => { tx.Dispose(); });
+                Task.Run(() =>
                 {
-                    using var ms = new MemoryStream(dxt1);
-                    tx = (Texture2D)DDS.FromStream(win.RenderContext, ms);
-                    var arch = (tx, ImGuiHelper.RegisterTexture(tx));
-                    renderedArchetypes[cacheId] = arch;
-                    compSource.SetResult(arch.Item2);
+                    var dxt1 = TextureImport.CreateDDS( MemoryMarshal.Cast<byte, Bgra8>(t.Result), w, h, DDSFormat.DXT1, MipmapMethod.Lanczos4, true);
+                    win.QueueUIThread(() =>
+                    {
+                        using var ms = new MemoryStream(dxt1);
+                        tx = (Texture2D)DDS.FromStream(win.RenderContext, ms);
+                        var arch = (tx, ImGuiHelper.RegisterTexture(tx));
+                        renderedArchetypes[cacheId] = arch;
+                        compSource.SetResult(arch.Item2);
+                    });
+                    using var zstd = new ZstdSharp.CompressionStream(File.Create(cachePath), 3, 0, false);
+                    zstd.Write(dxt1);
                 });
-                await using var zstd = new ZstdSharp.CompressionStream(File.Create(cachePath), 3, 0, false);
-                zstd.Write(dxt1);
-                return await compSource.Task;
             });
+            return compSource.Task;
         }
-
-        var arch = (tx, ImGuiHelper.RegisterTexture(tx));
-        renderedArchetypes[cacheId] = arch;
-        return Task.FromResult(arch.Item2);
+        else
+        {
+            var arch = (tx, ImGuiHelper.RegisterTexture(tx));
+            renderedArchetypes[cacheId] = arch;
+            return Task.FromResult(arch.Item2);
+        }
     }
 
-    public int GetArchetypePreview(Archetype archetype) =>
+    public ImTextureRef GetArchetypePreview(Archetype archetype) =>
         YieldAndWait(RegisterArchetypePreview(archetype, null));
 
-    Task<int> RegisterArchetypePreview(Archetype archetype, PreviewRenderer renderer) =>
+    Task<ImTextureRef> RegisterArchetypePreview(Archetype archetype, PreviewRenderer renderer) =>
         RenderAndCache(archetype.CRC.ToString("X"), () =>
         {
             if (renderer != null)
@@ -348,7 +359,7 @@ public class GameDataContext : IDisposable
         return ai;
     }
 
-    public (int, string, uint) GetAsteroidPreview(Asteroid archetype)
+    public (ImTextureRef, string, uint) GetAsteroidPreview(Asteroid archetype)
     {
         var tex =  YieldAndWait(DrawAsteroidPreview(archetype, null));
         var info = GetMatInfo(archetype, Resources);
@@ -356,7 +367,7 @@ public class GameDataContext : IDisposable
     }
 
 
-    Task<int> DrawAsteroidPreview(Asteroid archetype, PreviewRenderer renderer) =>
+    Task<ImTextureRef> DrawAsteroidPreview(Asteroid archetype, PreviewRenderer renderer) =>
         RenderAndCache("AST_" + archetype.CRC.ToString("X"), () =>
         {
             if (renderer != null) {

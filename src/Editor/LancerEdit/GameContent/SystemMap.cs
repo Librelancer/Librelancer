@@ -47,7 +47,8 @@ namespace LancerEdit.GameContent
         }
 
         private RenderTarget2D rtarget;
-        private int rw = -1, rh = -1, rt = -1;
+        private int rw = -1, rh = -1;
+        private ImTextureRef rt;
 
         static bool NavButton(char icon, string tooltip, bool selected)
         {
@@ -109,8 +110,7 @@ namespace LancerEdit.GameContent
             NavButton("nav_knownbases", "Known Bases", false);
             */
             var cpos = ImGui.GetCursorPos();
-            ImGui.Image((IntPtr)rt, new Vector2(width, height), new Vector2(0,1), new Vector2(1,0),
-            Color4.White);
+            ImGui.Image(rt, new Vector2(width, height), new Vector2(0, 1), new Vector2(1, 0));
             ImGui.SetCursorPos(cpos);
             ImGui.InvisibleButton("##navmap", new Vector2(width, height));
         }

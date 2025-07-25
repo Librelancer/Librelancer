@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Workaround for issue https://github.com/microsoft/ClangSharp/issues/129 -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="ClangSharp" Version="18.1.0.3" />
+    <PackageReference Include="CppAst" Version="0.21.1" />
+    <PackageReference Include="libclang" Version="18.1.3.2" />
+    <PackageReference Include="libclang.runtime.linux-x64" Version="18.1.3.2" />
+    <PackageReference Include="libClangSharp" Version="18.1.3.1" />
+    <PackageReference Include="libClangSharp.runtime.linux-x64" Version="18.1.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="spirv\spirv.h">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="spirv\spirv_cross_c.h">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

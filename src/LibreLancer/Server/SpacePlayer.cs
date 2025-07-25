@@ -1,4 +1,5 @@
 using System.Numerics;
+using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
@@ -35,6 +36,27 @@ public class SpacePlayer : ISpacePlayer
         });
     }
 
+    public void Tractor(ObjNetId target)
+    {
+        world.EnqueueAction(() =>
+        {
+            var obj = World.Players[player];
+            var other = world.GameWorld.GetObject(target);
+            if (other != null && obj.TryGetComponent<STractorComponent>(out var tractor))
+            {
+                tractor.TryTractor(other);
+            }
+        });
+    }
+
+    public void RunDirectiveIndex(int index)
+    {
+        world.EnqueueAction(() =>
+        {
+            World.Players[player].GetComponent<SPlayerComponent>().RunDirective(index);
+        });
+    }
+
     public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
 
     public void FireMissiles(MissileFireCmd[] missiles) => world.FireMissiles(missiles, player);
@@ -55,7 +77,7 @@ public class SpacePlayer : ISpacePlayer
                     other.Formation = new ShipFormation(other, self);
                 }
                 self.Formation = other.Formation;
-                player.MissionRuntime?.PlayerManeuver("formation", other.Nickname);
+                player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, other.Nickname);
             }
             else {
                 FLLog.Warning("Server", $"Could not find object to join formation {ship}");
@@ -68,6 +90,7 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var obj = world.Players[player];
+            player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, "inverse");
             if(obj.Formation != null && obj.Formation.LeadShip != obj)
                 obj.Formation.Remove(obj);
         });
@@ -88,6 +111,26 @@ public class SpacePlayer : ISpacePlayer
         {
             var obj = world.Players[player];
             obj.GetComponent<SHealthComponent>()?.UseShieldBatteries();
+        });
+    }
+
+    public void StopScan()
+    {
+        world.EnqueueAction(() =>
+        {
+            World.Players[player].GetComponent<SPlayerComponent>().StopScan();
+        });
+    }
+
+    public void Scan(ObjNetId id)
+    {
+        world.EnqueueAction(() =>
+        {
+            var other = world.GameWorld.GetObject(id);
+            if (other != null)
+            {
+                World.Players[player].GetComponent<SPlayerComponent>().Scan(other);
+            }
         });
     }
 }

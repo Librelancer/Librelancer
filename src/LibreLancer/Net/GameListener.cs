@@ -111,7 +111,7 @@ namespace LibreLancer.Net
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
-                                Task.Run(() => p.OnLoggedIn());
+                                Task.Run(async () => await p.OnLoggedIn());
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);
@@ -209,7 +209,7 @@ namespace LibreLancer.Net
                                     game.ConnectedPlayers.Add(p);
                                 }
 
-                                Task.Run(() => p.OnLoggedIn());
+                                Task.Run(async () => await p.OnLoggedIn());
                             }
                         }
                         else

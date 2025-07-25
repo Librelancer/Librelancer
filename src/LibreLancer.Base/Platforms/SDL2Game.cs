@@ -312,6 +312,7 @@ namespace LibreLancer
             if (mythread != Thread.CurrentThread.ManagedThreadId) {
                 throw new InvalidOperationException();
             }
+            RenderContext.Backend.QueryFences();
             while (actions.TryDequeue(out Action work))
                 work();
         }
@@ -411,6 +412,7 @@ namespace LibreLancer
             FLLog.Info("Graphics", $"Max AA: {RenderContext.MaxSamples}");
             SDL2.SDL_GetWindowSize(sdlWin, out int windowWidth, out int windowHeight);
             var drawable = RenderContext.Backend.GetDrawableSize(sdlWin);
+            RenderContext.SetDrawableSize(drawable);
             width = drawable.X;
             height = drawable.Y;
             var scaleW = (float) width / windowWidth;
@@ -479,6 +481,7 @@ namespace LibreLancer
                 //Get Size
                 SDL2.SDL_GetWindowSize(sdlWin, out  windowWidth, out  windowHeight);
                 var dw = RenderContext.Backend.GetDrawableSize(sdlWin);
+                RenderContext.SetDrawableSize(dw);
                 width = dw.X;
                 height = dw.Y;
                 scaleW = (float) width / windowWidth;
@@ -606,6 +609,7 @@ namespace LibreLancer
                     break;
                 while (actions.TryDequeue(out Action work))
                     work();
+                RenderContext.Backend.QueryFences();
                 totalTime = timer.Elapsed.TotalSeconds;
                 loop.OnUpdate(elapsed);
                 if (!running)

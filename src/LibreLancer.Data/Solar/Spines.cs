@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Solar
 {
-	public class Spines
+    [ParsedSection]
+	public partial class Spines
 	{
         [Entry("nickname")]
 		public string Nickname;

@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Linq;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Ships
 {

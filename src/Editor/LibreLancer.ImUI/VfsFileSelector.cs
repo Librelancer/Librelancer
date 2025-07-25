@@ -82,7 +82,7 @@ namespace LibreLancer.ImUI
             return Path.Combine(path, file);
         }
 
-        public override void Draw()
+        public override void Draw(bool appearing)
         {
             bool hasFilename = fileNameSelected >= 0 && fileNameSelected < fileNames.Length;
             string selected = hasFilename
@@ -122,7 +122,7 @@ namespace LibreLancer.ImUI
             }
 
             ImGui.Dummy(new Vector2(1, 1));
-            ImGui.BeginChild("##currentDir", new Vector2(-1, -1), ImGuiChildFlags.Border);
+            ImGui.BeginChild("##currentDir", new Vector2(-1, -1), ImGuiChildFlags.Borders);
             for (int i = 0; i < directoryNames.Length; i++)
             {
                 IconSelectable(

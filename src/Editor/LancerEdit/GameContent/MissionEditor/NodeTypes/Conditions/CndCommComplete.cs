@@ -1,8 +1,8 @@
 using ImGuiNET;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
@@ -20,7 +20,7 @@ public class CndCommComplete : NodeTriggerEntry
     public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Dialog", ref Data.label);
+        Controls.InputTextId("Dialog", ref Data.Comm);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

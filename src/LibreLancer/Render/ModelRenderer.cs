@@ -113,7 +113,7 @@ namespace LibreLancer.Render
                      Matrix4x4.CreateRotationZ((float)spinZ)) * World;
             }
             this.sysr = sys;
-			if (sys.DrawNebulae && Nebula != null && nr != Nebula || forceCull)
+			if (sys.DrawNebulae && Nebula != null && nr != Nebula || (forceCull && InheritCull))
 			{
                 return false;
 			}

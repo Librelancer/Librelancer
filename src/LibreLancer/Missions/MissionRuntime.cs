@@ -6,15 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.Save;
+using LibreLancer.Missions.Conditions;
+using LibreLancer.Missions.Events;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 
 namespace LibreLancer.Missions
 {
-
     public class MissionRuntime
     {
         public Player Player;
@@ -22,9 +24,17 @@ namespace LibreLancer.Missions
         object _msnLock = new object();
 
         public MissionScript Script;
+        public Random Random = new();
+
+        public Dictionary<string, MissionLabel> Labels = new(StringComparer.OrdinalIgnoreCase);
+
         public MissionRuntime(MissionIni msn, Player player, uint[] triggerSave)
         {
             Script = new MissionScript(msn);
+            foreach (var lbl in Script.GetLabels())
+            {
+                Labels[lbl.Name] = lbl;
+            }
             this.msn = msn;
             this.Player = player;
             bool doInit = true;
@@ -66,30 +76,48 @@ namespace LibreLancer.Missions
             }
         }
 
+        public void RegisterHitEvent(string target)
+        {
+            Player.MissionWorldAction(() =>
+            {
+                var obj = Player.Space.World.GameWorld.GetObject(target);
+                if (obj != null)
+                {
+                    if (obj.TryGetComponent <SHealthComponent>(out var comp))
+                    {
+                        comp.ProjectileHitHook = OnProjectileHit;
+                    }
+                    else
+                    {
+                        // This could still be wrong (?)
+                        FLLog.Error("Mission", $"Cnd_ProjHit won't register for invincible {target}");
+                    }
+                }
+                else
+                {
+                    FLLog.Error("Mission", $"Cnd_ProjHit won't register for not spawned {target}");
+                }
+            });
+        }
+
         public void ActivateTrigger(string trigger)
         {
             var t = Script.AvailableTriggers[trigger];
+            if (t.Conditions.Length == 1 && t.Conditions[0] is Cnd_True)
+            {
+                DoTrigger(t);
+                return;
+            }
+            var active = new ActiveTrigger() { Trigger = t };
+            var conds = new List<ActiveCondition>();
             foreach (var cond in t.Conditions)
             {
-                if (cond.Type == TriggerConditions.Cnd_ProjHit)
-                {
-                    Player.MissionWorldAction(() =>
-                    {
-                        var obj = Player.Space.World.GameWorld.GetObject(cond.Entry[0].ToString());
-                        if (obj != null)
-                        {
-                            obj.GetComponent<SNPCComponent>().ProjectileHitHook = ProjectileHit;
-                        }else {
-                            FLLog.Warning("Mission", $"Cnd_ProjHit won't register for not spawned {cond.Entry[0]}");
-                        }
-                    });
-                }
+                var ac = new ActiveCondition() { Trigger = active, Condition = cond };
+                cond.Init(this, ac);
+                conds.Add(ac);
             }
-            activeTriggers.Add(new ActiveTrigger()
-            {
-                Trigger = t,
-                Conditions = new List<MissionCondition>(t.Conditions)
-            });
+            active.Conditions = conds;
+            activeTriggers.Add(active);
         }
 
         public void DeactivateTrigger(string trigger)
@@ -101,77 +129,34 @@ namespace LibreLancer.Missions
             }
         }
 
-        public void SpaceExit() =>  ProcessCondition(TriggerConditions.Cnd_SpaceExit, TruePredicate);
-
-        public void BaseEnter(string _base) => ProcessCondition(TriggerConditions.Cnd_BaseEnter,
-            (x) => IdEquals(x.Entry[0].ToString(), _base));
-
-        bool CheckPerTickCond(TriggerConditions cond, MissionCondition data, float time)
+        public TriggerState GetTriggerState(string trigger)
         {
-            if (cond == TriggerConditions.Cnd_True)
-                return true;
-
-            if (cond == TriggerConditions.Cnd_WatchTrigger)
+            if (completedTriggers.Contains(trigger))
             {
-                bool on = data.Entry[1].ToString().Equals("on", StringComparison.OrdinalIgnoreCase);
-                if (on)
-                {
-                    return activeTriggers.Any(x => x.Trigger.Nickname.Equals(
-                        data.Entry[0].ToString(), StringComparison.OrdinalIgnoreCase));
-                }
-                else
-                {
-                    return !activeTriggers.Any(x => x.Trigger.Nickname.Equals(
-                        data.Entry[0].ToString(), StringComparison.OrdinalIgnoreCase));
-                }
+                return TriggerState.COMPLETE;
             }
-
-            if (cond == TriggerConditions.Cnd_DistVec)
+            var at = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+            if (at == null)
             {
-                if (Player.Space == null) return false;
-
-                bool inside = data.Entry[0].ToString() == "inside";
-                var objA = Player.Space.World.GameWorld.GetObject(data.Entry[1].ToString());
-                if (objA == null) return false;
-                var point = new Vector3(data.Entry[2].ToSingle(), data.Entry[3].ToSingle(), data.Entry[4].ToSingle());
-                var d = data.Entry[5].ToSingle();
-                bool satisfied;
-                if (Vector3.Distance(objA.LocalTransform.Position, point) < (d * d))
-                    satisfied = inside;
-                else
-                    satisfied = !inside;
-                return satisfied;
+                return TriggerState.OFF;
             }
-            if (cond == TriggerConditions.Cnd_DistShip)
-            {
-                if (Player.Space == null) return false;
-
-                bool inside = data.Entry[0].ToString() == "inside";
-                var objA = Player.Space.World.GameWorld.GetObject(data.Entry[1].ToString());
-                var objB = Player.Space.World.GameWorld.GetObject(data.Entry[2].ToString());
-                if (objA == null || objB == null) return false;
-
-                var d = data.Entry[3].ToSingle();
-                d *= d;
-                bool satisfy;
-                if (Vector3.DistanceSquared(objA.LocalTransform.Position, objB.LocalTransform.Position) < d)
-                    satisfy = inside;
-                else
-                    satisfy = !inside;
-                if (data.Entry.Count > 5 &&
-                    IdEquals(data.Entry[5].ToString(), "TICK_AWAY"))
-                {
-                    if (satisfy) {
-                        data.Data += time;
-                        if (data.Data > data.Entry[4].ToSingle()) return true;
-                    }
-                    return false;
-                }
-                return satisfy;
-            }
-
-            return false;
+            return TriggerState.ON;
         }
+
+        public void SpaceExit() => MsnEvent(new SpaceExitedEvent());
+
+        public void BaseEnter(string _base) => MsnEvent(new BaseEnteredEvent(_base));
+
+        public void CargoScanned(string scanningShip, string scannedShip) => MsnEvent(new CargoScannedEvent(scanningShip, scannedShip));
+
+        public bool GetSpace(out SpacePlayer space)
+        {
+            space = Player.Space;
+            return space != null;
+        }
+
+        public void SystemEnter(string system, string ship) =>
+            MsnEvent(new SystemEnteredEvent(system, ship));
 
         public void Update(double elapsed)
         {
@@ -180,19 +165,23 @@ namespace LibreLancer.Missions
                 foreach (var t in activeTriggers)
                 {
                     t.ActiveTime += elapsed;
-                    for (int i = t.Conditions.Count - 1; i >= 0; i--)
+                    var newSatisfied = new BitArray128();
+                    for (int i = 0; i < t.Conditions.Count; i++)
                     {
-                        if (t.Conditions[i].Type == TriggerConditions.Cnd_Timer &&
-                            t.ActiveTime >= t.Conditions[i].Entry[0].ToSingle())
+                        var condState =  t.Conditions[i].Condition.CheckCondition(this, t.Conditions[i], elapsed);
+                        #if DEBUG
+                        if (!t.Satisfied[i] && condState)
                         {
-                            FLLog.Debug("Mission", $"Satisfied - {t.Trigger.Nickname}: {t.Conditions[i].Entry}");
-                            t.Conditions.RemoveAt(i);
-                        } else if (CheckPerTickCond(t.Conditions[i].Type, t.Conditions[i], (float) elapsed))
-                        {
-                            FLLog.Debug("Mission", $"Satisfied - {t.Trigger.Nickname}: {t.Conditions[i].Entry}");
-                            t.Conditions.RemoveAt(i);
+                            FLLog.Debug("Mission", $"{t.Trigger.Nickname} satisfied cnd: {t.Conditions[i].Condition}");
                         }
+                        #endif
+                        newSatisfied[i] = condState;
                     }
+                    if (t.Satisfied != newSatisfied)
+                    {
+                        uiUpdate = true;
+                    }
+                    t.Satisfied = newSatisfied;
                 }
                 CheckMissionScript();
                 if (uiUpdate)
@@ -209,18 +198,21 @@ namespace LibreLancer.Missions
             ActiveTriggersInfo = GetTriggerInfo().ToArray();
         }
 
+
+
         IEnumerable<TriggerInfo> GetTriggerInfo()
         {
             foreach (var t in activeTriggers)
             {
-                var ti = new TriggerInfo() {Name = t.Trigger.Nickname};
+                var ti = new TriggerInfo() { Name = t.Trigger.Nickname, Satisfied = t.Satisfied };
                 foreach (var a in t.Trigger.Actions)
                 {
                     ti.Actions.Add(a.Text);
                 }
+                var sb = new IniBuilder.IniSectionBuilder() { Section = new("") };
                 foreach (var c in t.Conditions)
                 {
-                    ti.Conditions.Add(c.Entry.ToString());
+                    ti.Conditions.Add(c.Condition.ToString());
                 }
                 yield return ti;
             }
@@ -229,38 +221,31 @@ namespace LibreLancer.Missions
         public class TriggerInfo
         {
             public string Name;
+            public BitArray128 Satisfied;
             public List<string> Actions = new List<string>();
             public List<string> Conditions = new List<string>();
         }
 
-        class ActiveTrigger
-        {
-            public ScriptedTrigger Trigger;
-            public bool Deactivated;
-            public List<MissionCondition> Conditions = new List<MissionCondition>();
-            public double ActiveTime;
-        }
         private List<ActiveTrigger> activeTriggers = new List<ActiveTrigger>();
 
-        void ProcessCondition(TriggerConditions cond, Func<MissionCondition, bool> action)
+        void MsnEvent<T>(T e) where T : struct
         {
             lock (_msnLock) {
                 foreach (var tr in activeTriggers) {
                     for (int i = tr.Conditions.Count - 1; i >= 0; i--)
                     {
-                        if (tr.Conditions[i].Type == cond && action(tr.Conditions[i]))
+                        if (tr.Conditions[i].Condition is EventListenerCondition<T> listener)
                         {
-                            FLLog.Debug("Mission", $"Satisfied - {tr.Trigger.Nickname}: {tr.Conditions[i].Entry}");
-                            tr.Conditions.RemoveAt(i);
-                            uiUpdate = true;
+                            listener.OnEvent(e, this, tr.Conditions[i]);
+                            tr.Satisfied[i] = listener.CheckCondition(this, tr.Conditions[i], 0);
                         }
                     }
                 }
+                CheckMissionScript();
             }
         }
 
-        static Func<MissionCondition, bool> TruePredicate = (c) => true;
-
+        private HashSet<string> completedTriggers = new();
         private bool uiUpdate = false;
 
         public void CheckMissionScript()
@@ -272,136 +257,114 @@ namespace LibreLancer.Missions
                     activeTriggers.RemoveAt(i);
                     uiUpdate = true;
                 }
-                else if (activeTriggers[i].Conditions.Count == 0)
+                else
                 {
-                    var tr = activeTriggers[i].Trigger;
-                    activeTriggers.RemoveAt(i);
-                    DoTrigger(tr);
-                    uiUpdate = true;
+                    bool activate = true;
+                    for (int j = 0; j < activeTriggers[i].Conditions.Count; j++)
+                    {
+                        if (!activeTriggers[i].Satisfied[j])
+                        {
+                            activate = false;
+                            break;
+                        }
+                    }
+
+                    if (activate)
+                    {
+                        var tr = activeTriggers[i].Trigger;
+                        activeTriggers.RemoveAt(i);
+                        DoTrigger(tr);
+                        completedTriggers.Add(tr.Nickname);
+                        uiUpdate = true;
+                    }
                 }
             }
         }
 
-        static bool IdEquals(string a, string b) => a.Equals(b, StringComparison.OrdinalIgnoreCase);
-
-
         public void PlayerLaunch()
         {
-            ProcessCondition(TriggerConditions.Cnd_PlayerLaunch, TruePredicate);
+            MsnEvent(new PlayerLaunchedEvent());
         }
 
-        void ProjectileHit(GameObject victim, GameObject attacker)
+        public void LaunchComplete(string nickname)
         {
-            ProcessCondition(TriggerConditions.Cnd_ProjHit, (c) =>
-                c.Entry.Count > 2 && //Need to include projectile hit counter for other form
-                IdEquals(c.Entry[0].ToString(), victim.Nickname) &&
-                    IdEquals(c.Entry[2].ToString(), attacker.Nickname)
-            );
+            MsnEvent(new LaunchCompleteEvent(nickname));
         }
 
-        public void EnterLocation(string room, string bse)
+        void OnProjectileHit(GameObject victim, GameObject attacker)
         {
-            ProcessCondition(TriggerConditions.Cnd_LocEnter, (c) => IdEquals(room, c.Entry[0].ToString()) &&
-                                                                    IdEquals(bse, c.Entry[1].ToString()));
+            MsnEvent(new ProjectileHitEvent(victim.Nickname, attacker.Nickname));
+        }
+
+        public void EnterLocation(string room, string _base)
+        {
+            MsnEvent(new LocationEnteredEvent(room, _base));
         }
 
         public void ClosePopup(string id)
         {
-            ProcessCondition(TriggerConditions.Cnd_PopUpDialog, (c) => IdEquals(id, c.Entry[0].ToString()));
+            MsnEvent(new ClosePopupEvent(id));
         }
 
         public void StoryNPCSelect(string name, string room, string _base)
         {
-            ProcessCondition(TriggerConditions.Cnd_CharSelect, (c) => IdEquals(name,c.Entry[0].ToString()) &&
-                                                                      IdEquals(room, c.Entry[1].ToString()) &&
-                                                                      IdEquals(_base, c.Entry[2].ToString()));
+            MsnEvent(new CharSelectEvent(name, room, _base));
         }
 
-        public void NpcKilled(string ship)
+        public void ObjectSpawned(string ship)
         {
-            ProcessCondition(TriggerConditions.Cnd_Destroyed, (c) => IdEquals(ship, c.Entry[0].ToString()));
+            foreach (var l in Labels.Values)
+            {
+                l.Spawned(ship);
+            }
+        }
+
+        public void ObjectDestroyed(string nickname)
+        {
+            foreach (var l in Labels.Values)
+            {
+                l.Destroyed(nickname);
+            }
+            MsnEvent(new DestroyedEvent(nickname));
         }
 
         public void TradelaneEntered(string ship, string pointA, string pointB)
         {
-            ProcessCondition(TriggerConditions.Cnd_TLEntered, (c) =>
-            {
-                return IdEquals(c.Entry[0].ToString(), ship) &&
-                       IdEquals(c.Entry[1].ToString(), pointA) &&
-                       IdEquals(c.Entry[2].ToString(), pointB);
-            });
+            MsnEvent(new TLEnteredEvent(ship, pointA, pointB));
         }
 
         public void TradelaneExited(string ship, string lane)
         {
-            ProcessCondition(TriggerConditions.Cnd_TLExited, (c) =>
-            {
-                return IdEquals(c.Entry[0].ToString(), ship) &&
-                       IdEquals(c.Entry[1].ToString(), lane);
-            });
+            MsnEvent(new TLExitedEvent(ship, lane));
         }
 
-        public void PlayerManeuver(string type, string target)
+        public void PlayerManeuver(ManeuverType type, string target)
         {
-            ProcessCondition(TriggerConditions.Cnd_PlayerManeuver, (c) =>
-            {
-                return IdEquals(c.Entry[0].ToString(), type) &&
-                       IdEquals(c.Entry[1].ToString(), target);
-            });
+            MsnEvent(new PlayerManeuverEvent(type, target));
         }
-
-        //TODO: Bad tracking
-
-        private Dictionary<string, int> labelCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        public void LabelIncrement(string label)
-        {
-            labelCounts.TryGetValue(label, out int c);
-            c++;
-            labelCounts[label] = c;
-        }
-
-        public void LabelKilled(string label)
-        {
-            labelCounts.TryGetValue(label, out int c);
-            c--;
-            if (c <= 0)
-            {
-                c = 0;
-                ProcessCondition(TriggerConditions.Cnd_Destroyed, (c) => IdEquals(label, c.Entry[0].ToString()));
-            }
-            labelCounts[label] = c;
-        }
-
-        public void LabelDecrement(string label)
-        {
-            labelCounts.TryGetValue(label, out int c);
-            c--;
-            if (c <= 0) c = 0;
-            labelCounts[label] = c;
-        }
-
 
         public void MissionAccepted()
         {
             Player.Story?.MissionAccepted(Player);
-            ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("accept", c.Entry[0].ToString()));
+            MsnEvent(new MissionResponseEvent(true));
         }
 
         public void MissionRejected()
         {
-            ProcessCondition(TriggerConditions.Cnd_MsnResponse, (c) => IdEquals("reject", c.Entry[0].ToString()));
+            MsnEvent(new MissionResponseEvent(false));
         }
 
 
         public void FinishRTC(string rtc)
         {
-            ProcessCondition(TriggerConditions.Cnd_RTCDone, (c) => IdEquals(rtc, c.Entry[0].ToString()));
+            MsnEvent(new RTCDoneEvent(rtc));
         }
 
         public void EnteredSpace()
         {
-            ProcessCondition(TriggerConditions.Cnd_SpaceEnter, TruePredicate);
+            MsnEvent(new SpaceEnteredEvent());
         }
+
 
         void DoTrigger(ScriptedTrigger tr)
         {
@@ -418,7 +381,7 @@ namespace LibreLancer.Missions
                 {
                     if (waitingLines[i].Hash == hash)
                     {
-                        ProcessCondition(TriggerConditions.Cnd_CommComplete, (c) => IdEquals(waitingLines[i].Line, c.Entry[0].ToString()));
+                        MsnEvent(new CommCompleteEvent(waitingLines[i].Line));
                         waitingLines.RemoveAt(i);
                         break;
                     }

@@ -77,11 +77,11 @@ namespace LibreLancer.Server.Components
                     var dst = (FuseDestroyGroup)act;
                     if(dst.Fate == FusePartFate.disappear)
                     {
-                        Parent.DisableCmpPart(dst.GroupName);
+                        Parent.DisableCmpPart(dst.GroupName, GetResourceManager(), out _);
                     }
                     else if (dst.Fate == FusePartFate.debris)
                     {
-                        Parent.SpawnDebris(dst.GroupName);
+                        Parent.SpawnDebris(dst.GroupName, GetResourceManager());
                     }
                 }
                 else if (act is FuseDestroyHpAttachment)
@@ -105,19 +105,15 @@ namespace LibreLancer.Server.Components
                     if (start)
                     {
                         FLLog.Debug("Fuse", $"Igniting {ig.Fuse}");
-                        Run(instance.Fuse.GameData.GetFuse(ig.Fuse));
+                        Run(instance.Fuse.GameData.Fuses.Get(ig.Fuse));
                     }
                 }
                 else if (act is FuseDestroyRoot)
                 {
                     FLLog.Debug("Fuse", $"Killing {Parent}");
-                    if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+                    if (Parent.TryGetComponent<SDestroyableComponent>(out var destroy))
                     {
-                        player.Killed();
-                    }
-                    if (Parent.TryGetComponent<SNPCComponent>(out var npc))
-                    {
-                        npc.Killed();
+                        destroy.Destroy(true);
                     }
                 }
             }

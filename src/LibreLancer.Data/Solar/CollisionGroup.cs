@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class CollisionGroup
+    [ParsedSection]
+	public partial class CollisionGroup
 	{
         [Entry("obj")]
         public string obj;

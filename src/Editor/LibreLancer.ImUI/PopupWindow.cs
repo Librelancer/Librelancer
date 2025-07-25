@@ -7,9 +7,9 @@ public abstract class PopupWindow
 {
     public abstract string Title { get; set; }
     public virtual ImGuiWindowFlags WindowFlags => 0;
-    
+
     public virtual bool NoClose => false;
-    public abstract void Draw();
+    public abstract void Draw(bool appearing);
 
     public virtual Vector2 InitSize => Vector2.Zero;
 

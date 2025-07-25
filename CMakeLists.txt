@@ -1,4 +1,5 @@
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.15)
+
 project (librelancernatives)
 set(CMAKE_C_STANDARD 99)
 set(LIBOUTPUTDIR ${CMAKE_BINARY_DIR}/binaries)
@@ -11,6 +12,7 @@ MESSAGE(STATUS "Compiler cxx release (debug info )flags:" ${CMAKE_CXX_FLAGS_RELW
 MESSAGE(STATUS "Compiler cxx min size flags:" ${CMAKE_CXX_FLAGS_MINSIZEREL})
 MESSAGE(STATUS "Compiler cxx debug flags": ${CMAKE_CXX_FLAGS_DEBUG})
 MESSAGE(STATUS "Compiler cxx flags:" ${CMAKE_CXX_FLAGS})
+
 # get the correct naming across MSVC and mingw
 if (WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -31,8 +33,9 @@ if(NOT MSVC_IDE)
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 endif()
+set(BOOST_REGEX_STANDALONE ON CACHE BOOL "boost regex standalone" FORCE)
 set(BT_BUILD_DEMO OFF CACHE BOOL "blurgtext demo" FORCE)
-set(BT_MINGW_BUNDLE_LIBGCC OFF CACHE BOOL "blurgtext static link libgcc" FORCE)
+add_subdirectory(extern/regex boost_regex)
 add_subdirectory(extern/blurgtext blurgtext)
 add_subdirectory(src/cimgui_ext cimgui)
 add_subdirectory(extern/lancerdecode lancerdecode)

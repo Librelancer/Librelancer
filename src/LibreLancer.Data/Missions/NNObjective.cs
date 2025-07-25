@@ -4,11 +4,13 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 // ReSharper disable InconsistentNaming
 namespace LibreLancer.Data.Missions
 {
-    public class NNObjective
+    [ParsedSection]
+    public partial class NNObjective
     {
         [Entry("nickname")]
         public string Nickname;

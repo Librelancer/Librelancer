@@ -90,7 +90,7 @@ public class ZoneList
 
     public EditZone AddZone(Zone z)
     {
-        var ez = new EditZone() { Current = z };
+        var ez = new EditZone() { Current = z, Visible = true };
         dirtyOrder = true;
         Zones.Add(ez);
         return ez;

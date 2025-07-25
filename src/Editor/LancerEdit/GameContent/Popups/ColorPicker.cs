@@ -12,7 +12,7 @@ public class ColorPicker : PopupWindow
     private Color4 color;
 
     private Action<Color4> onSelect;
-    
+
     public ColorPicker(string title, Color4 initial, Action<Color4> onSelect)
     {
         color = initial;
@@ -20,7 +20,14 @@ public class ColorPicker : PopupWindow
         this.onSelect = onSelect;
     }
 
-    public override void Draw()
+    public ColorPicker(string title, Color3f initial, Action<Color3f> onSelect)
+    {
+        color = new Color4(initial, 1);
+        Title = title;
+        this.onSelect = (a) => onSelect(a.Rgb);
+    }
+
+    public override void Draw(bool appearing)
     {
         ImGuiExt.ColorPicker3("##color", ref color);
         if (ImGui.Button("Ok")) {

@@ -1,14 +1,15 @@
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Missions
 {
-    public class FactionPropIni : IniFile
+    [ParsedIni]
+    public partial class FactionPropIni
     {
-        [Section("FactionProps")] 
+        [Section("FactionProps")]
         public List<FactionProps> FactionProps = new List<FactionProps>();
 
-        public void AddFile(string path, FileSystem vfs) => ParseAndFill(path, vfs);
+        public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
     }
 }

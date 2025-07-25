@@ -1,0 +1,3 @@
+vertex NebulaMaterial.vert.hlsl
+fragment NebulaMaterial.frag.hlsl
+feature VERTEX_DIFFUSE 1

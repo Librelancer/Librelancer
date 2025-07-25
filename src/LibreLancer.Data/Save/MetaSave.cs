@@ -3,11 +3,12 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Save;
 
-public class MetaSave : IniFile
+
+public class MetaSave
 {
     public string Filename { get; private set;  }
     public string Description { get; private set;  }
@@ -23,7 +24,7 @@ public class MetaSave : IniFile
         var c = FlCodec.ReadFile(filename);
         using var stream = new MemoryStream(c);
         var sg = new MetaSave() {Filename = filename};
-        foreach (var sec in ParseFile(filename, stream, false))
+        foreach (var sec in IniFile.ParseFile(filename, stream, false))
         {
             bool tsSet = false;
             bool descSet = false;

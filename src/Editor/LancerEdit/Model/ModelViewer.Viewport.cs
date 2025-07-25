@@ -21,10 +21,9 @@ using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Sur;
 using LibreLancer.Thn;
-using SharpDX.MediaFoundation;
-using Quaternion = System.Numerics.Quaternion;
 
 namespace LancerEdit
 {
@@ -43,10 +42,14 @@ namespace LancerEdit
         {
             modelViewport = new Viewport3D(_window);
             modelViewport.MarginH = modelViewport.MarginW = 0;
+            modelViewport.Draw3D = MainVpDraw;
+            lookAtCam.ZRange.Y = 150000;
 
             ResetCamera();
             previewViewport = new Viewport3D(_window);
+            previewViewport.Draw3D = ImageDraw;
             imageViewport = new Viewport3D(_window);
+            imageViewport.Draw3D = ImageDraw;
             gizmoScale = 5;
             if (vmsModel != null)
             {
@@ -107,6 +110,23 @@ namespace LancerEdit
                 var rad = (drawable as DF.DfmFile).GetRadius();
                 modelViewport.CameraOffset = modelViewport.DefaultOffset = new Vector3(0,0, rad  * 2);
                 modelViewport.ModelScale = rad / 2.6f;
+            }
+            // This calculation could be better
+            if (modelViewport.ModelScale > 750f)
+            {
+                lookAtCam.ZRange.X = 0.3f;
+            }
+            if (modelViewport.ModelScale > 2000f)
+            {
+                lookAtCam.ZRange.X = 0.6f;
+            }
+            if (modelViewport.ModelScale > 8000f)
+            {
+                lookAtCam.ZRange.X = 0.9f;
+            }
+            if (modelViewport.ModelScale > 13000f)
+            {
+                lookAtCam.ZRange.X = 3f;
             }
             modelViewport.ResetControls();
         }
@@ -239,17 +259,15 @@ namespace LancerEdit
             rstate.Cull = true;
         }
 
+        private ICamera lastCamera = null;
+
         void DoViewport()
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
             modelViewport.MarginH = 1.25f * ImGui.GetFrameHeightWithSpacing();
-            ICamera camera = null;
-            if (modelViewport.Begin())
-            {
-                camera = DrawGL(modelViewport.RenderWidth, modelViewport.RenderHeight, true, doBackground);
-                modelViewport.End();
-            }
-            if (camera != null && ManipulateHardpoint(camera))
+            modelViewport.Draw();
+
+            if (lastCamera != null && ManipulateHardpoint(lastCamera))
             {
                 modelViewport.SetInputsEnabled(false);
             }
@@ -260,20 +278,26 @@ namespace LancerEdit
             rotation = modelViewport.ModelRotation;
         }
 
+        void MainVpDraw(int w, int h)
+        {
+            lastCamera = DrawGL(w,h, true, doBackground);
+        }
+
+        void ImageDraw(int w, int h)
+        {
+            DrawGL(w, h, false, renderBackground);
+        }
+
         void DoPreview(int width, int height)
         {
             previewViewport.Background = renderBackground ? _window.Config.Background : Color4.Black;
-            previewViewport.Begin(width, height);
-            DrawGL(width, height, false, renderBackground);
-            previewViewport.End();
+            previewViewport.Draw(width, height);
         }
 
         unsafe void RenderImage(string output)
         {
             imageViewport.Background = renderBackground ? _window.Config.Background : Color4.TransparentBlack;
-            imageViewport.Begin(imageWidth, imageHeight);
-            DrawGL(imageWidth, imageHeight, false, renderBackground);
-            imageViewport.End(false);
+            imageViewport.DrawRenderTarget(imageWidth, imageHeight);
             var data = new Bgra8[imageWidth * imageHeight];
             imageViewport.RenderTarget.Texture.GetData(data);
             using var of = File.Create(output);
@@ -362,7 +386,7 @@ namespace LancerEdit
                         modelViewport.Mode != CameraModes.Starsphere)
                     {
                         var d = Math.Abs(modelViewport.CameraOffset.Y);
-                        GridRender.Draw(rstate, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
+                        GridRender.Draw(rstate, lookAtCam, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
                     }
                     rstate.DepthWrite = false;
                     buffer.DrawTransparent(rstate);
@@ -376,7 +400,7 @@ namespace LancerEdit
                     modelViewport.Mode != CameraModes.Starsphere)
                 {
                     var d = Math.Abs(modelViewport.CameraOffset.Y);
-                    GridRender.Draw(rstate, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
+                    GridRender.Draw(rstate, lookAtCam, GridRender.DistanceScale(d), _window.Config.GridColor,lookAtCam.ZRange.X, lookAtCam.ZRange.Y);
                 }
             }
             if (doWireframe)
@@ -448,19 +472,48 @@ namespace LancerEdit
             }
         }
 
-        void DrawNormals(ICamera cam)
+        private NormalsView normalVis;
+
+        private float builtLength = 0;
+        void BuildNormalVis()
         {
+            var len = normalLength * 0.1f * vmsModel.GetRadius();
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (builtLength == len)
+            {
+                return;
+            }
+            normalVis?.Dispose();
+            normalVis = new NormalsView(_window.RenderContext, drawable, res, len);
+            builtLength = len;
+        }
+
+
+        unsafe void DrawNormals(ICamera cam)
+        {
+            BuildNormalVis();
             var matrix = GetModelMatrix();
+            var x = (ulong) Environment.TickCount << 8;
+
             for (int i = 0; i < vmsModel.AllParts.Length; i++)
             {
                 var part = vmsModel.AllParts[i];
                 if (part.Mesh == null) continue;
                 if (!part.Active) continue;
-                var mat = NormalLinesMaterial.GetMaterial(res, normalLength * 0.1f * vmsModel.GetRadius());
                 var lvl = GetLevel(part.Mesh.Switch2);
-                part.Mesh.DrawImmediate(lvl, res, _window.RenderContext, part.LocalTransform.Matrix() * matrix,
-                    ref Lighting.Empty,
-                    null, 0, mat);
+                var n = drawable is ModelFile ? "ROOT" : part.Name;
+                if (!normalVis.TryGet(n, lvl, out var start, out var len))
+                    continue;
+                var transform =  part.LocalTransform.Matrix() * matrix;
+                var whandle = new WorldMatrixHandle()
+                {
+                    ID = x,
+                    Source = &transform,
+                };
+                x++;
+                wireframeMaterial3db.Render.World = whandle;
+                wireframeMaterial3db.Render.Use(rstate, new VertexPositionColor(), ref Lighting.Empty, 0);
+                normalVis.VertexBuffer.Draw(PrimitiveTypes.LineList, start, len / 2);
             }
         }
 

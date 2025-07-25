@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace LibreLancer.Database.Migrations
 {
     [DbContext(typeof(LibreLancerContext))]
@@ -13,8 +15,7 @@ namespace LibreLancer.Database.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.9");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Account", b =>
                 {
@@ -25,17 +26,17 @@ namespace LibreLancer.Database.Migrations
                     b.Property<Guid>("AccountIdentifier")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("BanExpiry")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("BanExpiry")
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTime>("LastLogin")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("LastLogin")
+                        .HasColumnType("REAL");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -53,8 +54,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<long?>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Hardpoint")
                         .HasColumnType("TEXT");
@@ -71,8 +72,8 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("ItemName")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -108,13 +109,16 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("Costume")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
                     b.Property<long>("FightersKilled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("FreightersKilled")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsAdmin")
@@ -156,11 +160,14 @@ namespace LibreLancer.Database.Migrations
                     b.Property<string>("System")
                         .HasColumnType("TEXT");
 
+                    b.Property<double>("Time")
+                        .HasColumnType("REAL");
+
                     b.Property<long>("TransportsKilled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Voice")
                         .HasColumnType("TEXT");
@@ -187,24 +194,27 @@ namespace LibreLancer.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("CharacterId")
+                    b.Property<long>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("RepGroup")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT COLLATE NOCASE");
 
                     b.Property<float>("ReputationValue")
                         .HasColumnType("REAL");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CharacterId");
+
+                    b.HasIndex("CharacterId", "RepGroup")
+                        .IsUnique();
 
                     b.ToTable("Reputation");
                 });
@@ -215,17 +225,17 @@ namespace LibreLancer.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("CharacterId")
+                    b.Property<long>("CharacterId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
 
-                    b.Property<string>("SolarNickname")
-                        .HasColumnType("TEXT");
+                    b.Property<uint>("Hash")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("VisitValue")
                         .HasColumnType("INTEGER");
@@ -234,7 +244,41 @@ namespace LibreLancer.Database.Migrations
 
                     b.HasIndex("CharacterId");
 
+                    b.HasIndex("CharacterId", "Hash")
+                        .IsUnique();
+
                     b.ToTable("VisitEntry");
+                });
+
+            modelBuilder.Entity("LibreLancer.Entities.Character.VisitHistoryEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("CreationDate")
+                        .HasColumnType("REAL");
+
+                    b.Property<uint>("Hash")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("UpdateDate")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("CharacterId", "Kind", "Hash")
+                        .IsUnique();
+
+                    b.ToTable("VisitHistoryEntry");
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.CargoItem", b =>
@@ -258,18 +302,35 @@ namespace LibreLancer.Database.Migrations
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Reputation", b =>
                 {
-                    b.HasOne("LibreLancer.Entities.Character.Character", null)
+                    b.HasOne("LibreLancer.Entities.Character.Character", "Character")
                         .WithMany("Reputations")
                         .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.VisitEntry", b =>
                 {
-                    b.HasOne("LibreLancer.Entities.Character.Character", null)
+                    b.HasOne("LibreLancer.Entities.Character.Character", "Character")
                         .WithMany("VisitEntries")
                         .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+                });
+
+            modelBuilder.Entity("LibreLancer.Entities.Character.VisitHistoryEntry", b =>
+                {
+                    b.HasOne("LibreLancer.Entities.Character.Character", "Character")
+                        .WithMany("VisitHistoryEntries")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Character");
                 });
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Account", b =>
@@ -284,6 +345,8 @@ namespace LibreLancer.Database.Migrations
                     b.Navigation("Reputations");
 
                     b.Navigation("VisitEntries");
+
+                    b.Navigation("VisitHistoryEntries");
                 });
 #pragma warning restore 612, 618
         }

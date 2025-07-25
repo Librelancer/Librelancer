@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class CountermeasureBlock : PilotBlock
+    [ParsedSection]
+    public partial class CountermeasureBlock : PilotBlock
     {
         [Entry("countermeasure_active_time")] public float ActiveTime;
         [Entry("countermeasure_unactive_time")] //Not a typo

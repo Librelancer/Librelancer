@@ -2,7 +2,9 @@
     <ImportGroup>
         <Import Project="../../CommonVersion.props" />
     </ImportGroup>
-    <PropertyGroup>
+   <Import Project="../../Shader.targets"/>
+
+  <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ApplicationIcon>reactor.ico</ApplicationIcon>
@@ -20,16 +22,21 @@
     <ItemGroup>
         <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
         <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
-        <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
+        <ProjectReference Include="..\..\LibreLancer.Data.Generator\LibreLancer.Data.Generator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
         <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
         <ProjectReference Include="..\..\LibreLancer\LibreLancer.csproj" />
         <ProjectReference Include="..\LibreLancer.ContentEdit\LibreLancer.ContentEdit.csproj" />
         <ProjectReference Include="..\LibreLancer.ImUI\LibreLancer.ImUI.csproj" />
+
     </ItemGroup>
 
 
     <ItemGroup>
         <Folder Include="Properties" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Shader Include="Shaders\*.txt" />
     </ItemGroup>
 
     <ItemGroup>
@@ -52,5 +59,6 @@
         <EmbeddedResource Include="Updater\Sfx-linux" />
         <None Remove="Updater\Sfx-win" />
     </ItemGroup>
+
     <Import Project="..\..\PublishAssets\PublishAssets.projitems" Label="Shared" />
 </Project>

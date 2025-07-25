@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.15)
 project(win32dialogs)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -37,4 +37,9 @@ pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 target_include_directories(lancerdialogs PRIVATE ${GTK3_INCLUDE_DIRS} ../../extern/nativefiledialog-extended/src/include)
 target_link_libraries(lancerdialogs PRIVATE ${GTK3_LINK_LIBRARIES})
 target_compile_definitions(lancerdialogs PRIVATE NFD_APPEND_EXTENSION)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+    # link libgcc/libstdc++ into our .dll
+    target_link_options(lancerdialogs PRIVATE -static-libgcc -static-libstdc++ -static)
 endif()

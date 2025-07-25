@@ -1,21 +1,22 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe.Rooms;
 
-public class RoomHotspot
+[ParsedSection]
+public partial class RoomHotspot
 {
-    [Entry("name")] 
+    [Entry("name")]
     public string Name;
-    [Entry("behavior")] 
+    [Entry("behavior")]
     public string Behavior;
-    [Entry("room_switch")] 
+    [Entry("room_switch")]
     public string RoomSwitch;
-    [Entry("set_virtual_room")] 
+    [Entry("set_virtual_room")]
     public string SetVirtualRoom;
-    [Entry("virtual_room")] 
+    [Entry("virtual_room")]
     public string VirtualRoom;
-    [Entry("state_read")] 
+    [Entry("state_read")]
     public int StateRead;
-    [Entry("state_send")] 
+    [Entry("state_send")]
     public int StateSend;
 }

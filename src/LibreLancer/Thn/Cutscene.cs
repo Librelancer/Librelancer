@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 

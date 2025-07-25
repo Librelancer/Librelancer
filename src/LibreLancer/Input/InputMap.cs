@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Interface;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Input;
 
-public class InputMap : IniFile
+public class InputMap
 {
     public InputBinding[] Actions = new InputBinding[(int) InputAction.COUNT];
     public InputBinding[] DefaultMapping = new InputBinding[(int) InputAction.COUNT];
@@ -16,14 +16,14 @@ public class InputMap : IniFile
     public int[] InfoId = new int[(int) InputAction.COUNT];
 
     public InputAction[][] KeyGroups;
-    
+
     public string FilePath;
 
     public InputMap(string filePath)
     {
         FilePath = filePath;
     }
-    
+
     static readonly Dictionary<string, KeyModifiers> modifierTable =
         new (StringComparer.OrdinalIgnoreCase)
         {
@@ -59,7 +59,7 @@ public class InputMap : IniFile
             yield return action;
         }
     }
-    
+
     public void LoadFromKeymap(KeymapIni ini, KeyListIni keyList)
     {
         foreach (var cmd in ini.KeyCmd)
@@ -83,7 +83,7 @@ public class InputMap : IniFile
         if (!File.Exists(FilePath)) return;
         using var stream = File.OpenRead(FilePath);
         for (int i = 0; i < Actions.Length; i++) Actions[i] = new InputBinding();
-        foreach (var section in ParseFile(FilePath, stream))
+        foreach (var section in IniFile.ParseFile(FilePath, stream))
         {
             if (section.Name.ToLowerInvariant() != "inputmap") continue;
             foreach (var e in section)
@@ -97,7 +97,7 @@ public class InputMap : IniFile
             }
         }
     }
-    
+
     public void WriteMapping()
     {
         var builder = new StringBuilder();

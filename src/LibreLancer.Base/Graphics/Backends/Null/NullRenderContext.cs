@@ -34,6 +34,14 @@ class NullRenderContext : IRenderContext
     {
     }
 
+    public void SetIdentityCamera()
+    {
+    }
+
+    public void SetCamera(ICamera camera)
+    {
+    }
+
     public void ApplyScissor(ref GraphicsState requested)
     {
     }
@@ -54,6 +62,10 @@ class NullRenderContext : IRenderContext
     {
     }
 
+    public void ClearColorOnly()
+    {
+    }
+
     public void ClearDepth()
     {
     }
@@ -66,7 +78,10 @@ class NullRenderContext : IRenderContext
     {
     }
 
-    public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>
+    public IShader CreateShader(string vertex_source, string fragment_source) =>
+        new NullShader();
+
+    public IShader CreateShader(ReadOnlySpan<byte> program) =>
         new NullShader();
 
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>
@@ -84,10 +99,6 @@ class NullRenderContext : IRenderContext
     public ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format) =>
         new NullTextureCube(size, format, 1, 256 * 256 * 6);
 
-    public IComputeShader CreateComputeShader(string shaderCode) =>
-        throw new PlatformNotSupportedException("Features430 not available in null backend");
-
-
     public IDepthBuffer CreateDepthBuffer(int width, int height) =>
         new NullDepthBuffer();
 
@@ -97,14 +108,11 @@ class NullRenderContext : IRenderContext
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new NullRenderTarget2D(texture.Width, texture.Height);
 
-    public IShaderStorageBuffer CreateShaderStorageBuffer(int size) =>
-        throw new PlatformNotSupportedException("Features430 not available in null backend");
-
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
         new NullMultisampleTarget(width, height);
 
-    public IUniformBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false) =>
-        new NullUniformBuffer(size, stride);
+    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false) =>
+        new NullStorageBuffer(size, stride);
 
     public bool HasFeature(GraphicsFeature feature) => false;
 
@@ -152,5 +160,9 @@ class NullRenderContext : IRenderContext
             SDL2.SDL_GetWindowSize(sdlWindow, out int windowWidth, out int windowHeight);
             return new Point(windowWidth, windowHeight);
         }
+    }
+
+    public void QueryFences()
+    {
     }
 }

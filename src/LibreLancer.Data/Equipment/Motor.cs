@@ -2,10 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Equipment
 {
-    public class Motor
+    [ParsedSection]
+    public partial class Motor
     {
         [Entry("nickname")] public string Nickname;
         [Entry("lifetime")] public float Lifetime;

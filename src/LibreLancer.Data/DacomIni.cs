@@ -4,16 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data
 {
-	public class DacomIni : IniFile
+	public class DacomIni
 	{
 		public MaterialMap MaterialMap { get; private set; }
 		public DacomIni (string dacomPath, FileSystem vfs)
 		{
-			foreach (Section s in ParseFile(dacomPath, vfs, true)) {
+			foreach (Section s in IniFile.ParseFile(dacomPath, vfs, true)) {
 				switch (s.Name.ToLowerInvariant ()) {
 				case "materialmap":
 					var map = new MaterialMap ();

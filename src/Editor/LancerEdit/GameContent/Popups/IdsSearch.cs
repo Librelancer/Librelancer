@@ -72,7 +72,7 @@ public class IdsSearch : PopupWindow
         return dlg;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (searchResultsOpen) DrawSearchResults();
         if (dialogState == 0)
@@ -170,8 +170,8 @@ public class IdsSearch : PopupWindow
 
     private void DrawSearchResults()
     {
-        ImGui.TextUnformatted(resultTitle);
-        ImGui.BeginChild("##results", new Vector2(200, 200), ImGuiChildFlags.Border);
+        ImGui.Text(resultTitle);
+        ImGui.BeginChild("##results", new Vector2(200, 200), ImGuiChildFlags.Borders);
         for (var i = 0; i < searchResults.Length; i++)
         {
             if (ImGui.Selectable(searchResults[i].ToString()))

@@ -18,37 +18,29 @@ namespace LibreLancer.Server.Components
         public Accessory CommHelmet;
 
         public AiState CurrentDirective;
-        public NetShipLoadout Loadout;
         private NPCManager manager;
         public MissionRuntime MissionRuntime;
 
-        public Action<GameObject, GameObject> ProjectileHitHook;
-        public Action OnKilled;
-
-
-        private GameData.Pilot Pilot;
-        private StateGraph _stateGraph;
+        public GameData.Pilot Pilot;
+        public StateGraph StateGraph;
 
         private Random random = new Random();
 
         public float GetStateValue(StateGraphEntry row, StateGraphEntry column, float defaultVal = 0.0f)
         {
-            if (_stateGraph == null) return defaultVal;
-            if ((int) row >= _stateGraph.Data.Count) return defaultVal;
-            var tableRow = _stateGraph.Data[(int) row];
+            if (StateGraph == null) return defaultVal;
+            if ((int) row >= StateGraph.Data.Count) return defaultVal;
+            var tableRow = StateGraph.Data[(int) row];
             if ((int) column >= tableRow.Length) return defaultVal;
             return tableRow[(int) column];
         }
 
-        public void OnProjectileHit(GameObject attacker)
-        {
-            ProjectileHitHook?.Invoke(Parent, attacker);
-        }
+
 
         public SNPCComponent(GameObject parent, NPCManager manager, StateGraph stateGraph) : base(parent)
         {
             this.manager = manager;
-            _stateGraph = stateGraph;
+            StateGraph = stateGraph;
         }
 
         public void StartTradelane()
@@ -58,12 +50,6 @@ namespace LibreLancer.Server.Components
                 component.Active = false;
         }
 
-
-        public void Killed()
-        {
-            OnKilled?.Invoke();
-            manager.Despawn(Parent, true);
-        }
         public void Docked()
         {
             manager.Despawn(Parent, false);
@@ -81,25 +67,6 @@ namespace LibreLancer.Server.Components
             state?.OnStart(Parent, this);
         }
 
-        public void EnterFormation(GameObject tgt, Vector3 offset)
-        {
-            if (tgt.Formation == null)
-            {
-                tgt.Formation = new ShipFormation(tgt, Parent);
-            }
-            else
-            {
-                if(!tgt.Formation.Contains(Parent))
-                    tgt.Formation.Add(Parent);
-            }
-            Parent.Formation = tgt.Formation;
-            if(offset != Vector3.Zero)
-                tgt.Formation.SetShipOffset(Parent, offset);
-            if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
-            {
-                ap.StartFormation();
-            }
-        }
 
         private Dictionary<GameObjectKind, int> attackPref = new Dictionary<GameObjectKind, int>();
         public void SetPilot(GameData.Pilot pilot)
@@ -365,6 +332,12 @@ namespace LibreLancer.Server.Components
         }
         public override void Update(double time)
         {
+            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+            if (ap.CurrentBehavior == AutopilotBehaviors.Undock)
+            {
+                return; //no npc yet
+            }
+
             damageTimer -= time;
             if (damageTimer < 0)
             {
@@ -376,9 +349,11 @@ namespace LibreLancer.Server.Components
             var shootAt = GetHostileAndFire(time);
             lastShootAt = shootAt;
 
-            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+            var runningDirective = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) &&
+                     directiveRunner.Active;
 
             if (CurrentDirective != null ||
+                runningDirective ||
                 shootAt == null ||
                 ap.CurrentBehavior == AutopilotBehaviors.Formation) {
                 currentState = StateGraphEntry.NULL;

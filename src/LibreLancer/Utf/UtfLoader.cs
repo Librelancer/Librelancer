@@ -4,6 +4,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Mat;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
@@ -57,19 +59,17 @@ namespace LibreLancer.Utf
             vms = null;
             try
             {
-                foreach (Node node in root)
+                foreach (var node in root.OfType<IntermediateNode>())
                 {
                     switch (node.Name.ToLowerInvariant())
                     {
                         case "material library":
-                            IntermediateNode materialLibraryNode = node as IntermediateNode;
-                            materials = new MatFile(materialLibraryNode);
+                            materials = new MatFile(node);
                             break;
                         case "texture library":
-                            IntermediateNode textureLibraryNode = node as IntermediateNode;
                             try
                             {
-                                textures = new TxmFile(textureLibraryNode);
+                                textures = new TxmFile(node);
                             }
                             catch (Exception ex)
                             {
@@ -77,8 +77,7 @@ namespace LibreLancer.Utf
                             }
                             break;
                         case "vmeshlibrary":
-                            IntermediateNode vmsnode = node as IntermediateNode;
-                            vms = new Vms.VmsFile(vmsnode);
+                            vms = new Vms.VmsFile(node);
                             break;
                     }
                 }

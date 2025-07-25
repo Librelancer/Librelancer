@@ -8,6 +8,7 @@ using System.Net;
 using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 namespace LancerEdit

@@ -3,12 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Characters
 {
-	public class Accessory
+    [ParsedSection]
+	public partial class Accessory
 	{
         [Entry("nickname", Required = true)]
         public string Nickname;

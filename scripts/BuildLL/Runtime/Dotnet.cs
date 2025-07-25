@@ -7,6 +7,7 @@ namespace BuildLL
     public class Dotnet
     {
         public static int CPUCount = 0;
+        public static string Verbosity => IsVerbose ? "-v d" : "";
 
         static string P(string path)
         {
@@ -18,17 +19,22 @@ namespace BuildLL
         }
         public static void Restore(string project, string rid)
         {
-            RunCommand("dotnet", $"restore {M()} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"restore {M()} {Verbosity} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+        }
+
+        public static void BuildDebug(string project)
+        {
+            RunCommand("dotnet", $"build -c Debug {Verbosity} {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
 
         public static void BuildRelease(string project)
         {
-            RunCommand("dotnet", $"build -c Release {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"build -c Release {Verbosity} {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
 
         public static void Clean(string project)
         {
-            RunCommand("dotnet", $"clean {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"clean {M()} {Verbosity} -c Release -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
         public static void Run(string project, string args = null)
         {

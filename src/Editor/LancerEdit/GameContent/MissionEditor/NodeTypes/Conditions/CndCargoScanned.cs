@@ -1,9 +1,9 @@
 using System;
 using ImGuiNET;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
@@ -24,8 +24,8 @@ public class CndCargoScanned : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         // TODO: transform this into a combobox of different ships or a object depending on type
-        Controls.InputTextId("Scanning Ship", ref Data.scanningShip);
-        Controls.InputTextId("Scanned Ship", ref Data.scannedShip);
+        Controls.InputTextId("Scanning Ship", ref Data.ScanningShip);
+        Controls.InputTextId("Scanned Ship", ref Data.ScannedShip);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

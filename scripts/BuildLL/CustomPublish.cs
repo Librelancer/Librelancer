@@ -137,7 +137,9 @@ namespace BuildLL
             Dotnet.Publish(proj, publishSettings);
             //Delete junk files
             DeleteFilesGlob(publishDir,
-                "*.pdb",
+                "BepuPhysics.xml",
+                "BepuUtilities.xml",
+                "LiteNetLib.xml",
                 "createdump",
                 "SOS_README.md"
             );

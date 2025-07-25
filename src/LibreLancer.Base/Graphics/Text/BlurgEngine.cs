@@ -55,6 +55,7 @@ class BlurgEngine : RichTextEngine
     private Blurg blurg;
     private RenderContext context;
     private Renderer2D renderer;
+    HashSet<string> loadedTtfs = new(StringComparer.OrdinalIgnoreCase);
 
     private Texture2D[] textures;
     private int nextTex = 0;
@@ -81,6 +82,12 @@ class BlurgEngine : RichTextEngine
         blurg.EnableSystemFonts();
     }
 
+    public override void AddTtfFile(string id, ReadOnlySpan<byte> data)
+    {
+        if (!loadedTtfs.Add(id))
+            return;
+        blurg.AddFontFromMemory(data);
+    }
 
 
     public override void Dispose()
@@ -242,6 +249,7 @@ class BlurgEngine : RichTextEngine
     {
         var f = blurg.QueryFont(fontName, FontWeight.Regular, false)!;
         var bt = new BlurgFormattedText(text, f);
+        bt.DefaultSize = size;
         bt.DefaultColor = Col(color);
         if (underline)
             bt.DefaultUnderline = new BlurgUnderline() { Enabled = true };

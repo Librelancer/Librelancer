@@ -1,9 +1,10 @@
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Save;
 
-public class TriggerSave : IWriteSection
+[ParsedSection]
+public partial class TriggerSave : IWriteSection
 {
     [Entry("trigger")]
     public int Trigger;

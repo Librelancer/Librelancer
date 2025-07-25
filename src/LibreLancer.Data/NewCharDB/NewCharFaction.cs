@@ -3,11 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
-    
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.NewCharDB
 {
-    public class NewCharFaction
+    [ParsedSection]
+    public partial class NewCharFaction
     {
         [Entry("nickname")]
         public string Nickname;

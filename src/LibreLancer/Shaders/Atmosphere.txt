@@ -1,0 +1,2 @@
+vertex Atmosphere.vert.hlsl
+fragment Atmosphere.frag.hlsl

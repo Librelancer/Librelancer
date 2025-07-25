@@ -30,28 +30,29 @@ namespace LancerEdit
             viewport.Mode = CameraModes.Arcball;
             viewport.Background =  new Vector4(0.12f,0.12f,0.12f, 1f);
             viewport.ResetControls();
+            viewport.Draw3D = DrawGL;
             this.mw = mw;
+        }
+
+        void DrawGL(int w, int h)
+        {
+            var cam = new LookAtCamera();
+            Matrix4x4 rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
+                            Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
+            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+            var to = Vector3.Zero;
+            cam.Update(w,h, viewport.CameraOffset, to, rot);
+            mw.RenderContext.SetCamera(cam);
+            material.Use(mw.RenderContext, new VertexPositionNormalTexture(), ref Lighting.Empty, 0);
+            for (int i = 0; i < 6; i++)
+            {
+                sphere.GetDrawParameters((CubeMapFace) i, out int start, out int count, out _);
+                sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
+            }
         }
         public override void Draw(double elapsed)
         {
-            if (viewport.Begin())
-            {
-                var cam = new LookAtCamera();
-                Matrix4x4 rot = Matrix4x4.CreateRotationX(viewport.CameraRotation.Y) *
-                                Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
-                var dir = Vector3.Transform(-Vector3.UnitZ, rot);
-                var to = Vector3.Zero;
-                cam.Update(viewport.RenderWidth, viewport.RenderHeight, viewport.CameraOffset, to, rot);
-                mw.RenderContext.SetCamera(cam);
-                material.Use(mw.RenderContext, new VertexPositionNormalTexture(), ref Lighting.Empty, 0);
-                for (int i = 0; i < 6; i++)
-                {
-                    sphere.GetDrawParameters((CubeMapFace) i, out int start, out int count, out _);
-                    sphere.VertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, start, count);
-                }
-
-                viewport.End();
-            }
+            viewport.Draw();
         }
 
         public override void Dispose()

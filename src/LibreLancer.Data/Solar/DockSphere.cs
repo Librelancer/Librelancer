@@ -4,12 +4,21 @@
 using System;
 namespace LibreLancer.Data.Solar
 {
+    public enum DockSphereType
+    {
+        berth,
+        moor_small,
+        moor_medium,
+        moor_large,
+        ring,
+        airlock
+    }
 	public class DockSphere
 	{
-		public string Name;
+		public DockSphereType Type;
 		public string Hardpoint;
 		public int Radius;
-		public string Script; 
+		public string Script;
 		public DockSphere()
 		{
 		}

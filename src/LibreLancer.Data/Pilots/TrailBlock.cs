@@ -1,14 +1,15 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class TrailBlock : PilotBlock
+    [ParsedSection]
+    public partial class TrailBlock : PilotBlock
     {
         [Entry("trail_lock_cone_angle")] public float LockConeAngle;
         [Entry("trail_break_time")] public float BreakTime;

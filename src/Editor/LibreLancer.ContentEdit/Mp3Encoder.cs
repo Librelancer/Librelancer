@@ -71,6 +71,10 @@ public static class Mp3Encoder
         int mp3buf_size);
 
     [DllImport("libmp3lame")]
+    static extern int lame_encode_buffer(IntPtr gfp, IntPtr buffer_l, IntPtr buffer_r, int numsamples, IntPtr mp3buf,
+        int mp3buf_size);
+
+    [DllImport("libmp3lame")]
     static extern int lame_encode_flush(IntPtr gfp, IntPtr mp3buf, int size);
 
     [DllImport("libmp3lame")]
@@ -104,9 +108,9 @@ public static class Mp3Encoder
         log(stereo ? "Stereo" : "Mono");
         log($"Input sample rate: {audio.Frequency}");
 
-        var msgf = VaListCallback.Create((msg) => log($"info: {msg}"));
-        var errorf = VaListCallback.Create((msg) => log($"error: {msg}"));
-        var debugf = VaListCallback.Create((msg) => log($"debug: {msg}"));
+        using var msgf = VaListCallback.Create((msg) => log($"info: {msg}"));
+        using var errorf = VaListCallback.Create((msg) => log($"error: {msg}"));
+        using var debugf = VaListCallback.Create((msg) => log($"debug: {msg}"));
 
         var lame = lame_init();
         lame_set_msgf(lame, msgf.GetFunctionPointer());
@@ -164,10 +168,20 @@ public static class Mp3Encoder
                 }
                 else
                 {
-                    write = lame_encode_buffer_interleaved(
-                        lame,
-                        (IntPtr)wav, stereo ? read / 4 : read / 2,
-                        (IntPtr)mp3, 8192);
+                    if (stereo)
+                    {
+                        write = lame_encode_buffer_interleaved(
+                            lame,
+                            (IntPtr)wav, read / 4,
+                            (IntPtr)mp3, 8192);
+                    }
+                    else
+                    {
+                        write = lame_encode_buffer(
+                            lame,
+                            (IntPtr)wav, IntPtr.Zero, read / 2,
+                            (IntPtr)mp3, 8192);
+                    }
                 }
 
                 if (write > 0)
@@ -197,8 +211,17 @@ public static class Mp3Encoder
             return;
         }
 
-        AudioImporter.ImportMp3(mp3file.ToArray(), output);
-        log("Done");
+        var result = AudioImporter.ImportMp3(mp3file.ToArray(), output);
+        foreach (var msg in result.Messages)
+            log(msg.ToString());
+        if (result.IsError)
+        {
+            log("Failed!");
+        }
+        else
+        {
+            log("Done");
+        }
     }
 
 

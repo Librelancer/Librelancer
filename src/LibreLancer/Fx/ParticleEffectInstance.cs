@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
+using LibreLancer.Resources;
 
 namespace LibreLancer.Fx
 {

@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using System.IO;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
 	public class BooleanValue : ValueBase
 	{
@@ -18,7 +18,7 @@ namespace LibreLancer.Ini
 			value = reader.ReadBoolean();
 		}
 
-		public BooleanValue(bool value) 
+		public BooleanValue(bool value)
 		{
 			this.value = value;
 		}
@@ -45,7 +45,7 @@ namespace LibreLancer.Ini
         {
             result = value ? 1 : 0;
             return true;
-        }        
+        }
 
         public override bool TryToSingle(out float result)
 		{

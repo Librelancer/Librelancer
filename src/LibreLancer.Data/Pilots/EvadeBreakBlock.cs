@@ -1,14 +1,15 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class EvadeBreakBlock : PilotBlock
+    [ParsedSection]
+    public partial class EvadeBreakBlock : PilotBlock
     {
         [Entry("evade_break_roll_throttle")] public float RollThrottle;
         [Entry("evade_break_time")] public float Time;

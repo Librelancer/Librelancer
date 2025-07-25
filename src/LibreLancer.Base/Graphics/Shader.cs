@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using System.Numerics;
 using LibreLancer.Graphics.Backends;
 
@@ -10,45 +11,20 @@ namespace LibreLancer.Graphics
 {
     public class Shader
     {
-        public ulong UserTag = 0;
         internal IShader Backing;
-
-		public Shader(RenderContext context, string vertex_source, string fragment_source, string geometry_source = null)
+        public Shader(RenderContext context, ReadOnlySpan<byte> program)
         {
-            Backing = context.Backend.CreateShader(vertex_source, fragment_source, geometry_source);
+            Backing = context.Backend.CreateShader(program);
         }
 
+        private Shader()
+        {
+        }
 
-        public int GetLocation(string name) => Backing.GetLocation(name);
+        public bool HasUniformBlock(int index) => Backing.HasUniformBlock(index);
 
-        public void SetMatrix(int loc, ref Matrix4x4 mat) => Backing.SetMatrix(loc, ref mat);
+        public ref ulong UniformBlockTag(int index) => ref Backing.UniformBlockTag(index);
 
-        public void SetMatrix(int loc, IntPtr mat) => Backing.SetMatrix(loc, mat);
-
-        public void SetInteger(int loc, int value, int index = 0) => Backing.SetInteger(loc, value, index);
-
-        public void SetFloat(int loc, float value, int index = 0) => Backing.SetFloat(loc, value, index);
-
-        public void SetColor4(int loc, Color4 value, int index = 0) => Backing.SetColor4(loc, value, index);
-
-        public void SetVector4(int loc, Vector4 value, int index = 0) => Backing.SetVector4(loc, value, index);
-
-        public unsafe void SetVector4Array(int loc, Vector4* values, int count) =>
-            Backing.SetVector4Array(loc, values, count);
-
-        public unsafe void SetVector3Array(int loc, Vector3* values, int count) =>
-            Backing.SetVector3Array(loc, values, count);
-
-        public void SetVector4i(int loc, Vector4i value, int index = 0) =>
-            Backing.SetVector4i(loc, value, index);
-
-        public void SetVector3(int loc, Vector3 vector, int index = 0) =>
-            Backing.SetVector3(loc, vector, index);
-
-        public void SetVector2(int loc, Vector2 vector, int index = 0) =>
-            Backing.SetVector2(loc, vector, index);
-
-        public void UniformBlockBinding(string uniformBlock, int index) =>
-            Backing.UniformBlockBinding(uniformBlock, index);
+        public void SetUniformBlock<T>(int index, ref T data, bool forceUpdate = false, int forceSize = -1) where T : unmanaged => Backing.SetUniformBlock(index, ref data, forceUpdate, forceSize);
     }
 }

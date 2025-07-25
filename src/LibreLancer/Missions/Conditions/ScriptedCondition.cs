@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Numerics;
-using Castle.Core.Resource;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+using LibreLancer.Data.Missions;
 using LibreLancer.Missions.Actions;
+using LibreLancer.Missions.Events;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.Missions.Conditions;
 
@@ -14,6 +17,123 @@ public abstract class ScriptedCondition
     public virtual void Write(IniBuilder.IniSectionBuilder section)
     {
         FLLog.Warning("Missions", $"{GetType().Name}.Write() is not implemented!");
+    }
+
+    public virtual void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        self.Condition = this;
+    }
+
+
+    class DebugMarker : ConditionStorage
+    {
+        internal static DebugMarker Instance = new();
+    }
+
+    public virtual bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (self.Storage != DebugMarker.Instance)
+        {
+            FLLog.Warning("Missions", $"Condition not implemented: {this}");
+            self.Storage = DebugMarker.Instance;
+        }
+        return false;
+    }
+
+    public override string ToString()
+    {
+        var s = new IniBuilder.IniSectionBuilder() { Section = new("") };
+        Write(s);
+        if (s.Section.Count == 0)
+            return base.ToString();
+        return s.Section[0].ToString();
+    }
+
+    protected static bool IdEqual(string a, string b) =>
+        string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    public static IEnumerable<ScriptedCondition> Convert(IEnumerable<MissionCondition> conditions)
+    {
+        foreach (var c in conditions)
+        {
+            yield return c.Type switch
+            {
+                TriggerConditions.Cnd_WatchVibe => new Cnd_WatchVibe(c.Entry),
+                TriggerConditions.Cnd_WatchTrigger => new Cnd_WatchTrigger(c.Entry),
+                TriggerConditions.Cnd_True => new Cnd_True(c.Entry),
+                TriggerConditions.Cnd_TLExited => new Cnd_TLExited(c.Entry),
+                TriggerConditions.Cnd_TLEntered => new Cnd_TLEntered(c.Entry),
+                TriggerConditions.Cnd_Timer => new Cnd_Timer(c.Entry),
+                TriggerConditions.Cnd_TetherBroke => new Cnd_TetherBroke(c.Entry),
+                TriggerConditions.Cnd_SystemExit => new Cnd_SystemExit(c.Entry),
+                TriggerConditions.Cnd_SystemEnter => new Cnd_SystemEnter(c.Entry),
+                TriggerConditions.Cnd_SpaceExit => new Cnd_SpaceExit(),
+                TriggerConditions.Cnd_SpaceEnter => new Cnd_SpaceEnter(),
+                TriggerConditions.Cnd_RumorHeard => new Cnd_RumorHeard(c.Entry),
+                TriggerConditions.Cnd_RTCDone => new Cnd_RTCDone(c.Entry),
+                TriggerConditions.Cnd_ProjHitShipToLbl => new Cnd_ProjHitShipToLbl(c.Entry),
+                TriggerConditions.Cnd_ProjHit => new Cnd_ProjHit(c.Entry),
+                TriggerConditions.Cnd_PopUpDialog => new Cnd_PopUpDialog(c.Entry),
+                TriggerConditions.Cnd_PlayerManeuver => new Cnd_PlayerManeuver(c.Entry),
+                TriggerConditions.Cnd_PlayerLaunch => new Cnd_PlayerLaunch(),
+                TriggerConditions.Cnd_NPCSystemExit => new Cnd_NPCSystemExit(c.Entry),
+                TriggerConditions.Cnd_NPCSystemEnter => new Cnd_NPCSystemEnter(c.Entry),
+                TriggerConditions.Cnd_MsnResponse => new Cnd_MsnResponse(c.Entry),
+                TriggerConditions.Cnd_LootAcquired => new Cnd_LootAcquired(c.Entry),
+                TriggerConditions.Cnd_LocExit => new Cnd_LocExit(c.Entry),
+                TriggerConditions.Cnd_LocEnter => new Cnd_LocEnter(c.Entry),
+                TriggerConditions.Cnd_LaunchComplete => new Cnd_LaunchComplete(c.Entry),
+                TriggerConditions.Cnd_JumpInComplete => new Cnd_JumpInComplete(c.Entry),
+                TriggerConditions.Cnd_JumpgateAct => new Cnd_JumpgateAct(c.Entry),
+                TriggerConditions.Cnd_InZone => new Cnd_InZone(c.Entry),
+                TriggerConditions.Cnd_InTradelane => new Cnd_InTradelane(c.Entry),
+                TriggerConditions.Cnd_InSpace => new Cnd_InSpace(c.Entry),
+                TriggerConditions.Cnd_HealthDec => new Cnd_HealthDec(c.Entry),
+                TriggerConditions.Cnd_HasMsn => new Cnd_HasMsn(c.Entry),
+                TriggerConditions.Cnd_EncLaunched => new Cnd_EncLaunched(c.Entry),
+                TriggerConditions.Cnd_DistVecLbl => new Cnd_DistVecLbl(c.Entry),
+                TriggerConditions.Cnd_DistVec => new Cnd_DistVec(c.Entry),
+                TriggerConditions.Cnd_DistShip => new Cnd_DistShip(c.Entry),
+                TriggerConditions.Cnd_DistCircle => new Cnd_DistCircle(c.Entry),
+                TriggerConditions.Cnd_Destroyed => new Cnd_Destroyed(c.Entry),
+                TriggerConditions.Cnd_CmpToPlane => new Cnd_CmpToPlane(c.Entry),
+                TriggerConditions.Cnd_CommComplete => new Cnd_CommComplete(c.Entry),
+                TriggerConditions.Cnd_CharSelect => new Cnd_CharSelect(c.Entry),
+                TriggerConditions.Cnd_CargoScanned => new Cnd_CargoScanned(c.Entry),
+                TriggerConditions.Cnd_BaseExit => new Cnd_BaseExit(c.Entry),
+                TriggerConditions.Cnd_BaseEnter => new Cnd_BaseEnter(c.Entry),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+    }
+}
+
+public abstract class EventListenerCondition<T> : ScriptedCondition where T : struct
+{
+    public abstract void OnEvent(T ev, MissionRuntime runtime, ActiveCondition self);
+}
+
+public abstract class SingleEventListenerCondition<T> : EventListenerCondition<T> where T : struct
+{
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        self.Storage = new ConditionBoolean();
+    }
+
+    public override void OnEvent(T ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        var st = (ConditionBoolean)self.Storage;
+        if (st.Value)
+            return;
+        st.Value = EventCheck(ev, runtime, self);
+    }
+
+    protected abstract bool EventCheck(T ev, MissionRuntime runtime, ActiveCondition self);
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return ((ConditionBoolean)self.Storage).Value;
     }
 }
 
@@ -71,6 +191,20 @@ public class Cnd_WatchTrigger : ScriptedCondition
         TriggerState = Enum.Parse<TriggerState>(entry[1].ToString()!, ignoreCase: true);
     }
 
+    //TODO : ON/OFF == COMPLETED/ACTIVE?
+    // Including better guess from M01B here.
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        var current = runtime.GetTriggerState(Trigger);
+        return TriggerState switch {
+            TriggerState.ON => current == TriggerState.ACTIVE || current == TriggerState.ON,
+            TriggerState.OFF => current == TriggerState.COMPLETE || current == TriggerState.OFF,
+            TriggerState.COMPLETE => current == TriggerState.COMPLETE,
+            TriggerState.ACTIVE => current == TriggerState.ACTIVE || current == TriggerState.ON,
+            _ => false,
+        };
+    }
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_WatchTrigger", Trigger, TriggerState.ToString());
@@ -87,13 +221,16 @@ public class Cnd_True : ScriptedCondition
     {
     }
 
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed) => true;
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_True", "no_params");
     }
 }
 
-public class Cnd_TLExited : ScriptedCondition
+public class Cnd_TLExited :
+    SingleEventListenerCondition<TLExitedEvent>
 {
     public string StartRing = string.Empty;
     public string NextRing = string.Empty;
@@ -113,6 +250,9 @@ public class Cnd_TLExited : ScriptedCondition
         }
     }
 
+    protected override bool EventCheck(TLExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(Source, ev.Ship) && IdEqual(StartRing, ev.Ring);
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         List<ValueBase> entries = [Source, StartRing];
@@ -126,7 +266,8 @@ public class Cnd_TLExited : ScriptedCondition
     }
 }
 
-public class Cnd_TLEntered : ScriptedCondition
+public class Cnd_TLEntered :
+    SingleEventListenerCondition<TLEnteredEvent>
 {
     public string StartRing = string.Empty;
     public string NextRing = string.Empty;
@@ -145,6 +286,11 @@ public class Cnd_TLEntered : ScriptedCondition
             NextRing = entry[2].ToString();
         }
     }
+
+    protected override bool EventCheck(TLEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(ev.Ship, Source) &&
+           IdEqual(ev.StartRing, StartRing) &&
+           (NextRing == null || IdEqual(ev.NextRing, NextRing));
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -170,6 +316,11 @@ public class Cnd_Timer : ScriptedCondition
     public Cnd_Timer([NotNull] Entry entry)
     {
         Seconds = entry[0].ToSingle();
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return self.Trigger.ActiveTime >= Seconds;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -265,16 +416,24 @@ public class Cnd_SystemEnter : ScriptedCondition
     }
 }
 
-public class Cnd_SpaceExit : ScriptedCondition
+public class Cnd_SpaceExit :
+    SingleEventListenerCondition<SpaceExitedEvent>
 {
+    protected override bool EventCheck(SpaceExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => true;
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_SpaceExit", "no_params");
     }
 }
 
-public class Cnd_SpaceEnter : ScriptedCondition
+public class Cnd_SpaceEnter :
+    SingleEventListenerCondition<SpaceEnteredEvent>
 {
+    protected override bool EventCheck(SpaceEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => true;
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_SpaceEnter", "no_params");
@@ -303,7 +462,8 @@ public class Cnd_RumorHeard : ScriptedCondition
     }
 }
 
-public class Cnd_RTCDone : ScriptedCondition
+public class Cnd_RTCDone :
+    SingleEventListenerCondition<RTCDoneEvent>
 {
     public string iniFile = string.Empty;
 
@@ -315,6 +475,9 @@ public class Cnd_RTCDone : ScriptedCondition
     {
         iniFile = entry[0].ToString();
     }
+
+    protected override bool EventCheck(RTCDoneEvent ev, MissionRuntime runtime, ActiveCondition self) =>
+        IdEqual(ev.RTC, iniFile);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -356,7 +519,7 @@ public class Cnd_ProjHitShipToLbl : ScriptedCondition
     }
 }
 
-public class Cnd_ProjHit : ScriptedCondition
+public class Cnd_ProjHit : EventListenerCondition<ProjectileHitEvent>
 {
     public string target = string.Empty;
     public int count = 1;
@@ -364,6 +527,11 @@ public class Cnd_ProjHit : ScriptedCondition
 
     public Cnd_ProjHit()
     {
+    }
+
+    class HitCounter : ConditionStorage
+    {
+        public int Remaining;
     }
 
     public Cnd_ProjHit([NotNull] Entry entry)
@@ -374,6 +542,29 @@ public class Cnd_ProjHit : ScriptedCondition
         {
             source = entry[2].ToString();
         }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        self.Storage = new HitCounter() { Remaining = count };
+        runtime.RegisterHitEvent(target);
+    }
+
+    public override void OnEvent(ProjectileHitEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        var st = (HitCounter)self.Storage;
+        if (st.Remaining <= 0) return;
+        if (IdEqual(target, ev.Target) &&
+            (string.IsNullOrEmpty(source) || IdEqual(source, ev.Source)))
+        {
+            st.Remaining--;
+        }
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return ((HitCounter)self.Storage).Remaining <= 0;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -389,7 +580,7 @@ public class Cnd_ProjHit : ScriptedCondition
     }
 }
 
-public class Cnd_PopUpDialog : ScriptedCondition
+public class Cnd_PopUpDialog : SingleEventListenerCondition<ClosePopupEvent>
 {
     // TODO: Make popup dialog options use a enum
     public string popUpOption = "CLOSE";
@@ -403,13 +594,16 @@ public class Cnd_PopUpDialog : ScriptedCondition
         popUpOption = entry[0].ToString();
     }
 
+    protected override bool EventCheck(ClosePopupEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(ev.Button, popUpOption);
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_PopUpDialog", popUpOption);
     }
 }
 
-public class Cnd_PlayerManeuver : ScriptedCondition
+public class Cnd_PlayerManeuver : SingleEventListenerCondition<PlayerManeuverEvent>
 {
     public ManeuverType type = ManeuverType.Dock;
     public string target = string.Empty;
@@ -431,10 +625,16 @@ public class Cnd_PlayerManeuver : ScriptedCondition
     {
         section.Entry("Cnd_PlayerManeuver", type.ToString(), target);
     }
+
+    protected override bool EventCheck(PlayerManeuverEvent ev, MissionRuntime runtime, ActiveCondition self) =>
+        ev.Type == type && IdEqual(ev.Target, target);
 }
 
-public class Cnd_PlayerLaunch : ScriptedCondition
+public class Cnd_PlayerLaunch : SingleEventListenerCondition<PlayerLaunchedEvent>
 {
+    protected override bool EventCheck(PlayerLaunchedEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => true;
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_PlayerLaunch", "no_params");
@@ -465,7 +665,7 @@ public class Cnd_NPCSystemExit : ScriptedCondition
     }
 }
 
-public class Cnd_NPCSystemEnter : ScriptedCondition
+public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
 {
     public string system = string.Empty;
     public List<string> ships = [];
@@ -483,13 +683,35 @@ public class Cnd_NPCSystemEnter : ScriptedCondition
         }
     }
 
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        var checking = new ConditionHashSet();
+        foreach (var sh in ships)
+            checking.Values.Add(sh);
+        self.Storage = checking;
+    }
+
+    public override void OnEvent(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        if (!ev.System.Equals(system, StringComparison.OrdinalIgnoreCase))
+            return;
+        var v = (ConditionHashSet)self.Storage;
+        v.Values.Remove(ev.Ship);
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return ((ConditionHashSet)self.Storage).Values.Count == 0;
+    }
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_NPCSystemEnter", ships.Prepend(system).ToArray());
     }
 }
 
-public class Cnd_MsnResponse : ScriptedCondition
+public class Cnd_MsnResponse :
+    SingleEventListenerCondition<MissionResponseEvent>
 {
     public bool accept;
 
@@ -502,8 +724,12 @@ public class Cnd_MsnResponse : ScriptedCondition
         accept = entry[0].ToString()!.Equals("accept", StringComparison.InvariantCultureIgnoreCase);
     }
 
+    protected override bool EventCheck(MissionResponseEvent ev, MissionRuntime runtime, ActiveCondition self) =>
+        ev.Accept == accept;
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
+        section.Entry("Cnd_MsnResponse", accept ? "accept" : "reject");
     }
 }
 
@@ -549,10 +775,11 @@ public class Cnd_LocExit : ScriptedCondition
     }
 }
 
-public class Cnd_LocEnter : ScriptedCondition
+public class Cnd_LocEnter :
+    SingleEventListenerCondition<LocationEnteredEvent>
 {
-    public string location = string.Empty;
-    public string @base = string.Empty;
+    public string Room = string.Empty;
+    public string Base = string.Empty;
 
     public Cnd_LocEnter()
     {
@@ -560,17 +787,20 @@ public class Cnd_LocEnter : ScriptedCondition
 
     public Cnd_LocEnter([NotNull] Entry entry)
     {
-        location = entry[0].ToString();
-        @base = entry[1].ToString();
+        Room = entry[0].ToString();
+        Base = entry[1].ToString();
     }
+
+    protected override bool EventCheck(LocationEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(Room, ev.Room) && IdEqual(Base, ev.Base);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_LocEnter", location, @base);
+        section.Entry("Cnd_LocEnter", Room, Base);
     }
 }
 
-public class Cnd_LaunchComplete : ScriptedCondition
+public class Cnd_LaunchComplete : SingleEventListenerCondition<LaunchCompleteEvent>
 {
     public string ship = string.Empty;
 
@@ -582,6 +812,9 @@ public class Cnd_LaunchComplete : ScriptedCondition
     {
         ship = entry[0].ToString();
     }
+
+    protected override bool EventCheck(LaunchCompleteEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(ship, ev.Ship);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -682,6 +915,9 @@ public class Cnd_InSpace : ScriptedCondition
         inSpace = entry[0].ToString()!.Equals("true", System.StringComparison.InvariantCultureIgnoreCase);
     }
 
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed) =>
+        runtime.Player.Base == null;
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_InSpace", inSpace);
@@ -701,6 +937,21 @@ public class Cnd_HealthDec : ScriptedCondition
     {
         target = entry[0].ToString();
         percent = entry[1].ToSingle();
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if(!runtime.GetSpace(out var space))
+            return false;
+        var obj = space.World.GameWorld.GetObject(target);
+        if (obj == null)
+            return false;
+        if (obj.TryGetComponent<SHealthComponent>(out var health))
+        {
+            var pct = health.CurrentHealth / health.MaxHealth;
+            return pct <= percent;
+        }
+        return false;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -747,14 +998,14 @@ public class Cnd_EncLaunched : ScriptedCondition
     }
 }
 
+// ASSUMPTION: ALL is valid enum
 public class Cnd_DistVecLbl : ScriptedCondition
 {
-    public string label;
-    public bool inside;
-    public Vector3 position;
-    public float distance;
-    public string sourceShip;
-    public bool tickAway;
+    public string Label;
+    public bool Inside;
+    public Vector3 Position;
+    public float Distance;
+    public bool Any;
 
     public Cnd_DistVecLbl()
     {
@@ -762,25 +1013,44 @@ public class Cnd_DistVecLbl : ScriptedCondition
 
     public Cnd_DistVecLbl([NotNull] Entry entry)
     {
-        inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
-        sourceShip = entry[1].ToString();
-        label = entry[2].ToString();
-        position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
-        distance = entry[6].ToSingle();
+        Inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
+        Any = entry[1].ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase);
+        Label = entry[2].ToString();
+        Position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
+        Distance = entry[6].ToSingle();
+    }
 
-        tickAway = entry?.Count >= 8 &&
-                   entry[7].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase);
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (!runtime.Labels.TryGetValue(Label, out var l) ||
+            !runtime.GetSpace(out var space))
+            return false;
+        bool satisfied = false;
+        foreach (var ship in l.Objects)
+        {
+            var obj = space.World.GameWorld.GetObject(ship);
+            if (obj == null)
+            {
+                continue;
+            }
+            bool isInside = Vector3.Distance(obj.WorldTransform.Position, Position) <= Distance;
+            satisfied = isInside == Inside;
+            if (satisfied && Any)
+            {
+                return true;
+            }
+            else if (!satisfied && !Any)
+            {
+                return false;
+            }
+        }
+        return satisfied;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         List<ValueBase> entries =
-            [inside ? "inside" : "outside", sourceShip, label, position.X, position.Y, position.Z, distance];
-
-        if (tickAway)
-        {
-            entries.Add("tick away");
-        }
+            [Inside ? "inside" : "outside", Any ? "ANY" : "ALL", Label, Position.X, Position.Y, Position.Z, Distance];
 
         section.Entry("Cnd_DistVecLbl", entries.ToArray());
     }
@@ -792,7 +1062,7 @@ public class Cnd_DistVec : ScriptedCondition
     public Vector3 position;
     public float distance;
     public string sourceShip;
-    public bool tickAway;
+    public float? tickAway;
 
     public Cnd_DistVec()
     {
@@ -805,8 +1075,40 @@ public class Cnd_DistVec : ScriptedCondition
         position = new Vector3(entry[2].ToSingle(), entry[3].ToSingle(), entry[4].ToSingle());
         distance = entry[5].ToSingle();
 
-        tickAway = entry?.Count >= 7 &&
-                   entry[6].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase);
+        if (entry.Count >= 8 &&
+            entry[7].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
+        {
+            tickAway = entry[6].ToSingle();
+        }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        if (tickAway != null)
+        {
+            self.Storage = new ConditionDouble() { Value = tickAway.Value };
+        }
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (!runtime.GetSpace(out var space))
+            return false;
+        var obj = space.World.GameWorld.GetObject(sourceShip);
+        if (obj == null)
+            return false;
+        bool isInside = Vector3.Distance(obj.WorldTransform.Position, position) <= distance;
+        if(tickAway != null)
+        {
+            var st = (ConditionDouble)self.Storage;
+            if (inside == isInside)
+            {
+                st.Value -= elapsed;
+            }
+            return st.Value <= 0;
+        }
+        return inside == isInside;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -814,9 +1116,10 @@ public class Cnd_DistVec : ScriptedCondition
         List<ValueBase> entries =
             [inside ? "inside" : "outside", sourceShip, position.X, position.Y, position.Z, distance];
 
-        if (tickAway)
+        if (tickAway != null)
         {
-            entries.Add("tick away");
+            entries.Add(tickAway.Value);
+            entries.Add("tick_away");
         }
 
         section.Entry("Cnd_DistVec", entries.ToArray());
@@ -829,7 +1132,7 @@ public class Cnd_DistShip : ScriptedCondition
     public float distance;
     public string sourceShip;
     public string destObject;
-    public bool tickAway;
+    public float? tickAway;
 
     public Cnd_DistShip()
     {
@@ -842,17 +1145,55 @@ public class Cnd_DistShip : ScriptedCondition
         destObject = entry[2].ToString();
         distance = entry[3].ToSingle();
 
-        tickAway = entry?.Count >= 5 &&
-                   entry[4].ToString()!.Equals("tick away", StringComparison.InvariantCultureIgnoreCase);
+        if (entry.Count >= 6 &&
+            entry[5].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
+        {
+            tickAway = entry[4].ToSingle();
+        }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        if (tickAway != null)
+        {
+            self.Storage = new ConditionDouble() { Value = tickAway.Value };
+        }
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (!runtime.GetSpace(out var space))
+            return false;
+        var obj = space.World.GameWorld.GetObject(sourceShip);
+        var obj2 = space.World.GameWorld.GetObject(destObject);
+        if (obj == null || obj2 == null)
+            return false;
+        var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= distance;
+        if(tickAway != null)
+        {
+            var st = (ConditionDouble)self.Storage;
+            if (inside == isInside)
+            {
+                st.Value -= elapsed;
+            }
+            if(st.Value <= 0)
+            {
+                FLLog.Debug("Mission", $"Cnd_Dist: {elapsed} satisfied TICK_AWAY");
+            }
+            return st.Value <= 0;
+        }
+        return inside == isInside;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         List<ValueBase> entries = [inside ? "inside" : "outside", sourceShip, destObject, distance];
 
-        if (tickAway)
+        if (tickAway != null)
         {
-            entries.Add("tick away");
+            entries.Add(tickAway.Value);
+            entries.Add("tick_away");
         }
 
         section.Entry("Cnd_DistShip", entries.ToArray());
@@ -880,12 +1221,25 @@ public class Cnd_DistCircle : ScriptedCondition
     }
 }
 
-// TODO: INI has an extra two elements, one int, one enum. Figure out what they do
-public class Cnd_Destroyed : ScriptedCondition
+// -1, ALL seems to be every ship in a label destroyed. If the whole label has not yet been spawned,
+// then it cannot be satisfied.
+
+public enum CndDestroyedKind
+{
+    Unset,
+    ALL,
+    EXPLODE,
+    ALL_IGNORE_LANDING,
+    SILENT,
+    IGNORE_LANDING,
+}
+
+public class Cnd_Destroyed :
+    EventListenerCondition<DestroyedEvent>
 {
     public string label = string.Empty;
-    public int UnknownNumber = 0;
-    public string UnknownEnum = string.Empty;
+    public int Count = 0;
+    public CndDestroyedKind Kind = CndDestroyedKind.Unset;
 
     public Cnd_Destroyed()
     {
@@ -899,11 +1253,56 @@ public class Cnd_Destroyed : ScriptedCondition
             return;
         }
 
-        UnknownNumber = entry[1].ToInt32();
+        Count = entry[1].ToInt32();
 
         if (entry.Count > 2)
         {
-            UnknownEnum = entry[2].ToString();
+            if (!Enum.TryParse(entry[2].ToString(), out Kind))
+            {
+                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {entry[2]}");
+            }
+        }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        self.Storage = new ConditionBoolean();
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        if (runtime.Labels.TryGetValue(label, out var lbl))
+        {
+            if (Count <= 0)
+            {
+                if (Kind != CndDestroyedKind.ALL &&
+                    Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
+                {
+                    return !lbl.AnyAlive(); //we just want to know that all ships are gone
+                    // M01B -1, EXPLODE rogue base fighter
+                }
+                else
+                {
+                    return lbl.IsAllKilled(); //ALL = all ships must have been spawned and killed
+                    // M01B -1, ALL XT-19 attack
+                }
+            }
+            else
+            {
+                return lbl.DestroyedCount() >= Count;
+            }
+        }
+        // Single object
+        return ((ConditionBoolean)self.Storage).Value;
+    }
+
+    public override void OnEvent(DestroyedEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        // Single object destroyed
+        if (IdEqual(label, ev.Object))
+        {
+            ((ConditionBoolean)self.Storage).Value = true;
         }
     }
 
@@ -911,12 +1310,12 @@ public class Cnd_Destroyed : ScriptedCondition
     {
         List<ValueBase> entries = [label];
 
-        if (UnknownNumber > 0 || UnknownEnum != string.Empty)
+        if (Count != 0 || Kind != CndDestroyedKind.Unset)
         {
-            entries.Add(UnknownNumber);
-            if (UnknownEnum != string.Empty)
+            entries.Add(Count);
+            if (Kind != CndDestroyedKind.Unset)
             {
-                entries.Add(UnknownEnum);
+                entries.Add(Kind.ToString());
             }
         }
 
@@ -941,9 +1340,10 @@ public class Cnd_CmpToPlane : ScriptedCondition
     }
 }
 
-public class Cnd_CommComplete : ScriptedCondition
+public class Cnd_CommComplete :
+    SingleEventListenerCondition<CommCompleteEvent>
 {
-    public string label = string.Empty;
+    public string Comm = string.Empty;
 
     public Cnd_CommComplete()
     {
@@ -951,20 +1351,23 @@ public class Cnd_CommComplete : ScriptedCondition
 
     public Cnd_CommComplete([NotNull] Entry entry)
     {
-        label = entry[0].ToString();
+        Comm = entry[0].ToString();
     }
+
+    protected override bool EventCheck(CommCompleteEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(ev.Comm, Comm);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_CommComplete", label);
+        section.Entry("Cnd_CommComplete", Comm);
     }
 }
 
-public class Cnd_CharSelect : ScriptedCondition
+public class Cnd_CharSelect : SingleEventListenerCondition<CharSelectEvent>
 {
-    public string character = string.Empty;
-    public string location = string.Empty;
-    public string @base = string.Empty;
+    public string Character = string.Empty;
+    public string Room = string.Empty;
+    public string Base = string.Empty;
 
     public Cnd_CharSelect()
     {
@@ -972,21 +1375,24 @@ public class Cnd_CharSelect : ScriptedCondition
 
     public Cnd_CharSelect([NotNull] Entry entry)
     {
-        character = entry[0].ToString();
-        location = entry[1].ToString();
-        @base = entry[2].ToString();
+        Character = entry[0].ToString();
+        Room = entry[1].ToString();
+        Base = entry[2].ToString();
     }
+
+    protected override bool EventCheck(CharSelectEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(Character, ev.Character) && IdEqual(Room, ev.Room) && IdEqual(Base, ev.Base);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_CharSelect", character, location, @base);
+        section.Entry("Cnd_CharSelect", Character, Room, Base);
     }
 }
 
-public class Cnd_CargoScanned : ScriptedCondition
+public class Cnd_CargoScanned : SingleEventListenerCondition<CargoScannedEvent>
 {
-    public string scanningShip = string.Empty;
-    public string scannedShip = string.Empty;
+    public string ScanningShip = string.Empty;
+    public string ScannedShip = string.Empty;
 
     public Cnd_CargoScanned()
     {
@@ -994,14 +1400,17 @@ public class Cnd_CargoScanned : ScriptedCondition
 
     public Cnd_CargoScanned([NotNull] Entry entry)
     {
-        scanningShip = entry[0].ToString();
-        scannedShip = entry[1].ToString();
+        ScanningShip = entry[0].ToString();
+        ScannedShip = entry[1].ToString();
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_CargoScanned", scanningShip, scannedShip);
+        section.Entry("Cnd_CargoScanned", ScanningShip, ScannedShip);
     }
+
+    protected override bool EventCheck(CargoScannedEvent ev, MissionRuntime runtime, ActiveCondition self) =>
+        IdEqual(ScanningShip, ev.ScanningShip) && IdEqual(ScannedShip, ev.ScannedShip);
 }
 
 public class Cnd_BaseExit : ScriptedCondition
@@ -1023,13 +1432,17 @@ public class Cnd_BaseExit : ScriptedCondition
     }
 }
 
-public class Cnd_BaseEnter : ScriptedCondition
+public class Cnd_BaseEnter :
+    SingleEventListenerCondition<BaseEnteredEvent>
 {
     public string @base = string.Empty;
 
     public Cnd_BaseEnter()
     {
     }
+
+    protected override bool EventCheck(BaseEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(ev.Base, @base);
 
     public Cnd_BaseEnter([NotNull] Entry entry)
     {

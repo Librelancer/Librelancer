@@ -124,7 +124,7 @@ namespace LibreLancer.Sounds
             else
             {
                 var path = data.GetAudioStream(name);
-                var snd = audio.AllocateData();
+                var snd = new SoundData();
                 loaded.LoadTask = Task.Run(() =>
                 {
                     snd.LoadStream(path);
@@ -134,12 +134,12 @@ namespace LibreLancer.Sounds
             return loaded;
         }
 
-        SoundType EntryType(string name)
+        SoundCategory EntryType(string name)
         {
             var e = GetEntry(name);
             if (e.Type == AudioType.Voice)
-                return SoundType.Voice;
-            return SoundType.Sfx;
+                return SoundCategory.Voice;
+            return SoundCategory.Sfx;
         }
         public void PlayOneShot(string name)
         {
@@ -149,7 +149,6 @@ namespace LibreLancer.Sounds
             if (snd.Data == null) return;
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
             inst.SetAttenuation(snd.Entry.Attenuation);
-            inst.DisposeOnStop = true;
             inst.Play();
         }
         public SoundInstance GetInstance(string name, float attenuation = 0, float mind = -1,
@@ -200,13 +199,13 @@ namespace LibreLancer.Sounds
                 var path = data.GetVoicePath(voice);
                 var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s, data.VFS.Open(path)));
                 var file = v.AudioFiles[hash];
-                var sn = audio.AllocateData();
+                var sn = new SoundData();
                 using var ms = new MemoryStream(file);
                 sn.LoadStream(ms);
                 ui.QueueUIThread(() =>
                 {
-                    var instance = audio.CreateInstance(sn, SoundType.Voice);
-                    instance.DisposeOnStop = true;
+                    var instance = audio.CreateInstance(sn, SoundCategory.Voice);
+                    instance.Priority = 2;
                     instance.OnStop = () => {
                         sn.Dispose();
                         onEnd?.Invoke();

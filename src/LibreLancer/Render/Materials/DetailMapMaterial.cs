@@ -2,8 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System.Numerics;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 
@@ -11,13 +14,35 @@ namespace LibreLancer.Render.Materials
 {
 	public class DetailMapMaterial : RenderMaterial
 	{
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct MaterialParameters
+        {
+            public Color4 Ac;
+            public Color4 Dc;
+            public float TileRate;
+            public float FlipU;
+            public float FlipV;
+            private float _padding;
+        }
+
+        private MaterialParameters parameters;
+        public ref Color4 Ac => ref parameters.Ac;
+        public ref Color4 Dc => ref parameters.Dc;
+        public ref float TileRate => ref parameters.TileRate;
+        public int FlipU
+        {
+            get => (int)parameters.FlipU;
+            set => parameters.FlipU = value;
+        }
+
+        public int FlipV
+        {
+            get => (int)parameters.FlipV;
+            set => parameters.FlipV = value;
+        }
+
 		public string DmSampler;
 		public SamplerFlags DmFlags;
-		public float TileRate;
-		public int FlipU;
-		public int FlipV;
-		public Color4 Ac;
-		public Color4 Dc;
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 
@@ -30,30 +55,18 @@ namespace LibreLancer.Render.Materials
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-            var sh = Shaders.DetailMapMaterial.Get(rstate, rstate.HasFeature(GraphicsFeature.GLES)? ShaderFeatures.VERTEX_LIGHTING : 0);
-			sh.SetWorld (World);
+            var sh = AllShaders.DetailMapMaterial.Get(rstate.HasFeature(GraphicsFeature.GLES) ? 1U : 0U);
+            SetWorld(sh);
+			sh.SetUniformBlock(3, ref parameters);
 
-            sh.SetAc(Ac);
-			sh.SetDc(Dc);
-			sh.SetTileRate(TileRate);
-			sh.SetFlipU(FlipU);
-			sh.SetFlipV(FlipV);
+            Vector4 noAnim = new Vector4(0, 0, 1, 1);
+            sh.SetUniformBlock(4, ref noAnim);
 
-			sh.SetDtSampler(0);
 			BindTexture (rstate, 0, DtSampler, 0, DtFlags);
-			sh.SetDmSampler(1);
 			BindTexture (rstate, 1, DmSampler, 1, DmFlags);
 			SetLights(sh, ref lights, rstate.FrameNumber);
             rstate.Shader = sh;
         }
-
-		public override void ApplyDepthPrepass(RenderContext rstate)
-		{
-			rstate.BlendMode = BlendMode.Normal;
-            var sh = Shaders.DepthPass_Normal.Get(rstate);
-            sh.SetWorld(World);
-            rstate.Shader = sh;
-		}
 
 		public override bool IsTransparent
 		{

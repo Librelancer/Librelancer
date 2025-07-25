@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Save
 {
-    public class LockedGates : IWriteSection
+    [ParsedSection]
+    public partial class LockedGates : IWriteSection
     {
         [Entry("npc_locked_gate", Multiline = true)]
         public List<int> NpcLockedGates = new List<int>();

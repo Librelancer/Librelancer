@@ -20,6 +20,7 @@ using LibreLancer.GameData.World;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace LibreLancer.Server
@@ -249,29 +250,28 @@ namespace LibreLancer.Server
                 LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
             }
             LocalPlayer?.RunSave();
-            ConcurrentBag<StarSystem> toSpinDown = new ConcurrentBag<StarSystem>();
             debugInfoForFrame = "";
+            var toSpinDown = new StarSystem[worlds.Count];
+            int spinDownCount = -1;
             foreach (var w in worlds)
             {
                 if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds, currentTick))
-                    toSpinDown.Add(w.Key);
+                    toSpinDown[Interlocked.Increment(ref spinDownCount)] = w.Key;
             }
 
             DebugInfo = debugInfoForFrame;
             Listener?.Server?.TriggerUpdate(); //Send packets asap
             //Remove
-            if (toSpinDown.Count > 0)
+            for (int i = 0; i <= spinDownCount; i++)
             {
-                foreach (var w in toSpinDown)
+                var w = toSpinDown[i];
+                if (worlds[w].PlayerCount <= 0)
                 {
-                    if (worlds[w].PlayerCount <= 0)
-                    {
-                        Worlds.RemoveWorld(w);
-                        worlds[w].Finish();
-                        worlds.Remove(w);
-                        var wName = GameData.GetString(w.IdsName);
-                        FLLog.Info("Server", $"Shut down world {w.Nickname} ({wName})");
-                    }
+                    Worlds.RemoveWorld(w);
+                    worlds[w].Finish();
+                    worlds.Remove(w);
+                    var wName = GameData.GetString(w.IdsName);
+                    FLLog.Info("Server", $"Shut down world {w.Nickname} ({wName})");
                 }
             }
             var updateDuration = serverTiming.Elapsed - startTime;
@@ -304,6 +304,8 @@ namespace LibreLancer.Server
             processingLoop = new FixedTimestepLoop(Process);
             processingLoop.Start();
             Listener?.Stop();
+            Database.Dispose();
+            Database = null;
         }
     }
 }

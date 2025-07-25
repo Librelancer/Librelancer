@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Formats.Tar;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using static Bullseye.Targets;
@@ -17,6 +19,7 @@ namespace BuildLL
         private static int parallel = -1;
         private static string glslangValidatorPath = null;
         private static bool buildDebug = false;
+        private static bool buildO0 = false;
         private static bool withWin32 = false;
         private static bool withWin64 = false;
         private static bool withUpdates = true;
@@ -30,6 +33,7 @@ namespace BuildLL
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
             StringArg("--glslangValidator", x => glslangValidatorPath = x);
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
+            FlagArg("--O0", () => buildO0 = true, "Build natives with -O0 debug");
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
             FlagArg("--no-updates", () => withUpdates = false, "Disables built in updater (SDK only)");
@@ -53,13 +57,11 @@ namespace BuildLL
             "src/LLServerGui/LLServerGui.csproj",
         };
 
-        static void Clean(string rid)
+        static void Clean()
         {
             Dotnet.Clean("LibreLancer.sln");
-            RmDir("./obj/projs-" + rid);
-            RmDir("./obj/projs-sdk-" + rid);
-            RmDir("./bin/librelancer-" + rid);
-            RmDir("./bin/librelancer-sdk-" + rid);
+            RmDir("./obj/");
+            RmDir("./bin/");
         }
 
        static  List<string> publishedProjects = new List<string>();
@@ -138,6 +140,56 @@ namespace BuildLL
             }
         }
 
+        static void FindDXC()
+        {
+            if (IsWindows)
+            {
+                if (FindExeWin32("dxc.exe", []) != null)
+                {
+                    Console.WriteLine("dxc.exe located on PATH");
+                    return;
+                }
+                if (File.Exists("bin/builddeps/bin/x64/dxc.exe"))
+                {
+                    Console.WriteLine("dxc.exe located");
+                    return;
+                }
+                if (!File.Exists("obj/dxc.zip"))
+                {
+                    DownloadFile(Config["DXC_WINX64"], "obj/dxc.zip");
+                }
+                using var zip = File.OpenRead("obj/dxc.zip");
+                ZipFile.ExtractToDirectory(zip, "bin/builddeps", true);
+                Console.WriteLine("Pre-built dxc extracted");
+                return;
+            }
+            if (UnixHasCommand("dxc"))
+            {
+                Console.WriteLine("dxc located on PATH");
+                return;
+            }
+            if (File.Exists("bin/builddeps/bin/dxc"))
+            {
+                Console.WriteLine("dxc located");
+                return;
+            }
+
+            var rid = GetLinuxRid();
+            if (rid == "linux-x64")
+            {
+                if (!File.Exists("obj/dxc.tar.gz"))
+                {
+                    DownloadFile(Config["DXC_LINUXX64"], "obj/dxc.tar.gz");
+                }
+                using var tar = new GZipStream(File.OpenRead("obj/dxc.tar.gz"), CompressionMode.Decompress);
+                TarFile.ExtractToDirectory(tar, "bin/builddeps", true);
+                Console.WriteLine("Pre-built dxc extracted");
+                return;
+            }
+            throw new Exception(
+                $"dxc not on PATH, and platform is {rid}. Please install from source: https://github.com/microsoft/DirectXShaderCompiler");
+        }
+
         private static string VersionString;
         public static void Targets()
         {
@@ -195,17 +247,54 @@ namespace BuildLL
                     if (parallel > 0) pl = "-j" + parallel;
                     RunCommand("make", pl, "shaders/natives/bin");
                 }
-                var args =  $"-d LibreLancer.Graphics.RenderContext -b -g \"device.HasFeature(LibreLancer.Graphics.GraphicsFeature.Features430)\" -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
+                var args =  $"-d LibreLancer.Graphics.RenderContext -b -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
                 Dotnet.Run("./shaders/ShaderProcessor/ShaderProcessor.csproj", args);
+            });
+
+            Target("ShaderDependencies", () =>
+            {
+                Directory.CreateDirectory("bin/builddeps");
+                Directory.CreateDirectory("obj/spirvcross");
+                if (IsWindows) {
+                    CMake.Run("extern/SPIRV-Cross", new CMakeSettings() {
+                        OutputPath = "obj/spirvcross",
+                        Generator = "Visual Studio 17 2022",
+                        Platform = "x64",
+                        BuildType = "MinSizeRel",
+                        Options = new[] { "-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"}
+                    });
+                    MSBuild.Run("./obj/spirvcross/SPIRV-Cross.sln", "/m /p:Configuration=MinSizeRel", VSVersion.VS2022, MSBuildPlatform.x86);
+                } else {
+                    CMake.Run("extern/SPIRV-Cross", new CMakeSettings()
+                    {
+                        OutputPath = "obj/spirvcross",
+                        BuildType = "MinSizeRel",
+                        Options = new[] { "-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"}
+                    });
+                    string pl = "";
+                    if (parallel > 0) pl = "-j" + parallel;
+                    RunCommand("make", pl, "obj/spirvcross");
+                }
+                CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.so");
+                CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dll");
+                if(IsWindows)
+                {
+                    CopyDirContents("obj/spirvcross/MinSizeRel", "bin/builddeps", false, "*.dll");
+                }
+                FindDXC();
+                Dotnet.BuildDebug("src/LLShaderCompiler/LLShaderCompiler.csproj");
             });
 
             Target("BuildNatives", () =>
             {
                 if (buildDebug) Console.WriteLine("Building natives with debug info");
+                if (buildO0) Console.WriteLine("Building natives with O0 level debug");
                 Directory.CreateDirectory("obj");
                 Directory.CreateDirectory("bin/natives/x86");
                 Directory.CreateDirectory("bin/natives/x64");
                 string config = buildDebug ? "RelWithDebInfo" : "MinSizeRel";
+                if(buildO0)
+                    config = "Debug";
                 if (IsWindows)
                 {
                     Directory.CreateDirectory("obj/x86");
@@ -225,7 +314,7 @@ namespace BuildLL
                         MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}",
                             VSVersion.VS2022, MSBuildPlatform.x86);
                         CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
-                        if (buildDebug) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
+                        if (buildDebug || buildO0) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
                     }
                     //build 64-bit
                     CMake.Run(".", new CMakeSettings() {
@@ -236,7 +325,7 @@ namespace BuildLL
                     });
                     MSBuild.Run("./obj/x64/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x64);
                     CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.dll");
-                    if (buildDebug) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
+                    if (buildDebug || buildO0) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
 
                 }
                 else
@@ -285,16 +374,11 @@ namespace BuildLL
 
             Target("Clean", () =>
             {
-                if (withWin32)
-                    Clean("win-x86");
-                if (IsWindows || withWin64)
-                    Clean("win-x64");
-                if(!IsWindows)
-                    Clean(GetLinuxRid());
+                Clean();
             });
 
 
-            Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives"), async () =>
+            Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives", "ShaderDependencies"), async () =>
             {
                 if(withWin32)
                     await FullBuild("win-x86", false);
@@ -303,7 +387,7 @@ namespace BuildLL
                 if(!IsWindows)
                     await FullBuild(GetLinuxRid(), false);
             });
-            Target("BuildDocumentation", DependsOn("GenerateVersion"), () =>
+            Target("BuildDocumentation", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
             {
                 string[] apiDlls = new string[]
                 {
@@ -314,7 +398,7 @@ namespace BuildLL
                 DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString,
                     apiDlls.Select(x => Path.Combine("./src/Editor/LancerEdit/bin/Release/net8.0", x)));
             });
-            Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives"), async () =>
+            Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "ShaderDependencies"), async () =>
             {
                 if(withWin32)
                     await FullBuild("win-x86", true);
@@ -323,7 +407,7 @@ namespace BuildLL
                 if(!IsWindows)
                     await FullBuild(GetLinuxRid(), true);
             });
-            Target("Test", DependsOn("GenerateVersion"), () => {
+            Target("Test", DependsOn("GenerateVersion", "ShaderDependencies"), () => {
                 Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj");
                 Console.WriteLine("Testing compile of editor scripts");
                 foreach(var f in Directory.GetFiles("./src/Editor/LancerEdit/editorscripts", "*.cs-script")) {

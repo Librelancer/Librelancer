@@ -20,7 +20,7 @@ namespace LibreLancer.Utf
         private Quaternion currentTransform = Quaternion.Identity;
 
         public override Transform3D LocalTransform => internalGetTransform(
-            new Transform3D(Origin + Offset, currentTransform * Rotation));
+            new Transform3D(-Offset, Quaternion.Identity) * new Transform3D(Origin,  currentTransform * Rotation));
 
         public RevConstruct() : base() {}
 
@@ -51,9 +51,9 @@ namespace LibreLancer.Utf
         public float Current = 0;
         public override void Update(ChannelFloat distance, Quaternion quat)
         {
-            var a = Quaternion.CreateFromAxisAngle(AxisRotation, distance.A);
-            var b = Quaternion.CreateFromAxisAngle(AxisRotation, distance.B);
-            Current = distance.Eval();
+            var a = Quaternion.CreateFromAxisAngle(AxisRotation, MathHelper.Clamp(distance.A, Min, Max));
+            var b = Quaternion.CreateFromAxisAngle(AxisRotation, MathHelper.Clamp(distance.B, Min, Max));
+            Current = MathHelper.Clamp(distance.Eval(), Min, Max);
             currentTransform = Quaternion.Slerp(a, b, distance.Weight);
         }
     }

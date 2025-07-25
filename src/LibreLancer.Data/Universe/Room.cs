@@ -5,67 +5,49 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.IO;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Universe.Rooms;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class Room : IniFile
-	{
-        public string FilePath { get; private set; }
-		public string Nickname { get; private set; }
+    [ParsedSection]
+    [ParsedIni]
+	public partial class Room
+    {
+        [Entry("nickname")]
+        public string Nickname;
+        [Entry("file")]
+        public string File;
 
-        [Section("Room_Info")] 
+        [Section("Room_Info")]
         public RoomInfo RoomInfo;
-        [Section("CharacterPlacement")] 
+        [Section("CharacterPlacement")]
         public CharacterPlacement CharacterPlacement;
-        [Section("Room_Sound")] 
+        [Section("Room_Sound")]
         public RoomSound RoomSound;
-        [Section("ForSaleShipPlacement")] 
+        [Section("ForSaleShipPlacement")]
         public List<NameSection> ForSaleShipPlacements = new List<NameSection>();
-        [Section("Camera")] 
+        [Section("Camera")]
         public NameSection Camera;
-        [Section("Hotspot")] 
+        [Section("Hotspot")]
         public List<RoomHotspot> Hotspots = new List<RoomHotspot>();
-        [Section("PlayerShipPlacement")] 
+        [Section("PlayerShipPlacement")]
         public PlayerShipPlacement PlayerShipPlacement;
-        [Section("FlashlightSet")] 
+        [Section("FlashlightSet")]
         public List<FlashlightSet> FlashlightSets = new List<FlashlightSet>();
-        [Section("FlashlightLine")] 
+        [Section("FlashlightLine")]
         public List<FlashlightLine> FlashlightLines = new List<FlashlightLine>();
-        [Section("Spiels")] 
+        [Section("Spiels")]
         public Spiels Spiels;
-        
-        public Room(Section section, FreelancerData data)
-		{
-			if (section == null) throw new ArgumentNullException("section");
-			string file = null;
-            foreach (Entry e in section)
-			{
-				switch (e.Name.ToLowerInvariant())
-				{
-				case "nickname":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (Nickname != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					Nickname = e[0].ToString();
-					break;
-				case "file":
-					if (e.Count != 1) throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name + ": " + e.Count);
-					if (file != null) throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
-					file = e[0].ToString();
-					break;
-				default: throw new Exception("Invalid Entry in " + section.Name + ": " + e.Name);
-				}
-			}
-            FilePath = file;
-            if (data.VFS.FileExists(data.Freelancer.DataPath + file))
-            {
-                ParseAndFill(data.Freelancer.DataPath + file, data.VFS);
-            }
-            else
-            {
-                FLLog.Error("Ini", "Room file not found " + file);
-            }
+
+        [OnParseDependent]
+        void ParseDependent(IniParseProperties properties)
+        {
+            if (string.IsNullOrWhiteSpace(File)) return;
+            if (properties["vfs"] is not FileSystem vfs) return;
+            if (properties["dataPath"] is not string dataPath) return;
+            ParseIni(dataPath + File, vfs);
         }
 	}
 }

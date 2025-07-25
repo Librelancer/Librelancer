@@ -16,6 +16,7 @@ using LibreLancer.Render;
 using LibreLancer.Sounds;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Resources;
 
 namespace LibreLancer
 {
@@ -38,8 +39,6 @@ namespace LibreLancer
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
         public InputMap InputMap;
-		int uithread;
-		bool useintromovies;
 		GameState currentState;
 
 		public GameConfig Config
@@ -64,12 +63,13 @@ namespace LibreLancer
         {
             Audio.MasterVolume = config.Settings.MasterVolume;
             Audio.Music.Volume = config.Settings.MusicVolume;
+            Audio.SfxVolume = config.Settings.SfxVolume;
             currentState?.OnSettingsChanged();
         }
 
         public void ChangeState(GameState state)
 		{
-            Audio.ReleaseAllSfx();
+            Audio.StopAllSfx();
 			if (currentState != null)
 				currentState.Unload();
 			currentState = state;
@@ -91,17 +91,15 @@ namespace LibreLancer
 			SetVSync(Config.Settings.VSync);
             Config.Settings.RenderContext = RenderContext;
             Config.Settings.Validate();
-			uithread = Thread.CurrentThread.ManagedThreadId;
-			useintromovies = _cfg.IntroMovies;
             //Cache
             var vfs = FileSystem.FromPath(_cfg.FreelancerPath);
 			ResourceManager = new GameResourceManager(this, vfs);
 			//Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
-            Audio.WaitReady();
             Audio.MasterVolume = _cfg.Settings.MasterVolume;
             Audio.Music.Volume = _cfg.Settings.MusicVolume;
+            Audio.SfxVolume = _cfg.Settings.SfxVolume;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(vfs, ResourceManager);
@@ -144,10 +142,8 @@ namespace LibreLancer
             Services.Add(Sound);
             Services.Add(Typewriter);
             Debug = new DebugView(this);
-			if (useintromovies && IntroMovies.Count > 0)
-				ChangeState(new IntroMovie(this, 0));
-			else
-				ChangeState(new LoadingDataState(this));
+            Debug.Enabled = Config.Settings.Debug;
+			ChangeState(new LoadingDataState(this));
         }
 
         public string GetSaveFolder()
@@ -182,14 +178,11 @@ namespace LibreLancer
 			Screenshots.Stop();
 		}
 
-        private Task updateTask;
 		protected override void Update (double elapsed)
         {
-            updateTask?.Wait();
 			if (currentState != null)
 				currentState.Update (elapsed);
             Typewriter.Update(elapsed);
-            updateTask = Audio.UpdateAsync();
         }
 
 		const double FPS_INTERVAL = 0.25;

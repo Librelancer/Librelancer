@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class MineBlock : PilotBlock
+    [ParsedSection]
+    public partial class MineBlock : PilotBlock
     {
         [Entry("mine_launch_interval")] public float LaunchInterval;
         [Entry("mine_launch_cone_angle")] public float LaunchConeAngle;

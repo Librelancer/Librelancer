@@ -34,12 +34,14 @@ public class ArchetypeList
         this.gd = gd;
     }
 
-    static bool SelectableImageButton(int image, Vector2 size, bool selected)
+    static bool SelectableImageButton(ImTextureRef image, Vector2 size, bool selected)
     {
+        ImGui.PushID((IntPtr)image._TexID);
         if (selected) ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetColorU32(ImGuiCol.ButtonActive));
-        var retval = ImGui.ImageButton(image.ToString(), (IntPtr)image, size, new Vector2(0, 1),
+        var retval = ImGui.ImageButton("a", image, size, new Vector2(0, 1),
             new Vector2(1, 0));
         if (selected) ImGui.PopStyleColor();
+        ImGui.PopID();
         return retval;
     }
 
@@ -68,9 +70,9 @@ public class ArchetypeList
 
         Archetype returnValue = null;
         ImGui.BeginChild("##archetypes", new Vector2(ImGui.GetWindowWidth() - 12 * ImGuiHelper.Scale,
-            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Border);
+            ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - ImGui.GetFrameHeightWithSpacing() - 8 * ImGuiHelper.Scale), ImGuiChildFlags.Borders);
         ImGui.BeginTable("##table", 4);
-        using var clipper = new ListClipper();
+        var clipper = new ImGuiListClipper();
         int itemsLen = displayList.Length / 4;
         if (displayList.Length % 4 != 0) itemsLen++;
         clipper.Begin(itemsLen);
@@ -92,9 +94,9 @@ public class ArchetypeList
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted(displayList[i].Nickname);
+                        ImGui.Text(displayList[i].Nickname);
                         ImGui.Separator();
-                        ImGui.TextUnformatted($"Type: {displayList[i].Type}");
+                        ImGui.Text($"Type: {displayList[i].Type}");
                         ImGui.EndTooltip();
                     }
 

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Effects;
 
-public class ExplosionsIni : IniFile
+[ParsedIni]
+public partial class ExplosionsIni
 {
     [Section("Explosion")]
     public List<Explosion> Explosions = new List<Explosion>();
@@ -13,5 +14,5 @@ public class ExplosionsIni : IniFile
     [Section("Simple")]
     public List<Simple> Simples = new List<Simple>();
 
-    public void AddFile(string filename, FileSystem vfs) => ParseAndFill(filename, vfs);
+    public void AddFile(string filename, FileSystem vfs) => ParseIni(filename, vfs);
 }

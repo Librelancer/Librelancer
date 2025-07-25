@@ -6,11 +6,11 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
-using LibreLancer.Ini;
 
 namespace LancerEdit.GameContent;
 
@@ -28,7 +28,7 @@ public class UniverseEditorTab : GameContentTab
 
     private MainWindow win;
     private Texture2D universeBackgroundTex;
-    private int universeBackgroundRegistered;
+    private ImTextureRef? universeBackgroundRegistered;
     private UniverseMap map;
 
     private PopupManager popups;
@@ -49,7 +49,7 @@ public class UniverseEditorTab : GameContentTab
         if (universeBackgroundTex != null)
             universeBackgroundRegistered = ImGuiHelper.RegisterTexture(universeBackgroundTex);
         else
-            universeBackgroundRegistered = -1;
+            universeBackgroundRegistered = null;
         popups = new PopupManager();
         map = new UniverseMap();
         map.OnChange += CalculateDirty;

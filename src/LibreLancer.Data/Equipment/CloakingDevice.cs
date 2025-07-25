@@ -2,11 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class CloakingDevice : AbstractEquipment
+    [ParsedSection]
+    public partial class CloakingDevice : AbstractEquipment
     {
         [Entry("cloakin_time")] public float CloakInTime;
         [Entry("cloakout_time")] public float CloakOutTime;

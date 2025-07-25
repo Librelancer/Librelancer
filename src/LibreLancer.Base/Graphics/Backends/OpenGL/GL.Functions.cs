@@ -92,6 +92,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static bool GLES = false;
 		static Dictionary<int, string> errors;
         public static bool ErrorChecking = false;
+
         public static void LoadSDL(Func<string,IntPtr> getProcAddress)
 		{
             tid = Thread.CurrentThread.ManagedThreadId;
@@ -113,6 +114,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                 GL.DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, IntPtr.Zero, false);
                 GL._glDebugMessageCallback(Marshal.GetFunctionPointerForDelegate(DebugCallback), IntPtr.Zero);
             }
+            #if DEBUG
+            ErrorChecking = true;
+            #endif
 		}
 
         private static GlDebugProcKHR DebugCallback = DebugCallbackHandler;
@@ -133,9 +137,9 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static bool CheckStringSDL(bool checkGles = false)
         {
             if(SDL3.Supported)
-                GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL3.SDL_GL_GetProcAddress("glGetString");
+                GL._glGetString = (delegate*unmanaged<int, byte*>) SDL3.SDL_GL_GetProcAddress("glGetString");
             else
-                GL._glGetString = (delegate*unmanaged<int, IntPtr>) SDL2.SDL_GL_GetProcAddress("glGetString");
+                GL._glGetString = (delegate*unmanaged<int, byte*>) SDL2.SDL_GL_GetProcAddress("glGetString");
             var str = GL.GetString(GL.GL_VERSION);
             FLLog.Info("GL", "Version String: " + GL.GetString(GL.GL_VERSION));
             if (checkGles) return str.StartsWith("OpenGL ES 3");
@@ -146,20 +150,18 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static string GetProgramInfoLog(uint program)
         {
             int len;
-            var ptr = Marshal.AllocHGlobal (4096);
-            GL._glGetProgramInfoLog (program, 4096,  &len, ptr);
-            var str = Marshal.PtrToStringAnsi (ptr, len);
-            Marshal.FreeHGlobal (ptr);
+            using var ptr = UnsafeHelpers.Allocate (4096);
+            GL._glGetProgramInfoLog (program, 4096,  &len, (IntPtr)ptr);
+            var str = Marshal.PtrToStringAnsi ((IntPtr)ptr, len);
             return str;
         }
 
         public static string GetShaderInfoLog(uint shader)
         {
             int len;
-            var ptr = Marshal.AllocHGlobal (4096);
-            GL._glGetShaderInfoLog (shader, 4096,  &len, ptr);
-            var str = Marshal.PtrToStringAnsi (ptr, len);
-            Marshal.FreeHGlobal (ptr);
+            using var ptr = UnsafeHelpers.Allocate (4096);
+            GL._glGetShaderInfoLog (shader, 4096,  &len, (IntPtr)ptr);
+            var str = Marshal.PtrToStringAnsi ((IntPtr)ptr, len);
             return str;
         }
 

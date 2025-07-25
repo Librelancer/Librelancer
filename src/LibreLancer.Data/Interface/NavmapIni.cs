@@ -4,31 +4,37 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Interface
 {
     //This class is a librelancer extension.
-    [SelfSection("LibraryFiles")]
-    public class NavmapIni : IniFile
+    [ParsedIni]
+    public partial class NavmapIni
     {
-        [Entry("file", Multiline = true)]
-        public List<string> LibraryFiles = new List<string>();
-        
-        [Section("IconType")] 
+        [Section("LibraryFiles")]
+        public List<LibraryFiles> LibraryFiles = new ();
+
+        [Section("IconType")]
         public NavmapIniIconType Type;
-        
+
         [Section("Icons")]
         public NavmapIniIcons Icons;
-        
+
         [Section("Background")]
         public NavmapIniBackground Background;
 
         public NavmapIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, vfs);
+            ParseIni(path, vfs);
         }
+    }
+
+    [ParsedSection]
+    public partial class LibraryFiles
+    {
+        [Entry("file", Multiline = true)] public List<string> Files = new();
     }
 
     public enum NavIconType
@@ -36,20 +42,24 @@ namespace LibreLancer.Data.Interface
         Model,
         Texture
     }
-    
-    public class NavmapIniIconType
+
+    [ParsedSection]
+    public partial class NavmapIniIconType
     {
         [Entry("type")] public NavIconType Type;
     }
 
-    public class NavmapIniBackground
+    [ParsedSection]
+    public partial class NavmapIniBackground
     {
         [Entry("texture")] public string Texture;
     }
-    public class NavmapIniIcons : IEntryHandler
+
+    [ParsedSection]
+    public partial class NavmapIniIcons : IEntryHandler
     {
         public Dictionary<string, string> Map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        
+
         bool IEntryHandler.HandleEntry(Entry e)
         {
             Map[e.Name] = e[0].ToString();

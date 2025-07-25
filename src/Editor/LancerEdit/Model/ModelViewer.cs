@@ -23,6 +23,7 @@ using LibreLancer.ContentEdit.Model;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sur;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -183,20 +184,6 @@ namespace LancerEdit
             maxDistance += 50;
 
             popups = new PopupManager();
-            popups.AddPopup("Confirm Delete", ConfirmDelete, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Warning", MinMaxWarning, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Apply Complete", (x) =>
-            {
-                ImGui.Text("Hardpoints successfully written");
-                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            },ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("Apply Complete##Parts", (x) =>
-            {
-                ImGui.Text("Parts successfully written");
-                if (ImGui.Button("Ok")) ImGui.CloseCurrentPopup();
-            }, ImGuiWindowFlags.AlwaysAutoResize);
-            popups.AddPopup("New Hardpoint", NewHardpoint, ImGuiWindowFlags.AlwaysAutoResize);
-
             layout = new VerticalTabLayout(DrawLeft, _ => { }, DrawMiddle);
 
             if(drawable is CmpFile || drawable is ModelFile)
@@ -314,12 +301,12 @@ namespace LancerEdit
                     if(!first) ImGui.Separator();
                     if (w.Width != w.Height)
                     {
-                        ImGui.TextUnformatted($"{w.Name}: Dimensions are not square ({w.Width} != {w.Height})");
+                        ImGui.Text($"{w.Name}: Dimensions are not square ({w.Width} != {w.Height})");
                     }
                     if (!MathHelper.IsPowerOfTwo(w.Width) ||
                         !MathHelper.IsPowerOfTwo(w.Height))
                     {
-                        ImGui.TextUnformatted($"{w.Name}: Dimensions are not powers of two ({w.Width}x{w.Height})");
+                        ImGui.Text($"{w.Name}: Dimensions are not powers of two ({w.Width}x{w.Height})");
                     }
                     first = false;
                 }
@@ -378,7 +365,6 @@ namespace LancerEdit
             if (skel != null) {
                 skel.UpdateScripts(elapsed);
             }
-            if (newErrorTimer > 0) newErrorTimer -= elapsed;
         }
         Vector2 rotation = Vector2.Zero;
 
@@ -576,10 +562,7 @@ namespace LancerEdit
             switch(act) {
                 case ContextActions.NewFixed:
                 case ContextActions.NewRevolute:
-                    newIsFixed = act == ContextActions.NewFixed;
-                    addTo = part;
-                    newHpBuffer.Clear();
-                    popups.OpenPopup("New Hardpoint");
+                    NewHardpoint(act == ContextActions.NewFixed, part);
                     break;
             }
             if (open)
@@ -619,9 +602,7 @@ namespace LancerEdit
                     var action = EditDeleteHpMenu(part.Path + hp.Name);
                     if (action == ContextActions.Delete)
                     {
-                        hpDelete = hp;
-                        hpDeleteFrom = part.Hardpoints;
-                        popups.OpenPopup("Confirm Delete");
+                        DeleteHardpoint(hp, part.Hardpoints);
                     }
                     if (action == ContextActions.Edit) hpEditing = hp;
                     if (action == ContextActions.Dup)
@@ -847,7 +828,7 @@ namespace LancerEdit
                     _isDirtyHp = false;
                     parent.DirtyCountHp--;
                 }
-                popups.OpenPopup("Apply Complete");
+                popups.MessageBox("Apply Complete", "Hardpoints successfully written");
             }
             if (vmsModel.AllParts.Length > 1 && ImGuiExt.Button("Apply Parts", _isDirtyPart))
             {
@@ -857,11 +838,12 @@ namespace LancerEdit
                     _isDirtyPart = false;
                     parent.DirtyCountPart--;
                 }
-                popups.OpenPopup("Apply Complete##Parts");
+
+                popups.MessageBox("Apply Complete", "Parts successfully written");
             }
             if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
             if (doFilter) {
-                ImGui.InputText("##filter", filterText.Pointer, (uint)filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
+                ImGui.InputText("##filter", filterText.Pointer, filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
                 currentFilter = filterText.GetText();
             }
             else
@@ -926,6 +908,11 @@ namespace LancerEdit
                 if (ImGui.Button(ImGuiExt.IDWithExtra(sc.Key, j++)))
                 {
                     animator.StartAnimation(sc.Key, false);
+                }
+                ImGui.SameLine();
+                if (ImGui.Button(ImGuiExt.IDWithExtra("(Rev)", j++)))
+                {
+                    animator.StartAnimation(sc.Key, false, 0, 1, 0, true);
                 }
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                     ImGui.OpenPopup(popup);
@@ -1178,8 +1165,8 @@ namespace LancerEdit
             modelViewport.Dispose();
             imageViewport.Dispose();
             previewViewport.Dispose();
-            newHpBuffer.Dispose();
             parent?.DereferenceDetached();
+            normalVis?.Dispose();
         }
     }
 }

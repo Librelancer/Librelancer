@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.GameData.Items;
+using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
@@ -24,5 +26,18 @@ public class CPlayerCargoComponent : AbstractCargoComponent
     {
         var slot = session.Items.FirstOrDefault(x => x.Equipment is T);
         return (T) slot?.Equipment;
+    }
+
+    public override int TryAdd(Equipment equipment, int maxCount)
+    {
+        return 0;
+    }
+
+    public override IEnumerable<NetShipCargo> GetCargo(int firstId)
+    {
+        foreach (var c in session.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
+        {
+            yield return new NetShipCargo(c.ID, c.Equipment.CRC, null, 255, c.Count);
+        }
     }
 }

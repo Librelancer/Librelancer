@@ -42,12 +42,14 @@ namespace LibreLancer
         public string Renderer { get; private set; }
 
         private const string ARRAY_MIMETYPE = "application/x-librelancer-array";
-        private static IntPtr mimeTypes;
+        private static NativeBuffer mimeTypes;
+        private static NativeBuffer arrayMimetypeNative;
 
         unsafe static SDL3Game()
         {
-            mimeTypes = Marshal.AllocHGlobal(IntPtr.Size);
-            *((IntPtr*)mimeTypes) = Marshal.StringToHGlobalAnsi(ARRAY_MIMETYPE);
+            mimeTypes = UnsafeHelpers.Allocate(IntPtr.Size);
+            arrayMimetypeNative = UnsafeHelpers.StringToNativeUTF8(ARRAY_MIMETYPE);
+            *((IntPtr*)(IntPtr)mimeTypes) = (IntPtr)arrayMimetypeNative;
         }
 
         public unsafe SDL3Game(int w, int h, bool fullscreen, bool allowScreensaver)
@@ -137,7 +139,7 @@ namespace LibreLancer
             c->Data = clipboard + sizeof(ClipboardData);
             c->Size = array.Length;
             Marshal.Copy(array, 0, c->Data, array.Length);
-            SDL3.SDL_SetClipboardData(&ClipboardCallback, &ClipboardCleanup, clipboard, mimeTypes, 1);
+            SDL3.SDL_SetClipboardData(&ClipboardCallback, &ClipboardCleanup, clipboard, (IntPtr)mimeTypes, 1);
         }
 
         [UnmanagedCallersOnly]
@@ -324,7 +326,7 @@ namespace LibreLancer
             {
                 throw new InvalidOperationException();
             }
-
+            RenderContext.Backend.QueryFences();
             while (actions.TryDequeue(out Action work))
                 work();
         }
@@ -439,6 +441,7 @@ namespace LibreLancer
             var drawable = RenderContext.Backend.GetDrawableSize(sdlWin);
             width = drawable.X;
             height = drawable.Y;
+            RenderContext.SetDrawableSize(drawable);
             var scaleW = (float)width / windowWidth;
             var scaleH = (float)height / windowHeight;
             if (Platform.RunningOS != OS.Windows) DpiScale = scaleH;
@@ -515,6 +518,7 @@ namespace LibreLancer
                 //Get Size
                 SDL3.SDL_GetWindowSize(sdlWin, out windowWidth, out windowHeight);
                 var dw = RenderContext.Backend.GetDrawableSize(sdlWin);
+                RenderContext.SetDrawableSize(dw);
                 width = dw.X;
                 height = dw.Y;
                 scaleW = (float)width / windowWidth;
@@ -626,6 +630,7 @@ namespace LibreLancer
                 //Do game things
                 if (!running)
                     break;
+                RenderContext.Backend.QueryFences();
                 while (actions.TryDequeue(out Action work))
                     work();
                 totalTime = timer.Elapsed.TotalSeconds;

@@ -8,7 +8,7 @@
 // type = savefile
 using LibreLancer.Data.RandomMissions;
 using LibreLancer.ContentEdit.RandomMissions;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 ScriptUsage(@"vignetteparams.ini vignettescript.txt
 - Decompiles vignetteparams.ini to a vignettescript");

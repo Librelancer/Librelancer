@@ -8,6 +8,7 @@ using LibreLancer.Data.Effects;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 
 namespace LibreLancer.Render
 {

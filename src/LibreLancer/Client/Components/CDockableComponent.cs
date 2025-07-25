@@ -13,7 +13,6 @@ namespace LibreLancer.Client.Components
 	{
 		public DockAction Action;
 		public string DockHardpoint;
-		public string DockAnimation;
 		public int TriggerRadius;
 
 		string tlHP;

@@ -41,7 +41,7 @@ public class VisitFlagEditor : PopupWindow
         return b.ToString();
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         Flag(Icons.Check, VisitFlags.Visited);
         Flag(Icons.Gift, VisitFlags.Wreck);

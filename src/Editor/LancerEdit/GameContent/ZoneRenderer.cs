@@ -7,6 +7,7 @@ using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using SimpleMesh;
 using Material = LibreLancer.Utf.Mat.Material;
 

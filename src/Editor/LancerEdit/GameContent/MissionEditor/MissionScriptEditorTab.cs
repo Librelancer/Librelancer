@@ -12,10 +12,10 @@ using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 using LancerEdit.GameContent.MissionEditor.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 using Microsoft.EntityFrameworkCore.Query;
 using SimpleMesh.Formats.Collada.Schema;
 using ImGui = ImGuiNET.ImGui;
@@ -457,7 +457,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             var drawList = ImGui.GetWindowDrawList();
             var color = success ? new Color4(32, 45, 32, 180) : new Color4(45, 32, 32, 180);
             drawList.AddRectFilled(rectMin, rectMax, ImGui.ColorConvertFloat4ToU32(color), size.Y * 0.15f);
-            ImGui.TextUnformatted(label);
+            ImGui.Text(label);
         }
     }
 
@@ -501,7 +501,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             nodeIds[0] = contextNodeId;
         }
 
-        ImGui.TextUnformatted("Node Context Menu");
+        ImGui.Text("Node Context Menu");
         if (selectedNodes is 1)
         {
             ImGui.Separator();

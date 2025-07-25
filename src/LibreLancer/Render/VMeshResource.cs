@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Vms;
 
 namespace LibreLancer;

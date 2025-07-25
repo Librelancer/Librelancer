@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-
 # Define directories.
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source $SCRIPT_DIR/build.config
+source "$SCRIPT_DIR/build.config"
 
 # Dependency Check (Librelancer)
-$SCRIPT_DIR/scripts/depcheck_unix || { echo >&2 "ERROR: Dependency check failed."; exit 1; }
+"$SCRIPT_DIR/scripts/depcheck_unix" || { echo >&2 "ERROR: Dependency check failed."; exit 1; }
 
 # Check for submodules
 if [ ! -f "$SCRIPT_DIR/extern/thorncompiler/CMakeLists.txt" ]; then
@@ -28,5 +27,6 @@ if [ $? -ne 0 ]; then
     exit 2
 fi
 
-cd $SCRIPT_DIR
-dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
+cd "$SCRIPT_DIR"
+# Fix fedora RSA+SHA1 disabled
+OPENSSL_ENABLE_SHA1_SIGNATURES=1 MSBUILDTERMINALLOGGER=off dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"

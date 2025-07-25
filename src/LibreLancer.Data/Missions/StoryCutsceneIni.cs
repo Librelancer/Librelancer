@@ -3,13 +3,13 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Missions
 {
-    public class StoryCutsceneIni : IniFile
+    [ParsedIni]
+    public partial class StoryCutsceneIni
     {
         [Section("CharacterEncounter")]
         public List<StoryEncounter> Encounters = new List<StoryEncounter>();
@@ -21,17 +21,19 @@ namespace LibreLancer.Data.Missions
         public string RefPath; //Used for engine: Hacky
         public StoryCutsceneIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, vfs);
+            ParseIni(path, vfs);
         }
     }
 
-    public class StoryReserve
+    [ParsedSection]
+    public partial class StoryReserve
     {
         [Entry("spot", Multiline = true)]
         public List<string> Spot = new List<string>();
     }
 
-    public class StoryEncounter
+    [ParsedSection]
+    public partial class StoryEncounter
     {
         [Entry("location")] public string[] Location;
         [Entry("action")] public string Action;
@@ -45,7 +47,8 @@ namespace LibreLancer.Data.Missions
         [Entry("relocate_player")] public string RelocatePlayer;
         [Entry("start_room")] public string StartRoom;
     }
-    public class StoryChar
+    [ParsedSection]
+    public partial class StoryChar
     {
         [Entry("npc")] public string Npc;
         [Entry("actor")] public string Actor;

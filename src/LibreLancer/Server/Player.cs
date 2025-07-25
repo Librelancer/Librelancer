@@ -9,17 +9,27 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using LibreLancer.Client;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Save;
+using LibreLancer.Data.Ships;
+using LibreLancer.Data.Solar;
+using LibreLancer.Data.Universe;
 using LibreLancer.GameData;
+using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
-using LibreLancer.Ini;
 using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using LiteNetLib;
+using DisconnectReason = LibreLancer.Net.DisconnectReason;
+using Ship = LibreLancer.GameData.Ship;
+using StarSystem = LibreLancer.GameData.World.StarSystem;
+using SystemObject = LibreLancer.GameData.World.SystemObject;
 
 namespace LibreLancer.Server
 {
@@ -43,6 +53,7 @@ namespace LibreLancer.Server
         private ConcurrentQueue<Action> saveActions = new ConcurrentQueue<Action>();
         //State
         public NetCharacter Character;
+        public DateTime StartTime;
         public string Name = "Player";
         public string System;
         public string Base;
@@ -73,11 +84,11 @@ namespace LibreLancer.Server
             rpcClient = new RemoteClientPlayer(client, ResponseHandler);
         }
 
-        public void SetObjective(NetObjective objective)
+        public void SetObjective(NetObjective objective, bool history)
         {
             FLLog.Info("Server", $"Set player objective to {objective.Kind}: {objective.Ids}");
             Objective = objective;
-            rpcClient.SetObjective(objective);
+            rpcClient.SetObjective(objective, history);
         }
 
 
@@ -89,6 +100,28 @@ namespace LibreLancer.Server
                 while (worldActions.Count > 0)
                     worldActions.Dequeue()();
             }
+        }
+
+        public void ShipKilledByPlayer(Ship ship)
+        {
+            Character.IncrementShipKillCount(ship); //SP only
+            using var nc = Character.BeginTransaction();
+            switch (ship.ShipType)
+            {
+                case ShipType.Fighter:
+                    nc.UpdateFightersKilled(Character.Statistics.FightersKilled + 1);
+                    break;
+                case ShipType.Freighter:
+                    nc.UpdateFreightersKilled(Character.Statistics.FreightersKilled + 1);
+                    break;
+                case ShipType.Capital:
+                    nc.UpdateBattleshipsKilled(Character.Statistics.BattleshipsKilled + 1);
+                    break;
+                case ShipType.Transport:
+                    nc.UpdateTransportsKilled(Character.Statistics.TransportsKilled + 1);
+                    break;
+            }
+            rpcClient.UpdateStatistics(Character.Statistics);
         }
 
         public bool InTradelane;
@@ -193,14 +226,42 @@ namespace LibreLancer.Server
             return (ulong) (Game.GameData.GetShipPrice(Character.Ship) * TradeConstants.SHIP_RESALE_MULTIPLIER);
         }
 
+        public long CalculateNetWorth()
+        {
+            var worth = Character.Credits + (long)GetShipWorth();
+            foreach (var item in Character.Items)
+            {
+                if (item.Equipment.Good == null)
+                {
+                    continue;
+                }
+                long unitPrice = item.Equipment.Good.Ini.Price;
+                if (item.Equipment is not CommodityEquipment)
+                    unitPrice = (long) (unitPrice * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                worth += unitPrice * item.Count;
+            }
+            return worth;
+        }
+
 
         void BeginGame(NetCharacter c, SaveGame sg)
         {
             Character = c;
+            StartTime = DateTime.UtcNow;
             Name = Character.Name;
+            rpcClient.UpdatePlayTime(c.Time, StartTime);
             rpcClient.UpdateBaselinePrices(Game.BaselineGoodPrices);
             UpdateCurrentReputations();
-            rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
+            UpdateCurrentInventory();
+            rpcClient.UpdateStatistics(c.Statistics);
+            if (SinglePlayer)
+            {
+                rpcClient.UpdateVisits(new VisitBundle() { Visits = c.GetAllVisitFlags() });
+            }
+            else
+            {
+                rpcClient.UpdateVisits(VisitBundle.Compress(c.GetAllVisitFlags()));
+            }
             Base = Character.Base;
             System = Character.System;
             Position = Character.Position;
@@ -211,6 +272,7 @@ namespace LibreLancer.Server
                 player.RpcClient.OnPlayerJoin(ID, Name);
             rpcClient.ListPlayers(Character.Admin);
             if (sg != null) InitStory(sg);
+            rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
             if (Base != null) {
                 PlayerEnterBase();
             } else {
@@ -218,7 +280,7 @@ namespace LibreLancer.Server
             }
         }
 
-        public void OpenSaveGame(SaveGame sg) => BeginGame(NetCharacter.FromSaveGame(Game, sg), sg);
+        public void OpenSaveGame(SaveGame sg) => BeginGame(NetCharacter.OpenSaveGame(Game, sg), sg);
 
         public void AddCash(long credits)
         {
@@ -231,6 +293,7 @@ namespace LibreLancer.Server
 
         void SpaceInitialSpawn(SaveGame sg)
         {
+            ClearScan();
             var sys = Game.GameData.Systems.Get(System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
@@ -294,6 +357,7 @@ namespace LibreLancer.Server
             using (var c = Character.BeginTransaction())
             {
                 c.UpdatePosition(Base, System, Position, Orientation);
+                c.VisitBase(Baseside.BaseData.CRC);
             }
             MissionRuntime?.SpaceExit();
             MissionRuntime?.BaseEnter(Base);
@@ -301,6 +365,7 @@ namespace LibreLancer.Server
             //send to player
             lock (thns)
             {
+                rpcClient.UpdateStatistics(Character.Statistics);
                 rpcClient.BaseEnter(Base, Objective, thns.Pack(), news.ToArray(), Baseside.BaseData.SoldGoods.Select(x => new SoldGood()
                 {
                     GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
@@ -324,6 +389,12 @@ namespace LibreLancer.Server
                 msnRuntime.Update(0.0);
             }
         }
+
+        public void UpdateProgress()
+        {
+            rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
+        }
+
         void InitStory(Data.Save.SaveGame sg)
         {
             var msn = sg.StoryInfo?.Mission ?? "No_Mission";
@@ -368,12 +439,13 @@ namespace LibreLancer.Server
             worldActions.Enqueue(a);
         }
 
-        public void OnLoggedIn()
+        public async Task OnLoggedIn()
         {
             try
             {
                 FLLog.Info("Server", "Account logged in");
-                if (!Game.Database.PlayerLogin(playerGuid, out CharacterList)) {
+                CharacterList = await Game.Database.PlayerLogin(playerGuid);
+                if (CharacterList == null) {
                     FLLog.Info("Server", $"Account {playerGuid} is banned, kicking.");
                     Client.Disconnect(DisconnectReason.Banned);
                     return;
@@ -389,14 +461,18 @@ namespace LibreLancer.Server
                         Characters = CharacterList,
                     }
                 }, PacketDeliveryMethod.ReliableOrdered);
-
-                packetQueueTask = Task.Run(ProcessPacketQueue);
+                packetQueueTask = Task.Factory.StartNew(ProcessPacketQueue, TaskCreationOptions.LongRunning);
             }
             catch (Exception ex)
             {
-                FLLog.Error("Player",ex.Message);
-                FLLog.Error("Player",
-                    ex.StackTrace);
+                while (ex != null)
+                {
+                    FLLog.Error("Player",ex.Message);
+                    FLLog.Error("Player", ex.StackTrace);
+                    ex = ex.InnerException;
+                }
+
+
                 Client.Disconnect(DisconnectReason.LoginError);
             }
         }
@@ -411,62 +487,24 @@ namespace LibreLancer.Server
         public void SendMPUpdate(PackedUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
-        public void SpawnPlayer(Player p)
-        {
-            var lO = p.Character.EncodeLoadout();
-            lO.Health = p.Character.Ship.Hitpoints;
-            var info = new ShipSpawnInfo()
-            {
-                Name = new ObjectName(p.Name),
-                Position = p.Position,
-                Orientation = p.Orientation,
-                Loadout = lO
-            };
-            rpcClient.SpawnShip(p.ID, info);
-        }
 
-        public void SendSolars(Dictionary<string, GameObject> solars)
-        {
-            var si = new List<SolarInfo>();
-            foreach (var solar in solars)
-            {
-                var tr = solar.Value.WorldTransform;
-                var info = new SolarInfo()
-                {
-                    ID = solar.Value.NetID,
-                    Name = solar.Value.Name,
-                    Nickname = solar.Value.Nickname,
-                    Archetype = solar.Value.ArchetypeName,
-                    Position = tr.Position,
-                    Orientation = tr.Orientation
-                };
-                if (solar.Value.TryGetComponent<SRepComponent>(out var rep)){
-                    info.Faction = rep.Faction?.Nickname;
-                }
-                if (solar.Value.TryGetComponent<SDockableComponent>(out var dock)){
-                    info.Dock = dock.Action;
-                }
-                si.Add(info);
-            }
-            rpcClient.SpawnSolar(si.ToArray());
-        }
-
-        private BlockingCollection<IPacket> inputPackets = new BlockingCollection<IPacket>();
+        private BufferBlock<IPacket> inputPackets = new();
         private Task packetQueueTask;
 
         public void EnqueuePacket(IPacket packet)
         {
-            inputPackets.Add(packet);
+            inputPackets.Post(packet);
         }
 
         //Long running task, quits when we finish consuming the collection
         async Task ProcessPacketQueue()
         {
-            foreach (var pkt in inputPackets.GetConsumingEnumerable())
+            while (await inputPackets.OutputAvailableAsync())
             {
+                var pkt = await inputPackets.ReceiveAsync();
                 try
                 {
-                    await ProcessPacketDirect(pkt);
+                    await ProcessPacketDirect(pkt).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -499,6 +537,31 @@ namespace LibreLancer.Server
             }
         }
 
+        private NetLoadout _scanLoadout;
+        private ObjNetId _scanId;
+        public void ClearScan()
+        {
+            if (_scanLoadout != null)
+            {
+                _scanLoadout = null;
+                RpcClient.ClearScan();
+            }
+        }
+
+        public void UpdateScan(ObjNetId id, NetLoadout loadout)
+        {
+            _scanLoadout ??= new();
+            var diff = NetLoadoutDiff.Create(_scanLoadout, loadout);
+            if (_scanId != id ||
+                diff.ApplyArchetype || diff.ApplyHealth ||
+                diff.Items != null)
+            {
+                RpcClient.UpdateScan(id, diff);
+            }
+            _scanLoadout = loadout;
+            _scanId = id;
+        }
+
         void IServerPlayer.RTCMissionAccepted()
         {
             msnRuntime?.MissionAccepted();
@@ -513,6 +576,7 @@ namespace LibreLancer.Server
         {
             using var c= Character.BeginTransaction();
             c.UpdateRank(Character.Rank + 1);
+            rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
         }
 
         void IServerPlayer.RequestCharacterDB()
@@ -525,7 +589,7 @@ namespace LibreLancer.Server
             }, PacketDeliveryMethod.ReliableOrdered);
         }
 
-        Task<bool> IServerPlayer.SelectCharacter(int index)
+        async Task<bool> IServerPlayer.SelectCharacter(int index)
         {
             if (index >= 0 && index < CharacterList.Count)
             {
@@ -533,14 +597,14 @@ namespace LibreLancer.Server
                 FLLog.Info("Server", $"opening id {sc.Id}");
                 if (!Game.CharactersInUse.Add(sc.Id)) {
                     FLLog.Info("Server", $"Character `{sc.Name}` is already in use");
-                    return Task.FromResult(false);
+                    return false;
                 }
-                BeginGame(NetCharacter.FromDb(sc.Id, Game), null);
-                return Task.FromResult(true);
+                BeginGame(await NetCharacter.FromDb(sc.Id, Game), null);
+                return true;
             }
             else
             {
-                return Task.FromResult(false);
+                return false;
             }
         }
 
@@ -554,31 +618,77 @@ namespace LibreLancer.Server
             return Task.FromResult(true);
         }
 
-        Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
+        async Task<bool> IServerPlayer.CreateNewCharacter(string name, int index)
         {
             if (!Game.Database.NameInUse(name))
             {
                 FLLog.Info("Player", $"New char: {name}");
                 SelectableCharacter sel = null;
-                long id = Game.Database.AddCharacter(playerGuid, (db) => {
-                    NetCharacter.FromSaveGame(Game, Game.NewCharacter(name, index), db);
+                long id = await Game.Database.AddCharacter(playerGuid, (db) =>
+                {
+                    NetCharacter.SaveToDbCharacter(Game, Game.NewCharacter(name, index), db);
                 });
-                sel = NetCharacter.FromDb(id, Game).ToSelectable();
+                sel = (await NetCharacter.FromDb(id, Game)).ToSelectable();
                 CharacterList.Add(sel);
                 Client.SendPacket(new AddCharacterPacket()
                 {
                     Character = sel
                 }, PacketDeliveryMethod.ReliableOrdered);
-                return Task.FromResult(true);
+                return true;
             } else {
                 FLLog.Info("Player", $"Char name in use: {name}");
-                return Task.FromResult(false);
+                return false;
             }
         }
 
-        public void SpawnDebris(int id, GameObjectKind kind, string archetype, string part, Transform3D tr, float mass)
+        public void VisitSystem(StarSystem system)
         {
-            rpcClient.SpawnDebris(id, kind, archetype, part, tr.Position, tr.Orientation, mass);
+            var needsFlag = (Character.GetVisitFlags(system.CRC) & VisitFlags.Visited) != VisitFlags.Visited;
+            var needsList = Character.IsSystemVisited(system.CRC);
+            if (needsFlag || needsList)
+            {
+                using var ts = Character.BeginTransaction();
+                if (needsFlag)
+                {
+                    ts.UpdateVisitFlags(system.CRC, VisitFlags.Visited);
+                    rpcClient.VisitObject(system.CRC, (byte)VisitFlags.Visited);
+                }
+                if (needsList)
+                {
+                    ts.VisitSystem(system.CRC);
+                    rpcClient.UpdateStatistics(Character.Statistics);
+                }
+            }
+        }
+
+        public void VisitObject(SystemObject obj, uint hash)
+        {
+            if ((obj.Visit & VisitFlags.Hidden) ==
+                VisitFlags.Hidden)
+            {
+                return;
+            }
+            if (!obj.Archetype.CanVisit)
+            {
+                return;
+            }
+            var needsFlag = (Character.GetVisitFlags(hash) & VisitFlags.Visited) != VisitFlags.Visited;
+            var needsList = (obj.Archetype.Type == ArchetypeType.jumphole ||
+                             obj.Archetype.Type == ArchetypeType.jump_hole) && !Character.IsJumpholeVisited(hash);
+            if (needsFlag || needsList)
+            {
+                using var ts = Character.BeginTransaction();
+                if (needsFlag)
+                {
+                    ts.UpdateVisitFlags(hash, obj.Visit | VisitFlags.Visited);
+                    rpcClient.VisitObject(hash, (byte)(obj.Visit | VisitFlags.Visited));
+                }
+                if (needsList)
+                {
+                    ts.VisitJumphole(hash);
+                    rpcClient.UpdateStatistics(Character.Statistics);
+                }
+            }
         }
 
         void UpdateCurrentReputations()
@@ -590,7 +700,25 @@ namespace LibreLancer.Server
             }).ToArray());
         }
 
-        public void UpdateCurrentInventory() => rpcClient.UpdateInventory(Character.Credits, GetShipWorth(), Character.EncodeLoadout());
+        private PlayerInventory lastInventory = new();
+
+        public void UpdateCurrentInventory()
+        {
+            PlayerInventory newInventory = new()
+            {
+                Credits = Character.Credits,
+                ShipWorth = GetShipWorth(),
+                NetWorth = (ulong)CalculateNetWorth(),
+                Loadout = Character.EncodeLoadout()
+            };
+            var diff = PlayerInventoryDiff.Create(lastInventory, newInventory);
+            lastInventory = newInventory;
+            if (diff.Header != 0)
+            {
+                rpcClient.UpdateInventory(diff);
+            }
+            Story?.Update(this);
+        }
 
         public void ForceLand(string target)
         {
@@ -673,6 +801,9 @@ namespace LibreLancer.Server
                 {
                     using var c = Character.BeginTransaction();
                     c.UpdatePosition(Base, System, Position, Orientation);
+                    var n = DateTime.UtcNow;
+                    c.UpdateTime(Character.Time + (n - StartTime).Seconds);
+                    StartTime = n;
                 }
                 SaveGame sg;
                 lock (thns)
@@ -680,12 +811,14 @@ namespace LibreLancer.Server
                     sg = SaveWriter.CreateSave(Character, description, ids, timeStamp, Game.GameData, thns.Rtcs,
                         thns.Ambients, Story);
                 }
-                MissionRuntime.WriteActiveTriggers(sg);
+                MissionRuntime?.WriteActiveTriggers(sg);
                 IniWriter.WriteIniFile(path, sg.ToIni());
                 completionSource.SetResult();
             });
             return completionSource.Task;
         }
+
+
 
 
         void LoggedOut()
@@ -694,6 +827,7 @@ namespace LibreLancer.Server
             {
                 using var c = Character.BeginTransaction();
                 c.UpdatePosition(Base, System, Position, Orientation);
+                c.UpdateTime(Character.Time + (DateTime.UtcNow - StartTime).Seconds);
                 Space?.Leave(false);
                 Space = null;
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
@@ -707,19 +841,19 @@ namespace LibreLancer.Server
         {
             if (packetQueueTask != null)
             {
-                inputPackets.CompleteAdding();
+                inputPackets.Complete();
                 packetQueueTask.Wait(1000);
             }
             LoggedOut();
         }
 
-        public void JumpTo(string system, string target)
+        public void JumpTo(string system, string target, JumperNpc[] jumpers)
         {
             rpcClient.StartJumpTunnel();
             FLLog.Debug("Player", $"Jumping to {system} - {target}");
             if(Space != null) Space.Leave(false);
             Space = null;
-
+            ClearScan();
             var sys = Game.GameData.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
@@ -749,7 +883,12 @@ namespace LibreLancer.Server
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();
+                    msnRuntime?.SystemEnter(system, "Player");
                 });
+                world.DelayAction(() =>
+                {
+                    world.SpawnJumpers(target, jumpers);
+                }, 4);
             }, msnPreload);
         }
 
@@ -759,6 +898,7 @@ namespace LibreLancer.Server
                 FLLog.Error("Server", $"{Name} cannot launch without a ship");
                 return;
             }
+            ClearScan();
             var b = Game.GameData.Bases.Get(Base);
             var sys = Game.GameData.Systems.Get(b.System);
             Game.Worlds.RequestWorld(sys, (world) =>
@@ -787,8 +927,25 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
+                    GameObject undockFrom = world.GameWorld.GetObject(obj.Nickname);
+                    SDockableComponent sd = null;
+                    if (undockFrom?.TryGetComponent(out sd) ?? false)
+                    {
+                        var tr = sd.GetSpawnPoint(0);
+                        Position = tr.Position;
+                        Orientation = tr.Orientation;
+                    }
+                    else
+                    {
+                        undockFrom = null;
+                    }
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
-                    world.SpawnPlayer(this, Position, Orientation);
+                    var pship = world.SpawnPlayer(this, Position, Orientation);
+                    if (undockFrom != null)
+                    {
+                        rpcClient.UndockFrom(undockFrom);
+                        sd!.UndockShip(pship);
+                    }
                     msnRuntime?.PlayerLaunch();
                     msnRuntime?.CheckMissionScript();
                     msnRuntime?.EnteredSpace();

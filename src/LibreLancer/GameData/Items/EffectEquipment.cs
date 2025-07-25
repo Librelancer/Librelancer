@@ -6,6 +6,7 @@ using System;
 using LibreLancer.Client.Components;
 using LibreLancer.Fx;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 
@@ -14,23 +15,33 @@ namespace LibreLancer.GameData.Items
 	public class EffectEquipment : Equipment
 	{
 		public ResolvedFx Particles;
-		public EffectEquipment()
-		{
-		}
         static EffectEquipment() => EquipmentObjectManager.RegisterType<EffectEquipment>(AddEquipment);
 
         static GameObject AddEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var obj = new GameObject();
-            if (type != EquipmentType.Server)
+
+            if (type == EquipmentType.Server)
             {
-                var e = (EffectEquipment) equip;
-                if (e.Particles != null)
-                {
-                    obj.RenderComponent = new ParticleEffectRenderer(e.Particles.GetEffect(res));
-                    obj.AddComponent(new CUpdateSParamComponent(obj));
-                }
+                return obj;
             }
+
+            var e = (EffectEquipment) equip;
+            if (e.Particles is null)
+            {
+                return obj;
+            }
+
+            obj.RenderComponent = new ParticleEffectRenderer(e.Particles.GetEffect(res));
+            obj.AddComponent(new CUpdateSParamComponent(obj));
+
+            if (e.Particles.Sound is not null &&
+                snd != null)
+            {
+                snd.LoadSound(e.Particles.Sound.Nickname);
+                obj.AddComponent(new CSoundEffectComponent(parent, snd, e.Particles.Sound.Nickname));
+            }
+
             return obj;
         }
     }

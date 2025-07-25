@@ -1,18 +1,21 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-using LibreLancer.Ini;
+
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Universe
 {
-    public class NebulaFog
+    [ParsedSection]
+    public partial class NebulaFog
     {
-        [Entry("fog_enabled")] 
+        [Entry("fog_enabled")]
         public int Enabled;
-        [Entry("near")] 
+        [Entry("near")]
         public int Near;
-        [Entry("distance")] 
+        [Entry("distance")]
         public int Distance;
-        [Entry("color")] 
+        [Entry("color")]
         public Color4 Color;
     }
 }

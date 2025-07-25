@@ -11,12 +11,15 @@ namespace LancerEdit.GameContent;
 public class LightSourceList
 {
     public List<LightSource> Sources = new List<LightSource>();
+    private LightSource[] originals;
     public BitArray512 Visible = new BitArray512();
 
     public event Action<Vector3> OnMoveCamera;
 
     public LightSource Selected;
     private SystemEditorTab tab;
+
+    public bool Dirty { get; private set; }
 
     public LightSourceList(SystemEditorTab tab)
     {
@@ -33,6 +36,39 @@ public class LightSourceList
         Sources = lights.Select(x => x.Clone()).ToList();
         Visible.SetAllTrue();
         Sort();
+        originals = Sources.Select(x => x.Clone()).ToArray();
+    }
+
+    public void SaveAndApply(StarSystem system)
+    {
+        Dirty = false;
+        originals = Sources.Select(x => x.Clone()).ToArray();
+        system.LightSources = originals.ToList();
+    }
+
+    public void CheckDirty()
+    {
+        Dirty = false;
+        if (originals.Length != Sources.Count)
+        {
+            Dirty = true;
+            return;
+        }
+
+        for (int i = 0; i < Sources.Count; i++)
+        {
+            if (Sources[i].Nickname != originals[i].Nickname ||
+                Sources[i].AttenuationCurveName != originals[i].AttenuationCurveName)
+            {
+                Dirty = true;
+                return;
+            }
+            if (!Sources[i].Light.Equals(ref originals[i].Light))
+            {
+                Dirty = true;
+                return;
+            }
+        }
     }
 
     public void Draw()
@@ -68,7 +104,4 @@ public class LightSourceList
             tab.UndoBuffer.Commit(x);
         ImGui.EndChild();
     }
-
-
-
 }

@@ -11,22 +11,23 @@ namespace LibreLancer.Graphics.Vertices
     public struct VertexPositionColorTexture : IVertexType
     {
         public Vector3 Position;
-        public Color4 Color;
         public Vector2 TextureCoordinate;
+        public VertexDiffuse Color;
+
         public VertexPositionColorTexture(Vector3 pos, Color4 color, Vector2 texcoord)
         {
             Position = pos;
-            Color = color;
+            Color = (VertexDiffuse)color;
             TextureCoordinate = texcoord;
         }
 
 		public VertexDeclaration GetVertexDeclaration()
 		{
 			return new VertexDeclaration(
-				sizeof(float) * 3 + sizeof(float) * 4 + sizeof(float) * 2,
+				sizeof(float) * 6,
 				new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
-				new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 3),
-				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 7)
+                new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 3),
+				new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, sizeof(float) * 5)
 			);
 		}
     }

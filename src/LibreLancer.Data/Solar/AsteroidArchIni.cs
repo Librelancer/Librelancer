@@ -3,31 +3,41 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using System.IO;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Solar;
 
-public class AsteroidArchIni : IniFile
+public class AsteroidArchIni
 {
     public List<Asteroid> Asteroids = new();
     public List<DynamicAsteroid> DynamicAsteroids = new();
 
     public void AddFile(string path, FileSystem vfs)
     {
-        foreach (var s in ParseFile(path, vfs))
+        using var stream = vfs == null ? File.OpenRead(path) : vfs.Open(path);
+        foreach (var s in IniFile.ParseFile(path, stream))
             switch (s.Name.ToLowerInvariant())
             {
                 case "asteroid":
-                    Asteroids.Add(FromSection<Asteroid>(s));
+                    if (Asteroid.TryParse(s, out var asteroid))
+                    {
+                        Asteroids.Add(asteroid);
+                    }
                     break;
                 case "asteroidmine":
-                    var a = FromSection<Asteroid>(s);
-                    a.IsMine = true;
-                    Asteroids.Add(a);
+                    if (Asteroid.TryParse(s, out var asteroidMine))
+                    {
+                        asteroidMine.IsMine = true;
+                        Asteroids.Add(asteroidMine);
+                    }
                     break;
                 case "dynamicasteroid":
-                    DynamicAsteroids.Add(FromSection<DynamicAsteroid>(s));
+                    if (DynamicAsteroid.TryParse(s, out var dynamicAsteroid))
+                    {
+                        DynamicAsteroids.Add(dynamicAsteroid);
+                    }
                     break;
             }
     }

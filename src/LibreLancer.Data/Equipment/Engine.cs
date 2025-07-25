@@ -4,11 +4,12 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class Engine : AbstractEquipment
+    [ParsedSection]
+    public partial class Engine : AbstractEquipment
     {
         [Entry("max_force")] public float MaxForce;
         [Entry("linear_drag")] public float LinearDrag;
@@ -35,7 +36,7 @@ namespace LibreLancer.Data.Equipment
         [Entry("outside_cone_attenuation")] public float OutsideConeAttenuation;
         [Entry("inside_sound_cone")] public float InsideSoundCone;
         [Entry("outside_sound_cone")] public float OutsideSoundCone;
-        
+
         //EXTENSION
         [Entry("cruise_speed")] public float CruiseSpeed;
     }

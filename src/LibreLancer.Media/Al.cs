@@ -8,7 +8,7 @@ namespace LibreLancer.Media
 {
     static class Al
     {
-        const string lib = "openal32.dll";
+        const string lib = "soft_oal.dll";
 
         class Native
         {
@@ -55,7 +55,7 @@ namespace LibreLancer.Media
 
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alSourceUnqueueBuffers(uint sid, int n, ref uint bids);
-            
+
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alSourceQueueBuffers(uint sid, int r, ref uint bids);
 
@@ -74,7 +74,11 @@ namespace LibreLancer.Media
             [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
             public static extern void alDisable(int name);
 
+            [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+            public static extern IntPtr alGetProcAddress([MarshalAs(UnmanagedType.LPUTF8Str)]string proc);
+
         }
+
 
         //CONSTANTS
         public const int AL_CONE_INNER_ANGLE = 0x1001;
@@ -110,8 +114,12 @@ namespace LibreLancer.Media
 
         //OpenAL SOFT extensions
         public const int AL_STOP_SOURCES_ON_DISCONNECT_SOFT = 0x19AB;
-
         //FUNCTIONS
+
+        public static IntPtr alGetProcAddress(string procName)
+        {
+            return Native.alGetProcAddress(procName);
+        }
 
         public static void alListenerf(int param, float value)
         {
@@ -157,7 +165,7 @@ namespace LibreLancer.Media
 			return s;
 		}
 
-      
+
 		public static uint GenBuffer()
 		{
 			uint b;
@@ -175,16 +183,26 @@ namespace LibreLancer.Media
             Native.alListenerfv(param, (IntPtr)floats);
             CheckErrors();
         }
-        
+
         public static void alListenerfv(int param, IntPtr value)
         {
             Native.alListenerfv(param, value);
             CheckErrors();
         }
 
-       
 
-		public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
+        public static unsafe void BufferData(uint bid, int format, IntPtr buffer, int size, int freq)
+        {
+            Native.alBufferData(bid, format, buffer, size, freq);
+            int error;
+            if ((error = Native.alGetError()) != Al.AL_NO_ERROR)
+            {
+                var str = $"alBufferData({bid}, {format}, void*, {size}, {freq}) - {GetString(error)}";
+                throw new InvalidOperationException(str);
+            }
+        }
+
+        public static unsafe void BufferData(uint bid, int format, byte[] buffer, int size, int freq)
 		{
 			fixed(byte* ptr = buffer)
 			{
@@ -245,14 +263,14 @@ namespace LibreLancer.Media
 			return Marshal.PtrToStringAnsi(Native.alGetString(param));
 		}
 
-        
+
         [System.Diagnostics.DebuggerHidden]
         static void CheckErrors()
 		{
 			int error;
-			if ((error = Native.alGetError()) != Al.AL_NO_ERROR)
-				throw new InvalidOperationException(Al.GetString(error));
-		}
+            if ((error = Native.alGetError()) != Al.AL_NO_ERROR)
+                throw new Exception($"AL ERROR {error}: {GetString(error)}");
+        }
 	}
 }
 

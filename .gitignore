@@ -1,6 +1,7 @@
 # Folders
 obj/
 out/
+build/
 [Bb]in/
 [Dd]ebug/
 [Rr]elease/

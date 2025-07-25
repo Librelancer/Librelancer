@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Solar
 {
-	public class Asteroid
+    [ParsedSection]
+	public partial class Asteroid
 	{
         [Entry("nickname", Required = true)]
 		public string Nickname;

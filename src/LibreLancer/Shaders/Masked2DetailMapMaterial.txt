@@ -1,0 +1,3 @@
+vertex Basic_FVF.vert.hlsl
+fragment Masked2DetailMapMaterial.frag.hlsl
+feature VERTEX_LIGHTING 1

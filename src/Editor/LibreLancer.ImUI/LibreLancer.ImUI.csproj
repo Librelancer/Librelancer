@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
+  <Import Project="../../Shader.targets"/>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,13 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <Compile Include="..\..\..\extern\ImGui.NET\src\ImGui.NET\**\*.cs" LinkBase="ImGui.NET" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\LibreLancer.Base\LibreLancer.Base.csproj" />
     <ProjectReference Include="..\..\LibreLancer.Data\LibreLancer.Data.csproj" />
-    <ProjectReference Include="..\..\LibreLancer.ImageLib\LibreLancer.ImageLib.csproj" />
     <ProjectReference Include="..\..\LibreLancer.Media\LibreLancer.Media.csproj" />
   </ItemGroup>
 
@@ -28,20 +24,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="checkerboard.png" />
-    <EmbeddedResource Include="checkerboard.png" />
-    <None Remove="Roboto-Medium.ttf" />
-    <EmbeddedResource Include="Roboto-Medium.ttf" />
-    <None Remove="fa-solid-900.ttf" />
-    <EmbeddedResource Include="fa-solid-900.ttf" />
-    <None Remove="empty-bullet.ttf" />
-    <EmbeddedResource Include="empty-bullet.ttf" />
-    <None Remove="bell.ogg" />
-    <EmbeddedResource Include="bell.ogg" />
-    <None Remove="file.png" />
-    <EmbeddedResource Include="file.png" />
-    <None Remove="folder.png" />
-    <EmbeddedResource Include="folder.png" />
+    <Shader Include="Shaders\*.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="checkerboard.png" />
+    <EmbeddedResource Include="Roboto-Regular.ttf" />
+    <EmbeddedResource Include="fa-solid-900.ttf" />
+    <EmbeddedResource Include="empty-bullet.ttf" />
+    <EmbeddedResource Include="bell.ogg" />
+    <EmbeddedResource Include="file.png" />
+    <EmbeddedResource Include="folder.png" />
+    <None Remove="InterDisplay-Regular.ttf" />
+    <None Remove="DroidSansFallbackFull.ttf" />
+    <EmbeddedResource Include="DroidSansFallbackFull.ttf" />
+  </ItemGroup>
 </Project>

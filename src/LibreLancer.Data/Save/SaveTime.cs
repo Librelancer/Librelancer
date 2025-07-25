@@ -4,17 +4,19 @@
 
 using System;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Save
 {
-    public class SaveTime : IWriteSection
+    [ParsedSection]
+    public partial class SaveTime : IWriteSection
     {
         [Entry("seconds")]
         public float Seconds;
 
         public void WriteTo(IniBuilder builder)
         {
-            builder.Section("SaveTime")
+            builder.Section("Time")
                 .Entry("seconds", Seconds);
         }
     }

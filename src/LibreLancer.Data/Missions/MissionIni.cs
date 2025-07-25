@@ -5,11 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data.Missions
 {
-    public class MissionIni : IniFile
+    [ParsedIni]
+    public partial class MissionIni
     {
         [Section("Mission")]
         public MissionInfo Info;
@@ -35,7 +37,7 @@ namespace LibreLancer.Data.Missions
         public NPCShipIni ShipIni;
         public MissionIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, vfs);
+            ParseIni(path, vfs);
 
             foreach (var objective in Objectives)
             {
@@ -70,7 +72,8 @@ namespace LibreLancer.Data.Missions
             }
         }
     }
-    public class MissionInfo
+    [ParsedSection]
+    public partial class MissionInfo
     {
         [Entry("mission_title")]
         public int MissionTitle;

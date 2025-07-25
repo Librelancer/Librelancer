@@ -5,37 +5,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
+
 namespace LibreLancer.Data
 {
-	public class MBasesIni : IniFile
-	{
-        public Dictionary<string, MBase> Bases = new Dictionary<string, MBase>(StringComparer.OrdinalIgnoreCase);
-		public MBasesIni() { }
+    [ParsedIni]
+	public partial class MBasesIni
+    {
+        [Section("mbase")]
+        [Section("mvendor", Type = typeof(MVendor), Child = true)]
+        [Section("mroom", Type = typeof(MRoom), Child = true)]
+        [Section("gf_npc", Type = typeof(GfNpc), Child = true)]
+        [Section("basefaction", Type = typeof(BaseFaction), Child = true)]
+        public List<MBase> MBases = new();
 
-        int i;
         public void AddFile(string path, FileSystem vfs)
         {
-            var sections = ParseFile(path, vfs).ToArray();
-            for (i = 0; i < sections.Length; i++) {
-                if (sections[i].Name.ToLowerInvariant() == "mbase")
-                {
-                    var mb = new MBase(EnumerateSections(sections));
-                    Bases[mb.Nickname] = mb; //Add() won't overwrite duplicates
-                    i--;
-                }
-            }
+            ParseIni(path, vfs);
         }
-		IEnumerable<Section> EnumerateSections(Section[] sections)
-		{
-			yield return sections[i];
-			i++;
-			while (i < sections.Length && !sections[i].Name.Equals("mbase", StringComparison.OrdinalIgnoreCase))
-			{
-				yield return sections[i];
-				i++;
-			}
-		}
 	}
 }

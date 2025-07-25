@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 using Xunit;
 
 namespace LibreLancer.Tests.Ini

@@ -5,7 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer
 {
 	public class MaterialMap
@@ -46,7 +47,7 @@ namespace LibreLancer
 			if (maps.ContainsKey (val)) {
 				return maps [val];
 			}
-			
+
 			return null;
 		}
 		public void AddRegex(StringKeyValue kv)

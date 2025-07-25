@@ -5,6 +5,7 @@ using System.Numerics;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 

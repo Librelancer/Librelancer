@@ -7,15 +7,6 @@
 [submodule "extern/lidgren-network-gen3"]
 	path = extern/lidgren-network-gen3
 	url = https://github.com/CallumDev/lidgren-network-gen3
-[submodule "extern/ImGui.NET"]
-	path = extern/ImGui.NET
-	url = https://github.com/mellinoe/ImGui.NET
-[submodule "extern/cimgui"]
-	path = extern/cimgui
-	url = https://github.com/cimgui/cimgui
-[submodule "extern/ImGuiColorTextEdit"]
-	path = extern/ImGuiColorTextEdit
-	url = https://github.com/pthom/ImGuiColorTextEdit
 [submodule "extern/lua"]
 	path = extern/lua
 	url = https://github.com/lua/lua
@@ -38,9 +29,6 @@
 [submodule "extern/wattlescript"]
 	path = extern/wattlescript
 	url = https://github.com/WattleScript/wattlescript
-[submodule "extern/glslang"]
-	path = extern/glslang
-	url = https://github.com/KhronosGroup/glslang
 [submodule "extern/SPIRV-Cross"]
 	path = extern/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross
@@ -50,9 +38,15 @@
 [submodule "extern/nativefiledialog-extended"]
 	path = extern/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended
-[submodule "extern/imgui-node-editor"]
-	path = extern/imgui-node-editor
-	url = https://github.com/thedmd/imgui-node-editor
 [submodule "extern/blurgtext"]
 	path = extern/blurgtext
 	url = https://github.com/CallumDev/blurgtext
+[submodule "extern/StringSquash"]
+	path = extern/StringSquash
+	url = https://github.com/CallumDev/StringSquash
+[submodule "extern/regex"]
+	path = extern/regex
+	url = https://github.com/boostorg/regex
+[submodule "extern/imgui"]
+	path = extern/imgui
+	url = https://github.com/ocornut/imgui

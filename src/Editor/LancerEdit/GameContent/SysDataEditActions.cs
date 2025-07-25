@@ -70,8 +70,8 @@ public class SysDataSetSpaceColor(SystemEditData target, Color4 old, Color4 upda
     public override void Set(Color4 value) => Target.SpaceColor = value;
 }
 
-public class SysDataSetAmbient(SystemEditData target, Color4 old, Color4 updated)
-    : SysDataModification<Color4>(target, old, updated, "SetAmbient")
+public class SysDataSetAmbient(SystemEditData target, Color3f old, Color3f updated)
+    : SysDataModification<Color3f>(target, old, updated, "SetAmbient")
 {
-    public override void Set(Color4 value) => Target.Ambient = value;
+    public override void Set(Color3f value) => Target.Ambient = value;
 }

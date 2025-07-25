@@ -1,15 +1,16 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class PilotsIni : IniFile
+    [ParsedIni]
+    public partial class PilotsIni
     {
         [Section("BuzzHeadTowardBlock")]
         public List<BuzzHeadTowardBlock> BuzzHeadTowardBlocks = new List<BuzzHeadTowardBlock>();
@@ -32,7 +33,7 @@ namespace LibreLancer.Data.Pilots
         [Section("StrafeBlock")] public List<StrafeBlock> StrafeBlocks = new List<StrafeBlock>();
         [Section("TrailBlock")] public List<TrailBlock> TrailBlocks = new List<TrailBlock>();
         [Section("Pilot")] public List<Pilot> Pilots = new List<Pilot>();
-        
-        public void AddFile(string file, FileSystem vfs) => ParseAndFill(file, vfs);
+
+        public void AddFile(string file, FileSystem vfs) => ParseIni(file, vfs);
     }
 }

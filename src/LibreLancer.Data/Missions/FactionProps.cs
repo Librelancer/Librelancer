@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Missions
 {
 
-    public class FactionProps
+    [ParsedSection]
+    public partial class FactionProps
     {
         [Entry("affiliation", Required = true)]
         public string Affiliation;

@@ -1,21 +1,18 @@
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.InitialWorld
 {
-    [SelfSection("locked_gates")]
-    public class InitialWorldIni : IniFile
+    [ParsedIni]
+    public partial class InitialWorldIni
     {
-        [Entry("locked_gate", Multiline = true)]
-        public List<int> LockedGates = new List<int>();
-
-        [Entry("npc_locked_gate", Multiline = true)]
-        public List<int> NpcLockedGates = new List<int>();
+        [Section("locked_gates")]
+        public List<LockedGates> LockedGates = new List<LockedGates>();
 
         [Section("group")]
         public List<FlGroup> Groups = new List<FlGroup>();
 
-        public void AddFile(string path, FileSystem vfs) => ParseAndFill(path, vfs);
+        public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
     }
 }

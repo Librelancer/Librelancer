@@ -6,9 +6,9 @@ using LibreLancer.GameData.World;
 using System.Text;
 using Castle.Core.Internal;
 using LibreLancer.Data;
+using LibreLancer.Data.Ini;
 using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
-using LibreLancer.Ini;
 using LibreLancer.Render;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.Universe;
@@ -339,17 +339,23 @@ public static class IniSerializer
         sb.OptionalEntry("relief_time", z.ReliefTime)
             .OptionalEntry("path_label", z.PathLabel)
             .OptionalEntry("usage", z.Usage);
-        foreach (var dr in z.DensityRestrictions)
+        if (z.DensityRestrictions != null)
         {
-            sb.Entry("density_restriction", dr.Count, dr.Type);
+            foreach (var dr in z.DensityRestrictions)
+            {
+                sb.Entry("density_restriction", dr.Count, dr.Type);
+            }
         }
 
-        foreach (var e in z.Encounters)
+        if (z.Encounters != null)
         {
-            sb.Entry("encounter", e.Archetype, e.Difficulty, e.Chance);
-            foreach (var f in e.FactionSpawns)
+            foreach (var e in z.Encounters)
             {
-                sb.Entry("faction", f.Faction, f.Chance);
+                sb.Entry("encounter", e.Archetype, e.Difficulty, e.Chance);
+                foreach (var f in e.FactionSpawns)
+                {
+                    sb.Entry("faction", f.Faction, f.Chance);
+                }
             }
         }
 
@@ -395,7 +401,14 @@ public static class IniSerializer
             }
         }
 
-        sb.OptionalEntry("behavior", obj.Behavior)
+        if (!string.IsNullOrWhiteSpace(obj.RingZone) &&
+            !string.IsNullOrWhiteSpace(obj.RingFile))
+        {
+            sb.Entry("ring", obj.RingZone, obj.RingFile);
+        }
+
+        sb.OptionalEntry("jump_effect", obj.JumpEffect)
+            .OptionalEntry("behavior", obj.Behavior)
             .OptionalEntry("voice", obj.Voice)
             .OptionalEntry("space_costume", obj.SpaceCostume)
             .OptionalEntry("faction", obj.Faction?.Nickname)

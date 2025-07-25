@@ -1,8 +1,9 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.RandomMissions;
 
-public class DocumentationNode : VignetteNode
+[ParsedSection]
+public partial class DocumentationNode : VignetteNode
 {
     [Entry("documentation")]
     public string Documentation;

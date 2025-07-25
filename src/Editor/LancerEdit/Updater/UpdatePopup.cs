@@ -109,11 +109,11 @@ public class UpdatePopup : PopupWindow
         }
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (msg != null)
         {
-            ImGui.TextUnformatted(msg);
+            ImGui.Text(msg);
             if(ImGui.Button("Ok"))
                 ImGui.CloseCurrentPopup();
         }

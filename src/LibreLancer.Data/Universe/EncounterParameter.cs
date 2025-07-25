@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class EncounterParameter
+    [ParsedSection]
+	public partial class EncounterParameter
     {
         [Entry("nickname")] public string Nickname;
         [Entry("filename")] public string Filename;

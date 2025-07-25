@@ -1,10 +1,11 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data;
 
-public class NameSection
+[ParsedSection]
+public partial class NameSection
 {
-    [Entry("name")] 
+    [Entry("name")]
     public string Name;
 
     public override string ToString() => Name;

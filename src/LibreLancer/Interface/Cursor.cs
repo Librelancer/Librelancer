@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Graphics;
+using LibreLancer.Resources;
 
 namespace LibreLancer
 {

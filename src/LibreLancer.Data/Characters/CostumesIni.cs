@@ -6,19 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+using LibreLancer.Data.IO;
 
 namespace LibreLancer.Data.Characters
 {
-	public class CostumesIni : IniFile
+    [ParsedIni]
+	public partial class CostumesIni
     {
         [Section("costume")]
         public List<Costume> Costumes = new List<Costume>();
 
-		public CostumesIni(string path, FreelancerData gdata)
+		public CostumesIni(string path, FileSystem vfs)
         {
-            ParseAndFill(path, gdata.VFS);
+            ParseIni(path, vfs);
 		}
 
 		public Costume FindCostume(string nickname)

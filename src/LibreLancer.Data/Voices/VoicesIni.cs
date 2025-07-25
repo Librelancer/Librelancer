@@ -4,31 +4,33 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Voices
 {
-    public class VoicesIni : IniFile
+    [ParsedSection]
+    partial class VoiceSection
+    {
+        [Entry("nickname")] public string Nickname;
+        [Entry("extend")] public string Extend;
+        [Entry("script", Multiline = true)] public List<string> Scripts = new List<string>();
+    }
+
+    public class VoicesIni
     {
         public Dictionary<string, Voice> Voices = new Dictionary<string, Voice>(StringComparer.OrdinalIgnoreCase);
-        class VoiceSection
-        {
-            [Entry("nickname")] public string Nickname;
-            [Entry("extend")] public string Extend;
-            [Entry("script", Multiline = true)] public List<string> Scripts = new List<string>();
-        }
 
         public void AddVoicesIni(string path, FileSystem vfs)
         {
             Voice currentVoice = null;
-            foreach (var section in ParseFile(path, vfs))
+            foreach (var section in IniFile.ParseFile(path, vfs))
             {
                 switch (section.Name.ToLowerInvariant())
                 {
                     case "voice":
-                        var s = FromSection<VoiceSection>(section);
-                        var name = s.Extend ?? s.Nickname;
+                        VoiceSection.TryParse(section, out var s);
+                        var name = s!.Extend ?? s.Nickname;
                         if (!Voices.TryGetValue(name, out currentVoice))
                         {
                             currentVoice = new Voice() { Nickname = name };
@@ -41,8 +43,11 @@ namespace LibreLancer.Data.Voices
                         {
                             FLLog.Error("Ini",
                                 string.Format("{0}:{1} [Sound] section without matching [Voice]", section.File, section.Line));
-                        } else
-                            currentVoice.Messages.Add(FromSection<VoiceMessage>(section));
+                        }
+                        else if (VoiceMessage.TryParse(section, out var msg))
+                        {
+                            currentVoice.Messages.Add(msg);
+                        }
                         break;
                 }
             }
@@ -56,9 +61,10 @@ namespace LibreLancer.Data.Voices
         public List<VoiceMessage> Messages = new List<VoiceMessage>();
     }
 
-    public class VoiceMessage
+    [ParsedSection]
+    public partial class VoiceMessage
     {
-        [Entry("msg")] public string Message;
+        [Entry("msg", Required = true)] public string Message;
         [Entry("attenuation")] public float Attenuation;
         [Entry("duration")] public float Duration;
         [Entry("priority")] public string Priority;

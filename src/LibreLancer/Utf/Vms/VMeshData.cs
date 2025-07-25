@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 namespace LibreLancer.Utf.Vms

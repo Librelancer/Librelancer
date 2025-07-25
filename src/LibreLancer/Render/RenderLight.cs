@@ -2,13 +2,37 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer.Render
 {
 	public struct RenderLight
 	{
-		public LightKind Kind;
+        public bool Equals(ref RenderLight other)
+        {
+            var s = MemoryMarshal.Cast<RenderLight, byte>(new ReadOnlySpan<RenderLight>(ref this));
+            var o = MemoryMarshal.Cast<RenderLight, byte>(new ReadOnlySpan<RenderLight>(ref other));
+            return s.SequenceEqual(o);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RenderLight other && Equals(ref other);
+        }
+
+        public static bool operator ==(RenderLight left, RenderLight right)
+        {
+            return left.Equals(ref right);
+        }
+
+        public static bool operator !=(RenderLight left, RenderLight right)
+        {
+            return !left.Equals(ref right);
+        }
+
+        public LightKind Kind;
 		public Vector3 Position;
 		public Vector3 Direction;
 		public Vector3 Attenuation;
@@ -37,6 +61,8 @@ namespace LibreLancer.Render
 			}
 			return hash;
 		}
+
+
 	}
 }
 

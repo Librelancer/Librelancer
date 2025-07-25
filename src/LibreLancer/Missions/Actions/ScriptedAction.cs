@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
-using LibreLancer.Ini;
 using LibreLancer.Net;
 using LibreLancer.Server;
-using LibreLancer.Server.Ai.ObjList;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 
@@ -152,7 +151,7 @@ namespace LibreLancer.Missions.Actions
                     TriggerActions.Act_DisableFriendlyFire => new Act_DisableFriendlyFire(a),
                     TriggerActions.Act_DisableEnc => new Act_DisableEnc(a),
                     TriggerActions.Act_Destroy => new Act_Destroy(a),
-                    // TriggerActions.Act_DebugMsg => new Act_DebugMsg(a),
+                    TriggerActions.Act_DebugMsg => new Act_DebugMsg(a),
                     TriggerActions.Act_DeactTrig => new Act_DeactTrig(a),
                     TriggerActions.Act_Cloak => new Act_Cloak(a),
                     TriggerActions.Act_ChangeState => new Act_ChangeState(a),
@@ -171,6 +170,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_SetNNObj : ScriptedAction
     {
         public string Objective = string.Empty;
+        public bool History = false;
 
         public Act_SetNNObj()
         {
@@ -179,11 +179,23 @@ namespace LibreLancer.Missions.Actions
         public Act_SetNNObj(MissionAction act) : base(act)
         {
             Objective = act.Entry[0].ToString();
+            if (act.Entry.Count > 1 &&
+                act.Entry[1].ToString()!.Equals("OBJECTIVE_HISTORY", StringComparison.OrdinalIgnoreCase))
+            {
+                History = true;
+            }
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_SetNNObj", Objective);
+            if (History)
+            {
+                section.Entry("Act_SetNNObj", Objective, "OBJECTIVE_HISTORY");
+            }
+            else
+            {
+                section.Entry("Act_SetNNObj", Objective);
+            }
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -195,7 +207,7 @@ namespace LibreLancer.Missions.Actions
 
             if (v.Type[0].Equals("ids", StringComparison.OrdinalIgnoreCase))
             {
-                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])));
+                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])), History);
             }
             else if (v.Type[0].Equals("navmarker", StringComparison.OrdinalIgnoreCase))
             {
@@ -209,7 +221,8 @@ namespace LibreLancer.Missions.Actions
                             float.Parse(v.Type[5], CultureInfo.InvariantCulture),
                             float.Parse(v.Type[6], CultureInfo.InvariantCulture)
                         )
-                    )
+                    ),
+                    History
                 );
             }
             else if (v.Type[0].Equals("rep_inst", StringComparison.OrdinalIgnoreCase))
@@ -220,7 +233,8 @@ namespace LibreLancer.Missions.Actions
                         int.Parse(v.Type[3]),
                         v.Type[1],
                         v.Type[7]
-                    )
+                    ),
+                    History
                 );
             }
         }
@@ -654,7 +668,7 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var fuse = runtime.Player.Space.World.Server.GameData.GetFuse(Fuse);
+                var fuse = runtime.Player.Space.World.Server.GameData.Fuses.Get(Fuse);
                 var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Target);
                 if (gameObj == null)
                 {
@@ -718,60 +732,57 @@ namespace LibreLancer.Missions.Actions
             section.Entry("Act_GiveObjList", Target, List);
         }
 
-        public override void Invoke(MissionRuntime runtime, MissionScript script)
+        void GiveObjList(GameObject obj, MissionDirective[] directives)
         {
-            if (!script.ObjLists.ContainsKey(List))
+            if (obj.TryGetComponent<SPlayerComponent>(out var player))
             {
-                FLLog.Error("Mission", $"Could not find objlist {List}");
-                return;
+                player.SetDirectives(directives);
             }
-            if (Target.Equals("player", StringComparison.OrdinalIgnoreCase))
+            else if (obj.TryGetComponent<DirectiveRunnerComponent>(out var dr))
             {
-                runtime.Player.MissionWorldAction(() => { ObjListForPlayer(runtime, script); });
-            }
-            else
-            {
-                var ol = script.ObjLists[List].AiState;
-                if (script.Ships.ContainsKey(Target))
-                {
-                    runtime.Player.Space.World.NPCs.NpcDoAction(Target,
-                        (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
-                }
-                else if (script.Formations.TryGetValue(Target, out var formation))
-                {
-                    foreach (var s in formation.Ships)
-                    {
-                        runtime.Player.Space.World.NPCs.NpcDoAction(s,
-                            (npc) => { npc.GetComponent<SNPCComponent>().SetState(ol); });
-                    }
-                }
+                dr.SetDirectives(directives);
             }
         }
 
-        void ObjListForPlayer(MissionRuntime runtime, MissionScript script)
+        public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            var ol = script.ObjLists[List];
-            var pObject = runtime.Player.Space.World.Players[runtime.Player];
-            var world = runtime.Player.Space.World;
-            foreach (var a in ol.Ini.Commands)
+            MissionDirective[] ol;
+            if ("no_ol".Equals(List, StringComparison.OrdinalIgnoreCase))
             {
-                if (a.Command == ObjListCommands.BreakFormation)
+                ol = null;
+            }
+            else
+            {
+                if (!script.ObjLists.ContainsKey(List))
                 {
-                    //Break formation somehow?
+                    FLLog.Error("Mission", $"Could not find objlist {List}");
+                    return;
                 }
-                else if (a.Command == ObjListCommands.FollowPlayer)
+                ol = script.ObjLists[List].Directives;
+            }
+
+            if (script.Formations.TryGetValue(Target, out var formation))
+            {
+                foreach (var s in formation.Ships)
                 {
-                    var newFormation = new ShipFormation(pObject);
-                    pObject.Formation = newFormation;
-                    for (int i = 1; i < a.Entry.Count; i++)
+                    runtime.Player.Space.World.NPCs.NpcDoAction(s,
+                            (npc) => { GiveObjList(npc, ol); });
+                }
+            }
+            else
+            {
+                runtime.Player.Space.World.EnqueueAction(() =>
+                {
+                    var tgt = runtime.Player.Space.World.GameWorld.GetObject(Target);
+                    if (tgt == null)
                     {
-                        var obj = world.GameWorld.GetObject(a.Entry[i].ToString());
-                        if (obj != null && obj.TryGetComponent<SNPCComponent>(out var c))
-                        {
-                            c.SetState(new AiFollowState("player", new Vector3(0,10, 15)));
-                        }
+                        FLLog.Error("Server", $"Act_GiveObjList can't find '{Target}'");
                     }
-                }
+                    else
+                    {
+                        GiveObjList(tgt, ol);
+                    }
+                });
             }
         }
     }

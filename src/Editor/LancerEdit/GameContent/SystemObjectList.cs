@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Filters;
 using LibreLancer;
+using LibreLancer.GameData.World;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
@@ -24,6 +26,11 @@ public class SystemObjectList
     private string filterText = "";
     private MainWindow win;
     private ObjectFiltering<GameObject> filters = new GameObjectFilters();
+
+    public bool Dirty { get; private set; }
+
+    public int OriginalCount { get; set; }
+
     public unsafe SystemObjectList(MainWindow win)
     {
         this.win = win;
@@ -45,6 +52,52 @@ public class SystemObjectList
     {
         SetObjects(prevWorld);
         ScrollToSelection();
+    }
+
+    public List<SystemObject> DeletedObjects = new();
+
+    public void SaveAndApply(StarSystem system)
+    {
+        foreach (var item in allObjects)
+        {
+            if (item.TryGetComponent<ObjectEditData>(out var dat))
+            {
+                dat.Apply();
+                if (dat.IsNewObject)
+                {
+                    system.Objects.Add(item.SystemObject);
+                }
+                item.RemoveComponent(dat);
+            }
+        }
+        foreach (var o in DeletedObjects)
+            system.Objects.Remove(o);
+        OriginalCount = allObjects.Length;
+        DeletedObjects = new List<SystemObject>();
+
+        CheckDirty();
+        Debug.Assert(!Dirty);
+    }
+
+    public void CheckDirty()
+    {
+        Dirty = false;
+        if (allObjects.Length != OriginalCount ||
+            DeletedObjects.Count > 0)
+        {
+            Dirty = true;
+            return;
+        }
+        foreach (var o in allObjects)
+        {
+            if (o.TryGetComponent<ObjectEditData>(out var editData)) {
+                if (editData.IsNewObject || editData.CheckDirty())
+                {
+                    Dirty = true;
+                    break;
+                }
+            }
+        }
     }
 
     public void SetObjects(GameWorld world)

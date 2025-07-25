@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.GameData.Items;
+using LibreLancer.Missions;
+using LibreLancer.Missions.Directives;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LiteNetLib;
 
 namespace LibreLancer.Server.Components
 {
@@ -43,6 +46,36 @@ namespace LibreLancer.Server.Components
 
         private Dictionary<int, int> priorities = new();
         private BitArray found = new BitArray(512);
+
+        private MissionDirective[] directives;
+        public void SetDirectives(MissionDirective[] directives)
+        {
+            this.directives = directives;
+            Player.RpcClient.RunDirectives(directives);
+        }
+
+        public void RunDirective(int index)
+        {
+            if (directives == null ||
+                index < 0 || index >= directives.Length)
+            {
+                FLLog.Warning("Player", $"Tried to run invalid directive index: {index}");
+                return;
+            }
+            if (directives[index] is MakeNewFormationDirective form)
+            {
+                FormationTools.MakeNewFormation(Parent, form.Formation, form.Ships);
+            }
+            else if (directives[index] is FollowPlayerDirective followPlayer)
+            {
+                FormationTools.MakeNewFormation(Parent, followPlayer.Formation, followPlayer.Ships);
+            }
+            else if (directives[index] is FollowDirective followOther)
+            {
+                var tgtObject = Parent.World.GetObject(followOther.Target);
+                FormationTools.EnterFormation(Parent, tgtObject, followOther.Offset);
+            }
+        }
 
         public void GetUpdates(GameObject[] objs, FetchedDelta[] deltas)
         {
@@ -152,6 +185,36 @@ namespace LibreLancer.Server.Components
             return found;
         }
 
+        public GameObject Scanning;
+
+        public void StopScan()
+        {
+            Player.ClearScan();
+            Scanning = null;
+        }
+
+        public void Scan(GameObject obj)
+        {
+            if (TryScan(obj, out _))
+            {
+                Scanning = obj;
+                Player.MissionRuntime?.CargoScanned("Player", obj.Nickname);
+            }
+            else
+            {
+                Scanning = null;
+                Player.ClearScan();
+            }
+        }
+
+        bool TryScan(GameObject obj, out NetLoadout loadout)
+        {
+            loadout = null;
+            return Parent.TryGetComponent<ScannerComponent>(out var scanner) &&
+                   scanner.CanScan(obj) &&
+                   Parent.GetWorld().Server.TryScanCargo(obj, out loadout);
+        }
+
         private ulong formationHash = 0;
         public override void Update(double time)
         {
@@ -192,6 +255,27 @@ namespace LibreLancer.Server.Components
                 formationHash = Parent.Formation.Hash;
                 Player.RpcClient.UpdateFormation(Parent.Formation.ToNetFormation(Parent));
             }
+
+            foreach (var obj in Parent.GetWorld().SpatialLookup
+                         .GetNearbyObjects(Parent, Parent.WorldTransform.Position, 10000))
+            {
+                if (obj.SystemObject != null)
+                {
+                    Player.VisitObject(obj.SystemObject, obj.NicknameCRC);
+                }
+            }
+
+            if (Scanning != null)
+            {
+                if (TryScan(Scanning, out var ld))
+                {
+                    Player.UpdateScan(Scanning, ld);
+                }
+                else
+                {
+                    Player.ClearScan();
+                }
+            }
         }
 
         public override int TryConsume(Equipment item, int maxCount = 1)
@@ -211,10 +295,34 @@ namespace LibreLancer.Server.Components
             return 0;
         }
 
+        public override int TryAdd(Equipment equipment, int maxCount)
+        {
+            var limit = CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, equipment);
+            var count = Math.Min(limit, maxCount);
+            if (count == 0)
+            {
+                return 0;
+            }
+            using (var c = Player.Character.BeginTransaction())
+            {
+                c.AddCargo(equipment, null, count);
+            }
+            Player.UpdateCurrentInventory();
+            return count;
+        }
+
         public override T FirstOf<T>()
         {
             var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment is T);
             return (T)slot?.Equipment;
+        }
+
+        public override IEnumerable<NetShipCargo> GetCargo(int firstId)
+        {
+            foreach (var i in Player.Character.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
+            {
+                yield return new NetShipCargo(i.ID, i.Equipment.CRC, null, 255, i.Count);
+            }
         }
     }
 }

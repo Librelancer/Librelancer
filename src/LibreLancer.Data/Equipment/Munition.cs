@@ -2,10 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Equipment
 {
-    public class Munition : AbstractEquipment
+    [ParsedSection]
+    [BaseSection]
+    public partial class Munition : AbstractEquipment
     {
         [Entry("const_effect")]
         public string ConstEffect;

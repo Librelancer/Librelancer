@@ -4,16 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Ini;
-    
+
 namespace LibreLancer.Data.Goods
 {
-    public class MarketsIni : IniFile
+    [ParsedIni]
+    public partial class MarketsIni
     {
         [Section("basegood")]
         public List<BaseGood> BaseGoods = new List<BaseGood>();
 
-        public void AddMarketsIni(string filename, FileSystem vfs) => ParseAndFill(filename, vfs);
+        public void AddMarketsIni(string filename, FileSystem vfs) => ParseIni(filename, vfs);
     }
 }

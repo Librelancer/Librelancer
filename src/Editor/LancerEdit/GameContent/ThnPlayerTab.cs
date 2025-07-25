@@ -39,6 +39,7 @@ public class ThnPlayerTab : GameContentTab
         this.win = mw;
         viewport = new Viewport3D(mw);
         viewport.EnableMSAA = false;
+        viewport.Draw3D = DrawGL;
     }
 
     void Open(params string[] files)
@@ -78,6 +79,16 @@ public class ThnPlayerTab : GameContentTab
 
     private int selectedDfmMode = 0;
 
+    private double drawElapsed;
+
+    void DrawGL(int w, int h)
+    {
+        cutscene.Update(drawElapsed);
+        cutscene.UpdateViewport(new Rectangle(0, 0, w, h), (float)w / h);
+        cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
+        cutscene.Draw(drawElapsed, w, h);
+    }
+
     public override void Draw(double elapsed)
     {
         if(ImGui.Button("Open"))
@@ -94,22 +105,16 @@ public class ThnPlayerTab : GameContentTab
         if(ImGuiExt.Button("Reload", cutscene != null))
             Reload();
         ImGui.SameLine();
-        ImGui.TextUnformatted($"T: {(cutscene?.CurrentTime ?? 0):F4}");
+        ImGui.Text($"T: {(cutscene?.CurrentTime ?? 0):F4}");
         ImGui.SameLine();
         #if DEBUG
         Controls.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
         #endif
-        if (viewport.Begin())
+        if (cutscene != null)
         {
-            if (cutscene != null)
-            {
-                ImGuiHelper.AnimatingElement();
-                cutscene.Update(elapsed);
-                cutscene.UpdateViewport(new Rectangle(0, 0, viewport.RenderWidth, viewport.RenderHeight), (float)viewport.RenderWidth / viewport.RenderHeight);
-                cutscene.Renderer.DfmMode = (DfmDrawMode)selectedDfmMode;
-                cutscene.Draw(elapsed, viewport.RenderWidth, viewport.RenderHeight);
-            }
-            viewport.End();
+            drawElapsed = elapsed;
+            ImGuiHelper.AnimatingElement();
+            viewport.Draw();
         }
         bool popupopen = true;
         if (ImGui.BeginPopupModal("Open Multiple##" + Unique, ref popupopen, ImGuiWindowFlags.AlwaysAutoResize))
@@ -118,7 +123,7 @@ public class ThnPlayerTab : GameContentTab
             {
                 FileDialog.Open(file => openFiles.Add(file));
             }
-            ImGui.BeginChild("##files", new Vector2(200, 200), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
+            ImGui.BeginChild("##files", new Vector2(200, 200), ImGuiChildFlags.Borders, ImGuiWindowFlags.HorizontalScrollbar);
             int j = 0;
             foreach (var f in openFiles)
                 ImGui.Selectable(ImGuiExt.IDWithExtra(f, j++));
@@ -155,7 +160,7 @@ public class ThnPlayerTab : GameContentTab
 
                         ImGui.SetNextItemWidth(-1);
                         var th = ImGui.GetWindowHeight() - 100;
-                        ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                         ImGui.InputTextMultiline("##src", ref file.Text, uint.MaxValue, new Vector2(0, th),
                             ImGuiInputTextFlags.ReadOnly);
                         ImGui.PopFont();

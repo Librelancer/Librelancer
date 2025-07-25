@@ -2,7 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
 	public interface IValue
 	{
@@ -12,7 +12,7 @@ namespace LibreLancer.Ini
         bool TryToSingle(out float result);
 
         bool ToBoolean();
-		int ToInt32(); 
+		int ToInt32();
         long ToInt64();
         float ToSingle();
 

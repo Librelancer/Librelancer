@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace LibreLancer.Graphics.Backends.Null;
 
 class NullRenderTarget2D : IRenderTarget2D
@@ -21,6 +23,11 @@ class NullRenderTarget2D : IRenderTarget2D
 
     public void BlitToScreen(Point offset)
     {
+    }
+
+    public Task<(int Width, int Height, Bgra8[] Data)> DownloadAsync()
+    {
+        return Task.FromResult((Width, Height, new Bgra8[Width * Height]));
     }
 
     public int Width { get; }

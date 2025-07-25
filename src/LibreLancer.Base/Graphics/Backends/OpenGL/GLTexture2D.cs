@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace LibreLancer.Graphics.Backends.OpenGL
 {
@@ -109,6 +110,41 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             }
         }
 
+        public Task<byte[]> GetDataAsync()
+        {
+            var sz = Width * Height * Format.GetSizeEstimate();
+            if (!GLExtensions.Sync)
+            {
+                //Fallback when GL_ARB_sync is not supported
+                var regBytes = new byte[sz];
+                GetData(regBytes);
+                return Task.FromResult(regBytes);
+            }
+            var pbo = GL.GenBuffer();
+            var fbo = GL.GenFramebuffer();
+            GL.BindFramebuffer(GL.GL_FRAMEBUFFER, fbo);
+            GL.FramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, ID, 0);
+            GL.BindBuffer(GL.GL_PIXEL_PACK_BUFFER, pbo);
+            GL.BufferData(GL.GL_PIXEL_PACK_BUFFER, (IntPtr)sz, IntPtr.Zero, GL.GL_STREAM_READ);
+            GL.ReadPixels(0,0, Width, Height, glFormat, glType, IntPtr.Zero);
+            GL.DeleteFramebuffer(fbo);
+            GL.BindBuffer(GL.GL_PIXEL_PACK_BUFFER, 0);
+            var ts = new TaskCompletionSource<byte[]>();
+            GL.Flush();
+            var sync = GL.FenceSync(GL.GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+            rc.AddFence(sync, () =>
+            {
+                GL.BindBuffer(GL.GL_PIXEL_PACK_BUFFER, pbo);
+                var ptr = GL.MapBufferRange(GL.GL_PIXEL_PACK_BUFFER, IntPtr.Zero, sz, GL.GL_MAP_READ_BIT);
+                var bytes = new byte[sz];
+                Marshal.Copy(ptr, bytes, 0, sz);
+                GL.UnmapBuffer(GL.GL_PIXEL_PACK_BUFFER);
+                GL.BindBuffer(GL.GL_PIXEL_PACK_BUFFER, 0);
+                ts.SetResult(bytes);
+            });
+            return ts.Task;
+        }
+
         int maxLevel = 0;
         int currentLevels = 0;
 
@@ -117,6 +153,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         {
             GetData<T>(data);
         }
+
         public void GetData<T>(T[] data) where T : struct
         {
 			if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)

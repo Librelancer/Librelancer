@@ -1,0 +1,2 @@
+vertex EnvMapTest.vert.hlsl
+fragment EnvMapTest.frag.hlsl

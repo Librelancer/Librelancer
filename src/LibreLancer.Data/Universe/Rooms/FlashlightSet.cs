@@ -1,21 +1,22 @@
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe.Rooms;
 
-public class FlashlightSet
+[ParsedSection]
+public partial class FlashlightSet
 {
-    [Entry("icolor")] 
+    [Entry("icolor")]
     public Color3f IColor;
-    [Entry("scale")] 
+    [Entry("scale")]
     public float Scale;
-    [Entry("gap")] 
+    [Entry("gap")]
     public float Gap;
-    [Entry("blink")] 
+    [Entry("blink")]
     public float Blink;
-    [Entry("endpause")] 
+    [Entry("endpause")]
     public float EndPause;
-    [Entry("hardpoint", Multiline = true)] 
+    [Entry("hardpoint", Multiline = true)]
     public List<string> Hardpoints = new List<string>();
     [Entry("numlights")]
     public int NumLights;

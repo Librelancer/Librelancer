@@ -106,10 +106,13 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public const int GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 0x8a34;
         public const int GL_COPY_READ_BUFFER = 0x8F36;
         public const int GL_COPY_WRITE_BUFFER = 0x8F37;
+        public const int GL_PIXEL_PACK_BUFFER = 0x88EB;
 
 		public const int GL_STREAM_DRAW = 0x88E0;
 		public const int GL_DYNAMIC_DRAW = 0x88E8;
 		public const int GL_STATIC_DRAW = 0x88E4;
+
+        public const int GL_STREAM_READ = 0x88E1;
 
 		public const int GL_POINTS = 0x0000;
 		public const int GL_LINES = 0x0001;
@@ -172,6 +175,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public const int GL_MAP_WRITE_BIT = 0x0002;
         public const int GL_MAP_INVALIDATE_BUFFER_BIT = 0x0008;
         public const int GL_MAP_UNSYNCHRONIZED_BIT = 0x0020;
+
+        public const int GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117;
+        public const int GL_ALREADY_SIGNALED = 0x911A;
+        public const int GL_CONDITION_SATISFIED = 0x911C;
     }
 }
 

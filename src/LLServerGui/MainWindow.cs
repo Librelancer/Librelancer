@@ -60,7 +60,7 @@ public class MainWindow : Game
         RenderContext.ReplaceViewport(0, 0, Width, Height);
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
-        ImGui.PushFont(ImGuiHelper.Noto);
+        ImGui.PushFont(ImGuiHelper.Roboto, 0);
         var size = (Vector2)ImGui.GetIO().DisplaySize;
         ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
         ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
@@ -88,13 +88,13 @@ public class MainWindow : Game
     void InputTextLabel(string label, string id, ref string text)
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(label);
+        ImGui.Text(label);
         ImGui.InputText(id, ref text, 4096);
     }
     void StartupGui()
     {
         ImGui.Text("Server Configuration");
-        ImGui.TextUnformatted($"Configuration file: '{configPath}'");
+        ImGui.Text($"Configuration file: '{configPath}'");
         ImGui.Separator();
         InputTextLabel("Server Name", "##serverName", ref config.ServerName);
         ImGui.Text("Server Description");
@@ -147,7 +147,7 @@ public class MainWindow : Game
         return ImGui.BeginPopupModal(id, ref x);
     }
 
-    unsafe void RunningServer()
+    void RunningServer()
     {
         if (startupError)
         {
@@ -166,20 +166,23 @@ public class MainWindow : Game
                 ImGui.SameLine();
                 if (ImGui.Button("Make Admin"))
                 {
-                    var adminId = server.Server.Database.FindCharacter(adminSearchString);
-                    if (adminId != null)
+                    Task.Run(async () =>
                     {
-                        FLLog.Info("Server", $"Making {adminId.Value} admin");
-                        server.Server.Database.AdminCharacter(adminId.Value).Wait();
-                        server.Server.AdminChanged(adminId.Value, true);
-                        admins = server.Server.Database.GetAdmins();
-                        adminSearchString = "";
-                    }
+                        var adminId = await server.Server.Database.FindCharacter(adminSearchString);
+                        if (adminId != null)
+                        {
+                            FLLog.Info("Server", $"Making {adminId.Value} admin");
+                            await server.Server.Database.AdminCharacter(adminId.Value).ConfigureAwait(false);
+                            server.Server.AdminChanged(adminId.Value, true);
+                            admins = server.Server.Database.GetAdmins();
+                            adminSearchString = "";
+                        }
+                    });
                 }
                 foreach (var a in admins)
                 {
                     ImGui.Separator();
-                    ImGui.TextUnformatted(a.Name);
+                    ImGui.Text(a.Name);
                     if (ImGui.Button("Remove Admin##" + a.Id))
                     {
                         FLLog.Info("Server", $"Removing admin from {a.Name}");
@@ -195,10 +198,15 @@ public class MainWindow : Game
                 InputTextLabel("Character: ", "##character", ref banSearchString);
                 ImGui.SameLine();
                 if (ImGui.Button("Find Account"))
-                    banId = server.Server.Database.FindAccount(banSearchString);
+                {
+                    Task.Run(async () =>
+                    {
+                        banId = await server.Server.Database.FindAccount(banSearchString);
+                    });
+                }
                 if (banId != null)
                 {
-                    ImGui.TextUnformatted($"Found account: {banId}");
+                    ImGui.Text($"Found account: {banId}");
                     if (ImGui.Button("Ban"))
                     {
                         server.Server.Database.BanAccount(banId.Value, DateTime.UtcNow.AddDays(30));
@@ -216,7 +224,7 @@ public class MainWindow : Game
                 ImGui.BeginChild("##banned");
                 foreach (var b in bannedPlayers)
                 {
-                    ImGui.TextUnformatted($"Id: {b.AccountId}");
+                    ImGui.Text($"Id: {b.AccountId}");
                     ImGui.SameLine();
                     if (ImGui.Button("Unban##" + b.AccountId))
                     {
@@ -224,7 +232,7 @@ public class MainWindow : Game
                         FLLog.Info("Server", $"Unbanned account {b.AccountId}");
                         ImGui.CloseCurrentPopup();
                     }
-                    ImGui.TextUnformatted($"Ban Expiry: {b.Expiry.ToLocalTime()}");
+                    ImGui.Text($"Ban Expiry: {b.Expiry.ToLocalTime()}");
                     ImGui.TextWrapped($"Characters: {string.Join(", ", b.Characters)}");
                     ImGui.Separator();
                 }
@@ -259,10 +267,10 @@ public class MainWindow : Game
                 Reset();
                 return;
             }
-            ImGui.TextUnformatted($"Server Running on Port {server.Server.Listener.Port}");
-            ImGui.TextUnformatted(
+            ImGui.Text($"Server Running on Port {server.Server.Listener.Port}");
+            ImGui.Text(
                 $"Players Connected: {server.Server.Listener.Server.ConnectedPeersCount}/{server.Server.Listener.MaxConnections}");
-            float* values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
+            Span<float> values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
             var len = server.Server.PerformanceStats.Timings.Count;
             double avg = 0;
             double max = 0;
@@ -276,7 +284,7 @@ public class MainWindow : Game
                 avg += v;
             }
             avg /= len;
-            ImGui.TextUnformatted($"Update Time: (Avg: {avg:F4}ms/Min: {min:F4}ms/Max: {max:F4}ms)");
+            ImGui.Text($"Update Time: (Avg: {avg:F4}ms/Min: {min:F4}ms/Max: {max:F4}ms)");
             ImGui.PlotLines("##updatetime", ref values[0], len, 0, "", 0, (float)Math.Max(max, 17),
                 new Vector2(400, 150));
         }

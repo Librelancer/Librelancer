@@ -7,6 +7,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
+using LibreLancer.Resources;
 
 namespace InterfaceEdit
 {
@@ -29,6 +30,7 @@ namespace InterfaceEdit
         public string ProjectFile;
 
         public Infocard TestingInfocard;
+        public Infocard ShipInfocard;
         private MainWindow window;
         public Project(MainWindow window)
         {
@@ -101,10 +103,11 @@ namespace InterfaceEdit
             catch (Exception)
             {
             }
-            window.Fonts.LoadFontsFromIni(flIni, UiData.FileSystem);
+            window.Fonts.LoadFontsFromIni(flIni, window.RenderContext, UiData.FileSystem);
             //unioners infocard
             var im = new InfocardManager(flIni.Resources);
             TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
+            ShipInfocard = RDLParse.Parse(im.GetXmlResource(66598), window.Fonts);
         }
 
         public bool Open(string projectpath)

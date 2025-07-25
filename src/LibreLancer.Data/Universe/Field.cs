@@ -3,11 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class Field
+    [ParsedSection]
+	public partial class Field
     {
         [Entry("cube_size")]
         public int? CubeSize;

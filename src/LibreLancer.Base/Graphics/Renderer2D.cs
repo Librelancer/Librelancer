@@ -59,42 +59,6 @@ namespace LibreLancer.Graphics
 		const int MAX_VERT = MAX_GLYPHS * 4;
 		const int MAX_INDEX = MAX_GLYPHS * 6;
 
-		const string vertex_source = @"
-		#version {0}
-		in vec2 vertex_position;
-		in vec2 vertex_texture1;
-		in vec4 vertex_color;
-		out vec2 out_texcoord;
-		out vec4 blendColor;
-		uniform mat4 modelviewproj;
-		void main()
-		{
-    		gl_Position = modelviewproj * vec4(vertex_position, 0.0, 1.0);
-    		blendColor = vertex_color;
-    		out_texcoord = vertex_texture1;
-		}
-		";
-
-        const string img_fragment_source = @"
-		#version {0}
-		in vec2 out_texcoord;
-        in vec2 c_pos;
-		in vec4 blendColor;
-		out vec4 out_color;
-		uniform sampler2D tex;
-        uniform float blend;
-		void main()
-		{
-            vec4 src;
-            if(out_texcoord.x < -999.0) {
-                src = vec4(1);
-            } else {
-                src = texture(tex, out_texcoord);
-            }
-            src = mix(src, vec4(1.0,1.0,1.0, src.r), blend);
-            out_color = src * blendColor;
-		}
-		";
 
 		[StructLayout(LayoutKind.Sequential)]
 		struct Vertex2D : IVertexType {
@@ -126,15 +90,11 @@ namespace LibreLancer.Graphics
         Vertex2D* vertices;
 		Shader imgShader;
 		Texture2D dot;
-        private int blendLocation;
 
         internal Renderer2D (RenderContext rstate)
 		{
 			rs = rstate;
-            string glslVer = rstate.HasFeature(GraphicsFeature.GLES) ? "300 es\nprecision mediump float;" : "140";
-            imgShader = new Shader (rstate, vertex_source.Replace("{0}", glslVer), img_fragment_source.Replace("{0}", glslVer));
-			imgShader.SetInteger (imgShader.GetLocation("tex"), 7);
-            blendLocation = imgShader.GetLocation("blend");
+            imgShader = ShaderBundle.FromResource<Renderer2D>(rstate, "Shader2D.bin").Get(0);
 			vbo = new VertexBuffer (rstate, typeof(Vertex2D), MAX_VERT, true);
 			el = new ElementBuffer (rstate, MAX_INDEX);
 			var indices = new ushort[MAX_INDEX];
@@ -156,7 +116,7 @@ namespace LibreLancer.Graphics
 			dot.SetData (new byte[] { 255 });
 		}
 
-        private RichTextEngine richText;
+        private BlurgEngine richText;
         public RichTextEngine CreateRichTextEngine()
         {
             if (richText == null)
@@ -165,7 +125,6 @@ namespace LibreLancer.Graphics
             }
             return richText;
         }
-
 
         public Point MeasureString(string fontName, float size, string str)
 		{
@@ -194,7 +153,7 @@ namespace LibreLancer.Graphics
                 cVpW = vpW;
                 cVpH = vpH;
                 var mat = Matrix4x4.CreateOrthographicOffCenter (0, vpW, vpH, 0, 0, 1);
-                imgShader.SetMatrix (imgShader.GetLocation("modelviewproj"), ref mat);
+                imgShader.SetUniformBlock(2, ref mat);
             }
         }
 
@@ -591,10 +550,8 @@ namespace LibreLancer.Graphics
             rs.ApplyScissor();
             rs.SetBlendMode(currentMode);
             currentTexture.BindTo (7);
-            if(currentTexture.Format == SurfaceFormat.R8)
-                imgShader.SetFloat(blendLocation, 1f);
-            else
-                imgShader.SetFloat(blendLocation, 0f);
+            int blend = currentTexture.Format != SurfaceFormat.R8 ? 1 : 0;
+            imgShader.SetUniformBlock(3, ref blend);
             rs.Backend.ApplyShader(imgShader.Backing);
             vbo.EndStreaming(vertexCount);
 			vbo.DrawNoApply (PrimitiveTypes.TriangleList, primitiveCount);

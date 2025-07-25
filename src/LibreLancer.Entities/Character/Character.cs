@@ -28,6 +28,10 @@ namespace LibreLancer.Entities.Character
 
         public long Money { get; set; }
 
+        // Total play time in seconds
+
+        public double Time { get; set; }
+
         // voice = trent_voice
         public string Voice { get; set; }
 
@@ -69,7 +73,10 @@ namespace LibreLancer.Entities.Character
         // The amount of fighters killed
         public long FightersKilled { get; set; }
 
-        // The amount of Freighters/Transports killed
+        // The amount of Freighters killed
+        public long FreightersKilled { get; set; }
+
+        // The amount of Transports killed
         public long TransportsKilled { get; set; }
 
         // The amount of capital ships killed
@@ -88,9 +95,13 @@ namespace LibreLancer.Entities.Character
         // Should be a subtable with that information inside of it. Playername would be the primary key.
         public virtual ICollection<Reputation> Reputations { get; set; }
 
-        // In vanilla, visit = hash of solar nickname, visit value. Vanilla visit values can be found here: https://the-starport.net/freelancer/forum/viewtopic.php?post_id=34251#forumpost34251
+        // In vanilla, visit = CreateID hash, visit value. Vanilla visit values can be found here: https://the-starport.net/freelancer/forum/viewtopic.php?post_id=34251#forumpost34251
         // Should be a subtable with that information inside of it. Playername would be the primary key.
         public virtual ICollection<VisitEntry> VisitEntries { get; set; }
+
+        // In vanilla, covers sys_visited =, base_visited =, holes_visited =
+        // Here we merge it all into one table
+        public virtual ICollection<VisitHistoryEntry> VisitHistoryEntries { get; set; }
 
         public virtual ICollection<CargoItem> Items { get; set; }
 

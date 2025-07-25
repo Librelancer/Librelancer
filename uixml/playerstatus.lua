@@ -1,4 +1,5 @@
 require 'childwindow'
+require 'ids'
 
 local function faction_gauge(negative, reputation)
 {
@@ -62,10 +63,48 @@ local function faction_list_item(ids, reputation)
 	return li;
 }
 
+class StatusData
+{
+    StatusData(data)
+    {
+        this.data = data;
+    }
+    GetCount()
+    {
+        return this.data.length;
+    }
+    GetString(row, column)
+    {
+        local row = this.data[row + 1];
+        if (row == nil)
+        {
+            return nil;
+        }
+        local getter = row[column];
+        if(getter == nil)
+        {
+            return nil;
+        }
+        return type(getter) == 'function'
+            ? getter()
+            : getter;
+    }
+    GetSelected()
+    {
+        return -1;
+    }
+    SetSelected(selected)
+    {
+    }
+    ValidSelection()
+    {
+        return false;
+    }
+}
+
 class playerstatus : playerstatus_Designer with ChildWindow
 {
 
-	
     playerstatus()
     {
         base();
@@ -82,6 +121,33 @@ class playerstatus : playerstatus_Designer with ChildWindow
 		for(f in facs) {
 			e.factions.Children.Add(faction_list_item(f.IdsName, f.Relationship));
 		}
+		local missionString = StringFromID(1568);
+        local creditString = StringFromID(STRID_CREDIT_SIGN);
+        local formatMoney = (credits) => creditString + NumberToStringCS(credits, "N0");
+		local formatTime = (time) => {
+			local hours = math.floor(time / 3600);
+			local minutes = math.floor((time / 60) - (hours * 60));
+			local seconds = math.floor(time % 60);
+			return string.format("%02d:%02d:%02d", hours, minutes, seconds);
+		};
+		local playerData = {
+            { "name": StringFromID(1565), "value": () => Game.CurrentRank }, // current level
+            { "name": StringFromID(1566), "value": () => formatMoney(Game.NetWorth) }, // current worth
+            { "name": StringFromID(1567), "value": () => Game.NextLevelWorth > 0 ? formatMoney(Game.NextLevelWorth) : missionString }, // next level requirement
+            { "name": "", "value": "" }, // blank line
+            { "name": StringFromID(1611), "value": () => Game.Statistics.TotalMissions }, // total missions
+            { "name": StringFromID(1601), "value": () => Game.Statistics.TotalKills }, // total kills
+            { "name": StringFromID(1606), "value": () => formatTime(Game.CharacterPlayTime) }, // total time
+            { "name": StringFromID(1607), "value": () => Game.Statistics.SystemsVisited }, // systems visited
+            { "name": StringFromID(1608), "value": () => Game.Statistics.BasesVisited }, // bases visited
+            { "name": StringFromID(1609), "value": () => Game.Statistics.JumpHolesFound }, // jump holes found
+            { "name": "", "value": "" }, // blank line
+            { "name": StringFromID(1610), "value": () => Game.Statistics.FightersKilled }, // fighters killed
+            { "name": StringFromID(1612), "value": () => Game.Statistics.FreightersKilled }, // freighters killed
+            { "name": StringFromID(1613), "value": () => Game.Statistics.TransportsKilled }, // transports killed
+            { "name": StringFromID(1614), "value": () => Game.Statistics.BattleshipsKilled }, // battleships killed
+        }
+        e.stats.SetData(new StatusData(playerData));
 	}
 }
 

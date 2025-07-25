@@ -54,16 +54,12 @@ namespace LibreLancer.ImUI
 
         public unsafe void InputText(string id, ImGuiInputTextFlags flags, int sz = -1)
         {
-            var idBytes = UnsafeHelpers.StringToHGlobalUTF8(id);
-            ImGuiNative.igInputText((byte*)idBytes, (byte*)Pointer, (uint)(sz > 0 ? sz : Size), flags, Callback, (void*)0);
-            Marshal.FreeHGlobal(idBytes);
+            ImGui.InputText(id, Pointer, (nint)(sz > 0 ? sz : Size), flags, Callback);
         }
 
         public void InputTextMultiline(string id, Vector2 size, ImGuiInputTextFlags flags, int sz = -1)
         {
-            var idBytes = UnsafeHelpers.StringToHGlobalUTF8(id);
-            ImGuiNative.igInputTextMultiline((byte*)idBytes, (byte*)Pointer, (uint)(sz > 0 ? sz : Size), size, flags, Callback, (void*)0);
-            Marshal.FreeHGlobal(idBytes);
+            ImGui.InputTextMultiline(id, Pointer, (nint)(sz > 0 ? sz : Size), size, flags, Callback);
         }
 
         public byte[] GetByteArray()

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.ContentEdit.Texture;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
@@ -63,9 +64,11 @@ public static class ModelExporter
         }
         //Export model
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
-        var processed = ProcessNode(rootModel, output, settings, resources, sur, false);
+        var ag = new List<Geometry>();
+        var processed = ProcessNode(rootModel, output, settings, resources, sur, ag, false);
         if (processed.IsError)
             return new EditResult<SimpleMesh.Model>(null, processed.Messages);
+        output.Geometries = ag.ToArray();
         output.Roots = new[] { processed.Data };
         if (cmp.Animation != null && settings.IncludeAnimations)
         {
@@ -124,10 +127,12 @@ public static class ModelExporter
             Model = mdl,
             Construct = null,
         };
+        var ag = new List<Geometry>();
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
-        var processed = ProcessNode(exportNode, output, settings, resources, sur, true);
+        var processed = ProcessNode(exportNode, output, settings, resources, sur, ag, true);
         if (processed.IsError)
             return new EditResult<SimpleMesh.Model>(null, processed.Messages);
+        output.Geometries = ag.ToArray();
         output.Roots = new[] { processed.Data };
         if(settings.IncludeTextures)
             output.Images = ExportImages(resources, output.Materials);
@@ -139,6 +144,7 @@ public static class ModelExporter
         uint parentId,
         ResourceManager resources,
         Dictionary<string, Material> materials,
+        List<Geometry> geometries,
         SurFile? sur)
     {
         var n = new ModelNode();
@@ -164,7 +170,7 @@ public static class ModelExporter
             for (int i = 0; i < hulls.Length; i++)
             {
                 var h = hulls[i];
-                var geo = GeometryFromSur($"{def.Name}.{i}$hull", h, resources, materials);
+                var geo = GeometryFromSur($"{def.Name}.{i}$hull", h, resources, materials, geometries);
                 Matrix4x4.Invert(n.Transform, out var inverse);
                 for (int j = 0; j < geo.Vertices.Length; j++)
                 {
@@ -181,7 +187,7 @@ public static class ModelExporter
         return n;
     }
 
-    static EditResult<ModelNode> ProcessNode(ExportModelNode node, SimpleMesh.Model dest, ModelExporterSettings settings, ResourceManager res, SurFile sur, bool is3db)
+    static EditResult<ModelNode> ProcessNode(ExportModelNode node, SimpleMesh.Model dest, ModelExporterSettings settings, ResourceManager res, SurFile sur, List<Geometry> allGeos, bool is3db)
     {
         var sm = new ModelNode();
         sm.Name = node.Name;
@@ -220,7 +226,7 @@ public static class ModelExporter
         {
             sm.Properties["construct"] = "loose";
         }
-        var l0 = GeometryFromRef(node.Name, 0, node.Model.Levels[0], dest.Materials, res);
+        var l0 = GeometryFromRef(node.Name, 0, node.Model.Levels[0], dest.Materials, allGeos, res);
         if (l0.IsError)
             return EditResult<ModelNode>.Error($"Unable to export node {node.Name} (Level 0)", l0.Messages);
         sm.Geometry = l0.Data;
@@ -229,7 +235,7 @@ public static class ModelExporter
             for (int i = 1; i < node.Model.Levels.Length; i++)
             {
                 var lod = new ModelNode() {Name = node.Name + "$lod" + i};
-                var lodRes = GeometryFromRef(node.Name, i, node.Model.Levels[i], dest.Materials, res);
+                var lodRes = GeometryFromRef(node.Name, i, node.Model.Levels[i], dest.Materials, allGeos, res);
                 if (lodRes.IsError)
                     return EditResult<ModelNode>.Error($"Unable to export node {node.Name} (Level {i})",
                         lodRes.Messages);
@@ -242,7 +248,7 @@ public static class ModelExporter
             var id = is3db ? 0 : CrcTool.FLModelCrc(node.Name);
             foreach (var hp in node.Model.Hardpoints)
             {
-                sm.Children.Add(FromHardpoint(hp, id, res, dest.Materials, settings.IncludeHulls ? sur : null));
+                sm.Children.Add(FromHardpoint(hp, id, res, dest.Materials, allGeos, settings.IncludeHulls ? sur : null));
             }
         }
         if (settings.IncludeHulls && sur != null)
@@ -252,7 +258,7 @@ public static class ModelExporter
             {
                 var surnode = new ModelNode
                 {
-                    Geometry = GeometryFromSur(node.Name + "." + i + "$hull", hulls[i], res, dest.Materials),
+                    Geometry = GeometryFromSur(node.Name + "." + i + "$hull", hulls[i], res, dest.Materials, allGeos),
                     Name = node.Name + "." + i + "$hull",
                     Properties =
                     {
@@ -267,14 +273,14 @@ public static class ModelExporter
         {
             var meshNode = new ModelNode
             {
-                Geometry = GeometryFromVMeshWire(node.Name, node.Model.VMeshWire, res, dest.Materials),
+                Geometry = GeometryFromVMeshWire(node.Name, node.Model.VMeshWire, res, dest.Materials, allGeos),
                 Name = node.Name + ".vmeshwire"
             };
             sm.Children.Add(meshNode);
         }
         foreach (var n in node.Children)
         {
-            var child = ProcessNode(n, dest, settings, res, sur, is3db);
+            var child = ProcessNode(n, dest, settings, res, sur, allGeos, is3db);
             if (child.IsError)
                 return child;
             sm.Children.Add(child.Data);
@@ -282,36 +288,8 @@ public static class ModelExporter
         return sm.AsResult();
     }
 
-    static int HashVert(ref Vertex vert)
-    {
-        unchecked
-        {
-            int hash = (int) 2166136261;
-            hash = hash * 16777619 ^ vert.Position.GetHashCode();
-            hash = hash * 16777619 ^ vert.Normal.GetHashCode();
-            hash = hash * 16777619 ^ vert.Texture1.GetHashCode();
-            hash = hash * 16777619 ^ vert.Texture2.GetHashCode();
-            hash = hash * 16777619 ^ vert.Diffuse.GetHashCode();
-            return hash;
-        }
-    }
 
-    static int FindDuplicate(List<int> hashes, List<Vertex> buf, int startIndex,
-        ref Vertex search, int hash)
-    {
-        for (int i = startIndex; i < buf.Count; i++)
-        {
-            if (hashes[i] != hash) continue;
-            if (buf[i].Position != search.Position) continue;
-            if (buf[i].Normal != search.Normal) continue;
-            if (buf[i].Texture1 != search.Texture1) continue;
-            if (buf[i].Diffuse != search.Diffuse) continue;
-            if (buf[i].Texture2 != search.Texture2) continue;
-            return i;
-        }
 
-        return -1;
-    }
 
     static int IndexFromFlags(int flags)
     {
@@ -360,7 +338,30 @@ public static class ModelExporter
         return m;
     }
 
-    static Geometry GeometryFromSur(string name, ConvexMesh ms, ResourceManager resources, Dictionary<string, Material> materials)
+    class VertexBufferBuilder
+    {
+        public List<Vertex> Vertices = new List<Vertex>();
+        public int BaseVertex { get; private set; }
+
+        private Dictionary<Vertex, int> indices = new Dictionary<Vertex, int>();
+        public void Chunk()
+        {
+            indices = new Dictionary<Vertex, int>();
+            BaseVertex = Vertices.Count;
+        }
+        public int Add(ref Vertex vert)
+        {
+            if (!indices.TryGetValue(vert, out int idx))
+            {
+                idx = Vertices.Count;
+                Vertices.Add(vert);
+                indices.Add(vert, idx);
+            }
+            return idx;
+        }
+    }
+
+    static Geometry GeometryFromSur(string name, ConvexMesh ms, ResourceManager resources, Dictionary<string, Material> materials, List<Geometry> geometries)
     {
         var geo = new Geometry();
         geo.Name = name;
@@ -381,31 +382,22 @@ public static class ModelExporter
 
 
     static Geometry GeometryFromVMeshWire(string name, VMeshWire wire, ResourceManager resources,
-        Dictionary<string, Material> materials)
+        Dictionary<string, Material> materials, List<Geometry> allGeos)
     {
         var geo = new Geometry();
+        allGeos.Add(geo);
         geo.Name = name + "." + ".wire.mesh";
         geo.Attributes = VertexAttributes.Position;
         var mesh = resources.FindMeshData(wire.MeshCRC);
-        List<Vertex> verts = new List<Vertex>();
-        List<int> hashes = new List<int>();
+        var vbo = new VertexBufferBuilder();
         List<uint> indices = new List<uint>();
         for (int i = 0; i < wire.NumIndices; i++)
         {
             var idx = wire.VertexOffset + wire.Indices[i];
             var vert = new Vertex() {Position = mesh.GetPosition(idx)};
-            var hash = HashVert(ref vert);
-            int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
-            if (newIndex == -1)
-            {
-                newIndex = verts.Count;
-                verts.Add(vert);
-                hashes.Add(hash);
-            }
-
-            indices.Add((uint) newIndex);
+            indices.Add((uint) vbo.Add(ref vert));
         }
-        geo.Vertices = verts.ToArray();
+        geo.Vertices = vbo.Vertices.ToArray();
         geo.Indices = Indices.FromBuffer(indices.ToArray());
         geo.Groups = new TriangleGroup[] {
             new TriangleGroup()
@@ -421,7 +413,7 @@ public static class ModelExporter
     }
 
     // Get just the referenced geometry from the VMeshData
-    static EditResult<Geometry> GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, ResourceManager resources)
+    static EditResult<Geometry> GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, List<Geometry> geometries, ResourceManager resources)
     {
         var geo = new Geometry();
         var mesh = resources.FindMeshData(vms.MeshCrc);
@@ -430,8 +422,7 @@ public static class ModelExporter
         if ((mesh == null))
             return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
         geo.Name = name + "." + (int) mesh.VertexFormat.FVF + ".level" + level;
-        List<Vertex> verts = new List<Vertex>();
-        List<int> hashes = new List<int>();
+        var vbo = new VertexBufferBuilder();
         List<uint> indices = new List<uint>();
         List<TriangleGroup> groups = new List<TriangleGroup>();
         geo.Attributes = VertexAttributes.Position;
@@ -469,19 +460,11 @@ public static class ModelExporter
                 {
                     vert.Texture1 = mesh.GetTexCoord(idx, 0);
                 }
-                var hash = HashVert(ref vert);
-                int newIndex = FindDuplicate(hashes, verts, 0, ref vert, hash);
-                if (newIndex == -1)
-                {
-                    newIndex = verts.Count;
-                    verts.Add(vert);
-                    hashes.Add(hash);
-                }
-                indices.Add((uint)newIndex);
+                indices.Add((uint)vbo.Add(ref vert));
             }
             groups.Add(dc);
         }
-        geo.Vertices = verts.ToArray();
+        geo.Vertices = vbo.Vertices.ToArray();
         //Reconstruct base vertex
         foreach (var group in groups)
         {
@@ -497,6 +480,7 @@ public static class ModelExporter
         }
         geo.Indices = Indices.FromBuffer(indices.ToArray());
         geo.Groups = groups.ToArray();
+        geometries.Add(geo);
         return geo.AsResult();
     }
 

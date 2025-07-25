@@ -48,7 +48,7 @@ public class LoadoutSelection : PopupWindow
         return 0;
     }
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         if (doFiltering)
             filteredLoadouts = filters.Filter(filterText, allLoadouts, filterCompatible ? "compatible" : "").ToArray();
@@ -89,16 +89,16 @@ public class LoadoutSelection : PopupWindow
         if (selected != null)
         {
             ImGui.BeginChild("##items", new Vector2(-1, windowH - frameH * 3f));
-            ImGui.TextUnformatted($"Archetype: {selected.Archetype}");
+            ImGui.Text($"Archetype: {selected.Archetype}");
             foreach (var item in selected.Items)
             {
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"{item.Hardpoint}: '{gd.Infocards.GetStringResource(item.Equipment.IdsName)}' ({item.Equipment.Nickname})");
             }
 
             foreach (var item in selected.Cargo)
             {
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"Cargo: '{gd.Infocards.GetStringResource(item.Item.IdsName)}' ({item.Item.Nickname}) x{item.Count}");
             }
 

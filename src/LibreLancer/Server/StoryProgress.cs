@@ -31,7 +31,13 @@ public class StoryProgress
             .FirstOrDefault(x => x.Nickname.Equals(next.Mission, StringComparison.OrdinalIgnoreCase));
         if(loadMission)
             player.LoadMission();
+        if(CurrentStory.CashUp > 0)
+        {
+            NextLevelWorth = player.CalculateNetWorth() + CurrentStory.CashUp;
+            FLLog.Info("Mission", $"SET Next Level Worth: {NextLevelWorth} (+{CurrentStory.CashUp})");
+        }
         FLLog.Info("Mission", $"Transitioned from {old} to {next.Nickname}");
+        player.UpdateProgress();
         // Skip if needed
         Update(player);
     }
@@ -44,9 +50,18 @@ public class StoryProgress
 
     public void Update(Player player)
     {
-        if(CurrentStory.Skip) {
+        if (CurrentStory.Skip)
+        {
             Advance(player);
-            return;
+        }
+        else if (CurrentStory.CashUp > 0)
+        {
+            var playerNet = player.CalculateNetWorth();
+            if(playerNet >= NextLevelWorth)
+            {
+                FLLog.Info("Mission", $"Current worth {playerNet} > {NextLevelWorth}");
+                Advance(player);
+            }
         }
     }
 }

@@ -4,18 +4,33 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace LibreLancer.Media
 {
 	public class SoundData : IDisposable
 	{
-		internal uint ID;
-        AudioManager manager;
-		internal SoundData(AudioManager manager)
+		internal NativeBuffer Data;
+        internal int Format;
+        internal int Frequency;
+
+        bool disposed = false;
+        private int refCount = 1;
+        internal void Reference()
         {
-            this.manager = manager;
-            ID = Al.GenBuffer();
+            Interlocked.Increment(ref refCount);
         }
+        internal void Dereference()
+        {
+            if (Interlocked.Decrement(ref refCount) == 0)
+            {
+                Data?.Dispose();
+            }
+        }
+
+        public double Duration { get; private set; }
+        public int DataLength { get; private set; }
 
 		public void LoadFile(string filename)
 		{
@@ -24,7 +39,7 @@ namespace LibreLancer.Media
 				LoadStream(file);
 			}
 		}
-        public int DataLength { get; private set; }
+
         public void LoadStream(Stream stream)
 		{
 			using (var snd = SoundLoader.Open(stream))
@@ -43,14 +58,32 @@ namespace LibreLancer.Media
                         data = mem.ToArray();
 					}
 				}
-
                 DataLength = data.Length;
-                Al.BufferData(ID, snd.Format, data, data.Length, snd.Frequency);
+                Format = snd.Format;
+                Frequency = snd.Frequency;
+                Data = UnsafeHelpers.Allocate(data.Length);
+                Marshal.Copy(data, 0, Data.Handle, data.Length);
+                var sampleLength = snd.Format switch
+                {
+                    Al.AL_FORMAT_MONO8 => 1,
+                    Al.AL_FORMAT_MONO16 => 2,
+                    Al.AL_FORMAT_STEREO8 => 2,
+                    Al.AL_FORMAT_STEREO16 => 4,
+                    _ => throw new InvalidOperationException()
+                };
+                Duration = (double)data.Length / (snd.Frequency * sampleLength);
             }
         }
+
+        public bool Disposed => disposed;
+
         public void Dispose()
-		{
-            Al.alDeleteBuffers(1, ref ID);
+        {
+            if (!disposed)
+            {
+                Dereference();
+                disposed = true;
+            }
         }
 	}
 }

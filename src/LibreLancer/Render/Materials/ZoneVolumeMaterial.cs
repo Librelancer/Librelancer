@@ -4,8 +4,11 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
+using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Render.Materials
@@ -17,11 +20,6 @@ namespace LibreLancer.Render.Materials
 
         public ZoneVolumeMaterial(ResourceManager library) : base(library) { }
 
-        public override void ApplyDepthPrepass(RenderContext rstate)
-        {
-            throw new InvalidOperationException();
-        }
-
         public override bool IsTransparent
         {
             get
@@ -32,15 +30,20 @@ namespace LibreLancer.Render.Materials
 
         public override bool DisableCull => true;
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct ZoneVolumeParameters
+        {
+            public Color4 Dc;
+            public float RadiusRatio;
+        }
+
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
             rstate.BlendMode = BlendMode.Normal;
-            var shader = Shaders.ZoneVolume.Get(rstate);
-            shader.SetWorld(World);
-            //Colors
-            shader.SetDc(Dc);
-            //Dt
-            shader.SetTileRate0(RadiusRatio);
+            var shader = AllShaders.ZoneVolume.Get(0);
+            SetWorld(shader);
+            shader.SetUniformBlock(3, ref RadiusRatio);
+            shader.SetUniformBlock(4, ref Dc);
             rstate.Shader = shader;
         }
     }

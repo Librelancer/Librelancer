@@ -7,5 +7,6 @@ public enum MeshLoadMode
 {
     GPU = 1,
     CPU = 2,
-    All = 1 | 2
+    All = 1 | 2,
+    NoCollision = 4,
 }

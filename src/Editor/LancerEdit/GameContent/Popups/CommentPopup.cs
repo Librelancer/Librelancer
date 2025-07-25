@@ -21,7 +21,7 @@ public class CommentPopup : PopupWindow
     }
 
 
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         ImGui.InputTextMultiline("##comment", ref commentText, 2048,
             new Vector2(

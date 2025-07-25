@@ -1,14 +1,15 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Pilots
 {
-    public class EngineKillBlock : PilotBlock
+    [ParsedSection]
+    public partial class EngineKillBlock : PilotBlock
     {
         [Entry("engine_kill_search_time")] public float SearchTime;
         [Entry("engine_kill_face_time")] public float FaceTime;

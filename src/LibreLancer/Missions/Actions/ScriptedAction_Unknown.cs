@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Missions.Actions;
 
@@ -318,8 +319,11 @@ public class Act_NagDistLeaving : ScriptedAction
     {
         Nickname = act.Entry[0].ToString();
         Nagger = act.Entry[1].ToString();
-
-        if (act.Entry.Count is >= 4 and <= 6)
+        if (act.Entry.Count is 3)
+        {
+            Target = act.Entry[2].ToString();
+        }
+        else if (act.Entry.Count is >= 4 and <= 6)
         {
             Target = act.Entry[2].ToString();
             MissionFailIds = act.Entry[3].ToInt32();
@@ -686,24 +690,7 @@ public class Act_StaticCam : ScriptedAction
     }
 }
 
-public class Act_SpawnLoot : ScriptedAction
-{
-    public string Loot = string.Empty;
 
-    public Act_SpawnLoot()
-    {
-    }
-
-    public Act_SpawnLoot(MissionAction act) : base(act)
-    {
-        Loot = act.Entry[0].ToString();
-    }
-
-    public override void Write(IniBuilder.IniSectionBuilder section)
-    {
-        section.Entry("Act_SpawnLoot", Loot);
-    }
-}
 
 public class Act_SetNNState : ScriptedAction
 {
@@ -944,6 +931,25 @@ public class Act_DisableEnc : ScriptedAction
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Act_DisableEnc", Encounter);
+    }
+}
+
+public class Act_DebugMsg : ScriptedAction
+{
+    public string Message = string.Empty;
+
+    public Act_DebugMsg()
+    {
+    }
+
+    public Act_DebugMsg(MissionAction act) : base(act)
+    {
+        Message = CommentEscaping.Unescape(act.Entry[0].ToString());
+    }
+
+    public override void Write(IniBuilder.IniSectionBuilder section)
+    {
+        section.Entry(CommentEscaping.Escape(Message));
     }
 }
 

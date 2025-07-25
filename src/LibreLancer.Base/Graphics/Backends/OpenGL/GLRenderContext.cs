@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
@@ -32,7 +34,8 @@ class GLRenderContext : IRenderContext
     static IntPtr CreateGLContext(IntPtr sdlWin)
     {
         IntPtr glcontext = IntPtr.Zero;
-        if (Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER") == "GLES" ||
+
+        if ("GLES".Equals(Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER"), StringComparison.OrdinalIgnoreCase) ||
             !CreateContextCore(sdlWin, out glcontext))
         {
             if (!CreateContextES(sdlWin, out glcontext))
@@ -79,7 +82,7 @@ class GLRenderContext : IRenderContext
 
     static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        ctx = SDLGL_Create(sdlWin, 3, 2, false);
+        ctx = SDLGL_Create(sdlWin, 3, 1, false);
         if (ctx == IntPtr.Zero) return false;
         if (!GL.CheckStringSDL())
         {
@@ -143,14 +146,81 @@ class GLRenderContext : IRenderContext
         requested = applied;
     }
 
+    private List<(IntPtr Fence, Action Callback)> Fences = new();
+
+    public void AddFence(IntPtr fence, Action callback) => Fences.Add((fence, callback));
+
+    public void QueryFences()
+    {
+        for (int i = 0; i < Fences.Count; i++)
+        {
+            var r = GL.ClientWaitSync(Fences[i].Fence, 0, 0);
+            if (r == GL.GL_CONDITION_SATISFIED ||
+                r == GL.GL_ALREADY_SIGNALED)
+            {
+                GL.DeleteSync(Fences[i].Fence);
+                var cb = Fences[i].Callback;
+                Fences.RemoveAt(i);
+                i--;
+                cb();
+            }
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    struct CameraMatrices
+    {
+        public Matrix4x4 View;
+        public Matrix4x4 Projection;
+        public Matrix4x4 ViewProjection;
+        public Vector3 CameraPosition;
+        private float _padding;
+    }
+    private ulong cameraTag;
+    private ulong setCameraTag = 0;
+    private CameraMatrices matrices;
+
+    public void SetCamera(ICamera camera)
+    {
+        setCameraTag++;
+        setCameraTag &= 0x3FFFFFFFFFFFFFFF; //top bit free (never ulong.MaxValue)
+        cameraTag = (setCameraTag << 1) | 0x1; // cameraTag is never 0
+        matrices.View = camera.View;
+        matrices.Projection = camera.Projection;
+        matrices.ViewProjection = camera.ViewProjection;
+        matrices.CameraPosition = camera.Position;
+    }
+
+    public void SetIdentityCamera()
+    {
+        if (cameraTag == ulong.MaxValue)
+        {
+            return;
+        }
+        cameraTag = ulong.MaxValue;
+        matrices.View = Matrix4x4.Identity;
+        matrices.Projection = Matrix4x4.Identity;
+        matrices.ViewProjection = Matrix4x4.Identity;
+        matrices.CameraPosition = Vector3.Zero;
+    }
+
     public void ApplyShader(IShader shader)
     {
-        if (applied.Shader != shader && shader != null)
+        if (shader != null)
         {
+            if(shader.HasUniformBlock(1) &&
+               shader.UniformBlockTag(1) != cameraTag)
+            {
+                shader.UniformBlockTag(1) = cameraTag;
+                shader.SetUniformBlock(1, ref matrices);
+            }
             ((GLShader)shader).UseProgram();
             applied.Shader = shader;
         }
     }
+
+
+
     public void ApplyState(ref GraphicsState requested)
     {
         ApplyShader(requested.Shader);
@@ -228,13 +298,19 @@ class GLRenderContext : IRenderContext
         }
     }
 
+    private int lastHeight = 768;
+
     public void ApplyViewport(ref GraphicsState requested)
     {
-        if (requested.Viewport != applied.Viewport)
+        var convVp = requested.Viewport;
+        if (requested.RenderTarget == null)
         {
-            GL.Viewport(requested.Viewport.X, requested.Viewport.Y, requested.Viewport.Width,
-                requested.Viewport.Height);
-            applied.Viewport = requested.Viewport;
+            convVp.Y = lastHeight - convVp.Y - convVp.Height;
+        }
+        if (convVp != applied.Viewport)
+        {
+            GL.Viewport(convVp.X, convVp.Y, convVp.Width, convVp.Height);
+            applied.Viewport = convVp;
             applied.ScissorRect = new Rectangle();
         }
     }
@@ -273,14 +349,21 @@ class GLRenderContext : IRenderContext
 
         if (requested.ScissorEnabled)
         {
-            var cr = requested.ScissorRect;
-            applied.ScissorRect = cr;
-            if (cr.Height < 1) cr.Height = 1;
-            if (cr.Width < 1) cr.Width = 1;
-            var conv = new Rectangle(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
-            if (conv != appliedConvertedScissor) {
-                GL.Scissor(cr.X, applied.Viewport.Height - cr.Y - cr.Height, cr.Width, cr.Height);
-                appliedConvertedScissor = conv;
+            var convVp = requested.ScissorRect;
+            if (requested.RenderTarget == null)
+            {
+                convVp.Y = lastHeight - convVp.Y - convVp.Height;
+            }
+            else if (requested.RenderTarget is GLRenderTarget2D r2d)
+            {
+                convVp.Y = r2d.Height - convVp.Y - convVp.Height;
+            }
+            if (convVp != applied.ScissorRect)
+            {
+                if (convVp.Width < 1) convVp.Width = 1;
+                if (convVp.Height < 1) convVp.Height = 1;
+                GL.Scissor(convVp.X, convVp.Y, convVp.Width, convVp.Height);
+                applied.ScissorRect = convVp;
             }
         }
     }
@@ -328,6 +411,11 @@ class GLRenderContext : IRenderContext
         GL.Clear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
     }
 
+    public void ClearColorOnly()
+    {
+        GL.Clear(GL.GL_COLOR_BUFFER_BIT);
+    }
+
     public void ClearDepth()
     {
         GL.Clear(GL.GL_DEPTH_BUFFER_BIT);
@@ -365,8 +453,6 @@ class GLRenderContext : IRenderContext
     public bool HasFeature(GraphicsFeature feature) => feature switch
     {
         GraphicsFeature.Anisotropy => GLExtensions.Anisotropy,
-        GraphicsFeature.Features430 => GLExtensions.Features430,
-        GraphicsFeature.ComputeShaders => GLExtensions.ComputeShaders,
         GraphicsFeature.DebugInfo => GLExtensions.DebugInfo,
         GraphicsFeature.S3TC => GLExtensions.S3TC,
         GraphicsFeature.GLES => GL.GLES,
@@ -381,10 +467,12 @@ class GLRenderContext : IRenderContext
             SDL3.SDL_GL_MakeCurrent(sdlWindow, glContext);
         else
             SDL2.SDL_GL_MakeCurrent(sdlWindow, glContext);
+        lastHeight = GetDrawableSize(sdlWindow).Y;
     }
 
     public void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen)
     {
+        lastHeight = GetDrawableSize(sdlWindow).Y;
         GLSwap.SwapWindow(sdlWindow, vsync, fullscreen);
         if (GL.FrameHadErrors()) //If there was a GL error, track it down.
             GL.ErrorChecking = true;
@@ -404,8 +492,8 @@ class GLRenderContext : IRenderContext
         }
     }
 
-    public IShader CreateShader(string vertex_source, string fragment_source, string geometry_source = null) =>
-        new GLShader(this, vertex_source, fragment_source, geometry_source);
+    public IShader CreateShader(ReadOnlySpan<byte> program) =>
+        new GLShader(this, program);
 
     public IElementBuffer CreateElementBuffer(int count, bool isDynamic = false) =>
         new GLElementBuffer(this, count, isDynamic);
@@ -415,9 +503,6 @@ class GLRenderContext : IRenderContext
 
     public IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false) =>
         new GLVertexBuffer(type, length, isStream);
-
-    public IComputeShader CreateComputeShader(string shaderCode) =>
-        new GLComputeShader(shaderCode);
 
     public IDepthBuffer CreateDepthBuffer(int width, int height) =>
         new GLDepthBuffer(width, height);
@@ -434,12 +519,9 @@ class GLRenderContext : IRenderContext
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new GLRenderTarget2D(this, (GLTexture2D)texture, (GLDepthBuffer)buffer);
 
-    public IShaderStorageBuffer CreateShaderStorageBuffer(int size)
-        => new GLShaderStorageBuffer(size);
-
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);
 
-    public IUniformBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false)
-        => new GLUniformBuffer(size, stride, type, streaming);
+    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false)
+        => new GLStorageBuffer(size, stride, type, streaming);
 }

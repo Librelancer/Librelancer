@@ -69,6 +69,8 @@ namespace LibreLancer.Interface
         public bool ShowHeaders { get; set; } = true;
         public bool ShowColumnBorders { get; set; } = true;
 
+        public bool ShowRowBorders { get; set; } = true;
+
         private ITableData data;
         private float[] dividerPositions;
         void GenerateDividerPositions()
@@ -95,6 +97,55 @@ namespace LibreLancer.Interface
         public void SetData(ITableData data)
         {
             this.data = data;
+        }
+
+        class WattleData : ITableData
+        {
+            private Closure getCount;
+            private Closure getSelected;
+            private Closure setSelected;
+            private Closure getString;
+            private Closure validSelection;
+            private DynValue table;
+
+            public WattleData(Table table)
+            {
+                this.table = DynValue.NewTable(table);
+                var getFunc =
+                    table.OwnerScript.DoString("return (tab, v) => tab[v];")
+                        .Function;
+                getCount = getFunc.Call(table, "GetCount").Function;
+                getSelected = getFunc.Call(table,"GetSelected").Function;
+                setSelected = getFunc.Call(table,"SetSelected").Function;
+                getString = getFunc.Call(table, "GetString").Function;
+                validSelection = getFunc.Call(table, "ValidSelection").Function;
+            }
+
+            public int Count => getCount.ThisCall(table).CastToInt() ?? 0;
+            public int Selected
+            {
+                get
+                {
+                    return getSelected.ThisCall(table).CastToInt() ?? 0;
+                }
+                set
+                {
+                    setSelected.ThisCall(table, DynValue.NewNumber(value));
+                }
+            }
+            public string GetContentString(int row, string column)
+            {
+                return getString.ThisCall(table, DynValue.NewNumber(row), DynValue.NewString(column)).CastToString();
+            }
+            public bool ValidSelection()
+            {
+                return validSelection.ThisCall(table).CastToBool();
+            }
+        }
+
+        public void SetData(Table table)
+        {
+            SetData(new WattleData(table));
         }
 
         int ScrollCount()
@@ -380,19 +431,23 @@ namespace LibreLancer.Interface
                 }
             }
             //Draw row lines
-            var lineHeight = rect.Height / (DisplayRowCount + 1);
-            var x1 = rect.X;
-            var x2 = rect.X + rect.Width;
-            var lineColor = (LineColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
-            //Headers
-            context.RenderContext.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, rect.Y + lineHeight)),
-                context.PointsToPixels(new Vector2(x2, rect.Y + lineHeight)));
-            //Rows
-            for (int i = 0; i < DisplayRowCount; i++)
+            if (ShowRowBorders)
             {
-                var h = rect.Y + lineHeight * (i + 2);
-                context.RenderContext.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, h)),
-                    context.PointsToPixels(new Vector2(x2, h)));
+                var lineHeight = rect.Height / (DisplayRowCount + 1);
+                var x1 = rect.X;
+                var x2 = rect.X + rect.Width;
+                var lineColor = (LineColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+                //Headers
+                context.RenderContext.Renderer2D.DrawLine(lineColor,
+                    context.PointsToPixels(new Vector2(x1, rect.Y + lineHeight)),
+                    context.PointsToPixels(new Vector2(x2, rect.Y + lineHeight)));
+                //Rows
+                for (int i = 0; i < DisplayRowCount; i++)
+                {
+                    var h = rect.Y + lineHeight * (i + 2);
+                    context.RenderContext.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, h)),
+                        context.PointsToPixels(new Vector2(x2, h)));
+                }
             }
             Border?.Draw(context, rect);
         }

@@ -5,15 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Universe.Rooms;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Save
 {
     public record SaveItemCount(HashValue Item, int Count);
 
     public record VNPC(HashValue ItemA, HashValue ItemB, int Unknown1, int Unknown2);
-    public class MPlayer : IWriteSection
+    [ParsedSection]
+    public partial class MPlayer : IWriteSection
     {
         [Entry("can_dock")]
         public int CanDock;

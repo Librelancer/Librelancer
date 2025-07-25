@@ -1,8 +1,9 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.RandomMissions;
 
-public class DecisionNode : VignetteNode
+[ParsedSection]
+public partial class DecisionNode : VignetteNode
 {
     [Entry("nickname")] public string Nickname;
 }

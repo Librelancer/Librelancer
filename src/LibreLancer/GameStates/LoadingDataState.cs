@@ -31,7 +31,7 @@ namespace LibreLancer
             }
             if (xCnt >= 3&& Game.InisLoaded && !uiLoaded)
             {
-                Game.Fonts.LoadFontsFromGameData(Game.GameData);
+                Game.Fonts.LoadFontsFromGameData(Game.RenderContext, Game.GameData);
                 Game.Ui = new UiContext(Game);
                 Game.Ui.LoadCode();
                 FLLog.Info("UI", "Interface loaded");

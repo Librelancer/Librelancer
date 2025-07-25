@@ -32,9 +32,8 @@ public static unsafe class NodeEditor
 
     public static void Begin(string id, Vector2 size = default)
     {
-        var idptr = UnsafeHelpers.StringToHGlobalUTF8(id);
-        axBegin(idptr, &size);
-        Marshal.FreeHGlobal(idptr);
+        using var idptr = UnsafeHelpers.StringToNativeUTF8(id);
+        axBegin((IntPtr)idptr, &size);
     }
     public static void End() => axEnd();
 
@@ -62,11 +61,11 @@ public static unsafe class NodeEditor
         axGetGroupMax(&x);
         return x;
     }
-    public static ImDrawListPtr GetHintForegroundDrawList() => new ((IntPtr)axGetHintForegroundDrawList());
-    public static ImDrawListPtr GetHintBackgroundDrawList() => new ((IntPtr)axGetHintBackgroundDrawList());
+    public static ImDrawListPtr GetHintForegroundDrawList() => new ((ImDrawList*)axGetHintForegroundDrawList());
+    public static ImDrawListPtr GetHintBackgroundDrawList() => new ((ImDrawList*)axGetHintBackgroundDrawList());
     public static void EndGroupHint() => axEndGroupHint();
 
-    public static ImDrawListPtr GetNodeBackgroundDrawList(NodeId nodeId) => new((IntPtr)axGetNodeBackgroundDrawList(nodeId));
+    public static ImDrawListPtr GetNodeBackgroundDrawList(NodeId nodeId) => new((ImDrawList*)axGetNodeBackgroundDrawList(nodeId));
 
     public static bool Link(LinkId id, PinId startPinId, PinId endPinId, VertexDiffuse? color = null, float thickness = 1.0f)
     {

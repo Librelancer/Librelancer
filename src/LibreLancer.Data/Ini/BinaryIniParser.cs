@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
     public class BinaryIniParser : IIniParser
     {

@@ -33,19 +33,27 @@ namespace LibreLancer.Interface
         {
             if (triggers != null)
             {
+                var fsize = ImGui.GetFrameHeightWithSpacing();
+
                 ImGui.SetNextWindowSize(new Vector2(600, 500), ImGuiCond.FirstUseEver);
                 ImGui.Begin("Triggers");
                 int i = 0;
                 foreach (var t in triggers)
                 {
-                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, 250), ImGuiChildFlags.Border);
-                    ImGui.PushFont(ImGuiHelper.SystemMonospace);
+                    float height = fsize * 3 + (t.Conditions.Count * fsize) + (t.Actions.Count * fsize);
+                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, height), ImGuiChildFlags.Borders);
+                    ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                     ImGui.Text(t.Name);
                     ImGui.PopFont();
                     ImGui.Text("Conditions");
                     ImGui.Separator();
-                    foreach(var c in t.Conditions)
-                        ImGui.Text(c);
+                    for(int j = 0; j < t.Conditions.Count; j++)
+                    {
+                        if(t.Satisfied[j])
+                            ImGui.TextColored(Color4.Green, t.Conditions[j]);
+                        else
+                            ImGui.Text(t.Conditions[j]);
+                    }
                     ImGui.Separator();
                     ImGui.Text("Actions");
                     ImGui.Separator();
@@ -102,7 +110,7 @@ namespace LibreLancer.Interface
             if (Enabled)
             {
                 igrender.NewFrame(elapsed);
-                ImGui.PushFont(ImGuiHelper.Noto);
+                ImGui.PushFont(ImGuiHelper.Roboto, 0);
                 ImGui.Begin("Debug");
                 ImGui.Text($"FPS: {game.RenderFrequency:F2}");
                 debugWindow?.Invoke();

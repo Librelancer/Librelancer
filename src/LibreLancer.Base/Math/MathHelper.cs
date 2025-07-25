@@ -12,6 +12,9 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 
 namespace LibreLancer
@@ -299,9 +302,10 @@ namespace LibreLancer
         /// <param name="min">The minimum allowed value.</param>
         /// <param name="max">The maximum allowed value.</param>
         /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
-        public static int Clamp(int n, int min, int max)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Clamp<T>(T n, T min, T max) where T : IBinaryNumber<T>
         {
-            return Math.Max(Math.Min(n, max), min);
+            return n < min ? min : n > max ? max : n;
         }
 
         /// <summary>
@@ -311,21 +315,23 @@ namespace LibreLancer
         /// <param name="min">The minimum allowed value.</param>
         /// <param name="max">The maximum allowed value.</param>
         /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Clamp(float n, float min, float max)
         {
-            return Math.Max(Math.Min(n, max), min);
-        }
-
-        /// <summary>
-        /// Clamps a number between a minimum and a maximum.
-        /// </summary>
-        /// <param name="n">The number to clamp.</param>
-        /// <param name="min">The minimum allowed value.</param>
-        /// <param name="max">The maximum allowed value.</param>
-        /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
-        public static double Clamp(double n, double min, double max)
-        {
-            return Math.Max(Math.Min(n, max), min);
+            if (Sse.IsSupported)
+            {
+                return Sse.MinScalar(
+                        Sse.MaxScalar(Vector128.CreateScalarUnsafe(n), Vector128.CreateScalarUnsafe(min)),
+                        Vector128.CreateScalarUnsafe(max))
+                    .ToScalar();
+            }
+            if (AdvSimd.IsSupported)
+            {
+                return AdvSimd.MinNumberScalar(
+                    AdvSimd.MaxNumberScalar(Vector64.CreateScalarUnsafe(n), Vector64.CreateScalarUnsafe(min)),
+                    Vector64.CreateScalarUnsafe(max)).ToScalar();
+            }
+            return Clamp<float>(n, min, max);
         }
 
 		#endregion

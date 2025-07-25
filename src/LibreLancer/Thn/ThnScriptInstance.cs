@@ -324,10 +324,9 @@ namespace LibreLancer.Thn
         {
             foreach (var v in Sounds.Values)
             {
-                if (v.Instance != null && !v.Instance.Disposed)
+                if (v.Instance != null)
                 {
                     v.Instance.Stop();
-                    v.Instance.Dispose();
                     v.Instance = null;
                 }
             }

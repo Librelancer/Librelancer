@@ -5,15 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data
 {
 
-	public class GfNpc
+    [ParsedSection]
+	public partial class GfNpc
 	{
         [Entry("nickname")]
 		public string Nickname;
-        [Entry("base_appr")] 
+        [Entry("base_appr")]
         public string BaseAppr;
         [Entry("body")]
 		public string Body;
@@ -23,15 +25,15 @@ namespace LibreLancer.Data
 		public string LeftHand;
         [Entry("righthand")]
 		public string RightHand;
-        [Entry("accessory")] 
+        [Entry("accessory")]
         public string Accessory;
-        [Entry("individual_name")] 
+        [Entry("individual_name")]
         public int IndividualName;
-        [Entry("affiliation")] 
+        [Entry("affiliation")]
         public string Affiliation;
-        [Entry("voice")] 
+        [Entry("voice")]
         public string Voice;
-        [Entry("room")] 
+        [Entry("room")]
         public string Room;
 
         public List<NpcKnow> Know = new List<NpcKnow>();
@@ -48,7 +50,7 @@ namespace LibreLancer.Data
         void HandleRumor(Entry e) => Rumors.Add(
             new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), false)
         );
-        
+
         [EntryHandler("rumor_type2", MinComponents = 4, Multiline = true)]
         void HandleRumorType2(Entry e) => Rumors.Add(
             new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), true)
@@ -66,17 +68,17 @@ namespace LibreLancer.Data
         void RumorKnowDb(Entry knowdb)
         {
             if (Rumors.Count == 0)
-                IniWarning.Warn("rumorknowdb without rumor", knowdb);
+                IniDiagnostic.Warn("rumorknowdb without rumor", knowdb);
             else
                 Rumors[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
         }
-        
+
         [EntryHandler("knowdb", Multiline = true)]
-        
+
         void KnowDb(Entry knowdb)
         {
             if (Know.Count == 0)
-                IniWarning.Warn("knowdb without know", knowdb);
+                IniDiagnostic.Warn("knowdb without know", knowdb);
             else
                 Know[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
         }

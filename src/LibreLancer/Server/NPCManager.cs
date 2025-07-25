@@ -18,10 +18,11 @@ namespace LibreLancer.Server
     {
         private NPCWattleScripting scripting;
         public ServerWorld World;
+        private Random rand = new();
         public NPCManager(ServerWorld world)
         {
             this.World = world;
-            scripting = new NPCWattleScripting(this);
+            scripting = new NPCWattleScripting(this, world.Server.GameData);
         }
 
         public Task<string> RunScript(string src)
@@ -43,7 +44,7 @@ namespace LibreLancer.Server
 
         public void Despawn(GameObject obj, bool exploded)
         {
-            World.RemoveNPC(obj, exploded);
+            World.RemoveSpawnedObject(obj, exploded);
         }
 
         private Dictionary<string, GameObject> missionNPCs = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
@@ -84,6 +85,31 @@ namespace LibreLancer.Server
             return new ObjectName(firstName != null ? rand.Next(firstName.Value) : 0, rand.Next(fac.Properties.LastName));
         }
 
+        public GameObject SpawnJumper(JumperNpc jumper, MissionRuntime msn, string jumpObject)
+        {
+            var jumpPoint = World.GameWorld.GetObject(jumpObject);
+            var pos = jumpPoint.WorldTransform.Position;
+            var orient = jumpPoint.WorldTransform.Orientation;
+            pos = Vector3.Transform(new Vector3(rand.Next(-50, 50), rand.Next(-50, 50), rand.Next(-300, -100)),
+                orient) + pos;
+            var newObj = DoSpawn(
+                jumper.Name,
+                jumper.Nickname,
+                jumper.Faction?.Nickname,
+                jumper.StateGraph?.Description?.Name,
+                jumper.CommHead?.Nickname,
+                jumper.CommBody?.Nickname,
+                jumper.CommHelmet?.Nickname,
+                jumper.Loadout,
+                jumper.Pilot,
+                pos,
+                orient,
+                null,
+                msn);
+            msn.SystemEnter(World.System.Nickname, jumper.Nickname);
+            return newObj;
+        }
+
         public GameObject DoSpawn(
             ObjectName name,
             string nickname,
@@ -96,13 +122,19 @@ namespace LibreLancer.Server
             GameData.Pilot pilot,
             Vector3 position,
             Quaternion orient,
+            string arrivalObj,
             MissionRuntime msn = null
             )
         {
-            NetShipLoadout netLoadout = new NetShipLoadout();
-            netLoadout.Items = new List<NetShipCargo>();
             var ship = World.Server.GameData.Ships.Get(loadout.Archetype);
-            netLoadout.ShipCRC = ship.CRC;
+            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj);
+            SDockableComponent sdock = null;
+            if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
+            {
+                var p = sdock.GetSpawnPoint(0);
+                position = p.Position;
+                orient = p.Orientation;
+            }
             var obj = new GameObject(ship, World.Server.Resources, false, true);
             obj.Name = name;
             obj.Nickname = nickname;
@@ -117,14 +149,13 @@ namespace LibreLancer.Server
             {
                 EquipmentObjectManager.InstantiateEquipment(obj, World.Server.Resources, null, EquipmentType.Server,
                     equipped.Hardpoint, equipped.Equipment);
-                netLoadout.Items.Add(new NetShipCargo(0, equipped.Equipment.CRC, equipped.Hardpoint ?? "internal", 255, 1));
             }
             var cargo = new SNPCCargoComponent(obj);
             cargo.Cargo.AddRange(loadout.Cargo);
             obj.AddComponent(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
-            var npcComponent = new SNPCComponent(obj, this, stateTable) {Loadout = netLoadout, MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
+            var npcComponent = new SNPCComponent(obj, this, stateTable) { MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
             npcComponent.CommHead = World.Server.GameData.Bodyparts.Get(head);
             npcComponent.CommBody = World.Server.GameData.Bodyparts.Get(body);
@@ -135,7 +166,14 @@ namespace LibreLancer.Server
             obj.AddComponent(new ShipSteeringComponent(obj));
             obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = ship });
             obj.AddComponent(new WeaponControlComponent(obj));
+            obj.AddComponent(new SDestroyableComponent(obj, World));
+            obj.AddComponent(new DirectiveRunnerComponent(obj));
             World.OnNPCSpawn(obj);
+            if (sdock != null)
+            {
+                sdock.UndockShip(obj);
+                obj.GetComponent<AutopilotComponent>().Undock(spawnPoint);
+            }
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;
         }

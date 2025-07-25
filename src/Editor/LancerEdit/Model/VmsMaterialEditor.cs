@@ -5,6 +5,7 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Vms;
 
 namespace LancerEdit;
@@ -85,7 +86,7 @@ public class VmsMaterialEditor : PopupWindow
     }
 
     public override string Title { get; set; } = "Materials";
-    public override void Draw()
+    public override void Draw(bool appearing)
     {
         int idx = 0;
         foreach (var e in materials) {

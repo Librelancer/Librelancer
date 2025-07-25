@@ -33,7 +33,7 @@ public class CommentNode : Node
         NodeEditor.PushStyleColor(StyleColor.NodeBorder, new Color4(255, 255, 255, 64));
         NodeEditor.BeginNode(Id);
         ImGui.PushID(Id);
-        ImGui.TextUnformatted(Name);
+        ImGui.Text(Name);
         ImGui.SameLine();
         //Cannot use selectable on the title, layout issues with node editor
         if (Controls.SmallButton($"{Icons.Edit}"))
@@ -50,7 +50,7 @@ public class CommentNode : Node
             var bgAlpha = ImGui.GetStyle().Alpha;
             ImGui.SetCursorScreenPos(min - new Vector2(-8, ImGui.GetTextLineHeightWithSpacing() + 4));
             ImGui.BeginGroup();
-            ImGui.TextUnformatted(Name);
+            ImGui.Text(Name);
             ImGui.EndGroup();
 
             var drawList = NodeEditor.GetHintBackgroundDrawList();

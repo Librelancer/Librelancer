@@ -6,11 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class LightSource : NamedObject
+    [ParsedSection]
+	public partial class LightSource : NamedObject
     {
         [Entry("ids_name")]
         public int IdsName;
@@ -18,11 +19,11 @@ namespace LibreLancer.Data.Universe
         public Color4? Color;
         [Entry("range")]
         public int? Range;
-        [Entry("type")] 
+        [Entry("type")]
         public LightType? Type;
-        [Entry("atten_curve")] 
+        [Entry("atten_curve")]
         public string AttenCurve;
-        [Entry("attenuation")] 
+        [Entry("attenuation")]
         public Vector3? Attenuation;
         [Entry("direction")]
         public Vector3? Direction;

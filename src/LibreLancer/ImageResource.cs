@@ -3,7 +3,6 @@ namespace LibreLancer;
 public enum ImageType
 {
     TGA,
-    LIF,
     DDS,
 }
 

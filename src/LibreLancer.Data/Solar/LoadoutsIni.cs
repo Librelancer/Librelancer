@@ -5,19 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Solar
 {
-	public class LoadoutsIni : IniFile
+    [ParsedIni]
+	public partial class LoadoutsIni
 	{
         [Section("loadout")]
         public List<Loadout> Loadouts = new List<Loadout>();
 
 		public void AddLoadoutsIni(string path, FreelancerData gdata)
         {
-            ParseAndFill(path, gdata.VFS);
+            ParseIni(path, gdata.VFS);
         }
     }
 }

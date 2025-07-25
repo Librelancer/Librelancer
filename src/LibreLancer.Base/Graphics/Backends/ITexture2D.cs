@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace LibreLancer.Graphics.Backends;
 
@@ -7,6 +8,7 @@ public interface ITexture2D : ITexture
     int Width { get; }
     int Height { get; }
     void SetFiltering(TextureFiltering filtering);
+    Task<byte[]> GetDataAsync();
     void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct;
     void GetData<T>(T[] data) where T : struct;
     void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : unmanaged;

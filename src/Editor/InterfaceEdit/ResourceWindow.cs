@@ -259,7 +259,7 @@ namespace InterfaceEdit
         }
 
         private Texture2D foundTexture;
-        private int foundTextureId;
+        private ImTextureRef foundTextureId;
         private int _selTexIndex = -1;
         private TextBuffer imageName = new TextBuffer(256);
         private TextBuffer imageId = new TextBuffer(256);
@@ -358,19 +358,19 @@ namespace InterfaceEdit
             mainWindow.RenderContext.PopViewport();
             mainWindow.RenderContext.RenderTarget = null;
             var cPos = ImGui.GetCursorPos();
-            ImGui.Image((IntPtr) renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
+            ImGui.Image(renderTargetImage, new Vector2(rtX, rtY), new Vector2(0, 1), new Vector2(1, 0));
             ImGui.SetCursorPos(cPos);
             ImGui.InvisibleButton("##renderThing", new Vector2(rtX, rtY));
         }
 
         private RenderTarget2D renderTarget;
-        private int renderTargetImage;
+        private ImTextureRef renderTargetImage;
         private int rtX = -1, rtY = -1;
         void DoViewport(InterfaceModel mdl)
         {
             if (drawable == null) return;
             var szX = (int) ImGui.GetColumnWidth() - 5;
-            var szY = (int) ImGui.GetWindowContentRegionMax().Y - (int) ImGui.GetCursorPosY() - 5;
+            var szY = (int) ImGui.GetContentRegionAvail().Y - 5;
             BindViewport(szX, szY);
             //Do drawing
             var rectangle = new Rectangle(5, 5, rtX - 10, rtY - 10);
@@ -492,7 +492,7 @@ namespace InterfaceEdit
                     ogX, ogY, mdl.Angle);
 
                 ImGui.GetWindowDrawList().AddImageQuad(
-                    (IntPtr)foundTextureId,
+                    foundTextureId,
                     p1,p2,p3,p4,
                     tl,tr,br,bl,
                     UInt32.MaxValue

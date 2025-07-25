@@ -32,7 +32,7 @@ public class SystemEditData
     //System Ini
     public float NavMapScale;
     public Color4 SpaceColor;
-    public Color4 Ambient;
+    public Color3f Ambient;
     public string MusicSpace;
     public string MusicBattle;
     public string MusicDanger;

@@ -5,18 +5,17 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
-using LibreLancer.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    [InheritSection]
-    public abstract class AbstractEquipment
+    [BaseSection]
+    public abstract partial class AbstractEquipment
     {
         [Entry("nickname")]
         public string Nickname;
         [Entry("da_archetype")]
         public string DaArchetype;
-        [Entry("inherit")] 
+        [Entry("inherit")]
         public string Inherit;
         [Entry("material_library", Multiline = true)]
         public List<string> MaterialLibrary = new List<string>();
@@ -50,9 +49,9 @@ namespace LibreLancer.Data.Equipment
         public string DebrisType;
         [Entry("indestructible")]
         public bool Indestructible;
-        [Entry("loot_appearance")] 
+        [Entry("loot_appearance")]
         public string LootAppearance;
-        [Entry("units_per_container")] 
+        [Entry("units_per_container")]
         public int UnitsPerContainer;
         [Section("lod", Child = true)]
         public List<Lod> LodInfo = new List<Lod>();

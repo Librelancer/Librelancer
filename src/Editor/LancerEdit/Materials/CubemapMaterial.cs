@@ -3,11 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LancerEdit.Shaders;
 using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Shaders;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 
 namespace LancerEdit.Materials
 {
@@ -19,20 +21,12 @@ namespace LancerEdit.Materials
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
-            var sh = EnvMapTest.Get(rstate);
-            sh.SetDtSampler(0);
+            var sh = EditorShaders.EnvMapTest.Get(0);
             Texture.BindTo(0);
             rstate.BlendMode = BlendMode.Opaque;
-            //Dt
-            sh.SetWorld(World);
+            SetWorld(sh);
             rstate.Shader = sh;
         }
-
-        public override void ApplyDepthPrepass(RenderContext rstate)
-        {
-            throw new NotImplementedException();
-        }
-
 
         public override bool IsTransparent
         {

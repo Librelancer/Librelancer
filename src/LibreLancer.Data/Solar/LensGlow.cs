@@ -3,10 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Solar
 {
-	public class LensGlow
+    [ParsedSection]
+	public partial class LensGlow
 	{
         [Entry("nickname")]
 		public string Nickname;

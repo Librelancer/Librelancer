@@ -85,7 +85,7 @@ namespace LibreLancer
             //Find infocard
             sys = g.GameData.Systems.Get(currentBase.System);
             var obj = sys.Objects.FirstOrDefault((o) => o.Base == currentBase);
-            int ids = obj.IdsInfo;
+            int ids = obj?.IdsInfo ?? 0;
             roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
             if (g.GameData.GetRelatedInfocard(ids, g.Fonts, out var ic2))
             {
@@ -182,6 +182,12 @@ namespace LibreLancer
                 ShipDealer = new ShipDealer(g.session);
             }
 
+            public int CurrentRank => g.session.CurrentRank;
+            public double NetWorth => (double)g.session.NetWorth;
+            public double NextLevelWorth => (double)g.session.NextLevelWorth;
+            public PlayerStats Statistics => g.session.Statistics;
+
+            public double CharacterPlayTime => g.session.CharacterPlayTime;
             public bool HasShip() => g.session.PlayerShip != null;
 
             public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
@@ -270,7 +276,17 @@ namespace LibreLancer
             public void PopulateNavmap(Navmap navmap)
             {
                 navmap.PopulateIcons(g.ui, g.sys);
+                navmap.SetVisitFunction(g.session.IsVisited);
             }
+
+            bool IsVisited(uint hash)
+            {
+                if (!g.session.Visits.TryGetValue(hash, out var visit))
+                    return false;
+                return (visit & VisitFlags.Hidden) != VisitFlags.Hidden &&
+                       (visit & VisitFlags.Visited) == VisitFlags.Visited;
+            }
+
             public NavbarButtonInfo[] GetNavbarButtons()
             {
                 var buttons = new NavbarButtonInfo[g.tophotspots.Count];
@@ -839,19 +855,21 @@ namespace LibreLancer
                 if(letterboxAmount > 0)
                 {
                     Game.RenderContext.ClearColor = Color4.Black;
-                    Game.RenderContext.ClearAll();
+                    Game.RenderContext.ClearColorOnly();
                     var newRatio = ((double)Game.Width / Game.Height) * 1.39;
                     var newHeight = Game.Width / newRatio;
                     var diff = (Game.Height - newHeight);
                     var vp = Game.RenderContext.CurrentViewport;
-                    vp.Y = (int)(vp.Y + (diff / 2) * letterboxAmount);
-                    vp.Height = (int)(vp.Height - (diff) * letterboxAmount);
+                    vp.Y = (int)((diff / 2) * letterboxAmount);
+                    vp.Height = (int)(Game.Height - (diff) * letterboxAmount);
                     Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
+                    Game.RenderContext.PushScissor(new Rectangle(vp.X, vp.Y, vp.Width, vp.Height), false);
                 }
                 scene.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
-                scene.Draw(delta, Game.Width, Game.Height);
+                scene.Draw(delta, Game.RenderContext.CurrentViewport.Width, Game.RenderContext.CurrentViewport.Height);
                 if (letterboxAmount > 0)
                 {
+                    Game.RenderContext.PopScissor();
                     Game.RenderContext.PopViewport();
                 }
             }

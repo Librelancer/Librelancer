@@ -10,14 +10,14 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int,void> _glEnable;
         private static delegate* unmanaged<int,void> _glDisable;
         private static delegate* unmanaged<int,int*,void> _glGetIntegerv;
-        private static delegate* unmanaged<int,int,IntPtr> _glGetStringi;
-        private static delegate* unmanaged<int,IntPtr> _glGetString;
+        private static delegate* unmanaged<int,int,byte*> _glGetStringi;
+        private static delegate* unmanaged<int,byte*> _glGetString;
         private static delegate* unmanaged<float,float,float,float,void> _glClearColor;
         private static delegate* unmanaged<int,void> _glClear;
         private static delegate* unmanaged<int,int,int,int,void> _glViewport;
         private static delegate* unmanaged<int,int,int,int,void> _glScissor;
         private static delegate* unmanaged<int,int,void> _glBlendFunc;
-        private static delegate* unmanaged<int, int, int, int, void> _glBlendFuncSeparate;
+        private static delegate* unmanaged<int,int,int,int,void> _glBlendFuncSeparate;
         private static delegate* unmanaged<float,float,void> _glDepthRangef;
         private static delegate* unmanaged<int,int,void> _glPolygonMode;
         private static delegate* unmanaged<float,void> _glLineWidth;
@@ -49,13 +49,13 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<uint,int,int*,IntPtr,void> _glGetProgramInfoLog;
         private static delegate* unmanaged<uint> _glCreateProgram;
         private static delegate* unmanaged<uint,uint,void> _glAttachShader;
-        private static delegate* unmanaged<uint,uint,IntPtr,void> _glBindAttribLocation;
-        private static delegate* unmanaged<uint,uint,IntPtr,void> _glBindFragDataLocation;
+        private static delegate* unmanaged<uint,uint,byte*,void> _glBindAttribLocation;
+        private static delegate* unmanaged<uint,uint,byte*,void> _glBindFragDataLocation;
         private static delegate* unmanaged<uint,void> _glLinkProgram;
         private static delegate* unmanaged<uint,void> _glUseProgram;
         private static delegate* unmanaged<uint,int,int*,void> _glGetShaderiv;
         private static delegate* unmanaged<uint,int,int*,void> _glGetProgramiv;
-        private static delegate* unmanaged<uint,IntPtr,int> _glGetUniformLocation;
+        private static delegate* unmanaged<uint,byte*,int> _glGetUniformLocation;
         private static delegate* unmanaged<int,int,void> _glUniform1i;
         private static delegate* unmanaged<int,float,void> _glUniform1f;
         private static delegate* unmanaged<int,int,int,void> _glUniform2i;
@@ -65,15 +65,17 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int,float,float,float,float,void> _glUniform4f;
         private static delegate* unmanaged<int,int,IntPtr,void> _glUniform4fv;
         private static delegate* unmanaged<int,int,int,int,int,void> _glUniform4i;
+        private static delegate* unmanaged<int,int,IntPtr,void> _glUniform4iv;
         private static delegate* unmanaged<int,int,int,IntPtr,void> _glUniformMatrix4fv;
         private static delegate* unmanaged<uint,uint,uint,void> _glUniformBlockBinding;
-        private static delegate* unmanaged<uint,IntPtr,int> _glGetUniformBlockIndex;
+        private static delegate* unmanaged<uint,byte*,int> _glGetUniformBlockIndex;
         private static delegate* unmanaged<int,uint*,void> _glGenBuffers;
         private static delegate* unmanaged<int,uint*,void> _glDeleteBuffers;
         private static delegate* unmanaged<int,uint,void> _glBindBuffer;
         private static delegate* unmanaged<int,uint,uint,IntPtr,IntPtr,void> _glBindBufferRange;
         private static delegate* unmanaged<int,IntPtr,IntPtr,int,void> _glBufferData;
         private static delegate* unmanaged<int,IntPtr,IntPtr,IntPtr,void> _glBufferSubData;
+        private static delegate* unmanaged<int,int,IntPtr,IntPtr,IntPtr,void> _glCopyBufferSubData;
         private static delegate* unmanaged<int,uint*,void> _glGenVertexArrays;
         private static delegate* unmanaged<int,uint*,void> _glDeleteVertexArrays;
         private static delegate* unmanaged<uint,void> _glBindVertexArray;
@@ -107,21 +109,24 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int> _glGetError;
         private static delegate* unmanaged<IntPtr,IntPtr,void> _glDebugMessageCallback;
         private static delegate* unmanaged<int,int,int,int,IntPtr,int,void> _glDebugMessageControl;
-        private static delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, void> _glCopyBufferSubData;
+        private static delegate* unmanaged<uint,uint,IntPtr> _glFenceSync;
+        private static delegate* unmanaged<IntPtr,void> _glDeleteSync;
+        private static delegate* unmanaged<IntPtr,uint,ulong,uint> _glClientWaitSync;
+        private static delegate* unmanaged<void> _glFlush;
 
         public static void Load(Func<string,IntPtr> getProcAddress, bool isGles)
         {
             _glEnable = (delegate* unmanaged<int,void>)getProcAddress("glEnable");
             _glDisable = (delegate* unmanaged<int,void>)getProcAddress("glDisable");
             _glGetIntegerv = (delegate* unmanaged<int,int*,void>)getProcAddress("glGetIntegerv");
-            _glGetStringi = (delegate* unmanaged<int,int,IntPtr>)getProcAddress("glGetStringi");
-            _glGetString = (delegate* unmanaged<int,IntPtr>)getProcAddress("glGetString");
+            _glGetStringi = (delegate* unmanaged<int,int,byte*>)getProcAddress("glGetStringi");
+            _glGetString = (delegate* unmanaged<int,byte*>)getProcAddress("glGetString");
             _glClearColor = (delegate* unmanaged<float,float,float,float,void>)getProcAddress("glClearColor");
             _glClear = (delegate* unmanaged<int,void>)getProcAddress("glClear");
             _glViewport = (delegate* unmanaged<int,int,int,int,void>)getProcAddress("glViewport");
             _glScissor = (delegate* unmanaged<int,int,int,int,void>)getProcAddress("glScissor");
             _glBlendFunc = (delegate* unmanaged<int,int,void>)getProcAddress("glBlendFunc");
-            _glBlendFuncSeparate = (delegate* unmanaged<int, int, int, int, void>)getProcAddress("glBlendFuncSeparate");
+            _glBlendFuncSeparate = (delegate* unmanaged<int,int,int,int,void>)getProcAddress("glBlendFuncSeparate");
             _glDepthRangef = (delegate* unmanaged<float,float,void>)getProcAddress("glDepthRangef");
             _glPolygonMode = (delegate* unmanaged<int,int,void>)getProcAddress("glPolygonMode");
             _glLineWidth = (delegate* unmanaged<float,void>)getProcAddress("glLineWidth");
@@ -153,13 +158,13 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glGetProgramInfoLog = (delegate* unmanaged<uint,int,int*,IntPtr,void>)getProcAddress("glGetProgramInfoLog");
             _glCreateProgram = (delegate* unmanaged<uint>)getProcAddress("glCreateProgram");
             _glAttachShader = (delegate* unmanaged<uint,uint,void>)getProcAddress("glAttachShader");
-            _glBindAttribLocation = (delegate* unmanaged<uint,uint,IntPtr,void>)getProcAddress("glBindAttribLocation");
-            _glBindFragDataLocation = (delegate* unmanaged<uint,uint,IntPtr,void>)getProcAddress("glBindFragDataLocation");
+            _glBindAttribLocation = (delegate* unmanaged<uint,uint,byte*,void>)getProcAddress("glBindAttribLocation");
+            _glBindFragDataLocation = (delegate* unmanaged<uint,uint,byte*,void>)getProcAddress("glBindFragDataLocation");
             _glLinkProgram = (delegate* unmanaged<uint,void>)getProcAddress("glLinkProgram");
             _glUseProgram = (delegate* unmanaged<uint,void>)getProcAddress("glUseProgram");
             _glGetShaderiv = (delegate* unmanaged<uint,int,int*,void>)getProcAddress("glGetShaderiv");
             _glGetProgramiv = (delegate* unmanaged<uint,int,int*,void>)getProcAddress("glGetProgramiv");
-            _glGetUniformLocation = (delegate* unmanaged<uint,IntPtr,int>)getProcAddress("glGetUniformLocation");
+            _glGetUniformLocation = (delegate* unmanaged<uint,byte*,int>)getProcAddress("glGetUniformLocation");
             _glUniform1i = (delegate* unmanaged<int,int,void>)getProcAddress("glUniform1i");
             _glUniform1f = (delegate* unmanaged<int,float,void>)getProcAddress("glUniform1f");
             _glUniform2i = (delegate* unmanaged<int,int,int,void>)getProcAddress("glUniform2i");
@@ -169,15 +174,17 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glUniform4f = (delegate* unmanaged<int,float,float,float,float,void>)getProcAddress("glUniform4f");
             _glUniform4fv = (delegate* unmanaged<int,int,IntPtr,void>)getProcAddress("glUniform4fv");
             _glUniform4i = (delegate* unmanaged<int,int,int,int,int,void>)getProcAddress("glUniform4i");
+            _glUniform4iv = (delegate* unmanaged<int,int,IntPtr,void>)getProcAddress("glUniform4iv");
             _glUniformMatrix4fv = (delegate* unmanaged<int,int,int,IntPtr,void>)getProcAddress("glUniformMatrix4fv");
             _glUniformBlockBinding = (delegate* unmanaged<uint,uint,uint,void>)getProcAddress("glUniformBlockBinding");
-            _glGetUniformBlockIndex = (delegate* unmanaged<uint,IntPtr,int>)getProcAddress("glGetUniformBlockIndex");
+            _glGetUniformBlockIndex = (delegate* unmanaged<uint,byte*,int>)getProcAddress("glGetUniformBlockIndex");
             _glGenBuffers = (delegate* unmanaged<int,uint*,void>)getProcAddress("glGenBuffers");
             _glDeleteBuffers = (delegate* unmanaged<int,uint*,void>)getProcAddress("glDeleteBuffers");
             _glBindBuffer = (delegate* unmanaged<int,uint,void>)getProcAddress("glBindBuffer");
             _glBindBufferRange = (delegate* unmanaged<int,uint,uint,IntPtr,IntPtr,void>)getProcAddress("glBindBufferRange");
             _glBufferData = (delegate* unmanaged<int,IntPtr,IntPtr,int,void>)getProcAddress("glBufferData");
             _glBufferSubData = (delegate* unmanaged<int,IntPtr,IntPtr,IntPtr,void>)getProcAddress("glBufferSubData");
+            _glCopyBufferSubData = (delegate* unmanaged<int,int,IntPtr,IntPtr,IntPtr,void>)getProcAddress("glCopyBufferSubData");
             _glGenVertexArrays = (delegate* unmanaged<int,uint*,void>)getProcAddress("glGenVertexArrays");
             _glDeleteVertexArrays = (delegate* unmanaged<int,uint*,void>)getProcAddress("glDeleteVertexArrays");
             _glBindVertexArray = (delegate* unmanaged<uint,void>)getProcAddress("glBindVertexArray");
@@ -211,7 +218,10 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glGetError = (delegate* unmanaged<int>)getProcAddress("glGetError");
             _glDebugMessageCallback = (delegate* unmanaged<IntPtr,IntPtr,void>)getProcAddress("glDebugMessageCallback");
             _glDebugMessageControl = (delegate* unmanaged<int,int,int,int,IntPtr,int,void>)getProcAddress("glDebugMessageControl");
-            _glCopyBufferSubData = (delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, void>) getProcAddress("glCopyBufferSubData");
+            _glFenceSync = (delegate* unmanaged<uint,uint,IntPtr>)getProcAddress("glFenceSync");
+            _glDeleteSync = (delegate* unmanaged<IntPtr,void>)getProcAddress("glDeleteSync");
+            _glClientWaitSync = (delegate* unmanaged<IntPtr,uint,ulong,uint>)getProcAddress("glClientWaitSync");
+            _glFlush = (delegate* unmanaged<void>)getProcAddress("glFlush");
         }
         public static void Enable(int flags)
         {
@@ -234,7 +244,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static string GetStringi(int name, int index)
         {
             string retval;
-            var _retval_ptr = _glGetStringi(name, index);
+            var _retval_ptr = (IntPtr)_glGetStringi(name, index);
             retval =  Marshal.PtrToStringUTF8(_retval_ptr);
             ErrorCheck();
             return retval;
@@ -242,7 +252,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static string GetString(int name)
         {
             string retval;
-            var _retval_ptr = _glGetString(name);
+            var _retval_ptr = (IntPtr)_glGetString(name);
             retval =  Marshal.PtrToStringUTF8(_retval_ptr);
             ErrorCheck();
             return retval;
@@ -272,7 +282,6 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glBlendFunc(sfactor, dfactor);
             ErrorCheck();
         }
-
         public static void BlendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
         {
             _glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
@@ -433,16 +442,22 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         }
         public static void BindAttribLocation(uint program, uint index, string name)
         {
-            var _name_ptr = StringToPtrUTF8(name);
-            _glBindAttribLocation(program, index, _name_ptr);
-            Marshal.FreeHGlobal(_name_ptr);
+            Span<byte> _name_stack = stackalloc byte[256];
+            using var _name_utf8 = new UTF8ZHelper(_name_stack, name);
+            fixed (byte* _name_ptr = _name_utf8.ToUTF8Z())
+            {
+                _glBindAttribLocation(program, index, _name_ptr);
+            }
             ErrorCheck();
         }
         public static void BindFragDataLocation(uint program, uint colorNumber, string name)
         {
-            var _name_ptr = StringToPtrUTF8(name);
-            _glBindFragDataLocation(program, colorNumber, _name_ptr);
-            Marshal.FreeHGlobal(_name_ptr);
+            Span<byte> _name_stack = stackalloc byte[256];
+            using var _name_utf8 = new UTF8ZHelper(_name_stack, name);
+            fixed (byte* _name_ptr = _name_utf8.ToUTF8Z())
+            {
+                _glBindFragDataLocation(program, colorNumber, _name_ptr);
+            }
             ErrorCheck();
         }
         public static void LinkProgram(uint program)
@@ -474,9 +489,12 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static int GetUniformLocation(uint program, string name)
         {
             int retval;
-            var _name_ptr = StringToPtrUTF8(name);
-            retval = _glGetUniformLocation(program, _name_ptr);
-            Marshal.FreeHGlobal(_name_ptr);
+            Span<byte> _name_stack = stackalloc byte[256];
+            using var _name_utf8 = new UTF8ZHelper(_name_stack, name);
+            fixed (byte* _name_ptr = _name_utf8.ToUTF8Z())
+            {
+                retval = _glGetUniformLocation(program, _name_ptr);
+            }
             ErrorCheck();
             return retval;
         }
@@ -525,6 +543,11 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glUniform4i(location, v0, v1, v2, v3);
             ErrorCheck();
         }
+        public static void Uniform4iv(int location, int count, IntPtr values)
+        {
+            _glUniform4iv(location, count, values);
+            ErrorCheck();
+        }
         public static void UniformMatrix4fv(int location, int count, bool transpose, IntPtr value)
         {
             _glUniformMatrix4fv(location, count, (transpose ? 1 : 0), value);
@@ -538,9 +561,12 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static int GetUniformBlockIndex(uint program, string name)
         {
             int retval;
-            var _name_ptr = StringToPtrUTF8(name);
-            retval = _glGetUniformBlockIndex(program, _name_ptr);
-            Marshal.FreeHGlobal(_name_ptr);
+            Span<byte> _name_stack = stackalloc byte[256];
+            using var _name_utf8 = new UTF8ZHelper(_name_stack, name);
+            fixed (byte* _name_ptr = _name_utf8.ToUTF8Z())
+            {
+                retval = _glGetUniformBlockIndex(program, _name_ptr);
+            }
             ErrorCheck();
             return retval;
         }
@@ -580,9 +606,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glBufferSubData(target, offset, size, data);
             ErrorCheck();
         }
-
-        public static void CopyBufferSubData(int readtarget, int writetarget, IntPtr readoffset, IntPtr writeoffset,
-            IntPtr size)
+        public static void CopyBufferSubData(int readtarget, int writetarget, IntPtr readoffset, IntPtr writeoffset, IntPtr size)
         {
             _glCopyBufferSubData(readtarget, writetarget, readoffset, writeoffset, size);
             ErrorCheck();
@@ -764,13 +788,29 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glDebugMessageControl(source, type, severity, count, ids, (enabled ? 1 : 0));
             ErrorCheck();
         }
-        private static IntPtr StringToPtrUTF8(string str)
+        public static IntPtr FenceSync(uint condition, uint flags)
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(str);
-            var ptr = Marshal.AllocHGlobal(bytes.Length + 1);
-            Marshal.Copy(bytes, 0, ptr, bytes.Length);
-            ((byte*) ptr)[bytes.Length] = 0;
-            return ptr;
+            IntPtr retval;
+            retval = _glFenceSync(condition, flags);
+            ErrorCheck();
+            return retval;
+        }
+        public static void DeleteSync(IntPtr sync)
+        {
+            _glDeleteSync(sync);
+            ErrorCheck();
+        }
+        public static uint ClientWaitSync(IntPtr sync, uint flags, ulong timeout)
+        {
+            uint retval;
+            retval = _glClientWaitSync(sync, flags, timeout);
+            ErrorCheck();
+            return retval;
+        }
+        public static void Flush()
+        {
+            _glFlush();
+            ErrorCheck();
         }
     }
 }

@@ -3,11 +3,12 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Equipment
 {
-    public class Explosion
+    [ParsedSection]
+    public partial class Explosion
     {
         [Entry("nickname")] public string Nickname;
         [Entry("effect")] public string Effect;

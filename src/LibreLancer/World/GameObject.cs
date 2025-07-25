@@ -16,6 +16,8 @@ using LibreLancer.GameData.Items;
 using LibreLancer.GameData.World;
 using LibreLancer.Physics;
 using LibreLancer.Render;
+using LibreLancer.Resources;
+using LibreLancer.Sounds;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World.Components;
 using Archs = LibreLancer.GameData.Archetypes;
@@ -29,7 +31,8 @@ namespace LibreLancer.World
         Solar,
         Missile,
         Waypoint,
-        Debris
+        Debris,
+        Loot
     }
 
     public class TradelaneName : ObjectName
@@ -62,6 +65,38 @@ namespace LibreLancer.World
             {
                 return rightLeft;
             }
+        }
+    }
+
+    public class LootName : ObjectName
+    {
+        private GameObject Parent;
+        public LootName(GameObject parent)
+        {
+            Parent = parent;
+        }
+
+        private Equipment cacheEq;
+        private int cacheCount;
+        private string cacheStr;
+
+        public override string GetName(GameDataManager gameData, Vector3 other)
+        {
+            if (!(Parent?.TryGetComponent<LootComponent>(out var loot) ?? false))
+                return "NULL";
+            if (loot.Cargo.Count == 0)
+                return "NULL";
+            var cg = loot.Cargo[0];
+            if (cacheStr == null || cacheEq != cg.Item ||
+                cacheCount != cg.Count)
+            {
+                cacheStr = cg.Count > 1
+                    ? $"{gameData.GetString(cg.Item.IdsName)} ({cg.Count})"
+                    : gameData.GetString(cg.Item.IdsName);
+                cacheEq = cg.Item;
+                cacheCount = cg.Count;
+            }
+            return cacheStr;
         }
     }
 
@@ -133,6 +168,7 @@ namespace LibreLancer.World
         //Public Fields
         public readonly int Unique = Interlocked.Increment(ref _unique);
 		public ObjectName Name;
+
         public GameObjectFlags Flags;
         public ShipFormation Formation = null;
         public GameObjectKind Kind = GameObjectKind.None;
@@ -141,22 +177,19 @@ namespace LibreLancer.World
         public int NetID;
         public Hardpoint _attachment;
         public SystemObject SystemObject;
-        public RigidModel RigidModel;
+        public DestructibleModel Model;
         public ResourceManager Resources;
         public GameWorld World;
         public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();
 
         //Private Fields
-        private HashSet<string> disabledParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         Transform3D _localTransform = Transform3D.Identity;
         private string _nickname;
         private bool transformDirty = false;
         Transform3D worldTransform = Transform3D.Identity;
         private GameObject _parent;
         IDrawable dr;
-        Dictionary<string, Hardpoint> hardpoints = new Dictionary<string, Hardpoint>(StringComparer.OrdinalIgnoreCase);
         public List<GameObject> Children = new List<GameObject>();
-        public Data.Solar.CollisionGroup[] CollisionGroups;
         private Dictionary<Type, GameComponent> componentLookup = new Dictionary<Type, GameComponent>();
         private List<GameComponent> components = new List<GameComponent>();
         //Components
@@ -177,7 +210,7 @@ namespace LibreLancer.World
                 if (value == null)
                     NicknameCRC = 0;
                 else
-                    NicknameCRC = CrcTool.FLModelCrc(value);
+                    NicknameCRC = FLHash.CreateID(value);
             }
         }
 
@@ -296,14 +329,17 @@ namespace LibreLancer.World
         public void InitWithArchetype(Archetype arch, Archs.Sun sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
+            var flags = MeshLoadMode.GPU;
+            if (!phys)
+                flags |= MeshLoadMode.NoCollision;
             if (sun != null)
             {
-                InitWithModel(arch.ModelFile.LoadFile(res), res, false, true);
+                InitWithModel(arch.ModelFile.LoadFile(res, flags), arch.SeparableParts, res, false, true);
                 RenderComponent = new SunRenderer(sun);
             }
             else
             {
-                InitWithModel(arch.ModelFile.LoadFile(res), res, draw, phys);
+                InitWithModel(arch.ModelFile.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
             }
         }
 
@@ -314,16 +350,16 @@ namespace LibreLancer.World
         public static GameObject WithModel(ResolvedModel modelFile, bool draw, ResourceManager res)
         {
             var go = new GameObject();
-            go.InitWithModel(modelFile.LoadFile(res), res, draw,  false);
+            go.InitWithModel(modelFile.LoadFile(res), [], res, draw,  false);
             return go;
         }
 		public GameObject(ModelResource model, ResourceManager res, bool draw = true,  bool phys = true)
 		{
-            InitWithModel(model, res, draw,  phys);
+            InitWithModel(model, [], res, draw,  phys);
         }
         public GameObject(Ship ship, ResourceManager res, bool draw = true, bool phys = false)
         {
-            InitWithModel(ship.ModelFile.LoadFile(res), res, draw, phys);
+            InitWithModel(ship.ModelFile.LoadFile(res), ship.SeparableParts, res, draw, phys);
             ArchetypeName = ship.Nickname;
             Kind = GameObjectKind.Ship;
             if (RenderComponent is ModelRenderer mr)
@@ -340,12 +376,11 @@ namespace LibreLancer.World
 
         public GameObject(RigidModel model, CollisionMeshHandle collider, ResourceManager res, string partName, float mass, bool draw)
         {
-            RigidModel = model;
+            Model = new DestructibleModel(model, []);
             Resources = res;
-            PopulateHardpoints();
-            if (draw && RigidModel != null)
+            if (draw && Model != null)
             {
-                RenderComponent = new ModelRenderer(RigidModel);
+                RenderComponent = new ModelRenderer(Model.RigidModel);
             }
             uint plainCrc = 0;
             if (!string.IsNullOrEmpty(partName)) plainCrc = CrcTool.FLModelCrc(partName);
@@ -367,78 +402,102 @@ namespace LibreLancer.World
             PhysicsComponent.UpdateParts();
         }
 
-        public bool DisableCmpPart(string part)
+        public bool DisableCmpPart(uint part, ResourceManager res, out GameObject[] children)
         {
-            if(RigidModel != null && RigidModel.Parts.TryGetValue(part, out var p))
+            if(Model != null && Model.DestroyPart(part, out var destroyed))
             {
-                if (disabledParts.Contains(part))
-                    return false;
-                p.Active = false;
-                PhysicsComponent.DisablePart(p);
+                PhysicsComponent.DisablePart(destroyed);
                 World?.Server?.PartDisabled(this, part);
-                disabledParts.Add(part);
+                var removedChildren = new List<GameObject>();
                 for (int i = Children.Count - 1; i >= 0; i--)
                 {
                     var child = Children[i];
                     if (!(child.Attachment?.Parent?.Active ?? true))
                     {
+                        removedChildren.Add(child);
                         Children.RemoveAt(i);
                     }
                 }
+                foreach (var hp in destroyed.Hardpoints)
+                {
+                    for (int i = 0; i < components.Count; i++)
+                    {
+                        components[i].HardpointDestroyed(hp);
+                    }
+                }
+
+                var sp = Model.SeparableParts.FirstOrDefault((x =>
+                    x.Part.Equals(destroyed.Name, StringComparison.OrdinalIgnoreCase)));
+                if (sp != null && sp.ParentDamageCap != null &&
+                    Model.TryGetHardpoint(sp.ParentDamageCapHardpoint, out var capHardpoint))
+                {
+                    var cap = WithModel(sp.ParentDamageCap.Model, RenderComponent != null, res);
+                    cap.Attachment = capHardpoint;
+                    cap.Parent = this;
+                    if (cap.Model.TryGetHardpoint("DpConnect", out var childHp))
+                    {
+                        cap.SetLocalTransform(childHp.Transform.Inverse());
+                    }
+                    if (cap.RenderComponent != null)
+                    {
+                        cap.RenderComponent.InheritCull = false;
+                    }
+                    Children.Add(cap);
+                }
+                children = removedChildren.ToArray();
                 return true;
             }
+            children = [];
             return false;
         }
 
-        public void SpawnDebris(string part)
+        public bool DisableCmpPart(string part, ResourceManager res, out GameObject[] children) => DisableCmpPart(CrcTool.FLModelCrc(part), res, out children);
+
+        public void SpawnDebris(string part, ResourceManager res)
         {
             if (World?.Server == null) {
                 throw new Exception("Server-only code");
             }
-            if (RigidModel != null && RigidModel.Parts.TryGetValue(part, out var srcpart))
+            if (Model != null && Model.RigidModel.Parts.TryGetPart(part, out var srcpart))
             {
-                if (!DisableCmpPart(part))
+                var alreadyDestroyed = Model.DestroyedParts.ToArray();
+                if (!DisableCmpPart(part, res, out var children))
                     return;
+                var sp = Model.SeparableParts.FirstOrDefault((x =>
+                    x.Part.Equals(srcpart.Name, StringComparison.OrdinalIgnoreCase)));
+
                 var tr = srcpart.LocalTransform * WorldTransform;
                 var vec = (tr.Position - WorldTransform.Position).Normalized();
                 var initialforce = 100f;
                 var mass = 50f;
-                if (CollisionGroups != null)
+                if (sp != null)
                 {
-                    var cg = CollisionGroups.FirstOrDefault(x =>
-                        x.obj.Equals(part, StringComparison.OrdinalIgnoreCase));
-                    if (cg != null)
-                    {
-                        mass = cg.Mass;
-                        initialforce = cg.ChildImpulse;
-                    }
+                    mass = sp.Mass;
+                    initialforce = sp.ChildImpulse;
                 }
-                World.Server.SpawnDebris(Kind, ArchetypeName, part, tr, mass, vec * initialforce);
+                World.Server.SpawnDebris(Kind, ArchetypeName, part, tr, children, alreadyDestroyed, mass, vec * initialforce);
             }
         }
-        public void InitWithModel(ModelResource drawable, ResourceManager res, bool draw, bool havePhys = true)
+        public void InitWithModel(ModelResource drawable, List<SeparablePart> separables, ResourceManager res, bool draw, bool havePhys = true)
 		{
 			Resources = res;
 			dr = drawable.Drawable;
             PhysicsComponent phys = null;
 			bool isCmp = false;
-            string name = "";
 			if (dr is SphFile)
 			{
 				var radius = ((SphFile)dr).Radius;
                 phys = new PhysicsComponent(this) { SphereRadius = radius };
-                name = ((SphFile)dr).SideMaterialNames[0];
-                RigidModel = ((SphFile) dr).CreateRigidModel(draw, res);
+                Model = new DestructibleModel(((SphFile)dr).CreateRigidModel(draw, res), separables);
             }
 			else if (dr is IRigidModelFile mdl)
 			{
-				//var mdl = dr as ModelFile;
-                RigidModel = mdl.CreateRigidModel(draw, res);
+                Model = new DestructibleModel(mdl.CreateRigidModel(draw, res), separables);
                 if (drawable.Collision.Valid)
                     phys = new PhysicsComponent(this) { SurPath = drawable.Collision, Collidable = Kind != GameObjectKind.Waypoint };
-                if (RigidModel.Animation != null)
+                if (Model.RigidModel.Animation != null)
                 {
-                    AnimationComponent = new AnimationComponent(this, RigidModel.Animation);
+                    AnimationComponent = new AnimationComponent(this, Model.RigidModel.Animation);
                     AddComponent(AnimationComponent);
                 }
 			}
@@ -447,14 +506,13 @@ namespace LibreLancer.World
                 PhysicsComponent = phys;
                 AddComponent(phys);
             }
-            PopulateHardpoints();
-            if (draw && RigidModel != null)
+            if (draw && Model != null)
             {
-                RenderComponent = new ModelRenderer(RigidModel);
+                RenderComponent = new ModelRenderer(Model.RigidModel);
             }
 		}
 
-        public void SetLoadout(ObjectLoadout loadout, bool cutscene = false)
+        public void SetLoadout(ObjectLoadout loadout, SoundManager snd, bool cutscene = false)
         {
             foreach (var item in loadout.Items)
             {
@@ -467,22 +525,8 @@ namespace LibreLancer.World
                 }
                 else
                 {
-                    EquipmentObjectManager.InstantiateEquipment(this, Resources, null,
+                    EquipmentObjectManager.InstantiateEquipment(this, Resources, snd,
                         type, item.Hardpoint ?? "internal", item.Equipment);
-                }
-            }
-        }
-
-
-		void PopulateHardpoints()
-        {
-            if (RigidModel == null) return;
-            foreach (var part in RigidModel.AllParts)
-            {
-                foreach (var hp in part.Hardpoints)
-                {
-                    if(!hardpoints.ContainsKey(hp.Definition.Name))
-                        hardpoints.Add(hp.Definition.Name, hp);
                 }
             }
         }
@@ -545,6 +589,50 @@ namespace LibreLancer.World
             object IEnumerator.Current => Current;
 
             public void Dispose() => Reset();
+        }
+
+        public struct ComponentEnumerator<T> : IEnumerator<T> where T : GameComponent
+        {
+            private int i;
+            private GameObject obj;
+
+            public ComponentEnumerator(GameObject obj)
+            {
+                this.obj = obj;
+                i = 0;
+            }
+
+            public bool MoveNext()
+            {
+                if (i >= obj.components.Count)
+                {
+                    Current = null;
+                    return false;
+                }
+                T result = null;
+                while (i < obj.components.Count && (result = obj.components[i] as T) == null)
+                    i++;
+                i++;
+                Current = result;
+                return result != null;
+            }
+
+            public void Reset()
+            {
+                i = 0;
+                Current = null;
+            }
+
+            public T Current { get; private set; }
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() => Reset();
+        }
+
+        public StructEnumerable<T, ComponentEnumerator<T>> GetComponents<T>() where T : GameComponent
+        {
+            return new(new ComponentEnumerator<T>(this));
         }
 
 		public StructEnumerable<T, ChildComponentEnumerator<T>> GetChildComponents<T>() where T : GameComponent
@@ -611,9 +699,6 @@ namespace LibreLancer.World
             componentLookup.Clear();
             components.Clear();
             Children.Clear();
-            hardpoints.Clear();
-            disabledParts.Clear();
-            CollisionGroups = null;
             _parent = null;
             transformDirty = true;
             _localTransform = Transform3D.Identity;
@@ -628,7 +713,7 @@ namespace LibreLancer.World
             ArchetypeName = null;
             _attachment = null;
             SystemObject = null;
-            RigidModel = null;
+            Model = null;
             Resources = null;
             RenderComponent = null;
             PhysicsComponent = null;
@@ -644,26 +729,21 @@ namespace LibreLancer.World
             Flags &= ~GameObjectFlags.Exists;
 		}
 
-		public bool HardpointExists(string hpname)
-		{
-			return hardpoints.ContainsKey(hpname);
-		}
+        public bool HardpointExists(string hpname) => Model?.HardpointExists(hpname) ?? false;
 
 		public Hardpoint GetHardpoint(string hpname)
         {
-            if (hpname == null)
+            if(Model == null)
+            {
                 return null;
-            Hardpoint tryget;
-            if (hardpoints.TryGetValue(hpname, out tryget)) return tryget;
-            return null;
+            }
+            Model.TryGetHardpoint(hpname, out var hardpoint);
+            return hardpoint;
 		}
 
         public Vector3 InverseTransformPoint(Vector3 input) => WorldTransform.InverseTransform(input);
 
-		public IEnumerable<Hardpoint> GetHardpoints()
-		{
-			return hardpoints.Values;
-		}
+		public IEnumerable<Hardpoint> GetHardpoints() => Model.Hardpoints;
 
 		public override string ToString()
 		{

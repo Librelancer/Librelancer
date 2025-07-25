@@ -40,6 +40,9 @@ namespace LibreLancer.GameData.World
         public string Parent;
         public string Voice;
         public string[] SpaceCostume;
+        public string JumpEffect;
+        public string RingZone;
+        public string RingFile;
 
         //Editor only
         public string Comment;

@@ -1,8 +1,9 @@
 ﻿using System.Linq;
+using ImGuiNET;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Ini;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Actions;
 
@@ -25,6 +26,7 @@ public sealed class ActSetNnObject : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         nodePopups.StringCombo("Objective", Data.Objective, s => Data.Objective = s, lookups.Objectives);
+        ImGui.Checkbox("History", ref Data.History);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

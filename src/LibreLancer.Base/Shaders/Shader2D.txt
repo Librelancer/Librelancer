@@ -1,0 +1,2 @@
+vertex Shader2D.vert.hlsl
+fragment Shader2D.frag.hlsl

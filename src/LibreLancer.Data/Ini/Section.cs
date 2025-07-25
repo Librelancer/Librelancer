@@ -5,10 +5,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
 	public class Section : ICollection<Entry>
@@ -41,12 +40,6 @@ namespace LibreLancer.Ini
 			{
 				IEnumerable<Entry> candidates = from Entry e in entries where e.Name == name select e;
 				int count = candidates.Count<Entry>();
-				/*if (count == 1)
-                    return candidates.First<Entry>();
-                else if (count == 0)
-                    return null;
-                else
-                    throw new FileContentsException(IniFile.INI, count + " entries with the name " + name);*/
 				if (count == 0) return null;
 				else return candidates.First<Entry>();
 			}
@@ -87,40 +80,20 @@ namespace LibreLancer.Ini
 			return entries.Remove(item);
 		}
 
-		public IEnumerator<Entry> GetEnumerator()
-		{
-			return entries.GetEnumerator();
-		}
+        public List<Entry>.Enumerator GetEnumerator()
+        {
+            return entries.GetEnumerator();
+        }
+
+        IEnumerator<Entry> IEnumerable<Entry>.GetEnumerator()
+        {
+            return entries.GetEnumerator();
+        }
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return entries.GetEnumerator();
 		}
-
-		/*public static bool operator ==(Section operand1, Section operand2)
-        {
-            return operand1.Equals(operand2);
-        }
-
-        public static bool operator !=(Section operand1, Section operand2)
-        {
-            return !(operand1 == operand2);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Section)
-            {
-                Section s = (Section)obj;
-                return namePointer == s.namePointer && entries == s.entries;
-            }
-            else return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return namePointer.GetHashCode() ^ entries.GetHashCode();
-        }*/
 
 		public override string ToString()
 		{

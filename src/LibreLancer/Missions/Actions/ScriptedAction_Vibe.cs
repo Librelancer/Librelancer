@@ -1,6 +1,6 @@
 using System;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
-using LibreLancer.Ini;
 using LibreLancer.Server.Components;
 
 namespace LibreLancer.Missions.Actions
@@ -102,11 +102,14 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            foreach (var ship1 in script.GetShipsByLabel(Label1))
+            if (!runtime.Labels.TryGetValue(Label1, out var l1) ||
+                !runtime.Labels.TryGetValue(Label2, out var l2))
+                return;
+            foreach (var ship1 in l1.Objects)
             {
-                foreach (var ship2 in script.GetShipsByLabel(Label2))
+                foreach (var ship2 in l2.Objects)
                 {
-                    SetVibe(runtime, ship1.Nickname, ship2.Nickname, Vibe);
+                    SetVibe(runtime, ship1, ship2, Vibe);
                 }
             }
         }
@@ -136,8 +139,10 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            foreach (var ship in script.GetShipsByLabel(Label))
-                SetVibe(runtime, Ship, ship.Nickname, Vibe);
+            if (!runtime.Labels.TryGetValue(Label, out var l))
+                return;
+            foreach (var labelShip in l.Objects)
+                SetVibe(runtime, Ship, labelShip, Vibe);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -165,8 +170,10 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            foreach (var ship in script.GetShipsByLabel(Label))
-                SetVibe(runtime, ship.Nickname, Ship, Vibe);
+            if (!runtime.Labels.TryGetValue(Label, out var l))
+                return;
+            foreach (var labelShip in l.Objects)
+                SetVibe(runtime, labelShip, Ship, Vibe);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)

@@ -16,8 +16,8 @@ namespace LibreLancer.ImUI
     {
         public static bool VerticalTab(string text, bool v)
         {
-            var font = ImGuiNative.igGetFont();
-            var dlist = ImGuiNative.igGetWindowDrawList();
+            var font = ImGui.GetFontBaked();
+            var dlist = ImGui.GetWindowDrawList();
 
             var style = ImGui.GetStyle();
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
@@ -37,24 +37,24 @@ namespace LibreLancer.ImUI
             ImGui.PopStyleColor();
             ImGui.PopStyleVar(2);
 
-            for(int i = 0; i < text.Length; i++) {
-                var glyph = ImGuiExt.igFontFindGlyph(font, text[i]);
-                ImGuiNative.ImDrawList_PrimReserve(
-                dlist, 6, 4
-                );
-                ImGuiNative.ImDrawList_PrimQuadUV(
-                    dlist,
-                    pos + new Vector2(font->FontSize - glyph->Y0, glyph->X0),
-                    pos + new Vector2(font->FontSize - glyph->Y0, glyph->X1),
-                    pos + new Vector2(font->FontSize - glyph->Y1, glyph->X1),
-                    pos + new Vector2(font->FontSize - glyph->Y1, glyph->X0),
-                    new Vector2(glyph->U0, glyph->V0),
-                    new Vector2(glyph->U1, glyph->V0),
-                    new Vector2(glyph->U1, glyph->V1),
-                    new Vector2(glyph->U0, glyph->V1),
+
+            for(int i = 0; i < text.Length; i++)
+            {
+                var glyph = font.FindGlyph(text[i]);
+                dlist.PrimReserve(6, 4);
+
+                dlist.PrimQuadUV(
+                    pos + new Vector2(font.Size - glyph.Y0, glyph.X0),
+                    pos + new Vector2(font.Size - glyph.Y0, glyph.X1),
+                    pos + new Vector2(font.Size - glyph.Y1, glyph.X1),
+                    pos + new Vector2(font.Size - glyph.Y1, glyph.X0),
+                    new Vector2(glyph.U0, glyph.V0),
+                    new Vector2(glyph.U1, glyph.V0),
+                    new Vector2(glyph.U1, glyph.V1),
+                    new Vector2(glyph.U0, glyph.V1),
                     text_color
                 );
-                pos.Y += glyph->AdvanceX;
+                pos.Y += glyph.AdvanceX;
             }
             ImGui.PopID();
             return ret;

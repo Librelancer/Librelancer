@@ -3,9 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Data;
 
-namespace LibreLancer.Ini
+namespace LibreLancer.Data.Ini
 {
     public abstract class ValueBase : IValue
     {

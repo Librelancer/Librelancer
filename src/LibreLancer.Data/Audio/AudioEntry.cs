@@ -4,10 +4,12 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Audio
 {
-	public class AudioEntry
+    [ParsedSection]
+	public partial class AudioEntry
 	{
         [Entry("nickname")]
 		public string Nickname;

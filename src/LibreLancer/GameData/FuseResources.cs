@@ -8,7 +8,7 @@ using LibreLancer.Fx;
 
 namespace LibreLancer.GameData
 {
-    public class FuseResources
+    public class FuseResources : IdentifiableItem
     {
         public Dictionary<string, ResolvedFx> Fx = new Dictionary<string, ResolvedFx>(StringComparer.OrdinalIgnoreCase);
         public Data.Fuses.Fuse Fuse;

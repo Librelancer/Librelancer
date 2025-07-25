@@ -6,14 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Ini;
-
 using LibreLancer.Data.Solar;
 using LibreLancer.Data.Characters;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe
 {
-	public class SystemObject : SystemPart
+    [ParsedSection]
+	public partial class SystemObject : SystemPart
     {
         [Entry("ambient_color")]
         [Entry("ambient")]

@@ -51,7 +51,7 @@ public class TabControl
                 if (Tabs[i].UnsavedDocument) tabFlags |= ImGuiTabItemFlags.UnsavedDocument;
                 if (Tabs[i].TabColor == TabColor.Alternate)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.TabActive, AlternateActive);
+                    ImGui.PushStyleColor(ImGuiCol.TabSelected, AlternateActive);
                     ImGui.PushStyleColor(ImGuiCol.Tab, AlternateInactive);
                 }
                 if (ImGui.BeginTabItem(Tabs[i].RenderTitle, ref isTabOpen,tabFlags))

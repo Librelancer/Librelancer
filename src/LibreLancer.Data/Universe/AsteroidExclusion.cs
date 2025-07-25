@@ -1,8 +1,9 @@
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Universe;
 
-public class AsteroidExclusion
+[ParsedSection]
+public partial class AsteroidExclusion
 {
     [Entry("exclude")]
     [Entry("exclusion")]

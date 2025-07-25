@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 
 namespace LibreLancer.World
@@ -24,6 +25,10 @@ namespace LibreLancer.World
 		public virtual void Unregister(PhysicsWorld physics)
 		{
 		}
+
+        public virtual void HardpointDestroyed(Hardpoint hardpoint)
+        {
+        }
 
         protected SoundManager GetSoundManager()
         {

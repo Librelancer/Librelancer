@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 
@@ -14,8 +15,7 @@ public class ProjectileMaterial : RenderMaterial
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
-        var shader = Shaders.Projectile.Get(rstate);
-        shader.SetDtSampler(0);
+        var shader = AllShaders.Sprite.Get(0);
         BindTexture(rstate, 0, "code_beam", 0, SamplerFlags.ClampToEdgeU | SamplerFlags.ClampToEdgeV);
         rstate.BlendMode = BlendMode.Additive;
         rstate.Shader = shader;
@@ -24,9 +24,4 @@ public class ProjectileMaterial : RenderMaterial
     public override bool IsTransparent => true;
 
     public override bool DisableCull => true;
-
-    public override void ApplyDepthPrepass(RenderContext rstate)
-    {
-        throw new InvalidOperationException();
-    }
 }

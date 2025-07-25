@@ -3,8 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
-using LibreLancer.Ini;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.Missions.Actions

@@ -47,13 +47,14 @@ public class PackedUpdatePacket : IPacket
     {
         var p = new PackedUpdatePacket();
         p.Tick = message.GetVariableUInt32();
-        p.OldTick = (uint) (p.Tick + message.GetVariableInt32());
-        p.InputSequence = (uint) (p.Tick + message.GetVariableInt32());
+        p.OldTick = (uint)(p.Tick + message.GetVariableInt32());
+        p.InputSequence = (uint)(p.Tick + message.GetVariableInt32());
         p.Updates = message.GetRemainingBytes();
         return p;
     }
 
-    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth, Func<uint, int, ObjectUpdate> getSource)
+    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth,
+        Func<uint, int, ObjectUpdate> getSource)
     {
         var reader = new BitReader(Updates, 0);
         var pa = PlayerAuthState.Read(ref reader, origAuth);
@@ -64,16 +65,19 @@ public class PackedUpdatePacket : IPacket
         {
             ids[0] = reader.GetVarInt32();
         }
+
         for (int i = 1; i < count; i++)
         {
             ids[i] = ids[i - 1] + reader.GetVarInt32();
         }
+
         var updates = new ObjectUpdate[count];
         for (int i = 0; i < count; i++)
         {
             updates[i] = ObjectUpdate.ReadDelta(ref reader, Tick, ids[i], getSource);
             reader.Align();
         }
+
         return (pa, updates);
     }
 
@@ -90,6 +94,7 @@ public struct GunOrient
 {
     private uint pitch;
     private uint rot;
+
     public float AnglePitch
     {
         get => NetPacking.UnquantizeFloat(pitch, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
@@ -104,7 +109,7 @@ public struct GunOrient
 
     public void ReadDelta(ref BitReader message, GunOrient src)
     {
-        if(message.GetBool())
+        if (message.GetBool())
         {
             pitch = message.GetBool()
                 ? NetPacking.ApplyDelta(message.GetUInt(8), src.pitch, 8)
@@ -114,6 +119,7 @@ public struct GunOrient
         {
             pitch = src.pitch;
         }
+
         if (message.GetBool())
         {
             rot = message.GetBool()
@@ -135,15 +141,18 @@ public struct GunOrient
         else
         {
             message.PutBool(true);
-            if (NetPacking.TryDelta(pitch, src.pitch, 8, out var d)) {
+            if (NetPacking.TryDelta(pitch, src.pitch, 8, out var d))
+            {
                 message.PutBool(true);
                 message.PutUInt(d, 8);
             }
-            else {
+            else
+            {
                 message.PutBool(false);
                 message.PutUInt(pitch, 16);
             }
         }
+
         if (rot == src.rot)
         {
             message.PutBool(false);
@@ -151,11 +160,13 @@ public struct GunOrient
         else
         {
             message.PutBool(true);
-            if (NetPacking.TryDelta(rot, src.rot, 8, out var d)) {
+            if (NetPacking.TryDelta(rot, src.rot, 8, out var d))
+            {
                 message.PutBool(true);
                 message.PutUInt(d, 8);
             }
-            else {
+            else
+            {
                 message.PutBool(false);
                 message.PutUInt(rot, 16);
             }
@@ -238,7 +249,7 @@ public struct UpdateQuaternion
         NetPacking.UnpackQuaternion(10, Largest, Component1, Component2, Component3);
 }
 
-public struct UpdateVector
+public struct UpdateVector : IEquatable<UpdateVector>
 {
     private readonly int precision;
     private readonly float min;
@@ -276,6 +287,7 @@ public struct UpdateVector
             writer.PutBool(false);
             return;
         }
+
         writer.PutBool(true);
         if (NetPacking.TryDelta(x, src.x, deltaBits, out var deltaA) &&
             NetPacking.TryDelta(y, src.y, deltaBits, out var deltaB) &&
@@ -312,16 +324,42 @@ public struct UpdateVector
             y = reader.GetUInt(src.precision);
             z = reader.GetUInt(src.precision);
         }
-        return src with {x = x, y = y, z = z};
+
+        return src with { x = x, y = y, z = z };
+    }
+
+    public bool Equals(UpdateVector other)
+    {
+        return precision == other.precision && min.Equals(other.min) && max.Equals(other.max) && x == other.x && y == other.y && z == other.z;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is UpdateVector other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(precision, min, max, x, y, z);
+    }
+
+    public static bool operator ==(UpdateVector left, UpdateVector right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(UpdateVector left, UpdateVector right)
+    {
+        return !left.Equals(right);
     }
 }
 
 public class ObjectUpdate
 {
-    public static readonly ObjectUpdate Blank = new (){Guns = []};
+    public static readonly ObjectUpdate Blank = new() { Guns = [] };
 
     private const int VELOCITY_DELTA_BITS = 14;
-    public UpdateVector AngularVelocity = new(Vector3.Zero, 24, -16384, 16384);
+    public UpdateVector AngularVelocity = new(Vector3.Zero, 24, -16384, 16383);
 
     //Info
     public CruiseThrustState CruiseThrust;
@@ -336,7 +374,6 @@ public class ObjectUpdate
     public UpdateVector LinearVelocity = new(Vector3.Zero, 24, -32768, 32767);
     public UpdateQuaternion Orientation = Quaternion.Identity;
     public Vector3 Position;
-    public RepAttitude RepToPlayer;
     public long ShieldValue;
     public float Throttle;
     public bool Tradelane;
@@ -344,7 +381,7 @@ public class ObjectUpdate
     public void SetVelocity(Vector3 linear, Vector3 angular)
     {
         LinearVelocity = new UpdateVector(linear, 24, -32768, 32767);
-        AngularVelocity = new UpdateVector(angular, 24, -16384, 16384);
+        AngularVelocity = new UpdateVector(angular, 24, -16384, 16383);
     }
 
     private static bool CanQuantize(Vector3 a, Vector3 b, float min, float max)
@@ -369,25 +406,29 @@ public class ObjectUpdate
 
     public void WriteDelta(ObjectUpdate src, uint oldTick, uint newTick, ref BitWriter msg)
     {
-        #if DEBUG
+#if DEBUG
         msg.PutByte(0xA1);
-        #endif
+#endif
         //ID
         if (src.ID != new ObjNetId(0) && src.ID != ID)
             throw new InvalidOperationException("Cannot delta from different object");
-        if (oldTick == 0) {
+        if (oldTick == 0)
+        {
             msg.PutByte(255);
         }
-        else if (oldTick == newTick) {
+        else if (oldTick == newTick)
+        {
             throw new ArgumentException("old tick == new tick");
         }
         else if ((newTick - oldTick) > 254 || oldTick > newTick)
         {
             throw new ArgumentException("old tick must be < newTick and up to 254 ticks away");
         }
-        else {
+        else
+        {
             msg.PutByte((byte)(newTick - oldTick));
         }
+
         //Position
         if (NetPacking.ApproxEqual(src.Position, Position))
         {
@@ -430,7 +471,7 @@ public class ObjectUpdate
         //Flags
         msg.PutBool(Tradelane);
         msg.PutBool(EngineKill);
-        msg.PutUInt((uint) CruiseThrust, 2);
+        msg.PutUInt((uint)CruiseThrust, 2);
 
         //Throttle
         if (NetPacking.QuantizedEqual(src.Throttle, Throttle, -1, 1, 7))
@@ -466,17 +507,24 @@ public class ObjectUpdate
         }
 
         //Guns
-        if (Guns == null || Guns.Length == 0)
+        if (Guns == null)
         {
-            msg.PutBool(false);
+            if ((src.Guns?.Length ?? 0) != 0)
+            {
+                msg.PutBool(true);
+                msg.PutVarUInt32(0);
+            }
+            else
+            {
+                msg.PutBool(false);
+            }
         }
         else
         {
-            msg.PutBool(true);
             if (Guns.Length != (src.Guns?.Length ?? 0))
             {
                 msg.PutBool(true);
-                msg.PutVarUInt32((uint) Guns.Length);
+                msg.PutVarUInt32((uint)Guns.Length);
             }
             else
             {
@@ -489,16 +537,18 @@ public class ObjectUpdate
                 Guns[i].WriteDelta(sg, ref msg);
             }
         }
-        #if DEBUG
+
+#if DEBUG
         msg.PutByte(0xA1);
-        #endif
+#endif
     }
 
-    public static ObjectUpdate ReadDelta(ref BitReader msg, uint mainTick, int id, Func<uint, int, ObjectUpdate> getSource)
+    public static ObjectUpdate ReadDelta(ref BitReader msg, uint mainTick, int id,
+        Func<uint, int, ObjectUpdate> getSource)
     {
-        #if DEBUG
-        if(msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
-        #endif
+#if DEBUG
+        if (msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
+#endif
         var p = new ObjectUpdate() { ID = new(id) };
         var b = msg.GetByte();
         ObjectUpdate source = b == 255 ? ObjectUpdate.Blank : getSource(mainTick - b, id);
@@ -518,23 +568,18 @@ public class ObjectUpdate
         p.Throttle = msg.GetBool() ? msg.GetRangedFloat(-1, 1, 7) : source.Throttle;
         p.HullValue = msg.GetBool() ? (source.HullValue + msg.GetVarInt64()) : source.HullValue;
         p.ShieldValue = msg.GetBool() ? (source.ShieldValue + msg.GetVarInt64()) : source.ShieldValue;
-        if (msg.GetBool()) //Has guns
+
+        var len = msg.GetBool() ? (int)msg.GetVarUInt32() : source.Guns.Length;
+        p.Guns = new GunOrient[len];
+        for (var i = 0; i < len; i++)
         {
-            var len = msg.GetBool() ? (int) msg.GetVarUInt32() : source.Guns.Length;
-            p.Guns = new GunOrient[len];
-            for (var i = 0; i < len; i++)
-            {
-                var sg = (source.Guns?.Length ?? 0) > i ? source.Guns[i] : default;
-                p.Guns[i].ReadDelta(ref msg, sg);
-            }
+            var sg = (source.Guns?.Length ?? 0) > i ? source.Guns[i] : default;
+            p.Guns[i].ReadDelta(ref msg, sg);
         }
-        else
-        {
-            p.Guns = Array.Empty<GunOrient>();
-        }
-        #if DEBUG
-        if(msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
-        #endif
+
+#if DEBUG
+        if (msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
+#endif
         return p;
     }
 }

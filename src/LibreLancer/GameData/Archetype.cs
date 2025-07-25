@@ -18,9 +18,23 @@ namespace LibreLancer.GameData
         public Data.Solar.ArchetypeType Type;
         public List<DockSphere> DockSpheres = new List<DockSphere>();
         public float[] LODRanges;
-        public Data.Solar.CollisionGroup[] CollisionGroups;
+        public List<SeparablePart> SeparableParts = new List<SeparablePart>();
         public float SolarRadius;
-        
+        public float Hitpoints;
+
+        public bool CanVisit => Type switch
+        {
+            ArchetypeType.docking_ring => true,
+            ArchetypeType.jump_gate => true,
+            ArchetypeType.jump_hole => true,
+            ArchetypeType.planet => true,
+            ArchetypeType.satellite => true,
+            ArchetypeType.station => true,
+            ArchetypeType.sun => true,
+            ArchetypeType.weapons_platform => true,
+            _ => false
+        };
+
         public bool IsUpdatableSolar()
         {
             switch (Type)
@@ -43,7 +57,7 @@ namespace LibreLancer.GameData
                     return false;
             }
         }
-        
+
         public Archetype ()
         {
         }

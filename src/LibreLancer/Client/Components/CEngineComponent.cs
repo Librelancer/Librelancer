@@ -58,6 +58,9 @@ namespace LibreLancer.Client.Components
             return MathHelper.Lerp(range.X, range.Y, Speed);
         }
 
+        private bool triggeredStart = false;
+        bool triggeredEnd = false;
+
 		public override void Update(double time)
         {
             var tr = Ship.WorldTransform;
@@ -69,29 +72,32 @@ namespace LibreLancer.Client.Components
             }
             if (rumble != null)
             {
-                if (Speed >= 0.901f) {
-                    rumble.Active = false;
+                if (Speed >= 0.901f)
+                {
+                    rumble.Stop();
                 }
-                else {
-                    rumble.Active = true;
+                else
+                {
                     rumble.Position = pos;
                     rumble.Pitch = PitchFromRange(Engine.Def.RumblePitchRange);
                     rumble.Attenuation = AttenFromRange(Engine.Def.RumbleAttenRange);
                     rumble.Velocity = vel;
+                    rumble.PlayIfInactive(true);
                 }
                 rumble.Update();
             }
 
             if (character != null)
             {
-                if (Speed >= 0.901f) {
-                    character.Active = false;
+                if (Speed >= 0.901f)
+                {
+                    character.Stop();
                 }
                 else {
                     character.Pitch = PitchFromRange(Engine.Def.CharacterPitchRange);
-                    character.Active = true;
                     character.Position = pos;
                     character.Velocity = vel;
+                    character.PlayIfInactive(true);
                 }
                 character.Update();
             }
@@ -101,17 +107,15 @@ namespace LibreLancer.Client.Components
                 if (Speed < 0.995f) {
                     if (cruiseLoop.Active)
                     {
-                        cruiseEnd.Active = true;
+                        cruiseEnd.PlayIfInactive(false);
                     }
-                    cruiseLoop.Active = false;
+                    cruiseLoop.Stop();
                 }
                 else
                 {
-                    cruiseEnd.Active = false;
-                    cruiseEnd.Played = false;
-                    cruiseLoop.Active = true;
                     cruiseLoop.Position = pos;
                     cruiseLoop.Velocity = vel;
+                    cruiseLoop.PlayIfInactive(true);
                 }
                 cruiseLoop.Update();
             }
@@ -120,16 +124,18 @@ namespace LibreLancer.Client.Components
             {
                 if (Speed <= 0.9f || Speed >= 0.995f)
                 {
-                    cruiseStart.Active = false;
-                    cruiseStart.Played = false;
+                    cruiseStart.Stop();
+                    triggeredStart = false;
                 }
                 else
                 {
-                    cruiseEnd.Active = false;
-                    cruiseEnd.Played = false;
-                    cruiseStart.Active = true;
                     cruiseStart.Position = pos;
                     cruiseStart.Velocity = vel;
+                    if (!triggeredStart)
+                    {
+                        cruiseStart.PlayIfInactive(false);
+                        triggeredStart = true;
+                    }
                 }
                 cruiseStart.Update();
             }
@@ -182,52 +188,75 @@ namespace LibreLancer.Client.Components
             SoundManager sound;
             if (PlaySound && (sound = GetSoundManager()) != null)
             {
+                Vector3 cone = new Vector3(Engine.Def.InsideSoundCone, Engine.Def.OutsideSoundCone,
+                    Engine.Def.OutsideConeAttenuation);
                 if (!string.IsNullOrWhiteSpace(Engine.Def.RumbleSound))
                 {
                     rumble = new AttachedSound(sound)
                     {
-                        Active = true, Sound = Engine.Def.RumbleSound
+                        Sound = Engine.Def.RumbleSound,
+                        Cone = cone
                     };
+                    rumble.PlayIfInactive(true);
                 }
                 if (!string.IsNullOrWhiteSpace(Engine.Def.CharacterLoopSound))
                 {
                     character = new AttachedSound(sound)
                     {
-                        Active = true, Sound = Engine.Def.CharacterLoopSound
+                        Sound = Engine.Def.CharacterLoopSound,
+                        Cone = cone
                     };
+                    character.PlayIfInactive(true);
                 }
                 if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseLoopSound))
                 {
                     cruiseLoop = new AttachedSound(sound)
                     {
-                        Active = false, Sound = Engine.Def.CruiseLoopSound
+                        Sound = Engine.Def.CruiseLoopSound,
+                        Cone = cone
                     };
                 }
                 if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStartSound))
                 {
                     cruiseStart = new AttachedSound(sound)
                     {
-                        Active = false, Sound = Engine.Def.CruiseStartSound,
-                        PlayOnce = true
+                        Sound = Engine.Def.CruiseStartSound,
+                        Cone = cone
                     };
                 }
                 if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStopSound))
                 {
                     cruiseEnd = new AttachedSound(sound)
                     {
-                        Active = false, Sound = Engine.Def.CruiseStopSound,
-                        PlayOnce = true
+                        Sound = Engine.Def.CruiseStopSound,
+                        Cone = cone
                     };
                 }
             }
         }
-		public override void Unregister(Physics.PhysicsWorld physics)
+
+        public override void HardpointDestroyed(Hardpoint hardpoint)
+        {
+            for (int i = 0; i < fireFx.Count; i++)
+            {
+                if(fireFx[i].Attachment == hardpoint)
+                {
+                    Parent.ExtraRenderers.Remove(fireFx[i]);
+                    fireFx.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
+
+        public override void Unregister(Physics.PhysicsWorld physics)
 		{
             for (int i = 0; i < fireFx.Count; i++)
                 Parent.ExtraRenderers.Remove(fireFx[i]);
-            rumble?.Kill();
-            character?.Kill();
-            cruiseLoop?.Kill();
+            rumble?.Stop();
+            character?.Stop();
+            cruiseLoop?.Stop();
+            cruiseStart?.Stop();
+            cruiseEnd?.Stop();
         }
 
 	}

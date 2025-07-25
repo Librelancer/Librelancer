@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using WattleScript.Interpreter;
 

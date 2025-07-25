@@ -9,7 +9,10 @@ namespace LibreLancer.Entities.Character
 
     public class VisitEntry : BaseEntity
     {
+        public long CharacterId { get; set; }
+        public Character Character { get; set; } = null!;
+
         public Visit VisitValue { get; set; }
-        public string SolarNickname { get; set; }
+        public uint Hash { get; set; }
     }
 }

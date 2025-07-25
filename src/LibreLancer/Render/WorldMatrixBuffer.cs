@@ -13,6 +13,7 @@ namespace LibreLancer.Render
         private int MaxMatrices = 131_000; //approx 8MiB
         private uint ticks;
         private uint currentIndex = 0;
+        private NativeBuffer bufferMemory;
         public void Reset()
         {
             ticks++;
@@ -20,7 +21,8 @@ namespace LibreLancer.Render
         }
         public WorldMatrixBuffer()
         {
-            buffer = (Matrix4x4*)Marshal.AllocHGlobal(MaxMatrices * 64);
+            bufferMemory = UnsafeHelpers.Allocate(MaxMatrices * 64);
+            buffer = (Matrix4x4*)(IntPtr)bufferMemory;
             buffer[0] = Matrix4x4.Identity;
             buffer[1] = Matrix4x4.Identity;
             ticks = (uint)Environment.TickCount64;
@@ -50,7 +52,7 @@ namespace LibreLancer.Render
         }
         public void Dispose()
         {
-            Marshal.FreeHGlobal((IntPtr)buffer);
+           bufferMemory.Dispose();
         }
     }
     public unsafe struct WorldMatrixHandle

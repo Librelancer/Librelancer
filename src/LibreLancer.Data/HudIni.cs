@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Interface;
 using LibreLancer.Data.IO;
 
 namespace LibreLancer.Data
 {
-	public class HudIni : IniFile
+	public class HudIni
 	{
 		public List<HudManeuver> Maneuvers = new List<HudManeuver>();
 		public HudIni()
@@ -19,7 +19,7 @@ namespace LibreLancer.Data
 		}
 		public void AddIni(string path, FileSystem vfs)
 		{
-			foreach (var section in ParseFile(path, vfs))
+			foreach (var section in IniFile.ParseFile(path, vfs))
 			{
 				switch (section.Name.ToLowerInvariant())
 				{

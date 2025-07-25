@@ -7,11 +7,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
+using System.Threading.Tasks;
 using LibreLancer.Data.Save;
+using LibreLancer.Data.Ships;
+using LibreLancer.Database;
 using LibreLancer.Entities.Character;
+using LibreLancer.Entities.Enums;
 using LibreLancer.GameData;
+using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
+using Ship = LibreLancer.GameData.Ship;
+using VisitEntry = LibreLancer.Data.Save.VisitEntry;
 
 namespace LibreLancer.Server
 {
@@ -26,12 +33,21 @@ namespace LibreLancer.Server
         public Quaternion Orientation { get; private set; } = Quaternion.Identity;
         public long Credits { get; private set; }
 
+        public double Time { get; private set; }
+
+        private NetPlayerStatistics statistics;
+        public NetPlayerStatistics Statistics => statistics;
+
         public uint Rank { get; private set; }
 
         public ReputationCollection Reputation = new ReputationCollection();
 
         public Ship Ship { get; private set; }
         public List<NetCargo> Items = new List<NetCargo>();
+        Dictionary<uint, VisitFlags> visited = new Dictionary<uint, VisitFlags>();
+        private HashSet<uint> basesVisited = new();
+        private HashSet<uint> systemsVisited = new();
+        private HashSet<uint> holesVisited = new();
 
         private long charId;
         GameDataManager gData;
@@ -40,6 +56,35 @@ namespace LibreLancer.Server
         public long ID => charId;
 
         private int transactionCount;
+
+        // Individual ship kill types are for Single player saves only.
+        // In MP we simply store the statistics.
+        Dictionary<uint, int> shipKillCounts = new Dictionary<uint, int>();
+        public void IncrementShipKillCount(Ship ship)
+        {
+            shipKillCounts.TryGetValue(ship.CRC, out var count);
+            shipKillCounts[ship.CRC] = count + 1;
+        }
+
+        public (uint Ship, int Count)[] GetShipKillCounts() =>
+            shipKillCounts.Select(x => (x.Key, x.Value)).ToArray();
+
+        public VisitEntry[] GetAllVisitFlags() =>
+            visited.Select(x => new VisitEntry(x.Key, (int)x.Value)).ToArray();
+
+        public VisitFlags GetVisitFlags(uint hash)
+        {
+            visited.TryGetValue(hash, out var flags);
+            return flags;
+        }
+
+        public bool IsSystemVisited(uint hash) => systemsVisited.Contains(hash);
+        public bool IsBaseVisited(uint hash) => basesVisited.Contains(hash);
+        public bool IsJumpholeVisited(uint hash) => holesVisited.Contains(hash);
+
+        public uint[] GetSystemsVisited() => systemsVisited.ToArray();
+        public uint[] GetBasesVisited() => basesVisited.ToArray();
+        public uint[] GetHolesVisited() => holesVisited.ToArray();
 
         public CharacterTransaction BeginTransaction()
         {
@@ -54,6 +99,9 @@ namespace LibreLancer.Server
             private NetCharacter nc;
             private Character newEntity;
             private bool cargoDirty = false;
+            private Dictionary<uint, Visit> updatedVisits = new();
+            private Dictionary<Faction, float> updatedReputations = new();
+            private List<VisitHistoryInput> visitHistory = new();
 
             internal CharacterTransaction(NetCharacter n, Character newEntity)
             {
@@ -69,7 +117,6 @@ namespace LibreLancer.Server
                 nc.Orientation = orient;
             }
 
-            private Dictionary<Faction, float> updatedReputations = new Dictionary<Faction, float>();
 
             public void UpdateReputation(Faction faction, float reputation)
             {
@@ -79,9 +126,71 @@ namespace LibreLancer.Server
 
             public void UpdateName(string name) => nc.Name = name;
 
+            public void UpdateFightersKilled(long killed)
+            {
+                nc.statistics.FightersKilled = killed;
+            }
+
+            public void UpdateFreightersKilled(long killed)
+            {
+                nc.statistics.FreightersKilled = killed;
+            }
+
+            public void UpdateBattleshipsKilled(long killed)
+            {
+                nc.statistics.BattleshipsKilled = killed;
+            }
+
+            public void UpdateVisitFlags(uint hash, VisitFlags visit)
+            {
+                if (!nc.visited.TryGetValue(hash, out VisitFlags old) ||
+                    old != visit)
+                {
+                    updatedVisits[hash] = (Visit)(uint)visit;
+                    nc.visited[hash] = visit;
+                }
+            }
+
+            public void VisitBase(uint hash)
+            {
+                if (nc.basesVisited.Add(hash))
+                {
+                    visitHistory.Add(new(VisitHistoryKind.Base, hash));
+                    nc.statistics.BasesVisited++;
+                }
+            }
+
+            public void VisitSystem(uint hash)
+            {
+                if (nc.systemsVisited.Add(hash))
+                {
+                    visitHistory.Add(new(VisitHistoryKind.System, hash));
+                    nc.statistics.SystemsVisited++;
+                }
+            }
+
+            public void VisitJumphole(uint hash)
+            {
+                if (nc.holesVisited.Add(hash))
+                {
+                    visitHistory.Add(new(VisitHistoryKind.Jumphole, hash));
+                    nc.statistics.JumpHolesFound++;
+                }
+            }
+
+            public void UpdateTransportsKilled(long killed)
+            {
+                nc.statistics.TransportsKilled = killed;
+            }
+
             public void UpdateCredits(long credits)
             {
                 nc.Credits = credits;
+            }
+
+            public void UpdateTime(double time)
+            {
+                nc.Time = time;
             }
 
             public void UpdateShip(GameData.Ship ship)
@@ -169,6 +278,11 @@ namespace LibreLancer.Server
                 c.Costume = _costume;
                 c.ComCostume = _comCostume;
                 c.Rank = nc.Rank;
+                c.Time = nc.Time;
+                c.FightersKilled = nc.statistics.FightersKilled;
+                c.TransportsKilled = nc.statistics.TransportsKilled;
+                c.CapitalKills = nc.statistics.BattleshipsKilled;
+                c.FreightersKilled = nc.statistics.FreightersKilled;
                 if (cargoDirty)
                 {
                     foreach (var item in cargoToDelete)
@@ -176,7 +290,8 @@ namespace LibreLancer.Server
                         var dbItem = c.Items.FirstOrDefault(x => item == x.Id);
                         if (dbItem != null) c.Items.Remove(dbItem);
                     }
-                    foreach (var item in nc.Items) {
+                    foreach (var item in nc.Items)
+                    {
                         var dbItem = item.DbItemId == 0 ? null :
                             c.Items.FirstOrDefault(x => item.DbItemId == x.Id);
                         //Add new items
@@ -192,16 +307,6 @@ namespace LibreLancer.Server
                         dbItem.Health = item.Health;
                     }
                 }
-
-                foreach (var rep in updatedReputations)
-                {
-                    var ent = c.Reputations.FirstOrDefault(x =>
-                        x.RepGroup.Equals(rep.Key.Nickname, StringComparison.OrdinalIgnoreCase));
-                    if (ent == null)
-                        c.Reputations.Add(new Reputation() { RepGroup = rep.Key.Nickname, ReputationValue = rep.Value });
-                    else
-                        ent.ReputationValue = rep.Value;
-                }
             }
 
             public void Dispose()
@@ -209,19 +314,64 @@ namespace LibreLancer.Server
                 if (Interlocked.Decrement(ref nc.transactionCount) < 0)
                     throw new Exception("Transaction already committed");
                 var newItems = new List<(NetCargo cargo, CargoItem dbItem)>();
-                if(newEntity != null)
+                if (newEntity != null)
+                {
                     Update(newEntity, newItems);
-                else
-                    nc.dbChar?.Update(c => Update(c, newItems));
+                    foreach (var visit in nc.visited)
+                    {
+                        newEntity.VisitEntries.Add(new()
+                        {
+                            Hash = visit.Key,
+                            VisitValue = (Visit)(uint)visit.Value
+                        });
+                    }
 
-                //Set the autogenerated ids up
-                foreach (var i in newItems) {
-                    i.cargo.DbItemId = i.dbItem.Id;
+                    foreach (var history in visitHistory)
+                    {
+                        newEntity.VisitHistoryEntries.Add(new()
+                        {
+                            Kind = history.Kind,
+                            Hash = history.Hash,
+                        });
+                    }
+                    foreach (var rep in updatedReputations)
+                    {
+                        newEntity.Reputations.Add(new Reputation() { RepGroup = rep.Key.Nickname, ReputationValue = rep.Value });
+                    }
+                }
+                else
+                {
+                    //dbChar updates are guaranteed to execute in order
+                    //so this is safe to do asynchronously
+                    nc.dbChar?.Update(c => Update(c, newItems), cargoDirty)
+                        .ConfigureAwait(false)
+                        .GetAwaiter()
+                        .OnCompleted(() =>
+                    {
+                        foreach (var i in newItems)
+                        {
+                            i.cargo.DbItemId = i.dbItem.Id;
+                        }
+                    });
+                    if (updatedVisits.Count > 0)
+                    {
+                        nc.dbChar?.UpdateVisitFlags(updatedVisits);
+                    }
+                    if (visitHistory.Count > 0)
+                    {
+                        nc.dbChar?.AddVisitHistory(visitHistory);
+                    }
+                    if (updatedReputations.Count > 0)
+                    {
+                        nc.dbChar?.UpdateFactionReps(
+                            updatedReputations.Select(x =>
+                                new KeyValuePair<string, float>(x.Key.Nickname, x.Value)).ToArray());
+                    }
                 }
             }
         }
 
-        static IEnumerable<(GameData.Faction fac, float rep)> RepFromSave(GameServer game, SaveGame sg)
+        static IEnumerable<(Faction fac, float rep)> RepFromSave(GameServer game, SaveGame sg)
         {
             foreach (var h in sg.Player.House)
             {
@@ -231,12 +381,13 @@ namespace LibreLancer.Server
             }
         }
 
-        public static NetCharacter FromSaveGame(GameServer game, SaveGame sg, Character db = null)
+        static NetCharacter FromSaveGameInternal(GameServer game, SaveGame sg, Character db = null)
         {
             var nc = new NetCharacter();
             nc.gData = game.GameData;
             nc.Admin = db == null;
             nc.transactionCount++;
+            var stats = new NetPlayerStatistics();
             using (var c = new CharacterTransaction(nc, db))
             {
                 c.UpdateName(sg.Player.Name);
@@ -246,6 +397,7 @@ namespace LibreLancer.Server
                 c.UpdateComCostume(sg.Player.ComCostume);
                 c.UpdatePosition(sg.Player.Base, sg.Player.System, sg.Player.Position, Quaternion.Identity);
                 c.UpdateRank((uint)sg.Player.Rank);
+                c.UpdateTime(sg.Time?.Seconds ?? 0);
                 foreach (var eq in sg.Player.Equip)
                 {
                     var hp = eq.Hardpoint;
@@ -264,15 +416,67 @@ namespace LibreLancer.Server
                 {
                     c.UpdateReputation(rep.fac, rep.rep);
                 }
+                foreach (var visit in sg.Player.Visit)
+                {
+                    c.UpdateVisitFlags(visit.Obj.Hash, (VisitFlags)visit.Visit);
+                }
+                foreach (var v in (sg.MPlayer?.BaseVisited) ?? [])
+                {
+                    c.VisitBase((uint)v);
+                }
+                foreach (var v in (sg.MPlayer?.SysVisited) ?? [])
+                {
+                    c.VisitSystem((uint)v);
+                }
+                foreach (var v in (sg.MPlayer?.HolesVisited) ?? [])
+                {
+                    c.VisitJumphole((uint)v);
+                }
+                foreach (var ks in (sg.MPlayer?.ShipTypeKilled) ?? [])
+                {
+                    var ship = game.GameData.Ships.Get(ks.Item);
+                    if (ship == null)
+                    {
+                        continue;
+                    }
+                    switch (ship.ShipType)
+                    {
+                        case ShipType.Fighter:
+                            stats.FightersKilled += ks.Count;
+                            break;
+                        case ShipType.Freighter:
+                            stats.FreightersKilled += ks.Count;
+                            break;
+                        case ShipType.Capital:
+                            stats.BattleshipsKilled += ks.Count;
+                            break;
+                        case ShipType.Transport:
+                            stats.TransportsKilled += ks.Count;
+                            break;
+                    }
+                    nc.shipKillCounts.TryGetValue(ship.CRC, out var count);
+                    nc.shipKillCounts[ship.CRC] = count + ks.Count;
+                }
+                c.UpdateFightersKilled(stats.FightersKilled);
+                c.UpdateFreightersKilled(stats.FreightersKilled);
+                c.UpdateTransportsKilled(stats.TransportsKilled);
+                c.UpdateBattleshipsKilled(stats.BattleshipsKilled);
             }
             return nc;
         }
 
-        public static NetCharacter FromDb(long id, GameServer game)
+
+        public static void SaveToDbCharacter(GameServer game, SaveGame sg, Character db) =>
+            FromSaveGameInternal(game, sg, db);
+
+        public static NetCharacter OpenSaveGame(GameServer game, SaveGame sg) =>
+            FromSaveGameInternal(game, sg);
+
+        public static async Task<NetCharacter> FromDb(long id, GameServer game)
         {
-            var db = game.Database.GetCharacter(id);
+            var db = await game.Database.GetCharacter(id);
             var nc = new NetCharacter();
-            var c = db.GetCharacter();
+            var c = await db.GetCharacter();
             nc.Admin = c.IsAdmin;
             nc.Reputation = new ReputationCollection();
             foreach (var rep in c.Reputations)
@@ -281,6 +485,7 @@ namespace LibreLancer.Server
                 if (f != null) nc.Reputation.Reputations[f] = rep.ReputationValue;
             }
             nc.Name = c.Name;
+            nc.Time = c.Time;
             nc.gData = game.GameData;
             nc.dbChar = db;
             nc.charId = id;
@@ -291,6 +496,13 @@ namespace LibreLancer.Server
             nc.Ship = game.GameData.Ships.Get(c.Ship);
             nc.Credits = c.Money;
             nc.Items = new List<NetCargo>();
+            nc.statistics = new()
+            {
+                FightersKilled = c.FightersKilled,
+                FreightersKilled = c.FreightersKilled,
+                BattleshipsKilled = c.CapitalKills,
+                TransportsKilled = c.TransportsKilled
+            };
             foreach (var cargo in c.Items)
             {
                 var resolved = game.GameData.Equipment.Get(cargo.ItemName);
@@ -304,13 +516,42 @@ namespace LibreLancer.Server
                     DbItemId = cargo.Id
                 });
             }
+            foreach (var visit in (c.VisitEntries ?? []))
+            {
+                nc.visited[visit.Hash] = (VisitFlags)(uint)visit.VisitValue;
+            }
+
+            foreach (var h in (c.VisitHistoryEntries ?? []))
+            {
+                switch (h.Kind)
+                {
+                    case VisitHistoryKind.Base:
+                        if (nc.basesVisited.Add(h.Hash))
+                        {
+                            nc.statistics.BasesVisited++;
+                        }
+                        break;
+                    case VisitHistoryKind.Jumphole:
+                        if (nc.holesVisited.Add(h.Hash))
+                        {
+                            nc.statistics.JumpHolesFound++;
+                        }
+                        break;
+                    case VisitHistoryKind.System:
+                        if (nc.systemsVisited.Add(h.Hash))
+                        {
+                            nc.statistics.SystemsVisited++;
+                        }
+                        break;
+                }
+            }
             return nc;
         }
 
-        public NetShipLoadout EncodeLoadout()
+        public NetLoadout EncodeLoadout()
         {
-            var sl = new NetShipLoadout();
-            sl.ShipCRC = Ship?.CRC ?? 0;
+            var sl = new NetLoadout();
+            sl.ArchetypeCrc = Ship?.CRC ?? 0;
             sl.Items = new List<NetShipCargo>(Items.Count);
             foreach (var c in Items)
             {

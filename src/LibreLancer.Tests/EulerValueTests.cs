@@ -43,15 +43,32 @@ public class EulerValueTests
         AssertRotationsEqual(Matrix4x4.CreateFromQuaternion(a), b, 1, v);
     }
 
+    private static readonly Vector3[] eulers =
+    [
+        new (35, 119, 20),
+        new (-102.4f, 63.7f, 4.9f),
+        new (45.1f, 173.3f, -99.6f),
+        new (-11.7f, 28.5f, 72.1f),
+        new (130.8f, -56.2f, -12.3f),
+        new (90.4f, -97.9f, 160.6f),
+        new (-149.6f, -45.4f, -35.2f),
+        new (32.0f, 89.7f, 45.8f),
+        new (-75.3f, 160.1f, 128.5f),
+        new (11.6f, -19.2f, -83.7f),
+        new (174.4f, -171.9f, 109.3f)
+    ];
+
     [Fact]
     public void RoundTripQuaternion()
     {
-        var v = new Vector3(35, 119, 20);
-        var a = MathHelper.QuatFromEulerDegrees(v);
-        var v2 = a.GetEulerDegrees();
-        var b = MathHelper.QuatFromEulerDegrees(v2);
-        var error = MathHelper.QuatError(a, b);
-        Assert.True(error <= 0.0001f, $"Rotations are noticeably different for {a} and {b} based on angles {v} (error {error})");
+        foreach (var v in eulers)
+        {
+            var a = MathHelper.QuatFromEulerDegrees(v);
+            var v2 = a.GetEulerDegrees();
+            var b = MathHelper.QuatFromEulerDegrees(v2);
+            var error = MathHelper.QuatError(a, b);
+            Assert.True(error <= 0.0001f, $"Rotations are noticeably different for {a} and {b} based on angles {v} (error {error})");
+        }
     }
 
     static void RoundtripMatrix(Matrix4x4 mat, int index)

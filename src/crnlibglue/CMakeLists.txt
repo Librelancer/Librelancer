@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.12)
+cmake_minimum_required (VERSION 3.15)
 project (crnlibglue)
 set(CMAKE_CXX_STANDARD 11)
 set(CRUNCH_DIR "../../extern/crunch")
@@ -93,3 +93,9 @@ ${CRUNCH_DIR}/crnlib/lzma_LzmaLib.cpp
 ${CRNLIB_THREAD_SRCS}
 crnlibglue.cpp
 )
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+    # link libgcc/libstdc++ into our .dll
+    target_link_options(crnlibglue PRIVATE -static-libgcc -static-libstdc++ -static)
+endif()
+

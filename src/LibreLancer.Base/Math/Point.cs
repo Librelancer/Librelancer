@@ -39,6 +39,8 @@ namespace LibreLancer
 				return (Point)obj == this;
 			return false;
 		}
-	}
+
+        public override string ToString() => $"({X}, {Y})";
+    }
 }
 

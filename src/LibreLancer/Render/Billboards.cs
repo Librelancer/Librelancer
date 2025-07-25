@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.Shaders;
 
 namespace LibreLancer.Render
 {
@@ -15,7 +16,7 @@ namespace LibreLancer.Render
 
         RenderData[] rendat;
         //Basic
-        Shaders.ShaderVariables shaderBasic;
+        Shader shaderBasic;
         BillboardVert* verticesBasic;
         VertexBuffer vboBasic;
         ElementBuffer iboBasic;
@@ -23,8 +24,8 @@ namespace LibreLancer.Render
 
 		public Billboards(RenderContext context)
         {
-            shaderBasic = Shaders.Billboard.Get(context);
-			shaderBasic.Shader.SetInteger(shaderBasic.Shader.GetLocation("tex0"), 0);
+            AllShaders.CompileBillboard(context);
+            shaderBasic = AllShaders.Billboard.Get(0);
 			rendat = new RenderData[MAX_BILLBOARDS];
 			vboBasic = new VertexBuffer(context, typeof(BillboardVert), MAX_BILLBOARDS * 4, true);
 			iboBasic = new ElementBuffer(context, MAX_BILLBOARDS * 6, true);

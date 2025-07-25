@@ -23,12 +23,12 @@ public enum NodeStage
 
 public struct NodeBuilder : IDisposable
 {
-    public static int HeaderTextureId;
+    public static ImTextureRef? HeaderTextureId;
     public static int HeaderTextureWidth;
     public static int HeaderTextureHeight;
     public static void LoadTexture(RenderContext context)
     {
-        if (HeaderTextureId != 0)
+        if (HeaderTextureId != null)
             return;
 
         using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("LancerEdit.BlueprintBackground.png");
@@ -127,7 +127,7 @@ public struct NodeBuilder : IDisposable
             var drawList = NodeEditor.GetNodeBackgroundDrawList(CurrentId);
             var halfBorderWidth = NodeEditor.GetStyle()->NodeBorderWidth * 0.5f;
 
-            if ((HeaderMax.X > HeaderMin.X) && (HeaderMax.Y > HeaderMin.Y) && (HeaderTextureId != 0))
+            if ((HeaderMax.X > HeaderMin.X) && (HeaderMax.Y > HeaderMin.Y) && (HeaderTextureId != null))
             {
                 if (HeaderMax.X < NodeMax.X) //no spring layout, get max
                     HeaderMax.X = NodeMax.X;
@@ -135,7 +135,7 @@ public struct NodeBuilder : IDisposable
                 var uv = new Vector2(
                     (HeaderMax.X - HeaderMin.X) / (float)(4.0f * HeaderTextureWidth),
                 (HeaderMax.Y - HeaderMin.Y) / (float)(4.0f * HeaderTextureHeight));
-                drawList.AddImageRounded((IntPtr)HeaderTextureId,
+                drawList.AddImageRounded(HeaderTextureId.Value,
                     HeaderMin - new Vector2(8 - halfBorderWidth, 4 - halfBorderWidth),
                     HeaderMax + new Vector2(8 - halfBorderWidth, 0),
                     Vector2.Zero, uv,

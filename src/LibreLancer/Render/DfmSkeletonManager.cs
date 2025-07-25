@@ -324,7 +324,7 @@ namespace LibreLancer.Render
             UpdateBounds();
         }
 
-        public void UploadBoneData(UniformBuffer bonesBuffer, ref int offset, ref int lastSet)
+        public void UploadBoneData(StorageBuffer bonesBuffer, ref int offset, ref int lastSet)
         {
             BodySkinning.SetBoneData(bonesBuffer,  ref offset, ref lastSet);
             HeadSkinning?.SetBoneData(bonesBuffer, ref offset, ref lastSet, HeadConnection.Bone);

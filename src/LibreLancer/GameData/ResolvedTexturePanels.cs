@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 
 namespace LibreLancer.GameData;
 

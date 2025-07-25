@@ -19,6 +19,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Sur;
 using SimpleMesh;
@@ -73,7 +74,8 @@ public class ImportModelTab : EditorTab
         this.win = win;
         outputPath = win.Config.LastExportPath;
         modelViewport = new Viewport3D(win);
-        modelViewport.MarginH = 60;
+        modelViewport.MarginH = 60 * ImGuiHelper.Scale;
+        modelViewport.Draw3D = DrawGL;
         wireframeMaterial3db = new Material(win.Resources);
         wireframeMaterial3db.Dc = Color4.White;
         wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
@@ -151,34 +153,43 @@ public class ImportModelTab : EditorTab
                 ForceCompound = forceCompound,
                 AdvancedMaterials = advancedMaterials
             });
+
+            EditResult<SurFile> sur = null;
+            if (generateSur &&
+                SurfaceBuilder.HasHulls(output))
+            {
+                sur = SurfaceBuilder.CreateSur(output, forceCompound);
+            }
+
+            var allMessages = result.Messages.Concat(sur?.Messages ?? []).ToArray();
+            var createResult = new EditResult<bool>(true, allMessages);
+
+            var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
+            var modelPath = Path.Combine(outputPath, output.Name + ext);
+
+            if (createResult.IsSuccess)
+            {
+                var saved = result.Data.Save(modelPath, 0);
+                createResult.Messages.AddRange(saved.Messages);
+                if (saved.IsSuccess)
+                {
+                    if (sur != null)
+                    {
+                        using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
+                        {
+                            sur.Data.Save(surOut);
+                        }
+                    }
+                    win.Config.LastExportPath = outputPath;
+                }
+            }
+
             win.QueueUIThread(() =>
             {
-                win.ResultMessages(result);
-                EditResult<SurFile> sur = null;
-                if (SurfaceBuilder.HasHulls(output))
+                win.ResultMessages(createResult);
+                if (createResult.IsSuccess)
                 {
-                    sur = SurfaceBuilder.CreateSur(output, forceCompound);
-                }
-                var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
-                var modelPath = Path.Combine(outputPath, output.Name + ext);
-                if (sur != null) win.ResultMessages(sur);
-                if (result.IsSuccess &&
-                    ((sur?.IsSuccess) ?? true))
-                {
-                    var saved = result.Data.Save(modelPath, 0);
-                    win.ResultMessages(saved);
-                    if (saved.IsSuccess)
-                    {
-                        if (sur != null)
-                        {
-                            using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
-                            {
-                                sur.Data.Save(surOut);
-                            }
-                        }
-                        win.Config.LastExportPath = outputPath;
-                        win.OpenFile(modelPath);
-                    }
+                    win.OpenFile(modelPath);
                 }
                 win.FinishLoadingSpinner();
             });
@@ -209,6 +220,7 @@ public class ImportModelTab : EditorTab
             var i = 0;
             if (output.Root != null)
                 FLTree(output.Root, ref i);
+            ImGui.TreePop();
         }
 
         ImGui.EndChild();
@@ -380,22 +392,23 @@ public class ImportModelTab : EditorTab
         ImGui.SameLine(ImGui.GetWindowWidth() - 60);
         if (ImGui.Button("Finish"))
             FinishClicked();
-        if (modelViewport.Begin())
-        {
-            var lookAtCam = new LookAtCamera();
-            var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *
-                      Matrix4x4.CreateRotationY(modelViewport.CameraRotation.X);
-            var dir = Vector3.Transform(-Vector3.UnitZ, rot);
-            var to = modelViewport.CameraOffset + dir * 10;
-            if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
-            lookAtCam.Update(modelViewport.RenderWidth, modelViewport.RenderHeight, modelViewport.CameraOffset, to,
-                rot);
-            win.RenderContext.ClearColor = Color4.Black;
-            win.RenderContext.ClearAll();
-            win.RenderContext.SetCamera(lookAtCam);
-            DrawModel(win.RenderContext);
-            modelViewport.End();
-        }
+        modelViewport.Draw();
+    }
+
+    void DrawGL(int w, int h)
+    {
+        var lookAtCam = new LookAtCamera();
+        var rot = Matrix4x4.CreateRotationX(modelViewport.CameraRotation.Y) *
+                  Matrix4x4.CreateRotationY(modelViewport.CameraRotation.X);
+        var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+        var to = modelViewport.CameraOffset + dir * 10;
+        if (modelViewport.Mode == CameraModes.Arcball) to = Vector3.Zero;
+        lookAtCam.Update(w, h, modelViewport.CameraOffset, to,
+            rot);
+        win.RenderContext.ClearColor = Color4.Black;
+        win.RenderContext.ClearAll();
+        win.RenderContext.SetCamera(lookAtCam);
+        DrawModel(win.RenderContext);
     }
 
     private void BuildPreview()

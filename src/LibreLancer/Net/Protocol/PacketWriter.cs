@@ -24,7 +24,7 @@ public class PacketWriter
     {
         writer = new NetDataWriter();
     }
-    
+
     public static implicit operator NetDataWriter(PacketWriter pw)
     {
         return pw.writer;
@@ -51,11 +51,40 @@ public class PacketWriter
             }
         }
     }
-    
+
     public void Put(DisconnectReason reason)
     {
         writer.Put(LNetConst.DISCONNECT_MAGIC);
         writer.Put((byte)reason);
+    }
+
+    public void PutBigVarUInt32(uint u)
+    {
+        if (u <= 32767) //15 bits
+        {
+            writer.Put((ushort)u);
+        }
+        else if (u <= 4227071) //4194303 22 bits + 32768
+        {
+            u -= 32768;
+            writer.Put((ushort)((u & 0x7FFF) | 0x8000));
+            writer.Put((byte)((u >> 15) & 0x7f));
+        }
+        else if (u <= 541097983) //536870911 29 bits + 4227072
+        {
+            u -= 4227072;
+            writer.Put((ushort)((u & 0x7FFF) | 0x8000));
+            writer.Put((byte)(((u >> 15) & 0x7f) | 0x80));
+            writer.Put((byte)((u >> 22) & 0x7f));
+        }
+        else
+        {
+            u -= 541097984;
+            writer.Put((ushort)((u & 0x7FFF) | 0x8000));
+            writer.Put((byte)(((u >> 15) & 0x7f) | 0x80));
+            writer.Put((byte)(((u >> 22) & 0x7f) | 0x80));
+            writer.Put((byte)(u >> 29));
+        }
     }
 
     public void PutVariableUInt64(ulong u)
@@ -141,7 +170,7 @@ public class PacketWriter
             writer.Put((byte) (u >> 57));
         }
     }
-    
+
     public void PutVariableInt64(long value)
     {
         PutVariableUInt64(NetPacking.Zig64(value));
@@ -156,14 +185,14 @@ public class PacketWriter
     {
         PutVariableUInt64(u);
     }
-    
+
     public unsafe void Put(Guid g)
     {
         var longs = (ulong*)&g;
         writer.Put(longs[0]);
         writer.Put(longs[1]);
     }
-    
+
     public void Put(Quaternion q)
     {
         var pack = new BitWriter(32);
@@ -171,7 +200,7 @@ public class PacketWriter
         Debug.Assert(pack.ByteLength == 4);
         pack.WriteToPacket(this);
     }
-    
+
     public void PutNormal(Vector3 n)
     {
         var pack = new BitWriter(32);
@@ -179,7 +208,7 @@ public class PacketWriter
         Debug.Assert(pack.ByteLength == 4);
         pack.WriteToPacket(this);
     }
-    
+
     public void Put(Vector3 vec)
     {
         writer.Put(vec.X);
@@ -194,34 +223,40 @@ public class PacketWriter
         else if(hpid == "") PutVariableUInt32(1);
         else PutVariableUInt32(hpids.GetIndex(hpid) + 2);
     }
-    
+
+    public void Put(DateTime time)
+    {
+        Put(time.Kind == DateTimeKind.Local);
+        if (time.Kind == DateTimeKind.Local)
+        {
+            PutVariableInt64(time.ToUniversalTime().Ticks);
+        }
+        else
+        {
+            PutVariableInt64(time.Ticks);
+        }
+    }
+
+    public void Put(double d)
+    {
+        writer.Put(d);
+    }
+
     public void Put(string s)
     {
-        if (s == null) {
-            writer.Put((byte)0);
-        } else if (s == "") {
-            writer.Put((byte)1);
-        } else {
-            if (NetPacking.EncodeString(s, out byte[] encoded)) {
-                if (encoded.Length < 63) {
-                    writer.Put((byte)(encoded.Length + 1));
-                } else {
-                    writer.Put((byte)(1 << 6));  
-                    PutVariableUInt32((uint)(encoded.Length - 63));
-                }
-                writer.Put(encoded);
-            }
-            else
-            {
-                var bytes = Encoding.UTF8.GetBytes(s);
-                if (bytes.Length < 63) {
-                    writer.Put((byte)(2 << 6 | bytes.Length + 1));
-                } else {
-                    writer.Put((byte)(3 << 6));
-                    PutVariableUInt32((uint)(bytes.Length - 63));
-                }
-                writer.Put(bytes);
-            }
+        if (s == null)
+        {
+            PutVariableUInt32(0);
+        }
+        else if (s == "")
+        {
+            PutVariableUInt32(1);
+        }
+        else
+        {
+            var bytes = StringSquash.StringSquasher.Pack(s);
+            PutVariableUInt32((uint)(1 + bytes.Length));
+            writer.Put(bytes);
         }
     }
 
@@ -233,6 +268,8 @@ public class PacketWriter
     public void Put(uint u) => writer.Put(u);
     public void Put(int i) => writer.Put(i);
     public void Put(short s) => writer.Put(s);
+
+    public void Put(ushort u) => writer.Put(u);
 
     public void Put(byte[] data, int offset, int length) => writer.Put(data, offset, length);
 

@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer.Ini;
+using LibreLancer.Data.Ini;
+
 namespace LibreLancer.Data.Effects
 {
-	public class VisEffect
+    [ParsedSection]
+	public partial class VisEffect
 	{
         [Entry("nickname")]
 		public string Nickname;

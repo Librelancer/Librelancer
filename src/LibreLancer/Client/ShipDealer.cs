@@ -318,7 +318,7 @@ namespace LibreLancer.Client
                 else if (src.Include != null) {
                     dst = dealerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
                 }
-                if (dst != null) {
+                if (dst == null) {
                     dst = new ShipTradeItem()
                     {
                         Cargo = src.Cargo,

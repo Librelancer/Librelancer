@@ -1,0 +1,19 @@
+{
+  "byvalue_structs": [],
+  "ref_structs": ["ImGuiListClipper"],
+  "defines": [
+    "IMGUI_DISABLE_OBSOLETE_FUNCTIONS",
+    "IMGUI_DISABLE_OBSOLETE_KEYIO"
+  ],
+  "replacements": [
+    { "cpp": "ImVec2", "cs": "System.Numerics.Vector2" },
+    { "cpp": "ImVec4", "cs": "System.Numerics.Vector4" },
+    { "cpp": "ImColor", "cs": "System.Numerics.Vector4" }
+  ],
+  "unformatted_helpers": [
+    "ImGui_TextUnformatted"
+  ],
+  "manual_wrappers": [
+    "ImDrawList_AddCallback"
+  ]
+}
