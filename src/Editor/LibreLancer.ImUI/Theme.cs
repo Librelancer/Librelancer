@@ -27,6 +27,7 @@ namespace LibreLancer.ImUI
             var s = ImGui.GetStyle();
 
             //Settings
+            s.TreeLinesFlags = ImGuiTreeNodeFlags.DrawLinesToNodes;
             s.FrameRounding = 2;
             s.ScrollbarSize = 12;
             s.ScrollbarRounding = 3;
