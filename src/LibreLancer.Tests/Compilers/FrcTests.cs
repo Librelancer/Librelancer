@@ -12,7 +12,7 @@ public class FrcTests
     public void ValidFrcStringsShouldReturnAValidResourceDll()
     {
         const string fileName = "Compilers/FrcFiles/ValidFrcStrings.frc";
-        var strings = File.ReadAllText(fileName);
+        var strings = FrcCompiler.ReadAllText(fileName);
 
         var resourceDll = FrcCompiler.Compile(strings, fileName);
 
@@ -31,7 +31,7 @@ public class FrcTests
     public void ValidFrcInfocardsShouldReturnAValidResourceDll()
     {
         const string fileName = "Compilers/FrcFiles/ValidFrcInfocards.frc";
-        var strings = File.ReadAllText(fileName);
+        var strings = FrcCompiler.ReadAllText(fileName);
 
         var resourceDll = FrcCompiler.Compile(strings, fileName);
 
@@ -45,6 +45,24 @@ public class FrcTests
         Assert.Equal(expected: WrapInfocard("<TEXT> Spacing </TEXT>"), actual: resourceDll.Infocards[5]);
         Assert.Equal(expected: WrapInfocard("<TEXT>Separate Line</TEXT><PARA/>"), actual: resourceDll.Infocards[6]);
         Assert.Equal(expected: WrapInfocard("<TEXT>“Read My Quote”</TEXT><PARA/>"), actual: resourceDll.Infocards[7]);
+    }
+
+    [Fact]
+    public void MultilineBlockCommentShouldBeIgnored()
+    {
+        const string fileName = "Compilers/FrcFiles/CommentedBlock.frc";
+        var strings = FrcCompiler.ReadAllText(fileName);
+
+        var resourceDll = FrcCompiler.Compile(strings, fileName);
+
+        Assert.NotNull(resourceDll);
+        Assert.Equal(expected: "abc", actual: resourceDll.Strings[1]);
+        Assert.Equal(expected: "def", actual: resourceDll.Strings[2]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>hij</TEXT><PARA/>"), actual: resourceDll.Infocards[3]);
+
+        Assert.Equal(expected: 2, resourceDll.Strings.Count);
+        Assert.Single(resourceDll.Infocards);
+
     }
 
     [Theory]

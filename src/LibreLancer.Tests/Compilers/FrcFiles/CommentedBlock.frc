@@ -1,0 +1,14 @@
+S 1 abc
+S 2 def
+H 3 hij
+
+;+--- UNUSED ----
+
+S 1234 Unused
+S 1235 Unused
+H 1236 Unused
+H 1237 Unused
+
+;-
+
+; Text in the UNUSED section will not appear in the dll (block comments)
