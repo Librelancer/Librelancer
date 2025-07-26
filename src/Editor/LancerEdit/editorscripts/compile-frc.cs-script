@@ -89,9 +89,8 @@ foreach(var file in Directory.GetFiles(input, "*.frc", SearchOption.TopDirectory
 
 void CompileFrcToDll(string file, string output)
 {
-    string text = File.ReadAllText(file);
-    var compiler = new FrcCompiler();
-    var resourceDll = compiler.Compile(text, file, index);
+    string text = FrcCompiler.ReadAllText(file);
+    var resourceDll = FrcCompiler.Compile(text, file, index);
 
     using FileStream fs = File.Create(output);
     DllWriter.Write(resourceDll, fs);

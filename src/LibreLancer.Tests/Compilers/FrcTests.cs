@@ -14,8 +14,7 @@ public class FrcTests
         const string fileName = "Compilers/FrcFiles/ValidFrcStrings.frc";
         var strings = File.ReadAllText(fileName);
 
-        FrcCompiler compiler = new FrcCompiler();
-        var resourceDll = compiler.Compile(strings, fileName);
+        var resourceDll = FrcCompiler.Compile(strings, fileName);
 
         Assert.NotNull(resourceDll);
 
@@ -34,27 +33,25 @@ public class FrcTests
         const string fileName = "Compilers/FrcFiles/ValidFrcInfocards.frc";
         var strings = File.ReadAllText(fileName);
 
-        FrcCompiler compiler = new FrcCompiler();
-        var resourceDll = compiler.Compile(strings, fileName);
+        var resourceDll = FrcCompiler.Compile(strings, fileName);
 
         Assert.NotNull(resourceDll);
 
-        Assert.Equal(expected: WrapInfocard("<TRA bold=\"true\"/><TEXT>Bold </TEXT><TRA bold=\"false\"/><TEXT>Not Bold</TEXT>"),
+        Assert.Equal(expected: WrapInfocard("<TRA bold=\"true\"/><TEXT>Bold </TEXT><TRA bold=\"false\"/><TEXT>Not Bold</TEXT><PARA/>"),
             actual: resourceDll.Infocards[1]);
-        Assert.Equal(expected: WrapInfocard("<TEXT>MultiLine</TEXT><PARA/><TEXT>String</TEXT>"), actual: resourceDll.Infocards[2]);
-        Assert.Equal(expected: WrapInfocard("<TEXT>Two</TEXT><PARA/><TEXT>Lines</TEXT>"), actual: resourceDll.Infocards[3]);
-        Assert.Equal(expected: WrapInfocard("<TEXT>One Line</TEXT>"), actual: resourceDll.Infocards[4]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>MultiLine</TEXT><PARA/><TEXT>String</TEXT><PARA/>"), actual: resourceDll.Infocards[2]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>Two</TEXT><PARA/><TEXT>Lines</TEXT><PARA/>"), actual: resourceDll.Infocards[3]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>One Line</TEXT><PARA/>"), actual: resourceDll.Infocards[4]);
         Assert.Equal(expected: WrapInfocard("<TEXT> Spacing </TEXT>"), actual: resourceDll.Infocards[5]);
-        Assert.Equal(expected: WrapInfocard("<TEXT>Separate Line</TEXT>"), actual: resourceDll.Infocards[6]);
-        Assert.Equal(expected: WrapInfocard("<TEXT>“Read My Quote”</TEXT>"), actual: resourceDll.Infocards[7]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>Separate Line</TEXT><PARA/>"), actual: resourceDll.Infocards[6]);
+        Assert.Equal(expected: WrapInfocard("<TEXT>“Read My Quote”</TEXT><PARA/>"), actual: resourceDll.Infocards[7]);
     }
 
     [Theory]
     [MemberData(nameof(ValidInfocardFrcStrings))]
     public void ValidFrcStringsShouldTransformToTheCorrectXml(string input, string expected)
     {
-        FrcCompiler compiler = new FrcCompiler();
-        var resourceDll = compiler.Compile(input, "TEST");
+        var resourceDll = FrcCompiler.Compile(input, "TEST");
 
         Assert.NotNull(resourceDll);
         Assert.Equal(expected: WrapInfocard(expected), actual: resourceDll.Infocards[1]);
@@ -66,34 +63,29 @@ public class FrcTests
     [InlineData("DarkBlue")]
     public void BadColoursShouldThrowExceptions(string colour)
     {
-        FrcCompiler compiler = new FrcCompiler();
         Assert.Throws<CompileErrorException>(() =>
         {
-            _ = compiler.Compile($"I 1 \\c{colour} ", "TEST");
+            _ = FrcCompiler.Compile($"I 1 \\c{colour} ", "TEST");
         });
     }
 
     [Theory]
-    [InlineData("1000")]
     [InlineData("-12")]
     [InlineData("0")]
     public void BadHeightShouldThrowExceptions(string height)
     {
-        FrcCompiler compiler = new FrcCompiler();
         Assert.Throws<CompileErrorException>(() =>
         {
-            _ = compiler.Compile($"I 1 \\h{height}", "TEST");
+            _ = FrcCompiler.Compile($"I 1 \\h{height}", "TEST");
         });
     }
 
     [Theory]
-    [InlineData("100")]
     [InlineData("-12")]
     [InlineData("0")]
     public void BadFontShouldThrowExceptions(string font)
     {
-        FrcCompiler compiler = new FrcCompiler();
-        Assert.Throws<CompileErrorException>(() => { _ = compiler.Compile($"I 1 \\f{font}", "TEST"); });
+        Assert.Throws<CompileErrorException>(() => { _ = FrcCompiler.Compile($"I 1 \\f{font}", "TEST"); });
     }
 
     [Theory]
@@ -105,8 +97,7 @@ public class FrcTests
     {
         var input = $"S {absoluteId} some text";
 
-        FrcCompiler compiler = new FrcCompiler();
-        var resourceDll = compiler.Compile(input, "TEST", index);
+        var resourceDll = FrcCompiler.Compile(input, "TEST", index);
 
         Assert.Contains(resourceDll.Strings, x => x.Key == mappedId);
     }
@@ -114,16 +105,14 @@ public class FrcTests
     [Fact]
     public void BadResourceIndexShouldThrowExceptions()
     {
-        FrcCompiler compiler = new FrcCompiler();
-        Assert.Throws<CompileErrorException>(() => { _ = compiler.Compile($"I 131071 EEE", "TEST", 0); });
+        Assert.Throws<CompileErrorException>(() => { _ = FrcCompiler.Compile($"I 131071 EEE", "TEST", 0); });
     }
 
     [Fact]
     public void LeadingCommentsShouldBeIgnored()
     {
-        FrcCompiler compiler = new FrcCompiler();
         const string input = @"; S 1 Some Text\nS 2 Some Text";
-        var resourceDll = compiler.Compile(input, "TEST");
+        var resourceDll = FrcCompiler.Compile(input, "TEST");
 
         Assert.DoesNotContain(resourceDll.Strings, x => x.Key == 1);
     }
@@ -131,9 +120,8 @@ public class FrcTests
     [Fact]
     public void TrailingCommentsShouldBeIgnored()
     {
-        FrcCompiler compiler = new FrcCompiler();
         const string input = @"S 1 Some Text ; Comment";
-        var resourceDll = compiler.Compile(input, "TEST");
+        var resourceDll = FrcCompiler.Compile(input, "TEST");
 
         Assert.Contains(resourceDll.Strings, x => x.Value == "Some Text");
     }
@@ -141,39 +129,42 @@ public class FrcTests
     [Fact]
     public void BlockCommentsShouldBeIgnored()
     {
-        FrcCompiler compiler = new FrcCompiler();
         const string input = @";+ S 1 Some Text ; Comment\nsomsada\n\nasdasd ;-";
-        var resourceDll = compiler.Compile(input, "TEST");
+        var resourceDll = FrcCompiler.Compile(input, "TEST");
 
         Assert.Empty(resourceDll.Strings);
     }
 
     public static TheoryData<string, string> ValidInfocardFrcStrings { get; } = new()
     {
-        { @"I 1 \b", "<TRA bold=\"true\"/>" },
-        { @"I 1 \B", "<TRA bold=\"false\"/>" },
-        { @"I 1 \f12", "<TRA font=\"12\"/>" },
-        { @"I 1 \F", "<TRA font=\"default\"/>" },
-        { @"I 1 \i", "<TRA italic=\"true\"/>" },
-        { @"I 1 \I", "<TRA italic=\"false\"/>" },
-        { @"I 1 \u", "<TRA underline=\"true\"/>" },
-        { @"I 1 \U", "<TRA underline=\"false\"/>" },
-        { @"I 1 \n", "<PARA/>" },
-        { @"I 1 \r", "<JUST loc=\"r\"/>" },
-        { @"I 1 \m", "<JUST loc=\"c\"/>" },
-        { @"I 1 \l", "<JUST loc=\"l\"/>" },
-        { @"I 1 \h150", "<POS h=\"150\" relH=\"true\"/>" },
-        { @"I 1 \C", "<TRA color=\"default\"/>" },
-        { @"I 1 \cWhite", "<TRA color=\"white\"/>" },
-        { @"I 1 \cFFFFFF", "<TRA color=\"#FFFFFF\"/>" },
-        { @"I 1 \cr", "<TRA color=\"#FF0000\"/>" },
-        { @"I 1 \clr", "<TRA color=\"#C00000\"/>" },
-        { @"I 1 \chg", "<TRA color=\"#008000\"/>" },
-        { @"I 1 \cdw", "<TRA color=\"#404040\"/>" },
-        { """I 1 \<TRA bold="true"/>""", "<TRA bold=\"true\"/>" },
-        { @"I 1 <>&", "<TEXT>&lt;&gt;&amp;</TEXT>" },
-        { @"I 1 \1", "<TEXT>\u2081</TEXT>" },
-        { @"I 1 \9", "<TEXT>\u2079</TEXT>" },
+        { @"I 1 \bxyz", "<TRA bold=\"true\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \Bxyz", "<TRA bold=\"false\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \f12xyz", "<TRA font=\"12\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \f9a\Fxyz", "<TRA font=\"9\"/><TEXT>a</TEXT><TRA font=\"default\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \ixyz", "<TRA italic=\"true\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \Ixyz", "<TRA italic=\"false\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \uxyz", "<TRA underline=\"true\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \Uxyz", "<TRA underline=\"false\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \nxyz", "<PARA/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \rxyz", "<JUST loc=\"r\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \mxyz", "<JUST loc=\"c\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \lxyz", "<JUST loc=\"l\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \h150xyz", "<POS h=\"150\" relH=\"true\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \cWhitea\Cxyz", "<TRA color=\"white\"/><TEXT>a</TEXT><TRA color=\"default\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \cWhitexyz", "<TRA color=\"white\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \cFFFFFFxyz", "<TRA color=\"white\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \cF3AABDxyz", "<TRA color=\"#F3AABD\"/><TEXT>xyz</TEXT><PARA/>"},
+        { @"I 1 \crxyz", "<TRA color=\"#FF0000\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \clrxyz", "<TRA color=\"#C00000\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \chgxyz", "<TRA color=\"#008000\"/><TEXT>xyz</TEXT><PARA/>" },
+        { @"I 1 \cdwxyz", "<TRA color=\"#404040\"/><TEXT>xyz</TEXT><PARA/>" },
+        { """I 1 \<TRA bold="true"/>""", "<TRA bold=\"true\"/><PARA/>" },
+        { @"I 1 <>&", "<TEXT>&lt;&gt;&amp;</TEXT><PARA/>" },
+        { @"I 1 \1", "<TEXT>\u2081</TEXT><PARA/>" },
+        { @"I 1 \9", "<TEXT>\u2079</TEXT><PARA/>" },
+        { @"I 1 Hello\.", "<TEXT>Hello</TEXT>" },
+        { @"I 1 \b{Hello} World", "<TRA bold=\"true\"/><TEXT>Hello</TEXT><TRA bold=\"default\"/><TEXT> World</TEXT><PARA/>"},
+        { @"I 1 \i\b\uHello World", "<TRA bold=\"true\" italic=\"true\" underline=\"true\"/><TEXT>Hello World</TEXT><PARA/>" }
     };
 
     private string WrapInfocard(string infocard) => $"{FrcCompiler.InfocardStart}{infocard}{FrcCompiler.InfocardEnd}";
