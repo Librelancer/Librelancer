@@ -463,7 +463,7 @@ public static class FrcCompiler
             var cur = (char)reader.Current();
 
             //Finish if we encounter a comment
-            if (IsSpace((char)prev) && cur == ';')
+            if (cur == ';' && (IsSpace((char)prev) || reader.Column == 1))
             {
                 SkipComment(reader);
                 Finalize();

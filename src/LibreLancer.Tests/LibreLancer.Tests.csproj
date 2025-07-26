@@ -32,12 +32,8 @@
     </ItemGroup>
     <ItemGroup>
       <Content Include="Models\**\*.*" CopyToOutputDirectory="PreserveNewest" />
-      <None Remove="Compilers\FrcFiles\ValidFrcStrings.frc" />
-      <Content Include="Compilers\FrcFiles\ValidFrcStrings.frc">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <None Remove="Compilers\FrcFiles\ValidFrcInfocards.frc" />
-      <Content Include="Compilers\FrcFiles\ValidFrcInfocards.frc">
+      <None Remove="Compilers\FrcFiles\*.frc" />
+      <Content Include="Compilers\FrcFiles\*.frc">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
