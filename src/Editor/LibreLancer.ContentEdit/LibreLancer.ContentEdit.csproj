@@ -27,4 +27,8 @@
       <EmbeddedResource Include="BlenderExport.py" />
     </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="LibreLancer.Tests" />
+  </ItemGroup>
+
 </Project>
