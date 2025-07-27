@@ -714,16 +714,6 @@ namespace LibreLancer
             return text;
         }
         bool textInputEnabled = false;
-        public bool TextInputEnabled
-        {
-            get { return textInputEnabled; }
-            set
-            {
-                if (textInputEnabled == value) return;
-                if (value) EnableTextInput();
-                else DisableTextInput();
-            }
-        }
         public void EnableTextInput()
         {
             if (!textInputEnabled)
@@ -740,6 +730,24 @@ namespace LibreLancer
                 textInputEnabled = false;
             }
         }
+
+        public unsafe void SetTextInputRect(Rectangle? rect)
+        {
+            if (rect == null)
+                SDL2.SDL_SetTextInputRect(null);
+            else
+            {
+                var sr = new SDL2.SDL_Rect()
+                {
+                    x = rect.Value.X,
+                    y = rect.Value.Y,
+                    w = rect.Value.Width,
+                    h = rect.Value.Height
+                };
+                SDL2.SDL_SetTextInputRect(&sr);
+            }
+        }
+
         public void Exit()
         {
             running = false;

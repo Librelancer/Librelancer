@@ -189,18 +189,74 @@ namespace LibreLancer.ImUI
             //Required for clipboard function on non-Windows platforms
             utf8buf = Marshal.AllocHGlobal(8192);
             instance = this;
-            setTextDel = SetClipboardText;
-            getTextDel = GetClipboardText;
             var platform = ImGui.GetPlatformIO();
-            platform.Platform_GetClipboardTextFn =
-                (delegate* unmanaged<IntPtr, byte*>)Marshal.GetFunctionPointerForDelegate(getTextDel);
-            platform.Platform_SetClipboardTextFn =
-                (delegate* unmanaged<IntPtr, byte*, void>)Marshal.GetFunctionPointerForDelegate(setTextDel);
+            platform.Platform_GetClipboardTextFn = &GetClipboardText;
+            platform.Platform_SetClipboardTextFn = &SetClipboardText;
+            platform.Platform_OpenInShellFn = &OpenInShell;
+            platform.Platform_SetImeDataFn = &SetImeData;
             platform.Renderer_TextureMaxWidth = 2048;
             platform.Renderer_TextureMaxHeight = 2048;
             ImGui.GetPlatformIO().Platform_LocaleDecimalPoint =
                 (ushort)CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
 		}
+
+        [UnmanagedCallersOnly]
+        static void SetImeData(IntPtr userData, ImGuiViewport* viewport, ImGuiPlatformImeData* data)
+        {
+            if (!instance.HandleKeyboard)
+                return;
+            instance.game.TextInputEnabled = (data->WantVisible || data->WantTextInput);
+            if (data->WantVisible)
+            {
+                instance.game.TextInputRect =new Rectangle(
+                    (int)data->InputPos.X,
+                    (int)data->InputPos.Y,
+                    1,
+                    (int)data->InputLineHeight);
+            }
+            else
+            {
+                instance.game.TextInputRect = null;
+            }
+        }
+
+        [UnmanagedCallersOnly]
+        static byte OpenInShell(IntPtr ctx, byte* path)
+        {
+            var f = Marshal.PtrToStringUTF8((IntPtr)path);
+            try
+            {
+                Shell.OpenCommand(f);
+                return 1;
+            }
+            catch (Exception e)
+            {
+                FLLog.Error("Shell", e.ToString());
+                return 0;
+            }
+        }
+
+        [UnmanagedCallersOnly]
+        static byte* GetClipboardText(IntPtr userdata)
+        {
+            var str = instance.game.GetClipboardText();
+            var bytes = Encoding.UTF8.GetBytes(str);
+            if (utf8bufsize < bytes.Length + 1)
+            {
+                Marshal.FreeHGlobal(utf8buf);
+                utf8buf = Marshal.AllocHGlobal(bytes.Length + 1);
+                utf8bufsize = bytes.Length + 1;
+            }
+            Marshal.Copy(bytes, 0, utf8buf, bytes.Length);
+            Marshal.WriteByte(utf8buf, bytes.Length, 0);
+            return (byte*)utf8buf;
+        }
+
+        [UnmanagedCallersOnly]
+        static void SetClipboardText(IntPtr ctx, byte* text)
+        {
+            instance.game.SetClipboardText(UnsafeHelpers.PtrToStringUTF8((IntPtr)text));
+        }
 
         private void MouseOnMouseWheel(float amountx, float amounty)
         {
@@ -246,21 +302,9 @@ namespace LibreLancer.ImUI
 
         static ImGuiHelper instance;
         static IntPtr utf8buf;
-        static ImGuiPlatformIO_Platform_GetClipboardTextFnDelegate getTextDel;
-        static ImGuiPlatformIO_Platform_SetClipboardTextFnDelegate setTextDel;
+        static int utf8bufsize = 8192;
 
-        static byte* GetClipboardText(IntPtr userdata)
-        {
-            var str = instance.game.GetClipboardText();
-            var bytes = Encoding.UTF8.GetBytes(str);
-            Marshal.Copy(bytes, 0, utf8buf, bytes.Length);
-            Marshal.WriteByte(utf8buf, bytes.Length, 0);
-            return (byte*)utf8buf;
-        }
-        static void SetClipboardText(IntPtr ctx, byte* text)
-        {
-            instance.game.SetClipboardText(UnsafeHelpers.PtrToStringUTF8((IntPtr)text));
-        }
+
 		static Dictionary<ulong, Texture2D> textures = new Dictionary<ulong, Texture2D>();
 		static Dictionary<Texture2D, ulong> textureIds = new Dictionary<Texture2D, ulong>();
 		static ulong nextId = 32768;
@@ -345,7 +389,7 @@ namespace LibreLancer.ImUI
 		void Keyboard_TextInput(string text)
 		{
             foreach (var c in text)
-                ImGui.GetIO().AddInputCharacter(c);
+                ImGui.GetIO().AddInputCharacterUTF16(c);
 		}
 
 		void Keyboard_KeyDown(KeyEventArgs e)
@@ -381,9 +425,6 @@ namespace LibreLancer.ImUI
 			io.DisplayFramebufferScale = new Vector2(1, 1);
             const float MAX_DELTA = 0.1f;
 			io.DeltaTime = elapsed > MAX_DELTA ? MAX_DELTA : (float)elapsed;
-			//Update input
-            if(HandleKeyboard)
-                game.TextInputEnabled = io.WantCaptureKeyboard;
 			//TODO: Mouse Wheel
 			ImGui.NewFrame();
             ImGuizmo.BeginFrame();

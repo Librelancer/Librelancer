@@ -252,14 +252,25 @@ namespace LibreLancer
             set
             {
                 if (textInputEnabled == value) return;
-                if (value) EnableTextInput();
-                else DisableTextInput();
+                if (value) impl.EnableTextInput();
+                else impl.DisableTextInput();
             }
         }
 
-        public void EnableTextInput() => impl.EnableTextInput();
+        private Rectangle? textInputRect;
 
-        public void DisableTextInput() => impl.DisableTextInput();
+        public Rectangle? TextInputRect
+        {
+            get { return textInputRect; }
+            set
+            {
+                if (textInputRect == value) return;
+                textInputRect = value;
+                impl.SetTextInputRect(value);
+            }
+        }
+
+
 
         public void Exit() => impl.Exit();
 

@@ -354,6 +354,7 @@ namespace LibreLancer
         public unsafe void Run(Game loop)
         {
             SDL3.SDL_SetHint(SDL3.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_IME_IMPLEMENTED_UI, "0");
             //Try to set DPI Awareness on Win32
             if (Platform.RunningOS == OS.Windows)
             {
@@ -763,17 +764,6 @@ namespace LibreLancer
 
         bool textInputEnabled = false;
 
-        public bool TextInputEnabled
-        {
-            get { return textInputEnabled; }
-            set
-            {
-                if (textInputEnabled == value) return;
-                if (value) EnableTextInput();
-                else DisableTextInput();
-            }
-        }
-
         public void EnableTextInput()
         {
             if (!textInputEnabled)
@@ -789,6 +779,23 @@ namespace LibreLancer
             {
                 SDL3.SDL_StopTextInput(windowptr);
                 textInputEnabled = false;
+            }
+        }
+
+        public unsafe void SetTextInputRect(Rectangle? rect)
+        {
+            if (rect == null)
+                SDL3.SDL_SetTextInputArea(windowptr, null, 0);
+            else
+            {
+                var sr = new SDL3.SDL_Rect()
+                {
+                    x = rect.Value.X,
+                    y = rect.Value.Y,
+                    w = rect.Value.Width,
+                    h = rect.Value.Height
+                };
+                SDL3.SDL_SetTextInputArea(windowptr, &sr, 0);
             }
         }
 

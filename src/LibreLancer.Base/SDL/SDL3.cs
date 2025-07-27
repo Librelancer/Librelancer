@@ -4290,7 +4290,7 @@ static unsafe partial class SDL3
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial SDLBool SDL_SetTextInputArea(IntPtr window, ref SDL_Rect rect, int cursor);
+	public static partial SDLBool SDL_SetTextInputArea(IntPtr window, SDL_Rect* rect, int cursor);
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]

@@ -3149,7 +3149,7 @@ namespace LibreLancer
 
 		/* Set the rectangle used for text input, hint for IME */
 		[DllImport(nativeLibName, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void SDL_SetTextInputRect(ref SDL_Rect rect);
+		public static extern unsafe void SDL_SetTextInputRect(SDL_Rect* rect);
 
 		/* Does the platform support an on-screen keyboard? */
 		[DllImport(nativeLibName, CallingConvention = CallingConvention.Cdecl)]

@@ -897,10 +897,7 @@ World Time: {12:F2}
                     session.Items.FirstOrDefault(x => x.Equipment is RepairKitEquipment)?.Count ?? 0;
                 ui.Update(Game);
             }
-            if(ui.KeyboardGrabbed)
-                Game.EnableTextInput();
-            else
-                Game.DisableTextInput();
+            Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
             if (Thn != null && Thn.Running)
             {

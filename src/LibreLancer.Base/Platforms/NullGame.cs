@@ -112,6 +112,10 @@ class NullGame : IGame
     {
     }
 
+    public void SetTextInputRect(Rectangle? rect)
+    {
+    }
+
     public void ToggleFullScreen()
     {
     }

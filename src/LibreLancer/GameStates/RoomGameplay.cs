@@ -839,10 +839,7 @@ namespace LibreLancer
                 }
             }
             ui.Update(Game);
-            if (ui.KeyboardGrabbed)
-                Game.EnableTextInput();
-            else
-                Game.DisableTextInput();
+            Game.TextInputEnabled = ui.KeyboardGrabbed;
         }
 
 

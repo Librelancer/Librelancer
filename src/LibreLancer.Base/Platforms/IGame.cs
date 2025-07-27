@@ -39,6 +39,7 @@ interface IGame : IUIThread
     Keyboard Keyboard { get; }
     void EnableTextInput();
     void DisableTextInput();
+    void SetTextInputRect(Rectangle? rect);
     void ToggleFullScreen();
     ScreenshotSaveHandler OnScreenshotSave { get; set; }
     void Screenshot(string filename);
