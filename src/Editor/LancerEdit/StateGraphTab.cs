@@ -120,7 +120,7 @@ public class StateGraphTab : EditorTab
     // ReSharper disable once CompareOfFloatsByEqualityOperator
     bool NeedsChange(float newValue) => ClampRound(newValue) != originalValue;
 
-    string FmtName(StateGraph g) => $"{g.Description.Name} ({g.Description.Type})";
+    string FmtName(StateGraph g) => g == null ? "" : $"{g.Description.Name} ({g.Description.Type})";
 
     public override void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
@@ -206,6 +206,7 @@ public class StateGraphTab : EditorTab
             }
             for (int y = 0; y < tab.Data.Count; y++)
             {
+                ImGui.PushID(y);
                 ImGui.TableNextRow();
                 ImGui.TableSetColumnIndex(0);
                 ImGui.TableHeader(((StateGraphEntry)y).ToString());
@@ -214,6 +215,7 @@ public class StateGraphTab : EditorTab
                 ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
                 for (int x = 0; x < (int) StateGraphEntry._Count; x++)
                 {
+                    ImGui.PushID(x);
                     ImGui.TableSetColumnIndex(x + 1);
                     if (editIndex.X == x && editIndex.Y == y)
                     {
@@ -221,8 +223,8 @@ public class StateGraphTab : EditorTab
                         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
                         ImGui.SetNextItemWidth(-1);
                         bool didEnter = false;
-                        if (ImGui.InputFloat("##edit", ref d, 0.00f, 0.0f, "%.2f",
-                                ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CharsDecimal))
+                        ImGui.InputFloat("##edit", ref d, 0.00f, 0.0f, "%.2f");
+                        if(ImGui.IsItemDeactivatedAfterEdit())
                         {
                             didEnter = true;
                             if(NeedsChange(ClampRound(d)))
@@ -256,8 +258,11 @@ public class StateGraphTab : EditorTab
                         hoveredX = x;
                         hoveredY = y;
                     }
+
+                    ImGui.PopID();
                 }
                 ImGui.PopFont();
+                ImGui.PopID();
             }
             ImGui.EndTable();
         }
