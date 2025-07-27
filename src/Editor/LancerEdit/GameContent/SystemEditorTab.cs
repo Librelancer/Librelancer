@@ -55,10 +55,6 @@ public class SystemEditorTab : GameContentTab
     private AsteroidFieldEdit openField;
 
     private bool mapOpen = false;
-    private bool infocardOpen = false;
-
-    Infocard systemInfocard;
-    private InfocardControl icard;
 
     public PopupManager Popups = new PopupManager();
 
@@ -149,7 +145,6 @@ public class SystemEditorTab : GameContentTab
                 tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 10, "%.2fx");
             }
             tb.ToggleButtonItem("Map", ref mapOpen);
-            tb.ToggleButtonItem("Infocard", ref infocardOpen);
             tb.ToggleButtonItem("History", ref historyOpen);
             if (render3d)
             {
@@ -247,8 +242,6 @@ public class SystemEditorTab : GameContentTab
         renderer = new SystemRenderer(camera, Data.Resources, win);
         World = new GameWorld(renderer, Data.Resources, null, true);
         CurrentSystem = system;
-        systemInfocard = Data.GameData.GetInfocard(CurrentSystem.IdsInfo, Data.Fonts);
-        if (icard != null) icard.SetInfocard(systemInfocard);
         Data.GameData.LoadAllSystem(CurrentSystem);
         World.LoadSystem(CurrentSystem, Data.Resources, null, false, false);
         World.Renderer.LoadLights(CurrentSystem);
@@ -349,6 +342,21 @@ public class SystemEditorTab : GameContentTab
         }, ZoneProperties);
     }
 
+    void InfocardRow(int idsInfo, Action<int> change)
+    {
+        //Infocard
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text("Infocard");
+        ImGui.TableNextColumn();
+        Controls.TruncText(InfocardPreview(idsInfo), 20);
+        ImGui.TableNextColumn();
+        if (ImGui.Button($"{Icons.Edit}##infocard"))
+        {
+            Popups.OpenPopup(new InfocardSelection(idsInfo, win, Data.Infocards, Data.Fonts, change));
+        }
+    }
+
     void ZoneProperties()
     {
         if (ZoneList.Selected == null)
@@ -389,19 +397,7 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Infocard
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text("Infocard");
-        ImGui.TableNextColumn();
-        Controls.TruncText(InfocardPreview(sel.IdsInfo), 20);
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##infocard"))
-        {
-            Popups.OpenPopup(new InfocardSelection(sel.IdsInfo, win, Data.Infocards, Data.Fonts, x =>
-            {
-                UndoBuffer.Commit(new SysZoneSetIdsInfo(sel, this, sel.IdsInfo, x));
-            }));
-        }
+        InfocardRow(sel.IdsInfo, x => UndoBuffer.Commit(new SysZoneSetIdsInfo(sel, this, sel.IdsInfo, x)));
 
         //Position
         Controls.PropertyRow("Position", $"{sel.Position.X:0.00}, {sel.Position.Y:0.00}, {sel.Position.Z: 0.00}");
@@ -721,20 +717,7 @@ public class SystemEditorTab : GameContentTab
                 newIds => UndoBuffer.Commit(new ObjectSetIdsName(sel, ObjectsList, oldName, newIds))));
         }
         //Infocard
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text("Infocard");
-        ImGui.TableNextColumn();
-        Controls.TruncText(InfocardPreview(gc.IdsInfo), 20);
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##infocard"))
-        {
-            var oldIc = ed?.IdsInfo ?? sel.SystemObject.IdsInfo;
-            Popups.OpenPopup(new InfocardSelection(oldIc, win, Data.Infocards, Data.Fonts, x =>
-            {
-                UndoBuffer.Commit(new ObjectSetIdsInfo(sel, ObjectsList, oldIc, x));
-            }));
-        }
+        InfocardRow(gc.IdsInfo, x => UndoBuffer.Commit(new ObjectSetIdsInfo(sel, ObjectsList, gc.IdsInfo, x)));
         //Position
         var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
@@ -1278,7 +1261,8 @@ public class SystemEditorTab : GameContentTab
             Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts,
                 newIds => UndoBuffer.Commit(new SysDataSetIdsName(SystemData, SystemData.IdsName, newIds))));
         }
-
+        InfocardRow(SystemData.IdsInfo,
+            x => UndoBuffer.Commit(new SysDataSetIdsInfo(SystemData, SystemData.IdsInfo, x)));
         ColorProperty("Space Color", SystemData.SpaceColor, x =>
             UndoBuffer.Commit(new SysDataSetSpaceColor(SystemData, SystemData.SpaceColor, x)));
         ColorProperty("Ambient Color", SystemData.Ambient, x =>
@@ -1424,25 +1408,6 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
-    void DrawInfocard()
-    {
-        if (infocardOpen)
-        {
-            ImGui.SetNextWindowSize(new Vector2(300, 300) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
-            if (ImGui.Begin("Infocard", ref infocardOpen))
-            {
-                var szX = Math.Max(20, ImGui.GetWindowWidth());
-                var szY = Math.Max(20, ImGui.GetWindowHeight());
-                if (icard == null)
-                {
-                    icard = new InfocardControl(win, systemInfocard, szX);
-                }
-                icard.Draw(szX);
-            }
-            ImGui.End();
-        }
-    }
-
     void DrawMaps()
     {
         if (mapOpen)
@@ -1577,7 +1542,6 @@ public class SystemEditorTab : GameContentTab
         }
         layout.Draw();
         DrawMaps();
-        DrawInfocard();
         DrawCamera();
         if (historyOpen)
             UndoBuffer.DisplayStack();

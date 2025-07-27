@@ -21,6 +21,13 @@ public class SysDataSetIdsName(SystemEditData target, int old, int updated)
     public override void Set(int value) => Target.IdsName = value;
 }
 
+public class SysDataSetIdsInfo(SystemEditData target, int old, int updated)
+    : SysDataModification<int>(target, old, updated, "SetIdsInfo")
+{
+    public override void Set(int value) => Target.IdsInfo = value;
+}
+
+
 public class SysDataSetMusic(SystemEditData target, string old, string updated, string kind)
     : SysDataModification<string>(target, old, updated, "SetMusic" + kind)
 {

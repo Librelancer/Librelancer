@@ -24,11 +24,13 @@ public class SystemEditData
         this.StarsComplex = sys.StarsComplex;
         this.StarsNebula = sys.StarsNebula;
         this.IdsName = sys.IdsName;
+        this.IdsInfo = sys.IdsInfo;
         this.NavMapScale = sys.NavMapScale;
     }
 
     //Universe
     public int IdsName;
+    public int IdsInfo;
     //System Ini
     public float NavMapScale;
     public Color4 SpaceColor;
@@ -50,6 +52,7 @@ public class SystemEditData
 
     public bool IsDirty() =>
         IdsName != sys.IdsName ||
+        IdsInfo != sys.IdsInfo ||
         SpaceColor != sys.BackgroundColor ||
         Ambient != sys.AmbientColor ||
         MusicSpace != sys.MusicSpace ||
@@ -61,12 +64,14 @@ public class SystemEditData
         !ModelsEqual(StarsNebula, sys.StarsNebula);
 
     public bool IsUniverseDirty() =>
-        IdsName != sys.IdsName;
+        IdsName != sys.IdsName ||
+        IdsInfo != sys.IdsInfo;
 
 
     public void Apply()
     {
         sys.IdsName = IdsName;
+        sys.IdsInfo = IdsInfo;
         sys.BackgroundColor = SpaceColor;
         sys.AmbientColor = Ambient;
         sys.MusicSpace = MusicSpace;
