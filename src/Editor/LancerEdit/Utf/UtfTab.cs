@@ -369,9 +369,10 @@ namespace LancerEdit
                     {
                         if (ImGui.Button("View Joint Map"))
                         {
-                            JointMapView jmv;
-                            if((jmv = JointMapView.Create(selectedNode)) != null)
-                                jointViews.Add(jmv);
+                            var jmv = JointMapView.Create(selectedNode);
+                            main.ResultMessages(jmv);
+                            if (jmv.IsSuccess)
+                                jointViews.Add(jmv.Data);
                         };
                     }
 
@@ -379,9 +380,10 @@ namespace LancerEdit
                     {
                         if (ImGui.Button("View Object Map"))
                         {
-                            JointMapView jmv;
-                            if((jmv = JointMapView.Create(selectedNode)) != null)
-                                jointViews.Add(jmv);
+                            var jmv = JointMapView.Create(selectedNode);
+                            main.ResultMessages(jmv);
+                            if (jmv.IsSuccess)
+                                jointViews.Add(jmv.Data);
                         };
                     }
                 }

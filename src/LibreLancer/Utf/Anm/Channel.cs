@@ -15,22 +15,22 @@ namespace LibreLancer.Utf.Anm
         //Store some pre-calculated values in here for easier switch statements &
         //Size+offset mappings
 
-        //Bits 0-4 - stride
-        private const uint STRIDE_MASK = 0x0000003F;
-        //Bits 5-9 - vec3 offset, Bits 10-11 - vec3 type
-        private const uint VEC_OFFSET_MASK = 0x000003E0; // >> 5
-        private const uint VEC_TYPE_MASK = 0x00000C00;
-        private const uint TYPE_VEC3 = 0x00000400;
-        private const uint TYPE_VECEMPTY = 0x00000800;
-        //Bits 12 - 16 - quat offset, Bits 17 - 19 - quat type
-        private const uint QUAT_OFFSET_MASK = 0x0001F000; // >> 12
-        private const uint QUAT_TYPE_MASK = 0x00060000;
-        private const uint QUAT_TYPE_FULL = 0x00020000;
-        private const uint QUAT_TYPE_0x40 = 0x00040000;
-        private const uint QUAT_TYPE_0x80 = 0x00060000;
-        private const uint QUAT_TYPE_IDENTITY = 0x00080000;
-        //Bit 20 - are there angles?
-        private const uint ANGLES = 0x00100000;
+        //Bits 0-5 - stride
+        private const uint STRIDE_MASK = 0x3F;
+        //Bits 6-10 - vec3 offset, Bits 11-12 - vec3 type
+        private const uint VEC_OFFSET_MASK = 0x7C0; // >> 6
+        private const uint VEC_TYPE_MASK = 0x1800;
+        private const uint TYPE_VEC3 = 0x800;
+        private const uint TYPE_VECEMPTY = 0x1000;
+        //Bits 13 - 17 - quat offset, Bits 18 - 20 - quat type
+        private const uint QUAT_OFFSET_MASK = 0x3E000; // >> 13
+        private const uint QUAT_TYPE_MASK = 0x1C0000;
+        private const uint QUAT_TYPE_FULL = 0x40000;
+        private const uint QUAT_TYPE_0x40 = 0x80000;
+        private const uint QUAT_TYPE_0x80 = 0xC0000;
+        private const uint QUAT_TYPE_IDENTITY = 0x100000;
+        //Bit 21 - are there angles?
+        private const uint ANGLES = 0x200000;
 
         private uint header = 0;
         private int startIdx = 0;
@@ -127,7 +127,7 @@ namespace LibreLancer.Utf.Anm
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if ((header & VEC_TYPE_MASK) != TYPE_VEC3)
                 return Vector3.Zero;
-            var offset = GetOffset(index, VEC_OFFSET_MASK, 5);
+            var offset = GetOffset(index, VEC_OFFSET_MASK, 6);
             fixed (byte* ptr = buffer.Buffer)
                 return *(Vector3*) (&ptr[offset]);
         }
@@ -136,7 +136,7 @@ namespace LibreLancer.Utf.Anm
         public readonly Quaternion GetQuaternion(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            var offset = GetOffset(index, QUAT_OFFSET_MASK, 12);
+            var offset = GetOffset(index, QUAT_OFFSET_MASK, 13);
             switch (header & QUAT_TYPE_MASK)
             {
                 case QUAT_TYPE_FULL:
@@ -333,7 +333,7 @@ namespace LibreLancer.Utf.Anm
             if ((channelType & 0x2) == 0x2)
             {
                 header |= TYPE_VEC3;
-                header |= (uint)((stride << 5) & VEC_OFFSET_MASK);
+                header |= (uint)((stride << 6) & VEC_OFFSET_MASK);
                 stride += 12;
             }
             if ((channelType & 0x10) == 0x10)
@@ -343,19 +343,19 @@ namespace LibreLancer.Utf.Anm
             if ((channelType & 0x40) == 0x40)
             {
                 header |= QUAT_TYPE_0x40;
-                header |= (uint)((stride << 12) & QUAT_OFFSET_MASK);
+                header |= (uint)((stride << 13) & QUAT_OFFSET_MASK);
                 stride += 8;
             }
             if ((channelType & 0x80) == 0x80)
             {
                 header |= QUAT_TYPE_0x80;
-                header |= (uint)((stride << 12) & QUAT_OFFSET_MASK);
+                header |= (uint)((stride << 13) & QUAT_OFFSET_MASK);
                 stride += 8;
             }
             if ((channelType & 0x4) == 0x4)
             {
                 header |= QUAT_TYPE_FULL;
-                header |= (uint)((stride << 12) & QUAT_OFFSET_MASK);
+                header |= (uint)((stride << 13) & QUAT_OFFSET_MASK);
                 stride += 16;
             }
             if ((channelType & 0x20) == 0x20)

@@ -19,17 +19,8 @@ namespace LancerEdit
         private JointMap map;
         private string name;
         private string scriptName;
-        public static JointMapView Create(LUtfNode node)
-        {
-            try
-            {
-                return new JointMapView(node);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        public static EditResult<JointMapView> Create(LUtfNode node) =>
+            EditResult<JointMapView>.TryCatch(() => new JointMapView(node));
 
         private JointMapView(LUtfNode node)
         {
