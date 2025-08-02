@@ -387,7 +387,7 @@ public class QuickFileBrowser
 
         var imagePos = pos + new Vector2((itemWidth / 2) - (iconSize / 2), 0);
         dl.AddImage(icon, imagePos, imagePos + new Vector2(iconSize), new Vector2(0, 1), new Vector2(1, 0));
-        //dl.AddText(ImGui.GetFont(), ImGui.GetFontSize(), pos + new Vector2((itemWidth / 2) - (sz.X / 2), iconSize), sz.X, textHMax, ImGui.GetColorU32(ImGuiCol.Text), name, itemWidth);
+        dl.AddText(ImGui.GetFont(), ImGui.GetFontSize(), pos + new Vector2((itemWidth / 2) - (sz.X / 2), iconSize),  ImGui.GetColorU32(ImGuiCol.Text), name, null, itemWidth);
         if (hovered && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             return 2;
         if (btn)

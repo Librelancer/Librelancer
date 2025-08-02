@@ -46,7 +46,7 @@ public class TextDisplayWindow
         ImGui.PushItemWidth(-1);
         ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         var height = ImGui.GetWindowHeight() - ImGui.GetCursorPosY() - 10 * ImGuiHelper.Scale;
-        ImGui.InputTextMultiline("##text", ref Text, UInt32.MaxValue, new Vector2(0,height), ImGuiInputTextFlags.ReadOnly);
+        ImGui.InputTextMultiline("##text", ref Text, int.MaxValue, new Vector2(0,height), ImGuiInputTextFlags.ReadOnly);
         ImGui.PopFont();
         ImGui.PopItemWidth();
         ImGui.End();
