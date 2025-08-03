@@ -13,7 +13,7 @@ namespace LibreLancer.Utf.Ale
 		public float SParam;
 		public float Value;
 		public LoopFlags Flags;
-		public List<CurveKeyframe> Keyframes;
+        public List<CurveKeyframe> Keyframes;
 
         public bool Animates
         {
@@ -51,7 +51,7 @@ namespace LibreLancer.Utf.Ale
                     default:
                         return Keyframes[Keyframes.Count - 1].Value;
 				}
-				
+
 			}
 			for (int i = 0; i < Keyframes.Count - 1; i++)
 			{
@@ -71,14 +71,14 @@ namespace LibreLancer.Utf.Ale
         {
             var dt = b.Time - a.Time;
             var dt2 = dt * 0.5f;
-            
+
             var t0 = (t - a.Time) / dt;
             var ax = a.Value;
             var bx = b.Value;
 
             var a0 = MathF.FusedMultiplyAdd(a.Start, dt2, ax);
             var b0 = MathF.FusedMultiplyAdd(-b.End, dt2, bx);
-            
+
             var a1 = MathHelper.Lerp( ax, a0, t0);
             var b1 = MathHelper.Lerp( a0, bx, t0);
 

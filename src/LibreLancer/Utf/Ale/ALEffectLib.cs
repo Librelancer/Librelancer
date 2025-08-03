@@ -11,13 +11,17 @@ namespace LibreLancer.Utf.Ale
 {
     public class ALEffectLib
     {
-        public float Version;
         public List<ALEffect> Effects;
+
+        public ALEffectLib()
+        {
+            Effects = new();
+        }
 
         public ALEffectLib(LeafNode node)
         {
             using BinaryReader reader = new(node.DataSegment.GetReadStream());
-            Version = reader.ReadSingle();
+            var version = reader.ReadSingle();
 
             int effectCount = reader.ReadInt32();
             Effects = new List<ALEffect>(effectCount);
@@ -25,7 +29,12 @@ namespace LibreLancer.Utf.Ale
             for (int ef = 0; ef < effectCount; ef++)
             {
                 string name = ReadName(reader);
-                SkipUnusedFloats(reader);
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (version != 1.1f)
+                {
+                    //Skip unused floats
+                    reader.Skip(4 * sizeof(float));
+                }
                 Effects.Add(new ALEffect {
                     Name = name,
                     CRC = CrcTool.FLAleCrc(name),
@@ -45,14 +54,6 @@ namespace LibreLancer.Utf.Ale
             reader.BaseStream.Seek(nameLen & 1, SeekOrigin.Current);
 
             return Encoding.ASCII.GetString(name);
-        }
-
-        private void SkipUnusedFloats(BinaryReader reader)
-        {
-            if (Version != 1.1f)
-                return;
-            //Skip 4 unused floats
-            reader.BaseStream.Seek(4 * sizeof(float), SeekOrigin.Current);
         }
 
         private static List<AlchemyNodeRef> ReadAlchemyNodeReferences(BinaryReader reader)
@@ -81,7 +82,7 @@ namespace LibreLancer.Utf.Ale
             int requiredBytes = pairsCount * pairByteSize;
 
             // invalid pairs, i.e. emitter without appearance, will increase pair count but not amount of bytes.
-            if (requiredBytes > remainingBytes) 
+            if (requiredBytes > remainingBytes)
                 pairsCount = remainingBytes / pairByteSize;
 
             for (int i = 0; i < pairsCount; i++)

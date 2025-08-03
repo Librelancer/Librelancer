@@ -12,6 +12,12 @@ namespace LibreLancer.Utf.Ale
 		public EasingTypes Type;
 		public List<AlchemyCurve> Items;
 
+        public AlchemyCurveAnimation()
+        {
+            Type = EasingTypes.Linear;
+            Items = new();
+        }
+
 		public AlchemyCurveAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();

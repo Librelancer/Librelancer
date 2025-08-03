@@ -11,6 +11,11 @@ namespace LibreLancer.Utf.Ale
 	{
 		public EasingTypes Type;
 		public List<AlchemyFloats> Items = new List<AlchemyFloats> ();
+
+        public AlchemyFloatAnimation()
+        {
+        }
+
 		public AlchemyFloatAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();

@@ -12,17 +12,10 @@ namespace LibreLancer.Utf.Ale
 		public string Name;
 		public uint CRC;
 		public List<AlchemyNodeRef> FxTree;
-		public List<AlchemyNodeRef> Fx;
-		public List<(uint Source, uint Target)> Pairs;
+        public List<AlchemyNodeRef> Fx = new();
+        public List<(uint Source, uint Target)> Pairs = new();
 		public ALEffect ()
 		{
-		}
-		public AlchemyNodeRef FindRef(uint index)
-		{
-			var result = from AlchemyNodeRef r in Fx where r.Index == index select r;
-			if (result.Count() == 1)
-				return result.First();
-			throw new Exception();
 		}
 	}
 }

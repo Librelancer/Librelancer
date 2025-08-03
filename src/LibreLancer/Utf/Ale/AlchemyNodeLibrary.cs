@@ -10,24 +10,17 @@ namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyNodeLibrary
 	{
-		enum AleTypes {
-			Boolean = 0x001,
-			Integer = 0x002,
-			Float = 0x003,
-			Name = 0x103,
-			IPair = 0x104,
-			Transform = 0x105,
-			FloatAnimation = 0x200,
-			ColorAnimation = 0x201,
-			CurveAnimation = 0x202
-		}
-
-		public float Version;
 		public List<AlchemyNode> Nodes = new List<AlchemyNode> ();
+
+        public AlchemyNodeLibrary()
+        {
+        }
+
 		public AlchemyNodeLibrary (LeafNode utfleaf)
 		{
-			using (var reader = new BinaryReader (utfleaf.DataSegment.GetReadStream())) {
-				Version = reader.ReadSingle ();
+			using (var reader = new BinaryReader (utfleaf.DataSegment.GetReadStream()))
+            {
+                reader.Skip(4); //Version 1.1f
 				int nodeCount = reader.ReadInt32 ();
 				for (int nc = 0; nc < nodeCount; nc++) {
 					ushort nameLen = reader.ReadUInt16 ();

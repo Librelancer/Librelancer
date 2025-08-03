@@ -13,6 +13,13 @@ namespace LibreLancer.Utf.Ale
 		public AleParameter ()
 		{
 		}
+
+        public AleParameter(string name, object value)
+        {
+            Name = name;
+            Value = value;
+        }
+
 		public override string ToString ()
 		{
 			return string.Format ("[{0}: {1}]", Name, Value);

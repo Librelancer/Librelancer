@@ -270,9 +270,9 @@ namespace LancerEdit
                     {
                         ale = new AleFile(Utf.Export());
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        ErrorPopup("Could not open as ale");
+                        ErrorPopup($"Could not open as ale\n{e.ToString()}");
                         ale = null;
                     }
                     if (ale != null)

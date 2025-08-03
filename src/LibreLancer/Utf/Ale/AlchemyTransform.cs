@@ -10,7 +10,6 @@ namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyTransform
 	{
-		public uint Xform;
 		public AlchemyCurveAnimation TranslateX;
 		public AlchemyCurveAnimation TranslateY;
 		public AlchemyCurveAnimation TranslateZ;
@@ -23,11 +22,8 @@ namespace LibreLancer.Utf.Ale
         public bool HasTransform;
         public bool Animates;
 		public AlchemyTransform (BinaryReader reader)
-		{
-			Xform = (uint)reader.ReadByte () << 8;
-			Xform |= (uint)reader.ReadByte () << 4;
-			Xform |= (uint)reader.ReadByte ();
-
+        {
+            reader.Skip(3); //Xform 0x4, 0x3, 0x5
 			HasTransform = reader.ReadByte () != 0;
 			if (HasTransform) {
 				TranslateX = new AlchemyCurveAnimation (reader);
@@ -44,7 +40,7 @@ namespace LibreLancer.Utf.Ale
                     RotateYaw.Animates || ScaleX.Animates || ScaleY.Animates || ScaleZ.Animates);
             }
 		}
-		
+
         public Vector3 GetTranslation(float sparam, float t)
         {
             if (!HasTransform)
@@ -99,7 +95,7 @@ namespace LibreLancer.Utf.Ale
 
             return Quaternion.CreateFromYawPitchRoll(
                 MathHelper.DegreesToRadians(y2 - y1),
-                MathHelper.DegreesToRadians(x2 - x1), 
+                MathHelper.DegreesToRadians(x2 - x1),
                 MathHelper.DegreesToRadians(z2 - z1)
             );
         }
@@ -110,8 +106,13 @@ namespace LibreLancer.Utf.Ale
 		}
 		public override string ToString ()
 		{
-			return string.Format ("<Xform: 0x{0:X}>", Xform);
-		}
+            if (HasTransform)
+            {
+                if (Animates) return "<Animated Transform>";
+                else return "<Static Transform>";
+            }
+            return "<Empty Transform>";
+        }
 	}
 }
 

@@ -11,6 +11,12 @@ namespace LibreLancer.Utf.Ale
 	{
 		public EasingTypes Type;
 		public List<AlchemyColors> Items = new List<AlchemyColors> ();
+
+        public AlchemyColorAnimation()
+        {
+            Type = EasingTypes.Linear;
+        }
+
 		public AlchemyColorAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();
