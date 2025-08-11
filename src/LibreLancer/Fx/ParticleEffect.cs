@@ -51,6 +51,14 @@ namespace LibreLancer.Fx
     {
         public FxAppearance Appearance;
         public override FxNode Node => Appearance;
+
+        public int FieldIdx = -1;
+    }
+
+    public class FieldReference : NodeReference
+    {
+        public FxField Field;
+        public override FxNode Node => Field;
     }
 
 	public class ParticleEffect
@@ -63,6 +71,7 @@ namespace LibreLancer.Fx
         // Emitters and appearances
         public EmitterReference[] Emitters;
         public AppearanceReference[] Appearances;
+        public FieldReference[] Fields;
         // Calculated info
         public int[] ParticleCounts;
         public float Radius;
@@ -135,6 +144,7 @@ namespace LibreLancer.Fx
             string name,
             EmitterReference[] emitters,
             AppearanceReference[] appearances,
+            FieldReference[] fields,
             NodeReference[] tree
             )
         {
@@ -142,6 +152,7 @@ namespace LibreLancer.Fx
             Name = name;
             Emitters = emitters;
             Appearances = appearances;
+            Fields = fields;
             Tree = tree;
             CalculateInfo();
         }

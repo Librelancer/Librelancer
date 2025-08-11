@@ -8,9 +8,12 @@ namespace LibreLancer.Fx
 {
 	public class FLDustField : FxField
 	{
-		public FLDustField (AlchemyNode ale) : base(ale)
-		{
-		}
+        public AlchemyCurveAnimation MaxRadius;
+
+        public FLDustField (AlchemyNode ale) : base(ale)
+        {
+            MaxRadius = ale.GetCurveAnimation("SphereEmitter_MaxRadius");
+        }
 	}
 }
 

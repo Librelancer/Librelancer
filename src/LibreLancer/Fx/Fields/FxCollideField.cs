@@ -8,9 +8,24 @@ namespace LibreLancer.Fx
 {
 	public class FxCollideField : FxField
 	{
-		public FxCollideField (AlchemyNode ale) : base(ale)
-		{
-		}
-	}
+        public AlchemyCurveAnimation Reflectivity;
+        public AlchemyCurveAnimation Width;
+        public AlchemyCurveAnimation Height;
+        public FxCollideField (AlchemyNode ale) : base(ale)
+        {
+            Reflectivity = ale.GetCurveAnimation("CollideField_Reflectivity");
+            Width = ale.GetCurveAnimation("CollideField_Width");
+            Height = ale.GetCurveAnimation("CollideField_Height");
+        }
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new("CollideField_Reflectivity", Reflectivity));
+            n.Parameters.Add(new("CollideField_Width", Width));
+            n.Parameters.Add(new("CollideField_Height", Height));
+            return n;
+        }
+    }
 }
 

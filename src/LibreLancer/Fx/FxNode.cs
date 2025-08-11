@@ -47,6 +47,16 @@ namespace LibreLancer.Fx
 			}
 		}
 
+        public virtual AlchemyNode SerializeNode()
+        {
+            var n = new AlchemyNode { Name = GetType().Name };
+            n.Parameters.Add(new("Node_Name", NodeName));
+            n.Parameters.Add(new("Node_Transform", Transform));
+            if(!float.IsPositiveInfinity(NodeLifeSpan))
+                n.Parameters.Add(new("Node_LifeSpan", NodeLifeSpan));
+            return n;
+        }
+
         public override string ToString()
         {
             return $"{Name} - {NodeName}";

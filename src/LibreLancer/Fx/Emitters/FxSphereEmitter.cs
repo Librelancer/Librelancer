@@ -14,17 +14,19 @@ namespace LibreLancer.Fx
 		public AlchemyCurveAnimation MaxRadius;
 
 		public FxSphereEmitter (AlchemyNode ale) : base(ale)
-		{
-			AleParameter temp;
-			if (ale.TryGetParameter("SphereEmitter_MinRadius", out temp))
-			{
-				MinRadius = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter("SphereEmitter_MaxRadius", out temp))
-			{
-				MaxRadius = (AlchemyCurveAnimation)temp.Value;
-			}
+        {
+            MinRadius = ale.GetCurveAnimation("SphereEmitter_MinRadius");
+            MaxRadius = ale.GetCurveAnimation("SphereEmitter_MaxRadius");
 		}
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new("SphereEmitter_MinRadius", MinRadius));
+            n.Parameters.Add(new("SphereEmitter_MaxRadius", MaxRadius));
+            return n;
+        }
+
 
         protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{

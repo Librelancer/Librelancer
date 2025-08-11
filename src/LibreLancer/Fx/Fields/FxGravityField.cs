@@ -7,10 +7,19 @@ using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
 	public class FxGravityField : FxField
-	{
+    {
+        public AlchemyCurveAnimation Gravity;
 		public FxGravityField (AlchemyNode ale) : base(ale)
 		{
+            Gravity = ale.GetCurveAnimation("GravityField_Gravity");
 		}
-	}
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new("GravityField_Gravity", Gravity));
+            return n;
+        }
+    }
 }
 

@@ -16,22 +16,23 @@ namespace LibreLancer.Fx
 
 		public FxConeEmitter (AlchemyNode ale) : base(ale)
 		{
-			AleParameter temp;
-			if (ale.TryGetParameter("ConeEmitter_MinRadius", out temp)) {
-				MinRadius = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter("ConeEmitter_MaxRadius", out temp)) {
-				MaxRadius = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter("ConeEmitter_MinSpread", out temp)){
-				MinSpread = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter("ConeEmitter_MaxSpread", out temp)) {
-				MaxSpread = (AlchemyCurveAnimation)temp.Value;
-			}
+            MinRadius =  ale.GetCurveAnimation("ConeEmitter_MinRadius");
+            MaxRadius =  ale.GetCurveAnimation("ConeEmitter_MaxRadius");
+            MinSpread =  ale.GetCurveAnimation("ConeEmitter_MinSpread");
+            MaxSpread =  ale.GetCurveAnimation("ConeEmitter_MaxSpread");
 		}
 
-		protected virtual float GetSpread(float sparam, float time)
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new("ConeEmitter_MinRadius", MinRadius));
+            n.Parameters.Add(new("ConeEmitter_MaxRadius", MaxRadius));
+            n.Parameters.Add(new("ConeEmitter_MinSpread", MinSpread));
+            n.Parameters.Add(new("ConeEmitter_MaxSpread", MaxSpread));
+            return n;
+        }
+
+        protected virtual float GetSpread(float sparam, float time)
 		{
 			var s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
 			var s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));

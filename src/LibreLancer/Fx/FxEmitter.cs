@@ -43,6 +43,27 @@ namespace LibreLancer.Fx
 				MaxParticles = (AlchemyCurveAnimation)temp.Value;
 			}
 		}
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            if(InitialParticles != 0)
+                n.Parameters.Add(new("Emitter_InitialParticles", InitialParticles));
+            if(Frequency != null)
+                n.Parameters.Add(new("Emitter_Frequency", Frequency));
+            if(EmitCount != null)
+                n.Parameters.Add(new("Emitter_EmitCount", EmitCount));
+            if(InitLifeSpan != null)
+                n.Parameters.Add(new("Emitter_InitLifeSpan", InitLifeSpan));
+            if(Pressure != null)
+                n.Parameters.Add(new("Emitter_Pressure", Pressure));
+            if(VelocityApproach != null)
+                n.Parameters.Add(new("Emitter_VelocityApproach", VelocityApproach));
+            if(MaxParticles != null)
+                n.Parameters.Add(new("Emitter_MaxParticles", MaxParticles));
+            return n;
+        }
+
         protected virtual void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{
 

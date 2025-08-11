@@ -8,9 +8,21 @@ namespace LibreLancer.Fx
 {
 	public class FxTurbulenceField : FxField
 	{
-		public FxTurbulenceField (AlchemyNode ale) : base(ale)
-		{
-		}
-	}
+        public AlchemyCurveAnimation Magnitude;
+        public AlchemyCurveAnimation Approach;
+        public FxTurbulenceField (AlchemyNode ale) : base(ale)
+        {
+            Magnitude = ale.GetCurveAnimation("TurbulenceField_Magnitude");
+            Approach = ale.GetCurveAnimation("TurbulenceField_Approach");
+        }
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new("TurbulenceField_Magnitude", Magnitude));
+            n.Parameters.Add(new("TurbulenceField_Approach", Approach));
+            return n;
+        }
+    }
 }
 

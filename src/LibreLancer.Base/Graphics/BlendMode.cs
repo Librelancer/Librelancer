@@ -49,6 +49,13 @@ namespace LibreLancer.Graphics
             Validate(src, dst);
             return (ushort)((src << 8) | dst);
         }
+
+        public static (int, int) Deconstruct(ushort blendMode)
+        {
+            var src = (blendMode >> 8) & 0xFF;
+            var dst = blendMode & 0xFF;
+            return (src, dst);
+        }
     }
 }
 

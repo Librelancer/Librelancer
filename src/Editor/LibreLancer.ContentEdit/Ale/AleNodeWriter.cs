@@ -13,7 +13,7 @@ public static class AleNodeWriter
         var ms = new MemoryStream();
         var bw = new BinaryWriter(ms);
 
-        bw.Write(1.1f);
+        bw.Write(1.0f); // No extra floats (1.1f == 16 unused bytes per fx)
         bw.Write(fxlib.Effects.Count);
         foreach (var fx in fxlib.Effects)
         {
@@ -40,7 +40,7 @@ public static class AleNodeWriter
     {
         var ms = new MemoryStream();
         var bw = new BinaryWriter(ms);
-        bw.Write(1.1f);
+        bw.Write(1.1f); // Match FL
         bw.Write(nodelib.Nodes.Count);
         foreach (var n in nodelib.Nodes)
         {

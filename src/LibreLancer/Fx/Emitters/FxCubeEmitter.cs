@@ -16,24 +16,24 @@ namespace LibreLancer.Fx
 		public AlchemyCurveAnimation MaxSpread;
 
 		public FxCubeEmitter (AlchemyNode ale) : base(ale)
-		{
-			AleParameter temp;
-			if (ale.TryGetParameter ("CubeEmitter_Width", out temp)) {
-				Width = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter ("CubeEmitter_Height", out temp)) {
-				Height = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter ("CubeEmitter_Depth", out temp)) {
-				Depth = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter("CubeEmitter_MinSpread", out temp)){
-				MinSpread = (AlchemyCurveAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter("CubeEmitter_MaxSpread", out temp)) {
-				MaxSpread = (AlchemyCurveAnimation)temp.Value;
-			}
+        {
+            Width = ale.GetCurveAnimation("CubeEmitter_Width");
+            Height = ale.GetCurveAnimation("CubeEmitter_Height");
+            Depth = ale.GetCurveAnimation("CubeEmitter_Depth");
+            MinSpread = ale.GetCurveAnimation("CubeEmitter_MinSpread");
+            MaxSpread = ale.GetCurveAnimation("CubeEmitter_MaxSpread");
 		}
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new("CubeEmitter_Width", Width));
+            n.Parameters.Add(new("CubeEmitter_Height", Height));
+            n.Parameters.Add(new("CubeEmitter_Depth", Depth));
+            n.Parameters.Add(new("CubeEmitter_MinSpread", MinSpread));
+            n.Parameters.Add(new("CubeEmitter_MaxSpread", MaxSpread));
+            return n;
+        }
 
         protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{

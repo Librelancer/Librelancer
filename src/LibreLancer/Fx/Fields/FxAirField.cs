@@ -8,9 +8,13 @@ namespace LibreLancer.Fx
 {
 	public class FxAirField : FxField
 	{
-		public FxAirField (AlchemyNode ale) : base(ale)
-		{
-		}
+        public AlchemyCurveAnimation Magnitude;
+        public AlchemyCurveAnimation Approach;
+        public FxAirField (AlchemyNode ale) : base(ale)
+        {
+            Magnitude = ale.GetCurveAnimation("AirField_Magnitude");
+            Approach = ale.GetCurveAnimation("AirField_Approach");
+        }
 	}
 }
 

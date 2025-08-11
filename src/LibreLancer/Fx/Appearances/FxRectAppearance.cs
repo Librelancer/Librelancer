@@ -21,6 +21,8 @@ namespace LibreLancer.Fx
 		public FxRectAppearance (AlchemyNode ale) : base(ale)
 		{
 			AleParameter temp;
+            CenterOnPos = ale.GetBoolean("RectApp_CenterOnPos");
+            ViewingAngleFade = ale.GetBoolean("RectApp_ViewingAngleFade");
 			if (ale.TryGetParameter("RectApp_CenterOnPos", out temp))
 			{
 				CenterOnPos = (bool)temp.Value;
