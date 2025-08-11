@@ -24,13 +24,14 @@ public sealed class InfocardSelection : PopupWindow
     private bool searchCaseSensitive;
     private bool searchWholeWord;
     private bool appearing = true;
-
+    private bool shouldClose = false;
 
     private int[] currentResults;
 
     private InfocardControl display;
     private MainWindow window;
     private Action<int> onSelected;
+    private PopupManager popups = new PopupManager();
 
     Dictionary<int, string> previews = new Dictionary<int, string>();
 
@@ -78,6 +79,15 @@ public sealed class InfocardSelection : PopupWindow
 
     public override void Draw(bool appearing)
     {
+        // Close the window if requested
+        if (shouldClose)
+        {
+            ImGui.CloseCurrentPopup();
+            return;
+        }
+        
+        popups.Run();
+        
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Search: ");
         ImGui.SameLine();
@@ -105,6 +115,22 @@ public sealed class InfocardSelection : PopupWindow
                         currentResults = res.Result.Ids;
                         searching = false;
                     });
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Create New ID"))
+        {
+            if (manager is LibreLancer.ContentEdit.EditableInfocardManager editableManager)
+            {
+                popups.OpenPopup(new AddIdsPopup(editableManager, window, true, (newId) =>
+                {
+                    current = newId;
+                    LoadInfocard();
+                    // Refresh the results to include the new ID
+                    currentResults = manager.AllXml.Select(x => x.Key).Order().ToArray();
+                    onSelected(newId);
+                    shouldClose = true;
+                }, autoSave: true));
             }
         }
         if (!string.IsNullOrWhiteSpace(resultText)) {

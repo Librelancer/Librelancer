@@ -18,7 +18,7 @@ public class IdsSearch : PopupWindow
 
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
 
-    public override bool NoClose => dialogState == 1;
+    public override bool NoClose => dialogState == 1 || shouldClose;
 
 
     private const int MAX_PREV_LEN = 50;
@@ -31,6 +31,7 @@ public class IdsSearch : PopupWindow
     private string[] searchStrings;
     private bool searchWholeWord;
     private volatile int dialogState;
+    private bool shouldClose = false;
 
     private string searchText = "";
     private bool isSearchInfocards = false;
@@ -44,17 +45,30 @@ public class IdsSearch : PopupWindow
 
     private InfocardManager manager;
     private FontManager fonts;
+    private MainWindow win;
+    private PopupManager popups = new PopupManager();
 
-    private IdsSearch(InfocardManager manager, FontManager fonts)
+    private IdsSearch(InfocardManager manager, FontManager fonts, MainWindow win)
     {
         this.manager = manager;
         this.fonts = fonts;
+        this.win = win;
         Title = ImGuiExt.IDWithExtra("Search", Unique);
     }
 
     public static IdsSearch SearchStrings(InfocardManager manager, FontManager fonts, Action<int> onSelect)
     {
-        var dlg = new IdsSearch(manager, fonts);
+        var dlg = new IdsSearch(manager, fonts, null);
+        dlg.dialogState = 0;
+        dlg.isSearchInfocards = false;
+        dlg.searchText = "";
+        dlg.onSearchResult = onSelect;
+        return dlg;
+    }
+
+    public static IdsSearch SearchStrings(InfocardManager manager, FontManager fonts, MainWindow win, Action<int> onSelect)
+    {
+        var dlg = new IdsSearch(manager, fonts, win);
         dlg.dialogState = 0;
         dlg.isSearchInfocards = false;
         dlg.searchText = "";
@@ -64,7 +78,17 @@ public class IdsSearch : PopupWindow
 
     public static IdsSearch SearchInfocards(InfocardManager manager, FontManager fonts, Action<int> onSelect)
     {
-        var dlg = new IdsSearch(manager, fonts);
+        var dlg = new IdsSearch(manager, fonts, null);
+        dlg.dialogState = 0;
+        dlg.isSearchInfocards = true;
+        dlg.searchText = "";
+        dlg.onSearchResult = onSelect;
+        return dlg;
+    }
+
+    public static IdsSearch SearchInfocards(InfocardManager manager, FontManager fonts, MainWindow win, Action<int> onSelect)
+    {
+        var dlg = new IdsSearch(manager, fonts, win);
         dlg.dialogState = 0;
         dlg.isSearchInfocards = true;
         dlg.searchText = "";
@@ -74,6 +98,14 @@ public class IdsSearch : PopupWindow
 
     public override void Draw(bool appearing)
     {
+        // Close the window if requested
+        if (shouldClose)
+        {
+            ImGui.CloseCurrentPopup();
+            return;
+        }
+        
+        popups.Run();
         if (searchResultsOpen) DrawSearchResults();
         if (dialogState == 0)
         {
@@ -138,7 +170,7 @@ public class IdsSearch : PopupWindow
         ImGui.Text(isSearchInfocards ? "Search Infocards" : "Search Strings");
         ImGui.InputText("##searchtext", ref searchText, 65536, ImGuiInputTextFlags.None);
         ImGui.Checkbox("Case Sensitive", ref searchCaseSensitive);
-        ImGui.Checkbox("Match Whole World", ref searchWholeWord);
+        ImGui.Checkbox("Match Whole Word", ref searchWholeWord);
         if (ImGui.Button("Go"))
         {
             if (!string.IsNullOrWhiteSpace(searchText))
@@ -154,6 +186,19 @@ public class IdsSearch : PopupWindow
                         searchStringPreviews = new string[searchStrings.Length];
                         dialogState = 2;
                     });
+            }
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Create New ID"))
+        {
+            if (manager is LibreLancer.ContentEdit.EditableInfocardManager editableManager && win != null)
+            {
+                popups.OpenPopup(new AddIdsPopup(editableManager, win, isSearchInfocards, (newId) =>
+                {
+                    onSearchResult(newId);
+                    shouldClose = true;
+                }, autoSave: true));
             }
         }
 
