@@ -35,9 +35,10 @@ public class AddIdsPopup : PopupWindow
         this.onIdCreated = onIdCreated;
         this.autoSave = autoSave;
         Title = isInfocard ? "Add Infocard" : "Add String";
-        newContent = isInfocard ?
-            "<RDL>\n  <PUSH/>\n  <TEXT>New Infocard</TEXT>\n</RDL>" :
-            "New String";
+        newContent = isInfocard
+          ? "<RDL>\n  <PUSH/>\n  <TEXT>New Infocard</TEXT>\n  <POP/>\n</RDL>"
+          : "New String";
+
     }
 
     public override void Draw(bool appearing)
