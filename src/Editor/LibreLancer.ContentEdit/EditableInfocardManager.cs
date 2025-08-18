@@ -10,6 +10,7 @@ namespace LibreLancer.ContentEdit;
 public class EditableInfocardManager : InfocardManager
 {
     public int MaxIds => Dlls.Count * 65536;
+    public enum ResourceType { String, Infocard }
 
     private Dictionary<int, string> dirtyStrings = new Dictionary<int, string>();
     private Dictionary<int, string> dirtyInfocards = new Dictionary<int, string>();
@@ -116,6 +117,46 @@ public class EditableInfocardManager : InfocardManager
         {
             if (!StringExists(i) && !XmlExists(i)) return i;
         }
+        return -1;
+    }
+
+    public int HighestFreeId(ResourceType type)
+    {
+        // Pick the function to check if an ID exists for this resource type
+        int highestExisting = -1;
+        Func<int, bool> existsCheck = type switch {
+            ResourceType.String => StringExists,
+            ResourceType.Infocard => XmlExists,
+            _ => id => false
+        };
+        
+        // First loop: find the highest ID currently in use for this type
+        for (int i = 1; i < Dlls.Count * 65536; i++)
+        {
+            if (existsCheck(i) && i > highestExisting)
+                highestExisting = i;
+        }
+        
+        // No IDs in use yet → start at 1
+        if (highestExisting == -1) 
+            return 1;
+        
+        // If the next number after the highest is completely free, use it
+        int nextId = highestExisting + 1;
+        if (nextId < Dlls.Count * 65536 &&
+            !StringExists(nextId) && !XmlExists(nextId))
+            return nextId;
+        
+        // Second loop: otherwise, find the next free slot after the highest ID
+        // Two loops are used so we always start after the true highest used ID,
+        // instead of filling the first small gap found.
+        for (int i = nextId; i < Dlls.Count * 65536; i++)
+        {
+            if (!StringExists(i) && !XmlExists(i))
+                return i;
+        }
+        
+        // No free ID available
         return -1;
     }
 

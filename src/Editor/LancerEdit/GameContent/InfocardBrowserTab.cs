@@ -10,6 +10,7 @@ using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using ResourceType = LibreLancer.ContentEdit.EditableInfocardManager.ResourceType;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
@@ -169,13 +170,13 @@ public class InfocardBrowserTab : GameContentTab
         if (ImGui.Button("Search..."))
         {
             if (showStrings)
-                popups.OpenPopup(IdsSearch.SearchStrings(manager, fonts, x =>
+                popups.OpenPopup(IdsSearch.SearchStrings(manager, fonts, win, x =>
                 {
                     id = x;
                     GotoString();
                 }));
             else
-                popups.OpenPopup(IdsSearch.SearchInfocards(manager, fonts, x =>
+                popups.OpenPopup(IdsSearch.SearchInfocards(manager, fonts, win, x =>
                 {
                     id = x;
                     GotoInfocard();
@@ -184,7 +185,17 @@ public class InfocardBrowserTab : GameContentTab
 
         ImGui.SameLine();
         if (ImGui.Button("Add"))
-            popups.OpenPopup(new AddIdsPopup(this, !showStrings));
+        {
+            popups.OpenPopup(new Popups.AddIdsPopup(manager, win, !showStrings, (newId) =>
+            {
+                id = newId;
+                ResetListContent();
+                if (showStrings)
+                    GotoString();
+                else
+                    GotoInfocard();
+            }));
+        }
 
         ImGui.SameLine();
         if (ImGuiExt.Button("Save", manager.Dirty))
@@ -361,6 +372,7 @@ public class InfocardBrowserTab : GameContentTab
             editingXml = false;
         }
 
+
         ImGui.Columns(2);
         ImGui.BeginChild("##edit");
         ImGui.Text("Xml");
@@ -393,7 +405,6 @@ public class InfocardBrowserTab : GameContentTab
         public override string Title { get; set; } = "Edit String";
 
         private string text;
-        private string original;
         private int ids;
         private InfocardBrowserTab tab;
 
@@ -401,14 +412,14 @@ public class InfocardBrowserTab : GameContentTab
         {
             this.ids = ids;
             this.tab = tab;
-            text = original = tab.manager.GetStringResource(ids);
+            text = tab.manager.GetStringResource(ids);
         }
 
         public override void Draw(bool appearing)
         {
             ImGui.Text($"Editing: {ids}");
-            ImGui.Text($"Original: {original}");
-            ImGui.InputTextMultiline("New Text", ref text, ushort.MaxValue, Vector2.Zero);
+            ImGui.Text("New Text");
+            ImGui.InputTextMultiline("##new_text", ref text, ushort.MaxValue, Vector2.Zero);
             if (ImGui.Button("Save"))
             {
                 tab.manager.SetStringResource(ids, text);
@@ -424,86 +435,6 @@ public class InfocardBrowserTab : GameContentTab
         }
     }
 
-    sealed class AddIdsPopup : PopupWindow
-    {
-        public override string Title { get; set; }
-
-        public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
-        private InfocardBrowserTab tab;
-        private bool isInfocard;
-        private int newIds;
-
-        public AddIdsPopup(InfocardBrowserTab tab, bool isInfocard)
-        {
-            this.tab = tab;
-            this.isInfocard = isInfocard;
-            Title = isInfocard ? "Add Infocard" : "Add String";
-        }
-
-        public override void Draw(bool appearing)
-        {
-            ImGui.AlignTextToFramePadding();
-            ImGui.Text("New Id");
-            ImGui.PushItemWidth(130 * ImGuiHelper.Scale);
-            ImGui.InputInt("##newids", ref newIds, 0, 0);
-            ImGui.PopItemWidth();
-            ImGui.SameLine();
-            if (ImGui.Button("Next"))
-            {
-                var r = tab.manager.NextFreeId(newIds);
-                if (r == -1)
-                    tab.win.ErrorDialog("No id available. Add a new .dll file.");
-                else
-                    newIds = r;
-            }
-            bool canSave = false;
-            if (newIds <= 0)
-            {
-                ImGui.TextColored(Color4.Red, "Id must be 1 or larger");
-            }
-            else if (newIds > tab.manager.MaxIds)
-            {
-                ImGui.TextColored(Color4.Red,
-                    $"{newIds} is bigger than max id {tab.manager.MaxIds}.\nAdd a new .dll file.");
-            }
-            else if (tab.manager.StringExists(newIds))
-            {
-                ImGui.TextColored(Color4.Red, "Id already in use (string)");
-            }
-            else if (tab.manager.XmlExists(newIds))
-            {
-                ImGui.TextColored(Color4.Red, "Id already in use (infocard)");
-            }
-            else
-            {
-                ImGui.TextDisabled($"Dll: {Path.GetFileName(tab.manager.Dlls[newIds >> 16].SavePath)}");
-                canSave = true;
-            }
-            if (ImGuiExt.Button("Save", canSave))
-            {
-                tab.id = newIds;
-                if (isInfocard)
-                {
-                    tab.manager.SetXmlResource(newIds, "<RDL><PUSH/><TEXT>New Infocard</TEXT></RDL>");
-                    tab.ResetListContent();
-                    tab.GotoInfocard();
-                }
-                else
-                {
-                    tab.manager.SetStringResource(newIds, "New String");
-                    tab.ResetListContent();
-                    tab.GotoString();
-                }
-
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel"))
-            {
-                ImGui.CloseCurrentPopup();
-            }
-        }
-    }
 
     class XmlPopup(MainWindow win, string xmlText) : PopupWindow
     {
@@ -526,3 +457,4 @@ public class InfocardBrowserTab : GameContentTab
         xmlEditPreview?.Dispose();
     }
 }
+
