@@ -12,7 +12,7 @@ namespace LibreLancer.Fx
 
         public FLDustField (AlchemyNode ale) : base(ale)
         {
-            MaxRadius = ale.GetCurveAnimation("SphereEmitter_MaxRadius");
+            MaxRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MaxRadius);
         }
 	}
 }

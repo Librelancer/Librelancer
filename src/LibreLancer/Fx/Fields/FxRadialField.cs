@@ -14,19 +14,19 @@ namespace LibreLancer.Fx
         public AlchemyCurveAnimation Approach;
 		public FxRadialField (AlchemyNode ale) : base(ale)
 		{
-            Radius = ale.GetCurveAnimation("RadialField_Radius");
-            Attenuation = ale.GetFloatAnimation("RadialField_Attenuation");
-            Magnitude = ale.GetCurveAnimation("RadialField_Magnitude");
-            Approach = ale.GetCurveAnimation("RadialField_Approach");
+            Radius = ale.GetCurveAnimation(AleProperty.RadialField_Radius);
+            Attenuation = ale.GetFloatAnimation(AleProperty.RadialField_Attenuation);
+            Magnitude = ale.GetCurveAnimation(AleProperty.RadialField_Magnitude);
+            Approach = ale.GetCurveAnimation(AleProperty.RadialField_Approach);
 		}
 
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
-            n.Parameters.Add(new ("RadialField_Radius", Radius));
-            n.Parameters.Add(new ("RadialField_Attenuation", Attenuation));
-            n.Parameters.Add(new ("RadialField_Magnitude", Magnitude));
-            n.Parameters.Add(new ("RadialField_Approach", Approach));
+            n.Parameters.Add(new(AleProperty.RadialField_Radius, Radius));
+            n.Parameters.Add(new(AleProperty.RadialField_Attenuation, Attenuation));
+            n.Parameters.Add(new(AleProperty.RadialField_Magnitude, Magnitude));
+            n.Parameters.Add(new(AleProperty.RadialField_Approach, Approach));
             return n;
         }
     }

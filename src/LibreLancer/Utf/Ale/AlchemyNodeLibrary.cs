@@ -28,17 +28,14 @@ namespace LibreLancer.Utf.Ale
 					reader.BaseStream.Seek(nameLen & 1, SeekOrigin.Current); //padding
 					var node = new AlchemyNode () { Name = nodeName };
 					node.CRC = CrcTool.FLAleCrc(nodeName);
-					uint id, crc;
+                    uint id;
+                    AleProperty prop;
 					while (true) {
 						id = reader.ReadUInt16 ();
 						if (id == 0)
 							break;
 						AleTypes type = (AleTypes)(id & 0x7FFF);
-						crc = reader.ReadUInt32 ();
-						string efname;
-						if (!AleCrc.FxCrc.TryGetValue (crc, out efname)) {
-							efname = string.Format ("CRC: 0x{0:X}", crc);
-						}
+						prop = (AleProperty)reader.ReadUInt32 ();
 						object value = null;
 						switch (type) {
 						case AleTypes.Boolean:
@@ -74,10 +71,10 @@ namespace LibreLancer.Utf.Ale
 						default:
 							throw new InvalidDataException ("Invalid ALE Type: 0x" + (id & 0x7FFF).ToString ("x"));
 						}
-						node.Parameters.Add (new AleParameter () { Name = efname, Value = value });
+						node.Parameters.Add (new AleParameter () { Name = prop, Value = value });
 					}
 					AleParameter temp;
-					if (node.TryGetParameter("Node_Name", out temp))
+					if (node.TryGetParameter(AleProperty.Node_Name, out temp))
 					{
 						var nn = (string)temp.Value;
 						node.CRC = CrcTool.FLAleCrc(nn);

@@ -28,24 +28,24 @@ namespace LibreLancer.Fx
 
         public FxBasicAppearance(AlchemyNode ale) : base(ale)
         {
-            var tt = ale.GetBoolean("BasicApp_TriTexture");
+            var tt = ale.GetBoolean(AleProperty.BasicApp_TriTexture);
             if (tt)
             {
                 QuadTexture = false;
             }
-            MotionBlur = ale.GetBoolean("BasicApp_MotionBlur");
-            Color = ale.GetColorAnimation("BasicApp_Color");
-            Alpha = ale.GetFloatAnimation("BasicApp_Alpha");
-            HToVAspect = ale.GetFloatAnimation("BasicApp_HToVAspect", false);
-            Rotate = ale.GetFloatAnimation("BasicApp_Rotate", false);
-            Texture = ale.GetString("BasicApp_TexName");
-            UseCommonTexFrame = ale.GetBoolean("BasicApp_UseCommonTexFrame");
-            TexFrame = ale.GetFloatAnimation("BasicApp_TexFrame", false);
-            CommonTexFrame = ale.GetCurveAnimation("BasicApp_CommonTexFrame", false);
-            FlipHorizontal = ale.GetBoolean("BasicApp_FlipTexU");
-            FlipVertical = ale.GetBoolean("BasicApp_FlipTexV");
-            Size = ale.GetFloatAnimation("BasicApp_Size");
-            if (ale.TryGetParameter("BasicApp_BlendInfo", out var temp))
+            MotionBlur = ale.GetBoolean(AleProperty.BasicApp_MotionBlur);
+            Color = ale.GetColorAnimation(AleProperty.BasicApp_Color);
+            Alpha = ale.GetFloatAnimation(AleProperty.BasicApp_Alpha);
+            HToVAspect = ale.GetFloatAnimation(AleProperty.BasicApp_HToVAspect, false);
+            Rotate = ale.GetFloatAnimation(AleProperty.BasicApp_Rotate, false);
+            Texture = ale.GetString(AleProperty.BasicApp_TexName);
+            UseCommonTexFrame = ale.GetBoolean(AleProperty.BasicApp_UseCommonTexFrame);
+            TexFrame = ale.GetFloatAnimation(AleProperty.BasicApp_TexFrame, false);
+            CommonTexFrame = ale.GetCurveAnimation(AleProperty.BasicApp_CommonTexFrame, false);
+            FlipHorizontal = ale.GetBoolean(AleProperty.BasicApp_FlipTexU);
+            FlipVertical = ale.GetBoolean(AleProperty.BasicApp_FlipTexV);
+            Size = ale.GetFloatAnimation(AleProperty.BasicApp_Size);
+            if (ale.TryGetParameter(AleProperty.BasicApp_BlendInfo, out var temp))
             {
                 BlendInfo = BlendMap.Map((Tuple<uint, uint>) temp.Value);
             }
@@ -56,54 +56,54 @@ namespace LibreLancer.Fx
             var n = base.SerializeNode();
             if (QuadTexture)
             {
-                n.Parameters.Add(new("BasicApp_QuadTexture", true));
+                n.Parameters.Add(new(AleProperty.BasicApp_QuadTexture, true));
             }
             else
             {
-                n.Parameters.Add(new("BasicApp_TriTexture", true));
+                n.Parameters.Add(new(AleProperty.BasicApp_TriTexture, true));
             }
             if (MotionBlur)
             {
-                n.Parameters.Add(new("BasicApp_MotionBlur", true));
+                n.Parameters.Add(new(AleProperty.BasicApp_MotionBlur, true));
             }
-            n.Parameters.Add(new("BasicApp_Color", Color));
+            n.Parameters.Add(new(AleProperty.BasicApp_Color, Color));
             if (Alpha != null)
             {
-                n.Parameters.Add(new("BasicApp_Alpha", Alpha));
+                n.Parameters.Add(new(AleProperty.BasicApp_Alpha, Alpha));
             }
             if (HToVAspect != null)
             {
-                n.Parameters.Add(new("BasicApp_HToVAspect", HToVAspect));
+                n.Parameters.Add(new(AleProperty.BasicApp_HToVAspect, HToVAspect));
             }
             if (Rotate != null)
             {
-                n.Parameters.Add(new("BasicApp_Rotate", Rotate));
+                n.Parameters.Add(new(AleProperty.BasicApp_Rotate, Rotate));
             }
-            n.Parameters.Add(new("BasicApp_Texture", Texture));
+            n.Parameters.Add(new(AleProperty.BasicApp_TexName, Texture));
             if (UseCommonTexFrame)
             {
-                n.Parameters.Add(new("BasicApp_UseCommonTexFrame", true));
+                n.Parameters.Add(new(AleProperty.BasicApp_UseCommonTexFrame, true));
             }
             if (TexFrame != null)
             {
-                n.Parameters.Add(new("BasicApp_TexFrame", TexFrame));
+                n.Parameters.Add(new(AleProperty.BasicApp_TexFrame, TexFrame));
             }
             if (CommonTexFrame != null)
             {
-                n.Parameters.Add(new("BasicApp_CommonTexFrame", CommonTexFrame));
+                n.Parameters.Add(new(AleProperty.BasicApp_CommonTexFrame, CommonTexFrame));
             }
             if (FlipHorizontal)
             {
-                n.Parameters.Add(new("BasicApp_FlipTexU", true));
+                n.Parameters.Add(new(AleProperty.BasicApp_FlipTexU, true));
             }
             if (FlipVertical)
             {
-                n.Parameters.Add(new("BasicApp_FlipTexV", true));
+                n.Parameters.Add(new(AleProperty.BasicApp_FlipTexV, true));
             }
             if (BlendInfo != BlendMode.Normal)
             {
                 var (src, dst) = BlendMode.Deconstruct(BlendInfo);
-                n.Parameters.Add(new("BasicApp_BlendInfo", new Tuple<uint, uint>((uint)src, (uint)dst)));
+                n.Parameters.Add(new(AleProperty.BasicApp_BlendInfo, new Tuple<uint, uint>((uint)src, (uint)dst)));
             }
             return n;
         }

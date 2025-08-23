@@ -21,25 +21,25 @@ namespace LibreLancer.Fx
 		public FxRectAppearance (AlchemyNode ale) : base(ale)
 		{
 			AleParameter temp;
-            CenterOnPos = ale.GetBoolean("RectApp_CenterOnPos");
-            ViewingAngleFade = ale.GetBoolean("RectApp_ViewingAngleFade");
-			if (ale.TryGetParameter("RectApp_CenterOnPos", out temp))
+            CenterOnPos = ale.GetBoolean(AleProperty.RectApp_CenterOnPos);
+            ViewingAngleFade = ale.GetBoolean(AleProperty.RectApp_ViewingAngleFade);
+			if (ale.TryGetParameter(AleProperty.RectApp_CenterOnPos, out temp))
 			{
 				CenterOnPos = (bool)temp.Value;
 			}
-			if (ale.TryGetParameter("RectApp_ViewingAngleFade", out temp))
+			if (ale.TryGetParameter(AleProperty.RectApp_ViewingAngleFade, out temp))
 			{
 				ViewingAngleFade = (bool)temp.Value;
 			}
-			if (ale.TryGetParameter("RectApp_Scale", out temp))
+			if (ale.TryGetParameter(AleProperty.RectApp_Scale, out temp))
 			{
 				Scale = (AlchemyFloatAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter("RectApp_Length", out temp))
+			if (ale.TryGetParameter(AleProperty.RectApp_Length, out temp))
 			{
 				Length = (AlchemyFloatAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter("RectApp_Width", out temp))
+			if (ale.TryGetParameter(AleProperty.RectApp_Width, out temp))
 			{
 				Width = (AlchemyFloatAnimation)temp.Value;
 			}

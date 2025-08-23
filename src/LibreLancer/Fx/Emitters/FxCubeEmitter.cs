@@ -17,21 +17,21 @@ namespace LibreLancer.Fx
 
 		public FxCubeEmitter (AlchemyNode ale) : base(ale)
         {
-            Width = ale.GetCurveAnimation("CubeEmitter_Width");
-            Height = ale.GetCurveAnimation("CubeEmitter_Height");
-            Depth = ale.GetCurveAnimation("CubeEmitter_Depth");
-            MinSpread = ale.GetCurveAnimation("CubeEmitter_MinSpread");
-            MaxSpread = ale.GetCurveAnimation("CubeEmitter_MaxSpread");
+            Width = ale.GetCurveAnimation(AleProperty.CubeEmitter_Width);
+            Height = ale.GetCurveAnimation(AleProperty.CubeEmitter_Height);
+            Depth = ale.GetCurveAnimation(AleProperty.CubeEmitter_Depth);
+            MinSpread = ale.GetCurveAnimation(AleProperty.CubeEmitter_MinSpread);
+            MaxSpread = ale.GetCurveAnimation(AleProperty.CubeEmitter_MaxSpread);
 		}
 
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
-            n.Parameters.Add(new("CubeEmitter_Width", Width));
-            n.Parameters.Add(new("CubeEmitter_Height", Height));
-            n.Parameters.Add(new("CubeEmitter_Depth", Depth));
-            n.Parameters.Add(new("CubeEmitter_MinSpread", MinSpread));
-            n.Parameters.Add(new("CubeEmitter_MaxSpread", MaxSpread));
+            n.Parameters.Add(new(AleProperty.CubeEmitter_Width, Width));
+            n.Parameters.Add(new(AleProperty.CubeEmitter_Height, Height));
+            n.Parameters.Add(new(AleProperty.CubeEmitter_Depth, Depth));
+            n.Parameters.Add(new(AleProperty.CubeEmitter_MinSpread, MinSpread));
+            n.Parameters.Add(new(AleProperty.CubeEmitter_MaxSpread, MaxSpread));
             return n;
         }
 

@@ -18,12 +18,11 @@ namespace LibreLancer.Utf.Ale
 		{
 			return Name;
 		}
-		public bool TryGetParameter(string name, out AleParameter parameter)
+		public bool TryGetParameter(AleProperty name, out AleParameter parameter)
 		{
 			parameter = null;
-			var nm = name.ToUpperInvariant ();
 			foreach (var p in Parameters) {
-				if (p.Name.ToUpperInvariant () == nm) {
+				if (p.Name == name) {
 					parameter = p;
 					return true;
 				}
@@ -31,7 +30,7 @@ namespace LibreLancer.Utf.Ale
 			return false;
 		}
 
-        bool TryGetObject<T>(string name, out T value)
+        bool TryGetObject<T>(AleProperty name, out T value)
         {
             if (!TryGetParameter(name, out var p))
             {
@@ -42,21 +41,21 @@ namespace LibreLancer.Utf.Ale
             return true;
         }
 
-        public bool GetBoolean(string name, bool def = false)
+        public bool GetBoolean(AleProperty name, bool def = false)
         {
             if (TryGetObject(name, out bool v))
                 return v;
             return def;
         }
 
-        public string GetString(string name)
+        public string GetString(AleProperty name)
         {
             if (TryGetObject(name, out string v))
                 return v;
             return "";
         }
 
-        public AlchemyFloatAnimation GetFloatAnimation(string name, bool haveDef = true)
+        public AlchemyFloatAnimation GetFloatAnimation(AleProperty name, bool haveDef = true)
         {
             if (TryGetObject(name, out AlchemyFloatAnimation v))
             {
@@ -71,7 +70,7 @@ namespace LibreLancer.Utf.Ale
             return null;
         }
 
-        public AlchemyCurveAnimation GetCurveAnimation(string name, bool haveDef = true)
+        public AlchemyCurveAnimation GetCurveAnimation(AleProperty name, bool haveDef = true)
         {
             if (TryGetObject(name, out AlchemyCurveAnimation v))
             {
@@ -86,7 +85,7 @@ namespace LibreLancer.Utf.Ale
             return null;
         }
 
-        public AlchemyColorAnimation GetColorAnimation(string name, float def = 0)
+        public AlchemyColorAnimation GetColorAnimation(AleProperty name, float def = 0)
         {
             if (TryGetObject(name, out AlchemyColorAnimation v))
                 return v;
@@ -95,7 +94,7 @@ namespace LibreLancer.Utf.Ale
             return fa;
         }
 
-        public AlchemyTransform GetTransform(string name)
+        public AlchemyTransform GetTransform(AleProperty name)
         {
             if (TryGetObject(name, out AlchemyTransform v))
                 return v;

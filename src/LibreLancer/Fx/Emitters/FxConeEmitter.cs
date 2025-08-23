@@ -16,19 +16,19 @@ namespace LibreLancer.Fx
 
 		public FxConeEmitter (AlchemyNode ale) : base(ale)
 		{
-            MinRadius =  ale.GetCurveAnimation("ConeEmitter_MinRadius");
-            MaxRadius =  ale.GetCurveAnimation("ConeEmitter_MaxRadius");
-            MinSpread =  ale.GetCurveAnimation("ConeEmitter_MinSpread");
-            MaxSpread =  ale.GetCurveAnimation("ConeEmitter_MaxSpread");
+            MinRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinRadius);
+            MaxRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxRadius);
+            MinSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinSpread);
+            MaxSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxSpread);
 		}
 
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
-            n.Parameters.Add(new("ConeEmitter_MinRadius", MinRadius));
-            n.Parameters.Add(new("ConeEmitter_MaxRadius", MaxRadius));
-            n.Parameters.Add(new("ConeEmitter_MinSpread", MinSpread));
-            n.Parameters.Add(new("ConeEmitter_MaxSpread", MaxSpread));
+            n.Parameters.Add(new(AleProperty.ConeEmitter_MinRadius, MinRadius));
+            n.Parameters.Add(new(AleProperty.ConeEmitter_MaxRadius, MaxRadius));
+            n.Parameters.Add(new(AleProperty.ConeEmitter_MinSpread, MinSpread));
+            n.Parameters.Add(new(AleProperty.ConeEmitter_MaxSpread, MaxSpread));
             return n;
         }
 

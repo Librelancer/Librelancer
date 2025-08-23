@@ -14,21 +14,21 @@ namespace LibreLancer.Fx
         public bool SmoothRotation;
 		public FxParticleAppearance (AlchemyNode ale) : base(ale)
         {
-            LifeName = ale.GetString("ParticleApp_LifeName");
-            DeathName = ale.GetString("ParticleApp_DeathName");
-            UseDynamicRotation = ale.GetBoolean("ParticleApp_UseDynamicRotation");
-            SmoothRotation = ale.GetBoolean("ParticleApp_SmoothRotation");
+            LifeName = ale.GetString(AleProperty.ParticleApp_LifeName);
+            DeathName = ale.GetString(AleProperty.ParticleApp_DeathName);
+            UseDynamicRotation = ale.GetBoolean(AleProperty.ParticleApp_UseDynamicRotation);
+            SmoothRotation = ale.GetBoolean(AleProperty.ParticleApp_SmoothRotation);
         }
 
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
-            n.Parameters.Add(new("ParticleApp_LifeName", LifeName));
-            n.Parameters.Add(new("ParticleApp_DeathName", DeathName));
+            n.Parameters.Add(new(AleProperty.ParticleApp_LifeName, LifeName));
+            n.Parameters.Add(new(AleProperty.ParticleApp_DeathName, DeathName));
             if(UseDynamicRotation)
-                n.Parameters.Add(new("ParticleApp_UseDynamicRotation", UseDynamicRotation));
+                n.Parameters.Add(new(AleProperty.ParticleApp_UseDynamicRotation, UseDynamicRotation));
             if(SmoothRotation)
-                n.Parameters.Add(new("ParticleApp_SmoothRotation", SmoothRotation));
+                n.Parameters.Add(new(AleProperty.ParticleApp_SmoothRotation, SmoothRotation));
             return n;
         }
     }

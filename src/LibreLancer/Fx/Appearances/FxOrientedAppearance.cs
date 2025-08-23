@@ -14,15 +14,15 @@ namespace LibreLancer.Fx
 
 		public FxOrientedAppearance(AlchemyNode ale) : base(ale)
         {
-            Height = ale.GetFloatAnimation("OrientedApp_Height");
-            Width = ale.GetFloatAnimation("OrientedApp_Width");
+            Height = ale.GetFloatAnimation(AleProperty.OrientedApp_Height);
+            Width = ale.GetFloatAnimation(AleProperty.OrientedApp_Width);
 		}
 
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
-            n.Parameters.Add(new("OrientedApp_Height", Height));
-            n.Parameters.Add(new("OrientedApp_Width", Width));
+            n.Parameters.Add(new(AleProperty.OrientedApp_Height, Height));
+            n.Parameters.Add(new(AleProperty.OrientedApp_Width, Width));
             return n;
         }
 	}

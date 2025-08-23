@@ -106,12 +106,12 @@ public class AleNodeWriterTests
         }
     }
 
-    private const string StringProp = "BasicApp_TexName";
-    private const string BoolProp = "BasicApp_UseCommonTexFrame";
-    private const string CurveProp = "Emitter_Pressure";
-    private const string TransformProp = "Node_Transform";
-    private const string FloatsProp = "BasicApp_HToVAspect";
-    private const string ColorProp = "BasicApp_Color";
+    private const AleProperty StringProp = AleProperty.BasicApp_TexName;
+    private const AleProperty BoolProp = AleProperty.BasicApp_UseCommonTexFrame;
+    private const AleProperty CurveProp = AleProperty.Emitter_Pressure;
+    private const AleProperty TransformProp = AleProperty.Node_Transform;
+    private const AleProperty FloatsProp = AleProperty.BasicApp_HToVAspect;
+    private const AleProperty ColorProp = AleProperty.BasicApp_Color;
 
     [Fact]
     public void ShouldRoundtripAlchemyNodeLibrary()

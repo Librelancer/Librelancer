@@ -91,22 +91,7 @@ public static class AleNodeWriter
                 _ => throw new InvalidOperationException($"Cannot write AleParameter of type {(param.Value.GetType())}"),
             }));
         }
-        uint crc;
-        if (param.Name == "BeamApp_LineAppearance")
-        {
-            crc = 0x1C65B7B9; //Manual override
-        }
-        else if (param.Name.StartsWith("CRC: 0x"))
-        {
-            // Unrecognised string
-            crc = uint.Parse(param.Name.Substring("CRC: 0x".Length), NumberStyles.HexNumber);
-        }
-        else
-        {
-            // The actual string
-            crc = CrcTool.FLAleCrc(param.Name);
-        }
-        bw.Write(crc);
+        bw.Write((uint)param.Name);
         switch (param.Value)
         {
             case uint u:

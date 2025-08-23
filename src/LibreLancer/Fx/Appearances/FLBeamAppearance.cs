@@ -17,9 +17,9 @@ namespace LibreLancer.Fx
 
 		public FLBeamAppearance (AlchemyNode ale) : base(ale)
         {
-            DupeFirstParticle = ale.GetBoolean("BeamApp_DupeFirstParticle");
-            DisablePlaceholder = ale.GetBoolean("BeamApp_DisablePlaceholder");
-            LineAppearance = ale.GetBoolean("BeamApp_LineAppearance");
+            DupeFirstParticle = ale.GetBoolean(AleProperty.BeamApp_DupeFirstParticle);
+            DisablePlaceholder = ale.GetBoolean(AleProperty.BeamApp_DisablePlaceHolder);
+            LineAppearance = ale.GetBoolean(AleProperty.BeamApp_LineAppearance);
 		}
 
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)

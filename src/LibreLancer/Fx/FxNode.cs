@@ -20,16 +20,16 @@ namespace LibreLancer.Fx
 		{
 			Name = ale.Name;
 			AleParameter temp;
-			if (ale.TryGetParameter ("Node_Name", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Node_Name, out temp)) {
 				NodeName = (string)temp.Value;
 				CRC = CrcTool.FLAleCrc(NodeName);
 			}
-			if (ale.TryGetParameter ("Node_Transform", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Node_Transform, out temp)) {
 				Transform = (AlchemyTransform)temp.Value;
 			} else {
 				Transform = new AlchemyTransform ();
 			}
-			if (ale.TryGetParameter ("Node_LifeSpan", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Node_LifeSpan, out temp)) {
 				NodeLifeSpan = (float)temp.Value;
 			}
 		}
@@ -50,10 +50,10 @@ namespace LibreLancer.Fx
         public virtual AlchemyNode SerializeNode()
         {
             var n = new AlchemyNode { Name = GetType().Name };
-            n.Parameters.Add(new("Node_Name", NodeName));
-            n.Parameters.Add(new("Node_Transform", Transform));
+            n.Parameters.Add(new(AleProperty.Node_Name, NodeName));
+            n.Parameters.Add(new(AleProperty.Node_Transform, Transform));
             if(!float.IsPositiveInfinity(NodeLifeSpan))
-                n.Parameters.Add(new("Node_LifeSpan", NodeLifeSpan));
+                n.Parameters.Add(new(AleProperty.Node_LifeSpan, NodeLifeSpan));
             return n;
         }
 

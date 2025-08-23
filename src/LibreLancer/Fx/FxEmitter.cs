@@ -21,25 +21,25 @@ namespace LibreLancer.Fx
 		public FxEmitter (AlchemyNode ale) : base(ale)
 		{
 			AleParameter temp;
-			if (ale.TryGetParameter ("Emitter_InitialPartices", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Emitter_InitialParticles, out temp)) {
 				InitialParticles = (int)temp.Value;
 			}
-			if (ale.TryGetParameter ("Emitter_Frequency", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Emitter_Frequency, out temp)) {
 				Frequency = (AlchemyCurveAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter ("Emitter_EmitCount", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Emitter_EmitCount, out temp)) {
 				EmitCount = (AlchemyCurveAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter ("Emitter_InitLifeSpan", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Emitter_InitLifeSpan, out temp)) {
 				InitLifeSpan = (AlchemyCurveAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter ("Emitter_Pressure", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Emitter_Pressure, out temp)) {
 				Pressure = (AlchemyCurveAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter ("Emitter_VelocityApproach", out temp)) {
+			if (ale.TryGetParameter (AleProperty.Emitter_VelocityApproach, out temp)) {
 				VelocityApproach = (AlchemyCurveAnimation)temp.Value;
 			}
-			if (ale.TryGetParameter("Emitter_MaxParticles", out temp)) {
+			if (ale.TryGetParameter(AleProperty.Emitter_MaxParticles, out temp)) {
 				MaxParticles = (AlchemyCurveAnimation)temp.Value;
 			}
 		}
@@ -48,19 +48,19 @@ namespace LibreLancer.Fx
         {
             var n = base.SerializeNode();
             if(InitialParticles != 0)
-                n.Parameters.Add(new("Emitter_InitialParticles", InitialParticles));
+                n.Parameters.Add(new(AleProperty.Emitter_InitialParticles, InitialParticles));
             if(Frequency != null)
-                n.Parameters.Add(new("Emitter_Frequency", Frequency));
+                n.Parameters.Add(new(AleProperty.Emitter_Frequency, Frequency));
             if(EmitCount != null)
-                n.Parameters.Add(new("Emitter_EmitCount", EmitCount));
+                n.Parameters.Add(new(AleProperty.Emitter_EmitCount, EmitCount));
             if(InitLifeSpan != null)
-                n.Parameters.Add(new("Emitter_InitLifeSpan", InitLifeSpan));
+                n.Parameters.Add(new(AleProperty.Emitter_InitLifeSpan, InitLifeSpan));
             if(Pressure != null)
-                n.Parameters.Add(new("Emitter_Pressure", Pressure));
+                n.Parameters.Add(new(AleProperty.Emitter_Pressure, Pressure));
             if(VelocityApproach != null)
-                n.Parameters.Add(new("Emitter_VelocityApproach", VelocityApproach));
+                n.Parameters.Add(new(AleProperty.Emitter_VelocityApproach, VelocityApproach));
             if(MaxParticles != null)
-                n.Parameters.Add(new("Emitter_MaxParticles", MaxParticles));
+                n.Parameters.Add(new(AleProperty.Emitter_MaxParticles, MaxParticles));
             return n;
         }
 

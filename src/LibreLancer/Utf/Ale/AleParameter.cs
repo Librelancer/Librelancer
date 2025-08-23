@@ -8,13 +8,13 @@ namespace LibreLancer.Utf.Ale
 {
 	public class AleParameter
 	{
-		public string Name;
+		public AleProperty Name;
 		public object Value;
 		public AleParameter ()
 		{
 		}
 
-        public AleParameter(string name, object value)
+        public AleParameter(AleProperty name, object value)
         {
             Name = name;
             Value = value;
