@@ -18,5 +18,5 @@ CIMGUI_API void cimgui::ImGuiFreeType_AddTintIcon(ImWchar codepoint, ImWchar ico
 
 CIMGUI_API void cimgui::ImGui_SeparatorEx(cimgui::ImGuiSeparatorFlags flags, float thickness)
 {
-    ImGui::SeparatorEx(reinterpret_cast<::ImGuiSeparatorFlags>(flags), thickness);
+    ImGui::SeparatorEx(static_cast<::ImGuiSeparatorFlags>(flags), thickness);
 }
