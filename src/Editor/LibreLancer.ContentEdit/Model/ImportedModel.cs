@@ -782,7 +782,7 @@ public class ImportedModel
             int j;
             for (j = 0; j < lod.Vertices.Length; j++)
             {
-                if (Vector3.Distance(lod.Vertices[j].Position, pos) < 0.01f)
+                if (Vector3.Distance(lod.Vertices[j].Position, pos) < 0.0001f)
                     break;
             }
             if (j == lod.Vertices.Length)
