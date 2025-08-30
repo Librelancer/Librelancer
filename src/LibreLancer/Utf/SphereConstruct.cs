@@ -21,10 +21,13 @@ namespace LibreLancer.Utf
         public float Min3 { get; set; }
         public float Max3 { get; set; }
 
-        public override Transform3D LocalTransform
+        /*public override Transform3D LocalTransform
         {
             get { return internalGetTransform( new Transform3D(Origin + Offset, Quaternion.Concatenate(quatRot, Rotation))); }
-        }
+        }*/
+
+        public override Transform3D LocalTransform => internalGetTransform(
+            new Transform3D(-Offset, Quaternion.Identity) * new Transform3D(Origin,  quatRot * Rotation));
 
         private Quaternion quatRot = Quaternion.Identity;
 

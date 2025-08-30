@@ -127,23 +127,27 @@ namespace LibreLancer.Utf.Cmp
                         if(node is IntermediateNode)
                         {
                             var im = (IntermediateNode)node;
-                            if(im.Any(x => x.Name.Equals("vmeshpart",StringComparison.OrdinalIgnoreCase) ||
-                                x.Name.Equals("multilevel",StringComparison.OrdinalIgnoreCase)))
+                            if (im.Any(x => x.Name.Equals("camera",StringComparison.OrdinalIgnoreCase)))
+                            {
+                                var cam = new CmpCameraInfo(im);
+                                Cameras.Add(im.Name, cam);
+                            }
+                            else
                             {
                                 ModelFile m = new ModelFile(im);
                                 m.Path = node.Name;
                                 Models.Add(node.Name, m);
                                 modelNames.Add(node.Name);
-                                break;
-                            }
-                            else if (im.Any(x => x.Name.Equals("camera",StringComparison.OrdinalIgnoreCase)))
-                            {
-                                var cam = new CmpCameraInfo(im);
-                                Cameras.Add(im.Name, cam);
-                                break;
                             }
                         }
-                        FLLog.Error("Cmp", Path ?? "Utf" + ": Invalid Node in cmp root: " + node.Name);
+                        else
+                        {
+                            var m = new ModelFile(new IntermediateNode(node.Name, []));
+                            m.Path = node.Name;
+                            Models.Add(node.Name, m);
+                            modelNames.Add(node.Name);
+                            FLLog.Warning("Cmp", Path ?? "Utf" + ": Invalid Node in cmp root, assuming empty: " + node.Name);
+                        }
                         break;
                 }
             }
