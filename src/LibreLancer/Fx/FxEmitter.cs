@@ -10,7 +10,7 @@ namespace LibreLancer.Fx
 {
 	public class FxEmitter : FxNode
 	{
-		public int InitialParticles;
+		public uint InitialParticles;
 		public AlchemyCurveAnimation Frequency;
         public AlchemyCurveAnimation EmitCount;
 		public AlchemyCurveAnimation InitLifeSpan;
@@ -22,7 +22,7 @@ namespace LibreLancer.Fx
 		{
 			AleParameter temp;
 			if (ale.TryGetParameter (AleProperty.Emitter_InitialParticles, out temp)) {
-				InitialParticles = (int)temp.Value;
+				InitialParticles = (uint)temp.Value;
 			}
 			if (ale.TryGetParameter (AleProperty.Emitter_Frequency, out temp)) {
 				Frequency = (AlchemyCurveAnimation)temp.Value;
