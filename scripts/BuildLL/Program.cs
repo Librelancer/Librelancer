@@ -144,7 +144,7 @@ namespace BuildLL
         {
             if (IsWindows)
             {
-                if (FindExeWin32("dxc.exe", []) != null)
+                if (Config.GetBool("USE_SYSTEM_DXC") && FindExeWin32("dxc.exe", []) != null)
                 {
                     Console.WriteLine("dxc.exe located on PATH");
                     return;
@@ -163,7 +163,7 @@ namespace BuildLL
                 Console.WriteLine("Pre-built dxc extracted");
                 return;
             }
-            if (UnixHasCommand("dxc"))
+            if (Config.GetBool("USE_SYSTEM_DXC") && UnixHasCommand("dxc"))
             {
                 Console.WriteLine("dxc located on PATH");
                 return;
@@ -187,7 +187,7 @@ namespace BuildLL
                 return;
             }
             throw new Exception(
-                $"dxc not on PATH, and platform is {rid}. Please install from source: https://github.com/microsoft/DirectXShaderCompiler");
+                $"dxc not available, and platform is {rid}. Please install from source: https://github.com/microsoft/DirectXShaderCompiler");
         }
 
         private static string VersionString;

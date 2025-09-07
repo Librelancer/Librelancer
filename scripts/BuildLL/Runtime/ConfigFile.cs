@@ -25,6 +25,15 @@ public class ConfigFile
         }
     }
 
+    public bool GetBool(string key)
+    {
+        var v = this[key];
+        if(string.IsNullOrWhiteSpace(v))
+            return false;
+        return v.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+               v.Equals("1", StringComparison.OrdinalIgnoreCase);
+    }
+
     public string this[string key]
     {
         get
