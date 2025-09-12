@@ -10,27 +10,10 @@ using System.Runtime.CompilerServices;
 
 namespace LibreLancer.Utf.Anm
 {
-	public struct Channel
+    public struct Channel
     {
-        //Store some pre-calculated values in here for easier switch statements &
-        //Size+offset mappings
-
-        //Bits 0-5 - stride
-        private const uint STRIDE_MASK = 0x3F;
-        //Bits 6-10 - vec3 offset, Bits 11-12 - vec3 type
-        private const uint VEC_OFFSET_MASK = 0x7C0; // >> 6
-        private const uint VEC_TYPE_MASK = 0x1800;
-        private const uint TYPE_VEC3 = 0x800;
-        private const uint TYPE_VECEMPTY = 0x1000;
-        //Bits 13 - 17 - quat offset, Bits 18 - 20 - quat type
-        private const uint QUAT_OFFSET_MASK = 0x3E000; // >> 13
-        private const uint QUAT_TYPE_MASK = 0x1C0000;
-        private const uint QUAT_TYPE_FULL = 0x40000;
-        private const uint QUAT_TYPE_0x40 = 0x80000;
-        private const uint QUAT_TYPE_0x80 = 0xC0000;
-        private const uint QUAT_TYPE_IDENTITY = 0x100000;
-        //Bit 21 - are there angles?
-        private const uint ANGLES = 0x200000;
+        const uint VECTOR_MASK = 0x2 | 0x10;
+        const uint QUATERNION_MASK = 0x4 | 0x20 | 0x40 | 0x80;
 
         private uint header = 0;
         private int startIdx = 0;
@@ -38,170 +21,126 @@ namespace LibreLancer.Utf.Anm
         private AnmBuffer buffer;
 
         public int FrameCount { get; private set; }
-		public float Interval { get; private set; }
+        public float Interval { get; private set; }
 
-        public int ChannelType
-        {
-            get
-            {
-                int originalType = 0;
-                originalType |= ((header & QUAT_TYPE_MASK) switch
-                {
-                    QUAT_TYPE_IDENTITY => 0x20,
-                    QUAT_TYPE_FULL => 0x4,
-                    QUAT_TYPE_0x40 => 0x40,
-                    QUAT_TYPE_0x80 => 0x80,
-                    _ => 0
-                });
-                originalType |= ((header & VEC_TYPE_MASK)) switch
-                {
-                    TYPE_VEC3 => 0x2,
-                    TYPE_VECEMPTY => 0x10,
-                    _ => 0
-                };
-                if ((header & ANGLES) != 0)
-                    originalType |= 0x1;
-                return originalType;
-            }
-        }
+        public int ChannelType => (int)(header & 0xFF);
 
         public FrameType InterpretedType
         {
             get
             {
-                if ((header & QUAT_TYPE_MASK) != 0 && (header & VEC_TYPE_MASK) != 0)
+                if ((header & QUATERNION_MASK) != 0 && (header & VECTOR_MASK) != 0)
                     return FrameType.VecWithQuat;
-                else if ((header & QUAT_TYPE_MASK) != 0)
+                else if ((header & QUATERNION_MASK) != 0)
                     return FrameType.Quaternion;
-                else if ((header & VEC_TYPE_MASK) != 0)
+                else if ((header & VECTOR_MASK) != 0)
                     return FrameType.Vector3;
                 else
                     return FrameType.Float;
             }
         }
 
-        public QuaternionMethod QuaternionMethod => (header & QUAT_TYPE_MASK) switch
+        public QuaternionMethod QuaternionMethod => (header & QUATERNION_MASK) switch
         {
-            QUAT_TYPE_IDENTITY => QuaternionMethod.Empty,
-            QUAT_TYPE_FULL => QuaternionMethod.Full,
-            QUAT_TYPE_0x40 => QuaternionMethod.Compressed0x40,
-            QUAT_TYPE_0x80 => QuaternionMethod.Compressed0x80,
+            0x20 => QuaternionMethod.Empty,
+            0x4 => QuaternionMethod.Full,
+            0x40 => QuaternionMethod.Compressed0x40,
+            0x80 => QuaternionMethod.Compressed0x80,
             _ => QuaternionMethod.None
         };
 
-        public bool HasPosition => (header & VEC_TYPE_MASK) != 0;
-        public bool HasOrientation => (header & QUAT_TYPE_MASK) != 0;
-        public bool HasAngle => (header & ANGLES) != 0;
+        public bool HasPosition => (header & VECTOR_MASK) != 0;
+        public bool HasOrientation => (header & QUATERNION_MASK) != 0;
+        public bool HasAngle => (header & 0x1) != 0;
 
-        public readonly unsafe float GetTime(int index)
+        public readonly float GetTime(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if (Interval >= 0)
                 return 0;
-            var offset = GetOffset(index, 0, 0);
-            fixed (byte* ptr = buffer.Buffer)
-                return *(float*) (&ptr[offset]);
+            var stride = (header >> 8);
+            var offset = startIdx + (int)(stride * index);
+            return Unsafe.ReadUnaligned<float>(ref buffer.Buffer[offset]);
         }
 
-        public readonly unsafe float GetAngle(int index)
+        public readonly float GetAngle(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            if ((header & ANGLES) == 0)
+            if ((header & 0x1) == 0)
                 return 0;
-            var offset = GetOffset(index, 0, 0) + (Interval < 0 ? 4 : 0);
-            fixed (byte* ptr = buffer.Buffer)
-                return *(float*) (&ptr[offset]);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        readonly int GetOffset(int index, uint mask, int shift)
-        {
-            var stride = (header & STRIDE_MASK);
-            var off = (header & mask) >> shift;
-            return startIdx + (int) (stride * index + off);
+            var stride = (header >> 8);
+            var field = (Interval <= 0 ? 4 : 0);
+            var offset = startIdx + (int)(stride * index + field);
+            return Unsafe.ReadUnaligned<float>(ref buffer.Buffer[offset]);
         }
 
 
-        public readonly unsafe Vector3 GetPosition(int index)
+        public readonly Vector3 GetPosition(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            if ((header & VEC_TYPE_MASK) != TYPE_VEC3)
+            if ((header & 0x2) == 0)
                 return Vector3.Zero;
-            var offset = GetOffset(index, VEC_OFFSET_MASK, 6);
-            fixed (byte* ptr = buffer.Buffer)
-                return *(Vector3*) (&ptr[offset]);
+            var stride = (header >> 8);
+            var field = (Interval <= 0 ? 4 : 0);
+            var offset = startIdx + (int)(stride * index + field);
+            return Unsafe.ReadUnaligned<Vector3>(ref buffer.Buffer[offset]);
         }
 
 
         public readonly Quaternion GetQuaternion(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
-            var offset = GetOffset(index, QUAT_OFFSET_MASK, 13);
-            switch (header & QUAT_TYPE_MASK)
+            var stride = (header >> 8);
+            var field = (Interval <= 0 ? 4 : 0) + ((header & 0x2) == 0x2 ? 12 : 0);
+            var offset = startIdx + (int)(stride * index + field);
+            switch (header & QUATERNION_MASK)
             {
-                case QUAT_TYPE_FULL:
+                case 0x4:
                     return GetFullQuat(offset);
-                case QUAT_TYPE_0x80:
+                case 0x80:
                     return GetQuat0x80(offset);
-                case QUAT_TYPE_0x40:
+                case 0x40:
                     return GetQuat0x40(offset);
-                case QUAT_TYPE_IDENTITY:
-                case 0:
-                    return Quaternion.Identity;
                 default:
-                    throw new InvalidOperationException();
-            }
-        }
-
-        readonly unsafe Quaternion GetFullQuat(int offset)
-        {
-            fixed (byte* ptr = buffer.Buffer)
-            {
-                float* flt = (float*) (&ptr[offset]);
-                return new Quaternion(flt[1], flt[2], flt[3], flt[0]);
-            }
-        }
-
-        readonly unsafe Quaternion GetQuat0x40(int offset)
-        {
-            fixed (byte* ptr = buffer.Buffer)
-            {
-                short* sh = (short*) (&ptr[offset]);
-                var ha = new Vector3(
-                    sh[0] / 32767f,
-                    sh[1] / 32767f,
-                    sh[2] / 32767f
-                );
-                var len = ha.LengthSquared();
-                var w = 0f;
-                if (len < 1.0f)
-                {
-                    w = MathF.Sqrt(1 - len);
-                }
-                return new Quaternion(ha, w);
-            }
-        }
-
-        readonly unsafe Quaternion GetQuat0x80(int offset)
-        {
-            fixed (byte* ptr = buffer.Buffer)
-            {
-                short* sh = (short*) (&ptr[offset]);
-                var ha = new Vector3(
-                    sh[0] / 32767f,
-                    sh[1] / 32767f,
-                    sh[2] / 32767f
-                );
-                var s = Vector3.Dot(ha, ha);
-                if (s <= 0)
                     return Quaternion.Identity;
-                var length = ha.Length();
-                var something = MathF.Sin(MathF.PI * length * 0.5f);
-                return new Quaternion(
-                    ha * (something / length),
-                    MathF.Sqrt(1f - something * something)
-                );
             }
+        }
+
+        readonly Quaternion GetFullQuat(int offset) => Unsafe.ReadUnaligned<Quaternion>(ref buffer.Buffer[offset]);
+
+        readonly Quaternion GetQuat0x40(int offset)
+        {
+            var ha = new Vector3(
+                Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset]) / 32767f,
+                Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset + 2]) / 32767f,
+                Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset + 4]) / 32767f
+            );
+            var len = ha.LengthSquared();
+            var w = 0f;
+            if (len < 1.0f)
+            {
+                w = MathF.Sqrt(1 - len);
+            }
+
+            return new Quaternion(ha, w);
+        }
+
+        readonly Quaternion GetQuat0x80(int offset)
+        {
+            var ha = new Vector3(
+                Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset]) / 32767f,
+                Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset + 2]) / 32767f,
+                Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset + 4]) / 32767f
+            );
+            var s = Vector3.Dot(ha, ha);
+            if (s <= 0)
+                return Quaternion.Identity;
+            var length = ha.Length();
+            var something = MathF.Sin(MathF.PI * length * 0.5f);
+            return new Quaternion(
+                ha * (something / length),
+                MathF.Sqrt(1f - something * something)
+            );
         }
 
         readonly int GetIndex(float time, out float t0, out float t1)
@@ -217,10 +156,12 @@ namespace LibreLancer.Utf.Anm
                         return i;
                     }
                 }
+
                 t0 = t1 = 0;
                 return FrameCount - 1;
             }
-            var idx = MathHelper.Clamp((int) Math.Floor(time / Interval), 0, FrameCount - 1);
+
+            var idx = MathHelper.Clamp((int)Math.Floor(time / Interval), 0, FrameCount - 1);
             t0 = idx * Interval;
             t1 = (idx + 1) * Interval;
             return idx;
@@ -261,108 +202,91 @@ namespace LibreLancer.Utf.Anm
             {
                 return GetAngle(FrameCount - 1);
             }
+
             var a = GetAngle(idx);
             var b = GetAngle(idx + 1);
             var blend = (time - t0) / (t1 - t0);
             return new ChannelFloat(a, b, blend);
         }
 
-        unsafe int ReadHeader(LeafNode node)
+        void CalculateStride()
         {
-            if (node.DataSegment.Count < 12) throw new Exception("Anm Header malformed");
-            fixed (byte* bytes = node.DataSegment.Array)
+            uint channelType = (header & 0xFF);
+            int stride = 0;
+            if (Interval < 0)
             {
-                FrameCount = *(int*) (&bytes[node.DataSegment.Offset]);
-                Interval = *(float*) (&bytes[node.DataSegment.Offset + 4]);
-                return *(int*) (&bytes[node.DataSegment.Offset + 8]);
+                stride += 4;
             }
+
+            if ((channelType & 0x1) == 0x1)
+            {
+                stride += 4;
+            }
+
+            if ((channelType & 0x2) == 0x2)
+            {
+                stride += 12;
+            }
+
+            if ((channelType & 0x40) == 0x40)
+            {
+                stride += 6;
+            }
+
+            if ((channelType & 0x80) == 0x80)
+            {
+                stride += 6;
+            }
+
+            if ((channelType & 0x4) == 0x4)
+            {
+                stride += 16;
+            }
+
+            header = (uint)(stride << 8) | (channelType & 0xFF);
         }
 
 
-		public Channel(IntermediateNode root, AnmBuffer buffer)
-		{
+        public Channel(IntermediateNode root, AnmBuffer buffer)
+        {
             //Fetch from nodes
             this.buffer = buffer;
             ArraySegment<byte> cdata = new ArraySegment<byte>();
-            int channelType = 0;
-			foreach (LeafNode channelSubNode in root)
-			{
-                if(channelSubNode.Name.Equals("header", StringComparison.OrdinalIgnoreCase))
-                    channelType = ReadHeader(channelSubNode);
-                else if (channelSubNode.Name.Equals("frames", StringComparison.OrdinalIgnoreCase))
+            foreach (LeafNode node in root)
+            {
+                if (node.Name.Equals("header", StringComparison.OrdinalIgnoreCase))
                 {
-                    cdata = channelSubNode.DataSegment;
+                    if (node.DataSegment.Count < 12) throw new Exception("Anm Header malformed");
+                    FrameCount = Unsafe.ReadUnaligned<int>(ref node.DataSegment.Array![node.DataSegment.Offset]);
+                    Interval = Unsafe.ReadUnaligned<float>(ref node.DataSegment.Array![node.DataSegment.Offset + 4]);
+                    header = Unsafe.ReadUnaligned<uint>(ref node.DataSegment.Array![node.DataSegment.Offset + 8]);
+                }
+                else if (node.Name.Equals("frames", StringComparison.OrdinalIgnoreCase))
+                {
+                    cdata = node.DataSegment;
                 }
             }
-            /* Pad data to avoid ARM data alignment errors */
-            if((channelType & 0x80) == 0x80 ||
-               (channelType & 0x40) == 0x40) {
-                int startStride = 0;
-                if(Interval < 0) startStride += 4;
-                if((channelType & 0x1) == 0x1) startStride += 4;
-                if((channelType & 0x2) == 0x2) startStride += 12;
-                int fullStride = startStride + 8;
-                int compStride = startStride + 6;
-                startIdx = buffer.Take(fullStride * FrameCount);
-                //channelData = new byte[fullStride * FrameCount];
-                for(int i = 0; i < FrameCount; i++) {
-                    int src = compStride * i;
-                    int dst = startIdx + fullStride * i;
-                    for(int j = 0; j < compStride; j++) {
-                        buffer.Buffer[dst + j] = cdata[src + j];
-                    }
-                }
-            } else {
-                startIdx = buffer.Take(cdata.Count);
-                cdata.CopyTo(buffer.Buffer, startIdx);
+
+            startIdx = buffer.Take(cdata.Count);
+            cdata.CopyTo(buffer.Buffer, startIdx);
+
+            if (((header & 0x1) == 0x1) &&
+                (header != 0x1))
+            {
+                throw new Exception("Channel specification error: angles cannot combine with other types");
             }
 
-            int stride = 0;
+            if (BitOperations.PopCount(header & VECTOR_MASK) > 1)
+            {
+                throw new Exception("Channel specification error: more than one vector type");
+            }
 
-            if(((channelType & 0x2) == 0x2) &&
-               ((channelType & 0x10) == 0x10))
-                throw new Exception("Channel has invalid vector specification");
-            if (Interval < 0) {
-                stride += 4;
-            }
-            if ((channelType & 0x1) == 0x1)
+            if (BitOperations.PopCount(header & QUATERNION_MASK) > 1)
             {
-                header |= ANGLES;
-                stride += 4;
+                throw new Exception("Channel specification error: more than one quaternion type");
             }
-            if ((channelType & 0x2) == 0x2)
-            {
-                header |= TYPE_VEC3;
-                header |= (uint)((stride << 6) & VEC_OFFSET_MASK);
-                stride += 12;
-            }
-            if ((channelType & 0x10) == 0x10)
-            {
-                header |= TYPE_VECEMPTY;
-            }
-            if ((channelType & 0x40) == 0x40)
-            {
-                header |= QUAT_TYPE_0x40;
-                header |= (uint)((stride << 13) & QUAT_OFFSET_MASK);
-                stride += 8;
-            }
-            if ((channelType & 0x80) == 0x80)
-            {
-                header |= QUAT_TYPE_0x80;
-                header |= (uint)((stride << 13) & QUAT_OFFSET_MASK);
-                stride += 8;
-            }
-            if ((channelType & 0x4) == 0x4)
-            {
-                header |= QUAT_TYPE_FULL;
-                header |= (uint)((stride << 13) & QUAT_OFFSET_MASK);
-                stride += 16;
-            }
-            if ((channelType & 0x20) == 0x20)
-            {
-                header |= QUAT_TYPE_IDENTITY;
-            }
-            header |= (uint)(stride & STRIDE_MASK);
+
+            CalculateStride();
         }
     }
 }
