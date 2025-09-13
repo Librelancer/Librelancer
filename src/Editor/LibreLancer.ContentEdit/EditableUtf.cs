@@ -418,6 +418,15 @@ namespace LibreLancer.ContentEdit
             InterfaceID = Interlocked.Increment(ref _interfaceId);
         }
 
+        public static LUtfNode StringNode(LUtfNode parent, string name, string data)
+            => new () { Name = name, Parent = parent, StringData = data };
+
+        public static LUtfNode FloatNode(LUtfNode parent, string name, float data) =>
+            new() { Name = name, Parent = parent, Data = BitConverter.GetBytes(data) };
+
+        public static LUtfNode IntNode(LUtfNode parent, string name, int data) =>
+            new() { Name = name, Parent = parent, Data = BitConverter.GetBytes(data) };
+
         public string StringData
         {
             get
