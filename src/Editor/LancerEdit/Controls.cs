@@ -32,12 +32,57 @@ public class DropdownOption
         Tag = tag;
     }
 }
+
+public delegate char? InputFilter(char ch);
+
 public static class Controls
 {
     public static bool Flag<T>(string id, T value, T flag, out bool set) where T : struct, Enum
     {
         set = !value.HasFlag(flag);
         return ImGuiExt.ToggleButton(id, !set);
+    }
+
+    public static char? IdFilter(char ch)
+    {
+        if ((ch >= '0' && ch <= '9') ||
+            (ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') ||
+            ch == '_')
+        {
+            return ch;
+        }
+        if (ch == ' ')
+        {
+            return '_';
+        }
+        return null;
+    }
+
+    public static unsafe bool InputTextFilter(string label, ref string value, InputFilter filter, float width = 0.0f)
+    {
+        if (width != 0.0f)
+        {
+            ImGui.SetNextItemWidth(width);
+        }
+        value ??= "";
+        bool retval;
+        if (filter != null)
+        {
+            var cb = (ImGuiInputTextCallback)(data =>
+            {
+                data->EventChar = (ushort)(filter((char)data->EventChar) ?? 0);
+                return 0;
+            });
+            retval= ImGui.InputText(label, ref value, 250,
+                ImGuiInputTextFlags.CallbackCharFilter | ImGuiInputTextFlags.EnterReturnsTrue, cb);
+            GC.KeepAlive(cb);
+        }
+        else
+        {
+            retval = ImGui.InputText(label, ref value, 250, ImGuiInputTextFlags.EnterReturnsTrue);
+        }
+        return retval;
     }
 
     public static bool InputTextId(string label, ref string value, float width = 0.0f)

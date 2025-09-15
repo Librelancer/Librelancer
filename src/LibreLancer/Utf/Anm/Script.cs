@@ -10,7 +10,7 @@ namespace LibreLancer.Utf.Anm
 {
     public class Script
     {
-        public string Name { get; private set; }
+        public string Name { get; set; }
         public bool HasRootHeight { get; set; }
         public float RootHeight { get; set; }
 		public RefList<ObjectMap> ObjectMaps { get; private set; }

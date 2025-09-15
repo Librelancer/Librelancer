@@ -35,7 +35,6 @@ public class StateGraphTab : EditorTab
         newName = new NameInputConfig()
         {
             Extra = TypeModifier,
-            IsId = true,
             Title = "New State Graph",
             ValueName = "Name",
             InUse = GraphInUse
@@ -43,7 +42,6 @@ public class StateGraphTab : EditorTab
         dupName = new NameInputConfig()
         {
             Extra = TypeModifier,
-            IsId = true,
             Title = "Duplicate State Graph",
             ValueName = "Name",
             InUse = GraphInUse

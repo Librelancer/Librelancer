@@ -13,10 +13,10 @@ public class NameInputConfig
     public bool AllowInitial = true;
     public Func<string, bool> InUse;
     public Action Extra;
-    public bool IsId = true;
+    public InputFilter Filter = Controls.IdFilter;
     public bool AllowEmpty = false;
     public static NameInputConfig Nickname(string title, Func<string, bool> inUse) => new() {Title = title, ValueName = "Nickname", InUse = inUse};
-    public static NameInputConfig Rename() => new() {Title = "Rename", IsId = false};
+    public static NameInputConfig Rename() => new() {Title = "Rename", Filter = null};
 }
 
 public class NameInputPopup : PopupWindow
@@ -50,15 +50,11 @@ public class NameInputPopup : PopupWindow
             ImGui.Text($"{config.ValueName}: ");
             ImGui.SameLine();
         }
-        ImGui.PushItemWidth(240);
         if (appearing)
         {
             ImGui.SetKeyboardFocusHere();
         }
-        bool entered = config.IsId
-            ? Controls.InputTextId("##nickname", ref nickname)
-            : ImGui.InputText("##nickname", ref nickname, 250, ImGuiInputTextFlags.EnterReturnsTrue);
-        ImGui.PopItemWidth();
+        bool entered = Controls.InputTextFilter("##nickname", ref nickname, config.Filter, 240);
         bool valid = true;
         if (string.IsNullOrWhiteSpace(nickname) && !config.AllowEmpty) {
             ImGui.TextColored(Color4.Red, $"{config.ValueName ?? "Name"} cannot be empty");

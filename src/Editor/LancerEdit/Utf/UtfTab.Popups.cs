@@ -16,7 +16,7 @@ namespace LancerEdit
             ConfirmIf(node.Data.Length > 250, "Data is >250 bytes, string will be truncated. Continue?", () =>
             {
                 var config = new NameInputConfig()
-                    { AllowInitial = true, IsId = false, Title = "String Editor", ValueName = "String", AllowEmpty = true };
+                    { AllowInitial = true, Filter = null, Title = "String Editor", ValueName = "String", AllowEmpty = true };
                 popups.OpenPopup(new NameInputPopup(config, node.StringData,
                     newStr => node.StringData = newStr));
             });
@@ -25,7 +25,7 @@ namespace LancerEdit
         void RenameNode(LUtfNode node)
         {
             var config = new NameInputConfig()
-                { IsId = false, Title = "Rename Node", ValueName = "Name", AllowInitial = true };
+                { Filter = null, Title = "Rename Node", ValueName = "Name", AllowInitial = true };
             popups.OpenPopup(new NameInputPopup(config, node.Name, name =>
             {
                 node.Name = name;
@@ -35,7 +35,7 @@ namespace LancerEdit
 
         void AddNode(LUtfNode addParent, LUtfNode addNode, int addOffset)
         {
-            var config = new NameInputConfig() { IsId = false, Title = "Add Node", ValueName = "Name" };
+            var config = new NameInputConfig() { Filter = null, Title = "Add Node", ValueName = "Name" };
             popups.OpenPopup(new NameInputPopup(config, "", name =>
             {
                 var node = new LUtfNode() { Name = name, Parent = addParent ?? addNode };

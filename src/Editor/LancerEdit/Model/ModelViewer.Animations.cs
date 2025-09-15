@@ -65,6 +65,18 @@ partial class ModelViewer
         }
     }
 
+    // Symbols except ,
+    static char? AnimNameFilter(char ch)
+    {
+        if (ch == ',')
+            return null;
+        if (char.IsAscii(ch))
+        {
+            return ch;
+        }
+        return null;
+    }
+
     void AnimationPanel()
     {
         var anm = ((CmpFile)drawable).Animation;
@@ -72,10 +84,11 @@ partial class ModelViewer
         ImGui.SameLine();
         if (ImGui.Button("New"))
         {
-            var c = NameInputConfig.Nickname("New Animation", anm.Scripts.ContainsKey);
-            c.IsId = false;
+            var c = NameInputConfig.Nickname("New Animation", x => anm.Scripts.ContainsKey(x.Trim()));
+            c.Filter = AnimNameFilter;
             popups.OpenPopup(new NameInputPopup(c, "", newName =>
             {
+                newName = newName.Trim();
                 anm.Scripts[newName] = new Script(newName);
                 OnDirtyAnm();
             }));
@@ -152,6 +165,23 @@ partial class ModelViewer
                         OnDirtyAnm();
                     });
                     break;
+                case AnimEditAction.Rename:
+                {
+                    var c = NameInputConfig.Rename();
+                    c.InUse = x => anm.Scripts.ContainsKey(x.Trim());
+                    c.Filter = AnimNameFilter;
+                    var oldName = sc.Key;
+                    var script = sc.Value;
+                    popups.OpenPopup(new NameInputPopup(c, sc.Key, newName =>
+                    {
+                        newName = newName.Trim();
+                        anm.Scripts.Remove(oldName);
+                        script.Name = newName;
+                        anm.Scripts[newName] = script;
+                        OnDirtyAnm();
+                    }));
+                    break;
+                }
             }
             ImGui.PopID();
         }
