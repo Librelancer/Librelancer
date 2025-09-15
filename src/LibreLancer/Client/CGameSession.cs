@@ -907,6 +907,10 @@ namespace LibreLancer.Client
             RunSync(() =>
             {
                 var obj = gp.world.GetObject(netId);
+                if (obj.TryGetComponent<CDockComponent>(out var dock))
+                {
+                    gp.SetDockCam(dock.GetDockCamera());
+                }
                 if(obj != null)
                 {
                     gp.pilotcomponent.Undock(obj);

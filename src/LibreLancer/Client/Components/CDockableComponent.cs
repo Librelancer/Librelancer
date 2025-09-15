@@ -9,6 +9,11 @@ using LibreLancer.World;
 
 namespace LibreLancer.Client.Components
 {
+    public class DockCameraInfo
+    {
+        public GameObject Parent;
+        public Hardpoint DockHardpoint;
+    }
 	public class CDockComponent : GameComponent
 	{
 		public DockAction Action;
@@ -19,6 +24,15 @@ namespace LibreLancer.Client.Components
 		public CDockComponent(GameObject parent) : base(parent)
 		{
 		}
+
+        public DockCameraInfo GetDockCamera()
+        {
+            var hpname = DockHardpoint.Replace("DockMount", "DockCam");
+            var hp = Parent.GetHardpoint(hpname);
+            if (hp == null)
+                return null;
+            return new DockCameraInfo() { DockHardpoint = hp, Parent = Parent };
+        }
 
 		public IEnumerable<Hardpoint> GetDockHardpoints(Vector3 position)
 		{

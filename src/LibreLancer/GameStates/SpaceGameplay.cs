@@ -761,6 +761,12 @@ World Time: {12:F2}
             }
         }
 
+        private DockCameraInfo dockCameraInfo = null;
+        public void SetDockCam(DockCameraInfo info)
+        {
+            this.dockCameraInfo = info;
+        }
+
 
         protected override void OnUnload()
 		{
@@ -875,6 +881,29 @@ World Time: {12:F2}
             UpdateCamera(delta);
         }
 
+        private LookAtCamera undockCamera = new()
+        {
+            ZRange = new(3f, 10000000f),
+            GameFOV = true
+        };
+
+        ICamera GetCurrentCamera()
+        {
+            if (Thn != null && Thn.Running)
+            {
+                return Thn.CameraHandle;
+            }
+            else if (dockCameraInfo != null && pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock)
+            {
+                return undockCamera;
+            }
+            else
+            {
+                return activeCamera;
+            }
+        }
+        bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
+
         public override void Update(double delta)
 		{
             if(loading)
@@ -888,7 +917,7 @@ World Time: {12:F2}
                 return;
             }
 
-            if (ShowHud && (Thn == null || !Thn.Running))
+            if (ShowHud && !IsSpecialCamera())
             {
                 contactList.UpdateList();
                 uiApi.ShieldBatteries =
@@ -899,12 +928,7 @@ World Time: {12:F2}
             }
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
-            if (Thn != null && Thn.Running)
-            {
-                sysrender.Camera = Thn.CameraHandle;
-            }
-            else
-                sysrender.Camera = activeCamera;
+            sysrender.Camera = GetCurrentCamera();
             if (frameCount < 2)
             {
                 frameCount++;
@@ -985,12 +1009,17 @@ World Time: {12:F2}
             activeCamera = isTurretView ? _turretViewCamera : _chaseCamera;
             _chaseCamera.Viewport = Game.RenderContext.CurrentViewport;
             _turretViewCamera.Viewport = Game.RenderContext.CurrentViewport;
-            if(Thn == null || !Thn.Running)
+            if(!IsSpecialCamera())
 			    ProcessInput(delta);
 
             //Has to be here or glitches
             if (!Dead)
             {
+                if (dockCameraInfo != null && pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock)
+                {
+                    var tr = dockCameraInfo.DockHardpoint.Transform * dockCameraInfo.Parent.WorldTransform;
+                    undockCamera.Update(Game.Width, Game.Height, tr.Position, player.LocalTransform.Position);
+                }
                 _turretViewCamera.ChasePosition = player.LocalTransform.Position;
                 _chaseCamera.ChasePosition = player.LocalTransform.Position;
                 _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
@@ -1463,7 +1492,7 @@ World Time: {12:F2}
                 Game.RenderContext.Renderer2D.FillRectangle(r1, Color4.Red);
             }
 
-            if ((Thn == null || !Thn.Running) && ShowHud)
+            if (!IsSpecialCamera() && ShowHud)
             {
                 ui.Visible = true;
                 if (nextObjectiveUpdate != 0 && waitObjectiveFrames <= 0)
@@ -1553,7 +1582,7 @@ World Time: {12:F2}
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
                 Game.Debug.ObjectsWindow(world.Objects);
             });
-            if ((Thn == null || !Thn.Running) && ShowHud || Game.Debug.Enabled)
+            if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled)
             {
                 current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
             }
