@@ -10,7 +10,12 @@ namespace LibreLancer.Utf.Anm
 		public string ParentName;
 		public string ChildName;
 		public Channel Channel;
-		public JointMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication dedup = null)
+
+        public JointMap()
+        {
+        }
+
+        public JointMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication dedup = null)
         {
 			foreach (Node node in root)
             {

@@ -22,7 +22,7 @@ namespace LibreLancer.Utf.Cmp
         public string Path { get; set; }
 
         public VmsFile VMeshLibrary { get; private set; }
-        public AnmFile Animation { get; private set; }
+        public AnmFile Animation { get; set; }
         public MatFile MaterialLibrary { get; private set; }
         public TxmFile TextureLibrary { get; private set; }
 		public MaterialAnimCollection MaterialAnim { get; private set; }

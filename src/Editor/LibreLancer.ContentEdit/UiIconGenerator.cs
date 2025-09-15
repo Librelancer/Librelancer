@@ -113,25 +113,12 @@ namespace LibreLancer.ContentEdit
                 Name = materialName,
                 Parent = materialLibrary
             };
-            material.Children = new List<LUtfNode>();
-            material.Children.Add(new LUtfNode()
-            {
-                Name = "Type",
-                Parent = material,
-                StringData = alpha ? "DcDtOcOt" : "DcDt"
-            });
-            material.Children.Add(new LUtfNode()
-            {
-                Name = "Dt_name",
-                Parent = material,
-                StringData = textureName
-            });
-            material.Children.Add(new LUtfNode()
-            {
-                Name = "Dt_flags",
-                Parent = material,
-                Data = BitConverter.GetBytes((int)SamplerFlags.Default)
-            });
+            material.Children =
+            [
+                LUtfNode.StringNode(material, "Type", alpha ? "DcDtOcOt" : "DcDt"),
+                LUtfNode.StringNode(material, "Dt_name", textureName),
+                LUtfNode.IntNode(material, "Dt_flags", (int)SamplerFlags.Default)
+            ];
             materialLibrary.Children.Add(material);
             modelFile.Root.Children.Add(materialLibrary);
 

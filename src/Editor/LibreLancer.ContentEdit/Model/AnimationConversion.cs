@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using SimpleMesh.Formats.Collada.Schema;
 using SM = SimpleMesh;
 namespace LibreLancer.ContentEdit.Model;
 
@@ -102,19 +98,6 @@ static class AnimationConversion
         return anm;
     }
 
-    static LUtfNode ConstructChannel(NodeWriter frames, int len, float interval, int type)
-    {
-        LUtfNode channel = new LUtfNode() {Name = "Channel", Children = new List<LUtfNode>()};
-        using var header = new NodeWriter();
-        header.Write((int)len);
-        header.Write(interval); //embedded times
-        header.Write(type); //angles
-        channel.Children.Add(header.GetUtfNode("Header", channel));
-        channel.Children.Add(frames.GetUtfNode("Frames", channel));
-        return channel;
-    }
-
-
     static float CalculateInterval(SM.TranslationChannel trs)
     {
         if (trs.Keyframes.Length < 2)
@@ -147,13 +130,12 @@ static class AnimationConversion
 
     record struct PrisRevProps(Vector3 axis, float min, float max);
 
-    static (LUtfNode ch, PrisRevProps) VectorsToAngleChannel(SM.TranslationChannel trs, Matrix4x4 target)
+    static (Channel? ch, PrisRevProps) VectorsToAngleChannel(SM.TranslationChannel trs, Matrix4x4 target)
     {
         Matrix4x4.Invert(target, out var invMat);
         Vector3[] transformed = new Vector3[trs.Keyframes.Length];
         for (int i = 0; i < trs.Keyframes.Length; i++)
             transformed[i] = Vector3.Transform(trs.Keyframes[i].Translation, invMat);
-
         var axis = Vector3.Normalize(transformed[^1] - transformed[0]);
         float[] angles = new float[trs.Keyframes.Length];
         float min = float.MaxValue;
@@ -168,20 +150,20 @@ static class AnimationConversion
             max = MathF.Max(d, max);
         }
         var interval = CalculateInterval(trs);
-        var frames = new NodeWriter();
+        var eb = new EditableAnmBuffer((interval < 0 ? 8 : 4) * trs.Keyframes.Length);
+        var c = new Channel(0x1, trs.Keyframes.Length, interval, eb);
         for (int i = 0; i < trs.Keyframes.Length; i++)
         {
             if(interval < 0)
-                frames.Write(trs.Keyframes[i].Time);
-            frames.Write(angles[i]);
+                eb.SetTime(ref c, i, trs.Keyframes[i].Time);
+            eb.SetAngle(ref c, i, angles[i]);
         }
-        return (ConstructChannel(frames, trs.Keyframes.Length, interval, 0x1),
-            new PrisRevProps(axis, min, max));
+        return (c, new PrisRevProps(axis, min, max));
     }
 
 
 
-    static (LUtfNode ch, PrisRevProps props) QuatsToAngleChannel(SM.RotationChannel rots, Matrix4x4 target)
+    static (Channel? ch, PrisRevProps props) QuatsToAngleChannel(SM.RotationChannel rots, Matrix4x4 target)
     {
         //Make relative to construct, imported animations only store final rotations.
         var invRotate = Quaternion.Normalize(target.ExtractRotation());
@@ -235,15 +217,15 @@ static class AnimationConversion
             }
         }
         var interval = CalculateInterval(rots);
-        var frames = new NodeWriter();
+        var eb = new EditableAnmBuffer((interval < 0 ? 8 : 4) * rots.Keyframes.Length);
+        var c = new Channel(0x1, rots.Keyframes.Length, interval, eb);
         for (int i = 0; i < rots.Keyframes.Length; i++)
         {
             if(interval < 0)
-                frames.Write(rots.Keyframes[i].Time);
-            frames.Write(outputAngles[i]);
+                eb.SetTime(ref c, i, rots.Keyframes[i].Time);
+            eb.SetAngle(ref c, i, angles[i]);
         }
-        return (ConstructChannel(frames, rots.Keyframes.Length, interval, 0x1),
-            new PrisRevProps(rotationAxis ?? Vector3.Zero, outputAngles.Min(), outputAngles.Max()));
+        return (c, new PrisRevProps(rotationAxis ?? Vector3.Zero, outputAngles.Min(), outputAngles.Max()));
     }
 
     static float GetAngle(Quaternion a, Quaternion b)
@@ -327,7 +309,6 @@ static class AnimationConversion
         var lastIndex = input.Keyframes.Length - 1;
         List<SM.TranslationKeyframe> keyframes = new List<SM.TranslationKeyframe>();
         keyframes.Add(input.Keyframes[0]);
-
         for (int i = 1; i < lastIndex; i++)
         {
             var timePrev = input.Keyframes[i - 1].Time;
@@ -344,28 +325,9 @@ static class AnimationConversion
         return newChannel;
     }
 
-    static LUtfNode JointMapNode(LUtfNode parent, int index, string childName, string parentName)
+    public static EditResult<Script> ImportAnimation(List<ImportedModelNode> allNodes, SM.Animation anim)
     {
-        var jm = new LUtfNode() {Parent = parent, Name = "Joint map " + index, Children = new List<LUtfNode>()};
-        jm.Children.Add(new LUtfNode()
-        {
-            Name = "Child Name",
-            StringData = childName,
-            Parent = jm,
-        });
-        jm.Children.Add(new LUtfNode()
-        {
-            Name = "Parent Name",
-            StringData = parentName,
-            Parent = jm
-        });
-        return jm;
-    }
-
-    public static EditResult<LUtfNode> ImportAnimation(List<ImportedModelNode> allNodes, SM.Animation anim)
-    {
-        var n = new LUtfNode() {Name = anim.Name};
-        n.Children = new List<LUtfNode>();
+        var sc = new Script(anim.Name);
         int i = 0;
         var messages = new List<EditMessage>();
         foreach (var rot in anim.Rotations)
@@ -379,10 +341,9 @@ static class AnimationConversion
             }
             if (child.Construct is RevConstruct rev)
             {
-                var jm = JointMapNode(n, i, child.Name, child.Construct.ParentName);
+                var jm = new JointMap() { ChildName = child.Name, ParentName = child.Construct.ParentName };
                 var resampled = Resample(rot);
                 var (ch, props) = QuatsToAngleChannel(resampled, child.Construct.LocalTransform.Matrix());
-
                 if (ch == null)
                 {
                     messages.Add(EditMessage.Warning($"Rotation in '{anim.Name}' could not map to axis/angle"));
@@ -405,10 +366,9 @@ static class AnimationConversion
                         if(Vector3.Distance(props.axis, rev.AxisRotation) > 0.1f)
                             messages.Add(EditMessage.Warning($"Rotation in '{anim.Name}' does not follow target '{rot.Target}' rotation axis"));
                     }
-                    ch.Parent = ch;
-                    jm.Children.Add(ch);
-                    n.Children.Add(jm);
-                    i++;
+
+                    jm.Channel = ch.Value;
+                    sc.JointMaps.Add(jm);
                 }
             }
             else
@@ -427,7 +387,7 @@ static class AnimationConversion
             }
             if (child.Construct is PrisConstruct pris)
             {
-                var jm = JointMapNode(n, i, child.Name, child.Construct.ParentName);
+                var jm = new JointMap() { ChildName = child.Name, ParentName = child.Construct.ParentName };
                 var resampled = Resample(tr);
                 var (ch, props) = VectorsToAngleChannel(resampled, child.Construct.LocalTransform.Matrix());
                 if (ch == null)
@@ -452,10 +412,8 @@ static class AnimationConversion
                         if(Vector3.Distance(props.axis, pris.AxisTranslation) > 0.1f)
                             messages.Add(EditMessage.Warning($"Translation in '{anim.Name}' does not follow target '{tr.Target}' translation axis"));
                     }
-                    ch.Parent = ch;
-                    jm.Children.Add(ch);
-                    n.Children.Add(jm);
-                    i++;
+                    jm.Channel = ch.Value;
+                    sc.JointMaps.Add(jm);
                 }
             }
             else
@@ -463,8 +421,8 @@ static class AnimationConversion
                 messages.Add(EditMessage.Warning($"'{anim.Name}' skipping target not set as pris '{tr.Target}'"));
             }
         }
-        if (i == 0)
-            return EditResult<LUtfNode>.Error($"Could not convert animation '{anim.Name}'", messages);
-        return new EditResult<LUtfNode>(n, messages);
+        if (sc.JointMaps.Count == 0)
+            return EditResult<Script>.Error($"Could not convert animation '{anim.Name}'", messages);
+        return new EditResult<Script>(sc, messages);
     }
 }

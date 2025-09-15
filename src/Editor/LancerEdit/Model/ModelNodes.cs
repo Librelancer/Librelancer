@@ -9,10 +9,11 @@ using LibreLancer.ContentEdit.Model;
 
 namespace LancerEdit
 {
-    //Class for keeping hardpoints node references
+    //Class for keeping hardpoints node references, and animations node
     public class ModelNodes
     {
         public List<ModelHpNode> Nodes = new List<ModelHpNode>();
         public LUtfNode Cons;
+        public LUtfNode RootNode;
     }
 }

@@ -7,7 +7,7 @@ public class AnmBuffer
     public byte[] Buffer = new byte[2048];
     private int usedCount = 0;
 
-    public int Take(int size)
+    public virtual int Take(int size)
     {
         if (Buffer.Length < usedCount + size)
         {

@@ -11,16 +11,23 @@ namespace LibreLancer.Utf.Anm
     public class Script
     {
         public string Name { get; private set; }
-        public bool HasRootHeight { get; private set; }
-        public float RootHeight { get; private set; }
-		public ObjectMap[] ObjectMaps { get; private set; }
-		public JointMap[] JointMaps { get; private set; }
+        public bool HasRootHeight { get; set; }
+        public float RootHeight { get; set; }
+		public RefList<ObjectMap> ObjectMaps { get; private set; }
+		public RefList<JointMap> JointMaps { get; private set; }
+
+        public Script(string name)
+        {
+            Name = name;
+            ObjectMaps = new();
+            JointMaps = new();
+        }
 
         public Script(IntermediateNode root, AnmBuffer buffer, StringDeduplication strings)
         {
             Name = root.Name;
-			var om = new List<ObjectMap>();
-			var jm = new List<JointMap>();
+			var om = new RefList<ObjectMap>();
+			var jm = new RefList<JointMap>();
             foreach (Node node in root)
             {
                 if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase))
@@ -37,8 +44,12 @@ namespace LibreLancer.Utf.Anm
                     FLLog.Warning("Anm", $"{root.Name}: invalid node {node.Name}, possible broken animation?");
                 }
             }
-            ObjectMaps = om.ToArray();
-            JointMaps = jm.ToArray();
+
+            om.Shrink();
+            jm.Shrink();
+
+            ObjectMaps = om;
+            JointMaps = jm;
         }
     }
 }

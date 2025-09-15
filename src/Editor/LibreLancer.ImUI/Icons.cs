@@ -37,6 +37,7 @@ public static class Icons
     public const char FileExport = '\uf56e';
     public const char Palette = '\uf53f';
     public const char Play = '\uf04b';
+    public const char Backward = '\uf04a';
     public const char SprayCan = '\uf5bd';
     public const char Exchange = '\uf362';
     public const char Edit = '\uf044';

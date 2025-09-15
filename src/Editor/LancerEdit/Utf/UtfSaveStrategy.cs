@@ -53,7 +53,7 @@ namespace LancerEdit
                 else
                     RunSaveDialog();
             };
-            if (utfTab.DirtyCountHp > 0 || utfTab.DirtyCountPart > 0)
+            if (utfTab.DirtyCountHp > 0 || utfTab.DirtyCountPart > 0 || utfTab.DirtyCountAnm > 0)
             {
                 window.Confirm("This model has unapplied changes. Continue?", save);
             }

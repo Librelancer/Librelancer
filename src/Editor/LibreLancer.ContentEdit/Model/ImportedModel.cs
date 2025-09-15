@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.Utf;
+using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 using LibreLancer.World;
@@ -431,9 +432,7 @@ public class ImportedModel
         var utf = new EditableUtf();
         var tasks = new TaskHandler(settings.Multithreaded);
         //Vanity
-        var expv = new LUtfNode() {Name = "Exporter Version", Parent = utf.Root};
-        expv.StringData = "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>();
-        utf.Root.Children.Add(expv);
+        utf.Root.Children.Add(LUtfNode.StringNode(utf.Root, "Exporter Version",  "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>()));
         List<EditMessage> warnings = new List<EditMessage>();
 
         if (string.IsNullOrWhiteSpace(Name))
@@ -459,24 +458,19 @@ public class ImportedModel
             {
                 List<ImportedModelNode> allNodes = new List<ImportedModelNode>();
                 BuildNodeList(Root, allNodes);
-                List<LUtfNode> scriptNodes = new List<LUtfNode>();
+                var anms = new AnmFile();
                 foreach (var ani in ImportAnimations)
                 {
                     var res = AnimationConversion.ImportAnimation(allNodes, ani);
                     warnings.AddRange(res.Messages.Select(x => EditMessage.Warning(x.Message)));
                     if(!res.IsError)
-                        scriptNodes.Add(res.Data);
+                        anms.Scripts.Add(res.Data.Name, res.Data);
                 }
-                if (scriptNodes.Count > 0)
+                if (anms.Scripts.Count > 0)
                 {
                     var anims = new LUtfNode() {Name = "Animation", Parent = utf.Root, Children = new List<LUtfNode>()};
                     utf.Root.Children.Add(anims);
-                    var script = new LUtfNode() {Name = "Script", Parent = anims, Children = new List<LUtfNode>()};
-                    anims.Children.Add(script);
-                    foreach (var n in scriptNodes) {
-                        n.Parent = script;
-                        script.Children.Add(n);
-                    }
+                    AnimationWriter.WriteAnimations(anims, anms);
                 }
             }
             int cmpndIndex = 1;
@@ -601,48 +595,38 @@ public class ImportedModel
         if (settings.GeneratePlaceholderTextures || !string.IsNullOrWhiteSpace(mat.DiffuseTexture?.Name))
         {
             string textureName = (mat.DiffuseTexture?.Name ?? mat.Name) + ".dds";
-            matnode.Children.Add(new LUtfNode() { Name = "Dt_name", Parent = matnode, StringData = textureName });
-            matnode.Children.Add(new LUtfNode()
-                { Name = "Dt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+            matnode.Children.Add(LUtfNode.StringNode(matnode, "Dt_name", textureName));
+            matnode.Children.Add(LUtfNode.IntNode(matnode, "Dt_flags", 64));
         }
         if (!string.IsNullOrWhiteSpace(mat.EmissiveTexture?.Name))
         {
             string textureName = mat.EmissiveTexture.Name  + ".dds";
-            matnode.Children.Add(new LUtfNode() { Name = "Et_name", Parent = matnode, StringData = textureName });
-            matnode.Children.Add(new LUtfNode()
-                { Name = "Et_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+            matnode.Children.Add(LUtfNode.StringNode(matnode, "Et_name", textureName));
+            matnode.Children.Add(LUtfNode.IntNode(matnode, "Et_flags", 64));
         }
         else if (mat.EmissiveColor != Vector3.Zero) //TODO: Maybe EcEt is not right in Librelancer?
         {
             arr = new float[] { mat.EmissiveColor.X, mat.EmissiveColor.Y, mat.EmissiveColor.Z };
             matnode.Children.Add(new LUtfNode() { Name = "Ec", Parent = matnode, Data = UnsafeHelpers.CastArray(arr) });
         }
-
         if (!string.IsNullOrWhiteSpace(mat.NormalTexture?.Name) && settings.AdvancedMaterials)
         {
             string textureName = mat.NormalTexture.Name + ".dds";
-            matnode.Children.Add(new LUtfNode() { Name = "Nm_name", Parent = matnode, StringData = textureName });
-            matnode.Children.Add(new LUtfNode()
-                { Name = "Nm_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+            matnode.Children.Add(LUtfNode.StringNode(matnode, "Nm_name", textureName));
+            matnode.Children.Add(LUtfNode.IntNode(matnode, "Nm_flags", 64));
         }
         if (mat.MetallicRoughness && settings.AdvancedMaterials)
         {
-            matnode.Children.Add(new LUtfNode()
-                { Name = "M_factor", Parent = matnode, Data = BitConverter.GetBytes(mat.MetallicFactor)});
-            matnode.Children.Add(new LUtfNode()
-                { Name = "R_factor", Parent = matnode, Data = BitConverter.GetBytes(mat.RoughnessFactor)});
+            matnode.Children.Add(LUtfNode.FloatNode(matnode, "M_factor", mat.MetallicFactor));
+            matnode.Children.Add(LUtfNode.FloatNode(matnode, "R_factor", mat.RoughnessFactor));
             if (!string.IsNullOrWhiteSpace(mat.MetallicRoughnessTexture?.Name))
             {
                 string textureNameRough = mat.MetallicRoughnessTexture.Name + "_ROUGH.dds";
                 string textureNameMetal = mat.MetallicRoughnessTexture.Name + "_METAL.dds";
-                matnode.Children.Add(new LUtfNode()
-                    { Name = "Rt_name", Parent = matnode, StringData = textureNameRough });
-                matnode.Children.Add(new LUtfNode()
-                    { Name = "Rt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
-                matnode.Children.Add(new LUtfNode()
-                    { Name = "Mt_name", Parent = matnode, StringData = textureNameMetal });
-                matnode.Children.Add(new LUtfNode()
-                    { Name = "Mt_flags", Parent = matnode, Data = BitConverter.GetBytes(64) });
+                matnode.Children.Add(LUtfNode.StringNode(matnode, "Rt_name", textureNameRough));
+                matnode.Children.Add(LUtfNode.IntNode(matnode, "Rt_flags", 64));
+                matnode.Children.Add(LUtfNode.StringNode(matnode, "Mt_name",  textureNameMetal));
+                matnode.Children.Add(LUtfNode.IntNode(matnode, "Mt_flags", 64));
             }
         }
 
@@ -741,25 +725,13 @@ public class ImportedModel
 
     LUtfNode CmpndNode(LUtfNode cmpnd, string name, string filename, string objname, int index)
     {
-        var node = new LUtfNode() {Parent = cmpnd, Name = name, Children = new List<LUtfNode>()};
-        node.Children.Add(new LUtfNode()
-        {
-            Name = "File Name",
-            Parent = node,
-            StringData = filename
-        });
-        node.Children.Add(new LUtfNode()
-        {
-            Name = "Object Name",
-            Parent = node,
-            StringData = objname,
-        });
-        node.Children.Add(new LUtfNode()
-        {
-            Name = "Index",
-            Parent = node,
-            Data = BitConverter.GetBytes(index)
-        });
+        var node = new LUtfNode() { Parent = cmpnd, Name = name };
+        node.Children =
+        [
+            LUtfNode.StringNode(node, "File Name", filename),
+            LUtfNode.StringNode(node, "Object Name", objname),
+            LUtfNode.IntNode(node, "Index", index)
+        ];
         return node;
     }
 

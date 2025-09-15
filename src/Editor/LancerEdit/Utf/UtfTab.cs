@@ -27,6 +27,7 @@ namespace LancerEdit
         public string FilePath = null;
         public int DirtyCountHp = 0;
         public int DirtyCountPart = 0;
+        public int DirtyCountAnm = 0;
         public EditableUtf Utf;
         LUtfNode selectedNode = null;
         MainWindow main;
@@ -229,6 +230,7 @@ namespace LancerEdit
                 {
                     IDrawable drawable = null;
                     ModelNodes hpn = new ModelNodes();
+                    hpn.RootNode = Utf.Root;
                     try
                     {
                         drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);

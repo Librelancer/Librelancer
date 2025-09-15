@@ -15,15 +15,24 @@ namespace LibreLancer.Utf.Anm
         const uint VECTOR_MASK = 0x2 | 0x10;
         const uint QUATERNION_MASK = 0x4 | 0x20 | 0x40 | 0x80;
 
+        private AnmBuffer buffer;
         private uint header = 0;
         private int startIdx = 0;
 
-        private AnmBuffer buffer;
+        public AnmBuffer Buffer => buffer;
 
-        public int FrameCount { get; private set; }
-        public float Interval { get; private set; }
+        public int ChannelType
+        {
+            get => (int)(header & 0xFF);
+            set
+            {
+                header = (uint)(value & 0xFF);
+                CalculateStride();
+            }
+        }
 
-        public int ChannelType => (int)(header & 0xFF);
+        public int FrameCount;
+        public float Interval;
 
         public FrameType InterpretedType
         {
@@ -53,11 +62,28 @@ namespace LibreLancer.Utf.Anm
         public bool HasOrientation => (header & QUATERNION_MASK) != 0;
         public bool HasAngle => (header & 0x1) != 0;
 
+        public int Stride => (int)(header >> 8);
+
+        public readonly byte[] GetDataCopy()
+        {
+            var stride = (header >> 8);
+            var length = (int)(stride * FrameCount);
+            var copy = new byte[length];
+            buffer.Buffer.AsSpan(startIdx, length).CopyTo(copy);
+            return copy;
+        }
+
+        public void SetBuffer(AnmBuffer buffer)
+        {
+            startIdx = 0;
+            this.buffer = buffer;
+        }
+
         public readonly float GetTime(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
             if (Interval >= 0)
-                return 0;
+                return index * Interval;
             var stride = (header >> 8);
             var offset = startIdx + (int)(stride * index);
             return Unsafe.ReadUnaligned<float>(ref buffer.Buffer[offset]);
@@ -106,7 +132,11 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        readonly Quaternion GetFullQuat(int offset) => Unsafe.ReadUnaligned<Quaternion>(ref buffer.Buffer[offset]);
+        readonly Quaternion GetFullQuat(int offset)
+        {
+            var xyzw = Unsafe.ReadUnaligned<Vector4>(ref buffer.Buffer[offset]);
+            return new Quaternion(xyzw.W, xyzw.X, xyzw.Y, xyzw.Z);
+        }
 
         readonly Quaternion GetQuat0x40(int offset)
         {
@@ -246,6 +276,15 @@ namespace LibreLancer.Utf.Anm
             header = (uint)(stride << 8) | (channelType & 0xFF);
         }
 
+
+        public Channel(int channelType, int frameCount, float interval, AnmBuffer buffer)
+        {
+            header = (uint)channelType;
+            FrameCount = frameCount;
+            Interval = interval;
+            CalculateStride();
+            this.buffer = buffer;
+        }
 
         public Channel(IntermediateNode root, AnmBuffer buffer)
         {

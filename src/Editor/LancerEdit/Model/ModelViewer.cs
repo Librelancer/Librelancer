@@ -125,6 +125,7 @@ namespace LancerEdit
                 //Setup Editor UI for constructs + hardpoints
                 vmsModel = (drawable as CmpFile).CreateRigidModel(true, res);
                 animator = new AnimationComponent(vmsModel, (drawable as CmpFile).Animation);
+                (drawable as CmpFile).Animation ??= new Anm.AnmFile();
                 int maxLevels = 0;
                 foreach (var p in vmsModel.AllParts)
                 {
@@ -188,7 +189,7 @@ namespace LancerEdit
 
             if(drawable is CmpFile || drawable is ModelFile)
                 layout.TabsLeft.Add(new($"{Icons.Tree} Hierarchy", 0));
-            if (drawable is CmpFile && ((CmpFile)drawable).Animation != null)
+            if (drawable is CmpFile)
                 layout.TabsLeft.Add(new($"{Icons.PersonRunning} Animations", 1));
             if (drawable is DF.DfmFile)
                 layout.TabsLeft.Add(new($"{Icons.Bone} Skeleton", 2));
@@ -356,6 +357,13 @@ namespace LancerEdit
             if (_isDirtyPart) return;
             _isDirtyPart = true;
             parent.DirtyCountPart++;
+        }
+        private bool _isDirtyAnm = false;
+        public void OnDirtyAnm()
+        {
+            if (_isDirtyAnm) return;
+            _isDirtyAnm = true;
+            parent.DirtyCountAnm++;
         }
 
         public override void Update(double elapsed)
@@ -898,37 +906,12 @@ namespace LancerEdit
             }
         }
 
-        void AnimationPanel()
-        {
-            var anm = ((CmpFile)drawable).Animation;
-            int j = 0;
-            foreach (var sc in anm.Scripts)
-            {
-                var popup = $"{sc.Key}$Popup{j}";
-                if (ImGui.Button(ImGuiExt.IDWithExtra(sc.Key, j++)))
-                {
-                    animator.StartAnimation(sc.Key, false);
-                }
-                ImGui.SameLine();
-                if (ImGui.Button(ImGuiExt.IDWithExtra("(Rev)", j++)))
-                {
-                    animator.StartAnimation(sc.Key, false, 0, 1, 0, true);
-                }
-                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                    ImGui.OpenPopup(popup);
-                if (ImGui.BeginPopupContextItem(popup))
-                {
-                    if(ImGui.MenuItem("Copy Nickname")) _window.SetClipboardText(sc.Key);
-                    ImGui.EndPopup();
-                }
-            }
-            ImGui.Separator();
-            if (ImGui.Button("Reset")) animator.ResetAnimations();
-        }
+
 
         bool drawSkeleton = false;
-        Anm.AnmFile anmFile;
         private string skeletonHighlight;
+        Anm.AnmFile dfmAnimFile;
+
         void SkeletonPanel()
         {
             ImGui.Checkbox("Draw Skeleton", ref drawSkeleton);
@@ -936,7 +919,7 @@ namespace LancerEdit
                 FileDialog.Open((file) =>
                 {
                     using var stream = File.OpenRead(file);
-                    anmFile = new Anm.AnmFile(file, stream);
+                    dfmAnimFile = new Anm.AnmFile(file, stream);
                 });
             }
 
@@ -965,10 +948,10 @@ namespace LancerEdit
                 }
             }
 
-            if(anmFile != null)
+            if(dfmAnimFile != null)
             {
                 ImGui.Separator();
-                foreach(var script in anmFile.Scripts)
+                foreach(var script in dfmAnimFile.Scripts)
                 {
                     var popup = $"{script.Key}Popup";
                     if (ImGui.Button(script.Key)) skel.StartScript(script.Value, 0, 1, 0);

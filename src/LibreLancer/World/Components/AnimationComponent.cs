@@ -13,8 +13,8 @@ using LibreLancer.Utf.Anm;
 namespace LibreLancer.World.Components
 {
 	public class AnimationComponent : GameComponent
-	{
-        Dictionary<string, ActiveAnimation> active = new(StringComparer.OrdinalIgnoreCase);
+    {
+        private Dictionary<Script, ActiveAnimation> active = new();
 
 		class ActiveAnimation
 		{
@@ -117,50 +117,55 @@ namespace LibreLancer.World.Components
             return duration;
         }
 
-		public void StartAnimation(string animationName, bool loop = true, float start_time = 0, float time_scale = 1, float duration = 0, bool reverse = false)
-		{
+        public void StartAnimation(Script script, bool loop = true, float start_time = 0, float time_scale = 1,
+            float duration = 0, bool reverse = false)
+        {
             if (Parent?.RenderComponent is CharacterRenderer characterRenderer)
             {
-                if (anm.Scripts.TryGetValue(animationName, out Script sc))
-                    characterRenderer.Skeleton.StartScript(sc, start_time, time_scale, duration, loop);
+                characterRenderer.Skeleton.StartScript(script, start_time, time_scale, duration, loop);
                 return;
             }
-			if (anm.Scripts.TryGetValue(animationName, out var script))
+            if (active.TryGetValue(script, out var animation))
             {
-                if (active.TryGetValue(animationName, out var animation))
+                if (reverse != animation.Reverse)
                 {
-                    if (reverse != animation.Reverse)
-                    {
-                        var currTime = getTotalTime();
-                        var t = animation.StartT + (currTime - animation.WorldStartTime) * animation.TimeScale;
-                        t = MathHelper.Clamp(t, 0, animation.ScriptDuration);
-                        animation.StartT = (float)(animation.ScriptDuration - t);
-                        animation.Reverse = reverse;
-                        animation.WorldStartTime = getTotalTime();
-                        animation.Duration = duration;
-                        animation.Loop = loop;
-
-                    }
+                    var currTime = getTotalTime();
+                    var t = animation.StartT + (currTime - animation.WorldStartTime) * animation.TimeScale;
+                    t = MathHelper.Clamp(t, 0, animation.ScriptDuration);
+                    animation.StartT = (float)(animation.ScriptDuration - t);
+                    animation.Reverse = reverse;
+                    animation.WorldStartTime = getTotalTime();
+                    animation.Duration = duration;
+                    animation.Loop = loop;
                 }
-                else
+            }
+            else
+            {
+                animations.Add(new ActiveAnimation()
                 {
-                    animations.Add(new ActiveAnimation()
-                    {
-                        Name = animationName,
-                        Script = script,
-                        WorldStartTime = getTotalTime(),
-                        Loop = loop,
-                        Duration = duration,
-                        StartT = start_time,
-                        TimeScale = time_scale,
-                        Reverse = reverse,
-                        ScriptDuration = GetScriptDuration(script)
-                    });
-
-                }
-			}
-			else
-				FLLog.Error("Animation", animationName + " not present");
+                    Name = script.Name,
+                    Script = script,
+                    WorldStartTime = getTotalTime(),
+                    Loop = loop,
+                    Duration = duration,
+                    StartT = start_time,
+                    TimeScale = time_scale,
+                    Reverse = reverse,
+                    ScriptDuration = GetScriptDuration(script)
+                });
+                active[script] = animations[^1];
+            }
+        }
+		public void StartAnimation(string animationName, bool loop = true, float start_time = 0, float time_scale = 1, float duration = 0, bool reverse = false)
+		{
+            if (anm.Scripts.TryGetValue(animationName, out var script))
+            {
+                StartAnimation(script, loop, start_time, time_scale, duration, reverse);
+            }
+            else
+            {
+                FLLog.Error("Animation", animationName + " not present");
+            }
 		}
 
         public void ResetAnimations()
@@ -212,6 +217,7 @@ namespace LibreLancer.World.Components
 				{
 					if (AnimationCompleted != null)
 						AnimationCompleted(animations[i].Name);
+                    active.Remove(animations[i].Script);
                     completeAnimations.Add(animations[i]);
 					animations.RemoveAt(i);
 				}
@@ -228,12 +234,12 @@ namespace LibreLancer.World.Components
 		{
 			bool finished = true;
             float ts = a.TimeScale <= 0 ? 1 : a.TimeScale;
-			for (int i = 0; i < a.Script.ObjectMaps.Length; i++)
+			for (int i = 0; i < a.Script.ObjectMaps.Count; i++)
 			{
 				if (!ProcessObjectMap(ref a.Script.ObjectMaps[i], a.WorldStartTime, ts, a.Loop))
 					finished = false;
 			}
-            for (int i = 0; i < a.Script.JointMaps.Length; i++)
+            for (int i = 0; i < a.Script.JointMaps.Count; i++)
 			{
 				if (!ProcessJointMap(ref a.Script.JointMaps[i], a.WorldStartTime, ts, a.Loop, a.Reverse))
 					finished = false;
@@ -269,5 +275,21 @@ namespace LibreLancer.World.Components
             joint.Update(angle, quat);
 			return false;
 		}
+
+        public float GetPlayPosition(Script sc)
+        {
+            if (!active.TryGetValue(sc, out var a))
+                return 0;
+            float ts = a.TimeScale <= 0 ? 1 : a.TimeScale;
+            double t = a.StartT + (getTotalTime() - a.WorldStartTime) * ts;
+            float duration = 0;
+            for (int i = 0; i < sc.JointMaps.Count; i++)
+            {
+                if (sc.JointMaps[i].Channel.Duration > duration)
+                    duration = sc.JointMaps[i].Channel.Duration;
+            }
+            var v = duration > 0 ? (float)MathHelper.Clamp(t / duration, 0, 1) : 0;
+            return a.Reverse ? (1 - v) : v;
+        }
 	}
 }

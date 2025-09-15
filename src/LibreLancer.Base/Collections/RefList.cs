@@ -93,6 +93,16 @@ public class RefList<T> : IList<T>
         }
     }
 
+    public void Shrink()
+    {
+        if (backing.Length > count)
+        {
+            if (count == 0) backing = [];
+            else Array.Resize(ref backing, count);
+        }
+    }
+
+
     public void Clear()
     {
         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())

@@ -123,7 +123,7 @@ namespace LibreLancer.Render
             {
                 rotate = Quaternion.Identity;
                 translate = Vector3.Zero;
-                for (int i = 0; i < Script.ObjectMaps.Length; i++)
+                for (int i = 0; i < Script.ObjectMaps.Count; i++)
                 {
                     ref var o = ref Script.ObjectMaps[i];
                     if (!o.ParentName.Equals("Root", StringComparison.OrdinalIgnoreCase)) continue;
@@ -357,7 +357,7 @@ namespace LibreLancer.Render
             inst.Duration = duration;
             inst.Loop = loop;
             inst.Parent = this;
-            for(int i = 0; i < anmScript.JointMaps.Length; i++)
+            for(int i = 0; i < anmScript.JointMaps.Count; i++)
             {
                 ref var jm = ref anmScript.JointMaps[i];
                 if (BodySkinning.Bones.TryGetValue(jm.ChildName, out BoneInstance bb))
