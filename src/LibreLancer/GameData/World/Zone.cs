@@ -100,6 +100,7 @@ namespace LibreLancer.GameData.World
             }
         }
 
+        private static bool _scaledErrorTriggered = false;
         public float ScaledDistance(Vector3 point)
         {
             switch (data.Shape)
@@ -121,7 +122,13 @@ namespace LibreLancer.GameData.World
                 }
                 //We don't support cylinder/ring scaled distance
                 default:
-                    throw new InvalidOperationException();
+                    if (!_scaledErrorTriggered)
+                    {
+                        FLLog.Error("Zones", $"Fixme: Scaled distance called on {data.Shape} ({Nickname})");
+                        _scaledErrorTriggered = true;
+                    }
+                    // BAD
+                    return Vector3.Distance(data.Position, point) / data.Size.X;
             }
         }
 
