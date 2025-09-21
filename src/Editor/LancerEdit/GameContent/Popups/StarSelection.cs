@@ -21,11 +21,11 @@ public class StarSelection : PopupWindow
 
 
     private bool doFiltering = false;
-    private SunImmediateRenderer sunPreview;
 
     private ImGuiInputTextCallback textCallback;
     private RenderContext renderContext;
     private Action<Sun> onSelect;
+    private SunImmediateRenderer sunPreview;
 
 
     unsafe int OnTextChanged(ImGuiInputTextCallbackData* d)
@@ -37,11 +37,11 @@ public class StarSelection : PopupWindow
     public override Vector2 InitSize => new Vector2(600, 400) * ImGuiHelper.Scale;
 
 
-    public unsafe StarSelection(Action<Sun> onSelect, Sun selection, GameDataContext gd, RenderContext rc)
+    public unsafe StarSelection(Action<Sun> onSelect, Sun selection, SunImmediateRenderer sunPreview, GameDataContext gd, RenderContext rc)
     {
         displayList = fullList = gd.GameData.Stars.OrderBy(x => x.Nickname).ToArray();
         Selected = selection;
-        sunPreview = new SunImmediateRenderer(gd.Resources);
+        this.sunPreview = sunPreview;
         this.onSelect = onSelect;
         this.renderContext = rc;
         textCallback = OnTextChanged;

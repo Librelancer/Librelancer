@@ -6,6 +6,7 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
+using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.World;
 
@@ -30,11 +31,12 @@ public class EditMap2D
 
     private GameObject dragTarget;
     private Transform3D dragOriginalTransform;
+    private RenderContext renderContext;
 
  // Creation tools (patrols, zones)
     public Map2DCreationTools CreationTools { get; } = new();
 
-    public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab)
+    public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
     {
         var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
         var renderHeight = Math.Max(120, ImGui.GetWindowHeight() - MarginH);
@@ -109,7 +111,7 @@ public class EditMap2D
             // Account for grid margin when converting map position to world
             var gridMargin = 15 * ImGuiHelper.Scale;
             pos -= new Vector2(gridMargin);
-            
+
             var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
             scale.Y = 0;
             var relPos = (pos - new Vector2(renderWidth / 2f, renderHeight / 2f)) / new Vector2(renderWidth, renderHeight);
@@ -139,7 +141,10 @@ public class EditMap2D
             }
 
             ImGui.PushStyleColor(ImGuiCol.Button, buttonColor);
-            ImGui.Button(id, new Vector2(buttonSize));
+            if (ImGui.Button(id, new Vector2(buttonSize)))
+            {
+                tab.ForceSelectObject(obj);
+            }
             ImGui.PopStyleColor();
 
              if(CreationTools.Patrol.IsActive)
@@ -168,13 +173,33 @@ public class EditMap2D
                 if (ImGui.BeginItemTooltip())
                 {
                     ImGui.Text(obj.Nickname);
-                    if (obj.SystemObject?.Archetype != null)
+
+                    var ed = tab.GetEditData(obj, false);
+                    var arch = (ed == null) ? obj.SystemObject.Archetype : ed.Archetype;
+                    var star = (ed == null) ? obj.SystemObject.Star : ed.Star;
+                    if (star != null)
+                    {
+                        ImGui.InvisibleButton("##dummy", new Vector2(80) * ImGuiHelper.Scale);
+                        var min = ImGui.GetItemRectMin();
+                        var max = ImGui.GetItemRectMax();
+                        var r = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
+                        var dl = ImGui.GetWindowDrawList();
+                        unsafe
+                        {
+                            dl.AddCallback((_, cmd) =>
+                            {
+                                renderContext.PushScissor(ImGuiHelper.GetClipRect(cmd), false);
+                                tab.SunPreview.Render(star,  (Color4)(VertexDiffuse)ImGui.GetColorU32(ImGuiCol.FrameBg), renderContext, r);
+                                renderContext.PopScissor();
+                            }, IntPtr.Zero);
+                        }
+                    }
+                    else if (arch != null)
                     {
                         var img = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
                         ImGui.Image(img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1),
                             new Vector2(1, 0));
                     }
-
                     ImGui.EndTooltip();
                 }
             }
@@ -196,8 +221,16 @@ public class EditMap2D
             ImGui.SetCursorPos(WorldToWindow(lt.Light.Position) - new Vector2(buttonSize * 0.5f));
             var id = $"##{lt.Nickname}";
             ImGui.PushStyleColor(ImGuiCol.Button, Color4.LightYellow);
-            ImGui.Button(id, new Vector2(buttonSize));
+            if (ImGui.Button(id, new Vector2(buttonSize)))
+            {
+                tab.ForceSelectLight(lt);
+            }
             ImGui.PopStyleColor();
+            if (ImGui.BeginItemTooltip())
+            {
+                ImGui.Text($"{Icons.Lightbulb} {lt.Nickname}");
+                ImGui.EndTooltip();
+            }
             if (tab.LightsList.Selected == lt)
             {
                 var radius = (lt.Light.Range / mapScale.X) * renderWidth;

@@ -42,6 +42,7 @@ public class SystemEditorTab : GameContentTab
     public GameWorld World;
     public StarSystem CurrentSystem;
     public GameDataContext Data;
+    public SunImmediateRenderer SunPreview;
     public SystemRenderer Renderer => renderer;
 
     private MainWindow win;
@@ -83,6 +84,8 @@ public class SystemEditorTab : GameContentTab
             ZRange = new Vector2(3f, 10000000f)
         };
 
+        SunPreview = new(gameData.Resources);
+
         //Extract nav_prettymap texture
         string navPrettyMap = gameData.GameData.DataPath("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db");
 
@@ -107,6 +110,19 @@ public class SystemEditorTab : GameContentTab
         layout.TabsLeft.Add(new($"{Icons.Lightbulb} Lights", 2));
         layout.TabsLeft.Add(new($"{Icons.Globe} System", 3));
         layout.TabsLeft.Add(new($"{Icons.Eye} View", 4));
+    }
+
+    public void ForceSelectObject(GameObject obj)
+    {
+        layout.ActiveLeftTab = 1;
+        ObjectsList.SelectSingle(obj);
+        ObjectsList.ScrollToSelection();
+    }
+
+    public void ForceSelectLight(LightSource lt)
+    {
+        layout.ActiveLeftTab = 2;
+        LightsList.Selected = lt;
     }
 
     void DrawLeft(int tag)
@@ -175,7 +191,7 @@ public class SystemEditorTab : GameContentTab
         }
         else
         {
-            map2D.Draw(SystemData, World, Data, this);
+            map2D.Draw(SystemData, World, Data, this, win.RenderContext);
         }
     }
 
@@ -581,7 +597,7 @@ public class SystemEditorTab : GameContentTab
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
     }
 
-    ObjectEditData GetEditData(GameObject obj, bool create = true)
+    public ObjectEditData GetEditData(GameObject obj, bool create = true)
     {
         if (!obj.TryGetComponent<ObjectEditData>(out var d))
         {
@@ -788,7 +804,7 @@ public class SystemEditorTab : GameContentTab
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
                     sel, this, oldArchetype, oldLoadout,oldStar, oldArchetype, oldLoadout, x)),
                 oldStar,
-                Data, win.RenderContext));
+                SunPreview, Data, win.RenderContext));
         }
 
         //Loadout
