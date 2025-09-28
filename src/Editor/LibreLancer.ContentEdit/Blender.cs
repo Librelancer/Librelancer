@@ -129,7 +129,7 @@ public class Blender
     static string EscapeCode(string s) => JsonValue.Create(s).ToJsonString();
 
     private const int CANCELLED = -255;
-    static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null)
+    static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null, string flatpakExtra = "")
     {
         using var temp = new TempFiles();
         var pythonFile = temp.WriteText(pythonCode);
@@ -191,20 +191,13 @@ public class Blender
         if (string.IsNullOrWhiteSpace(blenderPath))
             return EditResult<SimpleMesh.Model>.Error("Could not locate blender executable");
         using var temp = new TempFiles();
-        string tmpblend = null;
         string tmpfile = temp.GetPath(".glb");
-        if (blenderPath == "FLATPAK")
-        {
-            tmpblend = temp.GetPath();
-            File.Copy(file, tmpblend, true);
-        }
         var exportCode =
             "import bpy\n"
             + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', check_existing=False, filter_glob='', export_extras=True, use_mesh_edges=True, export_image_format='AUTO')";
-        var result = await RunBlender(blenderPath, Shell.Quote(tmpblend ?? file), exportCode, cancellation, log);
+        var result = await RunBlender(blenderPath, Shell.Quote(file), exportCode, cancellation, log);
         if (result == CANCELLED)
         {
-            DeleteIfExists(tmpblend);
             DeleteIfExists(tmpfile);
             return EditResult<SimpleMesh.Model>.Error("Operation was cancelled");
         }
