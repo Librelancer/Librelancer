@@ -334,10 +334,6 @@ namespace LibreLancer
         public bool Focused { get; private set; }
         public bool EventsThisFrame { get; private set; }
 
-
-        [DllImport("user32.dll", SetLastError = true)]
-        static extern bool SetProcessDPIAware();
-
         private const uint SDL_WINDOWPOS_CENTERED_MASK = 0x2FFF0000u;
         static uint SDL_WINDOWPOS_CENTERED_DISPLAY(uint idx) => SDL_WINDOWPOS_CENTERED_MASK | idx;
 
@@ -355,17 +351,6 @@ namespace LibreLancer
         {
             SDL3.SDL_SetHint(SDL3.SDL_HINT_VIDEO_ALLOW_SCREENSAVER, allowScreensaver ? "1" : "0");
             SDL3.SDL_SetHint(SDL3.SDL_HINT_IME_IMPLEMENTED_UI, "0");
-            //Try to set DPI Awareness on Win32
-            if (Platform.RunningOS == OS.Windows)
-            {
-                try
-                {
-                    SetProcessDPIAware();
-                }
-                catch
-                {
-                }
-            }
 
             FLLog.Info("SDL", "Using SDL3");
             FLLog.Info("Engine", "Version: " + Platform.GetInformationalVersion<Game>());
