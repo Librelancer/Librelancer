@@ -11,7 +11,7 @@ using LibreLancer.ImageLib;
 using ImGuiNET;
 namespace LibreLancer.ImUI
 {
-    public class Theme
+    public static class Theme
     {
         static void SetColor(ImGuiCol col, Vector4 rgba)
         {
@@ -22,10 +22,15 @@ namespace LibreLancer.ImUI
         public static Vector4 VTabActive = RGBA(95, 97, 98, 255);
         public static Vector4 WorkspaceBackground = RGBA(34, 34, 34, 255);
 
-        public static unsafe void Apply(float scale)
+        private static float currentScale = -1;
+        private static ImGuiStyle savedStyle;
+        private static bool inited = false;
+        static unsafe void Init()
         {
+            if (inited)
+                return;
+            inited = true;
             var s = ImGui.GetStyle();
-
             //Settings
             s.TreeLinesFlags = ImGuiTreeNodeFlags.DrawLinesToNodes;
             s.FrameRounding = 2;
@@ -33,9 +38,6 @@ namespace LibreLancer.ImUI
             s.ScrollbarRounding = 3;
             s.FrameBorderSize = 1f;
             s.Alpha = 1;
-            s.ScaleAllSizes(scale);
-            s.FontScaleDpi = scale;
-            s.FontSizeBase = 15f;
             //Colours
             SetColor(ImGuiCol.WindowBg, RGBA(41, 41, 42, 210));
             SetColor(ImGuiCol.ChildBg, RGBA(0, 0, 0, 0));
@@ -53,6 +55,23 @@ namespace LibreLancer.ImUI
             SetColor(ImGuiCol.TabSelected, RGBA(95, 97, 98, 255));
             SetColor(ImGuiCol.TabHovered, RGBA(66, 133, 190, 255));
             SetColor(ImGuiCol.Tab, RGBA(56, 57, 58, 255));
+
+            savedStyle = *s.Handle;
+        }
+        public static unsafe void Apply(float scale)
+        {
+            Init();
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (currentScale != scale)
+            {
+                var s = ImGui.GetStyle();
+                *s.Handle = savedStyle;
+                s.ScaleAllSizes(scale);
+                s.FontScaleDpi = scale;
+                s.FontSizeBase = 15f;
+                currentScale = scale;
+                FLLog.Debug("UI", $"Setting scale to {scale}");
+            }
         }
 
         public static void TinyTriangle(float x, float y)

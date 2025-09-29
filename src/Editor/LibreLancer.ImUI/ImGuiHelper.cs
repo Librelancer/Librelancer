@@ -73,6 +73,7 @@ namespace LibreLancer.ImUI
         public static ImFontPtr SystemMonospace;
 
         public static float Scale { get; private set; } = 1;
+        public static float UserScale { get; set; } = 1;
 
         public static bool DialogOpen = false;
 
@@ -116,7 +117,8 @@ namespace LibreLancer.ImUI
 
 		public unsafe ImGuiHelper(Game game, float scale)
         {
-            Scale = scale;
+            UserScale = scale;
+            Scale = game.DpiScale * scale;
 			this.game = game;
 			game.Keyboard.KeyDown += Keyboard_KeyDown;
 			game.Keyboard.KeyUp += Keyboard_KeyUp;
@@ -185,7 +187,7 @@ namespace LibreLancer.ImUI
 			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
 			var c = new Bgra8[] { Bgra8.White };
 			dot.SetData(c);
-            Theme.Apply(scale);
+            Theme.Apply(Scale);
             //Required for clipboard function on non-Windows platforms
             utf8buf = Marshal.AllocHGlobal(8192);
             instance = this;
@@ -419,7 +421,9 @@ namespace LibreLancer.ImUI
 
 
 		public void NewFrame(double elapsed)
-		{
+        {
+            Scale = game.DpiScale * UserScale;
+            Theme.Apply(Scale);
 			ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new Vector2(game.Width, game.Height);
 			io.DisplayFramebufferScale = new Vector2(1, 1);

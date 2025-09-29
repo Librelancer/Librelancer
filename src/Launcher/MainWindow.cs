@@ -26,7 +26,7 @@ namespace Launcher
         protected override void Load()
         {
             Title = "Librelancer";
-            imGui = new ImGuiHelper(this, DpiScale);
+            imGui = new ImGuiHelper(this, 1);
             RenderContext.PushViewport(0, 0, Width, Height);
             freelancerFolder = new TextBuffer(512);
             config = GameConfig.Create();

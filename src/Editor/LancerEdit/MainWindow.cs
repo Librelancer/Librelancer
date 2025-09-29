@@ -161,7 +161,7 @@ namespace LancerEdit
             #else
             Title = Version;
             #endif
-            guiHelper = new ImGuiHelper(this, DpiScale * Config.UiScale);
+            guiHelper = new ImGuiHelper(this, Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             Bell.Init(Audio);

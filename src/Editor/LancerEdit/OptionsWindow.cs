@@ -225,10 +225,13 @@ namespace LancerEdit
             }
 
             ImGui.AlignTextToFramePadding();
-            ImGui.Text("Ui Scale (Requires Restart)");
+            ImGui.Text("Ui Scale");
             ImGui.SameLine();
             ImGui.SliderFloat("##uiscale", ref config.UiScale, 1, 2.5f);
-
+            if (!ImGui.IsItemActive())
+            {
+                ImGuiHelper.UserScale = config.UiScale;
+            }
             if (Platform.RunningOS == OS.Windows && ImGui.Button("Set File Assocations"))
             {
                 Win32Integration.FileTypes();

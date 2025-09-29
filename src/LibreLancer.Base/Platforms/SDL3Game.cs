@@ -392,6 +392,7 @@ namespace LibreLancer
 
             var hiddenFlag = loop.Splash ? SDL3.SDL_WindowFlags.SDL_WINDOW_HIDDEN : 0;
             var flags = SDL3.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL3.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
+                        SDL3.SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY |
                         hiddenFlag;
             if (fullscreen)
                 flags |= SDL3.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
@@ -525,6 +526,10 @@ namespace LibreLancer
                 scaleW = (float)width / windowWidth;
                 scaleH = (float)height / windowHeight;
                 if (Platform.RunningOS != OS.Windows) DpiScale = scaleH;
+                else
+                {
+                    DpiScale = SDL3.SDL_GetWindowDisplayScale(windowptr);
+                }
                 //This allows for press/release in same frame to have
                 //button down for one frame, e.g. trackpoint middle click on Linux/libinput.
                 MouseButtons pressedThisFrame = 0;

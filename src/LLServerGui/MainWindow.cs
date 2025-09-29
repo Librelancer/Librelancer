@@ -28,7 +28,7 @@ public class MainWindow : Game
         log = new AppLog();
         FLLog.UIThread = this;
         FLLog.AppendLine += LogAppendLine;
-        guiRender = new ImGuiHelper(this, DpiScale);
+        guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
         if (File.Exists(configPath))
             config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
