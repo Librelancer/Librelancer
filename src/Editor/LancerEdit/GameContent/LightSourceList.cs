@@ -14,7 +14,7 @@ public class LightSourceList
     private LightSource[] originals;
     public BitArray512 Visible = new BitArray512();
 
-    public event Action<Vector3> OnMoveCamera;
+    public event Action<Vector3> OnSelectionChanged;
 
     public LightSource Selected;
     private SystemEditorTab tab;
@@ -87,7 +87,7 @@ public class LightSourceList
             {
                 Selected = lt;
                 if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                    OnMoveCamera(lt.Light.Position);
+                    OnSelectionChanged(lt.Light.Position);
             }
             if (ImGui.BeginPopupContextItem(lt.Nickname))
             {

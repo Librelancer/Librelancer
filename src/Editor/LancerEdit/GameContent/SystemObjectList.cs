@@ -13,7 +13,7 @@ namespace LancerEdit.GameContent;
 
 public class SystemObjectList
 {
-    public event Action<GameObject> OnMoveCamera;
+    public event Action<GameObject> OnSelectionChanged;
     public event Action<GameObject> OnDelete;
 
     public List<GameObject> Selection = new List<GameObject>();
@@ -41,9 +41,14 @@ public class SystemObjectList
     {
         SelectedTransform = (obj?.LocalTransform ?? Transform3D.Identity).Matrix();
         if (Selection.Count > 0)
-            Selection = new List<GameObject>();
+        {
+            Selection = [];
+        }
+
         if(obj != null)
+        {
             Selection.Add(obj);
+        }
     }
 
     private GameWorld prevWorld;
@@ -166,7 +171,7 @@ public class SystemObjectList
                         SelectSingle(obj);
                 }
                 if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                    OnMoveCamera(obj);
+                    OnSelectionChanged(obj);
             }
             if(isSelected && !isPrimary)
                 ImGui.PopStyleColor();

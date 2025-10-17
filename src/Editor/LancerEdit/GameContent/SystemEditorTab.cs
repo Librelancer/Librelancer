@@ -56,6 +56,7 @@ public class SystemEditorTab : GameContentTab
     private AsteroidFieldEdit openField;
 
     private bool mapOpen = false;
+    private Vector3 arcballTarget = Vector3.Zero;
 
     public PopupManager Popups = new PopupManager();
 
@@ -72,7 +73,7 @@ public class SystemEditorTab : GameContentTab
         viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, 4);
         viewport.ModelScale = 1000f;
-        viewport.Mode = CameraModes.Walkthrough;
+        viewport.Mode = CameraModes.Arcball;
         viewport.Background = new Vector4(0.12f, 0.12f, 0.12f, 1f);
         viewport.ResetControls();
         viewport.DoubleClicked += ViewportOnDoubleClicked;
@@ -98,8 +99,8 @@ public class SystemEditorTab : GameContentTab
         this.win = mw;
         ObjectsList = new SystemObjectList(mw);
         LightsList = new LightSourceList(this);
-        ObjectsList.OnMoveCamera += MoveCameraTo;
-        LightsList.OnMoveCamera += MoveCameraToLight;
+        ObjectsList.OnSelectionChanged += OnObjectSelectionChanged;
+        LightsList.OnSelectionChanged += OnLightSelectionChanged;
         ObjectsList.OnDelete += DeleteObject;
 
         LoadSystem(system);
@@ -164,7 +165,12 @@ public class SystemEditorTab : GameContentTab
             tb.ToggleButtonItem("History", ref historyOpen);
             if (render3d)
             {
-                tb.ToggleButtonItem("Camera", ref cameraOpen);
+                if (tb.ButtonItem("Camera Mode"))
+                {
+                    viewport.Mode = viewport.Mode == CameraModes.Arcball ? CameraModes.Walkthrough : CameraModes.Arcball;
+                }
+
+                tb.ToggleButtonItem("Camera Info", ref cameraOpen);
             }
         }
         if (render3d)
@@ -283,12 +289,13 @@ public class SystemEditorTab : GameContentTab
 
     void RenderGrid()
     {
-        if (!renderGrid) return;
-        var cpos = camera.Position;
-        var y = Math.Abs(cpos.Y);
-        if (y <= 100) y = 100;
+        if (!renderGrid)
+        {
+            return;
+        }
 
-        GridRender.Draw(win.RenderContext, camera, GridRender.DistanceScale(y), win.Config.GridColor, camera.ZRange.X,
+        var distance = Math.Abs(viewport.CameraOffset.Y);
+        GridRender.Draw(win.RenderContext, camera, GridRender.DistanceScale(distance), win.Config.GridColor, camera.ZRange.X,
             camera.ZRange.Y);
     }
 
@@ -583,15 +590,16 @@ public class SystemEditorTab : GameContentTab
         ImGui.EndDisabled();
     }
 
-
-    void MoveCameraTo(GameObject obj)
+    private void OnObjectSelectionChanged(GameObject obj)
     {
-        var r = (obj.RenderComponent as ModelRenderer)?.Model?.GetRadius() ?? 10f;
+        arcballTarget = obj?.LocalTransform.Position ?? Vector3.Zero;
+
+        var r = (obj!.RenderComponent as ModelRenderer)?.Model?.GetRadius() ?? 10f;
         viewport.CameraOffset = obj.LocalTransform.Position + new Vector3(0, 0, -r * 3.5f);
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
     }
 
-    private void MoveCameraToLight(Vector3 pos)
+    private void OnLightSelectionChanged(Vector3 pos)
     {
         viewport.CameraOffset = pos - new Vector3(0, 0, 12f);
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
@@ -1380,7 +1388,15 @@ public class SystemEditorTab : GameContentTab
                   Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
         var dir = Vector3.Transform(-Vector3.UnitZ, rot);
         var to = viewport.CameraOffset + (dir * 10);
-        camera.Update(viewport.ControlWidth, viewport.ControlHeight, viewport.CameraOffset, to, rot);
+
+        var from = viewport.CameraOffset;
+        if (viewport.Mode == CameraModes.Arcball)
+        {
+            to = arcballTarget;
+            from += to;
+        }
+
+        camera.Update(viewport.ControlWidth, viewport.ControlHeight, from, to, rot);
         World.Update(elapsed);
     }
 
