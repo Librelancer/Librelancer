@@ -165,7 +165,7 @@ public class SystemEditorTab : GameContentTab
             tb.ToggleButtonItem("History", ref historyOpen);
             if (render3d)
             {
-                if (tb.ButtonItem("Camera Mode"))
+                if (tb.ButtonItem("Camera Mode  " + (viewport.Mode == CameraModes.Arcball ? Icons.Globe : Icons.StreetView)))
                 {
                     viewport.Mode = viewport.Mode == CameraModes.Arcball ? CameraModes.Walkthrough : CameraModes.Arcball;
                 }
