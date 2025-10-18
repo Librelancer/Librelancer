@@ -171,6 +171,7 @@ public class SystemEditorTab : GameContentTab
                 }
 
                 tb.ToggleButtonItem("Camera Info", ref cameraOpen);
+                tb.ToggleButtonItem("Zones", ref zonePosOpen);
             }
         }
         if (render3d)
@@ -1537,6 +1538,7 @@ public class SystemEditorTab : GameContentTab
     bool render3d = true;
     private bool historyOpen = false;
     private bool cameraOpen = false;
+    private bool zonePosOpen = false;
     EditMap2D map2D = new();
     List<VerticalTab> blankTabs = new();
     private List<VerticalTab> propertiesTab = new() { new($"{Icons.PenSquare} Properties", 0) };
@@ -1575,9 +1577,25 @@ public class SystemEditorTab : GameContentTab
         layout.Draw();
         DrawMaps();
         DrawCamera();
+        DrawZoneInfo();
         if (historyOpen)
             UndoBuffer.DisplayStack();
         Popups.Run();
+    }
+
+    void DrawZoneInfo()
+    {
+        if (!render3d || !zonePosOpen)
+            return;
+        if (ImGui.Begin("Zones", ref zonePosOpen))
+        {
+            ImGui.Text($"Zones at position {camera.Position}:");
+            ZoneList.ZonesByPosition.ZonesAtPosition(camera.Position, z =>
+            {
+                ImGui.Text(z.Nickname);
+            });
+        }
+        ImGui.End();
     }
 
     private bool ZonesMode => layout.ActiveLeftTab == 0;
@@ -1860,5 +1878,6 @@ public class SystemEditorTab : GameContentTab
         renderer.Dispose();
         viewport.Dispose();
         openField?.Closed();
+        ZoneList.Dispose();
     }
 }

@@ -54,7 +54,7 @@ public class AsteroidFieldEdit
         this.mw = mw;
 
         Target = field;
-        Field = field.Clone(parent.ZoneList.ZoneLookup);
+        Field = field.Clone(parent.ZoneList.ZonesByName);
 
         diffuseSelector = field.DiffuseColor;
         ambientSelector = field.AmbientColor;

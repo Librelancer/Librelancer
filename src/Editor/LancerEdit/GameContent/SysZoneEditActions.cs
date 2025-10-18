@@ -81,6 +81,7 @@ public class SysZoneSetPosition(Zone target, SystemEditorTab tab, Vector3 old, V
     {
         Target.Position = value;
         tab.ZoneList.CheckDirty();
+        tab.ZoneList.ZonesByPosition.UpdatePositions();
         tab.World.Renderer.ZoneVersion++;
     }
 }
@@ -103,6 +104,7 @@ public class SysZoneSetRotation(
         Target.RotationMatrix = value.Matrix;
         Target.RotationAngles = value.Euler;
         tab.ZoneList.CheckDirty();
+        tab.ZoneList.ZonesByPosition.UpdatePositions();
         tab.World.Renderer.ZoneVersion++;
     }
 }
@@ -125,6 +127,7 @@ public class SysZoneSetShape(Zone target, SystemEditorTab tab, ShapeKind oldShap
         Target.Shape = value.Shape;
         Target.Size = value.Size;
         tab.ZoneList.CheckDirty();
+        tab.ZoneList.ZonesByPosition.UpdatePositions();
         tab.World.Renderer.ZoneVersion++;
     }
 }
@@ -136,6 +139,7 @@ public class SysZoneSetSizeX(Zone target, SystemEditorTab tab, float old, float 
     {
         Target.Size = Target.Size with { X = value };
         tab.ZoneList.CheckDirty();
+        tab.ZoneList.ZonesByPosition.UpdatePositions();
         tab.World.Renderer.ZoneVersion++;
     }
 }
@@ -147,6 +151,7 @@ public class SysZoneSetSizeY(Zone target, SystemEditorTab tab, float old, float 
     {
         Target.Size = Target.Size with { Y = value };
         tab.ZoneList.CheckDirty();
+        tab.ZoneList.ZonesByPosition.UpdatePositions();
         tab.World.Renderer.ZoneVersion++;
     }
 }
@@ -158,6 +163,7 @@ public class SysZoneSetSizeZ(Zone target, SystemEditorTab tab, float old, float 
     {
         Target.Size = Target.Size with { Z = value };
         tab.ZoneList.CheckDirty();
+        tab.ZoneList.ZonesByPosition.UpdatePositions();
         tab.World.Renderer.ZoneVersion++;
     }
 }

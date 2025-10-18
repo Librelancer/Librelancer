@@ -6,6 +6,7 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.GameData.World;
 using LibreLancer.ImUI;
+using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
 
@@ -16,10 +17,11 @@ public enum ZoneDisplayKind
     AsteroidField,
     Nebula
 }
-public class ZoneList
+public class ZoneList : IDisposable
 {
     public List<EditZone> Zones = new List<EditZone>();
-    public Dictionary<string, Zone> ZoneLookup = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, Zone> ZonesByName = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
+    public ZoneLookup ZonesByPosition;
     public AsteroidFieldList AsteroidFields = new AsteroidFieldList();
     public List<Nebula> Nebulae = new List<Nebula>();
 
@@ -85,6 +87,7 @@ public class ZoneList
         }
         //Remove from Zones
         Zones.Remove(z);
+        ZonesByPosition.RemoveZone(z.Current);
         dirtyOrder = true;
     }
 
@@ -93,6 +96,7 @@ public class ZoneList
         var ez = new EditZone() { Current = z, Visible = true };
         dirtyOrder = true;
         Zones.Add(ez);
+        ZonesByPosition.AddZone(ez.Current);
         return ez;
     }
 
@@ -119,20 +123,22 @@ public class ZoneList
 
     public void ZoneRenamed(Zone z, string oldNick)
     {
-        ZoneLookup.Remove(oldNick);
-        ZoneLookup[z.Nickname] = z;
+        ZonesByName.Remove(oldNick);
+        ZonesByName[z.Nickname] = z;
     }
 
     public void SetZones(List<Zone> zones, List<AsteroidField> asteroidFields, List<Nebula> nebulae)
     {
+        ZonesByPosition?.Dispose();
         dirtyOrder = dirtyZones = false;
         Zones = zones.Select(x => new EditZone(x)).ToList();
-        ZoneLookup = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
+        ZonesByPosition = new ZoneLookup(Zones.Select(x => x.Current));
+        ZonesByName = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
         foreach (var z in Zones)
-            ZoneLookup[z.Current.Nickname] = z.Current;
+            ZonesByName[z.Current.Nickname] = z.Current;
 
-        AsteroidFields.SetFields(asteroidFields, ZoneLookup);
-        Nebulae = nebulae.Select(x => x.Clone(ZoneLookup)).ToList();
+        AsteroidFields.SetFields(asteroidFields, ZonesByName);
+        Nebulae = nebulae.Select(x => x.Clone(ZonesByName)).ToList();
 
 
         //asteroid fields
@@ -230,4 +236,8 @@ public class ZoneList
         }
     }
 
+    public void Dispose()
+    {
+        ZonesByPosition?.Dispose();
+    }
 }
