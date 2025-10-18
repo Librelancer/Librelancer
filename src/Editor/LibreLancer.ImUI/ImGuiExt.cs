@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Numerics;
@@ -233,5 +234,33 @@ namespace LibreLancer.ImUI
 
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
         static extern bool _Spinner(string label, float radius, int thickness, uint color);
+
+        public static void DropdownButton(string id, ref int selected, IReadOnlyList<DropdownOption> options)
+        {
+            ImGui.PushID(id);
+            bool clicked = false;
+            string text = $"{options[selected].Icon}  {options[selected].Name}  ";
+            var textSize = ImGui.CalcTextSize(text);
+            var cpos = ImGui.GetCursorPosX();
+            var cposY = ImGui.GetCursorPosY();
+            clicked = ImGui.Button($"{options[selected].Icon}  {options[selected].Name}  ");
+            var style = ImGui.GetStyle();
+            var tPos = new Vector2(cpos, cposY) + new Vector2(textSize.X + style.FramePadding.X, textSize.Y);
+            Theme.TinyTriangle(tPos.X, tPos.Y);
+            if (clicked)
+                ImGui.OpenPopup(id + "#popup");
+            if (ImGui.BeginPopup(id + "#popup"))
+            {
+                ImGui.MenuItem(id, false);
+                for (int i = 0; i < options.Count; i++)
+                {
+                    var opt = options[i];
+                    if (Theme.IconMenuItem(opt.Icon, opt.Name, true))
+                        selected = i;
+                }
+                ImGui.EndPopup();
+            }
+            ImGui.PopID();
+        }
 	}
 }

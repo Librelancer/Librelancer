@@ -108,7 +108,7 @@ public class ThnPlayerTab : GameContentTab
         ImGui.Text($"T: {(cutscene?.CurrentTime ?? 0):F4}");
         ImGui.SameLine();
         #if DEBUG
-        Controls.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
+        ImGuiExt.DropdownButton("Dfm Mode", ref selectedDfmMode, dfmOptions);
         #endif
         if (cutscene != null)
         {

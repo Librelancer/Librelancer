@@ -52,6 +52,8 @@ namespace LancerEdit
         public Color4 GridColor = Color4.CornflowerBlue * new Color4(0.5f, 0.5f, 0.5f, 1f);
         [Entry("default_camera_mode")]
         public int DefaultCameraMode = 0;
+        [Entry("default_sysedit_camera_mode")]
+        public int DefaultSysEditCameraMode = 0;
         [Entry("default_render_mode")]
         public int DefaultRenderMode = 0;
         [Entry("last_export_path")]
@@ -142,6 +144,7 @@ namespace LancerEdit
                 .Entry("background_gradient", BackgroundGradient)
                 .Entry("grid_color", GridColor, true)
                 .Entry("default_camera_mode", DefaultCameraMode)
+                .Entry("default_sysedit_camera_mode", DefaultSysEditCameraMode)
                 .Entry("default_render_mode", DefaultRenderMode)
                 .Entry("ui_scale", UiScale)
                 .OptionalEntry("last_export_path", lastExportPath)

@@ -128,11 +128,11 @@ namespace LancerEdit
 
         void EditorTab()
         {
-            Controls.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
+            ImGuiExt.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Default Camera");
-            Controls.DropdownButton("Default View", ref config.DefaultRenderMode, ModelViewer.ViewModes);
+            ImGuiExt.DropdownButton("Default View", ref config.DefaultRenderMode, ModelViewer.ViewModes);
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Default View");
@@ -299,6 +299,10 @@ namespace LancerEdit
             ImGui.Text("Render Distance: ");
             ImGui.SameLine();
             ImGui.SliderFloat("##lodmultiplier", ref config.LodMultiplier, 1.0f, 8.0f);
+            ImGuiExt.DropdownButton("Default Camera", ref config.DefaultSysEditCameraMode, camModesNormal);
+            ImGui.SameLine();
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Default Camera");
         }
 
         void UpdateTab()

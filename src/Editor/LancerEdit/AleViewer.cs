@@ -106,7 +106,7 @@ namespace LancerEdit
             aleViewport.MarginH = ImGui.GetFrameHeightWithSpacing() * 1.25f;
             aleViewport.Draw();
             //Action Bar
-            Controls.DropdownButton("Camera Mode", ref cameraMode, camModes);
+            ImGuiExt.DropdownButton("Camera Mode", ref cameraMode, camModes);
             aleViewport.Mode = (CameraModes) camModes[cameraMode].Tag;
             ImGui.SameLine();
             if (ImGui.Button("Reset Camera (Ctrl+R)"))

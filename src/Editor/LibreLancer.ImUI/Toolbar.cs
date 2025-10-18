@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using ImGuiNET;
@@ -35,6 +36,32 @@ public class Toolbar : IDisposable
             return true;
         }
         return false;
+    }
+
+    public void DropdownButtonItem(string name, ref int selected, IReadOnlyList<DropdownOption> options)
+    {
+        string text = $"{options[selected].Icon}  {options[selected].Name}  ";
+        if (DoOverflow(text, 15))
+        {
+            if (isOverflowOpen)
+            {
+                if (ImGui.BeginMenu(name))
+                {
+                    for (int i = 0; i < options.Count; i++)
+                    {
+                        if (ImGui.MenuItem(ImGuiExt.IDSafe($"{options[i].Icon} {options[i].Name}"), null, selected == i))
+                        {
+                            selected = i;
+                        }
+                    }
+                    ImGui.EndMenu();
+                }
+            }
+        }
+        else
+        {
+            ImGuiExt.DropdownButton(name, ref selected, options);
+        }
     }
 
     public bool ButtonItem(string name, bool enabled = true, string tooltip = null)

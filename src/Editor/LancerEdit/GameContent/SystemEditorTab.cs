@@ -57,6 +57,12 @@ public class SystemEditorTab : GameContentTab
 
     private bool mapOpen = false;
     private Vector3 arcballTarget = Vector3.Zero;
+    private int cameraMode = 0;
+    private static readonly DropdownOption[] camModes =
+    {
+        new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+        new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough)
+    };
 
     public PopupManager Popups = new PopupManager();
 
@@ -73,7 +79,8 @@ public class SystemEditorTab : GameContentTab
         viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, 4);
         viewport.ModelScale = 1000f;
-        viewport.Mode = CameraModes.Arcball;
+        cameraMode = mw.Config.DefaultSysEditCameraMode;
+        viewport.Mode = (CameraModes)camModes[cameraMode].Tag;
         viewport.Background = new Vector4(0.12f, 0.12f, 0.12f, 1f);
         viewport.ResetControls();
         viewport.DoubleClicked += ViewportOnDoubleClicked;
@@ -165,17 +172,14 @@ public class SystemEditorTab : GameContentTab
             tb.ToggleButtonItem("History", ref historyOpen);
             if (render3d)
             {
-                if (tb.ButtonItem("Camera Mode  " + (viewport.Mode == CameraModes.Arcball ? Icons.Globe : Icons.StreetView)))
-                {
-                    viewport.Mode = viewport.Mode == CameraModes.Arcball ? CameraModes.Walkthrough : CameraModes.Arcball;
-                }
-
+                tb.DropdownButtonItem("Camera Mode", ref cameraMode, camModes);
                 tb.ToggleButtonItem("Camera Info", ref cameraOpen);
                 tb.ToggleButtonItem("Zones", ref zonePosOpen);
             }
         }
         if (render3d)
         {
+            viewport.Mode = (CameraModes)camModes[cameraMode].Tag;
             ImGuiHelper.AnimatingElement();
             renderer.BackgroundOverride = SystemData.SpaceColor;
             renderer.SystemLighting.Ambient = new Color4(SystemData.Ambient, 1);
