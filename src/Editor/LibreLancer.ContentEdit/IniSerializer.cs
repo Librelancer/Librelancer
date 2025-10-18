@@ -28,7 +28,7 @@ public static class IniSerializer
         var ib = new IniBuilder();
         ib.Section("SystemInfo")
             .Entry("space_color", sys.BackgroundColor)
-            .Entry("local_faction", sys.LocalFaction.Nickname)
+            .OptionalEntry("local_faction", sys.LocalFaction?.Nickname)
             .OptionalEntry("space_farclip", sys.FarClip, 20000);
 
         //Archetype
