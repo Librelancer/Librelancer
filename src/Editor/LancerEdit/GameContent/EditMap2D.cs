@@ -147,7 +147,7 @@ public class EditMap2D
             }
             ImGui.PopStyleColor();
 
-             if(CreationTools.Patrol.IsActive)
+            if(CreationTools.Patrol.IsActive)
             {
                 ImGui.EndDisabled();
             }
@@ -205,14 +205,11 @@ public class EditMap2D
             }
         }
 
-        if(CreationTools.Patrol.IsActive)
+        if (dragCurrent == null && dragTarget != null)
         {
-            if (dragCurrent == null && dragTarget != null)
-            {
-                tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform,
-                    dragTarget.LocalTransform, tab.ObjectsList));
-                dragTarget = null;
-            }
+            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform,
+                dragTarget.LocalTransform, tab.ObjectsList));
+            dragTarget = null;
         }
 
         var windowPos = ImGui.GetWindowPos();
