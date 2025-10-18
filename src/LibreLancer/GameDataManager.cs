@@ -1080,6 +1080,7 @@ namespace LibreLancer
                 sys.IdsName = inisys.IdsName;
                 sys.IdsInfo = inisys.IdsInfo;
                 sys.Nickname = inisys.Nickname;
+                sys.Visit = (VisitFlags)inisys.Visit;
                 sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
                 sys.MsgIdPrefix = inisys.MsgIdPrefix;
                 sys.BackgroundColor = inisys.Info?.SpaceColor ?? Color4.Black;
