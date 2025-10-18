@@ -114,5 +114,14 @@ namespace LancerEdit.GameContent
             ImGui.SetCursorPos(cpos);
             ImGui.InvisibleButton("##navmap", new Vector2(width, height));
         }
+
+        public void Dispose()
+        {
+            if (rtarget != null) {
+                ImGuiHelper.DeregisterTexture(rtarget.Texture);
+                rtarget.Dispose();
+                rtarget = null;
+            }
+        }
     }
 }

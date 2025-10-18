@@ -1879,5 +1879,6 @@ public class SystemEditorTab : GameContentTab
         viewport.Dispose();
         openField?.Closed();
         ZoneList.Dispose();
+        systemMap.Dispose();
     }
 }
