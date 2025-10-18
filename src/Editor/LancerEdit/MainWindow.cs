@@ -1025,6 +1025,7 @@ namespace LancerEdit
         protected override void Cleanup()
 		{
 			Audio.Dispose();
-		}
+            quickFileBrowser.Dispose();
+        }
 	}
 }
