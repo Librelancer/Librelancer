@@ -90,8 +90,7 @@ namespace LancerEdit
             };
             Config = EditorConfiguration.Load(configuration == null || configuration.IsSDL);
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-            quickFileBrowser = new QuickFileBrowser(Config, this, Popups);
-            quickFileBrowser.FileSelected += OpenFile;
+
             logBuffer = new TextBuffer(32768);
             recentFiles = new RecentFilesHandler(OpenFile);
             Updater = new UpdateChecks(this, GetBasePath());
@@ -587,6 +586,15 @@ namespace LancerEdit
                     else
                         OpenGameData();
                 }
+                if (Theme.IconMenuItem(Icons.SyncAlt, "Reload Data", OpenDataContext != null))
+                {
+                    var dataTabCount = TabControl.Tabs.OfType<GameContentTab>().Count();
+                    if (dataTabCount > 0)
+                        Confirm($"Reloading will close {dataTabCount} tab(s). Continue?",
+                            () => LoadGameData(OpenDataContext.Folder));
+                    else
+                        LoadGameData(OpenDataContext.Folder);
+                }
                 if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",OpenDataContext != null))
                     AddTab(new InfocardBrowserTab(OpenDataContext, this));
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
@@ -943,6 +951,11 @@ namespace LancerEdit
 
         void DrawQuickFiles()
         {
+            if (quickFileBrowser == null)
+            {
+                quickFileBrowser = new QuickFileBrowser(Config, this, Popups);
+                quickFileBrowser.FileSelected += OpenFile;
+            }
             quickFileBrowser.Draw();
         }
 
@@ -1025,7 +1038,7 @@ namespace LancerEdit
         protected override void Cleanup()
 		{
 			Audio.Dispose();
-            quickFileBrowser.Dispose();
+            quickFileBrowser?.Dispose();
         }
 	}
 }
