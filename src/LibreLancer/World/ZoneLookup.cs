@@ -61,8 +61,6 @@ public class ZoneLookup : IDisposable
         RebuildTree();
     }
 
-    private Buffer<NodeChild> subtrees;
-
     unsafe void RebuildTree()
     {
         pool.Clear();
@@ -73,7 +71,7 @@ public class ZoneLookup : IDisposable
             NodeCount = int.Max(1, zones.Count - 1),
             LeafCount = zones.Count
         };
-        pool.Take(zones.Count, out subtrees);
+        pool.Take(zones.Count, out Buffer<NodeChild> subtrees);
         FillSubtreesForChildren(zones, subtrees);
         tree.BinnedBuild(subtrees, pool);
         pool.Return(ref subtrees);
@@ -95,8 +93,9 @@ public class ZoneLookup : IDisposable
 
     public void UpdatePositions()
     {
-        FillSubtreesForChildren(zones, subtrees);
-        tree.RefitAndRefine(pool, frameIndex++);
+        RebuildTree();
+        //FillSubtreesForChildren(zones, subtrees); - subtrees is invalid here
+        //tree.RefitAndRefine(pool, frameIndex++);
     }
 
     struct PointIterator(Action<Zone> cb, ZoneLookup lookup, Vector3 pos) : IBreakableForEach<int>
