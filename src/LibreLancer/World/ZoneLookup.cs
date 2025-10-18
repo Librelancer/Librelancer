@@ -66,6 +66,8 @@ public class ZoneLookup : IDisposable
     unsafe void RebuildTree()
     {
         pool.Clear();
+        if (zones.Count == 0)
+            return;
         tree = new Tree(pool, zones.Count)
         {
             NodeCount = int.Max(1, zones.Count - 1),
@@ -109,6 +111,10 @@ public class ZoneLookup : IDisposable
 
     public void ZonesAtPosition(Vector3 position, Action<Zone> callback)
     {
+        if (zones.Count == 0)
+        {
+            return;
+        }
         var iterator = new PointIterator(callback, this, position);
         tree.GetOverlaps(position, position, ref iterator);
     }
