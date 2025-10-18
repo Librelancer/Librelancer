@@ -11,7 +11,6 @@ using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using SimpleMesh;
-using SimpleMesh.Formats.Collada.Schema;
 using Material = SimpleMesh.Material;
 
 namespace LibreLancer.ContentEdit.Model;

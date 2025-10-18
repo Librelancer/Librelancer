@@ -17,7 +17,6 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using Microsoft.EntityFrameworkCore.Query;
-using SimpleMesh.Formats.Collada.Schema;
 using ImGui = ImGuiNET.ImGui;
 
 namespace LancerEdit.GameContent.MissionEditor;
