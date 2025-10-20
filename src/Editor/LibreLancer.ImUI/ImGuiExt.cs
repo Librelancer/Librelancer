@@ -235,19 +235,23 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui", EntryPoint = "igExtSpinner", CallingConvention = CallingConvention.Cdecl)]
         static extern bool _Spinner(string label, float radius, int thickness, uint color);
 
-        public static void DropdownButton(string id, ref int selected, IReadOnlyList<DropdownOption> options)
+        public static bool DropdownButton(string text)
         {
-            ImGui.PushID(id);
-            bool clicked = false;
-            string text = $"{options[selected].Icon}  {options[selected].Name}  ";
+            text = $"{text}  ";
             var textSize = ImGui.CalcTextSize(text);
             var cpos = ImGui.GetCursorPosX();
             var cposY = ImGui.GetCursorPosY();
-            clicked = ImGui.Button($"{options[selected].Icon}  {options[selected].Name}  ");
+            var clicked = ImGui.Button(text);
             var style = ImGui.GetStyle();
             var tPos = new Vector2(cpos, cposY) + new Vector2(textSize.X + style.FramePadding.X, textSize.Y);
             Theme.TinyTriangle(tPos.X, tPos.Y);
-            if (clicked)
+            return clicked;
+        }
+
+        public static void DropdownButton(string id, ref int selected, IReadOnlyList<DropdownOption> options)
+        {
+            ImGui.PushID(id);
+            if (DropdownButton($"{options[selected].Icon}  {options[selected].Name}"))
                 ImGui.OpenPopup(id + "#popup");
             if (ImGui.BeginPopup(id + "#popup"))
             {

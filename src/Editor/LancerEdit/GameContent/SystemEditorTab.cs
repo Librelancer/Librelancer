@@ -117,7 +117,6 @@ public class SystemEditorTab : GameContentTab
         layout.TabsLeft.Add(new($"{Icons.Cube} Objects", 1));
         layout.TabsLeft.Add(new($"{Icons.Lightbulb} Lights", 2));
         layout.TabsLeft.Add(new($"{Icons.Globe} System", 3));
-        layout.TabsLeft.Add(new($"{Icons.Eye} View", 4));
     }
 
     public void ForceSelectObject(GameObject obj)
@@ -149,20 +148,31 @@ public class SystemEditorTab : GameContentTab
             case 3:
                 SystemPanel();
                 break;
-            case 4:
-                ViewPanel();
-                break;
         }
     }
 
     void DrawMiddle()
     {
-        using (var tb = Toolbar.Begin("##toolbar", false))
+        ImGuiExt.ButtonDivided("##viewmode", "3D", "2D", ref render3d);
+        if (render3d)
         {
-            tb.CheckItem("3D", ref render3d);
+            ImGui.SameLine();
+            if (ImGuiExt.DropdownButton($"{Icons.Eye} View"))
+            {
+                ImGui.OpenPopup("viewpanel");
+            }
+            if (ImGui.BeginPopup("viewpanel"))
+            {
+                ViewPanel();
+                ImGui.EndPopup();
+            }
+        }
+        ImGui.SameLine();
+        using (var tb = Toolbar.Begin("##toolbar", true))
+        {
             if (render3d)
             {
-                tb.CheckItem("Grid", ref renderGrid);
+                tb.DropdownButtonItem("Camera Mode", ref cameraMode, camModes);
             }
             else
             {
@@ -172,7 +182,6 @@ public class SystemEditorTab : GameContentTab
             tb.ToggleButtonItem("History", ref historyOpen);
             if (render3d)
             {
-                tb.DropdownButtonItem("Camera Mode", ref cameraMode, camModes);
                 tb.ToggleButtonItem("Camera Info", ref cameraOpen);
                 tb.ToggleButtonItem("Zones", ref zonePosOpen);
             }
@@ -588,11 +597,18 @@ public class SystemEditorTab : GameContentTab
     private bool drawWireframe = false;
     void ViewPanel()
     {
+        if (!ImGui.BeginTable("##opts", 2))
+            return;
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
         ImGui.Checkbox("Nebulae", ref renderer.DrawNebulae);
         ImGui.Checkbox("Starspheres", ref renderer.DrawStarsphere);
         ImGui.BeginDisabled(!win.RenderContext.SupportsWireframe);
         ImGui.Checkbox("Wireframe", ref drawWireframe);
         ImGui.EndDisabled();
+        ImGui.TableNextColumn();
+        ImGui.Checkbox("Grid", ref renderGrid);
+        ImGui.EndTable();
     }
 
     private void OnObjectSelectionChanged(GameObject obj)
