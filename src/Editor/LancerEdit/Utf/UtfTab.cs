@@ -154,7 +154,8 @@ namespace LancerEdit
         {
             //Child Window
             var size = ImGui.GetWindowSize();
-            ImGui.BeginChild("##utfchild", new Vector2(size.X - 15, size.Y - 50));
+            var actionBarHeight = ImGui.GetFrameHeightWithSpacing();
+            ImGui.BeginChild("##utfchild", new Vector2(0, size.Y - actionBarHeight * 1.2f));
             //Layout
             if (selectedNode != null)
             {

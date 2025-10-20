@@ -573,6 +573,7 @@ namespace LancerEdit
             {
                 Theme.IconMenuToggle(Icons.Log, "Log", ref Config.LogVisible, true);
                 Theme.IconMenuToggle(Icons.File, "Files", ref Config.FilesVisible, true);
+                Theme.IconMenuToggle(Icons.Info, "Status Bar", ref Config.StatusBarVisible, true);
                 ImGui.EndMenu();
             }
 
@@ -814,7 +815,9 @@ namespace LancerEdit
 			{
                 tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
 			}
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - (22 * ImGuiHelper.Scale)), ImGuiCond.Always);
+
+            var statusSz = Config.StatusBarVisible ? 22 * ImGuiHelper.Scale : 0;
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - statusSz), ImGuiCond.Always);
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
             bool childopened = true;
             ImGui.Begin("tabwindow", ref childopened,
@@ -831,7 +834,7 @@ namespace LancerEdit
             if (Config.LogVisible || Config.FilesVisible)
             {
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 28 * ImGuiHelper.Scale, -1);
-                h1 = totalH - h2 - 25f * ImGuiHelper.Scale;
+                h1 = totalH - h2 - 3f * ImGuiHelper.Scale - statusSz;
                 if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
                 ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1));
             } else
@@ -885,41 +888,48 @@ namespace LancerEdit
                     TextWindows.RemoveAt(i);
                 }
             }
-			//Status bar
-			ImGui.SetNextWindowSize(new Vector2(size.X, 22f * ImGuiHelper.Scale), ImGuiCond.Always);
-			ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
-			bool sbopened = true;
-			ImGui.Begin("statusbar", ref sbopened,
-			                  ImGuiWindowFlags.NoTitleBar |
-			                  ImGuiWindowFlags.NoSavedSettings |
-			                  ImGuiWindowFlags.NoBringToFrontOnFocus |
-			                  ImGuiWindowFlags.NoMove |
-			                  ImGuiWindowFlags.NoResize);
-			if (updateTime > 9)
-			{
-				updateTime = 0;
-				frequency = RenderFrequency;
-			}
-			else { updateTime++; }
 
-            string activename = TabControl.Selected == null ? "None" : TabControl.Selected.DocumentName;
-            if (TabControl.Selected is UtfTab utftab)
+            if (Config.StatusBarVisible)
             {
-                activename += " - " + utftab.GetUtfPath();
-            }
+                //Status bar
+                ImGui.SetNextWindowSize(new Vector2(size.X, 22f * ImGuiHelper.Scale), ImGuiCond.Always);
+                ImGui.SetNextWindowPos(new Vector2(0, size.Y - 6f), ImGuiCond.Always, Vector2.Zero);
+                bool sbopened = true;
+                ImGui.Begin("statusbar", ref sbopened,
+                    ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoSavedSettings |
+                    ImGuiWindowFlags.NoBringToFrontOnFocus |
+                    ImGuiWindowFlags.NoMove |
+                    ImGuiWindowFlags.NoResize);
+                if (updateTime > 9)
+                {
+                    updateTime = 0;
+                    frequency = RenderFrequency;
+                }
+                else
+                {
+                    updateTime++;
+                }
+
+                string activename = TabControl.Selected == null ? "None" : TabControl.Selected.DocumentName;
+                if (TabControl.Selected is UtfTab utftab)
+                {
+                    activename += " - " + utftab.GetUtfPath();
+                }
 #if DEBUG
-            const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3}{4}";
+                const string statusFormat = "FPS: {0} | {1} Materials | {2} Textures | Active: {3}{4}";
 #else
-            const string statusFormat = "{1} Materials | {2} Textures | Active: {3}{4}";
+                const string statusFormat = "{1} Materials | {2} Textures | Active: {3}{4}";
 #endif
-            string openFolder = OpenDataContext != null ? $" | Open: {OpenDataContext.Folder}" : "";
-			ImGui.Text(string.Format(statusFormat,
-									 (int)Math.Round(frequency),
-									 Resources.MaterialDictionary.Count,
-									 Resources.TextureDictionary.Count,
-									 activename,
-                                     openFolder));
-			ImGui.End();
+                string openFolder = OpenDataContext != null ? $" | Open: {OpenDataContext.Folder}" : "";
+                ImGui.Text(string.Format(statusFormat,
+                    (int)Math.Round(frequency),
+                    Resources.MaterialDictionary.Count,
+                    Resources.TextureDictionary.Count,
+                    activename,
+                    openFolder));
+                ImGui.End();
+            }
             if(errorTimer > 0) {
                 ImGuiExt.ToastText("An error has occurred\nCheck the log for details",
                                    new Color4(21, 21, 22, 128),
