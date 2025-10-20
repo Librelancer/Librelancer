@@ -44,8 +44,11 @@ namespace LancerEdit
         string[] effectNames;
 
         private VerticalTabLayout layout;
+        private EditorConfiguration config;
+
         public AleViewer(string name, AleFile ale, MainWindow main)
         {
+            config = main.Config;
             cameraMode = main.Config.DefaultCameraMode;
             plib = new ParticleLibrary(main.Resources, ale);
             res = main.Resources;
@@ -67,7 +70,7 @@ namespace LancerEdit
             debug = main.LineRenderer;
             SetupRender(0);
             layout = new VerticalTabLayout(DrawLeft, _ => { }, DrawMiddle);
-            layout.TabsLeft.Add(new("Hierarchy", 0));
+            layout.TabsLeft.Add(new(Icons.Tree, "Hierarchy", 0));
         }
 
         ParticleEffectInstance instance;
@@ -123,7 +126,7 @@ namespace LancerEdit
 
         public override void Draw(double elapsed)
         {
-            layout.Draw();
+            layout.Draw((VerticalTabStyle)config.TabStyle);
         }
 
         void NodePanel()

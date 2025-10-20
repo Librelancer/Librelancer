@@ -12,9 +12,15 @@ using System.Text;
 using ImGuiNET;
 namespace LibreLancer.ImUI
 {
+    public enum VerticalTabStyle
+    {
+        IconAndText,
+        IconOnly,
+    }
+
     public unsafe class TabHandler
     {
-        public static bool VerticalTab(string text, bool v)
+        static bool RotatedTab(string text, bool v)
         {
             var font = ImGui.GetFontBaked();
             var dlist = ImGui.GetWindowDrawList();
@@ -33,7 +39,7 @@ namespace LibreLancer.ImUI
             ImGui.PushStyleColor(ImGuiCol.Button, color);
             ImGui.PushID(text);
             bool ret = ImGui.Button("", new Vector2(textSize.Y + pad * 2,
-                                                    textSize.X + pad * 2));
+                textSize.X + pad * 2));
             ImGui.PopStyleColor();
             ImGui.PopStyleVar(2);
 
@@ -58,6 +64,30 @@ namespace LibreLancer.ImUI
             }
             ImGui.PopID();
             return ret;
+        }
+
+        public static bool VerticalTab(char icon, string text, VerticalTabStyle mode, bool v)
+        {
+            if (mode == VerticalTabStyle.IconOnly)
+            {
+                ImGui.PushID(text);
+                var style = ImGui.GetStyle();
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+                ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, 0);
+                var color = Theme.VTabInactive;
+                if (v) color = style.Colors[(int)ImGuiCol.FrameBgActive];
+                ImGui.PushStyleColor(ImGuiCol.Button, color);
+                bool ret = ImGui.Button($"{icon}");
+                ImGui.SetItemTooltip(text);
+                ImGui.PopStyleColor();
+                ImGui.PopStyleVar(2);
+                ImGui.PopID();
+                return ret;
+            }
+            else
+            {
+                return RotatedTab($"{icon} {text}", v);
+            }
         }
     }
 }

@@ -128,6 +128,14 @@ namespace LancerEdit
 
         void EditorTab()
         {
+            if (ImGui.BeginCombo("Vertical Tab Style", config.TabStyle == 1 ? "Icons Only" : "Icons and Text"))
+            {
+                if (ImGui.Selectable("Icons and Text"))
+                    config.TabStyle = 0;
+                if (ImGui.Selectable("Icons Only"))
+                    config.TabStyle = 1;
+                ImGui.EndCombo();
+            }
             ImGuiExt.DropdownButton("Default Camera", ref config.DefaultCameraMode, camModesNormal);
             ImGui.SameLine();
             ImGui.AlignTextToFramePadding();

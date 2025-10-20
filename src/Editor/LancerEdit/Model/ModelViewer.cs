@@ -188,15 +188,15 @@ namespace LancerEdit
             layout = new VerticalTabLayout(DrawLeft, _ => { }, DrawMiddle);
 
             if(drawable is CmpFile || drawable is ModelFile)
-                layout.TabsLeft.Add(new($"{Icons.Tree} Hierarchy", 0));
+                layout.TabsLeft.Add(new(Icons.Tree,"Hierarchy", 0));
             if (drawable is CmpFile)
-                layout.TabsLeft.Add(new($"{Icons.PersonRunning} Animations", 1));
+                layout.TabsLeft.Add(new(Icons.PersonRunning, "Animations", 1));
             if (drawable is DF.DfmFile)
-                layout.TabsLeft.Add(new($"{Icons.Bone} Skeleton", 2));
-            layout.TabsLeft.Add(new($"{Icons.Paintbrush} Render", 3));
+                layout.TabsLeft.Add(new(Icons.Bone, "Skeleton", 2));
+            layout.TabsLeft.Add(new(Icons.Paintbrush,"Render", 3));
             if(drawable is CmpFile || drawable is ModelFile)
-                layout.TabsLeft.Add(new($"{Icons.FileExport} Export", 4));
-            layout.TabsLeft.Add(new($"{Icons.Cog} Presets", 5));
+                layout.TabsLeft.Add(new(Icons.FileExport, "Export", 4));
+            layout.TabsLeft.Add(new(Icons.Cog, "Presets", 5));
         }
 
         void DrawLeft(int tag)
@@ -389,7 +389,7 @@ namespace LancerEdit
             popups.Run();
             HardpointEditor();
             PartEditor();
-            layout.Draw();
+            layout.Draw((VerticalTabStyle)_window.Config.TabStyle);
         }
 
         float viewButtonsWidth = 100;

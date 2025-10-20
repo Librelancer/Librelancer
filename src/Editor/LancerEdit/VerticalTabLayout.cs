@@ -6,7 +6,7 @@ using LibreLancer.ImUI;
 
 namespace LancerEdit;
 
-public record struct VerticalTab(string Name, int Tag);
+public record struct VerticalTab(char Icon, string Name, int Tag);
 
 public class VerticalTabLayout
 {
@@ -30,7 +30,7 @@ public class VerticalTabLayout
         this.drawMiddle = drawMiddle;
     }
 
-    void DrawButtonsLeft()
+    void DrawButtonsLeft(VerticalTabStyle mode)
     {
         if (TabsLeft.Count == 0)
             return;
@@ -38,7 +38,7 @@ public class VerticalTabLayout
         ImGui.BeginGroup();
         for (int i = 0; i < TabsLeft.Count; i++)
         {
-            if (TabHandler.VerticalTab(TabsLeft[i].Name, ActiveLeftTab == i))
+            if (TabHandler.VerticalTab(TabsLeft[i].Icon, TabsLeft[i].Name, mode, ActiveLeftTab == i))
             {
                 if (ActiveLeftTab == i && AllowClose)
                 {
@@ -55,14 +55,14 @@ public class VerticalTabLayout
         ImGui.PopStyleVar();
     }
 
-    void DrawButtonsRight()
+    void DrawButtonsRight(VerticalTabStyle mode)
     {
         if (TabsRight.Count == 0)
             return;
         ImGui.BeginGroup();
         for (int i = 0; i < TabsRight.Count; i++)
         {
-            if (TabHandler.VerticalTab(TabsRight[i].Name, ActiveRightTab == i))
+            if (TabHandler.VerticalTab(TabsRight[i].Icon, TabsRight[i].Name, mode, ActiveRightTab == i))
             {
                 if (ActiveRightTab == i)
                 {
@@ -77,9 +77,9 @@ public class VerticalTabLayout
         ImGui.EndGroup();
     }
 
-    void DrawMiddleColumn()
+    void DrawMiddleColumn(VerticalTabStyle mode)
     {
-        DrawButtonsLeft();
+        DrawButtonsLeft(mode);
         if (TabsRight.Count == 0)
         {
             ImGui.BeginGroup();
@@ -96,11 +96,11 @@ public class VerticalTabLayout
             drawMiddle();
             ImGui.EndChild();
             ImGui.SameLine();
-            DrawButtonsRight();
+            DrawButtonsRight(mode);
         }
     }
 
-    public void Draw()
+    public void Draw(VerticalTabStyle mode)
     {
         int count = 1;
         if (ActiveLeftTab >= 0)
@@ -110,7 +110,7 @@ public class VerticalTabLayout
 
         if (count == 1)
         {
-            DrawMiddleColumn();
+            DrawMiddleColumn(mode);
             return;
         }
 
@@ -134,7 +134,7 @@ public class VerticalTabLayout
         }
 
         ImGui.TableNextColumn();
-        DrawMiddleColumn();
+        DrawMiddleColumn(mode);
         if (ActiveRightTab >= 0) {
             ImGui.TableNextColumn();
             ImGui.BeginChild("##righttab");

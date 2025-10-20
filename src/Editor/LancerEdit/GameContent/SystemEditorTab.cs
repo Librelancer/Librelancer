@@ -113,10 +113,10 @@ public class SystemEditorTab : GameContentTab
         LoadSystem(system);
 
         layout = new VerticalTabLayout(DrawLeft, DrawRight, DrawMiddle);
-        layout.TabsLeft.Add(new($"{Icons.VectorSquare} Zones", 0));
-        layout.TabsLeft.Add(new($"{Icons.Cube} Objects", 1));
-        layout.TabsLeft.Add(new($"{Icons.Lightbulb} Lights", 2));
-        layout.TabsLeft.Add(new($"{Icons.Globe} System", 3));
+        layout.TabsLeft.Add(new(Icons.VectorSquare, "Zones", 0));
+        layout.TabsLeft.Add(new(Icons.Cube,"Objects", 1));
+        layout.TabsLeft.Add(new(Icons.Lightbulb,"Lights", 2));
+        layout.TabsLeft.Add(new(Icons.Globe, "System", 3));
     }
 
     public void ForceSelectObject(GameObject obj)
@@ -1561,7 +1561,7 @@ public class SystemEditorTab : GameContentTab
     private bool zonePosOpen = false;
     EditMap2D map2D = new();
     List<VerticalTab> blankTabs = new();
-    private List<VerticalTab> propertiesTab = new() { new($"{Icons.PenSquare} Properties", 0) };
+    private List<VerticalTab> propertiesTab = new() { new(Icons.PenSquare, "Properties", 0) };
 
     public override unsafe void Draw(double elapsed)
     {
@@ -1594,7 +1594,8 @@ public class SystemEditorTab : GameContentTab
             layout.TabsRight = blankTabs;
             layout.ActiveRightTab = -1;
         }
-        layout.Draw();
+
+        layout.Draw((VerticalTabStyle)win.Config.TabStyle);
         DrawMaps();
         DrawCamera();
         DrawZoneInfo();

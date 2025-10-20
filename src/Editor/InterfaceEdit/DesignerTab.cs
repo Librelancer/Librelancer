@@ -104,7 +104,7 @@ namespace InterfaceEdit
                 ImGui.EndChild();
                 ImGui.NextColumn();
             }
-            if (TabHandler.VerticalTab("Properties", propertiesOpen)) propertiesOpen = !propertiesOpen;
+            if (TabHandler.VerticalTab(Icons.PenSquare, "Properties", VerticalTabStyle.IconAndText, propertiesOpen)) propertiesOpen = !propertiesOpen;
             //Viewport
             ImGui.SameLine();
             ImGui.BeginChild("##maincontent");

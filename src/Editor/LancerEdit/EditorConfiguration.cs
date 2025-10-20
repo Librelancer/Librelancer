@@ -34,6 +34,8 @@ namespace LancerEdit
     [ParsedSection]
     public partial class EditorConfiguration : IRendererSettings
     {
+        [Entry("tab_style")]
+        public int TabStyle;
         [Entry("msaa")]
         public int MSAA;
         [Entry("texture_filter")]
@@ -135,6 +137,7 @@ namespace LancerEdit
                 return;
             var b = new IniBuilder();
             var c = b.Section("Config")
+                .Entry("tab_style", TabStyle)
                 .Entry("msaa", MSAA)
                 .Entry("texture_filter", TextureFilter)
                 .Entry("view_buttons", ViewButtons)

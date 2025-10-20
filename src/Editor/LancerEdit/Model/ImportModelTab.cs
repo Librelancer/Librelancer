@@ -524,13 +524,14 @@ public class ImportModelTab : EditorTab
     public override void Draw(double elapsed)
     {
         ImGui.BeginGroup();
-        if (TabHandler.VerticalTab("Input Nodes", tabNo == 0))
+        var vm = (VerticalTabStyle)win.Config.TabStyle;
+        if (TabHandler.VerticalTab(Icons.ArrowLeft, "Input Nodes", vm,tabNo == 0))
             tabNo = 0;
         if (preview != null)
         {
-            if (TabHandler.VerticalTab("Output Nodes", tabNo == 1))
+            if (TabHandler.VerticalTab(Icons.ArrowRight, "Output Nodes", vm, tabNo == 1))
                 tabNo = 1;
-            if (TabHandler.VerticalTab("Preview", tabNo == 2))
+            if (TabHandler.VerticalTab(Icons.Eye, "Preview", vm, tabNo == 2))
                 tabNo = 2;
         }
         ImGui.EndGroup();
