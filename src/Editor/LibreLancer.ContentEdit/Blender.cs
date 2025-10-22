@@ -106,6 +106,8 @@ public class Blender
             bytes[5] != 0x45 ||
             bytes[6] != 0x52)
             return false;
+        if (bytes[7] == '1')
+            return true; // Blender 5.0
         if (bytes[7] != 0x2D && bytes[7] != 0x5F) //- or _ pointer size
             return false;
         if (bytes[8] != 0x76 && bytes[7] != 0x56) //v or V endianness
