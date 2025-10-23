@@ -417,7 +417,7 @@ namespace LancerEdit
                     WalkthroughKeyboardControls();
                 }
             }
-            else if (io.MouseDown[1] != 0)
+            else if (!io.WantCaptureKeyboard)
                 WalkthroughKeyboardControls();
         }
         void WalkthroughKeyboardControls()
@@ -436,12 +436,12 @@ namespace LancerEdit
             }
             if (mw.Keyboard.IsKeyDown(Keys.A))
             {
-                var x = Vector3.Transform(Vector3.UnitX, rotmat);
+                var x = Vector3.Transform(-Vector3.UnitX, rotmat);
                 CameraOffset += x * (float)mw.TimeStep * ModelScale;
             }
             else if (mw.Keyboard.IsKeyDown(Keys.D))
             {
-                var x = Vector3.Transform(-Vector3.UnitX, rotmat);
+                var x = Vector3.Transform(Vector3.UnitX, rotmat);
                 CameraOffset += x * (float)mw.TimeStep * ModelScale;
             }
             if (mw.Keyboard.IsKeyDown(Keys.E))
