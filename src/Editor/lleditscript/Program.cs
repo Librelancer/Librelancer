@@ -171,6 +171,16 @@ namespace lleditscript
             return 0;
         }
 
+        static string ReadScript(string filePath)
+        {
+            var scriptText = File.ReadAllText(filePath);
+            if (scriptText.StartsWith("#!"))
+            {
+                scriptText = "#line 1\n" + scriptText.Substring(scriptText.IndexOf('\n'));
+            }
+            return scriptText;
+        }
+
 
         static int Main(string[] args)
         {
@@ -259,25 +269,29 @@ namespace lleditscript
                     modulePath ? $"-m {args[argStart]}" : args[argStart]));
             }
 
-            scriptText = File.ReadAllText(filePath);
-
-            if (scriptText.StartsWith("#!"))
-            {
-                scriptText = "#line 1\n" + scriptText.Substring(scriptText.IndexOf('\n'));
-            }
+            scriptText = ReadScript(filePath);
 
             try
             {
-                var opts = ScriptOptions.Default.WithReferences(
-                    typeof(Vector3).Assembly, typeof(FreelancerData).Assembly,
-                    typeof(FreelancerGame).Assembly, typeof(string).Assembly,
-                    typeof(EditableUtf).Assembly, typeof(Game).Assembly)
-                    .WithImports(Namespaces).WithAllowUnsafe(true).WithFilePath(filePath);
                 var globals = new Globals(scriptArguments,
                     modulePath ? $"-m {args[argStart]}" : args[argStart]);
                 if (testCompile)
                 {
-                    return CompileScript(filePath, scriptText) == null ? 1 : 0;
+                    Console.WriteLine($"Compiling '{filePath}'");
+                    if (CompileScript(filePath, scriptText) == null)
+                        return 1;
+                    foreach (var f in scriptArguments)
+                    {
+                        Console.WriteLine($"Compiling '{f}'");
+                        if (!File.Exists(filePath))
+                        {
+                            Console.Error.WriteLine("Script file '{0}' not found", filePath);
+                            return 2;
+                        }
+                        if (CompileScript(f, ReadScript(f)) == null)
+                            return 1;
+                    }
+                    return 0;
                 }
                 else if (compile)
                 {

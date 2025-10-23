@@ -410,10 +410,9 @@ namespace BuildLL
             Target("Test", DependsOn("GenerateVersion", "ShaderDependencies"), () => {
                 Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj");
                 Console.WriteLine("Testing compile of editor scripts");
-                foreach(var f in Directory.GetFiles("./src/Editor/LancerEdit/editorscripts", "*.cs-script")) {
-                    Console.WriteLine($"Compiling '{f}'");
-                    Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", $"--test-compile \"{f}\"");
-                }
+                var files = Directory.GetFiles("./src/Editor/LancerEdit/editorscripts", "*.cs-script").Select(Quote);
+                var args = $"--test-compile {string.Join(' ', files)}";
+                Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", args);
             });
 
             static void TarDirectory(string file, string dir)
