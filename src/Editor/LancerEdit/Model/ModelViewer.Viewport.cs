@@ -37,7 +37,6 @@ namespace LancerEdit
 
         float gizmoScale;
         float normalLength = 1;
-        const float RADIUS_ONE = 21.916825f;
         void SetupViewport()
         {
             modelViewport = new Viewport3D(_window);
@@ -53,10 +52,10 @@ namespace LancerEdit
             gizmoScale = 5;
             if (vmsModel != null)
             {
-                gizmoScale = vmsModel.GetRadius() / RADIUS_ONE;
+                gizmoScale = vmsModel.GetRadius() / GizmoRender.ScaleFactor;
             }
             else if (drawable is DF.DfmFile dfm) {
-                gizmoScale = dfm.GetRadius() / RADIUS_ONE;
+                gizmoScale = dfm.GetRadius() / GizmoRender.ScaleFactor;
             }
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;

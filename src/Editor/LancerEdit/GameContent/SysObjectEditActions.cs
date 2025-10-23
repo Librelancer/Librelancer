@@ -27,14 +27,14 @@ public abstract class SysObjectModification<T>(GameObject target, SystemObjectLi
     protected abstract void SetData(ObjectEditData data, T value);
 }
 
-public class ObjectSetTransform(GameObject target, SystemObjectList list,Transform3D old, Transform3D updated, SystemObjectList objList)
+public class ObjectSetTransform(GameObject target, SystemObjectList list,Transform3D old, Transform3D updated)
     : SysObjectModification<Transform3D>(target, list, old, updated, "SetTransform")
 {
     protected override void SetData(ObjectEditData data, Transform3D value)
     {
         Target.SetLocalTransform(value);
-        if (objList.Selection.Count > 0 && objList.Selection[0] == Target)
-            objList.SelectedTransform = value.Matrix();
+        if (list.Selection.Count > 0 && list.Selection[0] == Target)
+            list.SelectedTransform = value.Matrix();
     }
 }
 
@@ -101,6 +101,16 @@ public class ObjectSetDock(GameObject target, SystemObjectList list, DockAction 
         data.Dock = value;
     }
 }
+
+public class ObjectSetParent(GameObject target, SystemObjectList list, string old, string updated)
+    : SysObjectModification<string>(target, list, old, updated, "SetParent")
+{
+    protected override void SetData(ObjectEditData data, string value)
+    {
+        data.ParentObject = value;
+    }
+}
+
 
 public class ObjectSetComment(GameObject target, SystemObjectList list, string old, string updated)
     : SysObjectModification<string>(target, list, old, updated, "SetComment")

@@ -174,7 +174,7 @@ public class EditMap2D
                 {
                     ImGui.Text(obj.Nickname);
 
-                    var ed = tab.GetEditData(obj, false);
+                    var ed = obj.GetEditData(false);
                     var arch = (ed == null) ? obj.SystemObject.Archetype : ed.Archetype;
                     var star = (ed == null) ? obj.SystemObject.Star : ed.Star;
                     if (star != null)
@@ -207,8 +207,7 @@ public class EditMap2D
 
         if (dragCurrent == null && dragTarget != null)
         {
-            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform,
-                dragTarget.LocalTransform, tab.ObjectsList));
+            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform, dragTarget.LocalTransform));
             dragTarget = null;
         }
 

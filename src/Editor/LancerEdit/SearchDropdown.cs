@@ -23,6 +23,10 @@ public class SearchDropdown<T>
     private (T Item, int Index)[] allChoices;
     private (T Item, int Index)[] currentChoices;
 
+    // Track current highlight state
+    public bool IsOpen { get; private set; }
+    public T Hovered { get; private set; }
+
 
     public SearchDropdown(
         string id,
@@ -54,6 +58,9 @@ public class SearchDropdown<T>
 
     public unsafe void Draw()
     {
+        IsOpen = false;
+        Hovered = default;
+
         var szButton = ImGui.GetFrameHeight();
         ImGui.PushID(id);
         if (activate)
@@ -99,6 +106,9 @@ public class SearchDropdown<T>
                 ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove |
                 ImGuiWindowFlags.ChildWindow))
         {
+            IsOpen = true;
+            if(selectedIndex > 0 && selectedIndex < currentChoices.Length)
+                Hovered = currentChoices[selectedIndex].Item;
             popupShown--;
             if (popupShown < 0) popupShown = 0;
             if (!visibleLastFrame)
@@ -136,6 +146,10 @@ public class SearchDropdown<T>
                     SetSelected(currentChoices[i].Item);
                     onSelected(currentChoices[i].Item);
                     ImGui.CloseCurrentPopup();
+                }
+                if (ImGui.IsItemHovered())
+                {
+                    Hovered = currentChoices[i].Item;
                 }
                 if ((popupShown > 0  || nextAction != 0) && isSelected) {
                     ImGui.SetScrollHereY();

@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImGuiNET;
+using LancerEdit.GameContent.Lookups;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
@@ -212,6 +213,7 @@ public class SystemEditorTab : GameContentTab
         {
             map2D.Draw(SystemData, World, Data, this, win.RenderContext);
         }
+        gizmoPreviews = [];
     }
 
     void DrawGL(int width, int height)
@@ -282,7 +284,7 @@ public class SystemEditorTab : GameContentTab
         World.Renderer.LoadLights(CurrentSystem);
         World.Renderer.LoadStarspheres(CurrentSystem);
         systemMap.SetObjects(CurrentSystem);
-        renderer.PhysicsHook = RenderZones;
+        renderer.PhysicsHook = RenderEditorObjects;
         renderer.OpaqueHook = RenderOpaque;
         SystemData = new SystemEditData(CurrentSystem);
         //Setup UI
@@ -625,24 +627,10 @@ public class SystemEditorTab : GameContentTab
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
     }
 
-    public ObjectEditData GetEditData(GameObject obj, bool create = true)
-    {
-        if (!obj.TryGetComponent<ObjectEditData>(out var d))
-        {
-            if (create)
-            {
-                d = new ObjectEditData(obj);
-                obj.AddComponent(d);
-            }
-        }
-
-        return d;
-    }
-
 
     public void SetArchetypeLoadout(GameObject obj, Archetype archetype, ObjectLoadout loadout, Sun star)
     {
-        var ed = GetEditData(obj);
+        var ed = obj.GetEditData();
         ed.Archetype = archetype;
         ed.Loadout = loadout;
         ed.Star = star;
@@ -727,7 +715,7 @@ public class SystemEditorTab : GameContentTab
 
     void ObjectProperties(GameObject sel)
     {
-        var ed = GetEditData(sel, false);
+        var ed = sel.GetEditData(false);
         var gc = sel.Content();
         if (ImGui.Button("Get Ini"))
         {
@@ -773,8 +761,7 @@ public class SystemEditorTab : GameContentTab
             {
                 if (kind == SetActionKind.Commit)
                 {
-                    UndoBuffer.Commit(new ObjectSetTransform(sel, ObjectsList, oldTr, oldTr with { Position = value },
-                        ObjectsList));
+                    UndoBuffer.Commit(new ObjectSetTransform(sel, ObjectsList, oldTr, oldTr with { Position = value }));
                 }
                 else if (kind == SetActionKind.Revert)
                 {
@@ -796,8 +783,7 @@ public class SystemEditorTab : GameContentTab
                 var newOrient = MathHelper.QuatFromEulerDegrees(value);
                 if (kind == SetActionKind.Commit)
                 {
-                    UndoBuffer.Commit(new ObjectSetTransform(sel, ObjectsList, oldTr, oldTr with { Orientation = newOrient },
-                        ObjectsList));
+                    UndoBuffer.Commit(new ObjectSetTransform(sel, ObjectsList, oldTr, oldTr with { Orientation = newOrient }));
                 }
                 else if (kind == SetActionKind.Revert)
                 {
@@ -845,6 +831,16 @@ public class SystemEditorTab : GameContentTab
                 oldLoadout,
                 sel.GetHardpoints().Select(x => x.Name).ToArray(),
                 Data));
+        }
+
+        Controls.PropertyRow("Parent", gc.ParentObject ?? "(none)");
+        if (ImGui.Button($"{Icons.Edit}##parent"))
+        {
+            Popups.OpenPopup(new ParentSelectPopup(
+                ObjectsList.Objects.Where(x => x != sel),
+                Data, World.GetObject(gc.ParentObject),
+                x => UndoBuffer.Commit(new ObjectSetParent(sel, ObjectsList, gc.ParentObject, x?.Nickname))
+                ));
         }
 
         //Visit
@@ -1011,7 +1007,7 @@ public class SystemEditorTab : GameContentTab
                 bool canReset = false;
                 foreach (var obj in ObjectsList.Selection)
                 {
-                    if (GetEditData(obj, false) != null)
+                    if (obj.GetEditData(false) != null)
                     {
                         canReset = true;
                         break;
@@ -1033,10 +1029,47 @@ public class SystemEditorTab : GameContentTab
 
                     ObjectsList.SetObjects(World);
                 }
+                if (ObjectsList.Selection.Count == 2)
+                {
+                    if (ImGui.Button("Join Objects"))
+                    {
+                        Popups.OpenPopup(new HardpointJoinPopup(ObjectsList.Selection[0], ObjectsList.Selection[1],
+                            (hp, childHp, setParent) =>
+                            {
+                                var child = childHp == null
+                                    ? Transform3D.Identity
+                                    : childHp.Transform.Inverse();
+                                var attachment = hp?.Transform ?? Transform3D.Identity;
+                                var tr = child * attachment * ObjectsList.Selection[0].LocalTransform;
+                                var setTr = new ObjectSetTransform(
+                                    ObjectsList.Selection[1], ObjectsList, ObjectsList.Selection[1].LocalTransform,
+                                    tr);
+                                if (setParent)
+                                {
+                                    UndoBuffer.Commit(EditorAggregateAction.Create([
+                                        new ObjectSetParent(ObjectsList.Selection[1], ObjectsList,
+                                            ObjectsList.Selection[1].Content().ParentObject,
+                                            ObjectsList.Selection[0].Nickname),
+                                        setTr
+                                    ]));
+                                }
+                                else
+                                {
+                                    UndoBuffer.Commit(setTr);
+                                }
+                            }, PreviewGizmos));
+                    }
+                }
             }
             else
                 ImGui.Text("No Object Selected");
         });
+    }
+
+    private HpGizmoData[] gizmoPreviews = [];
+    void PreviewGizmos(HpGizmoData[] previews)
+    {
+        gizmoPreviews = previews;
     }
 
     void UpdateAttenuation(LightSource light, string curveName, Vector3 attenuation)
@@ -1344,7 +1377,7 @@ public class SystemEditorTab : GameContentTab
         Color4.LimeGreen,
     };
 
-    private void RenderZones()
+    private void RenderEditorObjects()
     {
         ZoneRenderer.Begin(win.RenderContext, camera);
         foreach (var ez in ZoneList.Zones)
@@ -1399,6 +1432,11 @@ public class SystemEditorTab : GameContentTab
                     new Vector3(-LightsList.Selected.Light.Range),
                     new Vector3(LightsList.Selected.Light.Range)), tr, Color4.Yellow);
             }
+        }
+
+        foreach (var p in gizmoPreviews)
+        {
+            GizmoRender.AddGizmo(renderer.DebugRenderer, p.Scale, p.Transform.Matrix(), Color4.Yellow);
         }
     }
 
@@ -1654,7 +1692,7 @@ public class SystemEditorTab : GameContentTab
                 {
                     ObjectsList.Selection[i]
                         .SetLocalTransform(Transform3D.FromMatrix(ImGuizmo.ApplyDelta(ObjectsList.Selection[i].LocalTransform.Matrix(), delta, op)));
-                    GetEditData(ObjectsList.Selection[i]);
+                    ObjectsList.Selection[i].GetEditData();
                 }
             }
 
@@ -1662,7 +1700,7 @@ public class SystemEditorTab : GameContentTab
             if (!ImGuizmo.IsUsing() && manipulatingObjects)
             {
                 var actions = originalObjTransforms.Select(x => (EditorAction)new
-                    ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.LocalTransform, ObjectsList)).ToArray();
+                    ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.LocalTransform)).ToArray();
                 UndoBuffer.Push(EditorAggregateAction.Create(actions));
                 manipulatingObjects = false;
                 originalObjTransforms = new();

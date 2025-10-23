@@ -11,6 +11,9 @@ public abstract class ObjectLookup<T> where T : class
     private Display sel;
 
     public T Selected => sel?.Value;
+    public T Hovered => dropdown?.Hovered?.Value;
+    public bool IsOpen => dropdown.IsOpen;
+
     private SearchDropdown<Display> dropdown;
 
     protected void CreateDropdown(string id, IEnumerable<T> values, Func<T,string> name, T initial)

@@ -30,7 +30,7 @@ namespace LancerEdit
             var outerRadius = radius + width * 0.5f;
 
             var notchRadius = outerRadius + width;
-           
+
             var x = Math.Sin(min);
             var y = Math.Cos(min);
 
@@ -74,7 +74,7 @@ namespace LancerEdit
 
         static readonly int[] gizmoIndices =
         {
-            0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 
+            0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4,
             4,5,1, 6,7,8, 6,8,9, 6,9,10, 6,10,7, 7,11,8,
             8,11,9,9,11,10,10,11,7
         };
@@ -97,6 +97,9 @@ namespace LancerEdit
             };
             lr.DrawTriangleMesh(tr, vertices, gizmoIndices, color);
         }
-        
+
+        public const float ScaleFactor = 21.916825f;
+
+
     }
 }

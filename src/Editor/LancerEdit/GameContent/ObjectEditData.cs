@@ -22,6 +22,7 @@ public interface IObjectData
     Base Base { get; }
     DockAction Dock { get;  }
     string Comment { get; }
+    string ParentObject { get; }
 }
 
 class SystemObjectAccessor : IObjectData
@@ -39,6 +40,7 @@ class SystemObjectAccessor : IObjectData
     public Faction Reputation => sysobj.Reputation;
     public Base Base => sysobj.Base;
     public DockAction Dock => sysobj.Dock;
+    public string ParentObject => sysobj.Parent;
     public string Comment => sysobj.Comment;
 }
 
@@ -52,12 +54,15 @@ public static class GameObjectExtensions
         return new SystemObjectAccessor(go.SystemObject);
     }
 
-    public static ObjectEditData GetEditData(this GameObject go)
+    public static ObjectEditData GetEditData(this GameObject go, bool create = true)
     {
         if (!go.TryGetComponent<ObjectEditData>(out var d))
         {
-            d = new ObjectEditData(go);
-            go.AddComponent(d);
+            if (create)
+            {
+                d = new ObjectEditData(go);
+                go.AddComponent(d);
+            }
         }
         return d;
     }
@@ -95,6 +100,8 @@ public class ObjectEditData : GameComponent, IObjectData
 
     public SystemObject SystemObject => sysobj;
 
+    public string ParentObject { get; set; }
+
     public ObjectEditData(GameObject parent) : base(parent)
     {
         sysobj = parent.SystemObject;
@@ -110,6 +117,7 @@ public class ObjectEditData : GameComponent, IObjectData
         Base = sysobj.Base;
         Dock = sysobj.Dock;
         Comment = sysobj.Comment;
+        ParentObject = sysobj.Parent;
     }
 
     public ObjectEditData MakeCopy()
@@ -152,6 +160,7 @@ public class ObjectEditData : GameComponent, IObjectData
             sysobj.Reputation != Reputation ||
             sysobj.Base != Base ||
             sysobj.Dock != Dock ||
+            sysobj.Parent != ParentObject ||
             sysobj.Comment != Comment;
     }
 
@@ -180,6 +189,7 @@ public class ObjectEditData : GameComponent, IObjectData
         sysobj.Reputation = Reputation;
         sysobj.Base = Base;
         sysobj.Dock = Dock;
+        sysobj.Parent = ParentObject;
         sysobj.Comment = Comment;
         if (Parent != null)
         {
