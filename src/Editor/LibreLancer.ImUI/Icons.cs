@@ -18,6 +18,7 @@ public static class Icons
     public const char BezierCurve = '\uf55b';
     public const char Book = '\uf02d';
     public const char BookOpen = '\uf518';
+    public const char BoxOpen = '\uf49e';
     public const char Check = '\uf00c';
     public const char Info = '\uf129';
     public const char File = '\uf15b';

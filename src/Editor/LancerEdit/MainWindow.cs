@@ -579,7 +579,7 @@ namespace LancerEdit
 
             if (ImGui.BeginMenu("Data"))
             {
-                if (Theme.IconMenuItem(Icons.Info, "Load Data", true))
+                if (Theme.IconMenuItem(Icons.BoxOpen, "Load Data", true))
                 {
                     var dataTabCount = TabControl.Tabs.OfType<GameContentTab>().Count();
                     if (dataTabCount > 0)
