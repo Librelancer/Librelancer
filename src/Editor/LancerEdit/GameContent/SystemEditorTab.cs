@@ -199,7 +199,6 @@ public class SystemEditorTab : GameContentTab
             }
 
             viewport.Draw();
-
             if (ManipulateObjects() || ManipulateZone() || ManipulateLight())
             {
                 viewport.SetInputsEnabled(false);
@@ -1416,7 +1415,10 @@ public class SystemEditorTab : GameContentTab
             to = arcballTarget;
             from += to;
         }
-
+        if ((from - to).LengthSquared() < 0.0001f)
+        {
+            from -= dir; //Disable zero rotation
+        }
         camera.Update(viewport.ControlWidth, viewport.ControlHeight, from, to, rot);
         World.Update(elapsed);
     }
