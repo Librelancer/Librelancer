@@ -22,16 +22,60 @@ namespace LancerEdit
         {
             if (loaded) return;
             loaded = true;
-            vertices = new VertexBuffer(context, typeof(VertexPosition), 6);
+            vertices = new VertexBuffer(context, typeof(VertexPosition), 25);
             vertices.SetData<VertexPosition>(new[]
             {
-                new VertexPosition(new Vector3(1,1,0)),
-                new VertexPosition(new Vector3(-1,-1,0)),
-                new VertexPosition(new Vector3(-1,1,0)),
-                new VertexPosition(new Vector3(-1,-1,0)),
-                new VertexPosition(new Vector3(1,1,0)),
-                new VertexPosition(new Vector3(1, -1, 0)),
+                new VertexPosition(new Vector3(-1.0f, -1.0f, 0f)),
+                new VertexPosition(new Vector3(-0.5f, -1.0f, 0f)),
+                new VertexPosition(new Vector3( 0.0f, -1.0f, 0f)),
+                new VertexPosition(new Vector3( 0.5f, -1.0f, 0f)),
+                new VertexPosition(new Vector3( 1.0f, -1.0f, 0f)),
+
+                new VertexPosition(new Vector3(-1.0f, -0.5f, 0f)),
+                new VertexPosition(new Vector3(-0.5f, -0.5f, 0f)),
+                new VertexPosition(new Vector3( 0.0f, -0.5f, 0f)),
+                new VertexPosition(new Vector3( 0.5f, -0.5f, 0f)),
+                new VertexPosition(new Vector3( 1.0f, -0.5f, 0f)),
+
+                new VertexPosition(new Vector3(-1.0f,  0.0f, 0f)),
+                new VertexPosition(new Vector3(-0.5f,  0.0f, 0f)),
+                new VertexPosition(new Vector3( 0.0f,  0.0f, 0f)),
+                new VertexPosition(new Vector3( 0.5f,  0.0f, 0f)),
+                new VertexPosition(new Vector3( 1.0f,  0.0f, 0f)),
+
+                new VertexPosition(new Vector3(-1.0f,  0.5f, 0f)),
+                new VertexPosition(new Vector3(-0.5f,  0.5f, 0f)),
+                new VertexPosition(new Vector3( 0.0f,  0.5f, 0f)),
+                new VertexPosition(new Vector3( 0.5f,  0.5f, 0f)),
+                new VertexPosition(new Vector3( 1.0f,  0.5f, 0f)),
+
+                new VertexPosition(new Vector3(-1.0f,  1.0f, 0f)),
+                new VertexPosition(new Vector3(-0.5f,  1.0f, 0f)),
+                new VertexPosition(new Vector3( 0.0f,  1.0f, 0f)),
+                new VertexPosition(new Vector3( 0.5f,  1.0f, 0f)),
+                new VertexPosition(new Vector3( 1.0f,  1.0f, 0f))
             });
+            elements = new ElementBuffer(context, 96);
+            elements.SetData(new ushort[]
+            {
+                0, 5, 1,   1, 5, 6,
+                1, 6, 2,   2, 6, 7,
+                2, 7, 3,   3, 7, 8,
+                3, 8, 4,   4, 8, 9,
+                5, 10, 6,  6, 10, 11,
+                6, 11, 7,  7, 11, 12,
+                7, 12, 8,  8, 12, 13,
+                8, 13, 9,  9, 13, 14,
+                10, 15, 11,  11, 15, 16,
+                11, 16, 12,  12, 16, 17,
+                12, 17, 13,  13, 17, 18,
+                13, 18, 14,  14, 18, 19,
+                15, 20, 16,  16, 20, 21,
+                16, 21, 17,  17, 21, 22,
+                17, 22, 18,  18, 22, 23,
+                18, 23, 19,  19, 23, 24
+            });
+            vertices.SetElementBuffer(elements);
         }
 
         public static float DistanceScale(float y)
@@ -83,7 +127,7 @@ namespace LancerEdit
             //Draw
             rstate.Shader = shader;
             rstate.DepthWrite = false;
-            vertices.Draw(PrimitiveTypes.TriangleList, 2);
+            vertices.Draw(PrimitiveTypes.TriangleList, 32);
             rstate.DepthWrite = true;
             //Restore State
             rstate.BlendMode = BlendMode.Opaque;
