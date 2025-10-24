@@ -144,6 +144,7 @@ namespace LancerEdit
                 const int PressedOnDoubleClick = 1 << 8;
                 const ImGuiButtonFlags Flags =
                     (ImGuiButtonFlags) (MouseButtonLeft | PressedOnClickRelease | PressedOnDoubleClick);
+                ImGui.SetNextItemAllowOverlap();
                 if (inputsEnabled)
                     click = ImGui.InvisibleButton("##button", new Vector2(ControlWidth, ControlHeight), Flags);
                 else

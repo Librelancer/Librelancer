@@ -152,7 +152,7 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
-    void DrawMiddle()
+    void DrawToolbar()
     {
         ImGuiExt.ButtonDivided("##viewmode", "3D", "2D", ref render3d);
         if (render3d)
@@ -187,6 +187,9 @@ public class SystemEditorTab : GameContentTab
                 tb.ToggleButtonItem("Zones", ref zonePosOpen);
             }
         }
+    }
+    void DrawMiddle()
+    {
         if (render3d)
         {
             viewport.Mode = (CameraModes)camModes[cameraMode].Tag;
@@ -199,6 +202,7 @@ public class SystemEditorTab : GameContentTab
                 renderer.SystemLighting.Lights.Add(new() { Active = LightsList.Visible[i], Light = LightsList.Sources[i].Light });
             }
 
+            var cpos = ImGui.GetCursorPos();
             viewport.Draw();
             if (ManipulateObjects() || ManipulateZone() || ManipulateLight())
             {
@@ -208,9 +212,12 @@ public class SystemEditorTab : GameContentTab
             {
                 viewport.SetInputsEnabled(true);
             }
+            ImGui.SetCursorPos(cpos + ImGui.GetStyle().FramePadding);
+            DrawToolbar();
         }
         else
         {
+            DrawToolbar();
             map2D.Draw(SystemData, World, Data, this, win.RenderContext);
         }
         gizmoPreviews = [];

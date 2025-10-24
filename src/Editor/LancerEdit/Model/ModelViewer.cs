@@ -226,6 +226,12 @@ namespace LancerEdit
 
         void DrawMiddle()
         {
+            var beforePos = ImGui.GetCursorPos();
+            DoViewport();
+            var afterPos = ImGui.GetCursorPos();
+            // Top toolbar
+            var framePadding = ImGui.GetStyle().FramePadding;
+            ImGui.SetCursorPos(beforePos + framePadding);
             var warnings = GetBrokenTextures();
             if (warnings.Length > 0)
             {
@@ -243,7 +249,8 @@ namespace LancerEdit
                 ct.CheckItem("Bounds", ref doBounds);
                 ct.CheckItem("Normals", ref drawNormals);
             }
-            DoViewport();
+            var yPos = ImGui.GetFrameHeightWithSpacing();
+            ImGui.SetCursorPos(afterPos + new Vector2(framePadding.X, -yPos - framePadding.Y));
             //
             var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
             ImGuiExt.DropdownButton("Camera Mode", ref selectedCam, camModes);

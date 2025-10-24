@@ -51,7 +51,7 @@ namespace LibreLancer.ImUI
             SetColor(ImGuiCol.FrameBgActive, VTabActive);
             SetColor(ImGuiCol.MenuBarBg, RGBA(66, 67, 69, 255));
             SetColor(ImGuiCol.ScrollbarBg, RGBA(51, 64, 77, 153));
-            SetColor(ImGuiCol.Button, RGBA(128, 128, 128, 88));
+            SetColor(ImGuiCol.Button, RGBA(66, 66, 66, 255));
             SetColor(ImGuiCol.TabSelected, RGBA(95, 97, 98, 255));
             SetColor(ImGuiCol.TabHovered, RGBA(66, 133, 190, 255));
             SetColor(ImGuiCol.Tab, RGBA(56, 57, 58, 255));

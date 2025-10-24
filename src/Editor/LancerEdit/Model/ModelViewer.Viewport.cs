@@ -263,7 +263,6 @@ namespace LancerEdit
         void DoViewport()
         {
             modelViewport.Background = doBackground ? _window.Config.Background : Color4.Black;
-            modelViewport.MarginH = 1.25f * ImGui.GetFrameHeightWithSpacing();
             modelViewport.Draw();
 
             if (lastCamera != null && ManipulateHardpoint(lastCamera))
