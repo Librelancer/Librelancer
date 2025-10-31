@@ -104,17 +104,24 @@ namespace LibreLancer.ContentEdit
 
         public EditResult<UtfStatistics> Save(string filename, int version)
         {
-            foreach (var node in Root.IterateAll())
+            try
             {
-                if(node.Children == null && node.Data == null)
+                foreach (var node in Root.IterateAll())
                 {
-                    return EditResult<UtfStatistics>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
+                    if(node.Children == null && node.Data == null)
+                    {
+                        return EditResult<UtfStatistics>.Error($"{GetUtfPath(node)} is empty. Can't write UTF");
+                    }
                 }
+                if (version == 0)
+                    return SaveV1(filename);
+                else
+                    return SaveV2(filename);
             }
-            if (version == 0)
-                return SaveV1(filename);
-            else
-                return SaveV2(filename);
+            catch (Exception e)
+            {
+               return EditResult<UtfStatistics>.Error(e.ToString());
+            }
         }
 
         EditResult<UtfStatistics> SaveV2(string filename)

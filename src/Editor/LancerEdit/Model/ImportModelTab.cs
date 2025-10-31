@@ -139,60 +139,69 @@ public class ImportModelTab : EditorTab
         }
     }
 
-
-    void FinishImport()
-    {
-        win.StartLoadingSpinner();
-        Task.Run(() =>
-        {
-            var result = output.CreateModel(new ModelImporterSettings
+    EditResult<string> CreateModel() =>
+        output.CreateModel(new ModelImporterSettings
             {
                 GenerateMaterials = generateMaterials,
                 ImportTextures = importTextures,
                 GeneratePlaceholderTextures = placeholderTextures,
                 ForceCompound = forceCompound,
                 AdvancedMaterials = advancedMaterials
-            });
-
-            EditResult<SurFile> sur = null;
-            if (generateSur &&
-                SurfaceBuilder.HasHulls(output))
+            })
+            .Then(x =>
             {
-                sur = SurfaceBuilder.CreateSur(output, forceCompound);
-            }
-
-            var allMessages = result.Messages.Concat(sur?.Messages ?? []).ToArray();
-            var createResult = new EditResult<bool>(true, allMessages);
-
-            var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
-            var modelPath = Path.Combine(outputPath, output.Name + ext);
-
-            if (createResult.IsSuccess)
-            {
-                var saved = result.Data.Save(modelPath, 0);
-                createResult.Messages.AddRange(saved.Messages);
-                if (saved.IsSuccess)
+                if (generateSur &&
+                    SurfaceBuilder.HasHulls(output))
                 {
-                    if (sur != null)
-                    {
-                        using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
+                    return EditResult<EditableUtf>.Merge(x, SurfaceBuilder.CreateSur(output, forceCompound));
+                }
+                return EditResult<EditableUtf>.Merge(x, new EditResult<SurFile>(null));
+            })
+            .Then(x =>
+            {
+                var ext = output.Root.Children.Count > 0 || forceCompound ? ".cmp" : ".3db";
+                var modelPath = Path.Combine(outputPath, output.Name + ext);
+                if (x.Data.Item2 != null)
+                {
+                    return EditResult<bool>.TryCatch(() =>
                         {
-                            sur.Data.Save(surOut);
-                        }
-                    }
-                    win.Config.LastExportPath = outputPath;
+                            using (var surOut = File.Create(Path.Combine(outputPath, output.Name + ".sur")))
+                                x.Data.Item2.Save(surOut);
+                            return true;
+                        })
+                        .Then(_ => x.Data.Item1.Save(modelPath, 0))
+                        .Then(_ => modelPath.AsResult());
                 }
-            }
-
-            win.QueueUIThread(() =>
-            {
-                win.ResultMessages(createResult);
-                if (createResult.IsSuccess)
-                {
-                    win.OpenFile(modelPath);
-                }
-                win.FinishLoadingSpinner();
+                return x.Data.Item1.Save(modelPath, 0)
+                    .Then(_ => modelPath.AsResult());
             });
+
+    void FinishImport()
+    {
+        win.StartLoadingSpinner();
+        Task.Run(CreateModel)
+            .ContinueWith(x =>
+        {
+            if (x.Exception != null)
+            {
+                win.QueueUIThread(() =>
+                {
+                    win.FinishLoadingSpinner();
+                    win.ErrorDialog(x.Exception.ToString());
+                });
+            }
+            else
+            {
+                win.QueueUIThread(() =>
+                {
+                    win.ResultMessages(x.Result);
+                    if (x.Result.IsSuccess)
+                    {
+                        win.OpenFile(x.Result.Data);
+                    }
+                    win.FinishLoadingSpinner();
+                });
+            }
         });
     }
 

@@ -496,7 +496,11 @@ public static class SurfaceBuilder
 
         if (!h.Hull.MakeConvex(true))
         {
-            return EditResult<HullData>.Error($"Creating convex hull for {h.Source} failed");
+            var volume = h.CalculateVolume();
+            if (volume < 0.0001f)
+                return EditResult<HullData>.Error($"Degenerate mesh, no volume.");
+            else
+                EditResult<HullData>.Error($"Degenerate mesh.");
         }
 
         if (h.Hull.Vertices.Count > 65535 || h.Hull.Indices.Count > 65535)
@@ -533,7 +537,6 @@ public static class SurfaceBuilder
         int edgeCount = 0;
 
         const float RayEpsilon = 1E-6f;
-        int missingHit = 0;
         for (int i = 0; i < hullData.FaceCount; i++)
         {
             var normal = hullData.Hull.FaceNormal(i);
@@ -544,7 +547,7 @@ public static class SurfaceBuilder
             face.Opposite = hit == -1 ? 1 : hit;
             if (hit == -1)
             {
-                missingHit++;
+                FLLog.Info("Sur", $"{hullData.Source}: Face {i} no opposite hit");
             }
 
             face.Flag = type == 5;
@@ -565,13 +568,6 @@ public static class SurfaceBuilder
             surf.Faces.Add(face);
         }
 
-        if (missingHit > 0)
-            return new EditResult<SurfaceHull>(surf, new[]
-            {
-                EditMessage.Warning(
-                    $"{hullData.Source}: {missingHit}/{hullData.FaceCount} faces could not calculate opposite")
-            });
-        else
-            return new EditResult<SurfaceHull>(surf);
+        return new EditResult<SurfaceHull>(surf);
     }
 }

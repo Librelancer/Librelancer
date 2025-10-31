@@ -827,7 +827,8 @@ namespace LancerEdit
                               ImGuiWindowFlags.NoMove |
                               ImGuiWindowFlags.NoResize |
                               ImGuiWindowFlags.NoBackground |
-                              ImGuiWindowFlags.NoDecoration);
+                              ImGuiWindowFlags.NoDecoration |
+                              ImGuiWindowFlags.NoScrollWithMouse);
 
             TabControl.TabLabels();
             var totalH = ImGui.GetWindowHeight();

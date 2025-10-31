@@ -61,6 +61,22 @@ public class HullData
         return true;
     }
 
+    public float CalculateVolume()
+    {
+        float totalVolume = 0.0f;
+        for (int i = 0; i < Hull.Indices.Count; i += 3)
+        {
+            Vector3 p1 = Hull.Vertices[Hull.Indices[i]];
+            Vector3 p2 = Hull.Vertices[Hull.Indices[i + 1]];
+            Vector3 p3 = Hull.Vertices[Hull.Indices[i + 2]];
+            // Compute the signed volume of the tetrahedron formed by the triangle and the origin
+            float tetrahedronVolume = Vector3.Dot(p1, Vector3.Cross(p2, p3)) / 6.0f;
+
+            totalVolume += tetrahedronVolume;
+        }
+        return totalVolume;
+    }
+
     public static EditResult<HullData> Calculate(IList<Vector3> points)
     {
         if (!Hull.TryQuickhull(points.ToArray(), out var hull))

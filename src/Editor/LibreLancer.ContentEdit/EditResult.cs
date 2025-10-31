@@ -38,6 +38,21 @@ public class EditResult<T>
 
     public bool IsSuccess => Messages.All(x => x.Kind != EditorMessageKind.Error);
 
+    public EditResult<TNext> Then<TNext>(Func<EditResult<T>, EditResult<TNext>> func)
+    {
+        if (IsSuccess)
+        {
+            var x = func(this);
+            return new(x.Data, Messages.Concat(x.Messages));
+        }
+        return new(default, Messages);
+    }
+
+    public static EditResult<(T, TOther)> Merge<TOther>(EditResult<T> self, EditResult<TOther> other)
+    {
+        return new((self.Data, other.Data), self.Messages.Concat(other.Messages).ToList());
+    }
+
     public static async Task<EditResult<T>> RunBackground(Func<EditResult<T>> func, CancellationToken cancellation = default)
     {
         try
