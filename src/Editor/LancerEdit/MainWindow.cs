@@ -258,6 +258,8 @@ namespace LancerEdit
             }
         }
 
+        private string GetDataPath() => OpenDataContext is not null ? OpenDataContext.Folder : Config.AutoLoadPath;
+
 
         bool openAbout = false;
         public TabControl TabControl = new TabControl();
@@ -551,9 +553,10 @@ namespace LancerEdit
 					var t = new UtfTab(this, new EditableUtf(), "Untitled");
                     AddTab(t);
 				}
+
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
 				{
-                    FileDialog.Open(OpenFile, AppFilters.UtfFilters + AppFilters.ThnFilters);
+                    FileDialog.Open(OpenFile, AppFilters.UtfFilters + AppFilters.ThnFilters, GetDataPath());
                 }
 
                 recentFiles.Menu(Popups);
@@ -641,7 +644,7 @@ namespace LancerEdit
                     FileDialog.Open(x =>
                     {
                         AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
-                    }, AppFilters.IniFilters);
+                    }, AppFilters.IniFilters, GetDataPath());
                 }
                 ImGui.EndMenu();
             }
@@ -661,7 +664,7 @@ namespace LancerEdit
                     var filters = Blender.BlenderPathValid(Config.BlenderPath)
                         ? AppFilters.ImportModelFilters
                         : AppFilters.ImportModelFiltersNoBlender;
-                    FileDialog.Open(TryImportModel, filters);
+                    FileDialog.Open(TryImportModel, filters, GetDataPath());
                 }
                 if (Theme.IconMenuItem(Icons.SyncAlt, "Convert Audio", EnableAudioConversion))
                 {
@@ -669,14 +672,14 @@ namespace LancerEdit
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
-                    FileDialog.Open(input => Make3dbDlg.Open(input), AppFilters.ImageFilter);
+                    FileDialog.Open(input => Make3dbDlg.Open(input), AppFilters.ImageFilter, GetDataPath());
                 }
                 if (Theme.IconMenuItem(Icons.Table, "State Graph", true))
                 {
                     FileDialog.Open(
                         input => AddTab(new StateGraphTab(this, new StateGraphDb(input, null), input)),
                         AppFilters.StateGraphFilter
-                        );
+                        , GetDataPath());
                 }
 
                 if (Theme.IconMenuItem(Icons.BezierCurve, "ParamCurve Visualiser", true))
