@@ -17,23 +17,9 @@ FlagOption("advanced", "Enable importing PBR maps and normal maps", v => advance
 var args = ParseArguments(2);
 AssertFileExists(args[0]);
 
-EditResult<Model> LoadModel(string filename)
-{
-    using var stream = File.OpenRead(filename);
-    var model = EditResult<Model>.TryCatch(() => SimpleMesh.Model.FromStream(stream).AutoselectRoot(out _).ApplyScale().ApplyRootTransforms(false).CalculateBounds());
-    PrintMessages(model);
-    if(model.IsError) return model;
-    foreach (var x in model.Data.Geometries)
-    {
-        if (x.Vertices.Length >= 65534) return EditResult<Model>.Error("Too many vertices");
-        if (x.Indices.Length >= 65534) return EditResult<Model>.Error("Too many vertices");
-    }
-    return model;
-}
-
 string modelName = Path.GetFileNameWithoutExtension(args[0]);
 
-var input = LoadModel(args[0]);
+var input = await SimpleMeshLoader.ModelFromFile(args[0]);
 PrintMessages(input);
 if(input.IsError)
     return;
