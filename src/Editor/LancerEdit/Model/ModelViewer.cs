@@ -495,9 +495,8 @@ namespace LancerEdit
 
         void ConstructContext(RigidModelPart con, bool mdlVisible)
         {
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                ImGui.OpenPopup(con.Construct.ChildName + "_context");
-            if(ImGui.BeginPopupContextItem(con.Construct.ChildName + "_context")) {
+            if(ImGui.BeginPopupContextItem(con.Construct.ChildName + "_context"))
+            {
                 if (con.Mesh != null)
                 {
                     //Visibility of model (this is bad)
@@ -725,9 +724,8 @@ namespace LancerEdit
         ContextActions NewHpMenu(string n)
         {
             var retval = ContextActions.None;
-            if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                ImGui.OpenPopup(n + "_HardpointContext");
-            if(ImGui.BeginPopupContextItem(n + "_HardpointContext")) {
+            if(ImGui.BeginPopupContextItem(n + "_HardpointContext"))
+            {
                 if(Theme.BeginIconMenu(Icons.PlusCircle, "New")) {
                     if (Theme.IconMenuItem(Icons.Cube_Purple, "Fixed Hardpoint",true)) retval = ContextActions.NewFixed;
                     if (Theme.IconMenuItem(Icons.Rev_LightSeaGreen, "Revolute Hardpoint",true)) retval = ContextActions.NewRevolute;
@@ -740,8 +738,6 @@ namespace LancerEdit
         ContextActions EditDeleteHpMenu(string n)
         {
             ContextActions act = ContextActions.None;
-            if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                ImGui.OpenPopup(n + "_HardpointEditCtx");
             if(ImGui.BeginPopupContextItem(n + "_HardpointEditCtx"))
             {
                 if(Theme.IconMenuItem(Icons.Edit, "Edit",true)) act = ContextActions.Edit;
@@ -902,9 +898,7 @@ namespace LancerEdit
 
         void RootModelContext(bool rootVisible)
         {
-            if (vmsModel.Root != null && ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                ImGui.OpenPopup(Unique + "_mdl_rootpopup");
-            if (ImGui.BeginPopupContextItem(Unique + "_mdl_rootpopup"))
+            if (vmsModel.Root != null && ImGui.BeginPopupContextItem(Unique + "_mdl_rootpopup"))
             {
                 bool visibleVar = rootVisible;
                 Theme.IconMenuToggle(Icons.Eye, "Visible", ref visibleVar, true);
@@ -962,8 +956,6 @@ namespace LancerEdit
                 {
                     var popup = $"{script.Key}Popup";
                     if (ImGui.Button(script.Key)) skel.StartScript(script.Value, 0, 1, 0);
-                    if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                        ImGui.OpenPopup(popup);
                     if (ImGui.BeginPopupContextItem(popup))
                     {
                         if(ImGui.MenuItem("Copy Nickname")) _window.SetClipboardText(script.Key);
