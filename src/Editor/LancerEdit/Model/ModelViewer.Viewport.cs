@@ -49,14 +49,7 @@ namespace LancerEdit
             previewViewport.Draw3D = ImageDraw;
             imageViewport = new Viewport3D(_window);
             imageViewport.Draw3D = ImageDraw;
-            gizmoScale = 5;
-            if (vmsModel != null)
-            {
-                gizmoScale = vmsModel.GetRadius() / GizmoRender.ScaleFactor;
-            }
-            else if (drawable is DF.DfmFile dfm) {
-                gizmoScale = dfm.GetRadius() / GizmoRender.ScaleFactor;
-            }
+            gizmoScale = DisplayRadius() / GizmoRender.ScaleFactor;
             wireframeMaterial3db = new Material(res);
             wireframeMaterial3db.Dc = Color4.White;
             wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
@@ -95,21 +88,21 @@ namespace LancerEdit
             }
         }
 
+        float DisplayRadius()
+        {
+            var r = vmsModel != null
+                ? vmsModel.GetRadius()
+                : (drawable as DF.DfmFile).GetRadius();
+            if (r <= 0.00001f)
+                r = 0.1f;
+            return r;
+        }
+
         void ResetCamera()
         {
-            if (vmsModel != null)
-            {
-                modelViewport.DefaultOffset =
-                    modelViewport.CameraOffset = new Vector3(0, 0, vmsModel.GetRadius() * 2);
-                modelViewport.ModelScale = vmsModel.GetRadius() / 2.6f;
-
-            }
-            else
-            {
-                var rad = (drawable as DF.DfmFile).GetRadius();
-                modelViewport.CameraOffset = modelViewport.DefaultOffset = new Vector3(0,0, rad  * 2);
-                modelViewport.ModelScale = rad / 2.6f;
-            }
+            var rad = DisplayRadius();
+            modelViewport.CameraOffset = modelViewport.DefaultOffset = new Vector3(0,0, rad  * 2);
+            modelViewport.ModelScale = rad / 2.6f;
             // This calculation could be better
             if (modelViewport.ModelScale > 750f)
             {
@@ -138,9 +131,6 @@ namespace LancerEdit
             public List<SurDrawCall> Draws = new List<SurDrawCall>();
             public RigidModelPart Part;
             public bool Hardpoint;
-
-            public List<VertexPositionColor> BuildVertices = new List<VertexPositionColor>();
-            public List<short> BuildIndices = new List<short>();
         }
 
         class SurDrawCall
