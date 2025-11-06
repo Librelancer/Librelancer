@@ -66,17 +66,16 @@ for obj in bpy.context.scene.objects:
         obj.empty_display_type = 'CUBE'
     elif re.search(r'\$lod\d$', obj.name):
         link_object_to_collection(obj, "LODs")
-        obj.hide_set(True)
-        obj.hide_render = True
     elif 'hull' in obj or re.search(r'\$hull\d$', obj.name):
         link_object_to_collection(obj, "Hulls")
-        obj.hide_set(True)
-        obj.hide_render = True
     elif 'vmeshwire' in obj or re.search(r'\.vmeshwire$', obj.name):
         link_object_to_collection(obj, "Wireframes")
-        obj.hide_set(True)
-        obj.hide_render = True
     elif 'HardpointGizmo' in obj.name:
         link_object_to_collection(obj, "Hardpoints")    
 
+bpy.context.view_layer.layer_collection.children["Hardpoints"].exclude = True
+bpy.context.view_layer.layer_collection.children["LODs"].exclude = True
+bpy.context.view_layer.layer_collection.children["Hulls"].exclude = True
+bpy.context.view_layer.layer_collection.children["Wireframes"].exclude = True
+bpy.context.scene.view_settings.view_transform = 'Filmic'
 bpy.ops.wm.save_as_mainfile(filepath=BLEND_FILEPATH)
