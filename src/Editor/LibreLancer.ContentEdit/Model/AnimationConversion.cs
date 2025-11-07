@@ -223,7 +223,7 @@ static class AnimationConversion
         {
             if(interval < 0)
                 eb.SetTime(ref c, i, rots.Keyframes[i].Time);
-            eb.SetAngle(ref c, i, angles[i]);
+            eb.SetAngle(ref c, i, outputAngles[i]);
         }
         return (c, new PrisRevProps(rotationAxis ?? Vector3.Zero, outputAngles.Min(), outputAngles.Max()));
     }
@@ -364,7 +364,7 @@ static class AnimationConversion
                         if(props.max > rev.Max)
                             messages.Add(EditMessage.Warning($"Rotation in '{anim.Name}' goes above target '{rot.Target}' max ({props.max} > {rev.Max})"));
                         if(Vector3.Distance(props.axis, rev.AxisRotation) > 0.1f)
-                            messages.Add(EditMessage.Warning($"Rotation in '{anim.Name}' does not follow target '{rot.Target}' rotation axis"));
+                            messages.Add(EditMessage.Warning($"Rotation in '{anim.Name}' may not follow target '{rot.Target}' rotation axis"));
                     }
 
                     jm.Channel = ch.Value;
