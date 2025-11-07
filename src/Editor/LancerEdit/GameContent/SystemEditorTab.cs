@@ -1548,7 +1548,6 @@ public class SystemEditorTab : GameContentTab
                 ed : new ObjectEditData(obj)).MakeCopy(), obj.LocalTransform);
     }
 
-
     public override void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
         if (hk == Hotkeys.Deselect)
@@ -1598,6 +1597,36 @@ public class SystemEditorTab : GameContentTab
             ObjectsList.SetObjects(World);
             ObjectsList.Selection = sel.Select(x => x.Object).ToList();
             ObjectsList.SelectedTransform = ObjectsList.Selection[0].LocalTransform.Matrix();
+        }
+
+        if (hk == Hotkeys.Copy && LightsMode && LightsList.Selected != null)
+        {
+            win.SystemEditCopy(LightsList.Selected.Clone());
+        }
+
+        if (hk == Hotkeys.Paste && LightsMode && win.SystemEditClipboard is LightSource pasteSource)
+        {
+            var toCreate = pasteSource.Clone();
+            while (LightsList.HasLight(toCreate.Nickname))
+            {
+                toCreate.Nickname = MakeCopyNickname(toCreate.Nickname);
+            }
+            UndoBuffer.Commit(new SysLightCreate(toCreate, this));
+        }
+
+        if (hk == Hotkeys.Copy && ZonesMode && ZoneList.Selected != null)
+        {
+            win.SystemEditCopy(ZoneList.Selected.Current.Clone());
+        }
+
+        if (hk == Hotkeys.Paste && ZonesMode && win.SystemEditClipboard is Zone pasteZone)
+        {
+            var toCreate = pasteZone.Clone();
+            while (ZoneList.HasZone(toCreate.Nickname))
+            {
+                toCreate.Nickname = MakeCopyNickname(toCreate.Nickname);
+            }
+            UndoBuffer.Commit(new SysZoneCreate(this, toCreate));
         }
     }
 

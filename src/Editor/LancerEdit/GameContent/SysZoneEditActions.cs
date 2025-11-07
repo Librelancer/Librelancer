@@ -23,16 +23,26 @@ public class SysZoneCreate(SystemEditorTab tab, string nickname, Vector3 positio
     private Zone z;
     public EditZone Zone;
 
+    public SysZoneCreate(SystemEditorTab t, Zone z) : this(t, z.Nickname, z.Position)
+    {
+        this.z = z;
+    }
+
     public override void Commit()
     {
-        z ??= new Zone();
+        if (z == null)
+        {
+            z = new Zone
+            {
+                Size = new Vector3(100, 0, 0),
+                Shape = ShapeKind.Sphere,
+                RotationMatrix = Matrix4x4.Identity,
+                DensityRestrictions = [],
+                Encounters = []
+            };
+        }
         z.Nickname = nickname;
         z.Position = position;
-        z.Size = new Vector3(100, 0, 0);
-        z.Shape = ShapeKind.Sphere;
-        z.RotationMatrix = Matrix4x4.Identity;
-        z.DensityRestrictions = [];
-        z.Encounters = [];
         Zone = tab.ZoneList.AddZone(z);
     }
 
