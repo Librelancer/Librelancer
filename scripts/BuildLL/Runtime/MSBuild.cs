@@ -24,18 +24,25 @@ namespace BuildLL
 
         static string VSPath(string ver, string[] editions, string msbuildVer, MSBuildPlatform platform)
         {
-            var pg = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            if(ver == "2022") pg = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles); //2022 is 64-bit
-            
-            foreach (var e in editions)
+            // VS 2022 can exist in either Program Files or X86
+            // Just check all combinations
+            string[] checkFolders =
+            [
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)
+            ];
+            foreach (var pg in checkFolders)
             {
-                var bin = Path.Combine(pg, "Microsoft Visual Studio", ver, e, "MSBuild", msbuildVer, "Bin");
-                paths.Add(bin);
-                if (Directory.Exists(bin))
+                foreach (var e in editions)
                 {
-                    if (platform == MSBuildPlatform.x64)
-                        return Path.Combine(bin, "amd64", "MSBuild.exe");
-                    return Path.Combine(bin, "MSBuild.exe");
+                    var bin = Path.Combine(pg, "Microsoft Visual Studio", ver, e, "MSBuild", msbuildVer, "Bin");
+                    paths.Add(bin);
+                    if (Directory.Exists(bin))
+                    {
+                        if (platform == MSBuildPlatform.x64)
+                            return Path.Combine(bin, "amd64", "MSBuild.exe");
+                        return Path.Combine(bin, "MSBuild.exe");
+                    }
                 }
             }
             return null;
