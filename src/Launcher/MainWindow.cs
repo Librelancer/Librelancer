@@ -6,10 +6,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Exceptions;
 using LibreLancer.ImUI;
-using ImGuiNET;
 using LibreLancer.Dialogs;
 using Microsoft.Win32;
 
@@ -18,16 +18,17 @@ namespace Launcher
     class MainWindow : Game
     {
         ImGuiHelper imGui;
-        public MainWindow() : base(500, 300, false, true)
+        public MainWindow() : base(640, 320, false, true)
         {
 
         }
         GameConfig config;
         protected override void Load()
         {
-            Title = "Librelancer";
+            Title = "Librelancer Launcher";
             imGui = new ImGuiHelper(this, 1);
             RenderContext.PushViewport(0, 0, Width, Height);
+
             freelancerFolder = new TextBuffer(512);
             config = GameConfig.Create();
             if (string.IsNullOrEmpty(config.FreelancerPath))
@@ -58,20 +59,17 @@ namespace Launcher
         float musicVolume;
         float sfxVolume;
         TextBuffer freelancerFolder;
+
         protected override void Draw(double elapsed)
         {
+            imGui.NewFrame(elapsed);
             RenderContext.ReplaceViewport(0, 0, Width, Height);
             RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
             RenderContext.ClearAll();
-            imGui.NewFrame(elapsed);
-            var fontSize = (int) (DpiScale * 24);
-            RenderContext.Renderer2D.DrawString("Arial", fontSize, "Librelancer", new Vector2(8), Color4.Black);
-            RenderContext.Renderer2D.DrawString("Arial", fontSize, "Librelancer", new Vector2(6), Color4.White);
-            var startY = RenderContext.Renderer2D.LineHeight("Arial", fontSize) + (int) (8 * DpiScale);
             ImGui.PushFont(ImGuiHelper.Roboto, 0);
             var size = (Vector2)ImGui.GetIO().DisplaySize;
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - startY), ImGuiCond.Always);
-            ImGui.SetNextWindowPos(new Vector2(0, startY), ImGuiCond.Always, Vector2.Zero);
+            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
+            ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
             bool childopened = true;
             ImGui.Begin("screen", ref childopened,
                 ImGuiWindowFlags.NoTitleBar |
@@ -87,6 +85,10 @@ namespace Launcher
                 ImGui.EndPopup();
             }
             ImGui.AlignTextToFramePadding();
+            ImGui.PushFont(ImGuiHelper.Roboto, 32);
+            ImGui.Text("Librelancer");
+            ImGui.PopFont();
+            ImGui.NewLine();
             ImGui.Text("Freelancer Directory: ");
             ImGui.SameLine();
             freelancerFolder.InputText("##folder", ImGuiInputTextFlags.None, 280);
@@ -111,9 +113,10 @@ namespace Launcher
             SoundSlider("Music Volume: ", ref musicVolume);
             SoundSlider("Sfx Volume: ", ref sfxVolume);
             ImGui.Checkbox("VSync", ref vsync);
-            ImGui.Dummy(new Vector2(16));
-            ImGui.Dummy(new Vector2(1));
-            ImGui.SameLine(ImGui.GetWindowWidth() - 70 * ImGuiHelper.Scale);
+            // ImGui.Dummy(new Vector2(16));
+            // ImGui.Dummy(new Vector2(1));
+            // ImGui.SameLine(ImGui.GetWindowWidth() - 70 * ImGuiHelper.Scale);
+            ImGui.NewLine();
             if (ImGui.Button("Launch")) LaunchClicked();
             ImGui.End();
             ImGui.PopFont();
