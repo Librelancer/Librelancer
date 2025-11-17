@@ -1,3 +1,7 @@
+// MIT License - Copyright (c) Callum McGing
+// This file is subject to the terms and conditions defined in
+// LICENSE, which is part of this source code package
+
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -8,33 +12,57 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.ImUI;
+using LibreLancer.Dialogs;
 using LibreLancer.Server;
+using Microsoft.Win32;
 
 namespace LLServer;
 
 public class MainWindow : Game
 {
     private ImGuiHelper guiRender;
-    public MainWindow() : base(800,600,false, true)
+    public MainWindow() : base(600, 600, false, true)
     {
-    }
 
+    }
     private AppLog log;
-    private string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
     private ServerApp server;
+
+    private string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
 
     protected override void Load()
     {
         log = new AppLog();
         FLLog.UIThread = this;
         FLLog.AppendLine += LogAppendLine;
+
+        Title = "Librelancer Server";
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
+
         if (File.Exists(configPath))
             config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
         else
         {
             config = new ServerConfig();
+
+            if (string.IsNullOrEmpty(config.FreelancerPath))
+            {
+                if (Platform.RunningOS == OS.Windows)
+                {
+                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
+                    string flPathRegistry = IntPtr.Size == 8
+                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
+                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
+                    var actualPath = (string) Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
+                    if(!string.IsNullOrEmpty(actualPath)) {
+                        config.FreelancerPath = actualPath;
+                    }
+                }
+            }
+            config.ServerName = "M9Universe";
+            config.ServerDescription = "My Cool Freelancer server";
+            config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
         }
     }
 
@@ -91,16 +119,22 @@ public class MainWindow : Game
         ImGui.Text(label);
         ImGui.InputText(id, ref text, 4096);
     }
+
     void StartupGui()
     {
+        ImGui.PushFont(ImGuiHelper.Roboto, 32);
         ImGui.Text("Server Configuration");
-        ImGui.Text($"Configuration file: '{configPath}'");
-        ImGui.Separator();
+        ImGui.PopFont();
+        ImGui.NewLine();
+        ImGui.PushItemWidth(540);
         InputTextLabel("Server Name", "##serverName", ref config.ServerName);
         ImGui.Text("Server Description");
         ImGui.InputTextMultiline("##description", ref config.ServerDescription, 4096, Vector2.Zero);
         InputTextLabel("Freelancer Path", "##flpath", ref config.FreelancerPath);
         InputTextLabel("Database File", "##dbfile", ref config.DatabasePath);
+        InputTextLabel("Configuration File", "##configfile", ref configPath);
+        ImGui.PopItemWidth();
+        ImGui.NewLine();
         if (ImGui.Button("Launch"))
         {
             isRunning = true;
