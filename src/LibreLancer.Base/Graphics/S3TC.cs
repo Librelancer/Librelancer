@@ -84,7 +84,7 @@ namespace LibreLancer.Graphics
             |0000000000111111111112222222222| // Byte
             into 16 8-bit indices.
         */
-        static void Decompress16x3bitIndices(Span<byte> packed, Span<byte> unpacked)
+        static void Decompress16x3bitIndices(ReadOnlySpan<byte> packed, Span<byte> unpacked)
         {
             uint tmp, block;
             int i;
@@ -112,7 +112,7 @@ namespace LibreLancer.Graphics
             }
         }
 
-        static void DecompressBlockBC1Internal(Span<byte> block, Span<byte> output, uint outputStride,
+        static void DecompressBlockBC1Internal(ReadOnlySpan<byte> block, Span<byte> output, uint outputStride,
             Span<byte> alphaValues)
         {
             uint temp, code;
@@ -224,12 +224,12 @@ namespace LibreLancer.Graphics
             255, 255, 255, 255
         };
 
-        static void DecompressBlockBC1 (int x, int y, uint stride, Span<byte> blockStorage, Span<byte> image)
+        static void DecompressBlockBC1 (int x, int y, uint stride, ReadOnlySpan<byte> blockStorage, Span<byte> image)
         {
             DecompressBlockBC1Internal (blockStorage, image.Slice( (int)(x * sizeof (uint) + (y * stride))), stride, const_alpha);
         }
 
-        static void BlockDecompressImageDXT1(int width, int height, Span<byte> blockStorage, Span<byte> image)
+        static void BlockDecompressImageDXT1(int width, int height, ReadOnlySpan<byte> blockStorage, Span<byte> image)
         {
             int blockCountX = (width + 3) / 4;
             int blockCountY = (height + 3) / 4;
@@ -271,7 +271,7 @@ namespace LibreLancer.Graphics
         byte *blockStorage:	pointer to the block to decompress.
         uint *image:				pointer to image where the decompressed pixel data should be stored.
         */
-        static void DecompressBlockBC3 (int x, int y, uint stride, Span<byte> blockStorage, Span<byte> image)
+        static void DecompressBlockBC3 (int x, int y, uint stride, ReadOnlySpan<byte> blockStorage, Span<byte> image)
         {
             byte alpha0, alpha1;
             Span<byte> alphaIndices  = stackalloc byte[16];
@@ -363,7 +363,7 @@ namespace LibreLancer.Graphics
             }
         }
 
-        static void BlockDecompressImageDXT5(int width, int height, Span<byte> blockStorage, Span<byte> image)
+        static void BlockDecompressImageDXT5(int width, int height, ReadOnlySpan<byte> blockStorage, Span<byte> image)
         {
             int blockCountX = (width + 3) / 4;
             int blockCountY = (height + 3) / 4;
@@ -406,7 +406,7 @@ const byte *blockStorage:	pointer to the block to decompress.
 uint *image:				pointer to image where the decompressed pixel data should be stored.
 */
         static void DecompressBlockBC2 (int x, int y, uint stride,
-        Span<byte> blockStorage, Span<byte> image)
+        ReadOnlySpan<byte> blockStorage, Span<byte> image)
         {
             int i;
 
@@ -431,7 +431,7 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
                 image.Slice( (int)(x * sizeof (uint) + (y * stride))), stride, alphaValues);
         }
 
-        static void BlockDecompressImageDXT3(int width, int height, Span<byte> blockStorage, Span<byte> image)
+        static void BlockDecompressImageDXT3(int width, int height, ReadOnlySpan<byte> blockStorage, Span<byte> image)
         {
             int blockCountX = (width + 3) / 4;
             int blockCountY = (height + 3) / 4;
@@ -467,7 +467,7 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
         public static Bgra8[] Decompress(SurfaceFormat format, int width, int height, byte[] input)
         {
             Bgra8[] bgra = new Bgra8[width * height];
-            var image = MemoryMarshal.Cast<Bgra8, byte>(bgra);
+            var image = MemoryMarshal.Cast<Bgra8, byte>(bgra.AsSpan());
             switch (format)
             {
                 case SurfaceFormat.Dxt1:

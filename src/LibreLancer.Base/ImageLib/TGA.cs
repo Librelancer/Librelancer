@@ -212,7 +212,7 @@ public static class TGA
             targetData = tgaData;
             if (bytesPerPixel == 2 && targetBytesPerPixel == 2)
             {
-                var src = MemoryMarshal.Cast<byte, ushort>(tgaData);
+                var src = MemoryMarshal.Cast<byte, ushort>(tgaData.AsSpan());
                 for (var i = 0; i < header.Width * header.Height; i++)
                 {
                     src[i] |= 32768; //16-bit TGA images shouldn't display with alpha, set to 1
@@ -224,8 +224,8 @@ public static class TGA
             targetData = new byte[header.Width * header.Height * targetBytesPerPixel];
             if (bytesPerPixel == 2 && targetBytesPerPixel == 4)
             {
-                var src = MemoryMarshal.Cast<byte, ushort>(tgaData);
-                var dst = MemoryMarshal.Cast<byte, uint>(targetData);
+                var src = MemoryMarshal.Cast<byte, ushort>(tgaData.AsSpan());
+                var dst = MemoryMarshal.Cast<byte, uint>(targetData.AsSpan());
                 for (var i = 0; i < header.Width * header.Height; i++)
                 {
                     var val = src[i];
@@ -240,7 +240,7 @@ public static class TGA
             }
             else if (bytesPerPixel == 3 && targetBytesPerPixel == 4)
             {
-                var dst = MemoryMarshal.Cast<byte, uint>(targetData);
+                var dst = MemoryMarshal.Cast<byte, uint>(targetData.AsSpan());
                 for (var i = 0; i < header.Width * header.Height; i++)
                 {
                     var j = i * 3;
@@ -252,7 +252,7 @@ public static class TGA
             }
             else if ((bytesPerPixel == 3 || bytesPerPixel == 4) && targetBytesPerPixel == 2)
             {
-                var dst = MemoryMarshal.Cast<byte, ushort>(targetData);
+                var dst = MemoryMarshal.Cast<byte, ushort>(targetData.AsSpan());
                 for (var i = 0; i < header.Width * header.Height; i++)
                 {
                     var j = i * bytesPerPixel;

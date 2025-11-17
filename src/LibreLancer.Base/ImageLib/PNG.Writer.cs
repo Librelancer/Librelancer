@@ -160,7 +160,7 @@ public static partial class PNG
         }
         Bgra8.ConvertFromRgba(buffer); //Reverse the swap, make it Rgba
         var (colorType, bpp) = Analyze(buffer);
-        var data = MemoryMarshal.Cast<Bgra8, byte>(buffer);
+        var data = MemoryMarshal.Cast<Bgra8, byte>(buffer.AsSpan());
 
         using (var writer = new BinaryWriter(output))
         {
