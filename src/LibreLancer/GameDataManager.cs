@@ -7,7 +7,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Security;
 using LibreLancer.Data;
 using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
@@ -33,6 +32,7 @@ using DockSphere = LibreLancer.GameData.World.DockSphere;
 using DynamicAsteroid = LibreLancer.GameData.DynamicAsteroid;
 using DynamicAsteroids = LibreLancer.Data.Universe.DynamicAsteroids;
 using FileSystem = LibreLancer.Data.IO.FileSystem;
+using NewsItem = LibreLancer.GameData.NewsItem;
 using Spine = LibreLancer.GameData.World.Spine;
 
 namespace LibreLancer
@@ -513,6 +513,42 @@ namespace LibreLancer
             }
         }
 
+        public NewsCollection News;
+        public List<StoryIndex> Story;
+
+        void InitNews()
+        {
+            Story = Ini.Storyline.Items.Select((x, y) => new StoryIndex(y, x)).ToList();
+            News = new();
+            foreach (var n in Ini.News.NewsItems)
+            {
+                var ni = new NewsItem()
+                {
+                    Icon = n.Icon,
+                    Logo = n.Logo,
+                    Headline = n.Headline,
+                    Text = n.Text,
+                    Autoselect = n.Autoselect,
+                    Audio = n.Audio
+                };
+                if (n.Rank is { Length: >= 2 })
+                {
+                    ni.From = Story.FirstOrDefault(x =>
+                        x.Item.Nickname.Equals(n.Rank[0], StringComparison.OrdinalIgnoreCase));
+                    ni.To = Story.FirstOrDefault(x =>
+                        x.Item.Nickname.Equals(n.Rank[1], StringComparison.OrdinalIgnoreCase));
+                }
+                News.AddNewsItem(ni);
+                foreach (var b in n.Base)
+                {
+                    if (Bases.TryGetValue(b, out var loc))
+                    {
+                        News.AddToBase(ni, loc);
+                    }
+                }
+            }
+        }
+
         public void LoadData(IUIThread ui, Action onIniLoaded = null)
         {
             fldata.LoadData();
@@ -581,6 +617,7 @@ namespace LibreLancer
             var astsTask = tasks.Begin(InitAsteroids);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
             tasks.Begin(InitBodyParts);
+            tasks.Begin(InitNews, baseTask);
             tasks.Begin(() => InitSystems(tasks),
                 baseTask,
                 archetypesTask,

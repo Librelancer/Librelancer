@@ -67,7 +67,7 @@ class news : news_Designer with ChildWindow
 		e.close.OnClick(() => this.Close());
 		this.Articles = Game.GetNewsArticles();
 		for (article in this.Articles) {
-			local item = news_list_item(article.Icon, article.Category);
+			local item = news_list_item(article.Icon, article.Headline);
 			e.news_list.Children.Add(item);
 		}
 		this.setstory(this.Articles[1]);

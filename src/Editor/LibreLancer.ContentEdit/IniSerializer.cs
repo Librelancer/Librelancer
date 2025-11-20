@@ -1,23 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices.ComTypes;
 using LibreLancer.GameData.World;
-using System.Text;
-using Castle.Core.Internal;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.GameData;
-using LibreLancer.GameData.Archetypes;
 using LibreLancer.Render;
-using LibreLancer.Data.Missions;
-using LibreLancer.Data.Universe;
 using AsteroidField = LibreLancer.GameData.World.AsteroidField;
 using Base = LibreLancer.GameData.World.Base;
 using LightSource = LibreLancer.GameData.World.LightSource;
 using StarSystem = LibreLancer.GameData.World.StarSystem;
 using SystemObject = LibreLancer.GameData.World.SystemObject;
 using Zone = LibreLancer.GameData.World.Zone;
+using LibreLancer.Data.Missions;
 
 namespace LibreLancer.ContentEdit;
 
@@ -591,25 +586,33 @@ public static class IniSerializer
         return ib.Sections;
     }
 
-    public static List<Section> SerializeNews(IEnumerable<NewsItem> news, GameDataManager gameData)
+    public static List<Section> SerializeNews(NewsCollection news)
     {
         var ib = new IniBuilder();
-        foreach (var article in news)
+        foreach (var item in news.AsCopy())
         {
-            var section = ib.Section("NewsItem")
-                .Entry($"; {gameData.GetString(article.Headline)}")
-                .Entry("rank", article.Rank)
-                .Entry("icon", article.Icon)
+            var article = item.Item1;
+            var bases = item.Item2;
+            var section = ib.Section("NewsItem");
+
+            if (article.From != null && article.To != null)
+            {
+                section.Entry("rank",
+                    article.From.Item.Nickname,
+                   article.To.Item.Nickname);
+            }
+
+            // category is omitted entirely as it is unused, and not read in by FL
+            section.Entry("icon", article.Icon)
                 .Entry("logo", article.Logo)
-                .Entry("category", article.Category)
                 .Entry("headline", article.Headline)
                 .Entry("text", article.Text)
                 .OptionalEntry("autoselect", article.Autoselect)
                 .OptionalEntry("audio", article.Audio);
 
-            foreach (var b in article.Base)
+            foreach (var b in bases)
             {
-                section.Entry("base", b);
+                section.Entry("base", b.Nickname);
             }
         }
 
@@ -679,7 +682,8 @@ public static class IniSerializer
             .Entry("ship", formation.Ships);
 
         if (formation.Position.Length() is 0f && formation.RelativePosition.MinRange > 0f &&
-            formation.RelativePosition.MaxRange != 0f && !string.IsNullOrWhiteSpace(formation.RelativePosition.ObjectName))
+            formation.RelativePosition.MaxRange != 0f &&
+            !string.IsNullOrWhiteSpace(formation.RelativePosition.ObjectName))
         {
             s.Entry("rel_pos", formation.RelativePosition.MinRange, formation.RelativePosition.ObjectName,
                 formation.RelativePosition.MaxRange);
@@ -721,7 +725,8 @@ public static class IniSerializer
             .Entry("health", loot.Health)
             .Entry("can_jettison", loot.CanJettison);
 
-        if (loot.Position.Length() is 0f && loot.RelPosOffset.Length() > 0f && !string.IsNullOrWhiteSpace(loot.RelPosObj))
+        if (loot.Position.Length() is 0f && loot.RelPosOffset.Length() > 0f &&
+            !string.IsNullOrWhiteSpace(loot.RelPosObj))
         {
             s.Entry("rel_pos_offset", loot.RelPosOffset);
             s.Entry("rel_pos_obj", loot.RelPosObj);

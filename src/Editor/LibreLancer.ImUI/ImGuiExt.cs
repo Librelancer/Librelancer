@@ -159,6 +159,14 @@ namespace LibreLancer.ImUI
             ImGui.PopID();
         }
 
+        public static bool ButtonRounding(string label, Vector2 size, ImDrawFlags flags)
+        {
+            Span<byte> bytes = stackalloc byte[512];
+            using var z1 = new UTF8ZHelper(bytes, label);
+            fixed (byte* a = z1.ToUTF8Z())
+                return igButtonEx2(a, size.X, size.Y, (int)flags) != 0;
+        }
+
         public static void Checkbox(string label, ref bool v, bool enabled, string disableReason)
         {
             ImGui.BeginDisabled(!enabled);

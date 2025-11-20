@@ -308,15 +308,6 @@ namespace LibreLancer.Server
                 });
             }, msnPreload);
         }
-        bool NewsFind(LibreLancer.Data.Missions.NewsItem ni)
-        {
-            if (ni.Rank[1] != "mission_end")
-                return false;
-            foreach(var x in ni.Base)
-                if (x.Equals(Base, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            return false;
-        }
 
         IEnumerable<NetSoldShip> GetSoldShips()
         {
@@ -340,19 +331,20 @@ namespace LibreLancer.Server
 
         void PlayerEnterBase()
         {
-            //fetch news articles
-            List<NewsArticle> news = new List<NewsArticle>();
-            foreach (var x in Game.GameData.Ini.News.NewsItems.Where(NewsFind))
-            {
-                news.Add(new NewsArticle()
-                {
-                    Icon = x.Icon, Category = x.Category, Headline =  x.Headline,
-                    Logo = x.Logo, Text = x.Text
-                });
-            }
             //load base
             Space = null;
             Baseside = new BasesidePlayer(this, Game.GameData.Bases.Get(Base));
+            //fetch news articles
+            var news = new List<NewsArticle>();
+            foreach (var x in Game.GameData.News.QueryNews(
+                         Baseside.BaseData, Story?.MissionNum ?? Game.GameData.Ini.Storyline.Items.Count))
+            {
+                news.Add(new NewsArticle()
+                {
+                    Icon = x.Icon, Headline =  x.Headline,
+                    Logo = x.Logo, Text = x.Text
+                });
+            }
             //update
             using (var c = Character.BeginTransaction())
             {

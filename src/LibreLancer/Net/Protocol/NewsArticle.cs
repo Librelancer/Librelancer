@@ -11,7 +11,6 @@ namespace LibreLancer.Net.Protocol
     {
         public string Icon;
         public string Logo;
-        public int Category;
         public int Headline;
         public int Text;
 
@@ -19,7 +18,6 @@ namespace LibreLancer.Net.Protocol
         {
             message.Put(Icon);
             message.Put(Logo);
-            message.Put(Category);
             message.Put(Headline);
             message.Put(Text);
         }
@@ -28,7 +26,6 @@ namespace LibreLancer.Net.Protocol
         {
             Icon = message.GetString(),
             Logo = message.GetString(),
-            Category = message.GetInt(),
             Headline = message.GetInt(),
             Text = message.GetInt()
         };

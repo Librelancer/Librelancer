@@ -15,11 +15,14 @@ public class EditorUndoBuffer
     private Stack<EditorAction> undoStack = new Stack<EditorAction>();
     private Stack<EditorAction> redoStack = new Stack<EditorAction>();
 
+    public Action Hook;
+
     public void Commit(EditorAction action)
     {
         action.Commit();
         undoStack.Push(action);
         redoStack.Clear();
+        Hook?.Invoke();
     }
 
     public void Push(EditorAction action)
@@ -33,6 +36,7 @@ public class EditorUndoBuffer
         var item = undoStack.Pop();
         item.Undo();
         redoStack.Push(item);
+        Hook?.Invoke();
     }
 
     public void Redo()
@@ -40,6 +44,7 @@ public class EditorUndoBuffer
         var item = redoStack.Pop();
         item.Commit();
         undoStack.Push(item);
+        Hook?.Invoke();
     }
 
 

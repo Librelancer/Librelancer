@@ -15,18 +15,31 @@ public abstract class ObjectLookup<T> where T : class
     public bool IsOpen => dropdown.IsOpen;
 
     private SearchDropdown<Display> dropdown;
+    private Display[] options;
+
+    public Action<T> OnSelected;
 
     protected void CreateDropdown(string id, IEnumerable<T> values, Func<T,string> name, T initial)
     {
-        var options = values
+        options = values
             .Select(x => new Display( name(x), x))
             .ToArray();
         if(initial != null)
             sel = options.FirstOrDefault(x => x.Value == initial);
         dropdown = new SearchDropdown<Display>(id,
              x => x?.Name ?? "(none)",
-            x => sel = x,
+            x =>
+            {
+                sel = x;
+                OnSelected?.Invoke(x.Value);
+            },
             sel, options);
+    }
+
+    public void SetSelected(T value)
+    {
+        sel = options.FirstOrDefault(x => x.Value == value);
+        dropdown.SetSelected(sel);
     }
 
     public void Draw()

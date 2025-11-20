@@ -367,17 +367,17 @@ namespace InterfaceEdit
         private NewsArticle[] articles = new[]
         {
             new NewsArticle()
-                {Icon = "critical", Logo = "news_scene2", Category = 15001, Headline = 15001, Text = 15002},
+                {Icon = "critical", Logo = "news_scene2", Headline = 15001, Text = 15002},
             new NewsArticle()
-                {Icon = "world", Logo = "news_schultzsky", Category = 15003, Headline = 15003, Text = 15004},
+                {Icon = "world", Logo = "news_schultzsky", Headline = 15003, Text = 15004},
             new NewsArticle()
-                {Icon = "world", Logo = "news_manhattan", Category = 15009, Headline = 15009, Text = 15010},
+                {Icon = "world", Logo = "news_manhattan", Headline = 15009, Text = 15010},
             new NewsArticle()
-                {Icon = "system", Logo = "news_cambridge", Category = 56152, Headline = 56152, Text = 56153},
-            new NewsArticle() {Icon = "world", Logo = "news_leeds", Category = 56162, Headline = 56162, Text = 56163},
-            new NewsArticle() {Icon = "system", Logo = "news_leeds", Category = 56166, Headline = 56166, Text = 56167},
+                {Icon = "system", Logo = "news_cambridge", Headline = 56152, Text = 56153},
+            new NewsArticle() {Icon = "world", Logo = "news_leeds", Headline = 56162, Text = 56163},
+            new NewsArticle() {Icon = "system", Logo = "news_leeds", Headline = 56166, Text = 56167},
             new NewsArticle()
-                {Icon = "world", Logo = "news_newtokyo", Category = 56180, Headline = 56180, Text = 56181},
+                {Icon = "world", Logo = "news_newtokyo", Headline = 56180, Text = 56181},
         };
 
         public NewsArticle[] GetNewsArticles() => articles;

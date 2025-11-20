@@ -61,6 +61,8 @@ public static class Icons
     public const char PersonRunning = '\uf70c';
     public const char Bone = '\uf5d7';
     public const char Calculator = '\uf1ec';
+    public const char Map = '\uf279';
+    public const char Newspaper = '\uf1ea';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';

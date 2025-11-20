@@ -591,12 +591,11 @@ namespace LancerEdit
                         Confirm($"Reloading will close {dataTabCount} tab(s). Continue?",
                             () => LoadGameData(OpenDataContext.Folder));
                     else
-                        LoadGameData(OpenDataContext.Folder);
+                        LoadGameData(OpenDataContext!.Folder);
                 }
+                ImGui.Separator();
                 if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",OpenDataContext != null))
                     AddTab(new InfocardBrowserTab(OpenDataContext, this));
-                if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
-                    AddTab(new ProjectileViewerTab(this, OpenDataContext));
                 if (Theme.IconMenuItem(Icons.Globe, "Universe Editor", OpenDataContext != null))
                 {
                     var fd = TabControl.Tabs.FirstOrDefault(x => x is UniverseEditorTab);
@@ -607,7 +606,24 @@ namespace LancerEdit
                         Popups.OpenPopup(new UniverseLoadPopup(this));
                     }
                 }
-
+                if (Theme.IconMenuItem(Icons.Newspaper, "News Editor", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is NewsEditorTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new NewsEditorTab(OpenDataContext, this));
+                }
+                if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
+                {
+                    FileDialog.Open(x =>
+                    {
+                        AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
+                    }, AppFilters.IniFilters, GetDataPath());
+                }
+                ImGui.Separator();
+                if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
+                    AddTab(new ProjectileViewerTab(this, OpenDataContext));
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));
                 if (Theme.IconMenuItem(Icons.Check, "Check Faction Hashes", OpenDataContext != null))
@@ -632,13 +648,6 @@ namespace LancerEdit
                     else {
                         Popups.MessageBox("Check Faction Hashes", "No hash collisions detected!");
                     }
-                }
-                if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
-                {
-                    FileDialog.Open(x =>
-                    {
-                        AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
-                    }, AppFilters.IniFilters, GetDataPath());
                 }
                 ImGui.EndMenu();
             }

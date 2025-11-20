@@ -14,13 +14,21 @@ public class BaseSelection : PopupWindow
     private Action<Base> onSelect;
     private BaseLookup lookup;
     private string message;
+    private bool needsValue;
 
-    public BaseSelection(Action<Base> onSelect, string title, string message, Base initial, GameDataContext gd)
+    public BaseSelection(Action<Base> onSelect,
+        string title,
+        string message,
+        Base initial,
+        GameDataContext gd,
+        Func<Base, bool> allow = null,
+        bool needsValue = false)
     {
         this.message = message;
         this.onSelect = onSelect;
-        lookup = new BaseLookup("##Bases", gd, initial);
+        lookup = new BaseLookup("##Bases", gd, initial, allow);
         Title = title;
+        this.needsValue = needsValue;
     }
 
     public override void Draw(bool appearing)
@@ -33,16 +41,19 @@ public class BaseSelection : PopupWindow
         ImGui.PushItemWidth(width);
         lookup.Draw();
         ImGui.PopItemWidth();
-        if (ImGui.Button("Ok"))
+        if (ImGuiExt.Button("Ok", !needsValue || lookup.Selected != null))
         {
             onSelect(lookup.Selected);
             ImGui.CloseCurrentPopup();
         }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear"))
+        if (!needsValue)
         {
-            onSelect(null);
-            ImGui.CloseCurrentPopup();
+            ImGui.SameLine();
+            if (ImGui.Button("Clear"))
+            {
+                onSelect(null);
+                ImGui.CloseCurrentPopup();
+            }
         }
         ImGui.SameLine();
         if(ImGui.Button("Cancel"))

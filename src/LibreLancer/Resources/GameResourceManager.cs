@@ -286,6 +286,17 @@ public class GameResourceManager : ResourceManager, IDisposable
         if (vms != null) AddMeshes(vms, MeshLoadMode.All, id);
     }
 
+    public IEnumerable<string> TexturesInFile(string file)
+    {
+        foreach (var tex in textures)
+        {
+            if (texturefiles[tex.Key] == file)
+            {
+                yield return tex.Key;
+            }
+        }
+    }
+
     public void RemoveResourcesForId(string id)
     {
         if (isDisposed) throw new ObjectDisposedException(nameof(GameResourceManager));

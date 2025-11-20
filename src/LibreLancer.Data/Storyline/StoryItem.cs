@@ -16,6 +16,7 @@ public partial class StoryItem
     [Entry("nickname", Required = true)] public string Nickname;
     [Entry("skip", Presence = true)] public bool Skip;
     [Entry("acceptance", Presence = true)] public bool Acceptance;
+    [Entry("hide_gui", Presence = true)] public bool HideGui;
     [Entry("mission")] public string Mission;
     [Entry("cash_up")] public int CashUp;
 

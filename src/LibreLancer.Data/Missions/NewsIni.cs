@@ -25,7 +25,7 @@ namespace LibreLancer.Data.Missions
         [Entry("rank")] public string[] Rank;
         [Entry("icon")] public string Icon;
         [Entry("logo")] public string Logo;
-        [Entry("category")] public int Category;
+        [Entry("category")] public int Category; //Unused entirely
         [Entry("headline")] public int Headline;
         [Entry("text")] public int Text;
         [Entry("base", Multiline = true)] public List<string> Base = new List<string>();
