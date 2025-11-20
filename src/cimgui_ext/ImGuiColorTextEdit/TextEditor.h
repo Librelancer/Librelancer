@@ -387,6 +387,7 @@ private:
 	void AddGlyphToLine(int aLine, int aTargetIndex, Glyph aGlyph);
 	ImU32 GetGlyphColor(const Glyph& aGlyph) const;
 
+	void SetImeData(bool aParentIsFocused, ImVec2 inputPos);
 	void HandleKeyboardInputs(bool aParentIsFocused = false);
 	void HandleMouseInputs();
 	void UpdateViewVariables(float aScrollX, float aScrollY);

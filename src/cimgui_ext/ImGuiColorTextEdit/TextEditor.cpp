@@ -8,7 +8,9 @@
 #define IMGUI_SCROLLBAR_WIDTH 14.0f
 #define POS_TO_COORDS_COLUMN_OFFSET 0.33f
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui.h" // for imGui::GetCurrentWindow()
+#include "imgui.h"
+#undef IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui_internal.h"
 
 
 struct TextEditor::RegexList {
@@ -1968,6 +1970,20 @@ ImU32 TextEditor::GetGlyphColor(const Glyph& aGlyph) const
 	return color;
 }
 
+void TextEditor::SetImeData(bool aParentIsFocused, ImVec2 inputPos)
+{
+	if(ImGui::IsWindowFocused() || aParentIsFocused)
+	{
+		ImGuiContext& g = *GImGui;
+		ImGuiPlatformImeData* ime_data = &g.PlatformImeData;	
+		ime_data->WantVisible = false;
+        ime_data->WantTextInput = true;
+		ime_data->InputLineHeight = g.FontSize;
+		ime_data->InputPos = inputPos;
+		ime_data->ViewportId = ImGui::GetCurrentWindow()->Viewport->ID;
+	}
+}
+
 void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 {
 	if (ImGui::IsWindowFocused() || aParentIsFocused)
@@ -1992,7 +2008,7 @@ void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 
 		io.WantCaptureKeyboard = true;
 		io.WantTextInput = true;
-
+		
 		if (!mReadOnly && isShortcut && ImGui::IsKeyPressed(ImGuiKey_Z))
 			Undo();
 		else if (!mReadOnly && isAltOnly && ImGui::IsKeyPressed(ImGuiKey_Backspace))
@@ -2238,6 +2254,7 @@ void TextEditor::Render(bool aParentIsFocused)
 	}
 
 	ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+	ImVec2 inputPos = cursorScreenPos; // Setting inputPos doesn't work correctly yet.
 	mScrollX = ImGui::GetScrollX();
 	mScrollY = ImGui::GetScrollY();
 	UpdateViewVariables(mScrollX, mScrollY);
@@ -2312,6 +2329,7 @@ void TextEditor::Render(bool aParentIsFocused)
 						ImVec2 cstart(textScreenPos.x + cx, lineStartScreenPos.y);
 						ImVec2 cend(textScreenPos.x + cx + width, lineStartScreenPos.y + mCharAdvance.y);
 						drawList->AddRectFilled(cstart, cend, mPalette[(int)PaletteIndex::Cursor]);
+						inputPos = cstart;
 						if (mCursorOnBracket)
 						{
 							ImVec2 topLeft = { cstart.x, lineStartScreenPos.y + fontHeight + 1.0f };
@@ -2456,6 +2474,7 @@ void TextEditor::Render(bool aParentIsFocused)
 		ImGui::SetScrollY(targetScroll);
 		mSetViewAtLine = -1;
 	}
+	SetImeData(aParentIsFocused, inputPos);
 }
 
 void TextEditor::OnCursorPositionChanged()
