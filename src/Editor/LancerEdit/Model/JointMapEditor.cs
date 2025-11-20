@@ -12,6 +12,8 @@ public class JointMapEditor : PopupWindow
 {
     public override string Title { get; set; }
 
+    public override Vector2 InitSize => new Vector2(400, 400) * ImGuiHelper.Scale;
+
     private RefList<JointMap> _srcList;
     private int _srcIndex;
     ref JointMap DestMap => ref _srcList[_srcIndex];
