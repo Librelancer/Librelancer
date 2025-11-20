@@ -54,7 +54,7 @@ public class VmsMaterialEditor : PopupWindow
             ImGui.SameLine();
             if(ImGui.Button(".."))
                 ImGui.OpenPopup("mats");
-            if (ImGui.BeginPopupContextItem("mats"))
+            if (ImGui.BeginPopup("mats"))
             {
                 foreach (var x in resources.MaterialDictionary) {
                     if (ImGui.MenuItem(x.Value.Name))

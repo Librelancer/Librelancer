@@ -74,7 +74,7 @@ public class NewHardpointPopup : PopupWindow
         {
             ImGui.OpenPopup("names");
         }
-        if (ImGui.BeginPopupContextItem("names"))
+        if (ImGui.BeginPopup("names"))
         {
             var infos = newIsFixed ? HardpointInformation.Fix : HardpointInformation.Rev;
             foreach (var item in infos)

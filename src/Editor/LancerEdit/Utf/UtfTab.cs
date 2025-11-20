@@ -502,12 +502,7 @@ namespace LancerEdit
                     main.PlayBuffer(selectedNode.Data);
                 }
 
-                if (!main.PlayingBuffer &&  ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                {
-                    ImGui.OpenPopup("loopmenu");
-                }
-
-                if (ImGui.BeginPopupContextItem("loopmenu"))
+                if (!main.PlayingBuffer && ImGui.BeginPopupContextItem("loopmenu"))
                 {
                     if(ImGui.MenuItem("Play Looped"))
                         main.PlayBuffer(selectedNode.Data, true);

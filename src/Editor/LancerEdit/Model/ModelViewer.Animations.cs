@@ -34,8 +34,6 @@ partial class ModelViewer
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0,0));
         ImGui.PushID(name);
         var isOpen = ImGui.CollapsingHeader("##Header", ImGuiTreeNodeFlags.AllowOverlap);
-        if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-            ImGui.OpenPopup("animcontext");
         ImGui.SameLine();
         if (ImGui.Button($"{Icons.Play}")) act = AnimEditAction.Play;
         ImGui.SameLine();
