@@ -96,6 +96,12 @@ The slider at the bottom allows you to preview how the part will look at each ro
 
 When you have finished editing parts, you must press the **Apply Parts** button in order for your changes to be written back to the model's UTF tab.
 
+## Animations
+
+The **Animations** tab allows you to create and preview simple animations for Revolute and Prismatic parts. This can be done to animation bay doors, docking bays, radars and similar.
+
+Creating an animation requires the addition of a joint map, which can be done by clicking on the animation name after it has been added then selecting a part from the drop-down list. Keyframes can then be added and saved via the edit button.
+
 ## Rendering Models
 
 The **Render** panel allows you to create an image showing the contents of the current viewport.

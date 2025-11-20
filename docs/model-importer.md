@@ -25,7 +25,7 @@ A fallback import/export format for when glTF 2.0 is not supported by your model
 
 LancerEdit supports opening files from Blender, by performing an automatic export to glTF 2.0. LancerEdit will try to automatically detect an installation of Blender, but if it cannot find your installation of blender, you may set it manually in the options window.
 
-- Go to **Tools -> Options** and set the Blender Path under the Import/Export tab.
+- Go to **Tools -> Options** and set the Blender executable Path under the Import/Export tab.
 
 ## Model Hierarchy
 
@@ -53,6 +53,8 @@ Revolute hardpoints have their `hptype` property set to `"rev"`, and also contai
 
 Collision hulls are stored as direct children of their parent, and have names ending with the text `$hull`. These meshes **must** be convex and have an even number of faces, or they will not create a usable .sur file.
 
+Ship shield collision hulls are handled via a convext mesh attached to root named `HpMount$hull`. Equipment override hulls, which will replace any attached equipment hitboxes, are handled in a similar way, with a convex mesh named to match the hardpoint attached to the same parent part. i.e. an override hull for `HpWeapon01`  would be named `HpWeapon01$hull`.
+
 ### LODs
 
 LOD meshes can be stored anywhere in the file, and are named `part name` plus e.g. `$lod1` for the 1st lod. If your model has a part called `wing`, your lod meshes for that part will be called `wing$lod1` and `wing$lod2` etc.
@@ -66,7 +68,7 @@ LOD meshes can be stored anywhere in the file, and are named `part name` plus e.
 - **Import Textures**: Controls whether or not to import textures from the model. This option is disabled when no textures are found in the import model.
 - **Placeholder Textures**: Controls the generation of the default placeholder texture when the texture of a material is either not found or not specified. Disable this if you are providing the texture library externally.
 - **Advanced Materials**: Select for importing PBR materials or normal maps from glTF or Blender files. This is an experimental setting, and the generated format is likely to change. These materials are not compatible with vanilla Freelancer out of the box.
-- **Generate sur**: Controls whether or not a .sur collision model is generated. This option is disabled when no collision hulls are detected in the model.
+- **Generate sur**: Controls whether or not a .sur collision model is generated. This option is disabled when no collision hulls are detected in the model. Seperate .sur files are generated at the provided Output Path.
 - **Output Path**: The folder in which to save the generated .cmp/.3db (and optionally .sur)
 - **Starsphere Mode**: Enable when importing a model intended to be used as a starsphere. This forces single part models to be generated as multi-part .cmp files. .3db models do not work as starspheres in vanilla Freelancer.
 

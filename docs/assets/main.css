@@ -1,5 +1,5 @@
-html { font-family: 'Open Sans', sans-serif; }
-body { font-size: 100%; color: rgb(180, 180, 180); background-color: rgb(33, 33, 33); margin: 0 auto; max-width: 66.6em; }
+html { font-family: 'Open Sans', sans-serif; padding: 2%}
+body { font-size: 100%; color: rgb(180, 180, 180); background-color: rgb(33, 33, 33); margin: 0 auto; max-width: 66.6em; line-height: 120%; }
 em { color: rgb(224, 224, 224); }
 a { color:rgb(140, 200, 241); }
 pre, code { font-family: 'Source Code Pro', monospace; }
@@ -18,7 +18,7 @@ dd { font-size: .85rem; }
 #toc { border: 1px solid #aaa; display: table; font-size: 95%; padding: 20px; width: auto; float: right; }
 .toc_title { font-weight: 700; text-align: center; }
 /* Display: First Level None, Second Level Disc, Third Level - Square + padding */
-#toc ul { display: block; padding: 0; }
+#toc ul { display: block; padding: 0;  }
 #toc ul > li { display: block; padding: 0; }
 #toc ul > li > ul > li { display: list-item; list-style: disc; }
 #toc ul > li > ul > li > ul > li { display: list-item; list-style: square; padding-left: 0.5rem }
