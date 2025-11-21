@@ -39,17 +39,13 @@ namespace LibreLancer.ImUI
 		}
 
 		public void SetText(string text)
-		{
-			var bytes = Encoding.UTF8.GetBytes(text);
-			Marshal.Copy(bytes, 0, Pointer, bytes.Length);
-			Marshal.WriteByte(Pointer, bytes.Length, 0);
-		}
-
-		public void SetBytes(byte[] b, int len, bool writeZero = true)
-		{
-			Marshal.Copy(b, 0, Pointer, len);
-			if (writeZero)
-				Marshal.WriteByte(Pointer,len,0);
+        {
+            var bytes = Encoding.UTF8.GetBytes(text).AsSpan();
+            if (bytes.Length > Size - 1)
+                bytes = bytes.Slice(bytes.Length - (Size - 1), (Size - 1));
+            var dest = new Span<byte>((void*)Pointer, bytes.Length + 1);
+            bytes.CopyTo(dest);
+            dest[^1] = 0;
 		}
 
         public unsafe void InputText(string id, ImGuiInputTextFlags flags, int sz = -1)
@@ -61,23 +57,6 @@ namespace LibreLancer.ImUI
         {
             ImGui.InputTextMultiline(id, Pointer, (nint)(sz > 0 ? sz : Size), size, flags, Callback);
         }
-
-        public byte[] GetByteArray()
-		{
-			int len = Size;
-			for (int i = 0; i < Size; i++)
-			{
-				var ptr = (byte*)Pointer;
-				if (ptr[i] == 0)
-				{
-					len = i + 1;
-					break;
-				}
-			}
-			var bytes = new byte[len];
-			Marshal.Copy(Pointer, bytes, 0, len);
-			return bytes;
-		}
 
 		public string GetText()
 		{

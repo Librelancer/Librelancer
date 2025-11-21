@@ -67,6 +67,8 @@ namespace LancerEdit
 
         public bool EnableAudioConversion;
 
+        private const int LOG_SIZE = 128 * 1024; //128k UTF-16, 256k UTF-8
+
         public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
 		{
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -77,22 +79,16 @@ namespace LancerEdit
             FLLog.AppendLine = (x,severity) =>
             {
                 logText.AppendLine(x);
-                if (logText.Length > 16384)
+                if (logText.Length > LOG_SIZE)
                 {
-                    logText.Remove(0, logText.Length - 16384);
+                    logText.Remove(0, logText.Length - LOG_SIZE);
                 }
                 logBuffer.SetText(logText.ToString());
-                //Suppressed while most game content logs errors
-                /*if (severity == LogSeverity.Error)
-                {
-                    errorTimer = 9;
-                    Bell.Play();
-                }*/
             };
             Config = EditorConfiguration.Load(configuration == null || configuration.IsSDL);
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 
-            logBuffer = new TextBuffer(32768);
+            logBuffer = new TextBuffer(LOG_SIZE * 2 + 1);
             recentFiles = new RecentFilesHandler(OpenFile);
             Updater = new UpdateChecks(this, GetBasePath());
             EnableAudioConversion = Mp3Encoder.EncoderAvailable();
@@ -872,11 +868,11 @@ namespace LancerEdit
                 }
                 ImGui.EndTabBar();
                 ImGui.PopStyleVar();
-                if (h2 > 28 * ImGuiHelper.Scale) //Min Size
+                if (h2 > 40 * ImGuiHelper.Scale) //Min Size
                 {
                     if (bottomTab == 0)
                     {
-                        logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 28 * ImGuiHelper.Scale),
+                        logBuffer.InputTextMultiline("##logtext", new Vector2(-1, h2 - 40 * ImGuiHelper.Scale),
                             ImGuiInputTextFlags.ReadOnly);
                     }
                     else if (bottomTab == 1)
