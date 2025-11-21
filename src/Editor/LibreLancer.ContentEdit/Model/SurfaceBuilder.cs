@@ -190,11 +190,13 @@ public static class SurfaceBuilder
 
         public void AddChild(HullData h, uint crc, bool hpid, Matrix4x4 matrix)
         {
+            var transformed = new Vector3[h.Hull.Vertices.Length];
+            for (int i = 0; i < transformed.Length; i++)
+                transformed[i] = Vector3.Transform(h.Hull.Vertices[i], matrix);
             var h2 = new HullData()
             {
                 Source = h.Source,
-                Hull = Hull.FromTriangles(h.Hull.Vertices.Select(x => Vector3.Transform(x, matrix)).ToArray(),
-                    h.Hull.Indices)
+                Hull = Hull.FromTriangles(transformed, h.Hull.Indices.ToArray())
             };
             AddHull(h2, crc, 4, hpid);
         }
@@ -212,10 +214,10 @@ public static class SurfaceBuilder
 
             Vector3 minimum = new Vector3(float.MaxValue);
             Vector3 maximum = new Vector3(float.MinValue);
-            var indices = new int[h.Hull.Vertices.Count];
+            var indices = new int[h.Hull.Vertices.Length];
             Span<Vector3> hashVec = stackalloc Vector3[1];
             Span<byte> hashBytes = MemoryMarshal.Cast<Vector3, byte>(hashVec);
-            for (int i = 0; i < h.Hull.Vertices.Count; i++)
+            for (int i = 0; i < h.Hull.Vertices.Length; i++)
             {
                 var p = h.Hull.Vertices[i];
                 Points.AddIfUnique(new SurfacePoint(p, crc), out indices[i]);
@@ -385,7 +387,7 @@ public static class SurfaceBuilder
                     return;
                 }
 
-                var indices = new int[h.Data.Hull.Vertices.Count];
+                var indices = new int[h.Data.Hull.Vertices.Length];
                 for (int i = 0; i < indices.Length; i++)
                     indices[i] = ctx.Points.FindIndex(x => x.Point == h.Data.Hull.Vertices[i]);
                 var hull = ToSurfaceHull(h.Data, modelCrc, 5, indices);
@@ -472,28 +474,14 @@ public static class SurfaceBuilder
 
     static EditResult<HullData> QuickhullAndVerify(HullData h)
     {
-        EditMessage warning = null;
-        if (!h.Hull.IsConvex)
+        EditMessage warning = h.Hull.Kind switch
         {
-            if (!h.Hull.IsWatertight)
-            {
-                warning = EditMessage.Warning($"{h.Source} is not convex (not water-tight), fixing.");
-            }
-            else if (h.Hull.Multibody)
-            {
-                warning = EditMessage.Warning(
-                    $"{h.Source} is not convex (not all triangles connected), creating convex hull.");
-            }
-            else if (h.Hull.DegenerateMesh)
-            {
-                warning = EditMessage.Warning($"{h.Source} is not convex (degenerate triangles)");
-            }
-            else
-            {
-                warning = EditMessage.Warning($"{h.Source} may not be convex, fixing.");
-            }
-        }
-
+            HullKind.NonWatertight =>  EditMessage.Warning($"{h.Source} is not convex (not water-tight), fixing."),
+            HullKind.Multibody => EditMessage.Warning($"{h.Source} is not convex (not all triangles connected), creating convex hull."),
+            HullKind.Degenerate => EditMessage.Warning($"{h.Source} is not convex (degenerate triangles)"),
+            HullKind.Concave => EditMessage.Warning($"{h.Source} may not be convex, fixing."),
+            _ => null
+        };
         if (!h.Hull.MakeConvex(true))
         {
             var volume = h.CalculateVolume();
@@ -503,12 +491,12 @@ public static class SurfaceBuilder
                 EditResult<HullData>.Error($"Degenerate mesh.");
         }
 
-        if (h.Hull.Vertices.Count > 65535 || h.Hull.Indices.Count > 65535)
+        if (h.Hull.Vertices.Length > 65535 || h.Hull.Indices.Length > 65535)
         {
             return EditResult<HullData>.Error($"Hull mesh for {h.Source} is too complex");
         }
 
-        return h.Hull.IsConvex ? h.AsResult() : new EditResult<HullData>(h, [warning]);
+        return warning == null ? h.AsResult() : new EditResult<HullData>(h, [warning]);
     }
 
 

@@ -11,11 +11,11 @@ public class HullData
     public Hull Hull;
     public string Source;
 
-    public int FaceCount => Hull.Indices.Count / 3;
+    public int FaceCount => Hull.Indices.Length / 3;
 
     public int Raycast(Ray ray)
     {
-        for (int i = 0; i < Hull.Indices.Count; i += 3)
+        for (int i = 0; i < Hull.Indices.Length; i += 3)
         {
             if (RayTriangleIntersection(ref ray, float.MaxValue,
                     Hull.Vertices[Hull.Indices[i]],
@@ -64,7 +64,7 @@ public class HullData
     public float CalculateVolume()
     {
         float totalVolume = 0.0f;
-        for (int i = 0; i < Hull.Indices.Count; i += 3)
+        for (int i = 0; i < Hull.Indices.Length; i += 3)
         {
             Vector3 p1 = Hull.Vertices[Hull.Indices[i]];
             Vector3 p2 = Hull.Vertices[Hull.Indices[i + 1]];
@@ -83,7 +83,7 @@ public class HullData
         {
             return EditResult<HullData>.Error("Convex hull creation failed");
         }
-        if (hull.Vertices.Count > 65535 || hull.Indices.Count > 65535)
+        if (hull.Vertices.Length > 65535 || hull.Indices.Length > 65535)
         {
             return EditResult<HullData>.Error("Generated hull is too complex");
         }
