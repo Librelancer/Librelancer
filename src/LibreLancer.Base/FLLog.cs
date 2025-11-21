@@ -101,13 +101,16 @@ namespace LibreLancer
             thread.Start();
 		}
 
+        static FileStream CreateWriteLocked(string filename)
+            => new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read);
+
         public static bool CreateSpewFile(string filename)
         {
             lock (spewLock)
             {
                 try
                 {
-                    spewFile = new StreamWriter(File.Create(filename));
+                    spewFile = new StreamWriter(CreateWriteLocked(filename));
                     spewFile.AutoFlush = true;
                     return true;
                 }

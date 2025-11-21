@@ -23,7 +23,7 @@ namespace LibreLancer
 
         public static void ConsoleInit(bool silent = false)
         {
-            if(!silent)
+            if (!silent)
                 LogPlatform();
             if (Platform.RunningOS == OS.Windows)
             {
@@ -33,33 +33,96 @@ namespace LibreLancer
             }
         }
 
+        static string LogsFolder()
+        {
+            if (Platform.RunningOS != OS.Linux)
+                return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string statePath = Environment.GetEnvironmentVariable("XDG_STATE_HOME");
+            if (!string.IsNullOrEmpty(statePath))
+                return statePath;
+            statePath = Environment.GetEnvironmentVariable("HOME");
+            if (string.IsNullOrEmpty(statePath))
+                return "./data";
+            return statePath + "/.local/state";
+        }
+
+        static bool FileOk(string file)
+        {
+            if (!File.Exists(file))
+                return true;
+            try
+            {
+                var stream = File.OpenWrite(file);
+                stream.Close();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static void Run(Action action, Action onCrash = null)
         {
-            LogPlatform();
-            string errorMessage =  $"{ProjectName} has crashed. See the log for more information.";
+            string errorMessage = $"{ProjectName} has crashed. See the log for more information.";
             if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ALSOFT_LOGLEVEL")))
             {
                 Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
             }
+
             if (Platform.RunningOS == OS.Windows)
             {
                 string bindir = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
                 var fullpath = Path.Combine(bindir, IntPtr.Size == 8 ? "x64" : "x86");
                 SetDllDirectory(fullpath);
-                //Setup Spew
-                var spewFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ProjectName);
-                if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
-                string spewFilename = Assembly.GetCallingAssembly().GetName().Name + ".log.txt";
-                var spewPath = Path.Combine(spewFolder, spewFilename);
-                string openAlFilename = Assembly.GetCallingAssembly().GetName().Name + ".openallog.txt";
-                var openalPath = Path.Combine(spewFolder, openAlFilename);
-                if (string.IsNullOrWhiteSpace("ALSOFT_LOGFILE"))
-                {
-                    Environment.SetEnvironmentVariable("ALSOFT_LOGFILE", openalPath);
-                }
-                if (FLLog.CreateSpewFile(spewPath)) errorMessage += "\n" + spewPath;
-                else errorMessage += "\n(Log file could not be created).";
             }
+
+            //Setup Spew
+            var spewFolder = Path.Combine(LogsFolder(), ProjectName, "logs");
+            if (!Directory.Exists(spewFolder)) Directory.CreateDirectory(spewFolder);
+            string spewBase = Assembly.GetCallingAssembly().GetName().Name + ".log";
+            string spewSuffix = ".txt";
+            string spewPath = null;
+            int fileCounter = 0;
+            do
+            {
+                var tryPath = Path.Combine(spewFolder, spewBase + spewSuffix);
+                if (FileOk(tryPath))
+                {
+                    spewPath = tryPath;
+                    break;
+                }
+
+                if (fileCounter > 5)
+                {
+                    break;
+                }
+
+                spewSuffix = $".{fileCounter++}.txt";
+            } while (true);
+
+            var openalPath = Path.Combine(spewFolder, spewBase + ".allog" + spewSuffix);
+            if (string.IsNullOrWhiteSpace("ALSOFT_LOGFILE"))
+            {
+                Environment.SetEnvironmentVariable("ALSOFT_LOGFILE", openalPath);
+            }
+
+            if (spewPath != null && FLLog.CreateSpewFile(spewPath))
+            {
+                errorMessage += "\n" + spewPath;
+            }
+            else
+            {
+                errorMessage += "\n(Log file could not be created).";
+                spewPath = null;
+            }
+
+            LogPlatform();
+            if (spewPath != null)
+            {
+                FLLog.Info("Log Path", spewPath);
+            }
+
 #if !DEBUG
             var domain = AppDomain.CurrentDomain;
             domain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) => {
@@ -91,10 +154,12 @@ namespace LibreLancer
             builder.AppendLine(ex.Message);
             builder.AppendLine(ex.StackTrace);
             j++;
-            if (j > 100) {
+            if (j > 100)
+            {
                 builder.AppendLine("-- EXCEPTION OVERFLOW --");
                 return builder;
             }
+
             if (ex is AggregateException ag)
             {
                 for (int i = 0; i < ag.InnerExceptions.Count; i++)
@@ -111,11 +176,13 @@ namespace LibreLancer
                     FormatException(ex.InnerException, builder, j);
                 }
             }
+
             if (addVersion)
             {
                 builder.AppendLine()
                     .AppendLine($"Librelancer Version: {Platform.GetInformationalVersion<Platforms.IPlatform>()}");
             }
+
             return builder;
         }
     }
