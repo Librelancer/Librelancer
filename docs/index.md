@@ -15,3 +15,7 @@ Welcome to the documentation for LancerEdit $(VERSION).
 
 - [Librelancer Scripts](scripts.md)
 - [Script API Reference](api/reference.md)
+
+### Troubleshooting
+
+- [Locating Log Files](logfiles.md)
