@@ -396,7 +396,7 @@ namespace BuildLL
                 Dotnet.BuildRelease("./src/Editor/LancerEdit/LancerEdit.csproj");
 
                 DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString,
-                    apiDlls.Select(x => Path.Combine("./src/Editor/LancerEdit/bin/Release/net8.0", x)));
+                    apiDlls.Select(x => Path.Combine("./src/Editor/LancerEdit/bin/Release/net10.0", x)));
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "ShaderDependencies"), async () =>
             {
