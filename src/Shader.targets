@@ -19,7 +19,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <LLShaderCompiler>"$(MSBuildThisFileDirectory)\LLShaderCompiler\bin\Debug\net8.0\LLShaderCompiler"</LLShaderCompiler>
+        <LLShaderCompiler>"$(MSBuildThisFileDirectory)\LLShaderCompiler\bin\Debug\net10.0\LLShaderCompiler"</LLShaderCompiler>
     </PropertyGroup>
 
     <!-- Writes the arguments out required for LLShaderCompiler. Use files to avoid cmd limit-->

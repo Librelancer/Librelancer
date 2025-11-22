@@ -3,7 +3,7 @@
     <Import Project="../CommonVersion.props" />
   </ImportGroup>
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Version>0.0.3</Version>
     <Title>Librelancer INI data project</Title>
     <Authors>Librelancer contributors</Authors>
@@ -33,10 +33,6 @@
 
   <ItemGroup>
     <Folder Include="Properties" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

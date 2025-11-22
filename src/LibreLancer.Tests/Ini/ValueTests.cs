@@ -44,13 +44,17 @@ namespace LibreLancer.Tests.Ini
             Assert.Equal(toString, value.ToString());
         }
 
+
         [Theory]
         [InlineData(0,              null, false, 0,            0,            0,              "0")]
         [InlineData(1,              null, true,  1,            1,            1,              "1")]
         [InlineData(float.MinValue, null, true,  int.MinValue, int.MinValue, float.MinValue, "-3.4028235E+38")]
-        [InlineData(float.MinValue, -3,   true,  -3,           -3,           float.MinValue, "-3.4028235E+38")]
-        [InlineData(float.MaxValue, null, true,  int.MinValue, int.MinValue, float.MaxValue, "3.4028235E+38")]
-        [InlineData(float.MaxValue, 3,    true,  3,            3,            float.MaxValue, "3.4028235E+38")]
+        [InlineData(float.MinValue, -3L,   true,  -3,           -3,           float.MinValue, "-3.4028235E+38")]
+        // .NET 9+ FP to Int conversions are saturating
+        // https://learn.microsoft.com/en-us/dotnet/core/compatibility/jit/9.0/fp-to-integer
+        // on x86 this was previously int.MinValue, but that's platform-specific behaviour.
+        [InlineData(float.MaxValue, null, true,  int.MaxValue, int.MaxValue, float.MaxValue, "3.4028235E+38")]
+        [InlineData(float.MaxValue, 3L,    true,  3,            3,            float.MaxValue, "3.4028235E+38")]
         public void SingleValueConversions(float testValue, long? testLongValue,
             bool toBoolean, int toInt32, long toInt64, float toSingle, string toString)
         {

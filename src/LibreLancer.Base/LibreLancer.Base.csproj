@@ -3,7 +3,7 @@
     <Import Project="../CommonVersion.props" />
   </ImportGroup>
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Version>0.0.3</Version>
     <Title>Librelancer Base Library</Title>
     <Authors>Librelancer contributors</Authors>
@@ -44,6 +44,6 @@
 
   <ItemGroup>
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
-    <PackageReference Include="ZstdSharp.Port" Version="0.8.4" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.6" />
   </ItemGroup>
 </Project>

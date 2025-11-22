@@ -22,7 +22,7 @@ Note for developers: .\build.ps1 or build.sh _must_ be ran before opening the .s
 
 * 64-bit Windows 10 or newer
 * Visual Studio 2022 with:
-* * .NET 8.0 SDK
+* * .NET 10.0 SDK
 * *  Desktop C++ Development Workflow
 * [CMake](https://cmake.org/) version 3.15+
 
@@ -50,7 +50,7 @@ You need to either uninstall the 32-bit dotnet SDK (recommended), or modify your
 
 **Prerequisites:**
 
-* x86-64 or arm64 .NET 8.0 SDK
+* x86-64 or arm64 .NET 10.0 SDK
 * SDL2 (or SDL3)
 * openal-soft
 * gcc and g++
