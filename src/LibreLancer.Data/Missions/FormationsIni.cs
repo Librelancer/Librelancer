@@ -9,9 +9,9 @@ public partial class FormationsIni
 {
     [Section("Formation")] public List<FormationDef> Formations = new List<FormationDef>();
 
-    public void AddFile(string filename, FileSystem vfs)
+    public void AddFile(string filename, FileSystem vfs, IniStringPool stringPool = null)
     {
-        ParseIni(filename, vfs);
+        ParseIni(filename, vfs, stringPool);
     }
 
 }

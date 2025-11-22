@@ -12,9 +12,9 @@ namespace LibreLancer.Data
 	public class RichFontsIni
 	{
 		public List<RichFont> Fonts = new List<RichFont>();
-		public void AddRichFontsIni(string path, FileSystem vfs)
+		public void AddRichFontsIni(string path, FileSystem vfs, IniStringPool stringPool = null)
 		{
-			foreach (var section in IniFile.ParseFile(path, vfs))
+			foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
 			{
 				if (section.Name.ToLowerInvariant() == "truetype")
 				{

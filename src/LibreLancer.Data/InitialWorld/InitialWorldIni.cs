@@ -13,6 +13,6 @@ namespace LibreLancer.Data.InitialWorld
         [Section("group")]
         public List<FlGroup> Groups = new List<FlGroup>();
 
-        public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
+        public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(path, vfs, stringPool);
     }
 }

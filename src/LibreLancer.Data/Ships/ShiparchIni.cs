@@ -20,9 +20,9 @@ namespace LibreLancer.Data.Ships
         [Section("simple")]
         public List<Simple> Simples = new();
 
-        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
-		{
-            ParseInis(paths, fldata.VFS);
+        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata, IniStringPool stringPool = null)
+        {
+            ParseInis(paths, fldata.VFS, stringPool);
         }
     }
 }

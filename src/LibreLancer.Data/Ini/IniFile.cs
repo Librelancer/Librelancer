@@ -11,19 +11,18 @@ namespace LibreLancer.Data.Ini
 {
 	public static class IniFile
 	{
-        public static IEnumerable<Section> ParseFile(string path, Stream stream, bool preparse = true, bool allowmaps = false)
+        public static IEnumerable<Section> ParseFile(string path, Stream stream, bool preparse = true, bool allowmaps = false, IniStringPool stringPool = null)
         {
             if (string.IsNullOrEmpty(path)) path = "[Memory]";
-
             IIniParser parser = new BinaryIniParser();
             if (!parser.CanParse(stream))
             {
                 parser = new LancerTextIniParser();
             }
-            return parser.ParseIniFile(path, stream, preparse, allowmaps);
+            return parser.ParseIniFile(path, stream, preparse, allowmaps, stringPool);
         }
 
-		public static IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false)
+		public static IEnumerable<Section> ParseFile(string path, FileSystem vfs, bool allowmaps = false, IniStringPool stringPool = null)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
 			if (!path.EndsWith(".ini", StringComparison.OrdinalIgnoreCase))
@@ -46,7 +45,7 @@ namespace LibreLancer.Data.Ini
                     }
                 }
                 stream.Seek(0, SeekOrigin.Begin);
-                foreach (var s in ParseFile(path, stream, true, allowmaps)) yield return s;
+                foreach (var s in ParseFile(path, stream, true, allowmaps, stringPool)) yield return s;
             }
 		}
 	}

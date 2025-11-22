@@ -22,9 +22,9 @@ namespace LibreLancer.Data
 			else return null;
 		}
 
-		public void AddGraphIni(string path, FileSystem vfs)
+		public void AddGraphIni(string path, FileSystem vfs, IniStringPool stringPool = null)
 		{
-			foreach (var section in IniFile.ParseFile(path, vfs))
+			foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
 			{
 				if (section.Name.ToLowerInvariant() != "igraph")
 					throw new Exception("Unexpected section in Graph ini: " + section.Name);

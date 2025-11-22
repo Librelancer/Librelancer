@@ -72,7 +72,7 @@ namespace LibreLancer
 			var cfgpath = (filePath ?? DefaultConfigPath)();
             if (File.Exists(cfgpath))
             {
-                var allS = IniFile.ParseFile(cfgpath, null, false).ToArray();
+                var allS = IniFile.ParseFile(cfgpath, null, false, null);
                 var lS = allS.FirstOrDefault(x => x.Name == "Librelancer");
                 var set = allS.FirstOrDefault(x => x.Name == "Settings");
                 GameConfig cfg;

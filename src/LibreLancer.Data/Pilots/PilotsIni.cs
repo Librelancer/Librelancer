@@ -34,6 +34,7 @@ namespace LibreLancer.Data.Pilots
         [Section("TrailBlock")] public List<TrailBlock> TrailBlocks = new List<TrailBlock>();
         [Section("Pilot")] public List<Pilot> Pilots = new List<Pilot>();
 
-        public void AddFile(string file, FileSystem vfs) => ParseIni(file, vfs);
+        public void AddFile(string file, FileSystem vfs, IniStringPool stringPool = null) =>
+            ParseIni(file, vfs, stringPool);
     }
 }

@@ -15,9 +15,9 @@ public class PetalDbIni
     public Dictionary<string, string> Props = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, string> Carts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-    public void AddFile(string path, FileSystem vfs)
+    public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null)
     {
-        foreach (var section in IniFile.ParseFile(path, vfs))
+        foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
         {
             if (!section.Name.Equals("objecttable", StringComparison.OrdinalIgnoreCase))
                 throw new Exception("Unexpected section in PetalDB " + section);

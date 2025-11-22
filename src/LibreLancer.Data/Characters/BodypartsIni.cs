@@ -15,7 +15,7 @@ namespace LibreLancer.Data.Characters
         public List<Bodypart> Bodyparts { get; private set; }
 		public List<Accessory> Accessories { get; private set; }
 
-		public BodypartsIni(string path, FreelancerData gdata)
+		public BodypartsIni(string path, FreelancerData gdata, IniStringPool stringPool = null)
         {
             Animations = new List<string>();
 			Bodyparts = new List<Bodypart>();
@@ -23,7 +23,7 @@ namespace LibreLancer.Data.Characters
 
             string currentSkeletonSex = "";
             using var stream = gdata.VFS.Open(path);
-			foreach (Section s in IniFile.ParseFile(path, stream))
+			foreach (Section s in IniFile.ParseFile(path, stream, true, false, stringPool))
 			{
 				switch (s.Name.ToLowerInvariant())
 				{

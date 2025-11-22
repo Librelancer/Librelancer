@@ -20,9 +20,9 @@ namespace LibreLancer.Data.Fuses
         [Section("impulse", Type = typeof(FuseImpulse), Child = true)]
         [Section("destroy_root", Type = typeof(FuseDestroyRoot), Child = true)]
         public List<Fuse> Fuses = new();
-        public void AddFuseIni(string path, FileSystem vfs)
+        public void AddFuseIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs, stringPool);
         }
 
     }

@@ -10,6 +10,6 @@ namespace LibreLancer.Data.Missions
         [Section("RepChangeEffects")]
         public List<RepChangeEffects> RepChangeEffects = new List<RepChangeEffects>();
 
-        public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
+        public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(path, vfs, stringPool);
     }
 }

@@ -20,9 +20,9 @@ namespace LibreLancer.Data
         [Section("basefaction", Type = typeof(BaseFaction), Child = true)]
         public List<MBase> MBases = new();
 
-        public void AddFile(string path, FileSystem vfs)
+        public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs, stringPool);
         }
 	}
 }

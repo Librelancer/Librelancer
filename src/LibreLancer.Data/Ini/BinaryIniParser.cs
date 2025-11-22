@@ -24,7 +24,8 @@ namespace LibreLancer.Data.Ini
         public IEnumerable<Section> ParseIniFile(string path,
             Stream stream,
             bool preparse = true,
-            bool allowmaps = false)
+            bool allowmaps = false,
+            IniStringPool stringPool = null)
         {
             var reader = new BinaryReader(stream);
 
@@ -45,7 +46,7 @@ namespace LibreLancer.Data.Ini
             reader.BaseStream.Seek(stringBlockOffset, SeekOrigin.Begin);
             var stringBuffer = new byte[reader.BaseStream.Length - stringBlockOffset];
             reader.Read(stringBuffer, 0, stringBuffer.Length);
-            var stringBlock = new BiniStringBlock(Encoding.ASCII.GetString(stringBuffer));
+            var stringBlock = new BiniStringBlock(Encoding.ASCII.GetString(stringBuffer), stringPool);
 
             reader.BaseStream.Seek(sectionBlockOffset, SeekOrigin.Begin);
             while (reader.BaseStream.Position < stringBlockOffset)

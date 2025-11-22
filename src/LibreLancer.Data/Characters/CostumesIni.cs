@@ -17,9 +17,9 @@ namespace LibreLancer.Data.Characters
         [Section("costume")]
         public List<Costume> Costumes = new List<Costume>();
 
-		public CostumesIni(string path, FileSystem vfs)
+		public CostumesIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs, stringPool);
 		}
 
 		public Costume FindCostume(string nickname)

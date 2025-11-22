@@ -599,7 +599,7 @@ public static class SectionParser
         tw.AppendLine();
 
         // TryParse
-        tw.AppendLine($"public static bool TryParse(Section section, [NotNullWhen(returnValue: true)] out {section.Name}? instance, IniParseProperties? properties = null)");
+        tw.AppendLine($"public static bool TryParse(Section section, [NotNullWhen(returnValue: true)] out {section.Name}? instance, IniStringPool? stringPool = null, IniParseProperties? properties = null)");
         using (tw.Block())
         {
             if (section.OnParseDependent != null)
@@ -714,7 +714,7 @@ public static class SectionParser
                 {
                     if (section.OnParseDependent != null)
                     {
-                        tw.AppendLine("result.OnParseDependent(properties);");
+                        tw.AppendLine("result.OnParseDependent(stringPool, properties);");
                     }
                     tw.AppendLine("instance = result;");
                     tw.AppendLine("return true;");
@@ -742,7 +742,7 @@ public static class SectionParser
             {
                 if (section.OnParseDependent != null)
                 {
-                    tw.AppendLine($"result.{section.OnParseDependent}(properties);");
+                    tw.AppendLine($"result.{section.OnParseDependent}(stringPool, properties);");
                 }
                 tw.AppendLine("instance = result;");
                 tw.AppendLine("return true;");

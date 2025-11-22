@@ -26,10 +26,10 @@ namespace LibreLancer.Data.Solar
         [Section("texture")]
         public List<TextureSection> TextureFiles = new List<TextureSection>();
 
-		public StararchIni(string path, FileSystem vfs)
-		{
-            ParseIni(path, vfs);
-		}
+		public StararchIni(string path, FileSystem vfs, IniStringPool stringPool = null)
+        {
+            ParseIni(path, vfs, stringPool);
+        }
 
 	}
 }

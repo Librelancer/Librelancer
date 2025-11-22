@@ -19,10 +19,10 @@ public partial class KeyGroup
 public class KeyListIni
 {
     public List<KeyGroup> Groups = new List<KeyGroup>();
-    public KeyListIni(string path, FileSystem VFS)
+    public KeyListIni(string path, FileSystem VFS, IniStringPool stringPool = null)
     {
         KeyGroup currentGroup = null;
-        foreach (var section in IniFile.ParseFile(path, VFS))
+        foreach (var section in IniFile.ParseFile(path, VFS, false, stringPool))
         {
             if (section.Name.Equals("group", StringComparison.OrdinalIgnoreCase))
             {

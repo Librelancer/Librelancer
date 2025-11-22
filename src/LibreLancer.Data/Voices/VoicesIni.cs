@@ -21,10 +21,10 @@ namespace LibreLancer.Data.Voices
     {
         public Dictionary<string, Voice> Voices = new Dictionary<string, Voice>(StringComparer.OrdinalIgnoreCase);
 
-        public void AddVoicesIni(string path, FileSystem vfs)
+        public void AddVoicesIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
             Voice currentVoice = null;
-            foreach (var section in IniFile.ParseFile(path, vfs))
+            foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
             {
                 switch (section.Name.ToLowerInvariant())
                 {

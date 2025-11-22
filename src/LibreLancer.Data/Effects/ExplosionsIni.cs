@@ -14,5 +14,6 @@ public partial class ExplosionsIni
     [Section("Simple")]
     public List<Simple> Simples = new List<Simple>();
 
-    public void AddFile(string filename, FileSystem vfs) => ParseIni(filename, vfs);
+    public void AddFile(string filename, FileSystem vfs, IniStringPool stringPool = null) =>
+        ParseIni(filename, vfs, stringPool);
 }

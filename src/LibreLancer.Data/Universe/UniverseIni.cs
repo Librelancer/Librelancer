@@ -16,18 +16,18 @@ namespace LibreLancer.Data.Universe
         public List<Base> Bases;
         public List<StarSystem> Systems;
 
-        public UniverseIni(string path, FreelancerData data)
+        public UniverseIni(string path, FreelancerData data, IniStringPool stringPool = null)
         {
             var props = new IniParseProperties([
                 new("dataPath", data.Freelancer.DataPath),
                 new("universePath", data.VFS.RemovePathComponent(path)),
                 new("vfs", data.VFS)
             ]);
-            ParseIni(path, data.VFS, props);
+            ParseIni(path, data.VFS, stringPool, props);
         }
 
         // Special case for parallel loading
-        void ParseIni(string path, FileSystem vfs, IniParseProperties properties)
+        void ParseIni(string path, FileSystem vfs, IniStringPool stringPool, IniParseProperties properties)
         {
             using var stream = vfs.Open(path);
             List<Task<Base>> baseTasks = new();
@@ -43,7 +43,7 @@ namespace LibreLancer.Data.Universe
                         {
                             baseTasks.Add(Task.Run(() =>
                             {
-                                Base.TryParse(section, out var val, properties);
+                                Base.TryParse(section, out var val, stringPool, properties);
                                 return val;
                             }));
                         }
@@ -54,7 +54,7 @@ namespace LibreLancer.Data.Universe
                         {
                             systemTasks.Add(Task.Run(() =>
                             {
-                                StarSystem.TryParse(section, out var val, properties);
+                                StarSystem.TryParse(section, out var val, stringPool, properties);
                                 return val;
                             }));
                         }

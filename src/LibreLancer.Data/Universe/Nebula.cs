@@ -36,12 +36,12 @@ namespace LibreLancer.Data.Universe
         public List<NebulaExclusion> ExclusionZones = new List<NebulaExclusion>();
 
         [OnParseDependent]
-        void ParseDependent(IniParseProperties properties)
+        void ParseDependent(IniStringPool stringPool, IniParseProperties properties)
         {
             if (string.IsNullOrWhiteSpace(IniFile)) return;
             if (properties["vfs"] is not FileSystem vfs) return;
             if (properties["dataPath"] is not string dataPath) return;
-            ParseIni(dataPath + IniFile, vfs);
+            ParseIni(dataPath + IniFile, vfs, stringPool, properties);
         }
     }
 }

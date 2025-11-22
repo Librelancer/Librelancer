@@ -44,9 +44,9 @@ namespace LibreLancer.Data.Equipment
         [Section("mine")]
         public List<Mine> Mines = new List<Mine>();
 
-        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata)
+        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata, IniStringPool? stringPool = null)
         {
-            ParseInis(paths, fldata.VFS);
+            ParseInis(paths, fldata.VFS, stringPool);
         }
     }
 }

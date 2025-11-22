@@ -60,7 +60,7 @@ namespace LibreLancer.Data.Universe
 
 
         [OnParseDependent]
-        void ParseDependent(IniParseProperties properties)
+        void ParseDependent(IniStringPool stringPool, IniParseProperties properties)
         {
             if (string.IsNullOrWhiteSpace(File))
             {
@@ -70,7 +70,7 @@ namespace LibreLancer.Data.Universe
             }
             if (properties["vfs"] is not FileSystem vfs) return;
             if (properties["universePath"] is not string universePath) return;
-            ParseIni(universePath + File, vfs, properties);
+            ParseIni(universePath + File, vfs, stringPool, properties);
         }
     }
 }

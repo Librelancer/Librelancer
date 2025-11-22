@@ -19,9 +19,9 @@ namespace LibreLancer.Data.Solar
         [Section("simple")]
         public List<Simple> Simples = new();
 
-        public void AddSolararchIni(string path, FreelancerData gameData)
+        public void AddSolararchIni(string path, FreelancerData gameData, IniStringPool stringPool = null)
         {
-            ParseIni(path, gameData.VFS);
+            ParseIni(path, gameData.VFS, stringPool);
         }
 	}
 }

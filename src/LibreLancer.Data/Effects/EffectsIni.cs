@@ -26,6 +26,6 @@ namespace LibreLancer.Data.Effects
         [Section("effectlod")]
         public List<EffectLOD> EffectLODs = new List<EffectLOD>();
 
-        public void AddIni(string ini, FileSystem vfs) => ParseIni(ini, vfs);
+        public void AddIni(string ini, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(ini, vfs, stringPool);
 	}
 }

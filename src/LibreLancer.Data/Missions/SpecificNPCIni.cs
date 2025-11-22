@@ -12,7 +12,7 @@ namespace LibreLancer.Data.Missions
     public partial class SpecificNPCIni
     {
         [Section("NPC")] public List<SpecificNPC> Npcs = new List<SpecificNPC>();
-        public void AddFile(string file, FileSystem vfs) => ParseIni(file, vfs);
+        public void AddFile(string file, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(file, vfs, stringPool);
     }
 
     [ParsedSection]

@@ -17,9 +17,9 @@ namespace LibreLancer.Data.Cameras
         [Section("TurretCamera")] public CameraProps TurretCamera = new CameraProps();
         [Section("RearViewCamera")] public CameraProps RearViewCamera = new CameraProps();
 
-        public CameraIni(string camerasPath, FileSystem vfs)
+        public CameraIni(string camerasPath, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(camerasPath, vfs);
+            ParseIni(camerasPath, vfs, stringPool);
         }
     }
 

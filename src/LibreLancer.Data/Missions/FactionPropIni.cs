@@ -10,6 +10,6 @@ namespace LibreLancer.Data.Missions
         [Section("FactionProps")]
         public List<FactionProps> FactionProps = new List<FactionProps>();
 
-        public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
+        public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(path, vfs, stringPool);
     }
 }

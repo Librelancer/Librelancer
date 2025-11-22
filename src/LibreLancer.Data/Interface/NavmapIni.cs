@@ -25,9 +25,9 @@ namespace LibreLancer.Data.Interface
         [Section("Background")]
         public NavmapIniBackground Background;
 
-        public NavmapIni(string path, FileSystem vfs)
+        public NavmapIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs, stringPool);
         }
     }
 

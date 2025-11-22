@@ -15,9 +15,9 @@ namespace LibreLancer.Data.Solar
         [Section("loadout")]
         public List<Loadout> Loadouts = new List<Loadout>();
 
-		public void AddLoadoutsIni(string path, FreelancerData gdata)
+		public void AddLoadoutsIni(string path, FreelancerData gdata, IniStringPool stringPool = null)
         {
-            ParseIni(path, gdata.VFS);
+            ParseIni(path, gdata.VFS, stringPool);
         }
     }
 }

@@ -13,9 +13,9 @@ namespace LibreLancer.Data.Missions
     {
         [Section("NPCShipArch")]
         public List<NPCShipArch> ShipArches = new List<NPCShipArch>();
-        public NPCShipIni(string path, FileSystem vfs)
+        public NPCShipIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs, stringPool);
         }
     }
 

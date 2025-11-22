@@ -42,12 +42,12 @@ namespace LibreLancer.Data.Universe
         public Spiels Spiels;
 
         [OnParseDependent]
-        void ParseDependent(IniParseProperties properties)
+        void ParseDependent(IniStringPool stringPool, IniParseProperties properties)
         {
             if (string.IsNullOrWhiteSpace(File)) return;
             if (properties["vfs"] is not FileSystem vfs) return;
             if (properties["dataPath"] is not string dataPath) return;
-            ParseIni(dataPath + File, vfs);
+            ParseIni(dataPath + File, vfs, stringPool, properties);
         }
 	}
 }

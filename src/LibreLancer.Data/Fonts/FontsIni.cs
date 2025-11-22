@@ -13,9 +13,9 @@ namespace LibreLancer.Data
     {
         public List<string> FontFiles = new List<string>();
         public List<UIFont> UIFonts = new List<UIFont>();
-        public void AddFontsIni(string path, FileSystem vfs)
+        public void AddFontsIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            foreach (var section in IniFile.ParseFile(path, vfs))
+            foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
             {
                 if (section.Name.ToLowerInvariant() == "fontfiles")
                 {

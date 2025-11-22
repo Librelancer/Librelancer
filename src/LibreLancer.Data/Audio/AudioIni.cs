@@ -14,9 +14,9 @@ namespace LibreLancer.Data.Audio
     {
         [Section("sound")]
         public List<AudioEntry> Entries = new List<AudioEntry>();
-        public void AddIni(string path, FileSystem vfs)
+        public void AddIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs,  stringPool);
         }
     }
 }

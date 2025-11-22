@@ -13,9 +13,9 @@ namespace LibreLancer.Data.Interface
     {
         public Dictionary<int, int> Map = new Dictionary<int, int>();
 
-        public void AddMap(string file, FileSystem vfs)
+        public void AddMap(string file, FileSystem vfs, IniStringPool stringPool = null)
         {
-            foreach (var s in IniFile.ParseFile(file, vfs))
+            foreach (var s in IniFile.ParseFile(file, vfs, false, stringPool))
             {
                 if (!s.Name.Equals("infocardmaptable", StringComparison.OrdinalIgnoreCase))
                 {

@@ -45,7 +45,7 @@ namespace LibreLancer.Data.Ini
             return true;
         }
 
-        private static void ParseKeyValue(Section section, string key, ReadOnlySpan<char> value, int line, bool preparse, bool allowmaps)
+        private static void ParseKeyValue(Section section, string key, ReadOnlySpan<char> value, int line, bool preparse, bool allowmaps, IniStringPool stringPool)
         {
             Span<Range> parts = stackalloc Range[256];
             Entry entry;
@@ -57,8 +57,8 @@ namespace LibreLancer.Data.Ini
                 var (v1Start, v1Length) = parts[0].GetOffsetAndLength(value.Length);
                 var (v2Start, v2Length) = parts[1].GetOffsetAndLength(value.Length);
                 entry.Add(new StringKeyValue(
-                    value.Slice(v1Start, v1Length).ToString(),
-                    value.Slice(v2Start, v2Length).ToString()) { Entry = entry });
+                    stringPool.FromSpan(value.Slice(v1Start, v1Length)),
+                    stringPool.FromSpan(value.Slice(v2Start, v2Length))) { Entry = entry });
             }
             else
             {
@@ -85,12 +85,12 @@ namespace LibreLancer.Data.Ini
                                 entry.Add(new SingleValue(tempFloat, isLong ? tempLong : null) { Entry = entry, Line = line });
                             }
                             else
-                                entry.Add(new Data.Ini.LancerStringValue(part.ToString()) { Entry = entry, Line = line });
+                                entry.Add(new LancerStringValue(stringPool.FromSpan(part)) { Entry = entry, Line = line });
                         }
                         else if (preparse && bool.TryParse(part, out bool tempBool))
                             entry.Add(new BooleanValue(tempBool) { Entry = entry, Line = line });
                         else
-                            entry.Add(new Data.Ini.LancerStringValue(part.ToString()) { Entry = entry, Line = line });
+                            entry.Add(new LancerStringValue(stringPool.FromSpan(part)) { Entry = entry, Line = line });
                     }
                 }
             }
@@ -100,7 +100,8 @@ namespace LibreLancer.Data.Ini
         public IEnumerable<Section> ParseIniFile(string path,
             Stream stream,
             bool preparse = true,
-            bool allowmaps = false)
+            bool allowmaps = false,
+            IniStringPool stringPool = null)
         {
             // Ensure that we parse in code page windows-1252 if there is no BOM.
             var reader = new StreamReader(stream,
@@ -110,6 +111,7 @@ namespace LibreLancer.Data.Ini
             Section currentSection = null;
             int currentLine = 0;
             bool inSection = false;
+            stringPool ??= new IniStringPool();
 
             while (!reader.EndOfStream)
             {
@@ -129,7 +131,7 @@ namespace LibreLancer.Data.Ini
 
                     var sectionIdx = line.IndexOf(']') - 1;
                     if (sectionIdx < 0) sectionIdx = line.Length - 1;
-                    currentSection = new Section(line.Slice(1, sectionIdx).TrimEnd(spacesAndTabs).ToString())
+                    currentSection = new Section(stringPool.FromSpan(line.Slice(1, sectionIdx).TrimEnd(spacesAndTabs)))
                         { File = path, Line = currentLine };
                     if (toReturn != null) yield return toReturn;
                     continue;
@@ -152,11 +154,12 @@ namespace LibreLancer.Data.Ini
                 {
                     var key = line.Slice(0, equalsIndex).Trim(spacesAndTabs);
                     var value = line.Slice(equalsIndex + 1).Trim();
-                    ParseKeyValue(currentSection, key.ToString(), value, currentLine, preparse, allowmaps);
+                    ParseKeyValue(currentSection, stringPool.FromSpan(key), value, currentLine, preparse, allowmaps,
+                        stringPool);
                 }
                 else
                 {
-                    var key = line.Trim(spacesAndTabs).ToString();
+                    var key = stringPool.FromSpan(line.Trim(spacesAndTabs));
                     currentSection.Add(new Entry(currentSection, key));
                 }
             }

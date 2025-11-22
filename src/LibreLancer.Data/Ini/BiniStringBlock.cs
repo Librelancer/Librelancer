@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Collections.Generic;
 
 namespace LibreLancer.Data.Ini
@@ -11,16 +12,26 @@ namespace LibreLancer.Data.Ini
     {
         private string block;
         Dictionary<int,string> strings = new Dictionary<int, string>();
-        public BiniStringBlock(string block)
+        private IniStringPool stringPool = null;
+
+        public BiniStringBlock(string block, IniStringPool stringPool = null)
         {
             this.block = block;
+            this.stringPool = stringPool;
         }
 
         public string Get(int strOffset)
         {
             if (!strings.TryGetValue(strOffset, out string s))
             {
-                s = block.Substring(strOffset, block.IndexOf('\0', strOffset) - strOffset);
+                if (stringPool != null)
+                {
+                    s = stringPool.FromSpan(block.AsSpan(strOffset, block.IndexOf('\0', strOffset) - strOffset));
+                }
+                else
+                {
+                    s = block.Substring(strOffset, block.IndexOf('\0', strOffset) - strOffset);
+                }
                 strings.Add(strOffset, s);
             }
             return s;

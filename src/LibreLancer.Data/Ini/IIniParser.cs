@@ -11,7 +11,7 @@ namespace LibreLancer.Data.Ini
     {
         bool CanParse(Stream stream);
 
-        IEnumerable<Section> ParseIniFile(string path, Stream stream, bool preparse = true, bool allowmaps = false);
+        IEnumerable<Section> ParseIniFile(string path, Stream stream, bool preparse = true, bool allowmaps = false, IniStringPool stringPool = null);
 
     }
 }

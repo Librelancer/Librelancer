@@ -32,37 +32,37 @@ public class IniParser
         tw.AppendLine($"partial class {ini.Name}");
         tw.AppendLine("{").Indent();
         // Generate public-facing overloads
-        tw.AppendLine("public void ParseInis(IEnumerable<string> files, LibreLancer.Data.IO.FileSystem? vfs, IniParseProperties? properties = null)");
+        tw.AppendLine("public void ParseInis(IEnumerable<string> files, LibreLancer.Data.IO.FileSystem? vfs, IniStringPool? stringPool = null, IniParseProperties? properties = null)");
         using (tw.Block())
         {
             tw.AppendLine(
-                "_ParseInis(files.Select(x => (x, vfs == null ? SysIO.File.OpenRead(x) : vfs.Open(x))), true, properties);");
+                "_ParseInis(files.Select(x => (x, vfs == null ? SysIO.File.OpenRead(x) : vfs.Open(x))), true, stringPool, properties);");
         }
 
         tw.AppendLine();
-        tw.AppendLine("public void ParseIni(string file, LibreLancer.Data.IO.FileSystem? vfs, IniParseProperties? properties = null)");
+        tw.AppendLine("public void ParseIni(string file, LibreLancer.Data.IO.FileSystem? vfs, IniStringPool? stringPool = null, IniParseProperties? properties = null)");
         using (tw.Block())
         {
-            tw.AppendLine("_ParseInis([(file, vfs == null ? SysIO.File.OpenRead(file) : vfs.Open(file))], true, properties);");
+            tw.AppendLine("_ParseInis([(file, vfs == null ? SysIO.File.OpenRead(file) : vfs.Open(file))], true, stringPool, properties);");
         }
 
         tw.AppendLine();
-        tw.AppendLine("public void ParseIni(SysIO.Stream stream, string path, IniParseProperties? properties = null)");
+        tw.AppendLine("public void ParseIni(SysIO.Stream stream, string path, IniStringPool? stringPool = null, IniParseProperties? properties = null)");
         using (tw.Block())
         {
-            tw.AppendLine("_ParseInis([(path, stream)], false, properties);");
+            tw.AppendLine("_ParseInis([(path, stream)], false, stringPool, properties);");
         }
 
         tw.AppendLine();
         // Actual parser
         tw.AppendEditorHiddenLine()
-            .AppendLine("void _ParseInis(IEnumerable<(string Path, SysIO.Stream Stream)> files, bool closeStreams, IniParseProperties? properties)");
+            .AppendLine("void _ParseInis(IEnumerable<(string Path, SysIO.Stream Stream)> files, bool closeStreams, IniStringPool? stringPool, IniParseProperties? properties)");
         using (tw.Block())
         {
             tw.AppendLine("foreach(var src in files)");
             using (tw.Block())
             {
-                tw.AppendLine($"foreach(var section in LibreLancer.Data.Ini.IniFile.ParseFile(src.Path, src.Stream, {(ini.Preparse ? "true" : "false")}))");
+                tw.AppendLine($"foreach(var section in LibreLancer.Data.Ini.IniFile.ParseFile(src.Path, src.Stream, {(ini.Preparse ? "true" : "false")}, false, stringPool))");
                 using (tw.Block())
                 {
                     tw.AppendLine("var hash = ParseHelpers.Hash(section.Name);");
@@ -90,7 +90,7 @@ public class IniParser
                                 toParse = "split";
                             }
                             //Parse the section
-                            tw.AppendLine($"if({section.SectionType}.TryParse({toParse}, out var val, properties))");
+                            tw.AppendLine($"if({section.SectionType}.TryParse({toParse}, out var val, stringPool, properties))");
                             using (tw.Block())
                             {
                                 if (section.Child)

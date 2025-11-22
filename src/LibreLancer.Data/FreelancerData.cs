@@ -18,6 +18,7 @@ using LibreLancer.Data.Cameras;
 using LibreLancer.Data.Effects;
 using LibreLancer.Data.Goods;
 using LibreLancer.Data.Fuses;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.InitialWorld;
 using LibreLancer.Data.Interface;
 using LibreLancer.Data.IO;
@@ -125,6 +126,8 @@ namespace LibreLancer.Data
                 }
             }
 
+            var stringPool = new IniStringPool();
+
             Infocards = new InfocardManager(Freelancer.Resources);
 
             List<Action> tasks = new List<Action>();
@@ -134,42 +137,44 @@ namespace LibreLancer.Data
             Run(() =>
             {
                 Equipment = new EquipmentIni();
-                Equipment.ParseAllInis(Freelancer.EquipmentPaths, this);
+                Equipment.ParseAllInis(Freelancer.EquipmentPaths, this, stringPool);
             });
             Run(() =>
             {
                 Solar = new SolararchIni();
-                foreach (var file in Freelancer.SolarPaths) {
-                    Solar.AddSolararchIni(file, this);
+                foreach (var file in Freelancer.SolarPaths)
+                {
+                    Solar.AddSolararchIni(file, this, stringPool);
                 }
+
                 if (Freelancer.StarsPath != null)
-                    Stars = new StararchIni(Freelancer.StarsPath, VFS);
+                    Stars = new StararchIni(Freelancer.StarsPath, VFS, stringPool);
                 else
-                    Stars = new StararchIni(Freelancer.DataPath + "SOLAR\\stararch.ini", VFS);
+                    Stars = new StararchIni(Freelancer.DataPath + "SOLAR\\stararch.ini", VFS, stringPool);
             });
             Run(() =>
             {
                 Asteroids = new AsteroidArchIni();
                 foreach (var ast in Freelancer.AsteroidPaths)
-                    Asteroids.AddFile(ast, VFS);
+                    Asteroids.AddFile(ast, VFS, stringPool);
             });
             Run(() =>
             {
                 SpecificNPCs = new SpecificNPCIni();
                 if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\specific_npc.ini"))
                 {
-                    SpecificNPCs.AddFile(Freelancer.DataPath + "MISSIONS\\specific_npc.ini", VFS);
+                    SpecificNPCs.AddFile(Freelancer.DataPath + "MISSIONS\\specific_npc.ini", VFS, stringPool);
                 }
             });
             Run(() =>
             {
                 Loadouts = new LoadoutsIni();
                 foreach (var lo in Freelancer.LoadoutPaths)
-                    Loadouts.AddLoadoutsIni(lo, this);
+                    Loadouts.AddLoadoutsIni(lo, this, stringPool);
             });
             Run(() =>
             {
-                Universe = new UniverseIni(Freelancer.UniversePath, this);
+                Universe = new UniverseIni(Freelancer.UniversePath, this, stringPool);
             });
             //Pilots
             Run(() =>
@@ -177,11 +182,11 @@ namespace LibreLancer.Data
                 Pilots = new PilotsIni();
                 if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\pilots_population.ini"))
                 {
-                    Pilots.AddFile(Freelancer.DataPath + "MISSIONS\\pilots_population.ini", VFS);
+                    Pilots.AddFile(Freelancer.DataPath + "MISSIONS\\pilots_population.ini", VFS, stringPool);
                 }
                 if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\pilots_story.ini"))
                 {
-                    Pilots.AddFile(Freelancer.DataPath + "MISSIONS\\pilots_story.ini", VFS);
+                    Pilots.AddFile(Freelancer.DataPath + "MISSIONS\\pilots_story.ini", VFS, stringPool);
                 }
             });
             //Graphs
@@ -189,61 +194,62 @@ namespace LibreLancer.Data
             {
                 Graphs = new GraphIni();
                 foreach (var g in Freelancer.GraphPaths)
-                    Graphs.AddGraphIni(g, VFS);
+                    Graphs.AddGraphIni(g, VFS, stringPool);
             });
             //Shapes
             Run(() =>
             {
                 if (string.IsNullOrEmpty(Freelancer.EffectShapesPath))
                     throw new Exception("Need one effect_shapes entry");
-                EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS);
+                EffectShapes = new TexturePanels(Freelancer.EffectShapesPath, VFS, stringPool);
             });
             //Effects
             Run(() =>
             {
                 Effects = new EffectsIni();
                 foreach (var fx in Freelancer.EffectPaths)
-                    Effects.AddIni(fx, VFS);
+                    Effects.AddIni(fx, VFS, stringPool);
             });
             Run(() =>
             {
                 Explosions = new ExplosionsIni();
-                foreach(var fx in Freelancer.ExplosionPaths)
-                    Explosions.AddFile(fx, VFS);
+                foreach (var fx in Freelancer.ExplosionPaths)
+                    Explosions.AddFile(fx, VFS, stringPool);
             });
             Run(() =>
             {
                 //Mouse
-                Mouse = new MouseIni(Freelancer.MousePath, VFS);
+                Mouse = new MouseIni(Freelancer.MousePath, VFS, stringPool);
                 //Fonts
                 RichFonts = new RichFontsIni();
                 foreach (var rf in Freelancer.RichFontPaths)
-                    RichFonts.AddRichFontsIni(rf, VFS);
+                    RichFonts.AddRichFontsIni(rf, VFS, stringPool);
                 Fonts = new FontsIni();
                 foreach (var f in Freelancer.FontPaths)
-                    Fonts.AddFontsIni(f, VFS);
+                    Fonts.AddFontsIni(f, VFS, stringPool);
             });
             Run(() =>
             {
                 //PetalDb
                 PetalDb = new PetalDbIni();
                 foreach (var pt in Freelancer.PetalDbPaths)
-                    PetalDb.AddFile(pt, VFS);
+                    PetalDb.AddFile(pt, VFS, stringPool);
             });
             Run(() =>
             {
                 //Hud
                 Hud = new HudIni();
                 if (string.IsNullOrEmpty(Freelancer.HudPath)) throw new Exception("Need one hud path");
-                Hud.AddIni(Freelancer.HudPath, VFS);
+                Hud.AddIni(Freelancer.HudPath, VFS, stringPool);
                 //navbar.ini
-                BaseNavBar = new BaseNavBarIni(Freelancer.DataPath, VFS);
-                if (!string.IsNullOrEmpty(Freelancer.NavmapPath)) Navmap = new NavmapIni(Freelancer.NavmapPath, VFS);
+                BaseNavBar = new BaseNavBarIni(Freelancer.DataPath, VFS, stringPool);
+                if (!string.IsNullOrEmpty(Freelancer.NavmapPath))
+                    Navmap = new NavmapIni(Freelancer.NavmapPath, VFS, stringPool);
             });
             Run(() =>
             {
                 InfocardMap = new InfocardMapIni();
-                InfocardMap.AddMap(Freelancer.DataPath + "/INTERFACE/infocardmap.ini", VFS);
+                InfocardMap.AddMap(Freelancer.DataPath + "/INTERFACE/infocardmap.ini", VFS, stringPool);
             });
             Run(() =>
             {
@@ -251,12 +257,12 @@ namespace LibreLancer.Data
                 MBases = new MBasesIni();
                 if (Freelancer.MBasesPaths != null)
                 {
-                    foreach(var f in Freelancer.MBasesPaths)
-                        MBases.AddFile(f, VFS);
+                    foreach (var f in Freelancer.MBasesPaths)
+                        MBases.AddFile(f, VFS, stringPool);
                 }
                 else
                 {
-                    MBases.AddFile(Freelancer.DataPath + "MISSIONS\\mbases.ini", VFS);
+                    MBases.AddFile(Freelancer.DataPath + "MISSIONS\\mbases.ini", VFS, stringPool);
                 }
             });
             Run(() =>
@@ -264,72 +270,72 @@ namespace LibreLancer.Data
                 Formations = new FormationsIni();
                 if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\formations.ini"))
                 {
-                    Formations.AddFile(Freelancer.DataPath + "MISSIONS\\formations.ini", VFS);
+                    Formations.AddFile(Freelancer.DataPath + "MISSIONS\\formations.ini", VFS, stringPool);
                 }
             });
             Run(() =>
             {
                 Voices = new VoicesIni();
-                foreach(var voice in Freelancer.VoicePaths)
-                    Voices.AddVoicesIni(voice, VFS);
+                foreach (var voice in Freelancer.VoicePaths)
+                    Voices.AddVoicesIni(voice, VFS, stringPool);
             });
             Run(() =>
             {
                 News = new NewsIni();
                 if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\news.ini"))
                 {
-                    News.AddNewsIni(Freelancer.DataPath + "MISSIONS\\news.ini", VFS);
+                    News.AddNewsIni(Freelancer.DataPath + "MISSIONS\\news.ini", VFS, stringPool);
                 }
             });
             Run(() =>
             {
                 Fuses = new FuseIni();
                 foreach (var fi in Freelancer.FusePaths)
-                    Fuses.AddFuseIni(fi, VFS);
+                    Fuses.AddFuseIni(fi, VFS, stringPool);
             });
             //newchardb
             Run(() =>
             {
                 NewCharDB = new NewCharDBIni();
                 foreach (var nc in Freelancer.NewCharDBPaths)
-                    NewCharDB.AddNewCharDBIni(nc, VFS);
+                    NewCharDB.AddNewCharDBIni(nc, VFS, stringPool);
             });
             Run(() =>
             {
-                Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this);
-                Costumes = new CostumesIni(Freelancer.CostumesPath, VFS);
+                Bodyparts = new BodypartsIni(Freelancer.BodypartsPath, this, stringPool);
+                Costumes = new CostumesIni(Freelancer.CostumesPath, VFS, stringPool);
             });
             Run(() =>
             {
                 Audio = new AudioIni();
                 foreach (var snd in Freelancer.SoundPaths)
-                    Audio.AddIni(snd, VFS);
+                    Audio.AddIni(snd, VFS, stringPool);
             });
             Run(() =>
             {
                 Ships = new ShiparchIni();
-                Ships.ParseAllInis(Freelancer.ShiparchPaths, this);
+                Ships.ParseAllInis(Freelancer.ShiparchPaths, this, stringPool);
             });
             Run(() =>
             {
                 Goods = new GoodsIni();
                 foreach (var gd in Freelancer.GoodsPaths)
-                    Goods.AddGoodsIni(gd, VFS);
+                    Goods.AddGoodsIni(gd, VFS, stringPool);
             });
             Run(() =>
             {
                 Markets = new MarketsIni();
                 foreach (var mkt in Freelancer.MarketsPaths)
-                    Markets.AddMarketsIni(mkt, VFS);
+                    Markets.AddMarketsIni(mkt, VFS, stringPool);
             });
             Run(() =>
             {
                 if (VFS.FileExists(Freelancer.DataPath + "missions\\npcships.ini"))
-                    NPCShips = new NPCShipIni(Freelancer.DataPath + "missions\\npcships.ini", VFS);
+                    NPCShips = new NPCShipIni(Freelancer.DataPath + "missions\\npcships.ini", VFS, stringPool);
             });
             Run(() =>
             {
-                Cameras = new CameraIni(Freelancer.CamerasPath, VFS);
+                Cameras = new CameraIni(Freelancer.CamerasPath, VFS, stringPool);
             });
             Run(() =>
             {
@@ -338,23 +344,23 @@ namespace LibreLancer.Data
             });
             Run(() =>
             {
-                Keymap = new KeymapIni(Freelancer.DataPath + "interface\\keymap.ini", VFS);
-                KeyList = new KeyListIni(Freelancer.DataPath + "interface\\keylist.ini", VFS);
+                Keymap = new KeymapIni(Freelancer.DataPath + "interface\\keymap.ini", VFS, stringPool);
+                KeyList = new KeyListIni(Freelancer.DataPath + "interface\\keylist.ini", VFS, stringPool);
             });
             Run(() =>
             {
                 InitialWorld = new InitialWorldIni();
-                InitialWorld.AddFile(Freelancer.DataPath + "initialworld.ini", VFS);
+                InitialWorld.AddFile(Freelancer.DataPath + "initialworld.ini", VFS, stringPool);
             });
             Run(() =>
             {
                 FactionProps = new FactionPropIni();
-                FactionProps.AddFile(Freelancer.DataPath + "missions\\faction_prop.ini", VFS);
+                FactionProps.AddFile(Freelancer.DataPath + "missions\\faction_prop.ini", VFS, stringPool);
             });
             Run(() =>
             {
                 Empathy = new EmpathyIni();
-                Empathy.AddFile(Freelancer.DataPath + "missions\\empathy.ini", VFS);
+                Empathy.AddFile(Freelancer.DataPath + "missions\\empathy.ini", VFS, stringPool);
             });
             Run(() =>
             {

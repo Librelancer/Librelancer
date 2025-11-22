@@ -13,9 +13,9 @@ namespace LibreLancer.Data.Missions
     public partial class NewsIni
     {
         [Section("NewsItem")] public List<NewsItem> NewsItems = new List<NewsItem>();
-        public void AddNewsIni(string path, FileSystem vfs)
+        public void AddNewsIni(string path, FileSystem vfs, IniStringPool stringPool = null)
         {
-            ParseIni(path, vfs);
+            ParseIni(path, vfs, stringPool);
         }
     }
 
