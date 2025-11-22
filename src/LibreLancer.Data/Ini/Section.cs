@@ -20,11 +20,11 @@ namespace LibreLancer.Data.Ini
 
         public int Line { get; init; } = -1;
 
-		public Section(string name)
+		public Section(string name, int capacity = -1)
 		{
 			if (name == null) throw new ArgumentNullException(nameof(name));
 
-			entries = new List<Entry>();
+			entries = capacity > 0 ? new List<Entry>(capacity) : new List<Entry>();
 			Name = name;
 		}
 

@@ -53,18 +53,16 @@ namespace LibreLancer.Data.Ini
                 short sectionNameOffset = reader.ReadInt16();
                 var sectionName = stringBlock.Get(sectionNameOffset);
 
-                var section = new Section(sectionName) { File = path };
-
                 short entryCount = reader.ReadInt16();
+                var section = new Section(sectionName, entryCount) { File = path };
+
                 for (int i = 0; i < entryCount; i++)
                 {
                     var entryNameOffset = reader.ReadInt16();
                     var entryName = stringBlock.Get(entryNameOffset);
 
-                    var entry = new Entry(section, entryName);
-
                     var valueCount = reader.ReadByte();
-                    var values = new List<IValue>(valueCount);
+                    var entry = new Entry(section, entryName, valueCount);
 
                     for (int j = 0; j < valueCount; j++)
                     {
