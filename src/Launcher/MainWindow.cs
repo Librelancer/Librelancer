@@ -18,7 +18,7 @@ namespace Launcher
     class MainWindow : Game
     {
         ImGuiHelper imGui;
-        public MainWindow() : base(640, 320, false, true)
+        public MainWindow() : base(640, 350, false, true)
         {
 
         }
