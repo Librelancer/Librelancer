@@ -171,6 +171,14 @@
     "name": "AttachShader"
   },
   {
+    "function": "void glDetachShader(uint program, uint shader)",
+    "name": "DetachShader"
+  },
+  {
+    "function": "void glDeleteShader(uint shader)",
+    "name": "DeleteShader"
+  },
+  {
     "function": "void glBindAttribLocation(uint program, uint index, string name)",
     "name": "BindAttribLocation"
   },

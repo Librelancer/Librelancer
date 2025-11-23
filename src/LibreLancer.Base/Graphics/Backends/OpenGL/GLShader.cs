@@ -111,6 +111,12 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                 Console.WriteLine (GL.GetProgramInfoLog (programID));
                 throw new Exception ("Program link failed");
             }
+            // delete shader objects
+            // these are no longer required as the program object contains everything needed
+            GL.DetachShader(programID, vertexHandle);
+            GL.DetachShader(programID, fragmentHandle);
+            GL.DeleteShader(vertexHandle);
+            GL.DeleteShader(fragmentHandle);
             // Set up uniforms
             int totalSz = 0;
             int blockMax = 0;
