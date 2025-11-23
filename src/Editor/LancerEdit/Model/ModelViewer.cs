@@ -854,7 +854,7 @@ namespace LancerEdit
             }
             if (ImGuiExt.ToggleButton("Filter", doFilter)) doFilter = !doFilter;
             if (doFilter) {
-                ImGui.InputText("##filter", filterText.Pointer, filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
+                ImGui.InputText("##filter", filterText.NativeMemory.Handle, filterText.Size, ImGuiInputTextFlags.None, filterText.Callback);
                 currentFilter = filterText.GetText();
             }
             else

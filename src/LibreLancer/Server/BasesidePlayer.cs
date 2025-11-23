@@ -51,7 +51,7 @@ public class BasesidePlayer : IBasesidePlayer
         if (BaseData == null) return Task.FromResult(false);
         var g = BaseData.SoldGoods.FirstOrDefault(x =>
             x.Good.Equipment.Nickname.Equals(item, StringComparison.OrdinalIgnoreCase));
-        if (g == null) return Task.FromResult(false);
+        if (g.Good == null) return Task.FromResult(false);
         var cost = (long) (g.Price * (ulong) count);
         if (Player.Character.Credits >= cost)
         {

@@ -47,7 +47,7 @@ namespace LibreLancer.GameData.World
         {
             var g = SoldGoods.FirstOrDefault(x =>
                 x.Good.Equipment.Nickname.Equals(eq.Nickname, StringComparison.OrdinalIgnoreCase));
-            if (g == null) {
+            if (g.Good == null) {
                 return (ulong) (eq.Good?.Ini?.Price ?? 0);
             }
             return g.Price;

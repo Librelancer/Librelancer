@@ -15,7 +15,7 @@ namespace LibreLancer.Render
 {
 	public class LineRenderer :  IDisposable, Physics.IDebugRenderer
 	{
-		const int MAX_LINES = 65536;
+		const int MAX_LINES = 8192;
 		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
 		VertexBuffer linebuffer;
 		int lineVertices = 0;

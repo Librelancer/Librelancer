@@ -5,6 +5,7 @@
 using System;
 using System.Text;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using LibreLancer;
@@ -13,24 +14,20 @@ namespace LibreLancer.ImUI
 	public unsafe class TextBuffer : IDisposable
 	{
 		public int Size;
-		public IntPtr Pointer;
+		public NativeBuffer NativeMemory;
 		public ImGuiInputTextCallback Callback;
         public TextBuffer(int sz = 2048)
         {
             sz = (sz + 7) & ~7;
             Size = sz;
-			Pointer = Marshal.AllocHGlobal(sz);
+            NativeMemory = UnsafeHelpers.Allocate(sz);
 			Clear();
 			Callback = HandleTextEditCallback;
 		}
 
 		public void Clear()
 		{
-			for (int i = 0; i < Size / sizeof(long); i++)
-			{
-				var ptr = (long*)Pointer;
-				ptr[i] = 0;
-			}
+            Unsafe.InitBlockUnaligned((void*)NativeMemory.Handle, 0, (uint)NativeMemory.Size);
 		}
 
 		int HandleTextEditCallback(ImGuiInputTextCallbackData* data)
@@ -43,29 +40,29 @@ namespace LibreLancer.ImUI
             var bytes = Encoding.UTF8.GetBytes(text).AsSpan();
             if (bytes.Length > Size - 1)
                 bytes = bytes.Slice(bytes.Length - (Size - 1), (Size - 1));
-            var dest = new Span<byte>((void*)Pointer, bytes.Length + 1);
+            var dest = new Span<byte>((void*)NativeMemory.Handle, bytes.Length + 1);
             bytes.CopyTo(dest);
             dest[^1] = 0;
 		}
 
         public unsafe void InputText(string id, ImGuiInputTextFlags flags, int sz = -1)
         {
-            ImGui.InputText(id, Pointer, (nint)(sz > 0 ? sz : Size), flags, Callback);
+            ImGui.InputText(id, NativeMemory.Handle, (nint)(sz > 0 ? sz : Size), flags, Callback);
         }
 
         public void InputTextMultiline(string id, Vector2 size, ImGuiInputTextFlags flags, int sz = -1)
         {
-            ImGui.InputTextMultiline(id, Pointer, (nint)(sz > 0 ? sz : Size), size, flags, Callback);
+            ImGui.InputTextMultiline(id, NativeMemory.Handle, (nint)(sz > 0 ? sz : Size), size, flags, Callback);
         }
 
 		public string GetText()
 		{
-            return UnsafeHelpers.PtrToStringUTF8(Pointer, Size);
+            return UnsafeHelpers.PtrToStringUTF8(NativeMemory.Handle, Size);
 		}
 
 		public void Dispose()
-		{
-			Marshal.FreeHGlobal(Pointer);
-		}
+        {
+            NativeMemory.Dispose();
+        }
 	}
 }

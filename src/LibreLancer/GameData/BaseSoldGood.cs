@@ -6,7 +6,7 @@ using LibreLancer.GameData.Items;
 
 namespace LibreLancer.GameData
 {
-    public class BaseSoldGood
+    public struct BaseSoldGood
     {
         public int Rank;
         public ResolvedGood Good;
