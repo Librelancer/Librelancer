@@ -109,7 +109,7 @@ namespace LibreLancer
             var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));
             Thread GameDataLoaderThread = new Thread(() =>
             {
-                GameData.LoadData(this, () =>
+                GameData.LoadData(this, true,() =>
                 {
                     Sound = new SoundManager(GameData, Audio, this);
                     InputMap.LoadFromKeymap(GameData.Ini.Keymap, GameData.Ini.KeyList);

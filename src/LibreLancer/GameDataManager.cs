@@ -549,7 +549,7 @@ namespace LibreLancer
             }
         }
 
-        public void LoadData(IUIThread ui, Action onIniLoaded = null)
+        public void LoadData(IUIThread ui, bool preloadCharacterAnimations = false, Action onIniLoaded = null)
         {
             fldata.LoadData();
             if (glResource != null && ui != null)
@@ -570,7 +570,7 @@ namespace LibreLancer
             }
             if(onIniLoaded != null) ui.QueueUIThread(onIniLoaded);
             var tasks = new LoadingTasks();
-            if(glResource != null)
+            if(glResource != null && preloadCharacterAnimations)
                 tasks.Begin(() => GetCharacterAnimations());
             var pilotTask = tasks.Begin(InitPilots);
             var effectsTask = tasks.Begin(InitEffects);
