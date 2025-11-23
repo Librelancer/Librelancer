@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime;
 using LibreLancer.Data;
 using LibreLancer.Data.Audio;
 using LibreLancer.Data.Effects;
@@ -631,6 +632,7 @@ namespace LibreLancer
                 );
             tasks.WaitAll();
             fldata.Universe = null; //Free universe ini!
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect(); //We produced a crapload of garbage
         }
 
