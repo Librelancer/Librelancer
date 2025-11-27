@@ -9,13 +9,14 @@
 // name = Output Folder
 // type = folder
 // [Argument]
-// name = Files
-// type = filearray
+// name = Files/Folders
+// type = filefolderarray
 if(Arguments.Length < 3) {
-    Console.Error.WriteLine("usage: img2icon TYPE output-directory/ file.png ...");
+    Console.Error.WriteLine("usage: img2icon TYPE output-directory/ file.png [folder/] ...");
     Console.Error.WriteLine("Types: ");
     Console.Error.WriteLine("dxt");
     Console.Error.WriteLine("uncompressed");
+    Console.Error.WriteLine("Folders will be searched for .png files to create icons from");
 	return;
 }
 
@@ -23,10 +24,30 @@ bool compressed = Arguments[0].Contains("dxt", StringComparison.OrdinalIgnoreCas
 var directory = Arguments[1];
 
 Directory.CreateDirectory(directory);
+List<string> files = new List<string>();
 
-for(int i = 2; i < Arguments.Length; i++) {
-    var file = Arguments[i];
-    Console.WriteLine($"[{i-1}/{Arguments.Length-2}] Processing {file}");
+for(int i = 2; i < Arguments.Length; i++)
+{
+     var file = Arguments[i];
+     if(Directory.Exists(file))
+     {
+        files.AddRange(Directory.GetFiles(file, "*.png", SearchOption.TopDirectoryOnly));
+     }
+     else if(!File.Exists(file))
+     {
+        Console.Error.WriteLine($"Could not open file or folder {file}");
+        continue;
+     }
+     else
+     {
+        files.Add(file);
+     }
+}
+
+for(int i = 0; i < files.Count; i++)
+{
+    var file = files[i];
+    Console.WriteLine($"[{i+1}/{files.Count}] Processing {file}");
     var outfile = Path.Combine(directory, Path.ChangeExtension(Path.GetFileName(file),".3db"));
     EditableUtf utf;
     if(compressed) {
@@ -34,12 +55,11 @@ for(int i = 2; i < Arguments.Length; i++) {
     } else {
         utf = UiIconGenerator.UncompressedFromFile(Path.GetFileName(file), file, false);
     }
-
     var utfSave = utf.Save(outfile, 0);
     PrintMessages(utfSave);
-
-    if(utfSave.IsError) {
-        Console.WriteLine($"Error writing 'outfile'.");
+    if(utfSave.IsError)
+    {
+        Console.WriteLine($"Error writing '{outfile}'.");
         continue;
     }
 }
