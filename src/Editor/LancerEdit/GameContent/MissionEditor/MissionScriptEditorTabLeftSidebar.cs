@@ -24,6 +24,8 @@ public sealed partial class MissionScriptEditorTab
             (SaveStrategy as MissionSaveStrategy)!.RunSaveDialog();
         }
 
+        Controls.InputTextId("Node Filter", ref NodeFilter);
+
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
         if (ImGui.CollapsingHeader("Mission Information", ImGuiTreeNodeFlags.DefaultOpen))
         {
@@ -313,8 +315,8 @@ public sealed partial class MissionScriptEditorTab
             for (var i = 0; i < selectedArch.NpcClass.Count; i++)
             {
                 var npcClass = selectedArch.NpcClass[i];
-                ImGui.PushID(npcClass);
-                Controls.InputTextId("##ID", ref npcClass, 150f);
+                ImGui.PushID(i);
+                Controls.InputTextId("##npc-class", ref npcClass, 150f);
                 ImGui.PopID();
                 selectedArch.NpcClass[i] = npcClass;
             }

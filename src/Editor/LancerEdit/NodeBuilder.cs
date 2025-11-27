@@ -127,6 +127,11 @@ public struct NodeBuilder : IDisposable
             var drawList = NodeEditor.GetNodeBackgroundDrawList(CurrentId);
             var halfBorderWidth = NodeEditor.GetStyle()->NodeBorderWidth * 0.5f;
 
+            var color = ImGui.ColorConvertU32ToFloat4(HeaderColor) with
+            {
+                W = alpha
+            };
+
             if ((HeaderMax.X > HeaderMin.X) && (HeaderMax.Y > HeaderMin.Y) && (HeaderTextureId != null))
             {
                 if (HeaderMax.X < NodeMax.X) //no spring layout, get max
@@ -139,7 +144,7 @@ public struct NodeBuilder : IDisposable
                     HeaderMin - new Vector2(8 - halfBorderWidth, 4 - halfBorderWidth),
                     HeaderMax + new Vector2(8 - halfBorderWidth, 0),
                     Vector2.Zero, uv,
-                    HeaderColor,
+                    ImGui.ColorConvertFloat4ToU32(color),
                     NodeEditor.GetStyle()->NodeRounding, ImDrawFlags.RoundCornersTop
                     );
                 if (ContentMin.Y > HeaderMax.Y)

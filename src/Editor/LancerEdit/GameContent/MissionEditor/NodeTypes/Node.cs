@@ -15,6 +15,7 @@ public abstract class Node(VertexDiffuse? color = null)
 {
     public NodeId Id { get; } = NodeEditorId.Next();
     public abstract string Name  { get; }
+    public virtual string InternalId => "";
     public List<NodePin> Inputs  { get; } = [];
     public List<NodePin> Outputs  { get; } = [];
     public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;

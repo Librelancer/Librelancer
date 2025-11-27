@@ -37,6 +37,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
     private readonly MissionIni missionIni;
     public string FileSaveLocation;
+    public string NodeFilter = "";
 
     public MissionScriptEditorTab(GameDataContext gameData, MainWindow win, string file)
     {
@@ -318,7 +319,19 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         var lookups = new NodeLookups() { MissionIni = missionIni };
         foreach (var node in nodes)
         {
+            var isFiltered = NodeFilter is not "" && node.InternalId.IndexOf(NodeFilter, StringComparison.OrdinalIgnoreCase) == -1;
+
+            if (isFiltered)
+            {
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.3f);
+            }
+
             node.Render(gameData, popup, ref lookups);
+
+            if (isFiltered)
+            {
+                ImGui.PopStyleVar();
+            }
         }
 
         foreach (var link in NodePin.AllLinks)

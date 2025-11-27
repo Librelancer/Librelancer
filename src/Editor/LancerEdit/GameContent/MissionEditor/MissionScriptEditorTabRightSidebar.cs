@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 
@@ -105,6 +106,32 @@ public sealed partial class MissionScriptEditorTab
             Controls.InputTextId("Source##ID", ref line.Source);
             Controls.InputTextId("Target##ID", ref line.Target);
             Controls.InputTextId("Line##ID", ref line.Line);
+            ImGui.SameLine();
+            if (ImGui.Button(Icons.Play))
+            {
+                var src = missionIni.Ships.FirstOrDefault(x => x.Nickname.Equals(line.Source, StringComparison.OrdinalIgnoreCase));
+
+                if (src is not null)
+                {
+                    var npc = missionIni.NPCs.FirstOrDefault(x => x.Nickname.Equals(src.NPC, StringComparison.OrdinalIgnoreCase));
+
+                    if (npc is not null)
+                    {
+                        gameData.Sounds.PlayVoiceLine(npc.Voice, FLHash.CreateID(line.Line));
+                    }
+                }
+                else
+                {
+                    var source2 = missionIni.Solars.FirstOrDefault(x =>
+                        x.Nickname.Equals(line.Source, StringComparison.OrdinalIgnoreCase));
+
+                    if (source2 != null)
+                    {
+                        gameData.Sounds.PlayVoiceLine(source2.Voice, FLHash.CreateID(line.Line));
+                    }
+                }
+            }
+
             ImGui.PopID();
 
             if (index + 1 != selectedDialog.Lines.Count)

@@ -38,6 +38,7 @@ public static class MissionEditorHelpers
         if (ImGui.Button(Icons.PlusCircle + "##Plus"))
         {
             list.Add(defaultValue());
+            ImGui.PopID();
             return;
         }
 

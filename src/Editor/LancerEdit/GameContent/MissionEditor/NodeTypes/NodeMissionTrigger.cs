@@ -21,7 +21,6 @@ public class NodeMissionTrigger : Node
 
     public NodeMissionTrigger(MissionTrigger data) : base(NodeColours.Trigger)
     {
-
         this.Data = data ?? new MissionTrigger();
 
         Inputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Input));
@@ -31,6 +30,7 @@ public class NodeMissionTrigger : Node
         {
             Conditions.Add(NodeTriggerEntry.ConditionToNode(c.Type, c.Entry));
         }
+
         foreach (var a in this.Data.Actions)
         {
             Actions.Add(NodeTriggerEntry.ActionToNode(a.Type, a));
@@ -38,6 +38,7 @@ public class NodeMissionTrigger : Node
     }
 
     public override string Name => "Mission Trigger";
+    public override string InternalId => Data.Nickname;
 
     static bool StartChild(NodeTriggerEntry e, out bool remove)
     {
@@ -74,9 +75,9 @@ public class NodeMissionTrigger : Node
         }
 
         var bordercol = ImGui.GetColorU32(ImGuiCol.Border);
-        float contentPad = usePins ? pad : pad * 2;
+        var contentPad = usePins ? pad : pad * 2;
 
-        for(int i = 0; i < Conditions.Count; i++)
+        for(var i = 0; i < Conditions.Count; i++)
         {
             var e = Conditions[i];
             if (usePins)
@@ -97,7 +98,7 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
             }
 
-            if (StartChild(e, out bool remove))
+            if (StartChild(e, out var remove))
             {
                 ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
                 e.RenderContent(gameData, popups, ref nodePopups, ref nodeLookups);
@@ -122,14 +123,14 @@ public class NodeMissionTrigger : Node
         ref NodeLookups nodeLookups)
     {
         var bordercol = ImGui.GetColorU32(ImGuiCol.Border);
-        float contentPad = usePins ? 0 : pad * 2;
+        var contentPad = usePins ? 0 : pad * 2;
         if (usePins)
         {
             ImGui.BeginTable("##actions", 2, ImGuiTableFlags.PreciseWidths, new Vector2(szPin + szContent + pad, 0));
             ImGui.TableSetupColumn("##content", ImGuiTableColumnFlags.WidthFixed, szContent);
             ImGui.TableSetupColumn("##pins", ImGuiTableColumnFlags.WidthFixed, szPin);
         }
-        for (int i = 0; i < Actions.Count; i++)
+        for (var i = 0; i < Actions.Count; i++)
         {
             var e = Actions[i];
             if (usePins)
@@ -138,7 +139,7 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
             }
 
-            if (StartChild(e, out bool remove))
+            if (StartChild(e, out var remove))
             {
                 ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
                 e.RenderContent(gameData, popups, ref nodePopups, ref nodeLookups);
@@ -210,28 +211,13 @@ public class NodeMissionTrigger : Node
     {
         // Measurements
         // Do we need to use pins?
-        bool conditionPin = false;
-        bool actionPin = false;
-        for (int i = 0; i < Conditions.Count; i++) {
-            if (Conditions[i].Inputs.Count > 0)
-            {
-                conditionPin = true;
-                break;
-            }
-        }
-        for (int i = 0; i < Actions.Count; i++)
-        {
-            if (Actions[i].Outputs.Count > 0)
-            {
-                actionPin = true;
-                break;
-            }
-        }
+        var conditionPin = Conditions.Any(t => t.Inputs.Count > 0);
+        var actionPin = Actions.Any(t => t.Outputs.Count > 0);
 
-        float szPin = 70 * ImGuiHelper.Scale;
-        float szContent = 300 * ImGuiHelper.Scale;
-        float szRight = szContent + (actionPin ? szPin : 0);
-        float szLeft = szContent + (conditionPin ? szPin : 0);
+        var szPin = 70 * ImGuiHelper.Scale;
+        var szContent = 300 * ImGuiHelper.Scale;
+        var szRight = szContent + (actionPin ? szPin : 0);
+        var szLeft = szContent + (conditionPin ? szPin : 0);
         var pad = ImGui.GetStyle().FramePadding.X;
 
 
@@ -250,7 +236,7 @@ public class NodeMissionTrigger : Node
         ImGui.Text(Inputs[0].LinkType.ToString());
         NodeEditor.EndPin();
 
-        float szTriggerPin = 75 * ImGuiHelper.Scale;
+        var szTriggerPin = 75 * ImGuiHelper.Scale;
         var tWidth = szLeft + szRight + 8 * pad;
         ImGui.SameLine();
         ImGui.Dummy(new Vector2(tWidth - 2 * szTriggerPin, 1));

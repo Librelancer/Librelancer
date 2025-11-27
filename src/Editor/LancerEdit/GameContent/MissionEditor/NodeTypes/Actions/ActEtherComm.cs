@@ -1,4 +1,8 @@
-﻿using LibreLancer.Data.Ini;
+﻿using System;
+using System.Linq;
+using ImGuiNET;
+using LibreLancer;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -25,6 +29,11 @@ public sealed class ActEtherComm : NodeTriggerEntry
         // TODO: FLESH OUT
         Controls.InputTextId("Line", ref Data.Line);
         Controls.InputTextId("Voices", ref Data.Voice);
+
+        if (ImGui.Button("Play Line " + Icons.Play))
+        {
+            gameData.Sounds.PlayVoiceLine(Data.Voice, FLHash.CreateID(Data.Line));
+        }
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

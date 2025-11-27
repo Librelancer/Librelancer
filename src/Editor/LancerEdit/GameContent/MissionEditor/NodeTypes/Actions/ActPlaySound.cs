@@ -1,7 +1,11 @@
-﻿using LibreLancer.Data.Ini;
+﻿using System;
+using System.Linq;
+using ImGuiNET;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Media;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Actions;
 
@@ -23,6 +27,15 @@ public sealed class ActPlaySound : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         Controls.InputTextId("Sound Id", ref Data.Effect);
+        var sound = gameData.GameData.AllSounds.FirstOrDefault(x => x.Nickname.Equals(Data.Effect, StringComparison.OrdinalIgnoreCase));
+
+        if (sound is not null)
+        {
+            if (ImGui.Button("Play Sound " + Icons.Play))
+            {
+                gameData.Sounds.PlayOneShot(sound.Nickname);
+            }
+        }
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

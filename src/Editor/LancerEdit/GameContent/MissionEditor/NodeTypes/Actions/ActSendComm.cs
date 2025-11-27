@@ -1,4 +1,8 @@
-﻿using LibreLancer.Data.Ini;
+﻿using System;
+using System.Linq;
+using ImGuiNET;
+using LibreLancer;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
@@ -25,6 +29,32 @@ public sealed class ActSendComm : NodeTriggerEntry
         Controls.InputTextId("Source", ref Data.Source);
         Controls.InputTextId("Destination", ref Data.Destination);
         Controls.InputTextId("Line", ref Data.Line);
+
+        if (!ImGui.Button(Icons.Play + " Play Line"))
+        {
+            return;
+        }
+
+        var source = lookups.MissionIni.Ships.FirstOrDefault(x => x.Nickname.Equals(Data.Source, StringComparison.OrdinalIgnoreCase));
+
+        if (source is not null)
+        {
+            var npc = lookups.MissionIni.NPCs.FirstOrDefault(x => x.Nickname.Equals(source.NPC, StringComparison.OrdinalIgnoreCase));
+
+            if (npc is not null)
+            {
+                gameData.Sounds.PlayVoiceLine(npc.Voice, FLHash.CreateID(Data.Line));
+            }
+
+            return;
+        }
+
+        var source2 = lookups.MissionIni.Solars.FirstOrDefault(x => x.Nickname.Equals(Data.Source, StringComparison.OrdinalIgnoreCase));
+
+        if (source2 != null)
+        {
+            gameData.Sounds.PlayVoiceLine(source2.Voice, FLHash.CreateID(Data.Line));
+        }
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
