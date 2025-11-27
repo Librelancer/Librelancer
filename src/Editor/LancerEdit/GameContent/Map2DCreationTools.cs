@@ -14,16 +14,108 @@ public class Map2DCreationTools
     public PatrolEditor Patrol { get; } = new();
     public ZoneShapeCreator ZoneShape { get; } = new();
 
-    public void Draw(ImDrawListPtr dlist, Vector2 wPos, float renderWidth, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
+    public TradelaneEditor Tradelane { get; } = new();
+
+    public string Draw(ImDrawListPtr dlist, Vector2 wPos, float renderWidth, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
     {
         // Draw patrol path and handle patrol interactions
-        Patrol.Draw(dlist, wPos, worldToMap, mapToWorld, tab);
-
+        var helpText = Patrol.Draw(dlist, wPos, worldToMap, mapToWorld, tab);
+        if (helpText != null)
+            return helpText;
         // Zone shape creation logic
-        ZoneShape.Draw(dlist, wPos, renderWidth, mapToWorld, tab);
+        helpText = ZoneShape.Draw(dlist, wPos, renderWidth, mapToWorld, tab);
+        if (helpText != null)
+            return helpText;
+        return Tradelane.Draw(dlist, wPos, worldToMap, mapToWorld, tab);
     }
 
-    public bool IsAnyToolActive => Patrol.IsActive || ZoneShape.IsActive;
+    public bool IsAnyToolActive => Patrol.IsActive || ZoneShape.IsActive || Tradelane.IsActive;
+}
+
+public class TradelaneEditor
+{
+    public bool IsActive { get; private set; }
+
+    private Vector3? start;
+    private Vector3? end;
+
+    public void Start()
+    {
+        IsActive = true;
+        start = end = null;
+    }
+
+    public void Cancel()
+    {
+        IsActive = false;
+        start = end = null;
+    }
+
+    void AddPoint(Vector3 point, SystemEditorTab tab)
+    {
+        if (IsActive)
+        {
+            if (start == null)
+            {
+                start = point;
+            }
+            else
+            {
+                end = point;
+                tab.OnCreateTradelane(start!.Value, point);
+            }
+        }
+    }
+
+
+    private const float TRADELANE_DISTANCE = 8300;
+
+    public string Draw(ImDrawListPtr dlist, Vector2 wPos, Func<Vector3, Vector2> worldToMap,
+        Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
+    {
+        if (!IsActive) return null;
+
+        var mousePos = ImGui.GetMousePos();
+        var io = ImGui.GetIO();
+
+
+        var mouseInWindow = mousePos - wPos;
+        var mouseWorldPos = mapToWorld(mouseInWindow);
+
+        // Draw line from last point to mouse (with Y offset applied)
+        if (end != null)
+        {
+            var startPos = wPos + worldToMap(start!.Value);
+            var endPos = wPos + worldToMap(end.Value);
+            dlist.AddLine(startPos, endPos, 0xFF80FF80, 1f * ImGuiHelper.Scale);
+        }
+        else if (start != null)
+        {
+            var lastPoint = wPos + worldToMap(start.Value);
+            var offset = mouseWorldPos - start.Value;
+            if (!io.KeyShift && offset.Length() >= TRADELANE_DISTANCE)
+            {
+                var dir = offset.Normalized();
+                var len = MathF.Floor(offset.Length() / TRADELANE_DISTANCE) * TRADELANE_DISTANCE;
+                mouseWorldPos = start.Value + (dir * len);
+            }
+            //
+            var mouseMapPos = wPos + worldToMap(mouseWorldPos);
+            dlist.AddLine(lastPoint, mouseMapPos, 0xFF80FF80, 1f * ImGuiHelper.Scale);
+        }
+
+        if (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+        {
+            AddPoint(mouseWorldPos, tab);
+        }
+
+        if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+        {
+            Cancel();
+        }
+
+        return "Tradelane: Left click to set start and end points. Right click to cancel\nHold shift to disable snapping.";
+    }
 }
 
 // Patrol state management
@@ -47,7 +139,7 @@ public class PatrolEditor
         YOffset = 0f;
     }
 
-    public void AddPoint(Vector3 point)
+    void AddPoint(Vector3 point)
     {
         if (IsActive)
         {
@@ -65,9 +157,9 @@ public class PatrolEditor
         return result;
     }
 
-    public void Draw(ImDrawListPtr dlist, Vector2 wPos, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
+    public string Draw(ImDrawListPtr dlist, Vector2 wPos, Func<Vector3, Vector2> worldToMap, Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
     {
-        if (!IsActive) return;
+        if (!IsActive) return null;
 
         var mousePos = ImGui.GetMousePos();
         var io = ImGui.GetIO();
@@ -84,9 +176,9 @@ public class PatrolEditor
         {
             var pointPos = worldToMap(Points[i]);
             var screenPoint = wPos + pointPos; // Add window position
-            
+
             dlist.AddCircleFilled(screenPoint, 4f * ImGuiHelper.Scale, 0xFF00FF00);
-            
+
             if (i < Points.Count - 1)
             {
                 var nextPointPos = worldToMap(Points[i + 1]);
@@ -122,14 +214,10 @@ public class PatrolEditor
 
         if (ImGui.IsItemHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            tab.CancelPatrolRoute();
+            Cancel();
         }
 
-        var helpText = $"Patrol: Left click to create point, double click to finish, right click to cancel\nScroll wheel to adjust Y-axis (height): {YOffset:F0}";
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetTooltip(helpText);
-        }
+        return $"Patrol: Left click to create point, double click to finish, right click to cancel\nScroll wheel to adjust Y-axis (height): {YOffset:F0}";
     }
 }
 
@@ -158,17 +246,15 @@ public class ZoneShapeCreator
         ellipsoidSecondPointSet = false;
     }
 
-    public void Draw(ImDrawListPtr dlist, Vector2 wPos, float renderWidth, System.Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
+    public string Draw(ImDrawListPtr dlist, Vector2 wPos, float renderWidth, System.Func<Vector2, Vector3> mapToWorld, SystemEditorTab tab)
     {
-        if (!IsActive) return;
+        if (!IsActive) return null;
         var mouseScreen = ImGui.GetMousePos() - wPos;
         switch (shapeKind)
         {
             case ShapeKind.Sphere:
                 radius = Vector2.Distance(centerScreen, mouseScreen);
                 dlist.AddCircle(wPos + centerScreen, radius, ImGui.GetColorU32(Color4.LightSkyBlue), 64);
-
-                DrawHelpText($"Sphere: Radius={radius:F0}\nLeft click to create, right click to cancel");
 
                 if (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) && !ImGui.IsPopupOpen(null, ImGuiPopupFlags.AnyPopup))
                 {
@@ -195,7 +281,7 @@ public class ZoneShapeCreator
                         IsActive = false;
                     }
                 }
-                break;
+                return $"Sphere: Radius={radius:F0}\nLeft click to create, right click to cancel";
             case ShapeKind.Ellipsoid:
                 ellipsoidAxisA = Vector2.Distance(centerScreen, mouseScreen);
 
@@ -210,8 +296,6 @@ public class ZoneShapeCreator
                 ellipsoidAngle = MathF.Atan2(mouseScreen.Y - centerScreen.Y, mouseScreen.X - centerScreen.X);
 
                 DrawRotatedEllipse(dlist, wPos + centerScreen, ellipsoidAxisA, ellipsoidAxisB, ellipsoidAngle, ImGui.GetColorU32(Color4.LightSkyBlue), 32);
-
-                DrawHelpText($"Ellipsoid: Mouse = major axis, wheel = minor axis (A={ellipsoidAxisA:F0}, B={ellipsoidAxisB:F0})\nAngle={ellipsoidAngle * 180 / MathF.PI:F1}°, left click to create, right click to cancel");
 
                 if (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) && !ImGui.IsPopupOpen(null, ImGuiPopupFlags.AnyPopup))
                 {
@@ -245,15 +329,10 @@ public class ZoneShapeCreator
                         IsActive = false;
                     }
                 }
-                break;
+                return $"Ellipsoid: Mouse = major axis, wheel = minor axis (A={ellipsoidAxisA:F0}, B={ellipsoidAxisB:F0})\nAngle={ellipsoidAngle * 180 / MathF.PI:F1}°, left click to create, right click to cancel";
             default:
-                break;
+                return null;
         }
-    }
-
-    private void DrawHelpText(string text)
-    {
-        ImGui.SetTooltip(text);
     }
 
     private void DrawRotatedEllipse(ImDrawListPtr dlist, Vector2 center, float a, float b, float angle, uint color, int numSegments)
@@ -264,7 +343,7 @@ public class ZoneShapeCreator
             float theta = (float)(2 * Math.PI * i / numSegments);
             float x = a * MathF.Cos(theta);
             float y = b * MathF.Sin(theta);
-            
+
             float xr = x * MathF.Cos(angle) - y * MathF.Sin(angle);
             float yr = x * MathF.Sin(angle) + y * MathF.Cos(angle);
             points[i] = center + new Vector2(xr, yr);

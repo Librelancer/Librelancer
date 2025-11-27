@@ -170,6 +170,14 @@ public class ObjectEditData : GameComponent, IObjectData
         sysobj.Rotation = localTransform.Orientation;
     }
 
+    public string GetName(GameDataManager gameData, Vector3 other)
+    {
+        if (IdsLeft != 0 && IdsRight != 0)
+            return new TradelaneName(Parent, IdsLeft, IdsRight).GetName(gameData, other);
+        else
+            return new ObjectName(IdsName).GetName(gameData, other);
+    }
+
     public void Apply()
     {
         if (Parent != null)

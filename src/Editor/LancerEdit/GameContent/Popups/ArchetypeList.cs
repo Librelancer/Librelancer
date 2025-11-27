@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -24,6 +25,14 @@ public class ArchetypeList
     {
         doFiltering = true;
         return 0;
+    }
+
+    public unsafe ArchetypeList(GameDataContext gd, Archetype selected, Archetype[] allowed)
+    {
+        displayList = fullList = allowed;
+        textCallback = OnTextChanged;
+        this.Selected = selected;
+        this.gd = gd;
     }
 
     public unsafe ArchetypeList(GameDataContext gd, Archetype selected)

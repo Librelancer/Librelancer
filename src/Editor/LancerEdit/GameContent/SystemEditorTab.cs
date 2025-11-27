@@ -748,7 +748,7 @@ public class SystemEditorTab : GameContentTab
 
         Controls.PropertyRow("Name", ed == null
             ? sel.Name.GetName(Data.GameData, camera.Position)
-            : Data.Infocards.GetStringResource(ed.IdsName));
+            : ed.GetName(Data.GameData, camera.Position));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
             var oldName = ed?.IdsName ?? sel.SystemObject.IdsName;
@@ -1852,14 +1852,67 @@ public class SystemEditorTab : GameContentTab
         return false;
     }
 
-    public void AddPatrolPoint(Vector3 point)
+    // SYSTEM_Trade_Lane_Ring_X
+    // Creates a tradelane with default configuration for vanilla
+    void CreateTradelane(TradelaneAddCommand tl)
     {
-        map2D.CreationTools.Patrol.AddPoint(point);
+        // Clear tool state
+        map2D.CreationTools.Tradelane.Cancel();
+        // Create objects
+        var tlNick = $"{SystemData.Nickname}_Trade_Lane_Ring_1";
+        HashSet<string> nicks = new();
+        List<SystemObject> createdTradelanes = new();
+        var offset = (tl.End - tl.Start) / (tl.Count - 1);
+        var face = QuaternionEx.LookAt(tl.Start, tl.End);
+        Data.GameData.TryGetLoadout("trade_lane_ring_li_01", out var loadout);
+        for (int i = 0; i < tl.Count; i++)
+        {
+            var pos = tl.Start + offset * i;
+            while (World.GetObject(tlNick) != null ||
+                   nicks.Contains(tlNick))
+            {
+                tlNick = MakeCopyNickname(tlNick);
+            }
+            var newTl = new SystemObject()
+            {
+                Nickname = tlNick,
+                Position = pos,
+                Rotation = face,
+                IdsName = 260923, // Vanilla empty string - make configurable
+                IdsInfo = 66170, // Vanilla tradelane infocard - make configurable
+                IdsLeft = tl.IdsLeft, // Internal property
+                IdsRight = tl.IdsRight, // Internal property
+                Archetype = tl.Archetype,
+                Behavior = "NOTHING",
+                Reputation = tl.Reputation,
+                DifficultyLevel = 3,
+                Pilot = Data.GameData.GetPilot("pilot_solar_easiest"), // From vanilla - make configurable
+                Loadout = loadout
+            };
+            createdTradelanes.Add(newTl);
+            nicks.Add(tlNick);
+        }
+
+        for (int i = 0; i < createdTradelanes.Count; i++)
+        {
+            createdTradelanes[i].Dock = new()
+            {
+                Kind = DockKinds.Tradelane,
+                Target = i + 1 < createdTradelanes.Count ? createdTradelanes[i + 1].Nickname : null,
+                TargetLeft = i - 1 >= 0 ? createdTradelanes[i - 1].Nickname : null
+            };
+        }
+        createdTradelanes[0].TradelaneSpaceName = tl.IdsRight; //TradelaneSpaceName = destination?
+        createdTradelanes[^1].TradelaneSpaceName = tl.IdsLeft;
+        UndoBuffer.Commit(EditorAggregateAction.Create(
+            createdTradelanes.Select(x => new SysCreateObject(this, x)).ToArray<EditorAction>()));
     }
 
-    public void CancelPatrolRoute()
+    public void OnCreateTradelane(Vector3 start, Vector3 end)
     {
-        map2D.CreationTools.Patrol.Cancel();
+        Popups.OpenPopup(new TradelaneAddPopup(start, end, Data, ObjectsList.Objects,
+            CreateTradelane,
+            () => map2D.CreationTools.Tradelane.Cancel()));
     }
 
     public void FinishPatrolRoute()
@@ -1964,10 +2017,6 @@ public class SystemEditorTab : GameContentTab
         map2D.CreationTools.Patrol.Cancel();
     }
 
-    public void StartPatrolRoute()
-    {
-        map2D.CreationTools.Patrol.Start();
-    }
 
     public override void Dispose()
     {

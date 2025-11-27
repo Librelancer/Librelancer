@@ -19,7 +19,7 @@ public class SystemObjectList
     public List<GameObject> Selection = new List<GameObject>();
     public Matrix4x4 SelectedTransform;
 
-    public IEnumerable<GameObject> Objects => allObjects;
+    public IReadOnlyList<GameObject> Objects => allObjects;
 
     private GameObject[] allObjects = Array.Empty<GameObject>();
     private GameObject[] filteredObjects = Array.Empty<GameObject>();

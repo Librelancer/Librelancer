@@ -41,6 +41,8 @@ public class EditMap2D
         var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
         var renderHeight = Math.Max(120, ImGui.GetWindowHeight() - MarginH);
 
+        var overlayOrigin = ImGui.GetCursorScreenPos();
+
         ImGui.BeginChild("##scrollchild", new Vector2(renderWidth, renderHeight), 0, ImGuiWindowFlags.HorizontalScrollbar);
 
         float buttonSize = (int) ((renderWidth / 838.0f) * 12f);
@@ -134,7 +136,7 @@ public class EditMap2D
             var id = $"##{obj.Nickname}";
 
             var buttonColor = Color4.LightGray;
-             if(CreationTools.Patrol.IsActive)
+             if(CreationTools.IsAnyToolActive)
             {
                 buttonColor.A = 0.5f;
                 ImGui.BeginDisabled();
@@ -147,7 +149,7 @@ public class EditMap2D
             }
             ImGui.PopStyleColor();
 
-            if(CreationTools.Patrol.IsActive)
+            if(CreationTools.IsAnyToolActive)
             {
                 ImGui.EndDisabled();
             }
@@ -265,9 +267,14 @@ public class EditMap2D
             }
             if (!CreationTools.Patrol.IsActive && ImGui.MenuItem("New Patrol Path"))
             {
-                tab.StartPatrolRoute();
+                CreationTools.Patrol.Start();
             }
 
+            ImGui.Separator();
+            if (!CreationTools.Tradelane.IsActive && ImGui.MenuItem("New Tradelane"))
+            {
+                CreationTools.Tradelane.Start();
+            }
             ImGui.Separator();
             if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Sphere Zone"))
             {
@@ -282,10 +289,27 @@ public class EditMap2D
 
 
         // Draw creation tools (patrol and zones)
-        CreationTools.Draw(dlist, windowPos, renderWidth, WorldToWindow, MapToWorld, tab);
+        var helpText = CreationTools.Draw(dlist, windowPos, renderWidth, WorldToWindow, MapToWorld, tab);
 
         ImGui.EndChild();
         ImGui.EndChild();
+
+        // Help text popup must live outside of scrolling region
+        if (helpText != null)
+        {
+            var dim = ImGui.CalcTextSize(helpText);
+            var pad = 4 * ImGuiHelper.Scale;
+            var yHeight = overlayOrigin.Y + gridMargin;
+            var w = ImGui.GetContentRegionAvail().X;
+            ImGui.SetNextWindowPos(new (w - dim.X - 3 * pad, yHeight), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(dim + new Vector2(4 * pad), ImGuiCond.Always);
+            if (ImGui.Begin("##helpText", ImGuiWindowFlags.NoInputs |
+                                          ImGuiWindowFlags.NoDecoration))
+            {
+                ImGui.Text(helpText);
+            }
+            ImGui.End();
+        }
     }
 }
 
