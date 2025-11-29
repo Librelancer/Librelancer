@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
@@ -439,13 +440,14 @@ public class InfocardBrowserTab : GameContentTab
     class XmlPopup(MainWindow win, string xmlText) : PopupWindow
     {
         private string xmlText = xmlText;
+        private uint bufSize = (uint)Encoding.UTF8.GetByteCount(xmlText) + 1;
         public override string Title { get; set; } = "Xml";
         public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
         public override void Draw(bool appearing)
         {
             if (ImGui.Button("Copy To Clipboard")) win.SetClipboardText(xmlText);
             ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
-            ImGui.InputTextMultiline("##xml", ref xmlText, uint.MaxValue, new Vector2(400),
+            ImGui.InputTextMultiline("##xml", ref xmlText, bufSize, new Vector2(400),
                 ImGuiInputTextFlags.ReadOnly);
             ImGui.PopFont();
         }

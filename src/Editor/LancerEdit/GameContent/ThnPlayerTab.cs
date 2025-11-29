@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Dialogs;
@@ -161,7 +162,8 @@ public class ThnPlayerTab : GameContentTab
                         ImGui.SetNextItemWidth(-1);
                         var th = ImGui.GetWindowHeight() - 100;
                         ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
-                        ImGui.InputTextMultiline("##src", ref file.Text, uint.MaxValue, new Vector2(0, th),
+                        var bufSize = Encoding.UTF8.GetByteCount(file.Text) + 1;
+                        ImGui.InputTextMultiline("##src", ref file.Text, (uint)bufSize, new Vector2(0, th),
                             ImGuiInputTextFlags.ReadOnly);
                         ImGui.PopFont();
                         ImGui.EndTabItem();
