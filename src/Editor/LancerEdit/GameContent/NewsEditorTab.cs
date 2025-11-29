@@ -224,7 +224,7 @@ public class NewsEditorTab : GameContentTab
                 iconText.Draw();
                 if (ImGui.Button($"{Icons.Edit}##headline"))
                 {
-                    popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts, x =>
+                    popups.OpenPopup(new StringSelection(selectedItem.Headline, Data.Infocards, x =>
                     {
                         undoBuffer.Commit(new NewsSetHeadline(selectedItem, selectedItem.Headline, x));
                     }));
@@ -233,7 +233,7 @@ public class NewsEditorTab : GameContentTab
                 ImGui.TextWrapped($"Headline ({selectedItem.Headline}): {Data.GameData.GetString(selectedItem.Headline)}");
                 if (ImGui.Button($"{Icons.Edit}##text"))
                 {
-                    popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts, x =>
+                    popups.OpenPopup(new StringSelection(selectedItem.Text, Data.Infocards, x =>
                     {
                         undoBuffer.Commit(new NewsSetText(selectedItem, selectedItem.Text, x));
                     }));

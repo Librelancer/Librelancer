@@ -3,20 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.ImUI;
-using LibreLancer.Infocards;
 
 namespace LancerEdit.GameContent.Popups;
 
-public sealed class InfocardSelection : PopupWindow
+public sealed class StringSelection : PopupWindow
 {
-    public override string Title { get; set; } = "Infocard";
+    public override string Title { get; set; } = "String";
     public override Vector2 InitSize { get; } = new Vector2(610, 400) * ImGuiHelper.Scale;
 
     private InfocardManager manager;
-    private FontManager fonts;
     private int current;
 
     private string searchText = "";
@@ -28,7 +25,7 @@ public sealed class InfocardSelection : PopupWindow
 
     private int[] currentResults;
 
-    private InfocardControl display;
+    private string display;
     private MainWindow window;
     private Action<int> onSelected;
     private PopupManager popups = new PopupManager();
@@ -39,7 +36,7 @@ public sealed class InfocardSelection : PopupWindow
     {
         if (!previews.TryGetValue(ids, out var prev))
         {
-            var txt = RDLParse.Parse(manager.GetXmlResource(ids), fonts).ExtractText();
+            var txt = manager.GetStringResource(ids);
             if (txt.Length > 100)
                 prev = txt.Substring(0, 100) + "...";
             else
@@ -51,28 +48,21 @@ public sealed class InfocardSelection : PopupWindow
 
 
 
-    public InfocardSelection(int selected, MainWindow win, InfocardManager manager, FontManager fonts, Action<int> onSelected)
+    public StringSelection(int selected, InfocardManager manager,Action<int> onSelected)
     {
         current = selected;
         this.manager = manager;
-        this.fonts = fonts;
-        this.window = win;
         this.onSelected = onSelected;
-        currentResults = manager.AllXml.Select(x => x.Key).Order().ToArray();
-        LoadInfocard();
+        currentResults = manager.AllStrings.Select(x => x.Key).Order().ToArray();
+        RefreshString();
     }
 
-    void LoadInfocard()
+    void RefreshString()
     {
-        display?.Dispose();
         display = null;
         if (current == 0)
             return;
-        var txt = manager.GetXmlResource(current);
-        if (string.IsNullOrWhiteSpace(txt))
-            return;
-        var icard = RDLParse.Parse(txt, fonts);
-        display = new InfocardControl(window, icard, 395 * ImGuiHelper.Scale);
+        display = manager.GetStringResource(current);
     }
 
     private bool searching = false;
@@ -103,20 +93,20 @@ public sealed class InfocardSelection : PopupWindow
             if (string.IsNullOrEmpty(searchText))
             {
                 resultText = "";
-                currentResults = manager.AllXml.Select(x => x.Key).Order().ToArray();
+                currentResults = manager.AllStrings.Select(x => x.Key).Order().ToArray();
             }
             else if (int.TryParse(searchText.Trim(), out var newId) &&
-                     manager.HasXmlResource(newId))
+                     manager.HasStringResource(newId))
             {
                 appearing = true;
                 current = newId;
                 resultText = "";
-                LoadInfocard();
+                RefreshString();
             }
             else
             {
                 searching = true;
-                IdsSearch.Search(manager, searchText, false, !searchCaseSensitive, !searchWholeWord)
+                IdsSearch.Search(manager, searchText, true, !searchCaseSensitive, !searchWholeWord)
                     .ContinueWith(res =>
                     {
                         resultText = $"Results for '{searchText}";
@@ -130,12 +120,12 @@ public sealed class InfocardSelection : PopupWindow
         {
             if (manager is LibreLancer.ContentEdit.EditableInfocardManager editableManager)
             {
-                popups.OpenPopup(new AddIdsPopup(editableManager, window, true, (newId) =>
+                popups.OpenPopup(new AddIdsPopup(editableManager, window, false, (newId) =>
                 {
                     current = newId;
-                    LoadInfocard();
+                    RefreshString();
                     // Refresh the results to include the new ID
-                    currentResults = manager.AllXml.Select(x => x.Key).Order().ToArray();
+                    currentResults = manager.AllStrings.Select(x => x.Key).Order().ToArray();
                     onSelected(newId);
                     shouldClose = true;
                 }, autoSave: true));
@@ -155,7 +145,7 @@ public sealed class InfocardSelection : PopupWindow
         var tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing();
         if (!ImGui.BeginTable("##main", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.NoHostExtendY, new Vector2(-1, tableHeight)))
             return;
-        ImGui.TableSetupColumn("Infocards", ImGuiTableColumnFlags.WidthFixed, 205 * ImGuiHelper.Scale);
+        ImGui.TableSetupColumn("Strings", ImGuiTableColumnFlags.WidthFixed, 205 * ImGuiHelper.Scale);
         ImGui.TableSetupColumn("Preview");
         ImGui.TableHeadersRow();
         ImGui.TableNextRow();
@@ -166,7 +156,7 @@ public sealed class InfocardSelection : PopupWindow
             if (ImGui.Selectable(currentResults[i].ToString(), current == currentResults[i]))
             {
                 current = currentResults[i];
-                LoadInfocard();
+                RefreshString();
             }
             if (ImGui.IsItemHovered())
             {
@@ -186,7 +176,7 @@ public sealed class InfocardSelection : PopupWindow
         if (display != null)
         {
             ImGui.BeginChild("##display");
-            display.Draw(ImGui.GetContentRegionAvail().X);
+            ImGui.TextWrapped(display);
             ImGui.EndChild();
         }
         ImGui.EndTable();
@@ -203,10 +193,5 @@ public sealed class InfocardSelection : PopupWindow
         if (ImGui.Button("Cancel")) {
             ImGui.CloseCurrentPopup();
         }
-    }
-
-    public override void OnClosed()
-    {
-        display?.Dispose();
     }
 }

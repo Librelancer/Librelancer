@@ -434,7 +434,7 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow("Name", Data.Infocards.GetStringResource(sel.IdsName));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
-            Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts, win,
+            Popups.OpenPopup(new StringSelection(sel.IdsName, Data.Infocards,
                 newIds =>
                 {
                    UndoBuffer.Commit(new SysZoneSetIdsName(sel, this, sel.IdsName, newIds));
@@ -752,7 +752,7 @@ public class SystemEditorTab : GameContentTab
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
             var oldName = ed?.IdsName ?? sel.SystemObject.IdsName;
-            Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts, win,
+            Popups.OpenPopup(new StringSelection(oldName, Data.Infocards,
                 newIds => UndoBuffer.Commit(new ObjectSetIdsName(sel, ObjectsList, oldName, newIds))));
         }
         //Infocard
@@ -1342,7 +1342,7 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow("Name", Data.Infocards.GetStringResource(SystemData.IdsName));
         if (ImGui.Button($"{Icons.Edit}##name"))
         {
-            Popups.OpenPopup(IdsSearch.SearchStrings(Data.Infocards, Data.Fonts, win,
+            Popups.OpenPopup(new StringSelection(SystemData.IdsName, Data.Infocards,
                 newIds => UndoBuffer.Commit(new SysDataSetIdsName(SystemData, SystemData.IdsName, newIds))));
         }
         InfocardRow(SystemData.IdsInfo,

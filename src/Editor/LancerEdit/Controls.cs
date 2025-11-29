@@ -343,14 +343,7 @@ public static class Controls
     public static void IdsInputString(string label, GameDataContext gameData, PopupManager popup, ref int ids, Action<int> setIds,
         bool showTooltipOnHover = true, float inputWidth = 100f)
     {
-        IdsInputString(label, gameData, popup, null, ref ids, setIds, showTooltipOnHover, inputWidth);
-    }
-
-    public static void IdsInputString(string label, GameDataContext gameData, PopupManager popup, MainWindow win, ref int ids, Action<int> setIds,
-        bool showTooltipOnHover = true, float inputWidth = 100f)
-    {
         var infocard = gameData.Infocards.GetStringResource(ids);
-
         ImGui.PushItemWidth(inputWidth);
         IdsInput(label, infocard, ref ids, showTooltipOnHover);
         ImGui.PopItemWidth();
@@ -359,36 +352,7 @@ public static class Controls
         ImGui.SameLine();
         if (ImGui.Button("Browse Ids"))
         {
-            if (win != null)
-                popup.OpenPopup(IdsSearch.SearchStrings(gameData.Infocards, gameData.Fonts, win, setIds));
-            else
-                popup.OpenPopup(IdsSearch.SearchStrings(gameData.Infocards, gameData.Fonts, setIds));
-        }
-
-        ImGui.PopID();
-    }
-
-    public static void IdsInputInfocard(string label, GameDataContext gameData, PopupManager popup, ref int ids, Action<int> setIds,
-        bool showTooltipOnHover = true)
-    {
-        IdsInputInfocard(label, gameData, popup, null, ref ids, setIds, showTooltipOnHover);
-    }
-
-    public static void IdsInputInfocard(string label, GameDataContext gameData, PopupManager popup, MainWindow win, ref int ids, Action<int> setIds,
-        bool showTooltipOnHover = true)
-    {
-        var infocard = gameData.Infocards.GetXmlResource(ids);
-
-        IdsInput(label, infocard, ref ids, showTooltipOnHover);
-
-        ImGui.PushID(label);
-        ImGui.SameLine();
-        if (ImGui.Button("Browse Ids##ID"))
-        {
-            if (win != null)
-                popup.OpenPopup(IdsSearch.SearchInfocards(gameData.Infocards, gameData.Fonts, win, setIds));
-            else
-                popup.OpenPopup(IdsSearch.SearchInfocards(gameData.Infocards, gameData.Fonts, setIds));
+            popup.OpenPopup(new StringSelection(ids, gameData.Infocards, setIds));
         }
         ImGui.PopID();
     }

@@ -43,7 +43,14 @@ namespace LibreLancer.Data
 
         protected HashSet<int> MissingStrings = new HashSet<int>();
         protected HashSet<int> MissingXml = new HashSet<int>();
-        
+
+        public bool HasStringResource(int id)
+        {
+            if (id <= 0) return false;
+            var (x, y) = (id >> 16, id & 0xFFFF);
+            return x < Dlls.Count && Dlls[x].Strings.ContainsKey(y);
+        }
+
         public virtual string GetStringResource(int id)
 		{
             if (id <= 0) return "";
@@ -51,7 +58,7 @@ namespace LibreLancer.Data
             if (x < Dlls.Count && Dlls[x].Strings.TryGetValue(y, out var s))
             {
                 return s;
-            } 
+            }
             else {
                 if (!MissingStrings.Contains(id))
                 {
@@ -62,6 +69,12 @@ namespace LibreLancer.Data
 			}
 		}
 
+        public bool HasXmlResource(int id)
+        {
+            if (id <= 0) return false;
+            var (x, y) = (id >> 16, id & 0xFFFF);
+            return x < Dlls.Count && Dlls[x].Infocards.ContainsKey(y);
+        }
 
 		public virtual string GetXmlResource(int id)
 		{
@@ -70,7 +83,7 @@ namespace LibreLancer.Data
 			if (x < Dlls.Count && Dlls[x].Infocards.TryGetValue(y, out var s))
             {
                 return s;
-            } 
+            }
             else {
                 if (!MissingXml.Contains(id))
                 {

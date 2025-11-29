@@ -56,31 +56,11 @@ public class IdsSearch : PopupWindow
         Title = ImGuiExt.IDWithExtra("Search", Unique);
     }
 
-    public static IdsSearch SearchStrings(InfocardManager manager, FontManager fonts, Action<int> onSelect)
-    {
-        var dlg = new IdsSearch(manager, fonts, null);
-        dlg.dialogState = 0;
-        dlg.isSearchInfocards = false;
-        dlg.searchText = "";
-        dlg.onSearchResult = onSelect;
-        return dlg;
-    }
-
     public static IdsSearch SearchStrings(InfocardManager manager, FontManager fonts, MainWindow win, Action<int> onSelect)
     {
         var dlg = new IdsSearch(manager, fonts, win);
         dlg.dialogState = 0;
         dlg.isSearchInfocards = false;
-        dlg.searchText = "";
-        dlg.onSearchResult = onSelect;
-        return dlg;
-    }
-
-    public static IdsSearch SearchInfocards(InfocardManager manager, FontManager fonts, Action<int> onSelect)
-    {
-        var dlg = new IdsSearch(manager, fonts, null);
-        dlg.dialogState = 0;
-        dlg.isSearchInfocards = true;
         dlg.searchText = "";
         dlg.onSearchResult = onSelect;
         return dlg;
@@ -104,7 +84,7 @@ public class IdsSearch : PopupWindow
             ImGui.CloseCurrentPopup();
             return;
         }
-        
+
         popups.Run();
         if (searchResultsOpen) DrawSearchResults();
         if (dialogState == 0)
@@ -186,19 +166,6 @@ public class IdsSearch : PopupWindow
                         searchStringPreviews = new string[searchStrings.Length];
                         dialogState = 2;
                     });
-            }
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button("Create New ID"))
-        {
-            if (manager is LibreLancer.ContentEdit.EditableInfocardManager editableManager && win != null)
-            {
-                popups.OpenPopup(new AddIdsPopup(editableManager, win, isSearchInfocards, (newId) =>
-                {
-                    onSearchResult(newId);
-                    shouldClose = true;
-                }, autoSave: true));
             }
         }
 
