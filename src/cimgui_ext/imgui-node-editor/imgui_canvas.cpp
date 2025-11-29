@@ -491,6 +491,15 @@ void ImGuiEx::Canvas::EnterLocalSpace()
     auto& fringeScale = ImFringeScaleRef(m_DrawList);
     m_LastFringeScale = fringeScale;
     fringeScale *= m_View.InvScale;
+
+    float fontScale = 1;
+    if(m_View.Scale >= 3.5)
+        fontScale = 4;
+    else if(m_View.Scale >= 2.5)
+        fontScale = 3;
+    else if(m_View.Scale >= 1.5)
+        fontScale = 2;
+    ImGui::SetFontRasterizerDensity(fontScale);
 }
 
 void ImGuiEx::Canvas::LeaveLocalSpace()
@@ -571,4 +580,5 @@ void ImGuiEx::Canvas::LeaveLocalSpace()
 
     RestoreInputState();
     RestoreViewportState();
+    ImGui::SetFontRasterizerDensity(1.0f);
 }
