@@ -259,6 +259,45 @@ public static class Controls
         ImGui.AlignTextToFramePadding();
         Label(id);
 
+        if (list.Count is 0)
+        {
+            AddListControls();
+            ImGui.PopID();
+            return;
+        }
+
+        for (var index = 0; index < list.Count; index++)
+        {
+            var str = list[index];
+            ImGui.PushID(index);
+
+            ImGui.SetNextItemWidth(150f);
+            ImGui.InputText("###", ref str, 32);
+            list[index] = str;
+
+            if (index + 1 != list.Count)
+            {
+                if (rmButtonOnEveryElement)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.Button(Icons.X))
+                    {
+                        list.RemoveAt(index);
+                    }
+                }
+
+                ImGui.PopID();
+                continue;
+            }
+
+            ImGui.PopID();
+
+            AddListControls();
+        }
+
+        ImGui.PopID();
+        return;
+
         void AddListControls()
         {
             ImGui.SameLine();
@@ -277,43 +316,6 @@ public static class Controls
 
             ImGui.EndDisabled();
         }
-
-        if (list.Count is 0)
-        {
-            AddListControls();
-            return;
-        }
-
-        for (var index = 0; index < list.Count; index++)
-        {
-            var str = list[index];
-            ImGui.PushID(index);
-
-            ImGui.SetNextItemWidth(150f);
-            ImGui.InputText("###", ref str, 32);
-            list[index] = str;
-
-            if (index + 1 != list.Count)
-            {
-
-                if (rmButtonOnEveryElement)
-                {
-                    ImGui.SameLine();
-                    if (ImGui.Button(Icons.X))
-                    {
-                        list.RemoveAt(index);
-                    }
-                }
-
-                ImGui.PopID();
-                continue;
-            }
-            ImGui.PopID();
-
-            AddListControls();
-        }
-
-        ImGui.PopID();
     }
 
     private static void IdsInput(string label, string infocard, ref int ids, bool showTooltipOnHover)
