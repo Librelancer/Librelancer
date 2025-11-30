@@ -31,7 +31,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     public override void Update(double time)
     {
-        if (index >= 0 && currentDirectives != null)
+        if (CheckDirective())
         {
             UpdateDirective(currentDirectives[index], time);
         }
@@ -290,16 +290,25 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     private static float[] times = {0, 0.3333f, 0.6667f, 1f};
 
+    bool CheckDirective()
+    {
+        if (currentDirectives == null)
+        {
+            return false;
+        }
+        if (index >= currentDirectives.Length)
+        {
+            currentDirectives = null;
+            index = -1;
+            return false;
+        }
+        return true;
+    }
 
     void NextDirective()
     {
         index++;
-        if (index >= currentDirectives.Length)
-        {
-            index = -1;
-            currentDirectives = null;
-        }
-        else
+        if(CheckDirective())
         {
             StartDirective(currentDirectives[index]);
         }

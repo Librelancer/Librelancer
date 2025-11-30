@@ -32,6 +32,23 @@ namespace LibreLancer.World
             new Vector3(0, 60, 0)
         };
 
+
+
+        static Vector3[] defaultOffsets = new[]
+        {
+            new Vector3(-1, 0, 0),
+            new Vector3(1, 0, 0),
+            new Vector3(0, -1, 0),
+            new Vector3(0, 1, 0)
+        };
+
+        static Vector3 DefaultOffset(int i)
+        {
+            var dir = defaultOffsets[i % 4];
+            var len = 60 + (i / 4) * 20;
+            return dir * len;
+        }
+
         public Vector3? PlayerPosition;
 
         public Vector3 GetShipOffset(GameObject self)
@@ -41,6 +58,8 @@ namespace LibreLancer.World
                 return PlayerPosition.Value;
             var idx = _followers.IndexOf(self);
             if (idx == -1) throw new InvalidOperationException("Ship not in formation");
+            if (idx >= Offsets.Length)
+                return DefaultOffset(idx);
             return Offsets[idx];
         }
 
