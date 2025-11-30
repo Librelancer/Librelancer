@@ -22,7 +22,7 @@ namespace LibreLancer.Utf
         {
             get
             {
-                return internalGetTransform(new Transform3D(currentTranslation, Quaternion.Identity) * new Transform3D( Offset + Origin, Rotation));
+                return internalGetTransform(new Transform3D( Offset + Origin + currentTranslation, Rotation));
             }
         }
 

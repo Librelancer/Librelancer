@@ -216,20 +216,19 @@ namespace LancerEdit
                         ImGui.InputFloat("Max3", ref max3, 0.01f, 0.25f, "%.5f", ImGuiInputTextFlags.CharsDecimal);
                     ImGui.Separator();
                 }
-                var jointPreview = Matrix4x4.Identity;
+                var rotatePreview = Matrix4x4.Identity;
+                var translatePreview = Vector3.Zero;
                 if(editingPart is RevConstruct) {
-                    jointPreview = Matrix4x4.CreateFromAxisAngle(
+                    rotatePreview = Matrix4x4.CreateFromAxisAngle(
                     new Vector3(partAxX, partAxY, partAxZ),
                         MathHelper.DegreesToRadians(partPreview));
                 } else if (editingPart is PrisConstruct) {
-                    var translate = new Vector3(partAxX, partAxY, partAxZ).Normalized() * partPreview;
-                    jointPreview = Matrix4x4.CreateTranslation(translate);
+                   translatePreview = new Vector3(partAxX, partAxY, partAxZ).Normalized() * partPreview;
                 }
 
-                editingPart.OverrideTransform = Transform3D.FromMatrix(
-                    MathHelper.MatrixFromEulerDegrees(partPitch, partYaw, partRoll) * jointPreview *
-                    Matrix4x4.CreateTranslation(new Vector3(partX, partY, partZ) +
-                                                new Vector3(partOX, partOY, partOZ)));
+                editingPart.OverrideTransform = Transform3D.FromMatrix(rotatePreview) *
+                    new Transform3D(translatePreview + new Vector3(partX, partY, partZ) + new Vector3(partOX, partOY, partOZ),
+                    MathHelper.QuatFromEulerDegrees(partPitch, partYaw, partRoll));
                 if(ImGui.Button("Apply")) {
                     editingPart.Origin = new Vector3(partX, partY, partZ);
                     editingPart.Rotation = MathHelper.QuatFromEulerDegrees(partPitch, partYaw, partRoll);

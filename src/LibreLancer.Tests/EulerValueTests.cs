@@ -71,6 +71,17 @@ public class EulerValueTests
         }
     }
 
+    [Fact]
+    public void LiDreadRotationBug()
+    {
+        var q = new Quaternion(-0.50000006f, -0.5f, -0.5f, 0.5f);
+        var q3 = Quaternion.Normalize(q);
+        var euler = Quaternion.Normalize(q3).GetEulerDegrees();
+        var q2 = MathHelper.QuatFromEulerDegrees(euler);
+        var error = MathHelper.QuatError(q, q2);
+        Assert.True(error <= 0.0001f, $"Rotations are noticeably different for {q} and {q2} based on angles {euler} (error {error})");
+    }
+
     static void RoundtripMatrix(Matrix4x4 mat, int index)
     {
         var euler = mat.GetEulerDegrees();

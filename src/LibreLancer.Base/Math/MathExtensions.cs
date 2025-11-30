@@ -72,6 +72,29 @@ namespace LibreLancer
 
         static float Sanitize(float f) => Math.Abs(f) < float.Epsilon ? 0.0f : f;
 
+        static Matrix4x4 Orthonormalize(Matrix4x4 m)
+        {
+            Vector3 v0 = new Vector3(m.M11, m.M12, m.M13);
+            Vector3 v1 = new Vector3(m.M21, m.M22, m.M23);
+            Vector3 v2 = new Vector3(m.M31, m.M32, m.M33);
+
+            Vector3 u0 = Vector3.Normalize(v0);
+
+            Vector3 v1proj0 = Vector3.Dot(v1, u0) * u0;
+            Vector3 u1 = Vector3.Normalize(v1 - v1proj0);
+
+            Vector3 v2proj0 = Vector3.Dot(v2, u0) * u0;
+            Vector3 v2proj1 = Vector3.Dot(v2, u1) * u1;
+            Vector3 u2 = Vector3.Normalize(v2 - v2proj0 - v2proj1);
+
+            Matrix4x4 result = m;
+            result.M11 = u0.X; result.M12 = u0.Y; result.M13 = u0.Z;
+            result.M21 = u1.X; result.M22 = u1.Y; result.M23 = u1.Z;
+            result.M31 = u2.X; result.M32 = u2.Y; result.M33 = u2.Z;
+
+            return result;
+        }
+
         /// <summary>
         /// Gets the Pitch Yaw and Roll from a Matrix4x4 SLOW!!!
         /// </summary>
@@ -80,7 +103,7 @@ namespace LibreLancer
         public static Vector3 GetEulerDegrees(this Matrix4x4 mx)
         {
             float p, y, r;
-            ToEuler(mx, out y, out p, out r);
+            ToEuler(Orthonormalize(mx), out y, out p, out r);
             const float radToDeg = 180.0f / MathF.PI;
             return new Vector3(Sanitize(p * radToDeg), Sanitize(y * radToDeg), Sanitize(r * radToDeg));
         }
