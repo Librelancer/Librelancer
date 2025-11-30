@@ -18,6 +18,7 @@ namespace LibreLancer.ContentEdit.Model;
 public class ImportedModel
 {
     public string Name;
+    public string Copyright;
     public ImportedModelNode Root;
     public Dictionary<string, ImageData> Images;
     public Animation[] ImportAnimations;
@@ -52,7 +53,8 @@ public class ImportedModel
         var geo = CheckGeometries(nodes[0]);
         if (geo.IsError)
             return new EditResult<ImportedModel>(null, geo.Messages);
-        var m = new ImportedModel() {Name = name, Root = nodes[0], Images = input.Images};
+        var m = new ImportedModel()
+            { Name = name, Root = nodes[0], Images = input.Images, Copyright = input.Copyright ?? "" };
         //Set up root
         m.Root.Construct = null;
         HashSet<string> usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -432,6 +434,10 @@ public class ImportedModel
         var utf = new EditableUtf();
         var tasks = new TaskHandler(settings.Multithreaded);
         //Vanity
+        if (!string.IsNullOrWhiteSpace(Copyright))
+        {
+            utf.Root.Children.Add(LUtfNode.StringNode(utf.Root, "Copyright", Copyright));
+        }
         utf.Root.Children.Add(LUtfNode.StringNode(utf.Root, "Exporter Version",  "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>()));
         List<EditMessage> warnings = new List<EditMessage>();
 

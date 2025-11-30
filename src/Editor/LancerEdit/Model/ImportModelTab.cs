@@ -32,7 +32,7 @@ public class ImportModelTab : EditorTab
     private int curTab;
     private Model editModel;
 
-    private float fl_h1 = 200, fl_h2 = 200;
+    private float fl_h1 = 200 * ImGuiHelper.Scale, fl_h2 = 280 * ImGuiHelper.Scale;
 
     private long fR;
     private bool generateMaterials = true;
@@ -245,6 +245,10 @@ public class ImportModelTab : EditorTab
                 ImGui.Text("Model Name:");
                 ImGui.SameLine();
                 ImGui.InputText("##mdlname", ref output.Name, 1000);
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Copyright: ");
+                ImGui.SameLine();
+                ImGui.InputText("##copyright", ref output.Copyright, 1000);
                 ImGui.Checkbox("Generate Materials", ref generateMaterials);
                 ImGui.SameLine();
                 ImGui.Checkbox("Starsphere Mode", ref forceCompound);
