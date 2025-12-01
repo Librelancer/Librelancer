@@ -181,17 +181,17 @@ namespace LibreLancer.Media
         {
             Al.alSourcei(src, Al.AL_SOURCE_RELATIVE, prop.Is3D ? 0 : 1);
             SetAttenuation(src, prop.Attenuation, category);
-            Al.alSourcef(src, Al.AL_PITCH, prop.Pitch);
+            Al.alSourcef(src, Al.AL_PITCH, Math.Max(0.001f, prop.Pitch)); // Clamp pitch > 0
             if (prop.Is3D)
             {
                 Al.alSource3f(src, Al.AL_POSITION, prop.Position.X, prop.Position.Y, prop.Position.Z);
                 Al.alSource3f(src, Al.AL_VELOCITY, prop.Velocity.X, prop.Velocity.Y, prop.Velocity.Z);
                 Al.alSource3f(src, Al.AL_DIRECTION, prop.Direction.X, prop.Direction.Y, prop.Direction.Z);
-                Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, prop.ReferenceDistance);
-                Al.alSourcef(src, Al.AL_MAX_DISTANCE, prop.MaxDistance);
-                Al.alSourcef(src, Al.AL_CONE_INNER_ANGLE, prop.ConeInnerAngle);
-                Al.alSourcef(src, Al.AL_CONE_OUTER_ANGLE, prop.ConeOuterAngle);
-                Al.alSourcef(src, Al.AL_CONE_OUTER_GAIN, prop.ConeOuterGain);
+                Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, Math.Max(0.001f, prop.ReferenceDistance));
+                Al.alSourcef(src, Al.AL_MAX_DISTANCE, Math.Max(0.001f, prop.MaxDistance));
+                Al.alSourcef(src, Al.AL_CONE_INNER_ANGLE, Math.Clamp(prop.ConeInnerAngle, 0, 360));
+                Al.alSourcef(src, Al.AL_CONE_OUTER_ANGLE, Math.Clamp(prop.ConeOuterAngle, 0, 360));
+                Al.alSourcef(src, Al.AL_CONE_OUTER_GAIN, Math.Clamp(prop.ConeOuterGain, 0, 1));
             }
             else
             {
@@ -509,9 +509,9 @@ namespace LibreLancer.Media
                             if (message.Instance.Source != -1)
                             {
                                 Al.alSourcef((uint)message.Instance.Source,
-                                    Al.AL_PITCH, message.Data.X);
+                                    Al.AL_PITCH, Math.Max(0.001f, message.Data.X));
                             }
-                            message.Instance.SetProperties.Pitch = message.Data.X;
+                            message.Instance.SetProperties.Pitch = Math.Max(0.001f, message.Data.X);
                             break;
                         case AudioEvent.SetAttenuation:
                             if (message.Instance.Source != -1)
@@ -524,26 +524,26 @@ namespace LibreLancer.Media
                             if (message.Instance.Source != -1)
                             {
                                 Al.alSourcef((uint)message.Instance.Source,
-                                    Al.AL_CONE_INNER_ANGLE, message.Data.X);
+                                    Al.AL_CONE_INNER_ANGLE, Math.Clamp(message.Data.X, 0, 360));
                                 Al.alSourcef((uint)message.Instance.Source,
-                                    Al.AL_CONE_OUTER_ANGLE, message.Data.Y);
+                                    Al.AL_CONE_OUTER_ANGLE, Math.Clamp(message.Data.Y, 0, 360));
                                 Al.alSourcef((uint)message.Instance.Source,
-                                    Al.AL_CONE_OUTER_GAIN, message.Data.Z);
+                                    Al.AL_CONE_OUTER_GAIN, Math.Clamp(message.Data.Z, 0, 1));
                             }
-                            message.Instance.SetProperties.ConeInnerAngle = message.Data.X;
-                            message.Instance.SetProperties.ConeOuterAngle = message.Data.Y;
-                            message.Instance.SetProperties.ConeOuterGain = message.Data.Z;
+                            message.Instance.SetProperties.ConeInnerAngle = Math.Clamp(message.Data.X, 0, 360);
+                            message.Instance.SetProperties.ConeOuterAngle = Math.Clamp(message.Data.Y, 0, 360);
+                            message.Instance.SetProperties.ConeOuterGain = Math.Clamp(message.Data.Z, 0, 1);
                             break;
                         case AudioEvent.SetDistance:
                             if (message.Instance.Source != -1)
                             {
                                 Al.alSourcef((uint)message.Instance.Source,
-                                    Al.AL_REFERENCE_DISTANCE, message.Data.X);
+                                    Al.AL_REFERENCE_DISTANCE, Math.Max(0.001f, message.Data.X));
                                 Al.alSourcef((uint)message.Instance.Source,
-                                    Al.AL_MAX_DISTANCE, message.Data.Y);
+                                    Al.AL_MAX_DISTANCE, Math.Max(0.001f, message.Data.Y));
                             }
-                            message.Instance.SetProperties.ReferenceDistance = message.Data.X;
-                            message.Instance.SetProperties.MaxDistance = message.Data.Y;
+                            message.Instance.SetProperties.ReferenceDistance = Math.Max(0.001f, message.Data.X);
+                            message.Instance.SetProperties.MaxDistance = Math.Max(0.001f, message.Data.Y);
                             break;
                         case AudioEvent.SetListenerPosition:
                             Al.alListener3f(Al.AL_POSITION, message.Data.X,  message.Data.Y,  message.Data.Z);

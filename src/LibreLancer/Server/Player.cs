@@ -420,8 +420,10 @@ namespace LibreLancer.Server
                     }
                 }
             }
+            //if CurrentStory is null, we assume the mission doesn't exists for some reason, then its on open world mode
+            if (Story.CurrentStory == null) Story.CurrentStory = storyline.Items[0];
             FLLog.Debug("Story", $"{Story.CurrentStory.Nickname}, {Story.MissionNum}");
-            loadTriggers = sg.TriggerSave.Select(x => (uint) x.Trigger).ToArray();
+            loadTriggers = sg.TriggerSave.Select(x => (uint)x.Trigger).ToArray();
             LoadMission();
         }
 

@@ -137,7 +137,12 @@ namespace LibreLancer.Thn
 
 		ThnEvent GetEvent(ThornTable table, string source)
 		{
-            var t = ThnTypes.Convert<EventTypes>(table[2]);
+		          if (table[2] == null)
+		          {
+		              FLLog.Error("Thn", $"Event table missing type field in {source}");
+		              throw new InvalidCastException("Event type missing");
+		          }
+		          var t = ThnTypes.Convert<EventTypes>(table[2]);
             switch (t)
             {
                 case EventTypes.SetCamera:

@@ -1171,14 +1171,18 @@ World Time: {12:F2}
             }
             return tgt;
         }
-
-		void ProcessInput(double delta)
+        bool DisabledInputCheck()
         {
-            if (Dead) {
-                current_cur = cur_arrow;
-                return;
-            }
-            if (paused) return;
+            if (Dead) return true;
+            if (paused) return true;
+            if (pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock) return true;
+            return false;
+        }
+
+        void ProcessInput(double delta)
+        {
+            if (DisabledInputCheck()) return;
+
             Input.Update();
 
             if (!ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))

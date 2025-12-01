@@ -24,12 +24,25 @@ namespace LibreLancer.Thn
         {
             if (o is ThornTable tb)
             {
-
                 var v3 = tb.ToVector3();
                 var conv = axisTable.AsSpan().IndexOf(v3);
                 if (conv == -1) conv = 0;
-                FLLog.Error("Thn",
-                    $"Incorrect axis format in {source}, '{tb}' should be {ThornTable.EnumReverse[((ThnAxis)conv).ToString()]}. Support for this will be removed in a later version");
+                
+                var axisName = ((ThnAxis)conv).ToString();
+                
+                // Ensure EnumReverse is initialized (fix for missing dictionary initialization)
+                if (ThornTable.EnumReverse.Count == 0) {
+                    System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(LibreLancer.Thn.ThnDecompile).TypeHandle);
+                }
+                
+                // Safe dictionary access with fallback
+                if (ThornTable.EnumReverse.TryGetValue(axisName, out string axisDisplayName)) {
+                    FLLog.Error("Thn",
+                        $"Incorrect axis format in {source}, '{tb}' should be {axisDisplayName}. Support for this will be removed in a later version");
+                } else {
+                    FLLog.Error("Thn",
+                        $"Incorrect axis format in {source}, '{tb}' should be {axisName}. Support for this will be removed in a later version");
+                }
                 return (ThnAxis)conv;
             }
 
@@ -39,6 +52,7 @@ namespace LibreLancer.Thn
         //It is somewhat fuzzy, and yes a huge mess.
         public static T Convert<T>(object o)
         {
+            if (o == null) throw new InvalidCastException($"Cannot convert null to {typeof(T)}");
             if (o is T o1) return o1;
             if (typeof(T) == typeof(Matrix4x4))
             {
