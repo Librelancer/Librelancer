@@ -1173,10 +1173,9 @@ World Time: {12:F2}
         }
         bool DisabledInputCheck()
         {
-            if (Dead) return true;
-            if (paused) return true;
-            if (pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock) return true;
-            return false;
+            return Dead
+                || paused
+                || pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock;
         }
 
         void ProcessInput(double delta)
