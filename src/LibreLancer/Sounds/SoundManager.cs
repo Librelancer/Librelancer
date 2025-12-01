@@ -116,6 +116,11 @@ namespace LibreLancer.Sounds
             var loaded = new LoadedSound();
             loaded.Entry = data.GetAudioEntry(name);
             loaded.Name = name;
+            if (loaded.Entry == null)
+            {
+                loaded.Data = null;
+                return loaded;
+            }
             if (loaded.Entry.File.ToLowerInvariant().Replace('\\', '/') == "audio/null.wav")
             {
                 //HACK: Don't bother with sounds using null.wav, makes awful popping noise
@@ -124,12 +129,19 @@ namespace LibreLancer.Sounds
             else
             {
                 var path = data.GetAudioStream(name);
-                var snd = new SoundData();
-                loaded.LoadTask = Task.Run(() =>
+                if (path == null)
                 {
-                    snd.LoadStream(path);
-                    loaded.Data = snd;
-                });
+                    loaded.Data = null;
+                }
+                else
+                {
+                    var snd = new SoundData();
+                    loaded.LoadTask = Task.Run(() =>
+                    {
+                        snd.LoadStream(path);
+                        loaded.Data = snd;
+                    });
+                }
             }
             return loaded;
         }
@@ -137,6 +149,7 @@ namespace LibreLancer.Sounds
         SoundCategory EntryType(string name)
         {
             var e = GetEntry(name);
+            if (e == null) return SoundCategory.Sfx;
             if (e.Type == AudioType.Voice)
                 return SoundCategory.Voice;
             return SoundCategory.Sfx;

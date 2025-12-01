@@ -665,11 +665,21 @@ namespace LibreLancer
         public IEnumerable<Data.Audio.AudioEntry> AllSounds => fldata.Audio.Entries;
         public Data.Audio.AudioEntry GetAudioEntry(string id)
         {
-            return fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
+            var audio = fldata.Audio.Entries.FirstOrDefault((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant());
+            if (audio == null)
+            {
+                FLLog.Warning("Audio", $"Audio entry '{id}' not found");
+            }
+            return audio;
         }
         public Stream GetAudioStream(string id)
         {
-            var audio = fldata.Audio.Entries.Where((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant()).First();
+            var audio = fldata.Audio.Entries.FirstOrDefault((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant());
+            if (audio == null)
+            {
+                FLLog.Warning("Audio", $"Audio entry '{id}' not found");
+                return null;
+            }
             if (VFS.FileExists(DataPath(audio.File)))
                 return VFS.Open(DataPath(audio.File));
             return null;
