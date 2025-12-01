@@ -124,10 +124,10 @@ public class StateGraphTab : EditorTab
     {
         switch (hk)
         {
-            case Hotkeys.Undo:
+            case Hotkeys.Undo when undoBuffer.CanUndo:
                 undoBuffer.Undo();
                 break;
-            case Hotkeys.Redo:
+            case Hotkeys.Redo when undoBuffer.CanRedo:
                 undoBuffer.Redo();
                 break;
         }
