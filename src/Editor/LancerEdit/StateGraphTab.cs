@@ -51,7 +51,7 @@ public class StateGraphTab : EditorTab
 
     public void Save(string filePath)
     {
-        using var fs = File.Create(filePath);
+        using var fs = File.Create(filePath ?? FilePath);
         var db = new StateGraphDb();
         db.BehaviorCount = 21;
         db.StateGraphCount = graphs.Count;
