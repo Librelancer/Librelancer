@@ -13,6 +13,8 @@ namespace LibreLancer.Data.Save
     public record SaveItemCount(HashValue Item, int Count);
 
     public record VNPC(HashValue ItemA, HashValue ItemB, int Unknown1, int Unknown2);
+
+    public record TlException(HashValue ItemA, HashValue ItemB);
     [ParsedSection]
     public partial class MPlayer : IWriteSection
     {
@@ -20,10 +22,9 @@ namespace LibreLancer.Data.Save
         public int CanDock;
         [Entry("can_tl")]
         public int CanTl;
-        [Entry("dock_exceptions", Multiline = true)]
-        public List<string> DockExceptions = [];
-        [Entry("tl_exceptions", Multiline = true)]
-        public List<string> TlExceptions = [];
+        [Entry("dock_exception", Multiline = true)]
+        public List<HashValue> DockExceptions = [];
+        public List<TlException> TlExceptions = [];
         [Entry("total_cash_earned")]
         public float TotalCashEarned;
         [Entry("total_time_played")]
@@ -51,6 +52,9 @@ namespace LibreLancer.Data.Save
         [EntryHandler("rm_completed", MinComponents = 2, Multiline = true)]
         void HandleRm(Entry e) => RmCompleted.Add(new SaveItemCount(new HashValue(e[0]), e[1].ToInt32()));
 
+        [EntryHandler("tlr_exception", MinComponents = 2, Multiline = true)]
+        void HandleTlException(Entry e) => TlExceptions.Add(new TlException(new HashValue(e[0]), new HashValue(e[1])));
+
 
         public void WriteTo(IniBuilder builder)
         {
@@ -60,9 +64,9 @@ namespace LibreLancer.Data.Save
             sec.Entry("can_dock", CanDock);
             sec.Entry("can_tl", CanTl);
             foreach (var ex in DockExceptions)
-                sec.Entry("dock_exceptions", ex);
+                sec.Entry("dock_exception", (uint)ex);
             foreach (var ex in TlExceptions)
-                sec.Entry("tl_exceptions", ex);
+                sec.Entry("tlr_exception", (uint)ex.ItemA, (uint)ex.ItemB);
             foreach (var s in ShipTypeKilled)
             {
                 sec.Entry("ship_type_killed", (uint)s.Item, s.Count);

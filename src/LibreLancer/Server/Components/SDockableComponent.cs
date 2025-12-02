@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
+using LibreLancer.Data.Save;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
@@ -99,7 +101,7 @@ namespace LibreLancer.Server.Components
             {
                 var mplayer = player.Player.MPlayer;
                 if (mplayer.CanDock == 1) return true;
-                if (mplayer.CanDock == 0 && mplayer.DockExceptions.Contains(dockNickname)) return true;
+                if (mplayer.CanDock == 0 && mplayer.DockExceptions.Contains(new HashValue(dockNickname))) return true;
                 return false;
             }
             return true; // NPCs can always dock
@@ -111,7 +113,8 @@ namespace LibreLancer.Server.Components
             {
                 var mplayer = player.Player.MPlayer;
                 if (mplayer.CanTl == 1) return true;
-                if (mplayer.CanTl == 0 && mplayer.TlExceptions.Contains(tradelaneNickname)) return true;
+                var hash = new HashValue(tradelaneNickname);
+                if (mplayer.CanTl == 0 && mplayer.TlExceptions.Any(x => x.ItemA == hash || x.ItemB == hash)) return true;
                 return false;
             }
             return true; // NPCs can always tradelane

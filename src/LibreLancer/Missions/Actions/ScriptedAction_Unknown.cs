@@ -7,6 +7,7 @@ using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
+using LibreLancer.Data.Save;
 
 namespace LibreLancer.Missions.Actions;
 
@@ -207,7 +208,7 @@ public class Act_PlayerCanDock : ScriptedAction
     public override void Invoke(MissionRuntime runtime, MissionScript script)
     {
         runtime.Player.MPlayer.CanDock = CanDock ? 1 : 0;
-        runtime.Player.MPlayer.DockExceptions = Exceptions;
+        runtime.Player.MPlayer.DockExceptions = Exceptions.Select(x => new HashValue(x)).ToList();
     }
 }
 
@@ -238,7 +239,7 @@ public class Act_PlayerCanTradelane : ScriptedAction
     public override void Invoke(MissionRuntime runtime, MissionScript script)
     {
         runtime.Player.MPlayer.CanTl = CanDock ? 1 : 0;
-        runtime.Player.MPlayer.TlExceptions = Exceptions;
+        runtime.Player.MPlayer.TlExceptions = Exceptions.Chunk(2).Select(x => new TlException(new HashValue(x.ElementAt(0)), new HashValue(x.ElementAt(1)))).ToList();
     }
 }
 
