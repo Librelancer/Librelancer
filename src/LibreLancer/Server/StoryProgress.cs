@@ -22,7 +22,7 @@ public class StoryProgress
                 player.AddRTC(x.Argument);
         }
         var old = CurrentStory.Nickname;
-        var next = player.Game.GameData.Ini.Storyline.Items[MissionNum + 1];
+        var next = player.Game.GameData.Ini.Storyline.Items[Math.Clamp(MissionNum + 1, 0, player.Game.GameData.Ini.Storyline.Items.Count - 1)];
         MissionNum++;
         bool loadMission = !next.Skip &&
                            !string.Equals(CurrentStory.Mission, next.Mission, StringComparison.OrdinalIgnoreCase);

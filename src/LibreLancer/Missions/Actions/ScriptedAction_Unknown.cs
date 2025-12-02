@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
@@ -201,6 +203,12 @@ public class Act_PlayerCanDock : ScriptedAction
     {
         section.Entry("Act_PlayerCanDock", Exceptions.Prepend(CanDock ? "true" : "false"));
     }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.MPlayer.CanDock = CanDock ? 1 : 0;
+        runtime.Player.MPlayer.DockExceptions = Exceptions;
+    }
 }
 
 public class Act_PlayerCanTradelane : ScriptedAction
@@ -225,6 +233,12 @@ public class Act_PlayerCanTradelane : ScriptedAction
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Act_PlayerCanTradelane", Exceptions.Prepend(CanDock ? "true" : "false"));
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.MPlayer.CanTl = CanDock ? 1 : 0;
+        runtime.Player.MPlayer.TlExceptions = Exceptions;
     }
 }
 
@@ -277,6 +291,15 @@ public class Act_Save : ScriptedAction
         {
             section.Entry("Act_Save", Trigger);
         }
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+
+        // Register this trigger as a save trigger before saving
+        runtime.RegisterSaveTrigger(Trigger);
+
+        runtime.Player.SaveSP("Autosave", Ids, DateTime.UtcNow);
     }
 }
 

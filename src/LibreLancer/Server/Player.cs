@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -53,8 +55,27 @@ namespace LibreLancer.Server
         private ConcurrentQueue<Action> saveActions = new ConcurrentQueue<Action>();
         //State
         public NetCharacter Character;
+
+        private const string SAVE_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+        static string Encode(long number)
+        {
+            if (number < 0)
+                throw new ArgumentException();
+            var builder = new StringBuilder();
+            var divisor = (long)SAVE_ALPHABET.Length;
+            while (number > 0)
+            {
+                number = Math.DivRem(number, divisor, out var rem);
+                builder.Append(SAVE_ALPHABET[(int)rem]);
+            }
+
+            return new string(builder.ToString().Reverse().ToArray());
+        }
+        public MPlayer MPlayer;
         public DateTime StartTime;
         public string Name = "Player";
+        public string SaveFolder;
         public string System;
         public string Base;
         public Vector3 Position;
@@ -99,6 +120,31 @@ namespace LibreLancer.Server
             {
                 while (worldActions.Count > 0)
                     worldActions.Dequeue()();
+            }
+        }
+
+        private void HandleBaseEntry(string baseName)
+        {
+            if (MissionRuntime != null)
+            {
+                FLLog.Info("Mission", $"Mission runtime handling base enter: {Story?.CurrentMission?.Nickname}");
+                MissionRuntime.SpaceExit();
+                MissionRuntime.BaseEnter(baseName);
+                MissionRuntime.CheckMissionScript();
+            }
+            else
+            {
+                FLLog.Debug("Mission", "No mission runtime available during base enter");
+            }
+        }
+
+        private void HandleSpaceEntry()
+        {
+            if (MissionRuntime != null)
+            {
+                MissionRuntime.PlayerLaunch();
+                MissionRuntime.CheckMissionScript();
+                MissionRuntime.EnteredSpace();
             }
         }
 
@@ -247,6 +293,7 @@ namespace LibreLancer.Server
         void BeginGame(NetCharacter c, SaveGame sg)
         {
             Character = c;
+            MPlayer = sg?.MPlayer ?? new MPlayer();
             StartTime = DateTime.UtcNow;
             Name = Character.Name;
             rpcClient.UpdatePlayTime(c.Time, StartTime);
@@ -302,9 +349,9 @@ namespace LibreLancer.Server
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
-                    msnRuntime?.PlayerLaunch();
-                    msnRuntime?.CheckMissionScript();
-                    msnRuntime?.EnteredSpace();
+
+                    //Ensure mission runtime is properly initialized when spawning in space
+                    HandleSpaceEntry();
                 });
             }, msnPreload);
         }
@@ -351,9 +398,9 @@ namespace LibreLancer.Server
                 c.UpdatePosition(Base, System, Position, Orientation);
                 c.VisitBase(Baseside.BaseData.CRC);
             }
-            MissionRuntime?.SpaceExit();
-            MissionRuntime?.BaseEnter(Base);
-            MissionRuntime?.CheckMissionScript();
+
+            HandleBaseEntry(Base);
+
             //send to player
             lock (thns)
             {
@@ -375,12 +422,41 @@ namespace LibreLancer.Server
         {
             if (Story?.CurrentMission != null)
             {
-                msnRuntime = new MissionRuntime(Game.GameData.Ini.LoadMissionIni(Story.CurrentMission), this, loadTriggers);
+                FLLog.Info("Mission", $"Loading mission: {Story.CurrentMission.Nickname} with {loadTriggers?.Length ?? 0} saved triggers");
+
+                // Load the mission script
+                var missionIni = Game.GameData.Ini.LoadMissionIni(Story.CurrentMission);
+                msnRuntime = new MissionRuntime(missionIni, this, loadTriggers);
                 msnPreload = msnRuntime.Script.CalculatePreloads(Game.GameData);
                 rpcClient.SetPreloads(msnPreload);
+
+                // Ensure mission runtime is properly initialized
                 msnRuntime.Update(0.0);
+
+                // Debug: Log the mission script details
+                FLLog.Debug("Mission", $"Mission script loaded: {missionIni.Ships.Count} ships, {missionIni.Solars.Count} solars, {missionIni.NPCs.Count} NPCs");
+
+                // If we're in space, trigger mission events to restore state
+                if (Space != null)
+                {
+                    FLLog.Info("Mission", $"Initializing mission runtime in space for mission: {Story.CurrentMission.Nickname}");
+
+                    HandleSpaceEntry();
+
+                    // Give the mission runtime a chance to process initial triggers
+                    msnRuntime.Update(0.1);
+                }
+                else
+                {
+                    FLLog.Debug("Mission", "Mission loaded but not in space - will restore when entering space");
+                }
+            }
+            else
+            {
+                FLLog.Debug("Mission", "No mission to load - CurrentMission is null");
             }
         }
+
 
         public void UpdateProgress()
         {
@@ -391,12 +467,16 @@ namespace LibreLancer.Server
         {
             var msn = sg.StoryInfo?.Mission ?? "No_Mission";
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
-            if (Game.GameData.Ini.ContentDll.AlwaysMission13) {
+
+            Story = new StoryProgress();
+            var storyline = Game.GameData.Ini.Storyline;
+
+            missionNum = Math.Clamp(missionNum, 0, storyline.Items.Count - 1);
+            if (Game.GameData.Ini.ContentDll.AlwaysMission13)
+            {
                 missionNum = 41;
                 msn = "Mission_13";
             }
-            Story = new StoryProgress();
-            var storyline = Game.GameData.Ini.Storyline;
             if (!msn.Equals("No_Mission", StringComparison.OrdinalIgnoreCase))
             {
                 Story.CurrentMission = storyline.Missions.FirstOrDefault(x =>
@@ -421,8 +501,18 @@ namespace LibreLancer.Server
                 }
             }
             FLLog.Debug("Story", $"{Story.CurrentStory.Nickname}, {Story.MissionNum}");
+
             loadTriggers = sg.TriggerSave.Select(x => (uint) x.Trigger).ToArray();
-            LoadMission();
+
+            // Only load mission if we have a valid mission
+            if (Story?.CurrentMission != null)
+            {
+                LoadMission();
+            }
+            else
+            {
+                FLLog.Debug("Mission", $"Not loading mission: CurrentMission={Story?.CurrentMission?.Nickname}, Base={Base}");
+            }
         }
 
         private Queue<Action> worldActions = new Queue<Action>();
@@ -784,7 +874,7 @@ namespace LibreLancer.Server
                 a();
         }
 
-        public Task SaveSP(string path, string description, int ids, DateTime? timeStamp)
+        public Task SaveSP(string description, int ids, DateTime? timeStamp)
         {
             var completionSource = new TaskCompletionSource();
             saveActions.Enqueue(() =>
@@ -804,6 +894,14 @@ namespace LibreLancer.Server
                         thns.Ambients, Story);
                 }
                 MissionRuntime?.WriteActiveTriggers(sg);
+                var filename = $"Save0{Encode(DateTimeOffset.Now.ToUnixTimeSeconds())}.fl";
+                var path = Path.Combine(SaveFolder, filename);
+                int i = 0;
+                while (File.Exists(path))
+                {
+                    filename = $"Save0{Encode(DateTimeOffset.Now.ToUnixTimeSeconds())}{i++}.fl";
+                    path = Path.Combine(SaveFolder, filename);
+                }
                 IniWriter.WriteIniFile(path, sg.ToIni());
                 completionSource.SetResult();
             });
@@ -872,9 +970,7 @@ namespace LibreLancer.Server
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
-                    msnRuntime?.PlayerLaunch();
-                    msnRuntime?.CheckMissionScript();
-                    msnRuntime?.EnteredSpace();
+                    HandleSpaceEntry();
                     msnRuntime?.SystemEnter(system, "Player");
                 });
                 world.DelayAction(() =>
@@ -938,9 +1034,7 @@ namespace LibreLancer.Server
                         rpcClient.UndockFrom(undockFrom);
                         sd!.UndockShip(pship);
                     }
-                    msnRuntime?.PlayerLaunch();
-                    msnRuntime?.CheckMissionScript();
-                    msnRuntime?.EnteredSpace();
+                    HandleSpaceEntry();
                 });
             }, msnPreload);
         }

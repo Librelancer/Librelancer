@@ -20,6 +20,10 @@ namespace LibreLancer.Data.Save
         public int CanDock;
         [Entry("can_tl")]
         public int CanTl;
+        [Entry("dock_exceptions", Multiline = true)]
+        public List<string> DockExceptions = [];
+        [Entry("tl_exceptions", Multiline = true)]
+        public List<string> TlExceptions = [];
         [Entry("total_cash_earned")]
         public float TotalCashEarned;
         [Entry("total_time_played")]
@@ -55,6 +59,10 @@ namespace LibreLancer.Data.Save
                 sec.Entry("locked_gate", (uint) gate);
             sec.Entry("can_dock", CanDock);
             sec.Entry("can_tl", CanTl);
+            foreach (var ex in DockExceptions)
+                sec.Entry("dock_exceptions", ex);
+            foreach (var ex in TlExceptions)
+                sec.Entry("tl_exceptions", ex);
             foreach (var s in ShipTypeKilled)
             {
                 sec.Entry("ship_type_killed", (uint)s.Item, s.Count);

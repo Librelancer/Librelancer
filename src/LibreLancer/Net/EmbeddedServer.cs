@@ -27,6 +27,7 @@ namespace LibreLancer.Net
             Server.ScriptsFolder = Path.Combine(saveFolder, "scripts");
             Server.LocalPlayer = new Player(Client, Server, Guid.Empty);
             Server.ConnectedPlayers.Add(Server.LocalPlayer);
+            Server.LocalPlayer.SaveFolder = saveFolder;
         }
 
         public void StartFromSave(string path, byte[] save)
@@ -37,9 +38,9 @@ namespace LibreLancer.Net
             Server.LoadSaveGame(sg);
         }
 
-        public void Save(string path, string description, bool autosave)
+        public void Save(string description, bool autosave)
         {
-            Server.LocalPlayer.SaveSP(path, description, autosave ? 1628 : 0, DateTime.Now).Wait();
+            Server.LocalPlayer.SaveSP(description, autosave ? 1628 : 0, DateTime.Now).Wait();
         }
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
