@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
+using LibreLancer.Data.Save;
 using LibreLancer.GameData;
 using LibreLancer.GameData.World;
 using LibreLancer.World;
@@ -93,19 +95,44 @@ namespace LibreLancer.Server.Components
 		}
 
 
+        bool CanPlayerDock(GameObject ship, string dockNickname)
+        {
+            if (ship.TryGetComponent<SPlayerComponent>(out var player))
+            {
+                var mplayer = player.Player.MPlayer;
+                if (mplayer.CanDock == 1) return true;
+                if (mplayer.CanDock == 0 && mplayer.DockExceptions.Contains(new HashValue(dockNickname))) return true;
+                return false;
+            }
+            return true; // NPCs can always dock
+        }
+
+        bool CanPlayerTradelane(GameObject ship, string tradelaneNickname)
+        {
+            if (ship.TryGetComponent<SPlayerComponent>(out var player))
+            {
+                var mplayer = player.Player.MPlayer;
+                if (mplayer.CanTl == 1) return true;
+                var hash = new HashValue(tradelaneNickname);
+                if (mplayer.CanTl == 0 && mplayer.TlExceptions.Any(x => x.ItemA == hash || x.ItemB == hash)) return true;
+                return false;
+            }
+            return true; // NPCs can always tradelane
+        }
+
         bool CanDock(int i, GameObject obj, string tlHP = null)
-		{
+  {
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = obj.WorldTransform.Position;
 
-			var hp = Parent.GetHardpoint(tlHP ?? DockPoints[i].DockSphere.Hardpoint);
+   var hp = Parent.GetHardpoint(tlHP ?? DockPoints[i].DockSphere.Hardpoint);
             var targetPos = (hp.Transform * Parent.WorldTransform).Position;
-			if ((targetPos - pos).Length() < (DockPoints[i].DockSphere.Radius * 2 + rad))
-			{
-				return true;
-			}
-			return false;
-		}
+   if ((targetPos - pos).Length() < (DockPoints[i].DockSphere.Radius * 2 + rad))
+   {
+    return true;
+   }
+   return false;
+  }
 
         private bool leftActive = false;
         private int inactiveTicksLeft = 0;
@@ -242,7 +269,20 @@ namespace LibreLancer.Server.Components
                         rightThisTick = true;
                 }
                 TryTriggerAnimation(dock.Dock, dock.Ship);
-                if (CanDock(dock.Dock, dock.Ship, dock.TLHardpoint)) {
+                bool canProceed = CanDock(dock.Dock, dock.Ship, dock.TLHardpoint);
+                if (canProceed)
+                {
+                    if (Action.Kind == DockKinds.Base || Action.Kind == DockKinds.Jump)
+                    {
+                        canProceed = CanPlayerDock(dock.Ship, Action.Target);
+                    }
+                    else if (Action.Kind == DockKinds.Tradelane)
+                    {
+                        canProceed = CanPlayerTradelane(dock.Ship, Parent.Nickname);
+                    }
+                }
+                if (canProceed)
+                {
                     if (Action.Kind == DockKinds.Base)
                     {
                         if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
@@ -275,8 +315,14 @@ namespace LibreLancer.Server.Components
                                 StartTradelane(ship, dock.TLHardpoint);
                         }
                     }
-                    activeDockings.RemoveAt(i);
                 }
+                else
+                {
+                    // Cancel autopilot if denied
+                    if (dock.Ship.TryGetComponent<AutopilotComponent>(out var ap))
+                        ap.Cancel();
+                }
+                activeDockings.RemoveAt(i);
             }
             foreach(var dp in DockPoints)
                 dp.Update(Parent, (float)time);

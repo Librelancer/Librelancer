@@ -124,7 +124,7 @@ namespace LibreLancer.Client
 
             if (connection is EmbeddedServer es)
             {
-                es.Save(path, description, false);
+                es.Save(description, false);
                 Game.Saves.AddFile(path);
             }
         }
@@ -1149,7 +1149,7 @@ namespace LibreLancer.Client
             {
                 var path = Game.GetSaveFolder();
                 Directory.CreateDirectory(path);
-                es.Save(Path.Combine(path, "AutoSave.fl"), null, true);
+                es.Save(null, true);
             }
 
             CurrentObjective = objective;

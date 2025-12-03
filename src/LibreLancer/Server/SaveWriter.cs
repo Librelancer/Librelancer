@@ -88,6 +88,7 @@ namespace LibreLancer.Server
                 sg.StoryInfo.Mission = story.CurrentMission?.Nickname ?? "No_Mission";
                 sg.StoryInfo.DeltaWorth = story.NextLevelWorth;
                 sg.StoryInfo.MissionNum = story.MissionNum;
+                FLLog.Debug("Save", $"Saving mission state: {sg.StoryInfo.Mission}, MissionNum: {sg.StoryInfo.MissionNum}");
             }
             if (rtcs != null ||
                 ambients != null)

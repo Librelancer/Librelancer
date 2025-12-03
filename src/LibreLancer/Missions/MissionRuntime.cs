@@ -38,7 +38,6 @@ namespace LibreLancer.Missions
             this.msn = msn;
             this.Player = player;
             bool doInit = true;
-            if (triggerSave != null && triggerSave.Length > 0)
             {
                 foreach (var tr in triggerSave)
                 {
@@ -47,14 +46,14 @@ namespace LibreLancer.Missions
                     {
                         if (FLHash.CreateID(t.Key) == tr)
                         {
-                            FLLog.Debug("Mission", $"Loading from trigger {t.Key}");
+                            FLLog.Info("Mission", $"Loading from trigger {t.Key} (hash: {tr})");
                             ActivateTrigger(t.Key);
                             doInit = false;
                             found = true;
                             break;
                         }
                     }
-                    if (!found) FLLog.Error("Save", $"Unable to find trigger {triggerSave}");
+                    if (!found) FLLog.Error("Save", $"Unable to find trigger with hash {tr} - this trigger will not be restored");
                 }
             }
             if (doInit)
@@ -68,11 +67,42 @@ namespace LibreLancer.Missions
             UpdateUiTriggers();
         }
 
+        private string lastSaveTrigger = string.Empty;
+
         public void WriteActiveTriggers(SaveGame sg)
         {
-            foreach (var t in activeTriggers)
+            FLLog.Info("Mission", $"WriteActiveTriggers called - lastSaveTrigger: '{lastSaveTrigger}'");
+
+            //if we are in space, we only want to save the last save trigger executed, if we are not, save all
+            if (Player.Space != null)
             {
-                sg.TriggerSave.Add(new TriggerSave() { Trigger = (int)FLHash.CreateID(t.Trigger.Nickname)});
+                FLLog.Info("Mission", "Player is in space, saving only the last save trigger");
+                if (!string.IsNullOrEmpty(lastSaveTrigger))
+                {
+                    sg.TriggerSave.Add(new TriggerSave() { Trigger = (int)FLHash.CreateID(lastSaveTrigger) });
+                    FLLog.Info("Mission", $"Saved mission save trigger: {lastSaveTrigger} (hash: {FLHash.CreateID(lastSaveTrigger)})");
+                }
+            }
+            else
+            {
+                FLLog.Info("Mission", "Player is not in space, saving all active triggers");
+                foreach (var at in activeTriggers)
+                {
+                    sg.TriggerSave.Add(new TriggerSave() { Trigger = (int)FLHash.CreateID(at.Trigger.Nickname) });
+                    FLLog.Info("Mission", $"Saved active trigger: {at.Trigger.Nickname} (hash: {FLHash.CreateID(at.Trigger.Nickname)})");
+                }
+            }
+
+            FLLog.Info("Mission", $"Total mission save triggers saved: {sg.TriggerSave.Count}, space status: {(Player.Space != null ? "in space" : "not in space")}");
+        }
+
+        public void RegisterSaveTrigger(string triggerName)
+        {
+            // When a save trigger is reached, we register it as the last save trigger
+            if (!string.IsNullOrEmpty(triggerName))
+            {
+                lastSaveTrigger = triggerName;
+                FLLog.Info("Mission", $"Registered active save trigger: {triggerName}");
             }
         }
 
@@ -276,6 +306,9 @@ namespace LibreLancer.Missions
                         DoTrigger(tr);
                         completedTriggers.Add(tr.Nickname);
                         uiUpdate = true;
+
+                        // Log mission progression trigger
+                        FLLog.Info("Mission", $"Mission progression: Trigger '{tr.Nickname}' completed (hash: {FLHash.CreateID(tr.Nickname)})");
                     }
                 }
             }
