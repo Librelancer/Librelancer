@@ -96,23 +96,58 @@ public class Blender
 
     public static bool FileIsBlender(Stream stream)
     {
-        Span<byte> bytes = stackalloc byte[9];
-        if (stream.Read(bytes) != 9) return false;
-        if (bytes[0] != 0x42 || //BLENDER magic
-            bytes[1] != 0x4C ||
-            bytes[2] != 0x45 ||
-            bytes[3] != 0x4E ||
-            bytes[4] != 0x44 ||
-            bytes[5] != 0x45 ||
-            bytes[6] != 0x52)
-            return false;
-        if (bytes[7] == '1')
-            return true; // Blender 5.0
-        if (bytes[7] != 0x2D && bytes[7] != 0x5F) //- or _ pointer size
-            return false;
-        if (bytes[8] != 0x76 && bytes[7] != 0x56) //v or V endianness
-            return false;
-        return true;
+        Span<byte> header = stackalloc byte[32];
+        if (stream.Read(header) != 32) return false;
+
+        // Check for modern Blender format (BLENDER-vXXX) - can be at offset 0
+        if ((header[0] == 0x42 && // B
+            header[1] == 0x4C && // L
+            header[2] == 0x45 && // E
+            header[3] == 0x4E && // N
+            header[4] == 0x44 && // D
+            header[5] == 0x45 && // E
+            header[6] == 0x52 && // R
+            header[7] == 0x2D) || // - (hyphen)
+
+            // Check for modern Blender format at offset 12 (some older files)
+            (header[12] == 0x42 && // B
+            header[13] == 0x4C && // L
+            header[14] == 0x45 && // E
+            header[15] == 0x4E && // N
+            header[16] == 0x44 && // D
+            header[17] == 0x45 && // E
+            header[18] == 0x52)   // R
+            )
+        {
+            return true; // Modern Blender format
+        }
+
+        // Check for older Blender format (BLENDER17-XXX) - can be at offset 0 or 12
+        if ((header[0] == 0x42 && // B
+            header[1] == 0x4C && // L
+            header[2] == 0x45 && // E
+            header[3] == 0x4E && // N
+            header[4] == 0x44 && // D
+            header[5] == 0x45 && // E
+            header[6] == 0x52 && // R
+            header[8] == 0x31 && // 1 (Blender 1.x)
+            header[9] == 0x37) || // 7 (Blender 1.7)
+
+            (header[12] == 0x42 && // B
+            header[13] == 0x4C && // L
+            header[14] == 0x45 && // E
+            header[15] == 0x4E && // N
+            header[16] == 0x44 && // D
+            header[17] == 0x45 && // E
+            header[18] == 0x52 && // R
+            header[20] == 0x31 && // 1 (Blender 1.x)
+            header[21] == 0x37)   // 7 (Blender 1.7)
+            )
+        {
+            return true; // Older Blender 1.7 format
+        }
+
+        return false;
     }
 
     public static bool BlenderPathValid(string blenderPath = null)
