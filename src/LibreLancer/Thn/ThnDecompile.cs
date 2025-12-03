@@ -9,8 +9,13 @@ namespace LibreLancer.Thn
 {
     public static class ThnDecompile
     {
-        static ThnDecompile()
+        private static bool _inited = false;
+
+        public static void Init()
         {
+            if (_inited)
+                return;
+            _inited = true;
             ThornTable.EnumReverse = new Dictionary<string, string>();
             //ThnObjectFlags
             ThornTable.EnumReverse.Add("LitDynamic", "LIT_DYNAMIC");
@@ -84,12 +89,11 @@ namespace LibreLancer.Thn
             ThornTable.EnumReverse.Add("NegXAxis", "NEG_X_AXIS");
             ThornTable.EnumReverse.Add("NegYAxis", "NEG_Y_AXIS");
             ThornTable.EnumReverse.Add("NegZAxis", "NEG_Z_AXIS");
-
-
         }
 
         public static string Decompile(string file, ThornReadFile readCallback = null)
         {
+            Init();
             var builder = new StringBuilder();
             var runner = new ThornRunner(ThnScript.ThnEnv, readCallback);
             runner.Log = false;

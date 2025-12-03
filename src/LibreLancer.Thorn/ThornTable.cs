@@ -466,7 +466,7 @@ namespace LibreLancer.Thorn
             return builder;
         }
 
-        static string Rev(string s)
+        public static string ReverseValue(string s)
         {
             string tmp;
             if (EnumReverse.TryGetValue(s, out tmp)) return tmp;
@@ -478,7 +478,7 @@ namespace LibreLancer.Thorn
             var full = Convert.ToUInt32(o);
             foreach (var v in Enum.GetValues(t))
             {
-                if (full == Convert.ToUInt32(v)) return Rev(o.ToString());
+                if (full == Convert.ToUInt32(v)) return ReverseValue(o.ToString());
             }
             var sb = new StringBuilder();
             int count = 0;
@@ -487,8 +487,8 @@ namespace LibreLancer.Thorn
                 if (a == 0) continue;
                 if((full & a) == a)
                 {
-                    if (count == 0) sb.Append(Rev(fl.ToString()));
-                    else sb.Append(" + ").Append(Rev(fl.ToString()));
+                    if (count == 0) sb.Append(ReverseValue(fl.ToString()));
+                    else sb.Append(" + ").Append(ReverseValue(fl.ToString()));
                     count++;
                 }
             }
