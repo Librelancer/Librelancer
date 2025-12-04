@@ -110,15 +110,26 @@ public class Blender
         }
 
         // Check for BLENDER magic (uncompressed files)
-        if (header[0] == 0x42 && // B
-            header[1] == 0x4C && // L
-            header[2] == 0x45 && // E
-            header[3] == 0x4E)   // N
+        if (header[0] != 0x42 || // B
+            header[1] != 0x4C || // L
+            header[2] != 0x45 || // E
+            header[3] != 0x4E || // N
+            header[4] != 0x44 || // D
+            header[5] != 0x45 || // E
+            header[6] != 0x52)   // R
         {
-            return true; // Uncompressed Blender file
+            return false; // Not a valid Blender file
         }
 
-        return false;
+        // Version/pointer size/endianness checks
+        if (header[7] == '1')
+            return true; // Blender 5.0
+        if (header[7] != 0x2D && header[7] != 0x5F) // - or _ pointer size
+            return false;
+        if (header[8] != 0x76 && header[8] != 0x56) // v or V endianness
+            return false;
+
+        return true; // Valid Blender file
     }
 
     public static bool BlenderPathValid(string blenderPath = null)
