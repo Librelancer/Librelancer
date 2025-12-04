@@ -13,28 +13,29 @@ public class StoryProgress
 
     public void Advance(Player player)
     {
-        if (!CurrentStory.Skip &&
-            !CurrentStory.Acceptance)
+        var oldStory = CurrentStory;
+        if (!oldStory.Skip &&
+            !oldStory.Acceptance)
             player.LevelUp();
-        foreach (var x in CurrentStory.Actions)
+        foreach (var x in oldStory.Actions)
         {
             if(x.Type == StoryActionType.AddRTC)
                 player.AddRTC(x.Argument);
         }
-        var old = CurrentStory.Nickname;
+        var old = oldStory.Nickname;
         var next = player.Game.GameData.Ini.Storyline.Items[Math.Clamp(MissionNum + 1, 0, player.Game.GameData.Ini.Storyline.Items.Count - 1)];
         MissionNum++;
-        bool loadMission = !next.Skip &&
-                           !string.Equals(CurrentStory.Mission, next.Mission, StringComparison.OrdinalIgnoreCase);
+        // here in loadmission was a !next.Skip, but seems to be wrong, mentioned here just in case in the future is relevant, comment will be deleted later.
+        bool loadMission = !string.Equals(oldStory.Mission, next.Mission, StringComparison.OrdinalIgnoreCase);
         CurrentStory = next;
         CurrentMission = player.Game.GameData.Ini.Storyline.Missions
             .FirstOrDefault(x => x.Nickname.Equals(next.Mission, StringComparison.OrdinalIgnoreCase));
         if(loadMission)
             player.LoadMission();
-        if(CurrentStory.CashUp > 0)
+        if (oldStory.CashUp > 0)
         {
-            NextLevelWorth = player.CalculateNetWorth() + CurrentStory.CashUp;
-            FLLog.Info("Mission", $"SET Next Level Worth: {NextLevelWorth} (+{CurrentStory.CashUp})");
+            NextLevelWorth = player.CalculateNetWorth() + oldStory.CashUp;
+            FLLog.Info("Mission", $"SET Next Level Worth: {NextLevelWorth} (+{oldStory.CashUp})");
         }
         FLLog.Info("Mission", $"Transitioned from {old} to {next.Nickname}");
         player.UpdateProgress();

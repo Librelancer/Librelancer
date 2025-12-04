@@ -61,9 +61,8 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     {
                         pl.Dock(tgt);
                     }
-                    ap.CanCruise = false;
-                    ap.StartDock(tgt);
-                }
+                        ap.StartDock(tgt, false);
+                    }
                 break;
             }
             case GotoShipDirective ship:
@@ -74,7 +73,9 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     ap.GotoObject(tgt, ship.CruiseKind != GotoKind.GotoNoCruise, Throttle(ship.MaxThrottle), ship.Range);
                     if (ship.CruiseKind == GotoKind.GotoCruise)
                         Parent.GetComponent<ShipSteeringComponent>().Cruise = true;
-                }
+                        else
+                            Parent.GetComponent<ShipSteeringComponent>().Cruise = false;
+                    }
                 break;
             }
             case GotoSplineDirective spline:
@@ -85,7 +86,11 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     ap.GotoVec(EvalSpline(0, spline),
                         spline.CruiseKind != GotoKind.GotoNoCruise,
                         Throttle(spline.MaxThrottle));
-                }
+                        if (spline.CruiseKind == GotoKind.GotoCruise)
+                            Parent.GetComponent<ShipSteeringComponent>().Cruise = true;
+                        else
+                            Parent.GetComponent<ShipSteeringComponent>().Cruise = false;
+                    }
                 break;
             }
             case GotoVecDirective vec:
@@ -97,7 +102,9 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         Throttle(vec.MaxThrottle));
                     if (vec.CruiseKind == GotoKind.GotoCruise)
                         Parent.GetComponent<ShipSteeringComponent>().Cruise = true;
-                }
+                        else
+                            Parent.GetComponent<ShipSteeringComponent>().Cruise = false;
+                    }
                 break;
             }
             case BreakFormationDirective:
