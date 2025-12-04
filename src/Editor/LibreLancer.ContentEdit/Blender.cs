@@ -96,23 +96,40 @@ public class Blender
 
     public static bool FileIsBlender(Stream stream)
     {
-        Span<byte> bytes = stackalloc byte[9];
-        if (stream.Read(bytes) != 9) return false;
-        if (bytes[0] != 0x42 || //BLENDER magic
-            bytes[1] != 0x4C ||
-            bytes[2] != 0x45 ||
-            bytes[3] != 0x4E ||
-            bytes[4] != 0x44 ||
-            bytes[5] != 0x45 ||
-            bytes[6] != 0x52)
-            return false;
-        if (bytes[7] == '1')
+        Span<byte> header = stackalloc byte[9];
+        if (stream.Read(header) != 9) return false;
+
+        // Check for zstd-compressed Blender files (magic: 28 b5 2f fd)
+        // Modern Blender files are often compressed with zstd
+        if (header[0] == 0x28 && // zstd magic byte 1
+            header[1] == 0xb5 && // zstd magic byte 2
+            header[2] == 0x2f && // zstd magic byte 3
+            header[3] == 0xfd)   // zstd magic byte 4
+        {
+            return true; // zstd-compressed Blender file
+        }
+
+        // Check for BLENDER magic (uncompressed files)
+        if (header[0] != 0x42 || // B
+            header[1] != 0x4C || // L
+            header[2] != 0x45 || // E
+            header[3] != 0x4E || // N
+            header[4] != 0x44 || // D
+            header[5] != 0x45 || // E
+            header[6] != 0x52)   // R
+        {
+            return false; // Not a valid Blender file
+        }
+
+        // Version/pointer size/endianness checks
+        if (header[7] == '1')
             return true; // Blender 5.0
-        if (bytes[7] != 0x2D && bytes[7] != 0x5F) //- or _ pointer size
+        if (header[7] != 0x2D && header[7] != 0x5F) // - or _ pointer size
             return false;
-        if (bytes[8] != 0x76 && bytes[7] != 0x56) //v or V endianness
+        if (header[8] != 0x76 && header[8] != 0x56) // v or V endianness
             return false;
-        return true;
+
+        return true; // Valid Blender file
     }
 
     public static bool BlenderPathValid(string blenderPath = null)
