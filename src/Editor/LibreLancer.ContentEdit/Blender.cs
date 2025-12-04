@@ -96,8 +96,8 @@ public class Blender
 
     public static bool FileIsBlender(Stream stream)
     {
-        Span<byte> header = stackalloc byte[4];
-        if (stream.Read(header) != 4) return false;
+        Span<byte> header = stackalloc byte[9];
+        if (stream.Read(header) != 9) return false;
 
         // Check for zstd-compressed Blender files (magic: 28 b5 2f fd)
         // Modern Blender files are often compressed with zstd
@@ -108,11 +108,6 @@ public class Blender
         {
             return true; // zstd-compressed Blender file
         }
-
-        // For uncompressed Blender files, check the BLENDER magic
-        // Reset stream position and read more bytes
-        if (stream.Seek(0, SeekOrigin.Begin) != 0) return false;
-        if (stream.Read(header) != 4) return false;
 
         // Check for BLENDER magic (uncompressed files)
         if (header[0] == 0x42 && // B
