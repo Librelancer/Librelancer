@@ -1257,10 +1257,20 @@ public class Cnd_Destroyed :
 
         if (entry.Count > 2)
         {
-            if (!Enum.TryParse(entry[2].ToString(), out Kind))
+            var kindString = entry[2].ToString();
+            FLLog.Debug("Mission", $"Cnd_Destroyed parsing Kind: '{kindString}' for label '{label}'");
+            if (!Enum.TryParse(kindString, out Kind))
             {
-                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {entry[2]}");
+                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {kindString}, defaulting to Unset");
             }
+            else
+            {
+                FLLog.Debug("Mission", $"Cnd_Destroyed parsed Kind: {Kind} for label '{label}'");
+            }
+        }
+        else
+        {
+            FLLog.Debug("Mission", $"Cnd_Destroyed no Kind specified for label '{label}', using Unset");
         }
     }
 
@@ -1274,27 +1284,29 @@ public class Cnd_Destroyed :
     {
         if (runtime.Labels.TryGetValue(label, out var lbl))
         {
-            if (Count <= 0)
+            FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
+            if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
             {
-                if (Kind != CndDestroyedKind.ALL &&
-                    Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
+                if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
                 {
-                    return !lbl.AnyAlive(); //we just want to know that all ships are gone
-                    // M01B -1, EXPLODE rogue base fighter
+                    return !lbl.AnyAlive();  // True if no ships are alive (all dead or not spawned). Used for EXPLODE with Count=-1.
                 }
                 else
                 {
-                    return lbl.IsAllKilled(); //ALL = all ships must have been spawned and killed
-                    // M01B -1, ALL XT-19 attack
+                    return lbl.IsAllKilled();  // True if all spawned ships are dead.
                 }
             }
-            else
+            else  // Count > 0: Check if at least 'Count' ships are destroyed
             {
-                return lbl.DestroyedCount() >= Count;
+                if (Kind == CndDestroyedKind.EXPLODE)
+                {
+                    return lbl.IsAllKilled();  // For EXPLODE, require that ALL ships are destroyed, not just 'Count'.
+                }
+                return lbl.DestroyedCount() >= Count;  // Standard case: at least 'Count' destroyed.
             }
         }
-        // Single object
-        return ((ConditionBoolean)self.Storage).Value;
+        // Single object case (no label)
+        return ((ConditionBoolean)self.Storage).Value;  // True if the specific object is destroyed.
     }
 
     public override void OnEvent(DestroyedEvent ev, MissionRuntime runtime, ActiveCondition self)

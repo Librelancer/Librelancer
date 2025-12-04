@@ -269,56 +269,61 @@ namespace LibreLancer.Server.Components
                         rightThisTick = true;
                 }
                 TryTriggerAnimation(dock.Dock, dock.Ship);
-                bool canProceed = CanDock(dock.Dock, dock.Ship, dock.TLHardpoint);
-                if (canProceed)
+                bool canDock = CanDock(dock.Dock, dock.Ship, dock.TLHardpoint);
+                bool canPlayer = Action.Kind switch
                 {
-                    if (Action.Kind == DockKinds.Base || Action.Kind == DockKinds.Jump)
+                    DockKinds.Base or DockKinds.Jump => CanPlayerDock(dock.Ship, Action.Target),
+                    DockKinds.Tradelane => CanPlayerTradelane(dock.Ship, Parent.Nickname),
+                    _ => true
+                };
+
+                if (Action.Kind == DockKinds.Base)
+                {
+                    if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player) && canDock)
                     {
-                        canProceed = CanPlayerDock(dock.Ship, Action.Target);
+                        player.Player.ForceLand(Action.Target);
                     }
-                    else if (Action.Kind == DockKinds.Tradelane)
+                    else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                     {
-                        canProceed = CanPlayerTradelane(dock.Ship, Parent.Nickname);
+                        npc.Docked();
                     }
                 }
-                if (canProceed)
+                else if (Action.Kind == DockKinds.Jump)
                 {
-                    if (Action.Kind == DockKinds.Base)
+                    if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player) && canDock)
                     {
-                        if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
-                        {
-                            player.Player.ForceLand(Action.Target);
-                        }
-                        else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
-                        {
-                            npc.Docked();
-                        }
+                        player.Player.JumpTo(Action.Target, Action.Exit, Parent.World.Server.GatherJumpers());
                     }
-                    else if (Action.Kind == DockKinds.Jump)
+                    else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                     {
-                        if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
-                        {
-                            player.Player.JumpTo(Action.Target, Action.Exit, Parent.World.Server.GatherJumpers());
-                        }
-                        else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
-                        {
-                            npc.Docked();
-                        }
+                        npc.Docked();
                     }
-                    else if (Action.Kind == DockKinds.Tradelane)
+                }
+                else if (Action.Kind == DockKinds.Tradelane)
+                {
+                    FLLog.Debug("Tradelane", $"Ship {dock.Ship.Nickname} attempting tradelane. canDock={canDock}, canPlayer={canPlayer}");
+                    if ((dock.Ship.TryGetComponent<SPlayerComponent>(out var player) || dock.Ship.TryGetComponent<SNPCComponent>(out var npc)) && canDock)
                     {
+                        FLLog.Debug("Tradelane", $"Ship {dock.Ship.Nickname} starting tradelane");
                         StartTradelane(dock.Ship, dock.TLHardpoint);
                         if (dock.Ship.Formation != null &&
-                            dock.Ship.Formation.LeadShip == dock.Ship)
+                                dock.Ship.Formation.LeadShip == dock.Ship)
                         {
                             foreach(var ship in dock.Ship.Formation.Followers)
                                 StartTradelane(ship, dock.TLHardpoint);
                         }
+                        activeDockings.RemoveAt(i);
                     }
+                    else
+                    {
+                        FLLog.Debug("Tradelane", $"Ship {dock.Ship.Nickname} NOT starting tradelane - canDock is false, waiting...");
+                        // Don't remove from list - keep checking until ship reaches dock point
+                    }
+                    continue;
                 }
-                else
+
+                if (!canPlayer)
                 {
-                    // Cancel autopilot if denied
                     if (dock.Ship.TryGetComponent<AutopilotComponent>(out var ap))
                         ap.Cancel();
                 }
