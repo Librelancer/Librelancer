@@ -18,10 +18,11 @@ public class CndRtcComplete : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Rtc INI File", ref Data.iniFile);
+        Controls.InputTextIdUndo("Rtc INI File", undoBuffer, () => ref Data.iniFile);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

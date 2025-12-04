@@ -21,14 +21,12 @@ public sealed class ActPlayerEnemyClamp : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.InputInt("Min", ref Data.Min, 1, 10);
-        ImGui.InputInt("Max", ref Data.Max, 1, 10);
-
-        Data.Min = Math.Clamp(Data.Min, 0, Data.Max);
-        Data.Max = Math.Clamp(Data.Max, Data.Min, 100);
+        Controls.InputIntUndo("Min", undoBuffer, () => ref Data.Min, 1, 10, default, new(0, Data.Max));
+        Controls.InputIntUndo("Max", undoBuffer, () => ref Data.Max, 1, 10, default, new(Data.Min, 100));
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

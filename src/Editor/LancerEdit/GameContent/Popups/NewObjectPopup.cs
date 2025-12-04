@@ -37,7 +37,7 @@ public class NewObjectPopup : PopupWindow
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Nickname: ");
         ImGui.SameLine();
-        Controls.InputTextId("##nickname", ref nickname);
+        Controls.InputTextIdDirect("##nickname", ref nickname);
         ImGui.Separator();
         ImGui.Text("Archetype:");
         list.Draw("##archetypes");

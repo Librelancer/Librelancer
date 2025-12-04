@@ -17,6 +17,8 @@ typedef int ImGuiSeparatorFlags;
 CIMGUI_API void ImFontConfig_Construct(ImFontConfig* self);
 CIMGUI_API void ImGuiFreeType_AddTintIcon(ImWchar codepoint, ImWchar icon, ImU32 color);
 CIMGUI_API void ImGui_SeparatorEx(ImGuiSeparatorFlags flags, float thickness);
+CIMGUI_API char* ImGuiEx_GetOriginalInputTextString();
+CIMGUI_API void ImGuiEx_FreeOriginalInputTextString(char* str);
 
 #ifdef __cplusplus
 }

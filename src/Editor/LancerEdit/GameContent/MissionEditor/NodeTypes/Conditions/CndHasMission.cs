@@ -19,10 +19,11 @@ public class CndHasMission : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("Has Mission", ref Data.hasMission);
+        Controls.CheckboxUndo("Has Mission", undoBuffer, () => ref Data.hasMission);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

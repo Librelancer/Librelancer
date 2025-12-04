@@ -22,13 +22,7 @@ using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
-    public struct OptionalArgument<T>
-    {
-        public bool Present;
-        public T Value;
-        public static explicit operator OptionalArgument<T>(T val) => new () { Value = val, Present = true };
-        public T Get(T defaultVal) => Present ? Value : defaultVal;
-    }
+
     public class GameWorld : IDisposable
     {
         public PhysicsWorld Physics;

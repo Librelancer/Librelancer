@@ -21,13 +21,14 @@ public sealed class ActNnPath : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Object", ref Data.ObjectId);
-        nodePopups.StringCombo("System", Data.SystemId, s => Data.SystemId = s, gameData.SystemsByName);
-        Controls.IdsInputString("IDS 1", gameData, popup, ref Data.Ids1, (ids) => Data.Ids1 = ids);
-        Controls.IdsInputString("IDS 2", gameData, popup, ref Data.Ids2, (ids) => Data.Ids2 = ids);
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.ObjectId);
+        nodePopups.StringCombo("System", undoBuffer, () => ref Data.SystemId, gameData.SystemsByName);
+        Controls.IdsInputStringUndo("IDS 1", gameData, popup, undoBuffer, () => ref Data.Ids1);
+        Controls.IdsInputStringUndo("IDS 2", gameData, popup, undoBuffer, () => ref Data.Ids2);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -20,7 +20,8 @@ public abstract class Node(VertexDiffuse? color = null)
     public List<NodePin> Outputs  { get; } = [];
     public VertexDiffuse Color  { get; } = color ?? (VertexDiffuse)Color4.White;
 
-    public abstract void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups);
+    public abstract void Render(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodeLookups lookups);
 
     private Vector2? cachedSizes = null;
 

@@ -47,6 +47,15 @@ public class EditorUndoBuffer
         Hook?.Invoke();
     }
 
+    public void Set<T>(string name, EditorPropertyModification<T>.Accessor accessor, T newValue)
+    {
+        Commit(EditorPropertyModification<T>.Create(name, accessor, newValue));
+    }
+
+    public void Set<T>(string name, EditorPropertyModification<T>.Accessor accessor, T oldValue, T newValue)
+    {
+        Commit(EditorPropertyModification<T>.Create(name, accessor, oldValue, newValue));
+    }
 
     public bool CanUndo => undoStack.Count > 0;
     public bool CanRedo => redoStack.Count > 0;
@@ -167,3 +176,62 @@ public abstract class EditorFlagModification<T, TFlag>(TFlag flag, bool newValue
             MathHelper.SetFlag(ref Field, flag);
     }
 }
+
+public class EditorPropertyModification<T> : EditorModification<T>
+{
+    public delegate ref T Accessor();
+
+    private string name;
+    private Accessor accessor;
+
+    private EditorPropertyModification(string name, T old, T updated, Accessor accessor)
+        : base(old, updated)
+    {
+        this.name = name;
+        this.accessor = accessor;
+    }
+
+
+    public override void Set(T value)
+    {
+        accessor() = value;
+    }
+
+    string Print(T obj) => obj?.ToString() ?? "NULL";
+
+    public override string ToString() => $"{name}\nOld: {Print(Old)}\nUpdated: {Print(Updated)}";
+
+    public static EditorPropertyModification<T> Create(string name, Accessor accessor, T updated)
+        => new(name, accessor(), updated, accessor);
+
+    public static EditorPropertyModification<T> Create(string name, Accessor accessor, T old, T updated)
+        => new(name, old, updated, accessor);
+}
+
+public class ListAdd<T>(string Name, List<T> List, T Value) : EditorAction
+{
+    public override void Commit() => List.Add(Value);
+
+    public override void Undo() => List.RemoveAt(List.Count - 1);
+
+    public override string ToString() => $"{Name} Add Item";
+}
+
+public class ListSet<T>(string Name, List<T> List, int Index, T Old, T New)
+    : EditorModification<T>(Old, New)
+{
+    public override void Set(T value) => List[Index] = value;
+
+    string Print(T obj) => obj?.ToString() ?? "NULL";
+    public override string ToString() => $"{Name}[{Index}] '{Print(Old)}'->'{Print(New)}'";
+}
+
+public class ListRemove<T>(string Name, List<T> List, int Index, T Value) : EditorAction
+{
+    public override void Commit() => List.RemoveAt(Index);
+
+    public override void Undo() => List.Insert(Index, Value);
+
+    public override string ToString() => $"{Name} Remove Item";
+}
+

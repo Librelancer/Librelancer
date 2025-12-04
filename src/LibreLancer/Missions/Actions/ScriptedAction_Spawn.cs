@@ -28,6 +28,11 @@ namespace LibreLancer.Missions.Actions
             Solar = act.Entry[0].ToString();
         }
 
+        public override void Write(IniBuilder.IniSectionBuilder section)
+        {
+            section.Entry("Act_SpawnSolar", Solar);
+        }
+
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             var sol = script.Solars[Solar];
@@ -58,7 +63,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_MarkObj : ScriptedAction
     {
         public string Object = string.Empty;
-        public int Value;
+        public bool Important;
 
         public Act_MarkObj()
         {
@@ -67,12 +72,12 @@ namespace LibreLancer.Missions.Actions
         public Act_MarkObj(MissionAction act) : base(act)
         {
             Object = act.Entry[0].ToString();
-            Value = act.Entry[1].ToInt32();
+            Important = act.Entry[1].ToInt32() != 0;
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_MarkObj", Object, Value);
+            section.Entry("Act_MarkObj", Object, Important ? 1 : 0);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -85,7 +90,7 @@ namespace LibreLancer.Missions.Actions
                     FLLog.Warning("Mission", $"Object not found for MarkObj `{Object}`");
                     return;
                 }
-                if (Value != 0)
+                if (Important)
                 {
                     obj.Flags |= GameObjectFlags.Important;
                     runtime.Player.RpcClient.MarkImportant(obj.NetID, true);
@@ -104,7 +109,7 @@ namespace LibreLancer.Missions.Actions
         protected ShipSpawnBase() {}
         protected ShipSpawnBase(MissionAction act) : base(act) { }
 
-        protected void SpawnShip(string msnShip, Vector3? spawnpos, Quaternion? spawnorient, string objList, MissionScript script, MissionRuntime runtime)
+        protected void SpawnShip(string msnShip, OptionalArgument<Vector3> spawnpos, OptionalArgument<Quaternion> spawnorient, string objList, MissionScript script, MissionRuntime runtime)
         {
             var ship = script.Ships[msnShip];
             var npcDef = script.NPCs[ship.NPC];
@@ -116,14 +121,14 @@ namespace LibreLancer.Missions.Actions
                     x.Nickname.Equals(npcDef.NpcShipArch, StringComparison.OrdinalIgnoreCase));
             }
 
-            var archPos = spawnpos ?? ship.Position;
-            var orient = spawnorient ?? ship.Orientation;
+            var archPos = spawnpos.Get(ship.Position);
+            var orient = spawnorient.Get(ship.Orientation);
             MissionDirective[] directives = null;
             if (!string.IsNullOrEmpty(objList))
             {
                 if (script.ObjLists.TryGetValue(objList, out var ol))
                 {
-                    directives = ol.Directives;
+                    directives = ol.Directives.ToArray();
                 }
                 else {
                     FLLog.Warning("Mission", $"Missing object list {objList}");
@@ -186,7 +191,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_SpawnFormation : ShipSpawnBase
     {
         public string Formation = string.Empty;
-        public Vector3? Position;
+        public OptionalArgument<Vector3> Position;
 
         public Act_SpawnFormation()
         {
@@ -213,7 +218,7 @@ namespace LibreLancer.Missions.Actions
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
             List<ValueBase> entry = [Formation];
-            if (Position.HasValue)
+            if (Position.Present)
             {
                 entry.Add(Position.Value.X);
                 entry.Add(Position.Value.Y);
@@ -226,7 +231,7 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             var form = script.Formations[Formation];
-            var fpos = Position ?? form.Position;
+            var fpos = Position.Get(form.Position);
             var mat = Matrix4x4.CreateFromQuaternion(form.Orientation) *
                       Matrix4x4.CreateTranslation(fpos);
             var formDef = runtime.Player.Game.GameData.GetFormation(form.Formation);
@@ -252,8 +257,8 @@ namespace LibreLancer.Missions.Actions
     {
         public string Ship = string.Empty;
         public string ObjList = string.Empty;
-        public Vector3? Position;
-        public Quaternion? Orientation;
+        public OptionalArgument<Vector3> Position;
+        public OptionalArgument<Quaternion> Orientation;
 
         public Act_SpawnShip()
         {
@@ -284,13 +289,13 @@ namespace LibreLancer.Missions.Actions
             {
                 entry.Add(ObjList);
 
-                if (Position is not null)
+                if (Position.Present)
                 {
                     entry.Add(Position.Value.X);
                     entry.Add(Position.Value.Y);
                     entry.Add(Position.Value.Z);
 
-                    if (Orientation is not null)
+                    if (Orientation.Present)
                     {
                         entry.Add(Orientation.Value.W);
                         entry.Add(Orientation.Value.X);

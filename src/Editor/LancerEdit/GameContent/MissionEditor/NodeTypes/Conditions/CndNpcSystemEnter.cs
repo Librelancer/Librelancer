@@ -19,11 +19,12 @@ public class CndNpcSystemEnter : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("System", ref Data.system);
-        Controls.InputStringList("Ships", Data.ships);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.system);
+        Controls.InputStringList("Ships", undoBuffer, Data.ships);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

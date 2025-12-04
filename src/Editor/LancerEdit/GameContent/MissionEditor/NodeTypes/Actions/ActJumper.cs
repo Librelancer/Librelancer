@@ -10,7 +10,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
 public sealed class ActJumper : NodeTriggerEntry
 {
-    public override string Name => "Nag Greet";
+    public override string Name => "Jumper";
 
     public readonly Act_Jumper Data;
     public ActJumper(MissionAction action): base( NodeColours.Action)
@@ -20,11 +20,12 @@ public sealed class ActJumper : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Target", ref Data.Target);
-        ImGui.Checkbox("Jump With Player", ref Data.JumpWithPlayer);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
+        Controls.CheckboxUndo("Jump With Player", undoBuffer, () => ref Data.JumpWithPlayer);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -19,17 +19,17 @@ public class CndTetherBreak : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Source Ship", ref Data.SourceShip);
-        Controls.InputTextId("Dest Ship", ref Data.DestShip);
+        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.SourceShip);
+        Controls.InputTextIdUndo("Dest Ship", undoBuffer, () => ref Data.DestShip);
 
-        ImGui.SliderFloat("Distance", ref Data.Distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
-        ImGui.InputInt("Count", ref Data.Count, 1, 10);
-        Data.Count = Math.Clamp(Data.Count, 1, 300);
+        Controls.SliderFloatUndo("Distance", undoBuffer, () => ref Data.Distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count, 1, 10, default, new(1, 300));
 
-        ImGui.SliderFloat("Unknown", ref Data.Unknown, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.SliderFloatUndo("Unknown", undoBuffer, () => ref Data.Unknown, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -19,10 +19,11 @@ public class CndMissionResponse : NodeTriggerEntry
         Data = entry is null ? new() : new(entry);
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("Accept", ref Data.accept);
+        Controls.CheckboxUndo("Accept", undoBuffer, () => ref Data.accept);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

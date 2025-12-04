@@ -8,7 +8,9 @@ namespace LibreLancer.Missions.Directives;
 
 public class MakeNewFormationDirective : MissionDirective
 {
-    public string Formation;
+    public override ObjListCommands Command => ObjListCommands.MakeNewFormation;
+
+    public string Formation = "fighter_basic";
     public List<string> Ships = new();
 
     public MakeNewFormationDirective()

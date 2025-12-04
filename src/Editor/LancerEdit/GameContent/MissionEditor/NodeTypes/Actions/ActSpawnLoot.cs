@@ -20,10 +20,11 @@ public sealed class ActSpawnLoot : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Loot", Data.Loot, s => Data.Loot = s, lookups.Loots);
+        nodePopups.StringCombo("Loot", undoBuffer, () => ref Data.Loot, lookups.Loots);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

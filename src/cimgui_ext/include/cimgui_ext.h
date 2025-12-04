@@ -211,6 +211,16 @@ typedef struct {
     axVec4  Colors[axStyleColor_Count];
 } axStyle;
 
+typedef struct 
+{
+    axVec2 StartPosition;
+    axVec2 EndPosition;
+    axVec2 StartSize;
+    axVec2 EndSize;
+    axVec2 StartGroupSize;
+    axVec2 EndGroupSize;
+} axResizeCallbackData;
+
 CIMGUI_API void axStyle_Init(axStyle *style);
 
 struct axConfig;
@@ -220,6 +230,8 @@ typedef size_t (*axConfigLoadSettings)(char* data, void* userPointer);
 typedef int (*axConfigSaveNodeSettings)(axNodeId nodeId, const char* data, size_t size, axSaveReasonFlags reason, void* userPointer);
 typedef size_t (*axConfigLoadNodeSettings)(axNodeId nodeId, char* data, void* userPointer);
 typedef void (*axConfigSession)(void* userPointer);
+typedef void (*axNodeDraggedCallback)(axNodeId nodeId, float oldX, float oldY, float newX, float newY, void* userPointer);
+typedef void (*axNodeResizedCallback)(axNodeId nodeId, axResizeCallbackData *data, void* userPointer);
 
 CIMGUI_API axConfig* axConfigNew();
 CIMGUI_API void axConfigFree(axConfig* config);
@@ -245,6 +257,11 @@ CIMGUI_API void axConfig_set_SaveNodeSettings(axConfig *config, axConfigSaveNode
 CIMGUI_API axConfigLoadNodeSettings axConfig_get_LoadNodeSettings(axConfig *config);
 CIMGUI_API void axConfig_set_LoadNodeSettings(axConfig *config, axConfigLoadNodeSettings loadNodeSettings);
 
+CIMGUI_API axNodeDraggedCallback axConfig_get_NodeDraggedHook(axConfig *config);
+CIMGUI_API void axConfig_set_NodeDraggedHook(axConfig *config, axNodeDraggedCallback nodeDraggedHook);
+
+CIMGUI_API axNodeDraggedCallback axConfig_get_NodeResizedHook(axConfig *config);
+CIMGUI_API void axConfig_set_NodeResizedHook(axConfig *config, axNodeResizedCallback nodeResizedHook);
 
 CIMGUI_API void* axConfig_get_UserPointer(axConfig* config);
 CIMGUI_API void axConfig_set_UserPointer(axConfig* config, void* userPointer);

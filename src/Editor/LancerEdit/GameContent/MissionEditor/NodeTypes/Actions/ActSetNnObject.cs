@@ -22,11 +22,12 @@ public sealed class ActSetNnObject : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Objective", Data.Objective, s => Data.Objective = s, lookups.Objectives);
-        ImGui.Checkbox("History", ref Data.History);
+        nodePopups.StringCombo("Objective", undoBuffer, () => ref Data.Objective, lookups.Objectives);
+        Controls.CheckboxUndo("History", undoBuffer, () => ref Data.History);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

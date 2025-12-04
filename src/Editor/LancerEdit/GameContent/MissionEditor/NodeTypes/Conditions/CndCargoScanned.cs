@@ -20,12 +20,13 @@ public class CndCargoScanned : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         // TODO: transform this into a combobox of different ships or a object depending on type
-        Controls.InputTextId("Scanning Ship", ref Data.ScanningShip);
-        Controls.InputTextId("Scanned Ship", ref Data.ScannedShip);
+        Controls.InputTextIdUndo("Scanning Ship", undoBuffer, () => ref Data.ScanningShip);
+        Controls.InputTextIdUndo("Scanned Ship", undoBuffer, () => ref Data.ScannedShip);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

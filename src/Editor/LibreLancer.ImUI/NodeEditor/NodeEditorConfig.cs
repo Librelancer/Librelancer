@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using System.Runtime.InteropServices;
 namespace LibreLancer.ImUI.NodeEditor;
 
@@ -10,6 +11,23 @@ public delegate UIntPtr ConfigLoadSettings(IntPtr data, IntPtr userPointer);
 public delegate bool ConfigSaveNodeSettings(NodeId nodeId, IntPtr data, UIntPtr size, SaveReasonFlags reason,
     IntPtr userPointer);
 public delegate UIntPtr ConfigLoadNodeSettings(NodeId nodeId, IntPtr data, IntPtr userPointer);
+
+public delegate void ConfigNodeDraggedHook(NodeId nodeId, float oldX, float oldY, float newX, float newY,
+    IntPtr userPointer);
+
+public delegate void ConfigNodeResizedHook(NodeId nodeId, ref ResizeCallbackData data, IntPtr userPointer);
+
+[StructLayout(LayoutKind.Sequential)]
+public struct ResizeCallbackData
+{
+    public Vector2 StartPosition;
+    public Vector2 EndPosition;
+    public Vector2 StartSize;
+    public Vector2 EndSize;
+    public Vector2 StartGroupSize;
+    public Vector2 EndGroupSize;
+};
+
 public class NodeEditorConfig : NativeObject, IDisposable
 {
     private ConfigSession beginSave;
@@ -18,6 +36,8 @@ public class NodeEditorConfig : NativeObject, IDisposable
     private ConfigLoadSettings loadSettings;
     private Func<IntPtr, IntPtr, UIntPtr, SaveReasonFlags, IntPtr, int> saveNodeSettings;
     private Func<IntPtr, IntPtr, IntPtr, UIntPtr> loadNodeSettings;
+    private ConfigNodeDraggedHook nodeDraggedHook;
+    private ConfigNodeResizedHook nodeResizedHook;
 
 
     public NodeEditorConfig()
@@ -62,6 +82,18 @@ public class NodeEditorConfig : NativeObject, IDisposable
     {
         loadNodeSettings = (a, b, c) => cb(a, b, c);
         axConfig_set_LoadNodeSettings(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetNodeDraggedHook(ConfigNodeDraggedHook cb)
+    {
+        nodeDraggedHook = cb;
+        axConfig_set_NodeDraggedHook(Handle, Marshal.GetFunctionPointerForDelegate(cb));
+    }
+
+    public void SetNodeResizedHook(ConfigNodeResizedHook cb)
+    {
+        nodeResizedHook = cb;
+        axConfig_set_NodeResizedHook(Handle, Marshal.GetFunctionPointerForDelegate(cb));
     }
 
 

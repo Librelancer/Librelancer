@@ -6,8 +6,10 @@ namespace LibreLancer.Missions.Directives;
 
 public class DockDirective : MissionDirective
 {
-    public string Target;
-    public string Towards;
+    public override ObjListCommands Command => ObjListCommands.Dock;
+
+    public string Target = "";
+    public string Towards = "";
 
     public DockDirective()
     {

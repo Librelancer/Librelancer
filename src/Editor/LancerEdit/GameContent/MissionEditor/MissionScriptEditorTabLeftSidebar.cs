@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer.ContentEdit;
 using LibreLancer.Data.Missions;
-using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.MissionEditor;
@@ -19,35 +17,43 @@ public sealed partial class MissionScriptEditorTab
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoCollapse);
 
-        if (ImGui.Button("Save As"))
+        if (ImGuiExt.ToggleButton("Undo History", renderHistory))
         {
-            (SaveStrategy as MissionSaveStrategy)!.RunSaveDialog();
+            renderHistory = !renderHistory;
         }
 
-        Controls.InputTextId("Node Filter", ref NodeFilter);
+        Controls.InputTextIdUndo("Node Filter", undoBuffer, () => ref NodeFilter);
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
         if (ImGui.CollapsingHeader("Mission Information", ImGuiTreeNodeFlags.DefaultOpen))
         {
+            ImGui.PushID(1);
             RenderMissionInformation();
+            ImGui.PopID();
         }
 
         ImGui.NewLine();
         if (ImGui.CollapsingHeader("NPC Arch Management", ImGuiTreeNodeFlags.DefaultOpen))
         {
+            ImGui.PushID(2);
             RenderNpcArchManager();
+            ImGui.PopID();
         }
 
         ImGui.NewLine();
         if (ImGui.CollapsingHeader("NPC Management", ImGuiTreeNodeFlags.DefaultOpen))
         {
+            ImGui.PushID(3);
             RenderNpcManagement();
+            ImGui.PopID();
         }
 
         ImGui.NewLine();
         if (ImGui.CollapsingHeader("Formation Management", ImGuiTreeNodeFlags.DefaultOpen))
         {
+            ImGui.PushID(4);
             RenderFormationManagement();
+            ImGui.PopID();
         }
 
         ImGui.PopStyleColor();
@@ -61,17 +67,25 @@ public sealed partial class MissionScriptEditorTab
         if (ImGui.Button("Create New Formation"))
         {
             selectedFormationIndex = missionIni.Formations.Count;
-            missionIni.Formations.Add(new MissionFormation());
+            undoBuffer.Commit(new ListAdd<MissionFormation>("Formation", missionIni.Formations, new()));
         }
 
         ImGui.BeginDisabled(selectedFormationIndex == -1);
         if (ImGui.Button("Delete Formation"))
         {
             win.Confirm("Are you sure you want to delete this formation?",
-                () => { missionIni.Formations.RemoveAt(selectedFormationIndex--); });
+                () =>
+                {
+                    undoBuffer.Commit(new ListRemove<MissionFormation>("Formation", missionIni.Formations,
+                        selectedFormationIndex,
+                        missionIni.Formations[selectedFormationIndex]));
+                    selectedFormationIndex--;
+                });
         }
 
         ImGui.EndDisabled();
+        if (selectedFormationIndex >= missionIni.Formations.Count)
+            selectedFormationIndex = -1;
 
         var selectedFormation = selectedFormationIndex != -1 ? missionIni.Formations[selectedFormationIndex] : null;
         ImGui.SetNextItemWidth(150f);
@@ -100,27 +114,27 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushID(selectedFormationIndex);
 
-        Controls.InputTextId("Nickname##Formation", ref selectedFormation.Nickname, 150f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedFormation.Nickname, 150f);
 
         ImGui.SetNextItemWidth(200f);
-        ImGui.InputFloat3("Position##Formation", ref selectedFormation.Position);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedFormation.Position);
 
         ImGui.Text("Relative Position:");
         // Disable relative data if absolute data is provided
         ImGui.BeginDisabled(selectedFormation.Position.Length() is not 0f);
 
-        Controls.InputTextId("Obj##Ship", ref selectedFormation.RelativePosition.ObjectName, 150f);
+        Controls.InputTextIdUndo("Obj", undoBuffer, () => ref selectedFormation.RelativePosition.ObjectName, 150f);
 
         ImGui.SetNextItemWidth(150f);
-        ImGui.InputFloat("Min Range##Ship", ref selectedFormation.RelativePosition.MinRange);
+        Controls.InputFloatUndo("Min Range", undoBuffer, () => ref selectedFormation.RelativePosition.MinRange);
 
         ImGui.SetNextItemWidth(150f);
-        ImGui.InputFloat("Max Range##Ship", ref selectedFormation.RelativePosition.MaxRange);
+        Controls.InputFloatUndo("Max Range", undoBuffer, () => ref selectedFormation.RelativePosition.MaxRange);
 
         ImGui.EndDisabled();
 
         ImGui.SetNextItemWidth(200f);
-        Controls.InputFlQuaternion("Oritentation##Formation", ref selectedFormation.Orientation);
+        Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedFormation.Orientation);
 
         ImGui.Text("Ships");
         for (var index = 0; index < selectedFormation.Ships.Count; index++)
@@ -137,7 +151,8 @@ public sealed partial class MissionScriptEditorTab
             ImGui.SameLine();
             if (ImGui.Button(Icons.X + "##"))
             {
-                selectedFormation.Ships.RemoveAt(index);
+                undoBuffer.Commit(new ListRemove<string>("Ships", selectedFormation.Ships,
+                    index, selectedFormation.Ships[index]));
             }
 
             ImGui.PopID();
@@ -150,14 +165,14 @@ public sealed partial class MissionScriptEditorTab
                 selectedShipIndex = missionIni.Ships.Count - 1;
             }
 
-            ImGui.Combo("Add New Ship##Formation", ref selectedShipIndex, missionIni.Ships.Select(x => x.Nickname).ToArray(),
+            ImGui.Combo("Add New Ship", ref selectedShipIndex, missionIni.Ships.Select(x => x.Nickname).ToArray(),
                 missionIni.Ships.Count);
             string shipNickname = missionIni.Ships[selectedShipIndex].Nickname;
 
             ImGui.BeginDisabled(selectedFormation.Ships.Contains(shipNickname));
-            if (ImGui.Button($"Add Ship {Icons.PlusCircle}##FormationShips"))
+            if (ImGui.Button($"Add Ship {Icons.PlusCircle}"))
             {
-                selectedFormation.Ships.Add(shipNickname);
+                undoBuffer.Commit(new ListAdd<string>("Ships", selectedFormation.Ships, shipNickname));
             }
 
             ImGui.EndDisabled();
@@ -177,16 +192,25 @@ public sealed partial class MissionScriptEditorTab
         if (ImGui.Button("Create New NPC"))
         {
             selectedNpcIndex = missionIni.NPCs.Count;
-            missionIni.NPCs.Add(new MissionNPC());
+            undoBuffer.Commit(new ListAdd<MissionNPC>("NPC", missionIni.NPCs, new()));
         }
 
         ImGui.BeginDisabled(selectedNpcIndex == -1);
         if (ImGui.Button("Delete NPC"))
         {
-            win.Confirm("Are you sure you want to delete this NPC?", () => { missionIni.NPCs.RemoveAt(selectedNpcIndex--); });
+            win.Confirm("Are you sure you want to delete this NPC?", () =>
+            {
+                undoBuffer.Commit(new ListRemove<MissionNPC>("NPC", missionIni.NPCs,
+                    selectedNpcIndex,
+                    missionIni.NPCs[selectedNpcIndex]));
+                selectedNpcIndex--;
+            });
         }
 
         ImGui.EndDisabled();
+
+        if (selectedNpcIndex >= missionIni.NPCs.Count)
+            selectedNpcIndex = -1;
 
         var selectedNpc = selectedNpcIndex != -1 ? missionIni.NPCs[selectedNpcIndex] : null;
         ImGui.SetNextItemWidth(150f);
@@ -215,25 +239,26 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushID(selectedNpcIndex);
 
-        Controls.InputTextId("Nickname##NPC", ref selectedNpc.Nickname, 150f);
-        Controls.InputTextId("Archetype##NPC", ref selectedNpc.NpcShipArch, 150f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedNpc.Nickname, 150f);
+        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedNpc.NpcShipArch, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             missionIni.ShipIni.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch)
             || gameData.GameData.Ini.NPCShips.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch));
 
-        Controls.IdsInputString("Name##NPC", gameData, popup, ref selectedNpc.IndividualName,
-            x => selectedNpc.IndividualName = x, inputWidth: 150f);
-        Controls.InputTextId("Affiliation##NPC", ref selectedNpc.Affiliation, 150f);
+        Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
+            () => ref selectedNpc.IndividualName,
+            inputWidth: 150f);
+        Controls.InputTextIdUndo("Affiliation", undoBuffer, () => ref selectedNpc.Affiliation, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Factions.Any(x => x.Nickname == selectedNpc.Affiliation));
 
-        Controls.InputTextId("Costume Head##NPC", ref selectedNpc.SpaceCostume[0], 150f);
+        Controls.InputTextIdUndo("Costume Head", undoBuffer, () => ref selectedNpc.SpaceCostume[0], 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Ini.Bodyparts.FindBodypart(selectedNpc.SpaceCostume[0]) is not null);
-        Controls.InputTextId("Costume Body##NPC", ref selectedNpc.SpaceCostume[1], 150f);
+        Controls.InputTextIdUndo("Costume Body", undoBuffer, () => ref selectedNpc.SpaceCostume[1], 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Ini.Bodyparts.FindBodypart(selectedNpc.SpaceCostume[1]) is not null);
-        Controls.InputTextId("Costume Accessory##NPC", ref selectedNpc.SpaceCostume[2], 150f);
+        Controls.InputTextIdUndo("Costume Accessory", undoBuffer, () => ref selectedNpc.SpaceCostume[2], 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Ini.Bodyparts.FindAccessory(selectedNpc.SpaceCostume[2]) is not null);
 
@@ -245,17 +270,25 @@ public sealed partial class MissionScriptEditorTab
         if (ImGui.Button("Create New Ship Arch"))
         {
             selectedArchIndex = missionIni.ShipIni.ShipArches.Count;
-            missionIni.ShipIni.ShipArches.Add(new NPCShipArch());
+            undoBuffer.Commit(new ListAdd<NPCShipArch>("Ship Arch", missionIni.ShipIni.ShipArches, new()));
         }
 
         ImGui.BeginDisabled(selectedArchIndex == -1);
         if (ImGui.Button("Delete Ship Arch"))
         {
             win.Confirm("Are you sure you want to delete this ship arch?",
-                () => { missionIni.ShipIni.ShipArches.RemoveAt(selectedArchIndex--); });
+                () =>
+                {
+                    undoBuffer.Commit(new ListRemove<NPCShipArch>("Ship Arch",
+                        missionIni.ShipIni.ShipArches, selectedArchIndex,
+                        missionIni.ShipIni.ShipArches[selectedArchIndex]));
+                    selectedArchIndex--;
+                });
         }
-
         ImGui.EndDisabled();
+
+        if (selectedArchIndex >= missionIni.ShipIni.ShipArches.Count)
+            selectedArchIndex = -1;
 
         var selectedArch = selectedArchIndex != -1 ? missionIni.ShipIni.ShipArches[selectedArchIndex] : null;
         ImGui.SetNextItemWidth(150f);
@@ -284,14 +317,14 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushID(selectedArchIndex);
 
-        Controls.InputTextId("Arch Nickname##ID", ref selectedArch.Nickname, 150f);
-        Controls.InputTextId("Loadout##ID", ref selectedArch.Loadout, 150f);
+        Controls.InputTextIdUndo("Arch Nickname", undoBuffer, () => ref selectedArch.Nickname, 150f);
+        Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));
 
         ImGui.SetNextItemWidth(100f);
-        ImGui.InputInt("Level##ID", ref selectedArch.Level, 1, 10);
-        Controls.InputTextId("Pilot##ID", ref selectedArch.Pilot, 150f);
+        Controls.InputIntUndo("Level", undoBuffer, () => ref selectedArch.Level, 1, 10);
+        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedArch.Pilot, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => gameData.GameData.GetPilot(selectedArch.Pilot) is not null);
 
         string[] stateGraphs =
@@ -305,8 +338,10 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.SetNextItemWidth(150f);
         ImGui.Combo("State Graph", ref currentStateGraphIndex, stateGraphs, stateGraphs.Length);
-        selectedArch.StateGraph = stateGraphs[currentStateGraphIndex];
-
+        if (selectedArch.StateGraph != stateGraphs[currentStateGraphIndex])
+        {
+            undoBuffer.Set("State Graph", () => ref selectedArch.StateGraph, stateGraphs[currentStateGraphIndex]);
+        }
         ImGui.NewLine();
         ImGui.Text("NPC Classes");
 
@@ -315,14 +350,17 @@ public sealed partial class MissionScriptEditorTab
             for (var i = 0; i < selectedArch.NpcClass.Count; i++)
             {
                 var npcClass = selectedArch.NpcClass[i];
-                ImGui.PushID(i);
-                Controls.InputTextId("##npc-class", ref npcClass, 150f);
+                int idx = i;
+                ImGui.PushID(idx);
+                ImGuiExt.InputTextLogged("##npc-class", ref npcClass,
+                    250, (old, upd) => new ListSet<string>(
+                        "Npc Class", selectedArch.NpcClass, idx, old, upd), true);
                 ImGui.PopID();
                 selectedArch.NpcClass[i] = npcClass;
             }
         }
 
-        MissionEditorHelpers.AddRemoveListButtons(selectedArch.NpcClass);
+        MissionEditorHelpers.AddRemoveListButtons(selectedArch.NpcClass, undoBuffer);
 
         ImGui.PopID();
     }
@@ -332,12 +370,12 @@ public sealed partial class MissionScriptEditorTab
     private void RenderMissionInformation()
     {
         var info = missionIni.Info;
-        Controls.IdsInputString("Title IDS", gameData, popup, ref info.MissionTitle, x => info.MissionTitle = x);
-        Controls.IdsInputString("Offer IDS", gameData, popup, ref info.MissionOffer, x => info.MissionOffer = x);
+        Controls.IdsInputStringUndo("Title IDS", gameData, popup, undoBuffer, () => ref info.MissionTitle);
+        Controls.IdsInputStringUndo("Offer IDS", gameData, popup, undoBuffer, () => ref info.MissionOffer);
 
         ImGui.PushItemWidth(150f);
 
-        ImGui.InputInt("Reward", ref info.Reward);
+        Controls.InputIntUndo("Reward", undoBuffer, () => ref info.Reward);
         ImGui.InputText("NPC Ship File", ref info.NpcShipFile, 255, ImGuiInputTextFlags.ReadOnly);
 
         ImGui.PopItemWidth();
@@ -348,8 +386,10 @@ public sealed partial class MissionScriptEditorTab
                 gameData.GameData.VFS,
                 gameData.GameData.Ini.Freelancer.DataPath, x =>
                 {
-                    info.NpcShipFile = gameData.GameData.Ini.Freelancer.DataPath + x;
-                    missionIni.ShipIni = new NPCShipIni(info.NpcShipFile, gameData.GameData.VFS);
+                    undoBuffer.Commit(new SetNpcShipFileAction(
+                        missionIni.Info.NpcShipFile,
+                        gameData.GameData.Ini.Freelancer.DataPath + x,
+                        this));
                 }, VfsFileSelector.MakeFilter(".ini")));
         }
     }

@@ -6,6 +6,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class AvoidanceDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.Avoidance;
+
     public bool Avoidance;
 
     public AvoidanceDirective()

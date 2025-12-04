@@ -13,6 +13,7 @@ using StarSystem = LibreLancer.GameData.World.StarSystem;
 using SystemObject = LibreLancer.GameData.World.SystemObject;
 using Zone = LibreLancer.GameData.World.Zone;
 using LibreLancer.Data.Missions;
+using LibreLancer.Missions;
 
 namespace LibreLancer.ContentEdit;
 
@@ -749,15 +750,15 @@ public static class IniSerializer
         }
     }
 
-    public static void SerializeMissionObjectiveList(ObjList objectiveList, IniBuilder ini)
+    public static void SerializeMissionObjectiveList(ScriptAiCommands objectiveList, IniBuilder ini)
     {
         var s = ini.Section("ObjList");
         s.Entry("nickname", objectiveList.Nickname)
             .OptionalEntry("system", objectiveList.System);
 
-        foreach (var cmd in objectiveList.Commands)
+        foreach (var cmd in objectiveList.Directives)
         {
-            s.Entry(cmd.Command.ToString(), cmd.Entry.Select(x => (ValueBase)x).ToArray());
+            cmd.Write(s);
         }
     }
 }
