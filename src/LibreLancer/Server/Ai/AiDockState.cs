@@ -23,8 +23,7 @@ namespace LibreLancer.Server.Ai
                target.TryGetComponent<SDockableComponent>(out var dock))
             {
                 dock.StartDock(obj, 0);
-                ap.StartDock(target);
-                ap.CanCruise = Cruise;
+                ap.StartDock(target, Cruise);
             }
         }
 

@@ -457,6 +457,7 @@ World Time: {12:F2}
 
 
         private int frameCount = 0;
+
         [WattleScriptUserData]
         public class LuaAPI
         {
@@ -1576,6 +1577,7 @@ World Time: {12:F2}
                 ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
                 ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
                 ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
+                ImGui.Text($"Storyline: {session.EmbedddedServer.Server.LocalPlayer.Story?.CurrentStory?.Nickname}");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

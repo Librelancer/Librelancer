@@ -94,7 +94,7 @@ namespace LibreLancer.World.Components
             CurrentBehavior = AutopilotBehaviors.None;
         }
 
-        public void StartDock(GameObject target)
+        public void StartDock(GameObject target, bool cruise = true)
         {
             _targetObject = target;
             var docking = target.GetComponent<CDockComponent>();
@@ -102,13 +102,16 @@ namespace LibreLancer.World.Components
             {
                 if (docking.Action.Kind == DockKinds.Tradelane)
                 {
-                    var hpend = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).Last();
-                    tlDockHP = hpend.Name;
+                    var hpend = docking.GetDockHardpoints(Parent.PhysicsComponent.Body.Position).LastOrDefault();
+                    if (hpend != null)
+                    {
+                        tlDockHP = hpend.Name;
+                    }
                 }
             }
             _maxThrottle = 1;
             CurrentBehavior = AutopilotBehaviors.Dock;
-            CanCruise = true;
+            CanCruise = cruise;
             gotoRange = 40;
         }
 
@@ -184,7 +187,15 @@ namespace LibreLancer.World.Components
                 {
                     hps = hps.Reverse();
                 }
-                var hp = hps.Skip(lastTargetHp).First();
+                var hp = hps.Skip(lastTargetHp).FirstOrDefault();
+                if (hp == null)
+                {
+                    // No dock hardpoints available, cancel docking
+                    FLLog.Error("Autopilot", $"No dock hardpoints available for {Parent.Nickname} docking to {_targetObject?.Nickname ?? "unknown"}");
+                    CurrentBehavior = AutopilotBehaviors.None;
+                    ResetDockState();
+                    return;
+                }
                 radius = undock ? 25 : 5;
                 targetPoint = (hp.Transform * _targetObject.WorldTransform).Position;
 				if (lastTargetHp > 0 && !undock) maxSpeed = 0.3f;
@@ -199,7 +210,11 @@ namespace LibreLancer.World.Components
             var myRadius = Parent.PhysicsComponent.Body.Collider.Radius;
 			var distance = (targetPoint - Parent.PhysicsComponent.Body.Position).Length();
 
-            if ((distance - gotoRange) > 2000 && CanCruise)
+            if (!CanCruise)
+            {
+                control.Cruise = false;
+            }
+            else if ((distance - gotoRange) > 2000)
             {
                 if (!haveSetCruise) {
                     control.Cruise = true;
