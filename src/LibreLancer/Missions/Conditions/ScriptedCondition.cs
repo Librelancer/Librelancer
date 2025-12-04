@@ -1288,6 +1288,7 @@ public class Cnd_Destroyed :
             if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
             {
                 if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
+                if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
                 {
                     return !lbl.AnyAlive();  // True if no ships are alive (all dead or not spawned). Used for EXPLODE with Count=-1.
                 }
