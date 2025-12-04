@@ -21,8 +21,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
     public List<NodeLink> Links { get; } = [];
     public int LinkCapacity { get; } = linkCapacity;
 
-    [SuppressMessage("ReSharper", "InvertIf")]
-    public NodeLink CreateLink(ref int nextId, [NotNull] NodePin endPin, Action<string, bool> labelCallback)
+    public bool CanCreateLink(NodePin endPin, Action<string, bool> labelCallback)
     {
         if (endPin == this)
         {
@@ -30,8 +29,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
             {
                 NodeEditor.RejectNewItem(Color4.Red, 2.0f);
             }
-
-            return null;
+            return false;
         }
 
         if (endPin.PinKind == PinKind)
@@ -41,9 +39,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
                 labelCallback("x Incompatible Pin Kind", false);
                 NodeEditor.RejectNewItem(Color4.Red, 2.0f);
             }
-
-
-            return null;
+            return false;
         }
 
         if (endPin.OwnerNode == OwnerNode)
@@ -53,8 +49,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
                 labelCallback("x Cannot connect to self", false);
                 NodeEditor.RejectNewItem(Color4.Red, 2.0f);
             }
-
-            return null;
+            return false;
         }
 
         if (endPin.LinkType != LinkType)
@@ -64,9 +59,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
                 labelCallback("x Incompatible Link Type", false);
                 NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
             }
-
-
-            return null;
+            return false;
         }
 
         if (Links.Count + 1 > LinkCapacity ||
@@ -77,8 +70,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
                 labelCallback("x Pin has reached link capacity", false);
                 NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
             }
-
-            return null;
+            return false;
         }
 
         if (_allLinks.Any(x => x.StartPin == this && x.EndPin == endPin))
@@ -88,8 +80,7 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
                 labelCallback("x Link already exists", false);
                 NodeEditor.RejectNewItem(new Color4(255, 128, 128, 255));
             }
-
-            return null;
+            return false;
         }
 
         if (labelCallback != null)
@@ -98,19 +89,32 @@ public class NodePin(Node owner, LinkType type, PinKind kind, int linkCapacity =
             labelCallback("+ Create Link", true);
             if (!NodeEditor.AcceptNewItem(new Color4(128, 255, 128, 255), 4.0f))
             {
-                return null;
+                return false;
             }
         }
 
-        var nodeLink = new NodeLink(this, endPin)
-        {
-            Color = endPin.OwnerNode.Color
-        };
+        return true;
+    }
 
-        Links.Add(nodeLink);
-        endPin.Links.Add(nodeLink);
+    [SuppressMessage("ReSharper", "InvertIf")]
+    public NodeLink CreateLink([NotNull] NodePin endPin, Action<string, bool> labelCallback, LinkId? setId = null)
+    {
+        if (CanCreateLink(endPin, labelCallback))
+        {
+            var nodeLink = new NodeLink(this, endPin, endPin.OwnerNode.Color, setId);
+            InsertLink(nodeLink);
+            return nodeLink;
+        }
+        return null;
+    }
+
+    public static void InsertLink(NodeLink nodeLink)
+    {
+        nodeLink.StartPin.Links.Add(nodeLink);
+        nodeLink.EndPin.Links.Add(nodeLink);
         _allLinks.Add(nodeLink);
-        return nodeLink;
+        nodeLink.StartPin.OwnerNode.OnLinkCreated(nodeLink);
+        nodeLink.EndPin.OwnerNode.OnLinkCreated(nodeLink);
     }
 
     public static void DeleteLink(LinkId id)

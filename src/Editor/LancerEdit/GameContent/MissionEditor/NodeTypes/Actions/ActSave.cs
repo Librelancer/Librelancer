@@ -36,16 +36,15 @@ public sealed class ActSave : NodeTriggerEntry
         }
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         var text = string.IsNullOrWhiteSpace(Data.Trigger) ? "No Trigger" : Data.Trigger;
 
-        ImGui.BeginDisabled();
-        Controls.InputTextId("Trigger", ref text);
-        ImGui.EndDisabled();
+        Controls.DisabledInputTextId("Trigger", text);
 
-        Controls.IdsInputString("IDS", gameData, popup, ref Data.Ids, (ids) => Data.Ids = ids);
+        Controls.IdsInputStringUndo("IDS", gameData, popup, undoBuffer, () => ref Data.Ids);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

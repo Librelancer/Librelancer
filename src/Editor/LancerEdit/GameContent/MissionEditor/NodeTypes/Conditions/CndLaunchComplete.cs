@@ -18,10 +18,11 @@ public class CndLaunchComplete : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Ship", ref Data.ship);
+        Controls.InputTextIdUndo("Ship", undoBuffer, () => ref Data.ship);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using ImGuiNET;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
-using LibreLancer.Missions;
 using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
@@ -23,14 +21,13 @@ public sealed class ActActivateNodeTrigger : NodeTriggerEntry
         Outputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Output, linkCapacity: 1));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         var text = string.IsNullOrWhiteSpace(Data.Trigger) ? "No Trigger" : Data.Trigger;
 
-        ImGui.BeginDisabled();
-        Controls.InputTextId("Trigger", ref text);
-        ImGui.EndDisabled();
+        Controls.DisabledInputTextId("Trigger", text);
     }
 
     public override void OnLinkCreated(NodeLink link)
@@ -43,7 +40,7 @@ public sealed class ActActivateNodeTrigger : NodeTriggerEntry
 
     public override void OnLinkRemoved(NodeLink link)
     {
-        if (link.EndPin.OwnerNode == this)
+        if (link.StartPin.OwnerNode == this)
         {
             Data.Trigger = string.Empty;
         }

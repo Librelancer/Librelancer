@@ -20,10 +20,11 @@ public sealed class ActRelocateShip : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.InputFloat3("Position", ref Data.Position);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref Data.Position);
         // TODO: Orientation can be null?
         // Controls.InputFlQuaternion("Orientation", ref Data.Orientation);
     }

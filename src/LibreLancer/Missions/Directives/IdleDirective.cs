@@ -6,6 +6,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class IdleDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.Idle;
+
     public override void Put(PacketWriter writer)
     {
         writer.Put((byte)ObjListCommands.Idle);

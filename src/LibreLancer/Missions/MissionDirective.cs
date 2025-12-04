@@ -9,6 +9,7 @@ namespace LibreLancer.Missions;
 
 public abstract class MissionDirective
 {
+    public abstract ObjListCommands Command { get; }
     public static MissionDirective Read(PacketReader reader)
     {
         return (ObjListCommands)reader.GetByte() switch
@@ -28,6 +29,29 @@ public abstract class MissionDirective
             ObjListCommands.SetLifetime => new SetLifetimeDirective(reader),
             ObjListCommands.StayInRange => new StayInRangeDirective(reader),
             ObjListCommands.StayOutOfRange => new StayOutOfRangeDirective(reader),
+            _ => throw new FormatException()
+        };
+    }
+
+    public static MissionDirective New(ObjListCommands cmd)
+    {
+        return cmd switch
+        {
+            ObjListCommands.Avoidance => new AvoidanceDirective(),
+            ObjListCommands.BreakFormation => new BreakFormationDirective(),
+            ObjListCommands.Delay => new DelayDirective(),
+            ObjListCommands.Dock => new DockDirective(),
+            ObjListCommands.Follow => new FollowDirective(),
+            ObjListCommands.FollowPlayer => new FollowPlayerDirective(),
+            ObjListCommands.GotoShip => new GotoShipDirective(),
+            ObjListCommands.GotoSpline => new GotoSplineDirective(),
+            ObjListCommands.GotoVec => new GotoVecDirective(),
+            ObjListCommands.Idle => new IdleDirective(),
+            ObjListCommands.MakeNewFormation => new MakeNewFormationDirective(),
+            ObjListCommands.SetPriority => new SetPriorityDirective(),
+            ObjListCommands.SetLifetime => new SetLifetimeDirective(),
+            ObjListCommands.StayInRange => new StayInRangeDirective(),
+            ObjListCommands.StayOutOfRange => new StayOutOfRangeDirective(),
             _ => throw new FormatException()
         };
     }
@@ -56,20 +80,6 @@ public abstract class MissionDirective
     }
 
     // Serialization Helpers
-    protected static bool? TriValue(byte v) => v switch
-    {
-        0 => null,
-        1 => false,
-        _ => true
-    };
-
-    protected static byte TriValue(bool? v) => v switch
-    {
-        null => 0,
-        false => 1,
-        true => 2
-    };
-
     protected static string CruiseKindString(GotoKind gotoKind) => gotoKind switch
     {
         GotoKind.GotoCruise => "goto_cruise",

@@ -20,10 +20,11 @@ public sealed class ActLockManeuvers : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("Lock", ref Data.Lock);
+        Controls.CheckboxUndo("Lock", undoBuffer, () => ref Data.Lock);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

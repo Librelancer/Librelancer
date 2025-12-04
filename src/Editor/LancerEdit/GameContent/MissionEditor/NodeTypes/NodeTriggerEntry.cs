@@ -16,12 +16,14 @@ public abstract class NodeTriggerEntry : Node
 
     public abstract void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder);
 
-    public override void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups)
+    public override void Render(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodeLookups lookups)
     {
         throw new InvalidOperationException("Trigger items should be rendered from MissionTriggerNode");
     }
 
-    public abstract void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public abstract void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups);
 
     public static NodeTriggerEntry ConditionToNode(TriggerConditions condition, Entry entry)

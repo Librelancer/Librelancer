@@ -142,16 +142,16 @@ public class Cnd_WatchVibe : ScriptedCondition
     public VibeSet Vibe = VibeSet.REP_NEUTRAL;
     public string SourceObject = string.Empty;
     public string TargetObject = string.Empty;
-    public int ModifierIndex;
+    public Operators Operator;
 
-    public static readonly string[] Options =
-    [
-        "eq",
-        "lt",
-        "lte",
-        "gt",
-        "gte"
-    ];
+    public enum Operators
+    {
+        eq,
+        lt,
+        lte,
+        gt,
+        gte
+    }
 
     public Cnd_WatchVibe()
     {
@@ -163,16 +163,12 @@ public class Cnd_WatchVibe : ScriptedCondition
         TargetObject = entry[1].ToString();
         _ = Enum.TryParse(entry[2].ToString(), out Vibe);
         var option = entry[3].ToString();
-        var index = Array.FindIndex(Options, s => s == option);
-        if (index != -1)
-        {
-            ModifierIndex = index;
-        }
+        Enum.TryParse(option, out Operator);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_WatchVibe", SourceObject, TargetObject, Vibe.ToString(), Options[ModifierIndex]);
+        section.Entry("Cnd_WatchVibe", SourceObject, TargetObject, Vibe.ToString(), Operator.ToString());
     }
 }
 
@@ -1062,7 +1058,7 @@ public class Cnd_DistVec : ScriptedCondition
     public Vector3 position;
     public float distance;
     public string sourceShip;
-    public float? tickAway;
+    public OptionalArgument<float> tickAway;
 
     public Cnd_DistVec()
     {
@@ -1085,7 +1081,7 @@ public class Cnd_DistVec : ScriptedCondition
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             self.Storage = new ConditionDouble() { Value = tickAway.Value };
         }
@@ -1099,7 +1095,7 @@ public class Cnd_DistVec : ScriptedCondition
         if (obj == null)
             return false;
         bool isInside = Vector3.Distance(obj.WorldTransform.Position, position) <= distance;
-        if(tickAway != null)
+        if(tickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
             if (inside == isInside)
@@ -1116,7 +1112,7 @@ public class Cnd_DistVec : ScriptedCondition
         List<ValueBase> entries =
             [inside ? "inside" : "outside", sourceShip, position.X, position.Y, position.Z, distance];
 
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             entries.Add(tickAway.Value);
             entries.Add("tick_away");
@@ -1132,7 +1128,7 @@ public class Cnd_DistShip : ScriptedCondition
     public float distance;
     public string sourceShip;
     public string destObject;
-    public float? tickAway;
+    public OptionalArgument<float> tickAway;
 
     public Cnd_DistShip()
     {
@@ -1155,7 +1151,7 @@ public class Cnd_DistShip : ScriptedCondition
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             self.Storage = new ConditionDouble() { Value = tickAway.Value };
         }
@@ -1170,7 +1166,7 @@ public class Cnd_DistShip : ScriptedCondition
         if (obj == null || obj2 == null)
             return false;
         var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= distance;
-        if(tickAway != null)
+        if(tickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
             if (inside == isInside)
@@ -1190,7 +1186,7 @@ public class Cnd_DistShip : ScriptedCondition
     {
         List<ValueBase> entries = [inside ? "inside" : "outside", sourceShip, destObject, distance];
 
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             entries.Add(tickAway.Value);
             entries.Add("tick_away");

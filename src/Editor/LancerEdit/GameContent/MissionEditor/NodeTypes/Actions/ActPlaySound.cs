@@ -23,10 +23,11 @@ public sealed class ActPlaySound : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Sound Id", ref Data.Effect);
+        Controls.InputTextIdUndo("Sound Id", undoBuffer, () => ref Data.Effect);
         var sound = gameData.GameData.AllSounds.FirstOrDefault(x => x.Nickname.Equals(Data.Effect, StringComparison.OrdinalIgnoreCase));
 
         if (sound is not null)

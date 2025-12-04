@@ -18,10 +18,11 @@ public class CndInSpace : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("In Space", ref Data.inSpace);
+        Controls.CheckboxUndo("In Space", undoBuffer, () => ref Data.inSpace);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

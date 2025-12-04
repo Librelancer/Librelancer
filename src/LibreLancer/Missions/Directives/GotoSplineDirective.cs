@@ -9,6 +9,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class GotoSplineDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.GotoSpline;
+
     public Vector3 PointA;
     public Vector3 PointB;
     public Vector3 PointC;

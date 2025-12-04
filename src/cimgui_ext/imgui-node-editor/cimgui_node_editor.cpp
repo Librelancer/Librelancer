@@ -37,6 +37,8 @@ typedef struct {
     axConfigLoadNodeSettings loadNodeSettings;
     axConfigSession beginSaveSession;
     axConfigSession endSaveSession;
+    axNodeDraggedCallback nodeDraggedHook;
+    axNodeResizedCallback nodeResizedHook;
     void* userPointer;
 } internalUserData;
 
@@ -75,6 +77,18 @@ static void internal_endSaveSession(void* userPointer)
 {
     INTERNAL_DATA
     internalData->endSaveSession(internalData->userPointer);
+}
+
+static void internal_nodeDraggedHook(ed::NodeId nodeId, float oldX, float oldY, float newX, float newY, void *userPointer)
+{
+    INTERNAL_DATA;
+    internalData->nodeDraggedHook(PtrFromNode(nodeId), oldX, oldY, newX, newY, internalData->userPointer);
+}
+
+static void internal_nodeResizedHook(ed::NodeId nodeId, ed::ResizeCallbackData* data, void *userPointer)
+{
+    INTERNAL_DATA;
+    internalData->nodeResizedHook(PtrFromNode(nodeId), (axResizeCallbackData*)data, internalData->userPointer);
 }
 #undef INTERNAL_DATA
 
@@ -158,7 +172,7 @@ CIMGUI_API axConfigSaveSettings axConfig_get_SaveSettings(axConfig *config)
     return internalData->saveSettings;
 }
 
-CIMGUI_API void axConfig_set_SaveSettings(axConfig *config, axConfigSaveSettings saveSettings)\
+CIMGUI_API void axConfig_set_SaveSettings(axConfig *config, axConfigSaveSettings saveSettings)
 {
     ed::Config *cfg = (ed::Config*)config;
     internalUserData *internalData = (internalUserData*)cfg->UserPointer;
@@ -209,6 +223,28 @@ CIMGUI_API void axConfig_set_LoadNodeSettings(axConfig *config, axConfigLoadNode
     cfg->LoadNodeSettings = loadNodeSettings ? &internal_loadNodeSettings : nullptr;
 }
 
+CIMGUI_API axNodeDraggedCallback axConfig_get_NodeDraggedHook(axConfig *config)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    internalUserData *internalData = (internalUserData*)cfg->UserPointer;
+    return internalData->nodeDraggedHook;
+}
+
+CIMGUI_API void axConfig_set_NodeDraggedHook(axConfig *config, axNodeDraggedCallback nodeDraggedHook)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    internalUserData *internalData = (internalUserData*)cfg->UserPointer;
+    internalData->nodeDraggedHook = nodeDraggedHook;
+    cfg->NodeDraggedHook = nodeDraggedHook ? &internal_nodeDraggedHook : nullptr;
+}
+
+CIMGUI_API void axConfig_set_NodeResizedHook(axConfig *config, axNodeResizedCallback nodeResizedHook)
+{
+    ed::Config *cfg = (ed::Config*)config;
+    internalUserData *internalData = (internalUserData*)cfg->UserPointer;
+    internalData->nodeResizedHook = nodeResizedHook;
+    cfg->NodeResizedHook = nodeResizedHook ? &internal_nodeResizedHook : nullptr;
+}
 
 CIMGUI_API axCanvasSizeMode axConfig_get_CanvasSizeMode(axConfig* config)
 {

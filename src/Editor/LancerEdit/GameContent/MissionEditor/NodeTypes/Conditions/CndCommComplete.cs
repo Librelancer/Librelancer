@@ -17,10 +17,11 @@ public class CndCommComplete : NodeTriggerEntry
         Data = entry is null ? new() : new(entry);
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Dialog", ref Data.Comm);
+        Controls.InputTextIdUndo("Dialog", undoBuffer, () => ref Data.Comm);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -21,14 +21,13 @@ public class CndPlayerManeuver : NodeTriggerEntry
     }
 
     private readonly string[] maneuverTypes = Enum.GetNames<ManeuverType>();
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        var index = (int)Data.type;
-        nodePopups.Combo("Maneuver", index, i => Data.type = (ManeuverType)i, maneuverTypes);
-
+        nodePopups.Combo("Maneuver", undoBuffer, () => ref Data.type);
         // TODO: transform this into a combobox of different ships or a object depending on type
-        Controls.InputTextId("Target", ref Data.target);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

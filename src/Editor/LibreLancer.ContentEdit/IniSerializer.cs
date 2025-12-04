@@ -13,6 +13,7 @@ using StarSystem = LibreLancer.GameData.World.StarSystem;
 using SystemObject = LibreLancer.GameData.World.SystemObject;
 using Zone = LibreLancer.GameData.World.Zone;
 using LibreLancer.Data.Missions;
+using LibreLancer.Missions;
 
 namespace LibreLancer.ContentEdit;
 
@@ -629,9 +630,15 @@ public static class IniSerializer
             .Entry("orientation", ship.Orientation)
             .OptionalEntry("system", ship.System)
             .OptionalEntry("radius", ship.Radius)
-            .OptionalEntry("jumper", ship.Jumper)
-            .OptionalEntry("arrival_obj", ship.ArrivalObj)
-            .OptionalEntry("init_objectives", ship.InitObjectives);
+            .OptionalEntry("jumper", ship.Jumper);
+        if (!string.IsNullOrWhiteSpace(ship.ArrivalObj.Object))
+        {
+            if (ship.ArrivalObj.Index > 0)
+                s.Entry("arrival_obj", ship.ArrivalObj.Object, ship.ArrivalObj.Index);
+            else
+                s.Entry("arrival_obj", ship.ArrivalObj.Object);
+        }
+        s.OptionalEntry("init_objectives", ship.InitObjectives);
 
         if (ship.Position.Length() is 0f && ship.RelativePosition.MinRange > 0f &&
             ship.RelativePosition.MaxRange != 0f && !string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName))
@@ -749,15 +756,15 @@ public static class IniSerializer
         }
     }
 
-    public static void SerializeMissionObjectiveList(ObjList objectiveList, IniBuilder ini)
+    public static void SerializeMissionObjectiveList(ScriptAiCommands objectiveList, IniBuilder ini)
     {
         var s = ini.Section("ObjList");
         s.Entry("nickname", objectiveList.Nickname)
             .OptionalEntry("system", objectiveList.System);
 
-        foreach (var cmd in objectiveList.Commands)
+        foreach (var cmd in objectiveList.Directives)
         {
-            s.Entry(cmd.Command.ToString(), cmd.Entry.Select(x => (ValueBase)x).ToArray());
+            cmd.Write(s);
         }
     }
 }

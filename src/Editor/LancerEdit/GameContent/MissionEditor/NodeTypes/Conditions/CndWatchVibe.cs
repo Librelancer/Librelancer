@@ -26,14 +26,15 @@ public class CndWatchVibe : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Source Object", ref Data.SourceObject);
-        Controls.InputTextId("Target Object", ref Data.TargetObject);
+        Controls.InputTextIdUndo("Source Object", undoBuffer, () => ref Data.SourceObject);
+        Controls.InputTextIdUndo("Target Object", undoBuffer, () => ref Data.TargetObject);
 
-        ActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
-        nodePopups.Combo("Modifier", Data.ModifierIndex, i => Data.ModifierIndex = i, Cnd_WatchVibe.Options);
+        nodePopups.Combo("Vibe", undoBuffer, () => ref Data.Vibe);
+        nodePopups.Combo("Operator", undoBuffer, () => ref Data.Operator);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

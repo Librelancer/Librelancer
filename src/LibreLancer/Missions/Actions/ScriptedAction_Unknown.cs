@@ -485,10 +485,9 @@ public class Act_NagClamp : ScriptedAction
 
 public class Act_NagDistTowards : ScriptedAction
 {
-    public bool IsObject;
     public string Nickname = string.Empty;
     public string Nagger = string.Empty;
-    public string Object = string.Empty;
+    public string Target = string.Empty;
     public int MissionFailIds;
     public float Distance;
     public Vector3 Position;
@@ -500,13 +499,13 @@ public class Act_NagDistTowards : ScriptedAction
 
     public Act_NagDistTowards(MissionAction act) : base(act)
     {
-        IsObject = act.Entry[0].ToString()!.Equals("obj", StringComparison.OrdinalIgnoreCase);
+        var isObject = act.Entry[0].ToString()!.Equals("obj", StringComparison.OrdinalIgnoreCase);
         Nickname = act.Entry[1].ToString();
         Nagger = act.Entry[2].ToString();
 
-        if (IsObject)
+        if (isObject)
         {
-            Object = act.Entry[3].ToString();
+            Target = act.Entry[3].ToString();
             MissionFailIds = act.Entry[4].ToInt32();
 
             if (act.Entry.Count > 5)
@@ -540,14 +539,14 @@ public class Act_NagDistTowards : ScriptedAction
     {
         var list = new List<ValueBase>()
         {
-            IsObject ? "OBJ" : "POS",
+            !string.IsNullOrWhiteSpace(Target) ? "OBJ" : "POS",
             Nickname,
             Nagger,
         };
 
-        if (IsObject)
+        if (!string.IsNullOrWhiteSpace(Target))
         {
-            list.Add(Object);
+            list.Add(Target);
         }
         else
         {

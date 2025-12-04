@@ -19,12 +19,13 @@ public sealed class ActAddAmbient : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Script", ref Data.Script);
-        Controls.InputTextId("Base", ref Data.Base);
-        Controls.InputTextId("Room", ref Data.Room);
+        Controls.InputTextIdUndo("Script", undoBuffer, () => ref Data.Script);
+        Controls.InputTextIdUndo("Base", undoBuffer, () => ref Data.Base);
+        Controls.InputTextIdUndo("Room", undoBuffer, () => ref Data.Room);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

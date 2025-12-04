@@ -19,11 +19,12 @@ public sealed class ActDisableFriendlyFire : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         // TODO: Comboify some how?
-        Controls.InputStringList("Objects & Labels", Data.ObjectsAndLabels);
+        Controls.InputStringList("Objects & Labels", undoBuffer, Data.ObjectsAndLabels);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

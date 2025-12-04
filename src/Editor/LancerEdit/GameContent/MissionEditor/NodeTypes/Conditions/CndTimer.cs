@@ -18,10 +18,11 @@ public class CndTimer : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.SliderFloat("Seconds", ref Data.Seconds, 0.1f, 300f, "%.2f");
+        Controls.SliderFloatUndo("Seconds", undoBuffer, () => ref Data.Seconds, 0.1f, 300f, "%.2f");
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

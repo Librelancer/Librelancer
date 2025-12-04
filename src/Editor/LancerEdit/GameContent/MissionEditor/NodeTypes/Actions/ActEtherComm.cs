@@ -23,12 +23,13 @@ public sealed class ActEtherComm : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         // TODO: FLESH OUT
-        Controls.InputTextId("Line", ref Data.Line);
-        Controls.InputTextId("Voices", ref Data.Voice);
+        Controls.InputTextIdUndo("Line", undoBuffer, () => ref Data.Line);
+        Controls.InputTextIdUndo("Voices", undoBuffer, () => ref Data.Voice);
 
         if (ImGui.Button("Play Line " + Icons.Play))
         {

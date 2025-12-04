@@ -3762,12 +3762,37 @@ bool ed::SizeAction::Process(const Control& control)
     if (m_Clean)
     {
         m_Clean = false;
+        
+        bool madeDirty = false;
 
         if (m_SizedNode->m_Bounds.Min != m_StartBounds.Min || m_SizedNode->m_GroupBounds.Min != m_StartGroupBounds.Min)
+        {
             Editor->MakeDirty(SaveReasonFlags::Position | SaveReasonFlags::User, m_SizedNode);
+            madeDirty = true;    
+        }
 
         if (m_SizedNode->m_Bounds.GetSize() != m_StartBounds.GetSize() || m_SizedNode->m_GroupBounds.GetSize() != m_StartGroupBounds.GetSize())
+        {
             Editor->MakeDirty(SaveReasonFlags::Size | SaveReasonFlags::User, m_SizedNode);
+            madeDirty = true;
+        }
+
+        if(madeDirty)
+        {
+            auto node = m_SizedNode->AsNode();
+            auto& config = Editor->GetConfig();
+            if(config.NodeResizedHook)
+            {
+                ResizeCallbackData data;
+                data.StartPosition = m_StartBounds.Min;
+                data.EndPosition = m_SizedNode->m_Bounds.Min;
+                data.StartSize = m_StartBounds.GetSize();
+                data.EndSize = m_SizedNode->m_Bounds.GetSize();
+                data.StartGroupSize = m_StartGroupBounds.GetSize();
+                data.EndGroupSize = m_SizedNode->m_GroupBounds.GetSize();
+                config.NodeResizedHook(node->m_ID, &data, config.UserPointer);
+            }
+        }
 
         m_SizedNode = nullptr;
     }
@@ -3956,7 +3981,17 @@ bool ed::DragAction::Process(const Control& control)
         for (auto object : m_Objects)
         {
             if (object->EndDrag())
-                Editor->MakeDirty(SaveReasonFlags::Position | SaveReasonFlags::User, object->AsNode());
+            {
+                auto node = object->AsNode();
+                auto& config = Editor->GetConfig();
+                if(config.NodeDraggedHook)
+                {
+                    auto oldPos = node->m_DragStart;
+                    auto newPos = node->m_Bounds.Min;
+                    config.NodeDraggedHook(node->m_ID, oldPos.x, oldPos.y, newPos.x, newPos.y, config.UserPointer);
+                }
+                Editor->MakeDirty(SaveReasonFlags::Position | SaveReasonFlags::User, node);
+            }
         }
 
         m_Objects.resize(0);

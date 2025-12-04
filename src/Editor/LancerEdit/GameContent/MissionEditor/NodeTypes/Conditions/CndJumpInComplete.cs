@@ -18,10 +18,11 @@ public class CndJumpInComplete : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("System", ref Data.system);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.system);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

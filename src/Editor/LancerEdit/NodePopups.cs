@@ -34,7 +34,7 @@ public struct NodePopups
         setTooltip = tooltip;
     }
 
-    public void Combo(string title, int selectedValue, Action<int> set, string[] values)
+    private void Combo(string title, int selectedValue, Action<int> set, string[] values)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(title);
@@ -42,11 +42,13 @@ public struct NodePopups
         combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
     }
 
-    public void StringCombo(string title, string selectedValue, Action<string> set, string[] values, bool allowEmpty = false)
+    public void StringCombo(string title, EditorUndoBuffer undoBuffer, EditorPropertyModification<string>.Accessor accessor, string[] values, bool allowEmpty = false)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(title);
         ImGui.SameLine();
+
+        var selectedValue = accessor();
 
         var display = values.FirstOrDefault(x => x.Equals(selectedValue, StringComparison.OrdinalIgnoreCase)) ?? selectedValue;
         if (allowEmpty && string.IsNullOrEmpty(display))
@@ -54,18 +56,49 @@ public struct NodePopups
             display = "(none)";
         }
 
-        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, display), set, title, values, allowEmpty);
+        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, display),
+            updated => undoBuffer.Set(title, accessor, updated), title, values, allowEmpty);
+    }
+
+    private static readonly Dictionary<Type, string[]> _nullables = new();
+    public void Combo<T>(string title, EditorUndoBuffer buffer, EditorPropertyModification<T?>.Accessor accessor) where T : struct, Enum
+    {
+        T? FromInt(int r)
+        {
+            if (r == 0) return null;
+            var x = r - 1;
+            return Unsafe.As<int, T>(ref x);
+        }
+
+        int FromT(T? value)
+        {
+            if (value == null) return 0;
+            var v = value.Value;
+            return Unsafe.As<T, int>(ref v) + 1;
+        }
+
+        if (!_nullables.TryGetValue(typeof(T), out var values))
+        {
+            values = Enum.GetNames<T>().Prepend("(none)").ToArray();
+            _nullables[typeof(T)] = values;
+        }
+
+        Combo(title,
+            FromT(accessor()),
+            x => buffer.Set(title, accessor, FromInt(x)), values);
     }
 
 
-    private static readonly Dictionary<Type, string[]> _enums = new Dictionary<Type, string[]>();
-    public void Combo<T>(string title, T selectedValue, Action<T> set) where T : struct, Enum
+    private static readonly Dictionary<Type, string[]> _enums = new();
+    public void Combo<T>(string title, EditorUndoBuffer buffer, EditorPropertyModification<T>.Accessor accessor) where T : struct, Enum
     {
         if (!_enums.TryGetValue(typeof(T), out var values)) {
             values = Enum.GetNames<T>();
             _enums[typeof(T)] = values;
         }
-        Combo(title, Unsafe.As<T, int>(ref selectedValue), x => set(Unsafe.As<int, T>(ref x)), values);
+        Combo(title,
+            Unsafe.As<T, int>(ref accessor()),
+            x => buffer.Set(title, accessor, Unsafe.As<int, T>(ref x)), values);
     }
 
     public void End()

@@ -6,6 +6,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class DelayDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.Delay;
+
     public float Time;
 
     public DelayDirective() { }

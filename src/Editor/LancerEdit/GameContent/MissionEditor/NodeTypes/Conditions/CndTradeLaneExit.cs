@@ -18,12 +18,13 @@ public class CndTradeLaneExit : NodeTriggerEntry
         Data = entry is null ? new() : new(entry);
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Source", ref Data.Source);
-        Controls.InputTextId("Start Ring", ref Data.StartRing);
-        Controls.InputTextId("Next Ring", ref Data.NextRing);
+        Controls.InputTextIdUndo("Source", undoBuffer, () => ref Data.Source);
+        Controls.InputTextIdUndo("Start Ring", undoBuffer, () => ref Data.StartRing);
+        Controls.InputTextIdUndo("Next Ring", undoBuffer, () => ref Data.NextRing);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
