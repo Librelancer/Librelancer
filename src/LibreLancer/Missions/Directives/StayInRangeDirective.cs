@@ -8,10 +8,13 @@ namespace LibreLancer.Missions.Directives;
 
 public class StayInRangeDirective : MissionDirective
 {
-    public string Object;
+    public override ObjListCommands Command => ObjListCommands.StayInRange;
+
+    public bool UseObject; // Mostly for editor use
+    public string Object = "";
     public Vector3 Point;
     public float Range;
-    public bool? Unknown;
+    public bool Unknown;
 
     public StayInRangeDirective()
     {
@@ -23,7 +26,8 @@ public class StayInRangeDirective : MissionDirective
         Object = reader.GetString();
         Point = reader.GetVector3();
         Range = reader.GetFloat();
-        Unknown = TriValue(reader.GetByte());
+        Unknown = reader.GetBool();
+        UseObject = Object != null;
     }
 
     public StayInRangeDirective(Entry entry)
@@ -41,6 +45,7 @@ public class StayInRangeDirective : MissionDirective
         {
             Object = entry[0].ToString();
             Range = entry[1].ToSingle();
+            UseObject = true;
             if (entry.Count > 2)
             {
                 Unknown = entry[2].ToBoolean();
@@ -55,13 +60,13 @@ public class StayInRangeDirective : MissionDirective
         writer.Put(Object);
         writer.Put(Point);
         writer.Put(Range);
-        writer.Put(TriValue(Unknown));
+        writer.Put(Unknown);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         var vb = new List<ValueBase>();
-        if (!string.IsNullOrWhiteSpace(Object))
+        if (UseObject)
         {
             vb.Add(new StringValue(Object));
         }
@@ -72,8 +77,7 @@ public class StayInRangeDirective : MissionDirective
             vb.Add(Point.Z);
         }
         vb.Add(Range);
-        if (Unknown != null)
-            vb.Add(Unknown.Value);
+        vb.Add(Unknown);
         section.Entry("StayInRange", vb.ToArray());
     }
 }

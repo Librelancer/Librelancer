@@ -23,12 +23,13 @@ public sealed class ActSendComm : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Source", ref Data.Source);
-        Controls.InputTextId("Destination", ref Data.Destination);
-        Controls.InputTextId("Line", ref Data.Line);
+        Controls.InputTextIdUndo("Source", undoBuffer, () => ref Data.Source);
+        Controls.InputTextIdUndo("Destination", undoBuffer, () => ref Data.Destination);
+        Controls.InputTextIdUndo("Line", undoBuffer, () => ref Data.Line);
 
         if (!ImGui.Button(Icons.Play + " Play Line"))
         {

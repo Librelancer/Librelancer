@@ -24,10 +24,11 @@ public class CndWatchNodeTrigger : NodeTriggerEntry
     }
 
     private readonly string[] triggerStates = Enum.GetNames<TriggerState>().ToArray();
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.Combo("Trigger State", (int)Data.TriggerState, i => Data.TriggerState = (TriggerState)i, triggerStates);
+        nodePopups.Combo("Trigger State", undoBuffer, () => ref Data.TriggerState);
         Controls.HelpMarker(
             "If true then the conditional will only be successful if the linked trigger is set to active.",
             true);

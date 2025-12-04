@@ -22,11 +22,12 @@ public sealed class ActEnableManeuver : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.Combo("Maneuver", Data.Maneuver, x => Data.Maneuver = x);
-        ImGui.Checkbox("Lock", ref Data.Lock);
+        nodePopups.Combo("Maneuver", undoBuffer, () => ref Data.Maneuver);
+        Controls.CheckboxUndo("Lock", undoBuffer, () => ref Data.Lock);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

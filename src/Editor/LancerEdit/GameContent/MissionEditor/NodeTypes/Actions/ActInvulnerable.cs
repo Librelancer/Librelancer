@@ -21,12 +21,13 @@ public sealed class ActInvulnerable : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Object", Data.Object, s => Data.Object = s, lookups.ShipsAndSolars);
+        nodePopups.StringCombo("Object", undoBuffer, () => ref Data.Object, lookups.ShipsAndSolars);
 
-        ImGui.Checkbox("Is Invulnerable", ref Data.Invulnerable);
+        Controls.CheckboxUndo("Is Invulnerable", undoBuffer, () => ref Data.Invulnerable);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

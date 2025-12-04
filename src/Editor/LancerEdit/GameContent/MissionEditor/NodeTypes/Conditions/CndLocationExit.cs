@@ -18,11 +18,12 @@ public class CndLocationExit : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Location", ref Data.location);
-        Controls.InputTextId("Base", ref Data.@base);
+        Controls.InputTextIdUndo("Location", undoBuffer, () => ref Data.location);
+        Controls.InputTextIdUndo("Base", undoBuffer, () => ref Data.@base);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

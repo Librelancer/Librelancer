@@ -20,11 +20,12 @@ public sealed class ActSetShipAndLoadout : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, lookups.Ships);
-        nodePopups.StringCombo("Loadout", Data.Loadout, s => Data.Loadout = s, gameData.LoadoutsByName);
+        nodePopups.StringCombo("Ship", undoBuffer, () => ref Data.Ship, lookups.Ships);
+        nodePopups.StringCombo("Loadout", undoBuffer, () => ref Data.Loadout, gameData.LoadoutsByName);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

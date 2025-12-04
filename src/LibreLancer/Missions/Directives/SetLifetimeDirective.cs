@@ -6,6 +6,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class SetLifetimeDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.SetLifetime;
+
     public float Lifetime;
 
     public SetLifetimeDirective()

@@ -19,13 +19,13 @@ public class CndProjectileHitShipToLabel : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Source Label", ref Data.source);
-        Controls.InputTextId("Target", ref Data.target);
-        ImGui.InputInt("Count", ref Data.count, 1, 100);
-        Data.count = Math.Clamp(Data.count, 1, 10000);
+        Controls.InputTextIdUndo("Source Label", undoBuffer, () => ref Data.source);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
+        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.count, 1, 100, default, new(1, 10000));
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

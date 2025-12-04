@@ -12,6 +12,8 @@ using axConfigSaveSettings = System.IntPtr;
 using axConfigLoadSettings = System.IntPtr;
 using axConfigSaveNodeSettings = System.IntPtr;
 using axConfigLoadNodeSettings = System.IntPtr;
+using axConfigNodeDraggedHook = System.IntPtr;
+using axConfigNodeResizedHook = System.IntPtr;
 
 static unsafe partial class NodeEditorNative
 {
@@ -63,6 +65,15 @@ static unsafe partial class NodeEditorNative
     [LibraryImport("cimgui")]
     public static partial void axConfig_set_LoadNodeSettings(IntPtr config, axConfigLoadNodeSettings loadNodeSettings);
 
+
+    [LibraryImport("cimgui")]
+    public static partial axConfigNodeDraggedHook axConfig_get_NodeDraggedHook(IntPtr config);
+
+    [LibraryImport("cimgui")]
+    public static partial void axConfig_set_NodeDraggedHook(IntPtr config, axConfigNodeDraggedHook loadNodeSettings);
+
+    [LibraryImport("cimgui")]
+    public static partial void axConfig_set_NodeResizedHook(IntPtr config, axConfigNodeResizedHook loadNodeSettings);
 
     [LibraryImport("cimgui")]
     public static partial void* axConfig_get_UserPointer(IntPtr config);

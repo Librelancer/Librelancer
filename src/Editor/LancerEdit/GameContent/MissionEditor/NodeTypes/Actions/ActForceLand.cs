@@ -20,10 +20,11 @@ public sealed class ActForceLand : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Base", Data.Base, s => Data.Base = s, gameData.BasesByName);
+        nodePopups.StringCombo("Base", undoBuffer, () => ref Data.Base, gameData.BasesByName);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -20,11 +20,12 @@ public sealed class ActMovePlayer : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.InputFloat3("Position", ref Data.Position);
-        ImGui.InputFloat("Unknown", ref Data.Unknown);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref Data.Position);
+        Controls.InputFloatUndo("Unknown",  undoBuffer, () => ref Data.Unknown);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

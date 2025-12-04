@@ -17,12 +17,13 @@ public class CndInZone : NodeTriggerEntry
         Data = entry is null ? new() : new(entry);
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("In Zone", ref Data.InZone);
-        Controls.InputTextId("Ship", ref Data.Ship); // TODO: Swap out for combo
-        Controls.InputTextId("Zone", ref Data.Zone);
+        Controls.CheckboxUndo("In Zone", undoBuffer, () => ref Data.InZone);
+        Controls.InputTextIdUndo("Ship", undoBuffer, () => ref Data.Ship); // TODO: Swap out for combo
+        Controls.InputTextIdUndo("Zone", undoBuffer, () => ref Data.Zone);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -20,10 +20,11 @@ public sealed class ActHostileClamp : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("Enable", ref Data.Enabled);
+        Controls.CheckboxUndo("Enable", undoBuffer, () => ref Data.Enabled);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

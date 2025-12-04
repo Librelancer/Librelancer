@@ -7,7 +7,9 @@ namespace LibreLancer.Missions.Directives;
 
 public class GotoShipDirective : MissionDirective
 {
-    public string Target;
+    public override ObjListCommands Command => ObjListCommands.GotoShip;
+
+    public string Target = "";
     public GotoKind CruiseKind;
     public float Range;
     public bool Unknown;

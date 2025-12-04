@@ -20,11 +20,12 @@ public sealed class ActSetPriority : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Object", ref Data.Object);
-        ImGui.Checkbox("Always Execute", ref Data.AlwaysExecute);
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.Object);
+        Controls.CheckboxUndo("Always Execute", undoBuffer, () => ref Data.AlwaysExecute);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -11,6 +11,7 @@ using LibreLancer.Data.IO;
 namespace LibreLancer.Data.Missions
 {
     [ParsedIni]
+    [IgnoreSection("Nodes")]
     public partial class MissionIni
     {
         [Section("Mission")]

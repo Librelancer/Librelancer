@@ -19,10 +19,11 @@ public sealed class ActDockRequest : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Object", ref Data.Object);
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.Object);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

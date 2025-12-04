@@ -20,12 +20,13 @@ public sealed class ActLockDock : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Target", ref Data.Target);
-        Controls.InputTextId("Object", ref Data.Object);
-        ImGui.Checkbox("Lock", ref Data.Lock);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.Object);
+        Controls.CheckboxUndo("Lock", undoBuffer, () => ref Data.Lock);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -18,12 +18,13 @@ public class CndRumourHeard : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
         ImGui.Text("This node has not been tested in game, and the values may be incorrect.");
-        ImGui.Checkbox("Has Heard Rumour", ref Data.hasHeardRumour);
-        ImGui.InputInt("Rumour Id", ref Data.rumourId);
+        Controls.CheckboxUndo("Has Heard Rumour", undoBuffer, () => ref Data.hasHeardRumour);
+        Controls.InputIntUndo("Rumour Id", undoBuffer, () => ref Data.rumourId);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

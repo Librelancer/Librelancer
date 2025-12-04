@@ -64,7 +64,7 @@ public class NodeMissionTrigger : Node
     }
 
     void RenderConditions(bool usePins, float szPin, float szContent, float pad,
-        GameDataContext gameData, PopupManager popups, ref NodePopups nodePopups,
+        GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
         if (usePins)
@@ -101,7 +101,7 @@ public class NodeMissionTrigger : Node
             if (StartChild(e, out var remove))
             {
                 ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
-                e.RenderContent(gameData, popups, ref nodePopups, ref nodeLookups);
+                e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                 ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
             }
             EndChild(bordercol, szContent, contentPad);
@@ -119,7 +119,7 @@ public class NodeMissionTrigger : Node
     }
 
     void RenderActions(bool usePins, float szPin, float szContent, float pad,
-        GameDataContext gameData, PopupManager popups, ref NodePopups nodePopups,
+        GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
         var bordercol = ImGui.GetColorU32(ImGuiCol.Border);
@@ -142,7 +142,7 @@ public class NodeMissionTrigger : Node
             if (StartChild(e, out var remove))
             {
                 ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
-                e.RenderContent(gameData, popups, ref nodePopups, ref nodeLookups);
+                e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                 ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
             }
             EndChild(bordercol, szContent, contentPad);
@@ -207,7 +207,8 @@ public class NodeMissionTrigger : Node
         return ImGui.MenuItem("Delete Trigger");
     }
 
-    public sealed override void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups)
+    public sealed override void Render(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodeLookups lookups)
     {
         // Measurements
         // Do we need to use pins?
@@ -252,10 +253,10 @@ public class NodeMissionTrigger : Node
 
 
         ImGui.PushItemWidth(180 * ImGuiHelper.Scale);
-        Controls.InputTextId("ID", ref Data.Nickname);
-        nb.Popups.StringCombo("System", Data.System, s => Data.System = s, gameData.SystemsByName, true);
-        ImGui.Checkbox("Repeatable", ref Data.Repeatable);
-        nb.Popups.Combo("Initial State", Data.InitState, x => Data.InitState = x);
+        Controls.InputTextIdUndo("ID", undoBuffer, () => ref Data.Nickname);
+        nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
+        Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
+        nb.Popups.Combo("Initial State", undoBuffer, () => ref Data.InitState);
         ImGui.PopItemWidth();
 
         // Draw conditions/actions
@@ -265,9 +266,9 @@ public class NodeMissionTrigger : Node
         ImGui.TableHeadersRow();
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        RenderConditions(conditionPin, szPin, szContent, pad, gameData, popup, ref nb.Popups, ref lookups);
+        RenderConditions(conditionPin, szPin, szContent, pad, gameData, popup, undoBuffer, ref nb.Popups, ref lookups);
         ImGui.TableNextColumn();
-        RenderActions(actionPin, szPin, szContent, pad, gameData, popup, ref nb.Popups, ref lookups);
+        RenderActions(actionPin, szPin, szContent, pad, gameData, popup, undoBuffer, ref nb.Popups, ref lookups);
         ImGui.EndTable();
         nb.Dispose();
 

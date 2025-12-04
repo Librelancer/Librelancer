@@ -20,11 +20,12 @@ public sealed class ActStaticCamera : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.InputFloat3("Position", ref Data.Position);
-        Controls.InputFlQuaternion("Orientation", ref Data.Orientation);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref Data.Position);
+        Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref Data.Orientation);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

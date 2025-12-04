@@ -76,6 +76,16 @@ enum class SaveReasonFlags: uint32_t
     User       = 0x00000040
 };
 
+struct ResizeCallbackData
+{
+    ImVec2 StartPosition;
+    ImVec2 EndPosition;
+    ImVec2 StartSize;
+    ImVec2 EndSize;
+    ImVec2 StartGroupSize;
+    ImVec2 EndGroupSize;
+};
+
 inline SaveReasonFlags operator |(SaveReasonFlags lhs, SaveReasonFlags rhs) { return static_cast<SaveReasonFlags>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs)); }
 inline SaveReasonFlags operator &(SaveReasonFlags lhs, SaveReasonFlags rhs) { return static_cast<SaveReasonFlags>(static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs)); }
 
@@ -86,6 +96,11 @@ using ConfigSaveNodeSettings = bool   (*)(NodeId nodeId, const char* data, size_
 using ConfigLoadNodeSettings = size_t (*)(NodeId nodeId, char* data, void* userPointer);
 
 using ConfigSession          = void   (*)(void* userPointer);
+
+using NodeDraggedCallback    = void   (*)(NodeId nodeId, float oldX, float oldY, float newX, float newY, void* userPointer);
+
+using NodeResizedCallback    = void   (*)(NodeId nodeId, ResizeCallbackData *data, void* userPointer);
+
 
 struct Config
 {
@@ -98,6 +113,8 @@ struct Config
     ConfigLoadSettings      LoadSettings;
     ConfigSaveNodeSettings  SaveNodeSettings;
     ConfigLoadNodeSettings  LoadNodeSettings;
+    NodeDraggedCallback     NodeDraggedHook;
+    NodeResizedCallback     NodeResizedHook;
     void*                   UserPointer;
     ImVector<float>         CustomZoomLevels;
     CanvasSizeModeAlias     CanvasSizeMode;
@@ -116,6 +133,8 @@ struct Config
         , LoadSettings(nullptr)
         , SaveNodeSettings(nullptr)
         , LoadNodeSettings(nullptr)
+        , NodeDraggedHook(nullptr)
+        , NodeResizedHook(nullptr)
         , UserPointer(nullptr)
         , CustomZoomLevels()
         , CanvasSizeMode(CanvasSizeModeAlias::FitVerticalView)

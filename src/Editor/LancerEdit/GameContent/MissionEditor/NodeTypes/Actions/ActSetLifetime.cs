@@ -21,13 +21,12 @@ public sealed class ActSetLifetime : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Object", ref Data.Object);
-        ImGui.InputInt("Seconds", ref Data.Seconds, 1, 10);
-
-        Data.Seconds = Math.Clamp(Data.Seconds, 0, 100000);
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.Object);
+        Controls.InputIntUndo("Seconds", undoBuffer, () => ref Data.Seconds, 1, 10, default, new(0, 100000));
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

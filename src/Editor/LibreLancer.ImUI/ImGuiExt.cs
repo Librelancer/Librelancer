@@ -274,5 +274,55 @@ namespace LibreLancer.ImUI
             }
             ImGui.PopID();
         }
-	}
+
+        [DllImport("cimgui")]
+        static extern IntPtr ImGuiEx_GetOriginalInputTextString();
+        [DllImport("cimgui")]
+        static extern void ImGuiEx_FreeOriginalInputTextString(IntPtr str);
+
+        private static IntPtr ogStringPtr;
+        static unsafe int FetchString(ImGuiInputTextCallbackData* data)
+        {
+            ogStringPtr = ImGuiEx_GetOriginalInputTextString();
+            if (data->EventFlag == ImGuiInputTextFlags.CallbackCharFilter)
+            {
+                var ch = (char)data->EventChar;
+                if ((ch >= '0' && ch <= '9') ||
+                    (ch >= 'a' && ch <= 'z') ||
+                    (ch >= 'A' && ch <= 'Z') ||
+                    ch == '_')
+                {
+                    return 0;
+                }
+                if (ch == ' ')
+                {
+                    data->EventChar = (byte)'_';
+                    return 0;
+                }
+                return 1;
+            }
+            return 0;
+        }
+        private static ImGuiInputTextCallback undoCb = FetchString;
+
+        public static void InputTextLogged(string id, ref string buf, int bufSize, Action<string,string> onChanged, bool inputId = false)
+        {
+            ogStringPtr = IntPtr.Zero;
+            var flags = ImGuiInputTextFlags.CallbackAlways;
+            if (inputId)
+                flags |= ImGuiInputTextFlags.CallbackCharFilter;
+            ImGui.InputText(id, ref buf, (uint)bufSize, flags, undoCb);
+            string originalString = null;
+            if (ogStringPtr != IntPtr.Zero)
+            {
+                originalString = Marshal.PtrToStringUTF8(ogStringPtr);
+                ImGuiEx_FreeOriginalInputTextString(ogStringPtr);
+            }
+            if (ImGui.IsItemDeactivatedAfterEdit() &&
+                originalString != buf)
+            {
+                onChanged(originalString, buf);
+            }
+        }
+    }
 }

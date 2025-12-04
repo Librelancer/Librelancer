@@ -7,6 +7,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class SetPriorityDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.SetPriority;
+
     public bool AlwaysExecute;
 
     public SetPriorityDirective()

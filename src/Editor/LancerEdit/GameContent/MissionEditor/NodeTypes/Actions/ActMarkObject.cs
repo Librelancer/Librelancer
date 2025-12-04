@@ -20,11 +20,12 @@ public sealed class ActMarkObject : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Object", ref Data.Object);
-        ImGui.InputInt("Value", ref Data.Value); // TODO: An enum value of some kind
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.Object);
+        Controls.CheckboxUndo("Important", undoBuffer, () => ref Data.Important);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

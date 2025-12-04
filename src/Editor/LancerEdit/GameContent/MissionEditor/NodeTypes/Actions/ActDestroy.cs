@@ -20,10 +20,11 @@ public sealed class ActDestroy : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Target", Data.Target, s => Data.Target = s, lookups.ShipsAndSolars);
+        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Target, lookups.ShipsAndSolars);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
