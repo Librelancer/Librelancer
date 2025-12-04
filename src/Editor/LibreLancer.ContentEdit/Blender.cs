@@ -96,55 +96,31 @@ public class Blender
 
     public static bool FileIsBlender(Stream stream)
     {
-        Span<byte> header = stackalloc byte[32];
-        if (stream.Read(header) != 32) return false;
+        Span<byte> header = stackalloc byte[4];
+        if (stream.Read(header) != 4) return false;
 
-        // Check for modern Blender format (BLENDER-vXXX) - can be at offset 0
-        if ((header[0] == 0x42 && // B
-            header[1] == 0x4C && // L
-            header[2] == 0x45 && // E
-            header[3] == 0x4E && // N
-            header[4] == 0x44 && // D
-            header[5] == 0x45 && // E
-            header[6] == 0x52 && // R
-            header[7] == 0x2D) || // - (hyphen)
-
-            // Check for modern Blender format at offset 12 (some older files)
-            (header[12] == 0x42 && // B
-            header[13] == 0x4C && // L
-            header[14] == 0x45 && // E
-            header[15] == 0x4E && // N
-            header[16] == 0x44 && // D
-            header[17] == 0x45 && // E
-            header[18] == 0x52)   // R
-            )
+        // Check for zstd-compressed Blender files (magic: 28 b5 2f fd)
+        // Modern Blender files are often compressed with zstd
+        if (header[0] == 0x28 && // zstd magic byte 1
+            header[1] == 0xb5 && // zstd magic byte 2
+            header[2] == 0x2f && // zstd magic byte 3
+            header[3] == 0xfd)   // zstd magic byte 4
         {
-            return true; // Modern Blender format
+            return true; // zstd-compressed Blender file
         }
 
-        // Check for older Blender format (BLENDER17-XXX) - can be at offset 0 or 12
-        if ((header[0] == 0x42 && // B
+        // For uncompressed Blender files, check the BLENDER magic
+        // Reset stream position and read more bytes
+        if (stream.Seek(0, SeekOrigin.Begin) != 0) return false;
+        if (stream.Read(header) != 4) return false;
+
+        // Check for BLENDER magic (uncompressed files)
+        if (header[0] == 0x42 && // B
             header[1] == 0x4C && // L
             header[2] == 0x45 && // E
-            header[3] == 0x4E && // N
-            header[4] == 0x44 && // D
-            header[5] == 0x45 && // E
-            header[6] == 0x52 && // R
-            header[8] == 0x31 && // 1 (Blender 1.x)
-            header[9] == 0x37) || // 7 (Blender 1.7)
-
-            (header[12] == 0x42 && // B
-            header[13] == 0x4C && // L
-            header[14] == 0x45 && // E
-            header[15] == 0x4E && // N
-            header[16] == 0x44 && // D
-            header[17] == 0x45 && // E
-            header[18] == 0x52 && // R
-            header[20] == 0x31 && // 1 (Blender 1.x)
-            header[21] == 0x37)   // 7 (Blender 1.7)
-            )
+            header[3] == 0x4E)   // N
         {
-            return true; // Older Blender 1.7 format
+            return true; // Uncompressed Blender file
         }
 
         return false;
