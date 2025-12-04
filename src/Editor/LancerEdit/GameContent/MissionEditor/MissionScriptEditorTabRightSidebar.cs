@@ -501,8 +501,10 @@ public sealed partial class MissionScriptEditorTab
         Controls.CheckboxUndo("Jumper", undoBuffer, () => ref selectedShip.Jumper);
         ImGui.SetNextItemWidth(100f);
         Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedShip.Radius);
-        Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj, 150f);
-
+        Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj.Object, 150f);
+        ImGui.BeginDisabled(string.IsNullOrEmpty(selectedShip.ArrivalObj.Object));
+        Controls.InputIntUndo("Undock Index", undoBuffer, () => ref selectedShip.ArrivalObj.Index);
+        ImGui.EndDisabled();
         ImGui.SetNextItemWidth(150f);
 
         if (ImGui.BeginCombo("Initial Objectives", selectedShip.InitObjectives ?? ""))
