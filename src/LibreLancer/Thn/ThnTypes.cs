@@ -24,12 +24,12 @@ namespace LibreLancer.Thn
         {
             if (o is ThornTable tb)
             {
-
                 var v3 = tb.ToVector3();
                 var conv = axisTable.AsSpan().IndexOf(v3);
                 if (conv == -1) conv = 0;
+                ThnDecompile.Init();
                 FLLog.Error("Thn",
-                    $"Incorrect axis format in {source}, '{tb}' should be {ThornTable.EnumReverse[((ThnAxis)conv).ToString()]}. Support for this will be removed in a later version");
+                    $"Incorrect axis format in {source}, '{tb}' should be {ThornTable.ReverseValue(((ThnAxis)conv).ToString())}. Support for this will be removed in a later version");
                 return (ThnAxis)conv;
             }
 

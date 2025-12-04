@@ -51,7 +51,7 @@ public class StateGraphTab : EditorTab
 
     public void Save(string filePath)
     {
-        using var fs = File.Create(filePath);
+        using var fs = File.Create(filePath ?? FilePath);
         var db = new StateGraphDb();
         db.BehaviorCount = 21;
         db.StateGraphCount = graphs.Count;
@@ -124,10 +124,10 @@ public class StateGraphTab : EditorTab
     {
         switch (hk)
         {
-            case Hotkeys.Undo:
+            case Hotkeys.Undo when undoBuffer.CanUndo:
                 undoBuffer.Undo();
                 break;
-            case Hotkeys.Redo:
+            case Hotkeys.Redo when undoBuffer.CanRedo:
                 undoBuffer.Redo();
                 break;
         }
