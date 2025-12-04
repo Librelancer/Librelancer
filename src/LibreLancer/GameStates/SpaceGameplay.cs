@@ -458,22 +458,6 @@ World Time: {12:F2}
 
         private int frameCount = 0;
 
-        //debug to know what stroyline is playing
-        public string CurrentStorylineState
-        {
-            get
-            {
-                #if DEBUG
-                    if (session.Multiplayer) return "";
-                    var es = session.EmbedddedServer;
-                    if (es == null) return "";
-                    return es.Server.LocalPlayer.Story?.CurrentStory?.Nickname ?? "";
-                #else
-                    return "";
-                #endif
-            }
-        }
-
         [WattleScriptUserData]
         public class LuaAPI
         {
@@ -1519,12 +1503,6 @@ World Time: {12:F2}
                     UpdateObjectiveObjects();
                 }
                 ui.RenderWidget(delta);
-                // Draw storyline state in lower left
-                var storylineText = CurrentStorylineState;
-                if (!string.IsNullOrEmpty(storylineText))
-                {
-                    Game.RenderContext.Renderer2D.DrawString("Arial", 16, storylineText, new Vector2(10, Game.Height - 30), Color4.White);
-                }
             }
             else
             {
@@ -1599,6 +1577,7 @@ World Time: {12:F2}
                 ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
                 ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
                 ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
+                ImGui.Text($"Storyline: {session.EmbedddedServer.Server.LocalPlayer.Story?.CurrentStory?.Nickname}");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {
