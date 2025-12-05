@@ -1017,9 +1017,20 @@ namespace LibreLancer.Server
                 {
                     GameObject undockFrom = world.GameWorld.GetObject(obj.Nickname);
                     SDockableComponent sd = null;
+                    int spawnIndex = 0;
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {
-                        var tr = sd.GetSpawnPoint(0);
+                        // For rings, spawn at the undock index (1) to align with the exit path
+                        if (sd.DockPoints.Length > 1 && sd.DockPoints[0].DockSphere.Type == Data.Solar.DockSphereType.ring)
+                        {
+                            spawnIndex = 1;
+                        }
+                        else // Otherwise, use a random dock point for now
+                        {
+                            Random r = new Random();
+                            spawnIndex = r.Next(0, sd.DockPoints.Length);
+                        }
+                        var tr = sd.GetSpawnPoint(spawnIndex);
                         Position = tr.Position;
                         Orientation = tr.Orientation;
                     }
@@ -1032,7 +1043,7 @@ namespace LibreLancer.Server
                     if (undockFrom != null)
                     {
                         rpcClient.UndockFrom(undockFrom);
-                        sd!.UndockShip(pship);
+                        sd!.UndockShip(pship, spawnIndex);
                     }
                     HandleSpaceEntry();
                 });
