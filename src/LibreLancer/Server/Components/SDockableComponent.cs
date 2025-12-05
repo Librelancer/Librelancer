@@ -214,10 +214,10 @@ namespace LibreLancer.Server.Components
 
         private List<(GameObject Ship, int Index)> undockers = new();
 
-        public void UndockShip(GameObject ship)
+        public void UndockShip(GameObject ship, int undockIndex = 0)
         {
-            TriggerAnimation(0);
-            undockers.Add((ship, 0));
+            TriggerAnimation(undockIndex);
+            undockers.Add((ship, undockIndex));
         }
 
         public override void Update(double time)
