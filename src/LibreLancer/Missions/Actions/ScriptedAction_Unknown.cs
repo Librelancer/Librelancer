@@ -300,7 +300,7 @@ public class Act_Save : ScriptedAction
         // Register this trigger as a save trigger before saving
         runtime.RegisterSaveTrigger(Trigger);
 
-        runtime.Player.SaveSP("Autosave", Ids, DateTime.UtcNow);
+        runtime.Player.SaveSP(null, Ids, DateTime.UtcNow);
     }
 }
 
