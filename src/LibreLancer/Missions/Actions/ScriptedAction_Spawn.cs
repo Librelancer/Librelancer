@@ -192,6 +192,7 @@ namespace LibreLancer.Missions.Actions
     {
         public string Formation = string.Empty;
         public OptionalArgument<Vector3> Position;
+        public OptionalArgument<Quaternion> Orientation;
 
         public Act_SpawnFormation()
         {
@@ -213,6 +214,9 @@ namespace LibreLancer.Missions.Actions
             if (act.Entry.Count > 1)
                 Position = new Vector3(act.Entry[1].ToSingle(), act.Entry[2].ToSingle(),
                     act.Entry[3].ToSingle());
+            if(act.Entry.Count > 4)
+                Orientation = new Quaternion(act.Entry[7].ToSingle(),
+                    act.Entry[4].ToSingle(),  act.Entry[5].ToSingle(), act.Entry[6].ToSingle());
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -225,6 +229,14 @@ namespace LibreLancer.Missions.Actions
                 entry.Add(Position.Value.Z);
             }
 
+            if (Orientation.Present)
+            {
+                entry.Add(Orientation.Value.W);
+                entry.Add(Orientation.Value.X);
+                entry.Add(Orientation.Value.Y);
+                entry.Add(Orientation.Value.Z);
+            }
+
             section.Entry("Act_SpawnFormation", entry.ToArray());
         }
 
@@ -232,7 +244,8 @@ namespace LibreLancer.Missions.Actions
         {
             var form = script.Formations[Formation];
             var fpos = Position.Get(form.Position);
-            var mat = Matrix4x4.CreateFromQuaternion(form.Orientation) *
+            var forient = Orientation.Get(form.Orientation);
+            var mat = Matrix4x4.CreateFromQuaternion(forient) *
                       Matrix4x4.CreateTranslation(fpos);
             var formDef = runtime.Player.Game.GameData.GetFormation(form.Formation);
             IReadOnlyList<Vector3> positions = formDef?.Positions ?? nullOffsets;
@@ -240,7 +253,7 @@ namespace LibreLancer.Missions.Actions
             for (int i = 0; i < form.Ships.Count; i++)
             {
                 var pos = Vector3.Transform(positions[i], mat);
-                SpawnShip(form.Ships[i], pos, form.Orientation, null, script, runtime);
+                SpawnShip(form.Ships[i], pos, forient, null, script, runtime);
             }
 
             // make them into a formation
