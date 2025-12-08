@@ -28,6 +28,8 @@ public class CommentNode : Node
         groupSize = size;
     }
 
+    private NodeSuspendState suspend = new();
+
     public override void Render(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
         ref NodeLookups lookups)
     {
@@ -87,6 +89,12 @@ public class CommentNode : Node
         }
         NodeEditor.EndGroupHint();
 
+        if(openRename)
+            suspend.FlagSuspend();
+
+        if (!suspend.ShouldSuspend())
+            return;
+
         //Deferred popup
         NodeEditor.Suspend();
         ImGui.PushID(Id);
@@ -97,6 +105,7 @@ public class CommentNode : Node
         }
         bool o = true; //default param
         if (ImGui.BeginPopupModal("Rename", ref o, ImGuiWindowFlags.AlwaysAutoResize)) {
+            suspend.FlagSuspend();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Name: ");
             ImGui.SameLine();

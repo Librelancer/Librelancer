@@ -18,6 +18,7 @@ public class NodeMissionTrigger : Node
     public List<NodeTriggerEntry> Conditions = new();
     public List<NodeTriggerEntry> Actions = new();
 
+    private NodeSuspendState suspend = new();
 
     public NodeMissionTrigger(MissionTrigger data) : base(NodeColours.Trigger)
     {
@@ -86,7 +87,7 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
                 foreach(var input in e.Inputs)
                 {
-                    var iconSize  = new Vector2(16 * ImGuiHelper.Scale);
+                    var iconSize  = new Vector2(16);
                     NodeEditor.BeginPin(input.Id, PinKind.Input);
                     NodeEditor.PinPivotAlignment(new Vector2(0f, 0.5f));
                     NodeEditor.PinPivotSize(new Vector2(0, 0));
@@ -100,9 +101,9 @@ public class NodeMissionTrigger : Node
 
             if (StartChild(e, out var remove))
             {
-                ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
+                ImGui.Dummy(new Vector2(1, 4)); //pad
                 e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
-                ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
+                ImGui.Dummy(new Vector2(1, 4)); //pad
             }
             EndChild(bordercol, szContent, contentPad);
             if (remove)
@@ -141,9 +142,9 @@ public class NodeMissionTrigger : Node
 
             if (StartChild(e, out var remove))
             {
-                ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
+                ImGui.Dummy(new Vector2(1, 4) ); //pad
                 e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
-                ImGui.Dummy(new Vector2(1, 4) * ImGuiHelper.Scale); //pad
+                ImGui.Dummy(new Vector2(1, 4)); //pad
             }
             EndChild(bordercol, szContent, contentPad);
             if (remove)
@@ -157,7 +158,7 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
                 foreach(var o in e.Outputs)
                 {
-                    var iconSize  = new Vector2(16 * ImGuiHelper.Scale);
+                    var iconSize  = new Vector2(16);
                     NodeEditor.BeginPin(o.Id, PinKind.Output);
                     NodeEditor.PinPivotAlignment(new Vector2(1f, 0.5f));
                     NodeEditor.PinPivotSize(new Vector2(0, 0));
@@ -177,7 +178,7 @@ public class NodeMissionTrigger : Node
 
     public float EstimateHeight()
     {
-        var iHeight = 24 * ImGuiHelper.Scale;
+        var iHeight = 24;
 
         var maxItems = Math.Max(Conditions.Count, Actions.Count);
 
@@ -215,15 +216,15 @@ public class NodeMissionTrigger : Node
         var conditionPin = Conditions.Any(t => t.Inputs.Count > 0);
         var actionPin = Actions.Any(t => t.Outputs.Count > 0);
 
-        var szPin = 70 * ImGuiHelper.Scale;
-        var szContent = 300 * ImGuiHelper.Scale;
+        var szPin = 70;
+        var szContent = 300;
         var szRight = szContent + (actionPin ? szPin : 0);
         var szLeft = szContent + (conditionPin ? szPin : 0);
         var pad = ImGui.GetStyle().FramePadding.X;
 
 
-        var iconSize  = new Vector2(24 * ImGuiHelper.Scale);
-        var nb = NodeBuilder.Begin(Id);
+        var iconSize  = new Vector2(24);
+        var nb = NodeBuilder.Begin(Id, suspend);
 
         nb.Header(Color);
         ImGui.Text(Name);
@@ -237,7 +238,7 @@ public class NodeMissionTrigger : Node
         ImGui.Text(Inputs[0].LinkType.ToString());
         NodeEditor.EndPin();
 
-        var szTriggerPin = 75 * ImGuiHelper.Scale;
+        var szTriggerPin = 75;
         var tWidth = szLeft + szRight + 8 * pad;
         ImGui.SameLine();
         ImGui.Dummy(new Vector2(tWidth - 2 * szTriggerPin, 1));
@@ -252,7 +253,7 @@ public class NodeMissionTrigger : Node
         NodeEditor.EndPin();
 
 
-        ImGui.PushItemWidth(180 * ImGuiHelper.Scale);
+        ImGui.PushItemWidth(180);
         Controls.InputTextIdUndo("ID", undoBuffer, () => ref Data.Nickname);
         nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
         Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);

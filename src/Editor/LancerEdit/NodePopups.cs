@@ -4,16 +4,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit;
+
+public class NodeSuspendState
+{
+    private int waitFrames = 0;
+    public void FlagSuspend()
+    {
+        waitFrames = 5;
+    }
+    public bool ShouldSuspend()
+    {
+        if (waitFrames > 0)
+        {
+            waitFrames--;
+            return true;
+        }
+        return false;
+    }
+}
 
 public struct NodePopups
 {
     private string setTooltip;
     private int comboIndex;
     private ComboData[] combos;
+    private NodeSuspendState suspend;
     record struct ComboData(bool Open, Action<int> Set, string Id, string[] Values);
 
     private StringComboData[] strCombos;
@@ -22,11 +42,12 @@ public struct NodePopups
 
     public NodeId CurrentId;
 
-    public static NodePopups Begin(NodeId id) => new()
+    public static NodePopups Begin(NodeId id, NodeSuspendState suspend) => new()
     {
         CurrentId = id,
         combos = ArrayPool<ComboData>.Shared.Rent(16),
         strCombos = ArrayPool<StringComboData>.Shared.Rent(16),
+        suspend = suspend
     };
 
     public void Tooltip(string tooltip)
@@ -101,14 +122,42 @@ public struct NodePopups
             x => buffer.Set(title, accessor, Unsafe.As<int, T>(ref x)), values);
     }
 
+    void UpdateSuspendState()
+    {
+        if (!string.IsNullOrWhiteSpace(setTooltip))
+        {
+            suspend.FlagSuspend();
+            return;
+        }
+
+        for (int i = 0; i < comboIndex; i++)
+        {
+            if (combos[i].Open)
+            {
+                suspend.FlagSuspend();
+                return;
+            }
+        }
+
+        for (int i = 0; i < strComboIndex; i++)
+        {
+            if (strCombos[i].Open)
+            {
+                suspend.FlagSuspend();
+                return;
+            }
+        }
+    }
+
     public void End()
     {
         // Skip processing this if not needed
         // Suspend()/Resume() can be expensive added up
-        if (comboIndex <= 0 && strComboIndex <= 0 &&
-            string.IsNullOrWhiteSpace(setTooltip))
+        UpdateSuspendState();
+        if (!suspend.ShouldSuspend())
+        {
             return;
-
+        }
         NodeEditor.Suspend();
 
         if(!string.IsNullOrWhiteSpace(setTooltip))
@@ -124,7 +173,7 @@ public struct NodePopups
                 ImGui.OpenPopup(c.Id);
             if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
                 continue;
-
+            suspend.FlagSuspend();
             for (var j = 0; j < c.Values.Length; j++)
             {
                 ImGui.PushID(j);
@@ -145,7 +194,7 @@ public struct NodePopups
             {
                 continue;
             }
-
+            suspend.FlagSuspend();
             if (c.AllowEmpty && ImGui.MenuItem("(none)##Empty"))
             {
                 c.Set("");

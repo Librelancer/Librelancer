@@ -51,7 +51,8 @@ public struct NodeBuilder : IDisposable
 
     public NodePopups Popups;
 
-    public static NodeBuilder Begin(NodeId id)
+
+    public static NodeBuilder Begin(NodeId id, NodeSuspendState suspend)
     {
         NodeEditor.PushStyleVar(StyleVar.NodePadding, new Vector4(8,4,8,8));
         NodeEditor.BeginNode(id);
@@ -62,7 +63,7 @@ public struct NodeBuilder : IDisposable
             HeaderColor = ImGui.GetColorU32(Color4.Blue),
         };
 
-        bp.Popups = NodePopups.Begin(id);
+        bp.Popups = NodePopups.Begin(id, suspend);
         bp.SetStage(NodeStage.Begin);
         return bp;
     }
