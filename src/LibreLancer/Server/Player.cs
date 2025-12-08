@@ -1044,7 +1044,8 @@ namespace LibreLancer.Server
                     var pship = world.SpawnPlayer(this, Position, Orientation);
                     if (undockFrom != null)
                     {
-                        rpcClient.UndockFrom(undockFrom);
+                        rpcClient.UndockFrom(undockFrom, undockIndex);
+                        sd!.UndockShip(pship, undockIndex);
 
                     }
                     HandleSpaceEntry();
