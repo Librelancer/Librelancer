@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 
@@ -10,6 +11,19 @@ namespace LancerEdit.GameContent.MissionEditor;
 
 public sealed partial class MissionScriptEditorTab
 {
+    private SearchDropdown<NodeMissionTrigger> jumpLookup;
+    void SetupJumpList()
+    {
+        jumpLookup = new(
+            "JumpTo",
+            t => t?.InternalId ?? "",
+            x =>
+            {
+                jumpToNode = x;
+            }, null,
+            nodes.OfType<NodeMissionTrigger>().OrderBy(x => x.InternalId).ToArray());
+    }
+
     private void RenderLeftSidebar()
     {
         var padding = ImGui.GetStyle().FramePadding.Y + ImGui.GetStyle().FrameBorderSize;
@@ -22,6 +36,10 @@ public sealed partial class MissionScriptEditorTab
             renderHistory = !renderHistory;
         }
 
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Navigate To: ");
+        ImGui.SameLine();
+        jumpLookup?.Draw();
         Controls.InputTextIdUndo("Node Filter", undoBuffer, () => ref NodeFilter);
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));

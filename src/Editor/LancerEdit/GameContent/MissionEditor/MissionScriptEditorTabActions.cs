@@ -11,19 +11,34 @@ partial class MissionScriptEditorTab
 {
     class NewTriggerAction(Vector2 position, MissionScriptEditorTab tab) : EditorAction
     {
-        private NodeMissionTrigger trigger = new(null);
+        private NodeMissionTrigger trigger = new(null, tab);
         public override void Commit()
         {
             tab.nodes.Add(trigger);
             tab.nodeRelocationQueue.Enqueue((trigger.Id, position));
+            tab.SetupJumpList();
         }
 
         public override void Undo()
         {
             tab.nodes.Remove(trigger);
+            tab.SetupJumpList();
         }
 
         public override string ToString() => "New Trigger";
+    }
+
+    class RenameTriggerAction(
+        NodeMissionTrigger trigger,
+        MissionScriptEditorTab tab,
+        string old,
+        string updated) : EditorModification<string>(old, updated)
+    {
+        public override void Set(string value)
+        {
+            trigger.Data.Nickname = value;
+            tab.SetupJumpList();
+        }
     }
 
     class NewCommentAction(Vector2 position, MissionScriptEditorTab tab) : EditorAction
@@ -126,6 +141,7 @@ partial class MissionScriptEditorTab
             {
                 NodePin.DeleteLink(l.LinkId);
             }
+            tab.SetupJumpList();
         }
 
         public override void Undo()
@@ -142,6 +158,7 @@ partial class MissionScriptEditorTab
                 n.StartPin.OwnerNode.OnLinkCreated(n);
                 n.EndPin.OwnerNode.OnLinkCreated(n);
             }
+            tab.SetupJumpList();
         }
 
         public override string ToString() => $"Delete Node {id}";

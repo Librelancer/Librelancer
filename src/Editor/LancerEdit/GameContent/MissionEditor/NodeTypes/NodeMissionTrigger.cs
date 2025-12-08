@@ -19,8 +19,9 @@ public class NodeMissionTrigger : Node
     public List<NodeTriggerEntry> Actions = new();
 
     private NodeSuspendState suspend = new();
+    private MissionScriptEditorTab tab;
 
-    public NodeMissionTrigger(MissionTrigger data) : base(NodeColours.Trigger)
+    public NodeMissionTrigger(MissionTrigger data, MissionScriptEditorTab tab) : base(NodeColours.Trigger)
     {
         this.Data = data ?? new MissionTrigger();
 
@@ -36,6 +37,8 @@ public class NodeMissionTrigger : Node
         {
             Actions.Add(NodeTriggerEntry.ActionToNode(a.Type, a));
         }
+
+        this.tab = tab;
     }
 
     public override string Name => "Mission Trigger";
@@ -254,6 +257,13 @@ public class NodeMissionTrigger : Node
 
 
         ImGui.PushItemWidth(180);
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("ID");
+        ImGui.SameLine();
+        ImGuiExt.InputTextLogged("##id", ref Data.Nickname, 255, (old, upd) =>
+        {
+            tab.OnRenameTrigger(this, old, upd);
+        }, true);
         Controls.InputTextIdUndo("ID", undoBuffer, () => ref Data.Nickname);
         nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
         Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);

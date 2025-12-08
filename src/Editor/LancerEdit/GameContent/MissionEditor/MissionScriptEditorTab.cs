@@ -84,7 +84,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         foreach (var t in missionIni.Triggers)
         {
-            var n = new NodeMissionTrigger(t);
+            var n = new NodeMissionTrigger(t, this);
             triggerNodes[t.Nickname] = n;
             nodes.Add(n);
             counts[n] = 0;
@@ -132,6 +132,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         {
             AutoPositionNodes(triggerNodes, counts);
         }
+
+        SetupJumpList();
     }
 
     bool ReadSavedPositions(string file)
@@ -333,9 +335,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
     }
 
+    public void OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
+        undoBuffer.Commit(new RenameTriggerAction(node, this, oldName, newName));
+
     private Queue<Action> nodeEditActions = new();
 
 
+    private NodeMissionTrigger jumpToNode = null;
     private void RenderNodeEditor()
     {
         NodeEditor.SetCurrentEditor(context);
@@ -379,6 +385,15 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         TryCreateLink();
         TryDeleteLink();
+
+        if (jumpToNode != null)
+        {
+            NodeEditor.ClearSelection();
+            NodeEditor.SelectNode(jumpToNode.Id);
+            NodeEditor.NavigateToSelection(true);
+            jumpToNode = null;
+            jumpLookup.SetSelected(null);
+        }
 
         ImGui.SetCursorScreenPos(cursorTopLeft);
 
