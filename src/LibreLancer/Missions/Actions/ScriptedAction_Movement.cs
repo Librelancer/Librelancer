@@ -87,8 +87,9 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            //This is correct: but the NPCs currently blow you up when stopped
-            //runtime.Player.RemoteClient.StopShip();
+            // Required for M01A to function
+            // Does cause explosions in some later missions
+            runtime.Player.MissionWorldAction(() => runtime.Player.RpcClient.StopShip());
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)

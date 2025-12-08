@@ -1280,7 +1280,7 @@ public class Cnd_Destroyed :
     {
         if (runtime.Labels.TryGetValue(label, out var lbl))
         {
-            FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
+            //FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
             if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
             {
                 if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)

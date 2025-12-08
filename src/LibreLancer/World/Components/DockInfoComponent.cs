@@ -5,43 +5,61 @@
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.GameData.World;
-using LibreLancer.World;
 
-namespace LibreLancer.Client.Components
+namespace LibreLancer.World.Components
 {
     public class DockCameraInfo
     {
         public GameObject Parent;
         public Hardpoint DockHardpoint;
     }
-	public class CDockComponent : GameComponent
+
+    public class UndockInfo
+    {
+        public Hardpoint Start;
+        public Hardpoint End;
+    }
+
+	public class DockInfoComponent : GameComponent
 	{
 		public DockAction Action;
-		public string DockHardpoint;
-		public int TriggerRadius;
+        public DockSphere[] Spheres;
 
 		string tlHP;
-		public CDockComponent(GameObject parent) : base(parent)
+		public DockInfoComponent(GameObject parent) : base(parent)
 		{
 		}
 
-        public DockCameraInfo GetDockCamera()
+        public DockCameraInfo GetDockCamera(int index)
         {
-            var hpname = DockHardpoint.Replace("DockMount", "DockCam");
+            var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockCam");
             var hp = Parent.GetHardpoint(hpname);
             if (hp == null)
                 return null;
             return new DockCameraInfo() { DockHardpoint = hp, Parent = Parent };
         }
 
-		public IEnumerable<Hardpoint> GetDockHardpoints(Vector3 position)
+        public UndockInfo GetUndockInfo(int index)
+        {
+            var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockPoint");
+            var start = Parent.GetHardpoint(Spheres[index].Hardpoint);
+            var end = Parent.GetHardpoint(hpname + "02");
+            return new UndockInfo() { Start = start, End = end };
+        }
+
+        public float GetTriggerRadius(int index = 0)
+        {
+            return Spheres[index].Radius;
+        }
+
+		public IEnumerable<Hardpoint> GetDockHardpoints(Vector3 position, int index = 0)
 		{
 			if (Action.Kind != DockKinds.Tradelane)
 			{
-				var hpname = DockHardpoint.Replace("DockMount", "DockPoint");
+				var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockPoint");
 				yield return Parent.GetHardpoint(hpname + "02");
 				yield return Parent.GetHardpoint(hpname + "01");
-				yield return Parent.GetHardpoint(DockHardpoint);
+				yield return Parent.GetHardpoint(Spheres[index].Hardpoint);
 			}
 			else if (Action.Kind == DockKinds.Tradelane)
 			{

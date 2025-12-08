@@ -394,14 +394,14 @@ namespace LibreLancer.Server.Components
                 {
                     var dist = Pilot?.BuzzPassBy?.DistanceToPassBy ?? 100;
                     var dest = shootAt.WorldTransform.Transform(buzzDirection * dist);
-                    ap.GotoVec(dest, false, 1, 0);
+                    ap.GotoVec(dest, GotoKind.GotoNoCruise, 1, 0);
                     canTransition = timeInState >= (Pilot?.BuzzPassBy?.PassByTime ?? 5) ||
                                     Vector3.DistanceSquared(dest, mypos) < 16;
                     break;
                 }
                 case StateGraphEntry.Face:
                 case StateGraphEntry.Trail:
-                    ap.GotoObject(shootAt, false, 1, Pilot?.Trail?.Distance ?? 150);
+                    ap.GotoObject(shootAt, GotoKind.GotoNoCruise, 1, Pilot?.Trail?.Distance ?? 150);
                     canTransition = timeInState >= 5;
                     break;
                 default:
@@ -415,7 +415,7 @@ namespace LibreLancer.Server.Components
 
         public void DockWith(GameObject tgt)
         {
-            SetState(new AiDockState(tgt));
+            SetState(new AiDockState(tgt, GotoKind.Goto));
         }
     }
 }

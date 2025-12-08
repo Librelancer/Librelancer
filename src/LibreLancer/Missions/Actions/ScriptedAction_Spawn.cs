@@ -177,7 +177,7 @@ namespace LibreLancer.Missions.Actions
                     npcDef.Affiliation,
                     shipArch?.StateGraph ?? "FIGHTER",
                     commHead, commBody, commHelmet,
-                    ld, pilot, pos, orient, null, runtime);
+                    ld, pilot, pos, orient, null, 0, runtime);
                 var drComp = obj.GetComponent<DirectiveRunnerComponent>();
                 drComp.SetDirectives(directives);
                 var dstComp = obj.GetComponent<SDestroyableComponent>();

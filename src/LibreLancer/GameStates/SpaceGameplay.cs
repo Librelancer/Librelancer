@@ -714,7 +714,7 @@ World Time: {12:F2}
                 var dict = new LuaCompatibleDictionary();
                 dict.Set("FreeFlight", true);
                 dict.Set("Goto", g.Selection.Selected != null);
-                dict.Set("Dock", g.Selection.Selected?.GetComponent<CDockComponent>() != null);
+                dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null);
                 dict.Set("Formation", g.Selection.Selected != null && g.Selection.Selected.Kind == GameObjectKind.Ship);
                 return dict;
             }
@@ -743,6 +743,7 @@ World Time: {12:F2}
 
         private void BehaviorChanged(AutopilotBehaviors newBehavior, AutopilotBehaviors oldBehavior)
         {
+            FLLog.Debug("Player", $"Behavior swap new: {newBehavior} old: {oldBehavior}");
             uiApi.SetManeuver(newBehavior switch
             {
                 AutopilotBehaviors.Dock => "Dock",
@@ -822,17 +823,17 @@ World Time: {12:F2}
 					return true;
 				case "Dock":
 					if (Selection.Selected == null) return false;
-					CDockComponent d;
-					if ((d = Selection.Selected.GetComponent<CDockComponent>()) != null)
-					{
-                        pilotcomponent.StartDock(Selection.Selected);
+					DockInfoComponent d;
+					if ((d = Selection.Selected.GetComponent<DockInfoComponent>()) != null)
+                    {
+                        pilotcomponent.StartDock(Selection.Selected, GotoKind.Goto);
                         session.SpaceRpc.RequestDock(Selection.Selected);
 						return true;
 					}
 					return false;
 				case "Goto":
 					if (Selection.Selected == null) return false;
-                    pilotcomponent.GotoObject(Selection.Selected);
+                    pilotcomponent.GotoObject(Selection.Selected, GotoKind.Goto);
 					return true;
                 case "Formation":
                     session.SpaceRpc.EnterFormation(Selection.Selected.NetID);

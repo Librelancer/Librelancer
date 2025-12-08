@@ -902,18 +902,18 @@ namespace LibreLancer.Client
         private ObjNetId undockFromTarget = default;
         private uint undockFromTick;
 
-        void IClientPlayer.UndockFrom(ObjNetId netId)
+        void IClientPlayer.UndockFrom(ObjNetId netId, int index)
         {
             RunSync(() =>
             {
                 var obj = gp.world.GetObject(netId);
-                if (obj.TryGetComponent<CDockComponent>(out var dock))
-                {
-                    gp.SetDockCam(dock.GetDockCamera());
-                }
                 if(obj != null)
                 {
-                    gp.pilotcomponent.Undock(obj);
+                    if (obj.TryGetComponent<DockInfoComponent>(out var dock))
+                    {
+                        gp.SetDockCam(dock.GetDockCamera(index));
+                    }
+                    gp.pilotcomponent.Undock(obj, index);
                 }
             });
         }
@@ -944,11 +944,10 @@ namespace LibreLancer.Client
                         newobj = new GameObject(solar, null, Game.ResourceManager, true, true);
                         if (objInfo.Dock != null && solar.DockSpheres.Count > 0)
                         {
-                            newobj.AddComponent(new CDockComponent(newobj)
+                            newobj.AddComponent(new DockInfoComponent(newobj)
                             {
                                 Action = objInfo.Dock,
-                                DockHardpoint = solar.DockSpheres[0].Hardpoint,
-                                TriggerRadius = solar.DockSpheres[0].Radius
+                                Spheres = solar.DockSpheres.ToArray()
                             });
                         }
                         if (solar.Hitpoints > 0)
@@ -1213,8 +1212,11 @@ namespace LibreLancer.Client
 
         GameObject missionWaypoint;
 
-        void IClientPlayer.StopShip() =>
+        void IClientPlayer.StopShip()
+        {
+            FLLog.Debug("Mission", "StopShip() call received");
             RunSync(() => gp.StopShip());
+        }
 
         void IClientPlayer.MarkImportant(int id, bool important)
         {
