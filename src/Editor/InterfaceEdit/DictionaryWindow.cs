@@ -22,7 +22,9 @@ public class DictionaryWindow
     public unsafe void Draw()
     {
         ImGui.SetNextWindowSize(new Vector2(450,200), ImGuiCond.FirstUseEver);
-        if (IsOpen && ImGui.Begin(Title, ref IsOpen))
+        if (!IsOpen)
+            return;
+        if (ImGui.Begin(Title, ref IsOpen))
         {
             if (ImGui.Button("+"))
             {
@@ -52,7 +54,7 @@ public class DictionaryWindow
                         set = true;
                         return 0;
                     });
-                    if (set) 
+                    if (set)
                         Variables[kv.Key] = v;
                     ImGui.TableSetColumnIndex(2);
                     if(ImGui.Button("x##" + kv.Key))
@@ -78,7 +80,8 @@ public class DictionaryWindow
                 }
                 ImGui.EndPopup();
             }
-            ImGui.End();
         }
+        ImGui.End();
+
     }
 }

@@ -211,13 +211,17 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.SameLine();
         if (ImGuiExt.ToggleButton("Dll List", showDllList)) showDllList = !showDllList;
         ImGui.Separator();
-        if (showDllList && ImGui.Begin("Dll List", ref showDllList))
+        if (showDllList)
         {
-            ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
-            for (int i = 0; i < manager.Dlls.Count; i++) {
-                ImGui.Text($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(manager.Dlls[i].SavePath)}");
+            if (ImGui.Begin("Dll List", ref showDllList))
+            {
+                ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
+                for (int i = 0; i < manager.Dlls.Count; i++)
+                {
+                    ImGui.Text($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(manager.Dlls[i].SavePath)}");
+                }
+                ImGui.PopFont();
             }
-            ImGui.PopFont();
             ImGui.End();
         }
         ImGui.Columns(2, "cols", true);
