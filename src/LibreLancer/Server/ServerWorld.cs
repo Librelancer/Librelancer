@@ -128,6 +128,11 @@ namespace LibreLancer.Server
                 else if(totalRemain == 0)
                 {
                     RemoveSpawnedObject(pickup, false);
+                    // Notify mission system that loot has been acquired after removal
+                    if (obj.TryGetComponent<SPlayerComponent>(out var playerComponent))
+                    {
+                        actions.Enqueue(() => Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname, "Player"));
+                    }
                 }
                 else
                 {
@@ -644,7 +649,8 @@ namespace LibreLancer.Server
             LootCrateEquipment crate,
             Equipment good,
             int count,
-            Transform3D transform)
+            Transform3D transform,
+            string nickname = null)
         {
             actions.Enqueue(() =>
             {
@@ -654,6 +660,7 @@ namespace LibreLancer.Server
                 go.PhysicsComponent.Mass = crate.Mass;
                 go.NetID = IdGenerator.Allocate();
                 go.ArchetypeName = crate.Nickname;
+                go.Nickname = nickname ?? "";
                 go.SetLocalTransform(transform);
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);

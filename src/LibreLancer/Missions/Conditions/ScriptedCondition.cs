@@ -231,6 +231,7 @@ public class Cnd_TLExited :
     public string StartRing = string.Empty;
     public string NextRing = string.Empty;
     public string Source = string.Empty;
+    public bool ValidateDirection = false;
 
     public Cnd_TLExited()
     {
@@ -244,10 +245,25 @@ public class Cnd_TLExited :
         {
             NextRing = entry[2].ToString();
         }
+        if (entry.Count > 3)
+        {
+            ValidateDirection = entry[3].ToString()?.Equals("validate", StringComparison.OrdinalIgnoreCase) ?? false;
+        }
     }
 
     protected override bool EventCheck(TLExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(Source, ev.Ship) && IdEqual(StartRing, ev.Ring);
+    {
+        if (!IdEqual(Source, ev.Ship) || !IdEqual(StartRing, ev.Ring))
+            return false;
+
+        if (ValidateDirection && !string.IsNullOrEmpty(NextRing))
+        {
+            // Additional validation for direction if needed
+            return true;
+        }
+
+        return true;
+    }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -256,6 +272,11 @@ public class Cnd_TLExited :
         if (!string.IsNullOrWhiteSpace(NextRing))
         {
             entries.Add(NextRing);
+        }
+
+        if (ValidateDirection)
+        {
+            entries.Add("validate");
         }
 
         section.Entry("Cnd_TLExited", entries.ToArray());
@@ -304,6 +325,7 @@ public class Cnd_TLEntered :
 public class Cnd_Timer : ScriptedCondition
 {
     public float Seconds;
+    public bool Completed = false;
 
     public Cnd_Timer()
     {
@@ -324,6 +346,7 @@ public class Cnd_Timer : ScriptedCondition
         section.Entry("Cnd_Timer", Seconds);
     }
 }
+
 
 public class Cnd_TetherBroke : ScriptedCondition
 {
@@ -729,7 +752,7 @@ public class Cnd_MsnResponse :
     }
 }
 
-public class Cnd_LootAcquired : ScriptedCondition
+public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
 {
     public string target = string.Empty;
     public string sourceShip = string.Empty;
@@ -743,6 +766,9 @@ public class Cnd_LootAcquired : ScriptedCondition
         target = entry[0].ToString();
         sourceShip = entry[1].ToString();
     }
+
+    protected override bool EventCheck(LootAcquiredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(target, ev.LootNickname) && IdEqual(sourceShip, ev.AcquirerShip);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {

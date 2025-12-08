@@ -32,3 +32,5 @@ public record struct PlayerManeuverEvent(ManeuverType Type, string Target);
 public record struct LaunchCompleteEvent(string Ship);
 
 public record struct CargoScannedEvent(string ScanningShip, string ScannedShip);
+
+public record struct LootAcquiredEvent(string LootNickname, string AcquirerShip);
