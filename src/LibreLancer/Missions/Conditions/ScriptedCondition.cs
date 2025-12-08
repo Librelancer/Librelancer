@@ -231,7 +231,6 @@ public class Cnd_TLExited :
     public string StartRing = string.Empty;
     public string NextRing = string.Empty;
     public string Source = string.Empty;
-    public bool ValidateDirection = false;
 
     public Cnd_TLExited()
     {
@@ -244,10 +243,6 @@ public class Cnd_TLExited :
         if (entry.Count > 2)
         {
             NextRing = entry[2].ToString();
-        }
-        if (entry.Count > 3)
-        {
-            ValidateDirection = entry[3].ToString()?.Equals("validate", StringComparison.OrdinalIgnoreCase) ?? false;
         }
     }
 
@@ -266,11 +261,6 @@ public class Cnd_TLExited :
         if (!string.IsNullOrWhiteSpace(NextRing))
         {
             entries.Add(NextRing);
-        }
-
-        if (ValidateDirection)
-        {
-            entries.Add("validate");
         }
 
         section.Entry("Cnd_TLExited", entries.ToArray());
