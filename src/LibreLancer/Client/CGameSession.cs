@@ -1363,7 +1363,11 @@ namespace LibreLancer.Client
                         Game.GameData.ThornReadCallback, thorn);
                     var mo = gp.world.GetObject(mainObject);
                     if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
-                    else FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}`");
+                    else
+                    {
+                        FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}. Assume player`");
+                        mo = gp.player;
+                    }
                     gp.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, gp);
                     gp.Thn.BeginScene(thn);
                 }
