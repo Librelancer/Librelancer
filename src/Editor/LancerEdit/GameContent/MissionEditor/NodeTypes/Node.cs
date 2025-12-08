@@ -84,6 +84,6 @@ public abstract class Node(VertexDiffuse? color = null)
     {
     }
 
-    public virtual bool OnContextMenu(PopupManager popups) =>
+    public virtual bool OnContextMenu(PopupManager popups, EditorUndoBuffer undoBuffer) =>
         ImGui.MenuItem("Delete");
 }

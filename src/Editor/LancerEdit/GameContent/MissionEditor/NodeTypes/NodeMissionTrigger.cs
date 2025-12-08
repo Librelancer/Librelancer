@@ -49,22 +49,21 @@ public class NodeMissionTrigger : Node
         ImGui.BeginGroup();
         ImGui.PushStyleColor(ImGuiCol.Header, e.Color);
         ImGui.PushStyleColor(ImGuiCol.Button, e.Color);
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
         remove = ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.TrashAlt}", e.Id));
         ImGui.SameLine();
         var render = ImGui.CollapsingHeader(ImGuiExt.IDWithExtra(e.Name, (long)e.Id));
+        ImGui.PopStyleVar();
         ImGui.PopStyleColor();
         ImGui.PopStyleColor();
         return render;
     }
 
-    static void EndChild(uint bordercol, float szContent, float contentPad)
+    static void EndChild(bool render)
     {
+        if(render)
+            ImGui.Separator();
         ImGui.EndGroup();
-        var min = ImGui.GetItemRectMin();
-        var max = ImGui.GetItemRectMax();
-        max.X = min.X + szContent + contentPad;
-        var dl = ImGui.GetWindowDrawList();
-        dl.AddRect(min, max, bordercol, 2, ImDrawFlags.RoundCornersAll, 1);
     }
 
     void RenderConditions(bool usePins, float szPin, float szContent, float pad,
@@ -77,9 +76,6 @@ public class NodeMissionTrigger : Node
             ImGui.TableSetupColumn("##pins", ImGuiTableColumnFlags.WidthFixed, szPin);
             ImGui.TableSetupColumn("##content", ImGuiTableColumnFlags.WidthFixed, szContent);
         }
-
-        var bordercol = ImGui.GetColorU32(ImGuiCol.Border);
-        var contentPad = usePins ? pad : pad * 2;
 
         for(var i = 0; i < Conditions.Count; i++)
         {
@@ -102,16 +98,17 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
             }
 
-            if (StartChild(e, out var remove))
+            bool c = StartChild(e, out var remove);
+            if (c)
             {
                 ImGui.Dummy(new Vector2(1, 4)); //pad
                 e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                 ImGui.Dummy(new Vector2(1, 4)); //pad
             }
-            EndChild(bordercol, szContent, contentPad);
+            EndChild(c);
             if (remove)
             {
-                Conditions.RemoveAt(i);
+                tab.DeleteCondition(this, i);
                 i--;
             }
         }
@@ -126,8 +123,6 @@ public class NodeMissionTrigger : Node
         GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
-        var bordercol = ImGui.GetColorU32(ImGuiCol.Border);
-        var contentPad = usePins ? 0 : pad * 2;
         if (usePins)
         {
             ImGui.BeginTable("##actions", 2, ImGuiTableFlags.PreciseWidths, new Vector2(szPin + szContent + pad, 0));
@@ -143,16 +138,17 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
             }
 
-            if (StartChild(e, out var remove))
+            var c = StartChild(e, out var remove);
+            if (c)
             {
                 ImGui.Dummy(new Vector2(1, 4) ); //pad
                 e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                 ImGui.Dummy(new Vector2(1, 4)); //pad
             }
-            EndChild(bordercol, szContent, contentPad);
+            EndChild(c);
             if (remove)
             {
-                Actions.RemoveAt(i);
+                tab.DeleteAction(this, i);
                 i--;
             }
 
@@ -185,17 +181,17 @@ public class NodeMissionTrigger : Node
 
         var maxItems = Math.Max(Conditions.Count, Actions.Count);
 
-        return (maxItems * iHeight * 1.75f) + iHeight * 7; //7 controls + 1.75x items
+        return (maxItems * iHeight * 1.85f) + iHeight * 7; //7 controls + 1.85x items
     }
 
-    public override bool OnContextMenu(PopupManager popups)
+    public override bool OnContextMenu(PopupManager popups, EditorUndoBuffer undoBuffer)
     {
         if (ImGui.MenuItem("Add Action"))
         {
             popups.OpenPopup(new NewActionPopup(action =>
             {
                 var node = NodeTriggerEntry.ActionToNode(action, null);
-                Actions.Add(node);
+                undoBuffer.Commit(new ListAdd<NodeTriggerEntry>("Action", Actions, node));
             }));
         }
 
@@ -204,7 +200,7 @@ public class NodeMissionTrigger : Node
             popups.OpenPopup(new NewConditionPopup(condition =>
             {
                 var node = NodeTriggerEntry.ConditionToNode(condition, null);
-                Conditions.Add(node);
+                undoBuffer.Commit(new ListAdd<NodeTriggerEntry>("Condition", Conditions, node));
             }));
         }
 

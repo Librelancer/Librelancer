@@ -129,6 +129,74 @@ partial class MissionScriptEditorTab
         }
     }
 
+    class DeleteActionAction(NodeMissionTrigger node, int index, MissionScriptEditorTab tab) : EditorAction
+    {
+        private List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)> savedLinks;
+        private NodeTriggerEntry action;
+        public override void Commit()
+        {
+            action = node.Actions[index];
+            savedLinks = tab.GetLinks(action);
+            node.Actions.RemoveAt(index);
+            foreach (var l in savedLinks)
+            {
+                NodePin.DeleteLink(l.LinkId);
+            }
+        }
+
+        public override void Undo()
+        {
+            node.Actions.Insert(index, action);
+            List<NodeLink> newLinks = new();
+            foreach (var l in savedLinks)
+            {
+                if(tab.TryLinkNodes(l.Start, l.End, l.LinkType, out var link))
+                    newLinks.Add(link);
+            }
+            foreach (var n in newLinks)
+            {
+                n.StartPin.OwnerNode.OnLinkCreated(n);
+                n.EndPin.OwnerNode.OnLinkCreated(n);
+            }
+        }
+
+        public override string ToString() => "Delete Action";
+    }
+
+    class DeleteConditionAction(NodeMissionTrigger node, int index, MissionScriptEditorTab tab) : EditorAction
+    {
+        private List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)> savedLinks;
+        private NodeTriggerEntry condition;
+        public override void Commit()
+        {
+            condition = node.Conditions[index];
+            savedLinks = tab.GetLinks(condition);
+            node.Conditions.RemoveAt(index);
+            foreach (var l in savedLinks)
+            {
+                NodePin.DeleteLink(l.LinkId);
+            }
+        }
+
+        public override void Undo()
+        {
+            node.Conditions.Insert(index, condition);
+            List<NodeLink> newLinks = new();
+            foreach (var l in savedLinks)
+            {
+                if(tab.TryLinkNodes(l.Start, l.End, l.LinkType, out var link))
+                    newLinks.Add(link);
+            }
+            foreach (var n in newLinks)
+            {
+                n.StartPin.OwnerNode.OnLinkCreated(n);
+                n.EndPin.OwnerNode.OnLinkCreated(n);
+            }
+        }
+
+        public override string ToString() => "Delete Condition";
+    }
+
     class DeleteNodeAction(NodeId id, Node node, MissionScriptEditorTab tab) : EditorAction
     {
         private List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)> savedLinks;

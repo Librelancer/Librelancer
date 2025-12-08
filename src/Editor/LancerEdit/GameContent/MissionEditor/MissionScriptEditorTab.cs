@@ -627,7 +627,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         ImGui.Separator();
-        if (!node.OnContextMenu(popup))
+        if (!node.OnContextMenu(popup, undoBuffer))
         {
             return;
         }
@@ -693,6 +693,16 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         return null;
+    }
+
+    public void DeleteCondition(NodeMissionTrigger trigger, int index)
+    {
+        undoBuffer.Commit(new DeleteConditionAction(trigger, index, this));
+    }
+
+    public void DeleteAction(NodeMissionTrigger trigger, int index)
+    {
+        undoBuffer.Commit(new DeleteActionAction(trigger, index, this));
     }
 
     public override void Dispose()
