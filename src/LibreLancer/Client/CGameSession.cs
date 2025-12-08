@@ -66,8 +66,6 @@ namespace LibreLancer.Client
 
         public bool Multiplayer => connection is GameNetClient;
         private bool paused = false;
-        private bool isDialogPlaying = false;
-        private Queue<NetDlgLine[]> dialogQueue = new Queue<NetDlgLine[]>();
 
         public uint WorldTick = 0;
 
@@ -1210,27 +1208,6 @@ namespace LibreLancer.Client
 
         void IClientPlayer.RunMissionDialog(NetDlgLine[] lines)
         {
-            //used to queue up multiple dialogs so they dont speak over each other
-            dialogQueue.Enqueue(lines);
-
-            
-            if (!isDialogPlaying)
-            {
-                ProcessNextDialog();
-            }
-        }
-
-        void ProcessNextDialog()
-        {
-            if (dialogQueue.Count == 0)
-            {
-                isDialogPlaying = false;
-                return;
-            }
-
-            var lines = dialogQueue.Dequeue();
-            isDialogPlaying = true;
-
             RunSync(() => { RunDialog(lines); });
         }
 
@@ -1275,13 +1252,7 @@ namespace LibreLancer.Client
 
         void RunDialog(NetDlgLine[] lines, int index = 0)
         {
-            if (index >= lines.Length)
-            {
-                // Dialog complete
-                isDialogPlaying = false;
-                ProcessNextDialog();
-                return;
-            }
+            if (index >= lines.Length) return;
             if (lines[index].TargetIsPlayer)
             {
                 var obj = gp.world.GetObject(new ObjNetId(lines[index].Source));
@@ -1296,8 +1267,6 @@ namespace LibreLancer.Client
                     rpcServer.LineSpoken(lines[index].Hash);
                     if (lines[index].TargetIsPlayer)
                         gp.ClearComm();
-
-                    // Next dialog
                     RunDialog(lines, index + 1);
                 });
             });

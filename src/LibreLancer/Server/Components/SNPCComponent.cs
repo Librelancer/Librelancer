@@ -304,7 +304,6 @@ namespace LibreLancer.Server.Components
 
             Vector3 dir = Vector3.Normalize(target - myPos);
 
-            // --- Generar un vector aleatorio ---
             Vector3 randomVec;
             do
             {
@@ -317,11 +316,9 @@ namespace LibreLancer.Server.Components
 
             randomVec = Vector3.Normalize(randomVec);
 
-            // Ángulo entre dir y randomVec
             float dot = Vector3.Dot(dir, randomVec);
             float currentAngle = MathF.Acos(dot);
 
-            // Si está fuera del cono, hacemos *lerp* hacia dir para ajustarlo
             if (currentAngle > cone)
             {
                 float t = cone / currentAngle;
