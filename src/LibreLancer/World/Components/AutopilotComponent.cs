@@ -68,7 +68,7 @@ namespace LibreLancer.World.Components
         {
             _targetObject = null;
             _targetPosition = vec;
-            _targetRadius = gotoRange;
+            _targetRadius = 5;
             _maxThrottle = maxThrottle;
             CurrentBehavior = AutopilotBehaviors.Goto;
             CanCruise = cruise;
