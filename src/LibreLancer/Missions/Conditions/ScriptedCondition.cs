@@ -231,7 +231,6 @@ public class Cnd_TLExited :
     public string StartRing = string.Empty;
     public string NextRing = string.Empty;
     public string Source = string.Empty;
-    public bool ValidateDirection = false;
 
     public Cnd_TLExited()
     {
@@ -245,22 +244,12 @@ public class Cnd_TLExited :
         {
             NextRing = entry[2].ToString();
         }
-        if (entry.Count > 3)
-        {
-            ValidateDirection = entry[3].ToString()?.Equals("validate", StringComparison.OrdinalIgnoreCase) ?? false;
-        }
     }
 
     protected override bool EventCheck(TLExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
     {
         if (!IdEqual(Source, ev.Ship) || !IdEqual(StartRing, ev.Ring))
             return false;
-
-        if (ValidateDirection && !string.IsNullOrEmpty(NextRing))
-        {
-            // Additional validation for direction if needed
-            return true;
-        }
 
         return true;
     }
@@ -272,11 +261,6 @@ public class Cnd_TLExited :
         if (!string.IsNullOrWhiteSpace(NextRing))
         {
             entries.Add(NextRing);
-        }
-
-        if (ValidateDirection)
-        {
-            entries.Add("validate");
         }
 
         section.Entry("Cnd_TLExited", entries.ToArray());
