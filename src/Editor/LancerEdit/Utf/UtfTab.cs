@@ -772,18 +772,6 @@ namespace LancerEdit
                 {
                     CollapseRecursive(Utf.Root);
                 }
-                ImGui.Separator();
-                
-                if (node == Utf.Root)
-                {
-                    
-                }
-                else
-                {
-                    
-                    
-                }
-
                 ImGui.EndPopup();
             }
         }
