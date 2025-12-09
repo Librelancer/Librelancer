@@ -176,7 +176,7 @@ namespace LancerEdit
             ImGui.Separator();
             //Tree
             ImGui.BeginChild("##scroll");
-            DoNode(Utf.Root, null);
+            DoNode(Utf.Root, null, isRoot: true);
             ImGui.EndChild();
 
             if (dropAction != null) {
@@ -864,104 +864,158 @@ namespace LancerEdit
             }
         }
 
-        unsafe void DoNode(LUtfNode node, LUtfNode parent)
+        unsafe void DoNode(LUtfNode node, LUtfNode parent, bool isRoot = false)
         {
             string id = ImGuiExt.IDWithExtra(node.Name, node.InterfaceID);
 
-            DropTarget(parent, node, id);
+            // Root has special drop behaviour — do NOT use normal parent/child DropTarget for root
+            if (!isRoot)
+                DropTarget(parent, node, id);
 
-            var empty = node.Data == null && node.Children == null;
-            var flags = (node == selectedNode ? ImGuiTreeNodeFlags.Selected : 0)
-                        | (node.Children == null ? (ImGuiTreeNodeFlags.Bullet | ImGuiTreeNodeFlags.Leaf) : 0)
-                        | tflags;
+            bool empty = node.Data == null && node.Children == null;
 
-            // Apply stored expand/ collapse state
-            if (nodeOpenState.TryGetValue(node, out bool open))
+            ImGuiTreeNodeFlags flags =
+                (node == selectedNode ? ImGuiTreeNodeFlags.Selected : 0) |
+                (node.Children == null ? (ImGuiTreeNodeFlags.Bullet | ImGuiTreeNodeFlags.Leaf) : 0) |
+                tflags;
+
+            // Apply pending expand/collapse request (one-frame only)
+            if (nodeOpenState.TryGetValue(node, out bool forcedOpen))
             {
-                ImGui.SetNextItemOpen(open, ImGuiCond.Always);
-                nodeOpenState.Remove(node);
-            } 
+                ImGui.SetNextItemOpen(forcedOpen, ImGuiCond.Always);
+                nodeOpenState.Remove(node); // consume command
+            }
 
+            // Render node
             if (empty)
                 ImGui.PushStyleColor(ImGuiCol.Text, Color4.Orange);
-            var isOpen = ImGui.TreeNodeEx(id, flags);
 
-            if (empty) {
+            bool isOpen = ImGui.TreeNodeEx(id, flags);
+
+            if (empty)
+            {
                 ImGui.PopStyleColor();
                 ImGui.SetItemTooltip("Node is empty and cannot be saved. Add data or children");
             }
+
+            // Selection
             if (ImGui.IsItemClicked(0))
-            {
                 selectedNode = node;
-            }
 
-            if (ImGui.BeginDragDropTarget())
+            // Drag-drop handling
+            // ROOT: cannot be dragged; children can be dropped ONTO root
+            if (isRoot)
             {
-                ImGuiPayloadPtr ptr;
-                //0: into
-                //1: insert after
-                if (AcceptDragDropPayload("_UTFNODE", ImGuiDragDropFlags.None, out ptr))
+                HandleRootDropTarget(id);
+            }
+            else
+            {
+                // --- Normal drop target (node accepts children) ---
+                if (ImGui.BeginDragDropTarget())
                 {
-                    var (sourceTab, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
-                    if (DragDropAllowed(sourceNode, node))
+                    ImGuiPayloadPtr ptr;
+
+                    // Accept move-into
+                    if (AcceptDragDropPayload("_UTFNODE", ImGuiDragDropFlags.None, out ptr))
                     {
-                        var act = () =>
+                        var (sourceTab, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
+
+                        if (DragDropAllowed(sourceNode, node))
                         {
-                            sourceNode.Parent.Children.Remove(sourceNode);
-                            sourceNode.Parent = node;
-                            node.Data = null;
-                            node.Children ??= new List<LUtfNode>();
-                            node.Children.Insert(0, sourceNode);
-                            sourceTab.selectedNode = null;
-                        };
-                        if (node.Data != null)
-                            Confirm("Adding children will delete this node's data. Continue?", () =>
-                                dropAction = act);
-                        else
-                            dropAction = act;
+                            Action act = () =>
+                            {
+                                sourceNode.Parent.Children.Remove(sourceNode);
+                                sourceNode.Parent = node;
+
+                                node.Data = null;
+                                node.Children ??= new List<LUtfNode>();
+                                node.Children.Insert(0, sourceNode);
+
+                                sourceTab.selectedNode = null;
+                            };
+
+                            if (node.Data != null)
+                                Confirm("Adding children will delete this node's data. Continue?",
+                                    () => dropAction = act);
+                            else
+                                dropAction = act;
+                        }
                     }
+
+                    // Previews for invalid move
+                    if (AcceptDragDropPayload("_UTFNODE",
+                            ImGuiDragDropFlags.AcceptBeforeDelivery | ImGuiDragDropFlags.AcceptNoPreviewTooltip,
+                            out ptr))
+                    {
+                        var (_, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
+
+                        if (!DragDropAllowed(sourceNode, node))
+                        {
+                            ImGui.SetTooltip("Can't move parent into child");
+                            ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
+                        }
+                    }
+
+                    ImGui.EndDragDropTarget();
                 }
 
-                if (AcceptDragDropPayload("_UTFNODE",
-                        ImGuiDragDropFlags.AcceptBeforeDelivery | ImGuiDragDropFlags.AcceptNoPreviewTooltip,
-                        out ptr))
+                // --- Drag source (root cannot be dragged) ---
+                if (ImGui.BeginDragDropSource())
                 {
-                    var (_, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
-                    if (!DragDropAllowed(sourceNode, node))
-                    {
-                        ImGui.SetTooltip("Can't move parent into child");
-                        ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
-                    }
+                    var path = GetDragDropPath(node);
+                    fixed (int* buffer = &path.GetPinnableReference())
+                        ImGui.SetDragDropPayload("_UTFNODE", (IntPtr)buffer, (IntPtr)(path.Length * sizeof(int)));
+
+                    ImGui.Text(node.Name);
+                    ImGui.EndDragDropSource();
                 }
-                ImGui.EndDragDropTarget();
             }
-            if (ImGui.BeginDragDropSource())
-            {
-                var path = GetDragDropPath(node);
-                fixed(int* buffer = &path.GetPinnableReference())
-                    ImGui.SetDragDropPayload("_UTFNODE", (IntPtr)buffer, (IntPtr)(path.Length * sizeof(int)));
-                ImGui.Text(node.Name);
-                ImGui.EndDragDropSource();
-            }
+
             if (node.ResolvedName != null)
             {
                 ImGui.SameLine();
                 ImGui.TextDisabled("(" + ImGuiExt.IDSafe(node.ResolvedName) + ")");
             }
+
+            // Context menu
             ImGui.PushID(id);
             DoNodeMenu(id, node, parent);
             ImGui.PopID();
-            if (node.Children != null && isOpen)
+
+            if (isOpen && node.Children != null)
             {
-                for (int i = 0; i < node.Children.Count; i++)
-                {
-                    DoNode(node.Children[i], node);
-                }
-                DropTarget(node, null, id);
+                foreach (var child in node.Children)
+                    DoNode(child, node);
+
+                if (!isRoot)
+                    DropTarget(node, null, id);
             }
+
             if (isOpen)
                 ImGui.TreePop();
         }
+        unsafe void HandleRootDropTarget(string id)
+        {
+            if (ImGui.BeginDragDropTarget())
+            {
+                if (AcceptDragDropPayload("_UTFNODE", ImGuiDragDropFlags.None, out var ptr))
+                {
+                    var (sourceTab, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
+
+                    // Convert into a root-level node
+                    dropAction = () =>
+                    {
+                        sourceNode.Parent.Children.Remove(sourceNode);
+                        sourceNode.Parent = Utf.Root;
+                        Utf.Root.Children.Insert(0, sourceNode);
+
+                        sourceTab.selectedNode = null;
+                    };
+                }
+                ImGui.EndDragDropTarget();
+            }
+        }
+
         void ExpandRecursive(LUtfNode node)
         {
             nodeOpenState[node] = true;
