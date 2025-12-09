@@ -754,14 +754,6 @@ namespace LancerEdit
                 }
                 ImGui.Separator();
 
-                if (Theme.IconMenuItem(Icons.ArrowDown, "Expand Node", true))
-                {
-                    nodeOpenState[node] = true;
-                }
-                if (Theme.IconMenuItem(Icons.ArrowUp, "Collapse Node", true))
-                {
-                    nodeOpenState[node] = false;
-                }
                 if (Theme.IconMenuItem('\uf065', "Expand Children", node.Children is { Count: > 1 }))
                 {
                     nodeOpenState[node] = true;
