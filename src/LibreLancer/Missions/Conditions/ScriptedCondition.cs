@@ -247,7 +247,12 @@ public class Cnd_TLExited :
     }
 
     protected override bool EventCheck(TLExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(Source, ev.Ship) && IdEqual(StartRing, ev.Ring);
+    {
+        if (!IdEqual(Source, ev.Ship) || !IdEqual(StartRing, ev.Ring))
+            return false;
+
+        return true;
+    }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -304,6 +309,7 @@ public class Cnd_TLEntered :
 public class Cnd_Timer : ScriptedCondition
 {
     public float Seconds;
+    public bool Completed = false;
 
     public Cnd_Timer()
     {
@@ -324,6 +330,7 @@ public class Cnd_Timer : ScriptedCondition
         section.Entry("Cnd_Timer", Seconds);
     }
 }
+
 
 public class Cnd_TetherBroke : ScriptedCondition
 {
@@ -729,7 +736,7 @@ public class Cnd_MsnResponse :
     }
 }
 
-public class Cnd_LootAcquired : ScriptedCondition
+public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
 {
     public string target = string.Empty;
     public string sourceShip = string.Empty;
@@ -743,6 +750,9 @@ public class Cnd_LootAcquired : ScriptedCondition
         target = entry[0].ToString();
         sourceShip = entry[1].ToString();
     }
+
+    protected override bool EventCheck(LootAcquiredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(target, ev.LootNickname) && IdEqual(sourceShip, ev.AcquirerShip);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {

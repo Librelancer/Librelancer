@@ -370,7 +370,8 @@ namespace LibreLancer.Missions.Actions
                         pos = obj.WorldTransform.Transform(lootDef.RelPosOffset);
                     }
                 }
-                world.SpawnLoot(arch.LootAppearance, arch, lootDef.EquipAmount, new Transform3D(pos, Quaternion.Identity));
+                world.SpawnLoot(arch.LootAppearance, arch, lootDef.EquipAmount, new Transform3D(pos, Quaternion.Identity), Loot);
+                FLLog.Info("Mission", $"Spawned loot {Loot} at {pos}");
             });
         }
 

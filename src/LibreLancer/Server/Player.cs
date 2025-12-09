@@ -1046,6 +1046,7 @@ namespace LibreLancer.Server
                     {
                         rpcClient.UndockFrom(undockFrom, undockIndex);
                         sd!.UndockShip(pship, undockIndex);
+
                     }
                     HandleSpaceEntry();
                 });
