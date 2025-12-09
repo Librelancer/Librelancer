@@ -50,6 +50,7 @@ public struct NodeBuilder : IDisposable
     public NodeStage CurrentStage;
 
     public NodePopups Popups;
+    public bool Clipped;
 
 
     public static NodeBuilder Begin(NodeId id, NodeSuspendState suspend)
@@ -65,6 +66,14 @@ public struct NodeBuilder : IDisposable
 
         bp.Popups = NodePopups.Begin(id, suspend);
         bp.SetStage(NodeStage.Begin);
+
+        var pos = NodeEditor.GetNodePosition(id);
+        var min = NodeEditor.CanvasToScreen(pos);
+        var max = NodeEditor.CanvasToScreen(pos + new Vector2(800, 1000));
+        var io = ImGui.GetIO();
+        var rect = new RectangleF(min.X, min.Y, max.X - min.X, max.Y - min.Y);
+        var screen = new RectangleF(0, 0, io.DisplaySize.X, io.DisplaySize.Y);
+        bp.Clipped = !screen.Intersects(rect);
         return bp;
     }
 

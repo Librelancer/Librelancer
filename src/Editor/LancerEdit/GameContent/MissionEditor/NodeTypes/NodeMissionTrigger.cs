@@ -66,7 +66,18 @@ public class NodeMissionTrigger : Node
         ImGui.EndGroup();
     }
 
-    void RenderConditions(bool usePins, float szPin, float szContent, float pad,
+    float[] cachedHeightsCond;
+    private float[] cachedHeightsAct;
+
+    static float GetHeight(float[] cache, float fh, int index)
+    {
+        if (cache == null || index >= cache.Length ||
+            cache[index] < float.Epsilon)
+            return fh;
+        return cache[index];
+    }
+
+    void RenderConditions(bool clipped, bool usePins, float szPin, float szContent, float pad,
         GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
@@ -76,6 +87,8 @@ public class NodeMissionTrigger : Node
             ImGui.TableSetupColumn("##pins", ImGuiTableColumnFlags.WidthFixed, szPin);
             ImGui.TableSetupColumn("##content", ImGuiTableColumnFlags.WidthFixed, szContent);
         }
+
+        var fh = ImGui.GetFrameHeightWithSpacing();
 
         for(var i = 0; i < Conditions.Count; i++)
         {
@@ -98,18 +111,30 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
             }
 
-            bool c = StartChild(e, out var remove);
-            if (c)
+            if (clipped)
             {
-                ImGui.Dummy(new Vector2(1, 4)); //pad
-                e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
-                ImGui.Dummy(new Vector2(1, 4)); //pad
+                ImGui.Dummy(new Vector2(1, GetHeight(cachedHeightsCond, fh, i)));
             }
-            EndChild(c);
-            if (remove)
+            else
             {
-                tab.DeleteCondition(this, i);
-                i--;
+                if (cachedHeightsCond == null ||
+                    cachedHeightsCond.Length != Conditions.Count)
+                    cachedHeightsCond = new float[Conditions.Count];
+                var sp = ImGui.GetCursorPosY();
+                bool c = StartChild(e, out var remove);
+                if (c)
+                {
+                    ImGui.Dummy(new Vector2(1, 4)); //pad
+                    e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
+                    ImGui.Dummy(new Vector2(1, 4)); //pad
+                }
+                EndChild(c);
+                if (remove)
+                {
+                    tab.DeleteCondition(this, i);
+                    i--;
+                }
+                cachedHeightsCond[i] = ImGui.GetCursorPosY() - sp;
             }
         }
 
@@ -119,10 +144,12 @@ public class NodeMissionTrigger : Node
         }
     }
 
-    void RenderActions(bool usePins, float szPin, float szContent, float pad,
+    void RenderActions(bool clipped, bool usePins, float szPin, float szContent, float pad,
         GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
+        var fh = ImGui.GetFrameHeightWithSpacing();
+
         if (usePins)
         {
             ImGui.BeginTable("##actions", 2, ImGuiTableFlags.PreciseWidths, new Vector2(szPin + szContent + pad, 0));
@@ -138,18 +165,30 @@ public class NodeMissionTrigger : Node
                 ImGui.TableNextColumn();
             }
 
-            var c = StartChild(e, out var remove);
-            if (c)
+            if (clipped)
             {
-                ImGui.Dummy(new Vector2(1, 4) ); //pad
-                e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
-                ImGui.Dummy(new Vector2(1, 4)); //pad
+                ImGui.Dummy(new Vector2(1, GetHeight(cachedHeightsAct, fh, i)));
             }
-            EndChild(c);
-            if (remove)
+            else
             {
-                tab.DeleteAction(this, i);
-                i--;
+                if (cachedHeightsAct == null ||
+                    cachedHeightsAct.Length != Actions.Count)
+                    cachedHeightsAct = new float[Actions.Count];
+                var sp = ImGui.GetCursorPosY();
+                var c = StartChild(e, out var remove);
+                if (c)
+                {
+                    ImGui.Dummy(new Vector2(1, 4) ); //pad
+                    e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
+                    ImGui.Dummy(new Vector2(1, 4)); //pad
+                }
+                EndChild(c);
+                if (remove)
+                {
+                    tab.DeleteAction(this, i);
+                    i--;
+                }
+                cachedHeightsAct[i] = ImGui.GetCursorPosY() - sp;
             }
 
             if (usePins)
@@ -251,20 +290,26 @@ public class NodeMissionTrigger : Node
         VectorIcons.Icon(iconSize, VectorIcon.Flow, false, Color4.Green);
         NodeEditor.EndPin();
 
-
-        ImGui.PushItemWidth(180);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("ID");
-        ImGui.SameLine();
-        ImGuiExt.InputTextLogged("##id", ref Data.Nickname, 255, (old, upd) =>
+        if (nb.Clipped)
         {
-            tab.OnRenameTrigger(this, old, upd);
-        }, true);
-        Controls.InputTextIdUndo("ID", undoBuffer, () => ref Data.Nickname);
-        nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
-        Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
-        nb.Popups.Combo("Initial State", undoBuffer, () => ref Data.InitState);
-        ImGui.PopItemWidth();
+            ImGui.Dummy(new(180, ImGui.GetFrameHeightWithSpacing() * 3 + ImGui.GetFrameHeight()));
+        }
+        else
+        {
+            ImGui.PushItemWidth(180);
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("ID");
+            ImGui.SameLine();
+            ImGuiExt.InputTextLogged("##id", ref Data.Nickname, 255, (old, upd) =>
+            {
+                tab.OnRenameTrigger(this, old, upd);
+            }, true);
+            nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
+            Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
+            nb.Popups.Combo("Initial State", undoBuffer, () => ref Data.InitState);
+            ImGui.PopItemWidth();
+        }
+
 
         // Draw conditions/actions
         ImGui.BeginTable("##trigger", 2, ImGuiTableFlags.PreciseWidths, new Vector2(szLeft + szRight + 8 * pad, 0));
@@ -273,9 +318,9 @@ public class NodeMissionTrigger : Node
         ImGui.TableHeadersRow();
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        RenderConditions(conditionPin, szPin, szContent, pad, gameData, popup, undoBuffer, ref nb.Popups, ref lookups);
+        RenderConditions(nb.Clipped, conditionPin, szPin, szContent, pad, gameData, popup, undoBuffer, ref nb.Popups, ref lookups);
         ImGui.TableNextColumn();
-        RenderActions(actionPin, szPin, szContent, pad, gameData, popup, undoBuffer, ref nb.Popups, ref lookups);
+        RenderActions(nb.Clipped ,actionPin, szPin, szContent, pad, gameData, popup, undoBuffer, ref nb.Popups, ref lookups);
         ImGui.EndTable();
         nb.Dispose();
 
