@@ -877,13 +877,14 @@ namespace LancerEdit
 
             // Apply stored expand/ collapse state
             if (nodeOpenState.TryGetValue(node, out bool open))
+            {
                 ImGui.SetNextItemOpen(open, ImGuiCond.Always);
+                nodeOpenState.Remove(node);
+            } 
 
             if (empty)
                 ImGui.PushStyleColor(ImGuiCol.Text, Color4.Orange);
             var isOpen = ImGui.TreeNodeEx(id, flags);
-
-            nodeOpenState[node] = isOpen;
 
             if (empty) {
                 ImGui.PopStyleColor();

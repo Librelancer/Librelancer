@@ -65,8 +65,8 @@ public static class Icons
     public const char Newspaper = '\uf1ea';
     public const char SquarePlus = '\uf0fe';
     public const char SquareMinus = '\uf146';
-    public const char SquareCorners = '\uf146';
-    public const char SquareCornersInverted = '\uf146';
+    public const char SquareCorners = '\uf065';
+    public const char SquareCornersInverted = '\uf066';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
