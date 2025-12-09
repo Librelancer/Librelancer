@@ -754,13 +754,13 @@ namespace LancerEdit
                 }
                 ImGui.Separator();
 
-                if (Theme.IconMenuItem('\uf065', "Expand Children", node.Children is { Count: > 1 }))
+                if (Theme.IconMenuItem(Icons.SquareCorners, "Expand Children", node.Children is { Count: > 1 }))
                 {
                     nodeOpenState[node] = true;
                     foreach (var c in node.Children)
                         nodeOpenState[c] = true;
                 }
-                if (Theme.IconMenuItem('\uf066', "Collapse Children", node.Children is { Count: > 1 }))
+                if (Theme.IconMenuItem(Icons.SquareCornersInverted, "Collapse Children", node.Children is { Count: > 1 }))
                 {
                     foreach (var c in node.Children)
                         nodeOpenState[c] = false;
