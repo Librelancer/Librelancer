@@ -56,22 +56,6 @@ namespace LibreLancer.Server
         //State
         public NetCharacter Character;
 
-        private const string SAVE_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
-
-        static string Encode(long number)
-        {
-            if (number < 0)
-                throw new ArgumentException();
-            var builder = new StringBuilder();
-            var divisor = (long)SAVE_ALPHABET.Length;
-            while (number > 0)
-            {
-                number = Math.DivRem(number, divisor, out var rem);
-                builder.Append(SAVE_ALPHABET[(int)rem]);
-            }
-
-            return new string(builder.ToString().Reverse().ToArray());
-        }
         public MPlayer MPlayer;
         public DateTime StartTime;
         public string Name = "Player";
@@ -874,7 +858,25 @@ namespace LibreLancer.Server
                 a();
         }
 
-        public Task SaveSP(string description, int ids, DateTime? timeStamp)
+        private const string SAVE_ALPHABET = "23456789bcdfghjlmnpqrstvwxyz";
+
+        static string EncodeTime(long number)
+        {
+            if (number < 0)
+                throw new ArgumentException();
+            var builder = new StringBuilder();
+            var divisor = (long)SAVE_ALPHABET.Length;
+            while (number > 0)
+            {
+                number = Math.DivRem(number, divisor, out var rem);
+                builder.Append(SAVE_ALPHABET[(int)rem]);
+            }
+
+            return new string(builder.ToString().Reverse().ToArray().AsSpan(
+                builder.Length - 4, 4));
+        }
+
+        public Task SaveSP(string description, int ids, bool isAutoSave, DateTime? timeStamp)
         {
             var completionSource = new TaskCompletionSource();
             saveActions.Enqueue(() =>
@@ -893,14 +895,23 @@ namespace LibreLancer.Server
                     sg = SaveWriter.CreateSave(Character, description, ids, timeStamp, Game.GameData, thns.Rtcs,
                         thns.Ambients, Story);
                 }
+
+                string path;
                 MissionRuntime?.WriteActiveTriggers(sg);
-                var filename = $"Save0{Encode(DateTimeOffset.Now.ToUnixTimeSeconds())}.fl";
-                var path = Path.Combine(SaveFolder, filename);
-                int i = 0;
-                while (File.Exists(path))
+                if (isAutoSave)
                 {
-                    filename = $"Save0{Encode(DateTimeOffset.Now.ToUnixTimeSeconds())}{i++}.fl";
+                    path = Path.Combine(SaveFolder, "AutoSave.fl");
+                }
+                else
+                {
+                    var filename = $"Save0{EncodeTime(DateTimeOffset.Now.ToUnixTimeSeconds())}.fl";
                     path = Path.Combine(SaveFolder, filename);
+                    int i = 0;
+                    while (File.Exists(path))
+                    {
+                        filename = $"Save0{EncodeTime(DateTimeOffset.Now.ToUnixTimeSeconds())}{i++}.fl";
+                        path = Path.Combine(SaveFolder, filename);
+                    }
                 }
                 IniWriter.WriteIniFile(path, sg.ToIni());
                 completionSource.SetResult();
@@ -1017,9 +1028,11 @@ namespace LibreLancer.Server
                 {
                     GameObject undockFrom = world.GameWorld.GetObject(obj.Nickname);
                     SDockableComponent sd = null;
+                    int undockIndex = 0;
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {
-                        var tr = sd.GetSpawnPoint(0);
+                        undockIndex = sd.GetUndockIndex();
+                        var tr = sd.GetSpawnPoint(undockIndex);
                         Position = tr.Position;
                         Orientation = tr.Orientation;
                     }
@@ -1031,8 +1044,9 @@ namespace LibreLancer.Server
                     var pship = world.SpawnPlayer(this, Position, Orientation);
                     if (undockFrom != null)
                     {
-                        rpcClient.UndockFrom(undockFrom);
-                        sd!.UndockShip(pship);
+                        rpcClient.UndockFrom(undockFrom, undockIndex);
+                        sd!.UndockShip(pship, undockIndex);
+
                     }
                     HandleSpaceEntry();
                 });

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using ImGuiNET;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
@@ -20,11 +21,15 @@ public sealed class ActSpawnFormation : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Formation", Data.Formation, s => Data.Formation = s, lookups.Formations);
-        Controls.InputVec3Nullable("Position", ref Data.Position);
+        nodePopups.StringCombo("Formation", undoBuffer, () => ref Data.Formation, lookups.Formations);
+        Controls.InputOptionalVector3Undo("Position", undoBuffer, () => ref Data.Position);
+        ImGui.BeginDisabled(!Data.Position.Present);
+        Controls.InputOptionalQuaternionUndo("Orientation", undoBuffer, () => ref Data.Orientation);
+        ImGui.EndDisabled();
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

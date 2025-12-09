@@ -132,7 +132,7 @@ namespace LibreLancer.Missions
 
             foreach (var ol in ini.ObjLists)
             {
-                Set(ObjLists, ol.Nickname, new ScriptAiCommands(ol.Nickname, ol));
+                Set(ObjLists, ol.Nickname, new ScriptAiCommands(ol));
             }
 
             foreach (var dlg in ini.Dialogs)
@@ -172,12 +172,20 @@ namespace LibreLancer.Missions
     public class ScriptAiCommands
     {
         public string Nickname;
-        public readonly MissionDirective[] Directives;
+        public string System = "";
+        public readonly List<MissionDirective> Directives;
 
-        public ScriptAiCommands(string nickname, ObjList ini)
+        public ScriptAiCommands(ObjList ini)
         {
-            this.Nickname = nickname;
-            Directives = ini.Commands.Select(MissionDirective.Convert).ToArray();
+            Nickname = ini.Nickname;
+            System = ini.System;
+            Directives = ini.Commands.Select(MissionDirective.Convert).ToList();
+        }
+
+        public ScriptAiCommands(string nickname)
+        {
+            Nickname = nickname;
+            Directives = new();
         }
     }
 

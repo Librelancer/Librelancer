@@ -23,16 +23,17 @@ public sealed class ActSetRep : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
 
-        Controls.InputTextId("Object", ref Data.Object);
-        nodePopups.StringCombo("Faction", Data.Faction, s => Data.Faction = s, gameData.FactionsByName);
-        nodePopups.Combo("Vibe", Data.VibeSet, x => Data.VibeSet = x);
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref Data.Object);
+        nodePopups.StringCombo("Faction", undoBuffer, () => ref Data.Faction, gameData.FactionsByName);
+        nodePopups.Combo("Vibe", undoBuffer, () => ref Data.VibeSet);
 
         ImGui.BeginDisabled(Data.VibeSet != VibeSet.None);
-        ImGui.SliderFloat("Value", ref Data.NewValue, -1, 1, "%.2f");
+        Controls.SliderFloatUndo("Value", undoBuffer, () => ref Data.NewValue, -1, 1, "%.2f");
         ImGui.EndDisabled();
     }
 

@@ -29,8 +29,8 @@ namespace LibreLancer.Data.Missions
         public float Radius;
         [Entry("jumper")]
         public bool Jumper;
-        [Entry("arrival_obj")]
-        public string ArrivalObj;
+
+        public ArrivalObj ArrivalObj = new("", 0);
         [Entry("init_objectives")]
         public string InitObjectives;
         public List<MissionShipCargo> Cargo = new List<MissionShipCargo>();
@@ -41,6 +41,16 @@ namespace LibreLancer.Data.Missions
             Cargo = e[0].ToString(),
             Count = e[1].ToInt32()
         });
+
+        [EntryHandler("arrival_obj", MinComponents = 1)]
+        private void ParseArrivalObj(Entry e)
+        {
+            int index = 0;
+            if (e.Count > 1)
+                index = e[1].ToInt32();
+            ArrivalObj = new(e[0].ToString(), index);
+        }
+
 
         public MissionShipRelativePosition RelativePosition = new();
 
@@ -65,5 +75,11 @@ namespace LibreLancer.Data.Missions
     {
         public string Cargo;
         public int Count;
+    }
+
+    public struct ArrivalObj(string obj, int index)
+    {
+        public string Object = obj;
+        public int Index = index;
     }
 }

@@ -457,6 +457,7 @@ World Time: {12:F2}
 
 
         private int frameCount = 0;
+
         [WattleScriptUserData]
         public class LuaAPI
         {
@@ -713,7 +714,7 @@ World Time: {12:F2}
                 var dict = new LuaCompatibleDictionary();
                 dict.Set("FreeFlight", true);
                 dict.Set("Goto", g.Selection.Selected != null);
-                dict.Set("Dock", g.Selection.Selected?.GetComponent<CDockComponent>() != null);
+                dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null);
                 dict.Set("Formation", g.Selection.Selected != null && g.Selection.Selected.Kind == GameObjectKind.Ship);
                 return dict;
             }
@@ -742,6 +743,7 @@ World Time: {12:F2}
 
         private void BehaviorChanged(AutopilotBehaviors newBehavior, AutopilotBehaviors oldBehavior)
         {
+            FLLog.Debug("Player", $"Behavior swap new: {newBehavior} old: {oldBehavior}");
             uiApi.SetManeuver(newBehavior switch
             {
                 AutopilotBehaviors.Dock => "Dock",
@@ -821,17 +823,17 @@ World Time: {12:F2}
 					return true;
 				case "Dock":
 					if (Selection.Selected == null) return false;
-					CDockComponent d;
-					if ((d = Selection.Selected.GetComponent<CDockComponent>()) != null)
-					{
-                        pilotcomponent.StartDock(Selection.Selected);
+					DockInfoComponent d;
+					if ((d = Selection.Selected.GetComponent<DockInfoComponent>()) != null)
+                    {
+                        pilotcomponent.StartDock(Selection.Selected, GotoKind.Goto);
                         session.SpaceRpc.RequestDock(Selection.Selected);
 						return true;
 					}
 					return false;
 				case "Goto":
 					if (Selection.Selected == null) return false;
-                    pilotcomponent.GotoObject(Selection.Selected);
+                    pilotcomponent.GotoObject(Selection.Selected, GotoKind.Goto);
 					return true;
                 case "Formation":
                     session.SpaceRpc.EnterFormation(Selection.Selected.NetID);
@@ -1576,6 +1578,7 @@ World Time: {12:F2}
                 ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
                 ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
                 ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
+                ImGui.Text($"Storyline: {session.EmbedddedServer.Server.LocalPlayer.Story?.CurrentStory?.Nickname}");
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

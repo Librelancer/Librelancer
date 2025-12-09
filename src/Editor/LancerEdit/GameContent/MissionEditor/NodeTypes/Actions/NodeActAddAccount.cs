@@ -20,10 +20,11 @@ public sealed class ActAdjustAccount : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.InputInt("Amount", ref Data.Amount);
+        Controls.InputIntUndo("Amount", undoBuffer, () => ref Data.Amount);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -20,13 +20,14 @@ public class CndDestroyed : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Target", Data.label, s => Data.label = s, lookups.ShipsAndLabels);
+        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.label, lookups.ShipsAndLabels);
 
-        ImGui.InputInt("Count", ref Data.Count);
-        nodePopups.Combo("Kind", Data.Kind, x => Data.Kind = x);
+        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count);
+        nodePopups.Combo("Kind", undoBuffer, () => ref Data.Kind);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

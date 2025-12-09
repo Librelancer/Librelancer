@@ -19,12 +19,13 @@ public sealed class ActPopupDialog : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Sound Id", ref Data.ID);
-        Controls.IdsInputString("Title IDS", gameData, popup, ref Data.Title, (ids) => Data.Title = ids);
-        Controls.IdsInputString("Contents IDS", gameData, popup, ref Data.Contents, (ids) => Data.Title = ids);
+        Controls.InputTextIdUndo("Sound Id", undoBuffer, () => ref Data.ID);
+        Controls.IdsInputStringUndo("Title IDS", gameData, popup, undoBuffer, () => ref Data.Title);
+        Controls.IdsInputStringUndo("Contents IDS", gameData, popup, undoBuffer, () => ref Data.Contents);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

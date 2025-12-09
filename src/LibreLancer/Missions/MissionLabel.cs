@@ -17,7 +17,7 @@ public class MissionLabel
 
     public IEnumerable<string> Objects => states.Keys;
 
-    public bool IsAllKilled() => states.Values.All(x => x == NpcState.Dead);
+    public bool IsAllKilled() => states.Values.Where(x => x != NpcState.NotSpawned).All(x => x == NpcState.Dead);
 
     public bool AnyAlive() => states.Values.All(x => x == NpcState.Alive);
 

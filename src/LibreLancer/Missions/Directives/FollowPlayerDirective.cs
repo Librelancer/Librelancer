@@ -8,7 +8,9 @@ namespace LibreLancer.Missions.Directives;
 
 public class FollowPlayerDirective : MissionDirective
 {
-    public string Formation;
+    public override ObjListCommands Command => ObjListCommands.FollowPlayer;
+
+    public string Formation = "fighter_basic";
     public List<string> Ships = new();
 
     public FollowPlayerDirective()

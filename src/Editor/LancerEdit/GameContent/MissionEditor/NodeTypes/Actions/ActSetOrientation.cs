@@ -19,11 +19,12 @@ public sealed class ActSetOrientation : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextId("Target", ref Data.Target);
-        Controls.InputFlQuaternion("Target", ref Data.Orientation);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
+        Controls.InputQuaternionUndo("Target", undoBuffer, () => ref Data.Orientation);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

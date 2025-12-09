@@ -1,7 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 
@@ -9,7 +8,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public class CommentNode : Node
 {
-    public Vector2 Size = new(100, 100);
+    public Vector2 Size { get; private set; } = new(100, 100);
     private string previousName;
 
     static (Vector2 min, Vector2 max) Expand(Vector2 min, Vector2 max, float x, float y)
@@ -20,17 +19,34 @@ public class CommentNode : Node
 
     public override string Name => BlockName;
 
-    public string BlockName { get; set; } = "Comment Node";
+    public string BlockName = "Comment Node";
 
-    public override void Render(GameDataContext gameData, PopupManager popup, ref NodeLookups lookups)
+    private Vector2? groupSize;
+    public void SetGroupSize(Vector2 size)
+    {
+        Size = size;
+        groupSize = size;
+    }
+
+    private NodeSuspendState suspend = new();
+
+    public override void Render(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodeLookups lookups)
     {
         const float CommentAlpha = 0.75f;
 
         bool openRename = false;
 
+        if (groupSize != null)
+        {
+            NodeEditor.SetGroupSize(Id, groupSize.Value);
+            groupSize = null;
+        }
+
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, CommentAlpha);
         NodeEditor.PushStyleColor(StyleColor.NodeBg, new Color4(255, 255, 255, 64));
         NodeEditor.PushStyleColor(StyleColor.NodeBorder, new Color4(255, 255, 255, 64));
+
         NodeEditor.BeginNode(Id);
         ImGui.PushID(Id);
         ImGui.Text(Name);
@@ -73,6 +89,12 @@ public class CommentNode : Node
         }
         NodeEditor.EndGroupHint();
 
+        if(openRename)
+            suspend.FlagSuspend();
+
+        if (!suspend.ShouldSuspend())
+            return;
+
         //Deferred popup
         NodeEditor.Suspend();
         ImGui.PushID(Id);
@@ -83,6 +105,7 @@ public class CommentNode : Node
         }
         bool o = true; //default param
         if (ImGui.BeginPopupModal("Rename", ref o, ImGuiWindowFlags.AlwaysAutoResize)) {
+            suspend.FlagSuspend();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Name: ");
             ImGui.SameLine();
@@ -93,6 +116,7 @@ public class CommentNode : Node
             BlockName = n;
             if (ImGui.Button("Ok"))
             {
+                undoBuffer.Set("Comment", () => ref BlockName, previousName, BlockName);
                 ImGui.CloseCurrentPopup();
             }
             ImGui.SameLine();

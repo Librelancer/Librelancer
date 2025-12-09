@@ -7,7 +7,9 @@ namespace LibreLancer.Missions.Directives;
 
 public class FollowDirective : MissionDirective
 {
-    public string Target;
+    public override ObjListCommands Command => ObjListCommands.Follow;
+
+    public string Target = "";
     public float Range0;
     public Vector3 Offset;
     public float Range1;

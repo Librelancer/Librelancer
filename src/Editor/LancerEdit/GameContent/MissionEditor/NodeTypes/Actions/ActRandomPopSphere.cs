@@ -20,12 +20,13 @@ public sealed class ActRandomPopSphere : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.InputFloat3("Position", ref Data.Position);
-        ImGui.InputFloat("Radius", ref Data.Radius);
-        ImGui.Checkbox("Enable", ref Data.On);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref Data.Position);
+        Controls.InputFloatUndo("Radius", undoBuffer, () => ref Data.Radius);
+        Controls.CheckboxUndo("Enable", undoBuffer, () => ref Data.On);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

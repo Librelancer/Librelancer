@@ -22,22 +22,22 @@ public static class MissionEditorHelpers
         }
     }
 
-    public static void AddRemoveListButtons<T>(List<T> list) where T : new()
+    public static void AddRemoveListButtons<T>(List<T> list, EditorUndoBuffer buffer) where T : new()
     {
-        AddRemoveListButtonsInternal(list, () => new T());
+        AddRemoveListButtonsInternal(list, buffer, () => new T());
     }
 
-    public static void AddRemoveListButtons(List<string> list)
+    public static void AddRemoveListButtons(List<string> list, EditorUndoBuffer buffer)
     {
-        AddRemoveListButtonsInternal(list, () => string.Empty);
+        AddRemoveListButtonsInternal(list, buffer, () => string.Empty);
     }
 
-    private static void AddRemoveListButtonsInternal<T>(IList<T> list, Func<T> defaultValue)
+    private static void AddRemoveListButtonsInternal<T>(List<T> list, EditorUndoBuffer buffer, Func<T> defaultValue)
     {
         ImGui.PushID(list.Count);
         if (ImGui.Button(Icons.PlusCircle + "##Plus"))
         {
-            list.Add(defaultValue());
+            buffer.Commit(new ListAdd<T>("Item", list, defaultValue()));
             ImGui.PopID();
             return;
         }
@@ -46,7 +46,7 @@ public static class MissionEditorHelpers
         ImGui.BeginDisabled(list.Count is 0);
         if (ImGui.Button(Icons.X + "##Cross"))
         {
-            list.RemoveAt(list.Count - 1);
+            buffer.Commit(new ListRemove<T>("Item", list, list.Count - 1, list[^1]));
         }
 
         ImGui.EndDisabled();

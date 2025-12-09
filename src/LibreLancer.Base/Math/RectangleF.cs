@@ -20,7 +20,7 @@ namespace LibreLancer
 			Width = w;
 			Height = h;
 		}
-        
+
         public bool Contains(float x, float y)
         {
             return (
@@ -29,6 +29,14 @@ namespace LibreLancer
                 y >= Y &&
                 y <= (Y + Height)
             );
+        }
+
+        public bool Intersects(RectangleF other)
+        {
+            return (other.X < (X + Width) &&
+                    X < (other.X + other.Width) &&
+                    other.Y < (Y + Height) &&
+                    Y < (other.Y + other.Height));
         }
 
         public static explicit operator Rectangle(RectangleF src) => new Rectangle((int)src.X, (int)src.Y, (int)src.Width, (int)src.Height);

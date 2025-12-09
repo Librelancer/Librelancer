@@ -19,11 +19,12 @@ public class CndInTradeLane : NodeTriggerEntry
 
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("In Trade Lane", ref Data.inTL);
-        nodePopups.StringCombo("Ship", Data.Ship, s => Data.Ship = s, lookups.Ships);
+        Controls.CheckboxUndo("In Trade Lane", undoBuffer, () => ref Data.inTL);
+        nodePopups.StringCombo("Ship", undoBuffer, () => ref Data.Ship, lookups.Ships);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

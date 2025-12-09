@@ -22,13 +22,7 @@ using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
-    public struct OptionalArgument<T>
-    {
-        public bool Present;
-        public T Value;
-        public static explicit operator OptionalArgument<T>(T val) => new () { Value = val, Present = true };
-        public T Get(T defaultVal) => Present ? Value : defaultVal;
-    }
+
     public class GameWorld : IDisposable
     {
         public PhysicsWorld Physics;
@@ -103,11 +97,10 @@ namespace LibreLancer.World
                     {
                         g.AddComponent(new SDockableComponent(g, obj.Dock, arch.DockSpheres.ToArray()));
                     }
-                    g.AddComponent(new CDockComponent(g)
+                    g.AddComponent(new DockInfoComponent(g)
                     {
                         Action = obj.Dock,
-                        DockHardpoint = arch.DockSpheres[0].Hardpoint,
-                        TriggerRadius = arch.DockSpheres[0].Radius
+                        Spheres = arch.DockSpheres.ToArray()
                     });
                 }
             }

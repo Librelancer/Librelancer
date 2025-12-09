@@ -21,12 +21,13 @@ public sealed class ActSetVibeLabel : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ActSetVibe.VibeComboBox(ref Data.Vibe, nodePopups);
-        nodePopups.StringCombo("Label 1", Data.Label1, s => Data.Label1 = s, lookups.Labels);
-        nodePopups.StringCombo("Label 2", Data.Label2, s => Data.Label2 = s, lookups.Labels);
+        nodePopups.Combo("Vibe", undoBuffer, () => ref Data.Vibe);
+        nodePopups.StringCombo("Label 1", undoBuffer, () => ref Data.Label1, lookups.Labels);
+        nodePopups.StringCombo("Label 2", undoBuffer, () => ref Data.Label2, lookups.Labels);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

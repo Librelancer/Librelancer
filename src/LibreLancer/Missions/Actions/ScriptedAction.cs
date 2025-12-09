@@ -758,7 +758,7 @@ namespace LibreLancer.Missions.Actions
                     FLLog.Error("Mission", $"Could not find objlist {List}");
                     return;
                 }
-                ol = script.ObjLists[List].Directives;
+                ol = script.ObjLists[List].Directives.ToArray();
             }
 
             if (script.Formations.TryGetValue(Target, out var formation))

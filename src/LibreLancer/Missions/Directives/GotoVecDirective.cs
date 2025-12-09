@@ -8,6 +8,8 @@ namespace LibreLancer.Missions.Directives;
 
 public class GotoVecDirective : MissionDirective
 {
+    public override ObjListCommands Command => ObjListCommands.GotoVec;
+
     public Vector3 Target;
     public GotoKind CruiseKind;
     public float Range;
@@ -50,8 +52,8 @@ public class GotoVecDirective : MissionDirective
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         if (MaxThrottle != 0)
-            section.Entry(CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown, MaxThrottle);
+            section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown, MaxThrottle);
         else
-            section.Entry(CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown);
+            section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown);
     }
 }

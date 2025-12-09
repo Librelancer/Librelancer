@@ -24,9 +24,9 @@ public enum LinkType
     Action = 1 << 4,
 }
 
-public class NodeLink(NodePin startPin, NodePin endPin, VertexDiffuse? color = null)
+public class NodeLink(NodePin startPin, NodePin endPin, VertexDiffuse? color = null, LinkId? setId = null)
 {
-    public LinkId Id { get; } = NodeEditorId.Next();
+    public LinkId Id { get; } = setId ?? NodeEditorId.Next();
     public NodePin StartPin  { get; set; } = startPin;
     public NodePin EndPin  { get; set; } = endPin;
     public VertexDiffuse Color  { get; set; } = color ?? (VertexDiffuse)Color4.White;

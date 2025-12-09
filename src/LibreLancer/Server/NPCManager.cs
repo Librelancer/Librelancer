@@ -104,7 +104,7 @@ namespace LibreLancer.Server
                 jumper.Pilot,
                 pos,
                 orient,
-                null,
+                null, 0,
                 msn);
             msn.SystemEnter(World.System.Nickname, jumper.Nickname);
             return newObj;
@@ -123,6 +123,7 @@ namespace LibreLancer.Server
             Vector3 position,
             Quaternion orient,
             string arrivalObj,
+            int arrivalIndex,
             MissionRuntime msn = null
             )
         {
@@ -131,7 +132,9 @@ namespace LibreLancer.Server
             SDockableComponent sdock = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
-                var p = sdock.GetSpawnPoint(0);
+                if (arrivalIndex == 0)
+                    arrivalIndex = sdock.GetUndockIndex();
+                var p = sdock.GetSpawnPoint(arrivalIndex);
                 position = p.Position;
                 orient = p.Orientation;
             }
@@ -171,8 +174,8 @@ namespace LibreLancer.Server
             World.OnNPCSpawn(obj);
             if (sdock != null)
             {
-                sdock.UndockShip(obj);
-                obj.GetComponent<AutopilotComponent>().Undock(spawnPoint);
+                sdock.UndockShip(obj, arrivalIndex);
+                obj.GetComponent<AutopilotComponent>().Undock(spawnPoint, arrivalIndex);
             }
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;

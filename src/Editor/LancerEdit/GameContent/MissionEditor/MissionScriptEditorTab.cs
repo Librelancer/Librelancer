@@ -12,10 +12,13 @@ using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 using LancerEdit.GameContent.MissionEditor.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Missions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Query;
 using ImGui = ImGuiNET.ImGui;
 
@@ -30,18 +33,23 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     private readonly NodeEditorConfig config;
     private readonly NodeEditorContext context;
     private readonly List<Node> nodes;
-    private readonly List<NodeMissionTrigger> triggers = [];
     private int nextId;
     private NodeId contextNodeId = 0;
     private readonly Queue<(NodeId Id, Vector2 Pos)> nodeRelocationQueue = [];
 
     private readonly MissionIni missionIni;
+    private List<ScriptAiCommands> objLists;
     public string FileSaveLocation;
     public string NodeFilter = "";
+
+    EditorUndoBuffer undoBuffer = new();
+
+    private bool renderHistory = false;
 
     public MissionScriptEditorTab(GameDataContext gameData, MainWindow win, string file)
     {
         Title = $"Mission Script Editor - {Path.GetFileName(file)}";
+        DocumentName = Path.GetFileName(file);
         FileSaveLocation = file;
         this.gameData = gameData;
         this.win = win;
@@ -49,6 +57,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         config = new NodeEditorConfig();
         config.SettingsFile = null;
+        config.SetNodeDraggedHook(OnNodeDragged);
+        config.SetNodeResizedHook(OnNodeResized);
         context = new NodeEditorContext(config);
         SaveStrategy = new MissionSaveStrategy(win, this);
 
@@ -56,6 +66,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         nodes = [];
         missionIni = new MissionIni(file, null);
+        objLists = missionIni.ObjLists.Select(x => new ScriptAiCommands(x)).ToList();
 
         var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
         if (npcPath is not null)
@@ -73,7 +84,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         foreach (var t in missionIni.Triggers)
         {
-            var n = new NodeMissionTrigger(t);
+            var n = new NodeMissionTrigger(t, this);
             triggerNodes[t.Nickname] = n;
             nodes.Add(n);
             counts[n] = 0;
@@ -108,11 +119,11 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             }
             if (x.Input)
             {
-                TryLinkNodes(target, x.Source, LinkType.Trigger);
+                TryLinkNodes(target, x.Source, LinkType.Trigger, out _);
             }
             else
             {
-                TryLinkNodes(x.Source, target, LinkType.Trigger);
+                TryLinkNodes(x.Source, target, LinkType.Trigger, out _);
             }
             counts[target]++;
         }
@@ -121,6 +132,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         {
             AutoPositionNodes(triggerNodes, counts);
         }
+
+        SetupJumpList();
     }
 
     bool ReadSavedPositions(string file)
@@ -147,10 +160,14 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     var pos = new Vector2(nodePos[2].ToSingle(), nodePos[3].ToSingle());
                     var comment = new CommentNode()
                     {
-                        BlockName = name
+                        BlockName = CommentEscaping.Unescape(name)
                     };
                     nodes.Add(comment);
                     nodeRelocationQueue.Enqueue((comment.Id, pos));
+                    if (nodePos.Count > 4)
+                    {
+                        comment.SetGroupSize(new(nodePos[4].ToSingle(), nodePos[5].ToSingle()));
+                    }
                     continue;
                 }
 
@@ -158,7 +175,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 var xPos = nodePos[2].ToSingle();
                 var yPos = nodePos[3].ToSingle();
 
-                var trigger = triggers.FirstOrDefault(x => x.Data.Nickname == triggerNickname);
+                var trigger = nodes.OfType<NodeMissionTrigger>().FirstOrDefault(x => x.Data.Nickname == triggerNickname);
                 if (trigger is null)
                 {
                     FLLog.Warning("MissionScriptEditor", $"Trigger from {type} node in the nodes section was not found.");
@@ -241,6 +258,19 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
     }
 
+    public override void OnHotkey(Hotkeys hk, bool shiftPressed)
+    {
+        switch (hk)
+        {
+            case Hotkeys.Undo when undoBuffer.CanUndo:
+                undoBuffer.Undo();
+                break;
+            case Hotkeys.Redo when undoBuffer.CanRedo:
+                undoBuffer.Redo();
+                break;
+        }
+    }
+
     public override void Draw(double elapsed)
     {
         //ImGuiHelper.AnimatingElement();
@@ -268,6 +298,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         ImGui.EndTable();
 
         popup.Run();
+        if(renderHistory)
+            undoBuffer.DisplayStack();
     }
 
     private void CheckIndexes()
@@ -303,12 +335,24 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
     }
 
+    public void OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
+        undoBuffer.Commit(new RenameTriggerAction(node, this, oldName, newName));
+
+    private Queue<Action> nodeEditActions = new();
+
+
+    private NodeMissionTrigger jumpToNode = null;
     private void RenderNodeEditor()
     {
         NodeEditor.SetCurrentEditor(context);
         NodeEditor.Begin("Node Editor", Vector2.Zero);
 
         var cursorTopLeft = ImGui.GetCursorScreenPos();
+
+        while (nodeEditActions.Count > 0)
+        {
+            nodeEditActions.Dequeue()();
+        }
 
         while (nodeRelocationQueue.Count > 0)
         {
@@ -326,7 +370,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.3f);
             }
 
-            node.Render(gameData, popup, ref lookups);
+            node.Render(gameData, popup, undoBuffer, ref lookups);
 
             if (isFiltered)
             {
@@ -340,6 +384,16 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         TryCreateLink();
+        TryDeleteLink();
+
+        if (jumpToNode != null)
+        {
+            NodeEditor.ClearSelection();
+            NodeEditor.SelectNode(jumpToNode.Id);
+            NodeEditor.NavigateToSelection(true);
+            jumpToNode = null;
+            jumpLookup.SetSelected(null);
+        }
 
         ImGui.SetCursorScreenPos(cursorTopLeft);
 
@@ -385,10 +439,40 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         NodeEditor.Resume();
         NodeEditor.End();
         NodeEditor.SetCurrentEditor(null);
+
+        if (nodeMouseActions.Count > 0)
+        {
+            undoBuffer.Push(EditorAggregateAction.Create(nodeMouseActions.ToArray()));
+            nodeMouseActions = new();
+        }
     }
 
-    private bool TryLinkNodes(Node start, Node end, LinkType linkType)
+    private List<EditorAction> nodeMouseActions = new();
+
+    // Dragging a comment node fires an event per moved node. Queue up for aggregate
+    private void OnNodeDragged(NodeId nodeId, float oldX, float oldY, float newX, float newY, IntPtr userPointer)
     {
+        nodeMouseActions.Add(new MoveNodeAction(nodeId, new(oldX, oldY), new(newX, newY), this));
+    }
+
+    private void OnNodeResized(NodeId nodeId, ref ResizeCallbackData data, IntPtr userPointer)
+    {
+        if (data.StartPosition != data.EndPosition)
+        {
+            nodeMouseActions.Add(new MoveNodeAction(nodeId, data.StartPosition, data.EndPosition, this));
+        }
+        if (data.StartGroupSize != data.EndGroupSize)
+        {
+            var act = new SetNodeGroupSize(nodeId, data.StartGroupSize, data.EndGroupSize, this);
+            act.Set(data.EndGroupSize); // update C#-side value
+            nodeMouseActions.Add(act);
+        }
+    }
+
+
+    private bool TryLinkNodes(Node start, Node end, LinkType linkType, out NodeLink link, LinkId? setId = null)
+    {
+        link = null;
         var startPin = start.Outputs.FirstOrDefault(x => x.LinkType == linkType);
         if (startPin is null)
         {
@@ -401,8 +485,45 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             return false;
         }
 
-        startPin.CreateLink(ref nextId, endPin, null);
-        return true;
+        link = startPin.CreateLink(endPin, null, setId);
+        return link != null;
+    }
+
+    List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)> GetLinks(Node node)
+    {
+        var allLinks =  new List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)>();
+        foreach (var l in node.Outputs)
+        {
+            foreach (var link in l.Links)
+            {
+                allLinks.Add((node, link.EndPin.OwnerNode, l.LinkType, link.Id));
+            }
+        }
+        foreach (var i in node.Inputs)
+        {
+            foreach (var link in i.Links)
+            {
+                allLinks.Add((link.StartPin.OwnerNode, node, i.LinkType, link.Id));
+            }
+        }
+        return allLinks;
+    }
+
+    private void TryDeleteLink()
+    {
+        if (NodeEditor.BeginDelete())
+        {
+            if (NodeEditor.QueryDeletedLink(out var linkId) && NodeEditor.AcceptDeletedItem())
+            {
+                var toDelete = NodePin.AllLinks.FirstOrDefault(x => x.Id == linkId);
+                if (toDelete != null)
+                {
+                    undoBuffer.Commit(new DeleteLinkAction(toDelete));
+                }
+            }
+        }
+
+        NodeEditor.EndDelete();
     }
 
     private void TryCreateLink()
@@ -429,28 +550,14 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             // If we are dragging a pin and hovering a pin, check if we can connect
             if (startPin is not null && endPin is not null)
             {
-                var link = startPin.CreateLink(ref nextId, endPin, ShowLabel);
-                if (link is not null)
+                if (startPin.CanCreateLink(endPin, ShowLabel))
                 {
-                    foreach (var node in nodes)
-                    {
-                        node.OnLinkCreated(link);
-                    }
+                    undoBuffer.Commit(new CreateLinkAction(startPin, endPin, this));
                 }
             }
         }
 
         NodeEditor.EndCreate();
-
-        if (NodeEditor.BeginDelete())
-        {
-            if (NodeEditor.QueryDeletedLink(out var linkId) && NodeEditor.AcceptDeletedItem())
-            {
-                NodePin.DeleteLink(linkId);
-            }
-        }
-
-        NodeEditor.EndDelete();
         return;
 
         void ShowLabel(string label, bool success)
@@ -473,6 +580,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
     }
 
+
     private void CreateNewNodeContextMenu(Vector2 position)
     {
         ImGui.Text("Create New Node");
@@ -480,17 +588,12 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         if (ImGui.MenuItem("Trigger"))
         {
-            var node = new NodeMissionTrigger(null);
-            nodes.Add(node);
-            triggers.Add(node);
-            nodeRelocationQueue.Enqueue((node.Id, position));
+            undoBuffer.Commit(new NewTriggerAction(position, this));
         }
 
         if (ImGui.MenuItem("Comment Node"))
         {
-            var node = new CommentNode();
-            nodes.Add(node);
-            nodeRelocationQueue.Enqueue((node.Id, position));
+            undoBuffer.Commit(new NewCommentAction(position, this));
         }
     }
 
@@ -524,7 +627,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         ImGui.Separator();
-        if (!node.OnContextMenu(popup))
+        if (!node.OnContextMenu(popup, undoBuffer))
         {
             return;
         }
@@ -537,9 +640,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             {
                 continue;
             }
-
-            NodeEditor.DeleteNode(nodes[nodeIdx].Id);
-            nodes.RemoveAt(nodeIdx);
+            undoBuffer.Commit(new DeleteNodeAction(nodes[nodeIdx].Id, node, this));
         }
 
         contextNodeId = 0;
@@ -594,6 +695,16 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         return null;
     }
 
+    public void DeleteCondition(NodeMissionTrigger trigger, int index)
+    {
+        undoBuffer.Commit(new DeleteConditionAction(trigger, index, this));
+    }
+
+    public void DeleteAction(NodeMissionTrigger trigger, int index)
+    {
+        undoBuffer.Commit(new DeleteActionAction(trigger, index, this));
+    }
+
     public override void Dispose()
     {
         context.Dispose();
@@ -636,7 +747,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             IniSerializer.SerializeMissionDialog(dialog, ini);
         }
 
-        foreach (var objectiveList in missionIni.ObjLists)
+        foreach (var objectiveList in objLists)
         {
             IniSerializer.SerializeMissionObjectiveList(objectiveList, ini);
         }
@@ -666,7 +777,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         var s = ini.Section("Nodes");
 
         NodeEditor.SetCurrentEditor(context);
-        foreach (var trigger in triggers)
+        foreach (var trigger in nodes.OfType<NodeMissionTrigger>())
         {
             var pos = NodeEditor.GetNodePosition(trigger.Id);
             s.Entry("node", "Trigger", trigger.Data.Nickname, pos.X, pos.Y);
@@ -674,7 +785,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         foreach (var node in nodes.OfType<CommentNode>())
         {
             var pos = NodeEditor.GetNodePosition(node.Id);
-            s.Entry("node", "Comment", node.BlockName, pos.X, pos.Y);
+            s.Entry("node", "Comment", CommentEscaping.Escape(node.BlockName), pos.X, pos.Y, node.Size.X, node.Size.Y);
         }
 
         NodeEditor.SetCurrentEditor(null);

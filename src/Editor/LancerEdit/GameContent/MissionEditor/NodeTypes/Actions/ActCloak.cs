@@ -21,11 +21,12 @@ public sealed class ActCloak : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Ship", Data.Target, s => Data.Target = s, lookups.Ships);
-        ImGui.Checkbox("Cloak", ref Data.Cloaked);
+        nodePopups.StringCombo("Ship", undoBuffer, () => ref Data.Target, lookups.Ships);
+        Controls.CheckboxUndo("Cloak", undoBuffer, () => ref Data.Cloaked);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

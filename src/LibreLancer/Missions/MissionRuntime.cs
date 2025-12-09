@@ -27,7 +27,6 @@ namespace LibreLancer.Missions
         public Random Random = new();
 
         public Dictionary<string, MissionLabel> Labels = new(StringComparer.OrdinalIgnoreCase);
-
         public MissionRuntime(MissionIni msn, Player player, uint[] triggerSave)
         {
             Script = new MissionScript(msn);
@@ -280,19 +279,23 @@ namespace LibreLancer.Missions
 
         public void CheckMissionScript()
         {
-            for (int i = activeTriggers.Count - 1; i >= 0; i--)
+            // Create a copy of the list to avoid issues with modification during iteration
+            // reason: triggers may deactivate themselves or others while they are being processed
+            var triggersToProcess = new List<ActiveTrigger>(activeTriggers);
+            activeTriggers.Clear();
+
+            foreach (var trigger in triggersToProcess)
             {
-                if (activeTriggers[i].Deactivated)
+                if (trigger.Deactivated)
                 {
-                    activeTriggers.RemoveAt(i);
                     uiUpdate = true;
                 }
                 else
                 {
                     bool activate = true;
-                    for (int j = 0; j < activeTriggers[i].Conditions.Count; j++)
+                    for (int j = 0; j < trigger.Conditions.Count; j++)
                     {
-                        if (!activeTriggers[i].Satisfied[j])
+                        if (!trigger.Satisfied[j])
                         {
                             activate = false;
                             break;
@@ -301,14 +304,17 @@ namespace LibreLancer.Missions
 
                     if (activate)
                     {
-                        var tr = activeTriggers[i].Trigger;
-                        activeTriggers.RemoveAt(i);
-                        DoTrigger(tr);
-                        completedTriggers.Add(tr.Nickname);
+                        DoTrigger(trigger.Trigger);
+                        completedTriggers.Add(trigger.Trigger.Nickname);
                         uiUpdate = true;
 
                         // Log mission progression trigger
-                        FLLog.Info("Mission", $"Mission progression: Trigger '{tr.Nickname}' completed (hash: {FLHash.CreateID(tr.Nickname)})");
+                        FLLog.Info("Mission", $"Mission progression: Trigger '{trigger.Trigger.Nickname}' completed (hash: {FLHash.CreateID(trigger.Trigger.Nickname)})");
+                    }
+                    else
+                    {
+                        // Only keep triggers that are not activated
+                        activeTriggers.Add(trigger);
                     }
                 }
             }
@@ -393,6 +399,12 @@ namespace LibreLancer.Missions
             MsnEvent(new RTCDoneEvent(rtc));
         }
 
+        public void LootAcquired(string lootNickname, string acquirerShip)
+        {
+            FLLog.Info("Mission", $"Loot acquired: {lootNickname} by {acquirerShip}");
+            MsnEvent(new LootAcquiredEvent(lootNickname, acquirerShip));
+        }
+
         public void EnteredSpace()
         {
             MsnEvent(new SpaceEnteredEvent());
@@ -401,7 +413,7 @@ namespace LibreLancer.Missions
 
         void DoTrigger(ScriptedTrigger tr)
         {
-            FLLog.Debug("Mission", "Running trigger " + tr.Nickname);
+            FLLog.Info("Mission", "Running trigger " + tr.Nickname);
             foreach(var act in tr.Actions)
                 act.Invoke(this, Script);
         }

@@ -142,16 +142,16 @@ public class Cnd_WatchVibe : ScriptedCondition
     public VibeSet Vibe = VibeSet.REP_NEUTRAL;
     public string SourceObject = string.Empty;
     public string TargetObject = string.Empty;
-    public int ModifierIndex;
+    public Operators Operator;
 
-    public static readonly string[] Options =
-    [
-        "eq",
-        "lt",
-        "lte",
-        "gt",
-        "gte"
-    ];
+    public enum Operators
+    {
+        eq,
+        lt,
+        lte,
+        gt,
+        gte
+    }
 
     public Cnd_WatchVibe()
     {
@@ -163,16 +163,12 @@ public class Cnd_WatchVibe : ScriptedCondition
         TargetObject = entry[1].ToString();
         _ = Enum.TryParse(entry[2].ToString(), out Vibe);
         var option = entry[3].ToString();
-        var index = Array.FindIndex(Options, s => s == option);
-        if (index != -1)
-        {
-            ModifierIndex = index;
-        }
+        Enum.TryParse(option, out Operator);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_WatchVibe", SourceObject, TargetObject, Vibe.ToString(), Options[ModifierIndex]);
+        section.Entry("Cnd_WatchVibe", SourceObject, TargetObject, Vibe.ToString(), Operator.ToString());
     }
 }
 
@@ -251,7 +247,12 @@ public class Cnd_TLExited :
     }
 
     protected override bool EventCheck(TLExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(Source, ev.Ship) && IdEqual(StartRing, ev.Ring);
+    {
+        if (!IdEqual(Source, ev.Ship) || !IdEqual(StartRing, ev.Ring))
+            return false;
+
+        return true;
+    }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -308,6 +309,7 @@ public class Cnd_TLEntered :
 public class Cnd_Timer : ScriptedCondition
 {
     public float Seconds;
+    public bool Completed = false;
 
     public Cnd_Timer()
     {
@@ -328,6 +330,7 @@ public class Cnd_Timer : ScriptedCondition
         section.Entry("Cnd_Timer", Seconds);
     }
 }
+
 
 public class Cnd_TetherBroke : ScriptedCondition
 {
@@ -733,7 +736,7 @@ public class Cnd_MsnResponse :
     }
 }
 
-public class Cnd_LootAcquired : ScriptedCondition
+public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
 {
     public string target = string.Empty;
     public string sourceShip = string.Empty;
@@ -747,6 +750,9 @@ public class Cnd_LootAcquired : ScriptedCondition
         target = entry[0].ToString();
         sourceShip = entry[1].ToString();
     }
+
+    protected override bool EventCheck(LootAcquiredEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(target, ev.LootNickname) && IdEqual(sourceShip, ev.AcquirerShip);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -1062,7 +1068,7 @@ public class Cnd_DistVec : ScriptedCondition
     public Vector3 position;
     public float distance;
     public string sourceShip;
-    public float? tickAway;
+    public OptionalArgument<float> tickAway;
 
     public Cnd_DistVec()
     {
@@ -1085,7 +1091,7 @@ public class Cnd_DistVec : ScriptedCondition
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             self.Storage = new ConditionDouble() { Value = tickAway.Value };
         }
@@ -1099,7 +1105,7 @@ public class Cnd_DistVec : ScriptedCondition
         if (obj == null)
             return false;
         bool isInside = Vector3.Distance(obj.WorldTransform.Position, position) <= distance;
-        if(tickAway != null)
+        if(tickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
             if (inside == isInside)
@@ -1116,7 +1122,7 @@ public class Cnd_DistVec : ScriptedCondition
         List<ValueBase> entries =
             [inside ? "inside" : "outside", sourceShip, position.X, position.Y, position.Z, distance];
 
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             entries.Add(tickAway.Value);
             entries.Add("tick_away");
@@ -1132,7 +1138,7 @@ public class Cnd_DistShip : ScriptedCondition
     public float distance;
     public string sourceShip;
     public string destObject;
-    public float? tickAway;
+    public OptionalArgument<float> tickAway;
 
     public Cnd_DistShip()
     {
@@ -1155,7 +1161,7 @@ public class Cnd_DistShip : ScriptedCondition
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             self.Storage = new ConditionDouble() { Value = tickAway.Value };
         }
@@ -1170,7 +1176,7 @@ public class Cnd_DistShip : ScriptedCondition
         if (obj == null || obj2 == null)
             return false;
         var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= distance;
-        if(tickAway != null)
+        if(tickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
             if (inside == isInside)
@@ -1190,7 +1196,7 @@ public class Cnd_DistShip : ScriptedCondition
     {
         List<ValueBase> entries = [inside ? "inside" : "outside", sourceShip, destObject, distance];
 
-        if (tickAway != null)
+        if (tickAway.Present)
         {
             entries.Add(tickAway.Value);
             entries.Add("tick_away");
@@ -1257,10 +1263,20 @@ public class Cnd_Destroyed :
 
         if (entry.Count > 2)
         {
-            if (!Enum.TryParse(entry[2].ToString(), out Kind))
+            var kindString = entry[2].ToString();
+            FLLog.Debug("Mission", $"Cnd_Destroyed parsing Kind: '{kindString}' for label '{label}'");
+            if (!Enum.TryParse(kindString, out Kind))
             {
-                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {entry[2]}");
+                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {kindString}, defaulting to Unset");
             }
+            else
+            {
+                FLLog.Debug("Mission", $"Cnd_Destroyed parsed Kind: {Kind} for label '{label}'");
+            }
+        }
+        else
+        {
+            FLLog.Debug("Mission", $"Cnd_Destroyed no Kind specified for label '{label}', using Unset");
         }
     }
 
@@ -1274,27 +1290,29 @@ public class Cnd_Destroyed :
     {
         if (runtime.Labels.TryGetValue(label, out var lbl))
         {
-            if (Count <= 0)
+            //FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
+            if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
             {
-                if (Kind != CndDestroyedKind.ALL &&
-                    Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
+                if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
                 {
-                    return !lbl.AnyAlive(); //we just want to know that all ships are gone
-                    // M01B -1, EXPLODE rogue base fighter
+                    return !lbl.AnyAlive();  // True if no ships are alive (all dead or not spawned). Used for EXPLODE with Count=-1.
                 }
                 else
                 {
-                    return lbl.IsAllKilled(); //ALL = all ships must have been spawned and killed
-                    // M01B -1, ALL XT-19 attack
+                    return lbl.IsAllKilled();  // True if all spawned ships are dead.
                 }
             }
-            else
+            else  // Count > 0: Check if at least 'Count' ships are destroyed
             {
-                return lbl.DestroyedCount() >= Count;
+                if (Kind == CndDestroyedKind.EXPLODE)
+                {
+                    return lbl.IsAllKilled();  // For EXPLODE, require that ALL ships are destroyed, not just 'Count'.
+                }
+                return lbl.DestroyedCount() >= Count;  // Standard case: at least 'Count' destroyed.
             }
         }
-        // Single object
-        return ((ConditionBoolean)self.Storage).Value;
+        // Single object case (no label)
+        return ((ConditionBoolean)self.Storage).Value;  // True if the specific object is destroyed.
     }
 
     public override void OnEvent(DestroyedEvent ev, MissionRuntime runtime, ActiveCondition self)

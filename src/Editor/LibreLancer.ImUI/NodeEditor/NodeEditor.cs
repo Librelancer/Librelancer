@@ -9,6 +9,18 @@ using static NodeEditorNative;
 
 public static unsafe class NodeEditor
 {
+    static void RemoveScale()
+    {
+        Theme.Apply(1f);
+        ImGui.PushFont(null, Theme.FontSizeBase);
+    }
+
+    static void ResetScale()
+    {
+        Theme.Apply(ImGuiHelper.Scale);
+        ImGui.PopFont();
+    }
+
     public static void SetCurrentEditor(NodeEditorContext ctx) => axSetCurrentEditor(ctx ?? IntPtr.Zero);
 
     public static NodeEditorContext GetCurrentEditor() => new NodeEditorContext(axGetCurrentEditor());
@@ -32,10 +44,16 @@ public static unsafe class NodeEditor
 
     public static void Begin(string id, Vector2 size = default)
     {
+        RemoveScale();
         using var idptr = UnsafeHelpers.StringToNativeUTF8(id);
         axBegin((IntPtr)idptr, &size);
     }
-    public static void End() => axEnd();
+
+    public static void End()
+    {
+        axEnd();
+        ResetScale();
+    }
 
     public static void BeginNode(NodeId id) => axBeginNode(id);
     public static void BeginPin(PinId id, PinKind kind) => axBeginPin(id, kind);
@@ -183,8 +201,18 @@ public static unsafe class NodeEditor
 
     public static void RestoreNodeState(NodeId nodeId) => axRestoreNodeState(nodeId);
 
-    public static void Suspend() => axSuspend();
-    public static void Resume() => axResume();
+    public static void Suspend()
+    {
+        axSuspend();
+        ResetScale();
+    }
+
+    public static void Resume()
+    {
+        RemoveScale();
+        axResume();
+    }
+
     public static bool IsSuspended() => axIsSuspended() != 0;
 
     public static bool IsActive() => axIsActive() != 0;

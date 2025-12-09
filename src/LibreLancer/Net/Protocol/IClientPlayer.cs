@@ -66,7 +66,7 @@ public interface IClientPlayer
     void StopShip();
 
     void UpdateCharacterProgress(int level, long nextNetWorth);
-    void UndockFrom(ObjNetId id);
+    void UndockFrom(ObjNetId id, int index);
     void RunDirectives(MissionDirective[] directives);
     void UpdatePlayTime(double time, DateTime startTime);
     void ClearScan();

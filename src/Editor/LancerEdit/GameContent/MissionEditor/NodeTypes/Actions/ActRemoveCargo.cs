@@ -20,10 +20,11 @@ public sealed class ActRemoveCargo : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Cargo", Data.Cargo, s => Data.Cargo = s, gameData.GoodsByName);
+        nodePopups.StringCombo("Cargo", undoBuffer, () => ref Data.Cargo, gameData.GoodsByName);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

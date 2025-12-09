@@ -11,10 +11,11 @@ namespace LibreLancer.Server.Ai
     public class AiDockState : AiState
     {
         private GameObject target;
-        public bool Cruise = true;
-        public AiDockState(GameObject target)
+        public GotoKind GotoKind;
+        public AiDockState(GameObject target, GotoKind gotoKind)
         {
             this.target = target;
+            this.GotoKind = gotoKind;
         }
 
         public override void OnStart(GameObject obj, SNPCComponent ai)
@@ -23,8 +24,7 @@ namespace LibreLancer.Server.Ai
                target.TryGetComponent<SDockableComponent>(out var dock))
             {
                 dock.StartDock(obj, 0);
-                ap.StartDock(target);
-                ap.CanCruise = Cruise;
+                ap.StartDock(target, GotoKind);
             }
         }
 

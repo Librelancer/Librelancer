@@ -22,17 +22,18 @@ public sealed class ActPlayMusic : NodeTriggerEntry
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }
 
-    public override void RenderContent(GameDataContext gameData, PopupManager popup, ref NodePopups nodePopups,
+    public override void RenderContent(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
+        ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        ImGui.Checkbox("Reset to Default", ref Data.Reset);
+        Controls.CheckboxUndo("Reset to Default", undoBuffer, () => ref Data.Reset);
 
-        nodePopups.StringCombo("Space", Data.Space, s => Data.Space = s, gameData.MusicByName, true);
-        nodePopups.StringCombo("Danger", Data.Danger, s => Data.Danger = s, gameData.MusicByName, true);
-        nodePopups.StringCombo("Battle", Data.Battle, s => Data.Battle = s, gameData.MusicByName, true);
-        nodePopups.StringCombo("Motif", Data.Motif, s => Data.Motif = s, gameData.MusicByName, true);
+        nodePopups.StringCombo("Space", undoBuffer, () => ref Data.Space, gameData.MusicByName, true);
+        nodePopups.StringCombo("Danger", undoBuffer, () => ref Data.Danger, gameData.MusicByName, true);
+        nodePopups.StringCombo("Battle", undoBuffer, () => ref Data.Battle, gameData.MusicByName, true);
+        nodePopups.StringCombo("Motif", undoBuffer, () => ref Data.Motif, gameData.MusicByName, true);
 
-        ImGui.InputFloat("Fade", ref Data.Fade);
+        Controls.InputFloatUndo("Fade", undoBuffer, () => ref Data.Fade);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

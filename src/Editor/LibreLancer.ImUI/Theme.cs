@@ -25,6 +25,9 @@ namespace LibreLancer.ImUI
         private static float currentScale = -1;
         private static ImGuiStyle savedStyle;
         private static bool inited = false;
+
+        public const float FontSizeBase = 15f;
+
         static unsafe void Init()
         {
             if (inited)
@@ -68,9 +71,8 @@ namespace LibreLancer.ImUI
                 *s.Handle = savedStyle;
                 s.ScaleAllSizes(scale);
                 s.FontScaleDpi = scale;
-                s.FontSizeBase = 15f;
+                s.FontSizeBase = FontSizeBase;
                 currentScale = scale;
-                FLLog.Debug("UI", $"Setting scale to {scale}");
             }
         }
 

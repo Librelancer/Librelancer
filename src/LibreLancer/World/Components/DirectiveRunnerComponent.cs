@@ -53,7 +53,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 var tgt = Parent.World.GetObject(dock.Target);
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    if(tgt.TryGetComponent<SDockableComponent>(out var sd))
+                    if (tgt.TryGetComponent<SDockableComponent>(out var sd))
                     {
                         sd.StartDock(Parent, 0);
                     }
@@ -61,9 +61,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     {
                         pl.Dock(tgt);
                     }
-                    ap.CanCruise = false;
-                    ap.StartDock(tgt);
+
+                    ap.StartDock(tgt, GotoKind.Goto);
                 }
+
                 break;
             }
             case GotoShipDirective ship:
@@ -71,10 +72,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 var tgt = Parent.World.GetObject(ship.Target);
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoObject(tgt, ship.CruiseKind != GotoKind.GotoNoCruise, Throttle(ship.MaxThrottle), ship.Range);
-                    if (ship.CruiseKind == GotoKind.GotoCruise)
-                        Parent.GetComponent<ShipSteeringComponent>().Cruise = true;
+                    ap.GotoObject(tgt, ship.CruiseKind, Throttle(ship.MaxThrottle),
+                        ship.Range);
                 }
+
                 break;
             }
             case GotoSplineDirective spline:
@@ -83,21 +84,19 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     splineIndex = 0;
                     ap.GotoVec(EvalSpline(0, spline),
-                        spline.CruiseKind != GotoKind.GotoNoCruise,
+                        spline.CruiseKind,
                         Throttle(spline.MaxThrottle));
                 }
+
                 break;
             }
             case GotoVecDirective vec:
             {
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoVec(vec.Target,
-                        vec.CruiseKind != GotoKind.GotoNoCruise,
-                        Throttle(vec.MaxThrottle));
-                    if (vec.CruiseKind == GotoKind.GotoCruise)
-                        Parent.GetComponent<ShipSteeringComponent>().Cruise = true;
+                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle));
                 }
+
                 break;
             }
             case BreakFormationDirective:
@@ -110,6 +109,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     Parent.Formation?.Remove(Parent);
                 }
+
                 NextDirective();
                 break;
             }
@@ -124,6 +124,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     var tgtObject = Parent.World.GetObject(follow.Target);
                     FormationTools.EnterFormation(Parent, tgtObject, follow.Offset);
                 }
+
                 NextDirective();
                 break;
             }
@@ -135,8 +136,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    FormationTools.MakeNewFormation(Parent.World.GetObject("Player"), followPlayer.Formation, followPlayer.Ships);
+                    FormationTools.MakeNewFormation(Parent.World.GetObject("Player"), followPlayer.Formation,
+                        followPlayer.Ships);
                 }
+
                 NextDirective();
                 break;
             }
@@ -150,6 +153,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     FormationTools.MakeNewFormation(Parent, newFormation.Formation, newFormation.Ships);
                 }
+
                 NextDirective();
                 break;
             }
@@ -163,15 +167,18 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     ap.Cancel();
                 }
+
                 if (Parent.TryGetComponent<ShipSteeringComponent>(out var st))
                 {
                     st.InThrottle = 0;
                     st.Cruise = false;
                 }
+
                 if (Parent.TryGetComponent<ShipInputComponent>(out var si))
                 {
                     si.Throttle = 0;
                 }
+
                 // this may be hacky
                 if (Parent.TryGetComponent<CLocalPlayerComponent>(out var pl))
                 {
@@ -181,6 +188,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     Parent.Formation?.Remove(Parent);
                 }
+
                 NextDirective();
                 break;
             }
@@ -203,6 +211,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         NextDirective();
                     }
                 }
+
                 break;
             }
             case DelayDirective:
@@ -212,6 +221,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     NextDirective();
                 }
+
                 break;
             }
             case GotoSplineDirective spline:
@@ -223,10 +233,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         if (splineIndex + 1 < 4)
                         {
                             splineIndex++;
-                            ap.GotoVec(
-                                EvalSpline(times[splineIndex], spline),
-                                spline.CruiseKind != GotoKind.GotoNoCruise,
-                                Throttle(spline.MaxThrottle));
+                            ap.GotoVec(EvalSpline(times[splineIndex], spline), spline.CruiseKind, Throttle(spline.MaxThrottle));
                         }
                         else
                         {
@@ -238,6 +245,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     NextDirective();
                 }
+
                 break;
             }
             case GotoShipDirective:
@@ -252,6 +260,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     NextDirective();
                 }
+
                 break;
             }
         }
@@ -275,20 +284,20 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
     static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t, float alpha = 0.5f)
     {
         float t0 = 0.0f;
-        float t1 = GetT( t0, alpha, p0, p1 );
-        float t2 = GetT( t1, alpha, p1, p2 );
-        float t3 = GetT( t2, alpha, p2, p3 );
+        float t1 = GetT(t0, alpha, p0, p1);
+        float t2 = GetT(t1, alpha, p1, p2);
+        float t3 = GetT(t2, alpha, p2, p3);
         t = MathHelper.Lerp(t1, t2, t);
-        var A1 = ( t1-t )/( t1-t0 )*p0 + ( t-t0 )/( t1-t0 )*p1;
-        var A2 = ( t2-t )/( t2-t1 )*p1 + ( t-t1 )/( t2-t1 )*p2;
-        var A3 = ( t3-t )/( t3-t2 )*p2 + ( t-t2 )/( t3-t2 )*p3;
-        var B1 = ( t2-t )/( t2-t0 )*A1 + ( t-t0 )/( t2-t0 )*A2;
-        var B2 = ( t3-t )/( t3-t1 )*A2 + ( t-t1 )/( t3-t1 )*A3;
-        var C  = ( t2-t )/( t2-t1 )*B1 + ( t-t1 )/( t2-t1 )*B2;
+        var A1 = (t1 - t) / (t1 - t0) * p0 + (t - t0) / (t1 - t0) * p1;
+        var A2 = (t2 - t) / (t2 - t1) * p1 + (t - t1) / (t2 - t1) * p2;
+        var A3 = (t3 - t) / (t3 - t2) * p2 + (t - t2) / (t3 - t2) * p3;
+        var B1 = (t2 - t) / (t2 - t0) * A1 + (t - t0) / (t2 - t0) * A2;
+        var B2 = (t3 - t) / (t3 - t1) * A2 + (t - t1) / (t3 - t1) * A3;
+        var C = (t2 - t) / (t2 - t1) * B1 + (t - t1) / (t2 - t1) * B2;
         return C;
     }
 
-    private static float[] times = {0, 0.3333f, 0.6667f, 1f};
+    private static float[] times = { 0, 0.3333f, 0.6667f, 1f };
 
     bool CheckDirective()
     {
@@ -296,19 +305,21 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         {
             return false;
         }
+
         if (index >= currentDirectives.Length)
         {
             currentDirectives = null;
             index = -1;
             return false;
         }
+
         return true;
     }
 
     void NextDirective()
     {
         index++;
-        if(CheckDirective())
+        if (CheckDirective())
         {
             StartDirective(currentDirectives[index]);
         }

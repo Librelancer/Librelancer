@@ -3,16 +3,18 @@ using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Net.Protocol;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace LibreLancer.Missions.Directives;
 
 public class StayOutOfRangeDirective : MissionDirective
 {
-    public string Object;
+    public override ObjListCommands Command => ObjListCommands.StayOutOfRange;
+
+    public bool UseObject; // Mostly for editor use
+    public string Object = "";
     public Vector3 Point;
     public float Range;
-    public bool? Unknown;
+    public bool Unknown;
 
     public StayOutOfRangeDirective()
     {
@@ -24,7 +26,8 @@ public class StayOutOfRangeDirective : MissionDirective
         Object = reader.GetString();
         Point = reader.GetVector3();
         Range = reader.GetFloat();
-        Unknown = TriValue(reader.GetByte());
+        Unknown = reader.GetBool();
+        UseObject = Object != null;
     }
 
     public StayOutOfRangeDirective(Entry entry)
@@ -42,6 +45,7 @@ public class StayOutOfRangeDirective : MissionDirective
         {
             Object = entry[0].ToString();
             Range = entry[1].ToSingle();
+            UseObject = true;
             if (entry.Count > 2)
             {
                 Unknown = entry[2].ToBoolean();
@@ -56,13 +60,13 @@ public class StayOutOfRangeDirective : MissionDirective
         writer.Put(Object);
         writer.Put(Point);
         writer.Put(Range);
-        writer.Put(TriValue(Unknown));
+        writer.Put(Unknown);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         var vb = new List<ValueBase>();
-        if (!string.IsNullOrWhiteSpace(Object))
+        if (UseObject)
         {
             vb.Add(new StringValue(Object));
         }
@@ -73,8 +77,7 @@ public class StayOutOfRangeDirective : MissionDirective
             vb.Add(Point.Z);
         }
         vb.Add(Range);
-        if (Unknown != null)
-            vb.Add(Unknown.Value);
+        vb.Add(Unknown);
         section.Entry("StayOutOfRange", vb.ToArray());
     }
 }
