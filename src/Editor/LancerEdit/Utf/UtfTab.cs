@@ -176,43 +176,9 @@ namespace LancerEdit
             ImGui.Separator();
             //Tree
             ImGui.BeginChild("##scroll");
-            var flags = selectedNode == Utf.Root ? ImGuiTreeNodeFlags.Selected | tflags : tflags;
-            var isOpen = ImGui.TreeNodeEx("/", flags);
-            if (ImGui.BeginDragDropTarget())
-            {
-                ImGuiPayloadPtr rootPtr;
-                if (AcceptDragDropPayload("_UTFNODE", ImGuiDragDropFlags.None, out rootPtr))
-                {
-                    var (sourceTab, sourceNode) = GetDragDropNode(rootPtr.Data, rootPtr.DataSize);
-                    dropAction = () =>
-                    {
-                        sourceNode.Parent.Children.Remove(sourceNode);
-                        sourceNode.Parent = Utf.Root;
-                        Utf.Root.Children.Insert(0, sourceNode);
-                        sourceTab.selectedNode = null;
-                    };
-                }
-                ImGui.EndDragDropTarget();
-            }
-
-            if (ImGui.IsItemClicked(0))
-            {
-                selectedNode = Utf.Root;
-            }
-            ImGui.PushID("/##ROOT");
-            DoNodeMenu("/##ROOT", Utf.Root, null);
-            ImGui.PopID();
-            if (isOpen)
-            {
-                for (int i = 0; i < Utf.Root.Children.Count; i++)
-                {
-                    DoNode(Utf.Root.Children[i], Utf.Root);
-                }
-                DropTarget(Utf.Root, null, "#ROOTEND#");
-                ImGui.TreePop();
-            }
+            DoNode(Utf.Root, null);
             ImGui.EndChild();
-            //
+
             if (dropAction != null) {
                 dropAction();
                 dropAction = null;
@@ -771,45 +737,54 @@ namespace LancerEdit
                     Theme.IconMenuItem(Icons.Paste, "Paste", false);
                 }
                 ImGui.Separator();
+
                 if (Theme.IconMenuItem(Icons.List, "Sort Children", node.Children is { Count: > 1 }))
                 {
                     node.Children.Sort((x, y) => x.Name.CompareTo(y.Name));
                 }
-
                 ImGui.Separator();
-                if (Theme.IconMenuItem(Icons.ExpandAll, "Expand Node", true))
+
+                if (Theme.IconMenuItem(Icons.ArrowDown, "Expand Node", true))
                 {
                     nodeOpenState[node] = true;
                 }
-                if (Theme.IconMenuItem(Icons.CollapseAll, "Collapse Node", true))
+                if (Theme.IconMenuItem(Icons.ArrowUp, "Collapse Node", true))
                 {
                     nodeOpenState[node] = false;
                 }
+                if (Theme.IconMenuItem('\uf065', "Expand Children", node.Children is { Count: > 1 }))
+                {
+                    nodeOpenState[node] = true;
+                    foreach (var c in node.Children)
+                        nodeOpenState[c] = true;
+                }
+                if (Theme.IconMenuItem('\uf066', "Collapse Children", node.Children is { Count: > 1 }))
+                {
+                    foreach (var c in node.Children)
+                        nodeOpenState[c] = false;
+                }
+                ImGui.Separator();
+                if (Theme.IconMenuItem(Icons.SquarePlus, "Expand All", true))
+                {
+                    ExpandRecursive(Utf.Root);
+                }
+                if (Theme.IconMenuItem(Icons.SquareMinus, "Collapse All", true))
+                {
+                    CollapseRecursive(Utf.Root);
+                }
+                ImGui.Separator();
+                
                 if (node == Utf.Root)
                 {
-                    if (Theme.IconMenuItem('\u200B', "Expand All", true))
-                        ExpandRecursive(Utf.Root);
-
-                    if (Theme.IconMenuItem('\u200B', "Collapse All", true))
-                        CollapseRecursive(Utf.Root);
+                    
                 }
                 else
                 {
                     
-                    if (Theme.IconMenuItem('\u200B', "Expand Children", node.Children is { Count: > 1 }))
-                    {
-                        nodeOpenState[node] = true;
-                        foreach (var c in node.Children)
-                            nodeOpenState[c] = true;
-                    }
-                    if (Theme.IconMenuItem('\u200B', "Collapse Children", node.Children is { Count: > 1 }))
-                    {
-                        foreach (var c in node.Children)
-                            nodeOpenState[c] = false;
-                    }
+                    
                 }
 
-                    ImGui.EndPopup();
+                ImGui.EndPopup();
             }
         }
 
