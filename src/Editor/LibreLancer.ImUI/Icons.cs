@@ -63,8 +63,10 @@ public static class Icons
     public const char Calculator = '\uf1ec';
     public const char Map = '\uf279';
     public const char Newspaper = '\uf1ea';
-    public const char ExpandAll = '\uf0fe';
-    public const char CollapseAll = '\uf146';
+    public const char SquarePlus = '\uf0fe';
+    public const char SquareMinus = '\uf146';
+    public const char SquareCorners = '\uf146';
+    public const char SquareCornersInverted = '\uf146';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
