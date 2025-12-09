@@ -37,6 +37,9 @@ namespace LancerEdit
         public GameResourceManager DetachedResources;
         public int DetachedResourceCount;
 
+        // Track ImGui expanded/collapsed state
+        Dictionary<LUtfNode, bool> nodeOpenState = new();
+
         public override string Tooltip => FilePath;
 
         public void ReferenceDetached()
@@ -772,7 +775,41 @@ namespace LancerEdit
                 {
                     node.Children.Sort((x, y) => x.Name.CompareTo(y.Name));
                 }
-                ImGui.EndPopup();
+
+                ImGui.Separator();
+                if (Theme.IconMenuItem(Icons.ExpandAll, "Expand Node", true))
+                {
+                    nodeOpenState[node] = true;
+                }
+                if (Theme.IconMenuItem(Icons.CollapseAll, "Collapse Node", true))
+                {
+                    nodeOpenState[node] = false;
+                }
+                if (node == Utf.Root)
+                {
+                    if (Theme.IconMenuItem('\u200B', "Expand All", true))
+                        ExpandRecursive(Utf.Root);
+
+                    if (Theme.IconMenuItem('\u200B', "Collapse All", true))
+                        CollapseRecursive(Utf.Root);
+                }
+                else
+                {
+                    
+                    if (Theme.IconMenuItem('\u200B', "Expand Children", node.Children is { Count: > 1 }))
+                    {
+                        nodeOpenState[node] = true;
+                        foreach (var c in node.Children)
+                            nodeOpenState[c] = true;
+                    }
+                    if (Theme.IconMenuItem('\u200B', "Collapse Children", node.Children is { Count: > 1 }))
+                    {
+                        foreach (var c in node.Children)
+                            nodeOpenState[c] = false;
+                    }
+                }
+
+                    ImGui.EndPopup();
             }
         }
 
@@ -881,9 +918,17 @@ namespace LancerEdit
             var flags = (node == selectedNode ? ImGuiTreeNodeFlags.Selected : 0)
                         | (node.Children == null ? (ImGuiTreeNodeFlags.Bullet | ImGuiTreeNodeFlags.Leaf) : 0)
                         | tflags;
-            if(empty)
+
+            // Apply stored expand/ collapse state
+            if (nodeOpenState.TryGetValue(node, out bool open))
+                ImGui.SetNextItemOpen(open, ImGuiCond.Always);
+
+            if (empty)
                 ImGui.PushStyleColor(ImGuiCol.Text, Color4.Orange);
             var isOpen = ImGui.TreeNodeEx(id, flags);
+
+            nodeOpenState[node] = isOpen;
+
             if (empty) {
                 ImGui.PopStyleColor();
                 ImGui.SetItemTooltip("Node is empty and cannot be saved. Add data or children");
@@ -960,5 +1005,27 @@ namespace LancerEdit
             if (isOpen)
                 ImGui.TreePop();
         }
+        void ExpandRecursive(LUtfNode node)
+        {
+            nodeOpenState[node] = true;
+
+            if (node.Children == null) return;
+
+            foreach (var c in node.Children)
+                ExpandRecursive(c);
+        }
+
+        void CollapseRecursive(LUtfNode node)
+        {
+            nodeOpenState[node] = false;
+
+            if (node.Children == null) return;
+
+            foreach (var c in node.Children)
+                CollapseRecursive(c);
+        }
+
     }
+
+
 }
