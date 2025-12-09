@@ -685,8 +685,11 @@ public static class IniSerializer
         var s = ini.Section("MsnFormation");
         s.Entry("nickname", formation.Nickname)
             .Entry("orientation", formation.Orientation)
-            .Entry("formation", formation.Formation)
-            .Entry("ship", formation.Ships);
+            .Entry("formation", formation.Formation);
+        foreach (var ship in formation.Ships)
+        {
+            s.Entry("ship", ship);
+        }
 
         if (formation.Position.Length() is 0f && formation.RelativePosition.MinRange > 0f &&
             formation.RelativePosition.MaxRange != 0f &&
