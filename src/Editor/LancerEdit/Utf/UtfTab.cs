@@ -196,6 +196,16 @@ namespace LancerEdit
 
             using (var tb = Toolbar.Begin("##actions", false))
             {
+                const string TooltipExpandAll = "Expands all nodes in the node tree.\n This action also exapands all children nodes recursively";
+                const string TooltipCollapseAll = "Collapses all nodes in the node tree.\n This action also collapses all children nodes recursively";
+                if (tb.ButtonItem("Expand All", true, TooltipExpandAll))
+                {
+                    ExpandRecursive(Utf.Root);
+                }
+                if (tb.ButtonItem("Collapse All", true, TooltipCollapseAll))
+                {
+                    CollapseRecursive(Utf.Root);
+                }
                 if (tb.ButtonItem("View Model"))
                 {
                     IDrawable drawable = null;
@@ -762,15 +772,6 @@ namespace LancerEdit
                 {
                     foreach (var c in node.Children)
                         nodeOpenState[c] = false;
-                }
-                ImGui.Separator();
-                if (Theme.IconMenuItem(Icons.SquarePlus, "Expand All", true))
-                {
-                    ExpandRecursive(Utf.Root);
-                }
-                if (Theme.IconMenuItem(Icons.SquareMinus, "Collapse All", true))
-                {
-                    CollapseRecursive(Utf.Root);
                 }
                 ImGui.EndPopup();
             }
