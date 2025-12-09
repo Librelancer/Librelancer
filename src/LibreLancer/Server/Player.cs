@@ -876,9 +876,9 @@ namespace LibreLancer.Server
                 builder.Length - 4, 4));
         }
 
-        public Task SaveSP(string description, int ids, bool isAutoSave, DateTime? timeStamp)
+        public Task<string> SaveSP(string description, int ids, bool isAutoSave, DateTime? timeStamp)
         {
-            var completionSource = new TaskCompletionSource();
+            var completionSource = new TaskCompletionSource<string>();
             saveActions.Enqueue(() =>
             {
                 if (Character != null)
@@ -914,7 +914,7 @@ namespace LibreLancer.Server
                     }
                 }
                 IniWriter.WriteIniFile(path, sg.ToIni());
-                completionSource.SetResult();
+                completionSource.SetResult(path);
             });
             return completionSource.Task;
         }

@@ -38,9 +38,11 @@ namespace LibreLancer.Net
             Server.LoadSaveGame(sg);
         }
 
-        public void Save(string description, bool autosave)
+        public string Save(string description, bool autosave)
         {
-            Server.LocalPlayer.SaveSP(description, autosave ? 1628 : 0, autosave, DateTime.Now).Wait();
+            var t = Server.LocalPlayer.SaveSP(description, autosave ? 1628 : 0, autosave, DateTime.Now);
+            t.Wait();
+            return t.Result;
         }
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
