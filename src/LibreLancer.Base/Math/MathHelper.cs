@@ -339,7 +339,12 @@ namespace LibreLancer
 		#endregion
 
         public static float Lerp(float value1, float value2, float amount)
-            => MathF.FusedMultiplyAdd(amount, value2 - value1, value1);
+        {
+            if (Fma.IsSupported || AdvSimd.IsSupported)
+                return MathF.FusedMultiplyAdd(amount, value2 - value1, value1);
+            else
+                return value1 + (value2 - value1) * amount;
+        }
 
         public static float Snap(float s, float step)
         {
