@@ -669,6 +669,10 @@ namespace LancerEdit
                 {
                     AudioImportPopup.Run(this, Popups, null);
                 }
+                if (Theme.IconMenuItem(Icons.SyncAlt, "Bulk Convert Audio", EnableAudioConversion))
+                {
+                    Popups.OpenPopup(new BulkAudioImportPopup(this, Popups));
+                }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
                     FileDialog.Open(input => Make3dbDlg.Open(input), AppFilters.ImageFilter, GetDataPath());
