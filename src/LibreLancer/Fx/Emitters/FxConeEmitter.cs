@@ -70,7 +70,7 @@ namespace LibreLancer.Fx
 			var angle = FxRandom.NextFloat(minspread, maxspread);
 			var rotation = Quaternion.CreateFromAxisAngle(axis, angle);
             Vector3 output = Vector3.Transform(direction, rotation);
-			var random = FxRandom.NextFloat(-MathHelper.Pi, MathHelper.Pi);
+			var random = FxRandom.NextFloat(-MathF.PI, MathF.PI);
 			rotation = Quaternion.CreateFromAxisAngle(direction, random);
             output = Vector3.Transform(output, rotation);
 			return output;
