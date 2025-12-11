@@ -1104,6 +1104,12 @@ World Time: {12:F2}
             ui.Event("Killed");
         }
 
+        public void StoryFail(int failIds)
+        {
+            Dead = true;
+            ui.Event("Killed", failIds);
+        }
+
         public void Explode(GameObject obj)
         {
             if (obj.TryGetComponent<CExplosionComponent>(out var df) &&

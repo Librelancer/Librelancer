@@ -4,7 +4,8 @@ class loadgame : loadgame_Designer with Modal
 	{
 		base();
 		local e = this.Elements;
-		this.isModal = false;
+		this.isResume = false;
+		this.isDeath = false;
 
 		e.listtable.SetData(Game.SaveGames());
 		e.resume.OnClick(() => { Game.Resume(); this.Close(); });
@@ -25,8 +26,11 @@ class loadgame : loadgame_Designer with Modal
 
 	do_goback()
 	{
-		if (this.isModal) {
+		if (this.isResume) {
 			Game.Resume();
+			this.Close();
+		} else if (this.isDeath) {
+			Game.QuitToMenu();
 			this.Close();
 		} else {
 			this.ExitAnimation(() => OpenScene("mainmenu"));
@@ -40,7 +44,16 @@ class loadgame : loadgame_Designer with Modal
 		e.fllogo.Visible = false;
 		e.resume.Visible = true;
 		e.backdrop.Visible = true;
-		this.isModal = true;
+		this.isResume = true;
+	}
+	
+	asdeath()
+	{
+		this.asmodal();
+		local e = this.Elements;
+		e.resume.Visible = false;
+		this.isResume = false;
+		this.isDeath = true;
 	}
 
 	Update()

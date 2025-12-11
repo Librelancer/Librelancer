@@ -790,6 +790,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_ChangeState : ScriptedAction
     {
         public bool Succeed;
+        public int Ids;
 
         public Act_ChangeState()
         {
@@ -798,11 +799,16 @@ namespace LibreLancer.Missions.Actions
         public Act_ChangeState(MissionAction act) : base(act)
         {
             Succeed = act.Entry[0].ToString().Equals("SUCCEED", StringComparison.OrdinalIgnoreCase);
+            if (act.Entry.Count > 1)
+                Ids = act.Entry[1].ToInt32();
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAILED");
+            if(Ids == 0)
+                section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAILED");
+            else
+                section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAIL", Ids);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -810,6 +816,10 @@ namespace LibreLancer.Missions.Actions
             if (Succeed)
             {
                 runtime.Player.MissionSuccess();
+            }
+            else if (!Succeed)
+            {
+                runtime.Player.SPMissionFailure(Ids);
             }
         }
     }

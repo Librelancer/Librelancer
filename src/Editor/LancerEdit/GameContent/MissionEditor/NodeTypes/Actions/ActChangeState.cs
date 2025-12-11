@@ -25,6 +25,9 @@ public sealed class ActChangeState : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         Controls.CheckboxUndo("Success", undoBuffer, () => ref Data.Succeed);
+        ImGui.BeginDisabled(Data.Succeed);
+        Controls.IdsInputStringUndo("IDS", gameData, popup, undoBuffer, () => ref Data.Ids);
+        ImGui.EndDisabled();
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

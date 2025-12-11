@@ -1585,6 +1585,16 @@ namespace LibreLancer.Client
             playerTotalTime = time;
         }
 
+        void IClientPlayer.StoryMissionFailed(int failedIds)
+        {
+            RunSync(() =>
+            {
+                gp.StoryFail(failedIds);
+                Pause();
+            });
+        }
+
+
         GameObject ObjOrPlayer(int id)
         {
             if (id == 0) return gp.player;

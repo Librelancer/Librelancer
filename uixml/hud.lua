@@ -336,10 +336,20 @@ class hud : hud_Designer
 	    }
     }
     
-    Killed()
+    Killed(ids)
     {
         this.Elements.hudcontrols.Visible = false;
-        OpenModal(new popup(STRID_GAME_OVER,STRID_YOU_ARE_DEAD, 'ok', () => Game.Respawn()));
+        ids ??= STRID_YOU_ARE_DEAD;
+        if(ids == 0)
+        	ids = STRID_YOU_ARE_DEAD;
+        if(Game.IsMultiplayer())
+        {
+      		OpenModal(new popup(STRID_GAME_OVER,ids, 'ok', () => Game.Respawn()));
+        }
+        else
+        {
+        	OpenModal(new spdead(ids));
+        }
     }
     
     

@@ -179,6 +179,12 @@ namespace LibreLancer.Server
             Story.Advance(this);
         }
 
+        public void SPMissionFailure(int ids)
+        {
+            rpcClient.StoryMissionFailed(ids);
+        }
+
+
         public MissionRuntime MissionRuntime => msnRuntime;
 
 

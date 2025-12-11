@@ -28,6 +28,3 @@ class popup : popup_Designer with Modal
         e.decline.OnClick(() => this.Close('decline'));
     }
 }
-
-
-
