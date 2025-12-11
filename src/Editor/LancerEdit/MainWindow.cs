@@ -2,32 +2,33 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Numerics;
-using System.Text;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using LibreLancer;
-using LibreLancer.ContentEdit;
-using LibreLancer.ImUI;
-using LibreLancer.Media;
 using ImGuiNET;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Shaders;
+using LancerEdit.Tools.BulkAudio;
 using LancerEdit.Updater;
+using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
+using LibreLancer.ImUI;
+using LibreLancer.Media;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Shaders;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace LancerEdit
 {
@@ -671,7 +672,7 @@ namespace LancerEdit
                 }
                 if (Theme.IconMenuItem(Icons.SyncAlt, "Bulk Convert Audio", EnableAudioConversion))
                 {
-                    Popups.OpenPopup(new BulkAudioImportPopup(this, Popups));
+                    BulkAudioTool.Open(this, Popups);
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
