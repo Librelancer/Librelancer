@@ -22,7 +22,7 @@ namespace LibreLancer.Data.Missions
         [Entry("position")]
         public Vector3 Position;
         [Entry("orientation")]
-        public Quaternion Orientation;
+        public Quaternion Orientation = Quaternion.Identity;
         [Entry("random_name")]
         public bool RandomName;
         [Entry("radius")]

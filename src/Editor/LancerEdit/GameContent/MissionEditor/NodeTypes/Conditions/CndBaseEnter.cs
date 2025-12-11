@@ -26,5 +26,6 @@ public class CndBaseEnter : NodeTriggerEntry
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
     {
+        Data.Write(sectionBuilder);
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -18,8 +17,6 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Query;
 using ImGui = ImGuiNET.ImGui;
 
 namespace LancerEdit.GameContent.MissionEditor;
@@ -724,7 +721,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         ini.Section("Mission")
             .Entry("mission_title", missionIni.Info.MissionTitle)
             .Entry("mission_offer", missionIni.Info.MissionOffer)
-            .Entry("reward", missionIni.Info.Reward)
+            .OptionalEntry("reward", missionIni.Info.Reward)
             .Entry("npc_ship_file", missionIni.Info.NpcShipFile);
 
         foreach (var npc in missionIni.NPCs)

@@ -302,7 +302,7 @@ public class Cnd_TLEntered :
             entries.Add(NextRing);
         }
 
-        section.Entry("Cnd_TLExited", entries.ToArray());
+        section.Entry("Cnd_TLEntered", entries.ToArray());
     }
 }
 

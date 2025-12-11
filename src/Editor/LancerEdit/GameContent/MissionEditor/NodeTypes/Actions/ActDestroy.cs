@@ -25,6 +25,7 @@ public sealed class ActDestroy : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Target, lookups.ShipsAndSolars);
+        nodePopups.Combo("Kind", undoBuffer, () => ref Data.Kind);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
