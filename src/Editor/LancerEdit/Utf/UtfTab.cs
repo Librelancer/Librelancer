@@ -2,23 +2,25 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Numerics;
-using System.IO;
 using ImGuiNET;
+using LancerEdit.Tools.BulkAudio;
+using LancerEdit.Utf.Popups;
 using LibreLancer;
-using LibreLancer.ImUI;
-using LibreLancer.Utf.Ale;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
-using LancerEdit.Utf.Popups;
+using LibreLancer.ImUI;
 using LibreLancer.Resources;
+using LibreLancer.Utf.Ale;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using static LibreLancer.Client.CGameSession;
 
 namespace LancerEdit
 {
@@ -61,7 +63,7 @@ namespace LancerEdit
             Utf = utf;
             DocumentName = title;
             Title = title;
-            if(generated) utf.Source = utf.Export();
+            if (generated) utf.Source = utf.Export();
             if (utf.Source != null)
             {
                 main.Resources.AddResources(utf.Source, Unique.ToString());
@@ -110,7 +112,7 @@ namespace LancerEdit
                     ReloadResources();
                 });
             }
-            catch  (Exception ex)
+            catch (Exception ex)
             {
                 ErrorPopup("Could not open as model\n" + ex.Message + "\n" + ex.StackTrace);
             }
@@ -179,7 +181,8 @@ namespace LancerEdit
             DoNode(Utf.Root, null, isRoot: true);
             ImGui.EndChild();
 
-            if (dropAction != null) {
+            if (dropAction != null)
+            {
                 dropAction();
                 dropAction = null;
             }
@@ -214,8 +217,10 @@ namespace LancerEdit
                     try
                     {
                         drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
-                        if(Utf.Root.Children.Any((x) => x.Name.Equals("cmpnd",StringComparison.OrdinalIgnoreCase))) {
-                            foreach(var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))) {
+                        if (Utf.Root.Children.Any((x) => x.Name.Equals("cmpnd", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            foreach (var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase)))
+                            {
                                 var n = new ModelHpNode();
                                 n.Name = child.Name;
                                 n.Node = child;
@@ -224,7 +229,9 @@ namespace LancerEdit
                             }
                             var cmpnd = Utf.Root.Children.First((x) => x.Name.Equals("cmpnd", StringComparison.OrdinalIgnoreCase));
                             hpn.Cons = cmpnd.Children.FirstOrDefault((x) => x.Name.Equals("cons", StringComparison.OrdinalIgnoreCase));
-                        } else {
+                        }
+                        else
+                        {
                             var n = new ModelHpNode();
                             n.Name = "ROOT";
                             n.Node = Utf.Root;
@@ -236,7 +243,7 @@ namespace LancerEdit
                     if (drawable != null)
                     {
                         ReferenceDetached();
-                        main.AddTab(new ModelViewer(DocumentName, drawable, main, this,hpn));
+                        main.AddTab(new ModelViewer(DocumentName, drawable, main, this, hpn));
                     }
                 }
 
@@ -282,7 +289,7 @@ namespace LancerEdit
                         }
                     });
                 }
-                if(tb.ButtonItem("Reload Resources"))
+                if (tb.ButtonItem("Reload Resources"))
                 {
                     ReloadResources();
                 }
@@ -341,8 +348,32 @@ namespace LancerEdit
                             Confirm("Importing data will delete this node's children. Continue?", ImportTexture);
                         if (ImGui.MenuItem("Audio", main.EnableAudioConversion))
                         {
-                            Confirm("Importing data will delete this node's children. Continue?", () =>
-                                AudioImportPopup.Run(main, popups, b => selectedNode.Data = b));
+                            Confirm("Importing data will delete this node's data. Continue?", () =>
+                                AudioImportPopup.Run(main, popups, b => selectedNode.Data = b)
+                                );
+                        }
+                        if (ImGui.MenuItem("Bulk Audio", main.EnableAudioConversion))
+                        {
+                            Confirm("Importing data will delete this node's children/data. Continue?", () =>
+                            {
+                                main.QueueUIThread(() =>
+                                {
+                                    BulkAudioTool.Open(main, popups, b =>
+                                    {
+                                        selectedNode.Data = null;
+                                        selectedNode.Children = new List<LUtfNode>();
+                                        foreach (var item in b)
+                                        {
+                                            selectedNode.Children.Add(new LUtfNode
+                                            {
+                                                Name = item.NodeName,
+                                                Data = item.Data
+                                            });
+
+                                        }
+                                    });
+                                });
+                            });
                         }
                         ImGui.EndPopup();
                     }
@@ -355,7 +386,7 @@ namespace LancerEdit
                             main.ResultMessages(jmv);
                             if (jmv.IsSuccess)
                                 jointViews.Add(jmv.Data);
-                        };
+                        }
                     }
 
                     if (selectedNode.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
@@ -366,7 +397,7 @@ namespace LancerEdit
                             main.ResultMessages(jmv);
                             if (jmv.IsSuccess)
                                 jointViews.Add(jmv.Data);
-                        };
+                        }
                     }
                 }
             }
@@ -440,35 +471,35 @@ namespace LancerEdit
                 if (ImGui.Button("Texture Viewer"))
                 {
                     Texture tex = null;
-                    #if !DEBUG
+#if !DEBUG
                     try
                     {
-                    #endif
-                        using (var stream = new MemoryStream(selectedNode.Data))
-                        {
-                            if (DDS.StreamIsDDS(stream))
-                                tex = DDS.FromStream(main.RenderContext, stream);
-                            else
-                                tex = TGA.TextureFromStream(main.RenderContext, stream);
-                        }
-                        var title = string.Format("{0} ({1})", selectedNode.Name, Title);
-                        if (tex is Texture2D tex2d)
-                        {
-                            var tab = new TextureViewer(title, tex2d, null);
-                            main.AddTab(tab);
-                        }
-                        else if (tex is TextureCube texcube)
-                        {
-                            var tab = new CubemapViewer(title, texcube, main);
-                            main.AddTab(tab);
-                        }
-                    #if !DEBUG
+#endif
+                    using (var stream = new MemoryStream(selectedNode.Data))
+                    {
+                        if (DDS.StreamIsDDS(stream))
+                            tex = DDS.FromStream(main.RenderContext, stream);
+                        else
+                            tex = TGA.TextureFromStream(main.RenderContext, stream);
+                    }
+                    var title = string.Format("{0} ({1})", selectedNode.Name, Title);
+                    if (tex is Texture2D tex2d)
+                    {
+                        var tab = new TextureViewer(title, tex2d, null);
+                        main.AddTab(tab);
+                    }
+                    else if (tex is TextureCube texcube)
+                    {
+                        var tab = new CubemapViewer(title, texcube, main);
+                        main.AddTab(tab);
+                    }
+#if !DEBUG
                     }
                     catch (Exception ex)
                     {
                         ErrorPopup("Node data couldn't be opened as texture:\n" + ex.Message);
                     }
-                    #endif
+#endif
                 }
 
                 if (main.PlayingBuffer)
@@ -483,7 +514,7 @@ namespace LancerEdit
 
                 if (!main.PlayingBuffer && ImGui.BeginPopupContextItem("loopmenu"))
                 {
-                    if(ImGui.MenuItem("Play Looped"))
+                    if (ImGui.MenuItem("Play Looped"))
                         main.PlayBuffer(selectedNode.Data, true);
                     ImGui.EndPopup();
                 }
@@ -506,7 +537,7 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Export Data"))
                 {
-                    FileDialog.Save(path =>  File.WriteAllBytes(path, selectedNode.Data));
+                    FileDialog.Save(path => File.WriteAllBytes(path, selectedNode.Data));
                 }
                 if (selectedNode.Name.ToLowerInvariant() == "vmeshdata" &&
                     ImGui.Button("View VMeshData"))
@@ -514,7 +545,7 @@ namespace LancerEdit
                     LibreLancer.Utf.Vms.VMeshData dat = null;
                     try
                     {
-                        dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data),  "");
+                        dat = new LibreLancer.Utf.Vms.VMeshData(new ArraySegment<byte>(selectedNode.Data), "");
                     }
                     catch (Exception ex)
                     {
@@ -573,15 +604,30 @@ namespace LancerEdit
                 }
                 if (ImGui.Button("Import Data"))
                     ImGui.OpenPopup("importactions");
-                if(ImGui.BeginPopup("importactions"))
+                if (ImGui.BeginPopup("importactions"))
                 {
-                    if(ImGui.MenuItem("File")) {
+                    if (ImGui.MenuItem("File"))
+                    {
                         FileDialog.Open(path => selectedNode.Data = File.ReadAllBytes(path));
                     }
-                    if(ImGui.MenuItem("Texture"))
+                    if (ImGui.MenuItem("Texture"))
                         ImportTexture();
                     if (ImGui.MenuItem("Audio", main.EnableAudioConversion))
                         AudioImportPopup.Run(main, popups, b => selectedNode.Data = b);
+                    if (ImGui.MenuItem("Bulk Audio", main.EnableAudioConversion))
+                        BulkAudioTool.Open(main, popups, b =>
+                        {
+                            selectedNode.Children = new List<LUtfNode>();
+                            foreach (var item in b)
+                            {
+                                selectedNode.Children.Add(new LUtfNode
+                                {
+                                    Name = item.NodeName,
+                                    Data = item.Data
+                                });
+
+                            }
+                        });
                     ImGui.EndPopup();
                 }
             }
@@ -589,7 +635,7 @@ namespace LancerEdit
             var removeJmv = new List<JointMapView>();
             foreach (var jm in jointViews)
             {
-                if(!jm.Draw()) removeJmv.Add(jm);
+                if (!jm.Draw()) removeJmv.Add(jm);
             }
             foreach (var jmv in removeJmv) jointViews.Remove(jmv);
             ImGui.EndChild();
@@ -600,7 +646,7 @@ namespace LancerEdit
             FileDialog.Open(path =>
             {
                 var src = TextureImport.OpenBuffer(File.ReadAllBytes(path), main.RenderContext);
-                if(src.IsError)
+                if (src.IsError)
                 {
                     main.ResultMessages(src);
                 }
@@ -636,7 +682,8 @@ namespace LancerEdit
 
         void DoNodeMenu(string id, LUtfNode node, LUtfNode parent)
         {
-            if (ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right)) {
+            if (ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+            {
                 canPaste = main.ClipboardStatus() == ClipboardContents.Array;
             }
             if (ImGui.BeginPopupContextItem(id))
@@ -644,7 +691,7 @@ namespace LancerEdit
                 ImGui.MenuItem(node.Name, false);
                 ImGui.MenuItem(string.Format("CRC: 0x{0:X}", CrcTool.FLModelCrc(node.Name)), false);
                 ImGui.Separator();
-                if(Theme.IconMenuItem(Icons.Edit, "Rename", node != Utf.Root))
+                if (Theme.IconMenuItem(Icons.Edit, "Rename", node != Utf.Root))
                 {
                     RenameNode(node);
                 }
@@ -832,7 +879,8 @@ namespace LancerEdit
                     if (AcceptDragDropPayload("_UTFNODE", ImGuiDragDropFlags.None, out var ptr))
                     {
                         var (sourceTab, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
-                        if (DragDropAllowed(sourceNode, parent)) {
+                        if (DragDropAllowed(sourceNode, parent))
+                        {
                             if (sourceNode != sibling)
                             {
                                 dropAction = () =>
@@ -853,7 +901,8 @@ namespace LancerEdit
                             out ptr))
                     {
                         var (_, sourceNode) = GetDragDropNode(ptr.Data, ptr.DataSize);
-                        if (!DragDropAllowed(sourceNode, parent)) {
+                        if (!DragDropAllowed(sourceNode, parent))
+                        {
                             ImGui.SetTooltip("Cannot move parent to child");
                             ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
                         }
