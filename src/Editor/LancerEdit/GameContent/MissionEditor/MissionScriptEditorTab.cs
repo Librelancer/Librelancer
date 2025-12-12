@@ -64,6 +64,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         nodes = [];
         missionIni = new MissionIni(file, null);
         objLists = missionIni.ObjLists.Select(x => new ScriptAiCommands(x)).ToList();
+        missionIni.Info ??= new MissionInfo();
 
         if (!string.IsNullOrWhiteSpace(missionIni.Info.NpcShipFile))
         {
@@ -313,7 +314,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             selectedShipIndex = 0;
         }
 
-        if (selectedArchIndex is -1 && missionIni.ShipIni.ShipArches.Count is not 0)
+        if (selectedArchIndex is -1 && (missionIni.ShipIni?.ShipArches?.Count ?? 0) is not 0)
         {
             selectedArchIndex = 0;
         }
