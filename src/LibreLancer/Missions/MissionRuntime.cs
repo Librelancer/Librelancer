@@ -243,7 +243,7 @@ namespace LibreLancer.Missions
             {
                 foreach (var t in activeTriggers)
                 {
-                    if (!string.IsNullOrEmpty(t.Trigger.System) && !t.Trigger.System.Equals(currentSystem, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(t.Trigger.System) && !t.Trigger.System.Equals(Player.System, StringComparison.OrdinalIgnoreCase))
                         continue;
                     t.ActiveTime += elapsed;
                     var newSatisfied = new BitArray128();
