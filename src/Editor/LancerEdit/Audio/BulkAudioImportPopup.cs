@@ -374,7 +374,7 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.TableNextColumn();
 
 
-            if (ImGuiExt.Button($"{Icons.Cut}##trim{e.OriginalPath}", !e.RequiresTrim, new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth())))
+            if (ImGuiExt.Button($"{Icons.Cut}##trim{e.OriginalPath}", e.RequiresTrim, new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth())))
             {
                 _state.TrimEditingEntry = e;
                 // Backup original values
