@@ -150,7 +150,6 @@ namespace LibreLancer.World.Components
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
                 var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag * CruiseLimit;
                 engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
-                FLLog.Debug("Physics", $"Cruise: CruiseLimit={CruiseLimit}, cruise_force={cruise_force}, engine_force={engine_force}");
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
                 ChargePercent = 1f;

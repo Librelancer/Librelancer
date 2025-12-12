@@ -144,7 +144,7 @@ namespace LibreLancer.Server
                     {
                         RemoveSpawnedObject(pickup, false);
                         // Notify mission system that loot has been acquired after removal
-                        actions.Enqueue(() => Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname, "Player"));
+                        actions.Enqueue(() => Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname, obj.Nickname));
                     }
                     else
                     {

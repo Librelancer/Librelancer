@@ -40,63 +40,12 @@ namespace LibreLancer.World.Components
             ShipInputComponent input,
             double time);
 
-        private void Start(GotoKind kind, float maxThrottle, float gotoRadius)
-        {
-            CanCruise = kind != GotoKind.GotoNoCruise;
-            MaxThrottle = maxThrottle;
-            GotoRadius = gotoRadius;
-        }
-
-        public void Start(GotoKind kind,
-            GameObject targetObject,
-            float maxThrottle,
-            float gotoRadius,
-            GameObject playerReference = null,
-            float minDistance = 0,
-            float maxDistance = 0,
-            int playerDistanceBehavior = 0,
-            bool keepCruiseNearTarget = false)
-        {
-            TargetObject = targetObject;
-            Start(kind, maxThrottle, gotoRadius);
-            if (this is GotoBehavior gotoBehavior)
-            {
-                gotoBehavior.PlayerReference = playerReference;
-                gotoBehavior.MinDistance = minDistance;
-                gotoBehavior.MaxDistance = maxDistance;
-                gotoBehavior.PlayerDistanceBehavior = playerDistanceBehavior;
-                gotoBehavior.KeepCruiseNearTarget = keepCruiseNearTarget;
-            }
-        }
-
-        public void Start(GotoKind kind,
-            Vector3 targetPosition,
-            float maxThrottle,
-            float gotoRadius,
-            GameObject playerReference = null,
-            float minDistance = 0,
-            float maxDistance = 0,
-            int playerDistanceBehavior = 0,
-            bool keepCruiseNearTarget = false)
-        {
-            _targetPosition = targetPosition;
-            _targetRadius = 5;
-            Start(kind, maxThrottle, gotoRadius);
-            if (this is GotoBehavior gotoBehavior)
-            {
-                gotoBehavior.PlayerReference = playerReference;
-                gotoBehavior.MinDistance = minDistance;
-                gotoBehavior.MaxDistance = maxDistance;
-                gotoBehavior.PlayerDistanceBehavior = playerDistanceBehavior;
-                gotoBehavior.KeepCruiseNearTarget = keepCruiseNearTarget;
-            }
-        }
 
         protected bool CanCruise;
 
         protected GameObject TargetObject;
-        private Vector3 _targetPosition;
-        private float _targetRadius;
+        protected Vector3 _targetPosition;
+        protected float _targetRadius;
 
         protected float MaxThrottle;
         protected float GotoRadius;
@@ -165,8 +114,8 @@ namespace LibreLancer.World.Components
         {
             if (TargetObject == null) return _targetPosition;
             return TargetObject.WorldTransform.Position;
-        }
-
+        }         
+        
         protected float GetTargetRadius()
         {
             if (TargetObject == null) return _targetRadius;
@@ -192,30 +141,14 @@ namespace LibreLancer.World.Components
             //
             bool directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
 
-            if (this is FormationBehavior)
+        
+            if (!directionSatisfied)
             {
-                FLLog.Debug("Formation", $"[{Parent.Nickname}] TurnTowards - vec.X: {vec.X:F4}, vec.Y: {vec.Y:F4}, directionSatisfied: {directionSatisfied}");
-                if (!directionSatisfied)
-                {
-                    var tempYawControl = new PIDController() { P = 1.5f, I = 0.1f, D = 0.5f };
-                    var tempPitchControl = new PIDController() { P = 1.5f, I = 0.1f, D = 0.5f };
-
-                    var yawBefore = tempYawControl.Update(0, vec.X, dt);
-                    var pitchBefore = tempPitchControl.Update(0, -vec.Y, dt);
-                    Component.OutYaw = MathHelper.Clamp((float)yawBefore, -1, 1);
-                    Component.OutPitch = MathHelper.Clamp((float)pitchBefore, -1, 1);
-                    FLLog.Debug("Formation", $"[{Parent.Nickname}] PID Output - Yaw: {Component.OutYaw:F4}, Pitch: {Component.OutPitch:F4} (raw: yaw={yawBefore:F4}, pitch={pitchBefore:F4})");
-                }
+                Component.OutYaw = MathHelper.Clamp((float)Component.YawControl.Update(0, vec.X, dt), -1, 1);
+                Component.OutPitch = MathHelper.Clamp((float)Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
+                return false;
             }
-            else
-            {
-                if (!directionSatisfied)
-                {
-                    Component.OutYaw = MathHelper.Clamp((float)Component.YawControl.Update(0, vec.X, dt), -1, 1);
-                    Component.OutPitch = MathHelper.Clamp((float)Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
-                }
-            }
-
+            
             if (directionSatisfied)
             {
                 Component.OutYaw = 0;
@@ -285,6 +218,14 @@ namespace LibreLancer.World.Components
 
         private int lastTargetHp = 0;
 
+        public void Start(GotoKind kind, GameObject target, float maxThrottle, float gotoRadius)
+        {
+            CanCruise = kind != GotoKind.GotoNoCruise;
+            MaxThrottle = maxThrottle;
+            GotoRadius = gotoRadius;
+            TargetObject = target;
+        }
+
         public override bool Update(ShipSteeringComponent control, ShipInputComponent input, double time)
         {
             if (!TargetValid() ||
@@ -330,6 +271,13 @@ namespace LibreLancer.World.Components
         private double totalTime = 0.0;
         private double delay = 1.2;
 
+        public void Start(GotoKind kind, GameObject target, float maxThrottle, float gotoRadius)
+        {
+            CanCruise = kind != GotoKind.GotoNoCruise;
+            MaxThrottle = maxThrottle;
+            GotoRadius = gotoRadius;
+            TargetObject = target;
+        }
 
         public override bool Update(
             ShipSteeringComponent control,
@@ -378,6 +326,37 @@ namespace LibreLancer.World.Components
         public int PlayerDistanceBehavior;
         public bool KeepCruiseNearTarget = false;
 
+        public void Start(GotoKind kind, GameObject targetObject, float maxThrottle, float gotoRadius,
+            GameObject playerReference = null, float minDistance = 0, float maxDistance = 0,
+            int playerDistanceBehavior = 0, bool keepCruiseNearTarget = false)
+        {
+            CanCruise = kind != GotoKind.GotoNoCruise;
+            MaxThrottle = maxThrottle;
+            GotoRadius = gotoRadius;
+            TargetObject = targetObject;
+            PlayerReference = playerReference;
+            MinDistance = minDistance;
+            MaxDistance = maxDistance;
+            PlayerDistanceBehavior = playerDistanceBehavior;
+            KeepCruiseNearTarget = keepCruiseNearTarget;
+        }
+
+        public void Start(GotoKind kind, Vector3 targetPosition, float maxThrottle, float gotoRadius,
+            GameObject playerReference = null, float minDistance = 0, float maxDistance = 0,
+            int playerDistanceBehavior = 0, bool keepCruiseNearTarget = false)
+        {
+            CanCruise = kind != GotoKind.GotoNoCruise;
+            MaxThrottle = maxThrottle;
+            GotoRadius = gotoRadius;
+            _targetPosition = targetPosition;
+            _targetRadius = 5;
+            PlayerReference = playerReference;
+            MinDistance = minDistance;
+            MaxDistance = maxDistance;
+            PlayerDistanceBehavior = playerDistanceBehavior;
+            KeepCruiseNearTarget = keepCruiseNearTarget;
+        }
+
         public override bool Update(ShipSteeringComponent control, ShipInputComponent input, double time)
         {
             if (!TargetValid())
@@ -422,6 +401,15 @@ namespace LibreLancer.World.Components
         private const float OVERTAKING_DISTANCE = 150f;
         private const float OVERTAKING_SPEED_REDUCTION = 0.7f; // 70% throttle when overtaking
         private double leaderCruiseActivationTime = -1; // Track when leader activated cruise
+
+        public void Start(GotoKind kind, Vector3 targetPosition, float maxThrottle, float gotoRadius)
+        {
+            CanCruise = kind != GotoKind.GotoNoCruise;
+            MaxThrottle = maxThrottle;
+            GotoRadius = gotoRadius;
+            _targetPosition = targetPosition;
+            _targetRadius = 5;
+        }
 
         public override bool Update(ShipSteeringComponent control, ShipInputComponent input, double time)
         {
@@ -687,16 +675,18 @@ namespace LibreLancer.World.Components
             GameObject playerReference = null, float minDistance = 0, float maxDistance = 0, int playerDistanceBehavior = 0,
             bool keepCruiseNearTarget = false)
         {
-            SetInstance(new GotoBehavior(this));
-            instance.Start(kind, vec, maxThrottle, gotoRange, playerReference, minDistance, maxDistance, playerDistanceBehavior, keepCruiseNearTarget);
+            var gotoBehavior = new GotoBehavior(this);
+            SetInstance(gotoBehavior);
+            gotoBehavior.Start(kind, vec, maxThrottle, gotoRange, playerReference, minDistance, maxDistance, playerDistanceBehavior, keepCruiseNearTarget);
         }
 
         public void GotoObject(GameObject obj, GotoKind kind, float maxThrottle = 1, float gotoRange = 40,
             GameObject playerReference = null, float minDistance = 0, float maxDistance = 0, int playerDistanceBehavior = 0,
             bool keepCruiseNearTarget = false)
         {
-            SetInstance(new GotoBehavior(this));
-            instance.Start(kind, obj, maxThrottle, gotoRange, playerReference, minDistance, maxDistance, playerDistanceBehavior, keepCruiseNearTarget);
+            var gotoBehavior = new GotoBehavior(this);
+            SetInstance(gotoBehavior);
+            gotoBehavior.Start(kind, obj, maxThrottle, gotoRange, playerReference, minDistance, maxDistance, playerDistanceBehavior, keepCruiseNearTarget);
         }
 
         public void ResetStrafing()
@@ -715,22 +705,24 @@ namespace LibreLancer.World.Components
 
         public void StartDock(GameObject target, GotoKind kind)
         {
-            SetInstance(new DockBehavior(this));
-            instance.Start(kind, target, 1, 40);
+            var dockBehavior = new DockBehavior(this);
+            SetInstance(dockBehavior);
+            dockBehavior.Start(kind, target, 1, 40);
         }
 
         public void Undock(GameObject target, int index)
         {
-            SetInstance(new UndockBehavior(this, index));
-            instance.Start(GotoKind.GotoNoCruise,
-                target, 1, 10);
+            var undockBehavior = new UndockBehavior(this, index);
+            SetInstance(undockBehavior);
+            undockBehavior.Start(GotoKind.GotoNoCruise, target, 1, 10);
         }
 
 
         public void StartFormation()
         {
-            SetInstance(new FormationBehavior(this));
-            instance.Start(GotoKind.Goto, Vector3.Zero, 1, 10);
+            var formationBehavior = new FormationBehavior(this);
+            SetInstance(formationBehavior);
+            formationBehavior.Start(GotoKind.Goto, Vector3.Zero, 1, 10);
         }
 		// Performs obstacle avoidance using raycasting and applies strafing if needed
 		private void UpdateObstacleAvoidance(ShipPhysicsComponent shipPhysics)

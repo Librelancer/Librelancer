@@ -109,12 +109,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     // Get player reference if specified
-                    GameObject playerRef = null;
-                    if (!string.IsNullOrEmpty(vec.PlayerReference) && vec.PlayerReference.Equals("Player", StringComparison.OrdinalIgnoreCase))
-                    {
-                        playerRef = Parent.World.GetObject("Player");
-                    }
-
+                    GameObject playerRef = Parent.GetWorld().GetObject(vec.PlayerReference);
                     // Check if next directive is also a GotoVec with cruise
                     bool keepCruiseNearTarget = false;
                     if (index + 1 < currentDirectives.Length)

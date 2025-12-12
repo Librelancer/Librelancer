@@ -37,7 +37,6 @@ namespace LibreLancer.Missions
             }
             this.msn = msn;
             this.Player = player;
-            currentSystem = player.System;
             bool doInit = true;
             {
                 foreach (var tr in triggerSave)
@@ -232,7 +231,7 @@ namespace LibreLancer.Missions
 
         public void SystemEnter(string system, string ship)
         {
-            string? previous = currentSystem;
+            string previous = currentSystem;
             currentSystem = system;
             FLLog.Debug("Mission", $"SystemEnter: {system}, previous: {previous}");
             MsnEvent(new SystemEnteredEvent(system, ship, previous));

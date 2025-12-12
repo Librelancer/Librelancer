@@ -426,7 +426,7 @@ namespace LibreLancer.Server.Components
                     }
                 }
                 //Fire guns and check if target exists
-                if (shootAt?.WorldTransform != null && dist < gunRange)
+                if (shootAt != null && dist < gunRange)
                 {
                     var fireInfo = RunFireTimers((float)time);
                     if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)

@@ -51,7 +51,6 @@ public class StoryProgress
 
     public void Update(Player player)
     {
-        FLLog.Info("Mission", $"Story.Update: CurrentStory={CurrentStory?.Nickname}, Skip={CurrentStory?.Skip}, CashUp={CurrentStory?.CashUp}, NextLevelWorth={NextLevelWorth}");
         if (CurrentStory.Skip)
         {
             Advance(player);
@@ -59,10 +58,8 @@ public class StoryProgress
         else if (CurrentStory.CashUp > 0)
         {
             var playerNet = player.CalculateNetWorth();
-            FLLog.Info("Mission", $"Checking mission advance: net worth {playerNet} >= {NextLevelWorth}?");
             if(playerNet >= NextLevelWorth)
             {
-                FLLog.Info("Mission", $"Advancing mission: worth {playerNet} >= {NextLevelWorth}");
                 Advance(player);
             }
         }

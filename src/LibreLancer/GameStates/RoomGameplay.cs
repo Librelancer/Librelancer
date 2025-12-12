@@ -377,7 +377,7 @@ namespace LibreLancer
                     // Check if autoplay exists in the encounter RTC
                     var encounterBytes = session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(ct.RefPath));
                     var encounterText = System.Text.Encoding.UTF8.GetString(encounterBytes);
-                    bool hasAutoplay = encounterText.Contains("autoplay", StringComparison.OrdinalIgnoreCase);
+                    var hasAutoplay = ct.Encounters.Count > 0 && ct.Encounters.Any(x => x.Autoplay);
                     if (hasAutoplay) {
                         PlayScript(ct, CutsceneState.Regular);
                         // Auto-trigger CharSelect condition for RTCs that contains autoplay
