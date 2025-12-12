@@ -99,6 +99,7 @@ public static class Icons
     public static readonly char Con_Pris;
     public static readonly char Con_Sph;
     public static readonly char Tree_DarkGreen;
+    public static readonly char Tree_Red;
 
     public static readonly char Hardpoints;
 
@@ -123,6 +124,7 @@ public static class Icons
         Tint(out Con_Pris, ExpandArrowsAlt, Color4.LightPink);
         Tint(out Con_Sph, Globe, Color4.LightGreen);
         Tint(out Tree_DarkGreen, Tree, Color4.DarkGreen);
+        Tint(out Tree_Red, Tree, Color4.IndianRed);
         Tint(out Hardpoints, SignInAlt, Color4.CornflowerBlue);
 
         Tint(out Cube_Purple, Cube, Color4.Purple);
