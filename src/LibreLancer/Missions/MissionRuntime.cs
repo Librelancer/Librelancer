@@ -22,6 +22,7 @@ namespace LibreLancer.Missions
         public Player Player;
         MissionIni msn;
         object _msnLock = new object();
+        public string currentSystem;
 
         public MissionScript Script;
         public Random Random = new();
@@ -36,6 +37,7 @@ namespace LibreLancer.Missions
             }
             this.msn = msn;
             this.Player = player;
+            currentSystem = player.System;
             bool doInit = true;
             {
                 foreach (var tr in triggerSave)
@@ -131,12 +133,38 @@ namespace LibreLancer.Missions
 
         public void ActivateTrigger(string trigger)
         {
+            FLLog.Info("Mission", $"ActivateTrigger called for: {trigger}");
+
+            // Don't reactivate deactivated triggers
+            if (deactivatedTriggers.Contains(trigger))
+            {
+                FLLog.Info("Mission", $"Trigger {trigger} is in deactivated list, not activating");
+                return;
+            }
+
+            // Don't reactivate completed non-repeatable triggers
+            if (completedTriggers.Contains(trigger))
+            {
+                FLLog.Info("Mission", $"Trigger {trigger} is already completed, not activating");
+                return;
+            }
+
+            // Don't activate already active triggers
+            if (activeTriggers.Any(at => at.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase)))
+            {
+                FLLog.Info("Mission", $"Trigger {trigger} is already active, not activating");
+                return;
+            }
+
             var t = Script.AvailableTriggers[trigger];
             if (t.Conditions.Length == 1 && t.Conditions[0] is Cnd_True)
             {
+                FLLog.Info("Mission", $"Trigger {trigger} has only Cnd_True condition, executing immediately");
                 DoTrigger(t);
                 return;
             }
+
+            FLLog.Info("Mission", $"Adding trigger {trigger} to active triggers list");
             var active = new ActiveTrigger() { Trigger = t };
             var conds = new List<ActiveCondition>();
             foreach (var cond in t.Conditions)
@@ -151,10 +179,28 @@ namespace LibreLancer.Missions
 
         public void DeactivateTrigger(string trigger)
         {
+            FLLog.Info("Mission", $"DeactivateTrigger called for: {trigger}");
+            foreach (var at in activeTriggers)
+            {
+                FLLog.Info("Mission", $"Active trigger: {at.Trigger.Nickname}");
+            }
+            FLLog.Info("Mission", $"Current deactivated triggers count: {deactivatedTriggers.Count}");
+            foreach (var dt in deactivatedTriggers)
+            {
+                FLLog.Info("Mission", $"Deactivated trigger: {dt}");
+            }
+
             var x = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
             if (x != null)
             {
+                FLLog.Info("Mission", $"Found trigger {trigger} in active list, deactivating it");
                 x.Deactivated = true;
+                activeTriggers.Remove(x);
+            }
+            else
+            {
+                FLLog.Info("Mission", $"Trigger {trigger} not found in active list, adding to deactivated list");
+                deactivatedTriggers.Add(trigger);
             }
         }
 
@@ -184,8 +230,13 @@ namespace LibreLancer.Missions
             return space != null;
         }
 
-        public void SystemEnter(string system, string ship) =>
-            MsnEvent(new SystemEnteredEvent(system, ship));
+        public void SystemEnter(string system, string ship)
+        {
+            string? previous = currentSystem;
+            currentSystem = system;
+            FLLog.Debug("Mission", $"SystemEnter: {system}, previous: {previous}");
+            MsnEvent(new SystemEnteredEvent(system, ship, previous));
+        }
 
         public void Update(double elapsed)
         {
@@ -193,6 +244,8 @@ namespace LibreLancer.Missions
             {
                 foreach (var t in activeTriggers)
                 {
+                    if (!string.IsNullOrEmpty(t.Trigger.System) && !t.Trigger.System.Equals(currentSystem, StringComparison.OrdinalIgnoreCase))
+                        continue;
                     t.ActiveTime += elapsed;
                     var newSatisfied = new BitArray128();
                     for (int i = 0; i < t.Conditions.Count; i++)
@@ -256,6 +309,7 @@ namespace LibreLancer.Missions
         }
 
         private List<ActiveTrigger> activeTriggers = new List<ActiveTrigger>();
+        private HashSet<string> deactivatedTriggers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         void MsnEvent<T>(T e) where T : struct
         {
@@ -282,12 +336,21 @@ namespace LibreLancer.Missions
             // Create a copy of the list to avoid issues with modification during iteration
             // reason: triggers may deactivate themselves or others while they are being processed
             var triggersToProcess = new List<ActiveTrigger>(activeTriggers);
+            FLLog.Info("Mission", $"CheckMissionScript: Starting with {activeTriggers.Count} active triggers, processing {triggersToProcess.Count} triggers");
             activeTriggers.Clear();
 
             foreach (var trigger in triggersToProcess)
             {
+                // Check if this trigger was deactivated during previous processing in this cycle
+                if (deactivatedTriggers.Contains(trigger.Trigger.Nickname))
+                {
+                    trigger.Deactivated = true;
+                }
+
+                FLLog.Info("Mission", $"Processing trigger: {trigger.Trigger.Nickname}, Deactivated: {trigger.Deactivated}, Repeatable: {trigger.Trigger.Repeatable}");
                 if (trigger.Deactivated)
                 {
+                    FLLog.Info("Mission", $"Trigger {trigger.Trigger.Nickname} is deactivated, skipping");
                     uiUpdate = true;
                 }
                 else
@@ -304,20 +367,39 @@ namespace LibreLancer.Missions
 
                     if (activate)
                     {
+                        FLLog.Info("Mission", $"Trigger {trigger.Trigger.Nickname} conditions satisfied, executing");
                         DoTrigger(trigger.Trigger);
-                        completedTriggers.Add(trigger.Trigger.Nickname);
+                        if (!trigger.Trigger.Repeatable)
+                        {
+                            completedTriggers.Add(trigger.Trigger.Nickname);
+                            // Log mission progression trigger
+                            FLLog.Info("Mission", $"Mission progression: Trigger '{trigger.Trigger.Nickname}' completed (hash: {FLHash.CreateID(trigger.Trigger.Nickname)})");
+                        }
+                        else
+                        {
+                            if (!trigger.Deactivated)
+                            {
+                                FLLog.Info("Mission", $"Repeatable trigger {trigger.Trigger.Nickname} not deactivated, resetting and keeping active");
+                                // Reset repeatable trigger
+                                trigger.ActiveTime = 0;
+                                trigger.Satisfied = new BitArray128();
+                                activeTriggers.Add(trigger); // Keep it active
+                            }
+                            else
+                            {
+                                FLLog.Info("Mission", $"Repeatable trigger {trigger.Trigger.Nickname} was deactivated during execution, not keeping active");
+                            }
+                        }
                         uiUpdate = true;
-
-                        // Log mission progression trigger
-                        FLLog.Info("Mission", $"Mission progression: Trigger '{trigger.Trigger.Nickname}' completed (hash: {FLHash.CreateID(trigger.Trigger.Nickname)})");
                     }
                     else
                     {
-                        // Only keep triggers that are not activated
+                        FLLog.Info("Mission", $"Trigger {trigger.Trigger.Nickname} conditions not satisfied, keeping active");
                         activeTriggers.Add(trigger);
                     }
                 }
             }
+            FLLog.Info("Mission", $"CheckMissionScript: Finished, {activeTriggers.Count} triggers remain active");
         }
 
         public void PlayerLaunch()
@@ -338,6 +420,11 @@ namespace LibreLancer.Missions
         public void EnterLocation(string room, string _base)
         {
             MsnEvent(new LocationEnteredEvent(room, _base));
+        }
+
+        public void ExitLocation(string room, string _base)
+        {
+            MsnEvent(new LocationExitedEvent(room, _base));
         }
 
         public void ClosePopup(string id)

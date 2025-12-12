@@ -157,6 +157,7 @@ namespace LibreLancer.Missions
             {
                 AvailableTriggers[tr.Nickname] = new ScriptedTrigger() {
                     Nickname = tr.Nickname,
+                    System = tr.System,
                     Repeatable = tr.Repeatable,
                     Conditions = ScriptedCondition.Convert(tr.Conditions).ToArray(),
                     Actions =  ScriptedAction.Convert(tr.Actions).ToArray()
@@ -192,6 +193,7 @@ namespace LibreLancer.Missions
     public class ScriptedTrigger
     {
         public string Nickname;
+        public string System;
         public bool Repeatable;
         public ScriptedCondition[] Conditions;
         public ScriptedAction[] Actions;

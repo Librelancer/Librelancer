@@ -17,7 +17,7 @@ public record struct DestroyedEvent(string Object);
 
 public record struct MissionResponseEvent(bool Accept);
 
-public record struct SystemEnteredEvent(string System, string Ship);
+public record struct SystemEnteredEvent(string System, string Ship, string? PreviousSystem);
 
 public record struct CommCompleteEvent(string Comm);
 
@@ -26,6 +26,7 @@ public record struct ClosePopupEvent(string Button);
 public record struct CharSelectEvent(string Character, string Room, string Base);
 
 public record struct LocationEnteredEvent(string Room, string Base);
+public record struct LocationExitedEvent(string Room, string Base);
 
 public record struct PlayerManeuverEvent(ManeuverType Type, string Target);
 
