@@ -257,6 +257,7 @@ namespace LancerEdit
                 ExportCompiled(filePath);
             }
             FilePath = filePath;
+            window.OnSaved();
         }
 
         public override void Dispose()

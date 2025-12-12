@@ -46,6 +46,8 @@ public class NewsEditorTab : GameContentTab
         undoBuffer.Hook = () => Dirty = true;
     }
 
+    public void OnSaved() => window.OnSaved();
+
     private int tabIndex = 0;
     private NewsItem selectedItem = null;
     private bool showHistory = false;

@@ -133,6 +133,8 @@ public class SystemEditorTab : GameContentTab
         LightsList.Selected = lt;
     }
 
+    public void OnSaved() => win.OnSaved();
+
     void DrawLeft(int tag)
     {
         switch (tag)

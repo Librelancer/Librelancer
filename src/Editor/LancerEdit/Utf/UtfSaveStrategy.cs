@@ -48,7 +48,10 @@ namespace LancerEdit
             {
                 if (!forceSaveAs && !string.IsNullOrEmpty(utfTab.FilePath))
                 {
-                    window.ResultMessages(utfTab.Utf.Save(utfTab.FilePath, 0));
+                    var res = utfTab.Utf.Save(utfTab.FilePath, 0);
+                    window.ResultMessages(res);
+                    if(res.IsSuccess)
+                        window.OnSaved();
                 }
                 else
                     RunSaveDialog();
@@ -69,6 +72,7 @@ namespace LancerEdit
                 window.ResultMessages(result);
                 if (result.IsSuccess)
                 {
+                    window.OnSaved();
                     utfTab.DocumentName = System.IO.Path.GetFileName(f);
                     utfTab.UpdateTitle();
                     utfTab.FilePath = f;

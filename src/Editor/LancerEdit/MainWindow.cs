@@ -933,6 +933,8 @@ namespace LancerEdit
                     openFolder));
                 ImGui.End();
             }
+
+            DrawSaveIcon(elapsed);
             if(errorTimer > 0) {
                 ImGuiExt.ToastText("An error has occurred\nCheck the log for details",
                                    new Color4(21, 21, 22, 128),
@@ -960,6 +962,50 @@ namespace LancerEdit
             toAdd.Clear();
             if (RequestExit)
                 Exit();
+        }
+
+        private int saveFrames = 2;
+        private const double SAVE_ICON_DURATION = 0.7;
+        private double saveIconTime = 0;
+
+        void DrawSaveIcon(double time)
+        {
+            if (saveIconTime <= 0) {
+                return;
+            }
+            ImGuiHelper.AnimatingElement();
+            if (saveFrames > 0) {
+                saveFrames--;
+            }
+            else {
+                saveIconTime -= time;
+            }
+            double t = (SAVE_ICON_DURATION - saveIconTime) / SAVE_ICON_DURATION;
+            var style = ImGui.GetStyle();
+            var a = MathHelper.Clamp(t >= 0.5 ? 1 - ((t - 0.5) * 2) : (t * 2), 0, 1);
+            style.Alpha = Easing.Ease(EasingTypes.EaseInOut, (float)a, 0, 1, 0, 1);
+
+            float pad = 10 * ImGuiHelper.Scale;
+            var flags = ImGuiWindowFlags.NoDecoration |
+                        ImGuiWindowFlags.AlwaysAutoResize |
+                        ImGuiWindowFlags.NoInputs;
+            var vp = ImGui.GetMainViewport();
+            var pos = vp.WorkPos + new Vector2(vp.WorkSize.X - pad, pad);
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always, new(1, 0));
+            if (ImGui.Begin("SaveIcon", flags))
+            {
+                ImGui.PushFont(null, style.FontSizeBase * 2.2f);
+                ImGui.Text($"{Icons.Save}");
+                ImGui.PopFont();
+            }
+            ImGui.End();
+            style.Alpha = 1;
+        }
+
+        public void OnSaved()
+        {
+            saveFrames = 2;
+            saveIconTime = SAVE_ICON_DURATION;
         }
 
         void DrawQuickFiles()

@@ -99,6 +99,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
             FLLog.Info("Ini", $"Saved to {path}");
         }
         paths.Wait();
+        tab.OnSaved();
     }
 
     public bool ShouldSave =>
@@ -106,7 +107,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
 
     public void DrawMenuOptions()
     {
-        if(Theme.IconMenuItem(Icons.Save, $"Save '{tab.CurrentSystem.Nickname}'", ShouldSave))
+        if(Theme.IconMenuItem(Icons.Save, $"Save '{tab.CurrentSystem.Nickname}'", true))
             Save();
         Theme.IconMenuItem(Icons.Save, "Save As", false);
     }

@@ -13,6 +13,7 @@ public class NewsSaveStrategy(NewsEditorTab tab) : ISaveStrategy
         var filePath = tab.Data.GameData.VFS.GetBackingFileName(newsPath);
         IniWriter.WriteIniFile(filePath, IniSerializer.SerializeNews(tab.News));
         tab.Dirty = false;
+        tab.OnSaved();
     }
 
     public void DrawMenuOptions()
