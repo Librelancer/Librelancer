@@ -177,12 +177,18 @@ namespace LibreLancer.World.Components
 
             //When keepCruiseNearTarget is true, we should keep cruise active even at small distances except for formation points.
             bool shouldCruise = (distance - range) > 2000 || (keepCruiseNearTarget && this is GotoBehavior);
+            FLLog.Info("Autopilot", $"[{Parent.Nickname}] MoveToPoint - distance: {distance:F1}, range: {range:F1}, keepCruiseNearTarget: {keepCruiseNearTarget}, shouldCruise: {shouldCruise}");
             TriggerCruise(control, shouldCruise, time);
-            if ((distance - range) < 500 && !keepCruiseNearTarget)
+            if ((distance - range) < 500 && !keepCruiseNearTarget && !(this is GotoBehavior))
             {
+                FLLog.Info("Autopilot", $"[{Parent.Nickname}] Disabling cruise - close to target (distance-range: {distance-range:F1} < 500)");
                 control.Cruise = false;
                 hasTriggeredCruise = false;
                 cruiseDelayTimer = 0;
+            }
+            else if ((distance - range) < 500 && this is GotoBehavior)
+            {
+                FLLog.Info("Autopilot", $"[{Parent.Nickname}] Preserving cruise - GotoBehavior active (distance-range: {distance-range:F1} < 500)");
             }
 
             var completionDistance = range*3; // Use the gotoRange parameter as the primary completion distance
@@ -331,7 +337,7 @@ namespace LibreLancer.World.Components
             MinDistance = minDistance;
             MaxDistance = maxDistance;
             PlayerDistanceBehavior = playerDistanceBehavior;
-            KeepCruiseNearTarget = keepCruiseNearTarget;
+            KeepCruiseNearTarget = true;
         }
 
         public void Start(GotoKind kind, Vector3 targetPosition, float maxThrottle, float gotoRadius,
@@ -347,7 +353,7 @@ namespace LibreLancer.World.Components
             MinDistance = minDistance;
             MaxDistance = maxDistance;
             PlayerDistanceBehavior = playerDistanceBehavior;
-            KeepCruiseNearTarget = keepCruiseNearTarget;
+            KeepCruiseNearTarget = true;
         }
 
         public override bool Update(ShipSteeringComponent control, ShipInputComponent input, double time)
@@ -380,6 +386,7 @@ namespace LibreLancer.World.Components
             }
 
             bool moveToPointResult = MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, true, control, input, KeepCruiseNearTarget);
+            FLLog.Info("Autopilot", $"[{Parent.Nickname}] GotoBehavior.Update - moveToPointResult: {moveToPointResult}, KeepCruiseNearTarget: {KeepCruiseNearTarget}");
             return moveToPointResult;
         }
     }
@@ -590,15 +597,20 @@ namespace LibreLancer.World.Components
                 return false;
 
             var myPhysics = Parent.PhysicsComponent;
-            if (myPhysics == null)
+            if (myPhysics == null || myPhysics.Body == null)
+                return false;
+
+            // Check if lead physics component is valid
+            var leadPhysicsComponent = lead.PhysicsComponent;
+            if (leadPhysicsComponent == null || leadPhysicsComponent.Body == null)
                 return false;
 
             // Calculate relative velocity
             var myVelocity = myPhysics.Body.LinearVelocity;
-            var leaderVelocity = lead.PhysicsComponent.Body.LinearVelocity;
+            var leaderVelocity = leadPhysicsComponent.Body.LinearVelocity;
 
             // Calculate vector from leader to wingman
-            var relativePosition = myPhysics.Body.Position - lead.PhysicsComponent.Body.Position;
+            var relativePosition = myPhysics.Body.Position - leadPhysicsComponent.Body.Position;
 
             // Check if wingman is moving faster than leader in the direction of the leader
             float mySpeedInLeaderDirection = Vector3.Dot(myVelocity, Vector3.Normalize(relativePosition));
@@ -665,7 +677,7 @@ namespace LibreLancer.World.Components
 
         public void GotoVec(Vector3 vec, GotoKind kind, float maxThrottle = 1, float gotoRange = 40,
             GameObject playerReference = null, float minDistance = 0, float maxDistance = 0, int playerDistanceBehavior = 0,
-            bool keepCruiseNearTarget = false)
+            bool keepCruiseNearTarget = true)
         {
             var gotoBehavior = new GotoBehavior(this);
             SetInstance(gotoBehavior);

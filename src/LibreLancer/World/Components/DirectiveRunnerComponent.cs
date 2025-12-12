@@ -392,4 +392,16 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             FLLog.Info("Autopilot", $"[{Parent.Nickname}] No more directives available");
         }
     }
+
+    public StayInRangeDirective GetCurrentStayInRangeDirective()
+    {
+        if (currentDirectives == null || index < 0 || index >= currentDirectives.Length)
+            return null;
+
+        // Check if current directive is StayInRange
+        if (currentDirectives[index] is StayInRangeDirective stayInRange)
+            return stayInRange;
+
+        return null;
+    }
 }
