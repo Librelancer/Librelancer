@@ -73,4 +73,7 @@ public interface IClientPlayer
     void UpdateScan(ObjNetId id, NetLoadoutDiff diff);
 
     void StoryMissionFailed(int failedIds);
+
+    // SINGLEPLAYER ONLY
+    void SPSetAutosave(string path);
 }
