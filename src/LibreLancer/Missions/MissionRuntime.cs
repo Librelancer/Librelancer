@@ -335,7 +335,7 @@ namespace LibreLancer.Missions
             // Create a copy of the list to avoid issues with modification during iteration
             // reason: triggers may deactivate themselves or others while they are being processed
             var triggersToProcess = new List<ActiveTrigger>(activeTriggers);
-            FLLog.Info("Mission", $"CheckMissionScript: Starting with {activeTriggers.Count} active triggers, processing {triggersToProcess.Count} triggers");
+        
             activeTriggers.Clear();
 
             foreach (var trigger in triggersToProcess)
@@ -346,10 +346,8 @@ namespace LibreLancer.Missions
                     trigger.Deactivated = true;
                 }
 
-                FLLog.Info("Mission", $"Processing trigger: {trigger.Trigger.Nickname}, Deactivated: {trigger.Deactivated}, Repeatable: {trigger.Trigger.Repeatable}");
                 if (trigger.Deactivated)
                 {
-                    FLLog.Info("Mission", $"Trigger {trigger.Trigger.Nickname} is deactivated, skipping");
                     uiUpdate = true;
                 }
                 else
@@ -366,39 +364,29 @@ namespace LibreLancer.Missions
 
                     if (activate)
                     {
-                        FLLog.Info("Mission", $"Trigger {trigger.Trigger.Nickname} conditions satisfied, executing");
                         DoTrigger(trigger.Trigger);
                         if (!trigger.Trigger.Repeatable)
                         {
                             completedTriggers.Add(trigger.Trigger.Nickname);
-                            // Log mission progression trigger
-                            FLLog.Info("Mission", $"Mission progression: Trigger '{trigger.Trigger.Nickname}' completed (hash: {FLHash.CreateID(trigger.Trigger.Nickname)})");
                         }
                         else
                         {
                             if (!trigger.Deactivated)
                             {
-                                FLLog.Info("Mission", $"Repeatable trigger {trigger.Trigger.Nickname} not deactivated, resetting and keeping active");
                                 // Reset repeatable trigger
                                 trigger.ActiveTime = 0;
                                 trigger.Satisfied = new BitArray128();
                                 activeTriggers.Add(trigger); // Keep it active
-                            }
-                            else
-                            {
-                                FLLog.Info("Mission", $"Repeatable trigger {trigger.Trigger.Nickname} was deactivated during execution, not keeping active");
                             }
                         }
                         uiUpdate = true;
                     }
                     else
                     {
-                        FLLog.Info("Mission", $"Trigger {trigger.Trigger.Nickname} conditions not satisfied, keeping active");
                         activeTriggers.Add(trigger);
                     }
                 }
             }
-            FLLog.Info("Mission", $"CheckMissionScript: Finished, {activeTriggers.Count} triggers remain active");
         }
 
         public void PlayerLaunch()

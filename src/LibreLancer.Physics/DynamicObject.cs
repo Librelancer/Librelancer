@@ -89,7 +89,7 @@ internal class DynamicObject : PhysicsObject
     public override BoundingBox GetBoundingBox()
     {
         if (!IsValid)
-            return new BoundingBox(Vector3.Zero, Vector3.Zero);
+            throw new ObjectDisposedException(nameof(DynamicObject), "The physics object is no longer valid.");
         var bounds = BepuObject.BoundingBox;
         return new BoundingBox(bounds.Min, bounds.Max);
     }

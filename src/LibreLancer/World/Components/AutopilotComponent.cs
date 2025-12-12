@@ -178,23 +178,16 @@ namespace LibreLancer.World.Components
             //When keepCruiseNearTarget is true, we should keep cruise active even at small distances except for formation points.
             bool shouldCruise = (distance - range) > 2000 || (keepCruiseNearTarget && this is GotoBehavior);
             TriggerCruise(control, shouldCruise, time);
-            FLLog.Info("Autopilot", $"[{Parent.Nickname}] Distance to target: {distance:F1}m, range: {range:F1}m, keepCruiseNearTarget: {keepCruiseNearTarget}, shouldCruise: {shouldCruise}");
             if ((distance - range) < 500 && !keepCruiseNearTarget)
             {
-                FLLog.Info("Autopilot", $"[{Parent.Nickname}] Disabling cruise at small distance (normal behavior)");
                 control.Cruise = false;
                 hasTriggeredCruise = false;
                 cruiseDelayTimer = 0;
-            }
-            else if ((distance - range) < 500 && keepCruiseNearTarget)
-            {
-                FLLog.Info("Autopilot", $"[{Parent.Nickname}] Keeping cruise active near target because next target also uses cruise (CRUISE PERSISTENCE)");
             }
 
             var completionDistance = range*3; // Use the gotoRange parameter as the primary completion distance
             var distrad = radius < 0 ? (targetRadius + myRadius + range) : radius + myRadius;
             bool distanceSatisfied = completionDistance >= distance;
-            FLLog.Info("Autopilot", $"[{Parent.Nickname}] GotoVec completion check - distance: {distance:F1}m, completionDistance: {completionDistance:F1}m, range: {range:F1}m, targetRadius: {targetRadius:F1}m, myRadius: {myRadius:F1}m, radius: {radius:F1}m, distanceSatisfied: {distanceSatisfied}");
             if (distanceSatisfied && shouldStop)
                 targetPower = 0;
             else
@@ -387,7 +380,6 @@ namespace LibreLancer.World.Components
             }
 
             bool moveToPointResult = MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, true, control, input, KeepCruiseNearTarget);
-            FLLog.Info("Autopilot", $"[{Parent.Nickname}] GotoBehavior.Update - MoveToPoint returned: {moveToPointResult}");
             return moveToPointResult;
         }
     }
@@ -834,18 +826,8 @@ namespace LibreLancer.World.Components
 		              bool behaviorCompleted = instance.Update(control, input, time);
 		              if (behaviorCompleted)
 		              {
-		                  FLLog.Info("Autopilot", $"[{Parent.Nickname}] Behavior completed: {instance.Behavior}, transitioning to next directive");
 		                  SetInstance(null);
-		                  FLLog.Info("Autopilot", $"[{Parent.Nickname}] SetInstance(null) called - CurrentBehavior should now be None");
 		              }
-		              else
-		              {
-		                  FLLog.Debug("Autopilot", $"[{Parent.Nickname}] Behavior still active: {instance.Behavior}");
-		              }
-		          }
-		          else
-		          {
-		              FLLog.Debug("Autopilot", $"[{Parent.Nickname}] No active autopilot instance");
 		          }
 		}
 
