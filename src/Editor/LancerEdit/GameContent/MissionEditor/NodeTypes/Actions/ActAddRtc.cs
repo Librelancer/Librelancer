@@ -24,6 +24,7 @@ public sealed class ActAddRtc : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         Controls.InputTextIdUndo("RTC", undoBuffer, () => ref Data.RTC);
+        Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

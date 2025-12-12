@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Net.Protocol;
@@ -110,6 +111,7 @@ namespace LibreLancer.Missions.Actions
         public int Unknown = -1;
         public string Head = string.Empty;
         public string Body = string.Empty;
+        public string Accessory = string.Empty;
 
         public Act_EtherComm()
         {
@@ -127,13 +129,20 @@ namespace LibreLancer.Missions.Actions
             {
                 Head = string.Empty;
             }
-
             Body = act.Entry[6].ToString();
+            if (act.Entry.Count > 7)
+            {
+                Accessory =  act.Entry[7].ToString();
+            }
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_EtherComm", Voice, IdsName, Target, Line, Unknown, string.IsNullOrWhiteSpace(Head) ? "no_head" : Head, Body);
+            List<ValueBase> values =
+                [Voice, IdsName, Target, Line, Unknown, string.IsNullOrWhiteSpace(Head) ? "no_head" : Head, Body];
+            if(!string.IsNullOrWhiteSpace(Accessory))
+                values.Add(Accessory);
+            section.Entry("Act_EtherComm", values.ToArray());
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)

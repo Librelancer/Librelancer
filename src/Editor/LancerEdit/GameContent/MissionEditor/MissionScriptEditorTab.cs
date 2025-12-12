@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -18,8 +17,6 @@ using LibreLancer.Data.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Query;
 using ImGui = ImGuiNET.ImGui;
 
 namespace LancerEdit.GameContent.MissionEditor;
@@ -67,11 +64,19 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         nodes = [];
         missionIni = new MissionIni(file, null);
         objLists = missionIni.ObjLists.Select(x => new ScriptAiCommands(x)).ToList();
+        missionIni.Info ??= new MissionInfo();
 
-        var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
-        if (npcPath is not null)
+        if (!string.IsNullOrWhiteSpace(missionIni.Info.NpcShipFile))
         {
-            missionIni.ShipIni = new NPCShipIni(npcPath, null);
+            var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
+            if (npcPath is not null)
+            {
+                missionIni.ShipIni = new NPCShipIni(npcPath, null);
+            }
+        }
+        else
+        {
+            missionIni.Info.NpcShipFile = "";
         }
 
         var pos = new Vector2(0, 0);
@@ -309,7 +314,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             selectedShipIndex = 0;
         }
 
-        if (selectedArchIndex is -1 && missionIni.ShipIni.ShipArches.Count is not 0)
+        if (selectedArchIndex is -1 && (missionIni.ShipIni?.ShipArches?.Count ?? 0) is not 0)
         {
             selectedArchIndex = 0;
         }
@@ -724,7 +729,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         ini.Section("Mission")
             .Entry("mission_title", missionIni.Info.MissionTitle)
             .Entry("mission_offer", missionIni.Info.MissionOffer)
-            .Entry("reward", missionIni.Info.Reward)
+            .OptionalEntry("reward", missionIni.Info.Reward)
             .Entry("npc_ship_file", missionIni.Info.NpcShipFile);
 
         foreach (var npc in missionIni.NPCs)

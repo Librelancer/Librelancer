@@ -259,10 +259,12 @@ public sealed partial class MissionScriptEditorTab
 
         Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedNpc.Nickname, 150f);
         Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedNpc.NpcShipArch, 150f);
-        MissionEditorHelpers.AlertIfInvalidRef(() =>
-            missionIni.ShipIni.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch)
-            || gameData.GameData.Ini.NPCShips.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch));
-
+        if (missionIni.ShipIni != null)
+        {
+            MissionEditorHelpers.AlertIfInvalidRef(() =>
+                missionIni.ShipIni.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch)
+                || gameData.GameData.Ini.NPCShips.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch));
+        }
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedNpc.IndividualName,
             inputWidth: 150f);
@@ -285,6 +287,11 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderNpcArchManager()
     {
+        if (missionIni.ShipIni == null)
+        {
+            ImGui.BulletText("NPCShipIni not defined");
+            return;
+        }
         if (ImGui.Button("Create New Ship Arch"))
         {
             selectedArchIndex = missionIni.ShipIni.ShipArches.Count;

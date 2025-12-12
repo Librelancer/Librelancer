@@ -622,7 +622,7 @@ public class Act_SetOrient : ScriptedAction
     public Act_SetOrient(MissionAction act) : base(act)
     {
         Target = act.Entry[0].ToString();
-        Orientation = new(act.Entry[4].ToSingle(), act.Entry[1].ToSingle(), act.Entry[2].ToSingle(), act.Entry[3].ToSingle());
+        Orientation = new(act.Entry[2].ToSingle(), act.Entry[3].ToSingle(), act.Entry[4].ToSingle(), act.Entry[1].ToSingle());
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -905,11 +905,7 @@ public class Act_EnableManeuver : ScriptedAction
 
     public Act_EnableManeuver(MissionAction act) : base(act)
     {
-        if (Enum.TryParse(act.Entry[0].ToString(), out ManeuverType val))
-        {
-            Maneuver = val;
-        }
-
+        Enum.TryParse(act.Entry[0].ToString(), true, out Maneuver);
         Lock = ParseBoolean(act.Entry[1]);
     }
 

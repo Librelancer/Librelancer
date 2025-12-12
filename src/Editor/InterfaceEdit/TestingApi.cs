@@ -226,6 +226,8 @@ namespace InterfaceEdit
         public bool HasEquipmentDealerAction = false;
         public bool HasShipDealerAction = false;
 
+        public bool AutoSaveLoadEnabled = false;
+
         public int ActiveHotspotIndex = 0;
 
         TestServerList serverList = new TestServerList();
@@ -288,6 +290,13 @@ namespace InterfaceEdit
         public void DeleteSelectedGame()
         {
         }
+
+        public bool CanLoadAutoSave() => AutoSaveLoadEnabled;
+
+        public void LoadAutoSave()
+        {
+        }
+
 
         public Infocard _Infocard;
 

@@ -65,6 +65,7 @@ namespace LibreLancer.Client
         public double WorldTime => WorldTick * (1 / 60.0f);
 
         public bool Multiplayer => connection is GameNetClient;
+        private string autoSavePath = null;
         private bool paused = false;
 
         public uint WorldTick = 0;
@@ -99,6 +100,13 @@ namespace LibreLancer.Client
                 Game.Saves.AddFile(es.Save(description, false));
             }
         }
+
+        void IClientPlayer.SPSetAutosave(string path)
+        {
+            autoSavePath = path;
+        }
+
+        public string AutoSavePath => autoSavePath;
 
         public CGameSession(FreelancerGame g, IPacketConnection connection)
         {
@@ -1584,6 +1592,16 @@ namespace LibreLancer.Client
             playerSessionStart = startTime;
             playerTotalTime = time;
         }
+
+        void IClientPlayer.StoryMissionFailed(int failedIds)
+        {
+            RunSync(() =>
+            {
+                gp.StoryFail(failedIds);
+                Pause();
+            });
+        }
+
 
         GameObject ObjOrPlayer(int id)
         {

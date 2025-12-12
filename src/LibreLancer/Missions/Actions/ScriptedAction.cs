@@ -290,6 +290,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_AddRTC : ScriptedAction
     {
         public string RTC = string.Empty;
+        public bool Repeatable = false;
 
         public Act_AddRTC()
         {
@@ -298,6 +299,8 @@ namespace LibreLancer.Missions.Actions
         public Act_AddRTC(MissionAction act) : base(act)
         {
             RTC = act.Entry[0].ToString();
+            if (act.Entry.Count > 1)
+                Repeatable = "repeatable".Equals(act.Entry[1].ToString(), StringComparison.OrdinalIgnoreCase);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -307,7 +310,10 @@ namespace LibreLancer.Missions.Actions
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_AddRTC", RTC);
+            if (Repeatable)
+                section.Entry("Act_AddRTC", RTC, "repeatable");
+            else
+                section.Entry("Act_AddRTC", RTC);
         }
     }
 
@@ -389,6 +395,8 @@ namespace LibreLancer.Missions.Actions
     {
         public string Object = string.Empty;
         public bool Invulnerable = false;
+        public bool Unknown = false;
+        public float Threshold;
 
         public Act_Invulnerable()
         {
@@ -397,12 +405,21 @@ namespace LibreLancer.Missions.Actions
         public Act_Invulnerable(MissionAction act) : base(act)
         {
             Object = act.Entry[0].ToString();
-            Invulnerable = act.Entry[1].ToBoolean();
+            Invulnerable = Unknown = act.Entry[1].ToBoolean();
+            if(act.Entry.Count > 2)
+                Unknown = act.Entry[2].ToBoolean();
+            if(act.Entry.Count > 3)
+                Threshold = act.Entry[3].ToSingle();
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_Invulnerable", Object, Invulnerable);
+            if (Threshold > float.Epsilon)
+                section.Entry("Act_Invulnerable", Object, Invulnerable, Unknown, Threshold);
+            else if (Invulnerable != Unknown)
+                section.Entry("Act_Invulnerable", Object, Invulnerable, Unknown);
+            else
+                section.Entry("Act_Invulnerable", Object, Invulnerable);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -513,6 +530,7 @@ namespace LibreLancer.Missions.Actions
         public string Battle = string.Empty;
         public string Motif = string.Empty;
         public float Fade;
+        public bool Unknown;
 
         public Act_PlayMusic()
         {
@@ -532,6 +550,8 @@ namespace LibreLancer.Missions.Actions
                 Motif = act.Entry[3].ToString();
             if (act.Entry.Count > 4)
                 Fade = act.Entry[4].ToSingle();
+            if(act.Entry.Count > 5)
+                Unknown = act.Entry[5].ToBoolean();
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -543,17 +563,20 @@ namespace LibreLancer.Missions.Actions
             {
                 section.Entry("Act_PlayMusic", "no_params");
             }
-            else if (Fade != 0)
-            {
-                section.Entry("Act_PlayMusic", space, danger, battle, Motif, Fade);
-            }
-            else if (Motif != "")
-            {
-                section.Entry("Act_PlayMusic", space, danger, battle, Motif);
-            }
             else
             {
-                section.Entry("Act_PlayMusic", space, danger, battle);
+                List<ValueBase> values = [space, danger, battle];
+                if (!string.IsNullOrWhiteSpace(Motif))
+                {
+                    values.Add(Motif);
+                    if (Fade != 0)
+                    {
+                        values.Add(Fade);
+                    }
+                    if (Unknown)
+                        values.Add(true);
+                }
+                section.Entry("Act_PlayMusic", values.ToArray());
             }
         }
 
@@ -703,7 +726,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_PopupDialog", Title, Contents, ID);
+            section.Entry("Act_PopUpDialog", Title, Contents, ID);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -790,6 +813,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_ChangeState : ScriptedAction
     {
         public bool Succeed;
+        public int Ids;
 
         public Act_ChangeState()
         {
@@ -798,11 +822,16 @@ namespace LibreLancer.Missions.Actions
         public Act_ChangeState(MissionAction act) : base(act)
         {
             Succeed = act.Entry[0].ToString().Equals("SUCCEED", StringComparison.OrdinalIgnoreCase);
+            if (act.Entry.Count > 1)
+                Ids = act.Entry[1].ToInt32();
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAILED");
+            if(Ids == 0)
+                section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAILED");
+            else
+                section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAIL", Ids);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -810,6 +839,10 @@ namespace LibreLancer.Missions.Actions
             if (Succeed)
             {
                 runtime.Player.MissionSuccess();
+            }
+            else if (!Succeed)
+            {
+                runtime.Player.SPMissionFailure(Ids);
             }
         }
     }
@@ -851,7 +884,7 @@ namespace LibreLancer.Missions.Actions
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
             List<ValueBase> values = [Thorn];
-            if (string.IsNullOrEmpty(MainObject))
+            if (!string.IsNullOrEmpty(MainObject))
             {
                 values.Add(MainObject);
             }

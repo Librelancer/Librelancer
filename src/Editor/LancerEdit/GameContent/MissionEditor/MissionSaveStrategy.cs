@@ -37,7 +37,7 @@ internal class MissionSaveStrategy(MainWindow window, MissionScriptEditorTab tab
 
             if(!result.IsError)
             {
-                window.Popups.MessageBox("Mission Script Editor", $"Successfully saved to {tab.FileSaveLocation}");
+                window.OnSaved();
             }
         }
         else
@@ -57,7 +57,7 @@ internal class MissionSaveStrategy(MainWindow window, MissionScriptEditorTab tab
             {
                 return;
             }
-
+            window.OnSaved();
             tab.DocumentName = Path.GetFileName(f);
             tab.Title = $"Mission Script Editor - {Path.GetFileName(f)}";
             tab.FileSaveLocation = f;

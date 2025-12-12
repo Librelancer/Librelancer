@@ -58,6 +58,7 @@ public class StateGraphTab : EditorTab
         foreach (var g in graphs)
             db.Tables[g.Description] = g;
         StateGraphWriter.Write(fs, db);
+        win.OnSaved();
     }
 
     void NamePopup(NameInputConfig config, Action<string, string> callback)

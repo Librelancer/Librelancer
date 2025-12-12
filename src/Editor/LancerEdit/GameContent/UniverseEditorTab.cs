@@ -58,6 +58,8 @@ public class UniverseEditorTab : GameContentTab
         SaveStrategy = new UniverseSaveStrategy() { Tab = this };
     }
 
+    public void OnSaved() => win.OnSaved();
+
     public override void OnHotkey(Hotkeys hk, bool shiftPressed)
     {
         if (hk == Hotkeys.Undo && map.UndoBuffer.CanUndo)

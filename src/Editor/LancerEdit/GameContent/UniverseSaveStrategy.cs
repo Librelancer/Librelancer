@@ -15,11 +15,12 @@ public class UniverseSaveStrategy : ISaveStrategy
         var path = Tab.Data.GameData.VFS.GetBackingFileName(Tab.Data.GameData.Ini.Freelancer.UniversePath);
         IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(Tab.Data.GameData.Systems, Tab.Data.GameData.Bases));
         Tab.Dirty = false;
+        Tab.OnSaved();
     }
 
     public void DrawMenuOptions()
     {
-        if(Theme.IconMenuItem(Icons.Save, $"Save Universe", Tab.Dirty))
+        if(Theme.IconMenuItem(Icons.Save, $"Save Universe", true))
             Save();
         Theme.IconMenuItem(Icons.Save, "Save As", false);
     }

@@ -94,7 +94,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_PobjIdle");
+            section.Entry("Act_PobjIdle", "no_params");
         }
     }
 

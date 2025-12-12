@@ -337,13 +337,14 @@ public class NodeMissionTrigger : Node
         }
 
         s.Entry("nickname", Data.Nickname);
-        s.Entry("InitState", Data.InitState.ToString());
+        if(Data.InitState != TriggerInitState.INACTIVE)
+            s.Entry("InitState", Data.InitState.ToString());
         if (Data.System != string.Empty)
         {
             s.Entry("system", Data.System);
         }
 
-        s.Entry("repeatable", Data.Repeatable);
+        s.OptionalEntry("repeatable", Data.Repeatable);
 
         foreach (var condition in Conditions)
         {

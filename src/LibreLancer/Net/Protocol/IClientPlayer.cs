@@ -71,4 +71,9 @@ public interface IClientPlayer
     void UpdatePlayTime(double time, DateTime startTime);
     void ClearScan();
     void UpdateScan(ObjNetId id, NetLoadoutDiff diff);
+
+    void StoryMissionFailed(int failedIds);
+
+    // SINGLEPLAYER ONLY
+    void SPSetAutosave(string path);
 }

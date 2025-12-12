@@ -626,11 +626,15 @@ public static class IniSerializer
 
         s.Entry("nickname", ship.Nickname)
             .Entry("NPC", ship.NPC)
-            .Entry("random_name", ship.RandomName)
-            .Entry("orientation", ship.Orientation)
+            .OptionalEntry("random_name", ship.RandomName)
             .OptionalEntry("system", ship.System)
             .OptionalEntry("radius", ship.Radius)
             .OptionalEntry("jumper", ship.Jumper);
+        if (ship.Orientation.Length() > float.Epsilon
+            && ship.Orientation != Quaternion.Identity)
+        {
+            s.Entry("orientation", ship.Orientation);
+        }
         if (!string.IsNullOrWhiteSpace(ship.ArrivalObj.Object))
         {
             if (ship.ArrivalObj.Index > 0)
@@ -639,21 +643,23 @@ public static class IniSerializer
                 s.Entry("arrival_obj", ship.ArrivalObj.Object);
         }
         s.OptionalEntry("init_objectives", ship.InitObjectives);
-
         if (ship.Position.Length() is 0f && ship.RelativePosition.MinRange > 0f &&
             ship.RelativePosition.MaxRange != 0f && !string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName))
         {
             s.Entry("rel_pos", ship.RelativePosition.MinRange, ship.RelativePosition.ObjectName,
                 ship.RelativePosition.MaxRange);
         }
-        else
+        else if(ship.Position.Length() > float.Epsilon)
         {
             s.Entry("position", ship.Position);
         }
-
         foreach (var cargo in ship.Cargo)
         {
             s.Entry("cargo", cargo.Cargo, cargo.Count);
+        }
+        foreach (var lbl in ship.Labels)
+        {
+            s.Entry("label", lbl);
         }
     }
 
@@ -713,10 +719,16 @@ public static class IniSerializer
             .Entry("position", solar.Position)
             .Entry("orientation", solar.Orientation)
             .Entry("archetype", solar.Archetype)
-            .Entry("radius", solar.Radius)
-            .OptionalEntry("costume", solar.Costume)
-            .OptionalEntry("label", solar.Labels.ToArray())
-            .OptionalEntry("voice", solar.Voice)
+            .Entry("radius", solar.Radius);
+        if (solar.Costume is { Length: 3 } && solar.Costume.Any(x => !string.IsNullOrWhiteSpace(x)))
+        {
+            s.Entry("costume", solar.Costume);
+        }
+        foreach (var label in solar.Labels)
+        {
+            s.Entry("label", label);
+        }
+        s.OptionalEntry("voice", solar.Voice)
             .OptionalEntry("loadout", solar.Loadout)
             .OptionalEntry("string_id", solar.StringId)
             .OptionalEntry("pilot", solar.Pilot)
@@ -733,7 +745,7 @@ public static class IniSerializer
             .Entry("velocity", loot.Velocity)
             .Entry("equip_amount", loot.EquipAmount)
             .Entry("health", loot.Health)
-            .Entry("can_jettison", loot.CanJettison);
+            .Entry("Can_Jettison", loot.CanJettison);
 
         if (loot.Position.Length() is 0f && loot.RelPosOffset.Length() > 0f &&
             !string.IsNullOrWhiteSpace(loot.RelPosObj))
@@ -755,7 +767,12 @@ public static class IniSerializer
 
         foreach (var line in dialog.Lines)
         {
-            s.Entry("line", line.Source, line.Target, line.Line);
+            List<ValueBase> values = [line.Source, line.Target, line.Line];
+            if (line.Unknown1.Present)
+                values.Add(line.Unknown1.Value);
+            if(line.Unknown2.Present)
+                values.Add(line.Unknown2.Value);
+            s.Entry("line", values.ToArray());
         }
     }
 

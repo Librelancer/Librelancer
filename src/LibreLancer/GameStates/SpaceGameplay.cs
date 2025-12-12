@@ -602,6 +602,22 @@ World Time: {12:F2}
                 });
             }
 
+            public bool CanLoadAutoSave() => !string.IsNullOrWhiteSpace(g.session.AutoSavePath);
+
+            public void LoadAutoSave()
+            {
+                var path = g.session.AutoSavePath;
+                g.FadeOut(0.2, () =>
+                {
+                    g.session.OnExit();
+                    var embeddedServer =
+                        new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager, g.Game.GetSaveFolder());
+                    var session = new CGameSession(g.Game, embeddedServer);
+                    embeddedServer.StartFromSave(path, File.ReadAllBytes(path));
+                    g.Game.ChangeState(new NetWaitState(session, g.Game));
+                });
+            }
+
             public void SaveGame(string description)
             {
                 g.session.Save(description);
@@ -1102,6 +1118,12 @@ World Time: {12:F2}
             Explode(player);
             world.RemoveObject(player);
             ui.Event("Killed");
+        }
+
+        public void StoryFail(int failIds)
+        {
+            Dead = true;
+            ui.Event("Killed", failIds);
         }
 
         public void Explode(GameObject obj)

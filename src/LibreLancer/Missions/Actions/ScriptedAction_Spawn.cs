@@ -215,8 +215,8 @@ namespace LibreLancer.Missions.Actions
                 Position = new Vector3(act.Entry[1].ToSingle(), act.Entry[2].ToSingle(),
                     act.Entry[3].ToSingle());
             if(act.Entry.Count > 4)
-                Orientation = new Quaternion(act.Entry[7].ToSingle(),
-                    act.Entry[4].ToSingle(),  act.Entry[5].ToSingle(), act.Entry[6].ToSingle());
+                Orientation = new Quaternion(act.Entry[5].ToSingle(),
+                    act.Entry[6].ToSingle(),  act.Entry[7].ToSingle(), act.Entry[4].ToSingle());
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -298,7 +298,7 @@ namespace LibreLancer.Missions.Actions
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
             List<ValueBase> entry = [Ship];
-            if (ObjList != "NULL")
+            if (!string.IsNullOrWhiteSpace(ObjList) && ObjList != "NULL")
             {
                 entry.Add(ObjList);
 
@@ -381,9 +381,18 @@ namespace LibreLancer.Missions.Actions
         }
     }
 
+
+    public enum DestroyKind
+    {
+        Default,
+        SILENT,
+        EXPLODE
+    }
+
     public class Act_Destroy : ScriptedAction
     {
         public string Target = string.Empty;
+        public DestroyKind Kind;
 
         public Act_Destroy()
         {
@@ -393,6 +402,10 @@ namespace LibreLancer.Missions.Actions
         public Act_Destroy(MissionAction act) : base(act)
         {
             Target = act.Entry[0].ToString();
+            if (act.Entry.Count > 1)
+            {
+                Enum.TryParse<DestroyKind>(act.Entry[1].ToString(), true, out Kind);
+            }
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -406,7 +419,10 @@ namespace LibreLancer.Missions.Actions
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            section.Entry("Act_Destroy", Target);
+            if (Kind != DestroyKind.Default)
+                section.Entry("Act_Destroy", Target, Kind.ToString());
+            else
+                section.Entry("Act_Destroy", Target);
         }
     }
 }

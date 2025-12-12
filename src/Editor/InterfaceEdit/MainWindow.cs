@@ -329,6 +329,13 @@ namespace InterfaceEdit
             ImGui.SetNextWindowPos(new Vector2(0, menu_height), ImGuiCond.Always, Vector2.Zero);
             if (playing)
             {
+                bool childopened = true;
+                ImGui.Begin("playwindow", ref childopened,
+                    ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoSavedSettings |
+                    ImGuiWindowFlags.NoBringToFrontOnFocus |
+                    ImGuiWindowFlags.NoMove |
+                    ImGuiWindowFlags.NoResize);
                 try
                 {
                     Player(delta);
@@ -342,6 +349,7 @@ namespace InterfaceEdit
                     _playContext = null;
                     _playData = null;
                 }
+                ImGui.End();
             }
             else Tabs(elapsed);
             //Status Bar
@@ -447,13 +455,6 @@ namespace InterfaceEdit
         bool mouseWanted = false;
         void Player(double delta)
         {
-            bool childopened = true;
-            ImGui.Begin("playwindow", ref childopened,
-                ImGuiWindowFlags.NoTitleBar |
-                ImGuiWindowFlags.NoSavedSettings |
-                ImGuiWindowFlags.NoBringToFrontOnFocus |
-                ImGuiWindowFlags.NoMove |
-                ImGuiWindowFlags.NoResize);
             var szX = Math.Max((int) ImGui.GetContentRegionAvail().X, 32);
             var szY = Math.Max((int) ImGui.GetWindowHeight() - (int)(20 * ImGuiHelper.Scale), 32);
             if (rtX != szX || rtY != szY)
@@ -522,7 +523,6 @@ namespace InterfaceEdit
                     _playContext.OnMouseUp();
                 }
             }
-            ImGui.End();
         }
 
         static void BuildExceptionString(Exception e, StringBuilder detail)
