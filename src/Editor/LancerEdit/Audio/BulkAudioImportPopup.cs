@@ -156,7 +156,7 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.Separator();
 
         // --- FLEX SPACER (push buttons to bottom) ---
-        float remaining = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeight()*FOOTER_SPACING ;
+        float remaining = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeight() * FOOTER_SPACING;
         if (remaining > 0)
             ImGui.Dummy(new Vector2(1, remaining));
     }
@@ -374,14 +374,14 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.TableNextColumn();
 
 
-            if (ImGuiExt.Button($"{Icons.Cut}##trim{e.OriginalPath}", e.RequiresTrim, new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth())))
-            {
-                _state.TrimEditingEntry = e;
-                // Backup original values
-                _state.BackupTrimStart = e.TrimStart;
-                _state.BackupTrimEnd = e.TrimEnd;
-                _state.CurrentState = ToolState.TrimTool;
-            }
+        if (ImGuiExt.Button($"{Icons.Cut}##trim{e.OriginalPath}", e.RequiresTrim, new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth())))
+        {
+            _state.TrimEditingEntry = e;
+            // Backup original values
+            _state.BackupTrimStart = e.TrimStart;
+            _state.BackupTrimEnd = e.TrimEnd;
+            _state.CurrentState = ToolState.TrimTool;
+        }
     }
 
     void CenterText(string text)
@@ -586,30 +586,31 @@ public class BulkAudioImportPopup : PopupWindow
     // ACTION BAR
     void DrawActionBar()
     {
-        using var tb = Toolbar.Begin("##actions", false);
-
-        switch (_state.CurrentState)
+        using (var tb = Toolbar.Begin("##actions", false))
         {
-            case ToolState.SelectFiles:
-                DrawSelectFilesActions();
-                break;
+            switch (_state.CurrentState)
+            {
+                case ToolState.SelectFiles:
+                    DrawSelectFilesActions(tb);
+                    break;
 
-            case ToolState.ConversionResults:
-                DrawConversionResultsActions();
-                break;
-            case ToolState.Importing:
-                DrawSelectImportFilesActions();
-                break;
+                case ToolState.ConversionResults:
+                    DrawConversionResultsActions(tb);
+                    break;
+                case ToolState.Importing:
+                    DrawSelectImportFilesActions(tb);
+                    break;
 
-            case ToolState.TrimTool:
-                DrawTrimToolActions();
-                break;
+                case ToolState.TrimTool:
+                    DrawTrimToolActions(tb);
+                    break;
+            }
         }
     }
 
-    void DrawTrimToolActions()
+    void DrawTrimToolActions(Toolbar tb)
     {
-        if (ImGui.Button("OK", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("OK", true, "Applies trim values"))
         {
             _state.TrimEditingEntry = null;
             _state.CurrentState = ToolState.SelectFiles;
@@ -617,7 +618,7 @@ public class BulkAudioImportPopup : PopupWindow
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Cancel", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("Cancel", true, "Closes without applying trim values"))
         {
             _state.TrimEditingEntry.TrimStart = _state.BackupTrimStart;
             _state.TrimEditingEntry.TrimEnd = _state.BackupTrimEnd;
@@ -626,69 +627,112 @@ public class BulkAudioImportPopup : PopupWindow
         }
     }
 
-    void DrawSelectFilesActions()
+    void DrawSelectFilesActions(Toolbar tb)
     {
-        if (ImGui.Button("Clear All", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("Clear All", true, "Clears all files from the table"))
             _state.ConversionEntries.Clear();
 
         ImGui.SameLine();
-
-        if (ImGui.Button("Convert All", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        ImGui.SeparatorEx(ImGuiSeparatorFlags.Vertical);
+        ImGui.SameLine();
+        if (tb.ButtonItem("Convert All", true, "Sets all entries Action value to 'Convert'"))
+        {
+            _state.ConversionEntries
+                .ForEach(e =>
+            {
+                if (!e.IsLocked)
+                    e.Action = ConversionAction.Convert;
+            });
+        }
+        ImGui.SameLine();
+        if (tb.ButtonItem("Ignore All", true, "Sets all entries Action value to 'Ignore'"))
+        {
+            _state.ConversionEntries
+                .ForEach(e =>
+                {
+                    if (!e.IsLocked)
+                        e.Action = ConversionAction.Ignore;
+                });
+        }
+        ImGui.SameLine();
+        if (tb.ButtonItem("All Bitrate Mode", true, "Sets all entries mode value to 'Bitrate'"))
+        {
+            _state.ConversionEntries
+                .ForEach(e =>
+                {
+                    if (!e.IsLocked)
+                        e.Mode = ConversionMode.Bitrate;
+                });
+        }
+        ImGui.SameLine();
+        if (tb.ButtonItem("All Quality Mode", true, "Sets all entries mode value to 'Quality'"))
+        {
+            _state.ConversionEntries
+                .ForEach(e =>
+                {
+                    if (!e.IsLocked)
+                        e.Mode = ConversionMode.Quality;
+                });
+        }
+        ImGui.SameLine();
+        ImGui.SeparatorEx(ImGuiSeparatorFlags.Vertical);
+        ImGui.SameLine();
+        if (tb.ButtonItem("Convert", true, "Starts the conversion process"))
         {
             if (!ValidateBeforeConvert()) return;
             StartConversionAsync();
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("Close", true, "Closes the tool"))
             ImGui.CloseCurrentPopup();
     }
 
-    void DrawSelectImportFilesActions()
+    void DrawSelectImportFilesActions(Toolbar tb)
     {
         ImGui.SameLine();
 
 
-            if (ImGuiExt.Button("Import", _state.ImportEntries.Count > 0, new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("Import", _state.ImportEntries.Count > 0, "Imports the selected files"))
+        {
+            if (!ValidateBeforeImport()) return;
+
+            var importList = _state.ImportEntries
+                                        .Where(e => e.Action == ImportAction.Import)
+                                        .ToList();
+
+            foreach (var e in importList)
             {
-                if (!ValidateBeforeImport()) return;
+                string path = e.Version == ImportVersion.Converted
+                    ? e.ConvertedPath
+                    : e.OriginalPath;
 
-                var importList = _state.ImportEntries
-                                            .Where(e => e.Action == ImportAction.Import)
-                                            .ToList();
-
-                foreach (var e in importList)
+                if (!File.Exists(path))
                 {
-                    string path = e.Version == ImportVersion.Converted
-                        ? e.ConvertedPath
-                        : e.OriginalPath;
-
-                    if (!File.Exists(path))
-                    {
-                        // Handle missing files gracefully
-                        e.Data = null;
-                        e.Action = ImportAction.Ignore;  // disable import
-                        continue;
-                    }
-
-                    e.Data = File.ReadAllBytes(path);
+                    // Handle missing files gracefully
+                    e.Data = null;
+                    e.Action = ImportAction.Ignore;  // disable import
+                    continue;
                 }
 
-                _onImport(importList.Where(e => e.Action is ImportAction.Import && e.Data != null).ToList());
-                ImGui.CloseCurrentPopup();
+                e.Data = File.ReadAllBytes(path);
             }
-       
+
+            _onImport(importList.Where(e => e.Action is ImportAction.Import && e.Data != null).ToList());
+            ImGui.CloseCurrentPopup();
+        }
+
 
         ImGui.SameLine();
-        if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("Close", true, "Closes the tool"))
             ImGui.CloseCurrentPopup();
     }
 
-    void DrawConversionResultsActions()
+    void DrawConversionResultsActions(Toolbar tb)
     {
         if (_onImport != null)
         {
-            if (ImGui.Button("Import Files", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+            if (tb.ButtonItem("Import Files", true, "Continue to Import Settings"))
             {
                 _state.ImportEntries.Clear();
                 foreach (var e in _state.ConversionEntries)
@@ -751,7 +795,7 @@ public class BulkAudioImportPopup : PopupWindow
             }
         }
         ImGui.SameLine();
-        if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (tb.ButtonItem("Close",true, "Closes the tool"))
             ImGui.CloseCurrentPopup();
     }
 
@@ -768,7 +812,7 @@ public class BulkAudioImportPopup : PopupWindow
 
         if (!_state.ConversionEntries.Any(e => e.Action is ConversionAction.Convert ||
             e.Action is ConversionAction.Ignore && e.Info.Kind is AudioImportKind.Copy or AudioImportKind.Mp3))
-            
+
         {
             _state.ErrorType = ErrorTypes.NoInputs;
             _state.StatusMessage = "No files selected for conversion.";
