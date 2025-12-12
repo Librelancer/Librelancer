@@ -17,7 +17,7 @@ public class ConversionJob
     public int ManualTrimStart { get; set; }
     public int ManualTrimEnd { get; set; }
 
-    public ConversionJob(BulkAudioEntry entry, string outputRoot)
+    public ConversionJob(ConversionEntry entry, string outputRoot)
     {
         InputPath = entry.OriginalPath;
         Info = entry.Info;

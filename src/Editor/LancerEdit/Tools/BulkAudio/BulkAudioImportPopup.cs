@@ -48,11 +48,11 @@ public class BulkAudioImportPopup : PopupWindow
 
     MainWindow _win;
     PopupManager _pm;
+    Action<List<ImportEntry>> _onImport;
 
     readonly IAudioAnalysisService _analysisService;
     readonly IAudioConversionService _conversionService;
 
-    List<BulkAudioEntry> entries = new();
     UiState uiState = new UiState();
 
     CancellationTokenSource cancelToken;
@@ -70,13 +70,21 @@ public class BulkAudioImportPopup : PopupWindow
         Importing,
         ImportResults
     }
-
     ToolState currentState = ToolState.SelectFiles;
 
     public BulkAudioImportPopup(MainWindow win, PopupManager pm)
     {
         _win = win;
         _pm = pm;
+
+        _analysisService = new DefaultAudioAnalysisService();
+        _conversionService = new DefaultAudioConversionService();
+    }
+    public BulkAudioImportPopup(MainWindow win, PopupManager pm, Action<List<ImportEntry>> onImport)
+    {
+        _win = win;
+        _pm = pm;
+        _onImport = onImport;
 
         _analysisService = new DefaultAudioAnalysisService();
         _conversionService = new DefaultAudioConversionService();
@@ -130,9 +138,9 @@ public class BulkAudioImportPopup : PopupWindow
 
     void HandleDeleteRequest()
     {
-        if (uiState.DeleteIndex >= 0 && uiState.DeleteIndex < entries.Count)
+        if (uiState.DeleteIndex >= 0 && uiState.DeleteIndex < uiState.conversionEntries.Count)
         {
-            entries.RemoveAt(uiState.DeleteIndex);
+            uiState.conversionEntries.RemoveAt(uiState.DeleteIndex);
             uiState.DeleteIndex = -1;
         }
     }
@@ -255,7 +263,7 @@ public class BulkAudioImportPopup : PopupWindow
             ImGui.TableSetupColumn("Trim", ImGuiTableColumnFlags.NoClip | ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.NoHeaderLabel, 30);
             ImGui.TableHeadersRow();
 
-            foreach (var e in entries)
+            foreach (var e in uiState.conversionEntries)
                 DrawEntryRow(e);
 
             ImGui.EndTable();
@@ -264,7 +272,7 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.EndChild();
     }
 
-    void DrawEntryRow(BulkAudioEntry e)
+    void DrawEntryRow(ConversionEntry e)
     {
         bool isBitrate = e.UseBitrate;
         int bitrate = e.Bitrate;
@@ -341,7 +349,7 @@ public class BulkAudioImportPopup : PopupWindow
         // delete
         ImGui.TableNextColumn();
         if (ImGui.Button($"{Icons.TrashAlt}##del{e.OriginalPath}", new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth())))
-            uiState.DeleteIndex = entries.IndexOf(e);
+            uiState.DeleteIndex = uiState.conversionEntries.IndexOf(e);
 
         ImGui.TableNextColumn();
 
@@ -409,7 +417,7 @@ public class BulkAudioImportPopup : PopupWindow
             ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableHeadersRow();
 
-            foreach (var e in entries)
+            foreach (var e in uiState.conversionEntries)
             {
                 ImGui.TableNextRow();
 
@@ -494,7 +502,7 @@ public class BulkAudioImportPopup : PopupWindow
     void DrawSelectFilesActions()
     {
         if (ImGui.Button("Clear All", new Vector2(BUTTON_WIDTH, 0)))
-            entries.Clear();
+            uiState.conversionEntries.Clear();
 
         ImGui.SameLine();
 
@@ -511,6 +519,18 @@ public class BulkAudioImportPopup : PopupWindow
 
     void DrawConversionResultsActions()
     {
+        if(_onImport != null)
+        {
+            if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH, 0)))
+            {
+
+
+
+
+
+            }
+        }
+
         if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH, 0)))
             ImGui.CloseCurrentPopup();
     }
@@ -525,7 +545,7 @@ public class BulkAudioImportPopup : PopupWindow
             return false;
         }
 
-        if (!entries.Any(e => !e.IgnoreConvert))
+        if (!uiState.conversionEntries.Any(e => !e.IgnoreConvert))
         {
             uiState.ErrorType = UiState.ErrorTypes.NoInputs;
             uiState.StatusMessage = "No files selected for conversion.";
@@ -579,11 +599,11 @@ public class BulkAudioImportPopup : PopupWindow
 
     void AddFile(string path)
     {
-        if (entries.Any(e => e.OriginalPath.Equals(path, StringComparison.OrdinalIgnoreCase)))
+        if (uiState.conversionEntries.Any(e => e.OriginalPath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             return;
 
         var info = _analysisService.Analyze(path);
-        entries.Add(new BulkAudioEntry(path, info));
+        uiState.conversionEntries.Add(new ConversionEntry(path, info));
     }
 
 
@@ -596,7 +616,7 @@ public class BulkAudioImportPopup : PopupWindow
         log = new AppLog();
         uiState.Progress = 0f;
 
-        var jobs = entries.Where(e => !e.IgnoreConvert)
+        var jobs = uiState.conversionEntries.Where(e => !e.IgnoreConvert)
             .Select(e => new ConversionJob(e, outputFolder))
             .ToList();
 
@@ -606,7 +626,7 @@ public class BulkAudioImportPopup : PopupWindow
 
             foreach (var job in jobs)
             {
-                var entry = entries.First(e => e.OriginalPath == job.InputPath);
+                var entry = uiState.conversionEntries.First(e => e.OriginalPath == job.InputPath);
 
                 var progress = new Progress<float>(p =>
                 {

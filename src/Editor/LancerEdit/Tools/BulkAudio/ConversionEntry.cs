@@ -4,7 +4,7 @@ using LibreLancer.ContentEdit;
 
 namespace LancerEdit.Tools.BulkAudio;
 
-public class BulkAudioEntry
+public class ConversionEntry
 {
     public string OriginalPath { get; set; }
     public string OutputPath { get; set; }
@@ -29,7 +29,7 @@ public class BulkAudioEntry
     public bool Success { get; set; }
     public string Error { get; set; }
 
-    public BulkAudioEntry(string path, AudioImportInfo info)
+    public ConversionEntry(string path, AudioImportInfo info)
     {
         OriginalPath = path;
         Info = info;

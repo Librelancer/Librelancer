@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LancerEdit.Tools.BulkAudio;
 
@@ -23,7 +24,9 @@ public class UiState
     public int DeleteIndex { get; set; } = -1;
 
     // Modal: which entry is being edited for trim
-    public BulkAudioEntry TrimEditingEntry { get; set; } = null;
+    public ConversionEntry TrimEditingEntry { get; set; } = null;
+    public List<ConversionEntry> conversionEntries { get; set; } = new();
+    public List<ImportEntry> importEntries { get; set; } = new();
     public int BackupTrimStart;
     public int BackupTrimEnd;
 }
