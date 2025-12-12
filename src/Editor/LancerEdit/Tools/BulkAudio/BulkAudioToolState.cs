@@ -10,7 +10,8 @@ public class BulkAudioToolState
         None = 0,
         NoInputs,
         NoOutput,
-        ConversionError
+        ConversionError,
+        NodeNameInvalid
     }
     public enum ToolState
     {
@@ -34,8 +35,8 @@ public class BulkAudioToolState
 
     // Modal: which entry is being edited for trim
     public ConversionEntry TrimEditingEntry { get; set; } = null;
-    public List<ConversionEntry> conversionEntries { get; set; } = new();
-    public List<ImportEntry> importEntries { get; set; } = new();
+    public List<ConversionEntry> ConversionEntries { get; set; } = new();
+    public List<ImportEntry> ImportEntries { get; set; } = new();
     public int BackupTrimStart;
     public int BackupTrimEnd;
     public string OutputFolder { get; set; } = "";
