@@ -462,7 +462,12 @@ public class BulkAudioImportPopup : PopupWindow
                 ImGui.TableNextRow();
 
                 ImGui.TableNextColumn();
-                ImGui.Text(e.Success ? Icons.Cube_LightGreen.ToString() : Icons.Cube_Coral.ToString());
+                ImGui.Text((e.Success ||
+                    (e.Action is ConversionAction.Ignore
+                     && e.Info.Kind is AudioImportKind.Copy or AudioImportKind.Mp3
+                     && _onImport != null))
+                        ? Icons.Cube_LightGreen.ToString()
+                        : Icons.Cube_Coral.ToString());
 
                 ImGui.TableNextColumn();
                 ImGui.Text(Path.GetFileName(e.OriginalPath));
@@ -677,6 +682,7 @@ public class BulkAudioImportPopup : PopupWindow
                 }
 
                 _onImport(importList.Where(e => e.Action is ImportAction.Import && e.Data != null).ToList());
+                ImGui.CloseCurrentPopup();
             }
         }
 
@@ -758,7 +764,8 @@ public class BulkAudioImportPopup : PopupWindow
 
     bool ValidateBeforeConvert()
     {
-        if (string.IsNullOrWhiteSpace(_state.OutputFolder) || !Directory.Exists(_state.OutputFolder))
+        if ((string.IsNullOrWhiteSpace(_state.OutputFolder) || !Directory.Exists(_state.OutputFolder))
+            && _state.ConversionEntries.Any(e => e.Action is ConversionEntry.ConversionAction.Convert))
         {
             _state.ErrorType = BulkAudioToolState.ErrorTypes.NoOutput;
             _state.StatusMessage = "Please select a valid output folder.";
@@ -766,7 +773,9 @@ public class BulkAudioImportPopup : PopupWindow
             return false;
         }
 
-        if (!_state.ConversionEntries.Any(e => e.Action is ConversionEntry.ConversionAction.Convert))
+        if (!_state.ConversionEntries.Any(e => e.Action is ConversionEntry.ConversionAction.Convert ||
+            (e.Action is ConversionEntry.ConversionAction.Ignore && e.Info.Kind is AudioImportKind.Copy or AudioImportKind.Mp3)))
+            
         {
             _state.ErrorType = BulkAudioToolState.ErrorTypes.NoInputs;
             _state.StatusMessage = "No files selected for conversion.";
@@ -779,14 +788,6 @@ public class BulkAudioImportPopup : PopupWindow
     }
     bool ValidateBeforeImport()
     {
-        if (string.IsNullOrWhiteSpace(_state.OutputFolder) || !Directory.Exists(_state.OutputFolder))
-        {
-            _state.ErrorType = BulkAudioToolState.ErrorTypes.NoOutput;
-            _state.StatusMessage = "Please select a valid output folder.";
-            _state.IsError = true;
-            return false;
-        }
-
         if (!_state.ImportEntries.Any(e => e.Action is ImportAction.Import))
         {
             _state.ErrorType = BulkAudioToolState.ErrorTypes.NoImports;
@@ -802,7 +803,8 @@ public class BulkAudioImportPopup : PopupWindow
             _state.IsError = true;
             return false;
         }
-
+        _state.ErrorType = BulkAudioToolState.ErrorTypes.None;
+        _state.StatusMessage = "";
         _state.IsError = false;
         return true;
     }
@@ -828,7 +830,6 @@ public class BulkAudioImportPopup : PopupWindow
 
         ImGui.EndChild();
     }
-
 
     // FILE / FOLDER HANDLING
     void TryAddFileOrScanFolder(string path)
