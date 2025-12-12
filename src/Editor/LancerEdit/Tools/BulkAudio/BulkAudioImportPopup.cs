@@ -36,6 +36,13 @@ public class BulkAudioImportPopup : PopupWindow
     public override bool NoClose => false;
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse;
 
+    static readonly FileDialogFilters AudioInputFilters = new FileDialogFilters(
+        new FileFilter("Supported audio formats", "wav", "mp3", "ogg", "flac"),
+        new FileFilter("WAV files", "wav"),
+        new FileFilter("MP3 files", "mp3"),
+        new FileFilter("Ogg files", "ogg"),
+        new FileFilter("Flac files", "flac"));
+
     const float LABEL_WIDTH = 100f;
     const float BUTTON_WIDTH = 110f;
 
@@ -191,7 +198,7 @@ public class BulkAudioImportPopup : PopupWindow
 
                     uiState.StatusMessage = "Files added.";
                     uiState.IsError = false;
-                });
+                }, AudioInputFilters);
             });
         }
     }
