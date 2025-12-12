@@ -20,8 +20,7 @@ public class BulkAudioToolState
         TrimTool,
         Converting,
         ConversionResults,
-        Importing,
-        ImportResults
+        Importing
     }
     public ToolState CurrentState = ToolState.SelectFiles;
     public string StatusMessage = string.Empty;
