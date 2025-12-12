@@ -101,6 +101,18 @@ namespace LibreLancer.ImUI
            ImGui.EndDisabled();
            return r;
         }
+        /// <summary>
+        /// Button that can be disabled
+        /// </summary>
+        /// <param name="text">Text.</param>
+        /// <param name="enabled">If set to <c>true</c> enabled.</param>
+        public static bool Button(string text, bool enabled, Vector2 size = default)
+        {
+            ImGui.BeginDisabled(!enabled);
+            var r = ImGui.Button(text, size);
+            ImGui.EndDisabled();
+            return r;
+        }
 
         /// <summary>
         /// Button that can be disabled

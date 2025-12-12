@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using LibreLancer.ImUI;
 
-namespace LancerEdit.Tools.BulkAudio;
+namespace LancerEdit.Audio;
 
 public static class BulkAudioTool
 {

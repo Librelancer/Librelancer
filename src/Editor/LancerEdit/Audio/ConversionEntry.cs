@@ -2,7 +2,7 @@
 using System.IO;
 using LibreLancer.ContentEdit;
 
-namespace LancerEdit.Tools.BulkAudio;
+namespace LancerEdit.Audio;
 
 public class ConversionEntry
 {
@@ -17,9 +17,9 @@ public class ConversionEntry
         Quality
     }
 
-    public string OriginalPath = String.Empty;
-    public string OutputPath = String.Empty;
-    public string Comment = String.Empty;
+    public string OriginalPath = string.Empty;
+    public string OutputPath = string.Empty;
+    public string Comment = string.Empty;
     public AudioImportInfo Info = new();
     public ConversionAction Action = ConversionAction.Ignore;
     public ConversionMode Mode = ConversionMode.Bitrate;
@@ -34,7 +34,7 @@ public class ConversionEntry
 
     // Conversion Results
     public bool Success = false;
-    public string Error = String.Empty;
+    public string Error = string.Empty;
 
     public ConversionEntry(string path, AudioImportInfo info)
     {

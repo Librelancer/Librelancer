@@ -5,11 +5,23 @@ using System.Threading.Tasks;
 using LibreLancer.ContentEdit;
 using LibreLancer.Media;
 
-namespace LancerEdit.Tools.BulkAudio.Services;
+namespace LancerEdit.Audio;
 
-public class DefaultAudioConversionService : IAudioConversionService
+public static class AudioConverter
 {
-    public async Task<ConversionResult> ConvertAsync(
+    public static AudioImportInfo Analyze(string path)
+    {
+        try
+        {
+            using var stream = File.OpenRead(path);
+            return AudioImporter.Analyze(stream);
+        }
+        catch
+        {
+            return null; // treat as unsupported or corrupt
+        }
+    }
+    public static async Task<EditResult<string>> ConvertAsync(
         ConversionJob job,
         IProgress<float> progress,
         CancellationToken token,
@@ -44,69 +56,50 @@ public class DefaultAudioConversionService : IAudioConversionService
         }
         catch (OperationCanceledException)
         {
-            return ConversionResult.Fail("Cancelled");
+            return EditResult<string>.Error("Cancelled");
         }
         catch (Exception ex)
         {
-            return ConversionResult.Fail(ex.Message);
+            return EditResult<string>.Error(ex.Message);
         }
     }
 
-    // ----------------------------------------------------------------------
-    // WAV Passthrough (Uncompressed WAV)
-    // ----------------------------------------------------------------------
-    private async Task<ConversionResult> PassthroughWav(ConversionJob job, CancellationToken token)
+    private static async Task<EditResult<string>> PassthroughWav(
+        ConversionJob job, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 
         File.Copy(job.InputPath, job.OutputPath, overwrite: true);
-
-        return ConversionResult.Ok(job.OutputPath);
+        return job.OutputPath.AsResult();
     }
-
-    // ----------------------------------------------------------------------
-    // WAV Passthrough (Freelancer MP3-in-WAV container)
-    // AudioImportKind.Copy case in original code
-    // ----------------------------------------------------------------------
-    private async Task<ConversionResult> PassthroughCopy(ConversionJob job, CancellationToken token)
+    private static async Task<EditResult<string>> PassthroughCopy(
+        ConversionJob job, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 
         File.Copy(job.InputPath, job.OutputPath, overwrite: true);
-        return ConversionResult.Ok(job.OutputPath);
+        return job.OutputPath.AsResult();
     }
-
-    // ----------------------------------------------------------------------
-    // Wrap MP3 with LAME trim (AudioImporter.ImportMp3)
-    // ----------------------------------------------------------------------
-    private async Task<ConversionResult> WrapMp3WithTrim(ConversionJob job, CancellationToken token)
+    private static async Task<EditResult<string>> WrapMp3WithTrim(
+        ConversionJob job, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 
         using var output = File.Create(job.OutputPath);
         AudioImporter.ImportMp3(job.InputPath, output, job.Info.Trim, job.Info.Samples);
 
-        return ConversionResult.Ok(job.OutputPath);
+        return job.OutputPath.AsResult();
     }
-
-    // ----------------------------------------------------------------------
-    // Wrap MP3 without trimming info, use manual trim (UI required)
-    // ----------------------------------------------------------------------
-    private async Task<ConversionResult> WrapMp3ManualTrim(ConversionJob job, CancellationToken token)
+    private static async Task<EditResult<string>> WrapMp3ManualTrim(ConversionJob job, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 
         using var output = File.Create(job.OutputPath);
         AudioImporter.ImportMp3(job.InputPath, output, job.ManualTrimStart, job.ManualTrimEnd);
 
-        return ConversionResult.Ok(job.OutputPath);
+        return job.OutputPath.AsResult();
     }
-
-    // ----------------------------------------------------------------------
-    // Re-encode audio to MP3 → wrap into Freelancer WAV container
-    // (OGG, FLAC, other formats)
-    // ----------------------------------------------------------------------
-    private async Task<ConversionResult> ReencodeToFreelancerWav(
+    private static async Task<EditResult<string>> ReencodeToFreelancerWav(
         ConversionJob job,
         IProgress<float> progress,
         CancellationToken token,
@@ -121,9 +114,9 @@ public class DefaultAudioConversionService : IAudioConversionService
             ? Mp3EncodePreset.Bitrate
             : QualityToPreset(job.Quality);
 
-        var tcs = new TaskCompletionSource<ConversionResult>();
+        var tcs = new TaskCompletionSource<EditResult<string>>();
 
-        Mp3Encoder.EncodeStream(
+        await Mp3Encoder.EncodeStream(
                 input,
                 output,
                 job.Bitrate,
@@ -135,24 +128,24 @@ public class DefaultAudioConversionService : IAudioConversionService
             {
                 if (task.IsCanceled)
                 {
-                    tcs.TrySetResult(ConversionResult.Fail("Cancelled"));
+                    tcs.TrySetResult(EditResult<string>.Error("Cancelled"));
                     return;
                 }
 
                 if (task.IsFaulted)
                 {
-                    tcs.TrySetResult(ConversionResult.Fail(task.Exception?.GetBaseException().Message));
+                    tcs.TrySetResult(EditResult<string>.Error(
+                        task.Exception?.GetBaseException().Message
+                    ));
                     return;
                 }
 
-                tcs.TrySetResult(ConversionResult.Ok(job.OutputPath));
+                tcs.TrySetResult(job.OutputPath.AsResult());
             });
 
         return await tcs.Task;
     }
-
-    // Quality-to-preset conversion (preserves original mapping)
-    private Mp3EncodePreset QualityToPreset(int q) =>
+    private static Mp3EncodePreset QualityToPreset(int q) =>
         q switch
         {
             100 => Mp3EncodePreset.Quality100,

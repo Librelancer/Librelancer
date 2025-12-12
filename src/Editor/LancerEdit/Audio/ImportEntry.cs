@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace LancerEdit.Tools.BulkAudio
+namespace LancerEdit.Audio
 {
     public class ImportEntry
     {

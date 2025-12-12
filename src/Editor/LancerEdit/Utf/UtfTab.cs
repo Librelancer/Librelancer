@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using ImGuiNET;
-using LancerEdit.Tools.BulkAudio;
+using LancerEdit.Audio;
 using LancerEdit.Utf.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;

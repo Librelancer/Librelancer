@@ -3,10 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using ImGuiNET;
+using LancerEdit.Audio;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Shaders;
-using LancerEdit.Tools.BulkAudio;
 using LancerEdit.Updater;
 using LibreLancer;
 using LibreLancer.ContentEdit;

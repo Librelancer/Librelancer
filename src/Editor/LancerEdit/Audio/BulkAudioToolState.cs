@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LancerEdit.Tools.BulkAudio;
+namespace LancerEdit.Audio;
 
 public class BulkAudioToolState
 {

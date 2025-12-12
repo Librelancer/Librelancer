@@ -1,7 +1,7 @@
 ﻿using LibreLancer.ContentEdit;
 using System;
 
-namespace LancerEdit.Tools.BulkAudio;
+namespace LancerEdit.Audio;
 
 public class ConversionJob
 {
