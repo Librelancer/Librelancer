@@ -1,16 +1,18 @@
 ﻿using ImGuiNET;
+using LancerEdit.Tools.BulkAudio.Services;
 using LibreLancer;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
+using LibreLancer.Server.Ai;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using LancerEdit.Tools.BulkAudio.Services;
-using System.Runtime.CompilerServices;
+using static LancerEdit.Tools.BulkAudio.BulkAudioToolState;
 
 namespace LancerEdit.Tools.BulkAudio;
 
@@ -53,24 +55,16 @@ public class BulkAudioImportPopup : PopupWindow
     readonly IAudioAnalysisService _analysisService;
     readonly IAudioConversionService _conversionService;
 
-    UiState uiState = new UiState();
+    BulkAudioToolState _state = new BulkAudioToolState();
 
     CancellationTokenSource cancelToken;
     AppLog log;
 
-    string outputFolder = "";
+    
 
     // UI state machine
-    enum ToolState
-    {
-        SelectFiles,
-        TrimTool,
-        Converting,
-        ConversionResults,
-        Importing,
-        ImportResults
-    }
-    ToolState currentState = ToolState.SelectFiles;
+
+    
 
     public BulkAudioImportPopup(MainWindow win, PopupManager pm)
     {
@@ -102,7 +96,7 @@ public class BulkAudioImportPopup : PopupWindow
 
         HandleDeleteRequest();
 
-        switch (currentState)
+        switch (_state.CurrentState)
         {
             case ToolState.SelectFiles:
                 DrawFileSelectionUI();
@@ -138,16 +132,16 @@ public class BulkAudioImportPopup : PopupWindow
 
     void HandleDeleteRequest()
     {
-        if (uiState.DeleteIndex >= 0 && uiState.DeleteIndex < uiState.conversionEntries.Count)
+        if (_state.DeleteIndex >= 0 && _state.DeleteIndex < _state.conversionEntries.Count)
         {
-            uiState.conversionEntries.RemoveAt(uiState.DeleteIndex);
-            uiState.DeleteIndex = -1;
+            _state.conversionEntries.RemoveAt(_state.DeleteIndex);
+            _state.DeleteIndex = -1;
         }
     }
 
     void DrawTrimEditor()
     {
-        var entry = uiState.TrimEditingEntry;
+        var entry = _state.TrimEditingEntry;
         if (entry == null) return;
 
         var fileName = Path.GetFileName(entry.OriginalPath);
@@ -187,6 +181,13 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.Text("Source Files:");
         ImGui.SameLine(LABEL_WIDTH);
 
+        if (_state.ErrorType == BulkAudioToolState.ErrorTypes.NoInputs)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.4f, 0.05f, 0.05f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.6f, 0.1f, 0.1f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.7f, 0.1f, 0.1f, 1f));
+        }
+        
         if (ImGui.Button("Select Files", new Vector2(BUTTON_WIDTH, 0)))
         {
             _win.QueueUIThread(() =>
@@ -195,20 +196,23 @@ public class BulkAudioImportPopup : PopupWindow
                 {
                     if (files == null || files.Length == 0)
                     {
-                        uiState.StatusMessage = "No files selected.";
-                        uiState.IsError = true;
-                        uiState.ErrorType = UiState.ErrorTypes.NoInputs;
+                        _state.StatusMessage = "No files selected.";
+                        _state.IsError = true;
+                        _state.ErrorType = BulkAudioToolState.ErrorTypes.NoInputs;
                         return;
                     }
 
                     foreach (var f in files)
                         TryAddFileOrScanFolder(f);
 
-                    uiState.StatusMessage = "Files added.";
-                    uiState.IsError = false;
+                    _state.StatusMessage = "Files added.";
+                    _state.IsError = false;
                 }, AudioInputFilters);
             });
         }
+
+        if (_state.ErrorType == BulkAudioToolState.ErrorTypes.NoInputs)
+            ImGui.PopStyleColor(3);
     }
 
     void DrawOutputSelector()
@@ -216,26 +220,40 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.Text("Output Folder:");
         ImGui.SameLine(LABEL_WIDTH);
 
-        if (ImGui.Button("Choose", new Vector2(BUTTON_WIDTH,0)))
+        if (_state.ErrorType == BulkAudioToolState.ErrorTypes.NoOutput)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.4f, 0.05f, 0.05f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.6f, 0.1f, 0.1f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.7f, 0.1f, 0.1f, 1f));
+        }
+        
+        if (ImGui.Button("Choose", new Vector2(BUTTON_WIDTH, 0)))
         {
             _win.QueueUIThread(() =>
             {
-                FileDialog.ChooseFolder(path => outputFolder = path);
+                FileDialog.ChooseFolder(path => _state.OutputFolder = path);
             });
         }
 
+        if (_state.ErrorType == BulkAudioToolState.ErrorTypes.NoOutput)
+            ImGui.PopStyleColor(3);
+
         ImGui.SameLine();
         ImGui.PushItemWidth(-1);
-        if (uiState.ErrorType == UiState.ErrorTypes.NoOutput)
+
+        if (_state.ErrorType == BulkAudioToolState.ErrorTypes.NoOutput)
         {
             ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.4f, 0.05f, 0.05f, 1f));  // dark red
             ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, new Vector4(0.6f, 0.1f, 0.1f, 1f));
             ImGui.PushStyleColor(ImGuiCol.FrameBgActive, new Vector4(0.7f, 0.1f, 0.1f, 1f));
 
         }
+        string outputFolder = _state.OutputFolder;
+
         ImGui.InputText("##outputfolder", ref outputFolder, 256);
+        _state.OutputFolder = outputFolder;
         ImGui.PopItemWidth();
-        if (uiState.ErrorType is UiState.ErrorTypes.NoOutput)
+        if (_state.ErrorType is BulkAudioToolState.ErrorTypes.NoOutput)
             ImGui.PopStyleColor(3);
     }
 
@@ -263,7 +281,7 @@ public class BulkAudioImportPopup : PopupWindow
             ImGui.TableSetupColumn("Trim", ImGuiTableColumnFlags.NoClip | ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.NoHeaderLabel, 30);
             ImGui.TableHeadersRow();
 
-            foreach (var e in uiState.conversionEntries)
+            foreach (var e in _state.conversionEntries)
                 DrawEntryRow(e);
 
             ImGui.EndTable();
@@ -349,7 +367,7 @@ public class BulkAudioImportPopup : PopupWindow
         // delete
         ImGui.TableNextColumn();
         if (ImGui.Button($"{Icons.TrashAlt}##del{e.OriginalPath}", new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth())))
-            uiState.DeleteIndex = uiState.conversionEntries.IndexOf(e);
+            _state.DeleteIndex = _state.conversionEntries.IndexOf(e);
 
         ImGui.TableNextColumn();
 
@@ -357,11 +375,11 @@ public class BulkAudioImportPopup : PopupWindow
         //using (new DisabledScope(!e.RequiresTrim))
         {
             if (ImGui.Button($"{Icons.Cut}##trim{e.OriginalPath}", new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth()))) {
-                uiState.TrimEditingEntry = e;
+                _state.TrimEditingEntry = e;
                 // Backup original values
-                uiState.BackupTrimStart = e.TrimStart;
-                uiState.BackupTrimEnd = e.TrimEnd;
-                currentState = ToolState.TrimTool;
+                _state.BackupTrimStart = e.TrimStart;
+                _state.BackupTrimEnd = e.TrimEnd;
+                _state.CurrentState = ToolState.TrimTool;
             }
 
         }
@@ -384,7 +402,7 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.Text("Converting files...");
         ImGui.Spacing();
 
-        ImGui.ProgressBar(uiState.Progress, new Vector2(-1, 20));
+        ImGui.ProgressBar(_state.Progress, new Vector2(-1, 20));
         ImGui.Spacing();
 
         ImGui.BeginDisabled();
@@ -417,7 +435,7 @@ public class BulkAudioImportPopup : PopupWindow
             ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableHeadersRow();
 
-            foreach (var e in uiState.conversionEntries)
+            foreach (var e in _state.conversionEntries)
             {
                 ImGui.TableNextRow();
 
@@ -446,13 +464,13 @@ public class BulkAudioImportPopup : PopupWindow
     {
         ImGui.Text("Importing converted files...");
         ImGui.Spacing();
-        ImGui.ProgressBar(uiState.Progress, new Vector2(-1, 20));
+        ImGui.ProgressBar(_state.Progress, new Vector2(-1, 20));
         ImGui.Spacing();
     }
     void DrawImportResultsUI()
     {
         ImGui.Text("Import complete.");
-        ImGui.Text(uiState.StatusMessage);
+        ImGui.Text(_state.StatusMessage);
     }
 
     // ACTION BAR
@@ -460,7 +478,7 @@ public class BulkAudioImportPopup : PopupWindow
     {
         using var tb = Toolbar.Begin("##actions", false);
 
-        switch (currentState)
+        switch (_state.CurrentState)
         {
             case ToolState.SelectFiles:
                 DrawSelectFilesActions();
@@ -484,25 +502,25 @@ public class BulkAudioImportPopup : PopupWindow
     {
         if (ImGui.Button("OK", new Vector2(BUTTON_WIDTH, 0)))
         {
-            uiState.TrimEditingEntry = null;
-            currentState = ToolState.SelectFiles;
+            _state.TrimEditingEntry = null;
+            _state.CurrentState = ToolState.SelectFiles;
         }
 
         ImGui.SameLine();
 
         if (ImGui.Button("Cancel", new Vector2(BUTTON_WIDTH, 0)))
         {
-            uiState.TrimEditingEntry.TrimStart = uiState.BackupTrimStart;
-            uiState.TrimEditingEntry.TrimEnd = uiState.BackupTrimEnd;
-            uiState.TrimEditingEntry = null;
-            currentState = ToolState.SelectFiles;
+            _state.TrimEditingEntry.TrimStart = _state.BackupTrimStart;
+            _state.TrimEditingEntry.TrimEnd = _state.BackupTrimEnd;
+            _state.TrimEditingEntry = null;
+            _state.CurrentState = ToolState.SelectFiles;
         }
     }
 
     void DrawSelectFilesActions()
     {
         if (ImGui.Button("Clear All", new Vector2(BUTTON_WIDTH, 0)))
-            uiState.conversionEntries.Clear();
+            _state.conversionEntries.Clear();
 
         ImGui.SameLine();
 
@@ -537,23 +555,23 @@ public class BulkAudioImportPopup : PopupWindow
 
     bool ValidateBeforeConvert()
     {
-        if (string.IsNullOrWhiteSpace(outputFolder) || !Directory.Exists(outputFolder))
+        if (string.IsNullOrWhiteSpace(_state.OutputFolder) || !Directory.Exists(_state.OutputFolder))
         {
-            uiState.ErrorType = UiState.ErrorTypes.NoOutput;
-            uiState.StatusMessage = "Please select a valid output folder.";
-            uiState.IsError = true;
+            _state.ErrorType = BulkAudioToolState.ErrorTypes.NoOutput;
+            _state.StatusMessage = "Please select a valid output folder.";
+            _state.IsError = true;
             return false;
         }
 
-        if (!uiState.conversionEntries.Any(e => !e.IgnoreConvert))
+        if (!_state.conversionEntries.Any(e => !e.IgnoreConvert))
         {
-            uiState.ErrorType = UiState.ErrorTypes.NoInputs;
-            uiState.StatusMessage = "No files selected for conversion.";
-            uiState.IsError = true;
+            _state.ErrorType = BulkAudioToolState.ErrorTypes.NoInputs;
+            _state.StatusMessage = "No files selected for conversion.";
+            _state.IsError = true;
             return false;
         }
 
-        uiState.IsError = false;
+        _state.IsError = false;
         return true;
     }
 
@@ -562,18 +580,18 @@ public class BulkAudioImportPopup : PopupWindow
     {
         ImGui.BeginChild("status", new Vector2(0, 30), ImGuiChildFlags.Borders, ImGuiWindowFlags.NoScrollbar);
 
-        if (string.IsNullOrEmpty(uiState.StatusMessage))
+        if (string.IsNullOrEmpty(_state.StatusMessage))
             ImGui.Text("");
-        else if (uiState.IsError)
+        else if (_state.IsError)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.3f, 0.3f, 1f));
-            ImGui.Text(uiState.StatusMessage);
+            ImGui.Text(_state.StatusMessage);
             ImGui.PopStyleColor();
         }
         else
         {
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0f, 0.8f, 0.2f, 1f));
-            ImGui.Text(uiState.StatusMessage);
+            ImGui.Text(_state.StatusMessage);
             ImGui.PopStyleColor();
         }
 
@@ -599,25 +617,25 @@ public class BulkAudioImportPopup : PopupWindow
 
     void AddFile(string path)
     {
-        if (uiState.conversionEntries.Any(e => e.OriginalPath.Equals(path, StringComparison.OrdinalIgnoreCase)))
+        if (_state.conversionEntries.Any(e => e.OriginalPath.Equals(path, StringComparison.OrdinalIgnoreCase)))
             return;
 
         var info = _analysisService.Analyze(path);
-        uiState.conversionEntries.Add(new ConversionEntry(path, info));
+        _state.conversionEntries.Add(new ConversionEntry(path, info));
     }
 
 
     // CONVERSION
     void StartConversionAsync()
     {
-        currentState = ToolState.Converting;
+        _state.CurrentState = ToolState.Converting;
 
         cancelToken = new CancellationTokenSource();
         log = new AppLog();
-        uiState.Progress = 0f;
+        _state.Progress = 0f;
 
-        var jobs = uiState.conversionEntries.Where(e => !e.IgnoreConvert)
-            .Select(e => new ConversionJob(e, outputFolder))
+        var jobs = _state.conversionEntries.Where(e => !e.IgnoreConvert)
+            .Select(e => new ConversionJob(e, _state.OutputFolder))
             .ToList();
 
         Task.Run(async () =>
@@ -626,11 +644,11 @@ public class BulkAudioImportPopup : PopupWindow
 
             foreach (var job in jobs)
             {
-                var entry = uiState.conversionEntries.First(e => e.OriginalPath == job.InputPath);
+                var entry = _state.conversionEntries.First(e => e.OriginalPath == job.InputPath);
 
                 var progress = new Progress<float>(p =>
                 {
-                    uiState.Progress = ((float)i + p) / jobs.Count;
+                    _state.Progress = ((float)i + p) / jobs.Count;
                 });
 
                 var result = await _conversionService.ConvertAsync(
@@ -646,13 +664,13 @@ public class BulkAudioImportPopup : PopupWindow
 
                 i++;
 
-                uiState.Progress = (float)i / jobs.Count;
+                _state.Progress = (float)i / jobs.Count;
             }
 
             _win.QueueUIThread(() =>
             {
-                currentState = ToolState.ConversionResults;
-                uiState.StatusMessage = "Conversion complete.";
+                _state.CurrentState = ToolState.ConversionResults;
+                _state.StatusMessage = "Conversion complete.";
             });
 
         });

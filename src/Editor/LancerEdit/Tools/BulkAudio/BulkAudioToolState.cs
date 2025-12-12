@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LancerEdit.Tools.BulkAudio;
 
-public class UiState
+public class BulkAudioToolState
 {
     public enum ErrorTypes
     {
@@ -12,7 +12,16 @@ public class UiState
         NoOutput,
         ConversionError
     }
-
+    public enum ToolState
+    {
+        SelectFiles,
+        TrimTool,
+        Converting,
+        ConversionResults,
+        Importing,
+        ImportResults
+    }
+    public ToolState CurrentState { get; set; } = ToolState.SelectFiles;
     public string StatusMessage { get; set; } = string.Empty;
     public ErrorTypes ErrorType { get; set; } = ErrorTypes.None;
     public bool IsError { get; set; } = false;
@@ -29,4 +38,5 @@ public class UiState
     public List<ImportEntry> importEntries { get; set; } = new();
     public int BackupTrimStart;
     public int BackupTrimEnd;
+    public string OutputFolder { get; set; } = "";
 }
