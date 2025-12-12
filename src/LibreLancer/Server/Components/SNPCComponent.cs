@@ -381,8 +381,28 @@ namespace LibreLancer.Server.Components
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
                 if ("player".Equals(shootAt.Nickname, StringComparison.OrdinalIgnoreCase))
+                {
                     manager.AttackingPlayer++;
+                    // Apply enemy clamping if configured
+                    if (manager.AttackingPlayer > manager.MaxPlayerAttackers)
+                    {
+                        // Don't allow this NPC to target the player if we're over the max limit
+                        shootAt = null;
+                        manager.AttackingPlayer--;
+                    }
+                }
+                else if (manager.AttackingPlayer < manager.MinPlayerAttackers && shootAt != null)
+                {
+                    var playerObj = Parent.GetWorld().GetObject("player");
+                    if (playerObj != null && IsHostileTo(playerObj))
+                    {
+                        shootAt = playerObj;
+                        manager.AttackingPlayer++;
+                    }
+                }
 
+                if (shootAt?.WorldTransform == null) shootAt = null;
+                if (shootAt == null) return shootAt;
                 var dist = Vector3.Distance(shootAt.WorldTransform.Position, myPos);
 
                 var gunRange = weapons.GetGunMaxRange() * 0.95f;
@@ -405,8 +425,8 @@ namespace LibreLancer.Server.Components
                         missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
                     }
                 }
-                //Fire guns
-                if (dist < gunRange)
+                //Fire guns and check if target exists
+                if (shootAt?.WorldTransform != null && dist < gunRange)
                 {
                     var fireInfo = RunFireTimers((float)time);
                     if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)

@@ -62,6 +62,7 @@ namespace LibreLancer.Server
         public string SaveFolder;
         public string System;
         public string Base;
+        public string CurrentRoom;
         public Vector3 Position;
         public Quaternion Orientation;
         public NetObjective Objective;
@@ -252,6 +253,9 @@ namespace LibreLancer.Server
 
         void IServerPlayer.OnLocationEnter(string _base, string room)
         {
+            if (CurrentRoom != null && CurrentRoom != room)
+                msnRuntime?.ExitLocation(CurrentRoom, _base);
+            CurrentRoom = room;
             msnRuntime?.EnterLocation(room, _base);
         }
 
@@ -796,6 +800,7 @@ namespace LibreLancer.Server
             {
                 rpcClient.UpdateInventory(diff);
             }
+            FLLog.Info("Mission", $"Player net worth updated: {CalculateNetWorth()}");
             Story?.Update(this);
         }
 
@@ -993,6 +998,9 @@ namespace LibreLancer.Server
                     Orientation = obj.Rotation;
                     Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
                 }
+                if (CurrentRoom != null)
+                    msnRuntime?.ExitLocation(CurrentRoom, Base);
+                CurrentRoom = null;
                 Baseside = null;
                 Base = null;
                 world.EnqueueAction(() =>
