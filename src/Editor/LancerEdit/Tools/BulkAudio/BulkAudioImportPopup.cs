@@ -38,8 +38,6 @@ public class BulkAudioImportPopup : PopupWindow
 
     const float LABEL_WIDTH = 100f;
     const float BUTTON_WIDTH = 110f;
-    const float ROW_HEIGHT = 60f;
-
 
     MainWindow _win;
     PopupManager _pm;
@@ -59,6 +57,7 @@ public class BulkAudioImportPopup : PopupWindow
     enum ToolState
     {
         SelectFiles,
+        TrimTool,
         Converting,
         ConversionResults,
         Importing,
@@ -85,7 +84,6 @@ public class BulkAudioImportPopup : PopupWindow
     {
         if (appearing) // set initial window size
             ImGui.SetNextWindowSize(new Vector2(900, 400), ImGuiCond.Always);
-        
 
         HandleDeleteRequest();
 
@@ -110,15 +108,15 @@ public class BulkAudioImportPopup : PopupWindow
             case ToolState.ImportResults:
                 DrawImportResultsUI();
                 break;
+            case ToolState.TrimTool:
+                DrawTrimEditor();
+                break;
         }
 
         ImGui.Separator();
         DrawActionBar();
         ImGui.Separator();
         DrawStatusBar();
-
-
-        ShowTrimModal();
     }
 
     // UI SUBCOMPONENTS
@@ -132,18 +130,35 @@ public class BulkAudioImportPopup : PopupWindow
         }
     }
 
-    void ShowTrimModal()
+    void DrawTrimEditor()
     {
-        if (uiState.TrimEditingEntry == null)
-            return;
+        var entry = uiState.TrimEditingEntry;
+        if (entry == null) return;
 
-        if (TrimEditorModal.BeginTrimEditor(uiState))
-        {
-            TrimEditorModal.Draw(uiState);
-            TrimEditorModal.End();
-        }
+        var fileName = Path.GetFileName(entry.OriginalPath);
+
+        // --- Top content ---
+        ImGui.Text($"Trim MP3: {fileName}");
+        ImGui.Separator();
+        ImGui.Text("This MP3 has no trimming metadata.");
+        ImGui.Text("Enter start/end samples manually (Audacity recommended).");
+        ImGui.Spacing();
+
+        int start = entry.TrimStart;
+        if (ImGui.InputInt("Trim Start (samples)", ref start))
+            entry.TrimStart = Math.Max(0, start);
+
+        int end = entry.TrimEnd;
+        if (ImGui.InputInt("Trim End (samples)", ref end))
+            entry.TrimEnd = Math.Max(0, end);
+
+        ImGui.Separator();
+
+        // --- FLEX SPACER (push buttons to bottom) ---
+        float remaining = ImGui.GetContentRegionAvail().Y - 75;
+        if (remaining > 0)
+            ImGui.Dummy(new Vector2(1, remaining));
     }
-
     // SELECT FILES + PARAM UI
     void DrawFileSelectionUI()
     {
@@ -196,8 +211,17 @@ public class BulkAudioImportPopup : PopupWindow
 
         ImGui.SameLine();
         ImGui.PushItemWidth(-1);
+        if (uiState.ErrorType == UiState.ErrorTypes.NoOutput)
+        {
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.4f, 0.05f, 0.05f, 1f));  // dark red
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, new Vector4(0.6f, 0.1f, 0.1f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, new Vector4(0.7f, 0.1f, 0.1f, 1f));
+
+        }
         ImGui.InputText("##outputfolder", ref outputFolder, 256);
         ImGui.PopItemWidth();
+        if (uiState.ErrorType is UiState.ErrorTypes.NoOutput)
+            ImGui.PopStyleColor(3);
     }
 
     void DrawEntryTable()
@@ -209,7 +233,7 @@ public class BulkAudioImportPopup : PopupWindow
             ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY |
             ImGuiTableFlags.Resizable | ImGuiTableFlags.SizingFixedFit))
         {
-            ImGui.TableSetupColumn("File", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("File", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("Comment", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("Channels", ImGuiTableColumnFlags.NoClip | ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60);
             ImGui.TableSetupColumn("Sample Rate", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 80);
@@ -319,15 +343,13 @@ public class BulkAudioImportPopup : PopupWindow
         {
             if (ImGui.Button($"{Icons.Cut}##trim{e.OriginalPath}", new Vector2(ImGui.GetColumnWidth(), ImGui.GetColumnWidth()))) {
                 uiState.TrimEditingEntry = e;
-                ImGui.OpenPopup("trim_editor");
+                // Backup original values
+                uiState.BackupTrimStart = e.TrimStart;
+                uiState.BackupTrimEnd = e.TrimEnd;
+                currentState = ToolState.TrimTool;
             }
-            
 
         }
-
-
-
-
     }
 
     void CenterText(string text)
@@ -371,11 +393,12 @@ public class BulkAudioImportPopup : PopupWindow
         float tableHeight = ImGui.GetContentRegionAvail().Y - 80;
         ImGui.BeginChild("results_child", new Vector2(0, tableHeight), ImGuiChildFlags.Borders);
 
-        if (ImGui.BeginTable("results_table", 3,
+        if (ImGui.BeginTable("results_table", 4,
             ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY))
         {
             ImGui.TableSetupColumn("OK?", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("File", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("File Name", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("File Path", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("Message", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableHeadersRow();
 
@@ -384,10 +407,13 @@ public class BulkAudioImportPopup : PopupWindow
                 ImGui.TableNextRow();
 
                 ImGui.TableNextColumn();
-                ImGui.Text(e.Success ? "✔" : "✖");
+                ImGui.Text(e.Success ? Icons.Cube_LightGreen.ToString() : Icons.Cube_Coral.ToString());
 
                 ImGui.TableNextColumn();
                 ImGui.Text(Path.GetFileName(e.OriginalPath));
+
+                ImGui.TableNextColumn();
+                ImGui.Text(e.OriginalPath);
 
                 ImGui.TableNextColumn();
                 ImGui.Text(e.Error ?? "");
@@ -399,10 +425,8 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.EndChild();
     }
 
-
     // IMPORT UI
     // (if onImport callback specified)
-
     void DrawImportUI()
     {
         ImGui.Text("Importing converted files...");
@@ -410,7 +434,6 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.ProgressBar(uiState.Progress, new Vector2(-1, 20));
         ImGui.Spacing();
     }
-
     void DrawImportResultsUI()
     {
         ImGui.Text("Import complete.");
@@ -436,30 +459,52 @@ public class BulkAudioImportPopup : PopupWindow
                 if (ImGui.Button("Close"))
                     ImGui.CloseCurrentPopup();
                 break;
+            case ToolState.TrimTool:
+                DrawTrimToolActions();
+                break;
+        }
+    }
+
+    void DrawTrimToolActions()
+    {
+        if (ImGui.Button("OK", new Vector2(BUTTON_WIDTH, 0)))
+        {
+            uiState.TrimEditingEntry = null;
+            currentState = ToolState.SelectFiles;
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Cancel", new Vector2(BUTTON_WIDTH, 0)))
+        {
+            uiState.TrimEditingEntry.TrimStart = uiState.BackupTrimStart;
+            uiState.TrimEditingEntry.TrimEnd = uiState.BackupTrimEnd;
+            uiState.TrimEditingEntry = null;
+            currentState = ToolState.SelectFiles;
         }
     }
 
     void DrawSelectFilesActions()
     {
-        if (ImGui.Button("Clear All"))
+        if (ImGui.Button("Clear All", new Vector2(BUTTON_WIDTH, 0)))
             entries.Clear();
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Convert All"))
+        if (ImGui.Button("Convert All", new Vector2(BUTTON_WIDTH, 0)))
         {
             if (!ValidateBeforeConvert()) return;
             StartConversionAsync();
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Close"))
+        if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH, 0)))
             ImGui.CloseCurrentPopup();
     }
 
     void DrawConversionResultsActions()
     {
-        if (ImGui.Button("Close"))
+        if (ImGui.Button("Close", new Vector2(BUTTON_WIDTH, 0)))
             ImGui.CloseCurrentPopup();
     }
 

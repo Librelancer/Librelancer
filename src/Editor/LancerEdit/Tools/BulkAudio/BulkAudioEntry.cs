@@ -54,12 +54,10 @@ public class BulkAudioEntry
 
             case AudioImportKind.WavUncompressed:
                 Comment = "Uncompressed WAV\nCan be used as-is";
-                IgnoreConvert = true;
                 break;
 
             case AudioImportKind.Copy:
                 Comment = "Already Freelancer-compliant WAV (MP3-encoded)";
-                IgnoreConvert = true;
                 break;
 
             case AudioImportKind.NeedsConversion:

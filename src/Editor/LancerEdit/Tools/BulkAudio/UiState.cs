@@ -24,4 +24,6 @@ public class UiState
 
     // Modal: which entry is being edited for trim
     public BulkAudioEntry TrimEditingEntry { get; set; } = null;
+    public int BackupTrimStart;
+    public int BackupTrimEnd;
 }
