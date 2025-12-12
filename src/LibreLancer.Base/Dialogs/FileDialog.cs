@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using static LibreLancer.Dialogs.NFD;
 
 namespace LibreLancer.Dialogs
 {
@@ -344,7 +342,7 @@ namespace LibreLancer.Dialogs
                     if (getRes == NFDResult.NFD_OKAY && pathPtr != null)
                     {
                         // Convert wchar_t* to UTF-16 string
-                        results[i] = Marshal.PtrToStringUni((IntPtr)pathPtr);
+                        results[i] = FromNFD(pathPtr);
 
                         // Free individual path (Windows: FreePathN)
                         NFD.NFD_FreePathN(pathPtr);
