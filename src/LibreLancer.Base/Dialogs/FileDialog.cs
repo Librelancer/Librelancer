@@ -1,4 +1,4 @@
-// MIT License - Copyright (c) Callum McGing
+﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
@@ -103,7 +103,6 @@ namespace LibreLancer.Dialogs
                 return Marshal.PtrToStringUTF8((IntPtr) input);
         }
 
-
         unsafe struct SDLFilters : IDisposable
         {
             public IntPtr Pointer;
@@ -145,7 +144,6 @@ namespace LibreLancer.Dialogs
                     p.Dispose();
             }
         }
-
 
         static unsafe void ThrowNFDError() => throw new Exception(Marshal.PtrToStringUTF8((IntPtr) NFD.NFD_GetError()));
         public static unsafe void Open(Action<string> onOpen, FileDialogFilters filters = null, string defaultPath = null)
@@ -263,6 +261,104 @@ namespace LibreLancer.Dialogs
                 ThrowNFDError();
 		}
 
+        public static unsafe void OpenMultiple(
+            Action<string[]> onOpen,
+            FileDialogFilters filters = null,
+            string defaultPath = null)
+        {
+            if (SDL3Handle != IntPtr.Zero)
+            {
+                using var sf = SDLFilters.Create(filters);
+                void Callback(IntPtr userdata, IntPtr filelist, int filter)
+                {
+                    var self = GCHandle.FromIntPtr(userdata);
+                    self.Free();
+                    if (filelist == IntPtr.Zero)
+                        return;
+                    IntPtr* files = (IntPtr*)filelist;
+                    List<string> strings = new();
+                    int i = 0;
+                    while (files[i] != IntPtr.Zero)
+                    {
+                        strings.Add(Marshal.PtrToStringUTF8(files[i]));
+                        i++;
+                    }
+                    onOpen(strings.ToArray());
+                }
+                SDL3.SDL_DialogFileCallback cb = Callback;
+                var cbh = GCHandle.Alloc(cb, GCHandleType.Normal);
+                SDL3.SDL_ShowOpenFileDialog(cb,
+                    (IntPtr)cbh,
+                    SDL3Handle,
+                    new Span<SDL3.SDL_DialogFileFilter>((void*)sf.Pointer, (int)sf.Count),
+                    (int)sf.Count,
+                    defaultPath,
+                    true);
+                return;
+            }
+            else // fallback to useing Native File Dialogue - Extended
+            {
+                NFD.NFD_ClearError();
+                using var f = NFDFilters.Create(filters);
 
-	}
+                void* pathSet = null;       // <-- this will receive nfdpathset_t*
+                using var def = Utf8Native.Create(defaultPath);
+
+                var res = NFD.NFD_OpenDialogMultipleN(
+                    &pathSet,
+                    f,
+                    f.Count,
+                    (void*)def.Buffer);
+
+                if (res == NFDResult.NFD_CANCEL || pathSet == null)
+                {
+                    onOpen(Array.Empty<string>());
+                    return;
+                }
+
+                if (res == NFDResult.NFD_ERROR)
+                {
+                    ThrowNFDError();
+                    return;
+                }
+
+                // Get number of paths
+                ulong count = 0;
+                var countRes = NFD.NFD_PathSet_GetCount(pathSet, &count);
+                if (countRes != NFDResult.NFD_OKAY)
+                {
+                    NFD.NFD_PathSet_Free(pathSet);
+                    ThrowNFDError();
+                    return;
+                }
+
+                var results = new string[count];
+
+                for (ulong i = 0; i < count; i++)
+                {
+                    void* pathPtr = null;
+
+                    var getRes = NFD.NFD_PathSet_GetPathN(pathSet, i, &pathPtr);
+                    if (getRes == NFDResult.NFD_OKAY && pathPtr != null)
+                    {
+                        // Convert wchar_t* to UTF-16 string
+                        results[i] = FromNFD(pathPtr);
+
+                        // Free individual path (Windows: FreePathN)
+                        NFD.NFD_FreePathN(pathPtr);
+                    }
+                    else
+                    {
+                        results[i] = string.Empty;
+                    }
+                }
+
+                // Free entire path set
+                NFD.NFD_PathSet_Free(pathSet);
+
+                // Return the result
+                onOpen(results);
+            }
+        }
+    }
 }

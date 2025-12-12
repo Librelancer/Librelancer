@@ -3,44 +3,45 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Numerics;
-using System.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+using System.Text;
 using System.Threading.Tasks;
-using LibreLancer;
-using LibreLancer.ContentEdit;
-using LibreLancer.ImUI;
-using LibreLancer.Media;
 using ImGuiNET;
+using LancerEdit.Audio;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Shaders;
 using LancerEdit.Updater;
+using LibreLancer;
+using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
+using LibreLancer.ImUI;
+using LibreLancer.Media;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Shaders;
 
 namespace LancerEdit
 {
-	public class MainWindow : Game
-	{
-		public ImGuiHelper guiHelper;
-		public AudioManager Audio;
-		public GameResourceManager Resources;
+    public class MainWindow : Game
+    {
+        public ImGuiHelper guiHelper;
+        public AudioManager Audio;
+        public GameResourceManager Resources;
         public Billboards Billboards;
-		public PolylineRender Polyline;
-		public LineRenderer LineRenderer;
-		public CommandBuffer Commands; //This is a huge object - only have one
-		public MaterialMap MaterialMap;
+        public PolylineRender Polyline;
+        public LineRenderer LineRenderer;
+        public CommandBuffer Commands; //This is a huge object - only have one
+        public MaterialMap MaterialMap;
         public RichTextEngine RichText;
         public FontManager Fonts;
         public GameDataContext OpenDataContext;
@@ -69,14 +70,14 @@ namespace LancerEdit
 
         private const int LOG_SIZE = 128 * 1024; //128k UTF-16, 256k UTF-8
 
-        public MainWindow(GameConfiguration configuration = null) : base(800,600,false, true, configuration)
-		{
+        public MainWindow(GameConfiguration configuration = null) : base(800, 600, false, true, configuration)
+        {
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
-			MaterialMap = new MaterialMap();
-			MaterialMap.AddRegex(new StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
-			MaterialMap.AddRegex(new StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
+            MaterialMap = new MaterialMap();
+            MaterialMap.AddRegex(new StringKeyValue("^nomad.*$", "NomadMaterialNoBendy"));
+            MaterialMap.AddRegex(new StringKeyValue("^n-texture.*$", "NomadMaterialNoBendy"));
             FLLog.UIThread = this;
-            FLLog.AppendLine = (x,severity) =>
+            FLLog.AppendLine = (x, severity) =>
             {
                 logText.AppendLine(x);
                 if (logText.Length > LOG_SIZE)
@@ -120,7 +121,7 @@ namespace LancerEdit
             try
             {
                 soundData = new SoundData();
-                using(var stream = new MemoryStream(buffer))
+                using (var stream = new MemoryStream(buffer))
                     soundData.LoadStream(stream);
             }
             catch (Exception ex)
@@ -152,20 +153,20 @@ namespace LancerEdit
             EditorShaders.Compile(RenderContext);
             DefaultMaterialMap.Init();
             DisplayMesh.LoadAll(RenderContext);
-            #if DEBUG
-			Title = "LancerEdit DEBUG";
-            #else
+#if DEBUG
+            Title = "LancerEdit DEBUG";
+#else
             Title = Version;
-            #endif
+#endif
             guiHelper = new ImGuiHelper(this, Config.UiScale);
             guiHelper.PauseWhenUnfocused = Config.PauseWhenUnfocused;
             Audio = new AudioManager(this);
             Bell.Init(Audio);
             options = new OptionsWindow(this);
             Resources = new GameResourceManager(this, null);
-			Commands = new CommandBuffer(RenderContext);
-			Polyline = new PolylineRender(RenderContext, Commands);
-			LineRenderer = new LineRenderer(RenderContext);
+            Commands = new CommandBuffer(RenderContext);
+            Polyline = new PolylineRender(RenderContext, Commands);
+            LineRenderer = new LineRenderer(RenderContext);
             RenderContext.ReplaceViewport(0, 0, 800, 600);
             Keyboard.KeyDown += Keyboard_KeyDown;
             //TODO: Icon-setting code very messy
@@ -180,8 +181,8 @@ namespace LancerEdit
                 logoTexture = ImGuiHelper.RegisterTexture(icon);
             }
             //Open passed in files!
-            if(InitOpenFile != null)
-                foreach(var f in InitOpenFile)
+            if (InitOpenFile != null)
+                foreach (var f in InitOpenFile)
                     OpenFile(f);
             RichText = RenderContext.Renderer2D.CreateRichTextEngine();
             Fonts = new FontManager();
@@ -209,8 +210,9 @@ namespace LancerEdit
                 return;
             bool control = (mods & KeyModifiers.Control) != 0;
             bool shift = (mods & KeyModifiers.Shift) != 0;
-            bool popupOrTextEditing =  ImGui.GetIO().WantCaptureKeyboard;
-            if(e.Key == Keys.S && control){
+            bool popupOrTextEditing = ImGui.GetIO().WantCaptureKeyboard;
+            if (e.Key == Keys.S && control)
+            {
                 editor.SaveStrategy.Save();
                 return;
             }
@@ -228,7 +230,7 @@ namespace LancerEdit
                 Keys.F6 => Hotkeys.ChangeSystem,
                 _ => 0
             };
-            if(hk != 0)
+            if (hk != 0)
                 editor.OnHotkey(hk, (mods & KeyModifiers.Shift) != 0);
         }
 
@@ -260,25 +262,25 @@ namespace LancerEdit
 
         bool openAbout = false;
         public TabControl TabControl = new TabControl();
-		public List<MissingReference> MissingResources = new List<MissingReference>();
-		public List<uint> ReferencedMaterials = new List<uint>();
-		public List<TextureReference> ReferencedTextures = new List<TextureReference>();
+        public List<MissingReference> MissingResources = new List<MissingReference>();
+        public List<uint> ReferencedMaterials = new List<uint>();
+        public List<TextureReference> ReferencedTextures = new List<TextureReference>();
 
         List<DockTab> toAdd = new List<DockTab>();
-		double frequency = 0;
-		int updateTime = 10;
+        double frequency = 0;
+        int updateTime = 10;
         public CommodityIconDialog Make3dbDlg;
-		public void AddTab(DockTab tab)
-		{
-			toAdd.Add(tab);
-		}
+        public void AddTab(DockTab tab)
+        {
+            toAdd.Add(tab);
+        }
 
         private Task lastAudio = null;
-		protected override void Update(double elapsed)
+        protected override void Update(double elapsed)
         {
             if (!guiHelper.DoUpdate()) return;
-			foreach (var tab in TabControl.Tabs)
-				tab.Update(elapsed);
+            foreach (var tab in TabControl.Tabs)
+                tab.Update(elapsed);
             if (errorTimer > 0) errorTimer -= elapsed;
         }
         public string[] InitOpenFile;
@@ -353,7 +355,7 @@ namespace LancerEdit
         {
             foreach (var dir in directories)
             {
-                if(!Directory.Exists(dir)) continue;
+                if (!Directory.Exists(dir)) continue;
                 foreach (var f in Directory.GetFiles(dir, "*.cs-script"))
                 {
                     yield return f;
@@ -385,7 +387,7 @@ namespace LancerEdit
                 {
                     var sc = new EditScript(file);
                     if (string.IsNullOrEmpty(sc.Info?.Name)) continue;
-                    if(sc.Validate()) Scripts.Add(sc);
+                    if (sc.Validate()) Scripts.Add(sc);
                     else FLLog.Error("Scripts", $"Failed to Validate {file}");
                 }
                 catch (Exception)
@@ -447,7 +449,8 @@ namespace LancerEdit
 
         void LoadGameData(string folder)
         {
-            if (!GameConfig.CheckFLDirectory(folder)) {
+            if (!GameConfig.CheckFLDirectory(folder))
+            {
                 ErrorDialog($"'{folder}' is not a valid Freelancer folder");
                 return;
             }
@@ -511,7 +514,7 @@ namespace LancerEdit
             }
         }
 
-		protected override void Draw(double elapsed)
+        protected override void Draw(double elapsed)
         {
             //Don't process all the imgui stuff when it isn't needed
             if (!loadingSpinnerActive)
@@ -529,23 +532,23 @@ namespace LancerEdit
             }
 
             TimeStep = elapsed;
-			RenderContext.ReplaceViewport(0, 0, Width, Height);
+            RenderContext.ReplaceViewport(0, 0, Width, Height);
             RenderContext.ClearColor = Theme.WorkspaceBackground;
-			RenderContext.ClearAll();
-			guiHelper.NewFrame(elapsed);
+            RenderContext.ClearAll();
+            guiHelper.NewFrame(elapsed);
             ImGui.PushFont(ImGuiHelper.Roboto, 0);
-			ImGui.BeginMainMenuBar();
-			if (ImGui.BeginMenu("File"))
+            ImGui.BeginMainMenuBar();
+            if (ImGui.BeginMenu("File"))
             {
                 var lst = ImGui.GetWindowDrawList();
-				if (Theme.IconMenuItem(Icons.File, "New", true))
-				{
-					var t = new UtfTab(this, new EditableUtf(), "Untitled");
+                if (Theme.IconMenuItem(Icons.File, "New", true))
+                {
+                    var t = new UtfTab(this, new EditableUtf(), "Untitled");
                     AddTab(t);
-				}
+                }
 
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
-				{
+                {
                     FileDialog.Open(OpenFile, AppFilters.UtfFilters + AppFilters.ThnFilters, GetDataPath());
                 }
 
@@ -556,12 +559,12 @@ namespace LancerEdit
                 else
                     NoSaveStrategy.Instance.DrawMenuOptions();
 
-				if (Theme.IconMenuItem(Icons.Quit, "Quit", true))
-				{
-					Exit();
-				}
-				ImGui.EndMenu();
-			}
+                if (Theme.IconMenuItem(Icons.Quit, "Quit", true))
+                {
+                    Exit();
+                }
+                ImGui.EndMenu();
+            }
             if (ImGui.BeginMenu("View"))
             {
                 Theme.IconMenuToggle(Icons.Log, "Log", ref Config.LogVisible, true);
@@ -590,12 +593,12 @@ namespace LancerEdit
                         LoadGameData(OpenDataContext!.Folder);
                 }
                 ImGui.Separator();
-                if(Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser",OpenDataContext != null))
+                if (Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser", OpenDataContext != null))
                     AddTab(new InfocardBrowserTab(OpenDataContext, this));
                 if (Theme.IconMenuItem(Icons.Globe, "Universe Editor", OpenDataContext != null))
                 {
                     var fd = TabControl.Tabs.FirstOrDefault(x => x is UniverseEditorTab);
-                    if(fd != null)
+                    if (fd != null)
                         TabControl.SetSelected(fd);
                     else
                     {
@@ -634,31 +637,34 @@ namespace LancerEdit
                             collisions.AppendLine(
                                 $"Faction '{faction.Nickname}' collides with '{og}' (hash 0x{hash:X2})");
                         }
-                        else {
+                        else
+                        {
                             hashes[hash] = faction.Nickname;
                         }
                     }
-                    if (collisions.Length > 0) {
+                    if (collisions.Length > 0)
+                    {
                         Popups.MessageBox("Check Faction Hashes", collisions.ToString());
                     }
-                    else {
+                    else
+                    {
                         Popups.MessageBox("Check Faction Hashes", "No hash collisions detected!");
                     }
                 }
                 ImGui.EndMenu();
             }
-			if (ImGui.BeginMenu("Tools"))
-			{
-                if(Theme.IconMenuItem(Icons.Cog, "Options",true))
+            if (ImGui.BeginMenu("Tools"))
+            {
+                if (Theme.IconMenuItem(Icons.Cog, "Options", true))
                 {
                     options.Show();
                 }
 
-				if (Theme.IconMenuItem(Icons.Palette, "Resources",true))
-				{
-					AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
-				}
-                if(Theme.IconMenuItem(Icons.FileImport, "Import Model",true))
+                if (Theme.IconMenuItem(Icons.Palette, "Resources", true))
+                {
+                    AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
+                }
+                if (Theme.IconMenuItem(Icons.FileImport, "Import Model", true))
                 {
                     var filters = Blender.BlenderPathValid(Config.BlenderPath)
                         ? AppFilters.ImportModelFilters
@@ -668,6 +674,10 @@ namespace LancerEdit
                 if (Theme.IconMenuItem(Icons.SyncAlt, "Convert Audio", EnableAudioConversion))
                 {
                     AudioImportPopup.Run(this, Popups, null);
+                }
+                if (Theme.IconMenuItem(Icons.SyncAlt, "Bulk Convert Audio", EnableAudioConversion))
+                {
+                    BulkAudioTool.Open(this, Popups);
                 }
                 if (Theme.IconMenuItem(Icons.SprayCan, "Generate Icon", true))
                 {
@@ -690,7 +700,7 @@ namespace LancerEdit
                     TabControl.Tabs.Add(new HashToolTab());
                 }
                 ImGui.EndMenu();
-			}
+            }
             if (ImGui.BeginMenu("Window"))
             {
                 if (ImGui.MenuItem("Close All Tabs", TabControl.Tabs.Count > 0))
@@ -704,7 +714,8 @@ namespace LancerEdit
             }
             if (ImGui.BeginMenu("Scripts"))
             {
-                if (ImGui.MenuItem("Refresh")) {
+                if (ImGui.MenuItem("Refresh"))
+                {
                     LoadScripts();
                 }
                 ImGui.Separator();
@@ -712,15 +723,16 @@ namespace LancerEdit
                 foreach (var sc in Scripts)
                 {
                     var n = ImGuiExt.IDWithExtra(sc.Info.Name, k++);
-                    if (ImGui.MenuItem(n)) {
+                    if (ImGui.MenuItem(n))
+                    {
                         RunScript(sc);
                     }
                 }
                 ImGui.EndMenu();
             }
-			if (ImGui.BeginMenu("Help"))
-			{
-                if(Theme.IconMenuItem(Icons.Book, "Topics", true))
+            if (ImGui.BeginMenu("Help"))
+            {
+                if (Theme.IconMenuItem(Icons.Book, "Topics", true))
                 {
                     var selfPath = Path.GetDirectoryName(typeof(MainWindow).Assembly.Location);
                     var helpFile = Path.Combine(selfPath, "Docs", "index.html");
@@ -730,11 +742,11 @@ namespace LancerEdit
                 Theme.IconMenuToggle(Icons.Keyboard, "Hotkeys", ref hotkeys.Open, true);
 
                 if (Theme.IconMenuItem(Icons.Info, "About", true))
-				{
-					openAbout = true;
-				}
+                {
+                    openAbout = true;
+                }
 
-                #if DEBUG
+#if DEBUG
                 if (Theme.IconMenuItem(Icons.Info, "Debug Memory", true))
                 {
                     GC.Collect();
@@ -745,22 +757,22 @@ namespace LancerEdit
                 {
                     showDemoWindow = true;
                 }
-                #endif
+#endif
 
                 if (Updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
                 {
                     Popups.OpenPopup(Updater.CheckForUpdates());
                 }
-				ImGui.EndMenu();
-			}
+                ImGui.EndMenu();
+            }
 
             options.Draw();
 
-			if (openAbout)
-			{
-				ImGui.OpenPopup("About");
-				openAbout = false;
-			}
+            if (openAbout)
+            {
+                ImGui.OpenPopup("About");
+                openAbout = false;
+            }
 
             if (showDemoWindow)
             {
@@ -781,8 +793,8 @@ namespace LancerEdit
 
             Popups.Run();
             pOpen = true;
-			if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
-			{
+            if (ImGui.BeginPopupModal("About", ref pOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - 64);
                 ImGui.Image(logoTexture, new Vector2(128), new Vector2(0, 1), new Vector2(1, 0));
                 CenterText(Version);
@@ -794,10 +806,10 @@ namespace LancerEdit
                 var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
                 ImGui.Dummy(Vector2.One);
                 ImGui.SameLine(ImGui.GetWindowWidth() / 2 - (btnW / 2));
-				if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
-				ImGui.EndPopup();
-			}
-            if(ImGuiExt.BeginModalNoClose("Processing", ImGuiWindowFlags.AlwaysAutoResize))
+                if (ImGui.Button("OK")) ImGui.CloseCurrentPopup();
+                ImGui.EndPopup();
+            }
+            if (ImGuiExt.BeginModalNoClose("Processing", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGuiExt.Spinner("##spinner", 10, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered, 1));
                 ImGui.SameLine();
@@ -806,17 +818,17 @@ namespace LancerEdit
                 ImGui.EndPopup();
             }
             var menu_height = ImGui.GetWindowSize().Y;
-			ImGui.EndMainMenuBar();
-			var size = ImGui.GetIO().DisplaySize;
-			size.Y -= menu_height;
-			//Window
-			MissingResources.Clear();
-			ReferencedMaterials.Clear();
-			ReferencedTextures.Clear();
-			foreach (var tab in TabControl.Tabs.OfType<EditorTab>())
-			{
+            ImGui.EndMainMenuBar();
+            var size = ImGui.GetIO().DisplaySize;
+            size.Y -= menu_height;
+            //Window
+            MissingResources.Clear();
+            ReferencedMaterials.Clear();
+            ReferencedTextures.Clear();
+            foreach (var tab in TabControl.Tabs.OfType<EditorTab>())
+            {
                 tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
-			}
+            }
 
             var statusSz = Config.StatusBarVisible ? 22 * ImGuiHelper.Scale : 0;
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - statusSz), ImGuiCond.Always);
@@ -839,21 +851,23 @@ namespace LancerEdit
                 ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 28 * ImGuiHelper.Scale, -1);
                 h1 = totalH - h2 - 3f * ImGuiHelper.Scale - statusSz;
                 if (TabControl.Tabs.Count > 0) h1 -= 20f * ImGuiHelper.Scale;
-                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""),new Vector2(-1,h1));
-            } else
+                ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""), new Vector2(-1, h1));
+            }
+            else
                 ImGui.BeginChild("###tabcontent" + (TabControl.Selected != null ? TabControl.Selected.Unique.ToString() : ""));
 
             TabControl.Selected?.Draw(elapsed);
 
             var style = ImGui.GetStyle();
             ImGui.EndChild();
-            if(Config.LogVisible || Config.FilesVisible) {
+            if (Config.LogVisible || Config.FilesVisible)
+            {
                 ImGui.BeginChild("###bottom", new Vector2(-1, h2));
-                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding + new Vector2(0,2) * ImGuiHelper.Scale);
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, ImGui.GetStyle().FramePadding + new Vector2(0, 2) * ImGuiHelper.Scale);
                 ImGui.BeginTabBar("##tabbar", ImGuiTabBarFlags.AutoSelectNewTabs);
                 if (!Config.FilesVisible) bottomTab = 0;
                 if (!Config.LogVisible) bottomTab = 1;
-                if (Config.LogVisible && ImGui.BeginTabItem("Log", ref Config.LogVisible , ImGuiTabItemFlags.None))
+                if (Config.LogVisible && ImGui.BeginTabItem("Log", ref Config.LogVisible, ImGuiTabItemFlags.None))
                 {
                     if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0) && h2 < 29 * ImGuiHelper.Scale)
                         h2 = 200 * ImGuiHelper.Scale;
@@ -861,7 +875,7 @@ namespace LancerEdit
                 }
                 if (Config.FilesVisible && ImGui.BeginTabItem("Files", ref Config.FilesVisible, ImGuiTabItemFlags.None))
                 {
-                    if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0) && h2 < 29 * ImGuiHelper.Scale)
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0) && h2 < 29 * ImGuiHelper.Scale)
                         h2 = 200 * ImGuiHelper.Scale;
                     bottomTab = 1;
                     ImGui.EndTabItem();
@@ -886,8 +900,10 @@ namespace LancerEdit
             ImGui.End();
             Make3dbDlg.Draw();
             hotkeys.Draw();
-            for (int i = TextWindows.Count - 1; i >= 0; i--) {
-                if (!TextWindows[i].Draw()) {
+            for (int i = TextWindows.Count - 1; i >= 0; i--)
+            {
+                if (!TextWindows[i].Draw())
+                {
                     TextWindows.RemoveAt(i);
                 }
             }
@@ -1035,7 +1051,7 @@ namespace LancerEdit
             ImGui.Dummy(new Vector2(1));
             var win = ImGui.GetWindowWidth();
             var txt = ImGui.CalcTextSize(text).X;
-            ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f),0));
+            ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f), 0));
             ImGui.Text(text);
         }
         void FinishImporterLoad(SimpleMesh.Model model, string tabName, TaskRunPopup popup)
@@ -1079,14 +1095,14 @@ namespace LancerEdit
             Popups.MessageBox(result.IsError ? "Error" : "Warning", text);
         }
 
-        public void ErrorDialog(string text) =>  Popups.MessageBox("Error", text);
+        public void ErrorDialog(string text) => Popups.MessageBox("Error", text);
 
         protected override void OnDrop(string file) => OpenFile(file);
 
         protected override void Cleanup()
-		{
-			Audio.Dispose();
+        {
+            Audio.Dispose();
             quickFileBrowser?.Dispose();
         }
-	}
+    }
 }

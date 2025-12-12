@@ -21,6 +21,7 @@ dotnet_analyzer_diagnostic.severity = none
 indent_size = 4
 csharp_style_var_when_type_is_apparent = true:suggestion
 dotnet_style_readonly_field = true:silent
+dotnet_sort_system_directives_first = true
 
 # Modifier preferences
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion

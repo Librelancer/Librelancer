@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <ImportGroup>
         <Import Project="../../CommonVersion.props" />
     </ImportGroup>
-   <Import Project="../../Shader.targets"/>
+   <Import Project="../../Shader.targets" />
 
   <PropertyGroup>
         <OutputType>WinExe</OutputType>

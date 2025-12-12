@@ -33,6 +33,13 @@ static unsafe class NFD
         void* defaultPath);
 
     [DllImport("lancerdialogs", CallingConvention = CallingConvention.Cdecl)]
+    public static extern NFDResult NFD_OpenDialogMultipleN(
+        void** outPathSet,                   // const nfdpathset_t** in C
+        NFDFilterItem* filterList,
+        uint filterCount,
+        void* defaultPath);
+
+    [DllImport("lancerdialogs", CallingConvention = CallingConvention.Cdecl)]
     public static extern NFDResult NFD_SaveDialogN(
         void** outPath,
         NFDFilterItem* filterList,
@@ -53,4 +60,22 @@ static unsafe class NFD
 
     [DllImport("lancerdialogs", CallingConvention =  CallingConvention.Cdecl)]
     public static extern void NFD_FreePathN(void* path);
+
+    // Count entries in the set
+    [DllImport("lancerdialogs", CallingConvention = CallingConvention.Cdecl)]
+    public static extern NFDResult NFD_PathSet_GetCount(
+        void* pathSet,
+        ulong* count);
+
+    // Get path at index (returns new wchar_t* that MUST be freed)
+    [DllImport("lancerdialogs", CallingConvention = CallingConvention.Cdecl)]
+    public static extern NFDResult NFD_PathSet_GetPathN(
+        void* pathSet,
+        ulong index,
+        void** outPath);
+
+    // Free entire pathset structure (NOT the individual paths)
+    [DllImport("lancerdialogs", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void NFD_PathSet_Free(
+        void* pathSet);
 }
