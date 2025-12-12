@@ -2,9 +2,7 @@
 
 namespace LancerEdit.Audio;
 
-public class ConversionEntry
-{
-    public enum ConversionAction
+public enum ConversionAction
     {
         Convert,
         Ignore
@@ -14,7 +12,8 @@ public class ConversionEntry
         Bitrate,
         Quality
     }
-
+public class ConversionEntry
+{
     public string OriginalPath = string.Empty;
     public string OutputPath = string.Empty;
     public string Comment = string.Empty;

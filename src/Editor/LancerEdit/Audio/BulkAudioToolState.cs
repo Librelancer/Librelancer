@@ -2,25 +2,25 @@
 
 namespace LancerEdit.Audio;
 
+public enum ErrorTypes
+{
+    None = 0,
+    NoInputs,
+    NoOutput,
+    ConversionError,
+    NodeNameInvalid,
+    NoImports
+}
+public enum ToolState
+{
+    SelectFiles,
+    TrimTool,
+    Converting,
+    ConversionResults,
+    Importing
+}
 public class BulkAudioToolState
 {
-    public enum ErrorTypes
-    {
-        None = 0,
-        NoInputs,
-        NoOutput,
-        ConversionError,
-        NodeNameInvalid,
-        NoImports
-    }
-    public enum ToolState
-    {
-        SelectFiles,
-        TrimTool,
-        Converting,
-        ConversionResults,
-        Importing
-    }
     public ToolState CurrentState = ToolState.SelectFiles;
     public string StatusMessage = string.Empty;
     public ErrorTypes ErrorType = ErrorTypes.None;

@@ -10,8 +10,6 @@ using ImGuiNET;
 using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
-using static LancerEdit.Audio.BulkAudioToolState;
-using static LancerEdit.Audio.ConversionEntry;
 
 namespace LancerEdit.Audio;
 
