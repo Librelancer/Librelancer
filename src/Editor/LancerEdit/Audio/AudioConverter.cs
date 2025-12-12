@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.ContentEdit;
-using LibreLancer.Media;
 
 namespace LancerEdit.Audio;
 
@@ -60,7 +59,7 @@ public static class AudioConverter
         }
         catch (Exception ex)
         {
-            return EditResult<string>.Error(ex.Message);
+            return EditResult<string>.Error(ex.ToString());
         }
     }
 

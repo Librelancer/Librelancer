@@ -1,8 +1,4 @@
-﻿using ImGuiNET;
-using LibreLancer.ContentEdit;
-using LibreLancer.Dialogs;
-using LibreLancer.ImUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +6,10 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ImGuiNET;
+using LibreLancer.ContentEdit;
+using LibreLancer.Dialogs;
+using LibreLancer.ImUI;
 using static LancerEdit.Audio.BulkAudioToolState;
 using static LancerEdit.Audio.ConversionEntry;
 
@@ -44,10 +44,10 @@ public class BulkAudioImportPopup : PopupWindow
         new FileFilter("Ogg files", "ogg"),
         new FileFilter("Flac files", "flac"));
 
-    const float LABEL_WIDTH = 100f;
-    const float BUTTON_WIDTH = 110f;
-    const float FOOTER_SPACING = 3.5f;
-    const int TABLE_MARGIN_BOTTOM = 75;
+    static readonly float LABEL_WIDTH = 100f;
+    static readonly float BUTTON_WIDTH = 110f;
+    static readonly float FOOTER_SPACING = 3.5f;
+    static readonly int TABLE_MARGIN_BOTTOM = 75;
     Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
     Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
 
@@ -795,7 +795,7 @@ public class BulkAudioImportPopup : PopupWindow
             }
         }
         ImGui.SameLine();
-        if (tb.ButtonItem("Close",true, "Closes the tool"))
+        if (tb.ButtonItem("Close", true, "Closes the tool"))
             ImGui.CloseCurrentPopup();
     }
 

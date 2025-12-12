@@ -1,5 +1,4 @@
 ﻿using LibreLancer.ContentEdit;
-using System;
 
 namespace LancerEdit.Audio;
 

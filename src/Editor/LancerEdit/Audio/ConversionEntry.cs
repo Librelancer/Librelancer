@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using LibreLancer.ContentEdit;
+﻿using LibreLancer.ContentEdit;
 
 namespace LancerEdit.Audio;
 

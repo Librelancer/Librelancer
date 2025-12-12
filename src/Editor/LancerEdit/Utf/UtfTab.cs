@@ -2,6 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Numerics;
 using ImGuiNET;
 using LancerEdit.Audio;
 using LancerEdit.Utf.Popups;
@@ -14,12 +20,6 @@ using LibreLancer.ImageLib;
 using LibreLancer.ImUI;
 using LibreLancer.Resources;
 using LibreLancer.Utf.Ale;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Numerics;
 
 namespace LancerEdit
 {
