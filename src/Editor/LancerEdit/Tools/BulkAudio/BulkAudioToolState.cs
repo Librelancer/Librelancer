@@ -11,7 +11,8 @@ public class BulkAudioToolState
         NoInputs,
         NoOutput,
         ConversionError,
-        NodeNameInvalid
+        NodeNameInvalid,
+        NoImports
     }
     public enum ToolState
     {
@@ -22,22 +23,22 @@ public class BulkAudioToolState
         Importing,
         ImportResults
     }
-    public ToolState CurrentState { get; set; } = ToolState.SelectFiles;
-    public string StatusMessage { get; set; } = string.Empty;
-    public ErrorTypes ErrorType { get; set; } = ErrorTypes.None;
-    public bool IsError { get; set; } = false;
+    public ToolState CurrentState = ToolState.SelectFiles;
+    public string StatusMessage = string.Empty;
+    public ErrorTypes ErrorType = ErrorTypes.None;
+    public bool IsError = false;
 
     // For progress display
     public float Progress { get; set; }
 
     // For deleting entries from the table
-    public int DeleteIndex { get; set; } = -1;
+    public int DeleteIndex = -1;
 
     // Modal: which entry is being edited for trim
-    public ConversionEntry TrimEditingEntry { get; set; } = null;
-    public List<ConversionEntry> ConversionEntries { get; set; } = new();
-    public List<ImportEntry> ImportEntries { get; set; } = new();
+    public ConversionEntry TrimEditingEntry = null;
+    public List<ConversionEntry> ConversionEntries = new();
+    public List<ImportEntry> ImportEntries = new();
     public int BackupTrimStart;
     public int BackupTrimEnd;
-    public string OutputFolder { get; set; } = "";
+    public string OutputFolder = "";
 }

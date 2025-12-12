@@ -260,10 +260,10 @@ public class BulkAudioImportPopup : PopupWindow
             ImGui.PushStyleColor(ImGuiCol.FrameBgActive, new Vector4(0.7f, 0.1f, 0.1f, 1f));
 
         }
-        string outputFolder = _state.OutputFolder;
 
-        ImGui.InputText("##outputfolder", ref outputFolder, 256);
-        _state.OutputFolder = outputFolder;
+
+        ImGui.InputText("##outputfolder", ref _state.OutputFolder, 256);
+
         ImGui.PopItemWidth();
         if (_state.ErrorType is BulkAudioToolState.ErrorTypes.NoOutput)
             ImGui.PopStyleColor(3);
@@ -567,6 +567,13 @@ public class BulkAudioImportPopup : PopupWindow
             ImGui.PopStyleVar();
         }
         // Node name
+        if (_state.ErrorType == BulkAudioToolState.ErrorTypes.NodeNameInvalid && String.IsNullOrWhiteSpace(e.NodeName))
+        {
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.4f, 0.05f, 0.05f, 1f));  // dark red
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, new Vector4(0.6f, 0.1f, 0.1f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, new Vector4(0.7f, 0.1f, 0.1f, 1f));
+
+        }
         ImGui.TableNextColumn();
         ImGui.PushItemWidth(-1);
         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding,
@@ -574,6 +581,8 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.InputText($"##nodeName{e.OriginalPath}", ref e.NodeName, 512);
         ImGui.PopItemWidth();
         ImGui.PopStyleVar();
+        if (_state.ErrorType is BulkAudioToolState.ErrorTypes.NoOutput)
+            ImGui.PopStyleColor(3);
     }
     // ACTION BAR
     void DrawActionBar()
@@ -644,7 +653,30 @@ public class BulkAudioImportPopup : PopupWindow
         {
             if (ImGui.Button("Import", new Vector2(BUTTON_WIDTH, 0)))
             {
-                //TODO: Implement
+                if (!ValidateBeforeImport()) return;
+
+                var importList = _state.ImportEntries
+                                            .Where(e => e.Action == ImportAction.Import)
+                                            .ToList();
+
+                foreach (var e in importList)
+                {
+                    string path = e.Version == ImportVersion.Converted
+                        ? e.ConvertedPath
+                        : e.OriginalPath;
+
+                    if (!File.Exists(path))
+                    {
+                        // Handle missing files gracefully
+                        e.Data = null;
+                        e.Action = ImportAction.Ignore;  // disable import
+                        continue;
+                    }
+
+                    e.Data = File.ReadAllBytes(path);
+                }
+
+                _onImport(importList.Where(e => e.Action is ImportAction.Import && e.Data != null).ToList());
             }
         }
 
@@ -755,10 +787,18 @@ public class BulkAudioImportPopup : PopupWindow
             return false;
         }
 
-        if (!_state.ConversionEntries.Any(e => e.Action is ConversionEntry.ConversionAction.Convert))
+        if (!_state.ImportEntries.Any(e => e.Action is ImportAction.Import))
         {
-            _state.ErrorType = BulkAudioToolState.ErrorTypes.NoInputs;
-            _state.StatusMessage = "No files selected for conversion.";
+            _state.ErrorType = BulkAudioToolState.ErrorTypes.NoImports;
+            _state.StatusMessage = "No files selected for import.";
+            _state.IsError = true;
+            return false;
+        }
+
+        if (_state.ImportEntries.Any(e => e.Action is ImportAction.Import && String.IsNullOrEmpty(e.NodeName)))
+        {
+            _state.ErrorType = BulkAudioToolState.ErrorTypes.NodeNameInvalid;
+            _state.StatusMessage = "There are invalid Node Names";
             _state.IsError = true;
             return false;
         }
