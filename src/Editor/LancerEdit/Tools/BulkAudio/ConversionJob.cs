@@ -27,7 +27,7 @@ public class ConversionJob
             System.IO.Path.GetFileNameWithoutExtension(entry.OriginalPath) + ".wav"
         );
 
-        UseBitrate = entry.UseBitrate;
+        UseBitrate = entry.Mode == ConversionEntry.ConversionMode.Bitrate;
         Bitrate = entry.Bitrate;
         Quality = entry.Quality;
 

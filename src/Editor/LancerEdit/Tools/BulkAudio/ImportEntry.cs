@@ -14,6 +14,7 @@ namespace LancerEdit.Tools.BulkAudio
 
         public bool IsVersionLocked = false;
         public bool IsActionLocked = false;
+        public bool IsNodeNameLocked = false;
         public ImportVersion Version;
         public ImportAction Action;
 
