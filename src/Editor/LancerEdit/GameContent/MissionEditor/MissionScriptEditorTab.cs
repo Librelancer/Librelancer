@@ -65,10 +65,17 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         missionIni = new MissionIni(file, null);
         objLists = missionIni.ObjLists.Select(x => new ScriptAiCommands(x)).ToList();
 
-        var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
-        if (npcPath is not null)
+        if (!string.IsNullOrWhiteSpace(missionIni.Info.NpcShipFile))
         {
-            missionIni.ShipIni = new NPCShipIni(npcPath, null);
+            var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
+            if (npcPath is not null)
+            {
+                missionIni.ShipIni = new NPCShipIni(npcPath, null);
+            }
+        }
+        else
+        {
+            missionIni.Info.NpcShipFile = "";
         }
 
         var pos = new Vector2(0, 0);
