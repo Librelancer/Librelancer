@@ -20,16 +20,35 @@ namespace LLServer;
 
 public class MainWindow : Game
 {
-    private ImGuiHelper guiRender;
     public MainWindow() : base(600, 600, false, true)
     {
 
     }
-    private AppLog log;
-    private ServerApp server;
 
-    private string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
+    AppLog log;
+    ServerConfig config;
+    ImGuiHelper guiRender;
+    ServerApp server;
 
+    // App State 
+    bool isRunning = false;
+    string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
+    bool startupError;
+
+    // Running Server Data
+    BannedPlayerDescription[] bannedPlayers;
+    AdminCharacterDescription[] admins;
+    Guid? banId;
+    string banSearchString;
+    string adminSearchString;
+
+    // Event Handlers
+    private void LogAppendLine(string message, LogSeverity level)
+    {
+        log.AppendText($"{message}\n");
+    }
+
+    // Lifecycle hooks & Helpers
     protected override void Load()
     {
         log = new AppLog();
@@ -39,40 +58,8 @@ public class MainWindow : Game
         Title = "Librelancer Server";
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
-
-        if (File.Exists(configPath))
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
-        else
-        {
-            config = new ServerConfig();
-
-            if (string.IsNullOrEmpty(config.FreelancerPath))
-            {
-                if (Platform.RunningOS == OS.Windows)
-                {
-                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
-                    string flPathRegistry = IntPtr.Size == 8
-                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
-                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-                    var actualPath = (string) Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-                    if(!string.IsNullOrEmpty(actualPath)) {
-                        config.FreelancerPath = actualPath;
-                    }
-                }
-            }
-            config.ServerName = "M9Universe";
-            config.ServerDescription = "My Cool Freelancer server";
-            config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
-        }
+        config = GetConfigFromFileOrDefault();
     }
-
-    private void LogAppendLine(string message, LogSeverity level)
-    {
-        log.AppendText($"{message}\n");
-    }
-
-    private bool isRunning = false;
-
     protected override void Draw(double elapsed)
     {
         var process = guiRender.DoRender(elapsed);
@@ -101,7 +88,7 @@ public class MainWindow : Game
             ImGuiWindowFlags.NoResize |
             ImGuiWindowFlags.NoBackground);
         if(isRunning)
-            RunningServer();
+            RunningServerGui();
         else
             StartupGui();
         ImGui.End();
@@ -110,16 +97,17 @@ public class MainWindow : Game
         RenderContext.ClearAll();
         guiRender.Render(RenderContext);
     }
-
-    private ServerConfig config;
-
-    void InputTextLabel(string label, string id, ref string text)
+    protected override void Cleanup() => server?.StopServer();
+    void Reset()
     {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(label);
-        ImGui.InputText(id, ref text, 4096);
+        startupError = isRunning = false;
+        server = null;
     }
 
+    // State Queries
+    bool ServerReady() => server.Server?.Listener?.Server?.IsRunning ?? false;
+
+    // UI And Helpers
     void StartupGui()
     {
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
@@ -141,9 +129,11 @@ public class MainWindow : Game
             Task.Run(() =>
             {
                 server = new ServerApp(config);
-                if (!server.StartServer()) {
+                if (!server.StartServer())
+                {
                     QueueUIThread(() => startupError = true);
-                } else
+                }
+                else
                 {
                     server.Server.PerformanceStats = new ServerPerformance(this);
                     File.WriteAllText(configPath, JSON.Serialize(config));
@@ -151,37 +141,7 @@ public class MainWindow : Game
             });
         }
     }
-
-    protected override void Cleanup()
-    {
-        server?.StopServer();
-    }
-
-    private bool startupError;
-
-    void Reset()
-    {
-        startupError = isRunning = false;
-        server = null;
-    }
-
-    bool ServerReady() => server.Server?.Listener?.Server?.IsRunning ?? false;
-
-    private BannedPlayerDescription[] bannedPlayers;
-    private AdminCharacterDescription[] admins;
-    private Guid? banId;
-    private string banSearchString;
-    private string adminSearchString;
-
-    bool BeginModalWithClose(string id, ImGuiWindowFlags? flags = null)
-    {
-        bool x = true;
-        if (flags.HasValue)
-            return ImGui.BeginPopupModal(id, ref x, flags.Value);
-        return ImGui.BeginPopupModal(id, ref x);
-    }
-
-    void RunningServer()
+    void RunningServerGui()
     {
         if (startupError)
         {
@@ -323,5 +283,51 @@ public class MainWindow : Game
                 new Vector2(400, 150));
         }
         log.Draw();
+    }
+    void InputTextLabel(string label, string id, ref string text)
+    {
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(label);
+        ImGui.InputText(id, ref text, 4096);
+    }
+    bool BeginModalWithClose(string id, ImGuiWindowFlags? flags = null)
+    {
+        bool x = true;
+        if (flags.HasValue)
+            return ImGui.BeginPopupModal(id, ref x, flags.Value);
+        return ImGui.BeginPopupModal(id, ref x);
+    }
+
+    ServerConfig GetConfigFromFileOrDefault()
+    {
+        ServerConfig config = new ServerConfig();
+
+        if (File.Exists(configPath))
+            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
+        else
+        {
+            config = new ServerConfig();
+
+            if (string.IsNullOrEmpty(config.FreelancerPath))
+            {
+                if (Platform.RunningOS == OS.Windows)
+                {
+                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
+                    string flPathRegistry = IntPtr.Size == 8
+                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
+                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
+                    var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
+                    if (!string.IsNullOrEmpty(actualPath))
+                    {
+                        config.FreelancerPath = actualPath;
+                    }
+                }
+            }
+            config.ServerName = "M9Universe";
+            config.ServerDescription = "My Cool Freelancer server";
+            config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
+        }
+
+        return config;
     }
 }
