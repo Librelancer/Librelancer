@@ -36,6 +36,8 @@ namespace LibreLancer.Server
         }
 
         public int AttackingPlayer = 0;
+        public int MinPlayerAttackers = 0;
+        public int MaxPlayerAttackers = int.MaxValue;
 
         public void FrameStart()
         {

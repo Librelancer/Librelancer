@@ -359,7 +359,7 @@ public class Cnd_TetherBroke : ScriptedCondition
     }
 }
 
-public class Cnd_SystemExit : ScriptedCondition
+public class Cnd_SystemExit : SingleEventListenerCondition<SystemEnteredEvent>
 {
     public List<string> systems = [];
     public bool any;
@@ -383,13 +383,26 @@ public class Cnd_SystemExit : ScriptedCondition
         }
     }
 
+    protected override bool EventCheck(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        bool result;
+        if (any)
+            result = ev.PreviousSystem != null;
+        else if (systems.Count >= 2)
+            result = ev.PreviousSystem == systems[0] && ev.System == systems[1];
+        else
+            result = systems.Contains(ev.PreviousSystem);
+        FLLog.Debug("Mission", $"Cnd_SystemExit check: ev.System={ev.System}, ev.Previous={ev.PreviousSystem}, systems={string.Join(",", systems)}, any={any}, result={result}");
+        return result;
+    }
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_SystemExit", any ? ["any"] : systems.Select(x => (ValueBase)x).ToArray());
     }
 }
 
-public class Cnd_SystemEnter : ScriptedCondition
+public class Cnd_SystemEnter : SingleEventListenerCondition<SystemEnteredEvent>
 {
     public List<string> systems = [];
     public bool any;
@@ -411,6 +424,19 @@ public class Cnd_SystemEnter : ScriptedCondition
 
             systems.Add(system.ToString()!);
         }
+    }
+
+    protected override bool EventCheck(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        bool result;
+        if (any)
+            result = true;
+        else if (systems.Count >= 2)
+            result = ev.System == systems[0] && ev.PreviousSystem == systems[1];
+        else
+            result = systems.Contains(ev.System);
+        FLLog.Debug("Mission", $"Cnd_SystemEnter check: ev.System={ev.System}, ev.Previous={ev.PreviousSystem}, systems={string.Join(",", systems)}, any={any}, result={result}");
+        return result;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -760,24 +786,28 @@ public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
     }
 }
 
-public class Cnd_LocExit : ScriptedCondition
+public class Cnd_LocExit :
+    SingleEventListenerCondition<LocationExitedEvent>
 {
-    public string location = string.Empty;
-    public string @base = string.Empty;
+    public string Room = string.Empty;
+    public string Base = string.Empty;
 
     public Cnd_LocExit()
     {
     }
 
+    protected override bool EventCheck(LocationExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(Room, ev.Room) && IdEqual(Base, ev.Base);
+
     public Cnd_LocExit([NotNull] Entry entry)
     {
-        location = entry[0].ToString();
-        @base = entry[1].ToString();
+        Room = entry[0].ToString();
+        Base = entry[1].ToString();
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_LocExit", location, @base);
+        section.Entry("Cnd_LocExit", Room, Base);
     }
 }
 
@@ -828,7 +858,7 @@ public class Cnd_LaunchComplete : SingleEventListenerCondition<LaunchCompleteEve
     }
 }
 
-public class Cnd_JumpInComplete : ScriptedCondition
+public class Cnd_JumpInComplete : SingleEventListenerCondition<SystemEnteredEvent>
 {
     public string system = string.Empty;
 
@@ -839,6 +869,23 @@ public class Cnd_JumpInComplete : ScriptedCondition
     public Cnd_JumpInComplete([NotNull] Entry entry)
     {
         system = entry[0].ToString();
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        base.Init(runtime, self);
+        // If already in the system, set as completed
+        if (runtime.currentSystem == system)
+        {
+            ((ConditionBoolean)self.Storage).Value = true;
+        }
+    }
+
+    protected override bool EventCheck(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        bool result = ev.System == system;
+        FLLog.Debug("Mission", $"Cnd_JumpInComplete check: ev.System={ev.System}, system={system}, result={result}");
+        return result;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -1245,7 +1292,7 @@ public class Cnd_Destroyed :
 {
     public string label = string.Empty;
     public int Count = 0;
-    public CndDestroyedKind Kind = CndDestroyedKind.Unset;
+    public CndDestroyedKind Kind = CndDestroyedKind.ALL;
 
     public Cnd_Destroyed()
     {
@@ -1267,7 +1314,8 @@ public class Cnd_Destroyed :
             FLLog.Debug("Mission", $"Cnd_Destroyed parsing Kind: '{kindString}' for label '{label}'");
             if (!Enum.TryParse(kindString, out Kind))
             {
-                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {kindString}, defaulting to Unset");
+                FLLog.Error("Mission", $"Cnd_Destroyed unknown value {kindString}, defaulting to ALL");
+                Kind = CndDestroyedKind.ALL;
             }
             else
             {
@@ -1276,7 +1324,7 @@ public class Cnd_Destroyed :
         }
         else
         {
-            FLLog.Debug("Mission", $"Cnd_Destroyed no Kind specified for label '{label}', using Unset");
+            FLLog.Debug("Mission", $"Cnd_Destroyed no Kind specified for label '{label}', using default ALL");
         }
     }
 
@@ -1290,16 +1338,15 @@ public class Cnd_Destroyed :
     {
         if (runtime.Labels.TryGetValue(label, out var lbl))
         {
-            //FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
             if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
             {
-                if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
+                if (Kind == CndDestroyedKind.ALL || Kind == CndDestroyedKind.ALL_IGNORE_LANDING)
                 {
-                    return !lbl.AnyAlive();  // True if no ships are alive (all dead or not spawned). Used for EXPLODE with Count=-1.
+                    return lbl.IsAllKilled();  // True if all spawned ships are dead.
                 }
                 else
                 {
-                    return lbl.IsAllKilled();  // True if all spawned ships are dead.
+                    return !lbl.AnyAlive();  // True if no ships are alive (all dead or not spawned). Used for EXPLODE with Count=-1.
                 }
             }
             else  // Count > 0: Check if at least 'Count' ships are destroyed
@@ -1328,10 +1375,10 @@ public class Cnd_Destroyed :
     {
         List<ValueBase> entries = [label];
 
-        if (Count != 0 || Kind != CndDestroyedKind.Unset)
+        if (Count != 0 || Kind != CndDestroyedKind.ALL)
         {
             entries.Add(Count);
-            if (Kind != CndDestroyedKind.Unset)
+            if (Kind != CndDestroyedKind.ALL)
             {
                 entries.Add(Kind.ToString());
             }

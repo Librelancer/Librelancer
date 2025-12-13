@@ -33,6 +33,7 @@ namespace LibreLancer.Server
         object _idLock = new object();
 
         public NetIDGenerator IdGenerator = new NetIDGenerator();
+        public List<GameObject> AllNPCs = new List<GameObject>();
 
         UpdatePacker packer = new UpdatePacker();
 
@@ -59,6 +60,13 @@ namespace LibreLancer.Server
             GameWorld.LoadSystem(system, server.Resources, null, true);
             GameWorld.Physics.OnCollision += PhysicsOnCollision;
             NPCs = new NPCManager(this);
+
+            // Populate AllNPCs with system NPCs
+            foreach (var obj in GameWorld.Objects)
+            {
+                if (obj.TryGetComponent<SNPCComponent>(out _))
+                    AllNPCs.Add(obj);
+            }
         }
 
         private void PhysicsOnCollision(PhysicsObject obja, PhysicsObject objb)
@@ -125,22 +133,27 @@ namespace LibreLancer.Server
                         player.Player.RpcClient.TractorFailed();
                     }
                 }
-                else if(totalRemain == 0)
-                {
-                    RemoveSpawnedObject(pickup, false);
-                    // Notify mission system that loot has been acquired after removal
-                    if (obj.TryGetComponent<SPlayerComponent>(out var playerComponent))
-                    {
-                        actions.Enqueue(() => Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname, "Player"));
-                    }
-                }
                 else
                 {
-                    loot.Cargo = newLoot;
-                    foreach (var p in Players)
+                    if (obj.TryGetComponent<SPlayerComponent>(out var playerComponent))
                     {
-                        p.Key.RpcClient.UpdateLootObject(pickup,
-                            loot.Cargo.Select(x => new NetBasicCargo(x.Item.CRC, x.Count)).ToArray());
+                        FLLog.Info("Mission", $"Cargo added from loot: {pickup.Nickname}, updating inventory");
+                        playerComponent.Player.UpdateCurrentInventory();
+                    }
+                    if(totalRemain == 0)
+                    {
+                        RemoveSpawnedObject(pickup, false);
+                        // Notify mission system that loot has been acquired after removal
+                        actions.Enqueue(() => Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname, obj.Nickname));
+                    }
+                    else
+                    {
+                        loot.Cargo = newLoot;
+                        foreach (var p in Players)
+                        {
+                            p.Key.RpcClient.UpdateLootObject(pickup,
+                                loot.Cargo.Select(x => new NetBasicCargo(x.Item.CRC, x.Count)).ToArray());
+                        }
                     }
                 }
             }
@@ -585,6 +598,7 @@ namespace LibreLancer.Server
             {
                 RemoveObjectInternal(obj);
                 spawnedObjects.Remove(obj);
+                AllNPCs.Remove(obj);
                 IdGenerator.Free(obj.NetID);
                 foreach (var p in Players) p.Key.Despawn(obj.NetID, exploded);
             });
@@ -764,6 +778,7 @@ namespace LibreLancer.Server
             obj.Register(GameWorld.Physics);
             updatingObjects.Add(obj);
             spawnedObjects.Add(obj);
+            AllNPCs.Add(obj);
             foreach (var p in Players)
             {
                 p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(obj, p.Value)]);

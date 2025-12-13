@@ -16,29 +16,38 @@ internal class DynamicObject : PhysicsObject
         this.world = world;
     }
 
+    private bool IsValid => BepuObject.Bodies.BodyExists(BepuObject.Handle);
+
+    private void CheckValid()
+    {
+        if (!IsValid)
+            throw new ObjectDisposedException(nameof(DynamicObject), "The physics object is no longer valid.");
+    }
+
     public override bool Collidable
     {
-        get => world.collidableObjects[BepuObject.Handle];
-        set => world.collidableObjects[BepuObject.Handle] = value;
+        get { CheckValid(); return world.collidableObjects[BepuObject.Handle]; }
+        set { CheckValid(); world.collidableObjects[BepuObject.Handle] = value; }
     }
 
     public override bool Static => false;
-    public override bool Active => BepuObject.Awake;
+    public override bool Active { get { CheckValid(); return BepuObject.Awake; } }
 
     public override Vector3 Position
     {
-        get => BepuObject.Pose.Position;
-        protected set => BepuObject.Pose.Position = value;
+        get { CheckValid(); return BepuObject.Pose.Position; }
+        protected set { CheckValid(); BepuObject.Pose.Position = value; }
     }
 
     public override Quaternion Orientation
     {
-        get => BepuObject.Pose.Orientation;
-        protected set => BepuObject.Pose.Orientation = value;
+        get { CheckValid(); return BepuObject.Pose.Orientation; }
+        protected set { CheckValid(); BepuObject.Pose.Orientation = value; }
     }
 
     public override void SetTransform(Transform3D transform)
     {
+        CheckValid();
         Position = transform.Position;
         Orientation = transform.Orientation;
         BepuObject.UpdateBounds();
@@ -46,15 +55,17 @@ internal class DynamicObject : PhysicsObject
 
     public override void SetOrientation(Quaternion orientation)
     {
+        CheckValid();
         BepuObject.Pose.Orientation = orientation;
         BepuObject.UpdateBounds();
     }
 
     public override Vector3 AngularVelocity
     {
-        get => BepuObject.Velocity.Angular;
+        get { CheckValid(); return BepuObject.Velocity.Angular; }
         set
         {
+            CheckValid();
             BepuObject.Velocity.Angular = value;
             if (value.LengthSquared() > 0)
                 BepuObject.Awake = true;
@@ -63,9 +74,10 @@ internal class DynamicObject : PhysicsObject
 
     public override Vector3 LinearVelocity
     {
-        get => BepuObject.Velocity.Linear;
+        get { CheckValid(); return BepuObject.Velocity.Linear; }
         set
         {
+            CheckValid();
             BepuObject.Velocity.Linear = value;
             if (value.LengthSquared() > 0)
                 BepuObject.Awake = true;
@@ -74,17 +86,20 @@ internal class DynamicObject : PhysicsObject
 
     public override BoundingBox GetBoundingBox()
     {
+        CheckValid();
         var bounds = BepuObject.BoundingBox;
         return new BoundingBox(bounds.Min, bounds.Max);
     }
 
     public override Vector3 RotateVector(Vector3 src)
     {
+        CheckValid();
         return Vector3.Transform(src, BepuObject.Pose.Orientation);
     }
 
     public override void SetDamping(float linearDamping, float angularDamping)
     {
+        CheckValid();
         world.dampings[BepuObject.Handle] = new Vector2(linearDamping, angularDamping);
     }
 
@@ -92,6 +107,7 @@ internal class DynamicObject : PhysicsObject
 
     public override void AddForce(Vector3 force)
     {
+        CheckValid();
         if (force.LengthSquared() > 0)
         {
             BepuObject.ApplyImpulse(force * ForceFactor, Vector3.Zero);
@@ -101,11 +117,13 @@ internal class DynamicObject : PhysicsObject
 
     public override void Activate()
     {
+        CheckValid();
         BepuObject.Awake = true;
     }
 
     public override void Impulse(Vector3 force)
     {
+        CheckValid();
         if (force.LengthSquared() > 0)
         {
             BepuObject.ApplyImpulse(force, Vector3.Zero);
@@ -115,6 +133,7 @@ internal class DynamicObject : PhysicsObject
 
     public override void AddTorque(Vector3 torque)
     {
+        CheckValid();
         if (torque.LengthSquared() > 0)
         {
             BepuObject.ApplyAngularImpulse(torque * ForceFactor);
@@ -124,6 +143,7 @@ internal class DynamicObject : PhysicsObject
 
     public override void PredictionStep(float timestep)
     {
+        CheckValid();
         PoseIntegration.Integrate(BepuObject.Pose, BepuObject.Velocity, timestep, out BepuObject.Pose);
         UpdateProperties();
     }
