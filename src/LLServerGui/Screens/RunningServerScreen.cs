@@ -278,7 +278,7 @@ public class RunningServerScreen : Screen
                     ImGui.Text(player.Character.Base);
 
                     ImGui.TableNextColumn();
-                    ImGui.Text(admins.Any(a => a.Id == player.ID) ? Icons.Check.ToString() : "");
+                    ImGui.Text(admins.Any(a => a.Id == player.Character.ID) ? Icons.Check.ToString() : "");
 
                     ImGui.TableNextColumn();
                     if (!isAdmin && ImGui.SmallButton($"{Icons.ArrowUp.ToString()}##{player.Character.Name}"))
@@ -286,7 +286,7 @@ public class RunningServerScreen : Screen
                         pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Character.Name} to an admin?", false, MessageBoxButtons.YesNo, response => {
                             if (response == MessageBoxResponse.Yes)
                             {
-                                PromotePlayer(player);
+                                PromotePlayer(player.Character.ID, player.Character.Name);
                             }
                         });
                     }
@@ -303,43 +303,55 @@ public class RunningServerScreen : Screen
                     }
                 }
             }
-            
-
             ImGui.EndTable();
-            
         }
         ImGui.EndChild();
 
 
     }
 
-    private void PromotePlayer(Player player)
+    private void PromotePlayer(long characterId, string name)
     {
-        win.QueueUIThread(() => {
-            FLLog.Info("Server", $"Promoting {player.Name} to admin");
-            win.Server?.Server?.Database?.AdminCharacter(player.Character.ID).Wait();
-            win.Server?.Server?.AdminChanged(player.Character.ID, true);
+        Task.Run(async () =>
+        {
+            FLLog.Info("Server", $"Promoting {name} to admin");
+            win.Server?.Server?.Database?.AdminCharacter(characterId).Wait();
+            win.Server?.Server?.AdminChanged(characterId, true);
         });
     }
-    private void DemotePlayer(long characterId)
+    private void DemotePlayer(long characterId, string name)
     {
-        win.QueueUIThread(() => {
-            FLLog.Info("Server", $"Demoting {player.Name} from admin");
-            win.Server?.Server?.Database?.DeadminCharacter(player.Character.ID).Wait();
-            win.Server?.Server?.AdminChanged(player.Character.ID, false);
+        Task.Run(async () =>
+        {
+            FLLog.Info("Server", $"Demoting {name} from admin");
+            win.Server?.Server?.Database?.DeadminCharacter(characterId).Wait();
+            win.Server?.Server?.AdminChanged(characterId, false);
         });
     }
-    private void BanPlayer(Player player)
+    private void BanPlayer(string characterName, DateTime expiry)
     {
-        win.QueueUIThread(() => {
-            FLLog.Info("Server", $"Banning {player.Name} from admin");
-            win.Server?.Server?.Database?.B DeadminCharacter(player.Character.ID).Wait();
-            win.Server?.Server?.AdminChanged(player.Character.ID, false);
+        
+        Task.Run(async () =>
+        {
+            Guid? account = await win.Server.Server.Database.FindAccount(characterName);
+
+            if (account.HasValue)
+            {
+                win.Server?.Server?.Database?.BanAccount(account.Value, expiry).Wait();
+                FLLog.Info("Server", $"Banned {characterName}");
+            }
         });
     }
-    private void UnbanPlayer(BannedPlayerDescription player)
+    private void UnbanPlayer(Guid? account)
     {
-        throw new NotImplementedException();
+        Task.Run(async () =>
+        {
+            if (account.HasValue)
+            {
+                win.Server?.Server?.Database?.UnbanAccount(account.Value).Wait();
+                FLLog.Info("Server", $"Unbanned {account}");
+            }
+        });
     }
 
     private void DrawBansTab()
@@ -390,7 +402,7 @@ public class RunningServerScreen : Screen
                         pm.MessageBox("Confirm", $"Are you sure you want to unban?", false, MessageBoxButtons.YesNo, response => {
                             if (response == MessageBoxResponse.Yes)
                             {
-                                UnbanPlayer(player);
+                                UnbanPlayer(player.AccountId);
                             }
                         });
                     }
