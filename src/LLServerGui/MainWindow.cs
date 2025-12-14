@@ -4,17 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
-using LibreLancer.ImUI;
 using LibreLancer.Dialogs;
+using LibreLancer.ImUI;
 using LibreLancer.Server;
+using LLServer.Screens;
 using Microsoft.Win32;
+using static LibreLancer.Client.CGameSession;
 
 namespace LLServer;
 
@@ -30,6 +32,9 @@ public class MainWindow : Game
     ImGuiHelper guiRender;
     ServerApp server;
 
+    PopupManager pm = new PopupManager();
+    ScreenManager sm = new ScreenManager();
+
     // App State 
     bool isRunning = false;
     string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
@@ -41,6 +46,23 @@ public class MainWindow : Game
     Guid? banId;
     string banSearchString;
     string adminSearchString;
+
+    public ServerApp Server => server;
+
+    public bool IsRunning =>
+        server?.Server?.Listener?.Server?.IsRunning ?? false;
+
+    public int ConnectedPlayers =>
+        server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
+
+    public int Port =>
+        server?.Server?.Listener?.Port ?? 0;
+
+    public ServerPerformance ServerPerformance =>
+        server?.Server?.PerformanceStats;
+
+
+
 
     // Event Handlers
     private void LogAppendLine(string message, LogSeverity level)
@@ -54,49 +76,73 @@ public class MainWindow : Game
         log = new AppLog();
         FLLog.UIThread = this;
         FLLog.AppendLine += LogAppendLine;
-
         Title = "Librelancer Server";
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
-        config = GetConfigFromFileOrDefault();
+
+        sm.SetScreen(
+            new ServerConfigurationScreen(this, sm, pm)
+        );
     }
     protected override void Draw(double elapsed)
     {
         var process = guiRender.DoRender(elapsed);
-        if(process == ImGuiProcessing.Sleep)
+        if (process == ImGuiProcessing.Sleep)
         {
-            WaitForEvent(500); //Yield like a regular GUI program (0.5s)
+            WaitForEvent(500);
         }
         else if (process == ImGuiProcessing.Slow)
         {
-            WaitForEvent(50); //Push enough frames for keyboad input
+            WaitForEvent(50);
         }
+
         guiRender.NewFrame(elapsed);
+
         RenderContext.ReplaceViewport(0, 0, Width, Height);
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
+
         ImGui.PushFont(ImGuiHelper.Roboto, 0);
+
         var size = (Vector2)ImGui.GetIO().DisplaySize;
-        ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
-        ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
+        ImGui.SetNextWindowSize(size, ImGuiCond.Always);
+        ImGui.SetNextWindowPos(Vector2.Zero, ImGuiCond.Always);
+
         bool screenIsOpen = true;
-        ImGui.Begin("screen", ref screenIsOpen,
+        ImGui.Begin(
+            "screen",
+            ref screenIsOpen,
             ImGuiWindowFlags.NoTitleBar |
             ImGuiWindowFlags.NoSavedSettings |
             ImGuiWindowFlags.NoBringToFrontOnFocus |
             ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize |
-            ImGuiWindowFlags.NoBackground);
-        if(isRunning)
-            RunningServerGui();
-        else
-            StartupGui();
+            ImGuiWindowFlags.NoBackground
+        );
+        //Draw Menu Bar
+
+        ImGui.BeginChild(
+            "##content",
+            Vector2.Zero,   // take all available space
+            ImGuiChildFlags.Borders,
+            ImGuiWindowFlags.NoScrollbar
+        );
+        ImGui.EndChild();
+
+        //Draw Status bar
+
+        sm.Draw(elapsed);
         ImGui.End();
+        pm.Run();
         ImGui.PopFont();
+
+
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
+
         guiRender.Render(RenderContext);
     }
+
     protected override void Cleanup() => server?.StopServer();
     void Reset()
     {
@@ -298,36 +344,20 @@ public class MainWindow : Game
         return ImGui.BeginPopupModal(id, ref x);
     }
 
-    ServerConfig GetConfigFromFileOrDefault()
+    public bool StartServer(ServerConfig config)
     {
-        ServerConfig config = new ServerConfig();
+        server = new ServerApp(config);
 
-        if (File.Exists(configPath))
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
-        else
-        {
-            config = new ServerConfig();
+        if (!server.StartServer())
+            return false;
 
-            if (string.IsNullOrEmpty(config.FreelancerPath))
-            {
-                if (Platform.RunningOS == OS.Windows)
-                {
-                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
-                    string flPathRegistry = IntPtr.Size == 8
-                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
-                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-                    var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-                    if (!string.IsNullOrEmpty(actualPath))
-                    {
-                        config.FreelancerPath = actualPath;
-                    }
-                }
-            }
-            config.ServerName = "M9Universe";
-            config.ServerDescription = "My Cool Freelancer server";
-            config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
-        }
+        server.Server.PerformanceStats = new ServerPerformance(this);
+        return true;
+    }
 
-        return config;
+    public void StopServer()
+    {
+        server?.StopServer();
+        server = null;
     }
 }
