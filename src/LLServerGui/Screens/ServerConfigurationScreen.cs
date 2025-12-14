@@ -19,11 +19,13 @@ namespace LLServer.Screens;
 
 public class ServerConfigurationScreen : Screen
 {
-    public ServerConfigurationScreen(MainWindow win, ScreenManager sm, PopupManager pm) : base(sm, pm)
+    readonly MainWindow win;
+    readonly ServerConfig config;
+    public ServerConfigurationScreen(MainWindow win, ScreenManager sm, PopupManager pm, ServerConfig config) : base(sm, pm)
     {
         this.win = win;
-
-        win.ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
+        this.config = config;
+        
     }
 
     static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
@@ -38,13 +40,12 @@ public class ServerConfigurationScreen : Screen
     readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
     readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
 
-    readonly MainWindow win;
-    ServerConfig config;
+    
 
     public override void OnEnter()
     {
         Title = "Server Configuration";
-        config = GetConfigFromFileOrDefault();
+        //config = GetConfigFromFileOrDefault();
         win.StartupError = false;
 
         base.OnEnter();
@@ -157,38 +158,7 @@ public class ServerConfigurationScreen : Screen
     {
     }
 
-    ServerConfig GetConfigFromFileOrDefault()
-    {
-        ServerConfig config;
-
-        if (File.Exists(win.ConfigPath))
-        {
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(win.ConfigPath));
-            if (config != null)
-                return config;
-        }
-
-        
-        config = new ServerConfig();
-        if (Platform.RunningOS == OS.Windows)
-        {
-            var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
-            string flPathRegistry = IntPtr.Size == 8
-                ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
-                : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-            var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-            if (!string.IsNullOrEmpty(actualPath))
-            {
-                config.FreelancerPath = actualPath;
-            }
-        }
-
-        config.ServerName = "M9Universe";
-        config.ServerDescription = "My Cool Freelancer server";
-        config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
-
-        return config;
-    }
+    
 
     void LaunchServer()
     {

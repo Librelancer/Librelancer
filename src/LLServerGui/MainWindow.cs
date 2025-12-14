@@ -81,9 +81,10 @@ public class MainWindow : Game
         FLLog.AppendLine += LogAppendLine;
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
-
+        ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
+        config = GetConfigFromFileOrDefault();
         sm.SetScreen(
-            new ServerConfigurationScreen(this, sm, pm)
+            new ServerConfigurationScreen(this, sm, pm, config)
         );
     }
     protected override void Draw(double elapsed)
@@ -227,7 +228,7 @@ public class MainWindow : Game
             }
             if (ImGui.BeginMenu("Server"))
             {
-                if (Theme.IconMenuItem(Icons.Play, "Start", true))
+                if (Theme.IconMenuItem(Icons.Play, "Start", !IsRunning))
                 {
                     Task.Run(() =>
                     {
@@ -240,10 +241,9 @@ public class MainWindow : Game
                             );
                         });
                     });
-                    if (!StartServer(config)) StartupError = true;
                 }
                 ImGui.Spacing();
-                if (Theme.IconMenuItem(Icons.Stop, "Stop", true))
+                if (Theme.IconMenuItem(Icons.Stop, "Stop", IsRunning))
                 {
                     pm.MessageBox(
                             title: "Confirm",
@@ -255,15 +255,13 @@ public class MainWindow : Game
                                 {
                                     this.QueueUIThread(() =>
                                     {
-                                        server.Server.Stop();
-                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm));
+                                        StopServer();
+                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm, config));
                                         return;
                                     });
                                 }
                             });
-                    if (!StartServer(config)) StartupError = true;
                 }
-
                 ImGui.EndMenu();
             }
             ImGui.EndMainMenuBar();
@@ -342,4 +340,36 @@ public class MainWindow : Game
         ImGui.PopStyleColor(3);
     }
 
+    ServerConfig GetConfigFromFileOrDefault()
+    {
+        ServerConfig config;
+
+        if (File.Exists(ConfigPath))
+        {
+            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(ConfigPath));
+            if (config != null)
+                return config;
+        }
+
+
+        config = new ServerConfig();
+        if (Platform.RunningOS == OS.Windows)
+        {
+            var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
+            string flPathRegistry = IntPtr.Size == 8
+                ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
+                : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
+            var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
+            if (!string.IsNullOrEmpty(actualPath))
+            {
+                config.FreelancerPath = actualPath;
+            }
+        }
+
+        config.ServerName = "M9Universe";
+        config.ServerDescription = "My Cool Freelancer server";
+        config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
+
+        return config;
+    }
 }
