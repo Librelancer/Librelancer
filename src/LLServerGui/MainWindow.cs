@@ -30,7 +30,7 @@ public class MainWindow : Game
 
     public ServerApp Server => server;
     public bool IsRunning => server?.Server?.Listener?.Server?.IsRunning ?? false;
-    public int ConnectedPlayers => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
+    public int ConnectedPlayersCount => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
     public int Port => server?.Server?.Listener?.Port ?? 0;
     public ServerPerformance ServerPerformance => server?.Server?.PerformanceStats;
     public bool ServerReady => server?.Server?.Listener?.Server?.IsRunning ?? false;
@@ -62,8 +62,9 @@ public class MainWindow : Game
     float logsHeight = 200f;
 
     // Running Server Data
-    BannedPlayerDescription[] bannedPlayers;
-    AdminCharacterDescription[] admins;
+    public BannedPlayerDescription[] BannedPlayers;
+    public AdminCharacterDescription[] Admins;
+    
     Guid? banId;
     string banSearchString;
     string adminSearchString;
@@ -90,6 +91,8 @@ public class MainWindow : Game
     }
     protected override void Draw(double elapsed)
     {
+        
+
         var process = guiRender.DoRender(elapsed);
         if (process == ImGuiProcessing.Sleep)
         {
@@ -289,7 +292,7 @@ public class MainWindow : Game
         ImGui.Text(String.Format(statusFormat,
                 (int)Math.Round(RenderFrequency),
                 IsRunning ? "Running" : "Stopped",
-                ConnectedPlayers,
+                ConnectedPlayersCount,
                 server?.Server?.Listener?.MaxConnections ?? 0
                 ));
 

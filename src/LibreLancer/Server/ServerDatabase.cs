@@ -103,6 +103,7 @@ namespace LibreLancer.Server
     public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime Expiry);
 
     public record AdminCharacterDescription(long Id, string Name);
+    public record ConnectedCharacterDescription(long Id, string Name, bool IsAdmin, string System, string LastDockedBase );
 
     public class ServerDatabase : IDisposable
     {
@@ -202,6 +203,12 @@ namespace LibreLancer.Server
             return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
         }
 
+        public ConnectedCharacterDescription[] GetConnectedCharacters()
+        {
+            using var ctx = CreateDbContext();
+            return ctx.Characters.Where(x => x.IsAdmin).Select(x =>
+                new ConnectedCharacterDescription(x.Id, x.Name, x.IsAdmin, x.System, x.Base)).ToArray();
+        }
         public async Task<long?> FindCharacter(string character)
         {
             return await Run(async () =>
