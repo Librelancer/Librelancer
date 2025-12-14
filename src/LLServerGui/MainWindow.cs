@@ -29,11 +29,9 @@ public class MainWindow : Game
     }
 
     public ServerApp Server => server;
-    public bool IsRunning => server?.Server?.Listener?.Server?.IsRunning ?? false;
+    public bool IsRunning => server?.Server?.Listener?.Server?. IsRunning ?? false;
     public int ConnectedPlayersCount => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
-    public int Port => server?.Server?.Listener?.Port ?? 0;
     public ServerPerformance ServerPerformance => server?.Server?.PerformanceStats;
-    public bool ServerReady => server?.Server?.Listener?.Server?.IsRunning ?? false;
     public string ConfigPath;
     public bool StartupError;
 
@@ -62,8 +60,7 @@ public class MainWindow : Game
     float logsHeight = 200f;
 
     // Running Server Data
-    public BannedPlayerDescription[] BannedPlayers;
-    public AdminCharacterDescription[] Admins;
+    
     
     Guid? banId;
     string banSearchString;

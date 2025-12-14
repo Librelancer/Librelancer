@@ -100,7 +100,7 @@ namespace LibreLancer.Server
         }
     }
 
-    public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime Expiry);
+    public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime? BanExpiry);
 
     public record AdminCharacterDescription(long Id, string Name);
     public record ConnectedCharacterDescription(long Id, string Name, bool IsAdmin, string System, string LastDockedBase );
@@ -193,14 +193,11 @@ namespace LibreLancer.Server
         public BannedPlayerDescription[] GetBannedPlayers()
         {
             using var ctx = CreateDbContext();
-            var c = ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
-                .Select(x => new
-                {
-                    AccountId = x.AccountIdentifier,
-                    BanExpiry = x.BanExpiry,
-                    Characters = x.Characters.Select(y => y.Name).ToArray()
-                });
-            return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
+            return ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
+                .Select(x => new BannedPlayerDescription(
+                    x.AccountIdentifier,
+                    x.Characters.Select(y => y.Name).ToArray(),
+                    x.BanExpiry)).ToArray();
         }
 
         public ConnectedCharacterDescription[] GetConnectedCharacters()

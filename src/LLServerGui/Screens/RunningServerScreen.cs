@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using BepuPhysics;
 using ImGuiNET;
 using LibreLancer.ImUI;
 using LibreLancer.Server;
@@ -17,14 +19,17 @@ public class RunningServerScreen : Screen
         this.win = win;
         this.config = config;
     }
-
+    
     readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
     Vector4 WARN_TEXT_COLOUR = new Vector4(1f, 0.86f, 0.25f, 1f);
     readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
     static readonly float LABEL_WIDTH = 125f;
 
-    private bool showStopConfirm;
+    bool showStopConfirm;
+    bool isStarting = true;
     ConnectedCharacterDescription[] connectedPlayers;
+    BannedPlayerDescription[] bannedPlayers;
+    AdminCharacterDescription[] admins;
 
     public override void OnEnter()
     {
@@ -48,19 +53,21 @@ public class RunningServerScreen : Screen
         RefreshDbData();
 
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
-        if (win.Server == null || !win.IsRunning)
+
+        if (win.Server == null || (!win.IsRunning && !isStarting))
         {
             CenterText(config.ServerName, ERROR_TEXT_COLOUR);
         }
-        else if (!win.ServerReady)
+        else if (isStarting)
         {
             CenterText(config.ServerName, WARN_TEXT_COLOUR);
+            
         }
         else
         {
             CenterText(config.ServerName, SUCCESS_TEXT_COLOUR);
-
         }
+        
         ImGui.PopFont();
         ImGui.Spacing();
         ImGui.Separator();
@@ -98,15 +105,14 @@ public class RunningServerScreen : Screen
                 DrawPlayersTab();
                 ImGui.EndTabItem();
             }
-
-            if (ImGui.BeginTabItem("Admins"))
+            if (ImGui.BeginTabItem("Banned Players"))
             {
-                //DrawAdminsAndBansTab();
+                DrawBansTab();
                 ImGui.EndTabItem();
             }
-            if (ImGui.BeginTabItem("Bans"))
+            if (ImGui.BeginTabItem("Admins"))
             {
-                //DrawAdminsAndBansTab();
+                DrawAdminsTab();
                 ImGui.EndTabItem();
             }
 
@@ -114,17 +120,133 @@ public class RunningServerScreen : Screen
         }
 
         DrawActions();
+
+        if (win.IsRunning)
+            isStarting = false;
+    }
+
+    private void DrawBansTab()
+    {
+        ImGui.BeginChild("connected_players_child", new Vector2(0, 0), ImGuiChildFlags.None);
+
+        float tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale;
+        if (ImGui.BeginTable(
+            "connected_players",
+            6,
+            ImGuiTableFlags.Borders |
+            ImGuiTableFlags.RowBg |
+            ImGuiTableFlags.Resizable |
+            ImGuiTableFlags.ScrollY |
+            ImGuiTableFlags.Sortable,
+            new Vector2(0, 0)
+        ))
+        {
+            ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Characters", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Ban Expiry", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Unban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Increase Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableHeadersRow();
+
+            if (bannedPlayers != null)
+            {
+                foreach (var player in bannedPlayers)
+                {
+                    
+                    ImGui.TableNextRow();
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.AccountId.ToString());
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(String.Join(", ", player.Characters));
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.BanExpiry.HasValue
+                            ? player.BanExpiry.Value.ToString("G") // system culture, short date + time
+                            : "-");
+
+                    ImGui.TableNextColumn();
+                    if (ImGui.SmallButton($"{Icons.ArrowUp.ToString()}##{player.AccountId.ToString()}"))
+                    {
+                        pm.MessageBox("Confirm", $"Are you sure you want to unban?", false, MessageBoxButtons.YesNo, response => {
+                            if (response == MessageBoxResponse.Yes)
+                            {
+                                //PromotePlayer(player.Name);
+                            }
+                        });
+                    }
+
+                    ImGui.TableNextColumn();
+                    if (ImGui.SmallButton($"{Icons.Fire.ToString()}##{player.AccountId.ToString()}"))
+                    {
+                        //OpenBanPopup(player.Name);
+                    }
+                    ImGui.TableNextColumn();
+                    if (ImGui.SmallButton($"{Icons.Eye}##{player.AccountId.ToString()}"))
+                    {
+                        //OpenBanPopup(player.Name);
+                    }
+                }
+            }
+
+
+            ImGui.EndTable();
+
+        }
+        ImGui.EndChild();
+
+    }
+
+    private void DrawAdminsTab()
+    {
+        
     }
 
     private void RefreshDbData()
     {
-        if(win.IsRunning && win.ServerReady)
+        if(win.IsRunning)
             connectedPlayers = win.Server.Server.Database.GetConnectedCharacters();
+            bannedPlayers = win.Server.Server.Database.GetBannedPlayers();
+            admins = win.Server.Server.Database.GetAdmins();
     }
 
     private void DrawActions()
     {
-        if (ImGui.Button("Stop Server"))
+        
+    }
+
+    private void DrawServerStats()
+    {
+        ImGui.Text("Status:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        if (win.Server == null || (!win.IsRunning && !isStarting))
+        {
+            ImGui.TextColored(ERROR_TEXT_COLOUR, "Not running"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        }
+        else if (isStarting)
+        {
+            ImGui.TextColored(WARN_TEXT_COLOUR, "Starting"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        }
+        else
+        {
+            ImGui.TextColored(SUCCESS_TEXT_COLOUR, "Running"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        }
+
+        ImGui.NewLine();
+        ImGui.Text("Listening Port:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        
+        ImGui.Text(win.Server?.Server?.Listener?.Port.ToString() ?? "-"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.NewLine();
+        ImGui.Separator();
+        ImGui.Text("Players Connected"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text(win.ConnectedPlayersCount.ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.NewLine();
+        ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("-"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.NewLine();
+        ImGui.Dummy(new Vector2(-1, ImGui.GetFrameHeight()* 2 *ImGuiHelper.Scale));
+        if (ImGui.Button("Stop Server", new Vector2(-1, ImGui.GetFrameHeight() * 2 * ImGuiHelper.Scale)))
         {
 
             pm.MessageBox(
@@ -147,35 +269,6 @@ public class RunningServerScreen : Screen
             );
 
         }
-    }
-
-    private void DrawServerStats()
-    {
-        ImGui.Text("Status:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        if(win.Server == null || !win.IsRunning)
-        {
-            ImGui.TextColored(ERROR_TEXT_COLOUR, "Not running"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        }
-        else if(!win.ServerReady)
-        {
-            ImGui.TextColored(WARN_TEXT_COLOUR, "Starting"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        }
-        else
-        {
-            ImGui.TextColored(SUCCESS_TEXT_COLOUR, "Running"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-
-        }
-        ImGui.NewLine();
-        ImGui.Text("Listening Port:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text(win.Port.ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.NewLine();
-        ImGui.Separator();
-        ImGui.Text("Players Connected"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text(win.ConnectedPlayersCount.ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.NewLine();
-        ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text("-"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.NewLine();
     }
 
     private void DrawPerformanceStats()
@@ -221,70 +314,75 @@ public class RunningServerScreen : Screen
     }
     void DrawPlayersTab()
     {
-        float tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale;
-        ImGui.BeginChild("connected_players_child", new Vector2(0, tableHeight), ImGuiChildFlags.Borders);
+        ImGui.BeginChild("connected_players_child", new Vector2(0, 0), ImGuiChildFlags.None);
 
+        float tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale;
         if (ImGui.BeginTable(
             "connected_players",
             8,
             ImGuiTableFlags.Borders |
             ImGuiTableFlags.RowBg |
             ImGuiTableFlags.Resizable |
-            ImGuiTableFlags.ScrollY ,
-            new Vector2(0, 250 * ImGuiHelper.Scale)
+            ImGuiTableFlags.ScrollY |
+            ImGuiTableFlags.Sortable,
+            new Vector2(0, 0)
         ))
         {
-            ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthFixed, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("System", ImGuiTableColumnFlags.WidthFixed, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthFixed, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Admin", ImGuiTableColumnFlags.WidthFixed, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Make Admin", ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Ban", ImGuiTableColumnFlags.WidthFixed, 80 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Inspect", ImGuiTableColumnFlags.WidthFixed, 80 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("System", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Admin", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Promote", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Inspect", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
             ImGui.TableHeadersRow();
 
-            foreach (var player in connectedPlayers)
+            if(connectedPlayers != null)
             {
-                ImGui.TableNextRow();
-
-                ImGui.TableNextColumn();
-                ImGui.Text(player.Id.ToString());
-
-                ImGui.TableNextColumn();
-                ImGui.Text(player.Name);
-
-                ImGui.TableNextColumn();
-                ImGui.Text(player.System);
-
-                ImGui.TableNextColumn();
-                ImGui.Text(player.LastDockedBase);
-
-                ImGui.TableNextColumn();
-                ImGui.Text(player.IsAdmin ? Icons.Check.ToString() : "");
-
-                ImGui.TableNextColumn();
-                if (!player.IsAdmin && ImGui.SmallButton($"{Icons.ArrowUp.ToString()}##{player.Name}"))
+                foreach (var player in connectedPlayers)
                 {
-                    pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Name} to an admin?", false, MessageBoxButtons.YesNo, response => {
-                        if (response == MessageBoxResponse.Yes)
-                        {
-                            //PromotePlayer(player.Name);
-                        }
-                    });
-                }
+                    ImGui.TableNextRow();
 
-                ImGui.TableNextColumn();
-                if (ImGui.SmallButton($"{Icons.Fire.ToString()}##{player.Name}"))
-                {
-                    //OpenBanPopup(player.Name);
-                }
-                ImGui.TableNextColumn();
-                if (ImGui.SmallButton($"{Icons.Eye}##{player.Name}"))
-                {
-                    //OpenBanPopup(player.Name);
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.Id.ToString());
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.Name);
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.System);
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.LastDockedBase);
+
+                    ImGui.TableNextColumn();
+                    ImGui.Text(player.IsAdmin ? Icons.Check.ToString() : "");
+
+                    ImGui.TableNextColumn();
+                    if (!player.IsAdmin && ImGui.SmallButton($"{Icons.ArrowUp.ToString()}##{player.Name}"))
+                    {
+                        pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Name} to an admin?", false, MessageBoxButtons.YesNo, response => {
+                            if (response == MessageBoxResponse.Yes)
+                            {
+                                //PromotePlayer(player.Name);
+                            }
+                        });
+                    }
+
+                    ImGui.TableNextColumn();
+                    if (ImGui.SmallButton($"{Icons.Fire.ToString()}##{player.Name}"))
+                    {
+                        //OpenBanPopup(player.Name);
+                    }
+                    ImGui.TableNextColumn();
+                    if (ImGui.SmallButton($"{Icons.Eye}##{player.Name}"))
+                    {
+                        //OpenBanPopup(player.Name);
+                    }
                 }
             }
+            
 
             ImGui.EndTable();
             
