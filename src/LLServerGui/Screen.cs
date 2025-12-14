@@ -1,20 +1,21 @@
 ﻿using ImGuiNET;
+using LibreLancer.ImUI;
 
-namespace LibreLancer.ImUI
-{
+namespace LLServer;
+
     /// <summary>
     /// Base class for all ImGui screens.
     /// Screens represent mutually-exclusive UI states.
     /// </summary>
     public abstract class Screen
     {
-        protected readonly ScreenManager Screens;
-        protected readonly PopupManager Popups;
+        protected readonly ScreenManager sm;
+        protected readonly PopupManager pm;
         public string Title { get; protected set; }
         protected Screen(ScreenManager screens, PopupManager popups)
         {
-            Screens = screens;
-            Popups = popups;
+            sm = screens;
+            pm = popups;
         }
 
         /// <summary>
@@ -40,4 +41,4 @@ namespace LibreLancer.ImUI
         public abstract void Draw(double elapsed);
 
     }
-}
+

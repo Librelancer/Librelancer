@@ -168,8 +168,8 @@ public class ServerConfigurationScreen : Screen
 
             win.QueueUIThread(() =>
             {
-                Screens.SetScreen(
-                    new RunningServerScreen(win, Screens, Popups, config)
+                sm.SetScreen(
+                    new RunningServerScreen(win, sm, pm, config)
                 );
             });
         });
