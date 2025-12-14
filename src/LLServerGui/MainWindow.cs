@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -27,6 +28,14 @@ public class MainWindow : Game
 
     }
 
+    public ServerApp Server => server;
+    public bool IsRunning => server?.Server?.Listener?.Server?.IsRunning ?? false;
+    public int ConnectedPlayers => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
+    public int Port => server?.Server?.Listener?.Port ?? 0;
+    public ServerPerformance ServerPerformance => server?.Server?.PerformanceStats;
+    public string ConfigPath;
+    public bool StartupError;
+
     AppLog log;
     ServerConfig config;
     ImGuiHelper guiRender;
@@ -35,10 +44,14 @@ public class MainWindow : Game
     PopupManager pm = new PopupManager();
     ScreenManager sm = new ScreenManager();
 
-    // App State 
-    bool isRunning = false;
-    string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
-    bool startupError;
+    static readonly float STATUS_BAR_HEIGHT = 30f;
+    readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
+
+#if DEBUG
+    const string statusFormat = "FPS: {0} | Status: {1} | Connected: {3}/{2}";
+#else
+                const string statusFormat = "Status: {1}  | Connected Players {2}";
+#endif
 
     // Running Server Data
     BannedPlayerDescription[] bannedPlayers;
@@ -46,23 +59,6 @@ public class MainWindow : Game
     Guid? banId;
     string banSearchString;
     string adminSearchString;
-
-    public ServerApp Server => server;
-
-    public bool IsRunning =>
-        server?.Server?.Listener?.Server?.IsRunning ?? false;
-
-    public int ConnectedPlayers =>
-        server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
-
-    public int Port =>
-        server?.Server?.Listener?.Port ?? 0;
-
-    public ServerPerformance ServerPerformance =>
-        server?.Server?.PerformanceStats;
-
-
-
 
     // Event Handlers
     private void LogAppendLine(string message, LogSeverity level)
@@ -117,21 +113,25 @@ public class MainWindow : Game
             ImGuiWindowFlags.NoBringToFrontOnFocus |
             ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize |
-            ImGuiWindowFlags.NoBackground
+            ImGuiWindowFlags.NoBackground |
+            ImGuiWindowFlags.MenuBar
+            
         );
-        //Draw Menu Bar
+
+        DrawMenuBar();
+        Vector2 avail = ImGui.GetContentRegionAvail();
+        float contentHeight = avail.Y - STATUS_BAR_HEIGHT;
 
         ImGui.BeginChild(
             "##content",
-            Vector2.Zero,   // take all available space
-            ImGuiChildFlags.Borders,
-            ImGuiWindowFlags.NoScrollbar
+            new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - STATUS_BAR_HEIGHT),   // take all available space
+            ImGuiChildFlags.Borders
         );
+        sm.Draw(elapsed);
         ImGui.EndChild();
 
-        //Draw Status bar
 
-        sm.Draw(elapsed);
+        DrawStatusBar();
         ImGui.End();
         pm.Run();
         ImGui.PopFont();
@@ -146,15 +146,11 @@ public class MainWindow : Game
     protected override void Cleanup() => server?.StopServer();
     void Reset()
     {
-        startupError = isRunning = false;
+        StartupError = false;
         server = null;
     }
 
-    // State Queries
-    bool ServerReady() => server.Server?.Listener?.Server?.IsRunning ?? false;
-
     // UI And Helpers
-
     public bool StartServer(ServerConfig config)
     {
         server = new ServerApp(config);
@@ -171,4 +167,110 @@ public class MainWindow : Game
         server?.StopServer();
         server = null;
     }
+
+    void DrawMenuBar()
+    {
+        if (ImGui.BeginMainMenuBar())
+        {
+            if (ImGui.BeginMenu("File"))
+            {
+                if (Theme.IconMenuItem(Icons.Save,"Save Configuration", true))
+                {
+                    pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
+                    File.WriteAllText(ConfigPath, JSON.Serialize(config));
+
+                }
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+                if (Theme.IconMenuItem(Icons.Quit, "Quit", true))
+                {
+                    if (IsRunning)
+                    {
+                        pm.MessageBox(
+                            title: "Confirm",
+                            message: "The Server is running. Are you sure you want to quit?",
+                            multiline: false,
+                            buttons: MessageBoxButtons.YesNo, callback: response =>
+                            {
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    this.QueueUIThread(() =>
+                                    {
+                                        server.Server.Stop();
+                                        Exit();
+                                        return;
+                                    });
+                                }
+                            });
+                    }
+                    Exit();
+                }
+
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Server"))
+            {
+                if (Theme.IconMenuItem(Icons.Play, "Start", true))
+                {
+                    if(!StartServer(config)) StartupError = true;
+                }
+                ImGui.Spacing();
+                if (Theme.IconMenuItem(Icons.Stop, "Stop", true))
+                {
+                    pm.MessageBox(
+                            title: "Confirm",
+                            message: "The Server is running. Are you sure you want to quit?",
+                            multiline: false,
+                            buttons: MessageBoxButtons.YesNo, callback: response =>
+                            {
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    this.QueueUIThread(() =>
+                                    {
+                                        server.Server.Stop();
+                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm));
+                                        return;
+                                    });
+                                }
+                            });
+                    if (!StartServer(config)) StartupError = true;
+                }
+
+                ImGui.EndMenu();
+            }
+            ImGui.EndMainMenuBar();
+        }
+    }
+
+    void DrawStatusBar()
+    {
+        var io = ImGui.GetIO();
+        ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X, STATUS_BAR_HEIGHT * ImGuiHelper.Scale), ImGuiCond.Always);
+        ImGui.SetNextWindowPos(new Vector2(0, io.DisplaySize.Y - STATUS_BAR_HEIGHT * ImGuiHelper.Scale), ImGuiCond.Always, Vector2.Zero);
+
+
+        ImGui.Begin(
+            "##statusbar",
+            ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoResize |
+            ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoScrollbar |
+            ImGuiWindowFlags.NoSavedSettings
+        );
+
+        ImGui.Text(String.Format(statusFormat,
+                (int)Math.Round(RenderFrequency),
+                IsRunning ? "Running" : "Stopped",
+                ConnectedPlayers,
+                server?.Server?.Listener?.MaxConnections ?? 0
+                ));
+
+        if (StartupError)
+        {
+            ImGui.SameLine(); ImGui.TextColored(ERROR_TEXT_COLOUR, "Server Startup Error");
+        }
+        ImGui.End();
+    }
+
 }
