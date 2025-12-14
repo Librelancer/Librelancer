@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using BepuPhysics;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Server;
 
@@ -189,6 +190,8 @@ public class RunningServerScreen : Screen
     }
     private void DrawPerformanceStats()
     {
+        if (isStarting)
+            return;
         var perf = win.ServerPerformance;
         if (perf == null)
             return;
@@ -283,7 +286,7 @@ public class RunningServerScreen : Screen
                         pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Character.Name} to an admin?", false, MessageBoxButtons.YesNo, response => {
                             if (response == MessageBoxResponse.Yes)
                             {
-                                //PromotePlayer(player.Name);
+                                PromotePlayer(player);
                             }
                         });
                     }
@@ -296,7 +299,7 @@ public class RunningServerScreen : Screen
                     ImGui.TableNextColumn();
                     if (ImGui.SmallButton($"{Icons.Eye}##{player.Name}"))
                     {
-                        //OpenBanPopup(player.Name);
+                        //OpenInspectPopup(player.Name);
                     }
                 }
             }
@@ -309,6 +312,36 @@ public class RunningServerScreen : Screen
 
 
     }
+
+    private void PromotePlayer(Player player)
+    {
+        win.QueueUIThread(() => {
+            FLLog.Info("Server", $"Promoting {player.Name} to admin");
+            win.Server?.Server?.Database?.AdminCharacter(player.Character.ID).Wait();
+            win.Server?.Server?.AdminChanged(player.Character.ID, true);
+        });
+    }
+    private void DemotePlayer(long characterId)
+    {
+        win.QueueUIThread(() => {
+            FLLog.Info("Server", $"Demoting {player.Name} from admin");
+            win.Server?.Server?.Database?.DeadminCharacter(player.Character.ID).Wait();
+            win.Server?.Server?.AdminChanged(player.Character.ID, false);
+        });
+    }
+    private void BanPlayer(Player player)
+    {
+        win.QueueUIThread(() => {
+            FLLog.Info("Server", $"Banning {player.Name} from admin");
+            win.Server?.Server?.Database?.B DeadminCharacter(player.Character.ID).Wait();
+            win.Server?.Server?.AdminChanged(player.Character.ID, false);
+        });
+    }
+    private void UnbanPlayer(BannedPlayerDescription player)
+    {
+        throw new NotImplementedException();
+    }
+
     private void DrawBansTab()
     {
         ImGui.BeginChild("banned_players_child", new Vector2(0, 0), ImGuiChildFlags.None);
@@ -330,7 +363,7 @@ public class RunningServerScreen : Screen
             ImGui.TableSetupColumn("Ban Expiry", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Unban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Increase Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Increase Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100 * ImGuiHelper.Scale);
             ImGui.TableHeadersRow();
 
             if (bannedPlayers != null)
@@ -357,18 +390,13 @@ public class RunningServerScreen : Screen
                         pm.MessageBox("Confirm", $"Are you sure you want to unban?", false, MessageBoxButtons.YesNo, response => {
                             if (response == MessageBoxResponse.Yes)
                             {
-                                //PromotePlayer(player.Name);
+                                UnbanPlayer(player);
                             }
                         });
                     }
 
                     ImGui.TableNextColumn();
                     if (ImGui.SmallButton($"{Icons.Fire.ToString()}##{player.AccountId.ToString()}"))
-                    {
-                        //OpenBanPopup(player.Name);
-                    }
-                    ImGui.TableNextColumn();
-                    if (ImGui.SmallButton($"{Icons.Eye}##{player.AccountId.ToString()}"))
                     {
                         //OpenBanPopup(player.Name);
                     }
@@ -379,6 +407,8 @@ public class RunningServerScreen : Screen
         }
         ImGui.EndChild();
     }
+
+
     private void DrawAdminsTab()
     {
         ImGui.BeginChild("admin_players_child", new Vector2(0, 0), ImGuiChildFlags.None);
@@ -399,7 +429,7 @@ public class RunningServerScreen : Screen
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("System", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Connected", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Online", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Demote", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
             ImGui.TableHeadersRow();
 
