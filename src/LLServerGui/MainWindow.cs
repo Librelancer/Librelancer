@@ -40,18 +40,25 @@ public class MainWindow : Game
     ServerConfig config;
     ImGuiHelper guiRender;
     ServerApp server;
-
     PopupManager pm = new PopupManager();
     ScreenManager sm = new ScreenManager();
 
     static readonly float STATUS_BAR_HEIGHT = 30f;
-    readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
+    static readonly float LOGS_MIN_HEIGHT = 100f;
+    static readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
+    
 
 #if DEBUG
-    const string statusFormat = "FPS: {0} | Status: {1} | Connected: {3}/{2}";
+    static readonly string statusFormat = "FPS: {0} | Status: {1} | Connected: {3}/{2}";
+    static readonly string titleFormat = "Debug: Librelancer Server - {0}";
 #else
-                const string statusFormat = "Status: {1}  | Connected Players {2}";
+    static readonly string statusFormat = "Status: {1}  | Connected Players {2}";
+    static readonly string titleFormat = "Librelancer Server - {0}";
 #endif
+
+    // UI Data
+    bool logsOpen = false;
+    float logsHeight = 200f;
 
     // Running Server Data
     BannedPlayerDescription[] bannedPlayers;
@@ -72,7 +79,6 @@ public class MainWindow : Game
         log = new AppLog();
         FLLog.UIThread = this;
         FLLog.AppendLine += LogAppendLine;
-        Title = "Librelancer Server";
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
 
@@ -119,18 +125,28 @@ public class MainWindow : Game
         );
 
         DrawMenuBar();
-        Vector2 avail = ImGui.GetContentRegionAvail();
-        float contentHeight = avail.Y - STATUS_BAR_HEIGHT;
 
+        Vector2 avail = ImGui.GetContentRegionAvail();
+
+        // Height taken by logs (collapsed = header height only)
+        float logsAreaHeight = logsOpen ? logsHeight : ImGui.GetFrameHeight();
+
+        // Main content area (above logs + status bar)
         ImGui.BeginChild(
             "##content",
-            new Vector2(ImGui.GetContentRegionAvail().X, ImGui.GetContentRegionAvail().Y - STATUS_BAR_HEIGHT),   // take all available space
+            new Vector2(
+                avail.X,
+                avail.Y - STATUS_BAR_HEIGHT - logsAreaHeight
+            ),
             ImGuiChildFlags.Borders
         );
         sm.Draw(elapsed);
         ImGui.EndChild();
 
+        // Logs panel (bottom, inside main window)
+        DrawLogsPanel(avail.X);
 
+        // Status bar (unchanged)
         DrawStatusBar();
         ImGui.End();
         pm.Run();
@@ -213,7 +229,18 @@ public class MainWindow : Game
             {
                 if (Theme.IconMenuItem(Icons.Play, "Start", true))
                 {
-                    if(!StartServer(config)) StartupError = true;
+                    Task.Run(() =>
+                    {
+                        File.WriteAllText(ConfigPath, JSON.Serialize(config));
+
+                        QueueUIThread(() =>
+                        {
+                            sm.SetScreen(
+                                new RunningServerScreen(this, sm, pm, config)
+                            );
+                        });
+                    });
+                    if (!StartServer(config)) StartupError = true;
                 }
                 ImGui.Spacing();
                 if (Theme.IconMenuItem(Icons.Stop, "Stop", true))
@@ -271,6 +298,48 @@ public class MainWindow : Game
             ImGui.SameLine(); ImGui.TextColored(ERROR_TEXT_COLOUR, "Server Startup Error");
         }
         ImGui.End();
+    }
+
+    void DrawLogsPanel(float width)
+    {
+        // Header
+        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg]);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgHovered]);
+        ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgActive]);
+
+        
+
+        if (ImGui.CollapsingHeader("Logs", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.InvisibleButton("##logs_resize", new Vector2(width, 4));
+            if (ImGui.IsItemHovered() || ImGui.IsItemActive())
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNS);
+            }
+
+            if (ImGui.IsItemActive())
+            {
+                logsHeight -= ImGui.GetIO().MouseDelta.Y;
+                logsHeight = Math.Clamp(logsHeight, LOGS_MIN_HEIGHT, ImGui.GetIO().DisplaySize.Y * 0.6f);
+            }
+
+
+            logsOpen = true;
+
+            ImGui.Separator();
+
+            // Log contents
+            log.Draw(
+                buttons: false,
+                size: new Vector2(width, logsHeight - ImGui.GetFrameHeight() * 2)
+            );
+        }
+        else
+        {
+            logsOpen = false;
+        }
+        ImGui.Spacing();
+        ImGui.PopStyleColor(3);
     }
 
 }
