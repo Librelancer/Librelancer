@@ -33,6 +33,7 @@ public class MainWindow : Game
     public int ConnectedPlayers => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
     public int Port => server?.Server?.Listener?.Port ?? 0;
     public ServerPerformance ServerPerformance => server?.Server?.PerformanceStats;
+    public bool ServerReady => server?.Server?.Listener?.Server?.IsRunning ?? false;
     public string ConfigPath;
     public bool StartupError;
 
