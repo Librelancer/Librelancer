@@ -49,8 +49,8 @@ public class MainWindow : Game
     
 
 #if DEBUG
-    static readonly string statusFormat = "FPS: {0} | Status: {1} | Connected: {3}/{2}";
-    static readonly string titleFormat = "Debug: Librelancer Server - {0}";
+    static readonly string statusFormat = "FPS: {0} | Status: {1} | Connected: {2}/{3}";
+    static readonly string titleFormat = "Librelancer Server - Debug - {0}";
 #else
     static readonly string statusFormat = "Status: {1}  | Connected Players {2}";
     static readonly string titleFormat = "Librelancer Server - {0}";
@@ -142,6 +142,7 @@ public class MainWindow : Game
             ImGuiChildFlags.Borders
         );
         sm.Draw(elapsed);
+        Title = String.Format(titleFormat, sm.Current.Title);
         ImGui.EndChild();
 
         // Logs panel (bottom, inside main window)
