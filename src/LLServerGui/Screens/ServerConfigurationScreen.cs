@@ -25,7 +25,7 @@ public class ServerConfigurationScreen : Screen
 
         win.ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
     }
-    
+
     static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
         new FileFilter("Database File", "db")
         );
@@ -159,33 +159,33 @@ public class ServerConfigurationScreen : Screen
 
     ServerConfig GetConfigFromFileOrDefault()
     {
-        ServerConfig config = new ServerConfig();
+        ServerConfig config;
 
         if (File.Exists(win.ConfigPath))
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(win.ConfigPath));
-        else
         {
-            config = new ServerConfig();
-
-            if (string.IsNullOrEmpty(config.FreelancerPath))
-            {
-                if (Platform.RunningOS == OS.Windows)
-                {
-                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
-                    string flPathRegistry = IntPtr.Size == 8
-                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
-                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-                    var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-                    if (!string.IsNullOrEmpty(actualPath))
-                    {
-                        config.FreelancerPath = actualPath;
-                    }
-                }
-            }
-            config.ServerName = "M9Universe";
-            config.ServerDescription = "My Cool Freelancer server";
-            config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
+            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(win.ConfigPath));
+            if (config != null)
+                return config;
         }
+
+        
+        config = new ServerConfig();
+        if (Platform.RunningOS == OS.Windows)
+        {
+            var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
+            string flPathRegistry = IntPtr.Size == 8
+                ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
+                : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
+            var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
+            if (!string.IsNullOrEmpty(actualPath))
+            {
+                config.FreelancerPath = actualPath;
+            }
+        }
+
+        config.ServerName = "M9Universe";
+        config.ServerDescription = "My Cool Freelancer server";
+        config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
 
         return config;
     }
