@@ -10,7 +10,7 @@ namespace LibreLancer.ImUI
     {
         protected readonly ScreenManager Screens;
         protected readonly PopupManager Popups;
-
+        public string Title { get; protected set; }
         protected Screen(ScreenManager screens, PopupManager popups)
         {
             Screens = screens;

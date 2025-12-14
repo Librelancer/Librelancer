@@ -25,7 +25,7 @@ public class ServerConfigurationScreen : Screen
 
         win.ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
     }
-
+    
     static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
         new FileFilter("Database File", "db")
         );
@@ -43,6 +43,7 @@ public class ServerConfigurationScreen : Screen
 
     public override void OnEnter()
     {
+        Title = "Server Configuration";
         config = GetConfigFromFileOrDefault();
         win.StartupError = false;
 
