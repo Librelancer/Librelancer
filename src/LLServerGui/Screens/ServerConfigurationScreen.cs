@@ -54,7 +54,7 @@ public class ServerConfigurationScreen : Screen
     public override void Draw(double elapsed)
     {
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
-        CenterText("Server Configuration");
+        GuiHelpers.CenterText("Server Configuration");
         ImGui.PopFont();
 
         ImGui.NewLine();
@@ -148,7 +148,7 @@ public class ServerConfigurationScreen : Screen
         {
             ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
             ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
-            CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
+            GuiHelpers.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
             ImGui.EndChild();
         }
 
@@ -173,23 +173,5 @@ public class ServerConfigurationScreen : Screen
                 );
             });
         });
-    }
-
-    void CenterText(string text)
-    {
-        ImGui.Dummy(new Vector2(1));
-        var win = ImGui.GetWindowWidth();
-        var txt = ImGui.CalcTextSize(text).X;
-        ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f), 0));
-        ImGui.Text(text);
-    }
-    void CenterText(string text, Vector4 colour)
-    {
-        ImGui.Dummy(new Vector2(1));
-        var win = ImGui.GetWindowWidth();
-        var txt = ImGui.CalcTextSize(text).X;
-        ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f), 0));
-        ImGui.TextColored(ERROR_TEXT_COLOUR, text);
-
     }
 }
