@@ -290,7 +290,7 @@ public class RunningServerScreen : Screen
 
                     ImGui.TableNextColumn();
                     var uiId = player.Character?.Name ?? "-";
-                    if (ImGuiExt.Button($"{Icons.ArrowUp.ToString()}##{uiId}", !isAdmin, buttonSize))
+                    if (ImGuiExt.Button($"{Icons.ArrowUp.ToString()}##{uiId}", !isAdmin && uiId != "-", buttonSize))
                     {
                         pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Character.Name} to an admin?", false, MessageBoxButtons.YesNo, response =>
                         {
@@ -302,10 +302,15 @@ public class RunningServerScreen : Screen
                     }
 
                     ImGui.TableNextColumn();
-                    if (ImGui.Button($"{Icons.Fire.ToString()}##{player.Name?? "-"}", buttonSize))
+                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name?? "-"}",!String.IsNullOrWhiteSpace(player.Name), buttonSize))
                     {
-                        //pm.OpenPopup(new)
-                        //OpenBanPopup(player.Name);
+                       pm.OpenPopup(new BanPopup(player.Name, expiry =>
+                       {
+                           if (expiry.HasValue)
+                           {
+                               BanPlayer(player.Name, expiry.Value);
+                           }
+                       }));
                     }
                     ImGui.TableNextColumn();
                     if (ImGui.Button($"{Icons.Eye}##{player.Name ?? "-"}", buttonSize))
@@ -321,49 +326,7 @@ public class RunningServerScreen : Screen
 
     }
 
-    private void PromotePlayer(long characterId, string name)
-    {
-        Task.Run(async () =>
-        {
-            FLLog.Info("Server", $"Promoting {name} to admin");
-            win.Server?.Server?.Database?.AdminCharacter(characterId).Wait();
-            win.Server?.Server?.AdminChanged(characterId, true);
-        });
-    }
-    private void DemotePlayer(long characterId, string name)
-    {
-        Task.Run(async () =>
-        {
-            FLLog.Info("Server", $"Demoting {name} from admin");
-            win.Server?.Server?.Database?.DeadminCharacter(characterId).Wait();
-            win.Server?.Server?.AdminChanged(characterId, false);
-        });
-    }
-    private void BanPlayer(string characterName, DateTime expiry)
-    {
-
-        Task.Run(async () =>
-        {
-            Guid? account = await win.Server.Server.Database.FindAccount(characterName);
-
-            if (account.HasValue)
-            {
-                win.Server?.Server?.Database?.BanAccount(account.Value, expiry).Wait();
-                FLLog.Info("Server", $"Banned {characterName}");
-            }
-        });
-    }
-    private void UnbanPlayer(Guid? account)
-    {
-        Task.Run(async () =>
-        {
-            if (account.HasValue)
-            {
-                win.Server?.Server?.Database?.UnbanAccount(account.Value).Wait();
-                FLLog.Info("Server", $"Unbanned {account}");
-            }
-        });
-    }
+    
 
     private void DrawBansTab()
     {
@@ -422,7 +385,14 @@ public class RunningServerScreen : Screen
                     ImGui.TableNextColumn();
                     if (ImGui.SmallButton($"{Icons.Fire.ToString()}##{player.AccountId.ToString()}"))
                     {
-                        //OpenBanPopup(player.Name);
+                        pm.OpenPopup(new BanPopup(player.AccountId.ToString(), expiry =>
+                        {
+                            if (expiry.HasValue)
+                            {
+                                BanPlayer(player.AccountId, expiry.Value);
+                            }
+                        }));
+
                     }
                 }
             }
@@ -523,5 +493,58 @@ public class RunningServerScreen : Screen
         ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f), 0));
         ImGui.TextColored(colour, text);
 
+    }
+    private void PromotePlayer(long characterId, string name)
+    {
+        Task.Run(async () =>
+        {
+            FLLog.Info("Server", $"Promoting {name} to admin");
+            win.Server?.Server?.Database?.AdminCharacter(characterId).Wait();
+            win.Server?.Server?.AdminChanged(characterId, true);
+        });
+    }
+    private void DemotePlayer(long characterId, string name)
+    {
+        Task.Run(async () =>
+        {
+            FLLog.Info("Server", $"Demoting {name} from admin");
+            win.Server?.Server?.Database?.DeadminCharacter(characterId).Wait();
+            win.Server?.Server?.AdminChanged(characterId, false);
+        });
+    }
+    private void BanPlayer(string characterName, DateTime expiry)
+    {
+        Task.Run(async () =>
+        {
+            Guid? account = await win.Server.Server.Database.FindAccount(characterName);
+
+            if (account.HasValue)
+            {
+                win.Server?.Server?.Database?.BanAccount(account.Value, expiry).Wait();
+                FLLog.Info("Server", $"Banned {characterName}");
+            }
+        });
+    }
+    private void BanPlayer(Guid? account, DateTime expiry)
+    {
+        Task.Run(async () =>
+        {
+            if (account != null)
+            {
+                win.Server?.Server?.Database?.BanAccount(account.Value, expiry).Wait();
+                FLLog.Info("Server", $"Banned {account.Value}");
+            }
+        });
+    }
+    private void UnbanPlayer(Guid? account)
+    {
+        Task.Run(async () =>
+        {
+            if (account.HasValue)
+            {
+                win.Server?.Server?.Database?.UnbanAccount(account.Value).Wait();
+                FLLog.Info("Server", $"Unbanned {account}");
+            }
+        });
     }
 }

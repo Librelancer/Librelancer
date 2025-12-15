@@ -100,7 +100,7 @@ namespace LibreLancer.Server
         }
     }
 
-    public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime? BanExpiry);
+    public record BannedPlayerDescription(Guid? AccountId, string[] Characters, DateTime? BanExpiry);
 
     public record AdminCharacterDescription(long Id, string Name, string System, string LastDockedLocation);
 
