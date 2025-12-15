@@ -153,7 +153,8 @@ public class RunningServerScreen : Screen
         ImGui.Text(win.ConnectedPlayersCount.ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.Text("Admins Online"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.Text(win.Server.Server.AllPlayers.Count(p =>
-                        admins.Any(a => a.Name == p.Character.Name)).ToString());
+                p.Character != null &&
+                admins.Any(a => a.Name == p.Character.Name)).ToString());
         ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.NewLine();
         ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
@@ -260,28 +261,36 @@ public class RunningServerScreen : Screen
             {
                 foreach (var player in connectedPlayers)
                 {
-                    bool isAdmin = admins.Any(a => a.Id == player.ID);
+                    bool isAdmin = player.Character != null && admins.Any(a => a.Id == player.Character.ID);
+                    var buttonSize = new Vector2(-1, ImGui.GetFrameHeight());
+
                     ImGui.TableNextRow();
 
                     ImGui.TableNextColumn();
+                    ImGui.AlignTextToFramePadding();
                     ImGui.Text(player?.Character?.ID.ToString()?? "-");
 
                     ImGui.TableNextColumn();
+                    ImGui.AlignTextToFramePadding();
                     ImGui.Text(player.Character?.Name ?? "-");
 
                     ImGui.TableNextColumn();
+                    ImGui.AlignTextToFramePadding();
                     ImGui.Text(player.Character?.System ?? "-");
 
                     ImGui.TableNextColumn();
+                    ImGui.AlignTextToFramePadding();
                     ImGui.Text(player.Character?.Base ?? "-");
 
                     ImGui.TableNextColumn();
-                    ImGui.Text(admins.Any(a => a.Id == player.Character.ID) ? Icons.Check.ToString() : "");
+                    ImGui.AlignTextToFramePadding();
+                    var icon = isAdmin ? Icons.Check : Icons.X;
+                    var colour = isAdmin ? SUCCESS_TEXT_COLOUR : ERROR_TEXT_COLOUR;
+                    ImGui.TextColored(colour, icon.ToString());
 
                     ImGui.TableNextColumn();
                     var uiId = player.Character?.Name ?? "-";
-                    if (!isAdmin &&
-                        ImGui.SmallButton($"{Icons.ArrowUp.ToString()}##{uiId}"))
+                    if (ImGuiExt.Button($"{Icons.ArrowUp.ToString()}##{uiId}", !isAdmin, buttonSize))
                     {
                         pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Character.Name} to an admin?", false, MessageBoxButtons.YesNo, response =>
                         {
@@ -293,12 +302,13 @@ public class RunningServerScreen : Screen
                     }
 
                     ImGui.TableNextColumn();
-                    if (ImGui.SmallButton($"{Icons.Fire.ToString()}##{player.Name?? "-"}"))
+                    if (ImGui.Button($"{Icons.Fire.ToString()}##{player.Name?? "-"}", buttonSize))
                     {
+                        //pm.OpenPopup(new)
                         //OpenBanPopup(player.Name);
                     }
                     ImGui.TableNextColumn();
-                    if (ImGui.SmallButton($"{Icons.Eye}##{player.Name ?? "-"}"))
+                    if (ImGui.Button($"{Icons.Eye}##{player.Name ?? "-"}", buttonSize))
                     {
                         //OpenInspectPopup(player.Name);
                     }
