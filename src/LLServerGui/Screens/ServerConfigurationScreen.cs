@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Numerics;
-using System.Reflection.Emit;
-using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
-using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
-using LibreLancer.Server.Ai;
-using Microsoft.Win32;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace LLServer.Screens;
-
 
 public class ServerConfigurationScreen : Screen
 {
@@ -39,8 +30,6 @@ public class ServerConfigurationScreen : Screen
     static readonly float BUTTON_WIDTH = 110f;
     readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
     readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
-
-    
 
     public override void OnEnter()
     {
@@ -153,13 +142,9 @@ public class ServerConfigurationScreen : Screen
         }
 
     }
-
     public override void OnExit()
     {
     }
-
-    
-
     void LaunchServer()
     {
         Task.Run(() =>

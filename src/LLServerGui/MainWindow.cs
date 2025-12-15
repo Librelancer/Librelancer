@@ -3,21 +3,16 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
-using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.Server;
 using LLServer.Screens;
 using Microsoft.Win32;
-using static LibreLancer.Client.CGameSession;
 
 namespace LLServer;
 
