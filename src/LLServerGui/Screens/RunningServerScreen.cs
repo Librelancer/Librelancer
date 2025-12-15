@@ -156,7 +156,7 @@ public class RunningServerScreen : Screen
 
         ImGui.NewLine();
         ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text(bannedPlayers.Count().ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text(bannedPlayers?.Count().ToString() ?? "-"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
 
         ImGui.NewLine();
         ImGui.Dummy(new Vector2(-1, ImGui.GetFrameHeight() * ImGuiHelper.Scale));
