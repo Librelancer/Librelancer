@@ -120,15 +120,8 @@ public class RunningServerScreen : Screen
         if (win.IsRunning)
             isStarting = false;
     }
-    private void RefreshData()
-    {
-        if (win.IsRunning)
-        {
-            connectedPlayers = win.Server.Server.AllPlayers;
-            bannedPlayers = win.Server.Server.Database?.GetBannedPlayers();
-            admins = win.Server.Server.Database?.GetAdmins();
-        }
-    }
+
+    // Draw Methods
     private void DrawServerStats()
     {
         ImGui.Text("Status:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
@@ -151,19 +144,23 @@ public class RunningServerScreen : Screen
 
         ImGui.NewLine();
         ImGui.Separator();
+
         ImGui.Text("Players Online"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.Text(win.ConnectedPlayersCount.ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+
+        ImGui.NewLine();
         ImGui.Text("Admins Online"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.Text(win.Server.Server.AllPlayers.Count(p =>
                 p.Character != null &&
                 admins.Any(a => a.Name == p.Character.Name)).ToString());
         ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.NewLine();
-        ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text("-"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
 
         ImGui.NewLine();
-        ImGui.Dummy(new Vector2(-1, ImGui.GetFrameHeight() * 2 * ImGuiHelper.Scale));
+        ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text(bannedPlayers.Count().ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+
+        ImGui.NewLine();
+        ImGui.Dummy(new Vector2(-1, ImGui.GetFrameHeight() * ImGuiHelper.Scale));
 
         if (ImGui.Button("Stop Server", new Vector2(-1, ImGui.GetFrameHeight() * 2 * ImGuiHelper.Scale)))
         {
@@ -304,7 +301,7 @@ public class RunningServerScreen : Screen
                     }
 
                     ImGui.TableNextColumn();
-                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name?? "-"}",!String.IsNullOrWhiteSpace(player.Name), buttonSize))
+                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name?? "-"}",!String.IsNullOrWhiteSpace(player.Name) && !bannedPlayers.Any(b => b.Characters.Any(c => c == player.Name )), buttonSize))
                     {
                        pm.OpenPopup(new BanPopup(player.Name, expiry =>
                        {
@@ -478,6 +475,8 @@ public class RunningServerScreen : Screen
         }
         ImGui.EndChild();
     }
+
+    // Server Player Actions
     private void PromotePlayer(long characterId, string name)
     {
         Task.Run(async () =>
@@ -530,5 +529,14 @@ public class RunningServerScreen : Screen
                 FLLog.Info("Server", $"Unbanned {account}");
             }
         });
+    }
+    private void RefreshData()
+    {
+        if (win.IsRunning)
+        {
+            connectedPlayers = win.Server.Server.AllPlayers;
+            bannedPlayers = win.Server.Server.Database?.GetBannedPlayers();
+            admins = win.Server.Server.Database?.GetAdmins();
+        }
     }
 }
