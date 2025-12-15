@@ -16,7 +16,7 @@ public class ServerConfigurationScreen : Screen
     {
         this.win = win;
         this.config = config;
-        
+
     }
 
     static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
@@ -147,16 +147,15 @@ public class ServerConfigurationScreen : Screen
     }
     void LaunchServer()
     {
-        Task.Run(() =>
-        {
-            File.WriteAllText(win.ConfigPath, JSON.Serialize(config));
 
-            win.QueueUIThread(() =>
-            {
-                sm.SetScreen(
-                    new RunningServerScreen(win, sm, pm, config)
-                );
-            });
+        File.WriteAllText(win.ConfigPath, JSON.Serialize(config));
+
+        win.QueueUIThread(() =>
+        {
+            sm.SetScreen(
+                new RunningServerScreen(win, sm, pm, config)
+            );
         });
+
     }
 }
