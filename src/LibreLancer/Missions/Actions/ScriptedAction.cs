@@ -5,13 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
+using LibreLancer.Missions.Directives;
 using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Missions.Actions
 {
@@ -786,10 +789,40 @@ namespace LibreLancer.Missions.Actions
 
             if (script.Formations.TryGetValue(Target, out var formation))
             {
-                foreach (var s in formation.Ships)
+                // Check if directives contain movement commands that should only apply to leader
+                bool hasMovementDirectives = ol != null && ContainsMovementDirectives(ol);
+
+                if (hasMovementDirectives)
                 {
-                    runtime.Player.Space.World.NPCs.NpcDoAction(s,
-                            (npc) => { GiveObjList(npc, ol); });
+                    // For movement directives, only apply to formation leader
+                    // Wingmen will maintain formation automatically
+                    if (formation.Ships.Count > 0)
+                    {
+                        var leaderNickname = formation.Ships[0];
+                        runtime.Player.Space.World.NPCs.NpcDoAction(leaderNickname,
+                                (npc) => { GiveObjList(npc, ol); });
+
+                        // Ensure wingmen are in formation mode
+                        foreach (var wingmanNickname in formation.Ships.Skip(1))
+                        {
+                            runtime.Player.Space.World.NPCs.NpcDoAction(wingmanNickname,
+                                (npc) => {
+                                    if (npc.TryGetComponent<AutopilotComponent>(out var ap))
+                                    {
+                                        ap.StartFormation();
+                                    }
+                                });
+                        }
+                    }
+                }
+                else
+                {
+                    // For non-movement directives, apply to all ships in formation
+                    foreach (var shipNickname in formation.Ships)
+                    {
+                        runtime.Player.Space.World.NPCs.NpcDoAction(shipNickname,
+                                (npc) => { GiveObjList(npc, ol); });
+                    }
                 }
             }
             else
@@ -807,6 +840,25 @@ namespace LibreLancer.Missions.Actions
                     }
                 });
             }
+        }
+        // Checks if a directive array contains movement directives that should only be applied to formation leaders
+        private bool ContainsMovementDirectives(MissionDirective[] directives)
+        {
+            if (directives == null || directives.Length == 0)
+                return false;
+
+            foreach (var directive in directives)
+            {
+                // These movement directives should only be applied to formation leaders
+                if (directive is GotoVecDirective ||
+                    directive is GotoShipDirective ||
+                    directive is GotoSplineDirective ||
+                    directive is DockDirective)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

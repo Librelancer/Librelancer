@@ -36,8 +36,8 @@ namespace LibreLancer.Render
 
         public void Update(Transform3D parentMatrix)
         {
-            LocalTransform = new Transform3D(Vector3.Zero, Rotation) *
-                             new Transform3D( Translation + Origin, OriginalRotation) * parentMatrix;
+            var r = Quaternion.Concatenate(OriginalRotation, Rotation);
+            LocalTransform = new Transform3D(Origin + Translation, r) * parentMatrix;
             BoneMatrix = (InvBindPose * LocalTransform).Matrix();
             foreach (var b in Children)
                 b.Update(LocalTransform);

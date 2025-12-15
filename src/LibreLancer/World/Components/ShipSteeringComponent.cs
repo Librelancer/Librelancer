@@ -17,6 +17,7 @@ namespace LibreLancer.World.Components
         public float InRoll;
         public float InThrottle;
         public bool Cruise;
+        public float CruiseLimit = 1.0f;
         public bool Thrust;
         public int Tick;
 
@@ -55,6 +56,7 @@ namespace LibreLancer.World.Components
             OutputSteering = MathHelper.ApplyEpsilon(OutputSteering);
             physics.Steering = OutputSteering;
             physics.EnginePower = InThrottle;
+            physics.CruiseLimit = CruiseLimit;
             physics.ThrustEnabled = Thrust;
             physics.CruiseEnabled = Cruise;
         }

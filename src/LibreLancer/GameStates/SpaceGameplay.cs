@@ -1558,6 +1558,7 @@ World Time: {12:F2}
                 var dbgT = session.GetSelectedDebugInfo();
                 if(!string.IsNullOrWhiteSpace(dbgT))
                     ImGui.Text(dbgT);
+                ImGui.Text($"Selected speed: {Selection.Selected?.PhysicsComponent?.Body?.LinearVelocity.Length() ?? 0:0}");
                 if (Selection.Selected?.PhysicsComponent?.Body?.Collider is ConvexMeshCollider cvx)
                 {
                     ImGui.Text($"selected compound children: {cvx.BepuChildCount}");

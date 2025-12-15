@@ -15,6 +15,10 @@ public class GotoVecDirective : MissionDirective
     public float Range;
     public bool Unknown;
     public float MaxThrottle;
+    public string PlayerReference;
+    public float MinDistance;
+    public float MaxDistance;
+    public int PlayerDistanceBehavior;
 
     public GotoVecDirective()
     {
@@ -27,6 +31,10 @@ public class GotoVecDirective : MissionDirective
         Range = reader.GetFloat();
         Unknown = reader.GetBool();
         MaxThrottle = reader.GetFloat();
+        PlayerReference = reader.GetString();
+        MinDistance = reader.GetFloat();
+        MaxDistance = reader.GetFloat();
+        PlayerDistanceBehavior = reader.GetInt();
     }
 
     public GotoVecDirective(Entry e)
@@ -37,6 +45,14 @@ public class GotoVecDirective : MissionDirective
         Unknown = e[5].ToBoolean();
         if(e.Count > 6)
             MaxThrottle = e[6].ToSingle();
+        if(e.Count > 7)
+            PlayerReference = e[7].ToString();
+        if(e.Count > 8)
+            MinDistance = e[8].ToSingle();
+        if(e.Count > 9)
+            MaxDistance = e[9].ToSingle();
+        if(e.Count > 10)
+            PlayerDistanceBehavior = e[10].ToInt32();
     }
 
     public override void Put(PacketWriter writer)
@@ -47,13 +63,27 @@ public class GotoVecDirective : MissionDirective
         writer.Put(Range);
         writer.Put(Unknown);
         writer.Put(MaxThrottle);
+        writer.Put(PlayerReference ?? "");
+        writer.Put(MinDistance);
+        writer.Put(MaxDistance);
+        writer.Put(PlayerDistanceBehavior);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        if (MaxThrottle != 0)
-            section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown, MaxThrottle);
+        if (PlayerReference != null && MinDistance != 0 && MaxDistance != 0)
+        {
+            if (MaxThrottle != 0)
+                section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown, MaxThrottle, PlayerReference, MinDistance, MaxDistance, PlayerDistanceBehavior);
+            else
+                section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown, PlayerReference, MinDistance, MaxDistance, PlayerDistanceBehavior);
+        }
         else
-            section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown);
+        {
+            if (MaxThrottle != 0)
+                section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown, MaxThrottle);
+            else
+                section.Entry("GotoVec", CruiseKindString(CruiseKind), Target.X, Target.Y, Target.Z, Range, Unknown);
+        }
     }
 }

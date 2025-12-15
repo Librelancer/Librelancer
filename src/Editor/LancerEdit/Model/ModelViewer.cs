@@ -871,11 +871,25 @@ namespace LancerEdit
                 ImGui.Separator();
             }
 
+            if(vmsModel.Root == null)
+            {
+                ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeight()/8));
+                ImGui.TextColored(new Vector4(1f, 0.3f, 0.3f, 1f), "Error: This models Root is null");
+                ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1f), "\tThis normally means there is an invalid or empty node hierarchy");
+                ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeight() / 8));
+                ImGui.Separator();
+                ImGui.Spacing();
+                Theme.IconTreeNode(Icons.Tree_Red, "Root", ImGuiTreeNodeFlags.Leaf);
+                ImGui.TreePop();
+                return;
+            }
+
             if (!vmsModel.Root.Active)
             {
                 var col = ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
                 ImGui.PushStyleColor(ImGuiCol.Text, col);
             }
+
             if (Theme.IconTreeNode(Icons.Tree_DarkGreen, "Root", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 if (!vmsModel.Root.Active) ImGui.PopStyleColor();
