@@ -192,7 +192,7 @@ namespace LibreLancer.Server
         public BannedPlayerDescription[] GetBannedPlayers()
         {
             using var ctx = CreateDbContext();
-            return ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
+            return ctx.Accounts.Where(x => x.BanExpiry != null)
                 .Select(x => new BannedPlayerDescription(
                     x.AccountIdentifier,
                     x.Characters.Select(y => y.Name).ToArray(),
