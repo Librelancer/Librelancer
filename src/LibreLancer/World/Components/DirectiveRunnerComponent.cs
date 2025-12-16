@@ -83,23 +83,9 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     splineIndex = 0;
-                    // Check if next directive is also a GotoVec with cruise
-                    bool keepCruiseNearTarget = false;
-                    if (index + 1 < currentDirectives.Length)
-                    {
-                        var nextDirective = currentDirectives[index + 1];
-                        if (nextDirective is GotoVecDirective nextVec &&
-                            (nextVec.CruiseKind == GotoKind.GotoCruise || nextVec.CruiseKind == GotoKind.Goto))
-                        {
-                            keepCruiseNearTarget = true;
-                        }
-                    }
-
                     ap.GotoVec(EvalSpline(0, spline),
                         spline.CruiseKind,
-                        Throttle(spline.MaxThrottle),
-                        spline.Range,
-                        null, 0, 0, 0, keepCruiseNearTarget);
+                        Throttle(spline.MaxThrottle));
                 }
 
                 break;
@@ -108,32 +94,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             {
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    // Get player reference if specified
-                    GameObject playerRef = Parent.GetWorld().GetObject(vec.PlayerReference);
-                    // Check if next directive is also a GotoVec with cruise
-                    bool keepCruiseNearTarget = false;
-                    if (index + 1 < currentDirectives.Length)
-                    {
-                        var nextDirective = currentDirectives[index + 1];
-                        FLLog.Info("Autopilot", $"[{Parent.Nickname}] Next directive type: {nextDirective.GetType().Name}");
-                        if (nextDirective is GotoVecDirective nextVec)
-                        {
-                            FLLog.Info("Autopilot", $"[{Parent.Nickname}] Next GotoVec cruise kind: {nextVec.CruiseKind}");
-                            if (nextVec.CruiseKind == GotoKind.GotoCruise || nextVec.CruiseKind == GotoKind.Goto)
-                            {
-                                keepCruiseNearTarget = true;
-                                FLLog.Info("Autopilot", $"[{Parent.Nickname}] Setting keepCruiseNearTarget = true - cruise will persist between targets");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        FLLog.Debug("Autopilot", "No next directive");
-                    }
-
-                    FLLog.Info("Autopilot", $"[{Parent.Nickname}] GotoVec called with keepCruiseNearTarget: {keepCruiseNearTarget}, Range: {vec.Range}");
-                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle), vec.Range,
-                        playerRef, vec.MinDistance, vec.MaxDistance, vec.PlayerDistanceBehavior, keepCruiseNearTarget);
+                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle));
                 }
 
                 break;
@@ -272,20 +233,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         if (splineIndex + 1 < 4)
                         {
                             splineIndex++;
-                            // Check if next directive is also a GotoVec with cruise
-                            bool keepCruiseNearTarget = false;
-                            if (index + 1 < currentDirectives.Length)
-                            {
-                                var nextDirective = currentDirectives[index + 1];
-                                if (nextDirective is GotoVecDirective nextVec &&
-                                    (nextVec.CruiseKind == GotoKind.GotoCruise || nextVec.CruiseKind == GotoKind.Goto))
-                                {
-                                    keepCruiseNearTarget = true;
-                                }
-                            }
-
-                            ap.GotoVec(EvalSpline(times[splineIndex], spline), spline.CruiseKind, Throttle(spline.MaxThrottle), spline.Range,
-                                null, 0, 0, 0, keepCruiseNearTarget);
+                            ap.GotoVec(EvalSpline(times[splineIndex], spline), spline.CruiseKind, Throttle(spline.MaxThrottle));
                         }
                         else
                         {
@@ -305,21 +253,11 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             {
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    FLLog.Info("Autopilot", $"[{Parent.Nickname}] UpdateDirective for GotoVec/GotoShip - CurrentBehavior: {ap.CurrentBehavior}");
-
                     if (ap.CurrentBehavior == AutopilotBehaviors.None)
-                    {
-                        FLLog.Info("Autopilot", $"[{Parent.Nickname}] Autopilot behavior is None, directive completed, calling NextDirective()");
                         NextDirective();
-                    }
-                    else
-                    {
-                        FLLog.Info("Autopilot", $"[{Parent.Nickname}] Autopilot behavior is active: {ap.CurrentBehavior}, directive still in progress");
-                    }
                 }
                 else
                 {
-                    FLLog.Info("Autopilot", $"[{Parent.Nickname}] No AutopilotComponent found, calling NextDirective()");
                     NextDirective();
                 }
 
@@ -380,28 +318,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     void NextDirective()
     {
-        FLLog.Info("Autopilot", $"[{Parent.Nickname}] NextDirective called - current index: {index}, moving to next directive");
         index++;
         if (CheckDirective())
         {
-            FLLog.Info("Autopilot", $"[{Parent.Nickname}] Starting next directive at index: {index}");
             StartDirective(currentDirectives[index]);
         }
-        else
-        {
-            FLLog.Info("Autopilot", $"[{Parent.Nickname}] No more directives available");
-        }
-    }
-
-    public StayInRangeDirective GetCurrentStayInRangeDirective()
-    {
-        if (currentDirectives == null || index < 0 || index >= currentDirectives.Length)
-            return null;
-
-        // Check if current directive is StayInRange
-        if (currentDirectives[index] is StayInRangeDirective stayInRange)
-            return stayInRange;
-
-        return null;
     }
 }

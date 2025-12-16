@@ -22,8 +22,8 @@ public class CndLocationExit : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Room", undoBuffer, () => ref Data.Room);
-        Controls.InputTextIdUndo("Base", undoBuffer, () => ref Data.Base);
+        Controls.InputTextIdUndo("Location", undoBuffer, () => ref Data.location);
+        Controls.InputTextIdUndo("Base", undoBuffer, () => ref Data.@base);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

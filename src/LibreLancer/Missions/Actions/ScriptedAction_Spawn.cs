@@ -245,18 +245,6 @@ namespace LibreLancer.Missions.Actions
             var form = script.Formations[Formation];
             var fpos = Position.Get(form.Position);
             var forient = Orientation.Get(form.Orientation);
-            GameObject relObj = null;
-            // Spawn formation relative to object
-            if (form.RelativePosition != null &&
-                form.RelativePosition.MinRange > 0f &&
-                form.RelativePosition.MaxRange != 0f &&
-                !string.IsNullOrWhiteSpace(form.RelativePosition.ObjectName) &&
-                (relObj = runtime.Player.Space.World.GameWorld.GetObject(form.RelativePosition.ObjectName)) != null)
-            {
-                var dir = -Vector3.Transform(Vector3.UnitZ, relObj.WorldTransform.Orientation);
-                var range = runtime.Random.NextFloat(form.RelativePosition.MinRange, form.RelativePosition.MaxRange);
-                fpos = relObj.WorldTransform.Position + (dir * range);
-            }
             var mat = Matrix4x4.CreateFromQuaternion(forient) *
                       Matrix4x4.CreateTranslation(fpos);
             var formDef = runtime.Player.Game.GameData.GetFormation(form.Formation);
@@ -265,14 +253,7 @@ namespace LibreLancer.Missions.Actions
             for (int i = 0; i < form.Ships.Count; i++)
             {
                 var pos = Vector3.Transform(positions[i], mat);
-                //looking at player
-                Quaternion shipOrient = forient;
-                if (relObj != null)
-                {
-                    var dirToPlayer = Vector3.Normalize(relObj.WorldTransform.Position - pos);
-                    shipOrient = QuaternionEx.LookRotation(dirToPlayer, Vector3.UnitY);
-                }
-                SpawnShip(form.Ships[i], pos, shipOrient, null, script, runtime);
+                SpawnShip(form.Ships[i], pos, forient, null, script, runtime);
             }
 
             // make them into a formation

@@ -32,7 +32,6 @@ namespace LibreLancer.World.Components
         public float EnginePower = 0f; //from 0 to 1
                                        //TODO: I forget how this is configured in .ini files. Constants.ini?
                                        //Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
-        public float CruiseLimit = 1.0f;
         public bool ThrustEnabled = false;
         public bool CruiseEnabled = false;
         public EngineStates EngineState = EngineStates.Standard;
@@ -148,7 +147,7 @@ namespace LibreLancer.World.Components
             { //Cruise has entirely different force calculation
                 CruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
-                var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag * CruiseLimit;
+                var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag;
                 engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
                 //Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;

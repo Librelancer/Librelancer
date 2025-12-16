@@ -4,7 +4,6 @@ using System.Numerics;
 using LibreLancer.Data.Pilots;
 using LibreLancer.GameData;
 using LibreLancer.Missions;
-using LibreLancer.Missions.Directives;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Ai;
 using LibreLancer.World;
@@ -359,13 +358,6 @@ namespace LibreLancer.Server.Components
             GameObject shootAt = null;
             int shootAtWeight = -1000;
             var myPos = Parent.WorldTransform.Position;
-
-            // Check if this NPC has a StayInRange directive
-            StayInRangeDirective stayInRangeDirective = null;
-            if (Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) && directiveRunner.Active)
-            {
-                stayInRangeDirective = directiveRunner.GetCurrentStayInRangeDirective();
-            }
             foreach (var other in Parent.GetWorld().SpatialLookup
                          .GetNearbyObjects(Parent, myPos, 5000))
             {
@@ -376,48 +368,11 @@ namespace LibreLancer.Server.Components
                 if (Vector3.Distance(other.WorldTransform.Position, myPos) < 5000 &&
                     IsHostileTo(other))
                 {
-                    // Check StayInRange directive constraints
-                    bool targetValid = true;
-                    if (stayInRangeDirective != null)
+                    int weight = GetHostileWeight(other);
+                    if (weight > shootAtWeight)
                     {
-                        try
-                        {
-                            // Calculate distance from reference point/object
-                            Vector3 referencePosition = stayInRangeDirective.UseObject
-                                ? Parent.GetWorld().GetObject(stayInRangeDirective.Object)?.WorldTransform.Position
-                                ?? myPos
-                                : stayInRangeDirective.Point;
-
-                            float distanceFromReference = Vector3.Distance(other.WorldTransform.Position, referencePosition);
-
-                            if (distanceFromReference > stayInRangeDirective.Range)
-                            {
-                                targetValid = false;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (ex is ObjectDisposedException or NullReferenceException)
-                            {
-                                FLLog.Debug("StayInRange", $"[{Parent.Nickname}] Error checking StayInRange for target {other.Nickname}: {ex.Message}");
-                                // If we can't check the range due to disposed objects, consider the target valid to avoid breaking gameplay
-                                targetValid = true;
-                            }
-                            else
-                            {
-                                throw; // Re-throw other exceptions
-                            }
-                        }
-                    }
-
-                    if (targetValid)
-                    {
-                        int weight = GetHostileWeight(other);
-                        if (weight > shootAtWeight)
-                        {
-                            shootAtWeight = weight;
-                            shootAt = other;
-                        }
+                        shootAtWeight = weight;
+                        shootAt = other;
                     }
                 }
             }
@@ -426,28 +381,8 @@ namespace LibreLancer.Server.Components
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
                 if ("player".Equals(shootAt.Nickname, StringComparison.OrdinalIgnoreCase))
-                {
                     manager.AttackingPlayer++;
-                    // Apply enemy clamping if configured
-                    if (manager.AttackingPlayer > manager.MaxPlayerAttackers)
-                    {
-                        // Don't allow this NPC to target the player if we're over the max limit
-                        shootAt = null;
-                        manager.AttackingPlayer--;
-                    }
-                }
-                else if (manager.AttackingPlayer < manager.MinPlayerAttackers && shootAt != null)
-                {
-                    var playerObj = Parent.GetWorld().GetObject("player");
-                    if (playerObj != null && IsHostileTo(playerObj))
-                    {
-                        shootAt = playerObj;
-                        manager.AttackingPlayer++;
-                    }
-                }
 
-                if (shootAt?.WorldTransform == null) shootAt = null;
-                if (shootAt == null) return shootAt;
                 var dist = Vector3.Distance(shootAt.WorldTransform.Position, myPos);
 
                 var gunRange = weapons.GetGunMaxRange() * 0.95f;
@@ -470,8 +405,8 @@ namespace LibreLancer.Server.Components
                         missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
                     }
                 }
-                //Fire guns and check if target exists
-                if (shootAt != null && dist < gunRange)
+                //Fire guns
+                if (dist < gunRange)
                 {
                     var fireInfo = RunFireTimers((float)time);
                     if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)

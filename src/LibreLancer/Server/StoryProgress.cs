@@ -60,6 +60,7 @@ public class StoryProgress
             var playerNet = player.CalculateNetWorth();
             if(playerNet >= NextLevelWorth)
             {
+                FLLog.Info("Mission", $"Current worth {playerNet} > {NextLevelWorth}");
                 Advance(player);
             }
         }

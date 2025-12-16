@@ -371,17 +371,11 @@ namespace LibreLancer
                     return true;
                 }
                 else if (n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
-                          n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
+                         n[1].Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
                 {
                     processedPaths.Add(ct.RefPath.ToLowerInvariant());
-                    // Check if autoplay exists in the encounter RTC
-                    var encounterBytes = session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(ct.RefPath));
-                    var encounterText = System.Text.Encoding.UTF8.GetString(encounterBytes);
-                    var hasAutoplay = ct.Encounters.Count > 0 && ct.Encounters.Any(x => x.Autoplay);
-                    if (hasAutoplay) {
+                    if (ct.Encounters[0].Autoplay) {
                         PlayScript(ct, CutsceneState.Regular);
-                        // Auto-trigger CharSelect condition for RTCs that contains autoplay
-                        session.RpcServer.StoryNPCSelect(ct.Chars[0].Actor, currentRoom.Nickname, currentBase.Nickname);
                     } else {
                         toPlay.Enqueue(ct);
                     }

@@ -8,7 +8,6 @@ using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Missions;
 using LibreLancer.Data.Save;
-using LibreLancer.World.Components;
 
 namespace LibreLancer.Missions.Actions;
 
@@ -262,26 +261,6 @@ public class Act_PlayerEnemyClamp : ScriptedAction
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Act_PlayerEnemyClamp", Min, Max);
-    }
-
-    public override void Invoke(MissionRuntime runtime, MissionScript script)
-    {
-        runtime.Player.MissionWorldAction(() =>
-        {
-            var npcManager = runtime.Player.Space.World.NPCs;
-            npcManager.MinPlayerAttackers = Min;
-            npcManager.MaxPlayerAttackers = Max;
-
-            // Force all NPCs to reevaluate their targets immediately
-            foreach (var gameObject in runtime.Player.Space.World.AllNPCs)
-            {
-                // Force target reevaluation by clearing current target
-                if (gameObject.TryGetComponent<SelectedTargetComponent>(out var targetComponent))
-                {
-                    targetComponent.Selected = null;
-                }
-            }
-        });
     }
 }
 
