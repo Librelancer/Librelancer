@@ -25,11 +25,16 @@ public class ServerConfigurationScreen : Screen
     static readonly FileDialogFilters inputFilters = new FileDialogFilters(
         new FileFilter("Config File", "json")
         );
+    static readonly FileDialogFilters lrpkFilter = new FileDialogFilters(
+        new FileFilter("Lancer Pack File", "lrpk")
+        );
 
-    static readonly float LABEL_WIDTH = 125f;
+    static readonly float LABEL_WIDTH = 135f;
     static readonly float BUTTON_WIDTH = 110f;
     readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
     readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
+
+    string _portInputBuffer;
 
     public override void OnEnter()
     {
@@ -47,6 +52,9 @@ public class ServerConfigurationScreen : Screen
         ImGui.PopFont();
 
         ImGui.NewLine();
+        ImGui.Separator();
+        ImGui.NewLine();
+
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Server Name"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.PushItemWidth(-1); ImGui.InputText("##serverName", ref config.ServerName, 4096);
@@ -62,23 +70,65 @@ public class ServerConfigurationScreen : Screen
         );
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Freelancer Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        if (ImGui.Button("Select Folder", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        ImGui.Text("Listening Port"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.PushItemWidth(BUTTON_WIDTH * ImGuiHelper.Scale);
+        ref string portInput = ref _portInputBuffer;
+        portInput ??= config.Port.ToString();
+        if (ImGui.InputText("##serverPort", ref portInput, 6, ImGuiInputTextFlags.CharsDecimal))
         {
-            win.QueueUIThread(() =>
+            if (ushort.TryParse(portInput, out ushort port))
             {
-                FileDialog.ChooseFolder(folder =>
-                {
-                    if (folder == null || folder.Length == 0)
-                    {
-                        return;
-                    }
-                    config.FreelancerPath = folder;
-
-                });
-            });
+                config.Port = port;
+            }
         }
-        ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##flpath", ref config.FreelancerPath, 4096);
+        ImGui.NewLine();
+        ImGui.Separator();
+        ImGui.NewLine();
+
+        ImGui.Text("Use .lprk File?"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Checkbox("##useLrpk", ref config.UseLrpkFile);
+
+        if (!config.UseLrpkFile)
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Freelancer Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            if (ImGui.Button("Select Folder", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+            {
+                win.QueueUIThread(() =>
+                {
+                    FileDialog.ChooseFolder(folder =>
+                    {
+                        if (folder == null || folder.Length == 0)
+                        {
+                            return;
+                        }
+                        config.FreelancerPath = folder;
+
+                    });
+                });
+            }
+            ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##flpath", ref config.FreelancerPath, 4096);
+        }
+        else
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Freelancer .lrpk Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            if (ImGui.Button("Select File", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+            {
+                win.QueueUIThread(() =>
+                {
+                    FileDialog.Open(file =>
+                    {
+                        if (file == null || file.Length == 0)
+                        {
+                            return;
+                        }
+                        config.LrpkFilePath = file;
+                    }, lrpkFilter);
+                });
+            }
+            ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##lrpkPath", ref config.LrpkFilePath, 4096);
+        }
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Database File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
@@ -102,7 +152,13 @@ public class ServerConfigurationScreen : Screen
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Configuration File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        if (ImGui.Button("Select File##config", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        ImGui.PushItemWidth(-1); ImGui.InputText("##configfile", ref win.ConfigPath, 4096, ImGuiInputTextFlags.ReadOnly);
+
+        ImGui.NewLine();
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        if (ImGui.Button("Load Config", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
         {
             win.QueueUIThread(() =>
             {
@@ -112,17 +168,20 @@ public class ServerConfigurationScreen : Screen
                     {
                         return;
                     }
+                    //save local config 
+                    config.lastConfigPath = filepath;
+                    File.WriteAllText(win.ConfigPath, JSON.Serialize(config));
+
                     win.ConfigPath = filepath;
+                    var newConfig = win.GetConfigFromFileOrDefault(filepath);
+                    config.CopyFrom(newConfig);
                 },
                 inputFilters);
             });
         }
-        ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##configfile", ref win.ConfigPath, 4096);
-
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.Spacing();
-
+        ImGui.SameLine();
+        ImGui.Dummy(new Vector2(ImGui.GetContentRegionAvail().X - BUTTON_WIDTH - 10 * ImGuiHelper.Scale, ImGui.GetFrameHeight()));
+        ImGui.SameLine();
         if (ImGui.Button("Launch Server", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
         {
             win.QueueUIThread(() =>

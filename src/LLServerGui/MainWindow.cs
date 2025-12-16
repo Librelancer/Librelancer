@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.Server;
 using LLServer.Screens;
@@ -40,7 +41,9 @@ public class MainWindow : Game
     static readonly float STATUS_BAR_HEIGHT = 30f;
     static readonly float LOGS_MIN_HEIGHT = 100f;
     static readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
-    
+    static readonly FileDialogFilters saveAsFilter = new FileDialogFilters(
+        new FileFilter("json")
+        );
 
 #if DEBUG
     static readonly string statusFormat = "FPS: {0} | Status: {1} | Connected: {2}/{3}";
@@ -55,11 +58,11 @@ public class MainWindow : Game
     float logsHeight = 200f;
 
     // Running Server Data
-    
-    
     Guid? banId;
     string banSearchString;
     string adminSearchString;
+
+    string newSavePathBuffer = "";
 
     // Event Handlers
     private void LogAppendLine(string message, LogSeverity level)
@@ -76,15 +79,17 @@ public class MainWindow : Game
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
         ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
-        config = GetConfigFromFileOrDefault();
+        config = GetConfigFromFileOrDefault(ConfigPath);
+        if (!String.IsNullOrWhiteSpace(config.lastConfigPath)
+            && !string.Equals(config.lastConfigPath, ConfigPath)){
+            config = GetConfigFromFileOrDefault(config.lastConfigPath);
+        }
         sm.SetScreen(
             new ServerConfigurationScreen(this, sm, pm, config)
         );
     }
     protected override void Draw(double elapsed)
     {
-        
-
         var process = guiRender.DoRender(elapsed);
         if (process == ImGuiProcessing.Sleep)
         {
@@ -188,11 +193,33 @@ public class MainWindow : Game
         {
             if (ImGui.BeginMenu("File"))
             {
-                if (Theme.IconMenuItem(Icons.Save,"Save Configuration", true))
+                if (Theme.IconMenuItem(Icons.Save, "Save Configuration", true))
                 {
-                    pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
-                    File.WriteAllText(ConfigPath, JSON.Serialize(config));
+                    try
+                    {
+                        File.WriteAllText(ConfigPath, JSON.Serialize(config));
+                        pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
+                    } catch (Exception ex)
+                    {
+                        pm.MessageBox("Error - Save failed", $"Configuration file failed to save:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
+                    }
+                }
+                if (Theme.IconMenuItem(Icons.Save, "Save Configuration As", true))
+                {
+                    FileDialog.Save(path => {
+                        try
+                        {
+                            File.WriteAllText(path, JSON.Serialize(config));
+                            config.lastConfigPath = path;
+                            ConfigPath = path;
+                            pm.MessageBox("Save as", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
+                        }
+                        catch (Exception ex)
+                        {
+                            pm.MessageBox("Error - Save as failed", $"Configuration file failed to save:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
+                        }
 
+                    }, saveAsFilter);
                 }
                 ImGui.Spacing();
                 ImGui.Separator();
@@ -337,13 +364,13 @@ public class MainWindow : Game
         ImGui.PopStyleColor(3);
     }
 
-    ServerConfig GetConfigFromFileOrDefault()
+    public ServerConfig GetConfigFromFileOrDefault(string path)
     {
         ServerConfig config;
 
         if (File.Exists(ConfigPath))
         {
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(ConfigPath));
+            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(path));
             if (config != null)
                 return config;
         }
@@ -366,7 +393,7 @@ public class MainWindow : Game
         config.ServerName = "M9Universe";
         config.ServerDescription = "My Cool Freelancer server";
         config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
-
+        config.lastConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
         return config;
     }
 }
