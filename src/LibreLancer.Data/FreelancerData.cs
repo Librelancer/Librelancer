@@ -27,6 +27,7 @@ using LibreLancer.Data.Mouse;
 using LibreLancer.Data.NewCharDB;
 using LibreLancer.Data.PetalDb;
 using LibreLancer.Data.Pilots;
+using LibreLancer.Data.RandomMissions;
 using LibreLancer.Data.Save;
 using LibreLancer.Data.Storyline;
 using LibreLancer.Data.Voices;
@@ -83,6 +84,7 @@ namespace LibreLancer.Data
         public KeyListIni KeyList;
         public VoicesIni Voices;
         public StorylineIni Storyline;
+        public VignetteParamsIni VignetteParams;
         public string DataVersion;
         public bool Loaded = false;
 
@@ -370,6 +372,14 @@ namespace LibreLancer.Data
             {
                 Storyline = new StorylineIni();
                 Storyline.AddDefault();
+            });
+            Run(() =>
+            {
+                if (VFS.FileExists(Freelancer.DataPath + "randommissions\\vignetteparams.ini"))
+                {
+                    VignetteParams = new();
+                    VignetteParams.AddFile(Freelancer.DataPath + "randommissions\\vignetteparams.ini", VFS);
+                }
             });
             Run(() =>
             {

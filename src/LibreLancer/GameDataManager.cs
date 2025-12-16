@@ -20,6 +20,7 @@ using LibreLancer.GameData;
 using LibreLancer.GameData.Archetypes;
 using LibreLancer.GameData.Items;
 using LibreLancer.GameData.Market;
+using LibreLancer.GameData.RandomMissions;
 using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Physics;
@@ -514,6 +515,14 @@ namespace LibreLancer
             }
         }
 
+        public VignetteTree VignetteTree;
+
+        void InitVignetteTree()
+        {
+            VignetteTree = VignetteTree.FromIni(Ini.VignetteParams);
+            Ini.VignetteParams = null;
+        }
+
         public NewsCollection News;
         public List<StoryIndex> Story;
 
@@ -630,6 +639,7 @@ namespace LibreLancer
                 astsTask,
                 starsTask
                 );
+            tasks.Begin(InitVignetteTree);
             tasks.WaitAll();
             fldata.Universe = null; //Free universe ini!
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;

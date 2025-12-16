@@ -1,12 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.RandomMissions;
 
-namespace LibreLancer.ContentEdit.RandomMissions;
+namespace LibreLancer.GameData.RandomMissions;
 
-class VignetteTree
+public class VignetteTree
 {
     public Dictionary<int, VignetteAst> Nodes = new();
+    public VignetteAst StartNode;
     private int _nextId = 3;
 
     static bool EmptyArray<T>(T[] array) => array == null || array.Length == 0;
@@ -20,6 +22,58 @@ class VignetteTree
         dat.Data.ObjectiveTexts.Count == 0 &&
         dat.Data.FailureText.Target == null &&
         dat.Data.RewardText.Target == null;
+
+    public static VignetteTree FromIni(VignetteParamsIni vparams)
+    {
+        // Construct tree from VignetteParamsIni
+        var tree = new VignetteTree();
+
+        HashSet<int> unreferenced = new HashSet<int>();
+        // Construct nodes
+        int newId = 0;
+        foreach (var n in vparams.Nodes) {
+            if (n is DecisionNode dec)
+            {
+                tree.Nodes[n.NodeId] = new AstDecision(n.NodeId, dec);
+            }
+            else if (n is DataNode dat)
+            {
+                tree.Nodes[n.NodeId] = new AstData(n.NodeId, dat);
+            }
+            else if (n is DocumentationNode doc)
+            {
+                tree.Nodes[n.NodeId] = new AstDoc(n.NodeId, doc);
+            }
+            unreferenced.Add(n.NodeId);
+            newId = Math.Max(newId, n.NodeId);
+        }
+        newId++;
+        // Setup children
+        foreach (var kv in tree.Nodes)
+        {
+            var src = vparams.Nodes.First(x => x.NodeId == kv.Key);
+            kv.Value.Children = new List<VignetteAst>();
+            for (int i = 0; i < src.ChildId.Count; i++)
+            {
+                var child = src.ChildId[i];
+                if (!tree.Nodes.ContainsKey(child))
+                {
+                    throw new Exception($"Cannot find node {child}");
+                }
+                unreferenced.Remove(src.ChildId[i]);
+                kv.Value.Children.Add(tree.Nodes[src.ChildId[i]]);
+            }
+        }
+
+        // Get start node
+        if (unreferenced.Count > 1)
+            throw new Exception("More than one orphan start node");
+        if (unreferenced.Count == 0)
+            throw new Exception("No start node");
+        tree.StartNode = tree.Nodes[unreferenced.First()];
+        return tree;
+    }
+
 
     public void Replace(VignetteAst oldNode, VignetteAst newNode)
     {
@@ -93,13 +147,13 @@ class VignetteTree
     }
 }
 
-abstract class VignetteAst(int id)
+public abstract class VignetteAst(int id)
 {
     public int Id = id;
     public List<VignetteAst> Children = new List<VignetteAst>();
 }
 
-enum DataNodeKind
+public enum DataNodeKind
 {
     None,
     Difficulty,
@@ -111,7 +165,7 @@ enum DataNodeKind
     Closed
 }
 
-class AstData(int id, DataNode data) : VignetteAst(id)
+public class AstData(int id, DataNode data) : VignetteAst(id)
 {
     public DataNode Data = data;
 
@@ -141,22 +195,28 @@ class AstData(int id, DataNode data) : VignetteAst(id)
         var k = GetKind();
         return k == a || k == b;
     }
+
+    public override string ToString() => $"{id}: DATA";
 }
 
-class AstDoc(int id, DocumentationNode docs) : VignetteAst(id)
+public class AstDoc(int id, DocumentationNode docs) : VignetteAst(id)
 {
     public DocumentationNode Docs = docs;
+
+    public override string ToString() => $"{id}: {Docs?.Documentation ?? "NULL"}";
 }
 
-class AstDecision(int id, DecisionNode decision) : VignetteAst(id)
+public class AstDecision(int id, DecisionNode decision) : VignetteAst(id)
 {
     public DecisionNode Decision = decision;
 
     public string[] GroupA;
     public string[] GroupB;
+
+    public override string ToString() => $"{id}: {Decision?.Nickname}";
 }
 
-class AstIfElse(int id) : VignetteAst(id)
+public class AstIfElse(int id) : VignetteAst(id)
 {
     public List<string> Conditions = new List<string>();
 }

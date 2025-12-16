@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.RandomMissions;
+using LibreLancer.GameData.RandomMissions;
 
 namespace LibreLancer.ContentEdit.RandomMissions;
 
@@ -151,52 +152,8 @@ public static class VignetteParamsDecompiler
 
     public static string Decompile(VignetteParamsIni vparams)
     {
-        // Construct tree from VignetteParamsIni
-        var tree = new VignetteTree();
-
-        HashSet<int> unreferenced = new HashSet<int>();
-        // Construct nodes
-        int newId = 0;
-        foreach (var n in vparams.Nodes) {
-            if (n is DecisionNode dec)
-            {
-                tree.Nodes[n.NodeId] = new AstDecision(n.NodeId, dec);
-            }
-            else if (n is DataNode dat)
-            {
-                tree.Nodes[n.NodeId] = new AstData(n.NodeId, dat);
-            }
-            else if (n is DocumentationNode doc)
-            {
-                tree.Nodes[n.NodeId] = new AstDoc(n.NodeId, doc);
-            }
-            unreferenced.Add(n.NodeId);
-            newId = Math.Max(newId, n.NodeId);
-        }
-        newId++;
-        // Setup children
-        foreach (var kv in tree.Nodes)
-        {
-            var src = vparams.Nodes.First(x => x.NodeId == kv.Key);
-            kv.Value.Children = new List<VignetteAst>();
-            for (int i = 0; i < src.ChildId.Count; i++)
-            {
-                var child = src.ChildId[i];
-                if (!tree.Nodes.ContainsKey(child))
-                {
-                    throw new Exception($"Cannot find node {child}");
-                }
-                unreferenced.Remove(src.ChildId[i]);
-                kv.Value.Children.Add(tree.Nodes[src.ChildId[i]]);
-            }
-        }
-
-        // Get start node
-        if (unreferenced.Count > 1)
-            throw new Exception("More than one orphan start node");
-        if (unreferenced.Count == 0)
-            throw new Exception("No start node");
-        VignetteAst startNode = tree.Nodes[unreferenced.First()];
+        var tree = VignetteTree.FromIni(vparams);
+        var newId = tree.Nodes.Keys.Max() + 1;
 
         Dictionary<string, string> groups = new Dictionary<string, string>();
         int groupName = 0;
@@ -288,10 +245,10 @@ public static class VignetteParamsDecompiler
             }
         }
 
-        tree.FlattenEmptyNodes(startNode);
-        var references = tree.CullAndGetReferenceCount(startNode);
+        tree.FlattenEmptyNodes(tree.StartNode);
+        var references = tree.CullAndGetReferenceCount(tree.StartNode);
 
-        WriteNode(startNode, tw, false, references, groups, true);
+        WriteNode(tree.StartNode, tw, false, references, groups, true);
 
         foreach (var r in references)
         {
