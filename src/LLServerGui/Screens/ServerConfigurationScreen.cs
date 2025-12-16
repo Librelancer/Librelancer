@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Numerics;
-using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer.Data;
 using LibreLancer.Dialogs;
@@ -48,7 +47,7 @@ public class ServerConfigurationScreen : Screen
     public override void Draw(double elapsed)
     {
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
-        GuiHelpers.CenterText("Server Configuration");
+        ImGuiHelper.CenterText("Server Configuration");
         ImGui.PopFont();
 
         ImGui.NewLine();
@@ -200,7 +199,7 @@ public class ServerConfigurationScreen : Screen
         {
             ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
             ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
-            GuiHelpers.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
+            ImGuiHelper.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
             ImGui.EndChild();
         }
 
