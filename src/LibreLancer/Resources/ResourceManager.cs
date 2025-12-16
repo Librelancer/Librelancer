@@ -55,15 +55,19 @@ public abstract class ResourceManager
 
     protected SurFile GetSur(string filename)
     {
-        SurFile sur;
-        if (!surs.TryGetValue(filename, out sur))
+        // This shouldn't be needed?
+        lock (surs)
         {
-            using (var stream = VFS.Open(filename))
+            SurFile sur;
+            if (!surs.TryGetValue(filename, out sur))
             {
-                sur = SurFile.Read(stream);
+                using (var stream = VFS.Open(filename))
+                {
+                    sur = SurFile.Read(stream);
+                }
+                surs.Add(filename, sur);
             }
-            surs.Add(filename, sur);
+            return sur;
         }
-        return sur;
     }
 }
