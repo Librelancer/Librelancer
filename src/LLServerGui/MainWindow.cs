@@ -57,13 +57,6 @@ public class MainWindow : Game
     bool logsOpen = false;
     float logsHeight = 200f;
 
-    // Running Server Data
-    Guid? banId;
-    string banSearchString;
-    string adminSearchString;
-
-    string newSavePathBuffer = "";
-
     // Event Handlers
     private void LogAppendLine(string message, LogSeverity level)
     {
