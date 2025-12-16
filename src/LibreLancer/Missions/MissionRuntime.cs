@@ -134,6 +134,7 @@ namespace LibreLancer.Missions
             var t = Script.AvailableTriggers[trigger];
             if (t.Conditions.Length == 1 && t.Conditions[0] is Cnd_True)
             {
+                FLLog.Info("Missions", $"Instant run '{trigger}'");
                 DoTrigger(t);
                 return;
             }
@@ -149,6 +150,7 @@ namespace LibreLancer.Missions
                 conds.Add(ac);
             }
             active.Conditions = conds;
+            FLLog.Info("Missions", $"Activate '{trigger}'");
             activeTriggers.Add(active);
         }
 
@@ -157,7 +159,12 @@ namespace LibreLancer.Missions
             var x = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
             if (x != null)
             {
+                FLLog.Info("Missions", $"Deactivate '{trigger}'");
                 x.Deactivated = true;
+            }
+            else
+            {
+                FLLog.Info("Mission", $"Can't find active trigger '{trigger}'");
             }
         }
 
@@ -282,42 +289,35 @@ namespace LibreLancer.Missions
 
         public void CheckMissionScript()
         {
-            // Create a copy of the list to avoid issues with modification during iteration
-            // reason: triggers may deactivate themselves or others while they are being processed
-            var triggersToProcess = new List<ActiveTrigger>(activeTriggers);
-            activeTriggers.Clear();
-
-            foreach (var trigger in triggersToProcess)
+            // Iterate with indexer to avoid foreach invalidation
+            for (int i = 0; i < activeTriggers.Count; i++)
             {
+                var trigger = activeTriggers[i];
                 if (trigger.Deactivated)
                 {
                     uiUpdate = true;
+                    activeTriggers.RemoveAt(i);
+                    i--;
                 }
                 else
                 {
-                    bool activate = true;
+                    bool satisfied = true;
                     for (int j = 0; j < trigger.Conditions.Count; j++)
                     {
                         if (!trigger.Satisfied[j])
                         {
-                            activate = false;
+                            satisfied = false;
                             break;
                         }
                     }
 
-                    if (activate)
+                    if (satisfied && !trigger.Deactivated)
                     {
                         DoTrigger(trigger.Trigger);
                         completedTriggers.Add(trigger.Trigger.Nickname);
                         uiUpdate = true;
-
-                        // Log mission progression trigger
-                        FLLog.Info("Mission", $"Mission progression: Trigger '{trigger.Trigger.Nickname}' completed (hash: {FLHash.CreateID(trigger.Trigger.Nickname)})");
-                    }
-                    else
-                    {
-                        // Only keep triggers that are not activated
-                        activeTriggers.Add(trigger);
+                        activeTriggers.RemoveAt(i);
+                        i--;
                     }
                 }
             }
