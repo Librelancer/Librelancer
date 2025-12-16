@@ -382,7 +382,7 @@ namespace LibreLancer.Server
             //fetch news articles
             var news = new List<NewsArticle>();
             foreach (var x in Game.GameData.News.QueryNews(
-                         Baseside.BaseData, Story?.MissionNum ?? Game.GameData.Ini.Storyline.Items.Count))
+                         Baseside.BaseData, Story?.MissionNum ?? (Game.GameData.Ini.Storyline.Items.Count - 1)))
             {
                 news.Add(new NewsArticle()
                 {

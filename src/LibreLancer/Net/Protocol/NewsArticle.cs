@@ -18,16 +18,16 @@ namespace LibreLancer.Net.Protocol
         {
             message.Put(Icon);
             message.Put(Logo);
-            message.Put(Headline);
-            message.Put(Text);
+            message.PutVariableUInt32((uint)Headline);
+            message.PutVariableUInt32((uint)Text);
         }
 
         public static NewsArticle Read(PacketReader message) => new()
         {
             Icon = message.GetString(),
             Logo = message.GetString(),
-            Headline = message.GetInt(),
-            Text = message.GetInt()
+            Headline = (int)message.GetVariableUInt32(),
+            Text = (int)message.GetVariableUInt32()
         };
     }
 }
