@@ -1,6 +1,4 @@
-﻿using LibreLancer.ImUI;
-
-namespace LLServer;
+﻿namespace LibreLancer.ImUI;
 
     /// <summary>
     /// Base class for all ImGui screens.

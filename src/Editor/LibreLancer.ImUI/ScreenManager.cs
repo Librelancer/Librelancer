@@ -1,4 +1,4 @@
-﻿namespace LLServer;
+﻿namespace LibreLancer.ImUI;
     /// <summary>
     /// Controls which screen is currently active.
     /// Ensures deterministic screen transitions.
