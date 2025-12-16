@@ -221,6 +221,30 @@ public class MainWindow : Game
 
                     }, saveAsFilter);
                 }
+                if (Theme.IconMenuItem(Icons.Save, "Load", true))
+                {
+                    FileDialog.Open(path => {
+                        try
+                        {
+                            if (path == null || path.Length == 0)
+                            {
+                                return;
+                            }
+                            //save local config 
+                            config.lastConfigPath = path;
+                            File.WriteAllText(ConfigPath, JSON.Serialize(config));
+
+                            ConfigPath = path;
+                            var newConfig = GetConfigFromFileOrDefault(path);
+                            config.CopyFrom(newConfig);
+                        }
+                        catch (Exception ex)
+                        {
+                            pm.MessageBox("Error - Load failed", $"Configuration file failed to load:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
+                        }
+
+                    }, saveAsFilter);
+                }
                 ImGui.Spacing();
                 ImGui.Separator();
                 ImGui.Spacing();
