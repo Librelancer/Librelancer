@@ -137,6 +137,9 @@ namespace LibreLancer.Missions
                 DoTrigger(t);
                 return;
             }
+
+            if (activeTriggers.Any(x => x.Trigger == t))
+                return;
             var active = new ActiveTrigger() { Trigger = t };
             var conds = new List<ActiveCondition>();
             foreach (var cond in t.Conditions)
