@@ -313,11 +313,11 @@ namespace LibreLancer.Missions
 
                     if (satisfied && !trigger.Deactivated)
                     {
+                        activeTriggers.RemoveAt(i);
+                        i--;
                         DoTrigger(trigger.Trigger);
                         completedTriggers.Add(trigger.Trigger.Nickname);
                         uiUpdate = true;
-                        activeTriggers.RemoveAt(i);
-                        i--;
                     }
                 }
             }
