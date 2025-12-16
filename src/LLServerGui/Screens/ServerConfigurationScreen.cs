@@ -70,6 +70,10 @@ public class ServerConfigurationScreen : Screen
         );
 
         ImGui.AlignTextToFramePadding();
+        ImGui.Text("Login URL"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.PushItemWidth(-1); ImGui.InputText("##loginUrl", ref config.LoginUrl, 4096);
+
+        ImGui.AlignTextToFramePadding();
         ImGui.Text("Listening Port"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.PushItemWidth(BUTTON_WIDTH * ImGuiHelper.Scale);
         ref string portInput = ref _portInputBuffer;
