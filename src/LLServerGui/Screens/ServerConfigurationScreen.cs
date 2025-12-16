@@ -92,7 +92,7 @@ public class ServerConfigurationScreen : Screen
                     {
                         return;
                     }
-                    config.FreelancerPath = filepath;
+                    config.DatabasePath = filepath;
 
                 },
                 dbInputFilters);
@@ -112,7 +112,7 @@ public class ServerConfigurationScreen : Screen
                     {
                         return;
                     }
-                    config.FreelancerPath = filepath;
+                    win.ConfigPath = filepath;
                 },
                 inputFilters);
             });
