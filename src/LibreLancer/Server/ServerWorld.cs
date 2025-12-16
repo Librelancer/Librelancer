@@ -482,7 +482,11 @@ namespace LibreLancer.Server
         {
             actions.Enqueue(() =>
             {
-                var go = Players[owner];
+                if (!Players.TryGetValue(owner, out var go))
+                {
+                    FLLog.Debug("Server", "Dead/unavailable player attempted fire");
+                    return;
+                }
                 if (go.TryGetComponent<WeaponControlComponent>(out var wo))
                 {
                     int tgtUnique = 0;
