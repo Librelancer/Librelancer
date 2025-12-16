@@ -2,17 +2,20 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
+using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using ImGuiNET;
+using System.Text;
 namespace LibreLancer.ImUI
 {
     public static unsafe class ImGuiExt
     {
+        static Dictionary<uint, string> _numericBuffers = new();
 
         [DllImport("cimgui", EntryPoint = "igExtSplitterV", CallingConvention = CallingConvention.Cdecl)]
         public static extern bool SplitterV(float thickness, ref float size1, ref float size2, float min_size1, float min_size2, float splitter_long_axis_size);
@@ -72,19 +75,20 @@ namespace LibreLancer.ImUI
             Span<byte> pbytes = stackalloc byte[512];
             using var native_preview = new UTF8ZHelper(pbytes, preview);
 
-            fixed(byte* ni = native_id.ToUTF8Z(), np = native_preview.ToUTF8Z())
+            fixed (byte* ni = native_id.ToUTF8Z(), np = native_preview.ToUTF8Z())
                 return igExtComboButton((IntPtr)ni, (IntPtr)np);
         }
 
         public static bool ToggleButton(string text, bool v, bool enabled = true)
         {
             ImGui.BeginDisabled(!enabled);
-            if (v) {
+            if (v)
+            {
                 var style = ImGui.GetStyle();
                 ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
             }
             var retval = ImGui.Button(text);
-            if(v) ImGui.PopStyleColor();
+            if (v) ImGui.PopStyleColor();
             ImGui.EndDisabled();
             return retval;
         }
@@ -96,10 +100,10 @@ namespace LibreLancer.ImUI
         /// <param name="enabled">If set to <c>true</c> enabled.</param>
         public static bool Button(string text, bool enabled)
         {
-           ImGui.BeginDisabled(!enabled);
-           var r = ImGui.Button(text);
-           ImGui.EndDisabled();
-           return r;
+            ImGui.BeginDisabled(!enabled);
+            var r = ImGui.Button(text);
+            ImGui.EndDisabled();
+            return r;
         }
         /// <summary>
         /// Button that can be disabled
@@ -128,7 +132,7 @@ namespace LibreLancer.ImUI
             str[l] = 0;
             ImGui.BeginDisabled(!enabled);
             bool r;
-            fixed(byte* b = str)
+            fixed (byte* b = str)
                 r = ImGuiNative.ImGui_Button(b, new Vector2()) != 0;
             ImGui.EndDisabled();
             return r;
@@ -148,7 +152,8 @@ namespace LibreLancer.ImUI
             var wasOne = isOne;
             var style = ImGui.GetStyle();
             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-            fixed (byte* a = z1.ToUTF8Z()) {
+            fixed (byte* a = z1.ToUTF8Z())
+            {
                 if (wasOne)
                     ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
                 if (igButtonEx2(a, 0, 0, (int)ImDrawFlags.RoundCornersLeft) != 0)
@@ -160,7 +165,8 @@ namespace LibreLancer.ImUI
             }
             ImGui.SameLine();
             ImGui.PopStyleVar();
-            fixed (byte* b = z2.ToUTF8Z()) {
+            fixed (byte* b = z2.ToUTF8Z())
+            {
                 if (!wasOne)
                     ImGui.PushStyleColor(ImGuiCol.Button, style.Colors[(int)ImGuiCol.ButtonActive]);
                 if (igButtonEx2(b, 0, 0, (int)ImDrawFlags.RoundCornersRight) != 0)
@@ -204,13 +210,13 @@ namespace LibreLancer.ImUI
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public static bool ColorPicker3(string label, ref Color4 color, float size = -1f)
         {
-            if(size != -1f) ImGui.PushItemWidth(size);
+            if (size != -1f) ImGui.PushItemWidth(size);
             var v3 = new Vector3(color.R, color.G, color.B);
             var retval = ImGui.ColorPicker3(label, ref v3);
             color.R = v3.X;
             color.G = v3.Y;
             color.B = v3.Z;
-            if(size != -1f) ImGui.PopItemWidth();
+            if (size != -1f) ImGui.PopItemWidth();
             return retval;
         }
 
@@ -317,7 +323,7 @@ namespace LibreLancer.ImUI
         }
         private static ImGuiInputTextCallback undoCb = FetchString;
 
-        public static void InputTextLogged(string id, ref string buf, int bufSize, Action<string,string> onChanged, bool inputId = false)
+        public static void InputTextLogged(string id, ref string buf, int bufSize, Action<string, string> onChanged, bool inputId = false)
         {
             ogStringPtr = IntPtr.Zero;
             var flags = ImGuiInputTextFlags.CallbackAlways;
@@ -335,6 +341,123 @@ namespace LibreLancer.ImUI
             {
                 onChanged(originalString, buf);
             }
+        }
+
+        /// <summary>
+        /// Draws a input textbox that evaluates the expression entered and returns an int. 
+        /// i.e. if 1+1 is enrtered value=2
+        /// </summary>
+        /// <param name="label"></param>
+        /// <param name="value"></param>
+        /// <returns>
+        /// true = expression was valid and evaluated
+        /// false = expression was invlaid
+        /// </returns>
+        public static bool InputIntExpr(
+    string label,
+    ref int value,
+    ExprCommitMode mode = ExprCommitMode.OnCommit)
+        {
+            uint id = ImGui.GetID(label);
+
+            if (!_numericBuffers.TryGetValue(id, out var buffer))
+                buffer = value.ToString(CultureInfo.InvariantCulture);
+
+            bool enterPressed = ImGui.InputText(
+                label,
+                ref buffer,
+                64,
+                ImGuiInputTextFlags.EnterReturnsTrue
+            );
+
+            bool committed = mode switch
+            {
+                ExprCommitMode.OnEnter =>
+                    enterPressed,
+
+                ExprCommitMode.OnCommit =>
+                    enterPressed ||
+                    (!ImGui.IsItemActive() && ImGui.IsItemDeactivatedAfterEdit()),
+
+                _ => false
+            };
+
+            if (committed)
+            {
+                if (NumericExpression.TryEval(buffer, out double result))
+                {
+                    value = (int)Math.Round(result);
+                    buffer = value.ToString(CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    buffer = value.ToString(CultureInfo.InvariantCulture);
+                }
+            }
+
+            _numericBuffers[id] = buffer;
+            return committed;
+        }
+
+        /// <summary>
+        /// Draws a input textbox that evaluates the expression entered and returns a float. 
+        /// i.e. if 1+1 is enrtered value=2
+        /// </summary>
+        /// <param name="label"></param>
+        /// <param name="value"></param>
+        /// <returns>
+        /// true = expression was valid and evaluated
+        /// false = expression was invlaid
+        /// </returns>
+        /// 
+        public enum ExprCommitMode
+        {
+            OnEnter,
+            OnCommit   // Enter OR focus lost
+        }
+        public static bool InputFloatExpr(
+            string label,
+            ref float value,
+            ExprCommitMode mode = ExprCommitMode.OnCommit)
+        {
+            uint id = ImGui.GetID(label);
+
+            if (!_numericBuffers.TryGetValue(id, out var buffer))
+                buffer = value.ToString(CultureInfo.InvariantCulture);
+
+            bool enterPressed = ImGui.InputText(
+                label,
+                ref buffer,
+                64,
+                ImGuiInputTextFlags.EnterReturnsTrue
+            );
+
+            bool committed = mode switch
+            {
+                ExprCommitMode.OnEnter =>
+                    enterPressed,
+
+                ExprCommitMode.OnCommit =>
+                    enterPressed ||
+                    (!ImGui.IsItemActive() && ImGui.IsItemDeactivatedAfterEdit()),
+
+                _ => false
+            };
+
+            if (committed)
+            {
+                if (NumericExpression.TryEval(buffer, out double result))
+                {
+                    value = (float)Math.Round(result);
+                    buffer = value.ToString(CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    buffer = value.ToString(CultureInfo.InvariantCulture);
+                }
+            }
+            _numericBuffers[id] = buffer;
+            return committed;
         }
     }
 }
