@@ -104,7 +104,10 @@ public class MainWindow : Game
         var size = (Vector2)ImGui.GetIO().DisplaySize;
         ImGui.SetNextWindowSize(size, ImGuiCond.Always);
         ImGui.SetNextWindowPos(Vector2.Zero, ImGuiCond.Always);
-
+        ImGui.SetNextWindowSizeConstraints(
+            size,   // minimum size
+            new Vector2(float.MaxValue, float.MaxValue) // maximum size
+        );
         bool screenIsOpen = true;
         ImGui.Begin(
             "screen",
@@ -186,7 +189,7 @@ public class MainWindow : Game
         {
             if (ImGui.BeginMenu("File"))
             {
-                if (Theme.IconMenuItem(Icons.Save, "Save Configuration", true))
+                if (Theme.IconMenuItem(Icons.Save, "Save", !IsRunning))
                 {
                     try
                     {
@@ -197,7 +200,7 @@ public class MainWindow : Game
                         pm.MessageBox("Error - Save failed", $"Configuration file failed to save:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
                     }
                 }
-                if (Theme.IconMenuItem(Icons.Save, "Save Configuration As", true))
+                if (Theme.IconMenuItem(Icons.Copy, "Save as", !IsRunning))
                 {
                     FileDialog.Save(path => {
                         try
@@ -214,7 +217,7 @@ public class MainWindow : Game
 
                     }, saveAsFilter);
                 }
-                if (Theme.IconMenuItem(Icons.Save, "Load", true))
+                if (Theme.IconMenuItem(Icons.File, "Load", true))
                 {
                     FileDialog.Open(path => {
                         try
