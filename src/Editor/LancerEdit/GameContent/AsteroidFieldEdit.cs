@@ -215,7 +215,7 @@ public class AsteroidFieldEdit
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Cube Size");
         ImGui.SameLine();
-        ImGui.InputInt("##cubesize", ref sz);
+        ImGuiExt.InputIntExpr("##cubesize", ref sz);
         if (sz != Field.CubeSize)
         {
             SetAstPositions();

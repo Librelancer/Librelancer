@@ -100,7 +100,7 @@ public class PatrolRouteDialog : PopupWindow
             ImGui.Text("Toughness");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
-            ImGui.InputInt("##toughness", ref toughness, 1);
+            ImGuiExt.InputIntExpr("##toughness", ref toughness);
             ImGui.PopItemWidth();
 
             ImGui.TableNextRow();
@@ -108,7 +108,7 @@ public class PatrolRouteDialog : PopupWindow
             ImGui.Text("Density");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
-            ImGui.InputInt("##density", ref density, 1);
+            ImGuiExt.InputIntExpr("##density", ref density);
             ImGui.PopItemWidth();
 
             ImGui.TableNextRow();
@@ -116,7 +116,7 @@ public class PatrolRouteDialog : PopupWindow
             ImGui.Text("Repop Time");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
-            ImGui.InputInt("##repopTime", ref repopTime, 1);
+            ImGuiExt.InputIntExpr("##repopTime", ref repopTime);
             ImGui.PopItemWidth();
 
             ImGui.TableNextRow();
@@ -124,7 +124,7 @@ public class PatrolRouteDialog : PopupWindow
             ImGui.Text("Max Battle Size");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
-            ImGui.InputInt("##maxBattleSize", ref maxBattleSize, 1);
+            ImGuiExt.InputIntExpr("##maxBattleSize", ref maxBattleSize);
             ImGui.PopItemWidth();
 
             ImGui.TableNextRow();
@@ -132,7 +132,7 @@ public class PatrolRouteDialog : PopupWindow
             ImGui.Text("Relief Time");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
-            ImGui.InputInt("##reliefTime", ref reliefTime, 1);
+            ImGuiExt.InputIntExpr("##reliefTime", ref reliefTime);
             ImGui.PopItemWidth();
 
             ImGui.TableNextRow();
@@ -194,7 +194,7 @@ public class PatrolRouteDialog : PopupWindow
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
                     var difficulty = encounter.Difficulty;
-                    if(ImGui.InputInt("##difficulty", ref difficulty, 1))
+                    if(ImGuiExt.InputIntExpr("##difficulty", ref difficulty))
                         encounter.Difficulty = difficulty;
                     ImGui.PopItemWidth();
 
@@ -204,7 +204,7 @@ public class PatrolRouteDialog : PopupWindow
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
                     var chance = encounter.Chance;
-                    if(ImGui.InputInt("##chance", ref chance, 1))
+                    if(ImGuiExt.InputIntExpr("##chance", ref chance))
                         encounter.Chance = chance;
                     ImGui.PopItemWidth();
 
@@ -229,7 +229,7 @@ public class PatrolRouteDialog : PopupWindow
                         ImGui.SameLine();
                         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                         var factionChance = faction.Chance;
-                        if(ImGui.InputInt("##faction_chance", ref factionChance, 1))
+                        if(ImGuiExt.InputIntExpr("##faction_chance", ref factionChance))
                             faction.Chance = factionChance;
                         ImGui.PopItemWidth();
                         ImGui.PopID();

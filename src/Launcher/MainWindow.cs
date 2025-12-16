@@ -101,12 +101,12 @@ namespace Launcher
             ImGui.Text("Resolution: ");
             ImGui.SameLine();
             ImGui.PushItemWidth(130);
-            ImGui.InputInt("##resX", ref resolutionX, 0, 0);
+            ImGuiExt.InputIntExpr("##resX", ref resolutionX);
             resolutionX = MathHelper.Clamp(resolutionX, 600, 16384);
             ImGui.SameLine();
             ImGui.Text("x");
             ImGui.SameLine();
-            ImGui.InputInt("##resY", ref resolutionY, 0, 0);
+            ImGuiExt.InputIntExpr("##resY", ref resolutionY);
             resolutionY = MathHelper.Clamp(resolutionY, 400, 16384);
             ImGui.PopItemWidth();
             SoundSlider("Master Volume: ", ref masterVolume);

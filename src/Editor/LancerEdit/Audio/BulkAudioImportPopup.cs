@@ -144,11 +144,11 @@ public class BulkAudioImportPopup : PopupWindow
         ImGui.Spacing();
 
         int start = entry.TrimStart;
-        if (ImGui.InputInt("Trim Start (samples)", ref start))
+        if (ImGuiExt.InputIntExpr("Trim Start (samples)", ref start))
             entry.TrimStart = Math.Max(0, start);
 
         int end = entry.TrimEnd;
-        if (ImGui.InputInt("Trim End (samples)", ref end))
+        if (ImGuiExt.InputIntExpr("Trim End (samples)", ref end))
             entry.TrimEnd = Math.Max(0, end);
 
         ImGui.Separator();
@@ -346,7 +346,7 @@ public class BulkAudioImportPopup : PopupWindow
                 new Vector2(style.FramePadding.X, rowHeight));
             if (e.Mode is ConversionMode.Bitrate)
             {
-                ImGui.InputInt($"##br{e.OriginalPath}", ref e.Bitrate);
+                ImGuiExt.InputIntExpr($"##br{e.OriginalPath}", ref e.Bitrate);
                 e.Bitrate = Math.Clamp(e.Bitrate, 8, 320);
             }
             else

@@ -84,7 +84,7 @@ public class TradelaneAddPopup : PopupWindow
         ImGui.AlignTextToFramePadding();
         ImGui.Text($"Ring Count (2-{tradelaneMax}):");
         ImGui.SameLine();
-        ImGui.InputInt("##tradelaneCount", ref tradelaneCount, 1, 1);
+        ImGuiExt.InputIntExpr("##tradelaneCount", ref tradelaneCount);
         if (tradelaneCount < 2)
             tradelaneCount = 2;
         if (tradelaneCount > tradelaneMax)

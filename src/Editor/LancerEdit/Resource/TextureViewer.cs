@@ -42,7 +42,7 @@ namespace LancerEdit
             if (anim != null)
             {
                 ImGui.PushItemWidth(80);
-                ImGui.InputInt("Frame Number", ref frame, 1, 1);
+                ImGuiExt.InputIntExpr("Frame Number", ref frame);
                 if (frame <= 0) frame = 0;
                 if (frame >= anim.FrameCount) frame = anim.FrameCount - 1;
                 ImGui.PopItemWidth();

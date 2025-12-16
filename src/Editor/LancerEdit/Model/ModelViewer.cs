@@ -987,8 +987,8 @@ namespace LancerEdit
         {
             ImGui.Text("Render to Image");
             ImGui.Checkbox("Background?", ref renderBackground);
-            ImGui.InputInt("Width", ref imageWidth);
-            ImGui.InputInt("Height", ref imageHeight);
+            ImGuiExt.InputIntExpr("Width", ref imageWidth);
+            ImGuiExt.InputIntExpr("Height", ref imageHeight);
             var w = Math.Max(imageWidth, 16);
             var h = Math.Max(imageHeight, 16);
             var rpanelWidth = ImGui.GetWindowWidth() - 15;

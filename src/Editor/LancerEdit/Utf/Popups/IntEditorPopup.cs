@@ -40,6 +40,7 @@ public class IntEditorPopup : PopupWindow
         ImGui.Text("Ints Per Row:");
         ImGui.SameLine();
         ImGui.PushItemWidth(95 * ImGuiHelper.Scale);
+        //ImGuiExt.InputIntExpr("##intsPerRow", ref intsPerRow);
         ImGui.InputInt("##intsPerRow", ref intsPerRow);
         ImGui.PopItemWidth();
         if (intsPerRow < 1)
@@ -59,7 +60,8 @@ public class IntEditorPopup : PopupWindow
                     ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.PushItemWidth(-1);
-                ImGui.InputInt("##" + i.ToString(), ref ints[i], 0, 0, intHex ? ImGuiInputTextFlags.CharsHexadecimal : ImGuiInputTextFlags.CharsDecimal);
+                ImGuiExt.InputIntExpr("##" + i.ToString(), ref ints[i]);
+                //ImGui.InputInt("##" + i.ToString(), ref ints[i], 0, 0, intHex ? ImGuiInputTextFlags.CharsHexadecimal : ImGuiInputTextFlags.CharsDecimal);
                 ImGui.PopItemWidth();
             }
             ImGui.EndTable();

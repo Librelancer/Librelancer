@@ -207,13 +207,13 @@ public class AudioImportPopup : PopupWindow
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Trim start (samples)");
             ImGui.SameLine();
-            ImGui.InputInt("##trim", ref manualTrim, 0, 0);
+            ImGuiExt.InputIntExpr("##trim", ref manualTrim);
             if (manualTrim > manualMax - 1)
                 manualTrim = manualMax - 1;
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Trim end (samples)");
             ImGui.SameLine();
-            ImGui.InputInt("##total", ref manualTrimEnd, 0, 0);
+            ImGuiExt.InputIntExpr("##total", ref manualTrimEnd);
             manualTotal = manualMax - manualTrimEnd;
             if (manualTotal > manualMax - manualTrim || manualTotal <= 0) {
                 manualTotal = manualMax - manualTrim;
@@ -227,7 +227,7 @@ public class AudioImportPopup : PopupWindow
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Bitrate (8-320): ");
-                ImGui.InputInt("##bitrate", ref bitrate);
+                ImGuiExt.InputIntExpr("##bitrate", ref bitrate);
                 bitrate = MathHelper.Clamp(bitrate, 8, 320);
             }
             else

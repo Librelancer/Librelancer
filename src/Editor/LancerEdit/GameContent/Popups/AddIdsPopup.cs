@@ -70,7 +70,7 @@ public class AddIdsPopup : PopupWindow
         if (idError)
             ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.3f, 0f, 0f, 1f));
 
-        ImGui.InputInt("##newids", ref newIds, 0, 0);
+        ImGuiExt.InputIntExpr("##newids", ref newIds);
 
         if (idError)
             ImGui.PopStyleColor();

@@ -37,7 +37,7 @@ public class FloatEditorPopup : PopupWindow
         ImGui.Text("Floats Per Row:");
         ImGui.SameLine();
         ImGui.PushItemWidth(95 * ImGuiHelper.Scale);
-        ImGui.InputInt("##floatsPerRow", ref floatsPerRow);
+        ImGuiExt.InputIntExpr("##floatsPerRow", ref floatsPerRow);
         ImGui.PopItemWidth();
         if (floatsPerRow < 1)
             floatsPerRow = 1;
@@ -56,7 +56,8 @@ public class FloatEditorPopup : PopupWindow
                     ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGui.PushItemWidth(-1);
-                ImGui.InputFloat("##" + i, ref floats[i], 0, 0);
+                ImGuiExt.InputFloatExpr("##" + i, ref floats[i]);
+                //ImGui.InputFloat("##" + i, ref floats[i], 0, 0);
                 ImGui.PopItemWidth();
             }
             ImGui.EndTable();

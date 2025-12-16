@@ -76,7 +76,7 @@ namespace LancerEdit
                         ImGui.Checkbox(Argument.Name, ref BooleanValue);
                         break;
                     case ScriptArgumentType.Integer:
-                        ImGui.InputInt(Argument.Name, ref IntegerValue, 1);
+                        ImGuiExt.InputIntExpr(Argument.Name, ref IntegerValue);
                         break;
                     case ScriptArgumentType.String:
                         break;

@@ -66,15 +66,15 @@ namespace LLServer
             ImGui.Text("Ban expires at (UTC)");
 
             ImGui.PushItemWidth(80 * ImGuiHelper.Scale);
-            ImGui.InputInt("Year", ref year);
+            ImGuiExt.InputIntExpr("Year", ref year);
             ImGui.SameLine();
-            ImGui.InputInt("Month", ref month);
+            ImGuiExt.InputIntExpr("Month", ref month);
             ImGui.SameLine();
-            ImGui.InputInt("Day", ref day);
+            ImGuiExt.InputIntExpr("Day", ref day);
 
-            ImGui.InputInt("Hour", ref hour);
+            ImGuiExt.InputIntExpr("Hour", ref hour);
             ImGui.SameLine();
-            ImGui.InputInt("Minute", ref minute);
+            ImGuiExt.InputIntExpr("Minute", ref minute);
             ImGui.PopItemWidth();
 
             month = Math.Clamp(month, 1, 12);

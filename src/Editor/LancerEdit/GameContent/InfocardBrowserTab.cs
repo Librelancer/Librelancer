@@ -156,7 +156,7 @@ public class InfocardBrowserTab : GameContentTab
 
         ImGui.SameLine();
         ImGui.PushItemWidth(140);
-        ImGui.InputInt("##id", ref id, 0, 0);
+        ImGuiExt.InputIntExpr("##id", ref id);
         ImGui.PopItemWidth();
         ImGui.SameLine();
         if (ImGui.Button("Go"))
