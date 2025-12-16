@@ -450,6 +450,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             undoBuffer.Push(EditorAggregateAction.Create(nodeMouseActions.ToArray()));
             nodeMouseActions = new();
         }
+        // Works around rare assert
+        ImGui.Dummy(new Vector2(1, 1));
     }
 
     private List<EditorAction> nodeMouseActions = new();
