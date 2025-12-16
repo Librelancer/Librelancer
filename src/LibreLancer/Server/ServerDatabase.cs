@@ -100,9 +100,9 @@ namespace LibreLancer.Server
         }
     }
 
-    public record BannedPlayerDescription(Guid AccountId, string[] Characters, DateTime Expiry);
+    public record BannedPlayerDescription(Guid? AccountId, string[] Characters, DateTime? BanExpiry);
 
-    public record AdminCharacterDescription(long Id, string Name);
+    public record AdminCharacterDescription(long Id, string Name, string System, string LastDockedLocation);
 
     public class ServerDatabase : IDisposable
     {
@@ -186,20 +186,17 @@ namespace LibreLancer.Server
         {
             using var ctx = CreateDbContext();
             return ctx.Characters.Where(x => x.IsAdmin).Select(x =>
-                new AdminCharacterDescription(x.Id, x.Name)).ToArray();
+                new AdminCharacterDescription(x.Id, x.Name, x.System, x.Base)).ToArray();
         }
 
         public BannedPlayerDescription[] GetBannedPlayers()
         {
             using var ctx = CreateDbContext();
-            var c = ctx.Accounts.Where(x => x.BanExpiry != null && x.BanExpiry > DateTime.UtcNow)
-                .Select(x => new
-                {
-                    AccountId = x.AccountIdentifier,
-                    BanExpiry = x.BanExpiry,
-                    Characters = x.Characters.Select(y => y.Name).ToArray()
-                });
-            return c.Select(x => new BannedPlayerDescription(x.AccountId, x.Characters, x.BanExpiry.Value)).ToArray();
+            return ctx.Accounts.Where(x => x.BanExpiry != null)
+                .Select(x => new BannedPlayerDescription(
+                    x.AccountIdentifier,
+                    x.Characters.Select(y => y.Name).ToArray(),
+                    x.BanExpiry)).ToArray();
         }
 
         public async Task<long?> FindCharacter(string character)
@@ -211,7 +208,6 @@ namespace LibreLancer.Server
                 return c?.Id;
             });
         }
-
 
         public async Task AdminCharacter(long character)
         {

@@ -3,325 +3,370 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Numerics;
 using System.IO;
-using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.ImUI;
-using LibreLancer.Dialogs;
 using LibreLancer.Server;
+using LLServer.Screens;
 using Microsoft.Win32;
 
 namespace LLServer;
 
 public class MainWindow : Game
 {
-    private ImGuiHelper guiRender;
     public MainWindow() : base(600, 600, false, true)
     {
 
     }
-    private AppLog log;
-    private ServerApp server;
 
-    private string configPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
+    public ServerApp Server => server;
+    public bool IsRunning => server?.Server?.Listener?.Server?. IsRunning ?? false;
+    public int ConnectedPlayersCount => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
+    public ServerPerformance ServerPerformance => server?.Server?.PerformanceStats;
+    public string ConfigPath;
+    public bool StartupError;
 
-    protected override void Load()
-    {
-        log = new AppLog();
-        FLLog.UIThread = this;
-        FLLog.AppendLine += LogAppendLine;
+    AppLog log;
+    ServerConfig config;
+    ImGuiHelper guiRender;
+    ServerApp server;
+    PopupManager pm = new PopupManager();
+    ScreenManager sm = new ScreenManager();
 
-        Title = "Librelancer Server";
-        guiRender = new ImGuiHelper(this, 1);
-        RenderContext.PushViewport(0, 0, Width, Height);
+    static readonly float STATUS_BAR_HEIGHT = 30f;
+    static readonly float LOGS_MIN_HEIGHT = 100f;
+    static readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
+    
 
-        if (File.Exists(configPath))
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
-        else
-        {
-            config = new ServerConfig();
+#if DEBUG
+    static readonly string statusFormat = "FPS: {0} | Status: {1} | Connected: {2}/{3}";
+    static readonly string titleFormat = "Librelancer Server - Debug - {0}";
+#else
+    static readonly string statusFormat = "Status: {1}  | Connected Players {2}";
+    static readonly string titleFormat = "Librelancer Server - {0}";
+#endif
 
-            if (string.IsNullOrEmpty(config.FreelancerPath))
-            {
-                if (Platform.RunningOS == OS.Windows)
-                {
-                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),"\\Microsoft Games\\Freelancer");
-                    string flPathRegistry = IntPtr.Size == 8
-                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
-                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-                    var actualPath = (string) Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-                    if(!string.IsNullOrEmpty(actualPath)) {
-                        config.FreelancerPath = actualPath;
-                    }
-                }
-            }
-            config.ServerName = "M9Universe";
-            config.ServerDescription = "My Cool Freelancer server";
-            config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
-        }
-    }
+    // UI Data
+    bool logsOpen = false;
+    float logsHeight = 200f;
 
+    // Running Server Data
+    
+    
+    Guid? banId;
+    string banSearchString;
+    string adminSearchString;
+
+    // Event Handlers
     private void LogAppendLine(string message, LogSeverity level)
     {
         log.AppendText($"{message}\n");
     }
 
-    private bool isRunning = false;
-
+    // Lifecycle hooks & Helpers
+    protected override void Load()
+    {
+        log = new AppLog();
+        FLLog.UIThread = this;
+        FLLog.AppendLine += LogAppendLine;
+        guiRender = new ImGuiHelper(this, 1);
+        RenderContext.PushViewport(0, 0, Width, Height);
+        ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
+        config = GetConfigFromFileOrDefault();
+        sm.SetScreen(
+            new ServerConfigurationScreen(this, sm, pm, config)
+        );
+    }
     protected override void Draw(double elapsed)
     {
+        
+
         var process = guiRender.DoRender(elapsed);
-        if(process == ImGuiProcessing.Sleep)
+        if (process == ImGuiProcessing.Sleep)
         {
-            WaitForEvent(500); //Yield like a regular GUI program (0.5s)
+            WaitForEvent(500);
         }
         else if (process == ImGuiProcessing.Slow)
         {
-            WaitForEvent(50); //Push enough frames for keyboad input
+            WaitForEvent(50);
         }
+
         guiRender.NewFrame(elapsed);
+
         RenderContext.ReplaceViewport(0, 0, Width, Height);
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
+
         ImGui.PushFont(ImGuiHelper.Roboto, 0);
+
         var size = (Vector2)ImGui.GetIO().DisplaySize;
-        ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
-        ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
+        ImGui.SetNextWindowSize(size, ImGuiCond.Always);
+        ImGui.SetNextWindowPos(Vector2.Zero, ImGuiCond.Always);
+
         bool screenIsOpen = true;
-        ImGui.Begin("screen", ref screenIsOpen,
+        ImGui.Begin(
+            "screen",
+            ref screenIsOpen,
             ImGuiWindowFlags.NoTitleBar |
             ImGuiWindowFlags.NoSavedSettings |
             ImGuiWindowFlags.NoBringToFrontOnFocus |
             ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize |
-            ImGuiWindowFlags.NoBackground);
-        if(isRunning)
-            RunningServer();
-        else
-            StartupGui();
+            ImGuiWindowFlags.NoBackground |
+            ImGuiWindowFlags.MenuBar
+            
+        );
+
+        DrawMenuBar();
+
+        Vector2 avail = ImGui.GetContentRegionAvail();
+
+        // Height taken by logs (collapsed = header height only)
+        float logsAreaHeight = logsOpen ? logsHeight : ImGui.GetFrameHeight();
+
+        // Main content area (above logs + status bar)
+        ImGui.BeginChild(
+            "##content",
+            new Vector2(
+                avail.X,
+                avail.Y - STATUS_BAR_HEIGHT - logsAreaHeight
+            ),
+            ImGuiChildFlags.Borders
+        );
+        sm.Draw(elapsed);
+        Title = String.Format(titleFormat, sm.Current.Title);
+        ImGui.EndChild();
+
+        // Logs panel (bottom, inside main window)
+        DrawLogsPanel(avail.X);
+
+        // Status bar (unchanged)
+        DrawStatusBar();
         ImGui.End();
+        pm.Run();
         ImGui.PopFont();
+
+
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
+
         guiRender.Render(RenderContext);
     }
 
-    private ServerConfig config;
-
-    void InputTextLabel(string label, string id, ref string text)
-    {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(label);
-        ImGui.InputText(id, ref text, 4096);
-    }
-
-    void StartupGui()
-    {
-        ImGui.PushFont(ImGuiHelper.Roboto, 32);
-        ImGui.Text("Server Configuration");
-        ImGui.PopFont();
-        ImGui.NewLine();
-        ImGui.PushItemWidth(540);
-        InputTextLabel("Server Name", "##serverName", ref config.ServerName);
-        ImGui.Text("Server Description");
-        ImGui.InputTextMultiline("##description", ref config.ServerDescription, 4096, Vector2.Zero);
-        InputTextLabel("Freelancer Path", "##flpath", ref config.FreelancerPath);
-        InputTextLabel("Database File", "##dbfile", ref config.DatabasePath);
-        InputTextLabel("Configuration File", "##configfile", ref configPath);
-        ImGui.PopItemWidth();
-        ImGui.NewLine();
-        if (ImGui.Button("Launch"))
-        {
-            isRunning = true;
-            Task.Run(() =>
-            {
-                server = new ServerApp(config);
-                if (!server.StartServer()) {
-                    QueueUIThread(() => startupError = true);
-                } else
-                {
-                    server.Server.PerformanceStats = new ServerPerformance(this);
-                    File.WriteAllText(configPath, JSON.Serialize(config));
-                }
-            });
-        }
-    }
-
-    protected override void Cleanup()
-    {
-        server?.StopServer();
-    }
-
-    private bool startupError;
-
+    protected override void Cleanup() => server?.StopServer();
     void Reset()
     {
-        startupError = isRunning = false;
+        StartupError = false;
         server = null;
     }
 
-    bool ServerReady() => server.Server?.Listener?.Server?.IsRunning ?? false;
-
-    private BannedPlayerDescription[] bannedPlayers;
-    private AdminCharacterDescription[] admins;
-    private Guid? banId;
-    private string banSearchString;
-    private string adminSearchString;
-
-    bool BeginModalWithClose(string id, ImGuiWindowFlags? flags = null)
+    // UI And Helpers
+    public bool StartServer(ServerConfig config)
     {
-        bool x = true;
-        if (flags.HasValue)
-            return ImGui.BeginPopupModal(id, ref x, flags.Value);
-        return ImGui.BeginPopupModal(id, ref x);
+        server = new ServerApp(config);
+
+        if (!server.StartServer())
+            return false;
+
+        server.Server.PerformanceStats = new ServerPerformance(this);
+        return true;
     }
 
-    void RunningServer()
+    public void StopServer()
     {
-        if (startupError)
+        server?.StopServer();
+        server = null;
+    }
+
+    void DrawMenuBar()
+    {
+        if (ImGui.BeginMainMenuBar())
         {
-            ImGui.TextColored(new Vector4(1,0,0,1), "Server startup failed. Click Stop to go back to server configuration");
-            ImGui.SameLine();
-            if (ImGui.Button("Stop")) {
-                Reset();
-            }
-        }
-        if (ServerReady())
-        {
-            ImGui.SetNextWindowSize(new Vector2(400, 400) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
-            if (BeginModalWithClose("Admins"))
+            if (ImGui.BeginMenu("File"))
             {
-                InputTextLabel("Character: ", "##character", ref adminSearchString);
-                ImGui.SameLine();
-                if (ImGui.Button("Make Admin"))
+                if (Theme.IconMenuItem(Icons.Save,"Save Configuration", true))
                 {
-                    Task.Run(async () =>
+                    pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
+                    File.WriteAllText(ConfigPath, JSON.Serialize(config));
+
+                }
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+                if (Theme.IconMenuItem(Icons.Quit, "Quit", true))
+                {
+                    if (IsRunning)
                     {
-                        var adminId = await server.Server.Database.FindCharacter(adminSearchString);
-                        if (adminId != null)
+                        pm.MessageBox(
+                            title: "Confirm",
+                            message: "The Server is running. Are you sure you want to quit?",
+                            multiline: false,
+                            buttons: MessageBoxButtons.YesNo, callback: response =>
+                            {
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    this.QueueUIThread(() =>
+                                    {
+                                        server.Server.Stop();
+                                        Exit();
+                                        return;
+                                    });
+                                }
+                            });
+                    }
+                    Exit();
+                }
+
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Server"))
+            {
+                if (Theme.IconMenuItem(Icons.Play, "Start", !IsRunning))
+                {
+                    Task.Run(() =>
+                    {
+                        File.WriteAllText(ConfigPath, JSON.Serialize(config));
+
+                        QueueUIThread(() =>
                         {
-                            FLLog.Info("Server", $"Making {adminId.Value} admin");
-                            await server.Server.Database.AdminCharacter(adminId.Value).ConfigureAwait(false);
-                            server.Server.AdminChanged(adminId.Value, true);
-                            admins = server.Server.Database.GetAdmins();
-                            adminSearchString = "";
-                        }
+                            sm.SetScreen(
+                                new RunningServerScreen(this, sm, pm, config)
+                            );
+                        });
                     });
                 }
-                foreach (var a in admins)
+                ImGui.Spacing();
+                if (Theme.IconMenuItem(Icons.Stop, "Stop", IsRunning))
                 {
-                    ImGui.Separator();
-                    ImGui.Text(a.Name);
-                    if (ImGui.Button("Remove Admin##" + a.Id))
-                    {
-                        FLLog.Info("Server", $"Removing admin from {a.Name}");
-                        server.Server.Database.DeadminCharacter(a.Id).Wait();
-                        server.Server.AdminChanged(a.Id, false);
-                        admins = server.Server.Database.GetAdmins();
-                    }
+                    pm.MessageBox(
+                            title: "Confirm",
+                            message: "The Server is running. Are you sure you want to quit?",
+                            multiline: false,
+                            buttons: MessageBoxButtons.YesNo, callback: response =>
+                            {
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    this.QueueUIThread(() =>
+                                    {
+                                        StopServer();
+                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm, config));
+                                        return;
+                                    });
+                                }
+                            });
                 }
-                ImGui.EndPopup();
+                ImGui.EndMenu();
             }
-            if (BeginModalWithClose("Ban", ImGuiWindowFlags.AlwaysAutoResize))
+            ImGui.EndMainMenuBar();
+        }
+    }
+
+    void DrawStatusBar()
+    {
+        var io = ImGui.GetIO();
+        ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X, STATUS_BAR_HEIGHT * ImGuiHelper.Scale), ImGuiCond.Always);
+        ImGui.SetNextWindowPos(new Vector2(0, io.DisplaySize.Y - STATUS_BAR_HEIGHT * ImGuiHelper.Scale), ImGuiCond.Always, Vector2.Zero);
+
+
+        ImGui.Begin(
+            "##statusbar",
+            ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoResize |
+            ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoScrollbar |
+            ImGuiWindowFlags.NoSavedSettings
+        );
+
+        ImGui.Text(String.Format(statusFormat,
+                (int)Math.Round(RenderFrequency),
+                IsRunning ? "Running" : "Stopped",
+                ConnectedPlayersCount,
+                server?.Server?.Listener?.MaxConnections ?? 0
+                ));
+
+        if (StartupError)
+        {
+            ImGui.SameLine(); ImGui.TextColored(ERROR_TEXT_COLOUR, "Server Startup Error");
+        }
+        ImGui.End();
+    }
+
+    void DrawLogsPanel(float width)
+    {
+        // Header
+        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg]);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgHovered]);
+        ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBgActive]);
+
+        
+
+        if (ImGui.CollapsingHeader("Logs", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.InvisibleButton("##logs_resize", new Vector2(width, 4));
+            if (ImGui.IsItemHovered() || ImGui.IsItemActive())
             {
-                InputTextLabel("Character: ", "##character", ref banSearchString);
-                ImGui.SameLine();
-                if (ImGui.Button("Find Account"))
-                {
-                    Task.Run(async () =>
-                    {
-                        banId = await server.Server.Database.FindAccount(banSearchString);
-                    });
-                }
-                if (banId != null)
-                {
-                    ImGui.Text($"Found account: {banId}");
-                    if (ImGui.Button("Ban"))
-                    {
-                        server.Server.Database.BanAccount(banId.Value, DateTime.UtcNow.AddDays(30));
-                        FLLog.Info("Server", $"Banned account {banId.Value}");
-                        ImGui.CloseCurrentPopup();
-                    }
-                }
-                ImGui.EndPopup();
-            }
-            ImGui.SetNextWindowSize(new Vector2(400, 400) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
-            if (BeginModalWithClose("Unban"))
-            {
-                if(bannedPlayers.Length == 0)
-                    ImGui.Text("There are no banned players");
-                ImGui.BeginChild("##banned");
-                foreach (var b in bannedPlayers)
-                {
-                    ImGui.Text($"Id: {b.AccountId}");
-                    ImGui.SameLine();
-                    if (ImGui.Button("Unban##" + b.AccountId))
-                    {
-                        server.Server.Database.UnbanAccount(b.AccountId);
-                        FLLog.Info("Server", $"Unbanned account {b.AccountId}");
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.Text($"Ban Expiry: {b.Expiry.ToLocalTime()}");
-                    ImGui.TextWrapped($"Characters: {string.Join(", ", b.Characters)}");
-                    ImGui.Separator();
-                }
-                ImGui.EndChild();
-                ImGui.EndPopup();
+                ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNS);
             }
 
-            if (ImGui.Button("Ban Player"))
+            if (ImGui.IsItemActive())
             {
-                banId = null;
-                banSearchString = "";
-                ImGui.OpenPopup("Ban");
+                logsHeight -= ImGui.GetIO().MouseDelta.Y;
+                logsHeight = Math.Clamp(logsHeight, LOGS_MIN_HEIGHT, ImGui.GetIO().DisplaySize.Y * 0.6f);
             }
-            ImGui.SameLine();
-            if (ImGui.Button("Unban Player"))
-            {
-                bannedPlayers = server.Server.Database.GetBannedPlayers();
-                ImGui.OpenPopup("Unban");
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Admins"))
-            {
-                admins = server.Server.Database.GetAdmins();
-                adminSearchString = "";
-                ImGui.OpenPopup("Admins");
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("Stop"))
-            {
-                FLLog.Info("Server", "Stopping server");
-                server.StopServer();
-                Reset();
-                return;
-            }
-            ImGui.Text($"Server Running on Port {server.Server.Listener.Port}");
-            ImGui.Text(
-                $"Players Connected: {server.Server.Listener.Server.ConnectedPeersCount}/{server.Server.Listener.MaxConnections}");
-            Span<float> values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
-            var len = server.Server.PerformanceStats.Timings.Count;
-            double avg = 0;
-            double max = 0;
-            double min = double.MaxValue;
-            for (int i = 0; i < len; i++)
-            {
-                var v = server.Server.PerformanceStats.Timings[i];
-                max = Math.Max(max, v);
-                min = Math.Min(min, v);
-                values[i] = v;
-                avg += v;
-            }
-            avg /= len;
-            ImGui.Text($"Update Time: (Avg: {avg:F4}ms/Min: {min:F4}ms/Max: {max:F4}ms)");
-            ImGui.PlotLines("##updatetime", ref values[0], len, 0, "", 0, (float)Math.Max(max, 17),
-                new Vector2(400, 150));
+
+
+            logsOpen = true;
+
+            ImGui.Separator();
+
+            // Log contents
+            log.Draw(
+                buttons: false,
+                size: new Vector2(width, logsHeight - ImGui.GetFrameHeight() * 2)
+            );
         }
-        log.Draw();
+        else
+        {
+            logsOpen = false;
+        }
+        ImGui.Spacing();
+        ImGui.PopStyleColor(3);
+    }
+
+    ServerConfig GetConfigFromFileOrDefault()
+    {
+        ServerConfig config;
+
+        if (File.Exists(ConfigPath))
+        {
+            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(ConfigPath));
+            if (config != null)
+                return config;
+        }
+
+
+        config = new ServerConfig();
+        if (Platform.RunningOS == OS.Windows)
+        {
+            var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
+            string flPathRegistry = IntPtr.Size == 8
+                ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
+                : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
+            var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
+            if (!string.IsNullOrEmpty(actualPath))
+            {
+                config.FreelancerPath = actualPath;
+            }
+        }
+
+        config.ServerName = "M9Universe";
+        config.ServerDescription = "My Cool Freelancer server";
+        config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
+
+        return config;
     }
 }
