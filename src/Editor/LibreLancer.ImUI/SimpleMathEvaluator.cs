@@ -35,6 +35,21 @@ static class NumericExpression
             return false;
         }
     }
+    public static string FormatFloat(float value, string format)
+    {
+        // Handle common ImGui formats like "%.3f"
+        if (format.StartsWith("%.") && format.EndsWith("f"))
+        {
+            var digitsStr = format.Substring(2, format.Length - 3);
+            if (int.TryParse(digitsStr, out int digits))
+            {
+                return value.ToString($"F{digits}", CultureInfo.InvariantCulture);
+            }
+        }
+
+        // Fallback
+        return value.ToString(CultureInfo.InvariantCulture);
+    }
 }
 static class SimpleMathEvaluator
 {
@@ -143,5 +158,8 @@ static class SimpleMathEvaluator
         while (_pos < _text.Length && char.IsWhiteSpace(_text[_pos]))
             _pos++;
     }
+
+    
+
 }
 

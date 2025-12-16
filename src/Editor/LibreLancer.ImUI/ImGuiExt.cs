@@ -416,23 +416,28 @@ namespace LibreLancer.ImUI
             OnCommit   // Enter OR focus lost
         }
         public static bool InputFloatExpr(
-            string label,
-            ref float value,
-            ExprCommitMode mode = ExprCommitMode.OnCommit)
+    string label,
+    ref float value,
+    string format = "%.3f",
+    ImGuiInputTextFlags flags = 0,
+    ExprCommitMode commitMode = ExprCommitMode.OnCommit)
         {
             uint id = ImGui.GetID(label);
 
             if (!_numericBuffers.TryGetValue(id, out var buffer))
-                buffer = value.ToString(CultureInfo.InvariantCulture);
+                buffer = NumericExpression.FormatFloat(value, format);
+
+            // Always force EnterReturnsTrue internally
+            flags |= ImGuiInputTextFlags.EnterReturnsTrue;
 
             bool enterPressed = ImGui.InputText(
                 label,
                 ref buffer,
                 64,
-                ImGuiInputTextFlags.EnterReturnsTrue
+                flags
             );
 
-            bool committed = mode switch
+            bool committed = commitMode switch
             {
                 ExprCommitMode.OnEnter =>
                     enterPressed,
@@ -448,14 +453,16 @@ namespace LibreLancer.ImUI
             {
                 if (NumericExpression.TryEval(buffer, out double result))
                 {
-                    value = (float)Math.Round(result);
-                    buffer = value.ToString(CultureInfo.InvariantCulture);
+                    value = (float)result;
+                    buffer = NumericExpression.FormatFloat(value, format);
                 }
                 else
                 {
-                    buffer = value.ToString(CultureInfo.InvariantCulture);
+                    // revert to last valid value
+                    buffer = NumericExpression.FormatFloat(value, format);
                 }
             }
+
             _numericBuffers[id] = buffer;
             return committed;
         }
