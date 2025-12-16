@@ -260,6 +260,12 @@ World Time: {12:F2}
             {
                 switch (obj)
                 {
+                    case InputAction.USER_MANEUVER_DOCK:
+                        ManeuverSelect("Dock");
+                        break;
+                    case InputAction.USER_MANEUVER_GOTO:
+                        ManeuverSelect("Goto");
+                        break;
                     case InputAction.USER_SCREEN_SHOT:
                         Game.Screenshots.TakeScreenshot();
                         break;
@@ -724,22 +730,29 @@ World Time: {12:F2}
             public float GetPlayerPower() =>  g.powerCore.CurrentEnergy / g.powerCore.Equip.Capacity;
 
             private string activeManeuver = "FreeFlight";
-            public string GetActiveManeuver() => activeManeuver;
+
+            public string GetActiveManeuver() => g.pilotcomponent.CurrentBehavior switch
+            {
+                AutopilotBehaviors.Dock => "Dock",
+                AutopilotBehaviors.Formation => "Formation",
+                AutopilotBehaviors.Goto => "Goto",
+                _ => "FreeFlight"
+            };
+
             public LuaCompatibleDictionary GetManeuversEnabled()
             {
                 var dict = new LuaCompatibleDictionary();
                 dict.Set("FreeFlight", true);
                 dict.Set("Goto", g.Selection.Selected != null);
-                dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null);
+                dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null &&
+                                 g.session.DockAllowed(g.Selection.Selected));
                 dict.Set("Formation", g.Selection.Selected != null && g.Selection.Selected.Kind == GameObjectKind.Ship);
                 return dict;
             }
+
             public void HotspotPressed(string e)
             {
-                if (g.ManeuverSelect(e))
-                {
-                    activeManeuver = e;
-                }
+                g.ManeuverSelect(e);
             }
 
             public void ChatEntered(ChatCategory category, string text)
@@ -842,6 +855,11 @@ World Time: {12:F2}
 					DockInfoComponent d;
 					if ((d = Selection.Selected.GetComponent<DockInfoComponent>()) != null)
                     {
+                        if (!session.DockAllowed(Selection.Selected))
+                        {
+                            Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.DockingNotAllowed);
+                            return false;
+                        }
                         pilotcomponent.StartDock(Selection.Selected, GotoKind.Goto);
                         session.SpaceRpc.RequestDock(Selection.Selected);
 						return true;
@@ -1459,6 +1477,8 @@ World Time: {12:F2}
             return (int)(size * ratio);
         }
 
+        private bool showObjectList = false;
+
 		//RigidBody debugDrawBody;
         private int waitObjectiveFrames = 120;
 		public override unsafe void Draw(double delta)
@@ -1540,6 +1560,8 @@ World Time: {12:F2}
             session.SetDebug(Game.Debug.Enabled);
             Game.Debug.Draw(delta, () =>
             {
+                ImGui.Checkbox("Object List", ref showObjectList);
+                ImGui.Text($"Object Count: {world.Objects.Count}");
                 string sel_obj = "None";
                 if (Selection.Selected != null)
                 {
@@ -1605,7 +1627,8 @@ World Time: {12:F2}
             }, () =>
             {
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
-                Game.Debug.ObjectsWindow(world.Objects);
+                if(showObjectList)
+                    Game.Debug.ObjectsWindow(world.Objects);
             });
             if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled)
             {

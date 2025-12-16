@@ -75,6 +75,7 @@ namespace LibreLancer.Client
         public EmbeddedServer EmbedddedServer => connection as EmbeddedServer;
 
 
+
         public void Pause()
         {
             if (connection is EmbeddedServer es)
@@ -1636,6 +1637,44 @@ namespace LibreLancer.Client
                     }
                 }
             });
+        }
+
+        private AllowedDocking allowedDocking;
+
+        void IClientPlayer.UpdateAllowedDocking(AllowedDocking allowedDocking)
+        {
+            this.allowedDocking = allowedDocking;
+        }
+
+        public bool DockAllowed(GameObject gameObject)
+        {
+            if (allowedDocking == null)
+                return true;
+            if (!allowedDocking.CanTl)
+            {
+                if (allowedDocking.TlExceptions.Contains(gameObject.NicknameCRC))
+                {
+                    return true;
+                }
+                if (gameObject.TryGetComponent<DockInfoComponent>(out var di)
+                    && di.Action.Kind == DockKinds.Tradelane)
+                {
+                    return false;
+                }
+            }
+            if (!allowedDocking.CanDock)
+            {
+                if (allowedDocking.DockExceptions.Contains(gameObject.NicknameCRC))
+                {
+                    return true;
+                }
+                if (gameObject.TryGetComponent<DockInfoComponent>(out var di)
+                    && di.Action.Kind != DockKinds.Tradelane)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
 

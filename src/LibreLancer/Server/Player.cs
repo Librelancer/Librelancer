@@ -283,7 +283,7 @@ namespace LibreLancer.Server
         void BeginGame(NetCharacter c, SaveGame sg)
         {
             Character = c;
-            MPlayer = sg?.MPlayer ?? new MPlayer();
+            MPlayer = sg?.MPlayer ?? new() { CanDock = 1, CanTl = 1 };
             StartTime = DateTime.UtcNow;
             Name = Character.Name;
             rpcClient.UpdatePlayTime(c.Time, StartTime);
@@ -310,6 +310,7 @@ namespace LibreLancer.Server
             rpcClient.ListPlayers(Character.Admin);
             if (sg != null) InitStory(sg);
             rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
+            AllowedDockUpdate();
             if (Base != null) {
                 PlayerEnterBase();
             } else {
@@ -835,6 +836,31 @@ namespace LibreLancer.Server
                 } else {
                     SpaceInitialSpawn(null);
                 }
+            }
+        }
+
+        public void AllowedDockUpdate()
+        {
+            if (MPlayer == null)
+                rpcClient.UpdateAllowedDocking(new());
+            else
+            {
+                var ad = new AllowedDocking();
+                ad.CanDock = MPlayer.CanDock != 0;
+                ad.CanTl = MPlayer.CanTl != 0;
+                if (!ad.CanDock)
+                {
+                    ad.DockExceptions = new();
+                    foreach (var ex in MPlayer.DockExceptions)
+                        ad.DockExceptions.Add(ex.Hash);
+                }
+                if (!ad.CanTl)
+                {
+                    ad.TlExceptions = new();
+                    foreach (var ex in MPlayer.TlExceptions)
+                        ad.TlExceptions.Add(ex.ItemA);
+                }
+                rpcClient.UpdateAllowedDocking(ad);
             }
         }
 

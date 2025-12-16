@@ -209,6 +209,7 @@ public class Act_PlayerCanDock : ScriptedAction
     {
         runtime.Player.MPlayer.CanDock = CanDock ? 1 : 0;
         runtime.Player.MPlayer.DockExceptions = Exceptions.Select(x => new HashValue(x)).ToList();
+        runtime.Player.AllowedDockUpdate();
     }
 }
 
@@ -240,6 +241,7 @@ public class Act_PlayerCanTradelane : ScriptedAction
     {
         runtime.Player.MPlayer.CanTl = CanDock ? 1 : 0;
         runtime.Player.MPlayer.TlExceptions = Exceptions.Chunk(2).Select(x => new TlException(new HashValue(x.ElementAt(0)), new HashValue(x.ElementAt(1)))).ToList();
+        runtime.Player.AllowedDockUpdate();
     }
 }
 

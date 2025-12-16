@@ -65,6 +65,8 @@ public interface IClientPlayer
     void UpdateVisits(VisitBundle visits);
     void StopShip();
 
+    void UpdateAllowedDocking(AllowedDocking allowed);
+
     void UpdateCharacterProgress(int level, long nextNetWorth);
     void UndockFrom(ObjNetId id, int index);
     void RunDirectives(MissionDirective[] directives);
