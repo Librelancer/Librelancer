@@ -136,7 +136,7 @@ public class JointMapEditor : PopupWindow
             ImGui.Text("Interval: ");
             ImGui.SameLine();
             ImGui.PushItemWidth(120 * ImGuiHelper.Scale);
-            ImGui.InputFloat("##interval", ref jointMap.Channel.Interval);
+            ImGuiExt.InputFloatExpr("##interval", ref jointMap.Channel.Interval);
             if (jointMap.Channel.Interval < 0.0001f)
                 jointMap.Channel.Interval = 0.0001f;
             ImGui.PopItemWidth();
@@ -187,7 +187,7 @@ public class JointMapEditor : PopupWindow
                 {
                     var told = jointMap.Channel.GetTime(i);
                     var t = told;
-                    ImGui.InputFloat("##time", ref t);
+                    ImGuiExt.InputFloatExpr("##time", ref t);
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
                     if(told != t)
                         buffer.SetTime(ref jointMap.Channel, i, t);
@@ -201,7 +201,7 @@ public class JointMapEditor : PopupWindow
                     ImGui.TableNextColumn();
                     var fold = jointMap.Channel.GetAngle(i);
                     var f = fold;
-                    ImGui.InputFloat("##scalar", ref f);
+                    ImGuiExt.InputFloatExpr("##scalar", ref f);
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
                     if(fold != f)
                         buffer.SetAngle(ref jointMap.Channel, i, f);

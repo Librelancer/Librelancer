@@ -125,17 +125,17 @@ public class AttenuationPopup : PopupWindow
         ImGui.AlignTextToFramePadding();
         ImGui.Text("a: ");
         ImGui.SameLine();
-        ImGui.InputFloat("##valueX", ref attenuation3.X, 0, 0, "%.7f");
+        ImGuiExt.InputFloatExpr("##valueX", ref attenuation3.X, "%.7f");
         if (attenuation3.X < 0.0000001f)
             attenuation3.X = 0.0000001f;
         ImGui.AlignTextToFramePadding();
         ImGui.Text("b: ");
         ImGui.SameLine();
-        ImGui.InputFloat("##valueY", ref attenuation3.Y, 0, 0, "%.7f");
+        ImGuiExt.InputFloatExpr("##valueY", ref attenuation3.Y, "%.7f");
         ImGui.AlignTextToFramePadding();
         ImGui.Text("c: ");
         ImGui.SameLine();
-        ImGui.InputFloat("##valueZ",  ref attenuation3.Z, 0, 0, "%.7f");
+        ImGuiExt.InputFloatExpr("##valueZ", ref attenuation3.Z, "%.7f");
         ImGui.PopItemWidth();
         ImGui.Text($"Previewing over {range} units");
         Span<float> points = stackalloc float[200];

@@ -140,7 +140,7 @@ public class PatrolRouteDialog : PopupWindow
             ImGui.Text("Sort");
             ImGui.TableNextColumn();
             ImGui.PushItemWidth(-1);
-            ImGui.InputFloat("##sort", ref sort, 0, 0, "%.3f");
+            ImGuiExt.InputFloatExpr("##sort", ref sort, "%.3f");
             ImGui.PopItemWidth();
 
             ImGui.EndTable();

@@ -42,15 +42,15 @@ public class Vector3Popup : PopupWindow
         ImGui.AlignTextToFramePadding();
         ImGui.Text("X: ");
         ImGui.SameLine();
-        ImGui.InputFloat("##valueX", ref current.X);
+        ImGuiExt.InputFloatExpr("##valueX", ref current.X);
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Y: ");
         ImGui.SameLine();
-        ImGui.InputFloat("##valueY",  ref current.Y);
+        ImGuiExt.InputFloatExpr("##valueY",  ref current.Y);
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Z: ");
         ImGui.SameLine();
-        ImGui.InputFloat("##valueZ",  ref current.Z);
+        ImGuiExt.InputFloatExpr("##valueZ",  ref current.Z);
         ImGui.PopItemWidth();
 
         if (angle) {

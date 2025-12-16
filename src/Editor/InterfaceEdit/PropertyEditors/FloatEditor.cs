@@ -5,6 +5,7 @@
 using System;
 using System.Reflection;
 using ImGuiNET;
+using LibreLancer.ImUI;
 
 namespace InterfaceEdit
 {
@@ -21,7 +22,7 @@ namespace InterfaceEdit
         {
             ImGui.Text(Property.Name);
             ImGui.NextColumn();
-            var enterPressed = ImGui.InputFloat($"##{Property.Name}", ref currentValue, 0.0f, 0f, "%.3f",
+            var enterPressed = ImGuiExt.InputFloatExpr($"##{Property.Name}", ref currentValue, "%.3f",
                 ImGuiInputTextFlags.EnterReturnsTrue);
             ImGui.NextColumn();
             if (enterPressed)

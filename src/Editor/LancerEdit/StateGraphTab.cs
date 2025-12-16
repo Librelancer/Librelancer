@@ -222,7 +222,7 @@ public class StateGraphTab : EditorTab
                         ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
                         ImGui.SetNextItemWidth(-1);
                         bool didEnter = false;
-                        ImGui.InputFloat("##edit", ref d, 0.00f, 0.0f, "%.2f");
+                        ImGuiExt.InputFloatExpr("##edit", ref d, "%.2f");
                         if(ImGui.IsItemDeactivatedAfterEdit())
                         {
                             didEnter = true;

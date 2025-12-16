@@ -153,7 +153,7 @@ namespace InterfaceEdit
             ImGui.ColorButton("##preview", current);
             ImGui.Text("Speed: ");
             ImGui.SameLine();
-            ImGui.InputFloat("##speed", ref clr.Animation.Speed, 0, 0);
+            ImGuiExt.InputFloatExpr("##speed", ref clr.Animation.Speed);
             ImGui.Text("Color 1");
             var v4 = (Vector4) clr.Animation.Color1;
             ImGui.BeginChild("##limiter", new Vector2(250, 235));
@@ -246,10 +246,10 @@ namespace InterfaceEdit
                 modelName.InputText("##Name", ImGuiInputTextFlags.None);
                 mdl.Name = modelName.GetText();
                 ImGui.Text($"Path: {mdl.Path}");
-                ImGui.InputFloat("Offset X", ref mdl.X);
-                ImGui.InputFloat("Offset Y", ref mdl.Y);
-                ImGui.InputFloat("Scale X", ref mdl.XScale);
-                ImGui.InputFloat("Scale Y", ref mdl.YScale);
+                ImGuiExt.InputFloatExpr("Offset X", ref mdl.X);
+                ImGuiExt.InputFloatExpr("Offset Y", ref mdl.Y);
+                ImGuiExt.InputFloatExpr("Scale X", ref mdl.XScale);
+                ImGuiExt.InputFloatExpr("Scale Y", ref mdl.YScale);
                 ImGui.Checkbox("XZ Plane", ref mdl.XZPlane);
                 DoViewport(mdl);
             }

@@ -177,7 +177,7 @@ public static class Controls
         ImGui.SameLine();
         ref float v = ref value();
         float oldCopy = v;
-        ImGui.InputFloat("##input", ref v, step, step_fast, format, flags);
+        ImGuiExt.InputFloatExpr("##input", ref v, format, flags);
         if (ImGui.IsItemActivated())
         {
             oldFloat = oldCopy;

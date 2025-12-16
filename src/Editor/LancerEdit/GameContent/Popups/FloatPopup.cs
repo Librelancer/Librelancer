@@ -24,7 +24,7 @@ public class FloatPopup : PopupWindow
     {
         float last = current;
         ImGui.PushItemWidth(150 * ImGuiHelper.Scale);
-        ImGui.InputFloat("##value",  ref current);
+        ImGuiExt.InputFloatExpr("##value",  ref current);
         if (current < min) current = min;
         ImGui.PopItemWidth();
         // ReSharper disable once CompareOfFloatsByEqualityOperator
