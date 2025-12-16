@@ -120,8 +120,9 @@ namespace LibreLancer.World.Components
                 (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
                 return false;
             if (CurrentCooldown > 0 && !fromServer) return false;
+            if (Parent.Parent.Flags.HasFlag(GameObjectFlags.Cloaked))
+                return false; // Cloaked ships can't fire weapons
             return OnFire(point, target, fromServer);
-
         }
     }
 }
