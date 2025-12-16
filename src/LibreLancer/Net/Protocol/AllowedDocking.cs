@@ -24,12 +24,12 @@ public class AllowedDocking
         else
         {
             message.PutVariableUInt32(0);
-            foreach (var e in TlExceptions)
-                message.Put(e);
         }
         if (TlExceptions is { Count: > 0 })
         {
             message.PutVariableUInt32((uint)DockExceptions.Count);
+            foreach (var e in TlExceptions)
+                message.Put(e);
         }
         else
         {
