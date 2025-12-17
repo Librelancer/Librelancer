@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.Dialogs;
-using LibreLancer.Exceptions;
 using LibreLancer.ImUI;
 
 namespace Launcher.Screens
