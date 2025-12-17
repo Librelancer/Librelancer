@@ -40,7 +40,14 @@ class NullGame : IGame
     public bool Focused => true;
     public string Title { get; set; }
     public Point MinimumWindowSize { get; set; }
+    
     public void SetVSync(bool vsync)
+    {
+    }
+    
+    public bool IsFullScreen { get; set; }
+    
+    public void SetFullScreen(bool fullscreen)
     {
     }
 
@@ -113,10 +120,6 @@ class NullGame : IGame
     }
 
     public void SetTextInputRect(Rectangle? rect)
-    {
-    }
-
-    public void ToggleFullScreen()
     {
     }
 

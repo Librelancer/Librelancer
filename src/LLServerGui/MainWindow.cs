@@ -19,7 +19,7 @@ namespace LLServer;
 
 public class MainWindow : Game
 {
-    public MainWindow() : base(600, 600, false, true)
+    public MainWindow() : base(600, 600, true)
     {
 
     }

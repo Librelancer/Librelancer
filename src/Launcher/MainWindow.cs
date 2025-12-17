@@ -17,7 +17,7 @@ namespace Launcher
     public class MainWindow : Game
     {
         ImGuiHelper imGui;
-        public MainWindow() : base(640, 350, false, true)
+        public MainWindow() : base(640, 350, true)
         {
 
         }
@@ -48,7 +48,12 @@ namespace Launcher
                     if (!string.IsNullOrEmpty(actualPath)) config.FreelancerPath=(actualPath);
                 }
             }
+
         }
+
+        bool fullscreen;
+
+
         protected override void Draw(double elapsed)
         {
             imGui.NewFrame(elapsed);

@@ -30,14 +30,14 @@ public class GameConfiguration
         return this;
     }
 
-    internal IGame GetGame(int width, int height, bool fullscreen, bool allowScreensaver)
+    internal IGame GetGame(int width, int height, bool allowScreensaver)
     {
         if (IsSDL)
         {
             if (SDL3.Supported)
-                return new SDL3Game(width, height, fullscreen, allowScreensaver);
+                return new SDL3Game(width, height, allowScreensaver);
             else
-                return new SDL2Game(width, height, fullscreen, allowScreensaver);
+                return new SDL2Game(width, height, allowScreensaver);
         }
         else
             return new NullGame() { OnTick = onTick, MaxIterations = maxIterations};

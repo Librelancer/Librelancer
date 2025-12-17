@@ -24,7 +24,6 @@ namespace LibreLancer
         int width;
         int height;
         double totalTime;
-        bool fullscreen;
         private bool allowScreensaver;
         bool running = false;
         string title = "LibreLancer";
@@ -52,7 +51,7 @@ namespace LibreLancer
             *((IntPtr*)(IntPtr)mimeTypes) = (IntPtr)arrayMimetypeNative;
         }
 
-        public unsafe SDL3Game(int w, int h, bool fullscreen, bool allowScreensaver)
+        public unsafe SDL3Game(int w, int h, bool allowScreensaver)
         {
             width = w;
             height = h;
@@ -284,6 +283,14 @@ namespace LibreLancer
         {
             isVsync = vsync;
         }
+        
+        public bool IsFullScreen { get; set; }
+
+        public void SetFullScreen(bool fullscreen)
+        {
+            SDL3.SDL_SetWindowFullscreen(windowptr, fullscreen);
+            IsFullScreen = fullscreen;
+        }
 
         Point minWindowSize = Point.Zero;
 
@@ -379,7 +386,7 @@ namespace LibreLancer
             var flags = SDL3.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL3.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                         SDL3.SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY |
                         hiddenFlag;
-            if (fullscreen)
+            if (IsFullScreen)
                 flags |= SDL3.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
             var sdlWin = SDL3.SDL_CreateWindow(Title, width, height, flags);
             if(Platform.RunningOS != OS.Windows)
@@ -639,7 +646,7 @@ namespace LibreLancer
                     _screenshot = false;
                 }
 
-                RenderContext.Backend.SwapWindow(sdlWin, isVsync, fullscreen);
+                RenderContext.Backend.SwapWindow(sdlWin, isVsync, IsFullScreen);
 
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));
@@ -658,15 +665,6 @@ namespace LibreLancer
             loop.OnCleanup();
             Platform.Shutdown();
             SDL3.SDL_Quit();
-        }
-
-        public void ToggleFullScreen()
-        {
-            if (fullscreen)
-                SDL3.SDL_SetWindowFullscreen(windowptr, false);
-            else
-                SDL3.SDL_SetWindowFullscreen(windowptr, true);
-            fullscreen = !fullscreen;
         }
 
         //TODO: Terrible Hack

@@ -9,6 +9,8 @@
         <RootNamespace>LLServer</RootNamespace>
         <!-- Required for sqlite debug -->
         <GenerateDependencyFile>true</GenerateDependencyFile>
+        <!-- App Icon Test - Jamez -->
+        <ApplicationIcon>..\Editor\LancerEdit\reactor.ico</ApplicationIcon>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

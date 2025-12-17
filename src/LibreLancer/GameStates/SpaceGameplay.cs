@@ -253,7 +253,6 @@ World Time: {12:F2}
             }
         }
 
-
         protected override void OnActionDown(InputAction obj)
         {
             if (!ui.KeyboardGrabbed)
@@ -270,7 +269,7 @@ World Time: {12:F2}
                         Game.Screenshots.TakeScreenshot();
                         break;
                     case InputAction.USER_FULLSCREEN:
-                        Game.ToggleFullScreen();
+                        Game.SetFullScreen(!Game.IsFullScreen);
                         break;
                     case InputAction.USER_REPAIR_HEALTH:
                         UseRepairKits();

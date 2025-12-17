@@ -22,6 +22,10 @@ namespace LibreLancer
         public float SfxVolume = 1.0f;
         [Entry("music_volume")]
         public float MusicVolume = 1.0f;
+        
+        [Entry("fullscreen")]
+        public bool FullScreen = true;
+        
         [Entry("vsync")]
         public bool VSync = true;
         [Entry("anisotropy")]
@@ -51,6 +55,9 @@ namespace LibreLancer
             writer.WriteLine($"master_volume = {Fmt(MasterVolume)}");
             writer.WriteLine($"sfx_volume = {Fmt(SfxVolume)}");
             writer.WriteLine($"music_volume = {Fmt(MusicVolume)}");
+            
+            writer.WriteLine($"fullscreen = {(FullScreen ? "true" : "false")}");
+            
             writer.WriteLine($"vsync = {(VSync ? "true" : "false")}");
             writer.WriteLine($"anisotropy = {Anisotropy}");
             writer.WriteLine($"msaa = {MSAA}");
@@ -68,6 +75,9 @@ namespace LibreLancer
             gs.MasterVolume = MasterVolume;
             gs.SfxVolume = SfxVolume;
             gs.MusicVolume = MusicVolume;
+            
+            gs.FullScreen = FullScreen;
+            
             gs.VSync = VSync;
             gs.Anisotropy = Anisotropy;
             gs.MSAA = MSAA;
