@@ -24,8 +24,6 @@ namespace LibreLancer
         {
             OnActionUp(action);
         }
-        
-        // public bool isFullScreen => Game.IsFullScreen;
 
         private void InputOnActionDown(InputAction action)
         {
