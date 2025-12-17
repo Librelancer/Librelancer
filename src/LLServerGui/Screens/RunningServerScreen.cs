@@ -37,10 +37,13 @@ public class RunningServerScreen : Screen
 
         if (!win.StartServer(config))
         {
+            win.StartupError = true;
             win.QueueUIThread(() =>
                 sm.SetScreen(new ServerConfigurationScreen(win, sm, pm, config))
             );
         }
+        win.StartupError = false;
+
     }
     public override void OnExit()
     {
