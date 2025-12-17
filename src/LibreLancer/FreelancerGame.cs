@@ -49,7 +49,7 @@ namespace LibreLancer
 			}
 		}
 		GameConfig _cfg;
-		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false, false)
+		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false)
 		{
 			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;
@@ -88,6 +88,7 @@ namespace LibreLancer
             });
 			//Move to stop _TSGetMainThread error on OSX
 			MinimumWindowSize = new Point(640, 480);
+			SetFullScreen(Config.Settings.FullScreen);
 			SetVSync(Config.Settings.VSync);
             Config.Settings.RenderContext = RenderContext;
             Config.Settings.Validate();

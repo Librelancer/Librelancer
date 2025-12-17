@@ -18,7 +18,7 @@ namespace LLServer;
 
 public class MainWindow : Game
 {
-    public MainWindow() : base(600, 600, false, true)
+    public MainWindow() : base(600, 600, false)
     {
 
     }
@@ -76,7 +76,16 @@ public class MainWindow : Game
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
         ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
-        config = GetConfigFromFileOrDefault();
+        config = GetConfigFromFileOrDefault();  
+        
+        // Thanks I hate it - Jamez
+        var iconPath = "/home/james/GitHub/Librelancer/src/Editor/LancerEdit/reactor_64.png";
+        var iconFile = new FileStream(iconPath, FileMode.Open);
+        var iconStream = LibreLancer.ImageLib.Generic.ImageFromStream(iconFile);
+        var iconBgr8 = Bgra8.BufferFromBytes(iconStream.Data);
+        
+        SetWindowIcon(iconStream.Width, iconStream.Height, iconBgr8);
+
         sm.SetScreen(
             new ServerConfigurationScreen(this, sm, pm, config)
         );

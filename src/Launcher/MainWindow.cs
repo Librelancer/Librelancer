@@ -18,7 +18,7 @@ namespace Launcher
     class MainWindow : Game
     {
         ImGuiHelper imGui;
-        public MainWindow() : base(640, 350, false, true)
+        public MainWindow() : base(640, 350, false)
         {
 
         }
@@ -47,6 +47,7 @@ namespace Launcher
                 freelancerFolder.SetText(config.FreelancerPath);
             resolutionX = config.BufferWidth;
             resolutionY = config.BufferHeight;
+            fullscreen = config.Settings.FullScreen;
             vsync = config.Settings.VSync;
             masterVolume = config.Settings.MasterVolume;
             musicVolume = config.Settings.MusicVolume;
@@ -54,6 +55,7 @@ namespace Launcher
         }
         int resolutionX = 640;
         int resolutionY = 480;
+        bool fullscreen;
         bool vsync;
         float masterVolume;
         float musicVolume;
@@ -112,6 +114,9 @@ namespace Launcher
             SoundSlider("Master Volume: ", ref masterVolume);
             SoundSlider("Music Volume: ", ref musicVolume);
             SoundSlider("Sfx Volume: ", ref sfxVolume);
+            
+            ImGui.Checkbox("FullScreen", ref fullscreen);
+            
             ImGui.Checkbox("VSync", ref vsync);
             // ImGui.Dummy(new Vector2(16));
             // ImGui.Dummy(new Vector2(1));
@@ -133,6 +138,7 @@ namespace Launcher
                 config.Settings.MasterVolume = masterVolume;
                 config.Settings.MusicVolume = musicVolume;
                 config.Settings.SfxVolume = sfxVolume;
+                config.Settings.FullScreen = fullscreen;
                 config.Settings.VSync = vsync;
                 config.BufferWidth = resolutionX;
                 config.BufferHeight = resolutionY;

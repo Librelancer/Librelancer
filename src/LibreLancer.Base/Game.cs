@@ -43,10 +43,10 @@ namespace LibreLancer
         public RenderContext RenderContext => impl.RenderContext;
         public string Renderer => impl.Renderer;
 
-        public Game(int w, int h, bool fullscreen, bool allowScreensaver, GameConfiguration configuration = null)
+        public Game(int w, int h, bool allowScreensaver, GameConfiguration configuration = null)
         {
             configuration ??= GameConfiguration.SDL();
-            impl = configuration.GetGame(w, h, fullscreen, allowScreensaver);
+            impl = configuration.GetGame(w, h, allowScreensaver);
             impl.OnScreenshotSave = (filename, width, height, data) =>
             {
                 if (ScreenshotSave != null)
@@ -176,6 +176,9 @@ namespace LibreLancer
 
         public void Screenshot(string filename) => impl.Screenshot(filename);
 
+        // public void SetFullScreen(bool fullscreen) => impl.SetFullScreen(fullscreen);
+        
+        public void SetFullScreen(bool fullscreen) => impl.SetFullScreen(fullscreen);
 
         public void SetVSync(bool vsync) => impl.SetVSync(vsync);
 
@@ -235,8 +238,6 @@ namespace LibreLancer
         protected virtual void OnDrop(string file)
         {
         }
-
-        public void ToggleFullScreen() => impl.ToggleFullScreen();
 
         //TODO: Terrible Hack
         public void Crashed()
