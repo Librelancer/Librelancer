@@ -1,0 +1,123 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Numerics;
+using System.Text;
+using ImGuiNET;
+using LibreLancer;
+using LibreLancer.Dialogs;
+using LibreLancer.Exceptions;
+using LibreLancer.ImUI;
+
+namespace Launcher.Screens
+{
+    public class OptionsScreen : Screen
+    {
+
+        readonly GameConfig config;
+        readonly MainWindow win;
+
+        public OptionsScreen(MainWindow win, GameConfig config, ScreenManager screens, PopupManager popups) : base(screens, popups)
+        {
+            this.config = config;
+            this.win = win;
+        }
+
+        static readonly float LABEL_WIDTH = 135f;
+        static readonly float BUTTON_WIDTH = 110f;
+
+        string widthBuffer;
+        string heightBuffer;
+
+        public override void OnEnter()
+        {
+
+        }
+        public override void OnExit()
+        {
+        }
+
+        public override void Draw(double elapsed)
+        {
+            ImGui.PushFont(ImGuiHelper.Roboto, 32);
+            ImGuiHelper.CenterText("Game Options");
+            ImGui.PopFont();
+
+            ImGui.Separator();
+            ImGui.NewLine();
+
+            ImGui.PushFont(ImGuiHelper.Roboto, 18);
+            ImGuiHelper.CenterText("Graphics Settings");
+            ImGui.PopFont();
+            ImGui.Separator();
+            ImGui.NewLine();
+
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Resolution"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.PushItemWidth(BUTTON_WIDTH * ImGuiHelper.Scale);
+            ref string widthInput = ref widthBuffer;
+            widthInput ??= config.BufferWidth.ToString();
+            if (ImGui.InputText("##resX", ref widthInput, 6, ImGuiInputTextFlags.CharsDecimal))
+            {
+                if (int.TryParse(widthInput, out int width))
+                {
+                    config.BufferWidth = MathHelper.Clamp(width, 600, 16384);
+                }
+            }
+
+            ImGui.SameLine();
+            ImGui.Text("x");
+            ImGui.SameLine();
+
+            ref string heightInput = ref heightBuffer;
+            heightInput ??= config.BufferHeight.ToString();
+            if (ImGui.InputText("##resY", ref heightInput, 6, ImGuiInputTextFlags.CharsDecimal))
+            {
+                if (int.TryParse(widthInput, out int width))
+                {
+                    config.BufferHeight = MathHelper.Clamp(width, 400, 16384);
+                }
+            }
+            ImGui.Checkbox("VSync", ref config.Settings.VSync);
+            ImGui.NewLine();
+            ImGui.PushFont(ImGuiHelper.Roboto, 18);
+            ImGui.Spacing();
+            ImGuiHelper.CenterText("Sound Settings");
+            ImGui.PopFont();
+            ImGui.Separator();
+            ImGui.NewLine();
+
+            SoundSlider("Master Volume", ref config.Settings.MasterVolume);
+            SoundSlider("Music Volume", ref config.Settings.MusicVolume);
+            SoundSlider("Sfx Volume", ref config.Settings.SfxVolume);
+            
+            ImGui.NewLine();
+            ImGui.NewLine();
+            ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (BUTTON_WIDTH / 2));
+            if (ImGui.Button("Back", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 45f))) LaunchClicked();
+
+        }
+
+
+
+        void LaunchClicked()
+        {
+            win.QueueUIThread(() =>
+            {
+                sm.SetScreen(
+                    new LauncherScreen(win, config, sm, pm)
+                );
+            });
+        }
+        static void SoundSlider(string text, ref float flt)
+        {
+            ImGui.PushID(text);
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(text);
+            ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.PushItemWidth(-1);
+            ImGui.SliderFloat("##slider", ref flt, 0, 1, "", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoInput);
+            ImGui.PopID();
+        }
+    }
+}
