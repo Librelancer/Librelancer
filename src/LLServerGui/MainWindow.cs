@@ -82,13 +82,13 @@ public class MainWindow : Game
         if (ServerGuiConfig.AutoStartServer)
         {
             sm.SetScreen(
-                new RunningServerScreen(this, sm, pm, serverConfig)
+                new RunningServerScreen(this, sm, pm, serverConfig, ServerGuiConfig)
             );
         }
         else
         {
             sm.SetScreen(
-                new ServerConfigurationScreen(this, sm, pm, serverConfig)
+                new ServerConfigurationScreen(this, sm, pm, serverConfig, ServerGuiConfig)
             );
         }
             
@@ -206,6 +206,7 @@ public class MainWindow : Game
                     try
                     {
                         File.WriteAllText(ServerGuiConfig.LastConfigPath, JSON.Serialize(serverConfig));
+                        File.WriteAllText(serverGuiConfigPath, JSON.Serialize(ServerGuiConfig));
                         pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
                     } catch (Exception ex)
                     {
@@ -218,7 +219,8 @@ public class MainWindow : Game
                         try
                         {
                             File.WriteAllText(path, JSON.Serialize(serverConfig));
-                            SaveServerGuiLastConfig(path);
+                            ServerGuiConfig.LastConfigPath = path;
+                            SaveServerGuiConfig();
                             pm.MessageBox("Save as", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
                         }
                         catch (Exception ex)
@@ -237,7 +239,8 @@ public class MainWindow : Game
                             {
                                 return;
                             }
-                            SaveServerGuiLastConfig(path);
+                            ServerGuiConfig.LastConfigPath = path;
+                            SaveServerGuiConfig();
 
                             var newConfig = GetServerConfigFromFileOrDefault(path);
                             serverConfig.CopyFrom(newConfig);
@@ -289,7 +292,7 @@ public class MainWindow : Game
                         QueueUIThread(() =>
                         {
                             sm.SetScreen(
-                                new RunningServerScreen(this, sm, pm, serverConfig)
+                                new RunningServerScreen(this, sm, pm, serverConfig, ServerGuiConfig)
                             );
                         });
                     });
@@ -308,7 +311,7 @@ public class MainWindow : Game
                                     this.QueueUIThread(() =>
                                     {
                                         StopServer();
-                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm, serverConfig));
+                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm, serverConfig, ServerGuiConfig));
                                         return;
                                     });
                                 }
@@ -320,9 +323,8 @@ public class MainWindow : Game
         }
     }
 
-    public void SaveServerGuiLastConfig(string path)
+    public void SaveServerGuiConfig()
     {
-        ServerGuiConfig.LastConfigPath = path;
         File.WriteAllText(serverGuiConfigPath, JSON.Serialize(ServerGuiConfig));
     }
 

@@ -11,11 +11,12 @@ public class ServerConfigurationScreen : Screen
 {
     readonly MainWindow win;
     readonly ServerConfig config;
-    public ServerConfigurationScreen(MainWindow win, ScreenManager sm, PopupManager pm, ServerConfig config) : base(sm, pm)
+    readonly LLServerGuiConfig guiConfig;
+    public ServerConfigurationScreen(MainWindow win, ScreenManager sm, PopupManager pm, ServerConfig config, LLServerGuiConfig guiConfig) : base(sm, pm)
     {
         this.win = win;
         this.config = config;
-
+        this.guiConfig = guiConfig;
     }
 
     static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
@@ -152,6 +153,10 @@ public class ServerConfigurationScreen : Screen
         ImGui.Text("Configuration File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.PushItemWidth(-1); ImGui.InputText("##configfile", ref win.ServerGuiConfig.LastConfigPath, 4096, ImGuiInputTextFlags.ReadOnly);
 
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Auto Start Server"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Checkbox("##autoStart", ref guiConfig.AutoStartServer);
+
         ImGui.NewLine();
         ImGui.Spacing();
         ImGui.Separator();
@@ -166,8 +171,10 @@ public class ServerConfigurationScreen : Screen
                     {
                         return;
                     }
-                    //save local config 
-                    win.SaveServerGuiLastConfig(filepath);
+                    //save local config
+
+                    guiConfig.LastConfigPath = filepath;
+                    win.SaveServerGuiConfig();
 
                     var newConfig = win.GetServerConfigFromFileOrDefault(filepath);
                     config.CopyFrom(newConfig);
@@ -208,7 +215,7 @@ public class ServerConfigurationScreen : Screen
         win.QueueUIThread(() =>
         {
             sm.SetScreen(
-                new RunningServerScreen(win, sm, pm, config)
+                new RunningServerScreen(win, sm, pm, config, guiConfig)
             );
         });
 

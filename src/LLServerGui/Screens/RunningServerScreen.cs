@@ -13,11 +13,13 @@ public class RunningServerScreen : Screen
 {
     readonly MainWindow win;
     readonly ServerConfig config;
-    public RunningServerScreen(MainWindow win, ScreenManager sm, PopupManager pm, ServerConfig config)
+    readonly LLServerGuiConfig guiConfig;
+    public RunningServerScreen(MainWindow win, ScreenManager sm, PopupManager pm, ServerConfig config, LLServerGuiConfig guiConfig)
         : base(sm, pm)
     {
         this.win = win;
         this.config = config;
+        this.guiConfig = guiConfig;
     }
 
     readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
@@ -39,7 +41,7 @@ public class RunningServerScreen : Screen
         {
             win.StartupError = true;
             win.QueueUIThread(() =>
-                sm.SetScreen(new ServerConfigurationScreen(win, sm, pm, config))
+                sm.SetScreen(new ServerConfigurationScreen(win, sm, pm, config, guiConfig))
             );
         }
         win.StartupError = false;
@@ -179,7 +181,7 @@ public class RunningServerScreen : Screen
                         win.QueueUIThread(() =>
                         {
                             sm.SetScreen(
-                                new ServerConfigurationScreen(win, sm, pm, config)
+                                new ServerConfigurationScreen(win, sm, pm, config, guiConfig)
                             );
                         });
                     }
