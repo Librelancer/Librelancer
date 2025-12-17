@@ -284,12 +284,12 @@ namespace LibreLancer
             isVsync = vsync;
         }
         
-        private bool isFullScreen = false;
+        public bool IsFullScreen { get; set; }
 
         public void SetFullScreen(bool fullscreen)
         {
             SDL3.SDL_SetWindowFullscreen(windowptr, fullscreen);
-            isFullScreen = fullscreen;
+            IsFullScreen = fullscreen;
         }
 
         Point minWindowSize = Point.Zero;
@@ -386,7 +386,7 @@ namespace LibreLancer
             var flags = SDL3.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL3.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                         SDL3.SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY |
                         hiddenFlag;
-            if (isFullScreen)
+            if (IsFullScreen)
                 flags |= SDL3.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
             var sdlWin = SDL3.SDL_CreateWindow(Title, width, height, flags);
             if(Platform.RunningOS != OS.Windows)
@@ -426,7 +426,7 @@ namespace LibreLancer
 
             Renderer = renderBackend.GetRenderer();
             FLLog.Info("Graphics", $"Renderer: {Renderer}");
-            //SetVSync(true); - don't think this should be here
+            SetVSync(true);
             //Init game state
             RenderContext = new RenderContext(renderBackend);
             FLLog.Info("Graphics", $"Max Anisotropy: {RenderContext.MaxAnisotropy}");
@@ -646,7 +646,7 @@ namespace LibreLancer
                     _screenshot = false;
                 }
 
-                RenderContext.Backend.SwapWindow(sdlWin, isVsync, isFullScreen);
+                RenderContext.Backend.SwapWindow(sdlWin, isVsync, IsFullScreen);
 
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));

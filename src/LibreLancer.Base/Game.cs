@@ -175,8 +175,8 @@ namespace LibreLancer
         public bool IsUiThread() => impl.IsUiThread();
 
         public void Screenshot(string filename) => impl.Screenshot(filename);
-
-        // public void SetFullScreen(bool fullscreen) => impl.SetFullScreen(fullscreen);
+        
+        public bool IsFullScreen => impl.IsFullScreen;
         
         public void SetFullScreen(bool fullscreen) => impl.SetFullScreen(fullscreen);
 

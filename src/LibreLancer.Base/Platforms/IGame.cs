@@ -19,13 +19,13 @@ interface IGame : IUIThread
     Point MinimumWindowSize { get; set; }
     void BringToFront();
     void SetFullScreen(bool fullscreen);
+    bool IsFullScreen { get; set; }
     void SetVSync(bool vsync);
     //Loop
     void Run(Game loop);
     void Exit();
     void Crashed();
     void Yield();
-
     bool IsUiThread();
     //Timing
     double TotalTime { get; }

@@ -45,6 +45,8 @@ class NullGame : IGame
     {
     }
     
+    public bool IsFullScreen { get; set; }
+    
     public void SetFullScreen(bool fullscreen)
     {
     }

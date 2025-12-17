@@ -24,13 +24,15 @@ namespace LibreLancer
         {
             OnActionUp(action);
         }
+        
+        public bool isFullScreen => Game.IsFullScreen;
 
         private void InputOnActionDown(InputAction action)
         {
             if(action == InputAction.USER_SCREEN_SHOT) 
                 Game.Screenshots.TakeScreenshot();
             else if(action == InputAction.USER_FULLSCREEN) 
-                Game.SetFullScreen(true);
+                Game.SetFullScreen(!isFullScreen);
             else
                 OnActionDown(action);
         }

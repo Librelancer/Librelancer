@@ -253,6 +253,7 @@ World Time: {12:F2}
             }
         }
 
+        public bool isFullScreen => Game.IsFullScreen;
 
         protected override void OnActionDown(InputAction obj)
         {
@@ -270,7 +271,7 @@ World Time: {12:F2}
                         Game.Screenshots.TakeScreenshot();
                         break;
                     case InputAction.USER_FULLSCREEN:
-                        Game.SetFullScreen(true);
+                        Game.SetFullScreen(!isFullScreen);
                         break;
                     case InputAction.USER_REPAIR_HEALTH:
                         UseRepairKits();

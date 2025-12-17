@@ -269,7 +269,7 @@ namespace LibreLancer
             isVsync = vsync;
         }
 
-        private bool isFullScreen = false;
+        public bool IsFullScreen { get; set; }
 
         public void SetFullScreen(bool fullscreen)
         {
@@ -277,7 +277,7 @@ namespace LibreLancer
                 SDL2.SDL_SetWindowFullscreen(windowptr, 0);
             else
                 SDL2.SDL_SetWindowFullscreen(windowptr, (int)SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-            isFullScreen = fullscreen;
+            IsFullScreen = fullscreen;
         }
 
         Point minWindowSize = Point.Zero;
@@ -372,7 +372,7 @@ namespace LibreLancer
             var hiddenFlag = loop.Splash ? SDL2.SDL_WindowFlags.SDL_WINDOW_HIDDEN :  0;
             var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                         SDL2.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | hiddenFlag;
-            if (isFullScreen)
+            if (IsFullScreen)
                 flags |= SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
             var sdlWin = SDL2.SDL_CreateWindow(
                              "LibreLancer",
@@ -634,7 +634,7 @@ namespace LibreLancer
                     TakeScreenshot();
                     _screenshot = false;
                 }
-                RenderContext.Backend.SwapWindow(sdlWin, isVsync, isFullScreen);
+                RenderContext.Backend.SwapWindow(sdlWin, isVsync, IsFullScreen);
 
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));

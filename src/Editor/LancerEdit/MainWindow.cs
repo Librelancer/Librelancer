@@ -70,7 +70,7 @@ namespace LancerEdit
 
         private const int LOG_SIZE = 128 * 1024; //128k UTF-16, 256k UTF-8
 
-        public MainWindow(GameConfiguration configuration = null) : base(800, 600, false, configuration)
+        public MainWindow(GameConfiguration configuration = null) : base(800, 600, true, configuration)
         {
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
             MaterialMap = new MaterialMap();
