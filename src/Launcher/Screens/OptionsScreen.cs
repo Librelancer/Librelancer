@@ -7,7 +7,6 @@ namespace Launcher.Screens
 {
     public class OptionsScreen : Screen
     {
-
         readonly GameConfig config;
         readonly MainWindow win;
 
@@ -19,6 +18,7 @@ namespace Launcher.Screens
 
         static readonly float LABEL_WIDTH = 135f;
         static readonly float BUTTON_WIDTH = 110f;
+        static readonly float BACK_BUTTON_HEIGHT = 45f;
 
         string widthBuffer;
         string heightBuffer;
@@ -36,16 +36,37 @@ namespace Launcher.Screens
             ImGui.PushFont(ImGuiHelper.Roboto, 32);
             ImGuiExt.CenterText("Game Options");
             ImGui.PopFont();
-
             ImGui.Separator();
             ImGui.NewLine();
 
-            ImGui.PushFont(ImGuiHelper.Roboto, 18);
-            ImGuiExt.CenterText("Graphics Settings");
-            ImGui.PopFont();
-            ImGui.Separator();
+            ImGui.BeginChild("#scroll", new Vector2(0, ImGui.GetContentRegionAvail().Y -(BACK_BUTTON_HEIGHT + ImGui.GetFrameHeightWithSpacing()*2)));
+            ImGui.CollapsingHeader("Graphics Settings", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Selected | ImGuiTreeNodeFlags.Bullet);
             ImGui.NewLine();
 
+            DrawGraphicsSettings();
+            ImGui.NewLine();
+
+            ImGui.CollapsingHeader("Sound Settings", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Selected | ImGuiTreeNodeFlags.Bullet);
+            ImGui.NewLine();
+
+            SoundSlider("Master Volume", ref config.Settings.MasterVolume);
+            SoundSlider("Music Volume", ref config.Settings.MusicVolume);
+            SoundSlider("Sfx Volume", ref config.Settings.SfxVolume);
+
+            ImGui.NewLine();
+            ImGui.EndChild();
+
+            ImGui.NewLine();
+            ImGui.Separator();
+            ImGui.NewLine();
+            ImGui.NewLine();
+            ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (BUTTON_WIDTH / 2));
+            if (ImGui.Button("Back", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, BACK_BUTTON_HEIGHT))) LaunchClicked();
+
+        }
+
+        private void DrawGraphicsSettings()
+        {
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Resolution"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.PushItemWidth(BUTTON_WIDTH * ImGuiHelper.Scale);
@@ -72,27 +93,13 @@ namespace Launcher.Screens
                     config.BufferHeight = MathHelper.Clamp(width, 400, 16384);
                 }
             }
-            ImGui.Checkbox("VSync", ref config.Settings.VSync);
-            ImGui.NewLine();
-            ImGui.PushFont(ImGuiHelper.Roboto, 18);
-            ImGui.Spacing();
-            ImGuiExt.CenterText("Sound Settings");
-            ImGui.PopFont();
-            ImGui.Separator();
-            ImGui.NewLine();
 
-            SoundSlider("Master Volume", ref config.Settings.MasterVolume);
-            SoundSlider("Music Volume", ref config.Settings.MusicVolume);
-            SoundSlider("Sfx Volume", ref config.Settings.SfxVolume);
-            
-            ImGui.NewLine();
-            ImGui.NewLine();
-            ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (BUTTON_WIDTH / 2));
-            if (ImGui.Button("Back", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 45f))) LaunchClicked();
+            ImGui.Text("Enable VSync"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.Checkbox("##vsync", ref config.Settings.VSync);
 
+            ImGui.Text("Use Fullscreen"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.Checkbox("##fullscreen", ref config.Settings.FullScreen);
         }
-
-
 
         void LaunchClicked()
         {
