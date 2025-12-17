@@ -47,7 +47,7 @@ public class ServerConfigurationScreen : Screen
     public override void Draw(double elapsed)
     {
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
-        ImGuiHelper.CenterText("Server Configuration");
+        ImGuiExt.CenterText("Server Configuration");
         ImGui.PopFont();
 
         ImGui.NewLine();
@@ -89,51 +89,44 @@ public class ServerConfigurationScreen : Screen
         ImGui.NewLine();
 
         // TODO: add this back in when lrpk support is ready
-        /*
-        ImGui.Text("Use .lprk File?"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Checkbox("##useLrpk", ref config.UseLrpkFile);
-        */
-        if (!config.UseLrpkFile)
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Freelancer Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        if (ImGui.Button("Choose Folder", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
         {
-            ImGui.AlignTextToFramePadding();
-            ImGui.Text("Freelancer Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-            if (ImGui.Button("Select Folder", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+            win.QueueUIThread(() =>
             {
-                win.QueueUIThread(() =>
+                FileDialog.ChooseFolder(folder =>
                 {
-                    FileDialog.ChooseFolder(folder =>
+                    if (folder == null || folder.Length == 0)
                     {
-                        if (folder == null || folder.Length == 0)
-                        {
-                            return;
-                        }
-                        config.FreelancerPath = folder;
+                        return;
+                    }
+                    config.FreelancerPath = folder;
 
-                    });
                 });
-            }
-            ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##flpath", ref config.FreelancerPath, 4096);
+            });
         }
-        else
+        /* LRPK UI - to be enabled at a later date
+        ImGui.SameLine();
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Freelancer .lrpk Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        if (ImGui.Button("Choose .lrpk", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
         {
-            ImGui.AlignTextToFramePadding();
-            ImGui.Text("Freelancer .lrpk Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-            if (ImGui.Button("Select File", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+            win.QueueUIThread(() =>
             {
-                win.QueueUIThread(() =>
+                FileDialog.Open(file =>
                 {
-                    FileDialog.Open(file =>
+                    if (file == null || file.Length == 0)
                     {
-                        if (file == null || file.Length == 0)
-                        {
-                            return;
-                        }
-                        config.LrpkFilePath = file;
-                    }, lrpkFilter);
-                });
-            }
-            ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##lrpkPath", ref config.LrpkFilePath, 4096);
+                        return;
+                    }
+                    config.FreelancerPath = file;
+                }, lrpkFilter);
+            });
         }
+        */
+        ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##flpath", ref config.FreelancerPath, 4096);
+
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Database File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
@@ -157,7 +150,7 @@ public class ServerConfigurationScreen : Screen
 
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Configuration File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.PushItemWidth(-1); ImGui.InputText("##configfile", ref win.ConfigPath, 4096, ImGuiInputTextFlags.ReadOnly);
+        ImGui.PushItemWidth(-1); ImGui.InputText("##configfile", ref win.ServerGuiConfig.LastConfigPath, 4096, ImGuiInputTextFlags.ReadOnly);
 
         ImGui.NewLine();
         ImGui.Spacing();
@@ -174,11 +167,9 @@ public class ServerConfigurationScreen : Screen
                         return;
                     }
                     //save local config 
-                    config.lastConfigPath = filepath;
-                    File.WriteAllText(win.ConfigPath, JSON.Serialize(config));
+                    win.SaveServerGuiLastConfig(filepath);
 
-                    win.ConfigPath = filepath;
-                    var newConfig = win.GetConfigFromFileOrDefault(filepath);
+                    var newConfig = win.GetServerConfigFromFileOrDefault(filepath);
                     config.CopyFrom(newConfig);
                 },
                 inputFilters);
@@ -201,7 +192,7 @@ public class ServerConfigurationScreen : Screen
         {
             ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
             ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
-            ImGuiHelper.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
+            ImGuiExt.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
             ImGui.EndChild();
         }
 
@@ -212,7 +203,7 @@ public class ServerConfigurationScreen : Screen
     void LaunchServer()
     {
 
-        File.WriteAllText(win.ConfigPath, JSON.Serialize(config));
+        File.WriteAllText(win.ServerGuiConfig.LastConfigPath, JSON.Serialize(config));
 
         win.QueueUIThread(() =>
         {

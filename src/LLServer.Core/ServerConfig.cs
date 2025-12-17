@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using LibreLancer.Net;
 
 namespace LLServer;
@@ -11,9 +10,6 @@ public class ServerConfig
     public string LoginUrl;
     public string DatabasePath = "";
     public int Port = LNetConst.DEFAULT_PORT;
-    public bool UseLrpkFile = false;
-    public string LrpkFilePath = "";
-    public string lastConfigPath = "";
 
     public void CopyFrom(ServerConfig other)
     {
@@ -23,8 +19,5 @@ public class ServerConfig
         LoginUrl = other.LoginUrl;
         DatabasePath = other.DatabasePath;
         Port = other.Port;
-        UseLrpkFile = other.UseLrpkFile;
-        LrpkFilePath= other.LrpkFilePath;
-        lastConfigPath = other.lastConfigPath;
     }
 }

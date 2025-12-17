@@ -41,10 +41,10 @@ namespace Launcher.Screens
         public override void Draw(double elapsed)
         {
             ImGui.PushFont(ImGuiHelper.Roboto, 32);
-            ImGuiHelper.CenterText("Librelancer");
+            ImGuiExt.CenterText("Librelancer");
             ImGui.PopFont();
             ImGui.PushFont(ImGuiHelper.Roboto, 14);
-            ImGuiHelper.CenterText(LAUNCHER_DESCRIPTION);
+            ImGuiExt.CenterText(LAUNCHER_DESCRIPTION);
             ImGui.PopFont();
 
             ImGui.NewLine();

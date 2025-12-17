@@ -34,14 +34,14 @@ namespace Launcher.Screens
         public override void Draw(double elapsed)
         {
             ImGui.PushFont(ImGuiHelper.Roboto, 32);
-            ImGuiHelper.CenterText("Game Options");
+            ImGuiExt.CenterText("Game Options");
             ImGui.PopFont();
 
             ImGui.Separator();
             ImGui.NewLine();
 
             ImGui.PushFont(ImGuiHelper.Roboto, 18);
-            ImGuiHelper.CenterText("Graphics Settings");
+            ImGuiExt.CenterText("Graphics Settings");
             ImGui.PopFont();
             ImGui.Separator();
             ImGui.NewLine();
@@ -76,7 +76,7 @@ namespace Launcher.Screens
             ImGui.NewLine();
             ImGui.PushFont(ImGuiHelper.Roboto, 18);
             ImGui.Spacing();
-            ImGuiHelper.CenterText("Sound Settings");
+            ImGuiExt.CenterText("Sound Settings");
             ImGui.PopFont();
             ImGui.Separator();
             ImGui.NewLine();
