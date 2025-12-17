@@ -18,13 +18,14 @@ interface IGame : IUIThread
     string Title { get; set; }
     Point MinimumWindowSize { get; set; }
     void BringToFront();
+    void SetFullScreen(bool fullscreen);
+    bool IsFullScreen { get; set; }
     void SetVSync(bool vsync);
     //Loop
     void Run(Game loop);
     void Exit();
     void Crashed();
     void Yield();
-
     bool IsUiThread();
     //Timing
     double TotalTime { get; }
@@ -40,7 +41,6 @@ interface IGame : IUIThread
     void EnableTextInput();
     void DisableTextInput();
     void SetTextInputRect(Rectangle? rect);
-    void ToggleFullScreen();
     ScreenshotSaveHandler OnScreenshotSave { get; set; }
     void Screenshot(string filename);
     //Clipboard

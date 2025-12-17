@@ -24,7 +24,6 @@ namespace LibreLancer
         int width;
         int height;
         double totalTime;
-        bool fullscreen;
         private bool allowScreensaver;
         bool running = false;
         string title = "LibreLancer";
@@ -44,7 +43,7 @@ namespace LibreLancer
             get; private set;
         }
 
-        public SDL2Game(int w, int h, bool fullscreen, bool allowScreensaver)
+        public SDL2Game(int w, int h, bool allowScreensaver)
         {
             width = w;
             height = h;
@@ -270,6 +269,17 @@ namespace LibreLancer
             isVsync = vsync;
         }
 
+        public bool IsFullScreen { get; set; }
+
+        public void SetFullScreen(bool fullscreen)
+        {
+            if (!fullscreen)
+                SDL2.SDL_SetWindowFullscreen(windowptr, 0);
+            else
+                SDL2.SDL_SetWindowFullscreen(windowptr, (int)SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
+            IsFullScreen = fullscreen;
+        }
+
         Point minWindowSize = Point.Zero;
 
         public Point MinimumWindowSize
@@ -362,7 +372,7 @@ namespace LibreLancer
             var hiddenFlag = loop.Splash ? SDL2.SDL_WindowFlags.SDL_WINDOW_HIDDEN :  0;
             var flags = SDL2.SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL2.SDL_WindowFlags.SDL_WINDOW_RESIZABLE |
                         SDL2.SDL_WindowFlags.SDL_WINDOW_ALLOW_HIGHDPI | hiddenFlag;
-            if (fullscreen)
+            if (IsFullScreen)
                 flags |= SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
             var sdlWin = SDL2.SDL_CreateWindow(
                              "LibreLancer",
@@ -405,7 +415,7 @@ namespace LibreLancer
 
             Renderer = renderBackend.GetRenderer();
             FLLog.Info("Graphics", $"Renderer: {Renderer}");
-            SetVSync(true);
+            //SetVSync(true); - bruh
             //Init game state
             RenderContext = new RenderContext(renderBackend);
             FLLog.Info("Graphics", $"Max Anisotropy: {RenderContext.MaxAnisotropy}");
@@ -624,7 +634,7 @@ namespace LibreLancer
                     TakeScreenshot();
                     _screenshot = false;
                 }
-                RenderContext.Backend.SwapWindow(sdlWin, isVsync, fullscreen);
+                RenderContext.Backend.SwapWindow(sdlWin, isVsync, IsFullScreen);
 
                 elapsed = timer.Elapsed.TotalSeconds - last;
                 renderFrequency = (1.0 / CalcAverageTick(elapsed));
@@ -642,14 +652,7 @@ namespace LibreLancer
             SDL2.SDL_Quit();
         }
 
-        public void ToggleFullScreen()
-        {
-            if (fullscreen)
-                SDL2.SDL_SetWindowFullscreen(windowptr, 0);
-            else
-                SDL2.SDL_SetWindowFullscreen(windowptr, (int)SDL2.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP);
-            fullscreen = !fullscreen;
-        }
+
 
         //TODO: Terrible Hack
         public void Crashed()
