@@ -88,9 +88,11 @@ public class ServerConfigurationScreen : Screen
         ImGui.Separator();
         ImGui.NewLine();
 
+        // TODO: add this back in when lrpk support is ready
+        /*
         ImGui.Text("Use .lprk File?"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.Checkbox("##useLrpk", ref config.UseLrpkFile);
-
+        */
         if (!config.UseLrpkFile)
         {
             ImGui.AlignTextToFramePadding();

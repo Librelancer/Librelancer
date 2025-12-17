@@ -54,15 +54,15 @@ public class RunningServerScreen : Screen
 
         if (win.Server == null || (!win.IsRunning && !isStarting))
         {
-            GuiHelpers.CenterText(config.ServerName, ERROR_TEXT_COLOUR);
+            ImGuiHelper.CenterText(config.ServerName, ERROR_TEXT_COLOUR);
         }
         else if (isStarting)
         {
-            GuiHelpers.CenterText(config.ServerName, WARN_TEXT_COLOUR);
+            ImGuiHelper.CenterText(config.ServerName, WARN_TEXT_COLOUR);
         }
         else
         {
-            GuiHelpers.CenterText(config.ServerName, SUCCESS_TEXT_COLOUR);
+            ImGuiHelper.CenterText(config.ServerName, SUCCESS_TEXT_COLOUR);
         }
 
         ImGui.PopFont();

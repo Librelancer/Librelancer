@@ -351,7 +351,7 @@ public class MainWindow : Game
 
         
 
-        if (ImGui.CollapsingHeader("Logs", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Logs"))
         {
             ImGui.InvisibleButton("##logs_resize", new Vector2(width, 4));
             if (ImGui.IsItemHovered() || ImGui.IsItemActive())
