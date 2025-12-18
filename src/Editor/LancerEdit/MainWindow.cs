@@ -16,6 +16,7 @@ using LancerEdit.GameContent;
 using LancerEdit.GameContent.MissionEditor;
 using LancerEdit.Shaders;
 using LancerEdit.Updater;
+using LancerEdit.Utf.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
@@ -541,10 +542,21 @@ namespace LancerEdit
             if (ImGui.BeginMenu("File"))
             {
                 var lst = ImGui.GetWindowDrawList();
-                if (Theme.IconMenuItem(Icons.File, "New", true))
+                if (ImGui.BeginMenu("New"))
                 {
-                    var t = new UtfTab(this, new EditableUtf(), "Untitled");
-                    AddTab(t);
+                    if (Theme.IconMenuItem(Icons.File, "Empty document", true))
+                    {
+                        var t = new UtfTab(this, new EditableUtf(), "Untitled");
+                        AddTab(t);
+                    }
+                    if (Theme.IconMenuItem(Icons.File, ".txm document", true))
+                    {
+                        Popups.OpenPopup(new NewTxmPopup(this, action => { 
+                            var t = new UtfTab(this, action.Value, action.Key);
+                            AddTab(t);
+                        }));
+                    }
+                    ImGui.EndMenu();
                 }
 
                 if (Theme.IconMenuItem(Icons.Open, "Open", true))
