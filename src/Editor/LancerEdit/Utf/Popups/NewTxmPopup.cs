@@ -140,7 +140,7 @@ namespace LancerEdit.Utf.Popups
                 {
                     // v[0] -> texWidth
                     // v[1] -> texHeight
-                    v[1] = texHeight;
+                    v[1] = gridSizeY;
 
                     if (ImGui.InputInt2("##gridSize", v, ImGuiInputTextFlags.CharsDecimal))
                     {
