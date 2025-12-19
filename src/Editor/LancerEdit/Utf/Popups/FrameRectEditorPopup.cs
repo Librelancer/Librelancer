@@ -20,7 +20,7 @@ namespace LancerEdit.Utf.Popups
 
             try
             {
-                frameRectsOriginal = ParseTexRects(selectedNode.Data);
+                frameRectsOriginal = ParseFrameRects(selectedNode.Data);
                 frameRectsUpdated = new List<FrameRect>(frameRectsOriginal);
             }
             catch (Exception ex)
@@ -383,15 +383,15 @@ namespace LancerEdit.Utf.Popups
             return rects;
         }
 
-        List<FrameRect> ParseTexRects(byte[] data)
+        List<FrameRect> ParseFrameRects(byte[] data)
         {
             const int SIZE = 20;
 
-            if (data == null || data.Length < SIZE)
+            if (data == null || data.Length <= 1)
                 throw new ArgumentException("No data on selected node");
 
             if (data.Length % SIZE != 0)
-                throw new ArgumentException("Invalid frame rect data length");
+                throw new ArgumentException("Invalid or currupt frame rect data");
 
             var rects = new List<FrameRect>(data.Length / SIZE);
 
