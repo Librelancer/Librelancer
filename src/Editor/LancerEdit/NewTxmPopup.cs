@@ -12,7 +12,7 @@ using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 
-namespace LancerEdit.Utf.Popups
+namespace LancerEdit
 {
     public class NewTxmPopup : PopupWindow
     {
@@ -92,7 +92,7 @@ namespace LancerEdit.Utf.Popups
             {
                 var utf = GenerateUtfFileTemplate();
 
-                var _filename = String.IsNullOrWhiteSpace(filename)
+                var _filename = string.IsNullOrWhiteSpace(filename)
                     ? "Untitled"
                     : filename;
 
@@ -172,7 +172,7 @@ namespace LancerEdit.Utf.Popups
                     ImGui.TableNextRow();
                     ImGui.PushID(i);
 
-                    bool selected = (selectedIndex == i);
+                    bool selected = selectedIndex == i;
 
                     // ---- Column 0: MIPS index ----
                     ImGui.TableSetColumnIndex(0);
@@ -472,7 +472,7 @@ namespace LancerEdit.Utf.Popups
             var rv = new EditableUtf();
             var textureLibraryNode = new LUtfNode() { Name = "Texture LIbrary", Children = new List<LUtfNode>() };
 
-            var _nodeName = String.IsNullOrWhiteSpace(nodeName)
+            var _nodeName = string.IsNullOrWhiteSpace(nodeName)
                     ? "UntitledAnim"
                     : nodeName;
 
