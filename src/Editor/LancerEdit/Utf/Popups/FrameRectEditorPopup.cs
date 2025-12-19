@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Data;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 using ImGuiNET;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
