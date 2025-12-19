@@ -15,10 +15,10 @@ namespace LancerEdit.Utf.Popups
 {
     public class NewTxmPopup : PopupWindow
     {
-        Action<KeyValuePair<String, EditableUtf>> action;
+        Action<(string name, EditableUtf utf)> action;
         readonly MainWindow win;
 
-        public NewTxmPopup(MainWindow win, Action<KeyValuePair<String, EditableUtf>> action)
+        public NewTxmPopup(MainWindow win, Action<(string name, EditableUtf utf)> action)
         {
             this.action = action;
             this.win = win;
@@ -26,7 +26,7 @@ namespace LancerEdit.Utf.Popups
 
         public override string Title { get; set; } = "Create new .txm Document";
         public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings;
-        public override Vector2 InitSize => new Vector2(450, 600);
+        public override Vector2 InitSize => new Vector2(450, 550);
 
         static readonly float LABEL_WIDTH = 125f;
         static readonly float BUTTON_WIDTH = 110f;
@@ -46,34 +46,20 @@ namespace LancerEdit.Utf.Popups
         int frameCount = 16;
         int fps = 30;
 
+        bool isError = false;
 
         public override void Draw(bool appearing)
         {
-            //TODO: Change to Center Text when merged
-            ImGui.PushFont(ImGuiHelper.Roboto, 20);
-            ImGui.Text("File Metadata");
-            ImGui.PopFont();
-            ImGui.Spacing();
-
+            if (!ImGui.CollapsingHeader("File Metadata", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Leaf))
+                return;
             DrawFileMetadataFields();
 
-            ImGui.Spacing();
-            ImGui.Separator();
-            ImGui.Spacing();
-
-            //TODO: Change to Center Text when merged
-            ImGui.PushFont(ImGuiHelper.Roboto, 20);
-            ImGui.Text("Import MIPS");
-            ImGui.PopFont();
-            ImGui.Spacing();
-
+            if (!ImGui.CollapsingHeader("Import MIPS", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Leaf))
+                return;
             DrawMipsFileSelect();
 
-            ImGui.Spacing();
-            ImGui.Separator();
-            ImGui.Spacing();
-            
-
+            if (!ImGui.CollapsingHeader("Animation And Frame Rect Settings", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Leaf))
+                return;
             DrawAnimFields();
 
             ImGui.Spacing();
@@ -83,29 +69,59 @@ namespace LancerEdit.Utf.Popups
 
             if (ImGui.Button("Create", new Vector2(BUTTON_WIDTH, 0)))
             {
-                //TODO
-                if (ValidateInput()){
-                    action = GenerateUtfFileTemplate();
-                }
+                var utf = GenerateUtfFileTemplate();
+
+                var _filename = String.IsNullOrWhiteSpace(filename)
+                    ? "Untitled"
+                    : filename;
+
+                action((_filename, utf));
+                ImGui.CloseCurrentPopup();
             }
         }
 
-        private Action<KeyValuePair<string, EditableUtf>> GenerateUtfFileTemplate()
+        private EditableUtf GenerateUtfFileTemplate()
         {
-            throw new NotImplementedException();
+            var rv = new EditableUtf();
+            var textureLibraryNode = new LUtfNode() { Name = "Texture LIbrary", Children = new List<LUtfNode>() };
+
+            var _nodeName = String.IsNullOrWhiteSpace(nodeName)
+                    ? "UntitledAnim"
+                    : nodeName;
+
+            var mipsNode = new LUtfNode() { Name = $"{_nodeName}_0", Children = new List<LUtfNode>() };
+            for (int i = lodPaths.Count() - 1; i >= 0; i--)
+            {
+                var node = new LUtfNode() { Name = $"MIP{i.ToString()}", Data = new byte[0] };
+                if (lodPaths[i] != null)
+                {
+                    // TODO Write import login - review how this is done in TextureImportPopup - we will
+                    // likely need to tie into this / probably calling for each file to import 
+                }
+                mipsNode.Children.Add(node);
+            }
+            textureLibraryNode.Children.Add(mipsNode);
+
+            var TexRectNode = new LUtfNode() { Name = $"{_nodeName}", Children = new List<LUtfNode>() };
+            TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "Texture count", textureCount));
+            TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "Frame count", frameCount));
+            TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "FPS", fps));
+
+            TexRectNode.Children.Add(new LUtfNode()
+            {
+                Name = "Frame rects",
+                Data = BuildFrameRects(texWidth, texHeight, gridSizeX, gridSizeY, frameCount)
+            });
+            textureLibraryNode.Children.Add(TexRectNode);
+
+            rv.Root.Children.Add(textureLibraryNode);
+
+            return rv;
+
         }
 
-        bool ValidateInput()
+        void DrawAnimFields()
         {
-            throw new NotImplementedException();
-        }
-
-        private void DrawAnimFields()
-        {
-            //TODO: Change to Center Text when merged
-            ImGui.PushFont(ImGuiHelper.Roboto, 20);
-            ImGui.Text("Animation and Frame Rect Settings");
-            ImGui.PopFont();
             ImGui.Spacing();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Texture size"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
@@ -149,41 +165,11 @@ namespace LancerEdit.Utf.Popups
                     }
                 }
             }
+            ImGui.Spacing();
         }
 
-        private void DrawMipsFileSelect()
+        void DrawMipsFileSelect()
         {
-            if (ImGui.Button("Select Files", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
-            {
-                win.QueueUIThread(() =>
-                {
-                    FileDialog.OpenMultiple(paths =>
-                    {
-                        if (paths == null || paths.Length == 0)
-                        {
-                            return;
-                        }
-
-                        foreach (var path in paths)
-                        {
-                            // Skip duplicates
-                            if (lodPaths.Contains(path))
-                                continue;
-
-                            // Find first empty slot
-                            for (int i = 0; i < MAX_LODS; i++)
-                            {
-                                if (lodPaths[i] == null)
-                                {
-                                    lodPaths[i] = path;
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                });
-
-            }
             ImGui.Spacing();
             if (ImGui.BeginTable(
                 "##LODTable",
@@ -232,7 +218,9 @@ namespace LancerEdit.Utf.Popups
                 "##buttons",
                 new Vector2(SQAURE_BUTTON_WIDTH + 16, 200),
                 ImGuiChildFlags.None);
+
             ImGui.BeginDisabled(selectedIndex < 0);
+
             if (ImGui.Button(Icons.ArrowUp.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
             {
                 if (selectedIndex > 0)
@@ -244,6 +232,8 @@ namespace LancerEdit.Utf.Popups
                 }
             }
 
+            ImGui.Spacing();
+
             if (ImGui.Button(Icons.ArrowDown.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
             {
                 if (selectedIndex < MAX_LODS - 1)
@@ -254,19 +244,58 @@ namespace LancerEdit.Utf.Popups
                     selectedIndex++;
                 }
             }
-            ImGui.Dummy(new Vector2(ImGui.GetFrameHeightWithSpacing()));
+            ImGui.EndDisabled();
+
+            ImGui.BeginDisabled(!lodPaths.Any(p => p == null));
+            ImGui.Dummy(new Vector2(ImGui.GetFrameHeightWithSpacing() * 2));
+            if (ImGui.Button(Icons.SquarePlus.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
+            {
+                win.QueueUIThread(() =>
+                {
+                    FileDialog.OpenMultiple(paths =>
+                    {
+                        if (paths == null || paths.Length == 0)
+                        {
+                            return;
+                        }
+
+                        foreach (var path in paths)
+                        {
+                            // Skip duplicates
+                            if (lodPaths.Contains(path))
+                                continue;
+
+                            // Find first empty slot
+                            for (int i = 0; i < MAX_LODS; i++)
+                            {
+                                if (lodPaths[i] == null)
+                                {
+                                    lodPaths[i] = path;
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+            ImGui.EndDisabled();
+
+            ImGui.Spacing();
+
+            ImGui.BeginDisabled(selectedIndex < 0);
             if (ImGui.Button(Icons.TrashAlt.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
             {
                 lodPaths[selectedIndex] = null;
                 selectedIndex = -1;
             }
-
             ImGui.EndDisabled();
             ImGui.EndChild();
+            ImGui.Spacing();
         }
 
-        private void DrawFileMetadataFields()
+        void DrawFileMetadataFields()
         {
+            ImGui.Spacing();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Filename"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
 
@@ -278,8 +307,53 @@ namespace LancerEdit.Utf.Popups
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Node name"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.PushItemWidth(-1);
-            ImGui.InputTextWithHint("##nodeName", "untitledAnim", ref nodeName, 4068);
+            ImGui.InputTextWithHint("##nodeName", "UntitledAnim", ref nodeName, 4068);
             ImGui.PopItemWidth();
+            ImGui.Spacing();
+        }
+
+        
+        byte[] BuildFrameRects(int texWidth, int texHeight, int gridSizeX, int gridSizeY, int frameCount)
+        {
+            byte[] data = new byte[frameCount * 20];
+
+            float cellU = 1f / gridSizeX;
+            float cellV = 1f / gridSizeY;
+
+            int frame = 0;
+
+            for (int y = 0; y < gridSizeY; y++)
+            {
+                for (int x = 0; x < gridSizeX; x++)
+                {
+                    if (frame >= frameCount)
+                        break;
+
+                    float u0 = x * cellU;
+                    float v0 = y * cellV;
+                    float u1 = u0 + cellU;
+                    float v1 = v0 + cellV;
+
+                    WriteFrameRect(
+                        data,
+                        frame * 20,
+                        u0, v0,
+                        u1, v1
+                    );
+
+                    frame++;
+                }
+            }
+
+            return data;
+        }
+        static void WriteFrameRect(Span<byte> buffer, int offset, float u0, float v0, float u1, float v1)
+        {
+            BitConverter.GetBytes(0u).CopyTo(buffer[offset..]);       // index
+            BitConverter.GetBytes(u0).CopyTo(buffer[(offset + 4)..]);
+            BitConverter.GetBytes(v0).CopyTo(buffer[(offset + 8)..]);
+            BitConverter.GetBytes(u1).CopyTo(buffer[(offset + 12)..]);
+            BitConverter.GetBytes(v1).CopyTo(buffer[(offset + 16)..]);
         }
     }
 }

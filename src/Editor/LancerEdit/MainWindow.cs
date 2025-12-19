@@ -552,7 +552,7 @@ namespace LancerEdit
                     if (Theme.IconMenuItem(Icons.File, ".txm document", true))
                     {
                         Popups.OpenPopup(new NewTxmPopup(this, action => { 
-                            var t = new UtfTab(this, action.Value, action.Key);
+                            var t = new UtfTab(this, action.utf, action.name);
                             AddTab(t);
                         }));
                     }
