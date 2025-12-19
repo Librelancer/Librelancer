@@ -213,6 +213,8 @@ namespace LancerEdit.Utf.Popups
                     (lodPaths[selectedIndex - 1], lodPaths[selectedIndex]) =
                         (lodPaths[selectedIndex], lodPaths[selectedIndex - 1]);
 
+                    (lodData[selectedIndex - 1], lodData[selectedIndex]) =
+                        (lodData[selectedIndex], lodData[selectedIndex - 1]);
                     selectedIndex--;
                 }
             }
@@ -225,6 +227,9 @@ namespace LancerEdit.Utf.Popups
                 {
                     (lodPaths[selectedIndex + 1], lodPaths[selectedIndex]) =
                         (lodPaths[selectedIndex], lodPaths[selectedIndex + 1]);
+
+                    (lodData[selectedIndex + 1], lodData[selectedIndex]) =
+                        (lodData[selectedIndex], lodData[selectedIndex + 1]);
 
                     selectedIndex++;
                 }
@@ -479,7 +484,11 @@ namespace LancerEdit.Utf.Popups
                 {
                     node.Data = lodData[i];
                 }
-                mipsNode.Children.Add(node);
+                else
+                {
+                    node.Data = new byte[0];
+                }
+                    mipsNode.Children.Add(node);
             }
             textureLibraryNode.Children.Add(mipsNode);
 
@@ -581,7 +590,6 @@ namespace LancerEdit.Utf.Popups
             showTextureImportPopup = true;
             requestOpenTextureImportPopup = true;
         }
-
         void AutoImportTexture(AnalyzedTexture src, int mip)
         {
             Task.Run(() =>
@@ -601,7 +609,6 @@ namespace LancerEdit.Utf.Popups
                 });
             });
         }
-
         void CloseTextureImportPopup()
         {
             showTextureImportPopup = false;
@@ -611,7 +618,6 @@ namespace LancerEdit.Utf.Popups
             importSource = null;
             importMipIndex = -1;
         }
-
         void TryStartNextImport()
         {
             // Already importing or popup open → wait
@@ -624,7 +630,6 @@ namespace LancerEdit.Utf.Popups
             var (path, mipIndex) = pendingImports.Dequeue();
             ImportTexture(path, mipIndex);
         }
-
         static string FormatName(DDSFormat fmt) => fmt switch
         {
             DDSFormat.Uncompressed => "Uncompressed",
