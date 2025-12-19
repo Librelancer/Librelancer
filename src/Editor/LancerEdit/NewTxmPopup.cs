@@ -27,7 +27,7 @@ namespace LancerEdit
 
         public override string Title { get; set; } = "Create new .txm Document";
         public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.Modal;
-        public override Vector2 InitSize => new Vector2(450, 550);
+        public override Vector2 InitSize => new Vector2(450, 555);
 
         static readonly float LABEL_WIDTH = 125f;
         static readonly float BUTTON_WIDTH = 110f;
@@ -88,6 +88,7 @@ namespace LancerEdit
             ImGui.Spacing();
             ImGui.Spacing();
 
+            ImGui.SetCursorPosX((ImGui.GetContentRegionAvail().X / 2) - (BUTTON_WIDTH / 2));
             if (ImGui.Button("Create", new Vector2(BUTTON_WIDTH, 0)))
             {
                 var utf = GenerateUtfFileTemplate();
