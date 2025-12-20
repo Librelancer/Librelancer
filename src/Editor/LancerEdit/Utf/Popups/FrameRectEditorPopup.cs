@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ImUI;
 
@@ -10,8 +12,6 @@ namespace LancerEdit.Utf.Popups
     public class FrameRectEditorPopup : PopupWindow
     {
         readonly LUtfNode selectedNode;
-
-
         public FrameRectEditorPopup(LUtfNode selectedNode)
         {
             this.selectedNode = selectedNode;
@@ -61,7 +61,6 @@ namespace LancerEdit.Utf.Popups
         List<FrameRect> frameRectsOriginal = new List<FrameRect>();
         List<FrameRect> frameRectsUpdated = new List<FrameRect>();
 
-
         public override void Draw(bool appearing)
         {
             if (generateRect)
@@ -110,10 +109,6 @@ namespace LancerEdit.Utf.Popups
                 ImGui.CloseCurrentPopup();
             }
             ImGui.Spacing();
-
-
-
-
         }
         void DrawGenerateOptions()
         {
@@ -325,7 +320,7 @@ namespace LancerEdit.Utf.Popups
             ImGui.SetCursorPosX(startX + padding);
             if (ImGui.Button("Apply", new Vector2(bottomBtnWidth, 0)))
             {
-                selectedNode.Data = SerializeFrameRects(frameRectsUpdated);
+                selectedNode.Data = UnsafeHelpers.CastArray(frameRectsUpdated.ToArray());
                 ImGui.CloseCurrentPopup();
             }
 
@@ -337,8 +332,7 @@ namespace LancerEdit.Utf.Popups
                 ImGui.CloseCurrentPopup();
             }
         }
-
-
+        [StructLayout(LayoutKind.Sequential)]
         struct FrameRect
         {
             public UInt32 Index;
@@ -379,7 +373,6 @@ namespace LancerEdit.Utf.Popups
 
             return rects;
         }
-
         List<FrameRect> ParseFrameRects(byte[] data)
         {
             const int SIZE = 20;
@@ -388,7 +381,7 @@ namespace LancerEdit.Utf.Popups
                 throw new ArgumentException("No data on selected node");
 
             if (data.Length % SIZE != 0)
-                throw new ArgumentException("Invalid or currupt frame rect data");
+                throw new ArgumentException("Invalid or corrupt frame rect data");
 
             var rects = new List<FrameRect>(data.Length / SIZE);
 
@@ -406,25 +399,5 @@ namespace LancerEdit.Utf.Popups
 
             return rects;
         }
-        byte[] SerializeFrameRects(List<FrameRect> rects)
-        {
-            const int SIZE = 20;
-            byte[] data = new byte[rects.Count * SIZE];
-
-            int offset = 0;
-            foreach (var r in rects)
-            {
-                BitConverter.GetBytes(r.Index).CopyTo(data, offset + 0);
-                BitConverter.GetBytes(r.U0).CopyTo(data, offset + 4);
-                BitConverter.GetBytes(r.V0).CopyTo(data, offset + 8);
-                BitConverter.GetBytes(r.U1).CopyTo(data, offset + 12);
-                BitConverter.GetBytes(r.V1).CopyTo(data, offset + 16);
-
-                offset += SIZE;
-            }
-
-            return data;
-        }
-
     }
 }
