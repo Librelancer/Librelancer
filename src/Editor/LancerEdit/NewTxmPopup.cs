@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
@@ -39,10 +39,8 @@ namespace LancerEdit
         List<LUtfNode> importedMipNodes;
         int selectedIndex = -1;
 
-        int texWidth = 256;
-        int texHeight = 256;
-        int gridSizeX = 4;
-        int gridSizeY = 4;
+        Point texSize = new Point(256, 256);
+        Point gridSize = new Point(4,4);
         int textureCount = 1;
         int frameCount = 16;
         int fps = 30;
@@ -107,21 +105,8 @@ namespace LancerEdit
             ImGui.Spacing();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Texture size"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-            unsafe
-            {
-                fixed (int* v = &texWidth)
-                {
-                    // v[0] -> texWidth
-                    // v[1] -> texHeight
-                    v[1] = texHeight;
+            ImGui.InputInt2("##texSize", ref texSize, ImGuiInputTextFlags.None);
 
-                    if (ImGui.InputInt2("##TextureSize", v, ImGuiInputTextFlags.CharsDecimal))
-                    {
-                        texWidth = v[0];
-                        texHeight = v[1];
-                    }
-                }
-            }
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Texture count"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.InputInt("##txtCount", ref textureCount, 1, 10, ImGuiInputTextFlags.CharsDecimal);
@@ -136,21 +121,8 @@ namespace LancerEdit
 
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Grid size"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-            unsafe
-            {
-                fixed (int* v = &gridSizeX)
-                {
-                    // v[0] -> texWidth
-                    // v[1] -> texHeight
-                    v[1] = gridSizeY;
-
-                    if (ImGui.InputInt2("##gridSize", v, ImGuiInputTextFlags.CharsDecimal))
-                    {
-                        texWidth = v[0];
-                        texHeight = v[1];
-                    }
-                }
-            }
+            ImGui.InputInt2("##gridSize", ref gridSize, ImGuiInputTextFlags.None);
+            
             ImGui.Spacing();
         }
         void DrawMipsFileSelect()
@@ -425,7 +397,7 @@ namespace LancerEdit
             TexRectNode.Children.Add(new LUtfNode()
             {
                 Name = "Frame rects",
-                Data = BuildFrameRects(texWidth, texHeight, gridSizeX, gridSizeY, frameCount)
+                Data = BuildFrameRects(texSize.X, texSize.Y, gridSize.X, gridSize.Y, frameCount)
             });
             textureLibraryNode.Children.Add(TexRectNode);
 

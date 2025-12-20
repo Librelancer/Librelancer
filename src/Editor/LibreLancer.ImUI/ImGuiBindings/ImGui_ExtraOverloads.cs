@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using LibreLancer;
 
 namespace ImGuiNET;
 
@@ -150,5 +151,11 @@ public static unsafe partial class ImGui
         byte* __bytes_name = stackalloc byte[128];
         using var __utf8z_name = new UTF8ZHelper(__bytes_name, 128, name);
         return ImGuiNative.ImGui_Begin(__utf8z_name.Pointer, null, flags) != 0;
+    }
+
+    public static void InputInt2(string label, ref Point v, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
+    {
+        fixed (Point* p = &v)
+            InputInt2(label, (int*)p, flags);
     }
 }
