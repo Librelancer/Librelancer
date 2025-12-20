@@ -122,15 +122,19 @@ namespace LancerEdit
                     }
                 }
             }
+            ImGui.AlignTextToFramePadding();
             ImGui.Text("Texture count"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.InputInt("##txtCount", ref textureCount, 1, 10, ImGuiInputTextFlags.CharsDecimal);
 
+            ImGui.AlignTextToFramePadding();
             ImGui.Text("Frame count"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.InputInt("##frameCount", ref frameCount, 1, 10, ImGuiInputTextFlags.CharsDecimal);
 
+            ImGui.AlignTextToFramePadding();
             ImGui.Text("FPS"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.InputInt("##FPS", ref fps, 1, 10, ImGuiInputTextFlags.CharsDecimal);
 
+            ImGui.AlignTextToFramePadding();
             ImGui.Text("Grid size"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             unsafe
             {
@@ -218,6 +222,7 @@ namespace LancerEdit
                 });
             }
             ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.AlignTextToFramePadding();
             ImGui.TextColored(isError ? ERROR_TEXT_COLOUR : SUCCESS_TEXT_COLOUR, errorText );
             ImGui.Spacing();
             ImGui.Spacing();
