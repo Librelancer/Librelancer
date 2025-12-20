@@ -34,8 +34,8 @@ namespace LancerEdit
         // TXM state
         string filename = "";
         string nodeName = "";
-        string[] lodPaths = new string[MAX_LODS];
-        byte[][] lodData = new byte[MAX_LODS][];
+        string lodPath = "";
+        List<LUtfNode> importedMipNodes;
         int selectedIndex = -1;
 
         int texWidth = 256;
@@ -88,13 +88,11 @@ namespace LancerEdit
             ImGui.SetCursorPosX((ImGui.GetContentRegionAvail().X / 2) - (BUTTON_WIDTH / 2));
             if (ImGui.Button("Create", new Vector2(BUTTON_WIDTH, 0)))
             {
+                if(importedMipNodes == null)
+                    return; // or disable button
+
                 var utf = GenerateUtfFileTemplate();
-
-                var _filename = string.IsNullOrWhiteSpace(filename)
-                    ? "Untitled"
-                    : filename;
-
-                action((_filename, utf));
+                action((filename, utf));
                 ImGui.CloseCurrentPopup();
             }
             if (requestOpenTextureImportPopup)
@@ -154,132 +152,67 @@ namespace LancerEdit
         void DrawMipsFileSelect()
         {
             ImGui.Spacing();
-            if (ImGui.BeginTable(
-                "##LODTable",
-                2,
-                ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg,
-                new Vector2(ImGui.GetContentRegionAvail().X - 40 * ImGuiHelper.Scale, 200)))
 
-            {
-                ImGui.TableSetupColumn("MIP", ImGuiTableColumnFlags.WidthFixed, 80);
-                ImGui.TableSetupColumn("File", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableHeadersRow();
-
-                for (int i = 0; i < MAX_LODS; i++)
-                {
-                    ImGui.TableNextRow();
-                    ImGui.PushID(i);
-
-                    bool selected = selectedIndex == i;
-
-                    // ---- Column 0: MIPS index ----
-                    ImGui.TableSetColumnIndex(0);
-                    if (ImGui.Selectable($"MIPS{i}", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.NoAutoClosePopups))
-                    {
-                        selectedIndex = i;
-                    }
-
-                    // ---- Column 1: filename or empty ----
-                    ImGui.TableSetColumnIndex(1);
-                    if (lodPaths[i] != null)
-                    {
-                        ImGui.Text(Path.GetFileName(lodPaths[i]));
-                    }
-                    else
-                    {
-                        ImGui.TextDisabled("<empty>");
-                    }
-
-                    ImGui.PopID();
-                }
-
-                ImGui.EndTable();
-            }
-
-            ImGui.SameLine();
-            ImGui.BeginChild(
-                "##buttons",
-                new Vector2(SQAURE_BUTTON_WIDTH + 16, 200),
-                ImGuiChildFlags.None);
-
-            ImGui.BeginDisabled(selectedIndex < 0);
-
-            if (ImGui.Button(Icons.ArrowUp.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
-            {
-                if (selectedIndex > 0)
-                {
-                    (lodPaths[selectedIndex - 1], lodPaths[selectedIndex]) =
-                        (lodPaths[selectedIndex], lodPaths[selectedIndex - 1]);
-
-                    (lodData[selectedIndex - 1], lodData[selectedIndex]) =
-                        (lodData[selectedIndex], lodData[selectedIndex - 1]);
-                    selectedIndex--;
-                }
-            }
-
-            ImGui.Spacing();
-
-            if (ImGui.Button(Icons.ArrowDown.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
-            {
-                if (selectedIndex < MAX_LODS - 1)
-                {
-                    (lodPaths[selectedIndex + 1], lodPaths[selectedIndex]) =
-                        (lodPaths[selectedIndex], lodPaths[selectedIndex + 1]);
-
-                    (lodData[selectedIndex + 1], lodData[selectedIndex]) =
-                        (lodData[selectedIndex], lodData[selectedIndex + 1]);
-
-                    selectedIndex++;
-                }
-            }
-            ImGui.EndDisabled();
-
-            ImGui.BeginDisabled(!lodPaths.Any(p => p == null));
-            ImGui.Dummy(new Vector2(ImGui.GetFrameHeightWithSpacing() * 2));
             if (ImGui.Button(Icons.SquarePlus.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
             {
-                FileDialog.OpenMultiple(paths =>
+                FileDialog.Open(path =>
                 {
-                    if (paths == null || paths.Length == 0)
+                    if (path == null || path.Length == 0)
                     {
                         return;
                     }
 
-                    foreach (var path in paths)
+                    if (Path.Exists(path))
                     {
-                        // Skip duplicates
-                        if (lodPaths.Contains(path))
-                            continue;
+                        lodPath = path;
 
-                        // Find first empty slot
-                        for (int i = 0; i < MAX_LODS; i++)
+                        importedMipNodes = null;
+
+                        var src = TextureImport.OpenBuffer(
+                            File.ReadAllBytes(path),
+                            win.RenderContext);
+
+                        if (src.IsError)
                         {
-                            if (lodPaths[i] == null)
-                            {
-                                if (Path.Exists(path))
-                                {
-                                    lodPaths[i] = path;
-                                    pendingImports.Enqueue((path, i));
-                                    TryStartNextImport();
-                                }
-                                break;
-                            }
+                            win.ResultMessages(src);
+                            return;
                         }
+
+                        // DDS = immediate import (no popup)
+                        if (src.Data.Type == TexLoadType.DDS)
+                        {
+                            importedMipNodes = new List<LUtfNode>
+    {
+        new LUtfNode
+        {
+            Name = "MIPS",
+            Data = File.ReadAllBytes(path)
+        }
+    };
+
+                            src.Data.Texture.Dispose();
+                            return;
+                        }
+
+                        // Non-DDS → open import popup
+                        importSource = src.Data;
+                        importTextureId = ImGuiHelper.RegisterTexture(importSource.Texture);
+
+                        importFlip = false;
+                        importMipmaps = MipmapMethod.Lanczos4;
+                        importFormat =
+                            importSource.OneBitAlpha ? DDSFormat.DXT1a :
+                            importSource.Type == TexLoadType.Alpha ? DDSFormat.DXT5 :
+                            DDSFormat.DXT1;
+
+                        showTextureImportPopup = true;
+                        requestOpenTextureImportPopup = true;
                     }
                 });
             }
-            ImGui.EndDisabled();
+
 
             ImGui.Spacing();
-
-            ImGui.BeginDisabled(selectedIndex < 0);
-            if (ImGui.Button(Icons.TrashAlt.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
-            {
-                lodPaths[selectedIndex] = null;
-                selectedIndex = -1;
-            }
-            ImGui.EndDisabled();
-            ImGui.EndChild();
             ImGui.Spacing();
         }
         void DrawFileMetadataFields()
@@ -410,7 +343,6 @@ namespace LancerEdit
 
             // -------- Flags --------
             ImGui.Checkbox("Flip Vertically", ref importFlip);
-            ImGui.Checkbox("Remember these settings", ref rememberImportSettings);
 
             ImGui.Spacing();
 
@@ -440,7 +372,12 @@ namespace LancerEdit
 
                     win.QueueUIThread(() =>
                     {
-                        lodData[importMipIndex] = data;
+
+                        importedMipNodes = ImportTextureAsNodes(
+    importSource,
+    importFormat,
+    importMipmaps,
+    importFlip);
                         hasCapturedImportSettings |= rememberImportSettings;
 
                         ImGuiHelper.DeregisterTexture(importSource.Texture);
@@ -448,7 +385,6 @@ namespace LancerEdit
 
                         CloseTextureImportPopup();
                         ImGui.CloseCurrentPopup();
-                        TryStartNextImport();
                     });
                 });
             }
@@ -461,7 +397,6 @@ namespace LancerEdit
 
                 CloseTextureImportPopup();
                 ImGui.CloseCurrentPopup();
-                TryStartNextImport();
             }
         }
 
@@ -475,19 +410,7 @@ namespace LancerEdit
                     : nodeName;
 
             var mipsNode = new LUtfNode() { Name = $"{_nodeName}_0", Children = new List<LUtfNode>() };
-            for (int i = MAX_LODS - 1; i >= 0; i--)
-            {
-                var node = new LUtfNode() { Name = $"MIP{i.ToString()}" };
-                if (lodData[i] != null)
-                {
-                    node.Data = lodData[i];
-                }
-                else
-                {
-                    node.Data = new byte[0];
-                }
-                    mipsNode.Children.Add(node);
-            }
+            mipsNode.Children = importedMipNodes;
             textureLibraryNode.Children.Add(mipsNode);
 
             var TexRectNode = new LUtfNode() { Name = $"{_nodeName}", Children = new List<LUtfNode>() };
@@ -550,63 +473,6 @@ namespace LancerEdit
             BitConverter.GetBytes(v1).CopyTo(buffer[(offset + 16)..]);
         }
 
-        void ImportTexture(string path, int mipIndex)
-        {
-            var src = TextureImport.OpenBuffer(File.ReadAllBytes(path), win.RenderContext);
-            if (src.IsError)
-            {
-                win.ResultMessages(src);
-                return;
-            }
-
-            if (src.Data.Type == TexLoadType.DDS)
-            {
-                src.Data.Texture.Dispose();
-                lodData[mipIndex] = File.ReadAllBytes(path);
-                return;
-            }
-
-            if (rememberImportSettings && hasCapturedImportSettings)
-            {
-                AutoImportTexture(src.Data, mipIndex);
-                return;
-            }
-
-            importSource = src.Data;
-            importMipIndex = mipIndex;
-
-            if (!hasCapturedImportSettings)
-            {
-                importFlip = false;
-                importMipmaps = MipmapMethod.Lanczos4;
-                importFormat = importSource.OneBitAlpha ? DDSFormat.DXT1a :
-                               importSource.Type == TexLoadType.Alpha ? DDSFormat.DXT5 :
-                               DDSFormat.DXT1;
-            }
-
-            importTextureId = ImGuiHelper.RegisterTexture(importSource.Texture);
-            showTextureImportPopup = true;
-            requestOpenTextureImportPopup = true;
-        }
-        void AutoImportTexture(AnalyzedTexture src, int mip)
-        {
-            Task.Run(() =>
-            {
-                var data = TextureImport.CreateDDS(
-                    src.Source,
-                    importFormat,
-                    importMipmaps,
-                    true,
-                    importFlip);
-
-                win.QueueUIThread(() =>
-                {
-                    lodData[mip] = data;
-                    src.Texture.Dispose();
-                    TryStartNextImport();
-                });
-            });
-        }
         void CloseTextureImportPopup()
         {
             showTextureImportPopup = false;
@@ -615,18 +481,6 @@ namespace LancerEdit
 
             importSource = null;
             importMipIndex = -1;
-        }
-        void TryStartNextImport()
-        {
-            // Already importing or popup open → wait
-            if (showTextureImportPopup || importProcessing)
-                return;
-
-            if (pendingImports.Count == 0)
-                return;
-
-            var (path, mipIndex) = pendingImports.Dequeue();
-            ImportTexture(path, mipIndex);
         }
         static string FormatName(DDSFormat fmt) => fmt switch
         {
@@ -640,6 +494,40 @@ namespace LancerEdit
             DDSFormat.RoughnessRGTC1 => "Roughness Map (G channel)",
             _ => fmt.ToString()
         };
+        static List<LUtfNode> ImportTextureAsNodes(
+            AnalyzedTexture source,
+            DDSFormat format,
+            MipmapMethod mipmaps,
+            bool flip)
+        {
+            if (mipmaps == MipmapMethod.None && format == DDSFormat.Uncompressed)
+            {
+                return new()
+                {
+                    new LUtfNode
+                    {
+                        Name = "MIP0",
+                        Data = TextureImport.TGANoMipmap(source.Source, flip)
+                    }
+                };
+            }
 
+            if (format == DDSFormat.Uncompressed)
+                return TextureImport.TGAMipmaps(source.Source, mipmaps, flip);
+
+            return new()
+            {
+                new LUtfNode
+                {
+                    Name = "MIPS",
+                    Data = TextureImport.CreateDDS(
+                        source.Source,
+                        format,
+                        mipmaps,
+                        true,
+                        flip)
+                }
+            };
+        }
     }
 }
