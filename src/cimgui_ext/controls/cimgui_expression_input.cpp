@@ -53,11 +53,11 @@ static bool igExtEvaluateExpression(const char *buf, double* result)
     return true;
 }
 
-static bool emptyOrWhiteSpace(const char *buf)
+static bool emptyOrWhiteSpace(const char *str)
 {
-    while(ImCharIsBlankA(*buf))
-        buf++;
-    return !buf;
+    while(ImCharIsBlankA(*str))
+        str++;
+    return *str == 0;
 }
 
 // LIBRELANCER: Patched ApplyFromText that allows for expression evaluation
@@ -89,15 +89,17 @@ static bool igExtDataTypeApplyFromText(const char* buf, ImGuiDataType data_type,
         format = type_info->ScanFmt;
     else
         format = ImParseFormatSanitizeForScanning(format, format_sanitized, IM_ARRAYSIZE(format_sanitized));    
-
-    ImSnprintf(format_with_n, 64, "%s%%n", format_sanitized);
+    // Add %n to the format so we can get the number of characters sscanf consumed
+    ImSnprintf(format_with_n, 64, "%s%%n", format);
     int sN = 0;
 
     // Small types need a 32-bit buffer to receive the result from scanf()
+    // emptyOrWhiteSpace to assert that there's no extra characters after the successful number.
     int v32 = 0;
-    if (sscanf(buf, format, type_info->Size >= 4 ? p_data : &v32, &sN) < 1 ||
+    if (sscanf(buf, format_with_n, type_info->Size >= 4 ? p_data : &v32, &sN) < 1 ||
         !emptyOrWhiteSpace(buf + sN))
     {
+        // expression parser, sscanf did not work
         double exprResult;
         if(igExtEvaluateExpression(buf, &exprResult))
         {
