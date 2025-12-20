@@ -134,7 +134,11 @@ public class NodeMissionTrigger : Node
                     tab.DeleteCondition(this, i);
                     i--;
                 }
-                cachedHeightsCond[i] = ImGui.GetCursorPosY() - sp;
+
+                if (i < cachedHeightsCond.Length && i >= 0)
+                {
+                    cachedHeightsCond[i] = ImGui.GetCursorPosY() - sp;
+                }
             }
         }
 
@@ -188,7 +192,11 @@ public class NodeMissionTrigger : Node
                     tab.DeleteAction(this, i);
                     i--;
                 }
-                cachedHeightsAct[i] = ImGui.GetCursorPosY() - sp;
+
+                if (i < cachedHeightsCond.Length && i >= 0)
+                {
+                    cachedHeightsAct[i] = ImGui.GetCursorPosY() - sp;
+                }
             }
 
             if (usePins)
