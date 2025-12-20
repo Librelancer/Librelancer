@@ -383,21 +383,7 @@ namespace LancerEdit.Utf.Popups
             if (data.Length % SIZE != 0)
                 throw new ArgumentException("Invalid or corrupt frame rect data");
 
-            var rects = new List<FrameRect>(data.Length / SIZE);
-
-            for (int offset = 0; offset < data.Length; offset += SIZE)
-            {
-                rects.Add(new FrameRect
-                {
-                    Index = BitConverter.ToUInt32(data, offset + 0),
-                    U0 = BitConverter.ToSingle(data, offset + 4),
-                    V0 = BitConverter.ToSingle(data, offset + 8),
-                    U1 = BitConverter.ToSingle(data, offset + 12),
-                    V1 = BitConverter.ToSingle(data, offset + 16),
-                });
-            }
-
-            return rects;
+            return new List<FrameRect>(MemoryMarshal.Cast<byte, FrameRect>(data).ToArray());
         }
     }
 }
