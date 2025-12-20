@@ -88,7 +88,7 @@ namespace LancerEdit
             ImGui.SetCursorPosX((ImGui.GetContentRegionAvail().X / 2) - (BUTTON_WIDTH / 2));
             if (ImGui.Button("Create", new Vector2(BUTTON_WIDTH, 0)))
             {
-                if(importedMipNodes == null)
+                if (importedMipNodes == null)
                     return; // or disable button
 
                 var utf = GenerateUtfFileTemplate();
