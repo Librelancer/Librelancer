@@ -27,49 +27,49 @@ namespace LibreLancer.ImUI
         Slow,
         Full
     }
-    public unsafe partial class ImGuiHelper
-    {
-        Game game;
-        //TODO: This is duplicated from Renderer2D
-        [StructLayout(LayoutKind.Sequential)]
-        struct Vertex2D : IVertexType
-        {
-            public Vector2 Position;
-            public Vector2 TexCoord;
-            public Color4 Color;
+	public unsafe partial class ImGuiHelper
+	{
+		Game game;
+		//TODO: This is duplicated from Renderer2D
+		[StructLayout(LayoutKind.Sequential)]
+		struct Vertex2D : IVertexType
+		{
+			public Vector2 Position;
+			public Vector2 TexCoord;
+			public Color4 Color;
 
-            public Vertex2D(Vector2 position, Vector2 texcoord, Color4 color)
-            {
-                Position = position;
-                TexCoord = texcoord;
-                Color = color;
-            }
+			public Vertex2D(Vector2 position, Vector2 texcoord, Color4 color)
+			{
+				Position = position;
+				TexCoord = texcoord;
+				Color = color;
+			}
 
-            public VertexDeclaration GetVertexDeclaration()
-            {
-                return new VertexDeclaration(
-                    sizeof(float) * 2 + sizeof(float) * 2 + sizeof(float) * 4,
-                    new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0),
-                    new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 2),
-                    new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 4)
-                );
-            }
-        }
+			public VertexDeclaration GetVertexDeclaration()
+			{
+				return new VertexDeclaration(
+					sizeof(float) * 2 + sizeof(float) * 2 + sizeof(float) * 4,
+					new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0),
+					new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 2),
+					new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 4)
+				);
+			}
+		}
 
-        Texture2D fontTexture;
-        const int FONT_TEXTURE_ID = 8;
-        public static ImTextureRef CheckerboardId;
-        Texture2D dot;
-        Texture2D checkerboard;
+		Texture2D fontTexture;
+		const int FONT_TEXTURE_ID = 8;
+		public static ImTextureRef CheckerboardId;
+		Texture2D dot;
+		Texture2D checkerboard;
 
         public static ImTextureRef FileId;
         private Texture2D file;
         public static ImTextureRef FolderId;
         private Texture2D folder;
 
-        IntPtr ttfPtr;
+		IntPtr ttfPtr;
         ImGuiContextPtr context;
-        public static ImFontPtr Roboto;
+		public static ImFontPtr Roboto;
         public static ImFontPtr SystemMonospace;
 
         public static float Scale { get; private set; } = 1;
@@ -108,22 +108,21 @@ namespace LibreLancer.ImUI
             }
         }
 
-        static (IntPtr Handle, int Length) GetManifestResource(string name)
-        {
-            using (var s = (UnmanagedMemoryStream)typeof(ImGuiHelper).Assembly.GetManifestResourceStream(name))
+        static (IntPtr Handle, int Length) GetManifestResource(string name) {
+            using(var s = (UnmanagedMemoryStream)typeof(ImGuiHelper).Assembly.GetManifestResourceStream(name))
             {
-                return new((IntPtr)s.PositionPointer, checked((int)s.Length));
+                return new ( (IntPtr)s.PositionPointer, checked((int)s.Length) );
             }
         }
 
-        public unsafe ImGuiHelper(Game game, float scale)
+		public unsafe ImGuiHelper(Game game, float scale)
         {
             UserScale = scale;
             Scale = game.DpiScale * scale;
-            this.game = game;
-            game.Keyboard.KeyDown += Keyboard_KeyDown;
-            game.Keyboard.KeyUp += Keyboard_KeyUp;
-            game.Keyboard.TextInput += Keyboard_TextInput;
+			this.game = game;
+			game.Keyboard.KeyDown += Keyboard_KeyDown;
+			game.Keyboard.KeyUp += Keyboard_KeyUp;
+			game.Keyboard.TextInput += Keyboard_TextInput;
             game.Mouse.MouseDown += MouseOnMouseDown;
             game.Mouse.MouseUp += MouseOnMouseUp;
             game.Mouse.MouseMove += MouseOnMouseMove;
@@ -185,9 +184,9 @@ namespace LibreLancer.ImUI
             SystemMonospace.AddRemapChar(ImGuiExt.ReplacementHash, '#');
 
             ImGuiShader.Compile(game.RenderContext);
-            dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
-            var c = new Bgra8[] { Bgra8.White };
-            dot.SetData(c);
+			dot = new Texture2D(game.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
+			var c = new Bgra8[] { Bgra8.White };
+			dot.SetData(c);
             Theme.Apply(Scale);
             //Required for clipboard function on non-Windows platforms
             utf8buf = Marshal.AllocHGlobal(8192);
@@ -201,7 +200,7 @@ namespace LibreLancer.ImUI
             platform.Renderer_TextureMaxHeight = 2048;
             ImGui.GetPlatformIO().Platform_LocaleDecimalPoint =
                 (ushort)CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-        }
+		}
 
         [UnmanagedCallersOnly]
         static void SetImeData(IntPtr userData, ImGuiViewport* viewport, ImGuiPlatformImeData* data)
@@ -211,7 +210,7 @@ namespace LibreLancer.ImUI
             instance.game.TextInputEnabled = (data->WantVisible || data->WantTextInput);
             if (data->WantVisible)
             {
-                instance.game.TextInputRect = new Rectangle(
+                instance.game.TextInputRect =new Rectangle(
                     (int)data->InputPos.X,
                     (int)data->InputPos.Y,
                     1,
@@ -308,41 +307,40 @@ namespace LibreLancer.ImUI
         static int utf8bufsize = 8192;
 
 
-        static Dictionary<ulong, Texture2D> textures = new Dictionary<ulong, Texture2D>();
-        static Dictionary<Texture2D, ulong> textureIds = new Dictionary<Texture2D, ulong>();
-        static ulong nextId = 32768;
+		static Dictionary<ulong, Texture2D> textures = new Dictionary<ulong, Texture2D>();
+		static Dictionary<Texture2D, ulong> textureIds = new Dictionary<Texture2D, ulong>();
+		static ulong nextId = 32768;
 
-        //Useful for crap like FBO resizing where textures will be thrown out a ton
-        static Queue<ulong> freeIds = new Queue<ulong>();
+		//Useful for crap like FBO resizing where textures will be thrown out a ton
+		static Queue<ulong> freeIds = new Queue<ulong>();
 
-        public static ImTextureRef RegisterTexture(Texture2D tex)
-        {
-            ulong id = 0;
-            if (!textureIds.TryGetValue(tex, out id))
-            {
-                if (freeIds.Count > 0)
-                    id = freeIds.Dequeue();
-                else
-                    id = nextId++;
-                textureIds.Add(tex, id);
-                textures.Add(id, tex);
-            }
+		public static ImTextureRef RegisterTexture(Texture2D tex)
+		{
+			ulong id = 0;
+			if (!textureIds.TryGetValue(tex, out id)) {
+				if (freeIds.Count > 0)
+					id = freeIds.Dequeue();
+				else
+					id = nextId++;
+				textureIds.Add(tex, id);
+				textures.Add(id, tex);
+			}
 
             return new ImTextureRef() { _TexID = id };
         }
 
-        public static ImTextureRef RenderGradient(Color4 top, Color4 bottom)
+        public static ImTextureRef RenderGradient( Color4 top, Color4 bottom)
         {
             return instance.RenderGradientInternal(top, bottom);
         }
 
         ImTextureRef RenderGradientInternal(Color4 top, Color4 bottom)
         {
-            var target = new RenderTarget2D(game.RenderContext, 128, 128);
+            var target = new RenderTarget2D(game.RenderContext, 128,128);
             var r2d = game.RenderContext.Renderer2D;
             game.RenderContext.RenderTarget = target;
             game.RenderContext.PushViewport(0, 0, 128, 128);
-            r2d.DrawVerticalGradient(new Rectangle(0, 0, 128, 128), top, bottom);
+            r2d.DrawVerticalGradient(new Rectangle(0,0,128,128), top, bottom);
             game.RenderContext.PopViewport();
             game.RenderContext.RenderTarget = null;
             toFree.Add(target);
@@ -383,22 +381,24 @@ namespace LibreLancer.ImUI
         private static bool animating = false;
         public static void AnimatingElement() => animating = true;
         public static void DeregisterTexture(Texture2D tex)
-        {
-            var id = textureIds[tex];
-            textureIds.Remove(tex);
-            textures.Remove(id);
-            freeIds.Enqueue(id);
-        }
+		{
+            if(textureIds.ContainsKey(tex)){
+			    var id = textureIds[tex];
+			    textureIds.Remove(tex);
+			    textures.Remove(id);
+			    freeIds.Enqueue(id);
+            }
+		}
 
-        void Keyboard_TextInput(string text)
-        {
+		void Keyboard_TextInput(string text)
+		{
             foreach (var c in text)
                 ImGui.GetIO().AddInputCharacterUTF16(c);
-        }
+		}
 
-        void Keyboard_KeyDown(KeyEventArgs e)
-        {
-            var io = ImGui.GetIO();
+		void Keyboard_KeyDown(KeyEventArgs e)
+		{
+			var io = ImGui.GetIO();
             UpdateKeyMods(e);
             if (keyMapping.TryGetValue(e.Key, out var imk))
                 io.AddKeyEvent(imk, true);
@@ -413,26 +413,26 @@ namespace LibreLancer.ImUI
             io.AddKeyEvent(ImGuiKey.ImGuiMod_Super, (e.Modifiers & KeyModifiers.GUI) != 0);
         }
 
-        void Keyboard_KeyUp(KeyEventArgs e)
-        {
-            var io = ImGui.GetIO();
+		void Keyboard_KeyUp(KeyEventArgs e)
+		{
+			var io = ImGui.GetIO();
             UpdateKeyMods(e);
             if (keyMapping.TryGetValue(e.Key, out var imk))
                 io.AddKeyEvent(imk, false);
         }
 
 
-        public void NewFrame(double elapsed)
+		public void NewFrame(double elapsed)
         {
             Scale = game.DpiScale * UserScale;
             Theme.Apply(Scale);
-            ImGuiIOPtr io = ImGui.GetIO();
+			ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new Vector2(game.Width, game.Height);
-            io.DisplayFramebufferScale = new Vector2(1, 1);
+			io.DisplayFramebufferScale = new Vector2(1, 1);
             const float MAX_DELTA = 0.1f;
-            io.DeltaTime = elapsed > MAX_DELTA ? MAX_DELTA : (float)elapsed;
-            //TODO: Mouse Wheel
-            ImGui.NewFrame();
+			io.DeltaTime = elapsed > MAX_DELTA ? MAX_DELTA : (float)elapsed;
+			//TODO: Mouse Wheel
+			ImGui.NewFrame();
             ImGuizmo.BeginFrame();
         }
 
@@ -455,20 +455,19 @@ namespace LibreLancer.ImUI
         }
 
         List<RenderTarget2D> toFree = new List<RenderTarget2D>();
-        public void Render(RenderContext rstate)
-        {
+		public void Render(RenderContext rstate)
+		{
             lastWantedKeyboard = ImGui.GetIO().WantCaptureKeyboard;
             FileModal();
             _modalDrawn = false;
-            ImGui.Render();
+			ImGui.Render();
             RenderImDrawData(ImGui.GetDrawData(), rstate);
-            foreach (var tex in toFree)
-            {
+            foreach (var tex in toFree) {
                 DeregisterTexture(tex.Texture);
                 tex.Dispose();
             }
             toFree = new List<RenderTarget2D>();
-        }
+		}
 
         [StructLayout(LayoutKind.Sequential)]
         struct DrawVert : IVertexType
@@ -531,12 +530,12 @@ namespace LibreLancer.ImUI
             }
         }
 
-        VertexBuffer vbo;
-        ElementBuffer ibo;
-        int vboSize = -1;
-        int iboSize = -1;
-        unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderContext rstate)
-        {
+		VertexBuffer vbo;
+		ElementBuffer ibo;
+		int vboSize = -1;
+		int iboSize = -1;
+		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderContext rstate)
+		{
             if (draw_data.Textures != null)
             {
                 ref ImPtrVector<ImTextureData> drawTextures = ref Unsafe.AsRef<ImPtrVector<ImTextureData>>(draw_data.Textures);
@@ -548,7 +547,7 @@ namespace LibreLancer.ImUI
                     }
                 }
             }
-            var io = ImGui.GetIO();
+			var io = ImGui.GetIO();
             //Set cursor
             if (SetCursor)
             {
@@ -583,36 +582,36 @@ namespace LibreLancer.ImUI
             //Render
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);
 
-            var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
+			var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
             var uiShader = ImGuiShader.Shader.Get(0);
             uiShader.SetUniformBlock(2, ref mat);
             rstate.Shader = uiShader;
-            rstate.Cull = false;
-            rstate.BlendMode = BlendMode.Normal;
-            rstate.DepthEnabled = false;
+			rstate.Cull = false;
+			rstate.BlendMode = BlendMode.Normal;
+			rstate.DepthEnabled = false;
             //
             Rectangle currScissor = new Rectangle(0, 0, game.Width, game.Height);
             rstate.PushScissor(currScissor);
             //
-            for (int n = 0; n < draw_data.CmdListsCount; n++)
-            {
+			for (int n = 0; n < draw_data.CmdListsCount; n++)
+			{
                 var cmd_list = draw_data.CmdLists[n];
-                var vtxCount = cmd_list->VtxBuffer.Size;
-                var idxCount = cmd_list->IdxBuffer.Size;
+				var vtxCount = cmd_list->VtxBuffer.Size;
+				var idxCount = cmd_list->IdxBuffer.Size;
                 if (vboSize < vtxCount || iboSize < idxCount)
-                {
-                    if (vbo != null) vbo.Dispose();
-                    if (ibo != null) ibo.Dispose();
-                    vboSize = Math.Max(vboSize, vtxCount);
-                    iboSize = Math.Max(iboSize, idxCount);
-                    vbo = new VertexBuffer(game.RenderContext, typeof(DrawVert), vboSize, true);
-                    ibo = new ElementBuffer(game.RenderContext, iboSize, true);
-                    vbo.SetElementBuffer(ibo);
-                }
+				{
+					if (vbo != null) vbo.Dispose();
+					if (ibo != null) ibo.Dispose();
+					vboSize = Math.Max(vboSize, vtxCount);
+					iboSize = Math.Max(iboSize, idxCount);
+					vbo = new VertexBuffer(game.RenderContext, typeof(DrawVert), vboSize, true);
+					ibo = new ElementBuffer(game.RenderContext, iboSize, true);
+					vbo.SetElementBuffer(ibo);
+				}
                 vbo.SetData(new ReadOnlySpan<DrawVert>((void*)cmd_list->VtxBuffer.Data, vtxCount));
                 ibo.SetData(new ReadOnlySpan<ushort>((void*)cmd_list->IdxBuffer.Data, idxCount));
-                for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-                {
+				for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+				{
                     ref var pcmd = ref cmd_list->CmdBuffer[cmd_i];
                     if (pcmd.UserCallback != null)
                     {
@@ -623,25 +622,24 @@ namespace LibreLancer.ImUI
                         continue;
                     rstate.Shader = uiShader;
                     var tid = pcmd.TexRef.GetTexID();
-                    if (textures.TryGetValue(tid, out var tex))
+					if (textures.TryGetValue(tid, out var tex))
                     {
-                        tex.BindTo(0);
-                    }
-                    else
-                    {
-                        dot.BindTo(0);
-                    }
+						tex.BindTo(0);
+					}
+					else
+					{
+						dot.BindTo(0);
+					}
 
                     var newScissor = new Rectangle((int)pcmd.ClipRect.X, (int)pcmd.ClipRect.Y,
                         (int)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
                         (int)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
-                    if (currScissor != newScissor)
-                    {
+                    if (currScissor != newScissor) {
                         rstate.ReplaceScissor(newScissor);
                         currScissor = newScissor;
                     }
                     vbo.Draw(PrimitiveTypes.TriangleList, (int)pcmd.VtxOffset, (int)pcmd.IdxOffset, (int)pcmd.ElemCount / 3);
-                }
+				}
             }
             rstate.PopScissor();
         }
