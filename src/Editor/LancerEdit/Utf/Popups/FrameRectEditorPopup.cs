@@ -82,16 +82,15 @@ namespace LancerEdit.Utf.Popups
         {
             ImGui.Spacing();
             ImGui.PushFont(ImGuiHelper.Roboto, 22);
-            CenterText(sourceDataErrorMessage, ERROR_TEXT_COLOUR);
+            ImGuiExt.CenterText(sourceDataErrorMessage, ERROR_TEXT_COLOUR);
             ImGui.PopFont();
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
-            CenterText("New frame rect data needs to be generated.");
-            CenterText("This will delete any existing data on the selected node.", WARN_TEXT_COLOUR);
-            //ImGui.Dummy(new Vector2(ImGui.GetFrameHeightWithSpacing()));
+            ImGuiExt.CenterText("New frame rect data needs to be generated.");
+            ImGuiExt.CenterText("This will delete any existing data on the selected node.", WARN_TEXT_COLOUR);
             ImGui.NewLine();
-            CenterText("Do you want to continue?");
+            ImGuiExt.CenterText("Do you want to continue?");
 
             ImGui.NewLine();
             ImGui.Separator();
@@ -426,22 +425,6 @@ namespace LancerEdit.Utf.Popups
 
             return data;
         }
-        static void CenterText(string text)
-        {
-            ImGui.Dummy(new Vector2(1));
-            var win = ImGui.GetWindowWidth();
-            var txt = ImGui.CalcTextSize(text).X;
-            ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f), 0));
-            ImGui.Text(text);
-        }
-        static void CenterText(string text, Vector4 colour)
-        {
-            ImGui.Dummy(new Vector2(1));
-            var win = ImGui.GetWindowWidth();
-            var txt = ImGui.CalcTextSize(text).X;
-            ImGui.SameLine(Math.Max((win / 2f) - (txt / 2f), 0));
-            ImGui.TextColored(colour, text);
 
-        }
     }
 }
