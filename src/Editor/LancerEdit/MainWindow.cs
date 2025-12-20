@@ -542,9 +542,9 @@ namespace LancerEdit
             if (ImGui.BeginMenu("File"))
             {
                 var lst = ImGui.GetWindowDrawList();
-                if (ImGui.BeginMenu("New"))
+                if (Theme.BeginIconMenu(Icons.File, "New"))
                 {
-                    if (Theme.IconMenuItem(Icons.File, "Empty document", true))
+                    if (ImGui.MenuItem("Empty Utf File", true))
                     {
                         var t = new UtfTab(this, new EditableUtf(), "Untitled");
                         AddTab(t);
