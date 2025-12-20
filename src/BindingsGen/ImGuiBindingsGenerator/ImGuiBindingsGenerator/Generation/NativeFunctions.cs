@@ -17,7 +17,15 @@ public static class NativeFunctions
             {
                 var f = pf.Function;
                 tw.AppendComments(f.Comments);
-                tw.AppendLine("[DllImport(\"cimgui\")]");
+                if (!string.IsNullOrWhiteSpace(pf.EntrypointName))
+                {
+                    tw.AppendLine($"[DllImport(\"cimgui\", EntryPoint=\"{pf.EntrypointName}\")]");
+
+                }
+                else
+                {
+                    tw.AppendLine("[DllImport(\"cimgui\")]");
+                }
                 tw.Append("public static extern ");
                 var context = string.IsNullOrWhiteSpace(f.OriginalClass)
                     ? f.Name
@@ -42,7 +50,7 @@ public static class NativeFunctions
                 tw.AppendLine(");").AppendLine();
             }
         }
-        
+
         File.WriteAllText(Path.Combine(outputDir, $"ImGuiNative.cs"), tw.ToString());
     }
 }

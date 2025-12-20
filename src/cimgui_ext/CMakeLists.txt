@@ -19,6 +19,7 @@ add_library(cimgui SHARED
     imgui-node-editor/imgui_node_editor.cpp
     imgui-node-editor/cimgui_node_editor.cpp
     controls/cimgui_dock.cpp
+    controls/cimgui_expression_input.cpp
     controls/cimgui_guizmo.cpp
     controls/cimgui_memory_editor.cpp
     controls/cimgui_spinner.cpp

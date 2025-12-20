@@ -1059,38 +1059,35 @@ public static unsafe class ImGuiNative
     [DllImport("cimgui")]
     public static extern byte ImGui_InputTextWithHint(byte* label, byte* hint, IntPtr buf, nint buf_size, ImGuiInputTextFlags flags, delegate* unmanaged<ImGuiInputTextCallbackData*, int> callback, IntPtr user_data);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputFloat")]
     public static extern byte ImGui_InputFloat(byte* label, float* v, float step, float step_fast, byte* format, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputFloat2")]
     public static extern byte ImGui_InputFloat2(byte* label, float* v, byte* format, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputFloat3")]
     public static extern byte ImGui_InputFloat3(byte* label, float* v, byte* format, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputFloat4")]
     public static extern byte ImGui_InputFloat4(byte* label, float* v, byte* format, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputInt")]
     public static extern byte ImGui_InputInt(byte* label, int* v, int step, int step_fast, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputInt2")]
     public static extern byte ImGui_InputInt2(byte* label, int* v, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputInt3")]
     public static extern byte ImGui_InputInt3(byte* label, int* v, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputInt4")]
     public static extern byte ImGui_InputInt4(byte* label, int* v, ImGuiInputTextFlags flags);
 
-    [DllImport("cimgui")]
+    [DllImport("cimgui", EntryPoint="igExtInputDouble")]
     public static extern byte ImGui_InputDouble(byte* label, double* v, double step, double step_fast, byte* format, ImGuiInputTextFlags flags);
 
     [DllImport("cimgui")]
     public static extern byte ImGui_InputScalar(byte* label, ImGuiDataType data_type, IntPtr p_data, IntPtr p_step, IntPtr p_step_fast, byte* format, ImGuiInputTextFlags flags);
-
-    [DllImport("cimgui")]
-    public static extern byte ImGui_InputScalarN(byte* label, ImGuiDataType data_type, IntPtr p_data, int components, IntPtr p_step, IntPtr p_step_fast, byte* format, ImGuiInputTextFlags flags);
 
     /// <summary>
     /// <para>Widgets: Color Editor/Picker (tip: the ColorEdit* functions have a little color square that can be left-clicked to open a picker, and right-clicked to open an option menu.)</para>

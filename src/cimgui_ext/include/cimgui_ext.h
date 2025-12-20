@@ -47,6 +47,17 @@ CIMGUI_API memoryedit_t igExtMemoryEditInit();
 CIMGUI_API void igExtMemoryEditDrawContents(memoryedit_t memedit, void *mem_data_void_ptr, size_t mem_size, size_t base_display_addr);
 CIMGUI_API void igExtMemoryEditFree(memoryedit_t memedit);
 
+//
+CIMGUI_API int igExtInputFloat(const char* label, float* v, float step, float step_fast, const char* format, int flags);
+CIMGUI_API int igExtInputFloat2(const char* label, float v[2], const char* format, int flags);
+CIMGUI_API int igExtInputFloat3(const char* label, float v[3], const char* format, int flags);
+CIMGUI_API int igExtInputFloat4(const char* label, float v[4], const char* format, int flags);
+CIMGUI_API int igExtInputInt(const char* label, int* v, int step, int step_fast, int flags);
+CIMGUI_API int igExtInputInt2(const char* label, int v[2], int flags);
+CIMGUI_API int igExtInputInt3(const char* label, int v[3], int flags);
+CIMGUI_API int igExtInputInt4(const char* label, int v[4], int flags);
+CIMGUI_API int igExtInputDouble(const char* label, double* v, double step, double step_fast, const char* format, int flags);
+
 //text editor
 typedef void *texteditor_t;
 typedef enum texteditor_mode {

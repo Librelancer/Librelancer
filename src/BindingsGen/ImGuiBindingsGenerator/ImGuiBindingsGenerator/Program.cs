@@ -37,7 +37,7 @@ types.RegisterAlias("size_t", "nint");
 
 foreach (var replacement in definitions.Replacements)
 {
-    types.RegisterAlias(replacement.cpp, replacement.cs);
+    types.RegisterAlias(replacement.Cpp, replacement.Cs);
 }
 
 Directory.CreateDirectory(OutputDir);

@@ -1785,14 +1785,6 @@ public static unsafe partial class ImGui
         using var __utf8z_format = new UTF8ZHelper(__bytes_format, 128, format);
         return ImGuiNative.ImGui_InputScalar(__utf8z_label.Pointer, data_type, p_data, p_step, p_step_fast, __utf8z_format.Pointer, flags) != 0;
     }
-    public static bool InputScalarN(string label, ImGuiDataType data_type, IntPtr p_data, int components, IntPtr p_step = 0, IntPtr p_step_fast = 0, string format = null, ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0)
-    {
-        byte* __bytes_label = stackalloc byte[128];
-        using var __utf8z_label = new UTF8ZHelper(__bytes_label, 128, label);
-        byte* __bytes_format = stackalloc byte[128];
-        using var __utf8z_format = new UTF8ZHelper(__bytes_format, 128, format);
-        return ImGuiNative.ImGui_InputScalarN(__utf8z_label.Pointer, data_type, p_data, components, p_step, p_step_fast, __utf8z_format.Pointer, flags) != 0;
-    }
     /// <summary>
     /// <para>Widgets: Color Editor/Picker (tip: the ColorEdit* functions have a little color square that can be left-clicked to open a picker, and right-clicked to open an option menu.)</para>
     /// <para>- Note that in C++ a 'float v[X]' function argument is the _same_ as 'float* v', the array syntax is just a way to document the number of elements that are expected to be accessible.</para>

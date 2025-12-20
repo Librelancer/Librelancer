@@ -15,5 +15,19 @@
   ],
   "manual_wrappers": [
     "ImDrawList_AddCallback"
+  ],
+  "skip": [
+    "ImGui_InputScalarN"
+  ],
+  "redirects": [
+    { "old": "ImGui_InputInt", "new": "igExtInputInt" },
+    { "old": "ImGui_InputInt2", "new": "igExtInputInt2" },
+    { "old": "ImGui_InputInt3", "new": "igExtInputInt3" },
+    { "old": "ImGui_InputInt4", "new": "igExtInputInt4" },
+    { "old": "ImGui_InputFloat", "new": "igExtInputFloat" },
+    { "old": "ImGui_InputFloat2", "new": "igExtInputFloat2" },
+    { "old": "ImGui_InputFloat3", "new": "igExtInputFloat3" },
+    { "old": "ImGui_InputFloat4", "new": "igExtInputFloat4" },
+    { "old":  "ImGui_InputDouble", "new":  "igExtInputDouble" }
   ]
 }

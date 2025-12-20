@@ -3,6 +3,7 @@ namespace ImGuiBindingsGenerator;
 public class ProcessedFunction
 {
     public string? RemappedName { get; set; }
+    public string? EntrypointName { get; set; }
     public FunctionItem Function { get; init; }
 
     public bool SkipWrapping { get; set; }
@@ -50,6 +51,14 @@ public class ProcessedDefinitions
         }
         Defines.AddDefines(json.Defines);
 
+        Dictionary<string, string> redirects = new();
+        foreach (var r in extraDefinitions.Redirects)
+            redirects[r.Old] = r.New;
+
+        HashSet<string> skips = new();
+        foreach (var s in extraDefinitions.Skip)
+            skips.Add(s);
+
         foreach (var cppEnum in json.Enums)
         {
             if (ShouldSkip(Defines, cppEnum.Conditionals))
@@ -77,13 +86,20 @@ public class ProcessedDefinitions
 
         foreach (var cppFunction in json.Functions)
         {
-            if (ShouldSkipFunction(Defines, cppFunction, out var reason))
+            if (ShouldSkipFunction(Defines, skips, cppFunction, out var reason))
             {
                 Console.WriteLine($"[Exclude] F: {cppFunction.Name} ({reason})");
                 continue;
             }
 
-            Functions.Add(new(cppFunction));
+            var processed = new ProcessedFunction(cppFunction);
+
+            if (redirects.TryGetValue(cppFunction.Name, out var ep))
+            {
+                processed.EntrypointName = ep;
+            }
+
+            Functions.Add(processed);
         }
 
         // Unformatted replace original
@@ -143,7 +159,7 @@ public class ProcessedDefinitions
 
 
 
-        string[] skipStruct = extraDefinitions.Replacements.Select(x => x.cpp).ToArray();
+        string[] skipStruct = extraDefinitions.Replacements.Select(x => x.Cpp).ToArray();
 
         foreach (var cppStruct in json.Structs)
         {
@@ -192,7 +208,7 @@ public class ProcessedDefinitions
         return !defines.EvalConditionals(conditionals);
     }
 
-    static bool ShouldSkipFunction(ImGuiDefines defines, FunctionItem function, out string reason)
+    static bool ShouldSkipFunction(ImGuiDefines defines, HashSet<string> skips, FunctionItem function, out string reason)
     {
         reason = "";
         if (ShouldSkip(defines, function.Conditionals))
@@ -204,6 +220,12 @@ public class ProcessedDefinitions
         if (function.IsImstrHelper || function.IsDefaultArgumentHelper)
         {
             reason = "DefaultHelper";
+            return true;
+        }
+
+        if (skips.Contains(function.Name))
+        {
+            reason = "Manual Skip";
             return true;
         }
 
