@@ -304,15 +304,6 @@ namespace LancerEdit
                     ImGui.Selectable(FormatName(DDSFormat.DXT5), importFormat == DDSFormat.DXT5))
                     importFormat = DDSFormat.DXT5;
 
-                if (ImGui.Selectable(FormatName(DDSFormat.RGTC2), importFormat == DDSFormat.RGTC2))
-                    importFormat = DDSFormat.RGTC2;
-
-                if (ImGui.Selectable(FormatName(DDSFormat.MetallicRGTC1), importFormat == DDSFormat.MetallicRGTC1))
-                    importFormat = DDSFormat.MetallicRGTC1;
-
-                if (ImGui.Selectable(FormatName(DDSFormat.RoughnessRGTC1), importFormat == DDSFormat.RoughnessRGTC1))
-                    importFormat = DDSFormat.RoughnessRGTC1;
-
                 ImGui.EndCombo();
             }
 
