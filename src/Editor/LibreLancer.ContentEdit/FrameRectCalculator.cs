@@ -7,17 +7,17 @@ namespace LibreLancer.ContentEdit
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct FrameRect
-        {
-            public UInt32 Index;
-            public float U0;
-            public float V0;
-            public float U1;
-            public float V1;
-        }
+    {
+        public UInt32 Index;
+        public float U0;
+        public float V0;
+        public float U1;
+        public float V1;
+    }
     public static class FrameRectCalculator
     {
-        
-        public static List<FrameRect> GenerateFrameRects(int gridSizeX, int gridSizeY, int frameCount,uint textureIndex = 0)
+
+        public static List<FrameRect> GenerateFrameRects(int gridSizeX, int gridSizeY, int frameCount, uint textureIndex = 0)
         {
             var rects = new List<FrameRect>(frameCount);
 
