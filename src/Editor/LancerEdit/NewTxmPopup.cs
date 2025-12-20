@@ -182,14 +182,13 @@ namespace LancerEdit
                         if (src.Data.Type == TexLoadType.DDS)
                         {
                             importedMipNodes = new List<LUtfNode>
-    {
-        new LUtfNode
-        {
-            Name = "MIPS",
-            Data = File.ReadAllBytes(path)
-        }
-    };
-
+                            {
+                                new LUtfNode
+                                {
+                                    Name = "MIPS",
+                                    Data = File.ReadAllBytes(path)
+                                }
+                            };
                             src.Data.Texture.Dispose();
                             return;
                         }
@@ -210,7 +209,6 @@ namespace LancerEdit
                     }
                 });
             }
-
 
             ImGui.Spacing();
             ImGui.Spacing();
