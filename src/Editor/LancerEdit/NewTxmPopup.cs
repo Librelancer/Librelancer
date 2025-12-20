@@ -397,58 +397,14 @@ namespace LancerEdit
             TexRectNode.Children.Add(new LUtfNode()
             {
                 Name = "Frame rects",
-                Data = BuildFrameRects(texSize.X, texSize.Y, gridSize.X, gridSize.Y, frameCount)
+                Data = FrameRectCalculator.GenerateFrameRects(texSize.X, texSize.Y, gridSize.X, gridSize.Y, frameCount)
             });
             textureLibraryNode.Children.Add(TexRectNode);
 
             rv.Root.Children.Add(textureLibraryNode);
 
             return rv;
-
         }
-        byte[] BuildFrameRects(int texWidth, int texHeight, int gridSizeX, int gridSizeY, int frameCount)
-        {
-            byte[] data = new byte[frameCount * 20];
-
-            float cellU = 1f / gridSizeX;
-            float cellV = 1f / gridSizeY;
-
-            int frame = 0;
-
-            for (int y = 0; y < gridSizeY; y++)
-            {
-                for (int x = 0; x < gridSizeX; x++)
-                {
-                    if (frame >= frameCount)
-                        break;
-
-                    float u0 = x * cellU;
-                    float v0 = y * cellV;
-                    float u1 = u0 + cellU;
-                    float v1 = v0 + cellV;
-
-                    WriteFrameRect(
-                        data,
-                        frame * 20,
-                        u0, v0,
-                        u1, v1
-                    );
-
-                    frame++;
-                }
-            }
-
-            return data;
-        }
-        static void WriteFrameRect(Span<byte> buffer, int offset, float u0, float v0, float u1, float v1)
-        {
-            BitConverter.GetBytes(0u).CopyTo(buffer[offset..]);       // index
-            BitConverter.GetBytes(u0).CopyTo(buffer[(offset + 4)..]);
-            BitConverter.GetBytes(v0).CopyTo(buffer[(offset + 8)..]);
-            BitConverter.GetBytes(u1).CopyTo(buffer[(offset + 12)..]);
-            BitConverter.GetBytes(v1).CopyTo(buffer[(offset + 16)..]);
-        }
-
         void CloseTextureImportPopup()
         {
             showTextureImportPopup = false;
