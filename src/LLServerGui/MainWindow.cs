@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.Server;
 using LLServer.Screens;
@@ -27,11 +28,13 @@ public class MainWindow : Game
     public bool IsRunning => server?.Server?.Listener?.Server?. IsRunning ?? false;
     public int ConnectedPlayersCount => server?.Server?.Listener?.Server?.ConnectedPeersCount ?? 0;
     public ServerPerformance ServerPerformance => server?.Server?.PerformanceStats;
-    public string ConfigPath;
-    public bool StartupError;
 
+    public LLServerGuiConfig ServerGuiConfig;
+
+    public bool StartupError;
+    string serverGuiConfigPath;
     AppLog log;
-    ServerConfig config;
+    ServerConfig serverConfig;
     ImGuiHelper guiRender;
     ServerApp server;
     PopupManager pm = new PopupManager();
@@ -40,7 +43,9 @@ public class MainWindow : Game
     static readonly float STATUS_BAR_HEIGHT = 30f;
     static readonly float LOGS_MIN_HEIGHT = 100f;
     static readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
-    
+    static readonly FileDialogFilters saveAsFilter = new FileDialogFilters(
+        new FileFilter("json")
+        );
 
 #if DEBUG
     static readonly string statusFormat = "FPS: {0} | Status: {1} | Connected: {2}/{3}";
@@ -50,16 +55,10 @@ public class MainWindow : Game
     static readonly string titleFormat = "Librelancer Server - {0}";
 #endif
 
+    
     // UI Data
     bool logsOpen = false;
     float logsHeight = 200f;
-
-    // Running Server Data
-    
-    
-    Guid? banId;
-    string banSearchString;
-    string adminSearchString;
 
     // Event Handlers
     private void LogAppendLine(string message, LogSeverity level)
@@ -75,16 +74,27 @@ public class MainWindow : Game
         FLLog.AppendLine += LogAppendLine;
         guiRender = new ImGuiHelper(this, 1);
         RenderContext.PushViewport(0, 0, Width, Height);
-        ConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
-        config = GetConfigFromFileOrDefault();
-        sm.SetScreen(
-            new ServerConfigurationScreen(this, sm, pm, config)
-        );
+
+        serverGuiConfigPath = Path.Combine(Platform.GetBasePath(), "llserverGui.json");
+        ServerGuiConfig = GetServerGuiConfigFromFileOrDefault(serverGuiConfigPath);
+        serverConfig = GetServerConfigFromFileOrDefault(ServerGuiConfig.LastConfigPath);
+
+        if (ServerGuiConfig.AutoStartServer)
+        {
+            sm.SetScreen(
+                new RunningServerScreen(this, sm, pm, serverConfig, ServerGuiConfig)
+            );
+        }
+        else
+        {
+            sm.SetScreen(
+                new ServerConfigurationScreen(this, sm, pm, serverConfig, ServerGuiConfig)
+            );
+        }
+            
     }
     protected override void Draw(double elapsed)
     {
-        
-
         var process = guiRender.DoRender(elapsed);
         if (process == ImGuiProcessing.Sleep)
         {
@@ -106,7 +116,10 @@ public class MainWindow : Game
         var size = (Vector2)ImGui.GetIO().DisplaySize;
         ImGui.SetNextWindowSize(size, ImGuiCond.Always);
         ImGui.SetNextWindowPos(Vector2.Zero, ImGuiCond.Always);
-
+        ImGui.SetNextWindowSizeConstraints(
+            size,   // minimum size
+            new Vector2(float.MaxValue, float.MaxValue) // maximum size
+        );
         bool screenIsOpen = true;
         ImGui.Begin(
             "screen",
@@ -188,11 +201,56 @@ public class MainWindow : Game
         {
             if (ImGui.BeginMenu("File"))
             {
-                if (Theme.IconMenuItem(Icons.Save,"Save Configuration", true))
+                if (Theme.IconMenuItem(Icons.Save, "Save", !IsRunning))
                 {
-                    pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
-                    File.WriteAllText(ConfigPath, JSON.Serialize(config));
+                    try
+                    {
+                        File.WriteAllText(ServerGuiConfig.LastConfigPath, JSON.Serialize(serverConfig));
+                        File.WriteAllText(serverGuiConfigPath, JSON.Serialize(ServerGuiConfig));
+                        pm.MessageBox("Save", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
+                    } catch (Exception ex)
+                    {
+                        pm.MessageBox("Error - Save failed", $"Configuration file failed to save:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
+                    }
+                }
+                if (Theme.IconMenuItem(Icons.Copy, "Save as", !IsRunning))
+                {
+                    FileDialog.Save(path => {
+                        try
+                        {
+                            File.WriteAllText(path, JSON.Serialize(serverConfig));
+                            ServerGuiConfig.LastConfigPath = path;
+                            SaveServerGuiConfig();
+                            pm.MessageBox("Save as", "Configuration has been saved successfully", false, MessageBoxButtons.Ok);
+                        }
+                        catch (Exception ex)
+                        {
+                            pm.MessageBox("Error - Save as failed", $"Configuration file failed to save:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
+                        }
 
+                    }, saveAsFilter);
+                }
+                if (Theme.IconMenuItem(Icons.File, "Load", true))
+                {
+                    FileDialog.Open(path => {
+                        try
+                        {
+                            if (path == null || path.Length == 0)
+                            {
+                                return;
+                            }
+                            ServerGuiConfig.LastConfigPath = path;
+                            SaveServerGuiConfig();
+
+                            var newConfig = GetServerConfigFromFileOrDefault(path);
+                            serverConfig.CopyFrom(newConfig);
+                        }
+                        catch (Exception ex)
+                        {
+                            pm.MessageBox("Error - Load failed", $"Configuration file failed to load:\r\t {ex.Message}", false, MessageBoxButtons.Ok);
+                        }
+
+                    }, saveAsFilter);
                 }
                 ImGui.Spacing();
                 ImGui.Separator();
@@ -229,12 +287,12 @@ public class MainWindow : Game
                 {
                     Task.Run(() =>
                     {
-                        File.WriteAllText(ConfigPath, JSON.Serialize(config));
+                        File.WriteAllText(ServerGuiConfig.LastConfigPath, JSON.Serialize(serverConfig));
 
                         QueueUIThread(() =>
                         {
                             sm.SetScreen(
-                                new RunningServerScreen(this, sm, pm, config)
+                                new RunningServerScreen(this, sm, pm, serverConfig, ServerGuiConfig)
                             );
                         });
                     });
@@ -253,7 +311,7 @@ public class MainWindow : Game
                                     this.QueueUIThread(() =>
                                     {
                                         StopServer();
-                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm, config));
+                                        sm.SetScreen(new ServerConfigurationScreen(this, sm, pm, serverConfig, ServerGuiConfig));
                                         return;
                                     });
                                 }
@@ -263,6 +321,11 @@ public class MainWindow : Game
             }
             ImGui.EndMainMenuBar();
         }
+    }
+
+    public void SaveServerGuiConfig()
+    {
+        File.WriteAllText(serverGuiConfigPath, JSON.Serialize(ServerGuiConfig));
     }
 
     void DrawStatusBar()
@@ -304,7 +367,7 @@ public class MainWindow : Game
 
         
 
-        if (ImGui.CollapsingHeader("Logs", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Logs"))
         {
             ImGui.InvisibleButton("##logs_resize", new Vector2(width, 4));
             if (ImGui.IsItemHovered() || ImGui.IsItemActive())
@@ -337,13 +400,13 @@ public class MainWindow : Game
         ImGui.PopStyleColor(3);
     }
 
-    ServerConfig GetConfigFromFileOrDefault()
+    public ServerConfig GetServerConfigFromFileOrDefault(string path)
     {
         ServerConfig config;
 
-        if (File.Exists(ConfigPath))
+        if (File.Exists(ServerGuiConfig.LastConfigPath))
         {
-            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(ConfigPath));
+            config = JSON.Deserialize<ServerConfig>(File.ReadAllText(path));
             if (config != null)
                 return config;
         }
@@ -366,7 +429,23 @@ public class MainWindow : Game
         config.ServerName = "M9Universe";
         config.ServerDescription = "My Cool Freelancer server";
         config.DatabasePath = Path.Combine(Platform.GetBasePath(), "llserver.db");
+        return config;
+    }
+    public LLServerGuiConfig GetServerGuiConfigFromFileOrDefault(string path)
+    {
+        LLServerGuiConfig config;
 
+        if (File.Exists(path))
+        {
+            config = JSON.Deserialize<LLServerGuiConfig>(File.ReadAllText(path));
+            if (config != null)
+                return config;
+        }
+
+
+        config = new LLServerGuiConfig();
+        
+        config.LastConfigPath = Path.Combine(Platform.GetBasePath(), "llserver.json");
         return config;
     }
 }
