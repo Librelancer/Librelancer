@@ -22,7 +22,7 @@ namespace LLServer
         public override void Draw(bool appearing)
         {
             ImGui.PushFont(ImGuiHelper.Roboto, 32);
-            GuiHelpers.CenterText(player?.Name ?? "Unknown Character");
+            ImGuiExt.CenterText(player?.Name ?? "Unknown Character");
             ImGui.PopFont();
 
             ImGui.Spacing();

@@ -4,17 +4,14 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Runtime.InteropServices;
 using LibreLancer;
-using LibreLancer.Dialogs;
 
 namespace Launcher
 {
     static class Program
     {
         public static string startPath = null;
-
+        
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
