@@ -549,7 +549,7 @@ namespace LancerEdit
                         var t = new UtfTab(this, new EditableUtf(), "Untitled");
                         AddTab(t);
                     }
-                    if (Theme.IconMenuItem(Icons.File, "Animated .txm", true))
+                    if (ImGui.MenuItem("Animated .txm", true))
                     {
                         Popups.OpenPopup(new NewTxmPopup(this, action => { 
                             var t = new UtfTab(this, action.utf, action.name);
