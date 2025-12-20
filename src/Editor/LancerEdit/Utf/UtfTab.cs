@@ -464,6 +464,10 @@ namespace LancerEdit
                     {
                         popups.OpenPopup(new ColorPickerPopup(selectedNode));
                     }
+                    if (ImGui.MenuItem("Frame Rect Editor"))
+                    {
+                        popups.OpenPopup(new FrameRectEditorPopup(selectedNode));
+                    }
                     ImGui.EndPopup();
                 }
                 ImGui.NextColumn();

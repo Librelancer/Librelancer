@@ -382,10 +382,10 @@ namespace LibreLancer.ImUI
         public static void AnimatingElement() => animating = true;
         public static void DeregisterTexture(Texture2D tex)
 		{
-			var id = textureIds[tex];
-			textureIds.Remove(tex);
-			textures.Remove(id);
-			freeIds.Enqueue(id);
+		    var id = textureIds[tex];
+		    textureIds.Remove(tex);
+		    textures.Remove(id);
+		    freeIds.Enqueue(id);
 		}
 
 		void Keyboard_TextInput(string text)
