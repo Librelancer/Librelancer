@@ -45,40 +45,7 @@ namespace LibreLancer.ContentEdit
 
             return rects;
         }
-        public static byte[] GenerateFrameRects(int texWidth, int texHeight, int gridSizeX, int gridSizeY, int frameCount)
-        {
-            byte[] data = new byte[frameCount * 20];
 
-            float cellU = 1f / gridSizeX;
-            float cellV = 1f / gridSizeY;
-
-            int frame = 0;
-
-            for (int y = 0; y < gridSizeY; y++)
-            {
-                for (int x = 0; x < gridSizeX; x++)
-                {
-                    if (frame >= frameCount)
-                        break;
-
-                    float u0 = x * cellU;
-                    float v0 = y * cellV;
-                    float u1 = u0 + cellU;
-                    float v1 = v0 + cellV;
-
-                    WriteFrameRect(
-                        data,
-                        frame * 20,
-                        u0, v0,
-                        u1, v1
-                    );
-
-                    frame++;
-                }
-            }
-
-            return data;
-        }
         public static List<FrameRect> ParseFrameRects(byte[] data)
         {
             const int SIZE = 20;

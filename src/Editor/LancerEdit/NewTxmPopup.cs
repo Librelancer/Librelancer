@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using ImGuiNET;
@@ -379,25 +380,30 @@ namespace LancerEdit
         EditableUtf GenerateUtfFileTemplate()
         {
             var rv = new EditableUtf();
-            var textureLibraryNode = new LUtfNode() { Name = "Texture LIbrary", Children = new List<LUtfNode>() };
+            var textureLibraryNode = new LUtfNode() { Name = "Texture LIbrary", Children = new List<LUtfNode>(), Parent=rv.Root };
 
             var _nodeName = string.IsNullOrWhiteSpace(nodeName)
                     ? "UntitledAnim"
                     : nodeName;
 
-            var mipsNode = new LUtfNode() { Name = $"{_nodeName}_0", Children = new List<LUtfNode>() };
-            mipsNode.Children = importedMipNodes;
+            var mipsNode = new LUtfNode() { Name = $"{_nodeName}_0", Children = new List<LUtfNode>(), Parent=textureLibraryNode };
+            var mipNodeChildren = importedMipNodes;
+            mipNodeChildren.ForEach(e => {
+                e.Parent = mipsNode;
+                mipsNode.Children.Add(e);
+            });  
             textureLibraryNode.Children.Add(mipsNode);
-
-            var TexRectNode = new LUtfNode() { Name = $"{_nodeName}", Children = new List<LUtfNode>() };
+            
+            var TexRectNode = new LUtfNode() { Name = $"{_nodeName}", Children = new List<LUtfNode>(), Parent= textureLibraryNode };
             TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "Texture count", textureCount));
             TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "Frame count", frameCount));
             TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "FPS", fps));
-
+            var framRects = FrameRectCalculator.GenerateFrameRects(gridSize.X, gridSize.Y, frameCount);
             TexRectNode.Children.Add(new LUtfNode()
             {
                 Name = "Frame rects",
-                Data = FrameRectCalculator.GenerateFrameRects(texSize.X, texSize.Y, gridSize.X, gridSize.Y, frameCount)
+                Data = FrameRectCalculator.SerializeFrameRects(framRects),
+                Parent = TexRectNode
             });
             textureLibraryNode.Children.Add(TexRectNode);
 
