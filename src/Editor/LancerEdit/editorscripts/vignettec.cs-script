@@ -6,7 +6,7 @@
 // [Argument]
 // name = Output vignetteparams.ini
 // type = savefile
-using LibreLancer.Data.RandomMissions;
+using LibreLancer.Data.Schema.RandomMissions;
 using LibreLancer.ContentEdit.RandomMissions;
 using LibreLancer.Data.Ini;
 

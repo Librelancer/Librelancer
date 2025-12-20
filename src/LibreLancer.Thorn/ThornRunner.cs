@@ -13,10 +13,10 @@ namespace LibreLancer.Thorn
 	public class ThornRunner
 	{
 		public Dictionary<string, object> Env;
-        public ThornReadFile ReadFile;
+        public ReadFileCallback ReadFile;
         public bool Log = true;
 
-		public ThornRunner(Dictionary<string, object> env, ThornReadFile readFile)
+		public ThornRunner(Dictionary<string, object> env, ReadFileCallback readFile)
 		{
 			Env = env;
             ReadFile = readFile;

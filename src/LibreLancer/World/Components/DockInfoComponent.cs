@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 
 namespace LibreLancer.World.Components
 {

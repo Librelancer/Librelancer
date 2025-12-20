@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Numerics;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Missions.Actions;
 using LibreLancer.Missions.Events;
 using LibreLancer.Server.Components;

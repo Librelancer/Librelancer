@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Interface;
+using LibreLancer.Data.Schema.Interface;
 
 namespace LibreLancer.Input;
 

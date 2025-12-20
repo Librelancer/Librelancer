@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;
@@ -25,7 +25,7 @@ public class AsteroidSelection : PopupWindow
     public AsteroidSelection(Action<Asteroid> onSelect, GameDataContext gd, uint compatibleCrc)
     {
         this.onSelect = onSelect;
-        Asteroids = gd.GameData.Asteroids.OrderBy(x => x.Nickname).ToArray();
+        Asteroids = gd.GameData.Items.Asteroids.OrderBy(x => x.Nickname).ToArray();
         this.gd = gd;
         this.compatibleCrc = compatibleCrc;
         if (compatibleCrc != 0)

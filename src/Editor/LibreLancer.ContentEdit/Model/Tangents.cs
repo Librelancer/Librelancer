@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 using SimpleMesh;

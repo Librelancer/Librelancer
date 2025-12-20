@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.Market;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Entities.Character;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.Market;
-using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 
@@ -117,7 +117,7 @@ public class BasesidePlayer : IBasesidePlayer
 
     public Task<ShipPackageInfo> GetShipPackage(int package)
     {
-        var resolved = Player.Game.GameData.GetShipPackage((uint) package);
+        var resolved = Player.Game.GameData.Items.GetShipPackage((uint) package);
         if (resolved == null)
         {
             return Task.FromResult<ShipPackageInfo>(null);
@@ -140,7 +140,7 @@ public class BasesidePlayer : IBasesidePlayer
         SellCount[] sellPlayer,
         SellCount[] sellPackage)
     {
-        var resolved = Player.Game.GameData.GetShipPackage((uint) package);
+        var resolved = Player.Game.GameData.Items.GetShipPackage((uint) package);
         if (resolved == null) return Task.FromResult(ShipPurchaseStatus.Fail);
         if (BaseData.SoldShips.All(x => x.Package != resolved))
         {
@@ -280,7 +280,7 @@ public class BasesidePlayer : IBasesidePlayer
             }
         }
 
-        var newShip = Player.Game.GameData.Ships.Get(resolved.Ship);
+        var newShip = Player.Game.GameData.Items.Ships.Get(resolved.Ship);
         float volume = 0;
         foreach (var item in Player.Character.Items)
         {
@@ -321,7 +321,7 @@ public class BasesidePlayer : IBasesidePlayer
             foreach (var item in toRemove)
                 c.RemoveCargo(item, item.Count);
             //Set Ship
-            c.UpdateShip(Player.Game.GameData.Ships.Get(resolved.Ship));
+            c.UpdateShip(Player.Game.GameData.Items.Ships.Get(resolved.Ship));
             //Install new cargo and mount
             foreach (var item in mountedPlayer)
             {

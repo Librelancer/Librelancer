@@ -10,7 +10,7 @@ public class EncounterLookup : ObjectLookup<string>
     public EncounterLookup(string id, GameDataContext gd, string initial)
     {
         // Access encounter folder to grab their ini files
-        var encountersDir = gd.GameData.Ini.Freelancer.DataPath + "MISSIONS\\ENCOUNTERS\\";
+        var encountersDir = gd.GameData.Items.Ini.Freelancer.DataPath + "MISSIONS\\ENCOUNTERS\\";
         var encounterParams = gd.GameData.VFS.GetFiles(encountersDir)
             .Where(x => x.EndsWith(".ini", System.StringComparison.OrdinalIgnoreCase))
             .Select(x => Path.GetFileNameWithoutExtension(x))
@@ -19,7 +19,7 @@ public class EncounterLookup : ObjectLookup<string>
 
         Archetypes = encounterParams;
 
-        // Selects first encounter 
+        // Selects first encounter
         var initialValue = encounterParams.FirstOrDefault();
 
         CreateDropdown(
@@ -28,4 +28,4 @@ public class EncounterLookup : ObjectLookup<string>
             x => x,
             initialValue);
     }
-} 
+}

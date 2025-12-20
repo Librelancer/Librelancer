@@ -1,4 +1,4 @@
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 
 namespace LancerEdit.GameContent;
 

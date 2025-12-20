@@ -37,9 +37,10 @@
 
   <ItemGroup>
     <None Remove="Storyline\Storyline.default.ini" />
-    <EmbeddedResource Include="Storyline\Storyline.default.ini">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Schema\Storyline\Storyline.default.ini" />
   </ItemGroup>
 
 </Project>

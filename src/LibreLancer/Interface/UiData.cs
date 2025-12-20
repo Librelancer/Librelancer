@@ -39,17 +39,17 @@ namespace LibreLancer.Interface
         {
             ResourceManager = game.ResourceManager;
             FileSystem = game.GameData.VFS;
-            Infocards = game.GameData.Ini.Infocards;
+            Infocards = game.GameData.Items.Ini.Infocards;
             Fonts = game.Fonts;
             NavbarIcons = game.GameData.GetBaseNavbarIcons();
             Sounds = game.Sound;
-            DataPath = game.GameData.Ini.Freelancer.DataPath;
-            if (game.GameData.Ini.Navmap != null)
-                NavmapIcons = new IniNavmapIcons(game.GameData.Ini.Navmap);
+            DataPath = game.GameData.Items.Ini.Freelancer.DataPath;
+            if (game.GameData.Items.Ini.Navmap != null)
+                NavmapIcons = new IniNavmapIcons(game.GameData.Items.Ini.Navmap);
             else
                 NavmapIcons = new NavmapIcons();
-            if (!string.IsNullOrWhiteSpace(game.GameData.Ini.Freelancer.XInterfacePath))
-                OpenFolder(game.GameData.Ini.Freelancer.XInterfacePath);
+            if (!string.IsNullOrWhiteSpace(game.GameData.Items.Ini.Freelancer.XInterfacePath))
+                OpenFolder(game.GameData.Items.Ini.Freelancer.XInterfacePath);
             else
                 OpenDefault();
         }

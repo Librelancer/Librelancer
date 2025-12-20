@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.World;
 using LibreLancer.World.Components;

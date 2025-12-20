@@ -13,14 +13,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using LibreLancer.Client;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Save;
-using LibreLancer.Data.Ships;
-using LibreLancer.Data.Solar;
-using LibreLancer.Data.Universe;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.Schema.Save;
+using LibreLancer.Data.Schema.Solar;
+using LibreLancer.Data.Schema.Ships;
+using LibreLancer.Data.Schema.Solar;
+using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
@@ -29,9 +31,9 @@ using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LiteNetLib;
 using DisconnectReason = LibreLancer.Net.DisconnectReason;
-using Ship = LibreLancer.GameData.Ship;
-using StarSystem = LibreLancer.GameData.World.StarSystem;
-using SystemObject = LibreLancer.GameData.World.SystemObject;
+using Ship = LibreLancer.Data.GameData.Ship;
+using StarSystem = LibreLancer.Data.GameData.World.StarSystem;
+using SystemObject = LibreLancer.Data.GameData.World.SystemObject;
 
 namespace LibreLancer.Server
 {
@@ -259,7 +261,7 @@ namespace LibreLancer.Server
         {
             if(Character.Ship == null)
                 return 0;
-            return (ulong) (Game.GameData.GetShipPrice(Character.Ship) * TradeConstants.SHIP_RESALE_MULTIPLIER);
+            return (ulong) (Game.GameData.Items.GetShipPrice(Character.Ship) * TradeConstants.SHIP_RESALE_MULTIPLIER);
         }
 
         public long CalculateNetWorth()
@@ -339,7 +341,7 @@ namespace LibreLancer.Server
         void SpaceInitialSpawn(SaveGame sg)
         {
             ClearScan();
-            var sys = Game.GameData.Systems.Get(System);
+            var sys = Game.GameData.Items.Systems.Get(System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 Space = new SpacePlayer(world, this);
@@ -356,7 +358,7 @@ namespace LibreLancer.Server
 
         IEnumerable<NetSoldShip> GetSoldShips()
         {
-            var b = Game.GameData.Bases.Get(Base);
+            var b = Game.GameData.Items.Bases.Get(Base);
             foreach (var s in b.SoldShips)
             {
                 ulong goodsPrice = 0;
@@ -378,11 +380,11 @@ namespace LibreLancer.Server
         {
             //load base
             Space = null;
-            Baseside = new BasesidePlayer(this, Game.GameData.Bases.Get(Base));
+            Baseside = new BasesidePlayer(this, Game.GameData.Items.Bases.Get(Base));
             //fetch news articles
             var news = new List<NewsArticle>();
-            foreach (var x in Game.GameData.News.QueryNews(
-                         Baseside.BaseData, Story?.MissionNum ?? (Game.GameData.Ini.Storyline.Items.Count - 1)))
+            foreach (var x in Game.GameData.Items.News.QueryNews(
+                         Baseside.BaseData, Story?.MissionNum ?? (Game.GameData.Items.Ini.Storyline.Items.Count - 1)))
             {
                 news.Add(new NewsArticle()
                 {
@@ -423,10 +425,10 @@ namespace LibreLancer.Server
                 FLLog.Info("Mission", $"Loading mission: {Story.CurrentMission.Nickname} with {loadTriggers?.Length ?? 0} saved triggers");
 
                 // Load the mission script
-                var missionIni = Game.GameData.Ini.LoadMissionIni(Story.CurrentMission);
+                var missionIni = Game.GameData.Items.Ini.LoadMissionIni(Story.CurrentMission);
                 msnRuntime = new MissionRuntime(missionIni, this, loadTriggers);
                 msnPreload = msnRuntime.Script.CalculatePreloads(Game.GameData);
-                rpcClient.SetPreloads(msnPreload);
+                //rpcClient.SetPreloads(msnPreload); // TODO: Re-implement
 
                 // Ensure mission runtime is properly initialized
                 msnRuntime.Update(0.0);
@@ -461,16 +463,16 @@ namespace LibreLancer.Server
             rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
         }
 
-        void InitStory(Data.Save.SaveGame sg)
+        void InitStory(SaveGame sg)
         {
             var msn = sg.StoryInfo?.Mission ?? "No_Mission";
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
 
             Story = new StoryProgress();
-            var storyline = Game.GameData.Ini.Storyline;
+            var storyline = Game.GameData.Items.Ini.Storyline;
 
             missionNum = Math.Clamp(missionNum, 0, storyline.Items.Count - 1);
-            if (Game.GameData.Ini.ContentDll.AlwaysMission13)
+            if (Game.GameData.Items.Ini.ContentDll.AlwaysMission13)
             {
                 missionNum = 41;
                 msn = "Mission_13";
@@ -492,7 +494,7 @@ namespace LibreLancer.Server
                         thns.AddRTC(rtc.Script);
                     foreach (var amb in sg.MissionState.Ambients)
                     {
-                        var _base = Game.GameData.Bases.Get(amb.Base.Hash);
+                        var _base = Game.GameData.Items.Bases.Get(amb.Base.Hash);
                         var room = _base.Rooms.Get(amb.Room.Hash);
                         thns.AddAmbient(amb.Script, room.Nickname, _base.Nickname);
                     }
@@ -663,9 +665,9 @@ namespace LibreLancer.Server
         {
             Client.SendPacket(new NewCharacterDBPacket()
             {
-                Factions = Game.GameData.Ini.NewCharDB.Factions,
-                Packages = Game.GameData.Ini.NewCharDB.Packages,
-                Pilots = Game.GameData.Ini.NewCharDB.Pilots
+                Factions = Game.GameData.Items.Ini.NewCharDB.Factions,
+                Packages = Game.GameData.Items.Ini.NewCharDB.Packages,
+                Pilots = Game.GameData.Items.Ini.NewCharDB.Pilots
             }, PacketDeliveryMethod.ReliableOrdered);
         }
 
@@ -999,7 +1001,7 @@ namespace LibreLancer.Server
             if(Space != null) Space.Leave(false);
             Space = null;
             ClearScan();
-            var sys = Game.GameData.Systems.Get(system);
+            var sys = Game.GameData.Items.Systems.Get(system);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 Space = new SpacePlayer(world, this);
@@ -1042,8 +1044,8 @@ namespace LibreLancer.Server
                 return;
             }
             ClearScan();
-            var b = Game.GameData.Bases.Get(Base);
-            var sys = Game.GameData.Systems.Get(b.System);
+            var b = Game.GameData.Items.Bases.Get(Base);
+            var sys = Game.GameData.Items.Systems.Get(b.System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 Space = new SpacePlayer(world, this);

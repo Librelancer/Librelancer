@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Fx;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Backends.OpenGL;
 using LibreLancer.Render.Materials;

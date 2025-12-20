@@ -4,7 +4,7 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.Data.Effects;
+using LibreLancer.Data.Schema.Effects;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render.Materials;

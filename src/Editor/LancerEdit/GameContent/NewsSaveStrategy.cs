@@ -8,8 +8,8 @@ public class NewsSaveStrategy(NewsEditorTab tab) : ISaveStrategy
 {
     public void Save()
     {
-        tab.Data.GameData.News = tab.News.Clone();
-        var newsPath = tab.Data.GameData.DataPath("MISSIONS/news.ini");
+        tab.Data.GameData.Items.News = tab.News.Clone();
+        var newsPath = tab.Data.GameData.Items.DataPath("MISSIONS/news.ini");
         var filePath = tab.Data.GameData.VFS.GetBackingFileName(newsPath);
         IniWriter.WriteIniFile(filePath, IniSerializer.SerializeNews(tab.News));
         tab.Dirty = false;

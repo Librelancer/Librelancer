@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Data.Schema;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Resources;
@@ -65,7 +66,7 @@ namespace InterfaceEdit
 
             try
             {
-                var navbarIni = new LibreLancer.Data.BaseNavBarIni(dataPath, UiData.FileSystem);
+                var navbarIni = new BaseNavBarIni(dataPath, UiData.FileSystem);
                 UiData.NavbarIcons = navbarIni.Navbar;
             }
             catch (Exception)

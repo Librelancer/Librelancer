@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Data.Save;
+using LibreLancer.Data;
+using LibreLancer.Data.Schema.Save;
 using LibreLancer.Net;
 
 namespace LibreLancer.Missions;
@@ -67,7 +68,7 @@ public class DynamicThn
         {
             foreach (var ambient in info.Ambients)
             {
-                var _base = gameData.Bases.Get(ambient.BaseId);
+                var _base = gameData.Items.Bases.Get(ambient.BaseId);
                 var room = _base.Rooms.Get(ambient.RoomId);
                 ambients[ambient.Script] = new AmbientInfo(ambient.Script, room.Nickname, _base.Nickname);
             }

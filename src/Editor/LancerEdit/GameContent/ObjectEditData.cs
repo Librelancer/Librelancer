@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Archetypes;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Archetypes;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;

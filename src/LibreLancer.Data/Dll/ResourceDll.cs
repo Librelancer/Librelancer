@@ -8,11 +8,8 @@ using System.IO;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml;
-using LibreLancer.Data;
-using LibreLancer.Data.IO;
 
-namespace LibreLancer.Dll
+namespace LibreLancer.Data.Dll
 {
     public class ResourceDll
     {

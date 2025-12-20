@@ -1,7 +1,7 @@
 using System;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;

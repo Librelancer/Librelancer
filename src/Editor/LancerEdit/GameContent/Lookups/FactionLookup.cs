@@ -1,5 +1,5 @@
 using System.Linq;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 
 namespace LancerEdit.GameContent.Lookups;
 
@@ -9,7 +9,7 @@ public class FactionLookup : ObjectLookup<Faction>
     {
         CreateDropdown(
             id,
-            gd.GameData.Factions.OrderBy(x => x.Nickname),
+            gd.GameData.Items.Factions.OrderBy(x => x.Nickname),
             x => $"{x.Nickname} ({gd.GameData.GetString(x.IdsName)})",
             initial);
     }

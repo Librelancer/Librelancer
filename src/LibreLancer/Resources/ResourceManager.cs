@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Primitives;
@@ -42,7 +43,7 @@ public abstract class ResourceManager
     public abstract void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU);
     public abstract Fx.ParticleLibrary GetParticleLibrary(string filename);
 
-    public abstract bool TryGetShape(string name, out RenderShape shape);
+    public abstract bool TryGetShape(string name, out TextureShape shape);
     public abstract bool TryGetFrameAnimation(string name, out TexFrameAnimation anim);
 
     public ConvexMeshCollection ConvexCollection { get; protected set; }

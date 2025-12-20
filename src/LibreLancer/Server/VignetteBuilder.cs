@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using LibreLancer.Data.RandomMissions;
-using LibreLancer.GameData.RandomMissions;
+using LibreLancer.Data.GameData.RandomMissions;
+using LibreLancer.Data.Schema.RandomMissions;
 
 namespace LibreLancer.Server;
 

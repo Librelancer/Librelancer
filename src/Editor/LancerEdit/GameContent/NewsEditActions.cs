@@ -1,5 +1,5 @@
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 
 namespace LancerEdit.GameContent;
 

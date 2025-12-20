@@ -4,6 +4,7 @@
 
 using System.Numerics;
 using System.Runtime.InteropServices;
+using LibreLancer.Data.GameData;
 
 namespace LibreLancer.Render
 {

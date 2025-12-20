@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using LibreLancer.GameData;
 using LibreLancer.Missions;
 using LibreLancer.World;
 
@@ -13,8 +12,6 @@ public interface IClientPlayer
     void CallThorn(string script, ObjNetId mainObject);
     void ListPlayers(bool isAdmin);
     void UpdateWeaponGroups(NetWeaponGroup[] wg);
-
-    void SetPreloads(PreloadObject[] preloads);
 
     void SpawnPlayer(int id, string system, CrcIdMap[] crcMap, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
     void UpdateEffects(ObjNetId id, SpawnedEffect[] effects);

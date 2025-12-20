@@ -1,7 +1,8 @@
 using System;
 using System.IO;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.IO;
-using LibreLancer.GameData.Items;
 using LibreLancer.Physics;
 using LibreLancer.Resources;
 using Xunit;
@@ -40,12 +41,12 @@ public class MockDataTest
         // Throw error on any .sur or file access
         var convex = new ConvexMeshCollection(x => throw new InvalidOperationException("Tried to open sur"));
         var fs = new FileSystem(new EmptyFS());
-        var gdm = new GameDataManager(fs, new ServerResourceManager(convex, fs));
+        var gdm = new GameDataManager(new GameItemDb(fs), new ServerResourceManager(convex, fs));
         // Construct game data without calling LoadData()
         // Will fail on model loads etc., use for nickname/CRC lookups only
         // Each collection used must be inited manually
-        gdm.Equipment = new GameItemCollection<Equipment>();
-        HashAndAdd(new GunEquipment() { Nickname = "gun01"}, gdm.Equipment);
+        gdm.Items.Equipment = new GameItemCollection<Equipment>();
+        HashAndAdd(new GunEquipment() { Nickname = "gun01"}, gdm.Items.Equipment);
 
         return gdm;
     }
@@ -55,6 +56,6 @@ public class MockDataTest
     public void CanQueryEquipment()
     {
         var gdm = ConstructMockData();
-        Assert.Equal("gun01", gdm.Equipment.Get("gun01").Nickname);
+        Assert.Equal("gun01", gdm.Items.Equipment.Get("gun01").Nickname);
     }
 }

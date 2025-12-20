@@ -8,7 +8,7 @@ using System.IO;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using LibreLancer.Data.Audio;
+using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Media;
 using LibreLancer.Utf.Audio;
 
@@ -93,7 +93,7 @@ namespace LibreLancer.Sounds
             audio.SetListenerOrientation(forward, up);
         }
 
-        public Data.Audio.AudioEntry GetEntry(string name) => data.GetAudioEntry(name);
+        public Data.Schema.Audio.AudioEntry GetEntry(string name) => data.GetAudioEntry(name);
 
         public void LoadSound(string name)
         {
@@ -252,7 +252,7 @@ namespace LibreLancer.Sounds
     {
         public string Name;
         public SoundData Data;
-        public Data.Audio.AudioEntry Entry;
+        public Data.Schema.Audio.AudioEntry Entry;
         public Task LoadTask;
         public void Dispose()
         {

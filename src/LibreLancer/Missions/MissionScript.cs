@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
-using LibreLancer.Data.Missions;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Missions.Actions;
 using LibreLancer.Missions.Conditions;
 
@@ -41,11 +41,11 @@ namespace LibreLancer.Missions
                     continue;
                 NpcShips.TryGetValue(npc.NpcShipArch, out var shipArch);
                 if (shipArch == null)
-                    shipArch = gameData.Ini.NPCShips.ShipArches.FirstOrDefault(x =>
+                    shipArch = gameData.Items.Ini.NPCShips.ShipArches.FirstOrDefault(x =>
                         x.Nickname.Equals(npc.NpcShipArch, StringComparison.OrdinalIgnoreCase));
                 if (shipArch == null)
                     continue;
-                gameData.TryGetLoadout(shipArch.Loadout, out var ld);
+                gameData.Items.TryGetLoadout(shipArch.Loadout, out var ld);
                 if (ld == null)
                     continue;
                 ships.Add(ld.Archetype);
@@ -55,8 +55,8 @@ namespace LibreLancer.Missions
                     equipment.Add(item.Equipment.Nickname);
             }
 
-            var shipItems = ships.Chunk(PreloadObject.MaxValues).Select(x => new PreloadObject(PreloadType.Ship, x.Select(x => new HashValue(x)).ToArray()));
-            var equipItems = equipment.Chunk(PreloadObject.MaxValues).Select(x => new PreloadObject(PreloadType.Equipment, x.Select(x => new HashValue(x)).ToArray()));
+            var shipItems = ships.Chunk(31).Select(x => new PreloadObject(PreloadType.Ship, x.Select(x => new HashValue(x)).ToArray()));
+            var equipItems = equipment.Chunk(31).Select(x => new PreloadObject(PreloadType.Equipment, x.Select(x => new HashValue(x)).ToArray()));
 
             return shipItems.Concat(equipItems).ToArray();
         }

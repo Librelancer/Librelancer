@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -96,11 +96,11 @@ namespace LibreLancer.Server
 
         NPCWattleInstance DoSpawn(string loadout, string pilot, float x, float y, float z, string arrivalObj)
         {
-            if (!manager.World.Server.GameData.TryGetLoadout(loadout, out var resolved))
+            if (!manager.World.Server.GameData.Items.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
             Pilot p = null;
             if (pilot != null)
-                p = manager.World.Server.GameData.GetPilot(pilot);
+                p = manager.World.Server.GameData.Items.GetPilot(pilot);
             var position = new Vector3(x, y, z);
             var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null,  "FIGHTER", null, null, null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
             return new NPCWattleInstance(obj, this);
@@ -127,7 +127,7 @@ namespace LibreLancer.Server
         public void runfuse(DynValue obj)
         {
             var str = obj.CastToString();
-            var fuse = Scripting.GameData.Fuses.Get(str);
+            var fuse = Scripting.GameData.Items.Fuses.Get(str);
             if (fuse == null) throw new ScriptRuntimeException($"Could not find fuse {str}");
             if(Object.TryGetComponent<SFuseRunnerComponent>(out var runner))
                 runner.Run(fuse);

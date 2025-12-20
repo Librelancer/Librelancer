@@ -4,8 +4,9 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Directives;
@@ -133,7 +134,7 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedDialog.Nickname, 150f);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedDialog.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedDialog.System.Length is 0 ||
-                                                     gameData.GameData.Systems.Any(x =>
+                                                     gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname == selectedDialog.System));
 
         for (var index = 0; index < selectedDialog.Lines.Count; index++)
@@ -336,31 +337,31 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedSolar.Nickname, 150f);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedSolar.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.System.Length is 0 ||
-                                                     gameData.GameData.Systems.Any(x =>
+                                                     gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.System,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextIdUndo("Faction", undoBuffer, () => ref selectedSolar.Faction, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Faction.Length is 0 ||
-                                                     gameData.GameData.Factions.Any(x =>
+                                                     gameData.GameData.Items.Factions.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Faction,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedSolar.Archetype, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Archetype.Length is 0 ||
-                                                     gameData.GameData.Archetypes.Any(x =>
+                                                     gameData.GameData.Items.Archetypes.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Archetype,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextIdUndo("Base", undoBuffer, () => ref selectedSolar.Base, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Base.Length is 0 ||
-                                                     gameData.GameData.Bases.Any(x =>
+                                                     gameData.GameData.Items.Bases.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Base,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
         Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedSolar.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Loadout.Length is 0 ||
-                                                     gameData.GameData.Loadouts.Any(x =>
+                                                     gameData.GameData.Items.Loadouts.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Loadout,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
@@ -451,7 +452,7 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedShip.Nickname, 150f);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
-                                                     gameData.GameData.Systems.Any(x =>
+                                                     gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname == selectedShip.System));
 
         ImGui.SetNextItemWidth(150f);
@@ -540,7 +541,7 @@ public sealed partial class MissionScriptEditorTab
                 ImGui.PushID(i);
                 Controls.InputTextIdUndo("##Cargo", undoBuffer, () => ref cargo.Cargo, 150f);
                 MissionEditorHelpers.AlertIfInvalidRef(() =>
-                    gameData.GameData.Equipment.Any(x =>
+                    gameData.GameData.Items.Equipment.Any(x =>
                         x.Nickname.Equals(cargo.Cargo, StringComparison.InvariantCultureIgnoreCase)));
                 ImGui.SameLine();
                 ImGui.PushItemWidth(75f);

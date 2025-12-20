@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
@@ -14,7 +16,7 @@ namespace LibreLancer.Client.Components
 	public class CThrusterComponent : ThrusterComponent
 	{
         List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
-		public CThrusterComponent(GameObject parent, GameData.Items.ThrusterEquipment equip) : base(parent, equip) { }
+		public CThrusterComponent(GameObject parent, ThrusterEquipment equip) : base(parent, equip) { }
 
 		public override void Update(double time)
 		{

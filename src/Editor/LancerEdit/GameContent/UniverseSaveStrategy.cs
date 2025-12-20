@@ -12,8 +12,8 @@ public class UniverseSaveStrategy : ISaveStrategy
     {
         foreach (var s in Tab.AllSystems)
             s.System.UniversePosition = s.Position;
-        var path = Tab.Data.GameData.VFS.GetBackingFileName(Tab.Data.GameData.Ini.Freelancer.UniversePath);
-        IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(Tab.Data.GameData.Systems, Tab.Data.GameData.Bases));
+        var path = Tab.Data.GameData.VFS.GetBackingFileName(Tab.Data.GameData.Items.Ini.Freelancer.UniversePath);
+        IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(Tab.Data.GameData.Items.Systems, Tab.Data.GameData.Items.Bases));
         Tab.Dirty = false;
         Tab.OnSaved();
     }

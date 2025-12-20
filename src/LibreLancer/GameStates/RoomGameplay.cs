@@ -11,10 +11,9 @@ using System.Linq;
 using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Utf.Dfm;
-using LibreLancer.Data.Missions;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Infocards;
@@ -23,6 +22,7 @@ using LibreLancer.Interface;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -77,13 +77,13 @@ namespace LibreLancer
             //Load room data
             this.session = session;
 			baseId = newBase;
-			currentBase = g.GameData.Bases.Get(newBase);
+			currentBase = g.GameData.Items.Bases.Get(newBase);
 			currentRoom = room ?? currentBase.StartRoom;
             currentRoom.InitForDisplay();
             var rm = virtualRoom ?? currentRoom.Nickname;
             this.virtualRoom = virtualRoom;
             //Find infocard
-            sys = g.GameData.Systems.Get(currentBase.System);
+            sys = g.GameData.Items.Systems.Get(currentBase.System);
             var obj = sys.Objects.FirstOrDefault((o) => o.Base == currentBase);
             int ids = obj?.IdsInfo ?? 0;
             roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
@@ -198,7 +198,7 @@ namespace LibreLancer
 
             public KeyMapTable GetKeyMap()
             {
-                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
+                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Items.Ini.Infocards);
                 table.OnCaptureInput += (k) =>
                 {
                     g.Input.KeyCapture = k;
@@ -423,7 +423,7 @@ namespace LibreLancer
                     cState = state;
                     break;
             }
-            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(scName)), session.Game.GameData.ThornReadCallback, scName);
+            var script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.Items.DataPath(scName)), session.Game.GameData.Items.ThornReadCallback, scName);
             currentCutscene = ct;
             RoomDoSceneScript(script, ScriptState.Cutscene);
         }
@@ -541,7 +541,7 @@ namespace LibreLancer
                 ThnScript script = null;
                 try
                 {
-                    script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(x.Script)), session.Game.GameData.ThornReadCallback, x.Script);
+                    script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.Items.DataPath(x.Script)), session.Game.GameData.Items.ThornReadCallback, x.Script);
                 }
                 catch (Exception e)
                 {
@@ -676,8 +676,8 @@ namespace LibreLancer
                 thnObj.Object = obj;
                 scene.AddObject(thnObj);
                 scene.FidgetScript(new ThnScript(
-                    session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.DataPath(npc.Fidget)),
-                    session.Game.GameData.ThornReadCallback, npc.Fidget));
+                    session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.Items.DataPath(npc.Fidget)),
+                    session.Game.GameData.Items.ThornReadCallback, npc.Fidget));
                 if(i == 0) hotspots.Add(new RTCHotspot() { ini = ct, obj = thnObj, npc = npc.Npc });
                 i++;
             }
@@ -783,7 +783,7 @@ namespace LibreLancer
             scene.BeginScene(Scripts(sceneScripts, new[] { sc }));
             string[] ships = Array.Empty<string>();
             if (session.Ships != null) {
-                ships = session.Ships.Select(x => Game.GameData.Ships.Get(x.ShipCRC).Nickname).ToArray();
+                ships = session.Ships.Select(x => Game.GameData.Items.Ships.Get(x.ShipCRC).Nickname).ToArray();
             }
             for(int i = 0; (i < ships.Length && i < currentRoom.ForSaleShipPlacements.Count); i++)
             {
@@ -793,7 +793,7 @@ namespace LibreLancer
                     FLLog.Error("Base", "Couldn't display " + ships[i] + " on " + currentRoom.ForSaleShipPlacements[i]);
                     continue;
                 }
-                var toSellShip = Game.GameData.Ships.Get(ships[i]);
+                var toSellShip = Game.GameData.Items.Ships.Get(ships[i]);
                 //Set up object
                 var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true, false) { Parent = marker.Object };
                 marker.Object.Children.Add(obj);

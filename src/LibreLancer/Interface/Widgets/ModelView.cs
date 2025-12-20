@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Data.GameData;
 using LibreLancer.Render;
 using WattleScript.Interpreter;
 
@@ -42,14 +43,14 @@ namespace LibreLancer.Interface
             lighting.Lights.SourceEnabled[0] = true;
             lighting.Lights.SourceEnabled[1] = true;
             lighting.NumberOfTilesX = -1;
-            
+
             OrbitPan = new Vector2(-10.29f, -0.53f);
         }
 
         public string ModelPath { get; set; }
         private string _loadedPath;
         private RigidModel model;
-        
+
         void LoadModel(UiContext context)
         {
             if (string.IsNullOrWhiteSpace(ModelPath))
@@ -64,7 +65,7 @@ namespace LibreLancer.Interface
                 model = context.Data.GetModel(ModelPath);
             }
         }
-        
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             base.Render(context, parentRectangle);

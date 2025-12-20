@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using ImGuiNET;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.MissionEditor.Popups;

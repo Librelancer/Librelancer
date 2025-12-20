@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.World.Components;

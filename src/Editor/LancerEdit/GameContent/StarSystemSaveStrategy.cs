@@ -5,12 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Universe;
-using LibreLancer.GameData;
+using LibreLancer.Data.Schema.Universe;
 using LibreLancer.ImUI;
-using StarSystem = LibreLancer.GameData.World.StarSystem;
-using SystemObject = LibreLancer.GameData.World.SystemObject;
+using StarSystem = LibreLancer.Data.GameData.World.StarSystem;
+using SystemObject = LibreLancer.Data.GameData.World.SystemObject;
 
 namespace LancerEdit.GameContent;
 
@@ -32,7 +32,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
         var illegal = LoadShortestPathsAsync(fileIllegal);
         var legal = LoadShortestPathsAsync(fileLegal);
         var all = LoadShortestPathsAsync(fileAll);
-        ShortestPaths.CalculateShortestPaths(tab.Data.GameData);
+        ShortestPaths.CalculateShortestPaths(tab.Data.GameData.Items);
 
         var allNew = new ShortestPathIni();
         var legalNew = new ShortestPathIni();
@@ -50,7 +50,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
             ini.SystemConnections.Add(con);
         }
 
-        foreach (var s in tab.Data.GameData.Systems.OrderBy(x => x.Nickname))
+        foreach (var s in tab.Data.GameData.Items.Systems.OrderBy(x => x.Nickname))
         {
             AddPath(allNew, s, s.ShortestPathsAny);
             AddPath(legalNew, s, s.ShortestPathsLegal);
@@ -94,8 +94,8 @@ public class StarSystemSaveStrategy : ISaveStrategy
         FLLog.Info("Ini", $"Saved to {resolved}");
         if (writeUniverse)
         {
-            var path = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Ini.Freelancer.UniversePath);
-            IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(tab.Data.GameData.Systems, tab.Data.GameData.Bases));
+            var path = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.GameData.Items.Ini.Freelancer.UniversePath);
+            IniWriter.WriteIniFile(path, IniSerializer.SerializeUniverse(tab.Data.GameData.Items.Systems, tab.Data.GameData.Items.Bases));
             FLLog.Info("Ini", $"Saved to {path}");
         }
         paths.Wait();

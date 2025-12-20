@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Resources;
@@ -16,7 +17,7 @@ namespace LibreLancer.Fx
         public Texture2D Texture;
         public int FrameCount = 1;
         private bool useShape = false;
-        RenderShape shape;
+        TextureShape shape;
         TexFrameAnimation frameanim;
 
         public Vector4 GetCoordinates(int frame)

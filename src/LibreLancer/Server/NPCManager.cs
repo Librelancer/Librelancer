@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using LibreLancer.Data;
-using LibreLancer.Data.Pilots;
-using LibreLancer.Data.Solar;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Pilots;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using Pilot = LibreLancer.Data.GameData.Pilot;
 
 namespace LibreLancer.Server
 {
@@ -65,7 +66,7 @@ namespace LibreLancer.Server
         // Should be replaced with Faction class creating a random def
         public ObjectName RandomName(string affiliation)
         {
-            var fac = World.Server.GameData.Factions.Get(affiliation);
+            var fac = World.Server.GameData.Items.Factions.Get(affiliation);
             if (fac == null) return new ObjectName("NULL");
             var rand = new Random();
             ValueRange<int>? firstName = null;
@@ -119,7 +120,7 @@ namespace LibreLancer.Server
             string body,
             string helmet,
             ObjectLoadout loadout,
-            GameData.Pilot pilot,
+            Pilot pilot,
             Vector3 position,
             Quaternion orient,
             string arrivalObj,
@@ -127,7 +128,7 @@ namespace LibreLancer.Server
             MissionRuntime msn = null
             )
         {
-            var ship = World.Server.GameData.Ships.Get(loadout.Archetype);
+            var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
             GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj);
             SDockableComponent sdock = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
@@ -157,12 +158,12 @@ namespace LibreLancer.Server
             cargo.Cargo.AddRange(loadout.Cargo);
             obj.AddComponent(cargo);
             var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
-            World.Server.GameData.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
-            var npcComponent = new SNPCComponent(obj, this, stateTable) { MissionRuntime = msn, Faction = World.Server.GameData.Factions.Get(affiliation)};
+            World.Server.GameData.Items.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
+            var npcComponent = new SNPCComponent(obj, this, stateTable) { MissionRuntime = msn, Faction = World.Server.GameData.Items.Factions.Get(affiliation)};
             npcComponent.SetPilot(pilot);
-            npcComponent.CommHead = World.Server.GameData.Bodyparts.Get(head);
-            npcComponent.CommBody = World.Server.GameData.Bodyparts.Get(body);
-            npcComponent.CommHelmet = World.Server.GameData.Accessories.Get(helmet);
+            npcComponent.CommHead = World.Server.GameData.Items.Bodyparts.Get(head);
+            npcComponent.CommBody = World.Server.GameData.Items.Bodyparts.Get(body);
+            npcComponent.CommHelmet = World.Server.GameData.Items.Accessories.Get(helmet);
             obj.AddComponent(new SelectedTargetComponent(obj));
             obj.AddComponent(npcComponent);
             obj.AddComponent(new AutopilotComponent(obj));

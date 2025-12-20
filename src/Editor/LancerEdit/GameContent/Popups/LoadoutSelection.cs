@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Filters;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;
@@ -30,7 +30,7 @@ public class LoadoutSelection : PopupWindow
     public unsafe LoadoutSelection(Action<ObjectLoadout> onSelect, ObjectLoadout initial, string[] hardpoints,
         GameDataContext gd)
     {
-        allLoadouts = filteredLoadouts = gd.GameData.Loadouts.OrderBy(x => x.Nickname).ToArray();
+        allLoadouts = filteredLoadouts = gd.GameData.Items.Loadouts.OrderBy(x => x.Nickname).ToArray();
         filters = new LoadoutFilters(hardpoints);
         selected = initial;
         this.gd = gd;

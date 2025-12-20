@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 using System.Threading;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.World;

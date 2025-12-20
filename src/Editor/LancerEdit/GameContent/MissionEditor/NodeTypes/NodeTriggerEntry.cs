@@ -3,7 +3,7 @@ using LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
 using LibreLancer;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.MissionEditor.NodeTypes;

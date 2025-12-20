@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Directives;
 using LibreLancer.Net;

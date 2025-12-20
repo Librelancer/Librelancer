@@ -1,5 +1,6 @@
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.World;
 
 namespace LibreLancer.Client.Components;

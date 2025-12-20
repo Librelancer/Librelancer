@@ -4,10 +4,10 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer.ImUI;
 using LancerEdit.GameContent.Lookups;
-using LibreLancer.GameData;
-using StarSystem = LibreLancer.GameData.World.StarSystem;
+using StarSystem = LibreLancer.Data.GameData.World.StarSystem;
 using System.Linq;
-using LibreLancer.Data.Universe;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.Schema.Universe;
 
 namespace LancerEdit.GameContent.Popups;
 
@@ -48,7 +48,7 @@ public class PatrolRouteDialog : PopupWindow
         pathLabel = $"{system.Nickname.ToLowerInvariant()}_patrol";
 
         // Initialize faction lookup with first available faction
-        var defaultFaction = gameData.GameData.Factions.FirstOrDefault();
+        var defaultFaction = gameData.GameData.Items.Factions.FirstOrDefault();
         factionLookup = new FactionLookup("##faction", gameData, defaultFaction);
 
         // Add a default encounter
@@ -158,7 +158,7 @@ public class PatrolRouteDialog : PopupWindow
             newEncounter.EncounterLookup = new EncounterLookup($"##encounter_{encounters.Count}", gameData, null);
             newEncounter.SetDefaultArchetype();
             var newFaction = new PatrolFaction();
-            newFaction.Faction = gameData.GameData.Factions.FirstOrDefault();
+            newFaction.Faction = gameData.GameData.Items.Factions.FirstOrDefault();
             newFaction.FactionLookup = new FactionLookup($"##faction_{encounters.Count}_0", gameData, newFaction.Faction);
             newEncounter.Factions.Add(newFaction);
             encounters.Add(newEncounter);
@@ -243,7 +243,7 @@ public class PatrolRouteDialog : PopupWindow
                     if (ImGui.Button("Add Faction"))
                     {
                         var newFaction = new PatrolFaction();
-                        newFaction.Faction = gameData.GameData.Factions.FirstOrDefault();
+                        newFaction.Faction = gameData.GameData.Items.Factions.FirstOrDefault();
                         newFaction.FactionLookup = new FactionLookup($"##faction_{i}_{encounter.Factions.Count}", gameData, newFaction.Faction);
                         encounter.Factions.Add(newFaction);
                     }

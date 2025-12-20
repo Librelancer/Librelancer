@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using LibreLancer.Data.Pilots;
+using LibreLancer.Data.Schema.Pilots;
 
 namespace LibreLancer.ContentEdit;
 

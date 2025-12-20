@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
+using LibreLancer.Data.GameData;
 using LibreLancer.Render;
 using LibreLancer.Thn.Events;
 using LibreLancer.Thorn;
@@ -103,7 +104,7 @@ namespace LibreLancer.Thn
 		public List<ThnEvent> Events = new List<ThnEvent>();
 
 
-        public ThnScript(byte[] bytes, ThornReadFile readFile, string source)
+        public ThnScript(byte[] bytes, ReadFileCallback readFile, string source)
         {
             var runner = new ThornRunner(ThnEnv, readFile);
             Initialize(runner.DoBytes(bytes), source);

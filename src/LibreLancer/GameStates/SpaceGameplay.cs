@@ -10,9 +10,9 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
@@ -20,6 +20,7 @@ using LibreLancer.Net;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Resources;
 using LibreLancer.Server.Components;
 using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
@@ -90,7 +91,7 @@ World Time: {12:F2}
             g.ResourceManager.ClearMeshes();
             Game.Ui.MeshDisposeVersion++;
             this.session = session;
-            sys = g.GameData.Systems.Get(session.PlayerSystem);
+            sys = g.GameData.Items.Systems.Get(session.PlayerSystem);
             ui = Game.Ui;
             ui.GameApi = uiApi = new LuaAPI(this);
             uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
@@ -155,8 +156,8 @@ World Time: {12:F2}
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
             if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
-            _chaseCamera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
-            _turretViewCamera = new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Ini.Cameras);
+            _chaseCamera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Items.Ini.Cameras);
+            _turretViewCamera = new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Items.Ini.Cameras);
             _turretViewCamera.CameraOffset = new Vector3(0, 0, session.PlayerShip.ChaseOffset.Length());
             _chaseCamera.ChasePosition = session.PlayerPosition;
             _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
@@ -176,7 +177,7 @@ World Time: {12:F2}
             sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
             sysrender.ZOverride = true; //Draw all with regular Z
             world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
-            Game.GameData.PreloadObjects(session.Preloads);
+            //Game.GameData.PreloadObjects(session.Preloads);
             world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
             player.World = world;
@@ -560,7 +561,7 @@ World Time: {12:F2}
             public ContactList GetContactList() => g.contactList;
             public KeyMapTable GetKeyMap()
             {
-                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Ini.Infocards);
+                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Items.Ini.Infocards);
                 table.OnCaptureInput += (k) =>
                 {
                     g.Input.KeyCapture = k;
@@ -1337,7 +1338,7 @@ World Time: {12:F2}
                 ClearComm();
                 return;
             }
-            if (!Game.GameData.Ini.Voices.Voices.TryGetValue(voice, out var voiceData)) {
+            if (!Game.GameData.Items.Ini.Voices.Voices.TryGetValue(voice, out var voiceData)) {
                 ClearComm();
                 return;
             }
@@ -1456,7 +1457,7 @@ World Time: {12:F2}
                     : session.CurrentObjective.Position;
                 if (pos != Vector3.Zero)
                 {
-                    var waypointArch = Game.GameData.GetSolarArchetype("waypoint");
+                    var waypointArch = Game.GameData.Items.Archetypes.Get("waypoint");
                     missionWaypoint = new GameObject(waypointArch, null, Game.ResourceManager);
                     missionWaypoint.Name = new ObjectName(1091); //Mission Waypoint
                     missionWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));

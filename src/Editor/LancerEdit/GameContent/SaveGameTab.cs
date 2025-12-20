@@ -1,7 +1,8 @@
 using System.IO;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer.Data.Save;
+using LibreLancer.Data.Schema.Save;
+using LibreLancer.Data.Schema.Save;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent;

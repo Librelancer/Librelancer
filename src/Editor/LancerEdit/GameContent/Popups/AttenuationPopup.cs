@@ -3,6 +3,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Data;
+using LibreLancer.Data.Schema;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;
@@ -87,11 +88,11 @@ public class AttenuationPopup : PopupWindow
     void EditAttenCurve()
     {
         if (selectedCurve == null)
-            SetCurve(GameData.Ini.Graphs.FloatGraphs[0]);
+            SetCurve(GameData.Items.Ini.Graphs.FloatGraphs[0]);
 
         if (ImGui.BeginCombo("Curve", selectedCurve.Name))
         {
-            foreach (var graph in GameData.Ini.Graphs.FloatGraphs) {
+            foreach (var graph in GameData.Items.Ini.Graphs.FloatGraphs) {
                 if (ImGui.Selectable(graph.Name, selectedCurve == graph))
                 {
                     SetCurve(graph);

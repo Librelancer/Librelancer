@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Fonts;
 using LibreLancer.Graphics;
 
 namespace LibreLancer
@@ -74,7 +76,7 @@ namespace LibreLancer
         }
         public void LoadFontsFromGameData(RenderContext render, GameDataManager gd)
         {
-            LoadFonts(render, gd.Ini.Fonts, gd.Ini.RichFonts, gd.VFS, gd.Ini.Freelancer.DataPath);
+            LoadFonts(render, gd.Items.Ini.Fonts, gd.Items.Ini.RichFonts, gd.VFS, gd.Items.Ini.Freelancer.DataPath);
         }
 
         public FontDescription GetInfocardFont (int index)

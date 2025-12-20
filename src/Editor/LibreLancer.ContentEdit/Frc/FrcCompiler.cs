@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using LibreLancer.ContentEdit.RandomMissions;
-using LibreLancer.Dll;
+using LibreLancer.Data.Dll;
 
 namespace LibreLancer.ContentEdit.Frc;
 

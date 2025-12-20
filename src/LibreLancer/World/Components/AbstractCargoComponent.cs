@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.World.Components;

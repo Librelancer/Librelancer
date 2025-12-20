@@ -1,7 +1,8 @@
 using System.ComponentModel;
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Render;
 
 namespace LancerEdit.GameContent;

@@ -1,5 +1,5 @@
 using System.Linq;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 
 namespace LancerEdit.GameContent.Lookups;
 
@@ -9,7 +9,7 @@ public class SystemLookup : ObjectLookup<StarSystem>
     {
         CreateDropdown(
             id,
-            gd.GameData.Systems.OrderBy(x => x.Nickname),
+            gd.GameData.Items.Systems.OrderBy(x => x.Nickname),
             x => $"{x.Nickname} ({gd.GameData.GetString(x.IdsName)})",
             initial);
     }

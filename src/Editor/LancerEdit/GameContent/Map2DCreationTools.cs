@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.ImUI;
-using LibreLancer.GameData.World;
-using LibreLancer.Data.Universe;
+using LibreLancer.Data.Schema.Universe;
+using Zone = LibreLancer.Data.GameData.World.Zone;
 
 namespace LancerEdit.GameContent;
 
@@ -263,15 +264,15 @@ public class ZoneShapeCreator
                         var radiusPoint = centerScreen + new Vector2(radius, 0);
                         var radiusWorld = Vector3.Distance(centerWorld, mapToWorld(radiusPoint)) * 1.08f;
 
-                        var zone = new LibreLancer.GameData.World.Zone()
+                        var zone = new Zone()
                         {
                             Nickname = $"zone_{Guid.NewGuid().ToString().Substring(0, 8)}",
                             Position = centerWorld,
                             Size = new Vector3(radiusWorld, radiusWorld, radiusWorld),
-                            Shape = LibreLancer.GameData.World.ShapeKind.Sphere,
+                            Shape = ShapeKind.Sphere,
                             RotationMatrix = Matrix4x4.Identity,
-                            DensityRestrictions = Array.Empty<LibreLancer.Data.Universe.DensityRestriction>(),
-                            Encounters = Array.Empty<LibreLancer.Data.Universe.Encounter>()
+                            DensityRestrictions = Array.Empty<DensityRestriction>(),
+                            Encounters = Array.Empty<Encounter>()
                         };
                         tab.UndoBuffer.Commit(new SysAddZoneAction(tab, zone));
                         IsActive = false;
@@ -311,15 +312,15 @@ public class ZoneShapeCreator
 
                         var rot = Matrix4x4.CreateRotationY(-MathF.Atan2(dir.Y, dir.X));
 
-                        var zone = new LibreLancer.GameData.World.Zone()
+                        var zone = new Zone()
                         {
                             Nickname = $"zone_{Guid.NewGuid().ToString().Substring(0, 8)}",
                             Position = centerWorld,
                             Size = new Vector3(axisAWorld, axisBWorld, axisBWorld),
-                            Shape = LibreLancer.GameData.World.ShapeKind.Ellipsoid,
+                            Shape = ShapeKind.Ellipsoid,
                             RotationMatrix = rot,
-                            DensityRestrictions = Array.Empty<LibreLancer.Data.Universe.DensityRestriction>(),
-                            Encounters = Array.Empty<LibreLancer.Data.Universe.Encounter>()
+                            DensityRestrictions = Array.Empty<DensityRestriction>(),
+                            Encounters = Array.Empty<Encounter>()
                         };
                         tab.UndoBuffer.Commit(new SysAddZoneAction(tab, zone));
                         IsActive = false;

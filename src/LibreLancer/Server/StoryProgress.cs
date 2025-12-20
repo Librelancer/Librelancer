@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using LibreLancer.Data.Storyline;
+using LibreLancer.Data.Schema.Storyline;
 
 namespace LibreLancer.Server;
 
@@ -23,12 +23,12 @@ public class StoryProgress
                 player.AddRTC(x.Argument);
         }
         var old = oldStory.Nickname;
-        var next = player.Game.GameData.Ini.Storyline.Items[Math.Clamp(MissionNum + 1, 0, player.Game.GameData.Ini.Storyline.Items.Count - 1)];
+        var next = player.Game.GameData.Items.Ini.Storyline.Items[Math.Clamp(MissionNum + 1, 0, player.Game.GameData.Items.Ini.Storyline.Items.Count - 1)];
         MissionNum++;
         // here in loadmission was a !next.Skip, but seems to be wrong, mentioned here just in case in the future is relevant, comment will be deleted later.
         bool loadMission = !string.Equals(oldStory.Mission, next.Mission, StringComparison.OrdinalIgnoreCase);
         CurrentStory = next;
-        CurrentMission = player.Game.GameData.Ini.Storyline.Missions
+        CurrentMission = player.Game.GameData.Items.Ini.Storyline.Missions
             .FirstOrDefault(x => x.Nickname.Equals(next.Mission, StringComparison.OrdinalIgnoreCase));
         if(loadMission)
             player.LoadMission();

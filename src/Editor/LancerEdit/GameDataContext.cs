@@ -14,15 +14,15 @@ using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
-using LibreLancer.Data.Audio;
+using LibreLancer.Data.Schema.Audio;
+using LibreLancer.Data.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Data.IO;
-using LibreLancer.GameData;
 using LibreLancer.ImageLib;
 using LibreLancer.Resources;
 using LibreLancer.Sounds;
-using Archetype = LibreLancer.GameData.Archetype;
+using Archetype = LibreLancer.Data.GameData.Archetype;
 
 namespace LancerEdit;
 
@@ -42,7 +42,7 @@ public class GameDataContext : IDisposable
 
     private MainWindow win;
 
-    public EditableInfocardManager Infocards => (EditableInfocardManager)GameData.Ini.Infocards;
+    public EditableInfocardManager Infocards => (EditableInfocardManager)GameData.Items.Ini.Infocards;
 
     public string Folder;
     public string UniverseVfsFolder;
@@ -85,11 +85,11 @@ public class GameDataContext : IDisposable
 
     public void RefreshLists()
     {
-        SystemsByName = GameData.Systems.Select(x => x.Nickname).Order().ToArray();
-        BasesByName = GameData.Bases.Select(x => x.Nickname).Order().ToArray();
-        FactionsByName = GameData.Factions.Select(x => x.Nickname).Order().ToArray();
-        LoadoutsByName = GameData.Loadouts.Select(x => x.Nickname).Order().ToArray();
-        GoodsByName = GameData.Goods.Select(x => x.Nickname).Order().ToArray();
+        SystemsByName = GameData.Items.Systems.Select(x => x.Nickname).Order().ToArray();
+        BasesByName = GameData.Items.Bases.Select(x => x.Nickname).Order().ToArray();
+        FactionsByName = GameData.Items.Factions.Select(x => x.Nickname).Order().ToArray();
+        LoadoutsByName = GameData.Items.Loadouts.Select(x => x.Nickname).Order().ToArray();
+        GoodsByName = GameData.Items.Goods.Select(x => x.Nickname).Order().ToArray();
         MusicByName = GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).Order().ToArray();
     }
 
@@ -127,14 +127,14 @@ public class GameDataContext : IDisposable
             try
             {
                 var sw = Stopwatch.StartNew();
-                GameData = new GameDataManager(vfs, Resources);
+                GameData = new GameDataManager(new GameItemDb(vfs), Resources);
                 GameData.LoadData(win);
                 //Replace infocard manager with editable version
-                GameData.Ini.Infocards = new EditableInfocardManager(GameData.Ini.Infocards.Dlls);
+                GameData.Items.Ini.Infocards = new EditableInfocardManager(GameData.Items.Ini.Infocards.Dlls);
                 char[] splits = ['\\', '/'];
-                var uniSplit = GameData.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
+                var uniSplit = GameData.Items.Ini.Freelancer.UniversePath.Split(splits, StringSplitOptions.RemoveEmptyEntries);
                 UniverseVfsFolder = $"{string.Join('\\', uniSplit.Take(uniSplit.Length - 1))}\\";
-                ShortestPathRoot = GameData.Ini.Freelancer.DataPath + "Universe\\";
+                ShortestPathRoot = GameData.Items.Ini.Freelancer.DataPath + "Universe\\";
                 RefreshLists();
                 sw.Stop();
                 FLLog.Info("Game", $"Finished loading game data in {sw.Elapsed.TotalSeconds:0.000} seconds");
@@ -175,8 +175,8 @@ public class GameDataContext : IDisposable
     {
         if (allArchetypes == null)
         {
-            allArchetypes = GameData.Archetypes.ToArray();
-            allAsteroids = GameData.Asteroids.ToArray();
+            allArchetypes = GameData.Items.Archetypes.ToArray();
+            allAsteroids = GameData.Items.Asteroids.ToArray();
             renderIndex = 0;
             PreviewLoadPercent = 0;
             drawTasks = new List<Task<ImTextureRef>>();

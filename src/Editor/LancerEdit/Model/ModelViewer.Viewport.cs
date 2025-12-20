@@ -14,6 +14,7 @@ using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
 using LancerEdit.Materials;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;

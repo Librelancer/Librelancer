@@ -12,7 +12,6 @@ using System.Threading.Tasks.Dataflow;
 using LibreLancer.Database;
 using LibreLancer.Entities.Character;
 using LibreLancer.Entities.Enums;
-using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol;
 using Microsoft.EntityFrameworkCore;
 

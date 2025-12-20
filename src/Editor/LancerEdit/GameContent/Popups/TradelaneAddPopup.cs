@@ -4,8 +4,8 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
-using LibreLancer.GameData;
-using ArchetypeType = LibreLancer.Data.Solar.ArchetypeType;
+using LibreLancer.Data.GameData;
+using ArchetypeType = LibreLancer.Data.Schema.Solar.ArchetypeType;
 using LibreLancer.ImUI;
 using LibreLancer.World;
 
@@ -53,7 +53,7 @@ public class TradelaneAddPopup : PopupWindow
     {
         this.start = start;
         this.end = end;
-        var allowed = dc.GameData.Archetypes.Where(x => x.Type == ArchetypeType.tradelane_ring);
+        var allowed = dc.GameData.Items.Archetypes.Where(x => x.Type == ArchetypeType.tradelane_ring);
         archetypes = new(dc, null, allowed.ToArray());
 
         var orderRight = gameObjects

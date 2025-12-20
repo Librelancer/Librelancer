@@ -1,30 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Enumeration;
 using System.Numerics;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using BepuUtilities;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.Market;
 using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
 using LibreLancer.Resources;
 using LibreLancer.World;
-using AsteroidField = LibreLancer.GameData.World.AsteroidField;
-using ModelRenderer = LibreLancer.Render.ModelRenderer;
-using Zone = LibreLancer.GameData.World.Zone;
+
 namespace LancerEdit.GameContent;
 
 public class AsteroidFieldEdit

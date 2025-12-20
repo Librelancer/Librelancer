@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Client;
-using LibreLancer.Data.Equipment;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.Schema.Equipment;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Resources;
 using LibreLancer.Server;
 using LibreLancer.World;
 using WattleScript.Interpreter;
@@ -37,7 +38,7 @@ namespace LibreLancer.Client
                 IdsInfo = ship.Infocard,
                 Model = ship.ModelFile.SourcePath,
                 ShipClass = ship.Class,
-                Icon = session.Game.GameData.GetShipIcon(ship),
+                Icon = session.Game.GameData.Items.GetShipIcon(ship),
                 Price = session.ShipWorth,
                 Ship = ship
             };
@@ -53,7 +54,7 @@ namespace LibreLancer.Client
         {
             return session.Ships.Select(x =>
             {
-                var ship = session.Game.GameData.Ships.Get(x.ShipCRC);
+                var ship = session.Game.GameData.Items.Ships.Get(x.ShipCRC);
                 var sold = ShipInfo(ship);
                 sold.Server = x;
                 sold.Price = x.PackagePrice;
@@ -365,7 +366,7 @@ namespace LibreLancer.Client
                 for (int i = 0; i < task.Result.Included.Length; i++)
                 {
                     var item = task.Result.Included[i];
-                    var eq = session.Game.GameData.Equipment.Get(item.EquipCRC);
+                    var eq = session.Game.GameData.Items.Equipment.Get(item.EquipCRC);
                     playerItems.Add(new ShipTradeItem()
                     {
                         Show = eq.Good != null,

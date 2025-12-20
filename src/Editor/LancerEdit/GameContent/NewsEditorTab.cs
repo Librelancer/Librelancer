@@ -4,8 +4,8 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
 using LancerEdit.GameContent.Popups;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 
@@ -30,18 +30,18 @@ public class NewsEditorTab : GameContentTab
     public NewsEditorTab(GameDataContext gameData, MainWindow mainWindow)
     {
         Title = "News Editor";
-        News = gameData.GameData.News.Clone();
+        News = gameData.GameData.Items.News.Clone();
         SaveStrategy = new NewsSaveStrategy(this);
         Data = gameData;
 
-        var newsVendor = gameData.GameData.DataPath("INTERFACE/NEURONET/NEWSVENDOR/newsvendor.txm");
+        var newsVendor = gameData.GameData.Items.DataPath("INTERFACE/NEURONET/NEWSVENDOR/newsvendor.txm");
         if (newsVendor != null)
         {
             gameData.Resources.LoadResourceFile(newsVendor);
             newsImages = gameData.Resources.TexturesInFile(newsVendor).Order().ToArray();
         }
 
-        allBases = Data.GameData.Bases.OrderBy(x => x.Nickname).ToArray();
+        allBases = Data.GameData.Items.Bases.OrderBy(x => x.Nickname).ToArray();
         window = mainWindow;
         undoBuffer.Hook = () => Dirty = true;
     }
@@ -174,8 +174,8 @@ public class NewsEditorTab : GameContentTab
             if (ImGui.Button($"{Icons.PlusCircle} New Article"))
             {
                 var ni = new NewsItem();
-                ni.From = Data.GameData.Story[0];
-                ni.To = Data.GameData.Story[^1];
+                ni.From = Data.GameData.Items.Story[0];
+                ni.To = Data.GameData.Items.Story[^1];
                 ni.Logo = newsImages[0];
                 ni.Icon = newsIcons[0];
                 undoBuffer.Commit(new NewsNew(ni, News));

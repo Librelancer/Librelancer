@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
 using LibreLancer.ImUI;
 using LibreLancer.Resources;
 using LibreLancer.Utf.Vms;

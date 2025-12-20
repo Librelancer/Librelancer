@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using ImGuiNET;
-using LibreLancer.Data.Audio;
+using LibreLancer.Data.Schema.Audio;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;

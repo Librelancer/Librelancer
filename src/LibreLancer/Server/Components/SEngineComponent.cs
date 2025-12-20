@@ -2,7 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.World;
 
 namespace LibreLancer.Server.Components

@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
-using LibreLancer.Data.Voices;
+using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Voices;
+
 namespace LancerEdit
 {
     public class IDTable

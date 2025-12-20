@@ -1,5 +1,5 @@
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 
 namespace LancerEdit.GameContent;
 
@@ -13,7 +13,7 @@ public class SysAddEncounterParameter : EditorAction
         this.system = system;
         this.parameter = parameter;
     }
-    
+
     public override void Commit()
     {
         system.EncounterParameters.Add(parameter);
@@ -23,4 +23,4 @@ public class SysAddEncounterParameter : EditorAction
     {
         system.EncounterParameters.Remove(parameter);
     }
-} 
+}

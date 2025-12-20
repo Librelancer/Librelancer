@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using LibreLancer.Data;
 using SimpleMesh;
 using LibreLancer.Utf.Vms;
 

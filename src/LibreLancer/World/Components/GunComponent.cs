@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 
 namespace LibreLancer.World.Components
 {

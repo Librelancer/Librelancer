@@ -2,8 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-namespace LibreLancer
+namespace LibreLancer.Data
 {
     //Sherlog's FLHash algorithm implemented in C#
     public static class FLHash

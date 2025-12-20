@@ -5,9 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Fx;
-using LibreLancer.GameData.Items;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Server.Components;
 using LibreLancer.Sounds;
 using LibreLancer.World;
@@ -162,10 +163,10 @@ namespace LibreLancer.Client.Components
                 if (Parent.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
                     trailFxName = Engine.Def.TrailEffectPlayer;
                 if(!string.IsNullOrEmpty(trailFxName))
-                    trailFx = gameData.Effects.Get(trailFxName).GetEffect(resman);
+                    trailFx = gameData.Items.Effects.Get(trailFxName).GetEffect(resman);
                 ParticleEffect flameFx = null;
                 if(!string.IsNullOrEmpty(Engine.Def.FlameEffect))
-                    flameFx = gameData.Effects.Get(Engine.Def.FlameEffect).GetEffect(resman);
+                    flameFx = gameData.Items.Effects.Get(Engine.Def.FlameEffect).GetEffect(resman);
                 foreach (var hp in hps)
                 {
                     if (!hp.Name.Equals("hpengineglow", StringComparison.OrdinalIgnoreCase) &&

@@ -31,7 +31,7 @@ public class FormationTools
     public static void MakeNewFormation(GameObject obj, string formation, List<string> others)
     {
         //TODO: Gross
-        var formDef = obj.World.Server.Server.GameData.GetFormation(formation);
+        var formDef = obj.World.Server.Server.GameData.Items.GetFormation(formation);
         GameObject player = null;
         bool playerLead = false;
         // Preserve player (required)

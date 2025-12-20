@@ -3,8 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.Data.Ships;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.Schema.Ships;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;

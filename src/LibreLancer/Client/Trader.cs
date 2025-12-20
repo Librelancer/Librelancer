@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Data.Equipment;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.Schema.Equipment;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Interface;
 using LibreLancer.Server;
 using LibreLancer.World;
@@ -139,7 +139,7 @@ namespace LibreLancer.Client
             foreach (var sold in session.Goods)
             {
                 if (!sold.ForSale) continue;
-                if (!session.Game.GameData.Goods.TryGetValue(sold.GoodCRC, out var g))
+                if (!session.Game.GameData.Items.Goods.TryGetValue(sold.GoodCRC, out var g))
                     continue;
                 if (!filterfunc(g.Equipment)) continue;
                 var price = GetPrice(g);

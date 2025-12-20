@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 

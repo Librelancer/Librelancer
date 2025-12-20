@@ -1,12 +1,12 @@
 using System.Text.Json;
-using LibreLancer.Data.Pilots;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Pilots;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
-using Pilot = LibreLancer.GameData.Pilot;
+using Pilot = LibreLancer.Data.GameData.Pilot;
 
 namespace LibreLancer.Server;
 

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
 
 namespace LancerEdit.GameContent;
 
@@ -45,7 +45,7 @@ public class AsteroidFieldList
             if (!DataEquality.ObjectEquals(f, OriginalFields[f]))
             {
                 var sections = IniSerializer.SerializeAsteroidField(f);
-                var filename = gameData.VFS.GetBackingFileName(gameData.DataPath(f.SourceFile));
+                var filename = gameData.VFS.GetBackingFileName(gameData.Items.DataPath(f.SourceFile));
                 IniWriter.WriteIniFile(filename, sections);
                 FLLog.Info("Ini", $"Saved to {filename}");
             }

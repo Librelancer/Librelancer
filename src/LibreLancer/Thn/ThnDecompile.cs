@@ -91,7 +91,7 @@ namespace LibreLancer.Thn
             ThornTable.EnumReverse.Add("NegZAxis", "NEG_Z_AXIS");
         }
 
-        public static string Decompile(string file, ThornReadFile readCallback = null)
+        public static string Decompile(string file, ReadFileCallback readCallback = null)
         {
             Init();
             var builder = new StringBuilder();

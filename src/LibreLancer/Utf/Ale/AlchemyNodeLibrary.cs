@@ -6,6 +6,8 @@ using System;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
+using LibreLancer.Data;
+
 namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyNodeLibrary

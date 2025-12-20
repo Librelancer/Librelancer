@@ -13,7 +13,6 @@ namespace LibreLancer.Thorn.VM
     public delegate object ThornRuntimeFunction(object[] args);
     public delegate void ThornStdoutEvent(string output);
 
-    public delegate byte[] ThornReadFile(string filename);
 
     public partial class ThornRuntime
     {
@@ -26,7 +25,7 @@ namespace LibreLancer.Thorn.VM
 
         public event ThornStdoutEvent OnStdout;
 
-        public ThornReadFile OnReadFile;
+        public ReadFileCallback OnReadFile;
 
         internal void Write(string str) => OnStdout?.Invoke(str);
 

@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
-using Microsoft.EntityFrameworkCore;
-using ZoneShape = LibreLancer.Data.Universe.ZoneShape;
+using LibreLancer.Resources;
+using ZoneShape = LibreLancer.Data.Schema.Universe.ZoneShape;
 
 namespace LibreLancer.Render
 {
@@ -262,14 +263,17 @@ namespace LibreLancer.Render
 			}
 		}
 
+        private Dictionary<string, RigidModel> shellModels = new();
+
 		void RenderExclusionZone(CommandBuffer buffer, NebulaExclusionZone ex)
 		{
 			if (ex.Shell == null)
 				return;
-            if (ex.ShellModel == null)
+            if (!shellModels.TryGetValue(ex.Shell.ModelFile, out var shellModel))
             {
                 var file = (IRigidModelFile) (ex.Shell.LoadFile(sysr.ResourceManager).Drawable);
-                ex.ShellModel = file.CreateRigidModel(true, sysr.ResourceManager);
+                shellModel = file.CreateRigidModel(true, sysr.ResourceManager);
+                shellModels[ex.Shell.ModelFile] = shellModel;
             }
 			Vector3 sz = Vector3.Zero;
 			//Only render ellipsoid and sphere exteriors
@@ -279,13 +283,13 @@ namespace LibreLancer.Render
 				sz = new Vector3(Nebula.Zone.Size.X);
 			else
 				return;
-			sz *= (1 / ex.ShellModel.GetRadius());
+			sz *= (1 / shellModel.GetRadius());
 			var world = Matrix4x4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4x4.CreateTranslation(ex.Zone.Position);
 			//var shell = (ModelFile)ex.Shell;
 			//Calculate Alpha
 			var alpha = ex.ShellMaxAlpha * CalculateTransition(ex.Zone);
 			//Set all render materials. We don't want LOD for this Mesh.
-            foreach (var pt in ex.ShellModel.AllParts)
+            foreach (var pt in shellModel.AllParts)
             {
                 foreach (var dc in pt.Mesh.Levels[0].Drawcalls)
                 {
@@ -300,8 +304,8 @@ namespace LibreLancer.Render
                 }
             }
 
-            ex.ShellModel.Update(0.0);
-            ex.ShellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
+            shellModel.Update(0.0);
+            shellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
         }
 
         void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2, float angle,
@@ -441,7 +445,7 @@ namespace LibreLancer.Render
 			public Vector3 Position;
 			public Vector3 Velocity;
 			public Color3f Color;
-			public RenderShape Shape;
+			public TextureShape Shape;
 		}
 
 		InteriorPuff[] puffsinterior;

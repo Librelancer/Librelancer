@@ -103,7 +103,7 @@ namespace LibreLancer
             Audio.SfxVolume = _cfg.Settings.SfxVolume;
 			//Load data
 			FLLog.Info("Game", "Loading game data");
-			GameData = new GameDataManager(vfs, ResourceManager);
+			GameData = new GameDataManager(new GameItemDb(vfs), ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
             Saves = new SaveGameFolder();
             InputMap = new InputMap(Path.Combine(GetSaveFolder(), "keymap.ini"));
@@ -113,14 +113,14 @@ namespace LibreLancer
                 GameData.LoadData(this, true,() =>
                 {
                     Sound = new SoundManager(GameData, Audio, this);
-                    InputMap.LoadFromKeymap(GameData.Ini.Keymap, GameData.Ini.KeyList);
+                    InputMap.LoadFromKeymap(GameData.Items.Ini.Keymap, GameData.Items.Ini.KeyList);
                     InputMap.LoadMapping();
                     Services.Add(Sound);
                     InisLoaded = true;
                 });
                 FLLog.Info("Game", "Finished loading game data");
                 saveLoadTask.Wait();
-                Saves.Infocards = GameData.Ini.Infocards;
+                Saves.Infocards = GameData.Items.Ini.Infocards;
                 InitialLoadComplete = true;
             });
             GameDataLoaderThread.Name = "GamedataLoader";

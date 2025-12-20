@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
-using LibreLancer.Data.RandomMissions;
-using LibreLancer.GameData.RandomMissions;
+using LibreLancer.Data.GameData.RandomMissions;
+using LibreLancer.Data.Schema.RandomMissions;
 
 namespace LibreLancer.ContentEdit.RandomMissions;
 

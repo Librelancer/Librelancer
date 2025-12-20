@@ -6,9 +6,10 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 
@@ -42,7 +43,7 @@ public class UniverseEditorTab : GameContentTab
         Title = "Universe Editor";
         this.win = win;
         this.Data = gameData;
-        var pmap = this.Data.GameData.DataPath(NAV_PRETTYMAP);
+        var pmap = this.Data.GameData.Items.DataPath(NAV_PRETTYMAP);
         if (gameData.GameData.VFS.FileExists(pmap))
             gameData.Resources.LoadResourceFile(pmap);
         universeBackgroundTex = (gameData.Resources.FindTexture("fancymap.tga") as Texture2D);
@@ -88,7 +89,7 @@ public class UniverseEditorTab : GameContentTab
 
     void BuildSystemList()
     {
-        AllSystems = Data.GameData.Systems.OrderBy(x => x.Nickname).Select(x => new EditorSystem(
+        AllSystems = Data.GameData.Items.Systems.OrderBy(x => x.Nickname).Select(x => new EditorSystem(
             x, x.UniversePosition)).ToList();
     }
 
@@ -141,7 +142,7 @@ public class UniverseEditorTab : GameContentTab
     void DrawSystems()
     {
         if (ImGui.Button("New System")) {
-            popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("New System", Data.GameData.Systems.Contains), "",
+            popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("New System", Data.GameData.Items.Systems.Contains), "",
                 x => NewSystem(x, Vector2.Zero)));
         }
         ImGui.SameLine();
@@ -175,7 +176,7 @@ public class UniverseEditorTab : GameContentTab
     void NewSystem(string nickname, Vector2 position)
     {
         var systemsFolder =
-            Data.GameData.VFS.GetBackingFileName(Data.GameData.Ini.Freelancer.DataPath + "/UNIVERSE/SYSTEMS");
+            Data.GameData.VFS.GetBackingFileName(Data.GameData.Items.Ini.Freelancer.DataPath + "/UNIVERSE/SYSTEMS");
         var newFolder = Path.Combine(systemsFolder, nickname);
         Directory.CreateDirectory(newFolder);
         var system = new StarSystem()
@@ -186,18 +187,18 @@ public class UniverseEditorTab : GameContentTab
             BackgroundColor = Color4.Black,
             FarClip = 20000,
             NavMapScale = 1f,
-            LocalFaction = Data.GameData.Factions.First(),
+            LocalFaction = Data.GameData.Items.Factions.First(),
             Preloads = Array.Empty<PreloadObject>(),
             UniversePosition = position,
         };
-        Data.GameData.Systems.Add(system);
-        var universePath = Data.GameData.VFS.GetBackingFileName(Data.GameData.Ini.Freelancer.UniversePath);
+        Data.GameData.Items.Systems.Add(system);
+        var universePath = Data.GameData.VFS.GetBackingFileName(Data.GameData.Items.Ini.Freelancer.UniversePath);
         using (var stream = File.Create(Path.Combine(newFolder, $"{nickname}.ini")))
         {
             var sections = IniSerializer.SerializeStarSystem(system);
             IniWriter.WriteIni(stream, sections);
         }
-        IniWriter.WriteIniFile(universePath, IniSerializer.SerializeUniverse(Data.GameData.Systems, Data.GameData.Bases));
+        IniWriter.WriteIniFile(universePath, IniSerializer.SerializeUniverse(Data.GameData.Items.Systems, Data.GameData.Items.Bases));
         Data.GameData.VFS.Refresh();
         win.AddTab(new SystemEditorTab(Data, win, system));
         AllSystems.Add(new EditorSystem(system, system.UniversePosition));
@@ -206,7 +207,7 @@ public class UniverseEditorTab : GameContentTab
 
     void OpenSystem(string nickname)
     {
-        var sys = Data.GameData.Systems.Get(nickname);
+        var sys = Data.GameData.Items.Systems.Get(nickname);
         win.AddTab(new SystemEditorTab(Data, win, sys));
     }
 
@@ -215,7 +216,7 @@ public class UniverseEditorTab : GameContentTab
         ImGui.Text("Base List");
         ImGui.Separator();
         ImGui.BeginChild("##baselist");
-        foreach(var b in Data.GameData.Bases)
+        foreach(var b in Data.GameData.Items.Bases)
             ImGui.Text(b.Nickname);
         ImGui.EndChild();
     }

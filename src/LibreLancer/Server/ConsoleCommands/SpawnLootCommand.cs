@@ -1,5 +1,4 @@
 using System.Numerics;
-using LibreLancer.GameData.Items;
 using LibreLancer.Server.Components;
 
 namespace LibreLancer.Server.ConsoleCommands;
@@ -25,7 +24,7 @@ public class SpawnLootCommand : IConsoleCommand
         player.Space?.World?.EnqueueAction(() =>
         {
             var p = player.Space.World.Players[player];
-            var eq = player.Space.World.Server.GameData.Equipment.Get(l);
+            var eq = player.Space.World.Server.GameData.Items.Equipment.Get(l);
             if (eq is null)
             {
                 player.RpcClient.OnConsoleMessage($"{l} is not equipment");

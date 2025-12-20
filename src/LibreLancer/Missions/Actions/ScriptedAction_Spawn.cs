@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Server;
 using LibreLancer.Server.Ai;
 using LibreLancer.Server.Components;
@@ -117,7 +117,7 @@ namespace LibreLancer.Missions.Actions
             runtime.ObjectSpawned(ship.Nickname);
             if (shipArch == null)
             {
-                shipArch = runtime.Player.Game.GameData.Ini.NPCShips.ShipArches.First(x =>
+                shipArch = runtime.Player.Game.GameData.Items.Ini.NPCShips.ShipArches.First(x =>
                     x.Nickname.Equals(npcDef.NpcShipArch, StringComparison.OrdinalIgnoreCase));
             }
 
@@ -137,8 +137,8 @@ namespace LibreLancer.Missions.Actions
 
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.Space.World.Server.GameData.TryGetLoadout(shipArch.Loadout, out var ld);
-                var pilot = runtime.Player.Space.World.Server.GameData.GetPilot(shipArch.Pilot);
+                runtime.Player.Space.World.Server.GameData.Items.TryGetLoadout(shipArch.Loadout, out var ld);
+                var pilot = runtime.Player.Space.World.Server.GameData.Items.GetPilot(shipArch.Pilot);
                 ObjectName oName;
                 if (ship.RandomName)
                 {
@@ -247,7 +247,7 @@ namespace LibreLancer.Missions.Actions
             var forient = Orientation.Get(form.Orientation);
             var mat = Matrix4x4.CreateFromQuaternion(forient) *
                       Matrix4x4.CreateTranslation(fpos);
-            var formDef = runtime.Player.Game.GameData.GetFormation(form.Formation);
+            var formDef = runtime.Player.Game.GameData.Items.GetFormation(form.Formation);
             IReadOnlyList<Vector3> positions = formDef?.Positions ?? nullOffsets;
 
             for (int i = 0; i < form.Ships.Count; i++)
@@ -351,7 +351,7 @@ namespace LibreLancer.Missions.Actions
             {
                 var world = runtime.Player.Space.World;
                 var pos = lootDef.Position;
-                var arch = world.Server.GameData.Equipment.Get(lootDef.Archetype);
+                var arch = world.Server.GameData.Items.Equipment.Get(lootDef.Archetype);
                 if (arch == null)
                 {
                     FLLog.Error("Mission", $"{this}: Invalid archetype {lootDef.Archetype}");

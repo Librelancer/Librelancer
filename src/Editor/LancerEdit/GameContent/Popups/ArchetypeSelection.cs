@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;

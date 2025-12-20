@@ -9,12 +9,13 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using LibreLancer.Data;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
+using LibreLancer.Resources;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -612,7 +613,7 @@ namespace LibreLancer.Server
         public GameObject SpawnSolar(string nickname, string archetype, string loadout, string rep, Vector3 position,
             Quaternion orientation, int idsName = 0, string? dockWith = null)
         {
-            var arch = Server.GameData.GetSolarArchetype(archetype);
+            var arch = Server.GameData.Items.Archetypes.Get(archetype);
             var gameobj = new GameObject(arch, null, Server.Resources, false);
             gameobj.ArchetypeName = archetype;
             gameobj.NetID = IdGenerator.Allocate();
@@ -621,7 +622,7 @@ namespace LibreLancer.Server
             gameobj.SetLocalTransform(new Transform3D(position, orientation));
             gameobj.Nickname = nickname;
             gameobj.World = GameWorld;
-            var faction = Server.GameData.Factions.Get(rep);
+            var faction = Server.GameData.Items.Factions.Get(rep);
             gameobj.AddComponent(new SSolarComponent(gameobj) { Faction = faction });
             if (!string.IsNullOrWhiteSpace(dockWith))
             {
@@ -701,13 +702,13 @@ namespace LibreLancer.Server
                 List<SeparablePart> sep;
                 if (kind == GameObjectKind.Ship)
                 {
-                    var ship = Server.GameData.Ships.Get(archetype);
+                    var ship = Server.GameData.Items.Ships.Get(archetype);
                     sep = ship.SeparableParts;
                     src = ship.ModelFile.LoadFile(Server.Resources);
                 }
                 else
                 {
-                    var solar = Server.GameData.Archetypes.Get(archetype);
+                    var solar = Server.GameData.Items.Archetypes.Get(archetype);
                     sep = solar.SeparableParts;
                     src = solar.ModelFile.LoadFile(Server.Resources);
                 }

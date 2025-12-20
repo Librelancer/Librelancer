@@ -6,10 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Fx;
 using LibreLancer.Media;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World.Components;
 
@@ -72,7 +75,7 @@ namespace LibreLancer.World
         }
 
         Dictionary<string, ProjectileData> datas = new Dictionary<string, ProjectileData>();
-        public ProjectileData GetData(GameData.Items.GunEquipment gunDef)
+        public ProjectileData GetData(GunEquipment gunDef)
         {
             ProjectileData pdata;
             if (datas.TryGetValue(gunDef.Nickname, out pdata)) return pdata;
@@ -84,10 +87,10 @@ namespace LibreLancer.World
             {
                 var res = world.Renderer.Game.GetService<GameDataManager>();
                 if(gunDef.Munition.Def.MunitionHitEffect != null)
-                pdata.HitEffect = res.Effects.Get(gunDef.Munition.Def.MunitionHitEffect)
+                pdata.HitEffect = res.Items.Effects.Get(gunDef.Munition.Def.MunitionHitEffect)
                     .GetEffect(world.Renderer.ResourceManager);
                if(gunDef.Munition.Def.ConstEffect != null)
-                pdata.TravelEffect = res.Effects.Get(gunDef.Munition.Def.ConstEffect)?
+                pdata.TravelEffect = res.Items.Effects.Get(gunDef.Munition.Def.ConstEffect)?
                     .GetEffect(world.Renderer.ResourceManager);
             }
             datas.Add(gunDef.Nickname, pdata);
@@ -246,7 +249,7 @@ namespace LibreLancer.World
     }
     public class ProjectileData
     {
-        public GameData.Items.MunitionEquip Munition;
+        public MunitionEquip Munition;
         public float Velocity;
         public float Lifetime;
         public ParticleEffect HitEffect;

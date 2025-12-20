@@ -154,7 +154,7 @@ namespace LibreLancer.Net
                     dw.PutVariableUInt32((uint)Port);
                     dw.Put(game.ServerName);
                     dw.Put(game.ServerDescription);
-                    dw.Put(game.GameData.DataVersion);
+                    dw.Put(game.GameData.Items.DataVersion);
                     dw.PutVariableUInt32((uint) Server.ConnectedPeersCount);
                     dw.PutVariableUInt32((uint) MaxConnections);
                     broadcastServer.SendUnconnectedMessage(dw, point);

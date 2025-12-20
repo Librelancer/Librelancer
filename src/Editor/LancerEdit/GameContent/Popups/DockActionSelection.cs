@@ -2,9 +2,10 @@ using System;
 using System.Linq;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
-using LibreLancer.Data.Solar;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Solar;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;
@@ -69,11 +70,11 @@ public class DockActionSelection : PopupWindow
             {
                 case DockKinds.Base:
                     selectedKind = baseKind;
-                    initialBase = gd.GameData.Bases.Get(initial.Target);
+                    initialBase = gd.GameData.Items.Bases.Get(initial.Target);
                     break;
                 case DockKinds.Jump:
                     selectedKind = jumpKind;
-                    initialSystem = gd.GameData.Systems.Get(initial.Target);
+                    initialSystem = gd.GameData.Items.Systems.Get(initial.Target);
                     if (initialSystem != null) {
 
                         currentTunnel = initial.Tunnel ?? "";

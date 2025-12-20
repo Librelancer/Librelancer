@@ -20,8 +20,10 @@ using LancerEdit.Utf.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.Data;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Pilots;
+using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
@@ -641,7 +643,7 @@ namespace LancerEdit
                 {
                     Dictionary<ushort, string> hashes = new Dictionary<ushort, string>();
                     var collisions = new StringBuilder();
-                    foreach (var faction in OpenDataContext!.GameData.Factions)
+                    foreach (var faction in OpenDataContext!.GameData.Items.Factions)
                     {
                         var hash = FLHash.FLFacHash(faction.Nickname);
                         if (hashes.TryGetValue(hash, out var og))

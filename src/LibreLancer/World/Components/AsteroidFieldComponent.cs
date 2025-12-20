@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using BepuUtilities.Collections;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Physics;
 using LibreLancer.Resources;
 

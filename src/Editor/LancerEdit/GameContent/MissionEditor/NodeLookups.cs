@@ -1,5 +1,5 @@
 using System.Linq;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor;
 

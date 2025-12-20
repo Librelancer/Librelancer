@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.Thn.Events;
 using LibreLancer.Utf.Dfm;
@@ -121,7 +122,7 @@ namespace LibreLancer.Thn
                             case "ship":
                             case "spaceship":
                                 getHpMount = true;
-                                var sh = gameData.Ships.Get(template);
+                                var sh = gameData.Items.Ships.Get(template);
                                 drawable = sh.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             case "prop":
@@ -134,11 +135,11 @@ namespace LibreLancer.Thn
                                 drawable = gameData.GetCart(template);
                                 break;
                             case "equipment":
-                                var eq = gameData.Equipment.Get(template);
+                                var eq = gameData.Items.Equipment.Get(template);
                                 drawable = eq?.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             case "asteroid":
-                                var ast = gameData.Asteroids.Get(template);
+                                var ast = gameData.Items.Asteroids.Get(template);
                                 drawable = ast?.ModelFile.LoadFile(resman).Drawable;
                                 break;
                             default:
@@ -178,8 +179,8 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.PSys)
                 {
-                    var fx = gameData.Effects.Get(kv.Value.Template);
-                    fx ??= gameData.VisEffects.Get(kv.Value.Template); //TODO: Check if this only searches VisEffects
+                    var fx = gameData.Items.Effects.Get(kv.Value.Template);
+                    fx ??= gameData.Items.VisEffects.Get(kv.Value.Template); //TODO: Check if this only searches VisEffects
                     if (fx?.AlePath != null)
                     {
                         obj.Object = new GameObject();

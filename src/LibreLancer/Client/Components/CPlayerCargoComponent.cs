@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;

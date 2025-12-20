@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 
@@ -217,7 +217,7 @@ namespace LibreLancer.Server.Components
         public int GetUndockIndex()
         {
             if (DockPoints.Length > 1 &&
-                DockPoints[0].DockSphere.Type == Data.Solar.DockSphereType.ring)
+                DockPoints[0].DockSphere.Type == Data.Schema.Solar.DockSphereType.ring)
             {
                 return 0; // Must undock from 0
             }

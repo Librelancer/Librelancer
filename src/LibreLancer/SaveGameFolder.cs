@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
-using LibreLancer.Data.Save;
+using LibreLancer.Data.Schema.Save;
 using LibreLancer.Interface;
 using WattleScript.Interpreter;
 

@@ -1,7 +1,7 @@
 using System;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
-using LibreLancer.Dll;
+using LibreLancer.Data.Dll;
 using LibreLancer.Interface;
 using Xunit;
 

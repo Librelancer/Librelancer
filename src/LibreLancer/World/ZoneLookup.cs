@@ -7,7 +7,7 @@ using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 
 namespace LibreLancer.World;
 

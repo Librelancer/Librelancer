@@ -32,7 +32,7 @@ namespace LibreLancer.Net
 
         public void StartFromSave(string path, byte[] save)
         {
-            var sg = Data.Save.SaveGame.FromBytes(path, save);
+            var sg = Data.Schema.Save.SaveGame.FromBytes(path, save);
             //This starts the simulation + packet sending
             Server.Start();
             Server.LoadSaveGame(sg);

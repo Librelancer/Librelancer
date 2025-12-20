@@ -1,4 +1,4 @@
-namespace LibreLancer.Dll;
+namespace LibreLancer.Data.Dll;
 
 public class BinaryResource
 {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.Data;
 using LibreLancer.Sur;
 using SimpleMesh;
 using Xunit;

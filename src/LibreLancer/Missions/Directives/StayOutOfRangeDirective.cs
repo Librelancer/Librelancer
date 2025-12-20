@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.Missions.Directives;

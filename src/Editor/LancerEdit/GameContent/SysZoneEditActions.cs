@@ -1,9 +1,9 @@
 using System;
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.Data.Universe;
-using LibreLancer.GameData.World;
-using Zone = LibreLancer.GameData.World.Zone;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Universe;
+using Zone = LibreLancer.Data.GameData.World.Zone;
 
 namespace LancerEdit.GameContent;
 

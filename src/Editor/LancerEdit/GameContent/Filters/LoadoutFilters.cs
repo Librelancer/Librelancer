@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 
 namespace LancerEdit.GameContent.Filters;
 
@@ -13,7 +13,7 @@ public class LoadoutFilters : ObjectFiltering<ObjectLoadout>
         foreach (var hp in objectHps ?? Array.Empty<string>()) {
             hps.Add(hp);
         }
-        
+
         SetExtra("compatible", CompatibleFilter);
         SetPrefix("equip", EquipFilter);
     }
@@ -45,7 +45,7 @@ public class LoadoutFilters : ObjectFiltering<ObjectLoadout>
                 yield return s;
         }
     }
-    
+
     protected override IEnumerable<ObjectLoadout> DefaultFilter(string text, IEnumerable<ObjectLoadout> source)
     {
         return source.Where(x => x.Nickname.Contains(text, StringComparison.OrdinalIgnoreCase));

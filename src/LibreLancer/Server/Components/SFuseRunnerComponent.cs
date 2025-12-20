@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibreLancer.Data.Fuses;
-using LibreLancer.GameData;
+using LibreLancer.Data.Schema.Fuses;
+using LibreLancer.Data.GameData;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 
@@ -105,7 +105,7 @@ namespace LibreLancer.Server.Components
                     if (start)
                     {
                         FLLog.Debug("Fuse", $"Igniting {ig.Fuse}");
-                        Run(instance.Fuse.GameData.Fuses.Get(ig.Fuse));
+                        Run(GetGameData().Items.Fuses.Get(ig.Fuse));
                     }
                 }
                 else if (act is FuseDestroyRoot)

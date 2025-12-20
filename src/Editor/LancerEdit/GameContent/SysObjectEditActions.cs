@@ -1,10 +1,10 @@
 using System.IO.Enumeration;
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Archetypes;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.Archetypes;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.World;
+using Faction = LibreLancer.Data.GameData.Faction;
 
 namespace LancerEdit.GameContent;
 
@@ -123,14 +123,14 @@ public class ObjectSetComment(GameObject target, SystemObjectList list, string o
 
 public class ObjectSetArchetypeLoadoutStar(
     GameObject target, SystemEditorTab tab,
-    Archetype oldArchetype, ObjectLoadout oldLoadout, Sun oldSun,
-    Archetype newArchetype, ObjectLoadout newLoadout, Sun newSun) :
-    EditorModification<(Archetype Archetype, ObjectLoadout Loadout, Sun Star)>(
+    LibreLancer.Data.GameData.Archetype oldArchetype, ObjectLoadout oldLoadout, Sun oldSun,
+    LibreLancer.Data.GameData.Archetype newArchetype, ObjectLoadout newLoadout, Sun newSun) :
+    EditorModification<(LibreLancer.Data.GameData.Archetype Archetype, ObjectLoadout Loadout, Sun Star)>(
         (oldArchetype, oldLoadout, oldSun),
         (newArchetype, newLoadout, newSun)
         )
 {
-    public override void Set((Archetype Archetype, ObjectLoadout Loadout, Sun Star) value)
+    public override void Set((LibreLancer.Data.GameData.Archetype Archetype, ObjectLoadout Loadout, Sun Star) value)
     {
         tab.SetArchetypeLoadout(target, value.Archetype, value.Loadout, value.Star);
         target.UpdateDirty();

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
@@ -471,11 +471,11 @@ namespace LibreLancer.Missions.Actions
             else
             {
                 var p = runtime.Player;
-                if (p.Game.GameData.TryGetLoadout(Loadout, out var loadout))
+                if (p.Game.GameData.Items.TryGetLoadout(Loadout, out var loadout))
                 {
                     using (var c = p.Character.BeginTransaction())
                     {
-                        c.UpdateShip(p.Game.GameData.Ships.Get(Ship));
+                        c.UpdateShip(p.Game.GameData.Items.Ships.Get(Ship));
                         p.Character.Items = new List<NetCargo>();
                         c.ClearAllCargo();
                         foreach (var equip in loadout.Items)
@@ -691,7 +691,7 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var fuse = runtime.Player.Space.World.Server.GameData.Fuses.Get(Fuse);
+                var fuse = runtime.Player.Space.World.Server.GameData.Items.Fuses.Get(Fuse);
                 var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Target);
                 if (gameObj == null)
                 {

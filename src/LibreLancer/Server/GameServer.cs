@@ -12,11 +12,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.IO;
-using LibreLancer.Data.Save;
+using LibreLancer.Data.Schema.Save;
+using LibreLancer.Data.Schema.Save;
 using LibreLancer.Database;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
@@ -68,7 +68,7 @@ namespace LibreLancer.Server
         public GameServer(FileSystem vfs)
         {
             Resources = new ServerResourceManager(null, vfs);
-            GameData = new GameDataManager(vfs, Resources);
+            GameData = new GameDataManager(new GameItemDb(vfs), Resources);
             Listener = new GameListener(this);
         }
 
@@ -81,10 +81,10 @@ namespace LibreLancer.Server
 
         public SaveGame NewCharacter(string name, int factionIndex)
         {
-            var fac = GameData.Ini.NewCharDB.Factions[factionIndex];
-            var pilot = GameData.Ini.NewCharDB.Pilots.First(x =>
+            var fac = GameData.Items.Ini.NewCharDB.Factions[factionIndex];
+            var pilot = GameData.Items.Ini.NewCharDB.Pilots.First(x =>
                 x.Nickname.Equals(fac.Pilot, StringComparison.OrdinalIgnoreCase));
-            var package = GameData.Ini.NewCharDB.Packages.First(x =>
+            var package = GameData.Items.Ini.NewCharDB.Packages.First(x =>
                 x.Nickname.Equals(fac.Package, StringComparison.OrdinalIgnoreCase));
             //TODO: initial_rep = %%FACTION%%
             //does this have any effect in FL?
@@ -100,12 +100,12 @@ namespace LibreLancer.Server
             //TODO: pilot comm_anim (not in vanilla mpnewcharacter)
             //TODO: pilot body_anim (not in vanilla mpnewcharacter)
             src.Replace("%%MONEY%%", package.Money.ToString());
-            src.Replace("%%HOME_SYSTEM%%", GameData.Bases.Get(fac.Base).System);
+            src.Replace("%%HOME_SYSTEM%%", GameData.Items.Bases.Get(fac.Base).System);
             src.Replace("%%HOME_BASE%%", fac.Base);
 
             var pkgStr = new StringBuilder();
             pkgStr.Append("ship_archetype = ").AppendLine(package.Ship);
-            var loadout = GameData.Ini.Loadouts.Loadouts.First(x =>
+            var loadout = GameData.Items.Ini.Loadouts.Loadouts.First(x =>
                 x.Nickname.Equals(package.Loadout, StringComparison.OrdinalIgnoreCase));
             //do loadout
             foreach (var x in loadout.Equip)
@@ -181,7 +181,7 @@ namespace LibreLancer.Server
         void InitBaselinePrices()
         {
             var bp = new List<BaselinePrice>();
-            foreach (var good in GameData.Goods)
+            foreach (var good in GameData.Items.Goods)
             {
                 bp.Add(new BaselinePrice()
                 {

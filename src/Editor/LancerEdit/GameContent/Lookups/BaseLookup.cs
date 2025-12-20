@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 
 namespace LancerEdit.GameContent.Lookups;
 
@@ -11,7 +11,7 @@ public class BaseLookup : ObjectLookup<Base>
         allow ??= _ => true;
         CreateDropdown(
             id,
-            gd.GameData.Bases.Where(allow).OrderBy(x => x.Nickname),
+            gd.GameData.Items.Bases.Where(allow).OrderBy(x => x.Nickname),
             x => $"{x.Nickname} ({gd.GameData.GetString(x.IdsName)})",
             initial);
     }

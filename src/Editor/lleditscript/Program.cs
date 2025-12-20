@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
+using LibreLancer.Data.Schema;
 using LibreLancer.Options;
 using Microsoft.CodeAnalysis;
 

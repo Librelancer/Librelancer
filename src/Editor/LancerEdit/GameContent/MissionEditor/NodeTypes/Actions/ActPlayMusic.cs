@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using ImGuiNET;
-using LibreLancer.Data.Audio;
+using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;

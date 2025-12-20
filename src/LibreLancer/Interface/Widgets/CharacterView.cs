@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 using System;
 using System.Numerics;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using WattleScript.Interpreter;

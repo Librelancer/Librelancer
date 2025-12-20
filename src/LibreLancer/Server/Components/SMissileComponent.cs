@@ -1,5 +1,5 @@
 using System.Numerics;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.World;
 
 namespace LibreLancer.Server.Components;

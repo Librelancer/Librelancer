@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit.GameContent.MissionEditor;

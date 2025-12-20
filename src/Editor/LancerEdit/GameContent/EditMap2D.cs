@@ -6,6 +6,7 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.World;
@@ -278,11 +279,11 @@ public class EditMap2D
             ImGui.Separator();
             if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Sphere Zone"))
             {
-                CreationTools.ZoneShape.Start(LibreLancer.GameData.World.ShapeKind.Sphere, pos - windowPos, MapToWorld(pos - windowPos));
+                CreationTools.ZoneShape.Start(ShapeKind.Sphere, pos - windowPos, MapToWorld(pos - windowPos));
             }
             if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Ellipsoid Zone"))
             {
-                CreationTools.ZoneShape.Start(LibreLancer.GameData.World.ShapeKind.Ellipsoid, pos - windowPos, MapToWorld(pos - windowPos));
+                CreationTools.ZoneShape.Start(ShapeKind.Ellipsoid, pos - windowPos, MapToWorld(pos - windowPos));
             }
             ImGui.EndPopup();
         }

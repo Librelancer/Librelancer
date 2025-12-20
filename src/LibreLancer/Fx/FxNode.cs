@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.Fx

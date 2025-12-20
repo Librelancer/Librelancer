@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
-using LibreLancer.Data.Audio;
+using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Media;
 
 namespace LibreLancer.Sounds

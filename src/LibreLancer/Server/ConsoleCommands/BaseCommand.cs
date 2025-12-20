@@ -9,7 +9,7 @@ namespace LibreLancer.Server.ConsoleCommands
         public void Run(Player player, string arguments)
         {
             var baseName = arguments.Trim();
-            if (player.Game.GameData.Bases.Contains(baseName))
+            if (player.Game.GameData.Items.Bases.Contains(baseName))
             {
                 player.ForceLand(baseName);
             }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Data.GameData;
 using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
@@ -28,7 +29,7 @@ namespace LibreLancer.World.Components
     {
         public bool Active { get; set; }
 
-        public GameData.Ship Ship;
+        public Ship Ship;
         public float EnginePower = 0f; //from 0 to 1
                                        //TODO: I forget how this is configured in .ini files. Constants.ini?
                                        //Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.

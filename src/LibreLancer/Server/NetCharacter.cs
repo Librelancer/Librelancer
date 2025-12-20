@@ -8,17 +8,18 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-using LibreLancer.Data.Save;
-using LibreLancer.Data.Ships;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Save;
+using LibreLancer.Data.Schema.Ships;
 using LibreLancer.Database;
 using LibreLancer.Entities.Character;
 using LibreLancer.Entities.Enums;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
-using Ship = LibreLancer.GameData.Ship;
-using VisitEntry = LibreLancer.Data.Save.VisitEntry;
+using Ship = LibreLancer.Data.GameData.Ship;
+using VisitEntry = LibreLancer.Data.Schema.Save.VisitEntry;
 
 namespace LibreLancer.Server
 {
@@ -193,7 +194,7 @@ namespace LibreLancer.Server
                 nc.Time = time;
             }
 
-            public void UpdateShip(GameData.Ship ship)
+            public void UpdateShip(Ship ship)
             {
                 nc.Ship = ship;
             }
@@ -214,7 +215,7 @@ namespace LibreLancer.Server
 
             public void CargoModified() => cargoDirty = true;
 
-            public void AddCargo(GameData.Items.Equipment equip, string hardpoint, int count)
+            public void AddCargo(Equipment equip, string hardpoint, int count)
             {
                 cargoDirty = true;
                 if (equip.Good?.Ini.Combinable ?? false)
@@ -375,7 +376,7 @@ namespace LibreLancer.Server
         {
             foreach (var h in sg.Player.House)
             {
-                var f = game.GameData.Factions.Get(h.Group);
+                var f = game.GameData.Items.Factions.Get(h.Group);
                 if (f != null)
                     yield return (f, h.Reputation);
             }
@@ -392,7 +393,7 @@ namespace LibreLancer.Server
             {
                 c.UpdateName(sg.Player.Name);
                 c.UpdateCredits(sg.Player.Money);
-                c.UpdateShip(game.GameData.Ships.Get(sg.Player.ShipArchetype));
+                c.UpdateShip(game.GameData.Items.Ships.Get(sg.Player.ShipArchetype));
                 c.UpdateCostume(sg.Player.Costume);
                 c.UpdateComCostume(sg.Player.ComCostume);
                 c.UpdatePosition(sg.Player.Base, sg.Player.System, sg.Player.Position, Quaternion.Identity);
@@ -402,13 +403,13 @@ namespace LibreLancer.Server
                 {
                     var hp = eq.Hardpoint;
                     if (string.IsNullOrEmpty(hp)) hp = "internal";
-                    var equip = game.GameData.Equipment.Get(eq.Item);
+                    var equip = game.GameData.Items.Equipment.Get(eq.Item);
                     if (equip != null)
                         c.AddCargo(equip, hp, 1);
                 }
                 foreach (var cg in sg.Player.Cargo)
                 {
-                    var equip = game.GameData.Equipment.Get(cg.Item);
+                    var equip = game.GameData.Items.Equipment.Get(cg.Item);
                     if (equip != null)
                         c.AddCargo(equip, null, cg.Count);
                 }
@@ -434,7 +435,7 @@ namespace LibreLancer.Server
                 }
                 foreach (var ks in (sg.MPlayer?.ShipTypeKilled) ?? [])
                 {
-                    var ship = game.GameData.Ships.Get(ks.Item);
+                    var ship = game.GameData.Items.Ships.Get(ks.Item);
                     if (ship == null)
                     {
                         continue;
@@ -481,7 +482,7 @@ namespace LibreLancer.Server
             nc.Reputation = new ReputationCollection();
             foreach (var rep in c.Reputations)
             {
-                var f = game.GameData.Factions.Get(rep.RepGroup);
+                var f = game.GameData.Items.Factions.Get(rep.RepGroup);
                 if (f != null) nc.Reputation.Reputations[f] = rep.ReputationValue;
             }
             nc.Name = c.Name;
@@ -493,7 +494,7 @@ namespace LibreLancer.Server
             nc.System = c.System;
             nc.Position = new Vector3(c.X, c.Y, c.Z);
             nc.Orientation = new Quaternion(c.RotationX, c.RotationY, c.RotationZ, c.RotationW);
-            nc.Ship = game.GameData.Ships.Get(c.Ship);
+            nc.Ship = game.GameData.Items.Ships.Get(c.Ship);
             nc.Credits = c.Money;
             nc.Items = new List<NetCargo>();
             nc.statistics = new()
@@ -505,7 +506,7 @@ namespace LibreLancer.Server
             };
             foreach (var cargo in c.Items)
             {
-                var resolved = game.GameData.Equipment.Get(cargo.ItemName);
+                var resolved = game.GameData.Items.Equipment.Get(cargo.ItemName);
                 if (resolved == null) continue;
                 nc.Items.Add(new NetCargo()
                 {
@@ -572,7 +573,7 @@ namespace LibreLancer.Server
             selectable.Ship = Ship.Nickname;
             selectable.Name = Name;
             selectable.Funds = Credits;
-            selectable.Location = gData.Bases.Get(Base).System;
+            selectable.Location = gData.Items.Bases.Get(Base).System;
             return selectable;
         }
     }
@@ -589,7 +590,7 @@ namespace LibreLancer.Server
         {
             ID = id;
         }
-        public GameData.Items.Equipment Equipment;
+        public Equipment Equipment;
         public string Hardpoint;
         public float Health;
         public int Count;

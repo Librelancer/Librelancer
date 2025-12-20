@@ -4,8 +4,10 @@
 
 using System;
 using System.Numerics;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Graphics;
+using LibreLancer.Resources;
 
 namespace LibreLancer.Render
 {
@@ -23,9 +25,9 @@ namespace LibreLancer.Render
             colorBulb = equip.Color;
             colorGlow = equip.GlowColor;
         }
-        static RenderShape bulbshape = RenderShape.Empty;
+        static TextureShape bulbshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
         static Texture2D bulbtex = null;
-        static RenderShape shineshape = RenderShape.Empty;
+        static TextureShape shineshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
         static Texture2D shinetex = null;
         static bool frameStart = false;
         public static void FrameStart()

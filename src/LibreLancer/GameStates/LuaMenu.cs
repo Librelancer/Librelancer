@@ -9,13 +9,15 @@ using System.Linq;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using LibreLancer.Client;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Input;
 using LibreLancer.Interface;
+using LibreLancer.Items;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.Thn;
 using LiteNetLib;
 using WattleScript.Interpreter;
@@ -195,7 +197,7 @@ namespace LibreLancer
 
             public KeyMapTable GetKeyMap()
             {
-                var table = new KeyMapTable(state.Game.InputMap, state.Game.GameData.Ini.Infocards);
+                var table = new KeyMapTable(state.Game.InputMap, state.Game.GameData.Items.Ini.Infocards);
                 table.OnCaptureInput += (k) =>
                 {
                     state.keyCapture = k;
@@ -244,8 +246,8 @@ namespace LibreLancer
 
             void ResolveNicknames(SelectableCharacter c)
             {
-                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Ships.Get(c.Ship).NameIds);
-                c.Location = state.Game.GameData.GetString(state.Game.GameData.Systems.Get(c.Location).IdsName);
+                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Items.Ships.Get(c.Ship).NameIds);
+                c.Location = state.Game.GameData.GetString(state.Game.GameData.Items.Systems.Get(c.Location).IdsName);
             }
             internal void _Update()
             {
@@ -272,9 +274,9 @@ namespace LibreLancer
                             {
                                 var package = ncdb.Packages.First(x =>
                                     x.Nickname.Equals(ncdb.Factions[i].Package, StringComparison.OrdinalIgnoreCase));
-                                var ship = state.Game.GameData.Ships.Get(package.Ship);
+                                var ship = state.Game.GameData.Items.Ships.Get(package.Ship);
                                 ship.ModelFile.LoadFile(state.Game.ResourceManager);
-                                var loc = state.Game.GameData.GetString(state.Game.GameData.Bases.Get(ncdb.Factions[i].Base).IdsName);
+                                var loc = state.Game.GameData.GetString(state.Game.GameData.Items.Bases.Get(ncdb.Factions[i].Base).IdsName);
                                 newCharacters[i] = new UiNewCharacter()
                                 {
                                     Money = package.Money,

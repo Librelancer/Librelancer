@@ -1,5 +1,5 @@
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server;
 

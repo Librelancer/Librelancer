@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.GameData.World;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
-using LibreLancer.GameData;
 using LibreLancer.Render;
-using AsteroidField = LibreLancer.GameData.World.AsteroidField;
-using Base = LibreLancer.GameData.World.Base;
-using LightSource = LibreLancer.GameData.World.LightSource;
-using StarSystem = LibreLancer.GameData.World.StarSystem;
-using SystemObject = LibreLancer.GameData.World.SystemObject;
-using Zone = LibreLancer.GameData.World.Zone;
-using LibreLancer.Data.Missions;
+using AsteroidField = LibreLancer.Data.GameData.World.AsteroidField;
+using Base = LibreLancer.Data.GameData.World.Base;
+using LightSource = LibreLancer.Data.GameData.World.LightSource;
+using StarSystem = LibreLancer.Data.GameData.World.StarSystem;
+using SystemObject = LibreLancer.Data.GameData.World.SystemObject;
+using Zone = LibreLancer.Data.GameData.World.Zone;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Missions;
 
 namespace LibreLancer.ContentEdit;

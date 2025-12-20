@@ -1,6 +1,6 @@
 using System;
 using System.Numerics;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent;

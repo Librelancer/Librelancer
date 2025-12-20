@@ -10,17 +10,21 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using LibreLancer.Data.Solar;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.World;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Solar;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World.Components;
-using Archs = LibreLancer.GameData.Archetypes;
+using Archetype = LibreLancer.Data.GameData.Archetype;
+using Archs = LibreLancer.Data.GameData.Archetypes;
+using Sun = LibreLancer.Data.GameData.Archetypes.Sun;
 
 namespace LibreLancer.World
 {
@@ -321,12 +325,12 @@ namespace LibreLancer.World
             }
         }
 
-        public GameObject(Archetype arch, Archs.Sun sun, ResourceManager res, bool draw = true, bool phys = true)
+        public GameObject(Archetype arch, Sun sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             InitWithArchetype(arch, sun, res, draw, phys);
 		}
 
-        public void InitWithArchetype(Archetype arch, Archs.Sun sun, ResourceManager res, bool draw = true, bool phys = true)
+        public void InitWithArchetype(Archetype arch, Sun sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
             var flags = MeshLoadMode.GPU;

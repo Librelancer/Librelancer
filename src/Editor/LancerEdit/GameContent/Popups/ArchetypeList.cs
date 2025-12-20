@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.Popups;
@@ -37,7 +37,7 @@ public class ArchetypeList
 
     public unsafe ArchetypeList(GameDataContext gd, Archetype selected)
     {
-        displayList = fullList = gd.GameData.Archetypes.OrderBy(x => x.Nickname).ToArray();
+        displayList = fullList = gd.GameData.Items.Archetypes.OrderBy(x => x.Nickname).ToArray();
         textCallback = OnTextChanged;
         this.Selected = selected;
         this.gd = gd;

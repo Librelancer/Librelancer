@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Fx;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Primitives;
@@ -29,7 +31,7 @@ public class GameResourceManager : ResourceManager, IDisposable
     Dictionary<string, ImageResource> images = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, string> texturefiles = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, ModelResource> drawables = new(StringComparer.OrdinalIgnoreCase);
-    Dictionary<string, RenderShape> shapes = new(StringComparer.OrdinalIgnoreCase);
+    Dictionary<string, TextureShape> shapes = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, Cursor> cursors = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, TexFrameAnimation> frameanims = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, ParticleLibrary> particlelibs = new(StringComparer.OrdinalIgnoreCase);
@@ -107,7 +109,7 @@ public class GameResourceManager : ResourceManager, IDisposable
     public GameResourceManager(GameResourceManager src) : this(src.GLWindow, src.VFS)
     {
         texturefiles = new Dictionary<string, string>(src.texturefiles, StringComparer.OrdinalIgnoreCase);
-        shapes = new Dictionary<string, RenderShape>(src.shapes, StringComparer.OrdinalIgnoreCase);
+        shapes = new Dictionary<string, TextureShape>(src.shapes, StringComparer.OrdinalIgnoreCase);
         materialfiles = new Dictionary<uint, string>(src.materialfiles);
         foreach (var mat in src.materials.Keys)
             materials[mat] = null;
@@ -135,11 +137,11 @@ public class GameResourceManager : ResourceManager, IDisposable
         cursors.Add(name, c);
     }
 
-    public void AddShape(string name, RenderShape shape)
+    public void AddShape(string name, TextureShape shape)
     {
         shapes.Add(name, shape);
     }
-    public override bool TryGetShape(string name, out RenderShape shape)
+    public override bool TryGetShape(string name, out TextureShape shape)
     {
         return shapes.TryGetValue(name, out shape);
     }

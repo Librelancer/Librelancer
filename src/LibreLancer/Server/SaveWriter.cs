@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Client;
 using LibreLancer.Data;
-using LibreLancer.Data.Save;
+using LibreLancer.Data.Schema.Save;
 using LibreLancer.Missions;
 
 namespace LibreLancer.Server
@@ -108,7 +108,7 @@ namespace LibreLancer.Server
             // Vanilla requires faction relationships to be in the save file
             if (gameData != null)
             {
-                foreach (var fc in gameData.Factions)
+                foreach (var fc in gameData.Items.Factions)
                 {
                     if (fc.Reputations.Count == 0)
                         continue;

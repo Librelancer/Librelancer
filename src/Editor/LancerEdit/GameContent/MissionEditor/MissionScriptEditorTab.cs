@@ -13,7 +13,7 @@ using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Missions;
@@ -68,7 +68,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         if (!string.IsNullOrWhiteSpace(missionIni.Info.NpcShipFile))
         {
-            var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.DataPath(missionIni.Info.NpcShipFile));
+            var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Items.DataPath(missionIni.Info.NpcShipFile));
             if (npcPath is not null)
             {
                 missionIni.ShipIni = new NPCShipIni(npcPath, null);

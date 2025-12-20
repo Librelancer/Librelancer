@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using LibreLancer.Dll;
+using LibreLancer.Data.Dll;
 
 namespace LibreLancer.Data
 {

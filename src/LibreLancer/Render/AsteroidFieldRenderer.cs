@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using LibreLancer.GameData;
-using LibreLancer.GameData.World;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Primitives;
 using LibreLancer.Render.Materials;
@@ -35,7 +35,7 @@ namespace LibreLancer.Render
         private AsteroidBandMaterial bandMaterial;
         private AsteroidCubeMesh cubeMesh;
 
-         RenderShape billboardShape;
+        TextureShape billboardShape;
 
         public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
         {

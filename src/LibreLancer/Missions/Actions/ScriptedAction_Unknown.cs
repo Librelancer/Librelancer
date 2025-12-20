@@ -6,8 +6,8 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
-using LibreLancer.Data.Save;
+using LibreLancer.Data.Schema.Missions;
+using LibreLancer.Data.Schema.Save;
 
 namespace LibreLancer.Missions.Actions;
 

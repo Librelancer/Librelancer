@@ -6,7 +6,7 @@ using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Interface;
@@ -22,10 +22,10 @@ namespace LancerEdit.GameContent
         {
             var uidata = new UiData();
             uidata.FileSystem = context.GameData.VFS;
-            uidata.DataPath = context.GameData.Ini.Freelancer.DataPath;
-            uidata.Infocards = context.GameData.Ini.Infocards;
-            if (context.GameData.Ini.Navmap != null)
-                uidata.NavmapIcons = new IniNavmapIcons(context.GameData.Ini.Navmap);
+            uidata.DataPath = context.GameData.Items.Ini.Freelancer.DataPath;
+            uidata.Infocards = context.GameData.Items.Ini.Infocards;
+            if (context.GameData.Items.Ini.Navmap != null)
+                uidata.NavmapIcons = new IniNavmapIcons(context.GameData.Items.Ini.Navmap);
             else
                 uidata.NavmapIcons = new NavmapIcons();
             uidata.Fonts = context.Fonts;

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using LibreLancer;
+using LibreLancer.Data;
 using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
 using LibreLancer.Resources;

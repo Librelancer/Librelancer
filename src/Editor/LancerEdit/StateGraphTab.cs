@@ -6,7 +6,7 @@ using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ContentEdit;
-using LibreLancer.Data.Pilots;
+using LibreLancer.Data.Schema.Pilots;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.Server.Ai;

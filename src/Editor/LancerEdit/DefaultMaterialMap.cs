@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer;
+using LibreLancer.Data.Schema;
 
 namespace LancerEdit
 {

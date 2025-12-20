@@ -10,10 +10,10 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using LibreLancer.Client.Components;
-using LibreLancer.Data.Missions;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Items;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Interface;
 using LibreLancer.Missions;
 using LibreLancer.Net;
@@ -24,6 +24,7 @@ using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 using LibreLancer.Net.Protocol.RpcPackets;
+using LibreLancer.Resources;
 using LibreLancer.Sounds.VoiceLines;
 
 namespace LibreLancer.Client
@@ -41,7 +42,6 @@ namespace LibreLancer.Client
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
         public Dictionary<uint, VisitFlags> Visits = new();
         public DynamicThn Thns = new();
-        public PreloadObject[] Preloads;
         public FreelancerGame Game;
         public string PlayerSystem;
         public ReputationCollection PlayerReputations = new ReputationCollection();
@@ -125,7 +125,7 @@ namespace LibreLancer.Client
             ActiveCutscenes = new List<StoryCutsceneIni>();
             foreach (var path in Thns.Rtcs)
             {
-                var rtc = new StoryCutsceneIni(Game.GameData.Ini.Freelancer.DataPath + path.Script, Game.GameData.VFS);
+                var rtc = new StoryCutsceneIni(Game.GameData.Items.Ini.Freelancer.DataPath + path.Script, Game.GameData.VFS);
                 rtc.RefPath = path.Script;
                 ActiveCutscenes.Add(rtc);
             }
@@ -156,8 +156,6 @@ namespace LibreLancer.Client
         }
 
         public double CharacterPlayTime => playerTotalTime + (DateTime.UtcNow - playerSessionStart).TotalSeconds;
-
-        void IClientPlayer.SetPreloads(PreloadObject[] preloadObjects) => Preloads = preloadObjects;
 
         private bool hasChanged = false;
 
@@ -556,7 +554,7 @@ namespace LibreLancer.Client
 
         NetCargo ResolveCargo(NetShipCargo cg)
         {
-            var equip = Game.GameData.Equipment.Get(cg.EquipCRC);
+            var equip = Game.GameData.Items.Equipment.Get(cg.EquipCRC);
             return new NetCargo(cg.ID)
             {
                 Equipment = equip,
@@ -569,7 +567,7 @@ namespace LibreLancer.Client
 
         void SetSelfLoadout(NetLoadout ld)
         {
-            var sh = ld.ArchetypeCrc == 0 ? null : Game.GameData.Ships.Get(ld.ArchetypeCrc);
+            var sh = ld.ArchetypeCrc == 0 ? null : Game.GameData.Items.Ships.Get(ld.ArchetypeCrc);
             PlayerShip = sh;
 
             Items = new List<NetCargo>(ld.Items.Count);
@@ -663,7 +661,7 @@ namespace LibreLancer.Client
         void IClientPlayer.UpdateLootObject(ObjNetId id, NetBasicCargo[] cargo)
         {
             var newCargo = cargo.Select(x
-                    => new BasicCargo(Game.GameData.Equipment.Get(x.EquipCRC), x.Count))
+                    => new BasicCargo(Game.GameData.Items.Equipment.Get(x.EquipCRC), x.Count))
                 .Where(x => x.Item != null)
                 .ToList();
             RunSync(() =>
@@ -745,7 +743,7 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var eq = Game.GameData.Equipment.Get(equip);
+                var eq = Game.GameData.Items.Equipment.Get(equip);
                 if (eq is MissileEquip mn)
                 {
                     var go = new GameObject(mn.ModelFile.LoadFile(Game.ResourceManager),
@@ -756,7 +754,7 @@ namespace LibreLancer.Client
                     go.PhysicsComponent.Mass = 1;
                     if (mn.Def.ConstEffect != null)
                     {
-                        var fx = Game.GameData.Effects.Get(mn.Def.ConstEffect)?
+                        var fx = Game.GameData.Items.Effects.Get(mn.Def.ConstEffect)?
                             .GetEffect(Game.ResourceManager);
                         var ren = new ParticleEffectRenderer(fx) { Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
                         go.ExtraRenderers.Add(ren);
@@ -829,7 +827,7 @@ namespace LibreLancer.Client
         {
             foreach (var r in reps)
             {
-                var f = Game.GameData.Factions.Get(r.FactionHash);
+                var f = Game.GameData.Items.Factions.Get(r.FactionHash);
                 if (f != null)
                     PlayerReputations.Reputations[f] = r.Reputation;
             }
@@ -920,7 +918,7 @@ namespace LibreLancer.Client
                     }
                     else if ((objInfo.Flags & ObjectSpawnFlags.Solar) == ObjectSpawnFlags.Solar)
                     {
-                        var solar = Game.GameData.Archetypes.Get(objInfo.Loadout.ArchetypeCrc);
+                        var solar = Game.GameData.Items.Archetypes.Get(objInfo.Loadout.ArchetypeCrc);
                         newobj = new GameObject(solar, null, Game.ResourceManager, true, true);
                         if (objInfo.Dock != null && solar.DockSpheres.Count > 0)
                         {
@@ -938,7 +936,7 @@ namespace LibreLancer.Client
                     }
                     else if ((objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
                     {
-                        var crate = (LootCrateEquipment)Game.GameData.Equipment.Get(objInfo.Loadout.ArchetypeCrc);
+                        var crate = (LootCrateEquipment)Game.GameData.Items.Equipment.Get(objInfo.Loadout.ArchetypeCrc);
                         var model = crate.ModelFile.LoadFile(Game.ResourceManager);
                         newobj = new GameObject(model, Game.ResourceManager);
                         newobj.Kind = GameObjectKind.Loot;
@@ -950,7 +948,7 @@ namespace LibreLancer.Client
                     }
                     else
                     {
-                        var shp = Game.GameData.Ships.Get((int)objInfo.Loadout.ArchetypeCrc);
+                        var shp = Game.GameData.Items.Ships.Get((int)objInfo.Loadout.ArchetypeCrc);
                         newobj = new GameObject(shp, Game.ResourceManager, true, true);
                         newobj.AddComponent(new CHealthComponent(newobj)
                             { CurrentHealth = objInfo.Loadout.Health, MaxHealth = shp.Hitpoints });
@@ -966,9 +964,9 @@ namespace LibreLancer.Client
                     newobj.NetID = objInfo.ID.Value;
                     newobj.Nickname = objInfo.Nickname;
                     newobj.SetLocalTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
-                    var head = Game.GameData.Bodyparts.Get(objInfo.CommHead);
-                    var body = Game.GameData.Bodyparts.Get(objInfo.CommBody);
-                    var helmet = Game.GameData.Accessories.Get(objInfo.CommHelmet);
+                    var head = Game.GameData.Items.Bodyparts.Get(objInfo.CommHead);
+                    var body = Game.GameData.Items.Bodyparts.Get(objInfo.CommBody);
+                    var helmet = Game.GameData.Items.Accessories.Get(objInfo.CommHelmet);
                     if (head != null || body != null)
                     {
                         newobj.AddComponent(new CostumeComponent(newobj)
@@ -979,7 +977,7 @@ namespace LibreLancer.Client
                         });
                     }
 
-                    var fac = Game.GameData.Factions.Get(objInfo.Affiliation);
+                    var fac = Game.GameData.Items.Factions.Get(objInfo.Affiliation);
                     if (fac != null)
                         newobj.AddComponent(new CFactionComponent(newobj, fac));
                     if ((objInfo.Flags & ObjectSpawnFlags.Friendly) == ObjectSpawnFlags.Friendly)
@@ -1000,7 +998,7 @@ namespace LibreLancer.Client
                     }
                     foreach (var eq in objInfo.Loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                     {
-                        var equip = Game.GameData.Equipment.Get(eq.EquipCRC);
+                        var equip = Game.GameData.Items.Equipment.Get(eq.EquipCRC);
                         if (equip == null) continue;
                         EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, Game.Sound,
                             EquipmentType.LocalPlayer, eq.Hardpoint, equip);
@@ -1011,7 +1009,7 @@ namespace LibreLancer.Client
                         newobj.AddComponent(lt);
                         foreach (var eq in objInfo.Loadout.Items.Where(x => string.IsNullOrWhiteSpace(x.Hardpoint)))
                         {
-                            var equip = Game.GameData.Equipment.Get(eq.EquipCRC);
+                            var equip = Game.GameData.Items.Equipment.Get(eq.EquipCRC);
                             if (equip == null) continue;
                             lt.Cargo.Add(new BasicCargo(equip, eq.Count));
                         }
@@ -1075,14 +1073,14 @@ namespace LibreLancer.Client
             float[] lodranges;
             if ((obj.Flags & ObjectSpawnFlags.Solar) == ObjectSpawnFlags.Solar)
             {
-                var solar = Game.GameData.Archetypes.Get(obj.Loadout.ArchetypeCrc);
+                var solar = Game.GameData.Items.Archetypes.Get(obj.Loadout.ArchetypeCrc);
                 sep = solar.SeparableParts;
                 src = solar.ModelFile.LoadFile(Game.ResourceManager);
                 lodranges = solar.LODRanges;
             }
             else
             {
-                var ship = Game.GameData.Ships.Get(obj.Loadout.ArchetypeCrc);
+                var ship = Game.GameData.Items.Ships.Get(obj.Loadout.ArchetypeCrc);
                 sep = ship.SeparableParts;
                 src = ship.ModelFile.LoadFile(Game.ResourceManager);
                 lodranges = ship.LODRanges;
@@ -1339,8 +1337,8 @@ namespace LibreLancer.Client
                 }
                 else
                 {
-                    var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.DataPath(thorn)),
-                        Game.GameData.ThornReadCallback, thorn);
+                    var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.Items.DataPath(thorn)),
+                        Game.GameData.Items.ThornReadCallback, thorn);
                     var mo = gp.world.GetObject(mainObject);
                     if (mo != null) FLLog.Info("Client", "Found thorn mainObject");
                     else

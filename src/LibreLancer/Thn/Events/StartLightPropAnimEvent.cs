@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Data.GameData;
 using LibreLancer.Render;
 using LibreLancer.Thorn;
 

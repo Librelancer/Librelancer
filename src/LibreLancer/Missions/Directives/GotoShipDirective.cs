@@ -1,5 +1,5 @@
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 

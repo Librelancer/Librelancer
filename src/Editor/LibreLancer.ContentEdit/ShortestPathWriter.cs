@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
-using LibreLancer.Data.Universe;
+using LibreLancer.Data.Schema.Universe;
 
 namespace LibreLancer.ContentEdit;
 

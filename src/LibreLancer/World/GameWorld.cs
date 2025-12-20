@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using LibreLancer.Client.Components;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Archetypes;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Archetypes;
+using LibreLancer.Data.GameData.World;
+using LibreLancer.Items;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
@@ -39,6 +40,11 @@ namespace LibreLancer.World
         public SpatialLookup SpatialLookup = new SpatialLookup();
 
         private Func<double> timeSource;
+
+        static GameWorld()
+        {
+            EquipmentHandlers.Register();
+        }
 
         public GameWorld(SystemRenderer render, ResourceManager resources, Func<double> timeSource, bool initPhys = true)
         {

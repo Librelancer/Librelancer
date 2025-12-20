@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 
 namespace LancerEdit.GameContent.Lookups;
 

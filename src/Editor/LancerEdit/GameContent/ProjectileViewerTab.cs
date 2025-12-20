@@ -7,8 +7,8 @@ using System.Numerics;
 using System.Text;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.Data.Effects;
-using LibreLancer.GameData.Items;
+using LibreLancer.Data.Schema.Effects;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.ImUI;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -43,7 +43,7 @@ public class ProjectileViewerTab : GameContentTab
         this.context = context;
         Title = "Projectiles";
 
-        projectileList = context.GameData.Equipment.OfType<MunitionEquip>().ToArray();
+        projectileList = context.GameData.Items.Equipment.OfType<MunitionEquip>().ToArray();
         viewport = new Viewport3D(mw);
         viewport.Background = Color4.Black;
         viewport.DefaultOffset = viewport.CameraOffset = new Vector3(0, 0, 20);

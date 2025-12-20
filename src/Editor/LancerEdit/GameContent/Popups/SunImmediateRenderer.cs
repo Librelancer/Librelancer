@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 using LibreLancer;
-using LibreLancer.GameData.Archetypes;
+using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render;

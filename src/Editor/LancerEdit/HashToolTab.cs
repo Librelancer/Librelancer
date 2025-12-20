@@ -1,6 +1,7 @@
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data;
 
 
 namespace LancerEdit;

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.Utf.Dfm;
 using WattleScript.Interpreter;
 using Script = LibreLancer.Utf.Anm.Script;

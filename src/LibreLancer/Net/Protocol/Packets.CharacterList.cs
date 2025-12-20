@@ -3,7 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
-using LibreLancer.Data.NewCharDB;
+using LibreLancer.Data.Schema.NewCharDB;
 
 namespace LibreLancer.Net.Protocol
 {

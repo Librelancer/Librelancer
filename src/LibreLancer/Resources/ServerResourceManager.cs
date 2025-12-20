@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Fx;
 using LibreLancer.Graphics;
@@ -39,7 +40,7 @@ public class ServerResourceManager : ResourceManager
     public override Texture FindTexture(string name) => throw new InvalidOperationException();
     public override ImageResource FindImage(string name) => throw new InvalidOperationException();
 
-    public override bool TryGetShape(string name, out RenderShape shape) => throw new InvalidOperationException();
+    public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
     public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
 
     public override ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)

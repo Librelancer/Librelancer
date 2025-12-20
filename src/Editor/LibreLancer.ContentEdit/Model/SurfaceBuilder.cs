@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using LibreLancer.Data;
 using LibreLancer.Sur;
 using LibreLancer.Utf;
 using SimpleMesh;

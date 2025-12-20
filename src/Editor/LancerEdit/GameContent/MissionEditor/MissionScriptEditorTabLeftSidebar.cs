@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 
 namespace LancerEdit.GameContent.MissionEditor;
@@ -263,24 +263,24 @@ public sealed partial class MissionScriptEditorTab
         {
             MissionEditorHelpers.AlertIfInvalidRef(() =>
                 missionIni.ShipIni.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch)
-                || gameData.GameData.Ini.NPCShips.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch));
+                || gameData.GameData.Items.Ini.NPCShips.ShipArches.Any(x => x.Nickname == selectedNpc.NpcShipArch));
         }
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedNpc.IndividualName,
             inputWidth: 150f);
         Controls.InputTextIdUndo("Affiliation", undoBuffer, () => ref selectedNpc.Affiliation, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
-            gameData.GameData.Factions.Any(x => x.Nickname == selectedNpc.Affiliation));
+            gameData.GameData.Items.Factions.Any(x => x.Nickname == selectedNpc.Affiliation));
 
         Controls.InputTextIdUndo("Costume Head", undoBuffer, () => ref selectedNpc.SpaceCostume[0], 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
-            gameData.GameData.Ini.Bodyparts.FindBodypart(selectedNpc.SpaceCostume[0]) is not null);
+            gameData.GameData.Items.Ini.Bodyparts.FindBodypart(selectedNpc.SpaceCostume[0]) is not null);
         Controls.InputTextIdUndo("Costume Body", undoBuffer, () => ref selectedNpc.SpaceCostume[1], 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
-            gameData.GameData.Ini.Bodyparts.FindBodypart(selectedNpc.SpaceCostume[1]) is not null);
+            gameData.GameData.Items.Ini.Bodyparts.FindBodypart(selectedNpc.SpaceCostume[1]) is not null);
         Controls.InputTextIdUndo("Costume Accessory", undoBuffer, () => ref selectedNpc.SpaceCostume[2], 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
-            gameData.GameData.Ini.Bodyparts.FindAccessory(selectedNpc.SpaceCostume[2]) is not null);
+            gameData.GameData.Items.Ini.Bodyparts.FindAccessory(selectedNpc.SpaceCostume[2]) is not null);
 
         ImGui.PopID();
     }
@@ -345,12 +345,12 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Arch Nickname", undoBuffer, () => ref selectedArch.Nickname, 150f);
         Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
-            gameData.GameData.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));
+            gameData.GameData.Items.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));
 
         ImGui.SetNextItemWidth(100f);
         Controls.InputIntUndo("Level", undoBuffer, () => ref selectedArch.Level, 1, 10);
         Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedArch.Pilot, 150f);
-        MissionEditorHelpers.AlertIfInvalidRef(() => gameData.GameData.GetPilot(selectedArch.Pilot) is not null);
+        MissionEditorHelpers.AlertIfInvalidRef(() => gameData.GameData.Items.GetPilot(selectedArch.Pilot) is not null);
 
         string[] stateGraphs =
             { "NOTHING", "FIGHTER", "FREIGHTER", "GUNBOAT", "CRUISER", "TRANSPORT", "CAPITAL", "MINING" };
@@ -409,11 +409,11 @@ public sealed partial class MissionScriptEditorTab
         {
             popup.OpenPopup(new VfsFileSelector("Change Ship File",
                 gameData.GameData.VFS,
-                gameData.GameData.Ini.Freelancer.DataPath, x =>
+                gameData.GameData.Items.Ini.Freelancer.DataPath, x =>
                 {
                     undoBuffer.Commit(new SetNpcShipFileAction(
                         missionIni.Info.NpcShipFile,
-                        gameData.GameData.Ini.Freelancer.DataPath + x,
+                        gameData.GameData.Items.Ini.Freelancer.DataPath + x,
                         this));
                 }, VfsFileSelector.MakeFilter(".ini")));
         }

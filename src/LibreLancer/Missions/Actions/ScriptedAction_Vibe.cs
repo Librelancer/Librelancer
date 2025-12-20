@@ -1,6 +1,6 @@
 using System;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Missions;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Server.Components;
 
 namespace LibreLancer.Missions.Actions

@@ -13,6 +13,7 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using ImGuiNET;
 using LibreLancer.Data;
+using LibreLancer.Data.Schema;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Interface;

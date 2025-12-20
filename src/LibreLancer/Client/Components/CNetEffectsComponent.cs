@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
+using LibreLancer.Resources;
 using LibreLancer.World;
 
 namespace LibreLancer.Client.Components
@@ -23,7 +24,7 @@ namespace LibreLancer.Client.Components
 
         void Spawn(SpawnedEffect effect)
         {
-            var fx = Parent.World.Renderer.Game.GetService<GameDataManager>().Effects.Get(effect.Effect);
+            var fx = Parent.World.Renderer.Game.GetService<GameDataManager>().Items.Effects.Get(effect.Effect);
             if (fx == null) return;
             var pfx = fx.GetEffect(Parent.World.Renderer.ResourceManager);
             if (pfx == null) return;

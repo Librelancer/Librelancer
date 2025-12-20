@@ -1,4 +1,4 @@
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 using LibreLancer.World;
 
 namespace LibreLancer.Client.Components

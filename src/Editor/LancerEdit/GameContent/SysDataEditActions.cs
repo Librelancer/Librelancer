@@ -1,6 +1,6 @@
 using System;
 using LibreLancer;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
 
 namespace LancerEdit.GameContent;
 

@@ -6,7 +6,7 @@ using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Filters;
 using LibreLancer;
-using LibreLancer.GameData.World;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;

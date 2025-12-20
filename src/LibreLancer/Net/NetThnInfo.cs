@@ -1,4 +1,4 @@
-using LibreLancer.Data.Save;
+using LibreLancer.Data.Schema.Save;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.Net;

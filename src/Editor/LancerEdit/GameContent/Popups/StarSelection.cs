@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
-using LibreLancer.GameData.Archetypes;
+using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 
@@ -39,7 +39,7 @@ public class StarSelection : PopupWindow
 
     public unsafe StarSelection(Action<Sun> onSelect, Sun selection, SunImmediateRenderer sunPreview, GameDataContext gd, RenderContext rc)
     {
-        displayList = fullList = gd.GameData.Stars.OrderBy(x => x.Nickname).ToArray();
+        displayList = fullList = gd.GameData.Items.Stars.OrderBy(x => x.Nickname).ToArray();
         Selected = selection;
         this.sunPreview = sunPreview;
         this.onSelect = onSelect;

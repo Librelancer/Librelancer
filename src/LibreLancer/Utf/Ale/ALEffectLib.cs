@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using LibreLancer.Data;
 
 namespace LibreLancer.Utf.Ale
 {

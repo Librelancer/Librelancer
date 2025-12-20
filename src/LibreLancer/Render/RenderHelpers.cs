@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Data.GameData;
 
 namespace LibreLancer.Render
 {
@@ -57,10 +58,10 @@ namespace LibreLancer.Render
                 lights.Lights.SourceLighting = src;
 				for (int i = 0; i < src.Lights.Count; i++)
 				{
-                    
+
 					if (src.Lights[i].LightGroup != lightGroup)
 						continue;
-					if (!src.Lights[i].Active) 
+					if (!src.Lights[i].Active)
 						continue;
 					var l = src.Lights[i].Light;
 					var r2 = r + l.Range;

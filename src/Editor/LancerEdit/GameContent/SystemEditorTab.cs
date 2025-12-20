@@ -11,11 +11,12 @@ using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Archetypes;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.Schema;
 using LibreLancer.Dialogs;
-using LibreLancer.GameData;
-using LibreLancer.GameData.Archetypes;
-using LibreLancer.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;
@@ -25,12 +26,11 @@ using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Resources;
 using LibreLancer.World;
-using SimpleMesh;
-using Archetype = LibreLancer.GameData.Archetype;
+using Archetype = LibreLancer.Data.GameData.Archetype;
 using ModelRenderer = LibreLancer.Render.ModelRenderer;
-using DataEncounter = LibreLancer.Data.Universe.Encounter;
-using DataFactionSpawn = LibreLancer.Data.Universe.FactionSpawn;
-using DataDensityRestriction = LibreLancer.Data.Universe.DensityRestriction;
+using DataEncounter = LibreLancer.Data.Schema.Universe.Encounter;
+using DataFactionSpawn = LibreLancer.Data.Schema.Universe.FactionSpawn;
+using DataDensityRestriction = LibreLancer.Data.Schema.Universe.DensityRestriction;
 
 namespace LancerEdit.GameContent;
 
@@ -96,7 +96,7 @@ public class SystemEditorTab : GameContentTab
         SunPreview = new(gameData.Resources);
 
         //Extract nav_prettymap texture
-        string navPrettyMap = gameData.GameData.DataPath("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db");
+        string navPrettyMap = gameData.GameData.Items.DataPath("INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db");
 
         if (gameData.GameData.VFS.FileExists(navPrettyMap))
         {
@@ -672,7 +672,7 @@ public class SystemEditorTab : GameContentTab
         sb.AppendLine(a.Kind.ToString());
         if (a.Kind == DockKinds.Jump)
         {
-            var sys = Data.GameData.Systems.Get(a.Target);
+            var sys = Data.GameData.Items.Systems.Get(a.Target);
             var sname = sys == null ? "INVALID" : Data.Infocards.GetStringResource(sys.IdsName);
             sb.AppendLine($"{a.Target} ({sname})");
             sb.AppendLine($"{a.Exit}");
@@ -680,7 +680,7 @@ public class SystemEditorTab : GameContentTab
 
         if (a.Kind == DockKinds.Base)
         {
-            var b = Data.GameData.Bases.Get(a.Target);
+            var b = Data.GameData.Items.Bases.Get(a.Target);
             var bname = b == null ? "INVALID" : Data.Infocards.GetStringResource(b.IdsName);
             sb.AppendLine($"{a.Target} ({bname})");
         }
@@ -1207,7 +1207,7 @@ public class SystemEditorTab : GameContentTab
                 bool canGraph = sel.Light.Kind == LightKind.PointAttenCurve || sel.Light.Kind == LightKind.Directional;
                 if (sel.Light.Kind == LightKind.PointAttenCurve)
                 {
-                    graph = Data.GameData.Ini.Graphs.FindFloatGraph(sel.AttenuationCurveName);
+                    graph = Data.GameData.Items.Ini.Graphs.FindFloatGraph(sel.AttenuationCurveName);
                 }
                 else
                 {
@@ -1257,9 +1257,9 @@ public class SystemEditorTab : GameContentTab
         Controls.PropertyRow(name, modelName ?? "(none)");
         if (ImGui.Button($"{Icons.Edit}##{name}"))
         {
-            Popups.OpenPopup(new VfsFileSelector(name, Data.GameData.VFS, Data.GameData.Ini.Freelancer.DataPath, file =>
+            Popups.OpenPopup(new VfsFileSelector(name, Data.GameData.VFS, Data.GameData.Items.Ini.Freelancer.DataPath, file =>
             {
-                var modelFile = Data.GameData.DataPath(file);
+                var modelFile = Data.GameData.Items.DataPath(file);
                 var sourcePath = file.Replace('/', '\\');
                 onSet(new ResolvedModel() { ModelFile = modelFile, SourcePath = sourcePath });
             }, VfsFileSelector.MakeFilter(".cmp")));
@@ -1866,7 +1866,7 @@ public class SystemEditorTab : GameContentTab
         List<SystemObject> createdTradelanes = new();
         var offset = (tl.End - tl.Start) / (tl.Count - 1);
         var face = QuaternionEx.LookAt(tl.Start, tl.End);
-        Data.GameData.TryGetLoadout("trade_lane_ring_li_01", out var loadout);
+        Data.GameData.Items.TryGetLoadout("trade_lane_ring_li_01", out var loadout);
         for (int i = 0; i < tl.Count; i++)
         {
             var pos = tl.Start + offset * i;
@@ -1888,7 +1888,7 @@ public class SystemEditorTab : GameContentTab
                 Behavior = "NOTHING",
                 Reputation = tl.Reputation,
                 DifficultyLevel = 3,
-                Pilot = Data.GameData.GetPilot("pilot_solar_easiest"), // From vanilla - make configurable
+                Pilot = Data.GameData.Items.GetPilot("pilot_solar_easiest"), // From vanilla - make configurable
                 Loadout = loadout
             };
             createdTradelanes.Add(newTl);

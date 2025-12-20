@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using LibreLancer.Data;
-using LibreLancer.Dll;
+using LibreLancer.Data.Dll;
 
 namespace LibreLancer.ContentEdit;
 

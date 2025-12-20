@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using LibreLancer.Data.Pilots;
-using LibreLancer.GameData;
+using LibreLancer.Data.GameData;
+using LibreLancer.Data.Schema.Pilots;
 using LibreLancer.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Ai;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using Pilot = LibreLancer.Data.GameData.Pilot;
 
 namespace LibreLancer.Server.Components
 {
@@ -21,7 +22,7 @@ namespace LibreLancer.Server.Components
         private NPCManager manager;
         public MissionRuntime MissionRuntime;
 
-        public GameData.Pilot Pilot;
+        public Pilot Pilot;
         public StateGraph StateGraph;
 
         private Random random = new Random();
@@ -69,7 +70,7 @@ namespace LibreLancer.Server.Components
 
 
         private Dictionary<GameObjectKind, int> attackPref = new Dictionary<GameObjectKind, int>();
-        public void SetPilot(GameData.Pilot pilot)
+        public void SetPilot(Pilot pilot)
         {
             Pilot = pilot;
             attackPref = new Dictionary<GameObjectKind, int>();
@@ -127,17 +128,17 @@ namespace LibreLancer.Server.Components
         private float fireTimer = 0;
         private int fireCycle = 0; // Track cycles for weapon grouping
         private int weaponGroupIndex = 0; // Track which weapon group to fire
-        
+
         public struct FireInfo
         {
             public bool ShouldFireRegular;
             public bool ShouldFireAutoTurrets;
         }
-        
+
         public FireInfo RunFireTimers(float dt)
         {
             var fireInfo = new FireInfo { ShouldFireRegular = false, ShouldFireAutoTurrets = false };
-            
+
             // Check if ship has auto-turret weapons
             bool hasAutoTurrets = false;
             if (Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
@@ -151,7 +152,7 @@ namespace LibreLancer.Server.Components
                     }
                 }
             }
-            
+
             if (inBurst)
             {
                 burstTimer -= dt;
@@ -171,7 +172,7 @@ namespace LibreLancer.Server.Components
                         fireTimer = ValueWithVariance(interval,
                             Pilot?.Gun?.FireIntervalVariancePercent);
                         fireInfo.ShouldFireRegular = true;
-                        
+
                         // Auto-turrets fire based on their interval timing
                         if (hasAutoTurrets)
                         {
@@ -467,7 +468,7 @@ namespace LibreLancer.Server.Components
             // Show accuracy info for debugging
             float npcPower = Pilot?.Gun?.FireAccuracyPowerNpc ?? 0;
             float npcAngle = Pilot?.Gun?.FireAccuracyConeAngle ?? 0;
-            
+
             return $"Autopilot: {beh}\nShooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}\nWeapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\nTimer: {fireTimer:F2}, Cycle: {fireCycle}\nNPC Base Power: {npcPower} (higher=more inaccuracy)\nAccuracy: Regular=min 5.0, Auto-Turret=10x base power\nInBurst: {inBurst}\n{formation}";
         }
 
