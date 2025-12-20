@@ -29,16 +29,13 @@ namespace LancerEdit
 
         static readonly float LABEL_WIDTH = 125f;
         static readonly float BUTTON_WIDTH = 110f;
-        static readonly float SQAURE_BUTTON_WIDTH = 30f;
-        static readonly int MAX_LODS = 9;
         readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
         readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
+
         // TXM state
         string filename = "";
         string nodeName = "";
-        string lodPath = "";
         List<LUtfNode> importedMipNodes;
-        int selectedIndex = -1;
 
         Point texSize = new Point(256, 256);
         Point gridSize = new Point(4,4);
@@ -46,22 +43,17 @@ namespace LancerEdit
         int frameCount = 16;
         int fps = 30;
 
-        Queue<(string path, int mipIndex)> pendingImports = new();
-
         // Texture import popup state
         bool showTextureImportPopup = false;
         bool importProcessing = false;
 
         AnalyzedTexture importSource;
         ImTextureRef importTextureId;
-        int importMipIndex = -1;
 
         bool importFlip = false;
         MipmapMethod importMipmaps = MipmapMethod.Lanczos4;
         DDSFormat importFormat = DDSFormat.Uncompressed;
 
-        bool rememberImportSettings = false;
-        bool hasCapturedImportSettings = false;
         bool requestOpenTextureImportPopup = false;
 
         bool isError = false;
@@ -73,7 +65,7 @@ namespace LancerEdit
                 return;
             DrawFileMetadataFields();
 
-            if (!ImGui.CollapsingHeader("Import MIPS", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Leaf))
+            if (!ImGui.CollapsingHeader("Import Texture", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Leaf))
                 return;
             DrawMipsFileSelect();
 
@@ -144,8 +136,6 @@ namespace LancerEdit
 
                     if (Path.Exists(path))
                     {
-                        lodPath = path;
-
                         importedMipNodes = null;
 
                         var src = TextureImport.OpenBuffer(
@@ -354,7 +344,6 @@ namespace LancerEdit
                             importFormat,
                             importMipmaps,
                             importFlip);
-                        hasCapturedImportSettings |= rememberImportSettings;
 
                         ImGuiHelper.DeregisterTexture(importSource.Texture);
                         importSource.Texture.Dispose();
@@ -418,7 +407,6 @@ namespace LancerEdit
             importProcessing = false;
 
             importSource = null;
-            importMipIndex = -1;
         }
         static string FormatName(DDSFormat fmt) => fmt switch
         {
