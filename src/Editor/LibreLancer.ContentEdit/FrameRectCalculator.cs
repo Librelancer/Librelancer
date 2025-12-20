@@ -58,14 +58,7 @@ namespace LibreLancer.ContentEdit
 
             return new List<FrameRect>(MemoryMarshal.Cast<byte, FrameRect>(data).ToArray());
         }
-        static void WriteFrameRect(Span<byte> buffer, int offset, float u0, float v0, float u1, float v1)
-        {
-            BitConverter.GetBytes(0u).CopyTo(buffer[offset..]);       // index
-            BitConverter.GetBytes(u0).CopyTo(buffer[(offset + 4)..]);
-            BitConverter.GetBytes(v0).CopyTo(buffer[(offset + 8)..]);
-            BitConverter.GetBytes(u1).CopyTo(buffer[(offset + 12)..]);
-            BitConverter.GetBytes(v1).CopyTo(buffer[(offset + 16)..]);
-        }
+
         public static byte[] SerializeFrameRects(List<FrameRect> rects)
         {
             return UnsafeHelpers.CastArray(rects.ToArray());
