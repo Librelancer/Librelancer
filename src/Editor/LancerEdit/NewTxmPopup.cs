@@ -30,7 +30,8 @@ namespace LancerEdit
         static readonly float BUTTON_WIDTH = 110f;
         static readonly float SQAURE_BUTTON_WIDTH = 30f;
         static readonly int MAX_LODS = 9;
-
+        readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
+        readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
         // TXM state
         string filename = "";
         string nodeName = "";
@@ -65,6 +66,7 @@ namespace LancerEdit
         bool requestOpenTextureImportPopup = false;
 
         bool isError = false;
+        string errorText = "";
 
         public override void Draw(bool appearing)
         {
@@ -151,12 +153,15 @@ namespace LancerEdit
         {
             ImGui.Spacing();
 
-            if (ImGui.Button(Icons.SquarePlus.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
+            if (ImGui.Button("Select texture", new Vector2(LABEL_WIDTH-20*ImGuiHelper.Scale, 0)))
             {
                 FileDialog.Open(path =>
                 {
+                    isError = false;
                     if (path == null || path.Length == 0)
                     {
+                        isError = true;
+                        errorText = "No file selected";
                         return;
                     }
 
@@ -172,6 +177,8 @@ namespace LancerEdit
 
                         if (src.IsError)
                         {
+                            isError = true;
+                            errorText = "Failed to import file";
                             win.ResultMessages(src);
                             return;
                         }
@@ -188,6 +195,8 @@ namespace LancerEdit
                                 }
                             };
                             src.Data.Texture.Dispose();
+                            isError = false;
+                            errorText = "File imported";
                             return;
                         }
 
@@ -204,10 +213,12 @@ namespace LancerEdit
 
                         showTextureImportPopup = true;
                         requestOpenTextureImportPopup = true;
+                        
                     }
                 });
             }
-
+            ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.TextColored(isError ? ERROR_TEXT_COLOUR : SUCCESS_TEXT_COLOUR, errorText );
             ImGui.Spacing();
             ImGui.Spacing();
         }
@@ -361,15 +372,16 @@ namespace LancerEdit
                     {
 
                         importedMipNodes = ImportTextureAsNodes(
-    importSource,
-    importFormat,
-    importMipmaps,
-    importFlip);
+                            importSource,
+                            importFormat,
+                            importMipmaps,
+                            importFlip);
                         hasCapturedImportSettings |= rememberImportSettings;
 
                         ImGuiHelper.DeregisterTexture(importSource.Texture);
                         importSource.Texture.Dispose();
-
+                        isError = false;
+                        errorText = "File imported";
                         CloseTextureImportPopup();
                         ImGui.CloseCurrentPopup();
                     });
