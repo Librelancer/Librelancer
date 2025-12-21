@@ -29,6 +29,8 @@ add_library(cimgui SHARED
     imgui_freetype.cpp
 )
 
+target_compile_features(cimgui PRIVATE cxx_std_20)
+
 target_include_directories(cimgui PRIVATE "." "../../extern/imgui" "ImGuiColorTextEdit" "imgui-node-editor" "include")
 
 target_compile_definitions (cimgui PRIVATE -DBUILDING_CIMGUI)
