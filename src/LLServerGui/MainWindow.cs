@@ -12,6 +12,7 @@ using LibreLancer.Data;
 using LibreLancer.Dialogs;
 using LibreLancer.ImUI;
 using LibreLancer.Server;
+using LLServer.Popups;
 using LLServer.Screens;
 using Microsoft.Win32;
 
@@ -98,7 +99,7 @@ public class MainWindow : Game
         var process = guiRender.DoRender(elapsed);
         if (process == ImGuiProcessing.Sleep)
         {
-            WaitForEvent(500);
+            WaitForEvent(2500);
         }
         else if (process == ImGuiProcessing.Slow)
         {
@@ -317,6 +318,12 @@ public class MainWindow : Game
                                 }
                             });
                 }
+                ImGui.EndMenu();
+            }
+            if (ImGui.BeginMenu("Options"))
+            {
+                pm.OpenPopup(new OptionsPopup(ServerGuiConfig, this));
+
                 ImGui.EndMenu();
             }
             ImGui.EndMainMenuBar();

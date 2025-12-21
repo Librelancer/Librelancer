@@ -26,12 +26,12 @@ public class RunningServerScreen : Screen
     Vector4 WARN_TEXT_COLOUR = new Vector4(1f, 0.86f, 0.25f, 1f);
     readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
     static readonly float LABEL_WIDTH = 125f;
-
     bool showStopConfirm;
     bool isStarting = true;
     IEnumerable<Player> connectedPlayers;
     BannedPlayerDescription[] bannedPlayers;
     AdminCharacterDescription[] admins;
+    double nextAutoRefreshTime;
 
     public override void OnEnter()
     {
@@ -53,7 +53,11 @@ public class RunningServerScreen : Screen
     }
     public override void Draw(double elapsed)
     {
-        RefreshData();
+        if (guiConfig.AutoRefreshData && ImGui.GetTime() >= nextAutoRefreshTime)
+        {
+            RefreshData();
+            nextAutoRefreshTime = ImGui.GetTime() + guiConfig.AutoRefreshinterval;
+        }
 
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
 
@@ -75,10 +79,7 @@ public class RunningServerScreen : Screen
         ImGui.Separator();
 
         ImGui.PushItemWidth(-1);
-        if (ImGui.BeginTable(
-            "server_stats_layout",
-            3,
-            ImGuiTableFlags.SizingStretchProp))
+        if (ImGui.BeginTable("server_stats_layout", 3, ImGuiTableFlags.SizingStretchProp))
         {
             ImGui.TableSetupColumn("stats", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("spacing", ImGuiTableColumnFlags.WidthFixed);
@@ -102,24 +103,41 @@ public class RunningServerScreen : Screen
 
         if (ImGui.BeginTabBar("server_tabs"))
         {
+            Vector2 startPos = ImGui.GetCursorScreenPos();
+
+            DrawTabBarToolbar();
+
+            ImGui.SetCursorScreenPos(startPos);
             if (ImGui.BeginTabItem("Connected Players"))
             {
+                if (ImGui.IsItemActivated())
+                {
+                    RefreshData();
+                    nextAutoRefreshTime = ImGui.GetTime() + guiConfig.AutoRefreshinterval;
+                }
                 DrawConnectedPlayersTab();
                 ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Banned Players"))
             {
+                if (ImGui.IsItemActivated()) { RefreshData(); nextAutoRefreshTime = ImGui.GetTime() + guiConfig.AutoRefreshinterval; }
                 DrawBansTab();
                 ImGui.EndTabItem();
             }
             if (ImGui.BeginTabItem("Admins"))
             {
+                if (ImGui.IsItemActivated()) { RefreshData(); nextAutoRefreshTime = ImGui.GetTime() + guiConfig.AutoRefreshinterval; }
                 DrawAdminsTab();
                 ImGui.EndTabItem();
             }
 
+
             ImGui.EndTabBar();
+
+
         }
+
+
 
         if (win.IsRunning)
             isStarting = false;
@@ -150,18 +168,22 @@ public class RunningServerScreen : Screen
         ImGui.Separator();
 
         ImGui.Text("Players Online"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text(win.ConnectedPlayersCount.ToString()); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text(win.ConnectedPlayersCount.ToString() ?? "0"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
 
         ImGui.NewLine();
         ImGui.Text("Admins Online"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text(win.Server.Server.AllPlayers.Count(p =>
-                p.Character != null &&
-                admins.Any(a => a.Name == p.Character.Name)).ToString());
+        ImGui.Text(
+            win.Server.Server.AllPlayers.Count(p =>
+                    p.Character != null &&
+                    admins != null &&
+                    admins.Any(a => a.Name == p.Character.Name)
+                ).ToString()
+            );
         ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
 
         ImGui.NewLine();
         ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.Text(bannedPlayers?.Count().ToString() ?? "-"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text(bannedPlayers?.Count().ToString() ?? "0"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
 
         ImGui.NewLine();
         ImGui.Dummy(new Vector2(-1, ImGui.GetFrameHeight() * ImGuiHelper.Scale));
@@ -271,7 +293,7 @@ public class RunningServerScreen : Screen
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
-                    ImGui.Text(player?.Character?.ID.ToString()?? "-");
+                    ImGui.Text(player?.Character?.ID.ToString() ?? "-");
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
@@ -305,15 +327,15 @@ public class RunningServerScreen : Screen
                     }
 
                     ImGui.TableNextColumn();
-                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name?? "-"}",!String.IsNullOrWhiteSpace(player.Name) && !bannedPlayers.Any(b => b.Characters.Any(c => c == player.Name )), buttonSize))
+                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}", !String.IsNullOrWhiteSpace(player.Name) && !bannedPlayers.Any(b => b.Characters.Any(c => c == player.Name)), buttonSize))
                     {
-                       pm.OpenPopup(new BanPopup(player.Name, expiry =>
-                       {
-                           if (expiry.HasValue)
-                           {
-                               BanPlayer(player.Name, expiry.Value);
-                           }
-                       }));
+                        pm.OpenPopup(new BanPopup(player.Name, expiry =>
+                        {
+                            if (expiry.HasValue)
+                            {
+                                BanPlayer(player.Name, expiry.Value);
+                            }
+                        }));
                     }
                     ImGui.TableNextColumn();
                     if (ImGui.Button($"{Icons.Eye}##{player.Name ?? "-"}", buttonSize))
@@ -373,7 +395,7 @@ public class RunningServerScreen : Screen
                             : "-");
 
                     ImGui.TableNextColumn();
-                    if (ImGui.Button($"{Icons.Eraser .ToString()}##{player.AccountId.ToString()}", buttonSize))
+                    if (ImGui.Button($"{Icons.Eraser.ToString()}##{player.AccountId.ToString()}", buttonSize))
                     {
                         pm.MessageBox("Confirm", $"Are you sure you want to unban \n{player.AccountId.ToString()}?", false, MessageBoxButtons.YesNo, response =>
                         {
@@ -478,6 +500,28 @@ public class RunningServerScreen : Screen
             ImGui.EndTable();
         }
         ImGui.EndChild();
+    }
+    void DrawTabBarToolbar()
+    {
+        // Move to same vertical line as tabs
+        ImGui.SameLine();
+
+        // Right-align inside tab bar
+        float rightEdge = win.RenderContext.CurrentViewport.Width;
+        float width = LABEL_WIDTH * 1.3f * ImGuiHelper.Scale;
+
+        ImGui.SetCursorPosX(rightEdge - width);
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Auto Refresh");
+        ImGui.SameLine();
+        ImGui.Checkbox("##AutoRefresh", ref guiConfig.AutoRefreshData);
+
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.Rev_LightGreen.ToString()))
+        {
+            RefreshData();
+        }
     }
 
     // Server Player Actions

@@ -8,5 +8,7 @@ namespace LLServer
     {
         public string LastConfigPath= "";
         public bool AutoStartServer= false;
+        public bool AutoRefreshData = false;
+        public int AutoRefreshinterval = 5;
     }
 }
