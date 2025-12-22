@@ -36,11 +36,17 @@ public sealed partial class MissionScriptEditorTab
             renderHistory = !renderHistory;
         }
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Navigate To: ");
-        ImGui.SameLine();
+        ImGui.Text("Navigate To");
+        ImGui.SameLine(100f);
         jumpLookup?.Draw();
-        Controls.InputTextIdUndo("Node Filter", undoBuffer, () => ref NodeFilter);
+
+        Controls.InputTextIdUndo("Node Filter", undoBuffer, () => ref NodeFilter, labelWidth: 100f);
+        ImGui.Spacing();
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
         if (ImGui.CollapsingHeader("Mission Information", ImGuiTreeNodeFlags.DefaultOpen))
@@ -50,7 +56,6 @@ public sealed partial class MissionScriptEditorTab
             ImGui.PopID();
         }
 
-        ImGui.NewLine();
         if (ImGui.CollapsingHeader("NPC Arch Management", ImGuiTreeNodeFlags.DefaultOpen))
         {
             ImGui.PushID(2);
@@ -394,18 +399,26 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderMissionInformation()
     {
+        ImGui.Spacing();
         var info = missionIni.Info;
-        Controls.IdsInputStringUndo("Title IDS", gameData, popup, undoBuffer, () => ref info.MissionTitle);
-        Controls.IdsInputStringUndo("Offer IDS", gameData, popup, undoBuffer, () => ref info.MissionOffer);
+        Controls.IdsInputStringUndo("Title IDS", gameData, popup, undoBuffer, () => ref info.MissionTitle, false, 75f,100f,-1f);
+        Controls.IdsInputStringUndo("Offer IDS", gameData, popup, undoBuffer, () => ref info.MissionOffer, false, 75f, 100f, -1f);
 
-        ImGui.PushItemWidth(150f);
+        Controls.InputIntUndo("Reward", undoBuffer, () => ref info.Reward,labelWidth:100f);
 
-        Controls.InputIntUndo("Reward", undoBuffer, () => ref info.Reward);
-        ImGui.InputText("NPC Ship File", ref info.NpcShipFile, 255, ImGuiInputTextFlags.ReadOnly);
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("NPC Ship File"); ImGui.SameLine(100f);
+
+        ImGui.PushItemWidth(-1f);
+        ImGui.InputText("##NPCShipFile", ref info.NpcShipFile, 255, ImGuiInputTextFlags.ReadOnly | ImGuiInputTextFlags.ElideLeft);
         ImGui.PopItemWidth();
 
-        if (ImGui.Button("Change Ship File"))
+        ImGui.Dummy(new Vector2(100f, 1f)); ImGui.SameLine(100f);
+        if (ImGui.Button("Change Ship File", new Vector2(-1f,0f))) 
         {
             popup.OpenPopup(new VfsFileSelector("Change Ship File",
                 gameData.GameData.VFS,
@@ -417,5 +430,7 @@ public sealed partial class MissionScriptEditorTab
                         this));
                 }, VfsFileSelector.MakeFilter(".ini")));
         }
+
+        ImGui.NewLine();
     }
 }
