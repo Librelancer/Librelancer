@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -23,7 +22,7 @@ public sealed partial class MissionScriptEditorTab
             }, null,
             nodes.OfType<NodeMissionTrigger>().OrderBy(x => x.InternalId).ToArray());
     }
-
+    int selectedNpcClassIndex = -1;
     private void RenderLeftSidebar()
     {
         var padding = ImGui.GetStyle().FramePadding.Y + ImGui.GetStyle().FrameBorderSize;
@@ -63,7 +62,6 @@ public sealed partial class MissionScriptEditorTab
             ImGui.PopID();
         }
 
-        ImGui.NewLine();
         if (ImGui.CollapsingHeader("NPC Management", ImGuiTreeNodeFlags.DefaultOpen))
         {
             ImGui.PushID(3);
@@ -292,37 +290,22 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderNpcArchManager()
     {
+        ImGui.Spacing();
+        ImGui.Spacing();
+
         if (missionIni.ShipIni == null)
         {
             ImGui.BulletText("NPCShipIni not defined");
             return;
         }
-        if (ImGui.Button("Create New Ship Arch"))
-        {
-            selectedArchIndex = missionIni.ShipIni.ShipArches.Count;
-            undoBuffer.Commit(new ListAdd<NPCShipArch>("Ship Arch", missionIni.ShipIni.ShipArches, new()));
-        }
-
-        ImGui.BeginDisabled(selectedArchIndex == -1);
-        if (ImGui.Button("Delete Ship Arch"))
-        {
-            win.Confirm("Are you sure you want to delete this ship arch?",
-                () =>
-                {
-                    undoBuffer.Commit(new ListRemove<NPCShipArch>("Ship Arch",
-                        missionIni.ShipIni.ShipArches, selectedArchIndex,
-                        missionIni.ShipIni.ShipArches[selectedArchIndex]));
-                    selectedArchIndex--;
-                });
-        }
-        ImGui.EndDisabled();
 
         if (selectedArchIndex >= missionIni.ShipIni.ShipArches.Count)
             selectedArchIndex = -1;
 
         var selectedArch = selectedArchIndex != -1 ? missionIni.ShipIni.ShipArches[selectedArchIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-        if (ImGui.BeginCombo("Ship Archs", selectedArch is not null ? selectedArch.Nickname : ""))
+
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X- ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo("##ShipArchs", selectedArch is not null ? selectedArch.Nickname : ""))
         {
             for (var index = 0; index < missionIni.ShipIni.ShipArches.Count; index++)
             {
@@ -339,6 +322,33 @@ public sealed partial class MissionScriptEditorTab
 
             ImGui.EndCombo();
         }
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
+        {
+            selectedArchIndex = missionIni.ShipIni.ShipArches.Count;
+            undoBuffer.Commit(new ListAdd<NPCShipArch>("Ship Arch", missionIni.ShipIni.ShipArches, new()));
+        }
+        ImGui.SetItemTooltip("Create New Ship Arch");
+
+        ImGui.SameLine();
+        ImGui.BeginDisabled(selectedArchIndex == -1);
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
+        {
+            win.Confirm("Are you sure you want to delete this ship arch?",
+                () =>
+                {
+                    undoBuffer.Commit(new ListRemove<NPCShipArch>("Ship Arch",
+                        missionIni.ShipIni.ShipArches, selectedArchIndex,
+                        missionIni.ShipIni.ShipArches[selectedArchIndex]));
+                    selectedArchIndex--;
+                });
+        }
+        ImGui.SetItemTooltip("Delete Ship Arch");
+        ImGui.EndDisabled();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
         if (selectedArch is null)
         {
@@ -347,14 +357,14 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushID(selectedArchIndex);
 
-        Controls.InputTextIdUndo("Arch Nickname", undoBuffer, () => ref selectedArch.Nickname, 150f);
-        Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
+        Controls.InputTextIdUndo("Arch Nickname", undoBuffer, () => ref selectedArch.Nickname, 0f, 100f);
+        Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 0f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Items.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));
 
-        ImGui.SetNextItemWidth(100f);
-        Controls.InputIntUndo("Level", undoBuffer, () => ref selectedArch.Level, 1, 10);
-        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedArch.Pilot, 150f);
+        Controls.InputIntUndo("Level", undoBuffer, () => ref selectedArch.Level, 1, 10, labelWidth: 100f);
+
+        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedArch.Pilot, 0f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => gameData.GameData.Items.GetPilot(selectedArch.Pilot) is not null);
 
         string[] stateGraphs =
@@ -366,33 +376,124 @@ public sealed partial class MissionScriptEditorTab
             currentStateGraphIndex = 0;
         }
 
-        ImGui.SetNextItemWidth(150f);
-        ImGui.Combo("State Graph", ref currentStateGraphIndex, stateGraphs, stateGraphs.Length);
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("State Graph"); ImGui.SameLine(100f);
+        ImGui.SetNextItemWidth(-1);
+        ImGui.Combo("##StateGraph", ref currentStateGraphIndex, stateGraphs, stateGraphs.Length);
         if (selectedArch.StateGraph != stateGraphs[currentStateGraphIndex])
         {
-            undoBuffer.Set("State Graph", () => ref selectedArch.StateGraph, stateGraphs[currentStateGraphIndex]);
+            undoBuffer.Set("##StateGraph", () => ref selectedArch.StateGraph, stateGraphs[currentStateGraphIndex]);
         }
-        ImGui.NewLine();
-        ImGui.Text("NPC Classes");
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
-        if (selectedArch.NpcClass.Count is not 0)
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("NPC Classes"); ImGui.SameLine(100f);
+
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
         {
-            for (var i = 0; i < selectedArch.NpcClass.Count; i++)
+            int insertIndex = selectedArch.NpcClass.Count;
+
+            undoBuffer.Commit(new ListAdd<string>(
+                "NPC Class",
+                selectedArch.NpcClass,
+                String.Empty));
+
+            selectedNpcClassIndex = insertIndex;
+        }
+        ImGui.SetItemTooltip("Create New NPC Class");
+
+        ImGui.SameLine();
+        ImGui.BeginDisabled(selectedArchIndex == -1);
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
+        {
+            // delete item
+            if (selectedNpcClassIndex >= 0 &&
+        selectedNpcClassIndex < selectedArch.NpcClass.Count)
             {
-                var npcClass = selectedArch.NpcClass[i];
-                int idx = i;
-                ImGui.PushID(idx);
-                ImGuiExt.InputTextLogged("##npc-class", ref npcClass,
-                    250, (old, upd) => new ListSet<string>(
-                        "Npc Class", selectedArch.NpcClass, idx, old, upd), true);
-                ImGui.PopID();
-                selectedArch.NpcClass[i] = npcClass;
+                int removeIndex = selectedNpcClassIndex;
+                string removedValue = selectedArch.NpcClass[removeIndex];
+
+                undoBuffer.Commit(new ListRemove<string>(
+                    "NPC Class",
+                    selectedArch.NpcClass,
+                    removeIndex,
+                    removedValue));
+
+                // Clamp selection after delete
+                selectedNpcClassIndex = Math.Min(
+                    removeIndex,
+                    selectedArch.NpcClass.Count - 1);
             }
         }
+        ImGui.SetItemTooltip("Delete NPC Class");
+        ImGui.EndDisabled();
+        ImGui.Spacing();
+        if (selectedArch.NpcClass != null && selectedArch.NpcClass.Count > 0)
+        if (ImGui.BeginTable("##NpcClasses", 2,
+            ImGuiTableFlags.BordersInnerV |
+            ImGuiTableFlags.SizingFixedFit |
+            ImGuiTableFlags.RowBg))
+        {
+            ImGui.TableSetupColumn("#", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("Class Name", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableHeadersRow();
 
-        MissionEditorHelpers.AddRemoveListButtons(selectedArch.NpcClass, undoBuffer);
+            for (int i = 0; i < selectedArch.NpcClass.Count; i++)
+            {
+                ImGui.TableNextRow();
 
+                // ---- Column 0: index
+                ImGui.TableSetColumnIndex(0);
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text((i+1).ToString());
+
+                // ---- Column 1: input
+                ImGui.TableSetColumnIndex(1);
+                ImGui.PushItemWidth(-1);
+
+                var npcClass = selectedArch.NpcClass[i];
+
+                ImGuiExt.InputTextLogged(
+                    $"##npc-class{i}",
+                    ref npcClass,
+                    250,
+                    (old, upd) => new ListSet<string>(
+                        "Npc Class",
+                        selectedArch.NpcClass,
+                        i,
+                        old,
+                        upd),
+                    true);
+
+                selectedArch.NpcClass[i] = npcClass;
+                ImGui.PopItemWidth();
+
+                // ---- Row selection logic
+                if (ImGui.IsItemClicked())
+                    selectedNpcClassIndex = i;
+
+                // ---- Selection background (FULL ROW, correct height)
+                if (selectedNpcClassIndex == i)
+                {
+                    ImGui.TableSetBgColor(
+                        ImGuiTableBgTarget.RowBg0,
+                        ImGui.GetColorU32(ImGuiCol.Header));
+                }
+            }
+
+            ImGui.EndTable();
+        }
         ImGui.PopID();
+
+        if (selectedNpcClassIndex >= selectedArch.NpcClass.Count)
+            selectedNpcClassIndex = selectedArch.NpcClass.Count - 1;
+
+        if (selectedNpcClassIndex < 0 && selectedArch.NpcClass.Count > 0)
+            selectedNpcClassIndex = 0;
+
+        ImGui.NewLine();
     }
 
     private int selectedArchIndex = -1;
