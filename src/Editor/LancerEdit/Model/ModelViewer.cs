@@ -857,7 +857,7 @@ namespace LancerEdit
                     ImGui.Separator();
                     ImGui.Text("Sur: " + surname);
                     ImGui.Checkbox("Show Hull", ref surShowHull);
-                    ImGui.Checkbox("Show Hardpoints", ref surShowHps);
+                    ImGui.Checkbox("Show Hardpoint Hulls", ref surShowHps);
                     ImGui.Separator();
                 }
             }
