@@ -251,7 +251,6 @@ public sealed partial class MissionScriptEditorTab
                 ImGui.PushID(name + index);
 
                 ImGui.TableNextColumn();
-                ImGui.PushItemWidth(-1);
                 ImGui.Text(name);
                 MissionEditorHelpers.AlertIfInvalidRef(() =>
                     missionIni.Ships.Any(x => x.Nickname.Equals(name, StringComparison.InvariantCultureIgnoreCase)));

@@ -483,15 +483,16 @@ public static class Controls
         }
     }
 
-    public static void InputStringList(string id, EditorUndoBuffer undoBuffer, List<string> list, bool rmButtonOnEveryElement = true)
+    public static void InputStringList(string id, EditorUndoBuffer undoBuffer, List<string> list, bool rmButtonOnEveryElement = true, float labelWidth = 100f)
     {
         ImGui.PushID(id);
         ImGui.AlignTextToFramePadding();
-        Label(id);
+        Label(id); ImGui.SameLine(labelWidth);
 
+        AddListControls();
+        ImGui.Spacing();
         if (list.Count is 0)
         {
-            AddListControls();
             ImGui.PopID();
             return;
         }
@@ -500,20 +501,22 @@ public static class Controls
         {
             var str = list[index];
             ImGui.PushID(index);
+            ImGui.Dummy(new Vector2(2)); ImGui.SameLine(labelWidth);
 
             ImGui.SetNextItemWidth(150f);
+
             int curr = index;
+
             ImGuiExt.InputTextLogged("###", ref str, 32,
                 (old, upd) =>
                undoBuffer.Commit(new ListSet<string>(id, list, curr, old, upd)));
             list[index] = str;
 
-            if (index + 1 != list.Count)
-            {
+
                 if (rmButtonOnEveryElement)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button(Icons.X))
+                    if (ImGui.Button(Icons.TrashAlt))
                     {
                         undoBuffer.Commit(new ListRemove<string>(id, list, index, list[index]));
                     }
@@ -521,11 +524,11 @@ public static class Controls
 
                 ImGui.PopID();
                 continue;
-            }
+
 
             ImGui.PopID();
 
-            AddListControls();
+            //AddListControls();
         }
 
         ImGui.PopID();
@@ -533,7 +536,6 @@ public static class Controls
 
         void AddListControls()
         {
-            ImGui.SameLine();
             if (ImGui.Button(Icons.PlusCircle))
             {
                 undoBuffer.Commit(new ListAdd<string>(id, list, ""));
@@ -542,7 +544,7 @@ public static class Controls
 
             ImGui.SameLine();
             ImGui.BeginDisabled(list.Count is 0);
-            if (ImGui.Button(Icons.X))
+            if (ImGui.Button(Icons.TrashAlt))
             {
                 undoBuffer.Commit(new ListRemove<string>(id, list, list.Count - 1, list[^1]));
             }

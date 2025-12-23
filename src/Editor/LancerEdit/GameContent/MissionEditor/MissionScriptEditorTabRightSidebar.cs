@@ -395,15 +395,40 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderMissionShipManager()
     {
-        if (ImGui.Button("Create New Ship"))
+        ImGui.Spacing();
+        if (selectedShipIndex >= missionIni.Ships.Count)
+            selectedShipIndex = -1;
+
+        var selectedShip = selectedShipIndex != -1 ? missionIni.Ships[selectedShipIndex] : null;
+
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo("##Ships", selectedShip is not null ? selectedShip.Nickname : "(none)"))
+        {
+            for (var index = 0; index < missionIni.Ships.Count; index++)
+            {
+                var arch = missionIni.Ships[index];
+                var selected = arch == selectedShip;
+                var id = String.IsNullOrWhiteSpace(arch?.Nickname) ? $"Untitled_{index.ToString()}" : arch?.Nickname;
+
+                if (!ImGui.Selectable(id, selected))
+                    continue;
+
+                selectedShipIndex = index;
+                selectedShip = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
         {
             selectedShipIndex = missionIni.Ships.Count;
             undoBuffer.Commit(new ListAdd<MissionShip>("Ship", missionIni.Ships, new()));
         }
-
+        ImGui.SetItemTooltip("Create new Ship");
+        ImGui.SameLine();
         ImGui.BeginDisabled(selectedShipIndex == -1);
-
-        if (ImGui.Button("Delete Ship"))
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
         {
             win.Confirm("Are you sure you want to delete this ship?",
                 () =>
@@ -414,50 +439,32 @@ public sealed partial class MissionScriptEditorTab
                     selectedShipIndex--;
                 });
         }
-
+        ImGui.SetItemTooltip("Delete Ship");
         ImGui.EndDisabled();
-
-        if (selectedShipIndex >= missionIni.Ships.Count)
-            selectedShipIndex = -1;
-
-        var selectedShip = selectedShipIndex != -1 ? missionIni.Ships[selectedShipIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Ships", selectedShip is not null ? selectedShip.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Ships.Count; index++)
-            {
-                var arch = missionIni.Ships[index];
-                var selected = arch == selectedShip;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedShipIndex = index;
-                selectedShip = arch;
-            }
-
-            ImGui.EndCombo();
-        }
 
         if (selectedShip is null)
         {
             return;
         }
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.Spacing();
+
+
         ImGui.PushID(selectedShipIndex);
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedShip.Nickname, 150f);
-        Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 150f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedShip.Nickname, 0f, 100f);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname == selectedShip.System));
 
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("NPC", selectedShip.NPC ?? ""))
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("NPC"); ImGui.SameLine(100f);
+        ImGui.SetNextItemWidth(165f);
+        if (ImGui.BeginCombo("##NPC", selectedShip.NPC ?? ""))
         {
             foreach (var npc in missionIni.NPCs
                          .Select(x => x.Nickname)
@@ -471,20 +478,26 @@ public sealed partial class MissionScriptEditorTab
 
         MissionEditorHelpers.AlertIfInvalidRef(() => missionIni.NPCs.Any(x => x.Nickname == selectedShip.NPC));
 
-        ImGui.NewLine();
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
-        Controls.InputStringList("Labels", undoBuffer, selectedShip.Labels);
+        Controls.InputStringList("Labels", undoBuffer, selectedShip.Labels,true, 100f);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedShip.Position);
 
-        ImGui.NewLine();
-
-        ImGui.Text("Relative Position:");
+        ImGui.Spacing();
+        var pos = selectedShip.Position.Length();
+        ImGui.Text("Relative Positioning:");
 
         // Disable relative data if absolute data is provided
-        ImGui.BeginDisabled(selectedShip.Position.Length() is not 0f);
+        ImGui.BeginDisabled(selectedShip.Position.Length() is 0f);
 
-        Controls.InputTextIdUndo("Obj", undoBuffer, () => ref selectedShip.RelativePosition.ObjectName, 150f);
+        Controls.InputTextIdUndo("Obj", undoBuffer, () => ref selectedShip.RelativePosition.ObjectName, 0f, 100f);
         // Don't think it's possible to validate this one, as it could refer to any solar object in any system
 
         ImGui.SetNextItemWidth(150f);
@@ -495,20 +508,36 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.EndDisabled();
 
-        ImGui.NewLine();
-        ImGui.SetNextItemWidth(200f);
         Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedShip.Orientation);
-        Controls.CheckboxUndo("Random Name", undoBuffer, () => ref selectedShip.RandomName);
-        Controls.CheckboxUndo("Jumper", undoBuffer, () => ref selectedShip.Jumper);
-        ImGui.SetNextItemWidth(100f);
-        Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedShip.Radius);
-        Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj.Object, 150f);
-        ImGui.BeginDisabled(string.IsNullOrEmpty(selectedShip.ArrivalObj.Object));
-        Controls.InputIntUndo("Undock Index", undoBuffer, () => ref selectedShip.ArrivalObj.Index);
-        ImGui.EndDisabled();
-        ImGui.SetNextItemWidth(150f);
 
-        if (ImGui.BeginCombo("Initial Objectives", selectedShip.InitObjectives ?? ""))
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Random Name"); ImGui.SameLine(100f);
+        Controls.CheckboxUndo("##RandomName", undoBuffer, () => ref selectedShip.RandomName);
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Jumper"); ImGui.SameLine(100f);
+        Controls.CheckboxUndo("##Jumper", undoBuffer, () => ref selectedShip.Jumper);
+
+        Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedShip.Radius);
+        Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj.Object, 0, 100f);
+
+        ImGui.BeginDisabled(string.IsNullOrEmpty(selectedShip.ArrivalObj.Object));
+        Controls.InputIntUndo("Undock Index", undoBuffer, () => ref selectedShip.ArrivalObj.Index, labelWidth:100f);
+        ImGui.EndDisabled();
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        ImGui.AlignTextToFramePadding();
+
+        ImGui.Text("Initial Objectives"); ImGui.SameLine(100f);
+        ImGui.SetNextItemWidth(165f);
+        if (ImGui.BeginCombo("##InitialObjectives", selectedShip.InitObjectives ?? ""))
         {
             if (ImGui.Selectable("no_op", selectedShip.InitObjectives == "no_op"))
             {
@@ -531,21 +560,30 @@ public sealed partial class MissionScriptEditorTab
                                                      missionIni.ObjLists.Any(x =>
                                                          x.Nickname == selectedShip.InitObjectives));
 
-        ImGui.Text("Cargo");
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Cargo"); ImGui.SameLine(100f);
+        MissionEditorHelpers.AddRemoveListButtons(selectedShip.Cargo, undoBuffer);
 
         if (selectedShip.Cargo.Count is not 0)
         {
             for (var i = 0; i < selectedShip.Cargo.Count; i++)
             {
+                ImGui.Separator();
                 var cargo = selectedShip.Cargo[i];
                 ImGui.PushID(i);
-                Controls.InputTextIdUndo("##Cargo", undoBuffer, () => ref cargo.Cargo, 150f);
+
+                Controls.InputTextIdUndo($"    Cargo##{i}", undoBuffer, () => ref cargo.Cargo, 165f, 100f);
+
                 MissionEditorHelpers.AlertIfInvalidRef(() =>
                     gameData.GameData.Items.Equipment.Any(x =>
                         x.Nickname.Equals(cargo.Cargo, StringComparison.InvariantCultureIgnoreCase)));
-                ImGui.SameLine();
-                ImGui.PushItemWidth(75f);
-                Controls.InputIntUndo("##Count", undoBuffer, () => ref cargo.Count);
+                
+                
+                Controls.InputIntUndo($"    Count##{i}", undoBuffer, () => ref cargo.Count, labelWidth: 100f);
 
                 if (cargo.Count < 0)
                 {
@@ -553,11 +591,11 @@ public sealed partial class MissionScriptEditorTab
                 }
 
                 ImGui.PopID();
+                ImGui.Separator();
                 selectedShip.Cargo[i] = cargo;
             }
         }
 
-        MissionEditorHelpers.AddRemoveListButtons(selectedShip.Cargo, undoBuffer);
 
         ImGui.PopID();
     }
