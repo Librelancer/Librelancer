@@ -44,33 +44,35 @@ public sealed partial class MissionScriptEditorTab
         ImGui.Text("Navigate To");
         ImGui.SameLine(100f);
         jumpLookup?.Draw();
-
         Controls.InputTextIdUndo("Node Filter", undoBuffer, () => ref NodeFilter, labelWidth: 100f);
+
+        ImGui.Spacing();
+        ImGui.Separator();
         ImGui.Spacing();
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
-        if (ImGui.CollapsingHeader("Mission Information", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Mission Information"))
         {
             ImGui.PushID(1);
             RenderMissionInformation();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("NPC Arch Management", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("NPC Arch Management"))
         {
             ImGui.PushID(2);
             RenderNpcArchManager();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("NPC Management", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("NPC Management"))
         {
             ImGui.PushID(3);
             RenderNpcManagement();
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader("Formation Management", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Formation Management"))
         {
             ImGui.PushID(4);
             RenderFormationManagement();

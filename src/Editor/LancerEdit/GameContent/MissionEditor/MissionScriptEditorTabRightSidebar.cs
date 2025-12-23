@@ -25,43 +25,42 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
 
-        if (ImGui.CollapsingHeader("Ship Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Ship Manager"))
         {
             ImGui.PushID(1);
             RenderMissionShipManager();
             ImGui.PopID();
+            ImGui.NewLine();
         }
 
-        ImGui.NewLine();
-
-        if (ImGui.CollapsingHeader("Solar Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Solar Manager"))
         {
             ImGui.PushID(2);
             RenderMissionSolarManager();
             ImGui.PopID();
+            ImGui.NewLine();
         }
 
-        ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Loot Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Loot Manager"))
         {
             ImGui.PushID(3);
             RenderLootManager();
             ImGui.PopID();
+            ImGui.NewLine();
         }
 
-        ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Dialog Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Dialog Manager"))
         {
             ImGui.PushID(4);
             RenderDialogManager();
             ImGui.PopID();
+            ImGui.NewLine();
         }
 
-        ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Objective List", ImGuiTreeNodeFlags.DefaultOpen))
+        if (ImGui.CollapsingHeader("Objective List"))
         {
             ImGui.PushID(5);
             RenderObjectiveListManager();
@@ -190,15 +189,41 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderLootManager()
     {
-        if (ImGui.Button("Create New Loot"))
+        ImGui.Spacing();
+        if (selectedLootIndex >= missionIni.Loots.Count)
+            selectedLootIndex = -1;
+
+        var selectedLoot = selectedLootIndex != -1 ? missionIni.Loots[selectedLootIndex] : null;
+
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo("##Loots", selectedLoot is not null ? selectedLoot.Nickname : "(none)"))
+        {
+            for (var index = 0; index < missionIni.Loots.Count; index++)
+            {
+                var arch = missionIni.Loots[index];
+                var selected = arch == selectedLoot;
+
+                var id = String.IsNullOrWhiteSpace(arch?.Nickname) ? $"Untitled_{index.ToString()}" : arch?.Nickname;
+
+                if (!ImGui.Selectable(id, selected))
+                    continue;
+
+                selectedLootIndex = index;
+                selectedLoot = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
         {
             selectedLootIndex = missionIni.Loots.Count;
             undoBuffer.Commit(new ListAdd<MissionLoot>("Loot", missionIni.Loots, new()));
         }
-
+        ImGui.SetItemTooltip("Create New Loot");
+        ImGui.SameLine();
         ImGui.BeginDisabled(selectedLootIndex == -1);
-
-        if (ImGui.Button("Delete Loot"))
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
         {
             win.Confirm("Are you sure you want to delete this loot?",
                 () =>
@@ -209,68 +234,58 @@ public sealed partial class MissionScriptEditorTab
                     selectedLootIndex--;
                 });
         }
-
+        ImGui.SetItemTooltip("Delete Loot");
         ImGui.EndDisabled();
-
-        if(selectedLootIndex >= missionIni.Loots.Count)
-            selectedLootIndex = -1;
-
-        var selectedLoot = selectedLootIndex != -1 ? missionIni.Loots[selectedLootIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Loots", selectedLoot is not null ? selectedLoot.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Loots.Count; index++)
-            {
-                var arch = missionIni.Loots[index];
-                var selected = arch == selectedLoot;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedLootIndex = index;
-                selectedLoot = arch;
-            }
-
-            ImGui.EndCombo();
-        }
 
         if (selectedLoot is null)
         {
             return;
         }
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         ImGui.PushID(selectedLootIndex);
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedLoot.Nickname, 150f);
-        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedLoot.Archetype, 150f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedLoot.Nickname, 165f, 100f);
+        MissionEditorHelpers.AlertIfInvalidRef(() => !String.IsNullOrWhiteSpace(selectedLoot.Nickname), "Nickname cannot be empty");
+        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedLoot.Archetype, 165f, 100f);
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedLoot.StringId,
-            inputWidth: 150f);
+            false, 75f, 100f, -1f);
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGuiExt.CenterText("Transform Settings");
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
         ImGui.BeginDisabled(!string.IsNullOrEmpty(selectedLoot.RelPosObj) && selectedLoot.RelPosOffset != Vector3.Zero);
-        ImGui.SetNextItemWidth(200f);
-        Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedLoot.Position);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedLoot.Position, labelWidth: 100f);
         ImGui.EndDisabled();
-
+        ImGui.Spacing();
+        ImGui.AlignTextToFramePadding();
         ImGui.Text("Relative Position");
+        ImGui.Spacing();
+
         ImGui.BeginDisabled(selectedLoot.Position != Vector3.Zero);
-
-        Controls.InputTextIdUndo("Object", undoBuffer, () => ref selectedLoot.RelPosObj, 150f);
-
-        ImGui.SetNextItemWidth(200f);
-        Controls.InputFloat3Undo("Offset", undoBuffer, () => ref selectedLoot.RelPosOffset);
-
+        Controls.InputTextIdUndo("Object", undoBuffer, () => ref selectedLoot.RelPosObj, 0f, 100f);
+        Controls.InputFloat3Undo("Offset", undoBuffer, () => ref selectedLoot.RelPosOffset, labelWidth: 100f);
         ImGui.EndDisabled();
 
-        ImGui.NewLine();
-        ImGui.SetNextItemWidth(200f);
-        Controls.InputIntUndo("Equip Amount", undoBuffer, () => ref selectedLoot.EquipAmount);
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGuiExt.CenterText("Loot Settings");
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
-        ImGui.SetNextItemWidth(200f);
-        Controls.SliderFloatUndo("Health", undoBuffer, () => ref selectedLoot.Health, 0f, 1f);
+        Controls.InputIntUndo("Equip Amount", undoBuffer, () => ref selectedLoot.EquipAmount, labelWidth: 100f);
+
+        Controls.SliderFloatUndo("Health", undoBuffer, () => ref selectedLoot.Health, 0f, 1f, labelWidth: 100f, inputWidth:-1f);
 
         Controls.CheckboxUndo("Can Jettison", undoBuffer, () => ref selectedLoot.CanJettison);
 
@@ -287,7 +302,7 @@ public sealed partial class MissionScriptEditorTab
         var selectedSolar = selectedSolarIndex != -1 ? missionIni.Solars[selectedSolarIndex] : null;
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
-        if (ImGui.BeginCombo("Solars", selectedSolar is not null ? selectedSolar.Nickname : "(none)"))
+        if (ImGui.BeginCombo("##Solars", selectedSolar is not null ? selectedSolar.Nickname : "(none)"))
         {
             for (var index = 0; index < missionIni.Solars.Count; index++)
             {
@@ -371,24 +386,41 @@ public sealed partial class MissionScriptEditorTab
                                                      gameData.GameData.Items.Loadouts.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Loadout,
                                                              StringComparison.InvariantCultureIgnoreCase)));
-
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
         Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice, 0f, 100f);
         Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot, 0f, 100f);
-        Controls.InputTextIdUndo("Costume Head", undoBuffer, () => ref selectedSolar.Costume[0], 0f, 100f);
-        Controls.InputTextIdUndo("Costume Body", undoBuffer, () => ref selectedSolar.Costume[1], 0f, 100f);
-        Controls.InputTextIdUndo("Costume Accessory", undoBuffer, () => ref selectedSolar.Costume[2], 0f, 100f);
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGuiExt.CenterText("Consume Settings");
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+        Controls.InputTextIdUndo("Head", undoBuffer, () => ref selectedSolar.Costume[0], 0f, 100f);
+        Controls.InputTextIdUndo("Body", undoBuffer, () => ref selectedSolar.Costume[1], 0f, 100f);
+        Controls.InputTextIdUndo("Accessory", undoBuffer, () => ref selectedSolar.Costume[2], 0f, 100f);
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
         Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit, 0f, 100f);
 
         Controls.IdsInputStringUndo("String ID", gameData, popup, undoBuffer, () => ref selectedSolar.StringId, false, 0f, 100f);
 
-        Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedSolar.Radius, inputWidth:0f, labelWidth:100f);
+        Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedSolar.Radius, inputWidth: 0f, labelWidth: 100f);
 
-        ImGui.NewLine();
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
-        Controls.InputStringList("Labels", undoBuffer, selectedSolar.Labels, labelWidth:100f);
+        Controls.InputStringList("Labels", undoBuffer, selectedSolar.Labels, labelWidth: 100f);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedSolar.Position, inputWidth: 0f, labelWidth: 100f);
-
         Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedSolar.Orientation, inputWidth: 0f, labelWidth: 100f);
 
         ImGui.PopID();
@@ -458,7 +490,9 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.PushID(selectedShipIndex);
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedShip.Nickname, 0f, 100f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedShip.Nickname, 165, 100f);
+        MissionEditorHelpers.AlertIfInvalidRef(() => !String.IsNullOrWhiteSpace(selectedShip.Nickname), "Nickname cannot be empty");
+
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
@@ -485,7 +519,7 @@ public sealed partial class MissionScriptEditorTab
         ImGui.Separator();
         ImGui.Spacing();
 
-        Controls.InputStringList("Labels", undoBuffer, selectedShip.Labels,true, 100f);
+        Controls.InputStringList("Labels", undoBuffer, selectedShip.Labels, true, 100f);
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -529,7 +563,7 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj.Object, 0, 100f);
 
         ImGui.BeginDisabled(string.IsNullOrEmpty(selectedShip.ArrivalObj.Object));
-        Controls.InputIntUndo("Undock Index", undoBuffer, () => ref selectedShip.ArrivalObj.Index, labelWidth:100f);
+        Controls.InputIntUndo("Undock Index", undoBuffer, () => ref selectedShip.ArrivalObj.Index, labelWidth: 100f);
         ImGui.EndDisabled();
 
         ImGui.Spacing();
@@ -584,8 +618,8 @@ public sealed partial class MissionScriptEditorTab
                 MissionEditorHelpers.AlertIfInvalidRef(() =>
                     gameData.GameData.Items.Equipment.Any(x =>
                         x.Nickname.Equals(cargo.Cargo, StringComparison.InvariantCultureIgnoreCase)));
-                
-                
+
+
                 Controls.InputIntUndo($"    Count##{i}", undoBuffer, () => ref cargo.Count, labelWidth: 100f);
 
                 if (cargo.Count < 0)
@@ -598,8 +632,6 @@ public sealed partial class MissionScriptEditorTab
                 selectedShip.Cargo[i] = cargo;
             }
         }
-
-
         ImGui.PopID();
     }
 
@@ -680,12 +712,12 @@ public sealed partial class MissionScriptEditorTab
 
             var obj = selectedObjList.Directives[index];
 
-            var typeIndex = (int) obj.Command;
+            var typeIndex = (int)obj.Command;
 
             ImGui.SetNextItemWidth(150f);
             ImGui.Combo("Command Type", ref typeIndex, objListTypes, objListTypes.Length);
 
-            if ((int) obj.Command != typeIndex)
+            if ((int)obj.Command != typeIndex)
             {
                 undoBuffer.Commit(new ListSet<MissionDirective>("Command", selectedObjList.Directives,
                     index, obj, MissionDirective.New((ObjListCommands)typeIndex)));
