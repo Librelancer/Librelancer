@@ -172,15 +172,19 @@ public static class Controls
         int step = 0,
         int step_fast = 0,
         string format = "%.3f",
-        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
+        float labelWidth = 100f,
+        float inputWidth = 0f
+
     )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref float v = ref value();
         float oldCopy = v;
+        ImGui.PushItemWidth(inputWidth);
         ImGui.InputFloat("##input", ref v, step, step_fast, format, flags);
         if (ImGui.IsItemActivated())
         {
@@ -190,6 +194,7 @@ public static class Controls
         {
             buffer.Set(label, value, oldFloat, v);
         }
+        ImGui.PopItemWidth();
         ImGui.PopID();
     }
 
@@ -197,15 +202,20 @@ public static class Controls
 
     public static void InputQuaternionUndo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<Quaternion>.Accessor value)
+        EditorPropertyModification<Quaternion>.Accessor value,
+        float labelWidth = 100f,
+        float inputWidth = 0f
+        )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref Quaternion q = ref value();
         Quaternion oldCopy = q;
+        ImGui.PushItemWidth(inputWidth);
         ImGui.InputFloat4("##input", ref Unsafe.As<Quaternion, Vector4>(ref q));
+        ImGui.PopItemWidth();
         if (ImGui.IsItemActivated())
         {
             oldQuaternion = oldCopy;
@@ -224,15 +234,18 @@ public static class Controls
         EditorUndoBuffer buffer,
         EditorPropertyModification<Vector3>.Accessor value,
         string format = "%.3f",
-        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
+        float labelWidth = 100f,
+        float inputWidth = 0f
     )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref Vector3 v = ref value();
         Vector3 oldCopy = v;
+        ImGui.PushItemWidth(inputWidth);
         ImGui.InputFloat3("##input", ref v, format, flags);
         if (ImGui.IsItemActivated())
         {
@@ -243,6 +256,7 @@ public static class Controls
             buffer.Set(label, value, oldVector, v);
         }
         ImGui.PopID();
+        ImGui.PopItemWidth();
     }
 
     public static void DisabledInputTextId(string label, string value, float width = 0.0f)
