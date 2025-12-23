@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
-using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.ImUI.NodeEditor;
 
@@ -60,7 +59,18 @@ public struct NodePopups
         ImGui.AlignTextToFramePadding();
         ImGui.Text(title);
         ImGui.SameLine();
-        combos[comboIndex++] = new ComboData(ImGuiExt.ComboButton(title, values[selectedValue]), set, title, values);
+
+        // Hidden ID
+        ImGuiExt.ComboButton($"##{title}", values[selectedValue]);
+
+        bool activated = ImGui.IsItemActivated();
+
+        combos[comboIndex++] = new ComboData(
+            activated,
+            set,
+            title,
+            values
+        );
     }
 
     public void StringCombo(string title, EditorUndoBuffer undoBuffer, EditorPropertyModification<string>.Accessor accessor, string[] values, bool allowEmpty = false)
@@ -77,8 +87,16 @@ public struct NodePopups
             display = "(none)";
         }
 
-        strCombos[strComboIndex++] = new StringComboData(ImGuiExt.ComboButton(title, display),
-            updated => undoBuffer.Set(title, accessor, updated), title, values, allowEmpty);
+        bool clicked = ImGuiExt.ComboButton($"##{title}", display);
+        bool activated = ImGui.IsItemActivated();
+
+        strCombos[strComboIndex++] = new StringComboData(
+            activated,  // NOT clicked/open
+            updated => undoBuffer.Set(title, accessor, updated),
+            title,
+            values,
+            allowEmpty
+        );
     }
 
     private static readonly Dictionary<Type, string[]> _nullables = new();
@@ -188,16 +206,15 @@ public struct NodePopups
         {
             var c = strCombos[i];
             strCombos[i] = default;
-            if(c.Open)
+            if (c.Open)
                 ImGui.OpenPopup(c.Id);
             if (!ImGui.BeginPopup(c.Id, ImGuiWindowFlags.Popup))
-            {
                 continue;
-            }
             suspend.FlagSuspend();
             if (c.AllowEmpty && ImGui.MenuItem("(none)##Empty"))
             {
                 c.Set("");
+                ImGui.CloseCurrentPopup();
             }
 
             var j = 0;
@@ -205,7 +222,10 @@ public struct NodePopups
             {
                 ImGui.PushID(j++);
                 if (ImGui.MenuItem(v))
+                {
                     c.Set(v);
+                    ImGui.CloseCurrentPopup();
+                }
                 ImGui.PopID();
             }
             ImGui.EndPopup();
