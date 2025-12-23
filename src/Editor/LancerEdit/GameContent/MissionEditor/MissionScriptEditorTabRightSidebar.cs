@@ -76,15 +76,40 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderDialogManager()
     {
-        if (ImGui.Button("Create New Dialog"))
+        if (selectedDialogIndex >= missionIni.Dialogs.Count)
+            selectedDialogIndex = -1;
+
+        var selectedDialog = selectedDialogIndex != -1 ? missionIni.Dialogs[selectedDialogIndex] : null;
+
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo("##Dialogs", selectedDialog is not null ? selectedDialog.Nickname : "(none)"))
+        {
+            for (var index = 0; index < missionIni.Dialogs.Count; index++)
+            {
+                var arch = missionIni.Dialogs[index];
+                var selected = arch == selectedDialog;
+
+                var id = String.IsNullOrWhiteSpace(selectedDialog?.Nickname) ? $"Untitled_{index.ToString()}" : selectedDialog?.Nickname;
+
+                if (!ImGui.Selectable(id, selected))
+                    continue;
+
+                selectedDialogIndex = index;
+                selectedDialog = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
         {
             selectedDialogIndex = missionIni.Dialogs.Count;
             undoBuffer.Commit(new ListAdd<MissionDialog>("Dialog", missionIni.Dialogs, new()));
         }
-
+        ImGui.SetItemTooltip("Create New Dialog");
+        ImGui.SameLine();
         ImGui.BeginDisabled(selectedDialogIndex == -1);
-
-        if (ImGui.Button("Delete Dialog"))
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
         {
             win.Confirm("Are you sure you want to delete this dialog?",
                 () =>
@@ -95,54 +120,37 @@ public sealed partial class MissionScriptEditorTab
                     selectedDialogIndex--;
                 });
         }
-
+        ImGui.SetItemTooltip("Delete Dialog");
         ImGui.EndDisabled();
-
-        if (selectedDialogIndex >= missionIni.Dialogs.Count)
-            selectedDialogIndex = -1;
-
-        var selectedDialog = selectedDialogIndex != -1 ? missionIni.Dialogs[selectedDialogIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Dialogs", selectedDialog is not null ? selectedDialog.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Dialogs.Count; index++)
-            {
-                var arch = missionIni.Dialogs[index];
-                var selected = arch == selectedDialog;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedDialogIndex = index;
-                selectedDialog = arch;
-            }
-
-            ImGui.EndCombo();
-        }
 
         if (selectedDialog is null)
         {
             return;
         }
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         ImGui.PushID(selectedDialogIndex);
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedDialog.Nickname, 150f);
-        Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedDialog.System, 150f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedDialog.Nickname, 165f, 100f);
+        MissionEditorHelpers.AlertIfInvalidRef(() => !String.IsNullOrWhiteSpace(selectedDialog.Nickname), "Nickname cannot be empty");
+
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedDialog.System, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedDialog.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname == selectedDialog.System));
-
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
         for (var index = 0; index < selectedDialog.Lines.Count; index++)
         {
             var line = selectedDialog.Lines[index];
             ImGui.PushID(line.GetHashCode());
-            Controls.InputTextIdUndo("Source", undoBuffer, () => ref line.Source);
-            Controls.InputTextIdUndo("Target", undoBuffer, () => ref line.Target);
-            Controls.InputTextIdUndo("Line", undoBuffer, () => ref line.Line);
+            Controls.InputTextIdUndo("Source", undoBuffer, () => ref line.Source, labelWidth: 100f, width: -1f);
+            Controls.InputTextIdUndo("Target", undoBuffer, () => ref line.Target, labelWidth: 100f, width: -1f);
+            Controls.InputTextIdUndo("Line", undoBuffer, () => ref line.Line, labelWidth: 100f, width: 160f);
             ImGui.SameLine();
 
             if (ImGui.Button(Icons.Play))
@@ -173,11 +181,11 @@ public sealed partial class MissionScriptEditorTab
             }
 
             ImGui.PopID();
+            ImGui.Spacing();
 
-            if (index + 1 != selectedDialog.Lines.Count)
-            {
-                ImGui.NewLine();
-            }
+            ImGui.Separator();
+            ImGui.Spacing();
+
         }
 
         MissionEditorHelpers.AddRemoveListButtons(selectedDialog.Lines, undoBuffer);
@@ -639,7 +647,34 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderObjectiveListManager()
     {
-        if (ImGui.Button("New Objective List"))
+        ImGui.Spacing();
+        if (objectiveListIndex >= objLists.Count)
+            objectiveListIndex = -1;
+
+        ImGui.PushID(objectiveListIndex);
+        var selectedObjList = objectiveListIndex != -1 ? objLists[objectiveListIndex] : null;
+
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo("##ObjectiveLists", selectedObjList is not null ? selectedObjList.Nickname : "(none)"))
+        {
+            for (var index = 0; index < objLists.Count; index++)
+            {
+                var arch = objLists[index];
+                var selected = arch == selectedObjList;
+
+                var id = String.IsNullOrWhiteSpace(arch?.Nickname) ? $"Untitled_{index.ToString()}" : arch?.Nickname;
+
+                if (!ImGui.Selectable(id, selected))
+                    continue;
+
+                objectiveListIndex = index;
+                selectedObjList = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
         {
             popup.OpenPopup(new NameInputPopup(
                 NameInputConfig.Nickname("New Objective List",
@@ -650,10 +685,10 @@ public sealed partial class MissionScriptEditorTab
                     objectiveListIndex = objLists.Count;
                 }));
         }
-
+        ImGui.SetItemTooltip("New Objective List");
+        ImGui.SameLine();
         ImGui.BeginDisabled(objectiveListIndex == -1);
-
-        if (ImGui.Button("Delete Objective List"))
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
         {
             win.Confirm("Are you sure you want to delete this ObjList?",
                 () =>
@@ -666,36 +701,8 @@ public sealed partial class MissionScriptEditorTab
                     objectiveListIndex--;
                 });
         }
-
+        ImGui.SetItemTooltip("Delete Objective List");
         ImGui.EndDisabled();
-
-        if (objectiveListIndex >= objLists.Count)
-            objectiveListIndex = -1;
-
-        ImGui.PushID(objectiveListIndex);
-        var selectedObjList = objectiveListIndex != -1 ? objLists[objectiveListIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-
-
-        if (ImGui.BeginCombo("Objective Lists", selectedObjList is not null ? selectedObjList.Nickname : ""))
-        {
-            for (var index = 0; index < objLists.Count; index++)
-            {
-                var arch = objLists[index];
-                var selected = arch == selectedObjList;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                objectiveListIndex = index;
-                selectedObjList = arch;
-            }
-
-            ImGui.EndCombo();
-        }
 
         if (selectedObjList is null)
         {
@@ -703,19 +710,25 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         var objListTypes = Enum.GetNames<ObjListCommands>();
 
         for (var index = 0; index < selectedObjList.Directives.Count; index++)
         {
             ImGui.PushID(index);
+            ImGui.Spacing();
             ImGui.Separator();
+            ImGui.Spacing();
 
             var obj = selectedObjList.Directives[index];
 
             var typeIndex = (int)obj.Command;
 
-            ImGui.SetNextItemWidth(150f);
-            ImGui.Combo("Command Type", ref typeIndex, objListTypes, objListTypes.Length);
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 1.5f);
+            ImGui.Combo("##CommandType", ref typeIndex, objListTypes, objListTypes.Length);
 
             if ((int)obj.Command != typeIndex)
             {
@@ -729,6 +742,10 @@ public sealed partial class MissionScriptEditorTab
 
             ImGui.PopID();
         }
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
 
         if (ImGui.Button("Add Command"))
         {
