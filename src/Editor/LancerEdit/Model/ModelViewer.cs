@@ -693,6 +693,41 @@ namespace LancerEdit
                 foreach (var action in addActions) action();
                 ImGui.TreePop();
             }
+            if (act == ContextActions.ShowAll)
+            {
+                foreach (var hp in part.Hardpoints)
+                {
+                    HardpointGizmo gz = null;
+                    foreach (var gizmo in gizmos)
+                    {
+                        if (gizmo.Hardpoint == hp)
+                        {
+                            gz = gizmo;
+                            break;
+                        }
+                    }
+
+                    gz.Enabled = true;
+                }
+            }
+            if (act == ContextActions.HideAll)
+            {
+                foreach (var hp in part.Hardpoints)
+                {
+                    HardpointGizmo gz = null;
+                    foreach (var gizmo in gizmos)
+                    {
+                        if (gizmo.Hardpoint == hp)
+                        {
+                            gz = gizmo;
+                            break;
+                        }
+                    }
+
+                    gz.Enabled = false;
+                }
+            }
+
         }
 
         Hardpoint MakeDuplicate(string name, Hardpoint src)
@@ -719,7 +754,7 @@ namespace LancerEdit
             return null;
         }
         enum ContextActions {
-            None, NewFixed,NewRevolute,Edit,Delete,MirrorX,MirrorY, MirrorZ, Dup
+            None, NewFixed,NewRevolute,Edit,Delete,MirrorX,MirrorY, MirrorZ, Dup, ShowAll, HideAll
         }
         ContextActions NewHpMenu(string n)
         {
@@ -729,6 +764,12 @@ namespace LancerEdit
                 if(Theme.BeginIconMenu(Icons.PlusCircle, "New")) {
                     if (Theme.IconMenuItem(Icons.Cube_Purple, "Fixed Hardpoint",true)) retval = ContextActions.NewFixed;
                     if (Theme.IconMenuItem(Icons.Rev_LightSeaGreen, "Revolute Hardpoint",true)) retval = ContextActions.NewRevolute;
+                    ImGui.EndMenu();
+                }
+                if (Theme.BeginIconMenu(Icons.Eye, "View"))
+                {
+                    if (Theme.IconMenuItem(Icons.Eye, "Show All", true)) retval = ContextActions.ShowAll;
+                    if (Theme.IconMenuItem(Icons.EyeSlash, "Hide All", true)) retval = ContextActions.HideAll;
                     ImGui.EndMenu();
                 }
                 ImGui.EndPopup();
@@ -816,7 +857,7 @@ namespace LancerEdit
                     ImGui.Separator();
                     ImGui.Text("Sur: " + surname);
                     ImGui.Checkbox("Show Hull", ref surShowHull);
-                    ImGui.Checkbox("Show Hardpoints", ref surShowHps);
+                    ImGui.Checkbox("Show Hardpoint Hulls", ref surShowHps);
                     ImGui.Separator();
                 }
             }
