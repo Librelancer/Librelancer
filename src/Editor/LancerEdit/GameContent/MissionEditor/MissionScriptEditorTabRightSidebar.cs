@@ -402,7 +402,7 @@ public sealed partial class MissionScriptEditorTab
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
-        ImGuiExt.CenterText("Consume Settings");
+        ImGuiExt.CenterText("Constume Settings");
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
@@ -559,13 +559,8 @@ public sealed partial class MissionScriptEditorTab
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Random Name"); ImGui.SameLine(100f);
-        Controls.CheckboxUndo("##RandomName", undoBuffer, () => ref selectedShip.RandomName);
-
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Jumper"); ImGui.SameLine(100f);
-        Controls.CheckboxUndo("##Jumper", undoBuffer, () => ref selectedShip.Jumper);
+        Controls.CheckboxUndo("Random Name", undoBuffer, () => ref selectedShip.RandomName, 100f);
+        Controls.CheckboxUndo("Jumper", undoBuffer, () => ref selectedShip.Jumper, 100f);
 
         Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedShip.Radius);
         Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj.Object, 0, 100f);

@@ -451,7 +451,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             nodeMouseActions = new();
         }
         // Works around rare assert
-        //ImGui.Dummy(new Vector2(1, 1));
+        ImGui.Dummy(new Vector2(0));
     }
 
     private List<EditorAction> nodeMouseActions = new();
