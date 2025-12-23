@@ -68,10 +68,13 @@ public static class Controls
     }
 
     public static void CheckboxUndo(string label, EditorUndoBuffer buffer,
-        EditorPropertyModification<bool>.Accessor value)
+        EditorPropertyModification<bool>.Accessor value, float labelWidth=100f, float inputWidth=0f)
     {
         var v = value();
-        if (ImGui.Checkbox(label, ref v))
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(label);
+        ImGui.SameLine(labelWidth);
+        if (ImGui.Checkbox($"##{label}", ref v))
         {
             buffer.Set(label, value, v);
         }
@@ -145,15 +148,19 @@ public static class Controls
         float v_min,
         float v_max,
         string format = "%.3f",
-        ImGuiSliderFlags flags = ImGuiSliderFlags.None)
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None,
+        float labelWidth = 100f,
+        float inputWidth = -1f
+        )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref float v = ref value();
         float oldCopy = v;
-        ImGui.SliderFloat(label, ref v, v_min, v_max, format, flags);
+        ImGui.SetNextItemWidth(inputWidth);
+        ImGui.SliderFloat($"##{label}", ref v, v_min, v_max, format, flags);
         if (ImGui.IsItemActivated())
         {
             oldFloat = oldCopy; // Can be modified in the same frame

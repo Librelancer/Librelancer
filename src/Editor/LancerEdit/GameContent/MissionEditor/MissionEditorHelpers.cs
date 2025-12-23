@@ -7,7 +7,7 @@ namespace LancerEdit.GameContent.MissionEditor;
 
 public static class MissionEditorHelpers
 {
-    public static void AlertIfInvalidRef(Func<bool> refCheck)
+    public static void AlertIfInvalidRef(Func<bool> refCheck, string errorMessage = "")
     {
         if (refCheck())
         {
@@ -18,7 +18,9 @@ public static class MissionEditorHelpers
         ImGui.Text(Icons.Warning.ToString());
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("This item has a broken reference. The game may be unstable or crash if used in this state.");
+            ImGui.SetTooltip(String.IsNullOrWhiteSpace(errorMessage)
+                ? "This item has a broken reference. The game may be unstable or crash if used in this state."
+                : errorMessage);
         }
     }
 
