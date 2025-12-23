@@ -50,7 +50,7 @@ public sealed partial class MissionScriptEditorTab
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
+        //ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
         if (ImGui.CollapsingHeader("Mission Information"))
         {
             ImGui.PushID(1);
@@ -79,7 +79,7 @@ public sealed partial class MissionScriptEditorTab
             ImGui.PopID();
         }
 
-        ImGui.PopStyleColor();
+        //ImGui.PopStyleColor();
         ImGui.EndChild();
     }
 

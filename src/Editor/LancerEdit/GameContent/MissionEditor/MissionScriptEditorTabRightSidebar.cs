@@ -23,7 +23,7 @@ public sealed partial class MissionScriptEditorTab
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoCollapse);
 
-        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
+        //ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
 
         if (ImGui.CollapsingHeader("Ship Manager"))
         {
@@ -67,7 +67,7 @@ public sealed partial class MissionScriptEditorTab
             ImGui.PopID();
         }
 
-        ImGui.PopStyleColor();
+        //ImGui.PopStyleColor();
 
         ImGui.EndChild();
     }
