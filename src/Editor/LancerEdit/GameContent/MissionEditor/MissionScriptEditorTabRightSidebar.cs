@@ -281,15 +281,42 @@ public sealed partial class MissionScriptEditorTab
 
     private void RenderMissionSolarManager()
     {
-        if (ImGui.Button("Create New Solar"))
+        ImGui.Spacing();
+        if (selectedSolarIndex >= missionIni.Solars.Count)
+            selectedSolarIndex = -1;
+        var selectedSolar = selectedSolarIndex != -1 ? missionIni.Solars[selectedSolarIndex] : null;
+
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo("Solars", selectedSolar is not null ? selectedSolar.Nickname : "(none)"))
+        {
+            for (var index = 0; index < missionIni.Solars.Count; index++)
+            {
+                var arch = missionIni.Solars[index];
+                var selected = arch == selectedSolar;
+
+                var id = String.IsNullOrWhiteSpace(arch?.Nickname) ? $"Untitled_{index.ToString()}" : arch?.Nickname;
+
+                if (!ImGui.Selectable(id, selected))
+                    continue;
+
+                selectedSolarIndex = index;
+                selectedSolar = arch;
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.SameLine();
+
+        if (ImGui.Button(Icons.PlusCircle.ToString()))
         {
             selectedSolarIndex = missionIni.Solars.Count;
             undoBuffer.Commit(new ListAdd<MissionSolar>("Solar", missionIni.Solars, new()));
         }
+        ImGui.SetItemTooltip("Create New Solar");
+        ImGui.SameLine();
 
         ImGui.BeginDisabled(selectedSolarIndex == -1);
-
-        if (ImGui.Button("Delete Solar"))
+        if (ImGui.Button(Icons.TrashAlt.ToString()))
         {
             win.Confirm("Are you sure you want to delete this solar?",
                 () =>
@@ -300,93 +327,69 @@ public sealed partial class MissionScriptEditorTab
                     selectedSolarIndex--;
                 });
         }
-
+        ImGui.SetItemTooltip("Delete Solar");
         ImGui.EndDisabled();
-
-        if (selectedSolarIndex >= missionIni.Solars.Count)
-            selectedSolarIndex = -1;
-        var selectedSolar = selectedSolarIndex != -1 ? missionIni.Solars[selectedSolarIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Solars", selectedSolar is not null ? selectedSolar.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Solars.Count; index++)
-            {
-                var arch = missionIni.Solars[index];
-                var selected = arch == selectedSolar;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedSolarIndex = index;
-                selectedSolar = arch;
-            }
-
-            ImGui.EndCombo();
-        }
 
         if (selectedSolar is null)
         {
             return;
         }
 
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         ImGui.PushID(selectedSolarIndex);
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedSolar.Nickname, 150f);
-        Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedSolar.System, 150f);
+        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedSolar.Nickname, 0f, 100f);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedSolar.System, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.System,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
-        Controls.InputTextIdUndo("Faction", undoBuffer, () => ref selectedSolar.Faction, 150f);
+        Controls.InputTextIdUndo("Faction", undoBuffer, () => ref selectedSolar.Faction, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Faction.Length is 0 ||
                                                      gameData.GameData.Items.Factions.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Faction,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
-        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedSolar.Archetype, 150f);
+        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedSolar.Archetype, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Archetype.Length is 0 ||
                                                      gameData.GameData.Items.Archetypes.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Archetype,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
-        Controls.InputTextIdUndo("Base", undoBuffer, () => ref selectedSolar.Base, 150f);
+        Controls.InputTextIdUndo("Base", undoBuffer, () => ref selectedSolar.Base, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Base.Length is 0 ||
                                                      gameData.GameData.Items.Bases.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Base,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
-        Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedSolar.Loadout, 150f);
+        Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedSolar.Loadout, 165f, 100f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Loadout.Length is 0 ||
                                                      gameData.GameData.Items.Loadouts.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Loadout,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
-        Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice, 150f);
-        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot, 150f);
-        Controls.InputTextIdUndo("Costume Head", undoBuffer, () => ref selectedSolar.Costume[0], 150f);
-        Controls.InputTextIdUndo("Costume Body", undoBuffer, () => ref selectedSolar.Costume[1], 150f);
-        Controls.InputTextIdUndo("Costume Accessory", undoBuffer, () => ref selectedSolar.Costume[2], 150f);
-        Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit, 150f);
+        Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice, 0f, 100f);
+        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot, 0f, 100f);
+        Controls.InputTextIdUndo("Costume Head", undoBuffer, () => ref selectedSolar.Costume[0], 0f, 100f);
+        Controls.InputTextIdUndo("Costume Body", undoBuffer, () => ref selectedSolar.Costume[1], 0f, 100f);
+        Controls.InputTextIdUndo("Costume Accessory", undoBuffer, () => ref selectedSolar.Costume[2], 0f, 100f);
+        Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit, 0f, 100f);
 
-        ImGui.SetNextItemWidth(100f);
-        Controls.IdsInputStringUndo("String ID", gameData, popup, undoBuffer, () => ref selectedSolar.StringId);
+        Controls.IdsInputStringUndo("String ID", gameData, popup, undoBuffer, () => ref selectedSolar.StringId, false, 0f, 100f);
 
-        ImGui.SetNextItemWidth(100f);
-        Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedSolar.Radius);
+        Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedSolar.Radius, inputWidth:0f, labelWidth:100f);
 
         ImGui.NewLine();
 
-        Controls.InputStringList("Labels", undoBuffer, selectedSolar.Labels);
+        Controls.InputStringList("Labels", undoBuffer, selectedSolar.Labels, labelWidth:100f);
 
-        ImGui.SetNextItemWidth(200f);
-        Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedSolar.Position);
+        Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedSolar.Position, inputWidth: 0f, labelWidth: 100f);
 
-        ImGui.SetNextItemWidth(200f);
-        Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedSolar.Orientation);
+        Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedSolar.Orientation, inputWidth: 0f, labelWidth: 100f);
 
         ImGui.PopID();
     }
