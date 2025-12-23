@@ -286,9 +286,9 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         CheckIndexes();
 
-        ImGui.TableSetupColumn("ME Left Sidebar", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("ME Left Sidebar", ImGuiTableColumnFlags.WidthFixed, 300f);
         ImGui.TableSetupColumn("ME Node Editor", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("ME Right Sidebar", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("ME Right Sidebar", ImGuiTableColumnFlags.WidthFixed, 300f);
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
@@ -451,7 +451,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             nodeMouseActions = new();
         }
         // Works around rare assert
-        ImGui.Dummy(new Vector2(1, 1));
+        //ImGui.Dummy(new Vector2(1, 1));
     }
 
     private List<EditorAction> nodeMouseActions = new();
