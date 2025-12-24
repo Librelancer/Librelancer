@@ -162,7 +162,8 @@ namespace LibreLancer.Server
         Dictionary<StarSystem, ServerWorld> worlds = new Dictionary<StarSystem, ServerWorld>();
         ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
         ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
-
+        public readonly ConcurrentQueue<ServerEvent> ServerEvents = new ConcurrentQueue<ServerEvent>();
+        
         public void OnLocalPacket(IPacket pkt)
         {
             localPackets.Enqueue(pkt);

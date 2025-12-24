@@ -170,6 +170,17 @@ namespace LibreLancer.Server
             if(acc != null)
                 acc.BanExpiry = expiryUtc;
             await ctx.SaveChangesAsync();
+
+            server.ServerEvents.Enqueue(new ServerEvent
+            {
+                Type = ServerEventType.PlayerBanChanged,
+                TimeUtc = DateTime.UtcNow,
+                Payload = new PlayerBanChangedEvent(
+                    acc.AccountIdentifier,
+                    acc.Characters.Select(c => c.Name).ToArray(),
+                    true,
+                    expiryUtc)
+            });
         }
 
         public async Task UnbanAccount(Guid playerGuid)
@@ -179,6 +190,17 @@ namespace LibreLancer.Server
             if (acc != null)
                 acc.BanExpiry = null;
             await ctx.SaveChangesAsync();
+
+            server.ServerEvents.Enqueue(new ServerEvent
+            {
+                Type = ServerEventType.PlayerBanChanged,
+                TimeUtc = DateTime.UtcNow,
+                Payload = new PlayerBanChangedEvent(
+                    acc.AccountIdentifier,
+                    acc.Characters.Select(c => c.Name).ToArray(),
+                    false,
+                    null)
+            });
         }
 
         public AdminCharacterDescription[] GetAdmins()
@@ -218,6 +240,13 @@ namespace LibreLancer.Server
                 {
                     c.IsAdmin = true;
                     await ctx.SaveChangesAsync();
+
+                    server.ServerEvents.Enqueue(new ServerEvent
+                    {
+                        Type = ServerEventType.PlayerAdminChanged,
+                        TimeUtc = DateTime.UtcNow,
+                        Payload = new PlayerAdminChangedEvent(c.Id, c.Name, true)
+                    });
                 }
             });
         }
@@ -232,6 +261,12 @@ namespace LibreLancer.Server
                 {
                     c.IsAdmin = false;
                     await ctx.SaveChangesAsync();
+                    server.ServerEvents.Enqueue(new ServerEvent
+                    {
+                        Type = ServerEventType.PlayerAdminChanged,
+                        TimeUtc = DateTime.UtcNow,
+                        Payload = new PlayerAdminChangedEvent(c.Id, c.Name, false)
+                    });
                 }
             });
         }

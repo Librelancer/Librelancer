@@ -318,6 +318,13 @@ namespace LibreLancer.Server
             } else {
                 SpaceInitialSpawn(null);
             }
+
+            Game.ServerEvents.Enqueue(new ServerEvent
+            {
+                Type = ServerEventType.CharacterConnected,
+                TimeUtc = DateTime.UtcNow,
+                Payload = new CharacterConnectedEvent(Character.ID, Character.Name, System, Base)
+            });
         }
 
         public void OpenSaveGame(SaveGame sg)
@@ -530,6 +537,14 @@ namespace LibreLancer.Server
                 if (CharacterList == null) {
                     FLLog.Info("Server", $"Account {playerGuid} is banned, kicking.");
                     Client.Disconnect(DisconnectReason.Banned);
+
+                    Game.ServerEvents.Enqueue(new ServerEvent
+                    {
+                        Type = ServerEventType.PlayerDisconnected,
+                        TimeUtc = DateTime.UtcNow,
+                        Payload = new PlayerDisconnectedEvent(playerGuid, null, DisconnectReason.Banned)
+                    });
+
                     return;
                 }
                 Client.SendPacket(new LoginSuccessPacket(), PacketDeliveryMethod.ReliableOrdered);
@@ -544,6 +559,13 @@ namespace LibreLancer.Server
                     }
                 }, PacketDeliveryMethod.ReliableOrdered);
                 packetQueueTask = Task.Factory.StartNew(ProcessPacketQueue, TaskCreationOptions.LongRunning);
+
+                Game.ServerEvents.Enqueue(new ServerEvent
+                {
+                    Type = ServerEventType.PlayerConnected,
+                    TimeUtc = DateTime.UtcNow,
+                    Payload = new PlayerConnectedEvent(playerGuid, CharacterList.Select(c => c.Name).ToArray())
+                });
             }
             catch (Exception ex)
             {
@@ -554,8 +576,14 @@ namespace LibreLancer.Server
                     ex = ex.InnerException;
                 }
 
-
                 Client.Disconnect(DisconnectReason.LoginError);
+
+                Game.ServerEvents.Enqueue(new ServerEvent
+                {
+                    Type = ServerEventType.PlayerDisconnected,
+                    TimeUtc = DateTime.UtcNow,
+                    Payload = new PlayerDisconnectedEvent(playerGuid, null, DisconnectReason.LoginError)
+                });
             }
         }
 
@@ -980,8 +1008,26 @@ namespace LibreLancer.Server
                 foreach(var player in Game.AllPlayers.Where(x => x != this))
                     player.RpcClient.OnPlayerLeave(ID, Name);
                 Game.CharactersInUse.Remove(Character.ID);
+
+                Game.ServerEvents.Enqueue(new ServerEvent
+                {
+                    Type = ServerEventType.CharacterDisconnected,
+                    TimeUtc = DateTime.UtcNow,
+                    Payload = new CharacterDisconnectedEvent(Character.ID,Character.Name)
+                });
+
                 Character = null;
             }
+            else
+            {
+                Game.ServerEvents.Enqueue(new ServerEvent
+                {
+                    Type = ServerEventType.PlayerDisconnected,
+                    TimeUtc = DateTime.UtcNow,
+                    Payload = new PlayerDisconnectedEvent(playerGuid, CharacterList.Select(c=> c.Name).ToArray(), DisconnectReason.Unknown)
+                });
+            }
+
         }
 
         public void Disconnected()
