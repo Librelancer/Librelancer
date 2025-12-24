@@ -323,7 +323,7 @@ namespace LibreLancer.Server
             {
                 Type = ServerEventType.CharacterConnected,
                 TimeUtc = DateTime.UtcNow,
-                Payload = new CharacterConnectedEvent(Character.ID, Character.Name, System, Base)
+                Payload = new CharacterConnectedEventPayload( this)
             });
         }
 
@@ -542,7 +542,7 @@ namespace LibreLancer.Server
                     {
                         Type = ServerEventType.PlayerDisconnected,
                         TimeUtc = DateTime.UtcNow,
-                        Payload = new PlayerDisconnectedEvent(playerGuid, null, DisconnectReason.Banned)
+                        Payload = new PlayerDisconnectedEventPayload(this, DisconnectReason.Banned)
                     });
 
                     return;
@@ -564,7 +564,7 @@ namespace LibreLancer.Server
                 {
                     Type = ServerEventType.PlayerConnected,
                     TimeUtc = DateTime.UtcNow,
-                    Payload = new PlayerConnectedEvent(playerGuid, CharacterList.Select(c => c.Name).ToArray())
+                    Payload = new PlayerConnectedEventPayload(this)
                 });
             }
             catch (Exception ex)
@@ -582,7 +582,7 @@ namespace LibreLancer.Server
                 {
                     Type = ServerEventType.PlayerDisconnected,
                     TimeUtc = DateTime.UtcNow,
-                    Payload = new PlayerDisconnectedEvent(playerGuid, null, DisconnectReason.LoginError)
+                    Payload = new PlayerDisconnectedEventPayload(this, DisconnectReason.LoginError)
                 });
             }
         }
@@ -1013,7 +1013,7 @@ namespace LibreLancer.Server
                 {
                     Type = ServerEventType.CharacterDisconnected,
                     TimeUtc = DateTime.UtcNow,
-                    Payload = new CharacterDisconnectedEvent(Character.ID,Character.Name)
+                    Payload = new CharacterDisconnectedEventPayload(this)
                 });
 
                 Character = null;
@@ -1024,7 +1024,7 @@ namespace LibreLancer.Server
                 {
                     Type = ServerEventType.PlayerDisconnected,
                     TimeUtc = DateTime.UtcNow,
-                    Payload = new PlayerDisconnectedEvent(playerGuid, CharacterList.Select(c=> c.Name).ToArray(), DisconnectReason.Unknown)
+                    Payload = new PlayerDisconnectedEventPayload(this, DisconnectReason.Unknown)
                 });
             }
 

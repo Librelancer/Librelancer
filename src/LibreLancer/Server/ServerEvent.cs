@@ -16,12 +16,12 @@ public enum ServerEventType
     PlayerBanChanged,
 }
 
-public record CharacterConnectedEvent( long CharacterId, string CharacterName, string System, string Base);
-public record CharacterDisconnectedEvent(long CharacterId, string CharacterName);
-public record PlayerConnectedEvent( Guid PlayerId, string[] Characters);
-public record PlayerDisconnectedEvent(Guid PlayerId, string[] Characters, DisconnectReason reason);
-public record PlayerBanChangedEvent(Guid PlayerId, string[] Characters, bool IsBanned, DateTime? BanToDate);
-public record PlayerAdminChangedEvent(long Id, string Character, bool IsAdmin);
+public record CharacterConnectedEventPayload(Player ConnectedCharacter);
+public record CharacterDisconnectedEventPayload(Player DisconnectedCharacter);
+public record PlayerConnectedEventPayload( Player ConnectedPlayer);
+public record PlayerDisconnectedEventPayload(Player DisconnectedPlayer, DisconnectReason Reason);
+public record PlayerBanChangedEventPayload( Guid PlayerId, bool IsBanned, DateTime? BanToDate);
+public record PlayerAdminChangedEventPayload(long Id, bool IsAdmin);
 
 public struct ServerEvent
 {

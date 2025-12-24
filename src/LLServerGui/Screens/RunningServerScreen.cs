@@ -29,9 +29,16 @@ public class RunningServerScreen : Screen
 
     bool showStopConfirm;
     bool isStarting = true;
+
     IEnumerable<Player> connectedPlayers;
+    
     BannedPlayerDescription[] bannedPlayers;
     AdminCharacterDescription[] admins;
+
+    List<Player> lobbyPlayers = new List<Player>();
+    List<Player> universePlayers = new List<Player>();
+
+    
 
     public override void OnEnter()
     {
@@ -45,7 +52,7 @@ public class RunningServerScreen : Screen
             );
         }
         win.StartupError = false;
-
+        RefreshDataAll();
     }
     public override void OnExit()
     {
@@ -53,8 +60,6 @@ public class RunningServerScreen : Screen
     }
     public override void Draw(double elapsed)
     {
-        RefreshData();
-
         ImGui.PushFont(ImGuiHelper.Roboto, 32);
 
         if (win.Server == null || (!win.IsRunning && !isStarting))
@@ -534,7 +539,9 @@ public class RunningServerScreen : Screen
             }
         });
     }
-    private void RefreshData()
+
+    // Data Methods
+    private void RefreshDataAll() // performs sql queries to the DB - shoul be used wisely 
     {
         if (win.IsRunning)
         {
@@ -542,5 +549,84 @@ public class RunningServerScreen : Screen
             bannedPlayers = win.Server.Server.Database?.GetBannedPlayers();
             admins = win.Server.Server.Database?.GetAdmins();
         }
+    }
+
+    private void HandleServerEvent()
+    {
+        while (win.Server.Server.ServerEvents.Count > 0)
+        {
+            if(win.Server.Server.ServerEvents.TryDequeue(out var serverEvent))
+            {
+                switch (serverEvent.Type)
+                {
+                    case ServerEventType.PlayerConnected:
+                        HandlePlayerConnected(serverEvent.GetPayload<PlayerConnectedEventPayload>());
+                        break;
+                    case ServerEventType.PlayerDisconnected:
+                        HandlePlayerDisconnected(serverEvent.GetPayload<PlayerDisconnectedEventPayload>());
+                        break;
+                    case ServerEventType.CharacterConnected:
+                        HandleCharacterConnected(serverEvent.GetPayload<CharacterConnectedEventPayload>());
+                        break;
+                    case ServerEventType.CharacterDisconnected:
+                        HandleCharacterDisonnected(serverEvent.GetPayload<CharacterDisconnectedEventPayload>());
+                        break;
+                    case ServerEventType.PlayerAdminChanged:
+                        break;
+                    case ServerEventType.PlayerBanChanged:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    private void HandleCharacterDisonnected(CharacterDisconnectedEventPayload characterDisconnectedEventPayload)
+    {
+        if (characterDisconnectedEventPayload == null) return;
+
+        var player = characterDisconnectedEventPayload.DisconnectedCharacter;
+        if (player == null) return;
+
+        universePlayers.RemoveAll(p => p.ID == player.ID);
+
+        if (lobbyPlayers.Any(p => p.ID == player.ID)) return;
+
+        lobbyPlayers.Add(player);
+    }
+    private void HandleCharacterConnected(CharacterConnectedEventPayload characterConnectedEventPayload)
+    {
+        if (characterConnectedEventPayload == null) return;
+
+        var player = characterConnectedEventPayload.ConnectedCharacter;
+        if (player == null) return;
+
+        lobbyPlayers.RemoveAll(p => p.ID == player.ID);
+
+        if (universePlayers.Any(p => p.ID == player.ID)) return;
+
+        universePlayers.Add(player);
+    }
+    private void HandlePlayerDisconnected(PlayerDisconnectedEventPayload playerDisconnectedEventPayload)
+    {
+        if (playerDisconnectedEventPayload == null) return;
+
+        var player = playerDisconnectedEventPayload.DisconnectedPlayer;
+        if (player == null) return;
+
+        lobbyPlayers.RemoveAll(x => x.ID == player.ID);
+        universePlayers.RemoveAll(x => x.ID == player.ID);
+    }
+    private void HandlePlayerConnected(PlayerConnectedEventPayload playerConnectedEventPayload)
+    {
+        if (playerConnectedEventPayload == null) return;
+
+        var player = playerConnectedEventPayload.ConnectedPlayer;
+        if (player == null) return;
+
+        if(lobbyPlayers.Any(p => p.ID == player.ID)) return;
+
+        lobbyPlayers.Add(player);
     }
 }
