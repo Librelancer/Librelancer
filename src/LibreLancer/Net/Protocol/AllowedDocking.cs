@@ -27,7 +27,7 @@ public class AllowedDocking
         }
         if (TlExceptions is { Count: > 0 })
         {
-            message.PutVariableUInt32((uint)DockExceptions.Count);
+            message.PutVariableUInt32((uint)TlExceptions.Count);
             foreach (var e in TlExceptions)
                 message.Put(e);
         }

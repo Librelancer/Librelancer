@@ -11,7 +11,10 @@ using LibreLancer.Fx;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Backends.OpenGL;
 using LibreLancer.Render.Materials;
+using LibreLancer.Render.PostProcessing;
+using LibreLancer.Render.PostProcessing.Effects;
 using LibreLancer.Resources;
+using LibreLancer.Shaders;
 using LibreLancer.Thn;
 using LibreLancer.World;
 
@@ -56,6 +59,35 @@ namespace LibreLancer.Render
         public BeamsBuffer Beams;
         public QuadBuffer QuadBuffer;
         public DfmDrawMode DfmMode = DfmDrawMode.Normal;
+        public DeferredRenderer DeferredRenderer;
+        public PostProcessingManager PostProcessing;
+
+        /// <summary>
+        /// Toggle G-Buffer debug visualization. Cycles through debug modes when called.
+        /// </summary>
+        public void CycleGBufferDebugMode()
+        {
+            if (DeferredRenderer?.DebugView != null)
+            {
+                DeferredRenderer.DebugView.CycleMode();
+                var mode = DeferredRenderer.DebugView.GetModeDisplayName();
+                FLLog.Info("Deferred", $"G-Buffer Debug Mode: {mode}");
+            }
+        }
+
+        /// <summary>
+        /// Toggle deferred rendering on/off. Useful for comparing with forward rendering.
+        /// </summary>
+        public void ToggleDeferredRendering()
+        {
+            if (DeferredRenderer != null && DeferredRenderer.IsSupported)
+            {
+                DeferredRenderer.IsEnabled = !DeferredRenderer.IsEnabled;
+                var state = DeferredRenderer.IsEnabled ? "ON" : "OFF (forward)";
+                FLLog.Info("Deferred", $"Deferred Rendering: {state}");
+            }
+        }
+
         public RenderContext RenderContext => rstate;
 		RenderContext rstate;
 		Game game;
@@ -110,6 +142,20 @@ namespace LibreLancer.Render
             dot = (Texture2D)resources.FindTexture(ResourceManager.WhiteTextureName);
             DebugRenderer = new LineRenderer(rstate);
             Beams = new BeamsBuffer(resources, rstate);
+            DeferredRenderer = new DeferredRenderer(rstate);
+            PostProcessing = new PostProcessingManager(rstate);
+
+            // Register post-processing effects
+            var vignetteGrain = new VignetteFilmGrainEffect { Settings = PostProcessing.Settings };
+            PostProcessing.RegisterEffect(vignetteGrain);
+
+            var heatHaze = new HeatHazeEffect { Settings = PostProcessing.Settings };
+            PostProcessing.RegisterEffect(heatHaze);
+
+            var ssao = new SSAOEffect { Settings = PostProcessing.Settings, Manager = PostProcessing };
+            PostProcessing.RegisterEffect(ssao);
+
+            PostProcessing.Initialize();
 		}
 
         public void LoadZones(IList<AsteroidField> asteroids, IList<Nebula> nebulae)
@@ -268,6 +314,18 @@ namespace LibreLancer.Render
                 rstate.PushScissor(new Rectangle(0, 0, renderWidth, renderHeight), false);
                 rstate.RenderTarget = msaa;
 			}
+
+            // Resize deferred rendering resources if needed
+            DeferredRenderer?.Resize(renderWidth, renderHeight);
+            PostProcessing?.Resize(renderWidth, renderHeight);
+
+            var postFxResolveTarget = PostProcessing?.GetResolveTarget();
+            bool applyPostFx = postFxResolveTarget != null;
+            if (Settings.SelectedMSAA <= 0 && applyPostFx)
+            {
+                rstate.RenderTarget = postFxResolveTarget;
+            }
+
             rstate.PreferredFilterLevel = Settings.SelectedFiltering;
             rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
 			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
@@ -321,8 +379,21 @@ namespace LibreLancer.Render
             foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
             rstate.DepthFunction = DepthFunction.LessEqual;
             rstate.ColorWrite = true;
-			//Actual Drawing
 
+            // ===== OPAQUE PASS =====
+            rstate.DepthEnabled = true;
+
+            // Deferred rendering is used when supported and enabled
+            bool useDeferred = DeferredRenderer?.ShouldUseDeferred() == true;
+            bool debugModeActive = useDeferred && DeferredRenderer?.DebugView?.Mode != GBufferDebugMode.None;
+
+            if (useDeferred)
+            {
+                // Begin geometry pass BEFORE drawing - sets DeferredMode and binds G-Buffer
+                DeferredRenderer.BeginGeometryPass();
+            }
+
+			//Actual Drawing
             Beams.Begin(Commands, resman, camera);
 			foreach (var obj in objects) obj.Draw(camera, Commands, SystemLighting, nr);
             Beams.End();
@@ -338,47 +409,34 @@ namespace LibreLancer.Render
             }
             billboards.End();
 			FxPool.EndFrame();
-			//Opaque Pass
-			rstate.DepthEnabled = true;
-			Commands.DrawOpaque(rstate);
-            if ((!transitioned || !DrawNebulae) && DrawStarsphere)
-            {
-                //Starsphere
-                rstate.DepthRange = new Vector2(1, 1);
-                if (camera is ThnCamera thn && !ZOverride) {
-                    thn.DefaultZ();
-                    rstate.SetCamera(thn);
-                }
-                for (int i = 0; i < StarSphereModels.Length; i++)
-                {
-                    Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
-                    if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
-                    var lighting = Lighting.Empty;
-                    if (StarSphereLightings != null) lighting = StarSphereLightings[i];
-                    //We frustum cull to save on fill rate for low end devices (pi)
-                    var mdl = StarSphereModels[i];
-                    for (int j = 0; j < mdl.AllParts.Length; j++)
-                    {
-                        if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null) continue;
-                        var p = mdl.AllParts[j];
-                        var w = p.LocalTransform.Matrix() * ssworld;
-                        var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
-                        if (camera.FrustumCheck(bsphere))
-                            p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims, BasicMaterial.ForceAlpha);
-                    }
-                }
-                if (camera is ThnCamera thn2 && !ZOverride) {
-                    thn2.CameraZ();
-                    rstate.SetCamera(thn2);
-                }
-                if (nr != null && DrawNebulae)
-                {
-                    //rstate.DepthEnabled = false;
-                    nr.RenderFogTransition();
-                    //rstate.DepthEnabled = true;
-                }
 
-                rstate.DepthRange = new Vector2(0, 1);
+            // Finalize opaque pass
+            Commands.DrawOpaque(rstate);
+
+            if (useDeferred)
+            {
+                // End geometry pass
+                DeferredRenderer.EndGeometryPass();
+
+                // Perform deferred lighting pass
+                var currentTarget = rstate.RenderTarget as RenderTarget;
+                var deferredLighting = CreateDeferredLighting();
+                DeferredRenderer.PerformLightingPass(currentTarget, camera, ref deferredLighting);
+                DeferredRenderer.EndLightingPass();
+
+                // Copy G-Buffer depth to MSAA target for transparent object occlusion
+                DeferredRenderer.BlitDepthToTarget(currentTarget);
+
+                // Render starsphere AFTER depth copy so it is correctly occluded by scene geometry
+                RenderStarspherePass(transitioned, nr);
+
+                // Render debug visualization if enabled
+                DeferredRenderer.RenderDebugView(currentTarget);
+            }
+            else
+            {
+                // Non-deferred path: render starsphere after opaque pass
+                RenderStarspherePass(transitioned, nr);
             }
             OpaqueHook?.Invoke();
             //Transparent Pass
@@ -401,19 +459,196 @@ namespace LibreLancer.Render
             }
             debugPoints = Array.Empty<Vector3>();
 			DebugRenderer.Render();
+
+            float postFxDeltaTime = (float)game.FrameTime;
+            if (postFxDeltaTime <= 0f || float.IsNaN(postFxDeltaTime) || float.IsInfinity(postFxDeltaTime))
+                postFxDeltaTime = 1.0f / 60.0f;
+            else if (postFxDeltaTime > 0.1f)
+                postFxDeltaTime = 0.1f;
+
+            bool hasGBuffer = useDeferred && DeferredRenderer.GBuffer != null;
+            if (PostProcessing != null)
+            {
+                PostProcessing.HasGBuffer = hasGBuffer;
+                PostProcessing.GBuffer = hasGBuffer ? DeferredRenderer.GBuffer : null;
+            }
+
 			if (Settings.SelectedMSAA > 0)
 			{
                 rstate.PopViewport();
                 rstate.PopScissor();
-                if (restoreTarget == null) {
-                    msaa.BlitToScreen(new Point(rstate.CurrentViewport.X, rstate.CurrentViewport.Y));
+
+                if (applyPostFx)
+                {
+                    // Resolve MSAA to intermediate buffer for post-processing input
+                    msaa.BlitToRenderTarget(postFxResolveTarget);
+
+                    // Prepare post-processing inputs
+                    Texture2D sceneColor = postFxResolveTarget.Texture;
+                    // Note: GBuffer textures are accessed via BindForReading(), not individual properties.
+                    // For effects requiring depth/normals, set HasGBuffer=true and use GBuffer.BindForReading().
+                    Texture2D sceneDepth = null;  // TODO: Add depth texture accessor to GBuffer if needed
+                    Texture2D normals = null;     // TODO: Add normal texture accessor to GBuffer if needed
+
+                    // Determine final output target
+                    RenderTarget finalTarget = restoreTarget as RenderTarget;
+
+                    // Run post-processing chain
+                    bool effectsApplied = PostProcessing.Render(
+                        sceneColor,
+                        sceneDepth,
+                        normals,
+                        finalTarget,
+                        postFxDeltaTime
+                    );
+
+                    // If no effects were applied, do standard blit
+                    if (!effectsApplied)
+                    {
+                        if (restoreTarget == null)
+                            postFxResolveTarget.BlitToScreen();
+                        else
+                            postFxResolveTarget.BlitToBuffer(restoreTarget as RenderTarget2D, Point.Zero);
+                    }
                 }
                 else
-                    msaa.BlitToRenderTarget(restoreTarget as RenderTarget2D);
+                {
+                    // No post-processing, use existing blit path
+                    if (restoreTarget == null) {
+                        msaa.BlitToScreen(new Point(rstate.CurrentViewport.X, rstate.CurrentViewport.Y));
+                    }
+                    else
+                        msaa.BlitToRenderTarget(restoreTarget as RenderTarget2D);
+                }
                 rstate.RenderTarget = restoreTarget;
 			}
+            else if (applyPostFx)
+            {
+                Texture2D sceneColor = postFxResolveTarget.Texture;
+                // Note: GBuffer textures are accessed via BindForReading(), not individual properties.
+                // For effects requiring depth/normals, set HasGBuffer=true and use GBuffer.BindForReading().
+                Texture2D sceneDepth = null;  // TODO: Add depth texture accessor to GBuffer if needed
+                Texture2D normals = null;     // TODO: Add normal texture accessor to GBuffer if needed
+
+                RenderTarget finalTarget = restoreTarget as RenderTarget;
+
+                bool effectsApplied = PostProcessing.Render(
+                    sceneColor,
+                    sceneDepth,
+                    normals,
+                    finalTarget,
+                    postFxDeltaTime
+                );
+
+                if (!effectsApplied)
+                {
+                    if (restoreTarget == null)
+                        postFxResolveTarget.BlitToScreen();
+                    else
+                        postFxResolveTarget.BlitToBuffer(restoreTarget as RenderTarget2D, Point.Zero);
+                }
+
+                rstate.RenderTarget = restoreTarget;
+            }
             rstate.DepthEnabled = true;
             objects.Clear();
+        }
+
+        /// <summary>
+        /// Creates a Lighting struct from SystemLighting for deferred rendering.
+        /// Unlike per-object lighting, this includes all active lights for global illumination.
+        /// </summary>
+        private Lighting CreateDeferredLighting()
+        {
+            var lights = Lighting.Create();
+            lights.Ambient = new Color3f(SystemLighting.Ambient.R, SystemLighting.Ambient.G, SystemLighting.Ambient.B);
+            lights.FogMode = SystemLighting.FogMode;
+            lights.FogColor = new Color3f(SystemLighting.FogColor.R, SystemLighting.FogColor.G, SystemLighting.FogColor.B);
+            if (SystemLighting.FogMode == FogModes.Linear)
+                lights.FogRange = SystemLighting.FogRange;
+            else
+                lights.FogRange = new Vector2(SystemLighting.FogDensity, 0);
+            lights.NumberOfTilesX = SystemLighting.NumberOfTilesX;
+
+            // Include all active lights for deferred pass (no per-object culling)
+            lights.Lights.SourceLighting = SystemLighting;
+            for (int i = 0; i < SystemLighting.Lights.Count && i < Lighting.MAX_LIGHTS; i++)
+            {
+                if (SystemLighting.Lights[i].Active)
+                    lights.Lights.SourceEnabled[i] = true;
+            }
+
+            return lights;
+        }
+
+        /// <summary>
+        /// Determines whether the starsphere should be rendered based on current state.
+        /// </summary>
+        /// <param name="transitioned">Whether nebula fog has fully transitioned.</param>
+        /// <returns>True if starsphere should render.</returns>
+        private bool ShouldRenderStarsphere(bool transitioned)
+        {
+            return (!transitioned || !DrawNebulae) && DrawStarsphere;
+        }
+
+        /// <summary>
+        /// Renders the starsphere at the far depth plane.
+        /// Extracted to ensure consistent depth range state management and avoid flickering.
+        /// In deferred mode, call this after BlitDepthToTarget() so MSAA depth is valid.
+        /// </summary>
+        /// <param name="transitioned">Whether nebula fog has fully transitioned.</param>
+        /// <param name="nr">Current nebula renderer, may be null.</param>
+        private void RenderStarspherePass(bool transitioned, NebulaRenderer nr)
+        {
+            if (!ShouldRenderStarsphere(transitioned))
+                return;
+
+            // Set depth range to far plane for starsphere
+            rstate.DepthRange = new Vector2(1, 1);
+
+            // Handle ThnCamera Z configuration
+            if (camera is ThnCamera thn && !ZOverride)
+            {
+                thn.DefaultZ();
+                rstate.SetCamera(thn);
+            }
+
+            // Render starsphere models with frustum culling
+            for (int i = 0; i < StarSphereModels.Length; i++)
+            {
+                Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
+                if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
+                var lighting = Lighting.Empty;
+                if (StarSphereLightings != null) lighting = StarSphereLightings[i];
+
+                // Frustum cull to save fill rate for low-end devices
+                var mdl = StarSphereModels[i];
+                for (int j = 0; j < mdl.AllParts.Length; j++)
+                {
+                    if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null) continue;
+                    var p = mdl.AllParts[j];
+                    var w = p.LocalTransform.Matrix() * ssworld;
+                    var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
+                    if (camera.FrustumCheck(bsphere))
+                        p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims, BasicMaterial.ForceAlpha);
+                }
+            }
+
+            // Restore ThnCamera Z configuration
+            if (camera is ThnCamera thn2 && !ZOverride)
+            {
+                thn2.CameraZ();
+                rstate.SetCamera(thn2);
+            }
+
+            // Render nebula fog transition if applicable
+            if (nr != null && DrawNebulae)
+            {
+                nr.RenderFogTransition();
+            }
+
+            // CRITICAL: Always restore depth range to avoid state corruption
+            rstate.DepthRange = new Vector2(0, 1);
         }
 
 		public void Dispose()
@@ -427,6 +662,8 @@ namespace LibreLancer.Render
 			DebugRenderer.Dispose();
             QuadBuffer.Dispose();
             Beams.Dispose();
+            DeferredRenderer?.Dispose();
+            PostProcessing?.Dispose();
         }
 	}
 }

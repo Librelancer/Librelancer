@@ -16,6 +16,7 @@ using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
 using LibreLancer.Resources;
+using LibreLancer.Server.Ai.Trade;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -30,7 +31,12 @@ namespace LibreLancer.Server
         public GameServer Server;
         public StarSystem System;
         public NPCManager NPCs;
+        public EncounterManager Encounters;
+        public TradeSpawner Traders;
         private Random debrisRandom = new();
+#if DEBUG
+        private DebugTradeSpawner? _debugSpawner;
+#endif
         object _idLock = new object();
 
         public NetIDGenerator IdGenerator = new NetIDGenerator();
@@ -60,6 +66,13 @@ namespace LibreLancer.Server
             GameWorld.LoadSystem(system, server.Resources, null, true);
             GameWorld.Physics.OnCollision += PhysicsOnCollision;
             NPCs = new NPCManager(this);
+            Encounters = new EncounterManager(this);
+            Traders = new TradeSpawner(this);
+
+#if DEBUG
+            // Debug: Force spawn traders after world loads for testing
+            _debugSpawner = new DebugTradeSpawner(this);
+#endif
         }
 
         private void PhysicsOnCollision(PhysicsObject obja, PhysicsObject objb)
@@ -828,6 +841,8 @@ namespace LibreLancer.Server
             if (paused) return true;
             //Update
             NPCs.FrameStart();
+            Encounters?.Update(delta);
+            Traders?.Update(delta);
             GameWorld.Update(delta);
             //projectiles
             if (GameWorld.Projectiles.HasQueued)
@@ -1028,6 +1043,66 @@ namespace LibreLancer.Server
         public void Finish()
         {
             GameWorld.Dispose();
+#if DEBUG
+            _debugSpawner?.Dispose();
+#endif
         }
     }
+
+#if DEBUG
+    /// <summary>
+    /// Debug helper to force-spawn traders for testing.
+    /// Properly stored to prevent garbage collection.
+    /// </summary>
+    internal sealed class DebugTradeSpawner : IDisposable
+    {
+        private const int DEFAULT_SPAWN_COUNT = 3;
+        private const int DEFAULT_DELAY_MS = 5000;
+
+        private readonly Timer _spawnTimer;
+        private readonly ServerWorld _world;
+        private readonly int _spawnCount;
+        private bool _disposed;
+
+        public DebugTradeSpawner(ServerWorld world, int delayMs = DEFAULT_DELAY_MS, int spawnCount = DEFAULT_SPAWN_COUNT)
+        {
+            _world = world ?? throw new ArgumentNullException(nameof(world));
+            _spawnCount = Math.Max(1, spawnCount);
+            _spawnTimer = new Timer(OnTimerElapsed, null, delayMs, Timeout.Infinite);
+            FLLog.Info("DebugTradeSpawner", $"Initialized - will spawn {_spawnCount} test traders in {delayMs}ms");
+        }
+
+        private void OnTimerElapsed(object? state)
+        {
+            if (_disposed) return;
+
+            // Capture reference to avoid closure issues
+            var world = _world;
+            var count = _spawnCount;
+
+            world.EnqueueAction(() =>
+            {
+                if (world.Traders == null)
+                {
+                    FLLog.Warning("ServerWorld", "[DEBUG] TradeSpawner not available");
+                    return;
+                }
+
+                FLLog.Info("ServerWorld", $"[DEBUG] Force spawning {count} test traders...");
+                for (int i = 0; i < count; i++)
+                {
+                    world.Traders.ForceSpawn();
+                }
+                FLLog.Info("ServerWorld", $"[DEBUG] Active traders: {world.Traders.GetActiveTraderCount()}");
+            });
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _spawnTimer?.Dispose();
+        }
+    }
+#endif
 }

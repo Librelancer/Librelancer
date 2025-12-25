@@ -46,6 +46,18 @@ namespace LibreLancer.World.Components
             Active = true;
         }
 
+        // Debug: Throttle logging to avoid spam
+        private double missingComponentLogTimer = 0;
+        private const double MISSING_COMPONENT_LOG_INTERVAL = 10.0;
+
+        private void LogMissingComponent(string componentName)
+        {
+            // Only log once every 10 seconds per object to avoid spam
+            if (missingComponentLogTimer > 0) return;
+            missingComponentLogTimer = MISSING_COMPONENT_LOG_INTERVAL;
+            FLLog.Warning("ShipPhysics", $"NPC {Parent?.Nickname ?? "unknown"} missing {componentName} - cannot move!");
+        }
+
         //TODO: Engine Kill
 
         public void ResyncChargePercent(float prev, float time)
@@ -76,6 +88,9 @@ namespace LibreLancer.World.Components
 
         public override void Update(double time)
         {
+            // Decrement debug log timer
+            if (missingComponentLogTimer > 0) missingComponentLogTimer -= time;
+
             if (!Active) return;
             if (CruiseEnabled)
             {
@@ -96,10 +111,10 @@ namespace LibreLancer.World.Components
             //Component checks
             var engine = Parent.GetComponent<SEngineComponent>(); //Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
-            if (Parent.PhysicsComponent == null) return;
-            if (Parent.PhysicsComponent.Body == null) return;
-            if (engine == null) return;
-            if (power == null) return;
+            if (Parent.PhysicsComponent == null) { LogMissingComponent("PhysicsComponent"); return; }
+            if (Parent.PhysicsComponent.Body == null) { LogMissingComponent("PhysicsComponent.Body"); return; }
+            if (engine == null) { LogMissingComponent("SEngineComponent"); return; }
+            if (power == null) { LogMissingComponent("PowerCoreComponent"); return; }
             //Drag = -linearDrag * Velocity
             if (EnginePower <= 0) {
                 EnginePower = MathHelper.Clamp(EnginePower, -engine.Engine.Def.ReverseFraction, 1);

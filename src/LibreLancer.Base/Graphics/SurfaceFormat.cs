@@ -23,6 +23,8 @@ namespace LibreLancer.Graphics
         //Alpha8, - Removed in OpenGL 3.1,
 		R8, //Just red channel - NOT an XNA value
 		Depth, //Depth texture - NOT an XNA value
+        Depth24, //24-bit depth texture for deferred rendering
+        Depth32F, //32-bit float depth texture for high precision depth
         Single,
         Vector2,
         Vector4,

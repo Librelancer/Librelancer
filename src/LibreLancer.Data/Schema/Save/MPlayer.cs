@@ -19,9 +19,9 @@ namespace LibreLancer.Data.Schema.Save
     public partial class MPlayer : IWriteSection
     {
         [Entry("can_dock")]
-        public int CanDock;
+        public int CanDock = 1;  // Default to allowed
         [Entry("can_tl")]
-        public int CanTl;
+        public int CanTl = 1;    // Default to allowed
         [Entry("dock_exception", Multiline = true)]
         public List<HashValue> DockExceptions = [];
         public List<TlException> TlExceptions = [];

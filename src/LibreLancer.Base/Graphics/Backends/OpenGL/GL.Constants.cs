@@ -132,8 +132,15 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		public const int GL_ZERO = 0;
 		public const int GL_ONE = 1;
 
+		// Depth function constants
+		public const int GL_NEVER = 0x0200;
+		public const int GL_LESS = 0x0201;
 		public const int GL_EQUAL = 0x0202;
 		public const int GL_LEQUAL = 0x0203;
+		public const int GL_GREATER = 0x0204;
+		public const int GL_NOTEQUAL = 0x0205;
+		public const int GL_GEQUAL = 0x0206;
+		public const int GL_ALWAYS = 0x0207;
 
 		public const int GL_NUM_EXTENSIONS = 0x821D;
 		public const int GL_EXTENSIONS = 0x1F03;
@@ -144,9 +151,20 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		public const int GL_RENDERBUFFER = 0x8D41;
         public const int GL_DEPTH_COMPONENT16 = 0x81A5;
 		public const int GL_DEPTH_COMPONENT24 = 0x81A6;
+		public const int GL_DEPTH_COMPONENT32F = 0x8CAC;
 		public const int GL_DEPTH_COMPONENT = 0x1902;
 		public const int GL_DEPTH_ATTACHMENT = 0x8D00;
 		public const int GL_COLOR_ATTACHMENT0 = 0x8CE0;
+		public const int GL_COLOR_ATTACHMENT1 = 0x8CE1;
+		public const int GL_COLOR_ATTACHMENT2 = 0x8CE2;
+		public const int GL_COLOR_ATTACHMENT3 = 0x8CE3;
+		public const int GL_COLOR_ATTACHMENT4 = 0x8CE4;
+		public const int GL_COLOR_ATTACHMENT5 = 0x8CE5;
+		public const int GL_COLOR_ATTACHMENT6 = 0x8CE6;
+		public const int GL_COLOR_ATTACHMENT7 = 0x8CE7;
+		public const int GL_MAX_COLOR_ATTACHMENTS = 0x8CDF;
+		public const int GL_MAX_DRAW_BUFFERS = 0x8824;
+		public const int GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
 
 		public const int GL_MULTISAMPLE = 0x809D;
 
@@ -169,7 +187,33 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public const int GL_WRITE_ONLY = 0x88B9;
 		public const int GL_READ_WRITE = 0x88BA;
 
+		// Memory Barrier Bits (OpenGL 4.3+ / ARB_shader_storage_buffer_object)
+		public const int GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT = 0x00000001;
+		public const int GL_ELEMENT_ARRAY_BARRIER_BIT = 0x00000002;
+		public const int GL_UNIFORM_BARRIER_BIT = 0x00000004;
+		public const int GL_TEXTURE_FETCH_BARRIER_BIT = 0x00000008;
+		public const int GL_SHADER_IMAGE_ACCESS_BARRIER_BIT = 0x00000020;
+		public const int GL_COMMAND_BARRIER_BIT = 0x00000040;
+		public const int GL_PIXEL_BUFFER_BARRIER_BIT = 0x00000080;
+		public const int GL_TEXTURE_UPDATE_BARRIER_BIT = 0x00000100;
+		public const int GL_BUFFER_UPDATE_BARRIER_BIT = 0x00000200;
+		public const int GL_FRAMEBUFFER_BARRIER_BIT = 0x00000400;
+		public const int GL_TRANSFORM_FEEDBACK_BARRIER_BIT = 0x00000800;
+		public const int GL_ATOMIC_COUNTER_BARRIER_BIT = 0x00001000;
 		public const int GL_SHADER_STORAGE_BARRIER_BIT = 0x00002000;
+		public const int GL_ALL_BARRIER_BITS = unchecked((int)0xFFFFFFFF);
+
+		// Buffer Access Modes
+		public const int GL_READ_ONLY = 0x88B8;
+
+		// Shader Storage Buffer Alignment
+		public const int GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT = 0x90DF;
+
+		// Compute Shader Work Group Limits
+		public const int GL_MAX_COMPUTE_WORK_GROUP_COUNT = 0x91BE;
+		public const int GL_MAX_COMPUTE_WORK_GROUP_SIZE = 0x91BF;
+		public const int GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS = 0x90EB;
+		public const int GL_MAX_COMPUTE_SHARED_MEMORY_SIZE = 0x8262;
 
         public const int GL_MAP_READ_BIT = 0x0001;
         public const int GL_MAP_WRITE_BIT = 0x0002;

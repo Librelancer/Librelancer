@@ -1,0 +1,2 @@
+vertex Fullscreen.vert.hlsl
+fragment DepthCopy.frag.hlsl

@@ -11,7 +11,8 @@ namespace LibreLancer.Data.Schema.Solar
         moor_medium,
         moor_large,
         ring,
-        airlock
+        airlock,
+        jump // Discovery Freelancer mod support - jump gate docking spheres
     }
 	public class DockSphere
 	{

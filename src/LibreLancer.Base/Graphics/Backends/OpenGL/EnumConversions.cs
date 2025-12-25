@@ -56,6 +56,16 @@ static class EnumConversions
                 glFormat = GL.GL_DEPTH_COMPONENT;
                 glType = GL.GL_FLOAT;
                 break;
+            case SurfaceFormat.Depth24:
+                glInternalFormat = GL.GL_DEPTH_COMPONENT24;
+                glFormat = GL.GL_DEPTH_COMPONENT;
+                glType = GL.GL_UNSIGNED_BYTE;
+                break;
+            case SurfaceFormat.Depth32F:
+                glInternalFormat = GL.GL_DEPTH_COMPONENT32F;
+                glFormat = GL.GL_DEPTH_COMPONENT;
+                glType = GL.GL_FLOAT;
+                break;
             case SurfaceFormat.Bgra4444:
                 glInternalFormat = GL.GL_RGBA4;
                 glFormat = GL.GL_RGBA;
@@ -184,7 +194,10 @@ static class EnumConversions
             case SurfaceFormat.Rgba1010102:
             case SurfaceFormat.Bgra8:
             case SurfaceFormat.Depth:
+            case SurfaceFormat.Depth32F:
                 return 4;
+            case SurfaceFormat.Depth24:
+                return 3;
             case SurfaceFormat.HalfSingle:
             case SurfaceFormat.NormalizedByte2:
             case SurfaceFormat.Bgr565:

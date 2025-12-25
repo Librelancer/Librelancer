@@ -478,6 +478,15 @@ World Time: {12:F2}
 
             private Container lastContainer;
 
+            // Helper for pending faction infocard display
+            private readonly PendingInfocardHelper _pendingInfocard = new PendingInfocardHelper();
+
+            public void SetPendingInfocard(int idsInfo, int idsName)
+            {
+                FLLog.Info("UI", $"SetPendingInfocard called: idsInfo={idsInfo}, idsName={idsName}");
+                _pendingInfocard.Set(idsInfo, idsName);
+            }
+
             public void SetIndicatorLayer(Container container)
             {
                 if (lastContainer != null)
@@ -649,6 +658,15 @@ World Time: {12:F2}
 
             public Infocard CurrentInfocard()
             {
+                // Check for pending faction infocard first
+                int pendingId = _pendingInfocard.GetAndClearInfocardId();
+                FLLog.Info("UI", $"CurrentInfocard called: pendingId={pendingId}");
+                if (pendingId > 0)
+                {
+                    var card = g.Game.GameData.GetInfocard(pendingId, g.Game.Fonts);
+                    FLLog.Info("UI", $"CurrentInfocard returning pending faction card: {(card != null ? "found" : "null")}");
+                    return card;
+                }
                 if (g.Selection.Selected?.SystemObject != null)
                 {
                     int ids = g.Selection.Selected.SystemObject.IdsInfo;
@@ -657,7 +675,19 @@ World Time: {12:F2}
                 return null;
             }
 
-            public string CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
+            public string CurrentInfoString()
+            {
+                // Check for pending faction name first
+                int pendingName = _pendingInfocard.GetAndClearNameId();
+                FLLog.Info("UI", $"CurrentInfoString called: pendingName={pendingName}");
+                if (pendingName > 0)
+                {
+                    var name = g.Game.GameData.GetString(pendingName);
+                    FLLog.Info("UI", $"CurrentInfoString returning pending faction name: {name}");
+                    return name;
+                }
+                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
+            }
 
             public string SelectionName()
             {
@@ -713,8 +743,20 @@ World Time: {12:F2}
 
             public void PopulateNavmap(Navmap nav)
             {
-                nav.PopulateIcons(g.ui, g.sys);
-                nav.SetVisitFunction(g.session.IsVisited);
+                if (nav.ShowUniverseMap)
+                {
+                    nav.PopulateUniverseMap(
+                        g.ui,
+                        g.Game.GameData.Items.Systems,
+                        g.session.PlayerSystem,
+                        g.session.IsVisited
+                    );
+                }
+                else
+                {
+                    nav.PopulateIcons(g.ui, g.sys);
+                    nav.SetVisitFunction(g.session.IsVisited);
+                }
             }
 
             public ChatSource GetChats() => g.session.Chats;
@@ -827,6 +869,20 @@ World Time: {12:F2}
                         paused = true;
                     session.Pause();
                     ui.Event("Pause");
+                }
+                // Ctrl+G: Cycle G-Buffer debug visualization modes
+                // Ctrl+Shift+G: Toggle deferred rendering on/off
+                if (e.Key == Keys.G && (e.Modifiers & KeyModifiers.Control) != 0)
+                {
+                    if ((e.Modifiers & KeyModifiers.Shift) != 0)
+                        sysrender?.ToggleDeferredRendering();
+                    else
+                        sysrender?.CycleGBufferDebugMode();
+                }
+                // Ctrl+K: Toggle post-processing effects
+                if (e.Key == Keys.K && (e.Modifiers & KeyModifiers.Control) != 0)
+                {
+                    sysrender?.PostProcessing?.TryToggle(Game.TotalTime);
                 }
                 #if DEBUG
                 if (e.Key == Keys.R && (e.Modifiers & KeyModifiers.Control) != 0)

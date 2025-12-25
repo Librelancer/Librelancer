@@ -6,10 +6,8 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Xml;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
-using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
@@ -32,6 +30,7 @@ namespace LibreLancer.Interface
             public float SolarRadius;
             public bool IconZoomedOut;
             public uint Hash;
+            public bool IsDockable;
         }
         List<DrawObject> objects = new List<DrawObject>();
 
@@ -51,6 +50,29 @@ namespace LibreLancer.Interface
         }
 
         List<Tradelanes> tradelanes = new List<Tradelanes>();
+
+        // Universe Map data classes
+        class UniverseSystem
+        {
+            public StarSystem System;
+            public Vector2 Position;      // UniversePosition
+            public string Name;
+            public bool IsCurrentSystem;
+            public bool IsVisited;
+        }
+
+        class UniverseConnection
+        {
+            public Vector2 StartXZ;
+            public Vector2 EndXZ;
+            public bool IsLegal;  // true = jump_gate, false = jump_hole
+        }
+
+        // Universe Map fields
+        private List<UniverseSystem> universeSystems = new();
+        private List<UniverseConnection> universeConnections = new();
+        private Vector2 universeBoundsMin;
+        private Vector2 universeBoundsMax;
         private float navmapscale;
         private const float GridSizeDefault = 240000;
         private string systemName = "";
@@ -58,6 +80,18 @@ namespace LibreLancer.Interface
         public bool LetterMargin { get; set; } = false;
 
         public bool MapBorder { get; set; } = false;
+
+        // Functional filters
+        public bool ShowLabels { get; set; } = true;
+        public bool ShowPhysical { get; set; } = true;
+        public bool ShowOnlyKnownBases { get; set; } = false;
+
+        // Visual-only toggles (no C# implementation yet)
+        public bool ShowPolitical { get; set; } = false;
+        public bool ShowPatrolRoutes { get; set; } = false;
+        public bool ShowMinableZones { get; set; } = false;
+        public bool ShowLegend { get; set; } = false;
+        public bool ShowUniverseMap { get; set; } = false;
 
         private VertexBuffer vbo;
 
@@ -132,7 +166,12 @@ namespace LibreLancer.Interface
                     XZ = new Vector2(obj.Position.X, obj.Position.Z),
                     SolarRadius = obj.Archetype.SolarRadius,
                     IconZoomedOut = iconZoomOut,
-                    Hash = FLHash.CreateID(obj.Nickname)
+                    Hash = FLHash.CreateID(obj.Nickname),
+                    IsDockable = obj.Archetype.Type == ArchetypeType.station ||
+                                 obj.Archetype.Type == ArchetypeType.docking_ring ||
+                                 obj.Archetype.Type == ArchetypeType.jump_gate ||
+                                 obj.Archetype.Type == ArchetypeType.jump_hole ||
+                                 obj.Archetype.Type == ArchetypeType.jumphole
                 });
             }
 
@@ -180,6 +219,82 @@ namespace LibreLancer.Interface
             systemName = ctx.Data.Infocards.GetStringResource(sys.IdsName);
         }
 
+        public void PopulateUniverseMap(UiContext ctx, GameItemCollection<StarSystem> allSystems,
+                                        string currentSystem, Func<uint, bool> visitedCheck)
+        {
+            universeSystems.Clear();
+            universeConnections.Clear();
+
+            // Null safety check
+            if (allSystems == null) return;
+
+            var systemLookup = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
+
+            // First pass: collect all systems with null checks
+            foreach (var sys in allSystems)
+            {
+                if (sys?.Nickname == null) continue;
+
+                systemLookup[sys.Nickname] = sys;
+                universeSystems.Add(new UniverseSystem
+                {
+                    System = sys,
+                    Position = sys.UniversePosition,
+                    Name = ctx.Data.Infocards.GetStringResource(sys.IdsName),
+                    IsCurrentSystem = sys.Nickname.Equals(currentSystem, StringComparison.OrdinalIgnoreCase),
+                    IsVisited = visitedCheck(sys.CRC)
+                });
+            }
+
+            // Calculate dynamic bounds from actual system positions
+            if (universeSystems.Count > 0)
+            {
+                universeBoundsMin = new Vector2(
+                    universeSystems.Min(s => s.Position.X),
+                    universeSystems.Min(s => s.Position.Y));
+                universeBoundsMax = new Vector2(
+                    universeSystems.Max(s => s.Position.X),
+                    universeSystems.Max(s => s.Position.Y));
+
+                // Add padding (10% on each side)
+                var size = universeBoundsMax - universeBoundsMin;
+                var padding = size * 0.1f;
+                universeBoundsMin -= padding;
+                universeBoundsMax += padding;
+            }
+
+            // Second pass: extract connections (deduplicated) with null checks
+            var processedConnections = new HashSet<(string, string)>();
+            foreach (var sys in allSystems)
+            {
+                if (sys?.Objects == null) continue;
+
+                foreach (var obj in sys.Objects)
+                {
+                    if (obj?.Dock == null) continue;
+                    if (obj.Dock.Kind != DockKinds.Jump) continue;
+                    if (string.IsNullOrEmpty(obj.Dock.Target)) continue;
+                    if (!systemLookup.TryGetValue(obj.Dock.Target, out var targetSys)) continue;
+
+                    var key = string.Compare(sys.Nickname, obj.Dock.Target,
+                        StringComparison.OrdinalIgnoreCase) < 0
+                        ? (sys.Nickname.ToLower(), obj.Dock.Target.ToLower())
+                        : (obj.Dock.Target.ToLower(), sys.Nickname.ToLower());
+
+                    if (!processedConnections.Contains(key))
+                    {
+                        processedConnections.Add(key);
+                        universeConnections.Add(new UniverseConnection
+                        {
+                            StartXZ = sys.UniversePosition,
+                            EndXZ = targetSys.UniversePosition,
+                            IsLegal = obj.Archetype?.Type == ArchetypeType.jump_gate
+                        });
+                    }
+                }
+            }
+        }
+
         private static readonly string[] GRIDNUMBERS = {
             "1", "2", "3", "4", "5", "6", "7", "8"
         };
@@ -205,6 +320,13 @@ namespace LibreLancer.Interface
 
         public override unsafe void Render(UiContext context, RectangleF parentRectangle)
         {
+            // Branch for universe map view
+            if (ShowUniverseMap)
+            {
+                RenderUniverseMap(context, parentRectangle);
+                return;
+            }
+
             var parentRect = GetMyRectangle(context, parentRectangle);
             var gridIdentSize = 13 * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
@@ -283,6 +405,7 @@ namespace LibreLancer.Interface
             zoneShader.SetUniformBlock(3, ref np);
             foreach (var zone in zones)
             {
+                if (!ShowPhysical) continue;
                 Texture2D texture = null;
                 if (!string.IsNullOrEmpty(zone.Texture))
                     texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
@@ -334,6 +457,8 @@ namespace LibreLancer.Interface
             {
                 if (!isVisited(obj.Hash))
                     continue;
+                if (ShowOnlyKnownBases && !obj.IsDockable)
+                    continue;
                 var posAbs = WorldToMap(obj.XZ);
                 if (obj.Renderable != null && obj.IconZoomedOut)
                 {
@@ -343,7 +468,7 @@ namespace LibreLancer.Interface
                     obj.Renderable.Draw(context, objRect);
                 }
 
-                if (!string.IsNullOrWhiteSpace(obj.Name))
+                if (!string.IsNullOrWhiteSpace(obj.Name) && ShowLabels)
                 {
                     var measured = context.RenderContext.Renderer2D.MeasureString(font, fontSize, obj.Name);
                     DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White,
@@ -366,6 +491,92 @@ namespace LibreLancer.Interface
                 context.RenderContext.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }
 
+        }
+
+        private void RenderUniverseMap(UiContext context, RectangleF parentRectangle)
+        {
+            var parentRect = GetMyRectangle(context, parentRectangle);
+            var allClip = context.PointsToPixels(parentRect);
+            if (!context.RenderContext.PushScissor(allClip))
+                return;
+
+            // Use dynamic bounds calculated from actual system positions
+            var universeSize = universeBoundsMax - universeBoundsMin;
+            if (universeSize.X <= 0 || universeSize.Y <= 0)
+            {
+                context.RenderContext.PopScissor();
+                return;
+            }
+
+            var rect = parentRect;
+            rect.Width *= Zoom;
+            rect.Height *= Zoom;
+
+            // Background
+            var background = context.Data.NavmapIcons.GetBackground();
+            background.DrawWithClip(context, new RectangleF(rect.X - OffsetX, rect.Y - OffsetY,
+                                    rect.Width, rect.Height), parentRect);
+
+            // Coordinate transform using dynamic bounds
+            Vector2 UniverseToScreen(Vector2 universePos)
+            {
+                // Normalize position to 0-1 range based on actual universe bounds
+                var relPos = (universePos - universeBoundsMin) / universeSize;
+                return new Vector2(rect.X, rect.Y) + relPos * new Vector2(rect.Width, rect.Height)
+                       - new Vector2(OffsetX, OffsetY);
+            }
+
+            // Draw connections (behind systems)
+            foreach (var conn in universeConnections)
+            {
+                var posA = context.PointsToPixels(UniverseToScreen(conn.StartXZ));
+                var posB = context.PointsToPixels(UniverseToScreen(conn.EndXZ));
+
+                var color = conn.IsLegal ? Color4.CornflowerBlue : Color4.Yellow;
+                context.RenderContext.Renderer2D.DrawLine(color, posA, posB);
+            }
+
+            // Draw systems
+            var font = context.Data.GetFont("$NavMap800");
+            var fontSize = 11f * (parentRect.Height / 480);
+            var dotSize = 8f * Zoom;
+            int idx = 0;
+
+            // Ensure objectStrings array is large enough
+            if (objectStrings == null || objectStrings.Length < universeSystems.Count)
+                objectStrings = new CachedRenderString[universeSystems.Count];
+
+            foreach (var sys in universeSystems)
+            {
+                var screenPos = UniverseToScreen(sys.Position);
+                var pixelPos = context.PointsToPixels(screenPos);
+
+                Color4 dotColor = sys.IsCurrentSystem ? Color4.Green
+                                : !sys.IsVisited ? new Color4(0.5f, 0.5f, 0.5f, 0.5f)
+                                : Color4.LightGray;
+
+                // Draw dot (filled rectangle)
+                var dotRect = new Rectangle((int)(pixelPos.X - dotSize/2), (int)(pixelPos.Y - dotSize/2),
+                                            (int)dotSize, (int)dotSize);
+                context.RenderContext.Renderer2D.FillRectangle(dotRect, dotColor);
+
+                // Draw label
+                if (ShowLabels && sys.IsVisited && !string.IsNullOrWhiteSpace(sys.Name))
+                {
+                    DrawText(context, ref objectStrings[idx++],
+                        new RectangleF(screenPos.X - 100, screenPos.Y + dotSize/2 + 2, 200, 50),
+                        fontSize, font, InterfaceColor.White,
+                        new InterfaceColor() { Color = Color4.Black },
+                        HorizontalAlignment.Center, VerticalAlignment.Top, false, sys.Name);
+                }
+            }
+
+            context.RenderContext.PopScissor();
+            if (MapBorder)
+            {
+                var pRect = context.PointsToPixels(parentRect);
+                context.RenderContext.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
+            }
         }
 
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <InterfaceProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <DataFolder>{vanilla}</DataFolder>
+  <DataFolder>D:\Project Sirius</DataFolder>
   <OutputFilename>{projectfolder}/../src/LibreLancer/Interface/Default/interface.json</OutputFilename>
 </InterfaceProject>

@@ -53,6 +53,12 @@ namespace LibreLancer.Server.Components
 
         public void Docked()
         {
+            // Check if trading NPC that shouldn't despawn yet
+            if (CurrentDirective is AiTradeState tradeState && !tradeState.IsComplete)
+            {
+                tradeState.OnDockComplete();
+                return;
+            }
             manager.Despawn(Parent, false);
         }
 
@@ -544,7 +550,15 @@ namespace LibreLancer.Server.Components
             var runningDirective = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) &&
                      directiveRunner.Active;
 
-            if (CurrentDirective != null ||
+            // Block state graph transitions (Face, Trail, Buzz) when:
+            // - Running a mission directive (DirectiveRunner active)
+            // - No hostile target detected
+            // - In formation mode
+            // - CurrentDirective set AND either no hostile OR directive doesn't allow combat interruption
+            bool directiveBlocksCombat = CurrentDirective != null &&
+                (shootAt == null || !CurrentDirective.AllowCombatInterruption);
+
+            if (directiveBlocksCombat ||
                 runningDirective ||
                 shootAt == null ||
                 ap.CurrentBehavior == AutopilotBehaviors.Formation) {

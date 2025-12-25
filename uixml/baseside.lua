@@ -151,6 +151,8 @@ class baseside : baseside_Designer
 		    table.insert(windows, { shipdealer_button, this.ShipDealer })
 	    }
 	    this.WindowManager = new childwindowmanager(this.Widget, windows)
+		// Give PlayerStatus access to baseside for opening InfoWindow on faction click
+		this.PlayerStatus.Hud = this
 	    this.Elements.chat.Chat = Game.GetChats()
 		this.Elements.nnobj.Visible = false;
     }

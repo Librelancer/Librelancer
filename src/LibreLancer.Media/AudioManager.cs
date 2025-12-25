@@ -166,6 +166,21 @@ namespace LibreLancer.Media
         Queue<uint> freeSources = new Queue<uint>();
         delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void> alBufferDataStatic; // pointers are context specific
 
+        // Degraded mode tracking (Audio Thread only - no sync needed)
+        private bool _isDegradedMode = false;
+        private double _lastExhaustionWarningTime = 0;
+        private int _droppedSoundsSinceLastWarning = 0;
+        private volatile int _totalDroppedSounds = 0;  // For diagnostics
+
+        // Degradation constants
+        private const double WARNING_COOLDOWN_SECONDS = 5.0;
+        private const int RECOVERY_THRESHOLD_SOURCES = 10;  // Free sources needed to exit degraded mode
+        private const double ORPHAN_CLEANUP_TIMEOUT_SECONDS = 30.0;
+
+        // Public read-only properties for diagnostics
+        public bool IsDegradedMode => _isDegradedMode;
+        public int DroppedSoundsCount => _totalDroppedSounds;
+
         float GetVolume(SoundCategory category)
         {
             return category == SoundCategory.Voice ? _voiceVolumeGain : _sfxVolumeGain;
@@ -283,6 +298,8 @@ namespace LibreLancer.Media
                     }
                     else
                     {
+                        // No sources available and none can be evicted - graceful degradation
+                        HandleSourceExhaustion(instance);
                         return;
                     }
                 }
@@ -363,6 +380,95 @@ namespace LibreLancer.Media
             accumulatedTime += diff;
             lastTime = current;
             return diff;
+        }
+
+        /// <summary>
+        /// Called when audio source pool is exhausted and no lower-priority sound can be evicted.
+        /// Implements graceful degradation per Michael Nygard's patterns.
+        /// </summary>
+        private void HandleSourceExhaustion(SoundInstance instance)
+        {
+            _isDegradedMode = true;
+            _droppedSoundsSinceLastWarning++;
+            Interlocked.Increment(ref _totalDroppedSounds);
+
+            instance.WasDroppedDueToDegradation = true;
+            instance.LastPlayAttemptTime = audioClock.Elapsed.TotalSeconds;
+
+            var now = audioClock.Elapsed.TotalSeconds;
+            if (now - _lastExhaustionWarningTime >= WARNING_COOLDOWN_SECONDS)
+            {
+                FLLog.Warning("Audio",
+                    $"Audio sources exhausted (degraded mode). " +
+                    $"Dropped {_droppedSoundsSinceLastWarning} sound(s). " +
+                    $"Active: {allocatedSounds.Count}/{MAX_SOURCES - 3}");
+                _lastExhaustionWarningTime = now;
+                _droppedSoundsSinceLastWarning = 0;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to exit degraded mode when audio sources become available.
+        /// </summary>
+        private void TryRecoverFromDegradedMode()
+        {
+            if (!_isDegradedMode || freeSources.Count == 0) return;
+
+            // Check if any sounds are still waiting for sources
+            bool anyStillWaiting = false;
+            for (int i = 0; i < playingSounds.Count; i++)
+            {
+                var snd = playingSounds[i];
+                if (snd.WasDroppedDueToDegradation && snd.Source == -1 && snd.Playing)
+                {
+                    anyStillWaiting = true;
+                    break;
+                }
+            }
+
+            if (!anyStillWaiting && freeSources.Count >= RECOVERY_THRESHOLD_SOURCES)
+            {
+                _isDegradedMode = false;
+                FLLog.Info("Audio", $"Exited degraded mode - {freeSources.Count} audio sources available");
+            }
+        }
+
+        /// <summary>
+        /// Cleans up orphaned SoundInstance objects that were dropped and never got a source.
+        /// Prevents memory growth from accumulated dropped sounds.
+        /// </summary>
+        private void CleanupOrphanedInstances()
+        {
+            var now = audioClock.Elapsed.TotalSeconds;
+
+            for (int i = playingSounds.Count - 1; i >= 0; i--)
+            {
+                var snd = playingSounds[i];
+
+                // Only clean up sounds that never got a source
+                if (snd.Source != -1) continue;
+
+                bool shouldCleanup = false;
+
+                if (snd.WasDroppedDueToDegradation)
+                {
+                    // Dropped sound - clean up after timeout
+                    double elapsed = now - snd.LastPlayAttemptTime;
+                    shouldCleanup = elapsed >= ORPHAN_CLEANUP_TIMEOUT_SECONDS;
+                }
+                else if (!snd.Looping)
+                {
+                    // Non-looping sound without source - clean up after duration
+                    double elapsed = now - snd.StartTime;
+                    shouldCleanup = elapsed >= snd.Data.Duration + 1.0; // +1s buffer
+                }
+
+                if (shouldCleanup)
+                {
+                    playingSounds.RemoveAt(i);
+                    InstanceStopped(snd);
+                }
+            }
         }
 
         void AudioThread()
@@ -635,6 +741,10 @@ namespace LibreLancer.Media
                         }
                     }
                 }
+
+                // Graceful degradation maintenance
+                CleanupOrphanedInstances();
+                TryRecoverFromDegradedMode();
 
                 var endTime = audioClock.Elapsed.TotalSeconds;
                 UpdateTime = (float)((endTime - startTime) * 1000.0);

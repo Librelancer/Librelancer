@@ -13,8 +13,14 @@ namespace LibreLancer.Graphics
 {
 	public enum DepthFunction
 	{
-		Less = 0x201,
-		LessEqual = 0x203
+		Never = 0x0200,
+		Less = 0x0201,
+		Equal = 0x0202,
+		LessEqual = 0x0203,
+		Greater = 0x0204,
+		NotEqual = 0x0205,
+		GreaterEqual = 0x0206,
+		Always = 0x0207
 	}
 
 	//OpenGL Render States
@@ -288,6 +294,17 @@ namespace LibreLancer.Graphics
         }
 
         public void SSBOMemoryBarrier() => impl.MemoryBarrier();
+
+        /// <summary>
+        /// Draws a fullscreen triangle without any vertex buffer.
+        /// Useful for deferred lighting passes and post-processing effects.
+        /// The vertex shader should use SV_VertexID to generate vertex positions.
+        /// </summary>
+        public void DrawFullscreenTriangle()
+        {
+            Apply();
+            impl.DrawFullscreenTriangle();
+        }
 
         public void ClearAll()
 		{

@@ -19,6 +19,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
 		{
 			programBound = 0;
 			bound_vao = 0;
+            bound_ubo = 0;
+            bound_ssbo = 0;
             for(int i = 0; i < textures.Length; i++) { textures[i] = -1; };
             active_unit = -1;
         }
@@ -77,6 +79,16 @@ namespace LibreLancer.Graphics.Backends.OpenGL
                 GL.BindBuffer(GL.GL_UNIFORM_BUFFER, ubo);
             }*/
             GL.BindBuffer(GL.GL_UNIFORM_BUFFER, ubo);
+        }
+
+        private static uint bound_ssbo = 0;
+        public static void ShaderStorageBuffer(uint ssbo)
+        {
+            if (bound_ssbo != ssbo)
+            {
+                bound_ssbo = ssbo;
+                GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ssbo);
+            }
         }
 	}
 }

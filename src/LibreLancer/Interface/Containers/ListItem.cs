@@ -23,6 +23,32 @@ namespace LibreLancer.Interface
 
         public bool Selected = false;
         public bool DoSelect = false;
+
+        event Action Clicked;
+
+        public void OnClick(WattleScript.Interpreter.Closure handler)
+        {
+            FLLog.Info("UI", "ListItem.OnClick: handler registered");
+            if (handler == null)
+            {
+                FLLog.Error("UI", "ListItem.OnClick: handler is NULL!");
+                return;
+            }
+            Clicked += () =>
+            {
+                try
+                {
+                    FLLog.Info("UI", "ListItem: About to call Lua handler");
+                    handler.Call();
+                    FLLog.Info("UI", "ListItem: Lua handler completed");
+                }
+                catch (Exception ex)
+                {
+                    FLLog.Error("UI", $"ListItem click handler error: {ex.Message}");
+                    throw;
+                }
+            };
+        }
         
         RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
@@ -66,6 +92,11 @@ namespace LibreLancer.Interface
                     rectangleB.Contains(context.MouseX, context.MouseY))
                 {
                     DoSelect = true;
+                    if (Clicked != null)
+                    {
+                        FLLog.Info("UI", "ListItem clicked - invoking handler");
+                        Clicked.Invoke();
+                    }
                 }
             }
         }

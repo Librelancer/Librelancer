@@ -28,9 +28,13 @@ local function faction_gauge(negative, reputation)
 	g.Fill.AddElement(fill)
 	return g;
 }
-local function faction_list_item(ids, reputation)
+local function faction_list_item(ids, idsInfo, reputation, onFactionClick)
 {
 	local li = NewObject("ListItem")
+	// Click handler to show faction infocard
+	if (idsInfo > 0 && onFactionClick != nil) {
+		li.OnClick(() => onFactionClick(idsInfo, ids));
+	}
 	// Border
 	li.Border = NewObject("UiRenderable")
 	local wire = NewObject("DisplayWireBorder")
@@ -118,8 +122,15 @@ class playerstatus : playerstatus_Designer with ChildWindow
 		local e = this.Elements;
 		local facs = Game.GetPlayerRelations();
 		e.factions.Children.Clear();
+		// Callback to open InfoWindow when faction is clicked
+		local onFactionClick = (idsInfo, idsName) => {
+			Game.SetPendingInfocard(idsInfo, idsName);
+			if (this.Hud != nil) {
+				this.Hud.WindowManager.OpenWindow(this.Hud.Widget, this.Hud.InfoWindow, false);
+			}
+		};
 		for(f in facs) {
-			e.factions.Children.Add(faction_list_item(f.IdsName, f.Relationship));
+			e.factions.Children.Add(faction_list_item(f.IdsName, f.IdsInfo, f.Relationship, onFactionClick));
 		}
 		local missionString = StringFromID(1568);
         local creditString = StringFromID(STRID_CREDIT_SIGN);

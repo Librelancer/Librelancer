@@ -1,0 +1,9 @@
+vertex GBuffer_Fill.vert.hlsl
+fragment GBuffer_Fill.frag.hlsl
+feature ALPHATEST_ENABLED 1
+feature ET_ENABLED 2
+feature NORMALMAP 3
+feature METALMAP 4
+feature ROUGHMAP 5
+feature VERTEX_DIFFUSE 6
+feature VERTEX_TEXTURE2 7

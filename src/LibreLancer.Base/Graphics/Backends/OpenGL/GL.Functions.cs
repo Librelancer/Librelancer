@@ -50,6 +50,29 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             else
                 GL._glDrawBuffer(buffer);
         }
+
+        /// <summary>
+        /// Specifies multiple color buffers to be drawn into (MRT support).
+        /// </summary>
+        public static unsafe void DrawBuffers(ReadOnlySpan<int> buffers)
+        {
+            fixed (int* ptr = buffers)
+            {
+                GL._glDrawBuffers(buffers.Length, ptr);
+            }
+        }
+
+        /// <summary>
+        /// Specifies multiple color buffers to be drawn into (MRT support).
+        /// </summary>
+        public static unsafe void DrawBuffers(params int[] buffers)
+        {
+            fixed (int* ptr = buffers)
+            {
+                GL._glDrawBuffers(buffers.Length, ptr);
+            }
+        }
+
         public static uint GenFramebuffer()
 		{
 			uint fbo;
@@ -123,13 +146,19 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         static void DebugCallbackHandler(int source, int type, uint id, int severity, int length, IntPtr message,
             IntPtr userparam)
         {
+            var msg = Marshal.PtrToStringUTF8(message);
+
+            // Filter out spammy buffer info messages
+            if (msg != null && msg.Contains("Buffer detailed info"))
+                return;
+
             //higher severity = lower enum value (why khronos?)
             if (type == GL_DEBUG_TYPE_ERROR &&
                 severity < GL_DEBUG_SEVERITY_LOW) {
-                FLLog.Info("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
+                FLLog.Info("GL_KHR_debug", msg);
             }
             else {
-                FLLog.Debug("GL_KHR_debug", $"{Marshal.PtrToStringUTF8(message)}");
+                FLLog.Debug("GL_KHR_debug", msg);
             }
         }
 

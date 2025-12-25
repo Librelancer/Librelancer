@@ -98,6 +98,59 @@ namespace LibreLancer.Render.Materials
             VERTEX_DIFFUSE = (1 << 5),
             VERTEX_TEXTURE2 = (1 << 6)
         }
+
+        // G-Buffer fill shader features (matches GBuffer_Fill.txt)
+        [Flags]
+        enum GBufferFeatures : uint
+        {
+            ALPHATEST_ENABLED = (1 << 0),
+            ET_ENABLED = (1 << 1),
+            NORMALMAP = (1 << 2),
+            METALMAP = (1 << 3),
+            ROUGHMAP = (1 << 4),
+            VERTEX_DIFFUSE = (1 << 5),
+            VERTEX_TEXTURE2 = (1 << 6)
+        }
+
+        Shader GetDeferredShader(IVertexType vertexType)
+        {
+            var caps = (GBufferFeatures)0;
+
+            // Alpha test
+            if (AlphaTest || GetDxt1())
+                caps |= GBufferFeatures.ALPHATEST_ENABLED;
+
+            // Emissive texture
+            if (EtEnabled)
+                caps |= GBufferFeatures.ET_ENABLED;
+
+            // Normal map
+            if (!string.IsNullOrEmpty(NmSampler))
+                caps |= GBufferFeatures.NORMALMAP;
+
+            // Metallic map
+            if (!string.IsNullOrEmpty(MtSampler))
+                caps |= GBufferFeatures.METALMAP;
+
+            // Roughness map
+            if (!string.IsNullOrEmpty(RtSampler))
+                caps |= GBufferFeatures.ROUGHMAP;
+
+            // Vertex attributes
+            if (vertexType is FVFVertex fvf)
+            {
+                if (fvf.Diffuse)
+                    caps |= GBufferFeatures.VERTEX_DIFFUSE;
+                if (fvf.TexCoords is 2 or 4)
+                    caps |= GBufferFeatures.VERTEX_TEXTURE2;
+            }
+            else if (vertexType is VertexPositionNormalDiffuseTexture)
+            {
+                caps |= GBufferFeatures.VERTEX_DIFFUSE;
+            }
+
+            return AllShaders.GBuffer_Fill.Get(caps);
+        }
         Shader GetRegularShader(IVertexType vertexType)
         {
             var caps = (ShaderFeatures)0;
@@ -176,8 +229,28 @@ namespace LibreLancer.Render.Materials
             public float Metallic;
         }
 
+        // G-Buffer material parameters (matches GBuffer_Fill.frag.hlsl cbuffer)
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        struct GBufferMaterialParameters
+        {
+            public Color4 Dc;           // Diffuse color
+            public Color4 Ec;           // Emissive color
+            public float Oc;            // Opacity
+            public float Roughness;     // Material roughness
+            public float Metallic;      // Material metallic
+            public float AO;            // Ambient occlusion
+        }
+
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
+            // Check for deferred rendering mode
+            if (DeferredMode)
+            {
+                UseDeferredPath(rstate, vertextype, userData);
+                return;
+            }
+
+            // Forward rendering path
             bool pbr = (!string.IsNullOrWhiteSpace(RtSampler) ||
                        !string.IsNullOrWhiteSpace(MtSampler) || Metallic != null || Roughness != null) &&
                        lights.Enabled;
@@ -255,6 +328,68 @@ namespace LibreLancer.Render.Materials
             }
 			//Set lights
             SetLights(shader, ref lights, rstate.FrameNumber);
+            rstate.Shader = shader;
+        }
+
+        /// <summary>
+        /// Deferred rendering path - outputs geometry and material data to G-Buffer
+        /// </summary>
+        void UseDeferredPath(RenderContext rstate, IVertexType vertextype, int userData)
+        {
+            var shader = GetDeferredShader(vertextype);
+            SetWorld(shader);
+
+            // Bind textures
+            BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
+            if (EtEnabled)
+                BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
+            if (!string.IsNullOrEmpty(NmSampler))
+                BindTexture(rstate, 2, NmSampler, 2, NmFlags, ResourceManager.NullTextureName);
+            if (!string.IsNullOrEmpty(MtSampler))
+                BindTexture(rstate, 3, MtSampler, 3, MtFlags, ResourceManager.WhiteTextureName);
+            if (!string.IsNullOrEmpty(RtSampler))
+                BindTexture(rstate, 4, RtSampler, 4, RtFlags, ResourceManager.WhiteTextureName);
+
+            // Compute diffuse color
+            var dcValue = Dc;
+            if ((userData & DcSet) == DcSet)
+            {
+                var d = (VertexDiffuse)(uint)userData;
+                d.A = 255;
+                dcValue = (Color4)d;
+            }
+
+            // G-Buffer doesn't use blending - always opaque output
+            rstate.BlendMode = BlendMode.Opaque;
+
+            // Material animation
+            var ma = new Vector4(0, 0, 1, 1);
+            if (MaterialAnim != null)
+            {
+                ma = new Vector4(
+                    MaterialAnim.UOffset,
+                    MaterialAnim.VOffset,
+                    MaterialAnim.UScale,
+                    MaterialAnim.VScale
+                );
+            }
+            shader.SetUniformBlock(4, ref ma);
+
+            // G-Buffer material parameters
+            var param = new GBufferMaterialParameters()
+            {
+                Dc = dcValue,
+                Ec = Ec,
+                Oc = Oc,
+                Roughness = Roughness ?? 0.5f,  // Default roughness
+                Metallic = Metallic ?? 0.0f,    // Default non-metallic
+                AO = 1.0f                        // Default no occlusion
+            };
+            shader.SetUniformBlock(3, ref param);
+
+            // Texture coordinate selectors
+            SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags, MtFlags, RtFlags);
+
             rstate.Shader = shader;
         }
 

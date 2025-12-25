@@ -29,6 +29,13 @@ namespace LibreLancer.Render
         }
 
         public static bool VertexLighting = false;
+
+        /// <summary>
+        /// When true, materials should output to G-Buffer instead of forward rendering.
+        /// Set by DeferredRenderer during geometry pass.
+        /// </summary>
+        public static bool DeferredMode = false;
+
 		public MaterialAnim MaterialAnim;
 		public WorldMatrixHandle World = new WorldMatrixHandle();
 		public ResourceManager Library;

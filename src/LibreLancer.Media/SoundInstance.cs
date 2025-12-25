@@ -44,6 +44,10 @@ namespace LibreLancer.Media
         internal uint Buffer;
         internal SoundData Data;
 
+        // Degradation tracking (Audio Thread only)
+        internal double LastPlayAttemptTime;
+        internal bool WasDroppedDueToDegradation;
+
         public volatile bool Playing = false;
 
         private AudioManager man;

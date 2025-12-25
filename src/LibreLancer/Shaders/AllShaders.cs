@@ -13,6 +13,10 @@ public static class AllShaders
     public static ShaderBundle Basic_PositionTexture;
     public static ShaderBundle Basic_Skinned;
     public static ShaderBundle Billboard;
+    public static ShaderBundle DeferredLighting;
+    public static ShaderBundle DepthCopy;
+    public static ShaderBundle GBuffer_Debug;
+    public static ShaderBundle GBuffer_Fill;
     public static ShaderBundle DetailMap2Dm1Msk2PassMaterial;
     public static ShaderBundle DetailMapMaterial;
     public static ShaderBundle IllumDetailMapMaterial;
@@ -28,6 +32,10 @@ public static class AllShaders
     public static ShaderBundle SunRadial;
     public static ShaderBundle SunSpine;
     public static ShaderBundle ZoneVolume;
+    public static ShaderBundle PostFX_VignetteGrain;
+    public static ShaderBundle PostFX_HeatHaze;
+    public static ShaderBundle PostFX_GTAO;
+    public static ShaderBundle PostFX_GTAOBlur;
 
     public static void CompileBillboard(RenderContext context) =>
         Billboard ??= Compile(context, "Billboard");
@@ -53,8 +61,12 @@ public static class AllShaders
         Basic_PositionTexture ??= Compile(context, "Basic_PositionTexture");
         Basic_Skinned ??= Compile(context, "Basic_Skinned");
         Billboard ??= Compile(context, "Billboard");
+        DeferredLighting ??= Compile(context, "DeferredLighting");
+        DepthCopy ??= Compile(context, "DepthCopy");
+        GBuffer_Debug ??= Compile(context, "GBuffer_Debug");
         DetailMap2Dm1Msk2PassMaterial ??= Compile(context, "DetailMap2Dm1Msk2PassMaterial");
         DetailMapMaterial ??= Compile(context, "DetailMapMaterial");
+        GBuffer_Fill ??= Compile(context, "GBuffer_Fill");
         IllumDetailMapMaterial ??= Compile(context, "IllumDetailMapMaterial");
         Masked2DetailMapMaterial ??= Compile(context, "Masked2DetailMapMaterial");
         Navmap ??= Compile(context, "Navmap");
@@ -68,6 +80,10 @@ public static class AllShaders
         SunRadial ??= Compile(context, "SunRadial");
         SunSpine ??= Compile(context, "SunSpine");
         ZoneVolume ??= Compile(context, "ZoneVolume");
+        PostFX_VignetteGrain ??= Compile(context, "PostFX_VignetteGrain");
+        PostFX_HeatHaze ??= Compile(context, "PostFX_HeatHaze");
+        PostFX_GTAO ??= Compile(context, "PostFX_GTAO");
+        PostFX_GTAOBlur ??= Compile(context, "PostFX_GTAOBlur");
 
         FLLog.Debug("Shaders", "Compile complete");
     }

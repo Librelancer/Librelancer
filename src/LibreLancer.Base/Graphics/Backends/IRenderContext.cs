@@ -27,6 +27,13 @@ interface IRenderContext
     void ClearDepth();
     void MemoryBarrier();
 
+    /// <summary>
+    /// Draws a fullscreen triangle without any vertex buffer.
+    /// Uses SV_VertexID in the vertex shader to generate vertex positions.
+    /// More efficient than a quad as it avoids diagonal seam and overdraw.
+    /// </summary>
+    void DrawFullscreenTriangle();
+
     IShader CreateShader(ReadOnlySpan<byte> program);
 
     IElementBuffer CreateElementBuffer(int count, bool isDynamic = false);
@@ -44,7 +51,21 @@ interface IRenderContext
 
     IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples);
 
+    /// <summary>
+    /// Creates a G-Buffer for deferred rendering with multiple render targets.
+    /// The G-Buffer contains: Position (RGBA16F), Normal (RGBA16F), Albedo (RGBA8), Material (RGBA8), Depth (32F).
+    /// Requires OpenGL 3.0+ with MRT support.
+    /// </summary>
+    IGBuffer CreateGBuffer(int width, int height);
+
     IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false);
+
+    /// <summary>
+    /// Creates a Shader Storage Buffer Object (SSBO) for compute shader access.
+    /// Requires OpenGL 4.3+ (HasFeature(GraphicsFeature.ShaderStorageBuffer) must be true).
+    /// SSBOs can be larger than uniform buffers and support read/write from shaders.
+    /// </summary>
+    IStorageBuffer CreateShaderStorageBuffer(int size, int stride, Type type, bool streaming = false);
 
     void SetCamera(ICamera camera);
     void SetIdentityCamera();

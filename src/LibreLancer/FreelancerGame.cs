@@ -79,6 +79,15 @@ namespace LibreLancer
 		protected override void Load()
         {
             Thread.CurrentThread.Name = "FreelancerGame UIThread";
+            // Set window icon
+            using (var stream = typeof(FreelancerGame).Assembly.GetManifestResourceStream("LibreLancer.icon.png"))
+            {
+                if (stream != null)
+                {
+                    var icon = LibreLancer.ImageLib.Generic.ImageFromStream(stream);
+                    SetWindowIcon(icon.Width, icon.Height, Bgra8.BufferFromBytes(icon.Data));
+                }
+            }
             //Hacky but reduces load time by initing XmlSerializer
             //as well JIT'ing the lua hardwire on a background thread.
             Task.Run(() =>

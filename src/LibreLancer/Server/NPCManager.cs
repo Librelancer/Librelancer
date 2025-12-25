@@ -181,5 +181,83 @@ namespace LibreLancer.Server
             if (nickname != null) missionNPCs[nickname] = obj;
             return obj;
         }
+
+        /// <summary>
+        /// Spawn a trader NPC that follows a trade route between bases.
+        /// </summary>
+        /// <param name="originBase">Base where the trader spawns from.</param>
+        /// <param name="destinationBase">Target destination base.</param>
+        /// <param name="loadout">Ship loadout for the trader.</param>
+        /// <param name="pilot">Pilot definition.</param>
+        /// <param name="affiliation">Faction affiliation.</param>
+        /// <param name="roundTrip">Whether to return to origin after trading.</param>
+        /// <returns>The spawned trader GameObject.</returns>
+        public GameObject SpawnTrader(
+            GameObject originBase,
+            GameObject destinationBase,
+            ObjectLoadout loadout,
+            Pilot pilot,
+            string affiliation,
+            bool roundTrip = false)
+        {
+            if (originBase == null || destinationBase == null)
+            {
+                FLLog.Warning("NPCManager", "Cannot spawn trader: origin or destination is null");
+                return null;
+            }
+
+            // Get spawn point from origin base
+            Vector3 position;
+            Quaternion orient;
+            SDockableComponent sdock = null;
+
+            if (originBase.TryGetComponent<SDockableComponent>(out sdock))
+            {
+                var arrivalIndex = sdock.GetUndockIndex();
+                var p = sdock.GetSpawnPoint(arrivalIndex);
+                position = p.Position;
+                orient = p.Orientation;
+            }
+            else
+            {
+                // Spawn near the base with random offset
+                position = originBase.WorldTransform.Position +
+                    new Vector3(rand.Next(-500, 500), rand.Next(-500, 500), rand.Next(-500, 500));
+                orient = Quaternion.Identity;
+            }
+
+            // Generate trader name
+            var name = RandomName(affiliation);
+            var nickname = $"trader_{Guid.NewGuid():N}";
+
+            // Spawn using DoSpawn
+            var obj = DoSpawn(
+                name,
+                nickname,
+                affiliation,
+                "FIGHTER",  // Default state graph
+                null, null, null,  // No comm appearance for now
+                loadout,
+                pilot,
+                position,
+                orient,
+                null, 0,
+                null);
+
+            if (obj == null)
+            {
+                FLLog.Warning("NPCManager", "Failed to spawn trader");
+                return null;
+            }
+
+            // Set trade state
+            if (obj.TryGetComponent<SNPCComponent>(out var npc))
+            {
+                npc.SetState(new Ai.AiTradeState(originBase, destinationBase, roundTrip));
+                FLLog.Info("NPCManager", $"Spawned trader {nickname} from {originBase.Nickname} to {destinationBase.Nickname}");
+            }
+
+            return obj;
+        }
     }
 }

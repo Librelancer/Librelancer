@@ -15,7 +15,8 @@ namespace LibreLancer.World.Components
 		Goto,
 		Dock,
         Formation,
-        Undock
+        Undock,
+        Wander
 	}
 
     abstract class AutopilotBehavior
@@ -338,6 +339,100 @@ namespace LibreLancer.World.Components
         }
     }
 
+    /// <summary>
+    /// NPC wander behavior - moves randomly within a defined zone/radius.
+    /// Used by encounter-spawned NPCs to simulate patrol-like movement.
+    /// </summary>
+    sealed class WanderBehavior : AutopilotBehavior
+    {
+        public override AutopilotBehaviors Behavior => AutopilotBehaviors.Wander;
+
+        private Vector3 wanderCenter;
+        private float wanderRadius;
+        private Vector3 currentTarget;
+        private double waitTimer;
+        private Random random = new Random();
+
+        // Wander timing constants
+        private const double MIN_WAIT_TIME = 2.0;
+        private const double MAX_WAIT_TIME = 8.0;
+        private const float ARRIVAL_THRESHOLD = 100f;
+
+        // Wander movement constants
+        private const float THROTTLE_FAR = 0.7f;       // Throttle when far from target
+        private const float THROTTLE_NEAR = 0.4f;      // Throttle when approaching target
+        private const float SLOWDOWN_DISTANCE = 500f;  // Distance to start slowing down
+        private const float VERTICAL_SCALE = 0.3f;     // Reduced vertical movement factor
+
+        public WanderBehavior(AutopilotComponent c, Vector3 center, float radius) : base(c)
+        {
+            wanderCenter = center;
+            wanderRadius = radius;
+            PickNewTarget();
+        }
+
+        private void PickNewTarget()
+        {
+            // Pick a random point within the wander radius (reduced vertical movement)
+            var offset = new Vector3(
+                (random.NextSingle() * 2 - 1) * wanderRadius,
+                (random.NextSingle() * 2 - 1) * wanderRadius * VERTICAL_SCALE,
+                (random.NextSingle() * 2 - 1) * wanderRadius
+            );
+            currentTarget = wanderCenter + offset;
+            waitTimer = 0;
+        }
+
+        // Debug: Track when we last logged to avoid spam
+        private double debugLogTimer = 0;
+        private const double DEBUG_LOG_INTERVAL = 5.0;
+
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent input, double time)
+        {
+            var myPos = Parent.PhysicsComponent?.Body?.Position ?? Parent.WorldTransform.Position;
+            var distance = Vector3.Distance(myPos, currentTarget);
+
+            // Periodic debug logging
+            debugLogTimer -= time;
+            if (debugLogTimer <= 0)
+            {
+                debugLogTimer = DEBUG_LOG_INTERVAL;
+                FLLog.Debug("WanderBehavior", $"Update: pos={myPos}, target={currentTarget}, dist={distance:F0}, throttle={Component.Parent.GetComponent<ShipSteeringComponent>()?.InThrottle ?? -1}, control null={control == null}");
+            }
+
+            // If we're waiting at a point
+            if (waitTimer > 0)
+            {
+                waitTimer -= time;
+                SetThrottle(0, control, input);
+                Component.OutYaw = 0;
+                Component.OutPitch = 0;
+                if (waitTimer <= 0)
+                {
+                    PickNewTarget();
+                }
+                return false;
+            }
+
+            // If we've arrived at the target, wait briefly then pick a new one
+            if (distance < ARRIVAL_THRESHOLD)
+            {
+                waitTimer = MIN_WAIT_TIME + random.NextDouble() * (MAX_WAIT_TIME - MIN_WAIT_TIME);
+                SetThrottle(0, control, input);
+                return false;
+            }
+
+            // Navigate to target at moderate speed
+            control.Cruise = false;
+            TurnTowards(time, currentTarget);
+
+            // Adjust throttle based on distance - slow down as we approach
+            float throttle = distance > SLOWDOWN_DISTANCE ? THROTTLE_FAR : THROTTLE_NEAR;
+            SetThrottle(throttle, control, input);
+
+            return false; // Wander never "finishes" - it's continuous
+        }
+    }
 
 
 	public class AutopilotComponent : GameComponent
@@ -408,6 +503,17 @@ namespace LibreLancer.World.Components
         {
             SetInstance(new FormationBehavior(this));
             instance.Start(GotoKind.Goto, Vector3.Zero, 1, 10);
+        }
+
+        /// <summary>
+        /// Start wandering within a radius around a center point.
+        /// Used for encounter-spawned NPCs to patrol an area.
+        /// </summary>
+        /// <param name="center">Center point of the wander area.</param>
+        /// <param name="radius">Radius of the wander area in meters.</param>
+        public void StartWander(Vector3 center, float radius)
+        {
+            SetInstance(new WanderBehavior(this, center, radius));
         }
 
 		public override void Update(double time)

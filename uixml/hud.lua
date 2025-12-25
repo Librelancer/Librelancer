@@ -179,7 +179,10 @@ class hud : hud_Designer
 			{ this.Elements.scanship, this.ScanCargo }
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
-		
+
+		// Give PlayerStatus access to hud for opening InfoWindow on faction click
+		this.PlayerStatus.Hud = this
+
 		e.scanship.ClearClick(); // We don't want the childwindowmanager click handler for this. We're async
 		e.scanship.OnClick(() => Game.ScanSelected());
 

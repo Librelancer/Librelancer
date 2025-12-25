@@ -80,16 +80,44 @@ class GLRenderContext : IRenderContext
     }
 
 
+    // OpenGL version fallback chain for modern graphics features
+    private static readonly (int Major, int Minor)[] GLVersions = new[]
+    {
+        (4, 6), // Full compute shader, SPIR-V, direct state access
+        (4, 5), // Robust buffer access, direct state access
+        (4, 4), // Buffer storage, multi-draw indirect
+        (4, 3), // Compute shaders, shader storage buffers
+        (3, 1)  // Minimum baseline
+    };
+
+    /// <summary>
+    /// The OpenGL version that was successfully created (Major * 10 + Minor).
+    /// E.g., 46 for OpenGL 4.6, 43 for OpenGL 4.3, 31 for OpenGL 3.1.
+    /// </summary>
+    public static int GLVersion { get; private set; } = 0;
+
     static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        ctx = SDLGL_Create(sdlWin, 3, 1, false);
-        if (ctx == IntPtr.Zero) return false;
-        if (!GL.CheckStringSDL())
+        foreach (var (major, minor) in GLVersions)
         {
+            ctx = SDLGL_Create(sdlWin, major, minor, false);
+            if (ctx == IntPtr.Zero)
+                continue;
+
+            if (GL.CheckStringSDL())
+            {
+                GLVersion = major * 10 + minor;
+                FLLog.Info("GL", $"Created OpenGL {major}.{minor} Core context");
+                return true;
+            }
+
+            // Context created but failed validation, clean up and try next
             SDLGL_Delete(ctx);
-            ctx = IntPtr.Zero;
         }
-        return true;
+
+        ctx = IntPtr.Zero;
+        FLLog.Warning("GL", "Failed to create any OpenGL Core context, falling back to GLES");
+        return false;
     }
     static bool CreateContextES(IntPtr sdlWin, out IntPtr ctx)
     {
@@ -255,6 +283,22 @@ class GLRenderContext : IRenderContext
             applied.DepthEnabled = requested.DepthEnabled;
         }
 
+        if (requested.DepthFunction != applied.DepthFunction)
+        {
+            GL.DepthFunc((DepthFunction)requested.DepthFunction switch
+            {
+                DepthFunction.Less => GL.GL_LESS,
+                DepthFunction.LessEqual => GL.GL_LEQUAL,
+                DepthFunction.Greater => GL.GL_GREATER,
+                DepthFunction.GreaterEqual => GL.GL_GEQUAL,
+                DepthFunction.Equal => GL.GL_EQUAL,
+                DepthFunction.NotEqual => GL.GL_NOTEQUAL,
+                DepthFunction.Always => GL.GL_ALWAYS,
+                DepthFunction.Never => GL.GL_NEVER,
+                _ => GL.GL_LEQUAL
+            });
+            applied.DepthFunction = requested.DepthFunction;
+        }
 
         if (requested.CullEnabled != applied.CullEnabled)
         {
@@ -406,6 +450,12 @@ class GLRenderContext : IRenderContext
         }
     }
 
+    internal void SetClearColor(Color4 color)
+    {
+        GL.ClearColor(color.R, color.G, color.B, color.A);
+        applied.ClearColor = color;
+    }
+
     public void ClearAll()
     {
         GL.Clear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -424,6 +474,14 @@ class GLRenderContext : IRenderContext
     public void MemoryBarrier()
     {
         GL.MemoryBarrier(GL.GL_SHADER_STORAGE_BARRIER_BIT);
+    }
+
+    public void DrawFullscreenTriangle()
+    {
+        // Bind a VAO (required by core OpenGL) and draw 3 vertices
+        // The vertex shader will use SV_VertexID to generate positions
+        GLBind.VertexArray(NullVAO);
+        GL.DrawArrays(GL.GL_TRIANGLES, 0, 3);
     }
 
     public void PrepareBlit(bool scissor)
@@ -456,6 +514,9 @@ class GLRenderContext : IRenderContext
         GraphicsFeature.DebugInfo => GLExtensions.DebugInfo,
         GraphicsFeature.S3TC => GLExtensions.S3TC,
         GraphicsFeature.GLES => GL.GLES,
+        GraphicsFeature.ComputeShaders => GLVersion >= 43, // OpenGL 4.3+ required
+        GraphicsFeature.ShaderStorageBuffer => GLVersion >= 43, // OpenGL 4.3+ required
+        GraphicsFeature.OpenGL46 => GLVersion >= 46, // OpenGL 4.6 features
         _ => false
     };
 
@@ -522,6 +583,16 @@ class GLRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);
 
+    public IGBuffer CreateGBuffer(int width, int height)
+        => new GLGBuffer(this, width, height);
+
     public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false)
         => new GLStorageBuffer(size, stride, type, streaming);
+
+    public IStorageBuffer CreateShaderStorageBuffer(int size, int stride, Type type, bool streaming = false)
+    {
+        if (GLVersion < 43)
+            throw new InvalidOperationException("Shader Storage Buffers require OpenGL 4.3+. Use HasFeature(GraphicsFeature.ShaderStorageBuffer) to check availability.");
+        return new GLShaderStorageBuffer(size, stride, type, streaming);
+    }
 }

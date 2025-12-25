@@ -425,11 +425,18 @@ namespace LibreLancer.Client
 
         public DisplayFaction[] GetUIRelations()
         {
-            return PlayerReputations.Reputations
+            var result = PlayerReputations.Reputations
                 .Where(x => !x.Key.Hidden)
-                .Select(x => new DisplayFaction(x.Key.IdsName, x.Value))
+                .Select(x => new DisplayFaction(x.Key.IdsName, x.Key.IdsInfo, x.Value))
                 .OrderBy(x => x.Relationship)
                 .ToArray();
+
+            FLLog.Info("UI", $"GetUIRelations: returning {result.Length} factions");
+            foreach (var f in result.Take(3))
+            {
+                FLLog.Info("UI", $"  Faction: IdsName={f.IdsName}, IdsInfo={f.IdsInfo}, Rep={f.Relationship}");
+            }
+            return result;
         }
 
         public int UpdateQueueCount => updatePackets.Count;

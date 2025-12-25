@@ -57,6 +57,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Interface\Default\interface.json" />
+    <None Remove="icon.png" />
+    <EmbeddedResource Include="icon.png" />
   </ItemGroup>
 
   <ItemGroup>

@@ -26,7 +26,7 @@ namespace LibreLancer
         double totalTime;
         private bool allowScreensaver;
         bool running = false;
-        string title = "LibreLancer";
+        string title = "Project Sirius";
         IntPtr windowptr;
         double renderFrequency;
         public Mouse Mouse { get; } = new Mouse();

@@ -1,0 +1,2 @@
+vertex Fullscreen.vert.hlsl
+fragment GBuffer_Debug.frag.hlsl

@@ -11,6 +11,7 @@ using System.Linq;
 using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Schema.Missions;
@@ -182,6 +183,15 @@ namespace LibreLancer
                 ShipDealer = new ShipDealer(g.session);
             }
 
+            // Helper for pending faction infocard display
+            private readonly PendingInfocardHelper _pendingInfocard = new PendingInfocardHelper();
+
+            public void SetPendingInfocard(int idsInfo, int idsName)
+            {
+                FLLog.Info("UI", $"SetPendingInfocard called: idsInfo={idsInfo}, idsName={idsName}");
+                _pendingInfocard.Set(idsInfo, idsName);
+            }
+
             public int CurrentRank => g.session.CurrentRank;
             public double NetWorth => (double)g.session.NetWorth;
             public double NextLevelWorth => (double)g.session.NextLevelWorth;
@@ -262,9 +272,33 @@ namespace LibreLancer
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active;
 
-            public Infocard CurrentInfocard() => g.roomInfocard;
+            public Infocard CurrentInfocard()
+            {
+                // Check for pending faction infocard first
+                int pendingId = _pendingInfocard.GetAndClearInfocardId();
+                FLLog.Info("UI", $"CurrentInfocard called: pendingId={pendingId}");
+                if (pendingId > 0)
+                {
+                    var card = g.Game.GameData.GetInfocard(pendingId, g.Game.Fonts);
+                    FLLog.Info("UI", $"CurrentInfocard returning pending faction card: {(card != null ? "found" : "null")}");
+                    return card;
+                }
+                return g.roomInfocard;
+            }
 
-            public string CurrentInfoString() => null;
+            public string CurrentInfoString()
+            {
+                // Check for pending faction name first
+                int pendingName = _pendingInfocard.GetAndClearNameId();
+                FLLog.Info("UI", $"CurrentInfoString called: pendingName={pendingName}");
+                if (pendingName > 0)
+                {
+                    var name = g.Game.GameData.GetString(pendingName);
+                    FLLog.Info("UI", $"CurrentInfoString returning pending faction name: {name}");
+                    return name;
+                }
+                return null;
+            }
 
             public double GetCredits() => g.session.Credits;
 
@@ -275,8 +309,20 @@ namespace LibreLancer
 
             public void PopulateNavmap(Navmap navmap)
             {
-                navmap.PopulateIcons(g.ui, g.sys);
-                navmap.SetVisitFunction(g.session.IsVisited);
+                if (navmap.ShowUniverseMap)
+                {
+                    navmap.PopulateUniverseMap(
+                        g.ui,
+                        g.Game.GameData.Items.Systems,
+                        g.session.PlayerSystem,
+                        g.session.IsVisited
+                    );
+                }
+                else
+                {
+                    navmap.PopulateIcons(g.ui, g.sys);
+                    navmap.SetVisitFunction(g.session.IsVisited);
+                }
             }
 
             bool IsVisited(uint hash)
@@ -683,6 +729,95 @@ namespace LibreLancer
             }
         }
 
+        /// <summary>
+        /// Spawns fixed NPCs defined in mbases.ini for the current room
+        /// </summary>
+        void SpawnFixedNpcs()
+        {
+            foreach (var fixedNpc in currentRoom.FixedNpcs)
+            {
+                if (fixedNpc.Npc == null) continue;
+
+                // Get marker position
+                var marker = scene.GetObject(fixedNpc.Placement);
+                if (marker == null)
+                {
+                    FLLog.Warning("Room", $"NPC marker '{fixedNpc.Placement}' not found for {fixedNpc.Npc.Nickname}");
+                    continue;
+                }
+
+                // Get costume parts
+                Bodypart body = null, head = null, leftHand = null, rightHand = null;
+
+                if (!string.IsNullOrEmpty(fixedNpc.Npc.BaseAppr))
+                {
+                    // Use costume from base_appr
+                    Game.GameData.GetCostume(fixedNpc.Npc.BaseAppr, out body, out head, out leftHand, out rightHand);
+                }
+                else
+                {
+                    // Use individual body parts
+                    if (!string.IsNullOrEmpty(fixedNpc.Npc.Body))
+                        body = Game.GameData.Items.Bodyparts.Get(fixedNpc.Npc.Body);
+                    if (!string.IsNullOrEmpty(fixedNpc.Npc.Head))
+                        head = Game.GameData.Items.Bodyparts.Get(fixedNpc.Npc.Head);
+                    if (!string.IsNullOrEmpty(fixedNpc.Npc.LeftHand))
+                        leftHand = Game.GameData.Items.Bodyparts.Get(fixedNpc.Npc.LeftHand);
+                    if (!string.IsNullOrEmpty(fixedNpc.Npc.RightHand))
+                        rightHand = Game.GameData.Items.Bodyparts.Get(fixedNpc.Npc.RightHand);
+                }
+
+                if (body == null)
+                {
+                    FLLog.Warning("Room", $"No body found for NPC {fixedNpc.Npc.Nickname}");
+                    continue;
+                }
+
+                // Create character
+                var obj = new GameObject() { Nickname = fixedNpc.Npc.Nickname };
+                var skel = new DfmSkeletonManager(
+                    body?.LoadModel(Game.ResourceManager),
+                    head?.LoadModel(Game.ResourceManager),
+                    leftHand?.LoadModel(Game.ResourceManager),
+                    rightHand?.LoadModel(Game.ResourceManager)
+                );
+                obj.RenderComponent = new CharacterRenderer(skel);
+
+                // Add animation component
+                var anmComponent = new AnimationComponent(obj, Game.GameData.GetCharacterAnimations());
+                obj.AnimationComponent = anmComponent;
+                obj.AddComponent(anmComponent);
+
+                // Position at marker
+                obj.SetLocalTransform(new Transform3D(marker.Translate, marker.Rotate));
+
+                // Create THN object and add to scene
+                var thnObj = new ThnObject
+                {
+                    Name = fixedNpc.Npc.Nickname,
+                    Rotate = marker.Rotate,
+                    Translate = marker.Translate,
+                    Object = obj
+                };
+                scene.AddObject(thnObj);
+
+                // Play fidget/idle animation
+                if (fixedNpc.FidgetScript != null)
+                {
+                    try
+                    {
+                        scene.FidgetScript(fixedNpc.FidgetScript.LoadScript());
+                    }
+                    catch (Exception ex)
+                    {
+                        FLLog.Warning("Room", $"Failed to load fidget script for {fixedNpc.Npc.Nickname}: {ex.Message}");
+                    }
+                }
+
+                FLLog.Debug("Room", $"Spawned NPC: {fixedNpc.Npc.Nickname} at {fixedNpc.Placement}");
+            }
+        }
+
         private void SceneOnScriptFinished(ThnScript obj)
         {
             waitObjectiveFrames = 50;
@@ -781,6 +916,10 @@ namespace LibreLancer
             if (sc == null) currentState = ScriptState.None;
             waitingForFinish = sc;
             scene.BeginScene(Scripts(sceneScripts, new[] { sc }));
+
+            // Spawn fixed NPCs from mbases.ini
+            SpawnFixedNpcs();
+
             string[] ships = Array.Empty<string>();
             if (session.Ships != null) {
                 ships = session.Ships.Select(x => Game.GameData.Items.Ships.Get(x.ShipCRC).Nickname).ToArray();

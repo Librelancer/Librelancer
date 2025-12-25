@@ -74,6 +74,11 @@ class NullRenderContext : IRenderContext
     {
     }
 
+    public void DrawFullscreenTriangle()
+    {
+        // No-op for null backend
+    }
+
     public void ApplyShader(IShader shader)
     {
     }
@@ -111,7 +116,13 @@ class NullRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
         new NullMultisampleTarget(width, height);
 
+    public IGBuffer CreateGBuffer(int width, int height) =>
+        new NullGBuffer(width, height);
+
     public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false) =>
+        new NullStorageBuffer(size, stride);
+
+    public IStorageBuffer CreateShaderStorageBuffer(int size, int stride, Type type, bool streaming = false) =>
         new NullStorageBuffer(size, stride);
 
     public bool HasFeature(GraphicsFeature feature) => false;

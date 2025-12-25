@@ -303,22 +303,25 @@ namespace InterfaceEdit
         public Infocard CurrentInfocard() => _Infocard;
         public string CurrentInfoString() => "CURRENT INFORMATION (test)";
 
+        // Stub for faction infocard click in editor testing
+        public void SetPendingInfocard(int idsInfo, int idsName) { }
+
         private DisplayFaction[] relations = new DisplayFaction[]
         {
-            new DisplayFaction(196851, -0.9f),
-            new DisplayFaction(196847, -0.6f),
-            new DisplayFaction(196848, -0.5f),
-            new DisplayFaction(196850, -0.45f),
-            new DisplayFaction(196885, -0.3f),
-            new DisplayFaction(196878, -0.2f),
-            new DisplayFaction(196888, 0f),
-            new DisplayFaction(196874, 0.1f),
-            new DisplayFaction(196875, 0.25f),
-            new DisplayFaction(196889, 0.3f),
-            new DisplayFaction(196884, 0.45f),
-            new DisplayFaction(196890, 0.6f),
-            new DisplayFaction(196881, 0.75f),
-            new DisplayFaction(196887, 0.9f)
+            new DisplayFaction(196851, 0, -0.9f),
+            new DisplayFaction(196847, 0, -0.6f),
+            new DisplayFaction(196848, 0, -0.5f),
+            new DisplayFaction(196850, 0, -0.45f),
+            new DisplayFaction(196885, 0, -0.3f),
+            new DisplayFaction(196878, 0, -0.2f),
+            new DisplayFaction(196888, 0, 0f),
+            new DisplayFaction(196874, 0, 0.1f),
+            new DisplayFaction(196875, 0, 0.25f),
+            new DisplayFaction(196889, 0, 0.3f),
+            new DisplayFaction(196884, 0, 0.45f),
+            new DisplayFaction(196890, 0, 0.6f),
+            new DisplayFaction(196881, 0, 0.75f),
+            new DisplayFaction(196887, 0, 0.9f)
         };
 
         public DisplayFaction[] GetPlayerRelations() => relations;
