@@ -20,8 +20,8 @@ public record CharacterConnectedEventPayload(Player ConnectedCharacter);
 public record CharacterDisconnectedEventPayload(Player DisconnectedCharacter);
 public record PlayerConnectedEventPayload( Player ConnectedPlayer);
 public record PlayerDisconnectedEventPayload(Player DisconnectedPlayer, DisconnectReason Reason);
-public record PlayerBanChangedEventPayload( Guid PlayerId, bool IsBanned, DateTime? BanToDate);
-public record PlayerAdminChangedEventPayload(long Id, bool IsAdmin);
+public record PlayerBanChangedEventPayload(BannedPlayerDescription BannedPlayer, bool IsBanned);
+public record CharacterAdminChangedEventPayload(AdminCharacterDescription AdminCharacter, bool IsAdmin);
 
 public struct ServerEvent
 {

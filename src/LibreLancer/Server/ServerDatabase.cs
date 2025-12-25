@@ -175,7 +175,9 @@ namespace LibreLancer.Server
             {
                 Type = ServerEventType.PlayerBanChanged,
                 TimeUtc = DateTime.UtcNow,
-                Payload = new PlayerBanChangedEventPayload(acc.AccountIdentifier, true, expiryUtc)
+                Payload = new PlayerBanChangedEventPayload(
+                    new BannedPlayerDescription(acc.AccountIdentifier, acc.Characters.Select(c=>c.Name).ToArray(), expiryUtc),
+                    true)
             });
         }
 
@@ -191,7 +193,9 @@ namespace LibreLancer.Server
             {
                 Type = ServerEventType.PlayerBanChanged,
                 TimeUtc = DateTime.UtcNow,
-                Payload = new PlayerBanChangedEventPayload(acc.AccountIdentifier, false, null)
+                Payload = new PlayerBanChangedEventPayload(
+                    new BannedPlayerDescription(acc.AccountIdentifier, acc.Characters.Select(c => c.Name).ToArray(), null),
+                    false)
             });
         }
 
@@ -237,7 +241,7 @@ namespace LibreLancer.Server
                     {
                         Type = ServerEventType.PlayerAdminChanged,
                         TimeUtc = DateTime.UtcNow,
-                        Payload = new PlayerAdminChangedEventPayload(c.Id, true)
+                        Payload = new CharacterAdminChangedEventPayload(new AdminCharacterDescription(c.Id, c.Name, c.System, c.Base), true)
                     });
                 }
             });
@@ -257,7 +261,7 @@ namespace LibreLancer.Server
                     {
                         Type = ServerEventType.PlayerAdminChanged,
                         TimeUtc = DateTime.UtcNow,
-                        Payload = new PlayerAdminChangedEventPayload(c.Id, false)
+                        Payload = new CharacterAdminChangedEventPayload(new AdminCharacterDescription(c.Id, c.Name, c.System, c.Base), false)
                     });
                 }
             });

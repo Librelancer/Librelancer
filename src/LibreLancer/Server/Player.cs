@@ -1036,6 +1036,13 @@ namespace LibreLancer.Server
             {
                 inputPackets.Complete();
                 packetQueueTask.Wait(1000);
+
+                Game.ServerEvents.Enqueue(new ServerEvent
+                {
+                    Type = ServerEventType.PlayerDisconnected,
+                    TimeUtc = DateTime.UtcNow,
+                    Payload = new PlayerDisconnectedEventPayload(this, DisconnectReason.Unknown)
+                });
             }
             LoggedOut();
         }
