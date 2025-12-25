@@ -272,7 +272,7 @@ public class RunningServerScreen : Screen
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
-                    ImGui.Text(player?.Character?.ID.ToString() ?? "-");
+                    ImGui.Text(player?.AccountId.ToString() ?? "-");
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
@@ -307,7 +307,8 @@ public class RunningServerScreen : Screen
                     }
 
                     ImGui.TableNextColumn();
-                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}", !String.IsNullOrWhiteSpace(player.Name) && bannedPlayers != null &&!bannedPlayers.Any(b => b.Characters.Any(c => c == player.Name)), buttonSize))
+                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}",
+                        !bannedPlayers.Any(b => b.AccountId == player.AccountId), buttonSize))
                     {
                         pm.OpenPopup(new BanPopup(player.Name, expiry =>
                         {
@@ -331,7 +332,7 @@ public class RunningServerScreen : Screen
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
-                    ImGui.Text(player?.ID.ToString() ?? "-");
+                    ImGui.Text(player?.AccountId.ToString() ?? "-");
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
@@ -357,7 +358,17 @@ public class RunningServerScreen : Screen
                     ImGuiExt.Button($"{Icons.ArrowUp.ToString()}##{uiId}", false, buttonSize);
 
                     ImGui.TableNextColumn();
-                    ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}", false, buttonSize);
+                    if(ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}", !bannedPlayers.Any(b => b.AccountId == player.AccountId), buttonSize))
+                    {
+                        pm.OpenPopup(new BanPopup(player.Name, expiry =>
+                        {
+                            if (expiry.HasValue)
+                            {
+                                Guid? g = player.AccountId;
+                                BanPlayerWithGuid( g, expiry);
+                            }
+                        }));
+                    }
                     ImGui.TableNextColumn();
                     ImGuiExt.Button($"{Icons.Eye}##{player.Name ?? "-"}", false, buttonSize);
                 }
@@ -493,7 +504,7 @@ public class RunningServerScreen : Screen
                         {
                             if (expiry.HasValue)
                             {
-                                BanPlayer(player.AccountId, expiry.Value);
+                                BanPlayerWithGuid(player.AccountId, expiry.Value);
                             }
                         }));
 
@@ -614,13 +625,13 @@ public class RunningServerScreen : Screen
             }
         });
     }
-    private void BanPlayer(Guid? account, DateTime expiry)
+    private void BanPlayerWithGuid(Guid? account, DateTime? expiry)
     {
         Task.Run(async () =>
         {
             if (account != null)
             {
-                win.Server?.Server?.Database?.BanAccount(account.Value, expiry).Wait();
+                win.Server?.Server?.Database?.BanAccount(account.Value, expiry.Value).Wait();
                 FLLog.Info("Server", $"Banned {account.Value}");
             }
         });
@@ -725,9 +736,9 @@ public class RunningServerScreen : Screen
         var player = characterDisconnectedEventPayload.DisconnectedCharacter;
         if (player == null) return;
 
-        universePlayers.RemoveAll(p => p.ID == player.ID);
+        universePlayers.RemoveAll(p => p.AccountId == player.AccountId);
 
-        if (lobbyPlayers.Any(p => p.ID == player.ID)) return;
+        if (lobbyPlayers.Any(p => p.AccountId == player.AccountId)) return;
 
     }
     private void HandleCharacterConnected(CharacterConnectedEventPayload characterConnectedEventPayload)
@@ -738,9 +749,9 @@ public class RunningServerScreen : Screen
         var player = characterConnectedEventPayload.ConnectedCharacter;
         if (player == null) return;
 
-        lobbyPlayers.RemoveAll(p => p.ID == player.ID);
+        lobbyPlayers.RemoveAll(p => p.AccountId == player.AccountId);
 
-        if (universePlayers.Any(p => p.ID == player.ID)) return;
+        if (universePlayers.Any(p => p.AccountId == player.AccountId)) return;
 
         universePlayers.Add(player);
     }
@@ -752,10 +763,10 @@ public class RunningServerScreen : Screen
         var player = playerDisconnectedEventPayload.DisconnectedPlayer;
         if (player == null) return;
 
-        FLLog.Info("Server Gui", $"{player.Name} {player.ID}");
+        FLLog.Info("Server Gui", $"{player.Name} {player.AccountId}");
 
-        lobbyPlayers.RemoveAll(x => x.ID == player.ID);
-        universePlayers.RemoveAll(x => x.ID == player.ID);
+        lobbyPlayers.RemoveAll(x => x.AccountId == player.AccountId);
+        universePlayers.RemoveAll(x => x.AccountId == player.AccountId);
     }
     private void HandlePlayerConnected(PlayerConnectedEventPayload playerConnectedEventPayload)
     {
@@ -765,7 +776,7 @@ public class RunningServerScreen : Screen
         var player = playerConnectedEventPayload.ConnectedPlayer;
         if (player == null) return;
 
-        if(lobbyPlayers.Any(p => p.ID == player.ID)) return;
+        if(lobbyPlayers.Any(p => p.AccountId == player.AccountId)) return;
 
         lobbyPlayers.Add(player);
     }

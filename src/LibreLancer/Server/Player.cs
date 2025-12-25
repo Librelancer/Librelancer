@@ -74,7 +74,7 @@ namespace LibreLancer.Server
         public bool Dead = false;
 
         Guid playerGuid; //:)
-
+        public Guid AccountId => playerGuid;
         public NetResponseHandler ResponseHandler;
 
         private RemoteClientPlayer rpcClient;
