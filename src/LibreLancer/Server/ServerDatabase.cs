@@ -170,6 +170,15 @@ namespace LibreLancer.Server
             if(acc != null)
                 acc.BanExpiry = expiryUtc;
             await ctx.SaveChangesAsync();
+
+            server.ServerEvents.Enqueue(new ServerEvent
+            {
+                Type = ServerEventType.PlayerBanChanged,
+                TimeUtc = DateTime.UtcNow,
+                Payload = new PlayerBanChangedEventPayload(
+                    new BannedPlayerDescription(acc.AccountIdentifier, acc.Characters.Select(c=>c.Name).ToArray(), expiryUtc),
+                    true)
+            });
         }
 
         public async Task UnbanAccount(Guid playerGuid)
@@ -179,6 +188,15 @@ namespace LibreLancer.Server
             if (acc != null)
                 acc.BanExpiry = null;
             await ctx.SaveChangesAsync();
+
+            server.ServerEvents.Enqueue(new ServerEvent
+            {
+                Type = ServerEventType.PlayerBanChanged,
+                TimeUtc = DateTime.UtcNow,
+                Payload = new PlayerBanChangedEventPayload(
+                    new BannedPlayerDescription(acc.AccountIdentifier, acc.Characters.Select(c => c.Name).ToArray(), null),
+                    false)
+            });
         }
 
         public AdminCharacterDescription[] GetAdmins()
@@ -218,6 +236,13 @@ namespace LibreLancer.Server
                 {
                     c.IsAdmin = true;
                     await ctx.SaveChangesAsync();
+
+                    server.ServerEvents.Enqueue(new ServerEvent
+                    {
+                        Type = ServerEventType.PlayerAdminChanged,
+                        TimeUtc = DateTime.UtcNow,
+                        Payload = new CharacterAdminChangedEventPayload(new AdminCharacterDescription(c.Id, c.Name, c.System, c.Base), true)
+                    });
                 }
             });
         }
@@ -232,6 +257,12 @@ namespace LibreLancer.Server
                 {
                     c.IsAdmin = false;
                     await ctx.SaveChangesAsync();
+                    server.ServerEvents.Enqueue(new ServerEvent
+                    {
+                        Type = ServerEventType.PlayerAdminChanged,
+                        TimeUtc = DateTime.UtcNow,
+                        Payload = new CharacterAdminChangedEventPayload(new AdminCharacterDescription(c.Id, c.Name, c.System, c.Base), false)
+                    });
                 }
             });
         }
