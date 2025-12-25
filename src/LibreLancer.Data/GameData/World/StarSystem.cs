@@ -8,12 +8,10 @@ using System.Numerics;
 
 namespace LibreLancer.Data.GameData.World
 {
-	public class StarSystem : IdentifiableItem
+	public class StarSystem : NamedItem
 	{
         //Comes from universe.ini
         public Vector2 UniversePosition;
-        public int IdsName;
-        public int IdsInfo;
         public string MsgIdPrefix;
         public VisitFlags Visit;
         public string SourceFile;

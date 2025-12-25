@@ -10,10 +10,9 @@ using LibreLancer.Data.Schema.MBases;
 
 namespace LibreLancer.Data.GameData.World
 {
-	public class Base : IdentifiableItem
+	public class Base : NamedItem
     {
         //Populated from universe
-        public int IdsName;
         public string System;
         public string TerrainTiny;
         public string TerrainSml;

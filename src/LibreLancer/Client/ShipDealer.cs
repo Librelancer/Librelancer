@@ -34,8 +34,8 @@ namespace LibreLancer.Client
             ship.ModelFile.LoadFile(session.Game.ResourceManager);
             return new UISoldShip()
             {
-                IdsName = ship.NameIds,
-                IdsInfo = ship.Infocard,
+                IdsName = ship.IdsName,
+                IdsInfo = ship.IdsInfo,
                 Model = ship.ModelFile.SourcePath,
                 ShipClass = ship.Class,
                 Icon = session.Game.GameData.Items.GetShipIcon(ship),

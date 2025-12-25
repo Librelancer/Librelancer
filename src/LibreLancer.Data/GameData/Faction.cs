@@ -2,12 +2,10 @@ using System.Collections.Generic;
 
 namespace LibreLancer.Data.GameData
 {
-    public class Faction : IdentifiableItem
+    public class Faction : NamedItem
     {
         public bool Hidden; //Hidden from the player status list
-        public int IdsName;
         public int IdsShortName;
-        public int IdsInfo;
 
         public float ObjectDestroyRepChange;
         public float MissionSucceedRepChange;

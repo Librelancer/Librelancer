@@ -10,15 +10,13 @@ using LibreLancer.Data.Schema.Ships;
 
 namespace LibreLancer.Data.GameData
 {
-	public class Ship : IdentifiableItem
+	public class Ship : NamedItem
 	{
         public ShipType ShipType;
         public int Class;
         public int HoldSize;
         public float[] LODRanges;
-        public int NameIds;
-        public int Infocard;
-        public int[] IdsInfo;
+        public int[] ExtraIdsInfo;
 		public ResolvedModel ModelFile;
 		public Vector3 SteeringTorque;
 		public Vector3 AngularDrag;

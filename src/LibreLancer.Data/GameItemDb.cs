@@ -1713,9 +1713,9 @@ namespace LibreLancer.Data
                 ship.CameraVerticalTurnUpAngle = orig.CameraVerticalTurnUpAngle;
                 ship.CameraVerticalTurnDownAngle = orig.CameraVerticalTurnDownAngle;
                 ship.Nickname = orig.Nickname;
-                ship.NameIds = orig.IdsName;
-                ship.Infocard = orig.IdsInfo;
-                ship.IdsInfo = [orig.IdsInfo1, orig.IdsInfo2, orig.IdsInfo3];
+                ship.IdsName = orig.IdsName;
+                ship.IdsInfo = orig.IdsInfo;
+                ship.ExtraIdsInfo = [orig.IdsInfo1, orig.IdsInfo2, orig.IdsInfo3];
                 ship.ShipType = orig.Type;
                 ship.Explosion = Explosions.Get(orig.ExplosionArch);
                 ship.CRC = FLHash.CreateID(ship.Nickname);

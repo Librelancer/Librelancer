@@ -492,7 +492,7 @@ World Time: {12:F2}
                 if (g.Selection.Selected == null) return null;
                 if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
                 {
-                    return g.Game.GameData.GetInfocard(ship.Ship.Infocard, g.Game.Fonts);
+                    return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
                 }
                 return null;
             }

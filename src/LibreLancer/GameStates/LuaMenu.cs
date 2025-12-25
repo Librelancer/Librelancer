@@ -246,7 +246,7 @@ namespace LibreLancer
 
             void ResolveNicknames(SelectableCharacter c)
             {
-                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Items.Ships.Get(c.Ship).NameIds);
+                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Items.Ships.Get(c.Ship).IdsName);
                 c.Location = state.Game.GameData.GetString(state.Game.GameData.Items.Systems.Get(c.Location).IdsName);
             }
             internal void _Update()
@@ -282,7 +282,7 @@ namespace LibreLancer
                                     Money = package.Money,
                                     StridDesc = package.StridDesc,
                                     StridName = package.StridName,
-                                    ShipName = state.Game.GameData.GetString(ship.NameIds),
+                                    ShipName = state.Game.GameData.GetString(ship.IdsName),
                                     ShipModel = ship.ModelFile.ModelFile,
                                     Location = loc
                                 };

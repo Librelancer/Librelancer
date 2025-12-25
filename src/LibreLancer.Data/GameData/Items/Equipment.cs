@@ -4,14 +4,12 @@
 
 namespace LibreLancer.Data.GameData.Items
 {
-	public class Equipment : IdentifiableItem
+	public class Equipment : NamedItem
 	{
 		public Equipment()
 		{
 		}
         public string HpType;
-        public int IdsName;
-        public int IdsInfo;
         public float[] LODRanges;
         public string HPChild;
         public ResolvedModel ModelFile;
