@@ -25,13 +25,11 @@ SOFTWARE.
 */
 #endregion License
 
-namespace LibreLancer
-{
-    public enum ContainmentType
-    {
-        Disjoint,
-        Contains,
-        Intersects
-    }
-}
+namespace LibreLancer;
 
+public enum ContainmentType
+{
+    Disjoint,
+    Contains,
+    Intersects
+}

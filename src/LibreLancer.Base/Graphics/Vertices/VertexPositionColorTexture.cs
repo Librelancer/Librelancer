@@ -5,31 +5,29 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace LibreLancer.Graphics.Vertices
+namespace LibreLancer.Graphics.Vertices;
+
+[StructLayout(LayoutKind.Sequential)]
+public struct VertexPositionColorTexture : IVertexType
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct VertexPositionColorTexture : IVertexType
+    public Vector3 Position;
+    public Vector2 TextureCoordinate;
+    public VertexDiffuse Color;
+
+    public VertexPositionColorTexture(Vector3 pos, Color4 color, Vector2 texcoord)
     {
-        public Vector3 Position;
-        public Vector2 TextureCoordinate;
-        public VertexDiffuse Color;
+        Position = pos;
+        Color = (VertexDiffuse)color;
+        TextureCoordinate = texcoord;
+    }
 
-        public VertexPositionColorTexture(Vector3 pos, Color4 color, Vector2 texcoord)
-        {
-            Position = pos;
-            Color = (VertexDiffuse)color;
-            TextureCoordinate = texcoord;
-        }
-
-		public VertexDeclaration GetVertexDeclaration()
-		{
-			return new VertexDeclaration(
-				sizeof(float) * 6,
-				new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
-                new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 3),
-				new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, sizeof(float) * 5)
-			);
-		}
+    public VertexDeclaration GetVertexDeclaration()
+    {
+        return new VertexDeclaration(
+            sizeof(float) * 6,
+            new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+            new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 3),
+            new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, sizeof(float) * 5)
+        );
     }
 }
-

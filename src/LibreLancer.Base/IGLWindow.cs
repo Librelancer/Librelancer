@@ -4,6 +4,6 @@ namespace LibreLancer;
 
 public interface IGLWindow
 {
-    RenderContext RenderContext { get; }
+    RenderContext? RenderContext { get; }
     bool IsUiThread();
 }

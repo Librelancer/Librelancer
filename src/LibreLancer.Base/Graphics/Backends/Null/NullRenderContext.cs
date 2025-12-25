@@ -5,7 +5,7 @@ using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends.Null;
 
-class NullRenderContext : IRenderContext
+internal class NullRenderContext : IRenderContext
 {
     public int MaxSamples => 0;
     public int MaxAnisotropy => 0;
@@ -74,7 +74,7 @@ class NullRenderContext : IRenderContext
     {
     }
 
-    public void ApplyShader(IShader shader)
+    public void ApplyShader(IShader? shader)
     {
     }
 
@@ -116,7 +116,7 @@ class NullRenderContext : IRenderContext
 
     public bool HasFeature(GraphicsFeature feature) => false;
 
-    public string GetRenderer() => "NULL";
+    public string? GetRenderer() => "NULL";
     public void MakeCurrent(IntPtr sdlWindow)
     {
     }

@@ -7,35 +7,31 @@ using System.Threading;
 using LibreLancer.Graphics.Backends;
 using LibreLancer.Graphics.Backends.OpenGL;
 
-namespace LibreLancer.Graphics
+namespace LibreLancer.Graphics;
+
+public abstract class Texture : IDisposable
 {
-    public abstract class Texture : IDisposable
+    /// <summary>
+    /// Unique identifier for the texture. Not used for GL
+    /// </summary>
+    public uint ID { get; private set; }
+    private static uint _unique = 0;
+
+    private ITexture impl = null!;
+
+    protected internal Texture()
     {
-        /// <summary>
-        /// Unique identifier for the texture. Not used for GL
-        /// </summary>
-        public uint ID { get; private set; }
-        private static uint _unique = 0;
-
-        private ITexture impl;
-
-        protected internal Texture()
-        {
-            ID = Interlocked.Increment(ref _unique);
-        }
-
-        protected void SetBacking(ITexture impl) => this.impl = impl;
-
-        public SurfaceFormat Format => impl.Format;
-
-        public int EstimatedTextureMemory => impl.EstimatedTextureMemory;
-        public int LevelCount => impl.LevelCount;
-
-        public bool IsDisposed => impl.IsDisposed;
-
-        public void BindTo(int unit) => impl.BindTo(unit);
-
-        public virtual void Dispose() => impl.Dispose();
+        ID = Interlocked.Increment(ref _unique);
     }
-}
 
+    protected void SetBacking(ITexture implementation) => impl = implementation;
+
+    public SurfaceFormat Format => impl!.Format;
+
+    public int EstimatedTextureMemory => impl!.EstimatedTextureMemory;
+    public int LevelCount => impl!.LevelCount;
+    public bool IsDisposed => impl!.IsDisposed;
+    public void BindTo(int unit) => impl!.BindTo(unit);
+
+    public virtual void Dispose() => impl!.Dispose();
+}

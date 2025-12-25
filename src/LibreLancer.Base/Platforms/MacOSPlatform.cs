@@ -1,52 +1,51 @@
 using System;
 using System.IO;
 
-namespace LibreLancer.Platforms
+namespace LibreLancer.Platforms;
+
+internal class MacOSPlatform : IPlatform
 {
-    class MacOSPlatform : IPlatform
+    public void Init(string sdlBackend)
     {
-        public void Init(string sdlBackend)
-        {
-        }
+    }
 
-        public string GetLocalConfigFolder()
-        {
-            return Environment.CurrentDirectory;
-        }
+    public string GetLocalConfigFolder()
+    {
+        return Environment.CurrentDirectory;
+    }
 
-        public bool IsDirCaseSensitive(string directory)
-        {
-            return false;
-        }
+    public bool IsDirCaseSensitive(string directory)
+    {
+        return false;
+    }
 
-        public void AddTtfFile(byte[] ttf)
-        {
-        }
+    public void AddTtfFile(byte[] ttf)
+    {
+    }
 
-        public byte[] GetMonospaceBytes()
-        {
-            return File.ReadAllBytes("/System/Library/Fonts/Monaco.ttf");
-        }
+    public byte[] GetMonospaceBytes()
+    {
+        return File.ReadAllBytes("/System/Library/Fonts/Monaco.ttf");
+    }
 
-        public PlatformEvents SubscribeEvents(IUIThread mainThread)
-        {
-            return new MacOSEvents();
-        }
+    public PlatformEvents SubscribeEvents(IUIThread mainThread)
+    {
+        return new MacOSEvents();
+    }
 
-        public MountInfo[] GetMounts()
-        {
-            return [];
-        }
+    public MountInfo[] GetMounts()
+    {
+        return [];
+    }
 
-        public void Shutdown()
-        {
-        }
+    public void Shutdown()
+    {
+    }
 
-        internal class MacOSEvents : PlatformEvents
+    internal class MacOSEvents : PlatformEvents
+    {
+        public override void Dispose()
         {
-            public override void Dispose()
-            {
-            }
         }
     }
 }

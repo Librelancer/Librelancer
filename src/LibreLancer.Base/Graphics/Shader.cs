@@ -7,24 +7,26 @@ using System.IO;
 using System.Numerics;
 using LibreLancer.Graphics.Backends;
 
-namespace LibreLancer.Graphics
+namespace LibreLancer.Graphics;
+
+public class Shader
 {
-    public class Shader
+    internal readonly IShader Backing = null!;
+    public Shader(RenderContext context, ReadOnlySpan<byte> program)
     {
-        internal IShader Backing;
-        public Shader(RenderContext context, ReadOnlySpan<byte> program)
-        {
-            Backing = context.Backend.CreateShader(program);
-        }
-
-        private Shader()
-        {
-        }
-
-        public bool HasUniformBlock(int index) => Backing.HasUniformBlock(index);
-
-        public ref ulong UniformBlockTag(int index) => ref Backing.UniformBlockTag(index);
-
-        public void SetUniformBlock<T>(int index, ref T data, bool forceUpdate = false, int forceSize = -1) where T : unmanaged => Backing.SetUniformBlock(index, ref data, forceUpdate, forceSize);
+        Backing = context.Backend.CreateShader(program);
     }
+
+    private Shader()
+    {
+    }
+
+    public bool HasUniformBlock(int index) => Backing.HasUniformBlock(index);
+
+    public ref ulong UniformBlockTag(int index)
+    {
+        return ref Backing.UniformBlockTag(index);
+    }
+
+    public void SetUniformBlock<T>(int index, ref T data, bool forceUpdate = false, int forceSize = -1) where T : unmanaged => Backing.SetUniformBlock(index, ref data, forceUpdate, forceSize);
 }

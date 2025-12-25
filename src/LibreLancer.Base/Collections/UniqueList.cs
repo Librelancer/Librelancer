@@ -6,7 +6,7 @@ namespace LibreLancer;
 public class UniqueList<T> : IList<T>
 {
     private List<T> _backing = new List<T>();
-    
+
     public IEnumerator<T> GetEnumerator()
     {
         return _backing.GetEnumerator();

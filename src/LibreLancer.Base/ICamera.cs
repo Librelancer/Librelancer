@@ -4,17 +4,15 @@
 
 using System.Numerics;
 
-namespace LibreLancer
+namespace LibreLancer;
+
+public interface ICamera
 {
-	public interface ICamera
-	{
-		Matrix4x4 ViewProjection { get; }
-		Matrix4x4 Projection { get; }
-		Matrix4x4 View { get; }
-		Vector3 Position { get; }
+    Matrix4x4 ViewProjection { get; }
+    Matrix4x4 Projection { get; }
+    Matrix4x4 View { get; }
+    Vector3 Position { get; }
 
-        bool FrustumCheck(BoundingSphere sphere);
-        bool FrustumCheck(BoundingBox box);
-	}
+    bool FrustumCheck(BoundingSphere sphere);
+    bool FrustumCheck(BoundingBox box);
 }
-

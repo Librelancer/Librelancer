@@ -3,10 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer;
 
-static class GLSwap
+internal static class GLSwap
 {
     [DllImport("dwmapi.dll")]
-    static extern int DwmFlush();
+    private static extern int DwmFlush();
 
     private static bool doDwmFlush = true;
     private static bool loggedDwmFlush = false;
@@ -15,11 +15,11 @@ static class GLSwap
     // and DwmFlush() is a stub
 
     [DllImport("ntdll.dll")]
-    static extern IntPtr wine_get_version();
+    private static extern IntPtr wine_get_version();
 
     private static bool? wine;
 
-    static bool IsWine()
+    private static bool IsWine()
     {
         if (wine.HasValue) return wine.Value;
         try
@@ -38,7 +38,7 @@ static class GLSwap
 
     // DwmFlush(), but log and disable the functionality if the call fails for any reason.
 
-    static void TryDwmFlush()
+    private static void TryDwmFlush()
     {
         if (IsWine()) {
             FLLog.Info("GL", "DwmFlush() method disabled on wine");

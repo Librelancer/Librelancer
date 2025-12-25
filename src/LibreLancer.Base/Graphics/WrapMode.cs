@@ -4,14 +4,12 @@
 
 using LibreLancer.Graphics.Backends.OpenGL;
 
-namespace LibreLancer.Graphics
-{
-	public enum WrapMode
-	{
-		ClampToEdge = GL.GL_CLAMP_TO_EDGE,
-		ClampToBorder = GL.GL_CLAMP_TO_BORDER,
-		MirroredRepeat = GL.GL_MIRRORED_REPEAT,
-        Repeat = GL.GL_REPEAT
-	}
-}
+namespace LibreLancer.Graphics;
 
+public enum WrapMode
+{
+    ClampToEdge = GL.GL_CLAMP_TO_EDGE,
+    ClampToBorder = GL.GL_CLAMP_TO_BORDER,
+    MirroredRepeat = GL.GL_MIRRORED_REPEAT,
+    Repeat = GL.GL_REPEAT
+}

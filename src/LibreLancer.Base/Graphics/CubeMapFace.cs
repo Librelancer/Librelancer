@@ -4,16 +4,14 @@
 
 using System;
 
-namespace LibreLancer.Graphics
-{
-    public enum CubeMapFace
-    {
-        PositiveX,
-		NegativeX,
-        PositiveY,
-		NegativeY,
-        PositiveZ,
-        NegativeZ
-    }
-}
+namespace LibreLancer.Graphics;
 
+public enum CubeMapFace
+{
+    PositiveX,
+    NegativeX,
+    PositiveY,
+    NegativeY,
+    PositiveZ,
+    NegativeZ
+}

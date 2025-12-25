@@ -4,11 +4,9 @@
 
 using System;
 
-namespace LibreLancer
-{
-	public interface IUIThread
-	{
-		void QueueUIThread(Action work);
-	}
-}
+namespace LibreLancer;
 
+public interface IUIThread
+{
+    void QueueUIThread(Action? work);
+}

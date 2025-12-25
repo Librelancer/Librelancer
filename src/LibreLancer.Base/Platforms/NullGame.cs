@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Concurrent;
-using System.Text.Encodings.Web;
 using System.Threading;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Backends.Null;
-using LibreLancer.Platforms;
 
-namespace LibreLancer;
+namespace LibreLancer.Platforms;
 
-class NullGame : IGame
+internal class NullGame : IGame
 {
-    private ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
-    public void QueueUIThread(Action work) => actions.Enqueue(work);
+    private ConcurrentQueue<Action?> actions = new();
+    public void QueueUIThread(Action? work) => actions.Enqueue(work);
 
     public void WaitForEvent(int timeout)
     {
@@ -33,20 +31,20 @@ class NullGame : IGame
     {
     }
 
-    public ScreenshotSaveHandler OnScreenshotSave { get; set; }
+    public ScreenshotSaveHandler? OnScreenshotSave { get; set; }
 
     public bool RelativeMouseMode { get; set; }
 
     public bool Focused => true;
-    public string Title { get; set; }
+    public string Title { get; set; } = "";
     public Point MinimumWindowSize { get; set; }
-    
+
     public void SetVSync(bool vsync)
     {
     }
-    
+
     public bool IsFullScreen { get; set; }
-    
+
     public void SetFullScreen(bool fullscreen)
     {
     }
@@ -66,7 +64,7 @@ class NullGame : IGame
         while (running)
         {
             while (actions.TryDequeue(out var a))
-                a();
+                a?.Invoke();
             iterations++;
             if (MaxIterations > 0 && iterations > MaxIterations)
                 throw new TimeoutException("Exceeded max main loop iterations");
@@ -88,8 +86,8 @@ class NullGame : IGame
         if (mythread != Thread.CurrentThread.ManagedThreadId) {
             throw new InvalidOperationException();
         }
-        while (actions.TryDequeue(out Action work))
-            work();
+        while (actions.TryDequeue(out Action? work))
+            work?.Invoke();
     }
 
     public void Crashed()
@@ -104,12 +102,12 @@ class NullGame : IGame
     public double TimerTick => TotalTime;
     public double RenderFrequency => 60.0;
     public double FrameTime => 1 / 60.0;
-    public string Renderer => "NULL";
-    public RenderContext RenderContext { get; set; } = new RenderContext(new NullRenderContext());
+    public string? Renderer => "NULL";
+    public RenderContext? RenderContext { get; set; } = new RenderContext(new NullRenderContext());
     public Mouse Mouse { get; set; } = new Mouse();
     public Keyboard Keyboard { get; set; } = new Keyboard();
 
-    public Action OnTick;
+    public Action? OnTick;
 
     public void EnableTextInput()
     {
@@ -123,27 +121,27 @@ class NullGame : IGame
     {
     }
 
-    public void Screenshot(string filename)
+    public void Screenshot(string? filename)
     {
     }
 
-    private object clipboard;
+    private object? clipboard;
 
     public ClipboardContents ClipboardStatus()
     {
-        if (clipboard is string)
-            return ClipboardContents.Text;
-        else if (clipboard is byte[])
-            return ClipboardContents.Array;
-        else
-            return ClipboardContents.None;
+        return clipboard switch
+        {
+            string => ClipboardContents.Text,
+            byte[] => ClipboardContents.Array,
+            _ => ClipboardContents.None
+        };
     }
 
-    public string GetClipboardText() => clipboard as string;
+    public string? GetClipboardText() => clipboard as string;
 
-    public void SetClipboardText(string text) => clipboard = text;
+    public void SetClipboardText(string? text) => clipboard = text;
 
-    public byte[] GetClipboardArray() => clipboard as byte[];
+    public byte[]? GetClipboardArray() => clipboard as byte[];
 
     public void SetClipboardArray(byte[] array) => clipboard = array;
 

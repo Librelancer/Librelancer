@@ -3,7 +3,7 @@ using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends;
 
-interface IVertexBuffer : IDisposable
+internal interface IVertexBuffer : IDisposable
 {
     IVertexType VertexType { get; }
     int VertexCount { get; }
