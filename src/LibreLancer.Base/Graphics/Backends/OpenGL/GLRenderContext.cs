@@ -222,7 +222,10 @@ internal class GLRenderContext : IRenderContext
 
     public void ApplyState(ref GraphicsState requested)
     {
-        ApplyShader(requested.Shader!);
+        if (requested.Shader is not null)
+        {
+            ApplyShader(requested.Shader);
+        }
 
         if (requested.ClearColor != applied.ClearColor)
         {
