@@ -33,7 +33,7 @@ internal class SDL2Game : IGame
 
     public ScreenshotSaveHandler? OnScreenshotSave { get; set; }
 
-    public RenderContext? RenderContext { get; private set; }
+    public RenderContext RenderContext { get; private set; } = null!;
     public string? Renderer
     {
         get; private set;

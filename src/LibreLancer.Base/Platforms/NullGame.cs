@@ -103,7 +103,7 @@ internal class NullGame : IGame
     public double RenderFrequency => 60.0;
     public double FrameTime => 1 / 60.0;
     public string? Renderer => "NULL";
-    public RenderContext? RenderContext { get; set; } = new RenderContext(new NullRenderContext());
+    public RenderContext RenderContext { get; set; } = new(new NullRenderContext());
     public Mouse Mouse { get; set; } = new Mouse();
     public Keyboard Keyboard { get; set; } = new Keyboard();
 

@@ -35,7 +35,7 @@ internal interface IGame : IUIThread
     //Hardware
     bool RelativeMouseMode { get; set; }
     string? Renderer { get; }
-    RenderContext? RenderContext { get; }
+    RenderContext RenderContext { get; }
     Mouse Mouse { get; }
     Keyboard Keyboard { get; }
     void EnableTextInput();

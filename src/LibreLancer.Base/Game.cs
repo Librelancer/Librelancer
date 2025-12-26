@@ -40,7 +40,7 @@ public class Game : IUIThread, IGLWindow
     public float DpiScale => impl.DpiScale;
 
     public ScreenshotSaveHandler? ScreenshotSave;
-    public RenderContext? RenderContext => impl.RenderContext;
+    public RenderContext RenderContext => impl.RenderContext;
     public string? Renderer => impl.Renderer;
 
     protected Game(int w, int h, bool allowScreensaver, GameConfiguration? configuration = null)

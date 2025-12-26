@@ -31,7 +31,7 @@ internal class SDL3Game : IGame
 
     public ScreenshotSaveHandler? OnScreenshotSave { get; set; }
 
-    public RenderContext? RenderContext { get; private set; }
+    public RenderContext RenderContext { get; private set; } = null!;
     public string? Renderer { get; private set; }
 
     private const string ARRAY_MIMETYPE = "application/x-librelancer-array";
