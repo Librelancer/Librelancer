@@ -27,8 +27,14 @@ public class EditMap2D
     private static readonly string[] GRIDLETTERS = {
         "A", "B", "C", "D", "E", "F", "G", "H"
     };
+    private static readonly int GRID_DIVISIONS = 8;
+    private static readonly float ZOOM_SPEED = 0.15f;
+    private static readonly float MIN_ZOOM = 1f;
+    private static readonly float MAX_ZOOM = 10f;
+    private Vector2 CameraCenter = new(0.5f, 0.5f); // normalized (0..1)
 
     public float Zoom = 1;
+    private float lastZoom = 1f;
 
     private GameObject dragTarget;
     private Transform3D dragOriginalTransform;
@@ -39,6 +45,9 @@ public class EditMap2D
 
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
     {
+        DrawNew(system, world, ctx, tab, renderContext);
+        return;
+
         var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
         var renderHeight = Math.Max(120, ImGui.GetWindowHeight() - MarginH);
 
@@ -312,6 +321,207 @@ public class EditMap2D
             ImGui.End();
         }
     }
+
+    private void DrawNew(
+    SystemEditData system,
+    GameWorld world,
+    GameDataContext ctx,
+    SystemEditorTab tab,
+    RenderContext renderContext
+)
+    {
+        Vector2 viewportPos = ImGui.GetCursorScreenPos();
+        Vector2 viewportSize = new(
+            Math.Max(120, ImGui.GetWindowWidth() - MarginW),
+            Math.Max(120, ImGui.GetWindowHeight() - MarginH)
+        );
+        Vector2 viewportMax = viewportPos + viewportSize;
+
+        var drawList = ImGui.GetWindowDrawList();
+        drawList.PushClipRect(viewportPos, viewportMax, true);
+
+        Vector2 viewportCenter = viewportPos + viewportSize * 0.5f;
+
+        if (Zoom <= 1.0f)
+        {
+            Zoom = 1.0f;
+            CameraCenter = new Vector2(0.5f, 0.5f);
+        }
+
+        float baseMapSize = Math.Min(viewportSize.X, viewportSize.Y);
+        float mapSize = baseMapSize * Zoom;
+
+        float halfVisible = 0.5f / Zoom;
+        CameraCenter.X = Math.Clamp(CameraCenter.X, halfVisible, 1f - halfVisible);
+        CameraCenter.Y = Math.Clamp(CameraCenter.Y, halfVisible, 1f - halfVisible);
+
+        Vector2 mapTopLeft =
+            viewportCenter
+            - (CameraCenter * mapSize);
+
+        // ---- Background ----
+        drawList.AddRectFilled(
+            mapTopLeft,
+            mapTopLeft + new Vector2(mapSize),
+            0xFF1C0812
+        );
+
+        drawList.AddRect(
+            mapTopLeft,
+            mapTopLeft + new Vector2(mapSize),
+            0xFFFFFFFF,
+            0,
+            ImDrawFlags.None,
+            2f
+        );
+
+        // ---- Grid + Labels (NEW) ----
+        DrawGridAndLabelsViewportAware(
+            drawList,
+            viewportPos,
+            viewportSize,
+            mapTopLeft,
+            mapSize
+        );
+
+        // ---- Mouse pan ----
+        if (ImGui.IsWindowHovered() && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
+        {
+            Vector2 delta = ImGui.GetIO().MouseDelta;
+            CameraCenter -= delta / mapSize;
+        }
+        // ---- Mouse Scroll ----
+        else if(ImGui.IsWindowHovered() && ImGui.GetIO().MouseWheel != 0f)
+        {
+            float wheel = ImGui.GetIO().MouseWheel;
+
+            float oldZoom = Zoom;
+
+            // Exponential zoom feels better than linear
+            Zoom *= MathF.Exp(wheel * ZOOM_SPEED);
+            Zoom = Math.Clamp(Zoom, MIN_ZOOM, MAX_ZOOM);
+
+            if (Zoom != oldZoom)
+            {
+                // Mouse position in screen space
+                Vector2 mouseScreen = ImGui.GetIO().MousePos;
+
+                // Convert mouse position to normalized map space BEFORE zoom
+                Vector2 mouseMapBefore =
+                    (mouseScreen - mapTopLeft) / mapSize;
+
+                // Recalculate map size AFTER zoom
+                float newMapSize = baseMapSize * Zoom;
+
+                // Update camera center so mouseMapBefore stays under cursor
+                Vector2 mouseMapAfter =
+                    (mouseScreen - viewportCenter) / newMapSize + CameraCenter;
+
+                CameraCenter += (mouseMapBefore - mouseMapAfter);
+            }
+        }
+
+
+
+        drawList.PopClipRect();
+    }
+
+
+
+    private void DrawGridAndLabelsViewportAware(
+    ImDrawListPtr drawList,
+    Vector2 viewportPos,
+    Vector2 viewportSize,
+    Vector2 mapTopLeft,
+    float mapSize
+)
+    {
+        Vector2 viewportMin = viewportPos;
+        Vector2 viewportMax = viewportPos + viewportSize;
+
+        // Convert viewport corners to normalized map space (0..1)
+        Vector2 mapMin = (viewportMin - mapTopLeft) / mapSize;
+        Vector2 mapMax = (viewportMax - mapTopLeft) / mapSize;
+
+        mapMin = Vector2.Clamp(mapMin, Vector2.Zero, Vector2.One);
+        mapMax = Vector2.Clamp(mapMax, Vector2.Zero, Vector2.One);
+
+        int colMin = Math.Clamp((int)Math.Floor(mapMin.X * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int colMax = Math.Clamp((int)Math.Floor(mapMax.X * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int rowMin = Math.Clamp((int)Math.Floor(mapMin.Y * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int rowMax = Math.Clamp((int)Math.Floor(mapMax.Y * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+
+        float cellSize = mapSize / GRID_DIVISIONS;
+        uint gridColor = ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 0.4f));
+
+        // ---- Grid lines (map space) ----
+        for (int i = 1; i < GRID_DIVISIONS; i++)
+        {
+            float p = i * cellSize;
+
+            drawList.AddLine(
+                mapTopLeft + new Vector2(p, 0),
+                mapTopLeft + new Vector2(p, mapSize),
+                gridColor,
+                1f
+            );
+
+            drawList.AddLine(
+                mapTopLeft + new Vector2(0, p),
+                mapTopLeft + new Vector2(mapSize, p),
+                gridColor,
+                1f
+            );
+        }
+
+        // ---- Labels (viewport space) ----
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 12f);
+
+        // Column labels (top)
+        for (int col = colMin; col <= colMax; col++)
+        {
+            float mapX = (col + 0.5f) / GRID_DIVISIONS;
+            float screenX = mapTopLeft.X + mapX * mapSize;
+
+            if (screenX < viewportMin.X || screenX > viewportMax.X)
+                continue;
+
+            string label = GRIDLETTERS[col];
+            Vector2 size = ImGui.CalcTextSize(label);
+
+            drawList.AddText(
+                new Vector2(screenX - size.X * 0.5f, viewportMin.Y + 4),
+                0xFFFFFFFF,
+                label
+            );
+        }
+
+        // Row labels (left)
+        for (int row = rowMin; row <= rowMax; row++)
+        {
+            float mapY = (row + 0.5f) / GRID_DIVISIONS;
+            float screenY = mapTopLeft.Y + mapY * mapSize;
+
+            if (screenY < viewportMin.Y || screenY > viewportMax.Y)
+                continue;
+
+            string label = GRIDNUMBERS[row];
+            Vector2 size = ImGui.CalcTextSize(label);
+
+            float labelX = Math.Max(viewportMin.X, mapTopLeft.X) + 4;
+
+            drawList.AddText(
+                new Vector2(labelX, screenY - size.Y * 0.5f),
+                0xFFFFFFFF,
+                label
+            );
+        }
+
+        ImGui.PopFont();
+    }
+
+
+
 }
 
 
