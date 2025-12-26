@@ -1,14 +1,14 @@
 // NOTE: This file is auto-generated.
 // Edited for Librelancer, mostly commenting out unused header files
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
-using System.Text;
 
 namespace LibreLancer;
 
-static unsafe partial class SDL3
+internal static unsafe partial class SDL3
 {
     // LibreLancer addition
     public static bool Supported { get; private set; }
@@ -40,7 +40,7 @@ static unsafe partial class SDL3
 		/// Converts an unmanaged string to a managed version.
 		/// </summary>
 		/// <returns>A managed string.</returns>
-		public static string ConvertToManaged(byte* unmanaged)
+		public static string? ConvertToManaged(byte* unmanaged)
 			=> Marshal.PtrToStringUTF8((IntPtr) unmanaged);
 	}
 
@@ -52,7 +52,7 @@ static unsafe partial class SDL3
 		/// Converts an unmanaged string to a managed version.
 		/// </summary>
 		/// <returns>A managed string.</returns>
-		public static string ConvertToManaged(byte* unmanaged)
+		public static string? ConvertToManaged(byte* unmanaged)
 			=> Marshal.PtrToStringUTF8((IntPtr) unmanaged);
 
 		/// <summary>
@@ -1959,12 +1959,12 @@ static unsafe partial class SDL3
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial SDLBool SDL_SetClipboardText(string text);
+	public static partial SDLBool SDL_SetClipboardText(string? text);
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	[return: MarshalUsing(typeof(CallerOwnedStringMarshaller))]
-	public static partial string SDL_GetClipboardText();
+	public static partial string? SDL_GetClipboardText();
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
@@ -2000,11 +2000,11 @@ static unsafe partial class SDL3
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial IntPtr SDL_GetClipboardData(string mime_type, out UIntPtr size);
+	public static partial IntPtr SDL_GetClipboardData(string? mime_type, out UIntPtr size);
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial SDLBool SDL_HasClipboardData(string mime_type);
+	public static partial SDLBool SDL_HasClipboardData(string? mime_type);
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
@@ -2756,15 +2756,15 @@ static unsafe partial class SDL3
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial void SDL_ShowOpenFileDialog(SDL_DialogFileCallback callback, IntPtr userdata, IntPtr window, Span<SDL_DialogFileFilter> filters, int nfilters, string default_location, SDLBool allow_many);
+	public static partial void SDL_ShowOpenFileDialog(SDL_DialogFileCallback callback, IntPtr userdata, IntPtr window, Span<SDL_DialogFileFilter> filters, int nfilters, string? default_location, SDLBool allow_many);
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial void SDL_ShowSaveFileDialog(SDL_DialogFileCallback callback, IntPtr userdata, IntPtr window, Span<SDL_DialogFileFilter> filters, int nfilters, string default_location);
+	public static partial void SDL_ShowSaveFileDialog(SDL_DialogFileCallback callback, IntPtr userdata, IntPtr window, Span<SDL_DialogFileFilter> filters, int nfilters, string? default_location);
 
 	[LibraryImport(nativeLibName, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
-	public static partial void SDL_ShowOpenFolderDialog(SDL_DialogFileCallback callback, IntPtr userdata, IntPtr window, string default_location, SDLBool allow_many);
+	public static partial void SDL_ShowOpenFolderDialog(SDL_DialogFileCallback callback, IntPtr userdata, IntPtr window, string? default_location, SDLBool allow_many);
 
 	public enum SDL_FileDialogType
 	{

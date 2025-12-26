@@ -4,42 +4,41 @@
 
 using System;
 
-namespace LibreLancer.Graphics.Text
+namespace LibreLancer.Graphics.Text;
+
+public struct OptionalColor
 {
-    public struct OptionalColor
+    public bool Equals(OptionalColor other)
     {
-        public bool Equals(OptionalColor other)
-        {
-            return Color.Equals(other.Color) && Enabled == other.Enabled;
-        }
+        return Color.Equals(other.Color) && Enabled == other.Enabled;
+    }
 
-        public override bool Equals(object obj)
-        {
-            return obj is OptionalColor other && Equals(other);
-        }
+    public override bool Equals(object? obj)
+    {
+        return obj is OptionalColor other && Equals(other);
+    }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Color, Enabled);
-        }
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Color, Enabled);
+    }
 
-        public static bool operator ==(OptionalColor left, OptionalColor right)
-        {
-            return left.Equals(right);
-        }
+    public static bool operator ==(OptionalColor left, OptionalColor right)
+    {
+        return left.Equals(right);
+    }
 
-        public static bool operator !=(OptionalColor left, OptionalColor right)
-        {
-            return !left.Equals(right);
-        }
+    public static bool operator !=(OptionalColor left, OptionalColor right)
+    {
+        return !left.Equals(right);
+    }
 
-        public Color4 Color;
-        public bool Enabled;
+    public Color4 Color;
+    public bool Enabled;
 
-        public OptionalColor(Color4 color)
-        {
-            Color = color;
-            Enabled = true;
-        }
+    public OptionalColor(Color4 color)
+    {
+        Color = color;
+        Enabled = true;
     }
 }

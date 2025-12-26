@@ -3,7 +3,7 @@ using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics.Backends;
 
-interface IRenderContext
+internal interface IRenderContext
 {
     int MaxSamples { get; }
     int MaxAnisotropy { get; }
@@ -11,11 +11,8 @@ interface IRenderContext
     void Init(ref GraphicsState requested);
     void ApplyState(ref GraphicsState requested);
     void ApplyViewport(ref GraphicsState requested);
-
     void ApplyScissor(ref GraphicsState requested);
-
     void ApplyRenderTarget(ref GraphicsState requested);
-
     void ApplyShader(IShader shader);
 
     void Set2DState(bool cull, bool depth);
@@ -51,7 +48,7 @@ interface IRenderContext
 
     bool HasFeature(GraphicsFeature feature);
 
-    string GetRenderer();
+    string? GetRenderer();
 
     void MakeCurrent(IntPtr sdlWindow);
     void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen);

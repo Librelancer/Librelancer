@@ -4,19 +4,17 @@
 
 using System;
 
-namespace LibreLancer.Platforms
+namespace LibreLancer.Platforms;
+
+internal interface IPlatform
 {
-	interface IPlatform
-    {
-        void Init(string sdlBackend);
-        string GetLocalConfigFolder();
-		bool IsDirCaseSensitive(string directory);
-        byte[] GetMonospaceBytes();
-        PlatformEvents SubscribeEvents(IUIThread mainThread);
+    void Init(string sdlBackend);
+    string GetLocalConfigFolder();
+    bool IsDirCaseSensitive(string directory);
+    byte[]? GetMonospaceBytes();
+    PlatformEvents SubscribeEvents(IUIThread mainThread);
 
-        MountInfo[] GetMounts();
+    MountInfo[] GetMounts();
 
-        void Shutdown();
-    }
+    void Shutdown();
 }
-

@@ -11,7 +11,7 @@ namespace LibreLancer.ImageLib;
 
 public record PNGAncillaryChunk(string FourCC, byte[] Data);
 
-class ZlibCompress : IDisposable
+internal class ZlibCompress : IDisposable
 {
     private DeflateStream deflate;
     private Stream outputStream;
@@ -65,8 +65,9 @@ class ZlibCompress : IDisposable
 }
 public static partial class PNG
 {
-    const ulong PNG_SIGNATURE = 0xA1A0A0D474E5089;
-    enum ColorType
+    private const ulong PNG_SIGNATURE = 0xA1A0A0D474E5089;
+
+    private enum ColorType
     {
         Grayscale = 0,
         Rgb = 2,
@@ -75,13 +76,13 @@ public static partial class PNG
         Rgba = 6
     }
 
-    static readonly byte[] IEND = {
+    private static readonly byte[] IEND = {
         0x00, 0x00, 0x00, 0x00,
         0x49, 0x45, 0x4E, 0x44,
         0xAE, 0x42, 0x60, 0x82
     };
 
-    static (ColorType, int bytes) Analyze(ReadOnlySpan<Bgra8> data)
+    private static (ColorType, int bytes) Analyze(ReadOnlySpan<Bgra8> data)
     {
         var alpha = false;
         var gray = true;
@@ -101,7 +102,7 @@ public static partial class PNG
         return (ColorType.Rgba, 4);
     }
 
-    static void CopyLine(Span<byte> source, Span<byte> dest, ColorType type, int width)
+    private static void CopyLine(Span<byte> source, Span<byte> dest, ColorType type, int width)
     {
         switch (type)
         {
@@ -134,7 +135,7 @@ public static partial class PNG
         }
     }
 
-    enum FilterType : byte
+    private enum FilterType : byte
     {
         None = 0,
         Sub = 1,
@@ -221,7 +222,7 @@ public static partial class PNG
         }
     }
 
-    struct Chunk: IDisposable
+    private struct Chunk: IDisposable
     {
         public BinaryWriter Writer;
         private MemoryStream stream;
@@ -258,7 +259,7 @@ public static partial class PNG
         public void Dispose() => stream.Dispose();
     }
 
-    static Span<byte> ApplyFilters(Span<byte> prev, Span<byte> curr, int width, int bpp, byte[] buffer, out FilterType filter)
+    private static Span<byte> ApplyFilters(Span<byte> prev, Span<byte> curr, int width, int bpp, byte[] buffer, out FilterType filter)
     {
         var stride = width * bpp;
 
@@ -311,7 +312,7 @@ public static partial class PNG
     }
 
 
-    static byte PaethPredictor(byte a, byte b, byte c)
+    private static byte PaethPredictor(byte a, byte b, byte c)
     {
         var pa = Math.Abs(b - c);
         var pb = Math.Abs(a - c);

@@ -18,13 +18,14 @@ namespace LibreLancer.Graphics.Vertices
             Position = pos;
             Color = color;
         }
-		public VertexDeclaration GetVertexDeclaration()
-		{
-			return new VertexDeclaration (
-				sizeof(float) * 3 + sizeof(float) * 4,
-				new VertexElement (VertexSlots.Position, 3, VertexElementType.Float, false, 0),
-				new VertexElement (VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 3)
-			);
-		}
+
+        public VertexDeclaration GetVertexDeclaration()
+        {
+            return new VertexDeclaration(
+                sizeof(float) * 3 + sizeof(float) * 4,
+                new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
+                new VertexElement(VertexSlots.Color, 4, VertexElementType.Float, false, sizeof(float) * 3)
+            );
+        }
     }
 }

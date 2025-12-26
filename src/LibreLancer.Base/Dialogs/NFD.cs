@@ -3,13 +3,14 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Dialogs;
 
-enum NFDResult : int
+internal enum NFDResult : int
 {
     NFD_ERROR,
     NFD_OKAY,
     NFD_CANCEL
 }
-static unsafe class NFD
+
+internal static unsafe class NFD
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct NFDFilterItem

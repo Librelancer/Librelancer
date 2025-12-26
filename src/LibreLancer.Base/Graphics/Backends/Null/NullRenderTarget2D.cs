@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace LibreLancer.Graphics.Backends.Null;
 
-class NullRenderTarget2D : IRenderTarget2D
+internal class NullRenderTarget2D : IRenderTarget2D
 {
     public NullRenderTarget2D(int width, int height)
     {

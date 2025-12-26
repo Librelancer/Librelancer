@@ -13,7 +13,7 @@ namespace LibreLancer.ImageLib;
 public static class DDS
 {
     [StructLayout(LayoutKind.Sequential)]
-    struct DDS_PIXELFORMAT
+    private struct DDS_PIXELFORMAT
     {
         public uint dwSize;
         public uint dwFlags;
@@ -25,7 +25,7 @@ public static class DDS
         public uint dwABitMask;
     }
     [StructLayout(LayoutKind.Sequential)]
-    unsafe struct DDS_HEADER
+    private unsafe struct DDS_HEADER
     {
         public uint dwSize;
         public uint dwFlags;
@@ -43,31 +43,31 @@ public static class DDS
         public uint dwReserved2;
     }
 
-    const uint DDSD_CAPS = 0x1;
-    const uint DDSD_HEIGHT = 0x2;
-    const uint DDSD_WIDTH = 0x4;
-    const uint DDSD_PITCH = 0x8;
-    const uint DDSD_PIXELFORMAT = 0x1000;
-    const uint DDSD_MIPMAPCOUNT = 0x20000;
-    const uint DDSD_LINEARSIZE = 0x80000;
-    const uint DDSD_DEPTH = 0x800000;
+    private const uint DDSD_CAPS = 0x1;
+    private const uint DDSD_HEIGHT = 0x2;
+    private const uint DDSD_WIDTH = 0x4;
+    private const uint DDSD_PITCH = 0x8;
+    private const uint DDSD_PIXELFORMAT = 0x1000;
+    private const uint DDSD_MIPMAPCOUNT = 0x20000;
+    private const uint DDSD_LINEARSIZE = 0x80000;
+    private const uint DDSD_DEPTH = 0x800000;
 
-    static bool CheckFlag(uint variable, uint flag) => (variable & flag) > 0;
+    private static bool CheckFlag(uint variable, uint flag) => (variable & flag) > 0;
 
-    const uint DDS_MAGIC = 0x20534444;
-    const uint HEADER_SIZE = 124;
-    const uint PFORMAT_SIZE = 32;
+    private const uint DDS_MAGIC = 0x20534444;
+    private const uint HEADER_SIZE = 124;
+    private const uint PFORMAT_SIZE = 32;
 
-    const uint DDSCAPS_TEXTURE = 0x1000;
-    const uint DDSCAPS_MIPMAP = 0x400000;
-    const uint DDSCAPS_COMPLEX = 0x8;
+    private const uint DDSCAPS_TEXTURE = 0x1000;
+    private const uint DDSCAPS_MIPMAP = 0x400000;
+    private const uint DDSCAPS_COMPLEX = 0x8;
 
-    const uint DDSCAPS2_CUBEMAP = 0x200;
-    const uint DDSCAPS2_VOLUME = 0x200000;
+    private const uint DDSCAPS2_CUBEMAP = 0x200;
+    private const uint DDSCAPS2_VOLUME = 0x200000;
 
-    const uint DX10 = 0x30315844;
+    private const uint DX10 = 0x30315844;
     //FourCCs
-    enum FourCC : uint
+    private enum FourCC : uint
     {
         DXT1 = 0x31545844,
         DXT2 = 0x32545844,
@@ -78,7 +78,7 @@ public static class DDS
         ATI1N = 0x31495441
     }
 
-    public static Image[] ImageFromStream(Stream stream)
+    public static Image[]? ImageFromStream(Stream stream)
     {
         var reader = new BinaryReader(stream);
         if (reader.ReadUInt32() != DDS_MAGIC)
@@ -95,13 +95,12 @@ public static class DDS
         if (CheckFlag(header.dwFlags, DDSD_DEPTH) || CheckFlag(header.dwCaps2, DDSCAPS2_VOLUME))
             throw new Exception("3D textures not supported");
 
-        if (CheckFlag(header.dwCaps2, DDSCAPS2_CUBEMAP))
-            return null; //Cubemaps not supported
+        return CheckFlag(header.dwCaps2, DDSCAPS2_CUBEMAP) ? null : //Cubemaps not supported
+            GetImage2D(ref header, reader);
 
-        return GetImage2D(ref header, reader);
     }
 
-    static Image[] GetImage2D(ref DDS_HEADER header, BinaryReader reader)
+    private static Image[]? GetImage2D(ref DDS_HEADER header, BinaryReader reader)
     {
         SurfaceFormat fmt;
         int w, h;
@@ -146,7 +145,7 @@ public static class DDS
         return GetTexture2D(context, ref header, reader);
     }
 
-    static Texture2D GetTexture2D(RenderContext context, ref DDS_HEADER header, BinaryReader reader)
+    private static Texture2D GetTexture2D(RenderContext context, ref DDS_HEADER header, BinaryReader reader)
     {
         SurfaceFormat fmt;
         int w, h;
@@ -156,7 +155,8 @@ public static class DDS
             tex.SetData(i, null, surface[i], 0, surface[i].Length);
         return tex;
     }
-    static TextureCube GetTextureCube(RenderContext context, ref DDS_HEADER header, BinaryReader reader)
+
+    private static TextureCube GetTextureCube(RenderContext context, ref DDS_HEADER header, BinaryReader reader)
     {
         SurfaceFormat fmt;
         int w, h;
@@ -188,7 +188,7 @@ public static class DDS
         return tex;
     }
 
-    static int GetSurfaceBytes(ref DDS_HEADER header, int width, int height)
+    private static int GetSurfaceBytes(ref DDS_HEADER header, int width, int height)
     {
         switch (GetSurfaceFormat(ref header))
         {
@@ -209,7 +209,8 @@ public static class DDS
                 throw new NotSupportedException(header.ddspf.dwFourCC.ToString());
         }
     }
-    static SurfaceFormat GetSurfaceFormat(ref DDS_HEADER header)
+
+    private static SurfaceFormat GetSurfaceFormat(ref DDS_HEADER header)
     {
         //Compressed
         switch (header.ddspf.dwFourCC)
@@ -263,7 +264,7 @@ public static class DDS
         throw new NotSupportedException("Pixel Format (FourCC " + header.ddspf.dwFourCC + ")");
     }
 
-    static byte[][] LoadSurface(ref DDS_HEADER header, BinaryReader reader, out SurfaceFormat fmt, out int width, out int height)
+    private static byte[][] LoadSurface(ref DDS_HEADER header, BinaryReader reader, out SurfaceFormat fmt, out int width, out int height)
     {
         width = (int)header.dwWidth;
         height = (int)header.dwHeight;

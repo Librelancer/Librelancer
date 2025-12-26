@@ -2,6 +2,6 @@ using System;
 
 namespace LibreLancer.Graphics.Backends;
 
-interface IDepthBuffer : IDisposable
+internal interface IDepthBuffer : IDisposable
 {
 }

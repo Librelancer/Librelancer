@@ -13,6 +13,7 @@
     <RepositoryUrl>https://github.com/Librelancer/Librelancer</RepositoryUrl>
     <RootNamespace>LibreLancer</RootNamespace>
     <LangVersion>default</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Graphics;
 
-unsafe class ShaderBytecodes
+internal unsafe class ShaderBytecodes
 {
     private const uint SIGNATURE = 0x72646873; //"shdr"
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct ShaderHeader
+    private struct ShaderHeader
     {
         public uint Magic;
         public uint Version;
@@ -17,7 +17,7 @@ unsafe class ShaderBytecodes
         public uint GlLength;
     }
 
-    static ref readonly ShaderHeader VerifyHeader(ReadOnlySpan<byte> shader)
+    private static ref readonly ShaderHeader VerifyHeader(ReadOnlySpan<byte> shader)
     {
         var header = MemoryMarshal.Cast<byte, ShaderHeader>(shader.Slice(0, sizeof(ShaderHeader)));
         if (header[0].Magic != SIGNATURE)

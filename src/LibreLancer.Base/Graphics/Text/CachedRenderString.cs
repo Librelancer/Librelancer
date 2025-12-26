@@ -4,51 +4,51 @@
 
 using System;
 
-namespace LibreLancer.Graphics.Text
-{
-    public abstract class CachedRenderString
-    {
-        internal string FontName;
-        internal string Text;
-        internal float FontSize;
-        internal bool Underline;
-        internal TextAlignment Alignment;
-        internal bool Shadow;
-        internal float MaxWidth;
+namespace LibreLancer.Graphics.Text;
 
-        //Bail out on long strings
-        static bool FastCompare(string a, string b)
+public abstract class CachedRenderString
+{
+    internal string? FontName;
+    internal string? Text;
+    internal float FontSize;
+    internal bool Underline;
+    internal TextAlignment Alignment;
+    internal bool Shadow;
+    internal float MaxWidth;
+
+    //Bail out on long strings
+    private static bool FastCompare(string? a, string? b)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (a?.Length != b?.Length || a?.Length > 32) return false;
+        return a == b;
+    }
+
+    //Returns true if the text must be updated
+    internal bool Update(
+        string font,
+        string text, float size,
+        bool underline, TextAlignment alignment, bool shadow,
+        float maxWidth
+    )
+    {
+        if (!FastCompare(font, FontName) ||
+            !FastCompare(text, Text) ||
+            Math.Abs(size - FontSize) > float.Epsilon ||
+            underline != Underline ||
+            Alignment != alignment ||
+            Shadow != shadow ||
+            Math.Abs(maxWidth - MaxWidth) > float.Epsilon)
         {
-            if (ReferenceEquals(a, b)) return true;
-            if (a.Length != b.Length || a.Length > 32) return false;
-            return a == b;
+            FontName = font;
+            Text = text;
+            FontSize = size;
+            Underline = underline;
+            Alignment = alignment;
+            Shadow = shadow;
+            MaxWidth = maxWidth;
+            return true;
         }
-        //Returns true if the text must be updated
-        internal bool Update(
-            string font,
-            string text, float size,
-            bool underline, TextAlignment alignment, bool shadow,
-            float maxWidth
-        )
-        {
-            if (!FastCompare(font, FontName) ||
-                !FastCompare(text, Text) ||
-                Math.Abs(size - FontSize) > float.Epsilon ||
-                underline != Underline ||
-                Alignment != alignment ||
-                Shadow != shadow ||
-                Math.Abs(maxWidth - MaxWidth) > float.Epsilon)
-            {
-                FontName = font;
-                Text = text;
-                FontSize = size;
-                Underline = underline;
-                Alignment = alignment;
-                Shadow = shadow;
-                MaxWidth = maxWidth;
-                return true;
-            }
-            return false;
-        }
+        return false;
     }
 }

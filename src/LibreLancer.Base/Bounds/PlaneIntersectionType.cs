@@ -25,13 +25,11 @@ SOFTWARE.
 */
 #endregion License
 
-namespace LibreLancer
-{
-    public enum PlaneIntersectionType
-    {
-        Front,
-        Back,
-        Intersecting
-    }
-}
+namespace LibreLancer;
 
+public enum PlaneIntersectionType
+{
+    Front,
+    Back,
+    Intersecting
+}

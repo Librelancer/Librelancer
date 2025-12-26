@@ -7,30 +7,26 @@ using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Backends;
 using LibreLancer.Graphics.Backends.OpenGL;
 
-namespace LibreLancer.Graphics
+namespace LibreLancer.Graphics;
+
+public sealed class TextureCube : Texture
 {
-    public sealed class TextureCube : Texture
+    private readonly ITextureCube impl;
+    public int Size => impl.Size;
+
+    public TextureCube (RenderContext context, int size, bool mipMap, SurfaceFormat format)
     {
-        private ITextureCube impl;
-        public int Size => impl.Size;
-
-        public TextureCube (RenderContext context, int size, bool mipMap, SurfaceFormat format)
-        {
-            impl = context.Backend.CreateTextureCube(size, mipMap, format);
-            SetBacking(impl);
-        }
-
-        private int maxLevel = 0;
-        private int currentLevels = 0;
-
-        public void SetData<T>(CubeMapFace face, int level, Rectangle? rect, T[] data, int start, int count)
-            where T : unmanaged
-            => impl.SetData(face, level, rect, data, start, count);
-
-        public void SetData<T>(CubeMapFace face, T[] data) where T : unmanaged
-            => impl.SetData(face, data);
-
-        public void SetFiltering(TextureFiltering filtering)
-            => impl.SetFiltering(filtering);
+        impl = context.Backend.CreateTextureCube(size, mipMap, format);
+        SetBacking(impl);
     }
+
+    public void SetData<T>(CubeMapFace face, int level, Rectangle? rect, T[] data, int start, int count)
+        where T : unmanaged
+        => impl.SetData(face, level, rect, data, start, count);
+
+    public void SetData<T>(CubeMapFace face, T[] data) where T : unmanaged
+        => impl.SetData(face, data);
+
+    public void SetFiltering(TextureFiltering filtering)
+        => impl.SetFiltering(filtering);
 }

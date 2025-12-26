@@ -4,18 +4,16 @@
 
 using System;
 
-namespace LibreLancer.Graphics.Vertices
+namespace LibreLancer.Graphics.Vertices;
+
+public class VertexDeclaration
 {
-	public class VertexDeclaration
-	{
-		public int Stride;
-		public VertexElement[] Elements;
+    public int Stride;
+    public VertexElement[] Elements;
 
-		public VertexDeclaration (int stride, params VertexElement[] elements)
-		{
-			Stride = stride;
-			Elements = elements;
-		}
-	}
+    public VertexDeclaration (int stride, params VertexElement[] elements)
+    {
+        Stride = stride;
+        Elements = elements;
+    }
 }
-
